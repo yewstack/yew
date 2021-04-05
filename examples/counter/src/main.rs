@@ -11,7 +11,7 @@ pub enum Msg {
 // Define model for this component
 pub struct Model {
     link: ComponentLink<Self>,
-    value: i64,  // This will store the counter value
+    value: i64, // This will store the counter value
 }
 
 impl Component for Model {
@@ -26,13 +26,13 @@ impl Component for Model {
         match msg {
             Msg::Increment => {
                 self.value += 1;
-                ConsoleService::log("plus one");  // Will output a string to the browser console
-                true  // Return true to cause the displayed change to update
+                ConsoleService::log("plus one"); // Will output a string to the browser console
+                true // Return true to cause the displayed change to update
             }
             Msg::Decrement => {
                 self.value -= 1;
                 ConsoleService::log("minus one"); // Will output a string to the browser console
-                true  // Return true to cause the displayed change to update
+                true // Return true to cause the displayed change to update
             }
         }
     }
@@ -49,19 +49,19 @@ impl Component for Model {
                     <button class="button" onclick=self.link.callback(|_| Msg::Increment)>
                         { "+1" }
                     </button>
-    
+
                     // A button to send the Decrement message
                     <button onclick=self.link.callback(|_| Msg::Decrement)>
                         { "-1" }
                     </button>
-    
+
                     // A button to send two Increment messages
                     <button onclick=self.link.batch_callback(|_| vec![Msg::Increment, Msg::Increment])>
                         { "+1, +1" }
                     </button>
-    
+
                 </div>
-                
+
                 // Display the contents of the component
                 <p class="counter">
                     { self.value }
