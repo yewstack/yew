@@ -69,7 +69,7 @@ impl Component for Model {
 
                 // Display the current date and time the page was rendered
                 <p class="footer">
-                    { "Rendered at: " }
+                    { "Rendered: " }
                     { String::from(Date::new_0().to_string()) }
                 </p>
             </div>
