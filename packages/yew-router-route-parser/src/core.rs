@@ -11,7 +11,6 @@ use nom::{
         is_digit,
     },
     combinator::{map, map_parser},
-    error::ErrorKind,
     sequence::{delimited, separated_pair},
     IResult,
 };
@@ -84,11 +83,11 @@ fn get_colon(i: &str) -> IResult<&str, (), ParseError> {
         .map_err(|_: nom::Err<()>| nom::Err::Error(ParseError::expected(ExpectedToken::Colon)))
 }
 
-fn rust_ident(i: &str) -> IResult<&str, &str, ParseError> {
+fn rust_ident<'a>(i: &'a str) -> IResult<&'a str, &'a str, ParseError> {
     let invalid_ident_chars = r##" \|/{[]()?+=-!@#$%^&*~`'";:"##;
     // Detect an ident by first reading until a } is found,
     // then validating the captured section against invalid characters that can't be in rust idents.
-    map_parser(take_till1(move |c| c == '}'), move |i: &str| {
+    map_parser(take_till1(move |c| c == '}'), move |i: &'a str| {
         match take_till1::<_, _, ()>(|c| invalid_ident_chars.contains(c))(i) {
             Ok((remain, got)) => {
                 // Detects if the first character is a digit.
@@ -151,9 +150,9 @@ fn exact_impl(special_chars: &'static str) -> impl Fn(&str) -> IResult<&str, &st
             take_till1(move |c| special_chars.contains(c)),
             escaped_item_impl,
         ))(i)
-        .map_err(|x: nom::Err<(&str, ErrorKind)>| {
+        .map_err(|x: nom::Err<nom::error::Error<&str>>| {
             let s = match x {
-                nom::Err::Error((s, _)) | nom::Err::Failure((s, _)) => s,
+                nom::Err::Error(e) | nom::Err::Failure(e) => e.input,
                 nom::Err::Incomplete(_) => panic!(),
             };
             nom::Err::Error(ParseError {
@@ -179,7 +178,7 @@ pub fn fragment_exact(i: &str) -> IResult<&str, RouteParserToken, ParseError> {
 
 pub fn capture<'a>(
     field_naming_scheme: FieldNamingScheme,
-) -> impl Fn(&'a str) -> IResult<&'a str, RouteParserToken<'a>, ParseError> {
+) -> impl FnMut(&'a str) -> IResult<&'a str, RouteParserToken<'a>, ParseError> {
     map(capture_impl(field_naming_scheme), RouteParserToken::Capture)
 }
 

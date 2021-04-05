@@ -1,53 +1,60 @@
 ---
-description: HTML 和 SVG 元素均受支持
+title: 元素标签
+description: HTML 和 SVG 元素标签均受支持
+id: version-0.17.3-elements
+original_id: elements
 ---
-
-# 元素
 
 ## 标签结构
 
 元素标签必须是自闭合的 `<... />`，或是每个标签都有一个对应的闭合标签。
 
 <!--DOCUSAURUS_CODE_TABS-->
-<!--标签 - 闭合标签-->
+
+<!--Open - Close-->
+
 ```rust
 html! {
   <div id="my_div"></div>
 }
 ```
 
-<!--无效-->
+<!--Invalid-->
+
 ```rust
 html! {
   <div id="my_div"> // <- 缺少闭合标签
 }
 ```
 
-<!--自闭合-->
+<!--Self-closing-->
+
 ```rust
 html! {
   <input id="my_input" />
 }
 ```
 
-<!--无效-->
+<!--Invalid-->
+
 ```rust
 html! {
   <input id="my_input"> // <- 没有自闭合
 }
 ```
+
 <!--END_DOCUSAURUS_CODE_TABS-->
 
-:::note
-为方便起见，一些 _通常_ 需要闭合标签的元素是被**允许**自闭合的。例如，`html! { <div class="placeholder" /> }` 这样写是有效的。
-:::
+:::note 为方便起见，一些 *通常* 需要闭合标签的元素是被**允许**自闭合的。例如，`html! { <div class="placeholder" /> }` 这样写是有效的。 :::
 
 ## Children
 
 轻松创建复杂的嵌套 HTML 和 SVG 布局：
 
 <!--DOCUSAURUS_CODE_TABS-->
+
 <!--HTML-->
+
 ```rust
 html! {
     <div>
@@ -68,6 +75,7 @@ html! {
 ```
 
 <!--SVG-->
+
 ```rust
 html! {
     <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -87,6 +95,7 @@ html! {
     </svg>
 }
 ```
+
 <!--END_DOCUSAURUS_CODE_TABS-->
 
 ## Classes
@@ -94,35 +103,41 @@ html! {
 有许多方便的选项可用于元素指定 classes：
 
 <!--DOCUSAURUS_CODE_TABS-->
-<!--常量-->
+
+<!--Literal-->
+
 ```rust
 html! {
   <div class="container"></div>
 }
 ```
 
-<!--多个属性-->
+<!--Multiple-->
+
 ```rust
 html! {
   <div class="container center-align"></div>
 }
 ```
 
-<!--插值-->
+<!--Interpolated-->
+
 ```rust
 html! {
   <div class=format!("{}-container", size)></div>
 }
 ```
 
-<!--表达式-->
+<!--Expression-->
+
 ```rust
 html! {
   <div class=self.classes()></div>
 }
 ```
 
-<!--元组-->
+<!--Tuple-->
+
 ```rust
 html! {
   <div class=("class-1", "class-2")></div>
@@ -130,11 +145,13 @@ html! {
 ```
 
 <!--Vector-->
+
 ```rust
 html! {
   <div class=vec!["class-1", "class-2"]></div>
 }
 ```
+
 <!--END_DOCUSAURUS_CODE_TABS-->
 
 ## 监听器
@@ -142,7 +159,9 @@ html! {
 监听器属性需要传递一个由闭包包裹的 `Callback`。创建回调的方式取决于你希望你的应用程序如何响应监听器事件：
 
 <!--DOCUSAURUS_CODE_TABS-->
-<!--Component 处理器-->
+
+<!--Component handler-->
+
 ```rust
 struct MyComponent {
     link: ComponentLink<Self>,
@@ -180,7 +199,8 @@ impl Component for MyComponent {
 }
 ```
 
-<!--Agent 处理器-->
+<!--Agent Handler-->
+
 ```rust
 struct MyComponent {
     worker: Dispatcher<MyWorker>,
@@ -212,7 +232,8 @@ impl Component for MyComponent {
 }
 ```
 
-<!--其他情况-->
+<!--Other Cases-->
+
 ```rust
 struct MyComponent;
 
@@ -242,5 +263,108 @@ impl Component for MyComponent {
     }
 }
 ```
+
 <!--END_DOCUSAURUS_CODE_TABS-->
 
+## 事件类型
+
+:::note 在下表中， 只有当`yew`与`web-sys`一起使用时，才应使用`web-sys`的事件类型（默认情况下启用）。如果您使用的是`yew-stdweb` crate，请使用`stdweb`。更多有关信息，请参见<a href="https://yew.rs/docs/getting-started/choose-web-library" data-md-type="link">有关选择是选择`web-sys`还是`stdweb`</a> :::
+
+:::note 下表中提到的所有事件类型都已在`yew::events`下重新导出。 比起手动将 `web-sys`或`stdweb`作为依赖项添加到你的 crate 中， 使用`yew::events`中的类型更容易确保版本兼容性，因为这样可以避免与指定的 Yew 版本冲突。 :::
+
+事件名称 | `web_sys` 事件类型 | `stdweb` 事件类型
+--- | --- | ---
+`onabort` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [ResourceAbortEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ResourceAbortEvent.html)
+`onauxclick` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [AuxClickEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.AuxClickEvent.html)
+`onblur` | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html) | [BlurEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.BlurEvent.html)
+`oncancel` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`oncanplay` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`oncanplaythrough` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onchange` | [ChangeData](https://docs.rs/yew/latest/yew/events/enum.ChangeData.html) | [ChangeData](https://docs.rs/yew-stdweb/latest/yew_stdweb/events/enum.ChangeData.html)
+`onclick` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [ClickEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ClickEvent.html)
+`onclose` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`oncontextmenu` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [ContextMenuEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ContextMenuEvent.html)
+`oncuechange` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`ondblclick` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [DoubleClickEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DoubleClickEvent.html)
+`ondrag` | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html) | [DragEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DragEvent.html)
+`ondragend` | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html) | [DragEndEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DragEndEvent.html)
+`ondragenter` | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html) | [DragEnterEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DragEnterEvent.html)
+`ondragexit` | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html) | [DragExitEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DragExitEvent.html)
+`ondragleave` | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.htmk) | [DragLeaveEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DragLeaveEvent.html)
+`ondragover` | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html) | [DragOverEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DragOverEvent.html)
+`ondragstart` | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html) | [DragStartEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DragStartEvent.html)
+`ondrop` | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html) | [DragDropEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.DragDropEvent.html)
+`ondurationchange` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onemptied` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onended` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onerror` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [ResourceErrorEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ResourceErrorEvent.html)
+`onfocus` | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html) | [FocusEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.FocusEvent.html)
+`onformdata` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`oninput` | [InputData](https://docs.rs/yew/latest/yew/events/struct.InputData.html) | [InputData](https://docs.rs/yew-stdweb/latest/yew_stdweb/events/struct.InputData.html)
+`oninvalid` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onkeydown` | [KeyboardEvent](https://docs.rs/web-sys/latest/web_sys/struct.KeyboardEvent.html) | [KeyDownEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.KeyDownEvent.html)
+`onkeypress` | [KeyboardEvent](https://docs.rs/web-sys/latest/web_sys/struct.KeyboardEvent.html) | [KeyPressEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.KeyPressEvent.html)
+`onkeyup` | [KeyboardEvent](https://docs.rs/web-sys/latest/web_sys/struct.KeyboardEvent.html) | [KeyUpEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.KeyUpEvent.html)
+`onload` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [ResourceLoadEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ResourceLoadEvent.html)
+`onloadeddata` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onloadedmetadata` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onloadstart` | [ProgressEvent](https://docs.rs/web-sys/latest/web_sys/struct.ProgressEvent.html) | [LoadStartEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.LoadStartEvent.html)
+`onmousedown` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [MouseDownEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.MouseDownEvent.html)
+`onmouseenter` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [MouseEnterEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.MouseEnterEvent.html)
+`onmouseleave` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [MouseLeaveEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.MouseLeaveEvent.html)
+`onmousemove` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [MouseMoveEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.MouseMoveEvent.html)
+`onmouseout` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [MouseOutEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.MouseOutEvent.html)
+`onmouseover` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [MouseOverEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.MouseOverEvent.html)
+`onmouseup` | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html) | [MouseUpEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.MouseUpEvent.html)
+`onpause` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onplay` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onplaying` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onprogress` | [ProgressEvent](https://docs.rs/web-sys/latest/web_sys/struct.ProgressEvent.html) | [ProgressEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ProgressEvent.html)
+`onratechange` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onreset` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onresize` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [ResizeEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ResizeEvent.html)
+`onscroll` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [ScrollEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.ScrollEvent.html)
+`onsecuritypolicyviolation` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onseeked` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onseeking` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onselect` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onslotchange` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [SlotChangeEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.SlotChangeEvent.html)
+`onstalled` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onsubmit` | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html) | [SubmitEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.SubmitEvent.html)
+`onsuspend` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`ontimeupdate` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`ontoggle` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onvolumechange` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onwaiting` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onwheel` | [WheelEvent](https://docs.rs/web-sys/latest/web_sys/struct.WheelEvent.html) | [MouseWheelEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.MouseWheelEvent.html)
+`oncopy` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`oncut` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onpaste` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onanimationcancel` | [AnimationEvent](https://docs.rs/web-sys/latest/web_sys/struct.AnimationEvent.html) | 不支持
+`onanimationend` | [AnimationEvent](https://docs.rs/web-sys/latest/web_sys/struct.AnimationEvent.html) | 不支持
+`onanimationiteration` | [AnimationEvent](https://docs.rs/web-sys/latest/web_sys/struct.AnimationEvent.html) | 不支持
+`onanimationstart` | [AnimationEvent](https://docs.rs/web-sys/latest/web_sys/struct.AnimationEvent.html) | 不支持
+`ongotpointercapture` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [GotPointerCaptureEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.GotPointerCaptureEvent.html)
+`onloadend` | [ProgressEvent](https://docs.rs/web-sys/latest/web_sys/struct.ProgressEvent.html) | [LoadEndEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.LoadEndEvent.html)
+`onlostpointercapture` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [LostPointerCaptureEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.LostPointerCaptureEvent.html)
+`onpointercancel` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [PointerCancelEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerCancelEvent.html)
+`onpointerdown` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [PointerDownEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerDownEvent.html)
+`onpointerenter` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [PointerEnterEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerEnterEvent.html)
+`onpointerleave` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [PointerLeaveEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerLeaveEvent.html)
+`onpointerlockchange` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [PointerLockChangeEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerLockChangeEvent.html)
+`onpointerlockerror` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [PointerLockErrorEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerLockErrorEvent.html)
+`onpointermove` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [PointerMoveEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerMoveEvent.html)
+`onpointerout` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [PointerOutEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerOutEvent.html)
+`onpointerover` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [PointerOverEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerOverEvent.html)
+`onpointerup` | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html) | [PointerUpEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.PointerUpEvent.html)
+`onselectionchange` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | [SelectionChangeEvent](https://docs.rs/stdweb/latest/stdweb/web/event/struct.SelectionChangeEvent.html)
+`onselectstart` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`onshow` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html) | 不支持
+`ontouchcancel` | [TouchEvent](https://docs.rs/web-sys/latest/web_sys/struct.TouchEvent.html) | [TouchCancel](https://docs.rs/stdweb/latest/stdweb/web/event/struct.TouchCancel.html)
+`ontouchend` | [TouchEvent](https://docs.rs/web-sys/latest/web_sys/struct.TouchEvent.html) | [TouchEnd](https://docs.rs/stdweb/latest/stdweb/web/event/struct.TouchEnd.html)
+`ontouchmove` | [TouchEvent](https://docs.rs/web-sys/latest/web_sys/struct.TouchEvent.html) | [TouchMove](https://docs.rs/stdweb/latest/stdweb/web/event/struct.TouchMove.html)
+`ontouchstart` | [TouchEvent](https://docs.rs/web-sys/latest/web_sys/struct.TouchEvent.html) | [TouchStart](https://docs.rs/stdweb/latest/stdweb/web/event/struct.TouchStart.html)
+`ontransitioncancel` | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) | 不支持
+`ontransitionend` | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) | 不支持
+`ontransitionrun` | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) | 不支持
+`ontransitionstart` | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) | 不支持

@@ -1,11 +1,13 @@
 ---
 title: Refs
-description: 超出界限的 DOM 访问
+description: 界限之外的 DOM 访问
+id: version-0.17.3-refs
+original_id: refs
 ---
 
-`ref` 关键词可被用在任何 HTML 元素或组件内部以获得该项所附加到的 DOM 元素。这可被用于在 `view` 生命周期方法之外来对 DOM 进行更改。
+`ref` 关键词可被用在任何 HTML 元素或组件内部以获得与之相关联的 DOM `元素` 。这样就能在 `view` 生命周期方法之外对 DOM 进行更改。
 
-这对于获取 canvas 元素或者滚动到页面的不同部分是有用的。
+用这个可以方便地获取 canvas 元素或者滚动到页面的不同部分。
 
 语法如下：
 
