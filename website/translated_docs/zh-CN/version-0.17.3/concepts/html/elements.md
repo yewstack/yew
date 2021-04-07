@@ -45,7 +45,9 @@ html! {
 
 <!--END_DOCUSAURUS_CODE_TABS-->
 
-:::note 为方便起见，一些 *通常* 需要闭合标签的元素是被**允许**自闭合的。例如，`html! { <div class="placeholder" /> }` 这样写是有效的。 :::
+:::note
+为方便起见，一些 *通常* 需要闭合标签的元素是被**允许**自闭合的。例如，`html! { <div class="placeholder" /> }` 这样写是有效的。 
+:::
 
 ## Children
 
@@ -268,9 +270,13 @@ impl Component for MyComponent {
 
 ## 事件类型
 
-:::note 在下表中， 只有当`yew`与`web-sys`一起使用时，才应使用`web-sys`的事件类型（默认情况下启用）。如果您使用的是`yew-stdweb` crate，请使用`stdweb`。更多有关信息，请参见<a href="https://yew.rs/docs/getting-started/choose-web-library" data-md-type="link">有关选择是选择`web-sys`还是`stdweb`</a> :::
+:::note
+在下表中， 只有当`yew`与`web-sys`一起使用时，才应使用`web-sys`的事件类型（默认情况下启用）。如果您使用的是`yew-stdweb` crate，请使用`stdweb`。更多有关信息，请参见<a href="https://yew.rs/docs/getting-started/choose-web-library" data-md-type="link">有关选择是选择`web-sys`还是`stdweb`</a> 
+:::
 
-:::note 下表中提到的所有事件类型都已在`yew::events`下重新导出。 比起手动将 `web-sys`或`stdweb`作为依赖项添加到你的 crate 中， 使用`yew::events`中的类型更容易确保版本兼容性，因为这样可以避免与指定的 Yew 版本冲突。 :::
+:::note
+下表中提到的所有事件类型都已在`yew::events`下重新导出。 比起手动将 `web-sys`或`stdweb`作为依赖项添加到你的 crate 中， 使用`yew::events`中的类型更容易确保版本兼容性，因为这样可以避免与指定的 Yew 版本冲突。 
+:::
 
 事件名称 | `web_sys` 事件类型 | `stdweb` 事件类型
 --- | --- | ---

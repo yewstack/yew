@@ -60,7 +60,9 @@ impl Component for Container {
 }
 ```
 
-:::note 要派生`Properties`的类型也必须实现`Clone` 。这同样可以通过使用`#[derive(Properties, Clone)]`或手动为您的类型实现`Clone` :::
+:::note
+要派生`Properties`的类型也必须实现`Clone` 。这同样可以通过使用`#[derive(Properties, Clone)]`或手动为您的类型实现`Clone` 
+:::
 
 ## 拥有 Props 的嵌套子组件
 
