@@ -9,7 +9,9 @@ original_id: roadmap
 
 由社区决定将来特性的开发优先度以及需要侧重的关注点。 在2020年春季，发起过开发者调查问卷，收集有关项目发展方向的反馈。您可以在[Yew Wiki中](https://github.com/yewstack/yew/wiki/Dev-Survey-%5BSpring-2020%5D)找到摘要。
 
-:::note 可以在[Yew Github项目 ](https://github.com/yewstack/yew/projects)中跟踪所有主要计划的状态 :::
+:::note
+可以在[Yew Github项目 ](https://github.com/yewstack/yew/projects)中跟踪所有主要计划的状态 
+:::
 
 ## 关注点
 

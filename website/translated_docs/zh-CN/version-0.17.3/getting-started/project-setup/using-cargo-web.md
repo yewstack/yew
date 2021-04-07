@@ -30,4 +30,6 @@ cargo web start
 - `wasm32-unknown-emscripten`
 - `asmjs-unknown-emscripten`
 
-:::note <br>对于 `*-emscripten` 的目标代码， 你需要安装 Emscripten SDK。 <br>:::
+:::note
+对于 `*-emscripten` 的目标代码， 你需要安装 Emscripten SDK。
+:::
