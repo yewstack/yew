@@ -22,7 +22,7 @@ text_format!(Json based on serde_json);
 binary_format!(Json based on serde_json);
 
 impl<T> Json<T> {
-    // Consumes the JSON wrapper and returns the wrapped item.
+    /// Consumes the JSON wrapper and returns the wrapped item.
     #[inline(always)]
     pub fn into_inner(self) -> T {
         self.0
