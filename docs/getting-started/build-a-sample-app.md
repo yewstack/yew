@@ -108,7 +108,7 @@ cargo install --locked trunk
 cargo install wasm-bindgen-cli
 ```
 
-Also specify the rust target.
+Also specify the WASM target.
 ```
 rustup target add wasm32-unknown-unknown
 ```
