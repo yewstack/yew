@@ -6,19 +6,19 @@ A routing library for the [Yew](https://github.com/yewstack/yew) frontend framew
 ```rust
 #[derive(Switch, Debug, Clone)]
 pub enum AppRoute {
-    #[to = "/profile/{id}"]
+    #[at = "/profile/{id}"]
     Profile(u32),
-    #[to = "/forum{*:rest}"]
+    #[at = "/forum{*:rest}"]
     Forum(ForumRoute),
-    #[to = "/"]
+    #[at = "/"]
     Index,
 }
 
 #[derive(Switch, Debug, Clone)]
 pub enum ForumRoute {
-    #[to = "/{subforum}/{thread_slug}"]
+    #[at = "/{subforum}/{thread_slug}"]
     SubForumAndThread{subforum: String, thread_slug: String}
-    #[to = "/{subforum}"]
+    #[at = "/{subforum}"]
     SubForum{subforum: String}
 }
 
@@ -60,7 +60,7 @@ yew = "0.17.0"
 You can use the in-development version in your project by adding it to your dependencies like so:
 ```toml
 [dependencies]
-yew-router = { git = "https://github.com/yewstack/yew_router", branch="master" }
+yew-router = { git = "https://github.com/yewstack/yew", branch="master" }
 yew = {git = "https://github.com/yewstack/yew", branch = "master"}
 ```
 

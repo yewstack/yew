@@ -22,6 +22,7 @@ private = true
 namespace = "core"
 
 [tasks.pr-flow]
+toolchain = "stable"
 category = "Checks"
 description = "Lint and test"
 run_task = { name = ["lint", "tests"], fork = true }
@@ -36,10 +37,7 @@ category = "Testing"
 description = "Run all tests"
 dependencies = ["tests-setup"]
 env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["**/examples/*"] }
-run_task = { name = [
-    "test-flow",
-    "doc-test-flow",
-], fork = true, cleanup_task = "tests-cleanup" }
+run_task = { name = ["test-flow", "doc-test-flow"], fork = true }
 
 [tasks.benchmarks]
 category = "Testing"

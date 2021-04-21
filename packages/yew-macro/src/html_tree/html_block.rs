@@ -32,7 +32,7 @@ impl Parse for HtmlBlock {
             BlockContent::Node(Box::new(content.parse()?))
         };
 
-        Ok(HtmlBlock { brace, content })
+        Ok(HtmlBlock { content, brace })
     }
 }
 

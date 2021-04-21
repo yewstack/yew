@@ -1,0 +1,347 @@
+error: this opening tag has no corresponding closing tag
+  --> $DIR/component-fail.rs:55:13
+   |
+55 |     html! { <Child> };
+   |             ^^^^^^^
+
+error: unexpected end of input, expected identifier
+  --> $DIR/component-fail.rs:56:13
+   |
+56 |     html! { <Child:: /> };
+   |             ^^^^^^^^^^^
+
+error: expected expression following this `with`
+  --> $DIR/component-fail.rs:57:20
+   |
+57 |     html! { <Child with /> };
+   |                    ^^^^
+
+error: `props` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
+  --> $DIR/component-fail.rs:58:20
+   |
+58 |     html! { <Child props /> };
+   |                    ^^^^^
+
+error: this opening tag has no corresponding closing tag
+  --> $DIR/component-fail.rs:59:13
+   |
+59 |     html! { <Child with props > };
+   |             ^^^^^^^^^^^^^^^^^^^
+
+error: there are two `with <props>` definitions for this component (note: you can only define `with <props>` once)
+  --> $DIR/component-fail.rs:61:20
+   |
+61 |     html! { <Child with p1 with p2 /> };
+   |                    ^^^^^^^
+
+error: `ref` can only be set once
+  --> $DIR/component-fail.rs:62:38
+   |
+62 |     html! { <Child with props ref=() ref=() /> };
+   |                                      ^^^
+
+error: `ref` can only be set once
+  --> $DIR/component-fail.rs:63:38
+   |
+63 |     html! { <Child with props ref=() ref=() value=1 /> };
+   |                                      ^^^
+
+error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
+  --> $DIR/component-fail.rs:64:38
+   |
+64 |     html! { <Child with props ref=() value=1 ref=() /> };
+   |                                      ^^^^^
+
+error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
+  --> $DIR/component-fail.rs:65:31
+   |
+65 |     html! { <Child with props value=1 ref=()  ref=() /> };
+   |                               ^^^^^
+
+error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
+  --> $DIR/component-fail.rs:66:20
+   |
+66 |     html! { <Child value=1 with props  ref=()  ref=() /> };
+   |                    ^^^^^
+
+error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
+  --> $DIR/component-fail.rs:67:20
+   |
+67 |     html! { <Child value=1 ref=() with props ref=() /> };
+   |                    ^^^^^
+
+error: `ref` can only be set once
+  --> $DIR/component-fail.rs:68:27
+   |
+68 |     html! { <Child ref=() ref=() value=1  with props  /> };
+   |                           ^^^
+
+error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
+  --> $DIR/component-fail.rs:70:20
+   |
+70 |     html! { <Child value=1 with props /> };
+   |                    ^^^^^
+
+error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
+  --> $DIR/component-fail.rs:71:31
+   |
+71 |     html! { <Child with props value=1 /> };
+   |                               ^^^^^
+
+error: expected identifier, found keyword `type`
+  --> $DIR/component-fail.rs:72:20
+   |
+72 |     html! { <Child type=0 /> };
+   |                    ^^^^ expected identifier, found keyword
+   |
+help: you can escape reserved keywords to use them as identifiers
+   |
+72 |     html! { <Child r#type=0 /> };
+   |                    ^^^^^^
+
+error: expected a valid Rust identifier
+  --> $DIR/component-fail.rs:73:20
+   |
+73 |     html! { <Child invalid-prop-name=0 /> };
+   |                    ^^^^^^^^^^^^^^^^^
+
+error: expected an expression following this equals sign
+  --> $DIR/component-fail.rs:75:26
+   |
+75 |     html! { <Child string= /> };
+   |                          ^
+
+error: `int` can only be specified once but is given here again
+  --> $DIR/component-fail.rs:76:26
+   |
+76 |     html! { <Child int=1 int=2 int=3 /> };
+   |                          ^^^
+
+error: `int` can only be specified once but is given here again
+  --> $DIR/component-fail.rs:76:32
+   |
+76 |     html! { <Child int=1 int=2 int=3 /> };
+   |                                ^^^
+
+error: `ref` can only be specified once
+  --> $DIR/component-fail.rs:81:26
+   |
+81 |     html! { <Child int=1 ref=() ref=() /> };
+   |                          ^^^
+
+error: this closing tag has no corresponding opening tag
+  --> $DIR/component-fail.rs:84:13
+   |
+84 |     html! { </Child> };
+   |             ^^^^^^^^
+
+error: this opening tag has no corresponding closing tag
+  --> $DIR/component-fail.rs:85:13
+   |
+85 |     html! { <Child><Child></Child> };
+   |             ^^^^^^^
+
+error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
+  --> $DIR/component-fail.rs:86:28
+   |
+86 |     html! { <Child></Child><Child></Child> };
+   |                            ^^^^^^^^^^^^^^^
+
+error: cannot specify the `children` prop when the component already has children
+   --> $DIR/component-fail.rs:105:25
+    |
+105 |         <ChildContainer children=children>
+    |                         ^^^^^^^^
+
+error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
+   --> $DIR/component-fail.rs:112:9
+    |
+112 |         <span>{ 2 }</span>
+    |         ^^^^^^^^^^^^^^^^^^
+
+error: optional attributes are only supported on elements. Components can use `Option<T>` properties to accomplish the same thing.
+   --> $DIR/component-fail.rs:115:28
+    |
+115 |     html! { <TestComponent value?="not_supported" /> };
+    |                            ^^^^^
+
+error[E0425]: cannot find value `blah` in this scope
+  --> $DIR/component-fail.rs:69:25
+   |
+69 |     html! { <Child with blah /> };
+   |                         ^^^^ not found in this scope
+
+error[E0609]: no field `r#type` on type `ChildProperties`
+  --> $DIR/component-fail.rs:72:20
+   |
+72 |     html! { <Child type=0 /> };
+   |                    ^^^^ unknown field
+   |
+   = note: available fields are: `string`, `int`
+
+error[E0599]: no method named `r#type` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
+  --> $DIR/component-fail.rs:72:20
+   |
+4  | #[derive(Clone, Properties, PartialEq)]
+   |                 ---------- method `r#type` not found for this
+...
+72 |     html! { <Child type=0 /> };
+   |                    ^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
+
+error[E0609]: no field `unknown` on type `ChildProperties`
+  --> $DIR/component-fail.rs:74:20
+   |
+74 |     html! { <Child unknown="unknown" /> };
+   |                    ^^^^^^^ unknown field
+   |
+   = note: available fields are: `string`, `int`
+
+error[E0599]: no method named `unknown` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
+  --> $DIR/component-fail.rs:74:20
+   |
+4  | #[derive(Clone, Properties, PartialEq)]
+   |                 ---------- method `unknown` not found for this
+...
+74 |     html! { <Child unknown="unknown" /> };
+   |                    ^^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
+
+error[E0277]: the trait bound `yew::virtual_dom::VComp: Transformer<(), String>` is not satisfied
+  --> $DIR/component-fail.rs:77:33
+   |
+77 |     html! { <Child int=1 string={} /> };
+   |                                 ^^ the trait `Transformer<(), String>` is not implemented for `yew::virtual_dom::VComp`
+   |
+   = help: the following implementations were found:
+             <yew::virtual_dom::VComp as Transformer<&'a T, Option<T>>>
+             <yew::virtual_dom::VComp as Transformer<&'a T, T>>
+             <yew::virtual_dom::VComp as Transformer<&'a str, Option<String>>>
+             <yew::virtual_dom::VComp as Transformer<&'a str, String>>
+           and 3 others
+   = note: required by `transform`
+
+error[E0277]: the trait bound `yew::virtual_dom::VComp: Transformer<{integer}, String>` is not satisfied
+  --> $DIR/component-fail.rs:78:33
+   |
+78 |     html! { <Child int=1 string=3 /> };
+   |                                 ^ the trait `Transformer<{integer}, String>` is not implemented for `yew::virtual_dom::VComp`
+   |
+   = help: the following implementations were found:
+             <yew::virtual_dom::VComp as Transformer<&'a T, Option<T>>>
+             <yew::virtual_dom::VComp as Transformer<&'a T, T>>
+             <yew::virtual_dom::VComp as Transformer<&'a str, Option<String>>>
+             <yew::virtual_dom::VComp as Transformer<&'a str, String>>
+           and 3 others
+   = note: required by `transform`
+
+error[E0277]: the trait bound `yew::virtual_dom::VComp: Transformer<{integer}, String>` is not satisfied
+  --> $DIR/component-fail.rs:79:33
+   |
+79 |     html! { <Child int=1 string={3} /> };
+   |                                 ^^^ the trait `Transformer<{integer}, String>` is not implemented for `yew::virtual_dom::VComp`
+   |
+   = help: the following implementations were found:
+             <yew::virtual_dom::VComp as Transformer<&'a T, Option<T>>>
+             <yew::virtual_dom::VComp as Transformer<&'a T, T>>
+             <yew::virtual_dom::VComp as Transformer<&'a str, Option<String>>>
+             <yew::virtual_dom::VComp as Transformer<&'a str, String>>
+           and 3 others
+   = note: required by `transform`
+
+error[E0308]: mismatched types
+  --> $DIR/component-fail.rs:80:30
+   |
+80 |     html! { <Child int=1 ref=() /> };
+   |                              ^^ expected struct `NodeRef`, found `()`
+
+error[E0277]: the trait bound `yew::virtual_dom::VComp: Transformer<u32, i32>` is not satisfied
+  --> $DIR/component-fail.rs:82:24
+   |
+82 |     html! { <Child int=0u32 /> };
+   |                        ^^^^ the trait `Transformer<u32, i32>` is not implemented for `yew::virtual_dom::VComp`
+   |
+   = help: the following implementations were found:
+             <yew::virtual_dom::VComp as Transformer<&'a T, Option<T>>>
+             <yew::virtual_dom::VComp as Transformer<&'a T, T>>
+             <yew::virtual_dom::VComp as Transformer<&'a str, Option<String>>>
+             <yew::virtual_dom::VComp as Transformer<&'a str, String>>
+           and 3 others
+   = note: required by `transform`
+
+error[E0599]: no method named `string` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
+  --> $DIR/component-fail.rs:83:20
+   |
+4  | #[derive(Clone, Properties, PartialEq)]
+   |                 ---------- method `string` not found for this
+...
+83 |     html! { <Child string="abc" /> };
+   |                    ^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
+
+error[E0609]: no field `children` on type `ChildProperties`
+  --> $DIR/component-fail.rs:87:14
+   |
+87 |     html! { <Child>{ "Not allowed" }</Child> };
+   |              ^^^^^ unknown field
+   |
+   = note: available fields are: `string`, `int`
+
+error[E0599]: no method named `children` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
+  --> $DIR/component-fail.rs:87:14
+   |
+4  | #[derive(Clone, Properties, PartialEq)]
+   |                 ---------- method `children` not found for this
+...
+87 |     html! { <Child>{ "Not allowed" }</Child> };
+   |              ^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
+
+error[E0609]: no field `children` on type `ChildProperties`
+  --> $DIR/component-fail.rs:91:10
+   |
+91 |         <Child with ChildProperties { string: "hello".to_owned(), int: 5 }>
+   |          ^^^^^ unknown field
+   |
+   = note: available fields are: `string`, `int`
+
+error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
+  --> $DIR/component-fail.rs:96:14
+   |
+30 | #[derive(Clone, Properties)]
+   |                 ---------- method `build` not found for this
+...
+96 |     html! { <ChildContainer /> };
+   |              ^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
+
+error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
+  --> $DIR/component-fail.rs:97:14
+   |
+30 | #[derive(Clone, Properties)]
+   |                 ---------- method `build` not found for this
+...
+97 |     html! { <ChildContainer></ChildContainer> };
+   |              ^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
+
+error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VText>` is not satisfied
+  --> $DIR/component-fail.rs:98:31
+   |
+98 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
+   |                               ^^^^^^^^^^^^^ the trait `From<yew::virtual_dom::VText>` is not implemented for `VChild<Child>`
+   |
+   = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `yew::virtual_dom::VText`
+   = note: required by `into`
+
+error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
+  --> $DIR/component-fail.rs:99:29
+   |
+99 |     html! { <ChildContainer><></></ChildContainer> };
+   |                             ^ the trait `From<VNode>` is not implemented for `VChild<Child>`
+   |
+   = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
+   = note: required by `into`
+
+error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
+   --> $DIR/component-fail.rs:100:30
+    |
+100 |     html! { <ChildContainer><other /></ChildContainer> };
+    |                              ^^^^^ the trait `From<VNode>` is not implemented for `VChild<Child>`
+    |
+    = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
+    = note: required by `into`

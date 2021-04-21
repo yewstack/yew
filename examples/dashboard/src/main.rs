@@ -53,9 +53,8 @@ pub struct WsResponse {
 
 pub struct Model {
     link: ComponentLink<Model>,
-    fetching: bool,
     data: Option<u32>,
-    ft: Option<FetchTask>,
+    _ft: Option<FetchTask>,
     ws: Option<WebSocketTask>,
 }
 
@@ -120,9 +119,8 @@ impl Component for Model {
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
             link,
-            fetching: false,
             data: None,
-            ft: None,
+            _ft: None,
             ws: None,
         }
     }
@@ -130,12 +128,11 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::FetchData(format, binary) => {
-                self.fetching = true;
                 let task = match format {
                     Format::Json => self.fetch_json(binary),
                     Format::Toml => self.fetch_toml(binary),
                 };
-                self.ft = Some(task);
+                self._ft = Some(task);
                 true
             }
             Msg::WsAction(action) => match action {
@@ -172,7 +169,6 @@ impl Component for Model {
                 }
             },
             Msg::FetchReady(response) => {
-                self.fetching = false;
                 self.data = response.map(|data| data.value).ok();
                 true
             }

@@ -104,7 +104,13 @@ Finally, add an `index.html` file in the root directory of your app:
 If you haven't already, install [Trunk](https://github.com/thedodd/trunk):
 
 ```bash
-cargo install trunk wasm-bindgen-cli
+cargo install --locked trunk
+cargo install wasm-bindgen-cli
+```
+
+Also specify the WASM target.
+```
+rustup target add wasm32-unknown-unknown
 ```
 
 Now all you have to do is run the following:

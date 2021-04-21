@@ -11,6 +11,8 @@
 ///
 /// // Converts JSON string to a data (lazy).
 /// let Json(data) = dump;
+/// // Or another way to convert JSON string to data:
+/// let data = dump.into_inner();
 /// ```
 #[derive(Debug)]
 pub struct Json<T>(pub T);
@@ -18,6 +20,14 @@ pub struct Json<T>(pub T);
 text_format!(Json based on serde_json);
 
 binary_format!(Json based on serde_json);
+
+impl<T> Json<T> {
+    /// Consumes the JSON wrapper and returns the wrapped item.
+    #[inline(always)]
+    pub fn into_inner(self) -> T {
+        self.0
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -40,5 +50,17 @@ mod tests {
 
         let _stored: Text = Json(&data).into();
         let _stored: Binary = Json(&data).into();
+    }
+
+    #[test]
+    fn test_into_inner() {
+        #[derive(Serialize, Deserialize)]
+        struct Data {
+            value: u8,
+        }
+
+        let data: Json<Result<Data, _>> = Json::from(Ok(r#"{"value": 123}"#.to_string()));
+        let data = data.into_inner().unwrap();
+        assert_eq!(data.value, 123);
     }
 }

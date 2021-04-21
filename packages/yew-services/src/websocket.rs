@@ -44,13 +44,13 @@ impl WebSocketTask {
         notification: Callback<WebSocketStatus>,
         listener_0: EventListener,
         listeners: [EventListener; 3],
-    ) -> Result<WebSocketTask, WebSocketError> {
+    ) -> WebSocketTask {
         let [listener_1, listener_2, listener_3] = listeners;
-        Ok(WebSocketTask {
+        WebSocketTask {
             ws,
             notification,
             listeners: [listener_0, listener_1, listener_2, listener_3],
-        })
+        }
     }
 }
 
@@ -80,7 +80,7 @@ impl WebSocketService {
             let event = event.dyn_ref::<MessageEvent>().unwrap();
             process_both(&event, &callback);
         });
-        WebSocketTask::new(ws, notification, listener, listeners)
+        Ok(WebSocketTask::new(ws, notification, listener, listeners))
     }
 
     /// Connects to a server through a WebSocket connection, like connect,
@@ -100,7 +100,7 @@ impl WebSocketService {
             let event = event.dyn_ref::<MessageEvent>().unwrap();
             process_binary(&event, &callback);
         });
-        WebSocketTask::new(ws, notification, listener, listeners)
+        Ok(WebSocketTask::new(ws, notification, listener, listeners))
     }
 
     /// Connects to a server through a WebSocket connection, like connect,
@@ -120,7 +120,7 @@ impl WebSocketService {
             let event = event.dyn_ref::<MessageEvent>().unwrap();
             process_text(&event, &callback);
         });
-        WebSocketTask::new(ws, notification, listener, listeners)
+        Ok(WebSocketTask::new(ws, notification, listener, listeners))
     }
 
     fn connect_common(
@@ -245,7 +245,10 @@ impl WebSocketTask {
 
 impl Task for WebSocketTask {
     fn is_active(&self) -> bool {
-        self.ws.ready_state() == WebSocket::OPEN
+        matches!(
+            self.ws.ready_state(),
+            WebSocket::CONNECTING | WebSocket::OPEN
+        )
     }
 }
 
@@ -327,15 +330,11 @@ mod tests {
         let status_future = CallbackFuture::<WebSocketStatus>::default();
         let notification: Callback<_> = status_future.clone().into();
         let task = WebSocketService::connect_text(url, callback, notification);
-        assert!(task.is_err());
-        if let Err(err) = task {
-            #[allow(irrefutable_let_patterns)]
-            if let WebSocketError::CreationError(creation_err) = err {
-                assert!(creation_err.starts_with("SyntaxError:"));
-            } else {
-                assert!(false);
-            }
-        }
+        assert!(matches!(
+            task,
+            Err(WebSocketError::CreationError(creation_err))
+                if creation_err.starts_with("SyntaxError:")
+        ));
     }
 
     #[test]
@@ -400,5 +399,52 @@ mod tests {
                 FormatError::ReceivedTextForBinary.to_string()
             ),
         }
+    }
+
+    #[test]
+    async fn is_active_while_connecting() {
+        let url = echo_server_url();
+        let cb_future = CallbackFuture::<Json<Result<Message, anyhow::Error>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let status_future = CallbackFuture::<WebSocketStatus>::default();
+        let notification: Callback<_> = status_future.clone().into();
+
+        let task = WebSocketService::connect_text(url, callback, notification).unwrap();
+
+        // NOTE: There's a bit of a race here between checking `is_active`
+        // and the WebSocket completing the connection handshake.
+        // The handshake *should* take sufficient time to complete that we
+        // can see it still in the `WebSocket::CONNECTING` state, but it's
+        // not guaranteed.  If someone has a way to guarantee we capture
+        // the WebSocket in the connecting state, please update this test.
+        assert!(task.is_active());
+
+        assert_eq!(status_future.await, WebSocketStatus::Opened);
+    }
+
+    #[test]
+    async fn drop_while_still_connecting() {
+        let url = echo_server_url();
+        let cb_future = CallbackFuture::<Json<Result<Message, anyhow::Error>>>::default();
+        let callback: Callback<_> = cb_future.clone().into();
+        let status_future = CallbackFuture::<WebSocketStatus>::default();
+        let notification: Callback<_> = status_future.clone().into();
+
+        let task = WebSocketService::connect_text(url, callback, notification).unwrap();
+        let ws = task.ws.clone();
+
+        // NOTE: There's a bit of a race here between dropping the
+        // `WebSocketTask` and the WebSocket completing the connection
+        // handshake.  The handshake *should* take sufficient time to complete
+        // that we can see it still in the `WebSocket::CONNECTING` state, but
+        // it's not guaranteed.  If someone has a way to guarantee we capture
+        // the WebSocket in the connecting state, please update this test.
+        drop(task);
+
+        let ws_ready_state = ws.ready_state();
+        assert!(matches!(
+            ws_ready_state,
+            WebSocket::CLOSING | WebSocket::CLOSED
+        ));
     }
 }
