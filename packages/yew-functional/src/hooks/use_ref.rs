@@ -17,7 +17,7 @@ use std::{cell::RefCell, rc::Rc};
 /// #
 /// #[function_component(UseRef)]
 /// fn ref_hook() -> Html {
-///     let (message, set_message) = use_state(|| "".to_string());
+///     let message = use_state(|| "".to_string());
 ///     let message_count = use_ref(|| 0);
 ///
 ///     let onclick = Callback::from(move |e| {
@@ -31,15 +31,18 @@ use std::{cell::RefCell, rc::Rc};
 ///         }
 ///     });
 ///
-///     let onchange = Callback::from(move |e| {
-///         if let ChangeData::Value(value) = e {
-///             set_message(value)
-///         }
-///     });
+///     let onchange = {
+///         let message = message.clone();
+///           Callback::from(move |e| {
+///             if let ChangeData::Value(value) = e {
+///                 message.set(value)
+///             }
+///         })
+///     };
 ///
 ///     html! {
 ///         <div>
-///             <input onchange=onchange value=message />
+///             <input onchange=onchange value=(*message).clone() />
 ///             <button onclick=onclick>{ "Send" }</button>
 ///         </div>
 ///     }

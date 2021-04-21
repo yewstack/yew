@@ -15,24 +15,24 @@ struct UseEffect<Destructor> {
 /// #
 /// #[function_component(UseEffect)]
 /// fn effect() -> Html {
-///     let (counter, set_counter) = use_state(|| 0);
+///     let counter = use_state(|| 0);
 ///
 ///     let counter_one = counter.clone();
 ///     use_effect(move || {
 ///         // Make a call to DOM API after component is rendered
-///         yew::utils::document().set_title(&format!("You clicked {} times", counter_one));
+///         yew::utils::document().set_title(&format!("You clicked {} times", *counter_one));
 ///
 ///         // Perform the cleanup
 ///         || yew::utils::document().set_title(&format!("You clicked 0 times"))
 ///     });
 ///
 ///     let onclick = {
-///         let counter = Rc::clone(&counter);
-///         Callback::from(move |_| set_counter(*counter + 1))
+///         let counter = counter.clone();
+///         Callback::from(move |_| counter.set(*counter + 1))
 ///     };
 ///
 ///     html! {
-///         <button onclick=onclick>{ format!("Increment to {}", counter) }</button>
+///         <button onclick=onclick>{ format!("Increment to {}", *counter) }</button>
 ///     }
 /// }
 /// ```

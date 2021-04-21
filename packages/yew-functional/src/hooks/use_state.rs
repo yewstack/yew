@@ -1,7 +1,8 @@
 use crate::use_hook;
 use std::rc::Rc;
+use std::ops::Deref;
 
-struct UseState<T2> {
+struct UseStateInner<T2> {
     current: Rc<T2>,
 }
 
@@ -15,21 +16,19 @@ struct UseState<T2> {
 /// #
 /// #[function_component(UseState)]
 /// fn state() -> Html {
-///     let (
-///         counter, // the returned state
-///         set_counter // setter to update the state
-///     ) = use_state(|| 0);
+///     let counter = use_state(|| 0);
 ///     let onclick = {
-///         let counter = Rc::clone(&counter);
-///         Callback::from(move |_| set_counter(*counter + 1))
+///         let counter = counter.clone();
+///         Callback::from(move |_| counter.set(*counter + 1))
 ///     };
+///
 ///
 ///     html! {
 ///         <div>
 ///             <button onclick=onclick>{ "Increment value" }</button>
 ///             <p>
 ///                 <b>{ "Current value: " }</b>
-///                 { counter }
+///                 { *counter }
 ///             </p>
 ///         </div>
 ///     }
@@ -37,25 +36,60 @@ struct UseState<T2> {
 /// ```
 pub fn use_state<T: 'static, F: FnOnce() -> T + 'static>(
     initial_state_fn: F,
-) -> (Rc<T>, Rc<dyn Fn(T)>) {
+) -> UseState<T> {
     use_hook(
         // Initializer
-        move || UseState {
+        move || UseStateInner {
             current: Rc::new(initial_state_fn()),
         },
         // Runner
         move |hook, updater| {
             let setter: Rc<(dyn Fn(T))> = Rc::new(move |new_val: T| {
-                updater.callback(move |st: &mut UseState<T>| {
+                updater.callback(move |st: &mut UseStateInner<T>| {
                     st.current = Rc::new(new_val);
                     true
                 })
             });
 
             let current = hook.current.clone();
-            (current, setter)
+            UseState {
+                value: current,
+                setter
+            }
         },
         // Destructor
         |_| {},
     )
+}
+
+pub struct UseState<T> {
+    value: Rc<T>,
+    setter: Rc<dyn Fn(T)>,
+}
+
+impl <T> UseState<T> {
+    pub fn set(&self, value: T) {
+        (self.setter)(value)
+    }
+
+    pub fn get(&self) -> &T {
+        &*self.value
+    }
+}
+
+impl<T> Deref for UseState<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &(*self.value)
+    }
+}
+
+impl<T> Clone for UseState<T> {
+    fn clone(&self) -> Self {
+        Self {
+            value: Rc::clone(&self.value),
+            setter: Rc::clone(&self.setter),
+        }
+    }
 }

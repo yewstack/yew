@@ -56,16 +56,19 @@ fn use_effect_destroys_on_component_drop() {
         type TProps = WrapperProps;
 
         fn run(props: &Self::TProps) -> Html {
-            let (show, set_show) = use_state(|| true);
+            let show = use_state(|| true);
             if *show {
-                let effect_called: Rc<dyn Fn()> = Rc::new(move || set_show(false));
-                return html! {
+                let effect_called: Rc<dyn Fn()> = {
+                    let show = show.clone();
+                    Rc::new(move || show.set(false))
+                };
+                html! {
                     <UseEffectComponent destroy_called=props.destroy_called.clone() effect_called=effect_called />
-                };
+                }
             } else {
-                return html! {
+                html! {
                     <div>{"EMPTY"}</div>
-                };
+                }
             }
         }
     }
@@ -88,13 +91,13 @@ fn use_effect_works_many_times() {
         type TProps = ();
 
         fn run(_: &Self::TProps) -> Html {
-            let (counter, set_counter) = use_state(|| 0);
+            let counter = use_state(|| 0);
             let counter_clone = counter.clone();
 
             use_effect_with_deps(
                 move |_| {
                     if *counter_clone < 4 {
-                        set_counter(*counter_clone + 1);
+                        counter_clone.set(*counter_clone + 1);
                     }
                     || {}
                 },
@@ -104,7 +107,7 @@ fn use_effect_works_many_times() {
             return html! {
                 <div>
                     {"The test result is"}
-                    <div id="result">{counter}</div>
+                    <div id="result">{*counter}</div>
                     {"\n"}
                 </div>
             };
@@ -125,12 +128,12 @@ fn use_effect_works_once() {
         type TProps = ();
 
         fn run(_: &Self::TProps) -> Html {
-            let (counter, set_counter) = use_state(|| 0);
+            let counter = use_state(|| 0);
             let counter_clone = counter.clone();
 
             use_effect_with_deps(
                 move |_| {
-                    set_counter(*counter_clone + 1);
+                    counter_clone.set(*counter_clone + 1);
                     || panic!("Destructor should not have been called")
                 },
                 (),
@@ -139,7 +142,7 @@ fn use_effect_works_once() {
             return html! {
                 <div>
                     {"The test result is"}
-                    <div id="result">{counter}</div>
+                    <div id="result">{*counter}</div>
                     {"\n"}
                 </div>
             };
@@ -164,7 +167,7 @@ fn use_effect_refires_on_dependency_change() {
             let number_ref2 = use_ref(|| 0);
             let number_ref2_c = number_ref2.clone();
             let arg = *number_ref.borrow_mut().deref_mut();
-            let (_, set_counter) = use_state(|| 0);
+            let counter = use_state(|| 0);
             use_effect_with_deps(
                 move |dep| {
                     let mut ref_mut = number_ref_c.borrow_mut();
@@ -175,9 +178,9 @@ fn use_effect_refires_on_dependency_change() {
                     } else {
                         assert_eq!(dep, &1);
                     }
-                    set_counter(10); // we just need to make sure it does not panic
+                    counter.set(10); // we just need to make sure it does not panic
                     move || {
-                        set_counter(11);
+                        counter.set(11);
                         *number_ref2_c.borrow_mut().deref_mut() += 1;
                     }
                 },
