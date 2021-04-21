@@ -7,52 +7,35 @@ description: The pre-defined Hooks that Yew comes with
 
 In most cases, you'll be cloning the values returned from the Hooks.
 As it is generally expensive to clone such values, they're `Rc`ed, so they can be cloned relatively cheaply.
-
-The following example shows one of the most common cases which requires cloning the values:
-
-```rust
-let (text, set_text) = use_state(|| "Hello".to_owned());
-let onclick = {
-    let text = Rc::clone(&text);
-    // Values must be moved into this closure so in order to use them later on, they must be cloned
-    Callback::from(move |_| set_text(format!("{} World", text))) 
-};
-
-// If `text` wasn't cloned above, it would've been impossible to use it here
-html! { text }
-```
 :::
 
 ## `use_state`
 
-`use_state` is used to mange state in a function component.
-It returns a `Rc` pointing to the value of the hook's state, and a setter function.
+`use_state` is used to manage state in a function component.
+It returns a `UseState` object which `Deref`s to the current value 
+and provides a `set` method to update the value.
 
 The hook takes a function as input which determines the initial state.
 This value remains up-to-date on subsequent renders.
-
-The setter function is used to update the value and trigger a re-render.
 
 ### Example
 
 ```rust
 #[function_component(UseState)]
 fn state() -> Html {
-    let (
-        counter, // the returned state
-        set_counter // setter to update the state
-    ) = use_state(|| 0);
+    let counter = use_state(|| 0);
     let onclick = {
-        let counter = Rc::clone(&counter);
-        Callback::from(move |_| set_counter(*counter + 1))
+        let counter = counter.clone();
+        Callback::from(move |_| counter.set(*counter + 1))
     };
+
 
     html! {
         <div>
             <button onclick=onclick>{ "Increment value" }</button>
             <p>
                 <b>{ "Current value: " }</b>
-                { counter }
+                { *counter }
             </p>
         </div>
     }

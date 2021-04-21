@@ -58,10 +58,7 @@ fn use_effect_destroys_on_component_drop() {
         fn run(props: &Self::TProps) -> Html {
             let show = use_state(|| true);
             if *show {
-                let effect_called: Rc<dyn Fn()> = {
-                    let show = show.clone();
-                    Rc::new(move || show.set(false))
-                };
+                let effect_called: Rc<dyn Fn()> = { Rc::new(move || show.set(false)) };
                 html! {
                     <UseEffectComponent destroy_called=props.destroy_called.clone() effect_called=effect_called />
                 }

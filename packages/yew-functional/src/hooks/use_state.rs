@@ -1,6 +1,6 @@
 use crate::use_hook;
-use std::rc::Rc;
 use std::ops::Deref;
+use std::rc::Rc;
 
 struct UseStateInner<T2> {
     current: Rc<T2>,
@@ -34,9 +34,7 @@ struct UseStateInner<T2> {
 ///     }
 /// }
 /// ```
-pub fn use_state<T: 'static, F: FnOnce() -> T + 'static>(
-    initial_state_fn: F,
-) -> UseState<T> {
+pub fn use_state<T: 'static, F: FnOnce() -> T + 'static>(initial_state_fn: F) -> UseState<T> {
     use_hook(
         // Initializer
         move || UseStateInner {
@@ -54,7 +52,7 @@ pub fn use_state<T: 'static, F: FnOnce() -> T + 'static>(
             let current = hook.current.clone();
             UseState {
                 value: current,
-                setter
+                setter,
             }
         },
         // Destructor
@@ -67,7 +65,7 @@ pub struct UseState<T> {
     setter: Rc<dyn Fn(T)>,
 }
 
-impl <T> UseState<T> {
+impl<T> UseState<T> {
     pub fn set(&self, value: T) {
         (self.setter)(value)
     }
