@@ -154,7 +154,7 @@ error: `ref` does not support being used as an optional attribute
 59 |     html! { <input ref?=() /> };
    |                    ^^^^^
 
-warning: use of deprecated item 'compile_fail::deprecated_use_of_class': the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead.
+warning: use of deprecated function `compile_fail::deprecated_use_of_class`: the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead.
   --> $DIR/element-fail.rs:63:24
    |
 63 |     html! { <div class=("deprecated", "warning") /> };
@@ -188,8 +188,8 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
-   = note: required by `std::string::ToString::to_string`
+   = note: required because of the requirements on the impl of `ToString` for `()`
+   = note: required by `to_string`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/element-fail.rs:29:26
@@ -199,7 +199,7 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
+   = note: required because of the requirements on the impl of `ToString` for `()`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/element-fail.rs:30:21
@@ -209,26 +209,26 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
-   = note: required by `std::string::ToString::to_string`
+   = note: required because of the requirements on the impl of `ToString` for `()`
+   = note: required by `to_string`
 
 error[E0308]: mismatched types
   --> $DIR/element-fail.rs:32:28
    |
 32 |     html! { <input onclick=1 /> };
-   |                            ^ expected enum `yew::callback::Callback`, found integer
+   |                            ^ expected enum `yew::Callback`, found integer
    |
-   = note: expected enum `yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>`
+   = note: expected enum `yew::Callback<MouseEvent>`
               found type `{integer}`
 
 error[E0308]: mismatched types
   --> $DIR/element-fail.rs:33:28
    |
 33 |     html! { <input onclick=Callback::from(|a: String| ()) /> };
-   |                            ^^^^^^^^ expected struct `web_sys::features::gen_MouseEvent::MouseEvent`, found struct `std::string::String`
+   |                            ^^^^^^^^ expected struct `MouseEvent`, found struct `String`
    |
-   = note: expected enum `yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>`
-              found enum `yew::callback::Callback<std::string::String>`
+   = note: expected enum `yew::Callback<MouseEvent>`
+              found enum `yew::Callback<String>`
 
 error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
   --> $DIR/element-fail.rs:35:27
@@ -238,29 +238,29 @@ error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
    |
    = help: the trait `std::fmt::Display` is not implemented for `NotToString`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-   = note: required because of the requirements on the impl of `std::string::ToString` for `NotToString`
-   = note: required by `std::string::ToString::to_string`
+   = note: required because of the requirements on the impl of `ToString` for `NotToString`
+   = note: required by `to_string`
 
 error[E0308]: mismatched types
   --> $DIR/element-fail.rs:37:24
    |
 37 |     html! { <input ref=() /> };
-   |                        ^^ expected struct `yew::html::NodeRef`, found `()`
+   |                        ^^ expected struct `NodeRef`, found `()`
 
-error[E0277]: the trait bound `std::borrow::Cow<'static, str>: std::convert::From<{integer}>` is not satisfied
+error[E0277]: the trait bound `Cow<'static, str>: From<{integer}>` is not satisfied
   --> $DIR/element-fail.rs:45:15
    |
 45 |     html! { <@{55}></@> };
-   |               ^^^^ the trait `std::convert::From<{integer}>` is not implemented for `std::borrow::Cow<'static, str>`
+   |               ^^^^ the trait `From<{integer}>` is not implemented for `Cow<'static, str>`
    |
    = help: the following implementations were found:
-             <std::borrow::Cow<'a, [T]> as std::convert::From<&'a [T]>>
-             <std::borrow::Cow<'a, [T]> as std::convert::From<&'a std::vec::Vec<T>>>
-             <std::borrow::Cow<'a, [T]> as std::convert::From<std::vec::Vec<T>>>
-             <std::borrow::Cow<'a, std::ffi::CStr> as std::convert::From<&'a std::ffi::CStr>>
+             <Cow<'a, CStr> as From<&'a CStr>>
+             <Cow<'a, CStr> as From<&'a CString>>
+             <Cow<'a, CStr> as From<CString>>
+             <Cow<'a, OsStr> as From<&'a OsStr>>
            and 11 others
-   = note: required because of the requirements on the impl of `std::convert::Into<std::borrow::Cow<'static, str>>` for `{integer}`
-   = note: required by `std::convert::Into::into`
+   = note: required because of the requirements on the impl of `Into<Cow<'static, str>>` for `{integer}`
+   = note: required by `into`
 
 error[E0308]: mismatched types
   --> $DIR/element-fail.rs:48:23
@@ -268,10 +268,10 @@ error[E0308]: mismatched types
 48 |     html! { <a media?="media" /> };
    |                       ^^^^^^^
    |                       |
-   |                       expected enum `std::option::Option`, found `&str`
+   |                       expected enum `Option`, found `&str`
    |                       help: try using a variant of the expected enum: `Some("media")`
    |
-   = note:   expected enum `std::option::Option<_>`
+   = note:   expected enum `Option<_>`
            found reference `&'static str`
 
 error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
@@ -282,8 +282,8 @@ error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
    |
    = help: the trait `std::fmt::Display` is not implemented for `NotToString`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-   = note: required because of the requirements on the impl of `std::string::ToString` for `NotToString`
-   = note: required by `std::string::ToString::to_string`
+   = note: required because of the requirements on the impl of `ToString` for `NotToString`
+   = note: required by `to_string`
 
 error[E0308]: mismatched types
   --> $DIR/element-fail.rs:51:26
@@ -291,10 +291,10 @@ error[E0308]: mismatched types
 51 |     html! { <input type?="kind" /> };
    |                          ^^^^^^
    |                          |
-   |                          expected enum `std::option::Option`, found `&str`
+   |                          expected enum `Option`, found `&str`
    |                          help: try using a variant of the expected enum: `Some("kind")`
    |
-   = note:   expected enum `std::option::Option<_>`
+   = note:   expected enum `Option<_>`
            found reference `&'static str`
 
 error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
@@ -305,8 +305,8 @@ error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
    |
    = help: the trait `std::fmt::Display` is not implemented for `NotToString`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-   = note: required because of the requirements on the impl of `std::string::ToString` for `NotToString`
-   = note: required by `std::string::ToString::to_string`
+   = note: required because of the requirements on the impl of `ToString` for `NotToString`
+   = note: required by `to_string`
 
 error[E0308]: mismatched types
   --> $DIR/element-fail.rs:53:24
@@ -314,10 +314,10 @@ error[E0308]: mismatched types
 53 |     html! { <li value?="value" /> };
    |                        ^^^^^^^
    |                        |
-   |                        expected enum `std::option::Option`, found `&str`
+   |                        expected enum `Option`, found `&str`
    |                        help: try using a variant of the expected enum: `Some("value")`
    |
-   = note:   expected enum `std::option::Option<_>`
+   = note:   expected enum `Option<_>`
            found reference `&'static str`
 
 error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
@@ -328,8 +328,8 @@ error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
    |
    = help: the trait `std::fmt::Display` is not implemented for `NotToString`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-   = note: required because of the requirements on the impl of `std::string::ToString` for `NotToString`
-   = note: required by `std::string::ToString::to_string`
+   = note: required because of the requirements on the impl of `ToString` for `NotToString`
+   = note: required by `to_string`
 
 error[E0308]: mismatched types
   --> $DIR/element-fail.rs:56:22
@@ -337,10 +337,10 @@ error[E0308]: mismatched types
 56 |     html! { <a href?="href" /> };
    |                      ^^^^^^
    |                      |
-   |                      expected enum `std::option::Option`, found `&str`
+   |                      expected enum `Option`, found `&str`
    |                      help: try using a variant of the expected enum: `Some("href")`
    |
-   = note:   expected enum `std::option::Option<_>`
+   = note:   expected enum `Option<_>`
            found reference `&'static str`
 
 error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
@@ -351,16 +351,16 @@ error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
    |
    = help: the trait `std::fmt::Display` is not implemented for `NotToString`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-   = note: required because of the requirements on the impl of `std::string::ToString` for `NotToString`
-   = note: required by `std::string::ToString::to_string`
+   = note: required because of the requirements on the impl of `ToString` for `NotToString`
+   = note: required by `to_string`
 
 error[E0308]: mismatched types
   --> $DIR/element-fail.rs:60:20
    |
 60 |     html! { <input onfocus?=Some(5) /> };
-   |                    ^^^^^^^ expected enum `yew::callback::Callback`, found integer
+   |                    ^^^^^^^ expected enum `yew::Callback`, found integer
    |
-   = note: expected enum `yew::callback::Callback<web_sys::features::gen_FocusEvent::FocusEvent>`
+   = note: expected enum `yew::Callback<FocusEvent>`
               found type `{integer}`
 
 error[E0308]: mismatched types
@@ -369,8 +369,8 @@ error[E0308]: mismatched types
 61 |     html! { <input onfocus?=Callback::from(|_| ()) /> };
    |                             ^^^^^^^^^^^^^^^^^^^^^^
    |                             |
-   |                             expected enum `std::option::Option`, found enum `yew::callback::Callback`
+   |                             expected enum `Option`, found enum `yew::Callback`
    |                             help: try using a variant of the expected enum: `Some(Callback::from(|_| ()))`
    |
-   = note: expected enum `std::option::Option<_>`
-              found enum `yew::callback::Callback<_>`
+   = note: expected enum `Option<_>`
+              found enum `yew::Callback<_>`

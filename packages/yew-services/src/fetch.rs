@@ -74,27 +74,27 @@ pub struct FetchOptions {
     pub integrity: Option<String>,
 }
 
-impl Into<RequestInit> for FetchOptions {
-    fn into(self) -> RequestInit {
+impl From<FetchOptions> for RequestInit {
+    fn from(fetch_options: FetchOptions) -> RequestInit {
         let mut init = RequestInit::new();
 
-        if let Some(cache) = self.cache {
+        if let Some(cache) = fetch_options.cache {
             init.cache(cache);
         }
 
-        if let Some(credentials) = self.credentials {
+        if let Some(credentials) = fetch_options.credentials {
             init.credentials(credentials);
         }
 
-        if let Some(redirect) = self.redirect {
+        if let Some(redirect) = fetch_options.redirect {
             init.redirect(redirect);
         }
 
-        if let Some(mode) = self.mode {
+        if let Some(mode) = fetch_options.mode {
             init.mode(mode);
         }
 
-        if let Some(referrer) = self.referrer {
+        if let Some(referrer) = fetch_options.referrer {
             match referrer {
                 Referrer::SameOriginUrl(referrer) => init.referrer(&referrer),
                 Referrer::AboutClient => init.referrer("about:client"),
@@ -102,11 +102,11 @@ impl Into<RequestInit> for FetchOptions {
             };
         }
 
-        if let Some(referrer_policy) = self.referrer_policy {
+        if let Some(referrer_policy) = fetch_options.referrer_policy {
             init.referrer_policy(referrer_policy);
         }
 
-        if let Some(integrity) = self.integrity {
+        if let Some(integrity) = fetch_options.integrity {
             init.integrity(&integrity);
         }
 
@@ -638,6 +638,7 @@ mod tests {
             .unwrap();
         let options = FetchOptions {
             referrer: Some(Referrer::SameOriginUrl(String::from("same-origin"))),
+            referrer_policy: Some(ReferrerPolicy::NoReferrerWhenDowngrade),
             ..FetchOptions::default()
         };
         let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, anyhow::Error>>>>::default();

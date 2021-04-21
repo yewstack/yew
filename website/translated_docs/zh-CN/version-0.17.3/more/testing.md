@@ -1,12 +1,12 @@
 ---
-description: 测试你的应用程序
+title: 测试应用
+description: 测试你的应用
+id: version-0.17.3-testing
+original_id: testing
 ---
 
-# 测试
+<todo></todo>
 
-&lt;TODO&gt;
+## wasm_bindgen_test
 
-## Rust WebDriving
-
-使用 Rust 以编程方式驱动 UI 集成测试，[fantoccini](https://crates.io/crates/fantoccini) 是一个推荐的选择。它允许你通过使用 CSS 选择器来查找特定的元素，然后对它们执行特定的操作，例如输入文本，点击按钮，或等待特定时间以使客户端代码执行（例如等待一个网络请求完成并导致 UI 改变），来测试你的网站。
-
+Rust Wasm 工作组维护着一个名为 [`wasm_bindgen_test`](https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html) 的 crate ，该 crate 使您可以以类似于内置 `#[test]` 过程宏的方式在浏览器中运行测试。 [Rust Wasm工作组的文档](https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html)中提供了有关此模块的更多信息。
