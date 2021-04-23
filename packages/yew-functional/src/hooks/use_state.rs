@@ -2,7 +2,7 @@ use crate::use_hook;
 use std::ops::Deref;
 use std::rc::Rc;
 
-struct UseStateInner<T2> {
+struct UseState<T2> {
     current: Rc<T2>,
 }
 
@@ -34,23 +34,23 @@ struct UseStateInner<T2> {
 ///     }
 /// }
 /// ```
-pub fn use_state<T: 'static, F: FnOnce() -> T + 'static>(initial_state_fn: F) -> UseState<T> {
+pub fn use_state<T: 'static, F: FnOnce() -> T + 'static>(initial_state_fn: F) -> UseStateHandle<T> {
     use_hook(
         // Initializer
-        move || UseStateInner {
+        move || UseState {
             current: Rc::new(initial_state_fn()),
         },
         // Runner
         move |hook, updater| {
             let setter: Rc<(dyn Fn(T))> = Rc::new(move |new_val: T| {
-                updater.callback(move |st: &mut UseStateInner<T>| {
+                updater.callback(move |st: &mut UseState<T>| {
                     st.current = Rc::new(new_val);
                     true
                 })
             });
 
             let current = hook.current.clone();
-            UseState {
+            UseStateHandle {
                 value: current,
                 setter,
             }
@@ -60,22 +60,19 @@ pub fn use_state<T: 'static, F: FnOnce() -> T + 'static>(initial_state_fn: F) ->
     )
 }
 
-pub struct UseState<T> {
+/// State handle for the [`use_state`] hook.
+pub struct UseStateHandle<T> {
     value: Rc<T>,
     setter: Rc<dyn Fn(T)>,
 }
 
-impl<T> UseState<T> {
+impl<T> UseStateHandle<T> {
     pub fn set(&self, value: T) {
         (self.setter)(value)
     }
-
-    pub fn get(&self) -> &T {
-        &*self.value
-    }
 }
 
-impl<T> Deref for UseState<T> {
+impl<T> Deref for UseStateHandle<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -83,7 +80,7 @@ impl<T> Deref for UseState<T> {
     }
 }
 
-impl<T> Clone for UseState<T> {
+impl<T> Clone for UseStateHandle<T> {
     fn clone(&self) -> Self {
         Self {
             value: Rc::clone(&self.value),
