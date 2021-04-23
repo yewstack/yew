@@ -3,12 +3,6 @@ title: Pre-defined Hooks
 description: The pre-defined Hooks that Yew comes with 
 ---
 
-:::note Why do Hooks return `Rc`?
-
-In most cases, you'll be cloning the values returned from the Hooks.
-As it is generally expensive to clone such values, they're `Rc`ed, so they can be cloned relatively cheaply.
-:::
-
 ## `use_state`
 
 `use_state` is used to manage state in a function component.
@@ -112,12 +106,7 @@ fn reducer() -> Html {
         counter: i32,
     }
 
-    let (
-        counter, // the state
-        // function to update the state 
-        // as the same suggests, it dispatches the values to the reducer function
-        dispatch  
-    ) = use_reducer(
+    let counter = use_reducer(
         // the reducer function
         |prev: Rc<CounterState>, action: Action| CounterState {
             counter: match action {
@@ -129,11 +118,14 @@ fn reducer() -> Html {
         CounterState { counter: 1 },
     );
 
-    let double_onclick = {
-        let dispatch = Rc::clone(&dispatch);
-        Callback::from(move |_| dispatch(Action::Double))
+   let double_onclick = {
+        let counter = counter.clone();
+        Callback::from(move |_| counter.dispatch(Action::Double))
     };
-    let square_onclick = Callback::from(move |_| dispatch(Action::Square));
+    let square_onclick = {
+        let counter = counter.clone();
+        Callback::from(move |_| counter.dispatch(Action::Square))
+    };
 
     html! {
         <>
@@ -155,7 +147,7 @@ This is useful for lazy initialization where it is beneficial not to perform exp
 computation up-front.
 
 ```rust
-let (counter, dispatch) = use_reducer_with_init(
+let counter = use_reducer_with_init(
     // reducer function
     |prev: Rc<CounterState>, action: i32| CounterState {
         counter: prev.counter + action,
