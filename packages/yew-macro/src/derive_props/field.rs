@@ -138,7 +138,7 @@ impl PropField {
                 quote! {
                     #[doc(hidden)]
                     #vis fn #name(mut self, #name: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
-                        self.wrapped.#name = Some(#name.into_prop_value());
+                        self.wrapped.#name = ::std::option::Option::Some(#name.into_prop_value());
                         self
                     }
                 }
