@@ -30,11 +30,6 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
 7    |     html! { for Vec::<()>::new().into_iter() };
      |                 ^^^ `()` cannot be formatted with the default formatter
      |
-    ::: $RUST/core/src/iter/traits/iterator.rs
-     |
-     |         Self: Sized,
-     |               ----- required by this bound in `collect`
-     |
      = help: the trait `std::fmt::Display` is not implemented for `()`
      = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
      = note: required because of the requirements on the impl of `ToString` for `()`
@@ -48,11 +43,6 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
 10   |     html! { for empty };
      |                 ^^^^^ `()` cannot be formatted with the default formatter
      |
-    ::: $RUST/core/src/iter/traits/iterator.rs
-     |
-     |         Self: Sized,
-     |               ----- required by this bound in `collect`
-     |
      = help: the trait `std::fmt::Display` is not implemented for `()`
      = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
      = note: required because of the requirements on the impl of `ToString` for `()`
@@ -65,11 +55,6 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
      |
 13   |     html! { for empty.iter() };
      |                 ^^^^^ `()` cannot be formatted with the default formatter
-     |
-    ::: $RUST/core/src/iter/traits/iterator.rs
-     |
-     |         Self: Sized,
-     |               ----- required by this bound in `collect`
      |
      = help: the trait `std::fmt::Display` is not implemented for `()`
      = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead

@@ -73,11 +73,6 @@ error[E0277]: expected a `FnOnce<()>` closure, found `{integer}`
 77  |         #[prop_or_else(123)]
     |                        ^^^ expected an `FnOnce<()>` closure, found `{integer}`
     |
-   ::: $RUST/core/src/option.rs
-    |
-    |     pub fn unwrap_or_else<F: FnOnce() -> T>(self, f: F) -> T {
-    |                                          - required by this bound in `Option::<T>::unwrap_or_else`
-    |
     = help: the trait `FnOnce<()>` is not implemented for `{integer}`
     = note: wrap the `{integer}` in a closure with no arguments: `|| { /* code */ }`
 
@@ -89,11 +84,6 @@ error[E0593]: function is expected to take 0 arguments, but it takes 1 argument
 ...
 101 |     fn foo(bar: i32) -> String {
     |     -------------------------- takes 1 argument
-    |
-   ::: $RUST/core/src/option.rs
-    |
-    |     pub fn unwrap_or_else<F: FnOnce() -> T>(self, f: F) -> T {
-    |                                          - required by this bound in `Option::<T>::unwrap_or_else`
 
 error[E0271]: type mismatch resolving `<fn() -> i32 {t10::foo} as FnOnce<()>>::Output == String`
    --> $DIR/fail.rs:111:24
