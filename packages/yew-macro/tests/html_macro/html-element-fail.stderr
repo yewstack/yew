@@ -136,7 +136,7 @@ error: dynamic closing tags must not have a body (hint: replace it with just `</
 69 |     html! { <@{"test"}></@{"test"}> };
    |                           ^^^^^^^^
 
-warning: use of deprecated item 'compile_fail::deprecated_use_of_class': the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead.
+warning: use of deprecated function `compile_fail::deprecated_use_of_class`: the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead.
   --> $DIR/html-element-fail.rs:74:24
    |
 74 |     html! { <div class=("deprecated", "warning") /> };
@@ -154,10 +154,10 @@ error[E0308]: mismatched types
   --> $DIR/html-element-fail.rs:37:28
    |
 37 |     html! { <input checked=Some(false) /> };
-   |                            ^^^^^^^^^^^ expected `bool`, found enum `std::option::Option`
+   |                            ^^^^^^^^^^^ expected `bool`, found enum `Option`
    |
    = note: expected type `bool`
-              found enum `std::option::Option<bool>`
+              found enum `Option<bool>`
 
 error[E0308]: mismatched types
   --> $DIR/html-element-fail.rs:38:29
@@ -169,10 +169,10 @@ error[E0308]: mismatched types
   --> $DIR/html-element-fail.rs:39:29
    |
 39 |     html! { <input disabled=Some(true) /> };
-   |                             ^^^^^^^^^^ expected `bool`, found enum `std::option::Option`
+   |                             ^^^^^^^^^^ expected `bool`, found enum `Option`
    |
    = note: expected type `bool`
-              found enum `std::option::Option<bool>`
+              found enum `Option<bool>`
 
 error[E0308]: mismatched types
   --> $DIR/html-element-fail.rs:40:30
@@ -180,145 +180,163 @@ error[E0308]: mismatched types
 40 |     html! { <option selected=1 /> };
    |                              ^ expected `bool`, found integer
 
-error[E0277]: the trait bound `(): yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not satisfied
+error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
   --> $DIR/html-element-fail.rs:43:25
    |
 43 |     html! { <input type=() /> };
-   |                         ^^ the trait `yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not implemented for `()`
+   |                         ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
    |
-   = note: required because of the requirements on the impl of `yew::html::conversion::IntoOptPropValue<std::borrow::Cow<'static, str>>` for `()`
+   = note: required because of the requirements on the impl of `IntoOptPropValue<Cow<'static, str>>` for `()`
 
-error[E0277]: the trait bound `(): yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not satisfied
+error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
   --> $DIR/html-element-fail.rs:44:26
    |
 44 |     html! { <input value=() /> };
-   |                          ^^ the trait `yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not implemented for `()`
+   |                          ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
    |
-   = note: required because of the requirements on the impl of `yew::html::conversion::IntoOptPropValue<std::borrow::Cow<'static, str>>` for `()`
+   = note: required because of the requirements on the impl of `IntoOptPropValue<Cow<'static, str>>` for `()`
 
-error[E0277]: the trait bound `(): yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not satisfied
+error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
   --> $DIR/html-element-fail.rs:45:21
    |
 45 |     html! { <a href=() /> };
-   |                     ^^ the trait `yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not implemented for `()`
+   |                     ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
    |
   ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
    |
    |     pub fn new(key: &'static str, value: impl IntoOptPropValue<AttrValue>) -> Self {
-   |                                               --------------------------- required by this bound in `yew::virtual_dom::PositionalAttr::new`
+   |                                               --------------------------- required by this bound in `PositionalAttr::new`
    |
-   = note: required because of the requirements on the impl of `yew::html::conversion::IntoOptPropValue<std::borrow::Cow<'static, str>>` for `()`
+   = note: required because of the requirements on the impl of `IntoOptPropValue<Cow<'static, str>>` for `()`
 
-error[E0277]: the trait bound `NotToString: yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not satisfied
+error[E0277]: the trait bound `NotToString: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
   --> $DIR/html-element-fail.rs:46:27
    |
 46 |     html! { <input string=NotToString /> };
-   |                           ^^^^^^^^^^^ the trait `yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not implemented for `NotToString`
+   |                           ^^^^^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `NotToString`
    |
   ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
    |
    |     pub fn new(key: &'static str, value: impl IntoOptPropValue<AttrValue>) -> Self {
-   |                                               --------------------------- required by this bound in `yew::virtual_dom::PositionalAttr::new`
+   |                                               --------------------------- required by this bound in `PositionalAttr::new`
    |
-   = note: required because of the requirements on the impl of `yew::html::conversion::IntoOptPropValue<std::borrow::Cow<'static, str>>` for `NotToString`
+   = note: required because of the requirements on the impl of `IntoOptPropValue<Cow<'static, str>>` for `NotToString`
 
-error[E0277]: the trait bound `std::option::Option<NotToString>: yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not satisfied
+error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
   --> $DIR/html-element-fail.rs:47:22
    |
 47 |     html! { <a media=Some(NotToString) /> };
-   |                      ^^^^^^^^^^^^^^^^^ the trait `yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not implemented for `std::option::Option<NotToString>`
+   |                      ^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `Option<NotToString>`
    |
   ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
    |
    |     pub fn new(key: &'static str, value: impl IntoOptPropValue<AttrValue>) -> Self {
-   |                                               --------------------------- required by this bound in `yew::virtual_dom::PositionalAttr::new`
+   |                                               --------------------------- required by this bound in `PositionalAttr::new`
    |
-   = note: required because of the requirements on the impl of `yew::html::conversion::IntoOptPropValue<std::borrow::Cow<'static, str>>` for `std::option::Option<NotToString>`
+   = note: required because of the requirements on the impl of `IntoOptPropValue<Cow<'static, str>>` for `Option<NotToString>`
 
-error[E0277]: the trait bound `std::option::Option<{integer}>: yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not satisfied
+error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
   --> $DIR/html-element-fail.rs:48:21
    |
 48 |     html! { <a href=Some(5) /> };
-   |                     ^^^^^^^ the trait `yew::html::conversion::IntoPropValue<std::option::Option<std::borrow::Cow<'static, str>>>` is not implemented for `std::option::Option<{integer}>`
+   |                     ^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `Option<{integer}>`
    |
   ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
    |
    |     pub fn new(key: &'static str, value: impl IntoOptPropValue<AttrValue>) -> Self {
-   |                                               --------------------------- required by this bound in `yew::virtual_dom::PositionalAttr::new`
+   |                                               --------------------------- required by this bound in `PositionalAttr::new`
    |
-   = note: required because of the requirements on the impl of `yew::html::conversion::IntoOptPropValue<std::borrow::Cow<'static, str>>` for `std::option::Option<{integer}>`
+   = note: required because of the requirements on the impl of `IntoOptPropValue<Cow<'static, str>>` for `Option<{integer}>`
 
-error[E0277]: the trait bound `{integer}: yew::html::conversion::IntoPropValue<std::option::Option<yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>>>` is not satisfied
-  --> $DIR/html-element-fail.rs:51:28
-   |
-51 |     html! { <input onclick=1 /> };
-   |                            ^ the trait `yew::html::conversion::IntoPropValue<std::option::Option<yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>>>` is not implemented for `{integer}`
-   |
-  ::: $WORKSPACE/packages/yew/src/html/listener/macros.rs
-   |
-   |                 pub fn __macro_new(callback: impl IntoOptPropValue<Callback<Event>>) -> Option<Rc<dyn Listener>> {
-   |                                                   --------------------------------- required by this bound in `yew::html::listener::listener_web_sys::onclick::Wrapper::__macro_new`
-   |
-   = help: the following implementations were found:
-             <&'static str as yew::html::conversion::IntoPropValue<std::borrow::Cow<'static, str>>>
-             <&'static str as yew::html::conversion::IntoPropValue<std::string::String>>
-             <&T as yew::html::conversion::IntoPropValue<T>>
-             <&T as yew::html::conversion::IntoPropValue<std::option::Option<T>>>
-           and 4 others
-   = note: required because of the requirements on the impl of `yew::html::conversion::IntoOptPropValue<yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>>` for `{integer}`
+error[E0277]: the trait bound `{integer}: IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not satisfied
+   --> $DIR/html-element-fail.rs:51:28
+    |
+51  |       html! { <input onclick=1 /> };
+    |                              ^ the trait `IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not implemented for `{integer}`
+    |
+   ::: $WORKSPACE/packages/yew/src/html/listener/listener_web_sys.rs
+    |
+    | / impl_action! {
+3   | |     onabort(name: "abort", event: Event) -> web_sys::Event => |_, event| { event }
+4   | |     onauxclick(name: "auxclick", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
+5   | |     onblur(name: "blur", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
+...   |
+99  | |     ontransitionstart(name: "transitionstart", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
+100 | | }
+    | |_- required by this bound in `yew::html::onclick::Wrapper::__macro_new`
+    |
+    = help: the following implementations were found:
+              <&'static str as IntoPropValue<Cow<'static, str>>>
+              <&'static str as IntoPropValue<String>>
+              <&T as IntoPropValue<Option<T>>>
+              <&T as IntoPropValue<T>>
+            and 4 others
+    = note: required because of the requirements on the impl of `IntoOptPropValue<yew::Callback<MouseEvent>>` for `{integer}`
 
-error[E0277]: the trait bound `yew::callback::Callback<std::string::String>: yew::html::conversion::IntoPropValue<std::option::Option<yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>>>` is not satisfied
-  --> $DIR/html-element-fail.rs:52:28
-   |
-52 |     html! { <input onclick=Callback::from(|a: String| ()) /> };
-   |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `yew::html::conversion::IntoPropValue<std::option::Option<yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>>>` is not implemented for `yew::callback::Callback<std::string::String>`
-   |
-  ::: $WORKSPACE/packages/yew/src/html/listener/macros.rs
-   |
-   |                 pub fn __macro_new(callback: impl IntoOptPropValue<Callback<Event>>) -> Option<Rc<dyn Listener>> {
-   |                                                   --------------------------------- required by this bound in `yew::html::listener::listener_web_sys::onclick::Wrapper::__macro_new`
-   |
-   = note: required because of the requirements on the impl of `yew::html::conversion::IntoOptPropValue<yew::callback::Callback<web_sys::features::gen_MouseEvent::MouseEvent>>` for `yew::callback::Callback<std::string::String>`
+error[E0277]: the trait bound `yew::Callback<String>: IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not satisfied
+   --> $DIR/html-element-fail.rs:52:28
+    |
+52  |       html! { <input onclick=Callback::from(|a: String| ()) /> };
+    |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not implemented for `yew::Callback<String>`
+    |
+   ::: $WORKSPACE/packages/yew/src/html/listener/listener_web_sys.rs
+    |
+    | / impl_action! {
+3   | |     onabort(name: "abort", event: Event) -> web_sys::Event => |_, event| { event }
+4   | |     onauxclick(name: "auxclick", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
+5   | |     onblur(name: "blur", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
+...   |
+99  | |     ontransitionstart(name: "transitionstart", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
+100 | | }
+    | |_- required by this bound in `yew::html::onclick::Wrapper::__macro_new`
+    |
+    = note: required because of the requirements on the impl of `IntoOptPropValue<yew::Callback<MouseEvent>>` for `yew::Callback<String>`
 
-error[E0277]: the trait bound `std::option::Option<{integer}>: yew::html::conversion::IntoPropValue<std::option::Option<yew::callback::Callback<web_sys::features::gen_FocusEvent::FocusEvent>>>` is not satisfied
-  --> $DIR/html-element-fail.rs:53:28
-   |
-53 |     html! { <input onfocus=Some(5) /> };
-   |                            ^^^^^^^ the trait `yew::html::conversion::IntoPropValue<std::option::Option<yew::callback::Callback<web_sys::features::gen_FocusEvent::FocusEvent>>>` is not implemented for `std::option::Option<{integer}>`
-   |
-  ::: $WORKSPACE/packages/yew/src/html/listener/macros.rs
-   |
-   |                 pub fn __macro_new(callback: impl IntoOptPropValue<Callback<Event>>) -> Option<Rc<dyn Listener>> {
-   |                                                   --------------------------------- required by this bound in `yew::html::listener::listener_web_sys::onfocus::Wrapper::__macro_new`
-   |
-   = note: required because of the requirements on the impl of `yew::html::conversion::IntoOptPropValue<yew::callback::Callback<web_sys::features::gen_FocusEvent::FocusEvent>>` for `std::option::Option<{integer}>`
+error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<yew::Callback<FocusEvent>>>` is not satisfied
+   --> $DIR/html-element-fail.rs:53:28
+    |
+53  |       html! { <input onfocus=Some(5) /> };
+    |                              ^^^^^^^ the trait `IntoPropValue<Option<yew::Callback<FocusEvent>>>` is not implemented for `Option<{integer}>`
+    |
+   ::: $WORKSPACE/packages/yew/src/html/listener/listener_web_sys.rs
+    |
+    | / impl_action! {
+3   | |     onabort(name: "abort", event: Event) -> web_sys::Event => |_, event| { event }
+4   | |     onauxclick(name: "auxclick", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
+5   | |     onblur(name: "blur", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
+...   |
+99  | |     ontransitionstart(name: "transitionstart", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
+100 | | }
+    | |_- required by this bound in `yew::html::onfocus::Wrapper::__macro_new`
+    |
+    = note: required because of the requirements on the impl of `IntoOptPropValue<yew::Callback<FocusEvent>>` for `Option<{integer}>`
 
 error[E0308]: mismatched types
   --> $DIR/html-element-fail.rs:56:24
    |
 56 |     html! { <input ref=() /> };
-   |                        ^^ expected struct `yew::html::NodeRef`, found `()`
+   |                        ^^ expected struct `yew::NodeRef`, found `()`
 
 error[E0308]: mismatched types
   --> $DIR/html-element-fail.rs:57:24
    |
 57 |     html! { <input ref=Some(NodeRef::default()) /> };
-   |                        ^^^^^^^^^^^^^^^^^^^^^^^^ expected struct `yew::html::NodeRef`, found enum `std::option::Option`
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^ expected struct `yew::NodeRef`, found enum `Option`
    |
-   = note: expected struct `yew::html::NodeRef`
-                found enum `std::option::Option<yew::html::NodeRef>`
+   = note: expected struct `yew::NodeRef`
+                found enum `Option<yew::NodeRef>`
 
-error[E0277]: the trait bound `std::borrow::Cow<'static, str>: std::convert::From<{integer}>` is not satisfied
+error[E0277]: the trait bound `Cow<'static, str>: From<{integer}>` is not satisfied
   --> $DIR/html-element-fail.rs:71:15
    |
 71 |     html! { <@{55}></@> };
-   |               ^^^^ the trait `std::convert::From<{integer}>` is not implemented for `std::borrow::Cow<'static, str>`
+   |               ^^^^ the trait `From<{integer}>` is not implemented for `Cow<'static, str>`
    |
    = help: the following implementations were found:
-             <std::borrow::Cow<'a, [T]> as std::convert::From<&'a [T]>>
-             <std::borrow::Cow<'a, [T]> as std::convert::From<&'a std::vec::Vec<T>>>
-             <std::borrow::Cow<'a, [T]> as std::convert::From<std::vec::Vec<T>>>
-             <std::borrow::Cow<'a, std::ffi::CStr> as std::convert::From<&'a std::ffi::CStr>>
+             <Cow<'a, CStr> as From<&'a CStr>>
+             <Cow<'a, CStr> as From<&'a CString>>
+             <Cow<'a, CStr> as From<CString>>
+             <Cow<'a, OsStr> as From<&'a OsStr>>
            and 11 others
-   = note: required because of the requirements on the impl of `std::convert::Into<std::borrow::Cow<'static, str>>` for `{integer}`
-   = note: required by `std::convert::Into::into`
+   = note: required because of the requirements on the impl of `Into<Cow<'static, str>>` for `{integer}`
+   = note: required by `into`

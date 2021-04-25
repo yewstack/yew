@@ -10,8 +10,9 @@ error[E0277]: `()` is not an iterator
 5 |     html! { for () };
   |                 ^^ `()` is not an iterator
   |
-  = help: the trait `std::iter::Iterator` is not implemented for `()`
-  = note: required by `std::iter::IntoIterator::into_iter`
+  = help: the trait `Iterator` is not implemented for `()`
+  = note: required because of the requirements on the impl of `IntoIterator` for `()`
+  = note: required by `into_iter`
 
 error[E0277]: `()` is not an iterator
  --> $DIR/html-iterable-fail.rs:6:17
@@ -19,51 +20,64 @@ error[E0277]: `()` is not an iterator
 6 |     html! { for {()} };
   |                 ^^^^ `()` is not an iterator
   |
-  = help: the trait `std::iter::Iterator` is not implemented for `()`
-  = note: required by `std::iter::IntoIterator::into_iter`
+  = help: the trait `Iterator` is not implemented for `()`
+  = note: required because of the requirements on the impl of `IntoIterator` for `()`
+  = note: required by `into_iter`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
- --> $DIR/html-iterable-fail.rs:7:17
-  |
-7 |     html! { for Vec::<()>::new().into_iter() };
-  |                 ^^^ `()` cannot be formatted with the default formatter
-  |
-  = help: the trait `std::fmt::Display` is not implemented for `()`
-  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-  = note: required because of the requirements on the impl of `std::string::ToString` for `()`
-  = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
-  = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
-  = note: required because of the requirements on the impl of `std::iter::FromIterator<()>` for `yew::virtual_dom::vnode::VNode`
-  = note: required by `std::iter::Iterator::collect`
+    --> $DIR/html-iterable-fail.rs:7:17
+     |
+7    |     html! { for Vec::<()>::new().into_iter() };
+     |                 ^^^ `()` cannot be formatted with the default formatter
+     |
+    ::: $RUST/core/src/iter/traits/iterator.rs
+     |
+     |         Self: Sized,
+     |               ----- required by this bound in `collect`
+     |
+     = help: the trait `std::fmt::Display` is not implemented for `()`
+     = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+     = note: required because of the requirements on the impl of `ToString` for `()`
+     = note: required because of the requirements on the impl of `From<()>` for `VNode`
+     = note: required because of the requirements on the impl of `Into<VNode>` for `()`
+     = note: required because of the requirements on the impl of `FromIterator<()>` for `VNode`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/html-iterable-fail.rs:10:17
-   |
-10 |     html! { for empty };
-   |                 ^^^^^ `()` cannot be formatted with the default formatter
-   |
-   = help: the trait `std::fmt::Display` is not implemented for `()`
-   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-   = note: required because of the requirements on the impl of `std::string::ToString` for `()`
-   = note: required because of the requirements on the impl of `std::convert::From<()>` for `yew::virtual_dom::vnode::VNode`
-   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `()`
-   = note: required because of the requirements on the impl of `std::iter::FromIterator<()>` for `yew::virtual_dom::vnode::VNode`
-   = note: required by `std::iter::Iterator::collect`
+    --> $DIR/html-iterable-fail.rs:10:17
+     |
+10   |     html! { for empty };
+     |                 ^^^^^ `()` cannot be formatted with the default formatter
+     |
+    ::: $RUST/core/src/iter/traits/iterator.rs
+     |
+     |         Self: Sized,
+     |               ----- required by this bound in `collect`
+     |
+     = help: the trait `std::fmt::Display` is not implemented for `()`
+     = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+     = note: required because of the requirements on the impl of `ToString` for `()`
+     = note: required because of the requirements on the impl of `From<()>` for `VNode`
+     = note: required because of the requirements on the impl of `Into<VNode>` for `()`
+     = note: required because of the requirements on the impl of `FromIterator<()>` for `VNode`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> $DIR/html-iterable-fail.rs:13:17
-   |
-13 |     html! { for empty.iter() };
-   |                 ^^^^^ `()` cannot be formatted with the default formatter
-   |
-   = help: the trait `std::fmt::Display` is not implemented for `()`
-   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-   = note: required because of the requirements on the impl of `std::fmt::Display` for `&()`
-   = note: required because of the requirements on the impl of `std::string::ToString` for `&()`
-   = note: required because of the requirements on the impl of `std::convert::From<&()>` for `yew::virtual_dom::vnode::VNode`
-   = note: required because of the requirements on the impl of `std::convert::Into<yew::virtual_dom::vnode::VNode>` for `&()`
-   = note: required because of the requirements on the impl of `std::iter::FromIterator<&()>` for `yew::virtual_dom::vnode::VNode`
-   = note: required by `std::iter::Iterator::collect`
+    --> $DIR/html-iterable-fail.rs:13:17
+     |
+13   |     html! { for empty.iter() };
+     |                 ^^^^^ `()` cannot be formatted with the default formatter
+     |
+    ::: $RUST/core/src/iter/traits/iterator.rs
+     |
+     |         Self: Sized,
+     |               ----- required by this bound in `collect`
+     |
+     = help: the trait `std::fmt::Display` is not implemented for `()`
+     = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+     = note: required because of the requirements on the impl of `std::fmt::Display` for `&()`
+     = note: required because of the requirements on the impl of `ToString` for `&()`
+     = note: required because of the requirements on the impl of `From<&()>` for `VNode`
+     = note: required because of the requirements on the impl of `Into<VNode>` for `&()`
+     = note: required because of the requirements on the impl of `FromIterator<&()>` for `VNode`
 
 error[E0277]: `()` is not an iterator
   --> $DIR/html-iterable-fail.rs:18:19
@@ -74,7 +88,7 @@ error[E0277]: `()` is not an iterator
   ::: $WORKSPACE/packages/yew/src/utils.rs
    |
    |     IT: IntoIterator<Item = T>,
-   |         ---------------------- required by this bound in `yew::utils::into_node_iter`
+   |         ---------------------- required by this bound in `into_node_iter`
    |
-   = help: the trait `std::iter::Iterator` is not implemented for `()`
-   = note: required because of the requirements on the impl of `std::iter::IntoIterator` for `()`
+   = help: the trait `Iterator` is not implemented for `()`
+   = note: required because of the requirements on the impl of `IntoIterator` for `()`
