@@ -155,9 +155,9 @@ pub(crate) mod test_util {
         }
     }
 
-    impl<T: 'static> Into<Callback<T>> for CallbackFuture<T> {
-        fn into(self) -> Callback<T> {
-            Callback::from(move |r| self.finish(r))
+    impl<T: 'static> From<CallbackFuture<T>> for Callback<T> {
+        fn from(callback: CallbackFuture<T>) -> Callback<T> {
+            Callback::from(move |r| callback.finish(r))
         }
     }
 
