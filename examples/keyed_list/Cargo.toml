@@ -3,6 +3,7 @@ name = "keyed_list"
 version = "0.1.0"
 authors = ["Thomas Lacroix <toto.rigolo@free.fr>"]
 edition = "2018"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 fake = "2.2"
