@@ -21,7 +21,7 @@ html! {
 
 ## Optional attributes for HTML elements
 
-Most HTML attributes can use optional values (`Some(x)` or `None`). This allows
+Most HTML attributes can use optional values (`Some(x)` or `None`). This allows us
 to omit the attribute if the attribute is marked as optional.
 
 ```rust
