@@ -1,8 +1,9 @@
 ---
+title: 组件
 description: 使用具有层次结构的组件来创建复杂的布局
+id: version-0.17.3-components
+original_id: components
 ---
-
-# 组件
 
 ## 基础
 
@@ -27,7 +28,6 @@ html!{
 
 如果组件的 `Properties` 中有 `children` 字段，则可以被传递子组件。
 
-{% code title="parent.rs" %}
 ```rust
 html! {
     <Container>
@@ -36,9 +36,7 @@ html! {
     </Container>
 }
 ```
-{% endcode %}
 
-{% code title="container.rs" %}
 ```rust
 pub struct Container(Props);
 
@@ -61,13 +59,15 @@ impl Component for Container {
     }
 }
 ```
-{% endcode %}
+
+:::note
+要派生`Properties`的类型也必须实现`Clone` 。这同样可以通过使用`#[derive(Properties, Clone)]`或手动为您的类型实现`Clone` 
+:::
 
 ## 拥有 Props 的嵌套子组件
 
 如果包含组件标注了 children 的类型，则可以访问和更改嵌套组件的属性。在下面的示例中，`List` 组件可以包含 `ListItem` 组件。有关此模式的真实示例，请查看 `yew-router` 的源码。有关更高级的示例，请在 yew 主仓库中查看 `nested-list` 示例代码。
 
-{% code title="parent.rs" %}
 ```rust
 html! {
     <List>
@@ -77,9 +77,7 @@ html! {
     </List>
 }
 ```
-{% endcode %}
 
-{% code title="list.rs" %}
 ```rust
 pub struct List(Props);
 
@@ -103,5 +101,3 @@ impl Component for List {
     }
 }
 ```
-{% endcode %}
-
