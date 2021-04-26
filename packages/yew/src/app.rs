@@ -80,7 +80,12 @@ where
 
         self
     }
+}
 
+impl<COMP> App<COMP>
+where
+    COMP: Component,
+{
     /// Returns the app's component link.
     pub fn get_component_link(&self) -> ComponentLink<COMP> {
         self.scope.clone()
