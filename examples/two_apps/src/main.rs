@@ -77,7 +77,7 @@ impl Component for Model {
 fn mount_app(selector: &'static str, app: App<Model>) -> ComponentLink<Model> {
     let document = yew::utils::document();
     let element = document.query_selector(selector).unwrap().unwrap();
-    app.mount(element)
+    app.mount(element).get_component_link()
 }
 
 fn main() {
