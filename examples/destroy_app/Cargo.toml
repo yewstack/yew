@@ -1,0 +1,22 @@
+[package]
+name = "destroy_app"
+version = "0.1.0"
+authors = ["Nicklas Warming Jacobsen <nicklaswj@gmail.com>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+js-sys = "0.3"
+yew = { path = "../../packages/yew" }
+yew-services = { path = "../../packages/yew-services" }
+slab = "0.4.3"
+
+
+[dependencies.web-sys]
+version = "0.3.50"
+features = [
+    "Document",
+    "Element",
+    "Node",
+    "DomTokenList"
+]
