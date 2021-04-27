@@ -1,5 +1,5 @@
 [package]
-name = "destroy_app"
+name = "dyn_create_destroy_apps"
 version = "0.1.0"
 authors = ["Nicklas Warming Jacobsen <nicklaswj@gmail.com>"]
 edition = "2018"

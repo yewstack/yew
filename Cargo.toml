@@ -27,7 +27,7 @@ members = [
   "examples/counter",
   "examples/crm",
   "examples/dashboard",
-  "examples/destroy_app",
+  "examples/dyn_create_destroy_apps",
   "examples/file_upload",
   "examples/futures",
   "examples/game_of_life",

@@ -1,4 +1,4 @@
-# Counter Example
+# Dynamic app creation and destruction example
 
 An example of how to create and destroy Yew apps on demand.
 
