@@ -1,5 +1,8 @@
-use crate::{router::ROUTER, CurrentRoute, Routable};
+use crate::utils::build_path_with_base;
+use crate::Routable;
 use std::collections::HashMap;
+use wasm_bindgen::JsValue;
+use web_sys::Event;
 
 /// Service to interface with the router.
 #[derive(Debug, Copy, Clone)]
@@ -18,11 +21,19 @@ impl RouterService {
             })
         }
         let url = url.strip_suffix('&').unwrap_or_else(|| url.as_str());
-        ROUTER.with(|router| router.push(url))
+
+        let history = yew::utils::window().history().expect("no history");
+
+        history
+            .push_state_with_url(&JsValue::null(), "", Some(&build_path_with_base(url)))
+            .expect("push history");
+        let event = Event::new("popstate").unwrap();
+        yew::utils::window()
+            .dispatch_event(&event)
+            .expect("dispatch");
     }
 
-    /// The current route.
-    pub fn current_route() -> CurrentRoute {
-        ROUTER.with(|router| router.current_route.borrow().clone().unwrap())
+    pub fn query() -> HashMap<String, String> {
+        crate::utils::get_query_params()
     }
 }

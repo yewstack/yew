@@ -1,17 +1,19 @@
-use heck::ShoutySnakeCase;
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{Data, DeriveInput, Fields, Ident, LitStr, Variant, Visibility};
-const AT_PATH: &str = "at";
+
+const AT_ATTR_IDENT: &str = "at";
+const NOT_FOUND_ATTR_IDENT: &str = "not_found";
 
 pub struct Routable {
     vis: Visibility,
     ident: Ident,
-    ats: Vec<(Ident, LitStr)>,
+    ats: Vec<LitStr>,
     variants: Punctuated<Variant, syn::token::Comma>,
+    not_found_route: Option<LitStr>,
 }
 
 impl Parse for Routable {
@@ -36,80 +38,116 @@ impl Parse for Routable {
             }
         };
 
-        let mut ats = vec![];
-
-        for variant in data.variants.iter() {
-            let attrs = variant
-                .attrs
-                .iter()
-                .filter(|attr| attr.path.is_ident(AT_PATH))
-                .collect::<Vec<_>>();
-            let attr = match attrs.len() {
-                1 => *attrs.first().unwrap(),
-                0 => {
-                    return Err(syn::Error::new(
-                        variant.span(),
-                        format!("{} attribute must be present on every variant", AT_PATH),
-                    ))
-                }
-                _ => {
-                    return Err(syn::Error::new(
-                        variant.span(),
-                        format!("only one {} attribute must be present", AT_PATH),
-                    ))
-                }
-            };
-
-            if let Fields::Unnamed(_) = variant.fields {
-                return Err(syn::Error::new(
-                    variant.span(),
-                    "only named fields are supported for dynamic paths",
-                ));
-            }
-
-            let lit = attr.parse_args::<LitStr>()?;
-            let ident = variant.ident.to_string().to_shouty_snake_case();
-            let ident = Ident::new(&ident, variant.ident.span());
-            ats.push((ident, lit.clone()));
-        }
+        let (not_found_route, ats) = parse_variants(&data.variants)?;
 
         Ok(Self {
             vis,
             ident,
             variants: data.variants,
             ats,
+            not_found_route,
         })
     }
 }
 
+fn parse_variants(
+    variants: &Punctuated<Variant, syn::token::Comma>,
+) -> syn::Result<(Option<LitStr>, Vec<LitStr>)> {
+    let mut not_founds = vec![];
+    let mut ats: Vec<LitStr> = vec![];
+
+    for variant in variants.iter() {
+        let variant: &syn::Variant = variant;
+
+        if let Fields::Unnamed(_) = variant.fields {
+            return Err(syn::Error::new(
+                variant.span(),
+                "only named fields are supported",
+            ));
+        }
+
+        let attrs = &variant.attrs;
+        let at_attrs = attrs
+            .iter()
+            .filter(|attr| attr.path.is_ident(AT_ATTR_IDENT))
+            .collect::<Vec<_>>();
+
+        let attr = match at_attrs.len() {
+            1 => *at_attrs.first().expect("fucked"),
+            0 => {
+                return Err(syn::Error::new(
+                    variant.span(),
+                    format!(
+                        "{} attribute must be present on every variant",
+                        AT_ATTR_IDENT
+                    ),
+                ))
+            }
+            _ => {
+                return Err(syn::Error::new(
+                    variant.span(),
+                    format!("only one {} attribute must be present", AT_ATTR_IDENT),
+                ))
+            }
+        };
+
+        let lit = attr.parse_args::<LitStr>()?;
+        ats.push(lit.clone());
+
+        for attr in attrs.iter() {
+            if attr.path.is_ident(NOT_FOUND_ATTR_IDENT) {
+                let at_attr = at_attrs
+                    .iter()
+                    .find(|attr| attr.path.is_ident(AT_ATTR_IDENT));
+                let at_attr = match at_attr {
+                    Some(at_attr) => at_attr,
+                    None => {
+                        return Err(syn::Error::new(
+                            attr.span(),
+                            format!(
+                                "fields marked with {} must have {} attribute",
+                                NOT_FOUND_ATTR_IDENT, AT_ATTR_IDENT
+                            ),
+                        ))
+                    }
+                };
+
+                not_founds.push(at_attr.parse_args::<LitStr>()?)
+            }
+        }
+    }
+
+    if not_founds.len() > 1 {
+        return Err(syn::Error::new(
+            Span::call_site(),
+            format!("there can only be one {}", NOT_FOUND_ATTR_IDENT),
+        ));
+    }
+
+    Ok((not_founds.first().cloned(), ats))
+}
+
 pub fn routable_derive_impl(input: Routable) -> TokenStream {
     let Routable {
-        vis,
+        vis: _vis, // todo
         ident,
         ats,
         variants,
+        not_found_route,
     } = input;
-
-    let at_consts = ats.iter().map(|(name, value)| {
-        quote! {
-            #vis const #name: &'static str = #value;
-        }
-    });
-
-    let ats = ats.iter().map(|(_, lit)| lit).collect::<Vec<_>>();
 
     let from_path_matches = variants.iter().enumerate().map(|(i, variant)| {
         let ident = &variant.ident;
         let right = match &variant.fields {
             Fields::Unit => quote! { Self::#ident },
             Fields::Named(field) => {
-                let fields = field.named.iter().map(|it| it.ident.as_ref().unwrap());
+                let fields = field.named.iter().map(|it| it.ident.as_ref().expect("fucked 4"));
                 quote! { Self::#ident { #(#fields: params.get(stringify!(#fields))?.parse().ok()?)*, } }
             }
             Fields::Unnamed(_) => unreachable!(), // already checked
         };
 
-        let left = ats.get(i).unwrap();
+        let left = ats.get(i).expect("fucked 1");
         quote! {
             #left => ::core::option::Option::Some(#right)
         }
@@ -117,7 +155,7 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
 
     let to_route_matches = variants.iter().enumerate().map(|(i, variant)| {
         let ident = &variant.ident;
-        let mut right = ats.get(i).unwrap().value();
+        let mut right = ats.get(i).expect("fucked 2").value();
 
         match &variant.fields {
             Fields::Unit => quote! {
@@ -127,7 +165,7 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
                 let fields = field
                     .named
                     .iter()
-                    .map(|it| it.ident.as_ref().unwrap())
+                    .map(|it| it.ident.as_ref().expect("fucked 3"))
                     .collect::<Vec<_>>();
 
                 fields.iter().for_each(|field| {
@@ -142,12 +180,12 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
         }
     });
 
-    quote! {
-        #[automatically_derived]
-        impl #ident {
-            #(#at_consts)*
-        }
+    let not_found_route = match not_found_route {
+        Some(route) => quote! { ::std::option::Option::Some(#route) },
+        None => quote! { ::std::option::Option::None },
+    };
 
+    quote! {
         #[automatically_derived]
         impl ::yew_router::Routable for #ident {
             fn from_path(path: &str, params: &::std::collections::HashMap<&str, &str>) -> Option<Self> {
@@ -163,8 +201,16 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
                 }
             }
 
+            fn routes() -> ::std::vec::Vec<&'static str> {
+                ::std::vec![#(#ats),*]
+            }
+
             fn as_any(&self) -> &dyn ::std::any::Any {
                 self
+            }
+
+            fn not_found_route() -> ::std::option::Option<&'static str> {
+                #not_found_route
             }
         }
     }

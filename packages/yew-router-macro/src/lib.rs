@@ -23,7 +23,7 @@ use syn::parse_macro_input;
 ///     NotFound,
 /// }
 /// ```
-#[proc_macro_derive(Routable, attributes(at))]
+#[proc_macro_derive(Routable, attributes(at, not_found))]
 pub fn routable_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as Routable);
     routable_derive_impl(input).into()

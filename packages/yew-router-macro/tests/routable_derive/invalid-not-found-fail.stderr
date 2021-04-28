@@ -1,0 +1,7 @@
+error: there can only be one not_found
+  --> $DIR/invalid-not-found-fail.rs:11:28
+   |
+11 | #[derive(Debug, PartialEq, yew_router::Routable)]
+   |                            ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)

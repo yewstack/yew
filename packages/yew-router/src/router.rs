@@ -1,94 +1,83 @@
 //! Router Component.
 
-use crate::utils::{base_url, build_path_with_base, from_route};
-use crate::{components::route::Route, CurrentRoute, Routable};
+use crate::utils::{base_url, build_path_with_base};
+use crate::Routable;
 use gloo::events::EventListener;
-use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
-use wasm_bindgen::prelude::*;
-use web_sys::{Event, History};
-use weblog::*;
 use yew::prelude::*;
 use yew_functional::*;
 
-pub(crate) struct RouterState {
-    pub(crate) history: History,
-    pub(crate) current_route: RefCell<Option<CurrentRoute>>,
-}
+pub struct RcWrapper<T>(Rc<T>);
 
-impl RouterState {
-    fn new() -> Self {
-        Self {
-            history: yew::utils::window().history().expect("no history"),
-            current_route: RefCell::new(None),
-        }
-    }
-
-    pub(crate) fn push(&self, url: &str) {
-        self.history
-            .push_state_with_url(&JsValue::null(), "", Some(&build_path_with_base(url)))
-            .expect("push history");
-        let event = Event::new("popstate").unwrap();
-        yew::utils::window()
-            .dispatch_event(&event)
-            .expect("dispatch");
+impl<T> RcWrapper<T> {
+    pub fn new(value: T) -> Self {
+        Self(Rc::new(value))
     }
 }
 
-thread_local! {
-    pub(crate) static ROUTER: Rc<RouterState> = Rc::new(RouterState::new());
+impl<T> Clone for RcWrapper<T> {
+    fn clone(&self) -> Self {
+        Self(Rc::clone(&self.0))
+    }
+}
+
+impl<T> PartialEq for RcWrapper<T> {
+    fn eq(&self, other: &Self) -> bool {
+        Rc::ptr_eq(&self.0, &other.0)
+    }
 }
 
 /// Props for [`Router`]
 #[derive(Properties, Clone, PartialEq)]
-pub struct RouterProps {
+pub struct RouterProps<R: Clone> {
     #[prop_or(None)]
     pub not_found_route: Option<String>,
-    pub children: ChildrenWithProps<Route>,
+    pub render: RcWrapper<Box<dyn Fn(R) -> Html>>,
 }
 
 /// The router component.
 ///
-/// It accepts [`Route`]s as children. When a route can't be matched,
-/// it looks for the `not_found_route` prop. If the said prop is specified,
-/// it redirects to the specified route. Otherwise `html! {}` is rendered
-/// and a message is logged to console stating that no route can be matched.
+/// When a route can't be matched, it looks for the `not_found_route` prop.
+/// If the said prop is specified, it redirects to the specified route.
+/// Otherwise `html! {}` is rendered and a message is logged to console
+/// stating that no route can be matched.
 /// See the [crate level document][crate] for more information.
 #[function_component(Router)]
-pub fn router<R: Routable + 'static>(props: &RouterProps) -> Html {
+pub fn router<R: Routable + Clone + PartialEq + 'static>(props: &RouterProps<R>) -> Html {
     let pathname = yew::utils::window().location().pathname().unwrap();
     let base: Option<String> = base_url();
 
     let router = use_ref(|| {
         let mut router = route_recognizer::Router::new();
-        props.children.iter().for_each(|child| {
-            let to = match &base {
-                Some(base) if base != "/" => build_path_with_base(&child.props.to),
-                _ => child.props.to,
+        R::routes().iter().for_each(|path| {
+            let path = match &base {
+                Some(base) if base != "/" => build_path_with_base(path),
+                _ => path.to_string(),
             };
-            router.add(&to, to.clone());
+            router.add(&path, path.clone());
         });
         router
     });
-    let route = from_route::<R>(
-        &pathname,
-        &props.children,
-        props.not_found_route.as_deref(),
-        &*router.borrow(),
-    );
-    let (children, current_route) = match route {
-        Some(route) => route,
-        None => {
-            weblog::console_warn!("no route matched");
-            return html!();
-        }
+
+    let route = {
+        let router = router.borrow();
+        let matched = router.recognize(&pathname.strip_suffix("/").unwrap_or(&pathname));
+        let matched = match matched {
+            Ok(matched) => R::from_path(matched.handler(), &matched.params().into_iter().collect()),
+            Err(_) => match props.not_found_route.as_ref() {
+                Some(it) => R::from_path(it, &HashMap::new()),
+                None => None,
+            },
+        };
+        matched
     };
 
+    let output = match route {
+        Some(route) => (props.render.0)(route),
+        None => html! {},
+    };
     let (force_rerender, set_force_rerender) = use_state(|| 0);
-
-    ROUTER.with(|f| {
-        *f.current_route.borrow_mut() = Some(current_route);
-    });
 
     let _ = use_effect(move || {
         let event_listener = EventListener::new(&yew::utils::window(), "popstate", move |_| {
@@ -101,6 +90,6 @@ pub fn router<R: Routable + 'static>(props: &RouterProps) -> Html {
     });
 
     html! {
-        { for children }
+        { output }
     }
 }

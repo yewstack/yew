@@ -21,21 +21,7 @@
 //! # #[function_component(Main)]
 //! # fn app() -> Html {
 //! let onclick_callback = Callback::from(|_| RouterService::push(Routes::Home, None));
-//! html! {
-//!     <Router<Routes> not_found_route=Routes::NOT_FOUND>
-//!         <Route to=Routes::SECURE>
-//!             <h1>{"Forbidden"}</h1>
-//!             <button onclick=onclick_callback>{"Navigate to /"}</button>
-//!         </Route>
-//!         <Route to=Routes::HOME>
-//!             <h1>{"Home"}</h1>
-//!             <Link<Routes> route=Routes::Secure>{ "Navigate to /secure" }</Link<Routes>>
-//!         </Route>
-//!         <Route to=Routes::NOT_FOUND>
-//!             <h1>{"Page not found"}</h1>
-//!         </Route>
-//!     </Router<Routes>>
-//! }
+//! html! {<button onclick=onclick_callback/>}
 //! # }
 //! ```
 //!
@@ -54,17 +40,13 @@
 //! [yewdux](https://github.com/intendednull/yewdux) be used.
 
 pub mod components;
-mod current_route;
-mod params;
 mod routable;
 pub mod router;
 mod service;
 pub mod utils;
 
-pub use current_route::CurrentRoute;
-pub use params::Params;
 pub use routable::Routable;
-pub use router::Router;
+pub use router::{RcWrapper, Router};
 pub use service::RouterService;
 
 pub use yew_router_macro::Routable;
@@ -74,8 +56,8 @@ pub mod prelude {
     //!
     //! This module re-exports the frequently used types from the crate.
 
-    pub use crate::components::{link::Link, route::Route};
+    pub use crate::components::link::Link;
     pub use crate::Router;
     #[doc(no_inline)]
-    pub use crate::{CurrentRoute, Params, Routable, RouterService};
+    pub use crate::{Routable, RouterService};
 }

@@ -1,7 +1,5 @@
-use crate::{components::route::Route, CurrentRoute, Routable};
 use std::collections::HashMap;
 use wasm_bindgen::{JsCast, JsValue};
-use yew::{Children, ChildrenWithProps};
 
 pub fn base_url() -> Option<String> {
     match yew::utils::document().query_selector("base") {
@@ -61,41 +59,4 @@ pub fn get_query_params() -> HashMap<String, String> {
     }
 
     map
-}
-
-pub fn from_route<R: Routable + 'static>(
-    pathname: &str,
-    routes: &ChildrenWithProps<Route>,
-    not_found_route: Option<&str>,
-    router: &route_recognizer::Router<String>,
-) -> Option<(Children, CurrentRoute)> {
-    let mut selected = None;
-    if let Ok(path) = router.recognize(pathname.strip_suffix("/").unwrap_or(pathname)) {
-        let children = routes
-            .iter()
-            .find(|it| build_path_with_base(&it.props.to) == **path.handler())
-            .unwrap()
-            .props
-            .children;
-        if let Some(route) = R::from_path(path.handler(), &path.params().into_iter().collect()) {
-            selected = Some((children, CurrentRoute::new(route)))
-        }
-    }
-
-    match selected {
-        Some(selected) => Some(selected),
-        None => {
-            let not_found_route = not_found_route?;
-
-            let route = routes.iter().find(|it| it.props.to == not_found_route)?;
-            Some((route.props.children, {
-                let route = R::from_path(not_found_route, &HashMap::new());
-                let route = match route {
-                    Some(route) => route,
-                    None => return None,
-                };
-                CurrentRoute::new(route)
-            }))
-        }
-    }
 }

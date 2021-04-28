@@ -18,4 +18,8 @@ pub trait Routable {
     // from https://stackoverflow.com/a/33687996
     /// Needed for downcasting done in [`CurrentRoute::route`](crate::CurrentRoute::route())
     fn as_any(&self) -> &(dyn std::any::Any + 'static);
+
+    fn routes() -> Vec<&'static str>;
+
+    fn not_found_route() -> Option<&'static str>;
 }

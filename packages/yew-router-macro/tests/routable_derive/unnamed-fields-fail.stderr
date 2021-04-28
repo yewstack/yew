@@ -1,4 +1,4 @@
-error: only named fields are supported for dynamic paths
+error: only named fields are supported
  --> $DIR/unnamed-fields-fail.rs:3:5
   |
 3 |     #[at("/one/:two")]

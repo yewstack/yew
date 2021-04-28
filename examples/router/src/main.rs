@@ -12,17 +12,17 @@ use pages::{
 
 #[derive(Routable, PartialEq, Clone, Debug)]
 pub enum Routes {
-    #[at("/posts/:id")]
+    #[path("/posts/:id")]
     Post { id: u64 },
-    #[at("/posts")]
+    #[path("/posts")]
     Posts,
-    #[at("/authors/:id")]
+    #[path("/authors/:id")]
     Author { id: u64 },
-    #[at("/authors")]
+    #[path("/authors")]
     Authors,
-    #[at("/")]
+    #[path("/")]
     Home,
-    #[at("/404")]
+    #[path("/404")]
     NotFound,
 }
 

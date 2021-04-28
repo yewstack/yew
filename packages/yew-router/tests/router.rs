@@ -6,6 +6,7 @@ use yew_router::prelude::*;
 mod utils;
 use std::collections::HashMap;
 use utils::*;
+use yew_router::RcWrapper;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
@@ -19,45 +20,53 @@ enum Routes {
     NotFound,
 }
 
+
+#[derive(Properties, PartialEq, Clone)]
+struct NoProps {
+    id: u32,
+}
+
 #[function_component(No)]
-fn no() -> Html {
-    let route = match RouterService::current_route().route::<Routes>() {
-        Routes::No { id } => format!("{}", id),
-        _ => String::new(),
-    };
+fn no(props: &NoProps) -> Html {
+    let route = props.id.to_string();
 
     html! {
         <>
             <div id="result-params">{route}</div>
-            <div id="result-query">{RouterService::current_route().query().get("foo").unwrap()}</div>
+            <div id="result-query">{RouterService::query().get("foo").unwrap()}</div>
         </>
     }
 }
 
 #[function_component(Comp)]
 fn component() -> Html {
-    let onclick = Callback::from(|_| {
-        RouterService::push(
-            Routes::No { id: 2 },
-            Some({
-                let mut map = HashMap::new();
-                map.insert("foo", "bar".to_string());
-                map
-            }),
-        )
-    });
+    let switch: RcWrapper<Box<dyn Fn(Routes) -> Html>> = RcWrapper::new(Box::new(|routes| {
+        let onclick = Callback::from(|_| {
+            RouterService::push(
+                Routes::No { id: 2 },
+                Some({
+                    let mut map = HashMap::new();
+                    map.insert("foo", "bar".to_string());
+                    map
+                }),
+            )
+        });
+
+
+        match routes {
+            Routes::Home => html! {
+                <>
+                    <div id="result">{"Home"}</div>
+                    <a onclick=onclick>{"click me"}</a>
+                </>
+            },
+            Routes::No { id } => html! { <No id=id /> },
+            Routes::NotFound => html! { <div id="result">{"404"}</div> }
+        }
+    }));
+
     html! {
-        <Router<Routes> not_found_route="/404">
-            <Route to=Routes::HOME>
-                <div id="result">{"Home"}</div>
-                <a onclick=onclick>{"click me"}</a>
-            </Route>
-            <Route to=Routes::NO>
-                <No />
-            </Route>
-            <Route to=Routes::NOT_FOUND>
-                <div id="result">{"404"}</div>
-            </Route>
+        <Router<Routes> render=switch>
         </Router<Routes>>
     }
 }

@@ -5,11 +5,8 @@ enum Routes {
     #[at("/two/:id")]
     Two { id: u32 },
     #[at("/404")]
+    #[not_found]
     NotFound,
 }
 
-fn main() {
-    let _ = Routes::ONE;
-    let _ = Routes::TWO;
-    let _ = Routes::NOT_FOUND;
-}
+fn main() {}

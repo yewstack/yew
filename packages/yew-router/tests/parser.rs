@@ -3,7 +3,6 @@ use wasm_bindgen_test::wasm_bindgen_test as test;
 use yew::prelude::*;
 use yew::utils::*;
 use yew::virtual_dom::VChild;
-use yew_router::components::route::RouteProps;
 use yew_router::prelude::*;
 use yew_router::utils::*;
 
@@ -56,73 +55,4 @@ fn test_get_query_params() {
         map.insert("value".to_string(), "test".to_string());
         map
     });
-}
-
-#[test]
-fn from_route_works() {
-    let routes = ChildrenWithProps::new(vec![
-        VChild::<Route>::new(
-            RouteProps {
-                to: "/".to_string(),
-                children: Children::new(vec![html! {<div>{"Hello world"}</div>}]),
-            },
-            NodeRef::default(),
-            None,
-        ),
-        VChild::<Route>::new(
-            RouteProps {
-                to: "/no".to_string(),
-                children: Children::new(vec![html! {<div>{"No"}</div>}]),
-            },
-            NodeRef::default(),
-            None,
-        ),
-    ]);
-    let mut router = route_recognizer::Router::new();
-    router.add("/", "/".to_string());
-    router.add("/no", "/no".to_string());
-
-    let route = from_route::<Routes>("/", &routes, None, &router).expect("no route matched");
-    assert_eq!(*route.1.route::<Routes>(), Routes::Home);
-
-    let route = from_route::<Routes>("/no", &routes, None, &router).expect("no route matched");
-    assert_eq!(*route.1.route::<Routes>(), Routes::No);
-
-    let route = from_route::<Routes>("/no/", &routes, None, &router).expect("no route matched");
-    assert_eq!(*route.1.route::<Routes>(), Routes::No);
-}
-
-#[test]
-fn from_route_404_works() {
-    let routes = ChildrenWithProps::new(vec![VChild::<Route>::new(
-        RouteProps {
-            to: "/404".to_string(),
-            children: Children::new(vec![html! {<div>{"404"}</div>}]),
-        },
-        NodeRef::default(),
-        None,
-    )]);
-    let mut router = route_recognizer::Router::new();
-    router.add("/404", "/404".to_string());
-
-    let route =
-        from_route::<Routes>("/no", &routes, Some("/404"), &router).expect("no route matched");
-    assert_eq!(*route.1.route::<Routes>(), Routes::NotFound);
-}
-
-#[test]
-fn from_route_returns_none_on_no_match_without_not_found_specifed() {
-    let routes = ChildrenWithProps::new(vec![VChild::<Route>::new(
-        RouteProps {
-            to: "/404".to_string(),
-            children: Children::new(vec![html! {<div>{"404"}</div>}]),
-        },
-        NodeRef::default(),
-        None,
-    )]);
-    let mut router = route_recognizer::Router::new();
-    router.add("/404", "/404".to_string());
-
-    let route = from_route::<Routes>("/no", &routes, None, &router);
-    assert!(route.is_none());
 }
