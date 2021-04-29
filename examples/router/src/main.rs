@@ -9,20 +9,22 @@ use pages::{
     author::Author, author_list::AuthorList, home::Home, page_not_found::PageNotFound, post::Post,
     post_list::PostList,
 };
+use yew_router::{RenderFn, Routable};
 
 #[derive(Routable, PartialEq, Clone, Debug)]
 pub enum Routes {
-    #[path("/posts/:id")]
+    #[at("/posts/:id")]
     Post { id: u64 },
-    #[path("/posts")]
+    #[at("/posts")]
     Posts,
-    #[path("/authors/:id")]
+    #[at("/authors/:id")]
     Author { id: u64 },
-    #[path("/authors")]
+    #[at("/authors")]
     Authors,
-    #[path("/")]
+    #[at("/")]
     Home,
-    #[path("/404")]
+    #[not_found]
+    #[at("/404")]
     NotFound,
 }
 
@@ -64,31 +66,7 @@ impl Component for Model {
                 { self.view_nav() }
 
                 <main>
-                    <Router<Routes> not_found_route="/404">
-                        <Route to=Routes::POST>
-                            <Post />
-                        </Route>
-
-                        <Route to=Routes::POSTS>
-                            <PostList />
-                        </Route>
-
-                        <Route to=Routes::AUTHOR>
-                            <Author />
-                        </Route>
-
-                        <Route to=Routes::AUTHORS>
-                            <AuthorList />
-                        </Route>
-
-                        <Route to=Routes::HOME>
-                            <Home />
-                        </Route>
-
-                        <Route to=Routes::NOT_FOUND>
-                            <PageNotFound />
-                        </Route>
-                    </Router<Routes>>
+                    <Router<Routes> render=RenderFn::new(switch) />
                 </main>
                 <footer class="footer">
                     <div class="content has-text-centered">
@@ -153,6 +131,29 @@ impl Model {
                     </div>
                 </div>
             </nav>
+        }
+    }
+}
+
+fn switch(routes: Routes) -> Html {
+    match routes {
+        Routes::Post { id } => {
+            html! { <Post seed=id /> }
+        }
+        Routes::Posts => {
+            html! { <PostList /> }
+        }
+        Routes::Author { id } => {
+            html! { <Author seed=id /> }
+        }
+        Routes::Authors => {
+            html! { <AuthorList /> }
+        }
+        Routes::Home => {
+            html! { <Home /> }
+        }
+        Routes::NotFound => {
+            html! { <PageNotFound /> }
         }
     }
 }

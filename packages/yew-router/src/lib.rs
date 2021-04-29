@@ -46,7 +46,7 @@ mod service;
 pub mod utils;
 
 pub use routable::Routable;
-pub use router::{RcWrapper, Router};
+pub use router::{RenderFn, Router};
 pub use service::RouterService;
 
 pub use yew_router_macro::Routable;
@@ -59,5 +59,5 @@ pub mod prelude {
     pub use crate::components::link::Link;
     pub use crate::Router;
     #[doc(no_inline)]
-    pub use crate::{Routable, RouterService};
+    pub use crate::{Routable,RenderFn, RouterService};
 }

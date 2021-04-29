@@ -6,7 +6,7 @@ use yew_router::prelude::*;
 mod utils;
 use std::collections::HashMap;
 use utils::*;
-use yew_router::RcWrapper;
+use yew_router::RenderFn;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
@@ -40,7 +40,7 @@ fn no(props: &NoProps) -> Html {
 
 #[function_component(Comp)]
 fn component() -> Html {
-    let switch: RcWrapper<Box<dyn Fn(Routes) -> Html>> = RcWrapper::new(Box::new(|routes| {
+    let switch = RenderFn::new((|routes| {
         let onclick = Callback::from(|_| {
             RouterService::push(
                 Routes::No { id: 2 },

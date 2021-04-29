@@ -3,21 +3,21 @@ use content::PostPart;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
+#[derive(Clone, Debug, Eq, PartialEq, Properties)]
+pub struct Props {
+    pub seed: u64,
+}
+
 pub struct Post {
     post: content::Post,
 }
 impl Component for Post {
     type Message = ();
-    type Properties = ();
+    type Properties = Props;
 
-    fn create(_: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        let seed = match RouterService::current_route().route() {
-            Routes::Post { id } => *id,
-            _ => unreachable!(),
-        };
-
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
         Self {
-            post: content::Post::generate_from_seed(seed),
+            post: content::Post::generate_from_seed(props.seed),
         }
     }
 
@@ -25,8 +25,13 @@ impl Component for Post {
         unimplemented!()
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        if self.post.seed == props.seed {
+            false
+        } else {
+            self.post = content::Post::generate_from_seed(props.seed);
+            true
+        }
     }
 
     fn view(&self) -> Html {

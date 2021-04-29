@@ -8,21 +8,21 @@ use std::rc::Rc;
 use yew::prelude::*;
 use yew_functional::*;
 
-pub struct RcWrapper<T>(Rc<T>);
+pub struct RenderFn<R>(Rc<dyn Fn(R) -> Html>);
 
-impl<T> RcWrapper<T> {
-    pub fn new(value: T) -> Self {
+impl<R> RenderFn<R> {
+    pub fn new(value: impl Fn(R) -> Html + 'static) -> Self {
         Self(Rc::new(value))
     }
 }
 
-impl<T> Clone for RcWrapper<T> {
+impl<T> Clone for RenderFn<T> {
     fn clone(&self) -> Self {
         Self(Rc::clone(&self.0))
     }
 }
 
-impl<T> PartialEq for RcWrapper<T> {
+impl<T> PartialEq for RenderFn<T> {
     fn eq(&self, other: &Self) -> bool {
         Rc::ptr_eq(&self.0, &other.0)
     }
@@ -33,7 +33,7 @@ impl<T> PartialEq for RcWrapper<T> {
 pub struct RouterProps<R: Clone> {
     #[prop_or(None)]
     pub not_found_route: Option<String>,
-    pub render: RcWrapper<Box<dyn Fn(R) -> Html>>,
+    pub render: RenderFn<R>,
 }
 
 /// The router component.

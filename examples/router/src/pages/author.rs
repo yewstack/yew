@@ -1,22 +1,21 @@
-use crate::{content, generator::Generated, Routes};
+use crate::{content, generator::Generated};
 use yew::prelude::*;
-use yew_router::RouterService;
+
+#[derive(Clone, Debug, Eq, PartialEq, Properties)]
+pub struct Props {
+    pub seed: u64,
+}
 
 pub struct Author {
     author: content::Author,
 }
 impl Component for Author {
     type Message = ();
-    type Properties = ();
+    type Properties = Props;
 
-    fn create(_: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        let seed = match RouterService::current_route().route() {
-            Routes::Author { id } => *id,
-            _ => unreachable!(),
-        };
-
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
         Self {
-            author: content::Author::generate_from_seed(seed),
+            author: content::Author::generate_from_seed(props.seed),
         }
     }
 
@@ -24,8 +23,13 @@ impl Component for Author {
         unimplemented!()
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        if self.author.seed == props.seed {
+            false
+        } else {
+            self.author = content::Author::generate_from_seed(props.seed);
+            true
+        }
     }
 
     fn view(&self) -> Html {
