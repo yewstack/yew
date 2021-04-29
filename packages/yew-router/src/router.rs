@@ -24,6 +24,8 @@ impl<T> Clone for RenderFn<T> {
 
 impl<T> PartialEq for RenderFn<T> {
     fn eq(&self, other: &Self) -> bool {
+        // https://github.com/rust-lang/rust-clippy/issues/6524
+        #[allow(clippy::vtable_address_comparisons)]
         Rc::ptr_eq(&self.0, &other.0)
     }
 }

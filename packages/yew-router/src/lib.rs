@@ -75,5 +75,5 @@ pub mod prelude {
     pub use crate::components::link::Link;
     pub use crate::Router;
     #[doc(no_inline)]
-    pub use crate::{Routable,RenderFn, RouterService};
+    pub use crate::{RenderFn, Routable, RouterService};
 }
