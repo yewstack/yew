@@ -4,7 +4,7 @@ version = "0.3.2"
 authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 edition = "2018"
 description = "Utility crate for Yew"
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 repository = "https://github.com/yewstack/yew"
 readme = "README.md"
 
