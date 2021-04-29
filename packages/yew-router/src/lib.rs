@@ -14,15 +14,31 @@
 //!     Home,
 //!     #[at("/secure")]
 //!     Secure,
+//!     #[not_found]
 //!     #[at("/404")]
 //!     NotFound,
 //! }
 //!
 //! # #[function_component(Main)]
 //! # fn app() -> Html {
-//! let onclick_callback = Callback::from(|_| RouterService::push(Routes::Home, None));
-//! html! {<button onclick=onclick_callback/>}
+//! html! {
+//!     <Router<Routes> render=RenderFn::new(switch) />
+//! }
 //! # }
+//!
+//! fn switch(routes: Routes) -> Html {
+//!     let onclick_callback = Callback::from(|_| RouterService::push(Routes::Home, None));
+//!     match routes {
+//!         Routes::Home => html! { <h1>{ "Home" }</h1> },
+//!         Routes::Secure => html! {
+//!             <div>
+//!                 <h1>{ "Secure" }</h1>
+//!                 <button onclick=onclick_callback>{ "Go Home" }</button>
+//!             </div>
+//!         },
+//!         Routes::NotFound => html! {<h1>{"404"}</h1>},
+//!     }
+//! }
 //! ```
 //!
 //! # Internals
