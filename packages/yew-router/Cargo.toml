@@ -1,7 +1,7 @@
 [package]
 name = "yew-router"
 version = "0.14.0"
-authors = ["Henry Zimmerman <zimhen7@gmail.com>", "Sascha Grunert <mail@saschagrunert.de>"]
+authors = ["Hamza <muhammadhamza1311@gmail.com>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
