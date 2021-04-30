@@ -30,7 +30,7 @@ pub fn rendered_at(props: &RenderedAtProps) -> Html {
     html! {
         <p>
             <b>{ "Rendered at: " }</b>
-            { &props.time }
+            { props.time.clone() }
         </p>
     }
 }
@@ -46,7 +46,7 @@ fn app() -> Html {
         let counter = Rc::clone(&counter);
         Callback::from(move |_| set_counter(*counter + 1))
     };
-    
+
     html! {
         <div>
             <button onclick=onclick>{ "Increment value" }</button>

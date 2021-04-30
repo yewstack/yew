@@ -4,6 +4,7 @@
 //! - [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
 //! - [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)
 
+use crate::html::ImplicitClone;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
@@ -116,6 +117,8 @@ impl<IN: 'static> Callback<IN> {
     }
 }
 
+impl<T> ImplicitClone for Callback<T> {}
+
 #[cfg(test)]
 pub(crate) mod test_util {
     use super::*;
@@ -152,9 +155,9 @@ pub(crate) mod test_util {
         }
     }
 
-    impl<T: 'static> Into<Callback<T>> for CallbackFuture<T> {
-        fn into(self) -> Callback<T> {
-            Callback::from(move |r| self.finish(r))
+    impl<T: 'static> From<CallbackFuture<T>> for Callback<T> {
+        fn from(callback: CallbackFuture<T>) -> Callback<T> {
+            Callback::from(move |r| callback.finish(r))
         }
     }
 

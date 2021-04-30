@@ -15,25 +15,35 @@ let level = 5;
 let text = "Hello World!".to_owned()
 
 html! {
-    <@{format!("h{}", level)} class="title">{ content }</@>
+    <@{format!("h{}", level)} class="title">{ text }</@>
 }
 ```
 
 ## Optional attributes for HTML elements
 
-Most HTML attributes can be marked as optional by placing a `?` in front of
-the `=` sign. This makes them accept the same type of value as otherwise, but
-wrapped in an `Option<T>`:
+Most HTML attributes can use optional values (`Some(x)` or `None`). This allows us
+to omit the attribute if the attribute is marked as optional.
 
 ```rust
 let maybe_id = Some("foobar");
 
 html! {
-    <div id?=maybe_id></div>
+    <div id=maybe_id></div>
 }
 ```
 
 If the attribute is set to `None`, the attribute won't be set in the DOM.
+
+Please note that it is also valid to give only the value as properties behave
+like `Into<Option<T>>`:
+
+```rust
+let id = "foobar";
+
+html! {
+    <div id=id></div>
+}
+```
 
 ## Listeners
 

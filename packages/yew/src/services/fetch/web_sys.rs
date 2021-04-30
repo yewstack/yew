@@ -32,7 +32,7 @@ pub use http::{HeaderMap, Method, Request, Response, StatusCode, Uri};
 
 trait JsInterop: Sized {
     fn from_js(js_value: JsValue) -> Result<Self, FetchError>;
-    fn to_js(self) -> JsValue;
+    fn into_js(self) -> JsValue;
 }
 
 impl JsInterop for Vec<u8> {
@@ -40,7 +40,7 @@ impl JsInterop for Vec<u8> {
         Ok(Uint8Array::new(&js_value).to_vec())
     }
 
-    fn to_js(self) -> JsValue {
+    fn into_js(self) -> JsValue {
         Uint8Array::from(self.as_slice()).into()
     }
 }
@@ -50,7 +50,7 @@ impl JsInterop for String {
         js_value.as_string().ok_or(FetchError::InternalError)
     }
 
-    fn to_js(self) -> JsValue {
+    fn into_js(self) -> JsValue {
         self.into()
     }
 }
@@ -75,27 +75,27 @@ pub struct FetchOptions {
     pub integrity: Option<String>,
 }
 
-impl Into<RequestInit> for FetchOptions {
-    fn into(self) -> RequestInit {
+impl From<FetchOptions> for RequestInit {
+    fn from(fetch_options: FetchOptions) -> RequestInit {
         let mut init = RequestInit::new();
 
-        if let Some(cache) = self.cache {
+        if let Some(cache) = fetch_options.cache {
             init.cache(cache);
         }
 
-        if let Some(credentials) = self.credentials {
+        if let Some(credentials) = fetch_options.credentials {
             init.credentials(credentials);
         }
 
-        if let Some(redirect) = self.redirect {
+        if let Some(redirect) = fetch_options.redirect {
             init.redirect(redirect);
         }
 
-        if let Some(mode) = self.mode {
+        if let Some(mode) = fetch_options.mode {
             init.mode(mode);
         }
 
-        if let Some(referrer) = self.referrer {
+        if let Some(referrer) = fetch_options.referrer {
             match referrer {
                 Referrer::SameOriginUrl(referrer) => init.referrer(&referrer),
                 Referrer::AboutClient => init.referrer("about:client"),
@@ -103,11 +103,11 @@ impl Into<RequestInit> for FetchOptions {
             };
         }
 
-        if let Some(referrer_policy) = self.referrer_policy {
+        if let Some(referrer_policy) = fetch_options.referrer_policy {
             init.referrer_policy(referrer_policy);
         }
 
-        if let Some(integrity) = self.integrity {
+        if let Some(integrity) = fetch_options.integrity {
             init.integrity(&integrity);
         }
 
@@ -359,7 +359,7 @@ where
     // Transform http::Request into WebRequest.
     let (parts, body) = request.into_parts();
     let body = match body.into() {
-        Ok(b) => b.to_js(),
+        Ok(b) => b.into_js(),
         Err(_) => JsValue::NULL,
     };
     let request = build_request(parts, &body)?;

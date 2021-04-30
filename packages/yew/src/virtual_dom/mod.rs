@@ -13,7 +13,7 @@ pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
 
-use crate::html::{AnyScope, NodeRef};
+use crate::html::{AnyScope, IntoOptPropValue, NodeRef};
 use cfg_if::cfg_if;
 use indexmap::IndexMap;
 use std::{borrow::Cow, collections::HashMap, fmt, hint::unreachable_unchecked, iter, mem, rc::Rc};
@@ -58,25 +58,40 @@ impl fmt::Debug for dyn Listener {
 /// A list of event listeners.
 type Listeners = Vec<Rc<dyn Listener>>;
 
+/// Attribute value
+pub type AttrValue = Cow<'static, str>;
+
 /// Key-value tuple which makes up an item of the [`Attributes::Vec`] variant.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PositionalAttr(pub &'static str, pub Option<Cow<'static, str>>);
+pub struct PositionalAttr(pub &'static str, pub Option<AttrValue>);
 impl PositionalAttr {
     /// Create a positional attribute
-    pub fn new(key: &'static str, value: impl Into<Cow<'static, str>>) -> Self {
-        Self(key, Some(value.into()))
+    pub fn new(key: &'static str, value: impl IntoOptPropValue<AttrValue>) -> Self {
+        Self(key, value.into_opt_prop_value())
     }
+
+    /// Create a boolean attribute.
+    /// `present` controls whether the attribute is added
+    pub fn new_boolean(key: &'static str, present: bool) -> Self {
+        let value = if present {
+            Some(Cow::Borrowed(key))
+        } else {
+            None
+        };
+        Self::new(key, value)
+    }
+
     /// Create a placeholder for removed attributes
     pub fn new_placeholder(key: &'static str) -> Self {
         Self(key, None)
     }
 
-    fn transpose(self) -> Option<(&'static str, Cow<'static, str>)> {
+    fn transpose(self) -> Option<(&'static str, AttrValue)> {
         let Self(key, value) = self;
         value.map(|v| (key, v))
     }
 
-    fn transposed<'a>(&'a self) -> Option<(&'static str, &'a Cow<'static, str>)> {
+    fn transposed<'a>(&'a self) -> Option<(&'static str, &'a AttrValue)> {
         let Self(key, value) = self;
         value.as_ref().map(|v| (*key, v))
     }
@@ -91,12 +106,12 @@ pub enum Attributes {
 
     /// IndexMap is used to provide runtime attribute deduplication in cases where the html! macro
     /// was not used to guarantee it.
-    IndexMap(IndexMap<&'static str, Cow<'static, str>>),
+    IndexMap(IndexMap<&'static str, AttrValue>),
 }
 impl Attributes {
     /// Construct a default Attributes instance
     pub fn new() -> Self {
-        Default::default()
+        Self::default()
     }
 
     /// Return iterator over attribute key-value pairs
@@ -113,7 +128,7 @@ impl Attributes {
 
     /// Get a mutable reference to the underlying `IndexMap`.
     /// If the attributes are stored in the `Vec` variant, it will be converted.
-    pub fn get_mut_index_map(&mut self) -> &mut IndexMap<&'static str, Cow<'static, str>> {
+    pub fn get_mut_index_map(&mut self) -> &mut IndexMap<&'static str, AttrValue> {
         match self {
             Self::IndexMap(m) => m,
             Self::Vec(v) => {
@@ -298,8 +313,8 @@ impl From<Vec<PositionalAttr>> for Attributes {
         Self::Vec(v)
     }
 }
-impl From<IndexMap<&'static str, Cow<'static, str>>> for Attributes {
-    fn from(v: IndexMap<&'static str, Cow<'static, str>>) -> Self {
+impl From<IndexMap<&'static str, AttrValue>> for Attributes {
+    fn from(v: IndexMap<&'static str, AttrValue>) -> Self {
         Self::IndexMap(v)
     }
 }
@@ -380,12 +395,6 @@ pub(crate) fn insert_node(node: &impl INode, parent: &impl INode, next_sibling: 
     } else {
         parent.append_child(node);
     }
-}
-
-/// Transform properties to the expected type.
-pub trait Transformer<FROM, TO> {
-    /// Transforms one type to another.
-    fn transform(from: FROM) -> TO;
 }
 
 // stdweb lacks the `inner_html` method

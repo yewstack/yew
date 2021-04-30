@@ -1,4 +1,4 @@
-#![recursion_limit = "768"]
+use std::borrow::Cow;
 use yew::prelude::*;
 
 fn compile_pass() {
@@ -7,6 +7,8 @@ fn compile_pass() {
 
     let dyn_tag = || String::from("test");
     let mut extra_tags_iter = vec!["a", "b"].into_iter();
+
+    let cow_none: Option<Cow<'static, str>> = None;
 
     html! {
         <div>
@@ -58,10 +60,10 @@ fn compile_pass() {
                 }
             }/>
 
-            <a href?=Some("http://google.com") media?=Option::<&str>::None />
-            <track kind?=Some("subtitles") src?=Option::<&str>::None />
-            <track kind?=Some(5) mixed="works" />
-            <input value?=Some("value") onblur?=Some(Callback::from(|_| ())) />
+            <a href=Some(Cow::Borrowed("http://google.com")) media=cow_none.clone() />
+            <track kind=Some(Cow::Borrowed("subtitles")) src=cow_none.clone() />
+            <track kind=Some(Cow::Borrowed("5")) mixed="works" />
+            <input value=Some(Cow::Borrowed("value")) onblur=Some(Callback::from(|_| ())) />
         </div>
     };
 
@@ -70,6 +72,10 @@ fn compile_pass() {
         html! { <span>{ "World" }</span> },
     ];
     html! { <div>{children}</div> };
+
+    // handle misleading angle brackets
+    html! { <div data-val=<String as Default>::default()></div> };
+    html! { <div><a data-val=<String as Default>::default() /></div> };
 }
 
 fn main() {}

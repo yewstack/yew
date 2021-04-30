@@ -11,8 +11,9 @@ macro_rules! impl_action {
             use cfg_match::cfg_match;
             use crate::callback::Callback;
             #[allow(unused_imports)]
-            use crate::html::listener::*;
+            use crate::html::{listener::*, IntoOptPropValue};
             use crate::virtual_dom::Listener;
+            use std::rc::Rc;
             cfg_if! {
                 if #[cfg(feature = "std_web")] {
                     use stdweb::web::event::$type;
@@ -34,6 +35,12 @@ macro_rules! impl_action {
                 /// Create a wrapper for an event-typed callback
                 pub fn new(callback: Callback<Event>) -> Self {
                     Wrapper { callback }
+                }
+
+                #[doc(hidden)]
+                pub fn __macro_new(callback: impl IntoOptPropValue<Callback<Event>>) -> Option<Rc<dyn Listener>> {
+                    let callback = callback.into_opt_prop_value()?;
+                    Some(Rc::new(Self::new(callback)))
                 }
             }
 

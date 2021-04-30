@@ -40,7 +40,7 @@ use std::rc::Rc;
 ///
 ///     html! {
 ///         <div>
-///             <input onchange=onchange value=message />
+///             <input onchange=onchange value=(*message).clone() />
 ///             <button onclick=onclick>{ "Send" }</button>
 ///         </div>
 ///     }

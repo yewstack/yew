@@ -37,9 +37,9 @@ impl<COMP: Component> BoxedVNodeProducer<COMP> {
     }
 }
 
-impl<COMP: Component> Into<VNode> for BoxedVNodeProducer<COMP> {
-    fn into(self) -> VNode {
-        self.build()
+impl<COMP: Component> From<BoxedVNodeProducer<COMP>> for VNode {
+    fn from(value: BoxedVNodeProducer<COMP>) -> VNode {
+        value.build()
     }
 }
 

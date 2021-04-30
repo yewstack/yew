@@ -208,9 +208,7 @@ fn compile_pass() {
             <Child int=1 vec={vec![1]} />
             <Child string={String::from("child")} int=1 />
 
-            <Child opt_str="child" int=1 />
             <Child opt_str=String::from("child") int=1 />
-            <Child opt_str=Some("child") int=1 />
             <Child opt_str=Some(String::from("child")) int=1 />
         </>
     };
@@ -225,7 +223,7 @@ fn compile_pass() {
             <Child int=1 />
             <Child int=1 optional_callback=Some(Callback::from(|_| ())) />
             <Child int=1 optional_callback=Callback::from(|_| ()) />
-            <Child int=1 optional_callback=None />
+            <Child int=1 optional_callback=None::<Callback<_>> />
         </>
     };
 

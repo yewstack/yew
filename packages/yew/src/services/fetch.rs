@@ -79,6 +79,7 @@ mod tests {
             .unwrap();
         let options = FetchOptions {
             referrer: Some(Referrer::SameOriginUrl(String::from("same-origin"))),
+            referrer_policy: Some(ReferrerPolicy::NoReferrerWhenDowngrade),
             ..FetchOptions::default()
         };
         let cb_future = CallbackFuture::<Response<Json<Result<HttpBin, anyhow::Error>>>>::default();

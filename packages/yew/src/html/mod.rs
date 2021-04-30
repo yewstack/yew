@@ -2,10 +2,12 @@
 
 mod classes;
 mod component;
+mod conversion;
 mod listener;
 
 pub use classes::*;
 pub use component::*;
+pub use conversion::*;
 pub use listener::*;
 
 use crate::virtual_dom::VNode;

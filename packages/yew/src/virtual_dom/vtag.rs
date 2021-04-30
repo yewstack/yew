@@ -1,9 +1,9 @@
 //! This module contains the implementation of a virtual element node `VTag`.
 
 use super::{
-    Attributes, Key, Listener, Listeners, Patch, PositionalAttr, Transformer, VDiff, VList, VNode,
+    AttrValue, Attributes, Key, Listener, Listeners, Patch, PositionalAttr, VDiff, VList, VNode,
 };
-use crate::html::{AnyScope, NodeRef};
+use crate::html::{AnyScope, IntoOptPropValue, IntoPropValue, NodeRef};
 use crate::utils::document;
 use cfg_if::cfg_if;
 use cfg_match::cfg_match;
@@ -74,11 +74,11 @@ pub struct VTag {
     pub children: VList,
     /// Contains a value of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
-    pub value: Option<String>,
+    pub value: Option<AttrValue>,
     /// Contains
     /// [kind](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Form_%3Cinput%3E_types)
     /// value of an `InputElement`.
-    pub kind: Option<Cow<'static, str>>,
+    pub kind: Option<AttrValue>,
     /// Represents `checked` attribute of
     /// [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-checked).
     /// It exists to override standard behavior of `checked` attribute, because
@@ -115,7 +115,7 @@ impl Clone for VTag {
 impl VTag {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new(tag: impl Into<Cow<'static, str>>) -> Self {
-        let tag: Cow<'static, str> = tag.into();
+        let tag = tag.into();
         let element_type = ElementType::from_tag(&tag);
         VTag {
             tag,
@@ -152,15 +152,20 @@ impl VTag {
 
     /// Sets `value` for an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
-    pub fn set_value<T: ToString>(&mut self, value: &T) {
-        self.value = Some(value.to_string());
+    pub fn set_value(&mut self, value: impl IntoOptPropValue<AttrValue>) {
+        self.value = value.into_opt_prop_value();
     }
 
     /// Sets `kind` property of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     /// Same as set `type` attribute.
-    pub fn set_kind(&mut self, value: impl Into<Cow<'static, str>>) {
-        self.kind = Some(value.into());
+    pub fn set_kind(&mut self, value: impl IntoOptPropValue<AttrValue>) {
+        self.kind = value.into_opt_prop_value();
+    }
+
+    #[doc(hidden)]
+    pub fn __macro_set_key(&mut self, value: impl Into<Key>) {
+        self.key = Some(value.into())
     }
 
     /// Sets `checked` property of an
@@ -170,35 +175,16 @@ impl VTag {
         self.checked = value;
     }
 
-    /// Pushes a key-value pair to the attributes without ensuring uniqueness.
-    ///
-    /// Adding multiple attributes with the same key will cause unexpected behaviour
-    /// if the variant is `Attributes::Vec`.
     #[doc(hidden)]
-    pub fn __macro_push_attribute(&mut self, key: &'static str, value: Cow<'static, str>) {
-        match &mut self.attributes {
-            Attributes::Vec(v) => v.push(PositionalAttr::new(key, value)),
-            Attributes::IndexMap(m) => {
-                m.insert(key, value);
-            }
-        }
-    }
-
-    /// Pushes a placeholder to the attributes to preserve alignment.
-    /// This is only required for the `Attributes::Vec` variant.
-    #[doc(hidden)]
-    pub fn __macro_push_attribute_placeholder(&mut self, key: &'static str) {
-        // only the `Vec` variant needs placeholders
-        if let Attributes::Vec(v) = &mut self.attributes {
-            v.push(PositionalAttr::new_placeholder(key));
-        }
+    pub fn __macro_set_node_ref(&mut self, value: impl IntoPropValue<NodeRef>) {
+        self.node_ref = value.into_prop_value()
     }
 
     /// Adds a key-value pair to attributes
     ///
     /// Not every attribute works when it set as an attribute. We use workarounds for:
     /// `type/kind`, `value` and `checked`.
-    pub fn add_attribute(&mut self, key: &'static str, value: impl Into<Cow<'static, str>>) {
+    pub fn add_attribute(&mut self, key: &'static str, value: impl Into<AttrValue>) {
         self.attributes
             .get_mut_index_map()
             .insert(key, value.into());
@@ -212,6 +198,14 @@ impl VTag {
         self.attributes = attrs.into();
     }
 
+    #[doc(hidden)]
+    pub fn __macro_push_attr(&mut self, attr: PositionalAttr) {
+        match &mut self.attributes {
+            Attributes::Vec(attrs) => attrs.push(attr),
+            _ => unreachable!("the macro always uses positional attributes"),
+        }
+    }
+
     /// Adds new listener to the node.
     /// It's boxed because we want to keep it in a single list.
     /// Later `Listener::attach` will attach an actual listener to a DOM node.
@@ -222,8 +216,19 @@ impl VTag {
     /// Adds new listeners to the node.
     /// They are boxed because we want to keep them in a single list.
     /// Later `Listener::attach` will attach an actual listener to a DOM node.
-    pub fn add_listeners(&mut self, listeners: Vec<Rc<dyn Listener>>) {
+    pub fn add_listeners(&mut self, listeners: Listeners) {
         self.listeners.extend(listeners);
+    }
+
+    #[doc(hidden)]
+    pub fn __macro_set_listeners(
+        &mut self,
+        listeners: impl IntoIterator<Item = Option<Rc<dyn Listener>>>,
+    ) {
+        self.listeners = listeners
+            .into_iter()
+            .filter_map(std::convert::identity)
+            .collect();
     }
 
     /// Every render it removes all listeners and attach it back later
@@ -258,7 +263,7 @@ impl VTag {
                         feature = "std_web" => input.raw_value(),
                         feature = "web_sys" => input.value(),
                     };
-                    self.set_value(&current_value)
+                    self.set_value(Cow::Owned(current_value));
                 }
             } else if self.element_type == ElementType::Textarea {
                 let textarea_el = cfg_match! {
@@ -266,8 +271,8 @@ impl VTag {
                     feature = "web_sys" => element.dyn_ref::<TextAreaElement>(),
                 };
                 if let Some(tae) = textarea_el {
-                    let current_value = &tae.value();
-                    self.set_value(&current_value)
+                    let value = tae.value();
+                    self.set_value(Cow::Owned(value));
                 }
             }
         }
@@ -543,21 +548,6 @@ impl PartialEq for VTag {
     }
 }
 
-impl<T> Transformer<T, T> for VTag {
-    fn transform(from: T) -> T {
-        from
-    }
-}
-
-impl<'a, T> Transformer<&'a T, T> for VTag
-where
-    T: Clone,
-{
-    fn transform(from: &'a T) -> T {
-        from.clone()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -818,22 +808,6 @@ mod tests {
     }
 
     #[test]
-    fn it_checks_mixed_closing_tags() {
-        let a = html! { <div> <div/>      </div> };
-        let b = html! { <div> <div></div> </div> };
-        assert_eq!(a, b);
-    }
-
-    #[test]
-    fn it_checks_misleading_gt() {
-        html! { <div data-val=<u32 as Default>::default()></div> };
-        html! { <div data-val=Box::<u32>::default()></div> };
-
-        html! { <div><a data-val=<u32 as Default>::default() /> </div> };
-        html! { <div><a data-val=Box::<u32>::default() /></div> };
-    }
-
-    #[test]
     fn it_does_not_set_missing_class_name() {
         let scope = test_scope();
         let parent = document().create_element("div").unwrap();
@@ -1031,7 +1005,7 @@ mod tests {
             <@{"input"} value="World"/>
         };
         let input_vtag = assert_vtag(&mut input_el);
-        assert_eq!(input_vtag.value, Some("World".to_string()));
+        assert_eq!(input_vtag.value, Some(Cow::Borrowed("World")));
         assert!(!input_vtag.attributes.iter().any(|(k, _)| k == "value"));
     }
 

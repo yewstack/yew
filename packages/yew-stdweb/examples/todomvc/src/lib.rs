@@ -1,7 +1,6 @@
 #![recursion_limit = "512"]
 
 use serde_derive::{Deserialize, Serialize};
-use std::borrow::Cow;
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, ToString};
 use yew::events::IKeyboardEvent;
@@ -178,7 +177,7 @@ impl Model {
         html! {
             <li>
                 <a class=cls
-                   href=flt
+                   href=filter.as_href()
                    onclick=self.link.callback(move |_| Msg::SetFilter(flt.clone()))>
                     { filter }
                 </a>
@@ -192,7 +191,7 @@ impl Model {
             // <li></li>
             <input class="new-todo"
                    placeholder="What needs to be done?"
-                   value=&self.state.value
+                   value=self.state.value.clone()
                    oninput=self.link.callback(|e: InputData| Msg::Update(e.value))
                    onkeypress=self.link.callback(|e: KeyPressEvent| {
                        if e.key() == "Enter" { Msg::Add } else { Msg::Nope }
@@ -234,7 +233,7 @@ impl Model {
             html! {
                 <input class="edit"
                        type="text"
-                       value=&entry.description
+                       value=entry.description.clone()
                        oninput=self.link.callback(|e: InputData| Msg::UpdateEdit(e.value))
                        onblur=self.link.callback(move |_| Msg::Edit(idx))
                        onkeypress=self.link.callback(move |e: KeyPressEvent| {
@@ -254,17 +253,15 @@ pub enum Filter {
     Completed,
 }
 
-impl<'a> Into<Cow<'static, str>> for &'a Filter {
-    fn into(self) -> Cow<'static, str> {
+impl Filter {
+    fn as_href(&self) -> &'static str {
         match *self {
-            Filter::All => "#/".into(),
-            Filter::Active => "#/active".into(),
-            Filter::Completed => "#/completed".into(),
+            Self::All => "#/",
+            Self::Active => "#/active",
+            Self::Completed => "#/completed",
         }
     }
-}
 
-impl Filter {
     fn fit(&self, entry: &Entry) -> bool {
         match *self {
             Filter::All => true,
