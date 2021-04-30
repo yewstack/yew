@@ -41,23 +41,13 @@ impl Parse for ElementProps {
 
         let booleans =
             props.drain_filter(|prop| BOOLEAN_SET.contains(prop.label.to_string().as_str()));
-        booleans.check_all(|prop| {
-            if prop.question_mark.is_some() {
-                Err(syn::Error::new_spanned(
-                    &prop.label,
-                    "boolean attributes don't support being used as an optional attribute (hint: a value of false results in the attribute not being set)"
-                ))
-            } else {
-                Ok(())
-            }
-        })?;
 
         let classes = props
-            .pop_nonoptional("class")?
+            .pop("class")
             .map(|prop| ClassesForm::from_expr(prop.value));
         let value = props.pop("value");
         let kind = props.pop("type");
-        let checked = props.pop_nonoptional("checked")?;
+        let checked = props.pop("checked");
 
         let SpecialProps { node_ref, key } = props.special;
 

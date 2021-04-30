@@ -1,3 +1,5 @@
+use super::{IntoOptPropValue, IntoPropValue};
+use crate::virtual_dom::AttrValue;
 use indexmap::IndexSet;
 use std::{
     borrow::{Borrow, Cow},
@@ -59,6 +61,26 @@ impl Classes {
     /// Check the set is empty.
     pub fn is_empty(&self) -> bool {
         self.set.is_empty()
+    }
+}
+
+impl IntoPropValue<AttrValue> for Classes {
+    fn into_prop_value(mut self) -> AttrValue {
+        if self.set.len() == 1 {
+            self.set.pop().unwrap()
+        } else {
+            Cow::Owned(self.to_string())
+        }
+    }
+}
+
+impl IntoOptPropValue<AttrValue> for Classes {
+    fn into_opt_prop_value(self) -> Option<AttrValue> {
+        if self.is_empty() {
+            None
+        } else {
+            Some(self.into_prop_value())
+        }
     }
 }
 
