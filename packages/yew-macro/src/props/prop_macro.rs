@@ -65,15 +65,14 @@ impl Parse for PropValue {
 }
 
 impl From<PropValue> for Prop {
-    fn from(val: PropValue) -> Prop {
+    fn from(prop_value: PropValue) -> Prop {
         let PropValue {
             label,
             colon_token,
             value,
-        } = val;
+        } = prop_value;
         Prop {
             label,
-            question_mark: None,
             punct: colon_token.map(PropPunct::Colon),
             value,
         }

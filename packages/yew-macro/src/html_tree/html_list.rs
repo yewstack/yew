@@ -64,9 +64,7 @@ impl ToTokens for HtmlList {
         } = &self;
 
         let key = if let Some(key) = &open.props.key {
-            quote_spanned! {key.span()=>
-                ::std::option::Option::Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key))
-            }
+            quote_spanned! {key.span()=> ::std::option::Option::Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key))}
         } else {
             quote! { ::std::option::Option::None }
         };
@@ -138,8 +136,6 @@ impl Parse for HtmlListProps {
                     "fragments only accept the `key` prop",
                 ));
             }
-
-            prop.ensure_not_optional()?;
 
             Some(prop.value)
         };

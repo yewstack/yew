@@ -1,5 +1,6 @@
 use super::*;
 use crate::callback::Callback;
+use crate::html::ImplicitClone;
 use crate::scheduler::{self, Runnable, Shared};
 use std::cell::RefCell;
 use std::fmt;
@@ -121,6 +122,8 @@ impl<AGN: Agent> Default for AgentScope<AGN> {
         Self::new()
     }
 }
+
+impl<AGN: Agent> ImplicitClone for AgentScope<AGN> {}
 
 struct AgentState<AGN> {
     agent: Option<AGN>,

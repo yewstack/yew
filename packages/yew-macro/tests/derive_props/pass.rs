@@ -188,10 +188,15 @@ mod t10 {
 mod t11 {
     use super::*;
 
-    // this test makes sure that deriving the Properties trait works for unit structs
-
     #[derive(Clone, Properties)]
-    pub struct Foo;
+    pub struct Props<T: Clone> {
+        value: Option<T>,
+    }
+
+    fn optional_prop_generics_should_work() {
+        Props::<bool>::builder().build();
+        Props::<bool>::builder().value(true).build();
+    }
 }
 
 fn main() {}
