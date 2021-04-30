@@ -1,6 +1,6 @@
 use crate::html_tree::HtmlDashedName;
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::ToTokens;
 use std::{
     cmp::Ordering,
     convert::TryFrom,
@@ -26,40 +26,13 @@ impl ToTokens for PropPunct {
 
 pub struct Prop {
     pub label: HtmlDashedName,
-    pub question_mark: Option<Token![?]>,
     /// Punctuation between `label` and `value`.
     pub punct: Option<PropPunct>,
     pub value: Expr,
 }
-impl Prop {
-    /// Checks if the prop uses the optional attribute syntax.
-    /// If it does, an error is returned.
-    pub fn ensure_not_optional(&self) -> syn::Result<()> {
-        let Self {
-            label,
-            question_mark,
-            punct,
-            ..
-        } = self;
-        if question_mark.is_some() {
-            let msg = format!(
-                "`{}` does not support being used as an optional attribute",
-                label
-            );
-            // include `?=` in the span
-            Err(syn::Error::new_spanned(
-                quote! { #label#question_mark#punct },
-                msg,
-            ))
-        } else {
-            Ok(())
-        }
-    }
-}
 impl Parse for Prop {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let label = input.parse::<HtmlDashedName>()?;
-        let question_mark = input.parse::<Token![?]>().ok();
         let equals = input.parse::<Token![=]>().map_err(|_| {
             syn::Error::new_spanned(
                 &label,
@@ -75,7 +48,6 @@ impl Parse for Prop {
         let value = input.parse::<Expr>()?;
         Ok(Self {
             label,
-            question_mark,
             punct: Some(PropPunct::Eq(equals)),
             value,
         })
@@ -140,16 +112,6 @@ impl SortedPropList {
         }
 
         Ok(prop)
-    }
-    /// Pop the prop with the given key and error if it uses the optional attribute syntax.
-    pub fn pop_nonoptional(&mut self, key: &str) -> syn::Result<Option<Prop>> {
-        match self.pop_unique(key) {
-            Ok(Some(prop)) => {
-                prop.ensure_not_optional()?;
-                Ok(Some(prop))
-            }
-            res => res,
-        }
     }
 
     /// Turn the props into a vector of `Prop`.
@@ -224,8 +186,8 @@ impl SpecialProps {
     const KEY_LABEL: &'static str = "key";
 
     fn pop_from(props: &mut SortedPropList) -> syn::Result<Self> {
-        let node_ref = props.pop_nonoptional(Self::REF_LABEL)?;
-        let key = props.pop_nonoptional(Self::KEY_LABEL)?;
+        let node_ref = props.pop_unique(Self::REF_LABEL)?;
+        let key = props.pop_unique(Self::KEY_LABEL)?;
         Ok(Self { node_ref, key })
     }
 

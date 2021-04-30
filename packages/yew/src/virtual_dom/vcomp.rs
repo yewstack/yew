@@ -1,6 +1,6 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
-use super::{Key, Transformer, VDiff, VNode};
+use super::{Key, VDiff, VNode};
 use crate::html::{AnyScope, Component, NodeRef, Scope, Scoped};
 use std::any::TypeId;
 use std::borrow::Borrow;
@@ -191,54 +191,6 @@ impl VDiff for VComp {
         ));
 
         self.node_ref.clone()
-    }
-}
-
-impl<T> Transformer<T, T> for VComp {
-    fn transform(from: T) -> T {
-        from
-    }
-}
-
-impl<'a, T> Transformer<&'a T, T> for VComp
-where
-    T: Clone,
-{
-    fn transform(from: &'a T) -> T {
-        from.clone()
-    }
-}
-
-impl<'a> Transformer<&'a str, String> for VComp {
-    fn transform(from: &'a str) -> String {
-        from.to_owned()
-    }
-}
-
-impl<T> Transformer<T, Option<T>> for VComp {
-    fn transform(from: T) -> Option<T> {
-        Some(from)
-    }
-}
-
-impl<'a, T> Transformer<&'a T, Option<T>> for VComp
-where
-    T: Clone,
-{
-    fn transform(from: &T) -> Option<T> {
-        Some(from.clone())
-    }
-}
-
-impl<'a> Transformer<&'a str, Option<String>> for VComp {
-    fn transform(from: &'a str) -> Option<String> {
-        Some(from.to_owned())
-    }
-}
-
-impl<'a> Transformer<Option<&'a str>, Option<String>> for VComp {
-    fn transform(from: Option<&'a str>) -> Option<String> {
-        from.map(|s| s.to_owned())
     }
 }
 

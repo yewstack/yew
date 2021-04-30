@@ -38,7 +38,7 @@ impl Component for AuthorList {
     }
 
     fn view(&self) -> Html {
-        let authors = self.seeds.iter().map(|seed| {
+        let authors = self.seeds.iter().map(|&seed| {
             html! {
                 <div class="tile is-parent">
                     <div class="tile is-child">
