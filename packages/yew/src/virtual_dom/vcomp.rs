@@ -459,11 +459,7 @@ mod tests {
     use super::{AnyScope, Element};
 
     fn setup_parent() -> (AnyScope, Element) {
-        let scope = AnyScope {
-            type_id: std::any::TypeId::of::<()>(),
-            parent: None,
-            state: std::rc::Rc::new(()),
-        };
+        let scope = AnyScope::test();
         let parent = document().create_element("div").unwrap();
 
         document().body().unwrap().append_child(&parent).unwrap();
@@ -527,11 +523,7 @@ mod tests {
 
     #[test]
     fn reset_node_ref() {
-        let scope = AnyScope {
-            type_id: std::any::TypeId::of::<()>(),
-            parent: None,
-            state: std::rc::Rc::new(()),
-        };
+        let scope = AnyScope::test();
         let parent = document().create_element("div").unwrap();
 
         document().body().unwrap().append_child(&parent).unwrap();
