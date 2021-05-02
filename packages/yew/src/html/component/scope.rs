@@ -21,9 +21,9 @@ use web_sys::{Element, Node};
 /// Untyped scope used for accessing parent scope
 #[derive(Debug, Clone)]
 pub struct AnyScope {
-    pub(crate) type_id: TypeId,
-    pub(crate) parent: Option<Rc<AnyScope>>,
-    pub(crate) state: Rc<dyn Any>,
+    type_id: TypeId,
+    parent: Option<Rc<AnyScope>>,
+    state: Rc<dyn Any>,
 }
 
 impl<COMP: Component> From<Scope<COMP>> for AnyScope {
@@ -31,12 +31,21 @@ impl<COMP: Component> From<Scope<COMP>> for AnyScope {
         AnyScope {
             type_id: TypeId::of::<COMP>(),
             parent: scope.parent,
-            state: Rc::new(scope.state),
+            state: scope.state,
         }
     }
 }
 
 impl AnyScope {
+    #[cfg(test)]
+    pub(crate) fn test() -> Self {
+        Self {
+            type_id: TypeId::of::<()>(),
+            parent: None,
+            state: Rc::new(()),
+        }
+    }
+
     /// Returns the parent scope
     pub fn get_parent(&self) -> Option<&AnyScope> {
         self.parent.as_deref()
@@ -53,9 +62,8 @@ impl AnyScope {
             parent: self.parent,
             state: self
                 .state
-                .downcast_ref::<Shared<Option<ComponentState<COMP>>>>()
-                .expect("unexpected component type")
-                .clone(),
+                .downcast::<RefCell<Option<ComponentState<COMP>>>>()
+                .expect("unexpected component type"),
         }
     }
 }
