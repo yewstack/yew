@@ -4,10 +4,10 @@ id: version-0.17.3-build-a-sample-app
 original_id: build-a-sample-app
 ---
 
-首先创建一个新的Rust库（**重要：**通过传入<code>--lib</code> 来创建一个*库*，而不是一个<em>二进制文件）：</em>
+首先创建一个新的 Rust 库（**重要：**通过传入<code>--lib</code> 来创建一个*库*，而不是一个<em>二进制文件）：</em>
 
 ```bash
-cargo new --bin yew-app && cd yew-app
+cargo new --lib yew-app && cd yew-app
 ```
 
 将`yew`和`wasm-bindgen`添加到您的依赖项中（最新版本[请参阅此处](https://docs.rs/yew)）
@@ -114,7 +114,7 @@ wasm-pack build --target web --out-name wasm --out-dir ./static
 
 `wasm-pack` 会在 `./static`目录下生成一个包，其中包含应用程序已编译的 WebAssembly ，以及一个 JavaScript 包装器，它将加载应用程序的 WebAssembly 二进制文件并运行它。
 
-然后，使用您喜欢的Web服务器为`./static`下的文件提供服务。例如：
+然后，使用您喜欢的 Web 服务器为`./static`下的文件提供服务。例如：
 
 ```bash
 cargo +nightly install miniserve
