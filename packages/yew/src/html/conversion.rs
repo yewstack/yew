@@ -64,6 +64,12 @@ macro_rules! impl_into_prop {
                 Some({ $conversion })
             }
         }
+        // implement Option<V> -> Option<T>
+        impl IntoOptPropValue<$to_ty> for Option<$from_ty> {
+            fn into_opt_prop_value(self) -> Option<$to_ty> {
+                self.map(|$value| $value.into_prop_value())
+            }
+        }
     };
 }
 
