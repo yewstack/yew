@@ -20,3 +20,4 @@ yew-services = { path = "../yew-services" }
 yew = { path = "../yew" }
 yew-functional-macro = { path = "../yew-functional-macro" }
 wasm-bindgen = "0.2.60"
+scoped-tls-hkt = "0.1.2"
