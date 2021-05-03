@@ -18,6 +18,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use yew::html::AnyScope;
 use yew::{Component, ComponentLink, Html, Properties};
+use scoped_tls_hkt::scoped_thread_local;
 
 mod hooks;
 pub use hooks::*;
@@ -51,9 +52,7 @@ pub use hooks::*;
 /// ```
 pub use yew_functional_macro::function_component;
 
-thread_local! {
-    pub(crate) static CURRENT_HOOK: RefCell<Option<HookState>> = RefCell::new(None);
-}
+scoped_thread_local!(static mut CURRENT_HOOK: HookState);
 
 type Msg = Box<dyn FnOnce() -> bool>;
 type ProcessMessage = Rc<dyn Fn(Msg, bool)>;
@@ -74,30 +73,25 @@ pub trait FunctionProvider {
 pub struct FunctionComponent<T: FunctionProvider + 'static> {
     _never: std::marker::PhantomData<T>,
     props: T::TProps,
-    hook_state: RefCell<Option<HookState>>,
+    hook_state: RefCell<HookState>,
     link: ComponentLink<Self>,
     message_queue: MsgQueue,
 }
 
 impl<T> FunctionComponent<T>
-where
-    T: FunctionProvider,
+    where
+        T: FunctionProvider,
 {
-    fn swap_hook_state(&self) {
-        CURRENT_HOOK.with(|previous_hook| {
-            std::mem::swap(
-                &mut *previous_hook
-                    .try_borrow_mut()
-                    .expect("use_hook error: hook still borrowed on subsequent renders"),
-                &mut *self.hook_state.borrow_mut(),
-            );
-        });
+    fn with_hook_state<R>(&self, f: impl FnOnce() -> R) -> R {
+        let mut hook_state = self.hook_state.borrow_mut();
+        hook_state.counter = 0;
+        CURRENT_HOOK.set(&mut *hook_state, f)
     }
 }
 
 impl<T: 'static> Component for FunctionComponent<T>
-where
-    T: FunctionProvider,
+    where
+        T: FunctionProvider,
 {
     type Message = Box<dyn FnOnce() -> bool>;
     type Properties = T::TProps;
@@ -111,7 +105,7 @@ where
             props,
             link: link.clone(),
             message_queue: message_queue.clone(),
-            hook_state: RefCell::new(Some(HookState {
+            hook_state: RefCell::new(HookState {
                 counter: 0,
                 scope,
                 process_message: Rc::new(move |msg, post_render| {
@@ -123,7 +117,7 @@ where
                 }),
                 hooks: vec![],
                 destroy_listeners: vec![],
-            })),
+            }),
         }
     }
 
@@ -144,36 +138,23 @@ where
     }
 
     fn view(&self) -> Html {
-        // Reset hook
-        self.hook_state
-            .try_borrow_mut()
-            .expect("internal error: unexpected concurrent/nested view call in hook lifecycle")
-            .as_mut()
-            .unwrap()
-            .counter = 0;
-
-        // Load hook
-        self.swap_hook_state();
-
-        let ret = T::run(&self.props);
-
-        // Restore previous hook
-        self.swap_hook_state();
-
-        ret
+        self.with_hook_state(|| T::run(&self.props))
     }
 
     fn destroy(&mut self) {
-        if let Some(ref mut hook_state) = *self.hook_state.borrow_mut() {
-            for hook in hook_state.destroy_listeners.drain(..) {
-                hook()
-            }
+        let mut hook_state = self.hook_state.borrow_mut();
+        for hook in hook_state.destroy_listeners.drain(..) {
+            hook()
         }
     }
 }
 
 pub(crate) fn get_current_scope() -> Option<AnyScope> {
-    CURRENT_HOOK.with(|cell| cell.borrow().as_ref().map(|state| state.scope.clone()))
+    if CURRENT_HOOK.is_set() {
+        Some(CURRENT_HOOK.with(|state| state.scope.clone()))
+    } else {
+        None
+    }
 }
 
 #[derive(Clone, Default)]
@@ -206,8 +187,8 @@ pub struct HookUpdater {
 }
 impl HookUpdater {
     pub fn callback<T: 'static, F>(&self, cb: F)
-    where
-        F: FnOnce(&mut T) -> bool + 'static,
+        where
+            F: FnOnce(&mut T) -> bool + 'static,
     {
         let internal_hook_state = self.hook.clone();
         let process_message = self.process_message.clone();
@@ -228,8 +209,8 @@ impl HookUpdater {
     }
 
     pub fn post_render<T: 'static, F>(&self, cb: F)
-    where
-        F: FnOnce(&mut T) -> bool + 'static,
+        where
+            F: FnOnce(&mut T) -> bool + 'static,
     {
         let internal_hook_state = self.hook.clone();
         let process_message = self.process_message.clone();

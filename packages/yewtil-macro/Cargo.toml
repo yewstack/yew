@@ -3,7 +3,7 @@ name = "yewtil-macro"
 version = "0.2.0"
 authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 edition = "2018"
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 description = "Macros to be re-exported from the yewtil crate"
 
 [lib]

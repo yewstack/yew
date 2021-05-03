@@ -34,14 +34,7 @@ pub fn use_hook<InternalHook: 'static, Output, Tear: FnOnce(&mut InternalHook) +
     destructor: Tear,
 ) -> Output {
     // Extract current hook
-    let updater = CURRENT_HOOK.with(|hook_state_holder| {
-        let mut hook_state_holder = hook_state_holder
-            .try_borrow_mut()
-            .expect("Nested hooks not supported");
-
-        let mut hook_state = hook_state_holder
-            .as_mut()
-            .expect("No current hook. Hooks can only be called inside function components");
+    let updater = CURRENT_HOOK.with(|hook_state| {
 
         // Determine which hook position we're at and increment for the next hook
         let hook_pos = hook_state.counter;
