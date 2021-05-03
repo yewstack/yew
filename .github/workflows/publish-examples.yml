@@ -29,9 +29,15 @@ jobs:
           restore-keys: |
             cargo-${{ runner.os }}-
 
-      - name: Install trunk
-        run: |
-          cargo install trunk wasm-bindgen-cli
+      - uses: jetli/trunk-action@v0.1.0
+        with:
+          # Optional version of trunk to install(eg. 'v0.8.1', 'latest')
+          version: 'latest'
+          
+      - uses: jetli/wasm-bindgen-action@v0.1.0
+        with:
+          # Optional version of wasm-bindgen to install(eg. '0.2.68', 'latest')
+          version: 'latest'
 
       - name: Build examples
         run: |
