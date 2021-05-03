@@ -35,7 +35,6 @@ pub fn use_hook<InternalHook: 'static, Output, Tear: FnOnce(&mut InternalHook) +
 ) -> Output {
     // Extract current hook
     let updater = CURRENT_HOOK.with(|hook_state| {
-
         // Determine which hook position we're at and increment for the next hook
         let hook_pos = hook_state.counter;
         hook_state.counter += 1;

@@ -14,11 +14,11 @@
 //!
 //! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/en/next/concepts/function-components)
 
+use scoped_tls_hkt::scoped_thread_local;
 use std::cell::RefCell;
 use std::rc::Rc;
 use yew::html::AnyScope;
 use yew::{Component, ComponentLink, Html, Properties};
-use scoped_tls_hkt::scoped_thread_local;
 
 mod hooks;
 pub use hooks::*;
@@ -79,8 +79,8 @@ pub struct FunctionComponent<T: FunctionProvider + 'static> {
 }
 
 impl<T> FunctionComponent<T>
-    where
-        T: FunctionProvider,
+where
+    T: FunctionProvider,
 {
     fn with_hook_state<R>(&self, f: impl FnOnce() -> R) -> R {
         let mut hook_state = self.hook_state.borrow_mut();
@@ -90,8 +90,8 @@ impl<T> FunctionComponent<T>
 }
 
 impl<T: 'static> Component for FunctionComponent<T>
-    where
-        T: FunctionProvider,
+where
+    T: FunctionProvider,
 {
     type Message = Box<dyn FnOnce() -> bool>;
     type Properties = T::TProps;
@@ -187,8 +187,8 @@ pub struct HookUpdater {
 }
 impl HookUpdater {
     pub fn callback<T: 'static, F>(&self, cb: F)
-        where
-            F: FnOnce(&mut T) -> bool + 'static,
+    where
+        F: FnOnce(&mut T) -> bool + 'static,
     {
         let internal_hook_state = self.hook.clone();
         let process_message = self.process_message.clone();
@@ -209,8 +209,8 @@ impl HookUpdater {
     }
 
     pub fn post_render<T: 'static, F>(&self, cb: F)
-        where
-            F: FnOnce(&mut T) -> bool + 'static,
+    where
+        F: FnOnce(&mut T) -> bool + 'static,
     {
         let internal_hook_state = self.hook.clone();
         let process_message = self.process_message.clone();
