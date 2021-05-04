@@ -1,6 +1,6 @@
 ---
 title: CSS
-id: version-0.17.3-css
+id: 版本-0.17.3-css
 original_id: css
 ---
 
@@ -12,7 +12,7 @@ original_id: css
 
 當前，我們的社區成員正在開發以下樣式框架：
 
-- [yew_styles](https://github.com/spielrs/yew_styles) - A styling framework for Yew without any JavaScript dependencies.
-- [yew-mdc](https://github.com/dungeonfog/yew-mdc) - Material Design Components.
-- [muicss-yew](https://github.com/AlephAlpha/muicss-yew) - MUI CSS Components.
-- [Yewtify](https://github.com/yewstack/yewtify) – Implements the features provided by the Vuetify framework in Yew.
+- [yew_styles](https://github.com/spielrs/yew_styles) - Yew的樣式框架，沒有任何 JavaScript 相依。
+- [yew-mdc](https://github.com/dungeonfog/yew-mdc) - Material Design 元件。
+- [muicss-yew](https://github.com/AlephAlpha/muicss-yew) - MUI CSS 元件。
+- [Yewtify](https://github.com/yewstack/yewtify) – 在 Yew 中實現 Vuetify 框架提供的功能。
