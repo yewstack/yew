@@ -270,6 +270,7 @@ pub mod macros {
 
 pub mod app;
 pub mod callback;
+pub mod context;
 pub mod format;
 pub mod html;
 mod scheduler;
@@ -322,6 +323,7 @@ pub mod prelude {
     pub use crate::agent::{Bridge, Bridged, Dispatched, Threaded};
     pub use crate::app::App;
     pub use crate::callback::Callback;
+    pub use crate::context::ContextProvider;
     pub use crate::events::*;
     pub use crate::html::{
         Children, ChildrenWithProps, Classes, Component, ComponentLink, Html, NodeRef, Properties,
