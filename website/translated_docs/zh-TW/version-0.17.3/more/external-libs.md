@@ -1,8 +1,8 @@
 ---
 title: 額外的函式庫
 description: 可以幫助 yew 開發的函式庫
-id: version-0.17.3-external-libs
-original_id: external-libs
+id: 版本0.17.3-external-libs
+original_id: 外部庫
 ---
 
 ### Yewtil
@@ -21,7 +21,7 @@ Yewtil 是一個常見的工具懶人包，可以幫助你編寫 Yew 的程式�
 
     在 Yew 內，由於為`Mrc` `DerefMut`和`BorrowMut` 。這使`Mrc`可以與`NeqAssign`一起使用。
 
-    `Irc` acts as an immutable view into the data, which makes this ideal for holding data used in display-only tasks.
+    `Irc`充當數據的不變視圖，這使其成為保存僅顯示任務中使用的數據的理想選擇。
 
 - History - 一個歷史追蹤器，他用 `VecDeque` 管理先前的值。
 
