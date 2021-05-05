@@ -4,54 +4,44 @@ sidebar_label: Introduction
 description: Set yourself up for success
 ---
 
-## Rust
+## Overview
 
-First, you'll need Rust. To install Rust and the `cargo` build tool, follow the [official instructions](https://www.rust-lang.org/tools/install).
+Your local development environment will need a couple of tools to compile, build, package and debug your Yew application.
 
-You also need to install the `wasm32-unknown-unknown` target to compile Rust to Wasm.
-If you're using rustup, you just need to run `rustup target add wasm32-unknown-unknown`.
+
+## Installing Rust
+
+To install Rust follow the [official instructions](https://www.rust-lang.org/tools/install).
 
 :::important
 The minimum supported Rust version (MSRV) for Yew is `1.45.0`. Older versions can cause unexpected issues accompanied by incomprehensible error messages.
 You can check your toolchain version using `rustup show` (under "active toolchain") or alternatively `rustc --version`. To update your toolchain, run `rustup update`.
 :::
 
-## **Wasm Build Tools**
+## Install WebAssembly target
 
-Extra tooling is needed to facilitate the interop between WebAssembly and JavaScript. Additionally,
-depending on the tool you choose, they can help make deployment and packaging much less of a
-headache by generating all of the JavaScript code necessary to load and run your app's `.wasm`
-binary in a browser.
+Rust can compile source codes for different "targets" (e.g. different processors). The compilation target for browser-based WebAssembly is called "wasm32-unknown-unknown".  The following command will add this target to your development environment.
 
-### [**`trunk`**](https://github.com/thedodd/trunk/)
+`rustup target add wasm32-unknown-unknown`
 
-A tool practically made for building Yew apps.
-It can build any `wasm-bindgen` based app and its design is inspired by rollup.js.
-With Trunk you don't need to have Node.js installed or touch any JavaScript code for that matter.
-It can bundle assets for your app and even ships with a Sass compiler.
+## Install Trunk
 
-All of our examples are built with Trunk.
+Trunk is the recommended tool for managing deployment and packaging, and will be used throughout the documentation and examples.
+See [Wasm Build Tools](./../more/wasm-build-tools.md) for more information on packaging and alternatives.
 
-[Getting started with `trunk`](project-setup/using-trunk.md)
+\```
+# note that this might take a while to install, because it compiles everything from scratch
+# Trunk also provides prebuilt binaries for a number of major package managers
+# See https://trunkrs.dev/#install for further details
+cargo install trunk
+\```
 
-### [**`wasm-pack`**](https://rustwasm.github.io/docs/wasm-pack/)
+## Install wasm-bindgen-cli
 
-A CLI tool developed by the Rust / Wasm Working Group for packaging up WebAssembly. Best used
-together with the [`wasm-pack-plugin`](https://github.com/wasm-tool/wasm-pack-plugin) for Webpack.
-The primary purpose of `wasm-pack` is building Wasm libraries for use in JavaScript.
-Because of this, it can only build libraries and doesn't provide useful tools like a development server or automatic rebuilds.
+Trunk uses a tool called wasm-bindgen-cli to perform deployment and packaging, which should be installed using the following command.
 
-[Get started with `wasm-pack`](project-setup/using-wasm-pack.md)
 
-### Comparison
 
-|                               | `trunk`                                                          | `wasm-pack`                                                                                           |
-| ----------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------  |
-| Project Status                | Actively maintained                                              | Actively maintained by the [Rust / Wasm Working Group](https://rustwasm.github.io)                    |
-| Dev Experience                | Just works! Batteries included, no external dependencies needed. | Bare-bones. You'll need to write some scripts to streamline the experience or use the webpack plugin. |
-| Local Server                  | Supported                                                        | Only with webpack plugin                                                                              |
-| Auto rebuild on local changes | Supported                                                        | Only with webpack plugin                                                                              |
-| Asset handling                | Supported                                                        | Only with webpack plugin                                                                              |
-| Headless Browser Testing      | [In Progress](https://github.com/thedodd/trunk/issues/20)        | [Supported](https://rustwasm.github.io/wasm-pack/book/commands/test.html)                             |
-| Supported Targets             | <ul><li><code>wasm32-unknown-unknown</code></li></ul>            | <ul><li><code>wasm32-unknown-unknown</code></li></ul>                                                 |
-| Example Usage                 | [Sample app](./build-a-sample-app.md)                            | [Starter template](https://github.com/yewstack/yew-wasm-pack-minimal)                                 |
+## Summary
+
+Now that you have all the tools needed, we can [build a sample application](./build-a-sample-app.md).

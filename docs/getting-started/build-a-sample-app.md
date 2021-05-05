@@ -2,7 +2,9 @@
 title: Build a sample app
 ---
 
-First, create a new cargo project:
+## Create Project
+
+To get started, create a new cargo project.
 
 ```bash
 cargo new yew-app
@@ -10,7 +12,26 @@ cargo new yew-app
 
 Open the newly created directory.
 
-First, let's add `yew` as a dependencies in the `Cargo.toml` file:
+```bash
+cd yew-app
+```
+
+## Run a hello world example
+
+To verify the Rust environment is setup, run the initial project using the cargo build tool.  After output about the build process, you should see the expected "Hello World" message.
+
+
+```bash
+cargo run
+```
+
+## Converting the project into a Yew web application
+
+To convert this simple command line application to a basic Yew web application, a few changes are needed.
+
+### Update Cargo.toml
+
+Add `yew` to the list of dependencies in the `Cargo.toml` file.
 
 ```toml
 [package]
@@ -23,7 +44,16 @@ edition = "2018"
 yew = "0.17"
 ```
 
-Copy the following template into your `src/main.rs` file:
+### Update main.rs
+
+We need to generate a template which sets up a root Component called `Model` which renders a button that updates its value when clicked.
+Replace the contents of `src/main.rs` with the following code.
+
+:::note
+The line `yew::start_app::<Model>()` inside `main()` starts your application and mounts it to the page's `<body>` tag.  
+If you would like to start your application with any dynamic properties, you can instead use `yew::start_app_with_props::<Model>(..)`.
+:::
+
 
 ```rust
 use yew::prelude::*;
@@ -83,11 +113,9 @@ fn main() {
 }
 ```
 
-This template sets up your root `Component`, called `Model` which shows a button that updates itself when you click it.
-Take special note of `yew::start_app::<Model>()` inside `main()` which starts your app and mounts it to the page's `<body>` tag.
-If you would like to start your application with any dynamic properties, you can instead use `yew::start_app_with_props::<Model>(..)`.
+### Create index.html
 
-Finally, add an `index.html` file in the root directory of your app:
+Finally, add an `index.html` file in the root directory of your app.
 
 ```html
 <!DOCTYPE html>
@@ -99,24 +127,18 @@ Finally, add an `index.html` file in the root directory of your app:
 </html>
 ```
 
-## Run your app
+## View your web application
 
-If you haven't already, install [Trunk](https://github.com/thedodd/trunk):
-
-```bash
-cargo install --locked trunk
-cargo install wasm-bindgen-cli
-```
-
-Also specify the WASM target.
-```
-rustup target add wasm32-unknown-unknown
-```
-
-Now all you have to do is run the following:
+Run the following command to build and serve the application locally.
 
 ```bash
 trunk serve
 ```
 
-This will start a development server which continually updates the app every time you change something.
+Trunk will helpfully rebuild your application if you modify any of its files.
+
+## Congratulations
+
+You have now successfully setup your Yew development environment, and built your first web application.
+
+Experiment with this application and review the [examples](./examples.md) to further your learning.
