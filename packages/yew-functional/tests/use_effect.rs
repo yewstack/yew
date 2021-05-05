@@ -64,7 +64,7 @@ fn use_effect_destroys_on_component_drop() {
                 }
             } else {
                 html! {
-                    <div>{"EMPTY"}</div>
+                    <div>{ "EMPTY" }</div>
                 }
             }
         }
@@ -103,9 +103,9 @@ fn use_effect_works_many_times() {
 
             return html! {
                 <div>
-                    {"The test result is"}
-                    <div id="result">{*counter}</div>
-                    {"\n"}
+                    { "The test result is" }
+                    <div id="result">{ *counter }</div>
+                    { "\n" }
                 </div>
             };
         }
@@ -138,9 +138,9 @@ fn use_effect_works_once() {
 
             return html! {
                 <div>
-                    {"The test result is"}
-                    <div id="result">{*counter}</div>
-                    {"\n"}
+                    { "The test result is" }
+                    <div id="result">{ *counter }</div>
+                    { "\n" }
                 </div>
             };
         }

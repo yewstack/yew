@@ -149,26 +149,26 @@ where
 }
 
 /// State handle for [`use_reducer`] hook
-pub struct UseReducerHandle<STATE, ACTION> {
-    value: Rc<STATE>,
-    setter: Rc<dyn Fn(ACTION)>,
+pub struct UseReducerHandle<State, Action> {
+    value: Rc<State>,
+    setter: Rc<dyn Fn(Action)>,
 }
 
-impl<STATE, ACTION> UseReducerHandle<STATE, ACTION> {
-    pub fn dispatch(&self, value: ACTION) {
+impl<State, Action> UseReducerHandle<State, Action> {
+    pub fn dispatch(&self, value: Action) {
         (self.setter)(value)
     }
 }
 
-impl<STATE, ACTION> Deref for UseReducerHandle<STATE, ACTION> {
-    type Target = STATE;
+impl<State, Action> Deref for UseReducerHandle<State, Action> {
+    type Target = State;
 
     fn deref(&self) -> &Self::Target {
         &*self.value
     }
 }
 
-impl<STATE, ACTION> Clone for UseReducerHandle<STATE, ACTION> {
+impl<State, Action> Clone for UseReducerHandle<State, Action> {
     fn clone(&self) -> Self {
         Self {
             value: Rc::clone(&self.value),

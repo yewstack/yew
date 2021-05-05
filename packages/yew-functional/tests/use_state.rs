@@ -63,10 +63,10 @@ fn multiple_use_state_setters() {
             another_scope();
             return html! {
                 <div>
-                    {"Test Output: "}
+                    { "Test Output: " }
                     // expected output
-                    <div id="result">{*counter}</div>
-                    {"\n"}
+                    <div id="result">{ *counter }</div>
+                    { "\n" }
                 </div>
             };
         }
