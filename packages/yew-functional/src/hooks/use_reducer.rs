@@ -1,7 +1,12 @@
-use super::{use_hook, Hook};
+use crate::use_hook;
+use std::ops::Deref;
 use std::rc::Rc;
 
-/// This hook is an alternative to [`use_state`]. It is used to handle component's state and is used
+struct UseReducer<State> {
+    current_state: Rc<State>,
+}
+
+/// This hook is an alternative to [`use_state`](super::use_state()). It is used to handle component's state and is used
 /// when complex actions needs to be performed on said state.
 ///
 /// For lazy initialization, consider using [`use_reducer_with_init`] instead.
@@ -26,12 +31,7 @@ use std::rc::Rc;
 ///         counter: i32,
 ///     }
 ///
-///     let (
-///         counter, // the state
-///         // function to update the state
-///         // as the same suggests, it dispatches the values to the reducer function
-///         dispatch
-///     ) = use_reducer(
+///     let counter = use_reducer(
 ///         // the reducer function
 ///         |prev: Rc<CounterState>, action: Action| CounterState {
 ///             counter: match action {
@@ -44,10 +44,13 @@ use std::rc::Rc;
 ///     );
 ///
 ///    let double_onclick = {
-///         let dispatch = Rc::clone(&dispatch);
-///         Callback::from(move |_| dispatch(Action::Double))
+///         let counter = counter.clone();
+///         Callback::from(move |_| counter.dispatch(Action::Double))
 ///     };
-///     let square_onclick = Callback::from(move |_| dispatch(Action::Square));
+///     let square_onclick = {
+///         let counter = counter.clone();
+///         Callback::from(move |_| counter.dispatch(Action::Square))
+///     };
 ///
 ///     html! {
 ///         <>
@@ -59,12 +62,14 @@ use std::rc::Rc;
 ///     }
 /// }
 /// ```
-pub fn use_reducer<Action: 'static, Reducer, State: 'static>(
+pub fn use_reducer<Action, Reducer, State>(
     reducer: Reducer,
     initial_state: State,
-) -> (Rc<State>, Rc<impl Fn(Action)>)
+) -> UseReducerHandle<State, Action>
 where
+    Action: 'static,
     Reducer: Fn(Rc<State>, Action) -> State + 'static,
+    State: 'static,
 {
     use_reducer_with_init(reducer, initial_state, |a| a)
 }
@@ -85,7 +90,7 @@ where
 ///     struct CounterState {
 ///         counter: i32,
 ///     }
-///     let (counter, dispatch) = use_reducer_with_init(
+///     let counter = use_reducer_with_init(
 ///         |prev: Rc<CounterState>, action: i32| CounterState {
 ///             counter: prev.counter + action,
 ///         },
@@ -99,47 +104,75 @@ where
 ///         <>
 ///             <div id="result">{counter.counter}</div>
 ///
-///             <button onclick=Callback::from(move |_| dispatch(10))>{"Increment by 10"}</button>
+///             <button onclick=Callback::from(move |_| counter.dispatch(10))>{"Increment by 10"}</button>
 ///         </>
 ///     }
 /// }
 /// ```
-pub fn use_reducer_with_init<Action: 'static, Reducer, State: 'static, InitialState, InitFn>(
+pub fn use_reducer_with_init<Reducer, Action, State, InitialState, InitFn>(
     reducer: Reducer,
     initial_state: InitialState,
     init: InitFn,
-) -> (Rc<State>, Rc<impl Fn(Action)>)
+) -> UseReducerHandle<State, Action>
 where
     Reducer: Fn(Rc<State>, Action) -> State + 'static,
-    InitFn: Fn(InitialState) -> State,
+    Action: 'static,
+    State: 'static,
+    InitialState: 'static,
+    InitFn: Fn(InitialState) -> State + 'static,
 {
-    struct UseReducerState<State> {
-        current_state: Rc<State>,
-    }
-    impl<T> Hook for UseReducerState<T> {}
     let init = Box::new(init);
     let reducer = Rc::new(reducer);
     use_hook(
-        |internal_hook_change: &mut UseReducerState<State>, hook_callback| {
-            (
-                internal_hook_change.current_state.clone(),
-                Rc::new(move |action: Action| {
-                    let reducer = reducer.clone();
-                    hook_callback(
-                        move |internal_hook_change: &mut UseReducerState<State>| {
-                            internal_hook_change.current_state = Rc::new((reducer)(
-                                internal_hook_change.current_state.clone(),
-                                action,
-                            ));
-                            true
-                        },
-                        false, // run pre render
-                    );
-                }),
-            )
-        },
-        move || UseReducerState {
+        move || UseReducer {
             current_state: Rc::new(init(initial_state)),
         },
+        |s, updater| {
+            let setter: Rc<dyn Fn(Action)> = Rc::new(move |action: Action| {
+                let reducer = reducer.clone();
+                // We call the callback, consumer the updater
+                // Required to put the type annotations on Self so the method knows how to downcast
+                updater.callback(move |state: &mut UseReducer<State>| {
+                    let new_state = reducer(state.current_state.clone(), action);
+                    state.current_state = Rc::new(new_state);
+                    true
+                });
+            });
+
+            UseReducerHandle {
+                value: Rc::clone(&s.current_state),
+                setter,
+            }
+        },
+        |_| {},
     )
+}
+
+/// State handle for [`use_reducer`] hook
+pub struct UseReducerHandle<State, Action> {
+    value: Rc<State>,
+    setter: Rc<dyn Fn(Action)>,
+}
+
+impl<State, Action> UseReducerHandle<State, Action> {
+    pub fn dispatch(&self, value: Action) {
+        (self.setter)(value)
+    }
+}
+
+impl<State, Action> Deref for UseReducerHandle<State, Action> {
+    type Target = State;
+
+    fn deref(&self) -> &Self::Target {
+        &*self.value
+    }
+}
+
+impl<State, Action> Clone for UseReducerHandle<State, Action> {
+    fn clone(&self) -> Self {
+        Self {
+            value: Rc::clone(&self.value),
+            setter: Rc::clone(&self.setter),
+        }
+    }
 }
