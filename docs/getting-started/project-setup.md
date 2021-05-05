@@ -9,9 +9,9 @@ description: Set yourself up for success
 Your local development environment will need a couple of tools to compile, build, package and debug your Yew application.
 
 
-## Install Rust, Rustup and Cargo
+## Installing Rust
 
-To install Rust compiler, Rustup package manager and the Cargo build tool, follow the [official instructions](https://www.rust-lang.org/tools/install).
+To install Rust follow the [official instructions](https://www.rust-lang.org/tools/install).
 
 :::important
 The minimum supported Rust version (MSRV) for Yew is `1.45.0`. Older versions can cause unexpected issues accompanied by incomprehensible error messages.
