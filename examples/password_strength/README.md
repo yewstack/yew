@@ -1,4 +1,4 @@
-# 
+# Password Strength Estimator Example
 
 [![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fpassword_strength)](https://examples.yew.rs/password_strength)
 
