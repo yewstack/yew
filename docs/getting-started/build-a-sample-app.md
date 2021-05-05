@@ -137,7 +137,6 @@ trunk serve
 
 Trunk will helpfully rebuild your application if you modify any of its files.
 
-
 ## Congratulations
 
 You have now successfully setup your Yew development environment, and built your first web application.

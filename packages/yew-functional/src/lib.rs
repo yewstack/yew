@@ -14,6 +14,7 @@
 //!
 //! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/en/next/concepts/function-components)
 
+use scoped_tls_hkt::scoped_thread_local;
 use std::cell::RefCell;
 use std::rc::Rc;
 use yew::html::AnyScope;
@@ -51,9 +52,7 @@ pub use hooks::*;
 /// ```
 pub use yew_functional_macro::function_component;
 
-thread_local! {
-    static CURRENT_HOOK: RefCell<Option<HookState>> = RefCell::new(None);
-}
+scoped_thread_local!(static mut CURRENT_HOOK: HookState);
 
 type Msg = Box<dyn FnOnce() -> bool>;
 type ProcessMessage = Rc<dyn Fn(Msg, bool)>;
@@ -62,7 +61,7 @@ struct HookState {
     counter: usize,
     scope: AnyScope,
     process_message: ProcessMessage,
-    hooks: Vec<Rc<RefCell<dyn std::any::Any>>>,
+    hooks: Vec<Rc<dyn std::any::Any>>,
     destroy_listeners: Vec<Box<dyn FnOnce()>>,
 }
 
@@ -88,7 +87,7 @@ pub struct FunctionComponent<T: FunctionProvider + 'static> {
     _never: std::marker::PhantomData<T>,
     props: T::TProps,
     link: ComponentLink<Self>,
-    hook_state: RefCell<Option<HookState>>,
+    hook_state: RefCell<HookState>,
     message_queue: MsgQueue,
 }
 
@@ -96,15 +95,10 @@ impl<T> FunctionComponent<T>
 where
     T: FunctionProvider,
 {
-    fn swap_hook_state(&self) {
-        CURRENT_HOOK.with(|previous_hook| {
-            std::mem::swap(
-                &mut *previous_hook
-                    .try_borrow_mut()
-                    .expect("Previous hook still borrowed"),
-                &mut *self.hook_state.borrow_mut(),
-            );
-        });
+    fn with_hook_state<R>(&self, f: impl FnOnce() -> R) -> R {
+        let mut hook_state = self.hook_state.borrow_mut();
+        hook_state.counter = 0;
+        CURRENT_HOOK.set(&mut *hook_state, f)
     }
 }
 
@@ -123,7 +117,7 @@ where
             props,
             link: link.clone(),
             message_queue: message_queue.clone(),
-            hook_state: RefCell::new(Some(HookState {
+            hook_state: RefCell::new(HookState {
                 counter: 0,
                 scope,
                 process_message: Rc::new(move |msg, post_render| {
@@ -135,7 +129,7 @@ where
                 }),
                 hooks: vec![],
                 destroy_listeners: vec![],
-            })),
+            }),
         }
     }
 
@@ -156,34 +150,21 @@ where
     }
 
     fn view(&self) -> Html {
-        // Reset hook
-        self.hook_state
-            .try_borrow_mut()
-            .expect("Unexpected concurrent/nested view call")
-            .as_mut()
-            .unwrap()
-            .counter = 0;
-
-        // Load hook
-        self.swap_hook_state();
-
-        let ret = T::run(&self.props);
-
-        // Restore previous hook
-        self.swap_hook_state();
-
-        ret
+        self.with_hook_state(|| T::run(&self.props))
     }
 
     fn destroy(&mut self) {
-        if let Some(ref mut hook_state) = *self.hook_state.borrow_mut() {
-            for hook in hook_state.destroy_listeners.drain(..) {
-                hook()
-            }
+        let mut hook_state = self.hook_state.borrow_mut();
+        for hook in hook_state.destroy_listeners.drain(..) {
+            hook()
         }
     }
 }
 
 pub(crate) fn get_current_scope() -> Option<AnyScope> {
-    CURRENT_HOOK.with(|cell| cell.borrow().as_ref().map(|state| state.scope.clone()))
+    if CURRENT_HOOK.is_set() {
+        Some(CURRENT_HOOK.with(|state| state.scope.clone()))
+    } else {
+        None
+    }
 }

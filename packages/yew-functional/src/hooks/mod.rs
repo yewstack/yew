@@ -30,13 +30,7 @@ where
     HookUpdate: FnOnce(&mut InternalHookState) -> bool,
 {
     // Extract current hook
-    let (hook, process_message) = CURRENT_HOOK.with(|hook_state_holder| {
-        let hook_state_holder = hook_state_holder.try_borrow_mut();
-        let mut hook_state_holder = hook_state_holder.expect("Nested hooks not supported");
-        let mut hook_state = hook_state_holder
-            .as_mut()
-            .expect("No current hook. Hooks can only be called inside function components");
-
+    let (hook, process_message) = CURRENT_HOOK.with(|hook_state| {
         // Determine which hook position we're at and increment for the next hook
         let hook_pos = hook_state.counter;
         hook_state.counter += 1;
@@ -55,6 +49,10 @@ where
         (hook, hook_state.process_message.clone())
     });
 
+    let hook: Rc<RefCell<InternalHookState>> = hook
+        .downcast()
+        .expect("Incompatible hook type. Hooks must always be called in the same order");
+
     let hook_callback = {
         let hook = hook.clone();
         Box::new(move |update: HookUpdate, post_render| {
@@ -62,22 +60,15 @@ where
             process_message(
                 Box::new(move || {
                     let mut hook = hook.borrow_mut();
-                    let hook = hook.downcast_mut::<InternalHookState>();
-                    let hook = hook.expect(
-                        "Incompatible hook type. Hooks must always be called in the same order",
-                    );
-                    update(hook)
+                    update(&mut hook)
                 }),
                 post_render,
             );
         })
     };
-    let mut hook = hook.borrow_mut();
-    let hook = hook.downcast_mut::<InternalHookState>();
-    let mut hook =
-        hook.expect("Incompatible hook type. Hooks must always be called in the same order");
 
     // Execute the actual hook closure we were given. Let it mutate the hook state and let
     // it create a callback that takes the mutable hook state.
+    let mut hook = hook.borrow_mut();
     hook_runner(&mut hook, hook_callback)
 }
