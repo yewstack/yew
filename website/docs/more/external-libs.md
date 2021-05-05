@@ -26,6 +26,11 @@ has represented.
 * Futures - Support for running futures that send messages to component update loops.
 * Fetch - A wrapper around `web_sys` to make HTTP requests.
 
+## Malvolio
+
+[Malvolio](https://crates.io/crates/malvolio) is a library with a "builder-syntax" for creating complex HTML documents 
+with ease. It runs both on servers (and renders to strings) or in browsers (with Yew).
+
 ## Looking For
 
 Libraries that the ecosystem needs, but doesn't have yet.

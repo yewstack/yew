@@ -18,9 +18,6 @@ members = [
   "packages/yewtil",
   "packages/yewtil-macro",
 
-  # dsl
-  "packages/yew-dsl",
-
   # Examples
   "examples/boids",
   "examples/counter",
