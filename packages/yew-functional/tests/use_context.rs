@@ -3,10 +3,9 @@ mod common;
 use common::obtain_result_by_id;
 use std::rc::Rc;
 use wasm_bindgen_test::*;
-use yew::{html, App, Children, Html, Properties};
+use yew::{html, App, Children, ContextProvider, Html, Properties};
 use yew_functional::{
-    use_context, use_effect, use_ref, use_state, ContextProvider, FunctionComponent,
-    FunctionProvider,
+    use_context, use_effect, use_ref, use_state, FunctionComponent, FunctionProvider,
 };
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
@@ -91,8 +90,8 @@ fn use_context_works_with_multiple_types() {
         type TProps = ();
 
         fn run(_props: &Self::TProps) -> Html {
-            assert_eq!(use_context::<ContextA>(), Some(Rc::new(ContextA(2))));
-            assert_eq!(use_context::<ContextB>(), Some(Rc::new(ContextB(1))));
+            assert_eq!(use_context::<ContextA>(), Some(ContextA(2)));
+            assert_eq!(use_context::<ContextB>(), Some(ContextB(1)));
 
             return html! {};
         }
@@ -104,8 +103,8 @@ fn use_context_works_with_multiple_types() {
         type TProps = ();
 
         fn run(_props: &Self::TProps) -> Html {
-            assert_eq!(use_context::<ContextA>(), Some(Rc::new(ContextA(0))));
-            assert_eq!(use_context::<ContextB>(), Some(Rc::new(ContextB(1))));
+            assert_eq!(use_context::<ContextA>(), Some(ContextA(0)));
+            assert_eq!(use_context::<ContextB>(), Some(ContextB(1)));
 
             return html! {};
         }
@@ -117,7 +116,7 @@ fn use_context_works_with_multiple_types() {
         type TProps = ();
 
         fn run(_props: &Self::TProps) -> Html {
-            assert_eq!(use_context::<ContextA>(), Some(Rc::new(ContextA(0))));
+            assert_eq!(use_context::<ContextA>(), Some(ContextA(0)));
             assert_eq!(use_context::<ContextB>(), None);
 
             return html! {};
