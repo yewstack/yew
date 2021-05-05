@@ -14,9 +14,9 @@ fn use_state_works() {
         type TProps = ();
 
         fn run(_: &Self::TProps) -> Html {
-            let (counter, set_counter) = use_state(|| 0);
+            let counter = use_state(|| 0);
             if *counter < 5 {
-                set_counter(*counter + 1)
+                counter.set(*counter + 1)
             }
             return html! {
                 <div>
@@ -41,31 +41,32 @@ fn multiple_use_state_setters() {
         type TProps = ();
 
         fn run(_: &Self::TProps) -> Html {
-            let (counter, set_counter_in_use_effect) = use_state(|| 0);
-            let counter = *counter;
-            // clone without manually wrapping with Rc
-            let set_counter_in_another_scope = set_counter_in_use_effect.clone();
+            let counter = use_state(|| 0);
+            let counter_clone = counter.clone();
             use_effect_with_deps(
                 move |_| {
                     // 1st location
-                    set_counter_in_use_effect(counter + 1);
+                    counter_clone.set(*counter_clone + 1);
                     || {}
                 },
                 (),
             );
-            let another_scope = move || {
-                if counter < 11 {
-                    // 2nd location
-                    set_counter_in_another_scope(counter + 10)
+            let another_scope = {
+                let counter = counter.clone();
+                move || {
+                    if *counter < 11 {
+                        // 2nd location
+                        counter.set(*counter + 10)
+                    }
                 }
             };
             another_scope();
             return html! {
                 <div>
-                    {"Test Output: "}
+                    { "Test Output: " }
                     // expected output
-                    <div id="result">{counter}</div>
-                    {"\n"}
+                    <div id="result">{ *counter }</div>
+                    { "\n" }
                 </div>
             };
         }

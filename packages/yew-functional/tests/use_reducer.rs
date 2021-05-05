@@ -18,7 +18,7 @@ fn use_reducer_works() {
             struct CounterState {
                 counter: i32,
             }
-            let (counter, dispatch) = use_reducer_with_init(
+            let counter = use_reducer_with_init(
                 |prev: std::rc::Rc<CounterState>, action: i32| CounterState {
                     counter: prev.counter + action,
                 },
@@ -28,9 +28,10 @@ fn use_reducer_works() {
                 },
             );
 
+            let counter_clone = counter.clone();
             use_effect_with_deps(
                 move |_| {
-                    dispatch(1);
+                    counter_clone.dispatch(1);
                     || {}
                 },
                 (),
