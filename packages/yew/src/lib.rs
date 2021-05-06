@@ -268,7 +268,7 @@ pub mod macros {
     pub use crate::props;
 }
 
-pub mod app;
+pub mod app_handle;
 pub mod callback;
 pub mod context;
 pub mod format;
@@ -293,7 +293,7 @@ pub mod events {
     };
 }
 
-use crate::app::AppHandle;
+use crate::app_handle::AppHandle;
 use web_sys::Element;
 
 /// The main entry point of a Yew application. It works similarly to the `program`
@@ -373,7 +373,7 @@ where
 pub mod prelude {
     #[cfg(feature = "agent")]
     pub use crate::agent::{Bridge, Bridged, Dispatched, Threaded};
-    pub use crate::app::AppHandle;
+    pub use crate::app_handle::AppHandle;
     pub use crate::callback::Callback;
     pub use crate::context::ContextProvider;
     pub use crate::events::*;

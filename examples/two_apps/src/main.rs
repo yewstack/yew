@@ -1,4 +1,4 @@
-use yew::{app::AppHandle, html, Component, ComponentLink, Html, ShouldRender};
+use yew::{app_handle::AppHandle, html, Component, ComponentLink, Html, ShouldRender};
 
 pub enum Msg {
     SetOpposite(ComponentLink<Model>),
