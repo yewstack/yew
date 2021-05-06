@@ -3,7 +3,7 @@ mod common;
 use common::obtain_result_by_id;
 use std::rc::Rc;
 use wasm_bindgen_test::*;
-use yew::{html, AppHandle, Children, Html, Properties};
+use yew::{html, Children, Html, Properties};
 use yew_functional::{
     use_context, use_effect, use_ref, use_state, FunctionComponent, FunctionProvider,
 };
@@ -72,7 +72,7 @@ fn use_context_scoping_works() {
         }
     }
 
-    AppHandle::<UseContextComponent>::mount(
+    yew::start_app::<UseContextComponent>(
         yew::utils::document().get_element_by_id("output").unwrap(),
     );
     let result: String = obtain_result_by_id("result");
@@ -164,7 +164,7 @@ fn use_context_works_with_multiple_types() {
     }
     type TestComponent = FunctionComponent<TestFunction>;
 
-    AppHandle::<TestComponent>::mount(yew::utils::document().get_element_by_id("output").unwrap());
+    yew::start_app::<TestComponent>(yew::utils::document().get_element_by_id("output").unwrap());
 }
 
 #[wasm_bindgen_test]
@@ -273,7 +273,7 @@ fn use_context_update_works() {
     }
     type TestComponent = FunctionComponent<TestFunction>;
 
-    AppHandle::<TestComponent>::mount(yew::utils::document().get_element_by_id("output").unwrap());
+    yew::start_app::<TestComponent>(yew::utils::document().get_element_by_id("output").unwrap());
 
     // 1 initial render + 3 update steps
     assert_eq!(obtain_result_by_id("test-0"), "total: 4");

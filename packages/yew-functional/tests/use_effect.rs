@@ -4,7 +4,7 @@ use common::obtain_result;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use wasm_bindgen_test::*;
-use yew::{html, AppHandle, Html, Properties};
+use yew::{html, Html, Properties};
 use yew_functional::{
     use_effect_with_deps, use_ref, use_state, FunctionComponent, FunctionProvider,
 };
@@ -71,7 +71,7 @@ fn use_effect_destroys_on_component_drop() {
     }
     let destroy_counter = Rc::new(std::cell::RefCell::new(0));
     let destroy_counter_c = destroy_counter.clone();
-    AppHandle::<UseEffectWrapperComponent>::mount_with_props(
+    yew::start_app_with_props::<UseEffectWrapperComponent>(
         yew::utils::document().get_element_by_id("output").unwrap(),
         WrapperProps {
             destroy_called: Rc::new(move || *destroy_counter_c.borrow_mut().deref_mut() += 1),
@@ -111,7 +111,7 @@ fn use_effect_works_many_times() {
     }
 
     type UseEffectComponent = FunctionComponent<UseEffectFunction>;
-    AppHandle::<UseEffectComponent>::mount(
+    yew::start_app::<UseEffectComponent>(
         yew::utils::document().get_element_by_id("output").unwrap(),
     );
     let result = obtain_result();
@@ -146,7 +146,7 @@ fn use_effect_works_once() {
         }
     }
     type UseEffectComponent = FunctionComponent<UseEffectFunction>;
-    AppHandle::<UseEffectComponent>::mount(
+    yew::start_app::<UseEffectComponent>(
         yew::utils::document().get_element_by_id("output").unwrap(),
     );
     let result = obtain_result();
@@ -194,7 +194,7 @@ fn use_effect_refires_on_dependency_change() {
         }
     }
     type UseEffectComponent = FunctionComponent<UseEffectFunction>;
-    AppHandle::<UseEffectComponent>::mount(
+    yew::start_app::<UseEffectComponent>(
         yew::utils::document().get_element_by_id("output").unwrap(),
     );
     let result: String = obtain_result();

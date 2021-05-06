@@ -2,7 +2,7 @@ mod common;
 
 use common::obtain_result;
 use wasm_bindgen_test::*;
-use yew::{html, AppHandle, Html};
+use yew::{html, Html};
 use yew_functional::{
     use_effect_with_deps, use_reducer_with_init, FunctionComponent, FunctionProvider,
 };
@@ -46,7 +46,7 @@ fn use_reducer_works() {
         }
     }
     type UseReducerComponent = FunctionComponent<UseReducerFunction>;
-    AppHandle::<UseReducerComponent>::mount(
+    yew::start_app::<UseReducerComponent>(
         yew::utils::document().get_element_by_id("output").unwrap(),
     );
     let result = obtain_result();

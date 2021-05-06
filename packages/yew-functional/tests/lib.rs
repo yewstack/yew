@@ -2,7 +2,7 @@ mod common;
 
 use common::obtain_result;
 use wasm_bindgen_test::*;
-use yew::{html, AppHandle, Html, Properties};
+use yew::{html, Html, Properties};
 use yew_functional::{FunctionComponent, FunctionProvider};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
@@ -27,7 +27,7 @@ fn props_are_passed() {
         }
     }
     type PropsComponent = FunctionComponent<PropsPassedFunction>;
-    AppHandle::<PropsComponent>::mount_with_props(
+    yew::start_app_with_props::<PropsComponent>(
         yew::utils::document().get_element_by_id("output").unwrap(),
         PropsPassedFunctionProps {
             value: "props".to_string(),
