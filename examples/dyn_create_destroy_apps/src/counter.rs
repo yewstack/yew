@@ -41,10 +41,11 @@ impl Component for CounterModel {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             // Count our internal state up by one
-            Self::Message::Tick => self.counter += 1,
+            Self::Message::Tick => {
+                self.counter += 1;
+                true
+            }
         }
-
-        true
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
