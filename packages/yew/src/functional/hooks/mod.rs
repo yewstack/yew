@@ -10,7 +10,7 @@ pub use use_reducer::*;
 pub use use_ref::*;
 pub use use_state::*;
 
-use crate::{HookUpdater, CURRENT_HOOK};
+use crate::functional::{HookUpdater, CURRENT_HOOK};
 use std::cell::RefCell;
 use std::ops::DerefMut;
 use std::rc::Rc;

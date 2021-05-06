@@ -1,4 +1,5 @@
-use crate::use_hook;
+use crate::functional::use_hook;
+use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 
@@ -13,7 +14,6 @@ struct UseReducer<State> {
 ///
 /// # Example
 /// ```rust
-/// # use yew_functional::{function_component, use_reducer};
 /// # use yew::prelude::*;
 /// # use std::rc::Rc;
 /// # use std::ops::DerefMut;
@@ -81,7 +81,6 @@ where
 ///
 /// # Example
 /// ```rust
-/// # use yew_functional::{function_component, use_reducer_with_init};
 /// # use yew::prelude::*;
 /// # use std::rc::Rc;
 /// #
@@ -174,5 +173,13 @@ impl<State, Action> Clone for UseReducerHandle<State, Action> {
             value: Rc::clone(&self.value),
             setter: Rc::clone(&self.setter),
         }
+    }
+}
+
+impl<T: fmt::Debug, V> fmt::Debug for UseReducerHandle<T, V> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("UseReducerHandle")
+            .field("value", &format!("{:?}", self.value))
+            .finish()
     }
 }

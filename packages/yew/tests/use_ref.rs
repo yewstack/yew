@@ -4,7 +4,7 @@ use common::obtain_result;
 use std::ops::DerefMut;
 use wasm_bindgen_test::*;
 use yew::{html, Html};
-use yew_functional::{use_ref, use_state, FunctionComponent, FunctionProvider};
+use yew::functional::{use_ref, use_state, FunctionComponent, FunctionProvider};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 

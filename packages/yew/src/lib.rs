@@ -14,10 +14,6 @@
 //!
 //! ### Important Notes
 //! - Yew is not (yet) production ready but is great for side projects and internal tools
-#![cfg_attr(
-    feature = "web_sys",
-    doc = " - If your app is built with `stdweb`, we recommend using [`yew-stdweb`](https://docs.rs/yew-stdweb) instead."
-)]
 //!
 //! ## Example
 //!
@@ -273,11 +269,11 @@ pub mod macros {
 mod app_handle;
 pub mod callback;
 pub mod context;
+pub mod functional;
 pub mod html;
 pub mod scheduler;
 pub mod utils;
 pub mod virtual_dom;
-
 
 pub use web_sys;
 
@@ -405,6 +401,8 @@ pub mod prelude {
         ShouldRender,
     };
     pub use crate::macros::{classes, html, html_nested};
+
+    pub use crate::functional::*;
 }
 
 pub use self::prelude::*;

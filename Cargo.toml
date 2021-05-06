@@ -9,10 +9,6 @@ members = [
   "packages/yew-router",
   "packages/yew-router-macro",
 
-  # Function components
-  "packages/yew-functional",
-  "packages/yew-functional-macro",
-
   # Utilities
   "packages/yewtil",
   "packages/yewtil-macro",

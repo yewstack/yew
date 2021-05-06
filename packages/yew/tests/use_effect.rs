@@ -5,7 +5,7 @@ use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use wasm_bindgen_test::*;
 use yew::{html, Html, Properties};
-use yew_functional::{
+use yew::functional::{
     use_effect_with_deps, use_ref, use_state, FunctionComponent, FunctionProvider,
 };
 

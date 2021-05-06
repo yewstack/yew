@@ -1,7 +1,5 @@
 use super::WorkerExt;
 use super::*;
-use yew::callback::Callback;
-use yew::scheduler::Shared;
 use anymap::{self, AnyMap};
 use queue::Queue;
 use slab::Slab;
@@ -11,6 +9,8 @@ use std::fmt;
 use std::marker::PhantomData;
 use std::rc::Rc;
 use web_sys::Worker;
+use yew::callback::Callback;
+use yew::scheduler::Shared;
 
 thread_local! {
     static REMOTE_AGENTS_POOL: RefCell<AnyMap> = RefCell::new(AnyMap::new());

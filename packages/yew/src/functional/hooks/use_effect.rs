@@ -1,4 +1,4 @@
-use crate::use_hook;
+use crate::functional::use_hook;
 use std::{borrow::Borrow, rc::Rc};
 
 struct UseEffect<Destructor> {
@@ -9,7 +9,6 @@ struct UseEffect<Destructor> {
 ///
 /// # Example
 /// ```rust
-/// # use yew_functional::{function_component, use_effect, use_state};
 /// # use yew::prelude::*;
 /// # use std::rc::Rc;
 /// #

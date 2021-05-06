@@ -3,7 +3,7 @@ mod common;
 use common::obtain_result;
 use wasm_bindgen_test::*;
 use yew::{html, Html};
-use yew_functional::{
+use yew::functional::{
     use_effect_with_deps, use_reducer_with_init, FunctionComponent, FunctionProvider,
 };
 

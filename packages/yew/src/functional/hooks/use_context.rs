@@ -1,5 +1,5 @@
-use crate::{get_current_scope, use_hook};
-use yew::context::ContextHandle;
+use crate::context::ContextHandle;
+use crate::functional::{get_current_scope, use_hook};
 
 /// Hook for consuming context values in function components.
 /// The context of the type passed as `T` is returned. If there is no such context in scope, `None` is returned.
@@ -9,7 +9,6 @@ use yew::context::ContextHandle;
 ///
 /// # Example
 /// ```rust
-/// # use yew_functional::{function_component, use_context};
 /// # use yew::prelude::*;
 /// # use std::rc::Rc;
 ///

@@ -4,12 +4,9 @@ use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::token::Comma;
-use syn::{
-    parse_macro_input, Attribute, Block, FnArg, Generics, Ident, Item, ItemFn, ReturnType, Type,
-    Visibility,
-};
+use syn::{Attribute, Block, FnArg, Generics, Ident, Item, ItemFn, ReturnType, Type, Visibility};
 
-struct FunctionComponent {
+pub struct FunctionComponent {
     block: Box<Block>,
     props_type: Box<Type>,
     arg: FnArg,
@@ -142,7 +139,7 @@ impl Parse for FunctionComponent {
     }
 }
 
-struct FunctionComponentName {
+pub struct FunctionComponentName {
     component_name: Ident,
 }
 
@@ -158,20 +155,7 @@ impl Parse for FunctionComponentName {
     }
 }
 
-#[proc_macro_attribute]
-pub fn function_component(
-    attr: proc_macro::TokenStream,
-    item: proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
-    let item = parse_macro_input!(item as FunctionComponent);
-    let attr = parse_macro_input!(attr as FunctionComponentName);
-
-    function_component_impl(attr, item)
-        .unwrap_or_else(|err| err.to_compile_error())
-        .into()
-}
-
-fn function_component_impl(
+pub fn function_component_impl(
     name: FunctionComponentName,
     component: FunctionComponent,
 ) -> syn::Result<TokenStream> {
@@ -212,7 +196,7 @@ fn function_component_impl(
             _marker: ::std::marker::PhantomData<(#phantom_generics)>,
         }
 
-        impl #impl_generics ::yew_functional::FunctionProvider for #function_name #ty_generics #where_clause {
+        impl #impl_generics ::yew::functional::FunctionProvider for #function_name #ty_generics #where_clause {
             type TProps = #props_type;
 
             fn run(#arg) -> #ret_type {
@@ -222,7 +206,7 @@ fn function_component_impl(
 
         #(#attrs)*
         #[allow(type_alias_bounds)]
-        #vis type #component_name #impl_generics = ::yew_functional::FunctionComponent<#function_name #ty_generics>;
+        #vis type #component_name #impl_generics = ::yew::functional::FunctionComponent<#function_name #ty_generics>;
     };
 
     Ok(quoted)

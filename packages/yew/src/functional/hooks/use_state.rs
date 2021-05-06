@@ -1,4 +1,5 @@
-use crate::use_hook;
+use crate::functional::use_hook;
+use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 
@@ -10,7 +11,6 @@ struct UseState<T2> {
 ///
 /// # Example
 /// ```rust
-/// # use yew_functional::{function_component, use_state, use_ref};
 /// # use yew::prelude::*;
 /// # use std::rc::Rc;
 /// #
@@ -64,6 +64,14 @@ pub fn use_state<T: 'static, F: FnOnce() -> T + 'static>(initial_state_fn: F) ->
 pub struct UseStateHandle<T> {
     value: Rc<T>,
     setter: Rc<dyn Fn(T)>,
+}
+
+impl<T: fmt::Debug> fmt::Debug for UseStateHandle<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("UseStateHandle")
+            .field("value", &format!("{:?}", self.value))
+            .finish()
+    }
 }
 
 impl<T> UseStateHandle<T> {

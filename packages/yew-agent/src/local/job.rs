@@ -1,6 +1,6 @@
 use super::*;
-use yew::callback::Callback;
 use std::marker::PhantomData;
+use yew::callback::Callback;
 
 const SINGLETON_ID: HandlerId = HandlerId(0, true);
 

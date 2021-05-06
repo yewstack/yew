@@ -1,7 +1,7 @@
 use super::*;
-use yew::scheduler::Shared;
 use log::warn;
 use slab::Slab;
+use yew::scheduler::Shared;
 
 pub(crate) type Last = bool;
 

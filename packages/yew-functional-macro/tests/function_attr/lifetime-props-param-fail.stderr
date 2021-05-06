@@ -1,5 +1,0 @@
-error: reference must not have a lifetime
-  --> $DIR/lifetime-props-param-fail.rs:10:17
-   |
-10 | fn comp(props: &'static Props) -> Html {
-   |                 ^^^^^^^

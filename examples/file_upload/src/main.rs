@@ -47,7 +47,6 @@ impl Component for Model {
             Msg::Files(files, chunks) => {
                 for file in files.into_iter() {
                     let task = {
-                        let file = File::from(file);
                         let file_name = file.name();
                         let link = self.link.clone();
 
@@ -95,7 +94,7 @@ impl Component for Model {
                                     .unwrap()
                                     .unwrap()
                                     .map(|v| web_sys::File::from(v.unwrap()))
-                                    .map(|f| File::from(f));
+                                    .map(File::from);
                                 result.extend(files);
                             }
                             Msg::Files(result, flag)

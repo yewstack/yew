@@ -1,9 +1,9 @@
+#![allow(missing_debug_implementations, missing_docs)]
 //! Function components are a simplified version of normal components.
 //! They consist of a single function annotated with the attribute `#[function_component(_)]`
 //! that receives props and determines what should be rendered by returning [`Html`].
 //!
 //! ```rust
-//! # use yew_functional::function_component;
 //! # use yew::prelude::*;
 //! #
 //! #[function_component(HelloWorld)]
@@ -14,11 +14,11 @@
 //!
 //! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/en/next/concepts/function-components)
 
+use crate::html::AnyScope;
+use crate::{Component, ComponentLink, Html, Properties};
 use scoped_tls_hkt::scoped_thread_local;
 use std::cell::RefCell;
 use std::rc::Rc;
-use yew::html::AnyScope;
-use yew::{Component, ComponentLink, Html, Properties};
 
 mod hooks;
 pub use hooks::*;
@@ -35,7 +35,6 @@ pub use hooks::*;
 ///
 /// # Example
 /// ```rust
-/// # use yew_functional::function_component;
 /// # use yew::prelude::*;
 /// #
 /// # #[derive(Properties, Clone, PartialEq)]
@@ -50,7 +49,7 @@ pub use hooks::*;
 ///     }
 /// }
 /// ```
-pub use yew_functional_macro::function_component;
+pub use yew_macro::function_component;
 
 scoped_thread_local!(static mut CURRENT_HOOK: HookState);
 
@@ -70,6 +69,7 @@ pub trait FunctionProvider {
     fn run(props: &Self::TProps) -> Html;
 }
 
+#[allow(missing_debug_implementations)]
 pub struct FunctionComponent<T: FunctionProvider + 'static> {
     _never: std::marker::PhantomData<T>,
     props: T::TProps,
@@ -181,6 +181,7 @@ impl MsgQueue {
 /// for more details on how to use the hook updater to provide function components
 /// the necessary callbacks to update the underlying state.
 #[derive(Clone)]
+#[allow(missing_debug_implementations)]
 pub struct HookUpdater {
     hook: Rc<RefCell<dyn std::any::Any>>,
     process_message: ProcessMessage,

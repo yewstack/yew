@@ -4,7 +4,7 @@ use common::obtain_result_by_id;
 use std::rc::Rc;
 use wasm_bindgen_test::*;
 use yew::{html, Children, ContextProvider, Html, Properties};
-use yew_functional::{
+use yew::functional::{
     use_context, use_effect, use_ref, use_state, FunctionComponent, FunctionProvider,
 };
 

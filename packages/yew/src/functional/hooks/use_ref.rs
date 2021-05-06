@@ -1,4 +1,4 @@
-use crate::use_hook;
+use crate::functional::use_hook;
 use std::{cell::RefCell, rc::Rc};
 
 /// This hook is used for obtaining a mutable reference to a stateful value.
@@ -9,7 +9,6 @@ use std::{cell::RefCell, rc::Rc};
 ///
 /// # Example
 /// ```rust
-/// # use yew_functional::{function_component, use_state, use_ref};
 /// # use yew::prelude::*;
 /// # use std::rc::Rc;
 /// # use std::cell::RefCell;

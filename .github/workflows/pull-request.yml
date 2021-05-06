@@ -148,11 +148,6 @@ jobs:
           cd packages/yew-router
           wasm-pack test --chrome --firefox --headless
 
-      - name: Run tests - yew-functional
-        run: |
-          cd packages/yew-functional
-          wasm-pack test --chrome --firefox --headless
-
   unit_tests:
     name: Unit Tests on ${{ matrix.toolchain }}
     runs-on: ubuntu-latest

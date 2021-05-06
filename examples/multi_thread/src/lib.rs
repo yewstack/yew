@@ -2,8 +2,8 @@ pub mod context;
 pub mod job;
 pub mod native_worker;
 
-use yew_agent::{Bridge, Bridged};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew_agent::{Bridge, Bridged};
 
 pub enum Msg {
     SendToWorker,

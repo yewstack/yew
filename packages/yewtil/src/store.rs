@@ -2,8 +2,8 @@ use std::cell::RefCell;
 use std::collections::HashSet;
 use std::ops::Deref;
 use std::rc::Rc;
-use yew_agent::{Agent, AgentLink, Context, Discoverer, Dispatcher, HandlerId, Bridge, Dispatched};
 use yew::prelude::*;
+use yew_agent::{Agent, AgentLink, Bridge, Context, Discoverer, Dispatched, Dispatcher, HandlerId};
 
 /// A functional state wrapper, enforcing a unidirectional
 /// data flow and consistent state to the observers.
