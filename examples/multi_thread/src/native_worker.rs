@@ -1,6 +1,6 @@
 use gloo::timers::callback::Interval;
 use serde::{Deserialize, Serialize};
-use yew::worker::{Agent, AgentLink, HandlerId, Public};
+use yew_agent::{Agent, AgentLink, HandlerId, Public};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Request {

@@ -4,7 +4,8 @@ use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::rc::Rc;
 
-pub(crate) type Shared<T> = Rc<RefCell<T>>;
+/// Alias for Rc<RefCell<T>>
+pub type Shared<T> = Rc<RefCell<T>>;
 
 thread_local! {
     /// This is a global scheduler suitable to schedule and run any tasks.
@@ -15,13 +16,14 @@ thread_local! {
 }
 
 /// A routine which could be run.
-pub(crate) trait Runnable {
+pub trait Runnable {
     /// Runs a routine with a context instance.
     fn run(self: Box<Self>);
 }
 
 /// This is a global scheduler suitable to schedule and run any tasks.
 #[derive(Default)]
+#[allow(missing_debug_implementations)] // todo
 struct Scheduler {
     // Main queue
     main: VecDeque<Box<dyn Runnable>>,

@@ -12,7 +12,7 @@ pub(crate) use pool::*;
 pub use pool::{Dispatched, Dispatcher};
 pub use worker::{Private, Public, Threaded};
 
-use crate::callback::Callback;
+use yew::callback::Callback;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::ops::{Deref, DerefMut};

@@ -1,7 +1,7 @@
 use super::WorkerExt;
 use super::*;
-use crate::callback::Callback;
-use crate::scheduler::Shared;
+use yew::callback::Callback;
+use yew::scheduler::Shared;
 use anymap::{self, AnyMap};
 use queue::Queue;
 use slab::Slab;

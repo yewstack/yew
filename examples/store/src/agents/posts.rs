@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use yew::agent::AgentLink;
+use yew_agent::{AgentLink};
 use yewtil::store::{Store, StoreWrapper};
 
 pub type PostId = u32;
@@ -19,7 +19,6 @@ pub enum Action {
 
 pub struct PostStore {
     pub posts: HashMap<PostId, String>,
-
     // Stores can have private state too
     id_counter: PostId,
 }

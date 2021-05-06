@@ -3,6 +3,7 @@ members = [
   "packages/yew",
   "packages/yew-macro",
   "packages/yew-validation",
+  "packages/yew-agent",
 
   # Router
   "packages/yew-router",

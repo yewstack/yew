@@ -1,5 +1,5 @@
 use super::*;
-use crate::callback::Callback;
+use yew::callback::Callback;
 use std::marker::PhantomData;
 
 const SINGLETON_ID: HandlerId = HandlerId(0, true);

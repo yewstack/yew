@@ -1,5 +1,5 @@
 use crate::event_bus::{EventBus, Request};
-use yew::agent::{Dispatched, Dispatcher};
+use yew_agent::{Dispatched, Dispatcher};
 use yew::prelude::*;
 
 pub enum Msg {

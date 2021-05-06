@@ -1,5 +1,5 @@
 use super::*;
-use crate::callback::Callback;
+use yew::callback::Callback;
 use queue::Queue;
 use std::fmt;
 use std::marker::PhantomData;

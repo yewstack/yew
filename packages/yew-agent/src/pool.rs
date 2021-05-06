@@ -1,5 +1,5 @@
 use super::*;
-use crate::scheduler::Shared;
+use yew::scheduler::Shared;
 use log::warn;
 use slab::Slab;
 

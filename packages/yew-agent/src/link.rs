@@ -1,7 +1,7 @@
 use super::*;
-use crate::callback::Callback;
-use crate::html::ImplicitClone;
-use crate::scheduler::{self, Runnable, Shared};
+use yew::callback::Callback;
+use yew::html::ImplicitClone;
+use yew::scheduler::{self, Runnable, Shared};
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;

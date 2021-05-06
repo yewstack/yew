@@ -3,6 +3,7 @@ use crate::text_input::TextInput;
 use yew::prelude::*;
 use yewtil::store::{Bridgeable, ReadOnly, StoreWrapper};
 use yewtil::NeqAssign;
+use yew_agent::Bridge;
 
 pub enum Msg {
     UpdateText(String),

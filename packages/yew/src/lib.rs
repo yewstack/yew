@@ -274,12 +274,10 @@ mod app_handle;
 pub mod callback;
 pub mod context;
 pub mod html;
-mod scheduler;
+pub mod scheduler;
 pub mod utils;
 pub mod virtual_dom;
 
-#[cfg(feature = "agent")]
-pub mod agent;
 
 pub use web_sys;
 
@@ -398,8 +396,6 @@ where
 /// use yew::prelude::*;
 /// ```
 pub mod prelude {
-    #[cfg(feature = "agent")]
-    pub use crate::agent::{Bridge, Bridged, Dispatched, Threaded};
     pub use crate::app_handle::AppHandle;
     pub use crate::callback::Callback;
     pub use crate::context::ContextProvider;
@@ -409,14 +405,6 @@ pub mod prelude {
         ShouldRender,
     };
     pub use crate::macros::{classes, html, html_nested};
-
-    /// Prelude module for creating worker.
-    #[cfg(feature = "agent")]
-    pub mod worker {
-        pub use crate::agent::{
-            Agent, AgentLink, Bridge, Bridged, Context, HandlerId, Job, Private, Public,
-        };
-    }
 }
 
 pub use self::prelude::*;

@@ -1,9 +1,9 @@
 use std::future::Future;
 use wasm_bindgen_futures::spawn_local;
 use yew::{
-    agent::{Agent, AgentLink},
     Callback, Component, ComponentLink,
 };
+use yew_agent::{Agent, AgentLink};
 
 /// Trait that allows you to use `ComponentLink` and `AgentLink` to register futures.
 pub trait LinkFuture {

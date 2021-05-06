@@ -1,6 +1,6 @@
 use super::*;
-use crate::callback::Callback;
-use crate::scheduler::Shared;
+use yew::callback::Callback;
+use yew::scheduler::Shared;
 use anymap::{self, AnyMap};
 use slab::Slab;
 use std::cell::RefCell;
