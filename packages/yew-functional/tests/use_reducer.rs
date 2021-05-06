@@ -46,8 +46,7 @@ fn use_reducer_works() {
         }
     }
     type UseReducerComponent = FunctionComponent<UseReducerFunction>;
-    let app: App<UseReducerComponent> = yew::App::new();
-    app.mount(yew::utils::document().get_element_by_id("output").unwrap());
+    App::<UseReducerComponent>::mount(yew::utils::document().get_element_by_id("output").unwrap());
     let result = obtain_result();
 
     assert_eq!(result.as_str(), "11");

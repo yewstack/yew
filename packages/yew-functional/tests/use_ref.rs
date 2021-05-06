@@ -31,8 +31,7 @@ fn use_ref_works() {
         }
     }
     type UseRefComponent = FunctionComponent<UseRefFunction>;
-    let app: App<UseRefComponent> = yew::App::new();
-    app.mount(yew::utils::document().get_element_by_id("output").unwrap());
+    App::<UseRefComponent>::mount(yew::utils::document().get_element_by_id("output").unwrap());
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "true");

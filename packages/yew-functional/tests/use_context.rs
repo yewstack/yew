@@ -72,8 +72,7 @@ fn use_context_scoping_works() {
         }
     }
 
-    let app: App<UseContextComponent> = yew::App::new();
-    app.mount(yew::utils::document().get_element_by_id("output").unwrap());
+    App::<UseContextComponent>::mount(yew::utils::document().get_element_by_id("output").unwrap());
     let result: String = obtain_result_by_id("result");
     assert_eq!("correct", result);
 }
@@ -163,8 +162,7 @@ fn use_context_works_with_multiple_types() {
     }
     type TestComponent = FunctionComponent<TestFunction>;
 
-    let app: App<TestComponent> = yew::App::new();
-    app.mount(yew::utils::document().get_element_by_id("output").unwrap());
+    App::<TestComponent>::mount(yew::utils::document().get_element_by_id("output").unwrap());
 }
 
 #[wasm_bindgen_test]
@@ -273,8 +271,7 @@ fn use_context_update_works() {
     }
     type TestComponent = FunctionComponent<TestFunction>;
 
-    let app: App<TestComponent> = yew::App::new();
-    app.mount(yew::utils::document().get_element_by_id("output").unwrap());
+    App::<TestComponent>::mount(yew::utils::document().get_element_by_id("output").unwrap());
 
     // 1 initial render + 3 update steps
     assert_eq!(obtain_result_by_id("test-0"), "total: 4");

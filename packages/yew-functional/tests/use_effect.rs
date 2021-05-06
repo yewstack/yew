@@ -69,10 +69,9 @@ fn use_effect_destroys_on_component_drop() {
             }
         }
     }
-    let app: App<UseEffectWrapperComponent> = yew::App::new();
     let destroy_counter = Rc::new(std::cell::RefCell::new(0));
     let destroy_counter_c = destroy_counter.clone();
-    app.mount_with_props(
+    App::<UseEffectWrapperComponent>::mount_with_props(
         yew::utils::document().get_element_by_id("output").unwrap(),
         WrapperProps {
             destroy_called: Rc::new(move || *destroy_counter_c.borrow_mut().deref_mut() += 1),
@@ -112,8 +111,7 @@ fn use_effect_works_many_times() {
     }
 
     type UseEffectComponent = FunctionComponent<UseEffectFunction>;
-    let app: App<UseEffectComponent> = yew::App::new();
-    app.mount(yew::utils::document().get_element_by_id("output").unwrap());
+    App::<UseEffectComponent>::mount(yew::utils::document().get_element_by_id("output").unwrap());
     let result = obtain_result();
     assert_eq!(result.as_str(), "4");
 }
@@ -146,8 +144,7 @@ fn use_effect_works_once() {
         }
     }
     type UseEffectComponent = FunctionComponent<UseEffectFunction>;
-    let app: App<UseEffectComponent> = yew::App::new();
-    app.mount(yew::utils::document().get_element_by_id("output").unwrap());
+    App::<UseEffectComponent>::mount(yew::utils::document().get_element_by_id("output").unwrap());
     let result = obtain_result();
     assert_eq!(result.as_str(), "1");
 }
@@ -193,8 +190,7 @@ fn use_effect_refires_on_dependency_change() {
         }
     }
     type UseEffectComponent = FunctionComponent<UseEffectFunction>;
-    let app: App<UseEffectComponent> = yew::App::new();
-    app.mount(yew::utils::document().get_element_by_id("output").unwrap());
+    App::<UseEffectComponent>::mount(yew::utils::document().get_element_by_id("output").unwrap());
     let result: String = obtain_result();
 
     assert_eq!(result.as_str(), "11");
