@@ -30,10 +30,7 @@ impl Component for ProgressDelay {
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let interval = (props.duration_ms / RESOLUTION).min(MIN_INTERVAL_MS);
-        let interval = {
-            let link = link.clone();
-            Interval::new(interval as u32, move || link.send_message(Msg::Tick))
-        };
+        let interval = Interval::new(interval as u32, move || link.send_message(Msg::Tick));
         Self {
             props,
             _interval: interval,

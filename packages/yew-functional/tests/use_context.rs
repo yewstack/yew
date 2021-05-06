@@ -25,10 +25,10 @@ fn use_context_scoping_works() {
 
         fn run(_props: &Self::TProps) -> Html {
             if use_context::<ExampleContext>().is_some() {
-                console_log(&format!(
+                console_log!(
                     "Context should be None here, but was {:?}!",
                     use_context::<ExampleContext>().unwrap()
-                ));
+                );
             };
             return html! {
                 <div></div>

@@ -113,4 +113,4 @@ wasm_bench = []
 agent = ["bincode"]
 
 [package.metadata.docs.rs]
-features = ["msgpack", "doc_test"]
+features = ["doc_test"]
