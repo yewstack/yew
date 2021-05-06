@@ -273,7 +273,6 @@ pub mod macros {
 mod app_handle;
 pub mod callback;
 pub mod context;
-pub mod format;
 pub mod html;
 mod scheduler;
 pub mod utils;
