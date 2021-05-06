@@ -2,7 +2,7 @@ mod common;
 
 use common::obtain_result;
 use wasm_bindgen_test::*;
-use yew::{html, App, Html};
+use yew::{html, AppHandle, Html};
 use yew_functional::{use_effect_with_deps, use_state, FunctionComponent, FunctionProvider};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
@@ -28,7 +28,7 @@ fn use_state_works() {
         }
     }
     type UseComponent = FunctionComponent<UseStateFunction>;
-    App::<UseComponent>::mount(yew::utils::document().get_element_by_id("output").unwrap());
+    AppHandle::<UseComponent>::mount(yew::utils::document().get_element_by_id("output").unwrap());
     let result = obtain_result();
     assert_eq!(result.as_str(), "5");
 }
@@ -71,7 +71,7 @@ fn multiple_use_state_setters() {
         }
     }
     type UseComponent = FunctionComponent<UseStateFunction>;
-    App::<UseComponent>::mount(yew::utils::document().get_element_by_id("output").unwrap());
+    AppHandle::<UseComponent>::mount(yew::utils::document().get_element_by_id("output").unwrap());
     let result = obtain_result();
     assert_eq!(result.as_str(), "11");
 }
