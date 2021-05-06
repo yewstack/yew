@@ -25,7 +25,7 @@ fn use_context_scoping_works() {
 
         fn run(_props: &Self::TProps) -> Html {
             if use_context::<ExampleContext>().is_some() {
-                yew_services::ConsoleService::log(&format!(
+                console_log(&format!(
                     "Context should be None here, but was {:?}!",
                     use_context::<ExampleContext>().unwrap()
                 ));

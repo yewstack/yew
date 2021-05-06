@@ -1,20 +1,22 @@
 use yew::{html, ChangeData, Component, ComponentLink, Html, ShouldRender};
-use yew_services::reader::{File, FileChunk, FileData, ReaderService, ReaderTask};
+
+use gloo::file::callbacks::FileReader;
+use gloo::file::File;
 
 type Chunks = bool;
 
 pub enum Msg {
-    Loaded(FileData),
-    Chunk(Option<FileChunk>),
+    Loaded(String, String),
+    LoadedBytes(String, Vec<u8>),
     Files(Vec<File>, Chunks),
-    ToggleByChunks,
+    ToggleReadBytes,
 }
 
 pub struct Model {
     link: ComponentLink<Model>,
-    tasks: Vec<ReaderTask>,
+    readers: Vec<FileReader>,
     files: Vec<String>,
-    by_chunks: bool,
+    read_bytes: bool,
 }
 
 impl Component for Model {
@@ -24,44 +26,55 @@ impl Component for Model {
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
             link,
-            tasks: vec![],
+            readers: vec![],
             files: vec![],
-            by_chunks: false,
+            read_bytes: false,
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::Loaded(file) => {
-                let info = format!("file: {:?}", file);
+            Msg::Loaded(file_name, data) => {
+                let info = format!("file_name: {}, data: {:?}", file_name, data);
                 self.files.push(info);
                 true
             }
-            Msg::Chunk(Some(chunk)) => {
-                let info = format!("chunk: {:?}", chunk);
+            Msg::LoadedBytes(file_name, data) => {
+                let info = format!("file_name: {}, data: {:?}", file_name, data);
                 self.files.push(info);
                 true
             }
             Msg::Files(files, chunks) => {
                 for file in files.into_iter() {
                     let task = {
+                        let file = File::from(file);
+                        let file_name = file.name();
+                        let link = self.link.clone();
+
                         if chunks {
-                            let callback = self.link.callback(Msg::Chunk);
-                            ReaderService::read_file_by_chunks(file, callback, 10).unwrap()
+                            gloo::file::callbacks::read_as_bytes(&file, move |res| {
+                                link.send_message(Msg::LoadedBytes(
+                                    file_name,
+                                    res.expect("failed to read file"),
+                                ))
+                            })
                         } else {
-                            let callback = self.link.callback(Msg::Loaded);
-                            ReaderService::read_file(file, callback).unwrap()
+                            gloo::file::callbacks::read_as_text(&file, move |res| {
+                                link.send_message(Msg::Loaded(
+                                    file_name,
+                                    res.unwrap_or_else(|e| e.to_string()),
+                                ))
+                            })
                         }
                     };
-                    self.tasks.push(task);
+                    self.readers.push(task);
                 }
                 true
             }
-            Msg::ToggleByChunks => {
-                self.by_chunks = !self.by_chunks;
+            Msg::ToggleReadBytes => {
+                self.read_bytes = !self.read_bytes;
                 true
             }
-            _ => false,
         }
     }
 
@@ -70,7 +83,7 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html {
-        let flag = self.by_chunks;
+        let flag = self.read_bytes;
         html! {
             <div>
                 <div>
@@ -81,7 +94,8 @@ impl Component for Model {
                                 let files = js_sys::try_iter(&files)
                                     .unwrap()
                                     .unwrap()
-                                    .map(|v| File::from(v.unwrap()));
+                                    .map(|v| web_sys::File::from(v.unwrap()))
+                                    .map(|f| File::from(f));
                                 result.extend(files);
                             }
                             Msg::Files(result, flag)
@@ -89,8 +103,8 @@ impl Component for Model {
                     />
                 </div>
                 <div>
-                    <label>{ "By chunks" }</label>
-                    <input type="checkbox" checked=flag onclick=self.link.callback(|_| Msg::ToggleByChunks) />
+                    <label>{ "Read bytes" }</label>
+                    <input type="checkbox" checked=flag onclick=self.link.callback(|_| Msg::ToggleReadBytes) />
                 </div>
                 <ul>
                     { for self.files.iter().map(|f| Self::view_file(f)) }

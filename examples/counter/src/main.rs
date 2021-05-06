@@ -1,6 +1,6 @@
 use js_sys::Date;
+use weblog::console_log;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
-use yew_services::ConsoleService;
 
 // Define the possible messages which can be sent to the component
 pub enum Msg {
@@ -25,12 +25,12 @@ impl Component for Model {
         match msg {
             Msg::Increment => {
                 self.value += 1;
-                ConsoleService::log("plus one"); // Will output a string to the browser console
+                console_log!("plus one"); // Will output a string to the browser console
                 true // Return true to cause the displayed change to update
             }
             Msg::Decrement => {
                 self.value -= 1;
-                ConsoleService::log("minus one");
+                console_log!("minus one");
                 true
             }
         }

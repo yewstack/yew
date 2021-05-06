@@ -14,9 +14,6 @@ description = "A framework for making client-side single-page apps"
 wasm-bindgen-test = "0.3.9"
 web-sys = "0.3.36"
 yew = { path = "../yew" }
-log = "0.4"
-wasm-logger = "0.2"
-yew-services = { path = "../yew-services" }
 
 [dependencies]
 yew = { path = "../yew" }

@@ -1,9 +1,7 @@
 use add_client::AddClientForm;
+use gloo_storage::{LocalStorage, Storage};
 use serde::{Deserialize, Serialize};
-use yew::format::Json;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
-use yew_services::storage::Area;
-use yew_services::{DialogService, StorageService};
 
 mod add_client;
 
@@ -46,7 +44,6 @@ pub enum Msg {
 
 pub struct Model {
     link: ComponentLink<Self>,
-    storage: StorageService,
     clients: Vec<Client>,
     scene: Scene,
 }
@@ -56,12 +53,9 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let storage = StorageService::new(Area::Local).expect("storage was disabled by the user");
-        let Json(clients) = storage.restore(KEY);
-        let clients = clients.ok().unwrap_or_else(Vec::new);
+        let clients = LocalStorage::get(KEY).unwrap_or_else(|_| Vec::new());
         Self {
             link,
-            storage,
             clients,
             scene: Scene::ClientsList,
         }
@@ -75,14 +69,14 @@ impl Component for Model {
             }
             Msg::AddClient(client) => {
                 self.clients.push(client);
-                self.storage.store(KEY, Json(&self.clients));
+                LocalStorage::set(KEY, &self.clients).expect("failed to set");
                 // we only need to re-render if we're currently displaying the clients
                 matches!(self.scene, Scene::ClientsList)
             }
             Msg::ClearClients => {
-                if DialogService::confirm("Do you really want to clear the data?") {
+                if gloo_dialogs::confirm("Do you really want to clear the data?") {
                     self.clients.clear();
-                    self.storage.remove(KEY);
+                    LocalStorage::delete(KEY);
                     true
                 } else {
                     false
