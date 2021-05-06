@@ -299,7 +299,7 @@ where
     COMP: Component,
     COMP::Properties: Default,
 {
-    App::<COMP>::new().mount_to_body();
+    App::<COMP>::mount_to_body();
 }
 
 /// Starts an app mounted to a body of the document.
@@ -307,7 +307,7 @@ pub fn start_app_with_props<COMP>(props: COMP::Properties)
 where
     COMP: Component,
 {
-    App::<COMP>::new().mount_to_body_with_props(props);
+    App::<COMP>::mount_to_body_with_props(props);
 }
 
 /// The Yew Prelude
