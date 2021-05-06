@@ -17,7 +17,7 @@ pub enum Msg {
 
 pub struct Model {
     link: ComponentLink<Self>,
-    apps: Slab<(Element, App<CounterModel>)>, // Contains the spawned apps and their parent div elements
+    apps: Slab<(Element, AppHandle<CounterModel>)>, // Contains the spawned apps and their parent div elements
     apps_container_ref: NodeRef,
 }
 
@@ -57,7 +57,7 @@ impl Component for Model {
                 // Get the key for the entry and create and mount a new CounterModel app
                 // with a callback that destroys the app when emitted
                 let app_key = app_entry.key();
-                let new_counter_app = App::mount_with_props(
+                let new_counter_app = yew::start_app_with_props(
                     app_div.clone(),
                     CounterProps {
                         destroy_callback: self
@@ -113,5 +113,5 @@ impl Component for Model {
 
 fn main() {
     // Start main app
-    yew::start_app::<Model>();
+    yew::start_app_in_body::<Model>();
 }

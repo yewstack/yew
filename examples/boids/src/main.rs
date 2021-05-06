@@ -168,5 +168,5 @@ impl Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app_in_body::<Model>();
 }
