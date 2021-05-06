@@ -57,7 +57,7 @@ impl Component for Model {
                 // Get the key for the entry and create and mount a new CounterModel app
                 // with a callback that destroys the app when emitted
                 let app_key = app_entry.key();
-                let new_counter_app = App::new().mount_with_props(
+                let new_counter_app = App::mount_with_props(
                     app_div.clone(),
                     CounterProps {
                         destroy_callback: self
