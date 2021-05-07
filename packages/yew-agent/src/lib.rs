@@ -3,8 +3,8 @@
 mod link;
 mod local;
 mod pool;
-mod worker;
 pub mod utils;
+mod worker;
 
 pub use link::AgentLink;
 pub(crate) use link::*;

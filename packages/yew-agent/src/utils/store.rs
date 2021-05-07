@@ -1,8 +1,8 @@
+use crate::{Agent, AgentLink, Bridge, Context, Discoverer, Dispatched, Dispatcher, HandlerId};
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::ops::Deref;
 use std::rc::Rc;
-use crate::{Agent, AgentLink, Context, Discoverer, Dispatcher, HandlerId, Bridge, Dispatched};
 use yew::prelude::*;
 
 /// A functional state wrapper, enforcing a unidirectional

@@ -1,8 +1,8 @@
 use instant::Instant;
 use person::PersonType;
 use yew::prelude::*;
-use yew::web_sys::HtmlElement;
 use yew::utils::NeqAssign;
+use yew::web_sys::HtmlElement;
 
 mod person;
 mod random;

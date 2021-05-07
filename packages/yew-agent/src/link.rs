@@ -76,10 +76,10 @@ impl<AGN: Agent> AgentLink<AGN> {
     /// If the future panics, then the promise will not resolve, and
     /// will leak.
     pub fn callback_future<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
-        where
-            M: Into<AGN::Message>,
-            FU: Future<Output = M> + 'static,
-            FN: Fn(IN) -> FU + 'static,
+    where
+        M: Into<AGN::Message>,
+        FU: Future<Output = M> + 'static,
+        FN: Fn(IN) -> FU + 'static,
     {
         let link = self.clone();
 
@@ -98,10 +98,10 @@ impl<AGN: Agent> AgentLink<AGN> {
     /// If the future panics, then the promise will not resolve, and
     /// will leak.
     pub fn callback_future_once<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
-        where
-            M: Into<AGN::Message>,
-            FU: Future<Output = M> + 'static,
-            FN: FnOnce(IN) -> FU + 'static,
+    where
+        M: Into<AGN::Message>,
+        FU: Future<Output = M> + 'static,
+        FN: FnOnce(IN) -> FU + 'static,
     {
         let link = self.clone();
 
@@ -118,9 +118,9 @@ impl<AGN: Agent> AgentLink<AGN> {
     /// # Panics
     /// If the future panics, then the promise will not resolve, and will leak.
     pub fn send_future<F, M>(&self, future: F)
-        where
-            M: Into<AGN::Message>,
-            F: Future<Output = M> + 'static,
+    where
+        M: Into<AGN::Message>,
+        F: Future<Output = M> + 'static,
     {
         let link: AgentLink<AGN> = self.clone();
         let js_future = async move {
