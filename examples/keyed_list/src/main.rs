@@ -2,7 +2,7 @@ use instant::Instant;
 use person::PersonType;
 use yew::prelude::*;
 use yew::web_sys::HtmlElement;
-use yewtil::NeqAssign;
+use yew::utils::NeqAssign;
 
 mod person;
 mod random;

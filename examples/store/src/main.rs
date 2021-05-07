@@ -8,7 +8,7 @@ use text_input::TextInput;
 use weblog::console_log;
 use yew::prelude::*;
 use yew_agent::Bridge;
-use yewtil::store::{Bridgeable, ReadOnly, StoreWrapper};
+use yew_agent::utils::store::{Bridgeable, ReadOnly, StoreWrapper};
 
 pub enum Msg {
     CreatePost(String),

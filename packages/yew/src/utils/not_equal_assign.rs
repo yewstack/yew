@@ -12,7 +12,7 @@ pub trait NeqAssign<NEW> {
     /// # Example
     /// ```
     /// # use yew::{Component, ShouldRender, ComponentLink};
-    /// # use yewtil::NeqAssign;
+    /// # use yew::utils::NeqAssign;
     /// # use yew::Properties;
     ///# use yew::virtual_dom::VNode;
     /// ##[derive(Clone, Properties, PartialEq)]
@@ -66,7 +66,7 @@ impl<T: BorrowMut<U>, U: PartialEq> NeqAssign<U> for T {
 /// Useful for `Result<T, E: !PartialEq>`.
 pub trait NeqAssignBy<NEW> {
     /// ```
-    /// # use yewtil::{NeqAssign, NeqAssignBy};
+    /// # use yew::utils::{NeqAssign, NeqAssignBy};
     /// ##[derive(Clone, Debug)]
     /// struct NonComparableError;
     ///

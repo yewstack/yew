@@ -7,7 +7,8 @@ use web_sys::{Document, Window};
 
 use yew::html::ChildrenRenderer;
 
-pub mod not_equal_assign;
+mod not_equal_assign;
+pub use not_equal_assign::*;
 
 /// Returns the current window. This function will panic if there is no available window.
 pub fn window() -> Window {

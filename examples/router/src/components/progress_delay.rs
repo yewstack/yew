@@ -1,7 +1,7 @@
 use gloo::timers::callback::Interval;
 use instant::Instant;
 use yew::prelude::*;
-use yewtil::NeqAssign;
+use yew::utils::NeqAssign;
 
 const RESOLUTION: u64 = 500;
 const MIN_INTERVAL_MS: u64 = 50;

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use yew_agent::AgentLink;
-use yewtil::store::{Store, StoreWrapper};
+use yew_agent::utils::store::{Store, StoreWrapper};
 
 pub type PostId = u32;
 

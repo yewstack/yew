@@ -2,8 +2,8 @@ use crate::agents::posts::{PostId, PostStore, Request};
 use crate::text_input::TextInput;
 use yew::prelude::*;
 use yew_agent::Bridge;
-use yewtil::store::{Bridgeable, ReadOnly, StoreWrapper};
-use yewtil::NeqAssign;
+use yew_agent::utils::store::{Bridgeable, ReadOnly, StoreWrapper};
+use yew::utils::NeqAssign;
 
 pub enum Msg {
     UpdateText(String),
