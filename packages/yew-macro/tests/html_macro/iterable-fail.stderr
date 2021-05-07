@@ -70,7 +70,7 @@ error[E0277]: `()` is not an iterator
 18 |             { for () }
    |                   ^^ `()` is not an iterator
    |
-  ::: $WORKSPACE/packages/yew/src/utils.rs
+  ::: $WORKSPACE/packages/yew/src/utils/mod.rs
    |
    |     IT: IntoIterator<Item = T>,
    |         ---------------------- required by this bound in `into_node_iter`
