@@ -31,7 +31,6 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [boids](boids)                                      | Yew port of [Boids](https://en.wikipedia.org/wiki/Boids)                                                                           |
 | [counter](counter)                                  | Simple counter which can be incremented and decremented                                                                            |
 | [crm](crm)                                          | Shallow customer relationship management tool                                                                                      |
-| [dashboard](dashboard)                              | Uses the `fetch` and `websocket` services to load external data                                                                    |
 | [dyn_create_destroy_apps](dyn_create_destroy_apps)  | Uses the function `start_app_in_element` and the `AppHandle` struct to dynamically create and delete Yew apps                      |
 | [file_upload](file_upload)                          | Uses the `reader` service to read the content of user uploaded files                                                               |
 | [futures](futures)                                  | Demonstrates how you can use futures and async code with Yew. Features a Markdown renderer.                                        |
