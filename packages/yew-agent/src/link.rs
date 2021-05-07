@@ -5,6 +5,8 @@ use yew::scheduler::{self, Runnable, Shared};
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
+use std::future::Future;
+use wasm_bindgen_futures::spawn_local;
 
 /// Defines communication from Worker to Consumers
 pub(crate) trait Responder<AGN: Agent> {
@@ -65,6 +67,68 @@ impl<AGN: Agent> AgentLink<AGN> {
             scope.send(AgentLifecycleEvent::Message(output));
         };
         closure.into()
+    }
+
+    /// This method creates a `Callback` which returns a Future which
+    /// returns a message to be sent back to the agent
+    ///
+    /// # Panics
+    /// If the future panics, then the promise will not resolve, and
+    /// will leak.
+    pub fn callback_future<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
+        where
+            M: Into<AGN::Message>,
+            FU: Future<Output = M> + 'static,
+            FN: Fn(IN) -> FU + 'static,
+    {
+        let link = self.clone();
+
+        let closure = move |input: IN| {
+            let future: FU = function(input);
+            link.send_future(future);
+        };
+
+        closure.into()
+    }
+
+    /// This method creates a `Callback` from `FnOnce` which returns a Future
+    /// which returns a message to be sent back to the agent.
+    ///
+    /// # Panics
+    /// If the future panics, then the promise will not resolve, and
+    /// will leak.
+    pub fn callback_future_once<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
+        where
+            M: Into<AGN::Message>,
+            FU: Future<Output = M> + 'static,
+            FN: FnOnce(IN) -> FU + 'static,
+    {
+        let link = self.clone();
+
+        let closure = move |input: IN| {
+            let future: FU = function(input);
+            link.send_future(future);
+        };
+
+        Callback::once(closure)
+    }
+
+    /// This method processes a Future that returns a message and sends it back to the agent.
+    ///
+    /// # Panics
+    /// If the future panics, then the promise will not resolve, and will leak.
+    pub fn send_future<F, M>(&self, future: F)
+        where
+            M: Into<AGN::Message>,
+            F: Future<Output = M> + 'static,
+    {
+        let link: AgentLink<AGN> = self.clone();
+        let js_future = async move {
+            let message: AGN::Message = future.await.into();
+            let cb = link.callback(|m: AGN::Message| m);
+            cb.emit(message);
+        };
+        spawn_local(js_future);
     }
 }
 
