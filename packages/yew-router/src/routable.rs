@@ -15,11 +15,9 @@ pub trait Routable {
     /// Converts an instance of the routes enum to a route that can passed to browser history API.
     fn to_route(&self) -> String;
 
-    // from https://stackoverflow.com/a/33687996
-    /// Needed for downcasting done in [`CurrentRoute::route`](crate::CurrentRoute::route())
-    fn as_any(&self) -> &(dyn std::any::Any + 'static);
-
+    /// Lists all the available routes
     fn routes() -> Vec<&'static str>;
 
+    /// The route to redirect to on 404
     fn not_found_route() -> Option<&'static str>;
 }

@@ -50,7 +50,7 @@ pub fn router<R: Routable + Clone + PartialEq + 'static>(props: &RouterProps<R>)
     let pathname = yew::utils::window().location().pathname().unwrap();
     let base: Option<String> = base_url();
 
-    let router = use_ref(|| {
+    let router = use_ref(move || {
         let mut router = route_recognizer::Router::new();
         R::routes().iter().for_each(|path| {
             let path = match &base {
@@ -79,11 +79,11 @@ pub fn router<R: Routable + Clone + PartialEq + 'static>(props: &RouterProps<R>)
         Some(route) => (props.render.0)(route),
         None => html! {},
     };
-    let (force_rerender, set_force_rerender) = use_state(|| 0);
+    let force_rerender = use_state(|| 0);
 
     let _ = use_effect(move || {
         let event_listener = EventListener::new(&yew::utils::window(), "popstate", move |_| {
-            set_force_rerender(*force_rerender + 1);
+            force_rerender.set(*force_rerender + 1);
         });
 
         move || {

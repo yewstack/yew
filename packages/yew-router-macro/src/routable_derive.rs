@@ -3,13 +3,12 @@ use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{Data, DeriveInput, Fields, Ident, LitStr, Variant, Visibility};
+use syn::{Data, DeriveInput, Fields, Ident, LitStr, Variant};
 
 const AT_ATTR_IDENT: &str = "at";
 const NOT_FOUND_ATTR_IDENT: &str = "not_found";
 
 pub struct Routable {
-    vis: Visibility,
     ident: Ident,
     ats: Vec<LitStr>,
     variants: Punctuated<Variant, syn::token::Comma>,
@@ -18,9 +17,7 @@ pub struct Routable {
 
 impl Parse for Routable {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let DeriveInput {
-            vis, ident, data, ..
-        } = input.parse()?;
+        let DeriveInput { ident, data, .. } = input.parse()?;
 
         let data = match data {
             Data::Enum(data) => data,
@@ -38,10 +35,9 @@ impl Parse for Routable {
             }
         };
 
-        let (not_found_route, ats) = parse_variants(&data.variants)?;
+        let (not_found_route, ats) = parse_variants_attributes(&data.variants)?;
 
         Ok(Self {
-            vis,
             ident,
             variants: data.variants,
             ats,
@@ -50,15 +46,13 @@ impl Parse for Routable {
     }
 }
 
-fn parse_variants(
+fn parse_variants_attributes(
     variants: &Punctuated<Variant, syn::token::Comma>,
 ) -> syn::Result<(Option<LitStr>, Vec<LitStr>)> {
     let mut not_founds = vec![];
     let mut ats: Vec<LitStr> = vec![];
 
     for variant in variants.iter() {
-        let variant: &syn::Variant = variant;
-
         if let Fields::Unnamed(_) = variant.fields {
             return Err(syn::Error::new(
                 variant.span(),
@@ -73,7 +67,7 @@ fn parse_variants(
             .collect::<Vec<_>>();
 
         let attr = match at_attrs.len() {
-            1 => *at_attrs.first().expect("fucked"),
+            1 => *at_attrs.first().expect("unreachable"),
             0 => {
                 return Err(syn::Error::new(
                     variant.span(),
@@ -96,21 +90,13 @@ fn parse_variants(
 
         for attr in attrs.iter() {
             if attr.path.is_ident(NOT_FOUND_ATTR_IDENT) {
+                // the `at` attribute for this variant
                 let at_attr = at_attrs
                     .iter()
-                    .find(|attr| attr.path.is_ident(AT_ATTR_IDENT));
-                let at_attr = match at_attr {
-                    Some(at_attr) => at_attr,
-                    None => {
-                        return Err(syn::Error::new(
-                            attr.span(),
-                            format!(
-                                "fields marked with {} must have {} attribute",
-                                NOT_FOUND_ATTR_IDENT, AT_ATTR_IDENT
-                            ),
-                        ))
-                    }
-                };
+                    .find(|attr| attr.path.is_ident(AT_ATTR_IDENT))
+                    // if we reach here, it means we have already cleared `at` attrs checks
+                    // `at` attr must be present on this field
+                    .expect("unreachable");
 
                 not_founds.push(at_attr.parse_args::<LitStr>()?)
             }
@@ -119,66 +105,91 @@ fn parse_variants(
 
     if not_founds.len() > 1 {
         return Err(syn::Error::new(
-            Span::call_site(),
+            Span::call_site(), // because we can't join spans
             format!("there can only be one {}", NOT_FOUND_ATTR_IDENT),
         ));
     }
 
-    Ok((not_founds.first().cloned(), ats))
+    Ok((not_founds.into_iter().next(), ats))
+}
+
+impl Routable {
+    fn build_from_path(&self) -> TokenStream {
+        let from_path_matches = self.variants.iter().enumerate().map(|(i, variant)| {
+            let ident = &variant.ident;
+            let right = match &variant.fields {
+                Fields::Unit => quote! { Self::#ident },
+                Fields::Named(field) => {
+                    let fields = field.named.iter().map(|it| it.ident.as_ref().expect("unreachable: named fields have idents"));
+                    quote! { Self::#ident { #(#fields: params.get(stringify!(#fields))?.parse().ok()?)*, } }
+                }
+                Fields::Unnamed(_) => unreachable!(), // already checked
+            };
+
+            let left = self.ats.get(i).expect("unreachable");
+            quote! {
+            #left => ::core::option::Option::Some(#right)
+        }
+        });
+
+        quote! {
+            fn from_path(path: &str, params: &::std::collections::HashMap<&str, &str>) -> Option<Self> {
+                match path {
+                    #(#from_path_matches),*,
+                    _ => None,
+                }
+            }
+        }
+    }
+
+    fn build_to_route(&self) -> TokenStream {
+        let to_route_matches = self.variants.iter().enumerate().map(|(i, variant)| {
+            let ident = &variant.ident;
+            let mut right = self.ats.get(i).expect("unreachable").value();
+
+            match &variant.fields {
+                Fields::Unit => quote! { Self::#ident => #right.to_string() },
+                Fields::Named(field) => {
+                    let fields = field
+                        .named
+                        .iter()
+                        .map(|it| it.ident.as_ref().expect("unreachable"))
+                        .collect::<Vec<_>>();
+
+                    for field in fields.iter() {
+                        // :param -> {param}
+                        // so we can pass it to `format!("...", param)`
+                        right = right.replace(&format!(":{}", field), &format!("{{{}}}", field))
+                    }
+
+                    quote! {
+                        Self::#ident { #(#fields),* } => ::std::format!(#right, #(#fields = #fields),*)
+                    }
+                }
+                Fields::Unnamed(_) => unreachable!(), // already checked
+            }
+        });
+
+        quote! {
+            fn to_route(&self) -> String {
+                match self {
+                    #(#to_route_matches),*,
+                }
+            }
+        }
+    }
 }
 
 pub fn routable_derive_impl(input: Routable) -> TokenStream {
     let Routable {
-        vis: _vis, // todo
-        ident,
         ats,
-        variants,
         not_found_route,
-    } = input;
+        ident,
+        ..
+    } = &input;
 
-    let from_path_matches = variants.iter().enumerate().map(|(i, variant)| {
-        let ident = &variant.ident;
-        let right = match &variant.fields {
-            Fields::Unit => quote! { Self::#ident },
-            Fields::Named(field) => {
-                let fields = field.named.iter().map(|it| it.ident.as_ref().expect("fucked 4"));
-                quote! { Self::#ident { #(#fields: params.get(stringify!(#fields))?.parse().ok()?)*, } }
-            }
-            Fields::Unnamed(_) => unreachable!(), // already checked
-        };
-
-        let left = ats.get(i).expect("fucked 1");
-        quote! {
-            #left => ::core::option::Option::Some(#right)
-        }
-    });
-
-    let to_route_matches = variants.iter().enumerate().map(|(i, variant)| {
-        let ident = &variant.ident;
-        let mut right = ats.get(i).expect("fucked 2").value();
-
-        match &variant.fields {
-            Fields::Unit => quote! {
-                Self::#ident => #right.to_string()
-            },
-            Fields::Named(field) => {
-                let fields = field
-                    .named
-                    .iter()
-                    .map(|it| it.ident.as_ref().expect("fucked 3"))
-                    .collect::<Vec<_>>();
-
-                fields.iter().for_each(|field| {
-                    right = right.replace(&format!(":{}", field), &format!("{{{}}}", field))
-                });
-
-                quote! {
-                    Self::#ident { #(#fields),* } => ::std::format!(#right, #(#fields = #fields),*)
-                }
-            }
-            Fields::Unnamed(_) => unreachable!(), // already checked
-        }
-    });
+    let from_path = input.build_from_path();
+    let to_route = input.build_to_route();
 
     let not_found_route = match not_found_route {
         Some(route) => quote! { ::std::option::Option::Some(#route) },
@@ -188,25 +199,11 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
     quote! {
         #[automatically_derived]
         impl ::yew_router::Routable for #ident {
-            fn from_path(path: &str, params: &::std::collections::HashMap<&str, &str>) -> Option<Self> {
-                match path {
-                    #(#from_path_matches),*,
-                    _ => None,
-                }
-            }
-
-            fn to_route(&self) -> String {
-                match self {
-                    #(#to_route_matches),*,
-                }
-            }
+            #from_path
+            #to_route
 
             fn routes() -> ::std::vec::Vec<&'static str> {
                 ::std::vec![#(#ats),*]
-            }
-
-            fn as_any(&self) -> &dyn ::std::any::Any {
-                self
             }
 
             fn not_found_route() -> ::std::option::Option<&'static str> {
