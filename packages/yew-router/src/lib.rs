@@ -53,19 +53,20 @@
 //! not expose or make use of it. It is instead recommended that a state management library like
 //! [yewdux](https://github.com/intendednull/yewdux) be used.
 
-#[doc(hidden)]
-#[path = "macro_helpers.rs"]
-pub mod __macro;
+mod agents;
 pub mod components;
+mod context;
 mod routable;
 pub mod router;
-mod service;
 pub mod utils;
 
-pub use service::*;
+#[doc(hidden)]
+pub mod hidden;
 
+pub use crate::agents::router::RouterAction;
+pub use agents::history::HistoryAgent;
 pub use routable::Routable;
-pub use router::{RenderFn, Router};
+pub use router::{use_router, Router};
 
 pub mod prelude {
     //! Prelude module to be imported when working with `yew-router`.
@@ -75,5 +76,5 @@ pub mod prelude {
     pub use crate::components::Link;
     #[doc(no_inline)]
     pub use crate::Routable;
-    pub use crate::Router;
+    pub use crate::{use_router, Router, RouterAction};
 }

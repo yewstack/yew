@@ -149,7 +149,7 @@ where
     }
 }
 
-pub(crate) fn get_current_scope() -> Option<AnyScope> {
+pub fn get_current_scope() -> Option<AnyScope> {
     if CURRENT_HOOK.is_set() {
         Some(CURRENT_HOOK.with(|state| state.scope.clone()))
     } else {

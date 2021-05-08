@@ -1,125 +1,151 @@
 //! Router Component.
 
-use crate::{attach_route_listener, current_route, Routable, RouteListener};
+use std::cell::RefCell;
 use std::rc::Rc;
+
+use yew::context::ContextHandle;
+use yew::html::AnyScope;
 use yew::prelude::*;
+use yew_functional::{get_current_scope, use_hook};
 
-/// Wraps `Rc` around `Fn` so it can be passed as a prop.
-pub struct RenderFn<R>(Rc<dyn Fn(&R) -> Html>);
+use crate::agents::router::{RouterAction, RouterAgent};
+use crate::context::RoutingContext;
+use crate::Routable;
 
-impl<R> RenderFn<R> {
-    /// Creates a new [`RenderFn`]
-    ///
-    /// It is recommended that you use [`Router::render`] instead
-    pub fn new(value: impl Fn(&R) -> Html + 'static) -> Self {
-        Self(Rc::new(value))
-    }
-}
+pub struct Router<T: Routable>(Rc<InnerRouter<T>>);
 
-impl<T> Clone for RenderFn<T> {
+impl<T: Routable> Clone for Router<T> {
     fn clone(&self) -> Self {
-        Self(Rc::clone(&self.0))
+        Router(self.0.clone())
     }
 }
 
-impl<T> PartialEq for RenderFn<T> {
-    fn eq(&self, other: &Self) -> bool {
-        // https://github.com/rust-lang/rust-clippy/issues/6524
-        #[allow(clippy::vtable_address_comparisons)]
-        Rc::ptr_eq(&self.0, &other.0)
+enum InnerRouter<T: Routable> {
+    // Used when we're mounted inside a routing context
+    Context {
+        current: RefCell<Rc<RoutingContext<T>>>,
+        _handle: ContextHandle<Rc<RoutingContext<T>>>,
+    },
+    // Used when we're directly interacting with the router agent
+    Agent {
+        // Lazily initialize this to avoid unnecessary work
+        current: RefCell<Option<Rc<T>>>,
+        bridge: RefCell<Box<dyn Bridge<RouterAgent<T>>>>,
+    },
+}
+
+#[derive(Debug)]
+pub struct RouterUpdate<T: Routable>(InnerRouterUpdate<T>);
+
+#[derive(Debug)]
+enum InnerRouterUpdate<T: Routable> {
+    // Used when we're mounted inside a routing context
+    Context(Rc<RoutingContext<T>>),
+    // Used when we're directly interacting with the router agent
+    Agent(Rc<T>),
+}
+
+impl<T: Routable> Router<T> {
+    pub fn new(link: impl Into<AnyScope>, callback: Callback<RouterUpdate<T>>) -> Self {
+        let link = link.into();
+        Self(Rc::new(
+            if let Some((current, handle)) =
+                link.context(callback.reform(|ctx| RouterUpdate(InnerRouterUpdate::Context(ctx))))
+            {
+                InnerRouter::Context {
+                    current: RefCell::new(current),
+                    _handle: handle,
+                }
+            } else {
+                let current = RefCell::new(None);
+                let bridge = RefCell::new(RouterAgent::bridge(
+                    callback.reform(|routable| RouterUpdate(InnerRouterUpdate::Agent(routable))),
+                ));
+                InnerRouter::Agent { current, bridge }
+            },
+        ))
     }
-}
-
-/// Props for [`Router`]
-#[derive(Properties)]
-pub struct RouterProps<R> {
-    /// Callback which returns [`Html`] to be rendered for the current route.
-    pub render: RenderFn<R>,
-}
-
-impl<R> Clone for RouterProps<R> {
-    fn clone(&self) -> Self {
-        Self {
-            render: self.render.clone(),
-        }
-    }
-}
-
-impl<R> PartialEq for RouterProps<R> {
-    fn eq(&self, other: &Self) -> bool {
-        self.render.eq(&other.render)
-    }
-}
-
-#[doc(hidden)]
-pub enum Msg<R> {
-    UpdateRoute(Option<R>),
-}
-
-/// The router component.
-///
-/// When a route can't be matched, it looks for the route with `not_found` attribute.
-/// If such a route is provided, it redirects to the specified route.
-/// Otherwise `html! {}` is rendered and a message is logged to console
-/// stating that no route can be matched.
-/// See the [crate level document][crate] for more information.
-pub struct Router<R: Routable + 'static> {
-    props: RouterProps<R>,
-    #[allow(dead_code)] // only exists to drop listener on component drop
-    route_listener: RouteListener,
-    route: Option<R>,
-}
-
-impl<R> Component for Router<R>
-where
-    R: Routable + 'static,
-{
-    type Message = Msg<R>;
-    type Properties = RouterProps<R>;
-
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let route_listener = attach_route_listener(link.callback(Msg::UpdateRoute));
-
-        Self {
-            props,
-            route_listener,
-            route: current_route(),
-        }
-    }
-
-    fn update(&mut self, msg: Self::Message) -> bool {
-        match msg {
-            Msg::UpdateRoute(route) => {
-                self.route = route;
-                true
+    pub fn update(&self, update: RouterUpdate<T>) {
+        match (&*self.0, update.0) {
+            (InnerRouter::Agent { current, .. }, InnerRouterUpdate::Agent(routable)) => {
+                *current.borrow_mut() = Some(routable);
             }
-        }
-    }
-
-    fn change(&mut self, mut props: Self::Properties) -> bool {
-        std::mem::swap(&mut self.props, &mut props);
-        props != self.props
-    }
-
-    fn view(&self) -> Html {
-        match &self.route {
-            Some(route) => (self.props.render.0)(route),
-            None => {
-                weblog::console_log!("no route matched");
-                html! {}
+            (InnerRouter::Context { current, .. }, InnerRouterUpdate::Context(ctx)) => {
+                *current.borrow_mut() = ctx;
             }
+            _ => unreachable!(),
         }
+    }
+    pub fn route(&self) -> Rc<T> {
+        match &*self.0 {
+            InnerRouter::Agent { current, .. } => {
+                let mut current = current.borrow_mut();
+                if let Some(route) = &*current {
+                    route.clone()
+                } else {
+                    let route = Rc::new(RouterAgent::<T>::current());
+                    *current = Some(route.clone());
+                    route
+                }
+            }
+            InnerRouter::Context { current, .. } => current.borrow().route.clone(),
+        }
+    }
+    pub fn dispatch(&self, action: RouterAction<T>) {
+        match &*self.0 {
+            InnerRouter::Agent { bridge, .. } => bridge.borrow_mut().send(action),
+            InnerRouter::Context { current, .. } => current.borrow().onroute.emit(action),
+        }
+    }
+    pub fn dispatcher<U>(
+        &self,
+        action_fn: impl Fn(U) -> Option<RouterAction<T>> + 'static,
+    ) -> Callback<U> {
+        let router: Router<T> = self.clone();
+        (move |args| {
+            if let Some(action) = action_fn(args) {
+                router.dispatch(action)
+            }
+        })
+        .into()
+    }
+    pub fn push(&self, routable: T) {
+        self.dispatch(RouterAction::Push(routable));
+    }
+    pub fn replace(&self, routable: T) {
+        self.dispatch(RouterAction::Replace(routable));
     }
 }
 
-impl<R> Router<R>
-where
-    R: Routable + Clone + 'static,
-{
-    pub fn render<F>(func: F) -> RenderFn<R>
-    where
-        F: Fn(&R) -> Html + 'static,
-    {
-        RenderFn::new(func)
+pub fn use_router<T: Routable>() -> Router<T> {
+    struct UseRouterState<T2: Routable> {
+        router: Option<Router<T2>>,
     }
+
+    let scope = get_current_scope()
+        .expect("No current Scope. `use_router` can only be called inside function components");
+
+    use_hook(
+        move || UseRouterState { router: None },
+        |state: &mut UseRouterState<T>, updater| {
+            if state.router.is_none() {
+                let callback = move |update: RouterUpdate<T>| {
+                    updater.callback(|state: &mut UseRouterState<T>| {
+                        if let Some(router) = &state.router {
+                            router.update(update);
+                            true
+                        } else {
+                            false
+                        }
+                    });
+                };
+                state.router = Some(Router::new(scope, callback.into()))
+            }
+
+            state.router.clone().unwrap()
+        },
+        |state| {
+            state.router = None;
+        },
+    )
 }

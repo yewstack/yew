@@ -1,18 +1,22 @@
-use proc_macro2::TokenStream;
-use quote::quote;
+use std::collections::BTreeMap;
+
+use proc_macro2::{Span, TokenStream};
+use quote::{format_ident, quote};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{Data, DeriveInput, Fields, Ident, LitStr, Variant};
+use syn::{Data, DeriveInput, Fields, Ident, LitStr, Meta, Variant};
 
 const AT_ATTR_IDENT: &str = "at";
-const NOT_FOUND_ATTR_IDENT: &str = "not_found";
+const BIND_ATTR_IDENT: &str = "bind";
+
+fn hidden_module() -> TokenStream {
+    quote! { ::yew_router::hidden }
+}
 
 pub struct Routable {
     ident: Ident,
-    ats: Vec<LitStr>,
-    variants: Punctuated<Variant, syn::token::Comma>,
-    not_found_route: Option<Ident>,
+    variants: Vec<ParsedVariant>,
 }
 
 impl Parse for Routable {
@@ -22,45 +26,349 @@ impl Parse for Routable {
         let data = match data {
             Data::Enum(data) => data,
             Data::Struct(s) => {
-                return Err(syn::Error::new(
-                    s.struct_token.span(),
+                return Err(syn::Error::new_spanned(
+                    s.struct_token,
                     "expected enum, found struct",
                 ))
             }
             Data::Union(u) => {
-                return Err(syn::Error::new(
-                    u.union_token.span(),
+                return Err(syn::Error::new_spanned(
+                    u.union_token,
                     "expected enum, found union",
                 ))
             }
         };
 
-        let (not_found_route, ats) = parse_variants_attributes(&data.variants)?;
+        let variants = parse_variants(&ident, &data.variants)?;
 
-        Ok(Self {
-            ident,
-            variants: data.variants,
-            ats,
-            not_found_route,
-        })
+        Ok(Self { ident, variants })
     }
 }
 
-fn parse_variants_attributes(
-    variants: &Punctuated<Variant, syn::token::Comma>,
-) -> syn::Result<(Option<Ident>, Vec<LitStr>)> {
-    let mut not_founds = vec![];
-    let mut ats: Vec<LitStr> = vec![];
+#[derive(Debug)]
+struct ParsedField {
+    name: String,
+    index: usize,
+    meta: Option<Meta>,
+}
 
-    let mut not_found_attrs = vec![];
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+enum BindMode {
+    Rest,
+    Path,
+    QueryArg,
+    HashArg,
+    PopState,
+}
 
-    for variant in variants.iter() {
-        if let Fields::Unnamed(ref field) = variant.fields {
+enum BindType {
+    String,
+    Serde,
+    Rest,
+}
+
+impl BindType {
+    fn decoder(&self) -> TokenStream {
+        let hidden = hidden_module();
+        match self {
+            BindType::Rest => quote! { #hidden::Routable::from_route(args.take_route()).ok() },
+            BindType::String => quote! { args.pop_str() },
+            BindType::Serde => quote! { args.pop_serde() },
+        }
+    }
+    fn encoder(&self, arg: &Ident) -> TokenStream {
+        let hidden = hidden_module();
+        match self {
+            BindType::Rest => quote! { args.store_route(#hidden::Routable::to_route(#arg)); },
+            BindType::String => quote! { args.push_str(#arg); },
+            BindType::Serde => quote! { args.push_serde(#arg); },
+        }
+    }
+}
+
+struct ConstMuncher {
+    muncher: Option<TokenStream>,
+    binds: Vec<(usize, BindType)>,
+}
+
+fn generate_path_muncher(fields: &[ParsedField], at: &ParsedAt) -> syn::Result<ConstMuncher> {
+    let hidden = hidden_module();
+    let mut binds = Vec::new();
+    for name in &at.names {
+        if let Some(field) = fields.iter().find(|field| &field.name == name) {
+            binds.push((field.index, BindType::String));
+        } else {
             return Err(syn::Error::new(
-                field.span(),
-                "only named fields are supported",
+                at.span,
+                format_args!("No field named {:?}", name),
             ));
         }
+    }
+    let parts: TokenStream = at
+        .parts
+        .iter()
+        .map(|part| match part {
+            PathPart::Match(s) => quote! { #hidden::PathPart::Match(#s), },
+            PathPart::ExtractOne => quote! { #hidden::PathPart::ExtractOne, },
+            PathPart::ExtractAll => quote! { #hidden::PathPart::ExtractAll, },
+        })
+        .collect();
+    Ok(ConstMuncher {
+        muncher: Some(quote! {
+            #hidden::PathSegmentMuncher {
+                parts: &[#parts]
+            }
+        }),
+        binds,
+    })
+}
+
+fn generate_arg_muncher(muncher: &Ident, fields: &[ParsedField]) -> syn::Result<ConstMuncher> {
+    let hidden = hidden_module();
+    let mut binds = Vec::new();
+    let mut names = Vec::new();
+    for field in fields {
+        let name = match &field.meta {
+            Some(syn::Meta::Path(_)) => field.name.clone(),
+            Some(syn::Meta::NameValue(syn::MetaNameValue {
+                lit: syn::Lit::Str(name),
+                ..
+            })) => name.value(),
+            _ => {
+                return Err(syn::Error::new(
+                    field.meta.span(),
+                    "Invalid argument binding",
+                ))
+            }
+        };
+        names.push(name);
+        binds.push((field.index, BindType::String));
+    }
+    Ok(ConstMuncher {
+        muncher: Some(quote! {
+            #hidden::#muncher {
+                names: &[#(#names,)*]
+            }
+        }),
+        binds,
+    })
+}
+
+fn generate_pop_state_muncher(fields: &[ParsedField]) -> syn::Result<ConstMuncher> {
+    let hidden = hidden_module();
+    let mut binds = Vec::new();
+    for field in fields {
+        binds.push((field.index, BindType::Serde));
+    }
+
+    let count = fields.len();
+
+    Ok(ConstMuncher {
+        muncher: Some(quote! {
+            #hidden::PopStateMuncher {
+                count: #count
+            }
+        }),
+        binds,
+    })
+}
+
+fn generate_rest_glue(fields: &[ParsedField]) -> syn::Result<ConstMuncher> {
+    let binds = match fields {
+        [field] => vec![(field.index, BindType::Rest)],
+        _ => {
+            return Err(syn::Error::new(
+                Span::call_site(),
+                "Only one `rest` binding can be used",
+            ))
+        }
+    };
+
+    Ok(ConstMuncher {
+        muncher: None,
+        binds,
+    })
+}
+
+impl BindMode {
+    fn from_path(path: &syn::Path) -> syn::Result<Self> {
+        Ok(if path.is_ident("query_arg") {
+            Self::QueryArg
+        } else if path.is_ident("hash_arg") {
+            Self::HashArg
+        } else if path.is_ident("pop_state") {
+            Self::PopState
+        } else if path.is_ident("rest") {
+            Self::Rest
+        } else {
+            return Err(syn::Error::new(
+                path.span(),
+                format!("Unknown binding mode: {:?}", path),
+            ));
+        })
+    }
+    fn parse_and_gen(&self, fields: Vec<ParsedField>, at: &ParsedAt) -> syn::Result<ConstMuncher> {
+        match self {
+            BindMode::Path => generate_path_muncher(&fields, at),
+            BindMode::QueryArg => {
+                generate_arg_muncher(&Ident::new("QueryArgMuncher", Span::call_site()), &fields)
+            }
+            BindMode::HashArg => {
+                generate_arg_muncher(&Ident::new("HashArgMuncher", Span::call_site()), &fields)
+            }
+            BindMode::PopState => generate_pop_state_muncher(&fields),
+            BindMode::Rest => generate_rest_glue(&fields),
+        }
+    }
+}
+
+fn parse_fields(fields: &Fields, at: &mut ParsedAt) -> syn::Result<Vec<ConstMuncher>> {
+    let mut map = BTreeMap::<_, Vec<_>>::default();
+
+    map.insert(BindMode::Path, Vec::new());
+    for (index, field) in fields.into_iter().enumerate() {
+        let name = if let Some(ident) = &field.ident {
+            ident.to_string()
+        } else {
+            index.to_string()
+        };
+        let bind_attrs: Vec<_> = field
+            .attrs
+            .iter()
+            .filter(|attr| attr.path.is_ident(BIND_ATTR_IDENT))
+            .collect();
+        match bind_attrs.as_slice() {
+            [] => {
+                if !at.names.contains(&name) {
+                    return Err(syn::Error::new(field.span(), "Unbound field"));
+                }
+
+                map.entry(BindMode::Path).or_default().push(ParsedField {
+                    index,
+                    meta: None,
+                    name,
+                })
+            }
+            [attr] => {
+                let nested_meta = match attr.parse_meta()? {
+                    syn::Meta::List(mut ml) if ml.nested.len() == 1 => {
+                        ml.nested.pop().unwrap().into_value()
+                    }
+                    _ => return Err(syn::Error::new(field.span(), "Invalid binding attribute")),
+                };
+                let meta = match nested_meta {
+                    syn::NestedMeta::Meta(meta) => meta,
+                    _ => return Err(syn::Error::new(field.span(), "Invalid binding attribute")),
+                };
+                let bind_mode = BindMode::from_path(meta.path())?;
+                map.entry(bind_mode).or_default().push(ParsedField {
+                    index,
+                    meta: Some(meta),
+                    name,
+                });
+            }
+            _ => {
+                return Err(syn::Error::new(
+                    field.span(),
+                    "Only one bind attribute allowed per field",
+                ))
+            }
+        }
+    }
+
+    if map.contains_key(&BindMode::Rest) {
+        // If we're binding the rest of the route to a field,
+        // allow the path to continue.
+        if at.regex.is_empty() {
+            at.regex += "/";
+        } else {
+            at.regex += "(?:/|$)";
+        }
+    } else {
+        // Otherwise, require the path to terminate.
+        if at.regex.is_empty() {
+            at.regex += "/$";
+        } else {
+            at.regex += "/?$";
+        }
+    }
+
+    let mut res = Vec::new();
+    for (k, v) in map {
+        res.push(k.parse_and_gen(v, at)?);
+    }
+
+    Ok(res)
+}
+
+enum PathPart {
+    Match(String),
+    ExtractOne,
+    ExtractAll,
+}
+
+struct ParsedAt {
+    span: Span,
+    regex: String,
+    names: Vec<String>,
+    parts: Vec<PathPart>,
+}
+
+fn parse_at(span: Span, at: &str) -> syn::Result<ParsedAt> {
+    if !at.starts_with("/") {
+        return Err(syn::Error::new(span, "Url must begin with /"));
+    }
+
+    let mut regex = "^".to_string();
+    let mut names = Vec::new();
+    let mut parts = Vec::new();
+
+    for part in at[1..].split("/") {
+        if part.is_empty() {
+            continue;
+        } else if let Some(name) = part.strip_prefix(":") {
+            regex += "/([^/]+)";
+            names.push(name.to_string());
+            parts.push(PathPart::ExtractOne);
+        } else if let Some(name) = part.strip_prefix("*") {
+            regex += "/(.+)";
+            names.push(name.to_string());
+            parts.push(PathPart::ExtractAll);
+        } else {
+            regex += "/";
+            regex += &regex::escape(part);
+            parts.push(PathPart::Match(part.into()));
+        }
+    }
+
+    if regex.is_empty() {
+        regex += "/";
+    } else {
+        regex += "(?:/|$)";
+    }
+
+    Ok(ParsedAt {
+        regex,
+        names,
+        parts,
+        span,
+    })
+}
+
+struct ParsedVariant {
+    parsed_at: ParsedAt,
+    munchers: Vec<ConstMuncher>,
+    pattern: TokenStream,
+}
+
+fn parse_variants(
+    ident: &Ident,
+    variants: &Punctuated<Variant, syn::token::Comma>,
+) -> syn::Result<Vec<ParsedVariant>> {
+    let mut res = Vec::new();
+
+    for variant in variants.iter() {
+        let variant: &syn::Variant = variant;
 
         let attrs = &variant.attrs;
         let at_attrs = attrs
@@ -68,151 +376,133 @@ fn parse_variants_attributes(
             .filter(|attr| attr.path.is_ident(AT_ATTR_IDENT))
             .collect::<Vec<_>>();
 
-        let attr = match at_attrs.len() {
-            1 => *at_attrs.first().unwrap(),
-            0 => {
-                return Err(syn::Error::new(
-                    variant.span(),
-                    format!(
-                        "{} attribute must be present on every variant",
-                        AT_ATTR_IDENT
-                    ),
-                ))
-            }
-            _ => {
-                return Err(syn::Error::new_spanned(
-                    quote! { #(#at_attrs)* },
-                    format!("only one {} attribute must be present", AT_ATTR_IDENT),
-                ))
-            }
+        let at_attr = if let [attr] = at_attrs.as_slice() {
+            *attr
+        } else {
+            return Err(syn::Error::new(
+                variant.span(),
+                format!(
+                    "exactly one {} attribute must be present on each variant",
+                    AT_ATTR_IDENT
+                ),
+            ));
         };
 
-        let lit = attr.parse_args::<LitStr>()?;
-        ats.push(lit);
+        let at_str = at_attr.parse_args::<LitStr>()?.value();
+        let mut parsed_at = parse_at(at_attr.span(), &at_str)?;
+        let munchers = parse_fields(&variant.fields, &mut parsed_at)?;
 
-        for attr in attrs.iter() {
-            if attr.path.is_ident(NOT_FOUND_ATTR_IDENT) {
-                not_found_attrs.push(attr);
-                not_founds.push(variant.ident.clone())
-            }
-        }
+        res.push(ParsedVariant {
+            parsed_at,
+            munchers,
+            pattern: fields_to_pattern(ident, &variant.ident, &variant.fields),
+        });
     }
 
-    if not_founds.len() > 1 {
-        return Err(syn::Error::new_spanned(
-            quote! { #(#not_found_attrs)* },
-            format!("there can only be one {}", NOT_FOUND_ATTR_IDENT),
-        ));
-    }
-
-    Ok((not_founds.into_iter().next(), ats))
+    Ok(res)
 }
 
-impl Routable {
-    fn build_from_path(&self) -> TokenStream {
-        let from_path_matches = self.variants.iter().enumerate().map(|(i, variant)| {
-            let ident = &variant.ident;
-            let right = match &variant.fields {
-                Fields::Unit => quote! { Self::#ident },
-                Fields::Named(field) => {
-                    let fields = field.named.iter().map(|it| {
-                        //named fields have idents
-                        it.ident.as_ref().unwrap()
-                    });
-                    quote! { Self::#ident { #(#fields: params.get(stringify!(#fields))?.parse().ok()?)*, } }
-                }
-                Fields::Unnamed(_) => unreachable!(), // already checked
-            };
-
-            let left = self.ats.get(i).unwrap();
+fn fields_to_pattern(ident: &Ident, variant_ident: &Ident, fields: &Fields) -> TokenStream {
+    match fields {
+        Fields::Unit => quote! { #ident :: #variant_ident },
+        Fields::Named(named) => {
+            let bindings: TokenStream = named
+                .named
+                .iter()
+                .enumerate()
+                .map(|(index, field)| {
+                    let field_ident = field.ident.as_ref().expect("Named fields to have a name");
+                    let bind_ident = format_ident!("arg{}", index);
+                    quote! {
+                        #field_ident: #bind_ident,
+                    }
+                })
+                .collect();
             quote! {
-                #left => ::std::option::Option::Some(#right)
-            }
-        });
-
-        quote! {
-            fn from_path(path: &str, params: &::std::collections::HashMap<&str, &str>) -> ::std::option::Option<Self> {
-                match path {
-                    #(#from_path_matches),*,
-                    _ => ::std::option::Option::None,
-                }
+                #ident :: #variant_ident { #bindings }
             }
         }
-    }
-
-    fn build_to_path(&self) -> TokenStream {
-        let to_path_matches = self.variants.iter().enumerate().map(|(i, variant)| {
-            let ident = &variant.ident;
-            let mut right = self.ats.get(i).unwrap().value();
-
-            match &variant.fields {
-                Fields::Unit => quote! { Self::#ident => ::std::string::ToString::to_string(#right) },
-                Fields::Named(field) => {
-                    let fields = field
-                        .named
-                        .iter()
-                        .map(|it| it.ident.as_ref().unwrap())
-                        .collect::<Vec<_>>();
-
-                    for field in fields.iter() {
-                        // :param -> {param}
-                        // so we can pass it to `format!("...", param)`
-                        right = right.replace(&format!(":{}", field), &format!("{{{}}}", field))
-                    }
-
+        Fields::Unnamed(unnamed) => {
+            let bindings: TokenStream = (0..unnamed.unnamed.len())
+                .map(|index| {
+                    let bind_ident = format_ident!("arg{}", index);
                     quote! {
-                        Self::#ident { #(#fields),* } => ::std::format!(#right, #(#fields = #fields),*)
+                        #bind_ident,
                     }
-                }
-                Fields::Unnamed(_) => unreachable!(), // already checked
-            }
-        });
-
-        quote! {
-            fn to_path(&self) -> ::std::string::String {
-                match self {
-                    #(#to_path_matches),*,
-                }
+                })
+                .collect();
+            quote! {
+                #ident :: #variant_ident { #bindings }
             }
         }
     }
 }
 
 pub fn routable_derive_impl(input: Routable) -> TokenStream {
-    let Routable {
-        ats,
-        not_found_route,
-        ident,
-        ..
-    } = &input;
+    let Routable { ident, variants } = input;
 
-    let from_path = input.build_from_path();
-    let to_path = input.build_to_path();
+    let hidden = hidden_module();
 
-    let not_found_route = match not_found_route {
-        Some(route) => quote! { ::std::option::Option::Some(Self::#route) },
-        None => quote! { ::std::option::Option::None },
-    };
+    let variants_arr = variants.iter().map(|variant| {
+        let regex = &variant.parsed_at.regex;
+        let pattern = &variant.pattern;
+
+        let munchers = variant.munchers.iter().map(|muncher| &muncher.muncher);
+        let decode_args: TokenStream = variant
+            .munchers
+            .iter()
+            .flat_map(|m| &m.binds)
+            .map(|(index, bind_type)| {
+                let name = format_ident!("arg{}", index);
+                let decoder = bind_type.decoder();
+                quote! {
+                    let #name = #decoder?;
+                }
+            })
+            .collect();
+
+        quote! {
+            #hidden::RouteMuncher {
+                regex: #regex,
+                munchers: &[#(&#munchers,)*],
+                ctor: &|mut args| {
+                    #decode_args
+                    Some(#pattern)
+                }
+            }
+        }
+    });
+
+    let match_arms = variants.iter().enumerate().map(|(variant_index, variant)| {
+        let pattern = &variant.pattern;
+        let encode_args: TokenStream = variant
+            .munchers
+            .iter()
+            .flat_map(|m| &m.binds)
+            .map(|(index, bind_type)| {
+                let name = format_ident!("arg{}", index);
+                bind_type.encoder(&name)
+            })
+            .collect();
+        quote! {
+            #pattern => {
+                let mut args = #hidden::Args::empty();
+                #encode_args
+                (#variant_index, args)
+            }
+        }
+    });
 
     quote! {
         #[automatically_derived]
-        impl ::yew_router::Routable for #ident {
-            #from_path
-            #to_path
-
-            fn routes() -> ::std::vec::Vec<&'static str> {
-                ::std::vec![#(#ats),*]
-            }
-
-            fn not_found_route() -> ::std::option::Option<Self> {
-                #not_found_route
-            }
-
-            fn recognize(pathname: &str) -> ::std::option::Option<Self> {
-                ::std::thread_local! {
-                    static ROUTER: ::yew_router::__macro::Router = ::yew_router::__macro::build_router::<#ident>();
+        impl #hidden::DerivedRoutable for #ident {
+            const VARIANTS: &'static [#hidden::RouteMuncher<Self>] = &[
+                #(#variants_arr,)*
+            ];
+            fn to_args(&self) -> (usize, #hidden::Args) {
+                match self {
+                    #(#match_arms,)*
                 }
-                ROUTER.with(|router| ::yew_router::__macro::recognize_with_router(router, pathname))
             }
         }
     }

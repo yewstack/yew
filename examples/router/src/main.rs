@@ -9,30 +9,41 @@ use pages::{
     author::Author, author_list::AuthorList, home::Home, page_not_found::PageNotFound, post::Post,
     post_list::PostList,
 };
+use yew_router::router::RouterUpdate;
 
 #[derive(Routable, PartialEq, Clone, Debug)]
 pub enum Route {
     #[at("/posts/:id")]
     Post { id: u64 },
     #[at("/posts")]
-    Posts,
+    Posts {
+        #[bind(query_arg = "p")]
+        page: u64,
+    },
     #[at("/authors/:id")]
     Author { id: u64 },
     #[at("/authors")]
     Authors,
     #[at("/")]
     Home,
-    #[not_found]
     #[at("/404")]
     NotFound,
 }
 
+impl Default for Route {
+    fn default() -> Self {
+        Route::NotFound
+    }
+}
+
 pub enum Msg {
     ToggleNavbar,
+    RouteChanged(RouterUpdate<Route>),
 }
 
 pub struct Model {
     link: ComponentLink<Self>,
+    router: Router<Route>,
     navbar_active: bool,
 }
 impl Component for Model {
@@ -40,8 +51,10 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let router = Router::new(link.clone(), link.callback(Msg::RouteChanged));
         Self {
             link,
+            router,
             navbar_active: false,
         }
     }
@@ -50,6 +63,10 @@ impl Component for Model {
         match msg {
             Msg::ToggleNavbar => {
                 self.navbar_active = !self.navbar_active;
+                true
+            }
+            Msg::RouteChanged(update) => {
+                self.router.update(update);
                 true
             }
         }
@@ -65,7 +82,7 @@ impl Component for Model {
                 { self.view_nav() }
 
                 <main>
-                    <Router<Route> render=Router::render(switch) />
+                    { switch(&self.router.route()) }
                 </main>
                 <footer class="footer">
                     <div class="content has-text-centered">
@@ -111,7 +128,7 @@ impl Model {
                         <Link<Route> classes=classes!("navbar-item") route=Route::Home>
                             { "Home" }
                         </Link<Route>>
-                        <Link<Route> classes=classes!("navbar-item") route=Route::Posts>
+                        <Link<Route> classes=classes!("navbar-item") route=Route::Posts { page: 1 }>
                             { "Posts" }
                         </Link<Route>>
 
@@ -139,8 +156,8 @@ fn switch(routes: &Route) -> Html {
         Route::Post { id } => {
             html! { <Post seed=*id /> }
         }
-        Route::Posts => {
-            html! { <PostList /> }
+        Route::Posts { page } => {
+            html! { <PostList page=*page /> }
         }
         Route::Author { id } => {
             html! { <Author seed=*id /> }
