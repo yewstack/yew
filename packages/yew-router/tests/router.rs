@@ -1,32 +1,40 @@
-use serde::{Deserialize, Serialize};
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::prelude::*;
 use yew_functional::function_component;
-use yew_router::prelude::*;
+use yew_router::{
+    prelude::*,
+    {current_route, push_route},
+};
 
 mod utils;
 use utils::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
-#[derive(Serialize, Deserialize)]
-struct Query {
-    foo: String,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Routable)]
+#[derive(Debug, Clone, PartialEq, Routable)]
 enum Routes {
     #[at("/")]
     Home,
     #[at("/no/:id")]
-    No { id: u32 },
+    No {
+        id: u32,
+        #[bind(query_arg)]
+        foo: String,
+    },
     #[at("/404")]
     NotFound,
+}
+
+impl Default for Routes {
+    fn default() -> Self {
+        Self::NotFound
+    }
 }
 
 #[derive(Properties, PartialEq, Clone)]
 struct NoProps {
     id: u32,
+    foo: String,
 }
 
 #[function_component(No)]
@@ -36,39 +44,29 @@ fn no(props: &NoProps) -> Html {
     html! {
         <>
             <div id="result-params">{ route }</div>
-            <div id="result-query">{ yew_router::parse_query::<Query>().unwrap().foo }</div>
+            <div id="result-query">{ &props.foo }</div>
         </>
     }
 }
 
 #[function_component(Comp)]
 fn component() -> Html {
-    let switch = Router::render(|routes| {
-        let onclick = Callback::from(|_| {
-            yew_router::push_route_with_query(
-                Routes::No { id: 2 },
-                Query {
-                    foo: "bar".to_string(),
-                },
-            )
-            .unwrap();
-        });
-
-        match routes {
-            Routes::Home => html! {
-                <>
-                    <div id="result">{"Home"}</div>
-                    <a onclick=onclick>{"click me"}</a>
-                </>
-            },
-            Routes::No { id } => html! { <No id=*id /> },
-            Routes::NotFound => html! { <div id="result">{"404"}</div> },
-        }
+    let onclick = Callback::from(|_| {
+        push_route(Routes::No {
+            id: 2,
+            foo: "bar".into(),
+        })
     });
 
-    html! {
-        <Router<Routes> render=switch>
-        </Router<Routes>>
+    match &*current_route() {
+        Routes::Home => html! {
+            <>
+                <div id="result">{"Home"}</div>
+                <a onclick=onclick>{"click me"}</a>
+            </>
+        },
+        Routes::No { id, foo } => html! { <No id=id foo=foo /> },
+        Routes::NotFound => html! { <div id="result">{"404"}</div> },
     }
 }
 

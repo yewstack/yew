@@ -14,7 +14,8 @@ proc-macro = true
 heck = "0.3.2"
 proc-macro2 = "1.0.24"
 quote = "1.0.9"
-syn = { version = "1.0.64", features = ["full","extra-traits"] }
+syn = { version = "1.0.64", features = ["full", "extra-traits"] }
+regex = "1.5.4"
 
 [dev-dependencies]
 rustversion = "1.0"

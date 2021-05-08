@@ -1,5 +1,10 @@
+use std::rc::Rc;
+
 use yew::prelude::*;
-use yew_router::prelude::*;
+use yew_router::{
+    prelude::*,
+    {attach_route_listener, current_route, RouteListener},
+};
 
 mod components;
 mod content;
@@ -15,34 +20,49 @@ pub enum Route {
     #[at("/posts/:id")]
     Post { id: u64 },
     #[at("/posts")]
-    Posts,
+    Posts {
+        #[bind(query_arg = "p")]
+        page: u64,
+    },
     #[at("/authors/:id")]
     Author { id: u64 },
     #[at("/authors")]
     Authors,
     #[at("/")]
     Home,
-    #[not_found]
     #[at("/404")]
     NotFound,
 }
 
+impl Default for Route {
+    fn default() -> Self {
+        Route::NotFound
+    }
+}
+
 pub enum Msg {
     ToggleNavbar,
+    RouteChanged(Rc<Route>),
 }
 
 pub struct Model {
     link: ComponentLink<Self>,
+    route: Rc<Route>,
     navbar_active: bool,
+    _listener: RouteListener<Route>,
 }
 impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let route = current_route();
+        let _listener = attach_route_listener(link.callback(Msg::RouteChanged));
         Self {
             link,
+            route,
             navbar_active: false,
+            _listener,
         }
     }
 
@@ -50,6 +70,10 @@ impl Component for Model {
         match msg {
             Msg::ToggleNavbar => {
                 self.navbar_active = !self.navbar_active;
+                true
+            }
+            Msg::RouteChanged(route) => {
+                self.route = route;
                 true
             }
         }
@@ -64,9 +88,28 @@ impl Component for Model {
             <>
                 { self.view_nav() }
 
-                <main>
-                    <Router<Route> render=Router::render(switch) />
-                </main>
+                <main>{
+                    match &*self.route {
+                        Route::Post { id } => {
+                            html! { <Post seed=*id /> }
+                        }
+                        Route::Posts { page } => {
+                            html! { <PostList page=*page /> }
+                        }
+                        Route::Author { id } => {
+                            html! { <Author seed=*id /> }
+                        }
+                        Route::Authors => {
+                            html! { <AuthorList /> }
+                        }
+                        Route::Home => {
+                            html! { <Home /> }
+                        }
+                        Route::NotFound => {
+                            html! { <PageNotFound /> }
+                        }
+                    }
+                }</main>
                 <footer class="footer">
                     <div class="content has-text-centered">
                         { "Powered by " }
@@ -111,7 +154,7 @@ impl Model {
                         <Link<Route> classes=classes!("navbar-item") route=Route::Home>
                             { "Home" }
                         </Link<Route>>
-                        <Link<Route> classes=classes!("navbar-item") route=Route::Posts>
+                        <Link<Route> classes=classes!("navbar-item") route=Route::Posts { page: 1 }>
                             { "Posts" }
                         </Link<Route>>
 
@@ -130,29 +173,6 @@ impl Model {
                     </div>
                 </div>
             </nav>
-        }
-    }
-}
-
-fn switch(routes: &Route) -> Html {
-    match routes {
-        Route::Post { id } => {
-            html! { <Post seed=*id /> }
-        }
-        Route::Posts => {
-            html! { <PostList /> }
-        }
-        Route::Author { id } => {
-            html! { <Author seed=*id /> }
-        }
-        Route::Authors => {
-            html! { <AuthorList /> }
-        }
-        Route::Home => {
-            html! { <Home /> }
-        }
-        Route::NotFound => {
-            html! { <PageNotFound /> }
         }
     }
 }

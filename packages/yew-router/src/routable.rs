@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use crate::history::Route;
 
 pub use yew_router_macro::Routable;
 
@@ -8,32 +8,27 @@ pub use yew_router_macro::Routable;
 ///
 /// Use derive macro to implement it. Although it *is* possible to implement it manually,
 /// it is discouraged.
-///
-/// # Usage
-///
-/// The functions exposed by this trait are **not** supposed to be consumed directly. Instead use
-/// the functions exposed at the [crate's root][crate] to perform operations with the router.
-pub trait Routable: Sized + Clone {
-    /// Converts path to an instance of the routes enum.
-    fn from_path(path: &str, params: &HashMap<&str, &str>) -> Option<Self>;
+pub trait Routable: PartialEq + Clone + 'static {
+    /// Converts path to an instance of the routes enum. If the conversion succeeds, the
+    /// returned variant corresponds to the route. If the conversion fails, a fallback variant
+    /// is returned, which the caller should redirect to.
+    fn from_route(route: &Route) -> Result<Self, Self>
+    where
+        Self: Sized;
 
-    /// Converts the route to a string that can passed to the history API.
-    fn to_path(&self) -> String;
+    /// Converts an instance of the routes enum to a route that can passed to browser history API.
+    fn to_route(&self) -> Route;
+}
 
-    /// Lists all the available routes
-    fn routes() -> Vec<&'static str>;
+impl Routable for Route {
+    fn from_route(route: &Route) -> Result<Self, Self>
+    where
+        Self: Sized,
+    {
+        Ok(route.clone())
+    }
 
-    /// The route to redirect to on 404
-    fn not_found_route() -> Option<Self>;
-
-    /// The current route
-    ///
-    /// This is the cached result of [`recognize`]
-    fn current_route() -> Option<Self>;
-
-    /// Match a route based on the path
-    fn recognize(pathname: &str) -> Option<Self>;
-
-    /// Called when [`Router`](crate::Router) is destroyed.
-    fn cleanup() {}
+    fn to_route(&self) -> Route {
+        self.clone()
+    }
 }

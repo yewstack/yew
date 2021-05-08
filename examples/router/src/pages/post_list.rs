@@ -1,46 +1,38 @@
 use crate::components::{pagination::Pagination, post_card::PostCard};
 use crate::Route;
-use serde::{Deserialize, Serialize};
 use yew::prelude::*;
+use yew_router::push_route;
 
 const ITEMS_PER_PAGE: u64 = 10;
 const TOTAL_PAGES: u64 = u64::MAX / ITEMS_PER_PAGE;
 
-pub enum Msg {
-    ShowPage(u64),
-}
-
-#[derive(Serialize, Deserialize)]
-struct PageQuery {
-    page: u64,
+#[derive(Properties, Clone)]
+pub struct PostListProps {
+    pub page: u64,
 }
 
 pub struct PostList {
-    link: ComponentLink<Self>,
+    props: PostListProps,
 }
 impl Component for PostList {
-    type Message = Msg;
-    type Properties = ();
+    type Message = ();
+    type Properties = PostListProps;
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { link }
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        Self { props }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::ShowPage(page) => {
-                yew_router::push_route_with_query(Route::Posts, PageQuery { page }).unwrap();
-                true
-            }
-        }
-    }
-
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
         false
     }
 
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        self.props = props;
+        true
+    }
+
     fn view(&self) -> Html {
-        let page = self.current_page();
+        let on_switch_page = Callback::from(|page| push_route(Route::Posts { page }));
 
         html! {
             <div class="section container">
@@ -48,9 +40,9 @@ impl Component for PostList {
                 <h2 class="subtitle">{ "All of our quality writing in one place" }</h2>
                 { self.view_posts() }
                 <Pagination
-                    page=page
+                    page=self.props.page
                     total_pages=TOTAL_PAGES
-                    on_switch_page=self.link.callback(Msg::ShowPage)
+                    on_switch_page=on_switch_page
                 />
             </div>
         }
@@ -58,7 +50,7 @@ impl Component for PostList {
 }
 impl PostList {
     fn view_posts(&self) -> Html {
-        let start_seed = (self.current_page() - 1) * ITEMS_PER_PAGE;
+        let start_seed = (self.props.page - 1) * ITEMS_PER_PAGE;
         let mut cards = (0..ITEMS_PER_PAGE).map(|seed_offset| {
             html! {
                 <li class="list-item mb-5">
@@ -80,11 +72,5 @@ impl PostList {
                 </div>
             </div>
         }
-    }
-
-    fn current_page(&self) -> u64 {
-        yew_router::parse_query::<PageQuery>()
-            .map(|it| it.page)
-            .unwrap_or(1)
     }
 }
