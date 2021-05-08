@@ -3,10 +3,9 @@ mod common;
 use common::obtain_result_by_id;
 use std::rc::Rc;
 use wasm_bindgen_test::*;
-use yew::{html, App, Children, Html, Properties};
+use yew::{html, App, Children, ContextProvider, Html, Properties};
 use yew_functional::{
-    use_context, use_effect, use_ref, use_state, ContextProvider, FunctionComponent,
-    FunctionProvider,
+    use_context, use_effect, use_ref, use_state, FunctionComponent, FunctionProvider,
 };
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
@@ -91,8 +90,8 @@ fn use_context_works_with_multiple_types() {
         type TProps = ();
 
         fn run(_props: &Self::TProps) -> Html {
-            assert_eq!(use_context::<ContextA>(), Some(Rc::new(ContextA(2))));
-            assert_eq!(use_context::<ContextB>(), Some(Rc::new(ContextB(1))));
+            assert_eq!(use_context::<ContextA>(), Some(ContextA(2)));
+            assert_eq!(use_context::<ContextB>(), Some(ContextB(1)));
 
             return html! {};
         }
@@ -104,8 +103,8 @@ fn use_context_works_with_multiple_types() {
         type TProps = ();
 
         fn run(_props: &Self::TProps) -> Html {
-            assert_eq!(use_context::<ContextA>(), Some(Rc::new(ContextA(0))));
-            assert_eq!(use_context::<ContextB>(), Some(Rc::new(ContextB(1))));
+            assert_eq!(use_context::<ContextA>(), Some(ContextA(0)));
+            assert_eq!(use_context::<ContextB>(), Some(ContextB(1)));
 
             return html! {};
         }
@@ -117,7 +116,7 @@ fn use_context_works_with_multiple_types() {
         type TProps = ();
 
         fn run(_props: &Self::TProps) -> Html {
-            assert_eq!(use_context::<ContextA>(), Some(Rc::new(ContextA(0))));
+            assert_eq!(use_context::<ContextA>(), Some(ContextA(0)));
             assert_eq!(use_context::<ContextB>(), None);
 
             return html! {};
@@ -233,36 +232,37 @@ fn use_context_update_works() {
         fn run(_props: &Self::TProps) -> Html {
             type MyContextProvider = ContextProvider<Rc<MyContext>>;
 
-            let (ctx, set_ctx) = use_state(|| MyContext("hello".into()));
+            let ctx = use_state(|| MyContext("hello".into()));
             let rendered = use_ref(|| 0);
 
             // this is used to force an update specific to test-2
-            let (magic_rc, set_magic) = use_state(|| 0);
+            let magic_rc = use_state(|| 0);
             let magic: usize = *magic_rc;
-
-            use_effect(move || {
-                let count = *rendered.borrow();
-                match count {
-                    0 => {
-                        set_ctx(MyContext("world".into()));
-                        *rendered.borrow_mut() += 1;
-                    }
-                    1 => {
-                        // force test-2 to re-render.
-                        set_magic(1);
-                        *rendered.borrow_mut() += 1;
-                    }
-                    2 => {
-                        set_ctx(MyContext("hello world!".into()));
-                        *rendered.borrow_mut() += 1;
-                    }
-                    _ => (),
-                };
-                || {}
-            });
-
+            {
+                let ctx = ctx.clone();
+                use_effect(move || {
+                    let count = *rendered.borrow();
+                    match count {
+                        0 => {
+                            ctx.set(MyContext("world".into()));
+                            *rendered.borrow_mut() += 1;
+                        }
+                        1 => {
+                            // force test-2 to re-render.
+                            magic_rc.set(1);
+                            *rendered.borrow_mut() += 1;
+                        }
+                        2 => {
+                            ctx.set(MyContext("hello world!".into()));
+                            *rendered.borrow_mut() += 1;
+                        }
+                        _ => (),
+                    };
+                    || {}
+                });
+            }
             return html! {
-                <MyContextProvider context=ctx>
+                <MyContextProvider context=Rc::new((*ctx).clone())>
                     <RenderCounter id="test-0">
                         <ContextOutlet id="test-1"/>
                         <ContextOutlet id="test-2" magic=magic/>

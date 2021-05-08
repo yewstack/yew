@@ -7,23 +7,24 @@ use super::{
     Component,
 };
 use crate::callback::Callback;
+use crate::context::{ContextHandle, ContextProvider};
 use crate::html::NodeRef;
 use crate::scheduler::{scheduler, Shared};
 use crate::utils::document;
 use crate::virtual_dom::{insert_node, VNode};
 use std::any::{Any, TypeId};
 use std::cell::{Ref, RefCell};
-use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
+use std::{fmt, iter};
 use web_sys::{Element, Node};
 
 /// Untyped scope used for accessing parent scope
 #[derive(Debug, Clone)]
 pub struct AnyScope {
-    pub(crate) type_id: TypeId,
-    pub(crate) parent: Option<Rc<AnyScope>>,
-    pub(crate) state: Rc<dyn Any>,
+    type_id: TypeId,
+    parent: Option<Rc<AnyScope>>,
+    state: Rc<dyn Any>,
 }
 
 impl<COMP: Component> From<Scope<COMP>> for AnyScope {
@@ -31,12 +32,21 @@ impl<COMP: Component> From<Scope<COMP>> for AnyScope {
         AnyScope {
             type_id: TypeId::of::<COMP>(),
             parent: scope.parent,
-            state: Rc::new(scope.state),
+            state: scope.state,
         }
     }
 }
 
 impl AnyScope {
+    #[cfg(test)]
+    pub(crate) fn test() -> Self {
+        Self {
+            type_id: TypeId::of::<()>(),
+            parent: None,
+            state: Rc::new(()),
+        }
+    }
+
     /// Returns the parent scope
     pub fn get_parent(&self) -> Option<&AnyScope> {
         self.parent.as_deref()
@@ -53,10 +63,29 @@ impl AnyScope {
             parent: self.parent,
             state: self
                 .state
-                .downcast_ref::<Shared<Option<ComponentState<COMP>>>>()
-                .expect("unexpected component type")
-                .clone(),
+                .downcast::<RefCell<Option<ComponentState<COMP>>>>()
+                .expect("unexpected component type"),
         }
+    }
+
+    fn find_parent_scope<C: Component>(&self) -> Option<Scope<C>> {
+        let expected_type_id = TypeId::of::<C>();
+        iter::successors(Some(self), |scope| scope.get_parent())
+            .filter(|scope| scope.get_type_id() == &expected_type_id)
+            .cloned()
+            .map(AnyScope::downcast::<C>)
+            .next()
+    }
+
+    /// Accesses a value provided by a parent `ContextProvider` component of the
+    /// same type.
+    pub fn context<T: Clone + PartialEq + 'static>(
+        &self,
+        callback: Callback<T>,
+    ) -> Option<(T, ContextHandle<T>)> {
+        let scope = self.find_parent_scope::<ContextProvider<T>>()?;
+        let component = scope.get_component()?;
+        Some(component.subscribe_consumer(callback))
     }
 }
 
@@ -307,6 +336,15 @@ impl<COMP: Component> Scope<COMP> {
             messages.send(&scope);
         };
         Callback::once(closure)
+    }
+
+    /// Accesses a value provided by a parent `ContextProvider` component of the
+    /// same type.
+    pub fn context<T: Clone + PartialEq + 'static>(
+        &self,
+        callback: Callback<T>,
+    ) -> Option<(T, ContextHandle<T>)> {
+        self.to_any().context(callback)
     }
 }
 

@@ -17,9 +17,9 @@ fn use_ref_works() {
         fn run(_: &Self::TProps) -> Html {
             let ref_example = use_ref(|| 0);
             *ref_example.borrow_mut().deref_mut() += 1;
-            let (counter, set_counter) = use_state(|| 0);
+            let counter = use_state(|| 0);
             if *counter < 5 {
-                set_counter(*counter + 1)
+                counter.set(*counter + 1)
             }
             return html! {
                 <div>

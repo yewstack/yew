@@ -502,7 +502,7 @@ where
 mod tests {
     use super::*;
     use crate::html;
-    use std::any::TypeId;
+
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
@@ -510,11 +510,7 @@ mod tests {
     wasm_bindgen_test_configure!(run_in_browser);
 
     fn test_scope() -> AnyScope {
-        AnyScope {
-            type_id: TypeId::of::<()>(),
-            parent: None,
-            state: Rc::new(()),
-        }
+        AnyScope::test()
     }
 
     #[test]

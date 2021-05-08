@@ -14,6 +14,7 @@
 //!
 //! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/en/next/concepts/function-components)
 
+use scoped_tls_hkt::scoped_thread_local;
 use std::cell::RefCell;
 use std::rc::Rc;
 use yew::html::AnyScope;
@@ -51,9 +52,7 @@ pub use hooks::*;
 /// ```
 pub use yew_functional_macro::function_component;
 
-thread_local! {
-    static CURRENT_HOOK: RefCell<Option<HookState>> = RefCell::new(None);
-}
+scoped_thread_local!(static mut CURRENT_HOOK: HookState);
 
 type Msg = Box<dyn FnOnce() -> bool>;
 type ProcessMessage = Rc<dyn Fn(Msg, bool)>;
@@ -71,24 +70,11 @@ pub trait FunctionProvider {
     fn run(props: &Self::TProps) -> Html;
 }
 
-#[derive(Clone, Default)]
-struct MsgQueue(Rc<RefCell<Vec<Msg>>>);
-
-impl MsgQueue {
-    fn push(&self, msg: Msg) {
-        self.0.borrow_mut().push(msg);
-    }
-
-    fn drain(&self) -> Vec<Msg> {
-        self.0.borrow_mut().drain(..).collect()
-    }
-}
-
 pub struct FunctionComponent<T: FunctionProvider + 'static> {
     _never: std::marker::PhantomData<T>,
     props: T::TProps,
+    hook_state: RefCell<HookState>,
     link: ComponentLink<Self>,
-    hook_state: RefCell<Option<HookState>>,
     message_queue: MsgQueue,
 }
 
@@ -96,15 +82,10 @@ impl<T> FunctionComponent<T>
 where
     T: FunctionProvider,
 {
-    fn swap_hook_state(&self) {
-        CURRENT_HOOK.with(|previous_hook| {
-            std::mem::swap(
-                &mut *previous_hook
-                    .try_borrow_mut()
-                    .expect("Previous hook still borrowed"),
-                &mut *self.hook_state.borrow_mut(),
-            );
-        });
+    fn with_hook_state<R>(&self, f: impl FnOnce() -> R) -> R {
+        let mut hook_state = self.hook_state.borrow_mut();
+        hook_state.counter = 0;
+        CURRENT_HOOK.set(&mut *hook_state, f)
     }
 }
 
@@ -118,12 +99,13 @@ where
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let scope = AnyScope::from(link.clone());
         let message_queue = MsgQueue::default();
+
         Self {
             _never: std::marker::PhantomData::default(),
             props,
             link: link.clone(),
             message_queue: message_queue.clone(),
-            hook_state: RefCell::new(Some(HookState {
+            hook_state: RefCell::new(HookState {
                 counter: 0,
                 scope,
                 process_message: Rc::new(move |msg, post_render| {
@@ -135,7 +117,7 @@ where
                 }),
                 hooks: vec![],
                 destroy_listeners: vec![],
-            })),
+            }),
         }
     }
 
@@ -156,34 +138,95 @@ where
     }
 
     fn view(&self) -> Html {
-        // Reset hook
-        self.hook_state
-            .try_borrow_mut()
-            .expect("Unexpected concurrent/nested view call")
-            .as_mut()
-            .unwrap()
-            .counter = 0;
-
-        // Load hook
-        self.swap_hook_state();
-
-        let ret = T::run(&self.props);
-
-        // Restore previous hook
-        self.swap_hook_state();
-
-        ret
+        self.with_hook_state(|| T::run(&self.props))
     }
 
     fn destroy(&mut self) {
-        if let Some(ref mut hook_state) = *self.hook_state.borrow_mut() {
-            for hook in hook_state.destroy_listeners.drain(..) {
-                hook()
-            }
+        let mut hook_state = self.hook_state.borrow_mut();
+        for hook in hook_state.destroy_listeners.drain(..) {
+            hook()
         }
     }
 }
 
 pub(crate) fn get_current_scope() -> Option<AnyScope> {
-    CURRENT_HOOK.with(|cell| cell.borrow().as_ref().map(|state| state.scope.clone()))
+    if CURRENT_HOOK.is_set() {
+        Some(CURRENT_HOOK.with(|state| state.scope.clone()))
+    } else {
+        None
+    }
+}
+
+#[derive(Clone, Default)]
+struct MsgQueue(Rc<RefCell<Vec<Msg>>>);
+
+impl MsgQueue {
+    fn push(&self, msg: Msg) {
+        self.0.borrow_mut().push(msg);
+    }
+
+    fn drain(&self) -> Vec<Msg> {
+        self.0.borrow_mut().drain(..).collect()
+    }
+}
+
+/// The `HookUpdater` provides a convenient interface for hooking into the lifecycle of
+/// the underlying Yew Component that backs the function component.
+///
+/// Two interfaces are provided - callback and post_render.
+/// - `callback` allows the creation of regular yew callbacks on the host component.
+/// - `post_render` allows the creation of events that happen after a render is complete.
+///
+/// See [`use_effect`](hooks::use_effect()) and [`use_context`](hooks::use_context())
+/// for more details on how to use the hook updater to provide function components
+/// the necessary callbacks to update the underlying state.
+#[derive(Clone)]
+pub struct HookUpdater {
+    hook: Rc<RefCell<dyn std::any::Any>>,
+    process_message: ProcessMessage,
+}
+impl HookUpdater {
+    pub fn callback<T: 'static, F>(&self, cb: F)
+    where
+        F: FnOnce(&mut T) -> bool + 'static,
+    {
+        let internal_hook_state = self.hook.clone();
+        let process_message = self.process_message.clone();
+
+        // Update the component
+        // We're calling "link.send_message", so we're not calling it post-render
+        let post_render = false;
+        process_message(
+            Box::new(move || {
+                let mut r = internal_hook_state.borrow_mut();
+                let hook: &mut T = r
+                    .downcast_mut()
+                    .expect("internal error: hook downcasted to wrong type");
+                cb(hook)
+            }),
+            post_render,
+        );
+    }
+
+    pub fn post_render<T: 'static, F>(&self, cb: F)
+    where
+        F: FnOnce(&mut T) -> bool + 'static,
+    {
+        let internal_hook_state = self.hook.clone();
+        let process_message = self.process_message.clone();
+
+        // Update the component
+        // We're calling "messag_equeue.push", so not calling it post-render
+        let post_render = true;
+        process_message(
+            Box::new(move || {
+                let mut hook = internal_hook_state.borrow_mut();
+                let hook: &mut T = hook
+                    .downcast_mut()
+                    .expect("internal error: hook downcasted to wrong type");
+                cb(hook)
+            }),
+            post_render,
+        );
+    }
 }

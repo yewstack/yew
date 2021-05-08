@@ -3,56 +3,33 @@ title: Pre-defined Hooks
 description: The pre-defined Hooks that Yew comes with 
 ---
 
-:::note Why do Hooks return `Rc`?
-
-In most cases, you'll be cloning the values returned from the Hooks.
-As it is generally expensive to clone such values, they're `Rc`ed, so they can be cloned relatively cheaply.
-
-The following example shows one of the most common cases which requires cloning the values:
-
-```rust
-let (text, set_text) = use_state(|| "Hello".to_owned());
-let onclick = {
-    let text = Rc::clone(&text);
-    // Values must be moved into this closure so in order to use them later on, they must be cloned
-    Callback::from(move |_| set_text(format!("{} World", text))) 
-};
-
-// If `text` wasn't cloned above, it would've been impossible to use it here
-html! { text }
-```
-:::
-
 ## `use_state`
 
-`use_state` is used to mange state in a function component.
-It returns a `Rc` pointing to the value of the hook's state, and a setter function.
+`use_state` is used to manage state in a function component.
+It returns a `UseState` object which `Deref`s to the current value 
+and provides a `set` method to update the value.
 
 The hook takes a function as input which determines the initial state.
 This value remains up-to-date on subsequent renders.
-
-The setter function is used to update the value and trigger a re-render.
 
 ### Example
 
 ```rust
 #[function_component(UseState)]
 fn state() -> Html {
-    let (
-        counter, // the returned state
-        set_counter // setter to update the state
-    ) = use_state(|| 0);
+    let counter = use_state(|| 0);
     let onclick = {
-        let counter = Rc::clone(&counter);
-        Callback::from(move |_| set_counter(*counter + 1))
+        let counter = counter.clone();
+        Callback::from(move |_| counter.set(*counter + 1))
     };
+
 
     html! {
         <div>
             <button onclick=onclick>{ "Increment value" }</button>
             <p>
                 <b>{ "Current value: " }</b>
-                { counter }
+                { *counter }
             </p>
         </div>
     }
@@ -129,12 +106,7 @@ fn reducer() -> Html {
         counter: i32,
     }
 
-    let (
-        counter, // the state
-        // function to update the state 
-        // as the same suggests, it dispatches the values to the reducer function
-        dispatch  
-    ) = use_reducer(
+    let counter = use_reducer(
         // the reducer function
         |prev: Rc<CounterState>, action: Action| CounterState {
             counter: match action {
@@ -146,11 +118,14 @@ fn reducer() -> Html {
         CounterState { counter: 1 },
     );
 
-    let double_onclick = {
-        let dispatch = Rc::clone(&dispatch);
-        Callback::from(move |_| dispatch(Action::Double))
+   let double_onclick = {
+        let counter = counter.clone();
+        Callback::from(move |_| counter.dispatch(Action::Double))
     };
-    let square_onclick = Callback::from(move |_| dispatch(Action::Square));
+    let square_onclick = {
+        let counter = counter.clone();
+        Callback::from(move |_| counter.dispatch(Action::Square))
+    };
 
     html! {
         <>
@@ -172,7 +147,7 @@ This is useful for lazy initialization where it is beneficial not to perform exp
 computation up-front.
 
 ```rust
-let (counter, dispatch) = use_reducer_with_init(
+let counter = use_reducer_with_init(
     // reducer function
     |prev: Rc<CounterState>, action: i32| CounterState {
         counter: prev.counter + action,

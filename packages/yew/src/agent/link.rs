@@ -207,6 +207,7 @@ where
                     .take()
                     .expect("trying to destroy not existent agent");
                 agent.destroy();
+                state.destroyed = true;
             }
         }
     }
