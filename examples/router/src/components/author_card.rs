@@ -1,6 +1,6 @@
 use crate::{content::Author, generator::Generated, Routes};
 use yew::prelude::*;
-use yew_router::components::Link;
+use yew_router::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct Props {

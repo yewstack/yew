@@ -7,5 +7,6 @@ error: at attribute must be present on every variant
 error: only one at attribute must be present
  --> $DIR/bad-ats-fail.rs:8:5
   |
-8 |     #[at("/one")]
-  |     ^
+8 | /     #[at("/one")]
+9 | |     #[at("/two")]
+  | |_________________^

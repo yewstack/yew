@@ -1,5 +1,5 @@
-use proc_macro2::{Span, TokenStream};
-use quote::quote;
+use proc_macro2::{TokenStream};
+use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
@@ -52,6 +52,8 @@ fn parse_variants_attributes(
     let mut not_founds = vec![];
     let mut ats: Vec<LitStr> = vec![];
 
+    let mut not_found_attrs = vec![];
+
     for variant in variants.iter() {
         if let Fields::Unnamed(ref field) = variant.fields {
             return Err(syn::Error::new(
@@ -78,8 +80,8 @@ fn parse_variants_attributes(
                 ))
             }
             _ => {
-                return Err(syn::Error::new(
-                    variant.span(),
+                return Err(syn::Error::new_spanned(
+                    at_attrs.iter().map(|it| it.to_token_stream()).collect::<TokenStream>(),
                     format!("only one {} attribute must be present", AT_ATTR_IDENT),
                 ))
             }
@@ -98,14 +100,15 @@ fn parse_variants_attributes(
                     // `at` attr must be present on this field
                     .expect("unreachable");
 
+                not_found_attrs.push(attr);
                 not_founds.push(at_attr.parse_args::<LitStr>()?)
             }
         }
     }
 
     if not_founds.len() > 1 {
-        return Err(syn::Error::new(
-            Span::call_site(), // because we can't join spans
+        return Err(syn::Error::new_spanned(
+            not_found_attrs.iter().map(|it| it.to_token_stream()).collect::<TokenStream>(),
             format!("there can only be one {}", NOT_FOUND_ATTR_IDENT),
         ));
     }

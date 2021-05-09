@@ -72,7 +72,7 @@ pub mod prelude {
     //!
     //! This module re-exports the frequently used types from the crate.
 
-    pub use crate::components::link::Link;
+    pub use crate::components::Link;
     pub use crate::Router;
     #[doc(no_inline)]
     pub use crate::{RenderFn, Routable, RouterService};

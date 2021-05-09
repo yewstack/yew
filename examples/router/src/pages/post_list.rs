@@ -85,7 +85,8 @@ impl PostList {
     fn current_page(&self) -> u64 {
         RouterService::query()
             .get("page")
-            .flat_map(|it| it.parse().ok())
+            .map(|it| it.parse().ok())
+            .flatten()
             .unwrap_or(1)
     }
 }

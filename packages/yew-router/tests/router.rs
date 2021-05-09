@@ -39,31 +39,29 @@ fn no(props: &NoProps) -> Html {
 
 #[function_component(Comp)]
 fn component() -> Html {
-    let switch = RenderFn::new(
-        (|routes| {
-            let onclick = Callback::from(|_| {
-                RouterService::push(
-                    Routes::No { id: 2 },
-                    Some({
-                        let mut map = HashMap::new();
-                        map.insert("foo", "bar".to_string());
-                        map
-                    }),
-                )
-            });
+    let switch = RenderFn::new(|routes| {
+        let onclick = Callback::from(|_| {
+            RouterService::push(
+                Routes::No { id: 2 },
+                Some({
+                    let mut map = HashMap::new();
+                    map.insert("foo", "bar".to_string());
+                    map
+                }),
+            )
+        });
 
-            match routes {
-                Routes::Home => html! {
-                    <>
-                        <div id="result">{"Home"}</div>
-                        <a onclick=onclick>{"click me"}</a>
-                    </>
-                },
-                Routes::No { id } => html! { <No id=id /> },
-                Routes::NotFound => html! { <div id="result">{"404"}</div> },
-            }
-        }),
-    );
+        match routes {
+            Routes::Home => html! {
+                <>
+                    <div id="result">{"Home"}</div>
+                    <a onclick=onclick>{"click me"}</a>
+                </>
+            },
+            Routes::No { id } => html! { <No id=id /> },
+            Routes::NotFound => html! { <div id="result">{"404"}</div> },
+        }
+    });
 
     html! {
         <Router<Routes> render=switch>

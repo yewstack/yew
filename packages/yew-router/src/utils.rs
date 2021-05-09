@@ -4,18 +4,19 @@ use wasm_bindgen::{JsCast, JsValue};
 pub fn base_url() -> Option<String> {
     match yew::utils::document().query_selector("base") {
         Ok(Some(base)) => {
-            let base = base
+            base
                 .unchecked_into::<web_sys::Element>()
                 .attributes()
                 .get_named_item("href")
-                .expect("base without href")
-                .value();
-            if base == "/" {
-                None
-            } else {
-                let base = base.strip_suffix("/").unwrap_or(&base);
-                Some(base.to_string())
-            }
+                .map(|it| it.value())
+                .map(|base| {
+                    if base != "/" {
+                        base.strip_suffix("/").map(|it| it.to_string()).unwrap_or(base)
+                    } else {
+                        base
+                    }
+                })
+
         }
         _ => None,
     }
