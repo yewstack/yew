@@ -91,7 +91,5 @@ pub fn router<R: Routable + Clone + PartialEq + 'static>(props: &RouterProps<R>)
         }
     });
 
-    html! {
-        { output }
-    }
+    output
 }

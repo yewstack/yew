@@ -1,5 +1,5 @@
 error: only named fields are supported
- --> $DIR/unnamed-fields-fail.rs:3:5
+ --> $DIR/unnamed-fields-fail.rs:4:8
   |
-3 |     #[at("/one/:two")]
-  |     ^
+4 |     One(u32),
+  |        ^^^^^

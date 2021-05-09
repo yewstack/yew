@@ -53,9 +53,9 @@ fn parse_variants_attributes(
     let mut ats: Vec<LitStr> = vec![];
 
     for variant in variants.iter() {
-        if let Fields::Unnamed(_) = variant.fields {
+        if let Fields::Unnamed(ref field) = variant.fields {
             return Err(syn::Error::new(
-                variant.span(),
+                field.span(),
                 "only named fields are supported",
             ));
         }
@@ -128,15 +128,15 @@ impl Routable {
 
             let left = self.ats.get(i).expect("unreachable");
             quote! {
-            #left => ::core::option::Option::Some(#right)
-        }
+                #left => ::std::option::Option::Some(#right)
+            }
         });
 
         quote! {
-            fn from_path(path: &str, params: &::std::collections::HashMap<&str, &str>) -> Option<Self> {
+            fn from_path(path: &str, params: &::std::collections::HashMap<&str, &str>) -> ::std::option::Option<Self> {
                 match path {
                     #(#from_path_matches),*,
-                    _ => None,
+                    _ => std::option::Option::None,
                 }
             }
         }
@@ -148,7 +148,7 @@ impl Routable {
             let mut right = self.ats.get(i).expect("unreachable").value();
 
             match &variant.fields {
-                Fields::Unit => quote! { Self::#ident => #right.to_string() },
+                Fields::Unit => quote! { Self::#ident => ::std::string::ToString::to_string(#right) },
                 Fields::Named(field) => {
                     let fields = field
                         .named
@@ -171,7 +171,7 @@ impl Routable {
         });
 
         quote! {
-            fn to_route(&self) -> String {
+            fn to_route(&self) -> ::std::string::String {
                 match self {
                     #(#to_route_matches),*,
                 }

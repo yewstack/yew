@@ -1,4 +1,4 @@
-/*#[derive(Debug, PartialEq, yew_router::Routable)]
+#[derive(Debug, PartialEq, yew_router::Routable)]
 enum RoutesOne {
     #[at("/")]
     #[not_found]
@@ -6,7 +6,7 @@ enum RoutesOne {
     #[at("/404")]
     #[not_found]
     NotFound,
-}*/
+}
 
 #[derive(Debug, PartialEq, yew_router::Routable)]
 enum RoutesTwo {

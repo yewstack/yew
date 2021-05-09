@@ -31,8 +31,8 @@ fn no(props: &NoProps) -> Html {
 
     html! {
         <>
-            <div id="result-params">{route}</div>
-            <div id="result-query">{RouterService::query().get("foo").unwrap()}</div>
+            <div id="result-params">{ route }</div>
+            <div id="result-query">{ RouterService::query().get("foo").unwrap() }</div>
         </>
     }
 }

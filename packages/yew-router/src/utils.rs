@@ -52,11 +52,5 @@ pub fn get_query_params() -> HashMap<String, String> {
             )
         });
 
-    let mut map = HashMap::new();
-
-    for (k, v) in iter {
-        map.insert(k, v);
-    }
-
-    map
+    iter.collect()
 }

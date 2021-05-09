@@ -9,7 +9,6 @@ use pages::{
     author::Author, author_list::AuthorList, home::Home, page_not_found::PageNotFound, post::Post,
     post_list::PostList,
 };
-use yew_router::{RenderFn, Routable};
 
 #[derive(Routable, PartialEq, Clone, Debug)]
 pub enum Routes {

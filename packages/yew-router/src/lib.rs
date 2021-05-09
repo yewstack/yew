@@ -36,7 +36,7 @@
 //!                 <button onclick=onclick_callback>{ "Go Home" }</button>
 //!             </div>
 //!         },
-//!         Routes::NotFound => html! {<h1>{"404"}</h1>},
+//!         Routes::NotFound => html! { <h1>{ "404" }</h1> },
 //!     }
 //! }
 //! ```
