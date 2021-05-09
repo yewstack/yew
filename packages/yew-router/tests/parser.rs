@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 use wasm_bindgen_test::wasm_bindgen_test as test;
-use yew::prelude::*;
 use yew::utils::*;
-use yew::virtual_dom::VChild;
 use yew_router::prelude::*;
 use yew_router::utils::*;
 
