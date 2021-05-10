@@ -65,7 +65,7 @@ impl Component for Model {
                 { self.view_nav() }
 
                 <main>
-                    <Router<Routes> render=RenderFn::new(switch) />
+                    <Router<Routes> render=Router::render(switch) />
                 </main>
                 <footer class="footer">
                     <div class="content has-text-centered">

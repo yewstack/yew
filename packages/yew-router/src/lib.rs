@@ -22,7 +22,7 @@
 //! # #[function_component(Main)]
 //! # fn app() -> Html {
 //! html! {
-//!     <Router<Routes> render=RenderFn::new(switch) />
+//!     <Router<Routes> render=Router::render(switch) />
 //! }
 //! # }
 //!
@@ -75,5 +75,5 @@ pub mod prelude {
     pub use crate::components::Link;
     pub use crate::Router;
     #[doc(no_inline)]
-    pub use crate::{RenderFn, Routable, RouterService};
+    pub use crate::{Routable, RouterService};
 }

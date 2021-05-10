@@ -45,7 +45,7 @@ nothing is rendered, and a message is logged to console stating that no route wa
 #[function_component(Main)]
 fn app() -> Html {
     html! {
-        <Router<Routes> render=RenderFn::new(switch) />
+        <Router<Routes> render=Router::render(switch) />
     }
 }
 

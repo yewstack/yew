@@ -6,7 +6,6 @@ use gloo::events::EventListener;
 use std::collections::HashMap;
 use std::rc::Rc;
 use yew::prelude::*;
-use yew_functional::*;
 
 pub struct RenderFn<R>(Rc<dyn Fn(R) -> Html>);
 
@@ -38,6 +37,11 @@ pub struct RouterProps<R: Clone> {
     pub render: RenderFn<R>,
 }
 
+#[doc(hidden)]
+pub enum Msg {
+    ReRender,
+}
+
 /// The router component.
 ///
 /// When a route can't be matched, it looks for the `not_found_route` prop.
@@ -45,51 +49,97 @@ pub struct RouterProps<R: Clone> {
 /// Otherwise `html! {}` is rendered and a message is logged to console
 /// stating that no route can be matched.
 /// See the [crate level document][crate] for more information.
-#[function_component(Router)]
-pub fn router<R: Routable + Clone + PartialEq + 'static>(props: &RouterProps<R>) -> Html {
-    let pathname = yew::utils::window().location().pathname().unwrap();
-    let base: Option<String> = base_url();
+pub struct Router<R: Routable + Clone + PartialEq + 'static> {
+    props: RouterProps<R>,
+    link: ComponentLink<Self>,
+    on_popstate_listener: Option<EventListener>,
+    router: route_recognizer::Router<String>,
+}
 
-    let router = use_ref(move || {
-        let mut router = route_recognizer::Router::new();
-        R::routes().iter().for_each(|path| {
-            let path = match &base {
-                Some(base) if base != "/" => build_path_with_base(path),
-                _ => path.to_string(),
-            };
-            router.add(&path, path.clone());
-        });
-        router
-    });
+impl<R> Component for Router<R>
+where
+    R: Routable + Clone + PartialEq + 'static,
+{
+    type Message = Msg;
+    type Properties = RouterProps<R>;
 
-    let route = {
-        let router = router.borrow();
-        let matched = router.recognize(&pathname.strip_suffix("/").unwrap_or(&pathname));
-        let matched = match matched {
-            Ok(matched) => R::from_path(matched.handler(), &matched.params().into_iter().collect()),
-            Err(_) => match props.not_found_route.as_ref() {
-                Some(it) => R::from_path(it, &HashMap::new()),
-                None => None,
-            },
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let base: Option<String> = base_url();
+
+        let router = {
+            let mut router = route_recognizer::Router::new();
+            R::routes().iter().for_each(|path| {
+                let path = match &base {
+                    Some(base) if base != "/" => build_path_with_base(path),
+                    _ => path.to_string(),
+                };
+                router.add(&path, path.clone());
+            });
+            router
         };
-        matched
-    };
 
-    let output = match route {
-        Some(route) => (props.render.0)(route),
-        None => html! {},
-    };
-    let force_rerender = use_state(|| 0);
-
-    let _ = use_effect(move || {
-        let event_listener = EventListener::new(&yew::utils::window(), "popstate", move |_| {
-            force_rerender.set(*force_rerender + 1);
-        });
-
-        move || {
-            drop(event_listener);
+        Self {
+            props,
+            link,
+            on_popstate_listener: None,
+            router,
         }
-    });
+    }
 
-    output
+    fn update(&mut self, msg: Self::Message) -> bool {
+        match msg {
+            Msg::ReRender => true,
+        }
+    }
+
+    fn change(&mut self, mut props: Self::Properties) -> bool {
+        std::mem::swap(&mut self.props, &mut props);
+        props != self.props
+    }
+
+    fn view(&self) -> Html {
+        let pathname = yew::utils::window().location().pathname().unwrap();
+
+        let route = {
+            let router = &self.router;
+            let matched = router.recognize(&pathname.strip_suffix("/").unwrap_or(&pathname));
+            match matched {
+                Ok(matched) => {
+                    R::from_path(matched.handler(), &matched.params().into_iter().collect())
+                }
+                Err(_) => match self.props.not_found_route.as_ref() {
+                    Some(it) => R::from_path(it, &HashMap::new()),
+                    None => None,
+                },
+            }
+        };
+
+        match route {
+            Some(route) => (self.props.render.0)(route),
+            None => html! {},
+        }
+    }
+
+    fn rendered(&mut self, first_render: bool) {
+        if first_render {
+            let link = self.link.clone();
+            self.on_popstate_listener = Some(EventListener::new(
+                &yew::utils::window(),
+                "popstate",
+                move |_| link.send_message(Msg::ReRender),
+            ))
+        }
+    }
+}
+
+impl<R> Router<R>
+where
+    R: Routable + Clone + PartialEq + 'static,
+{
+    pub fn render<F>(func: F) -> RenderFn<R>
+    where
+        F: Fn(R) -> Html + 'static,
+    {
+        RenderFn::new(func)
+    }
 }

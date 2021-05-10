@@ -4,34 +4,38 @@ A routing library for the [Yew](https://github.com/yewstack/yew) frontend framew
 
 ### Example
 ```rust
-#[derive(Switch, Debug, Clone)]
-pub enum AppRoute {
-    #[at = "/profile/{id}"]
-    Profile(u32),
-    #[at = "/forum{*:rest}"]
-    Forum(ForumRoute),
-    #[at = "/"]
-    Index,
+ use yew::prelude::*;
+ use yew_functional::*;
+ use yew_router::prelude::*;
+
+[derive(Debug, Clone, Copy, PartialEq, Routable)]
+enum Routes {
+    #[at("/")]
+    Home,
+    #[at("/secure")]
+    Secure,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
 }
 
-#[derive(Switch, Debug, Clone)]
-pub enum ForumRoute {
-    #[at = "/{subforum}/{thread_slug}"]
-    SubForumAndThread{subforum: String, thread_slug: String}
-    #[at = "/{subforum}"]
-    SubForum{subforum: String}
+fn switch(routes: Routes) -> Html {
+    let onclick_callback = Callback::from(|_| RouterService::push(Routes::Home, None));
+    match routes {
+        Routes::Home => html! { <h1>{ "Home" }</h1> },
+        Routes::Secure => html! {
+            <div>
+                <h1>{ "Secure" }</h1>
+                <button onclick=onclick_callback>{ "Go Home" }</button>
+            </div>
+        },
+        Routes::NotFound => html! { <h1>{ "404" }</h1> },
+    }
 }
 
+// Component's `view` method
 html! {
-    <Router<AppRoute, ()>
-        render = Router::render(|switch: AppRoute| {
-            match switch {
-                AppRoute::Profile(id) => html!{<ProfileComponent id = id/>},
-                AppRoute::Index => html!{<IndexComponent/>},
-                AppRoute::Forum(forum_route) => html!{<ForumComponent route = forum_route/>},
-            }
-        })
-    />
+    <Router<Routes> render=Router::render(switch) />
 }
 ```
 
