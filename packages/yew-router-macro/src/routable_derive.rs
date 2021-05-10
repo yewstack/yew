@@ -1,4 +1,4 @@
-use proc_macro2::{TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
@@ -81,7 +81,10 @@ fn parse_variants_attributes(
             }
             _ => {
                 return Err(syn::Error::new_spanned(
-                    at_attrs.iter().map(|it| it.to_token_stream()).collect::<TokenStream>(),
+                    at_attrs
+                        .iter()
+                        .map(|it| it.to_token_stream())
+                        .collect::<TokenStream>(),
                     format!("only one {} attribute must be present", AT_ATTR_IDENT),
                 ))
             }
@@ -108,7 +111,10 @@ fn parse_variants_attributes(
 
     if not_founds.len() > 1 {
         return Err(syn::Error::new_spanned(
-            not_found_attrs.iter().map(|it| it.to_token_stream()).collect::<TokenStream>(),
+            not_found_attrs
+                .iter()
+                .map(|it| it.to_token_stream())
+                .collect::<TokenStream>(),
             format!("there can only be one {}", NOT_FOUND_ATTR_IDENT),
         ));
     }
