@@ -59,7 +59,8 @@
         ]
       },
       "concepts/router",
-      "concepts/agents"
+      "concepts/agents",
+      "concepts/contexts"
     ],
     "Advanced topics": [
       "advanced-topics/how-it-works",
