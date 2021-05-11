@@ -17,7 +17,8 @@ pub struct ContextProviderProps<T: Clone + PartialEq> {
 /// The context provider component.
 ///
 /// Every child (direct or indirect) of this component may access the context value.
-/// Currently the only way to consume the context is using the [`use_context`] hook.
+/// In order to consume contexts, [`ComponentLink::context`][Scope::context] method is used,
+/// In function components the `use_context` hook is used.
 #[derive(Debug)]
 pub struct ContextProvider<T: Clone + PartialEq + 'static> {
     link: ComponentLink<Self>,
