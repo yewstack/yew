@@ -213,52 +213,19 @@ use_effect_with_deps(
 
 ## `use_context`
 
-`use_context` is used for consuming contexts in function components. See the explanation and example in the following section to learn how to use it. 
+`use_context` is used for consuming [contexts](../contexts.md) in function components. 
 
-### Contexts
 
-Generally data is passed down the component tree using props but that becomes tedious for values such as user preferences, authentication information etc.
-Consider the following example which passes down the theme using props:
+### Example
+
 ```rust
-// root
-let theme = // ...
-html! {
-    <Navbar theme=theme />
-}
-
-// Navbar component
-html! {
-    <div>
-        <Title theme=theme>{ "App title" }<Title>
-        <NavButton theme=theme>{ "Somewhere" }</NavButton>
-    </div>
-}
-```
-
-Passing down data like this isn't ideal for something like a theme which needs to be available everywhere. This is where contexts come in.
-
-Contexts provide a way to share data between components without passing them down explicitly as props.
-They make data available to all components in the tree.
-
-#### Using Contexts
-
-In order to use contexts, we need a struct which defines what data is to be passed.
-For the above use-case, consider the following struct:
-```rust
+/// App theme
 #[derive(Clone, Debug, PartialEq)]
 struct Theme {
     foreground: String,
     background: String,
 }
-```
 
-A context provider is required to consume the context. `ContextProvider<T>`, where `T` is the context struct is used as the provider.
-`T` must implement `Clone` and `PartialEq`. `ContextProvider` is the component whose children will have the context available to them.
-Let's implement the aforementioned Navbar using contexts and function components with the `use_context` hook.
-
-##### Example 
-
-```rust
 /// Main component 
 #[function_component(App)]
 pub fn app() -> Html {
