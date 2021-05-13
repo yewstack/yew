@@ -229,13 +229,14 @@ struct Theme {
 /// Main component 
 #[function_component(App)]
 pub fn app() -> Html {
-    let (ctx, _set_ctx) = use_state(|| Theme {
+    let ctx = use_state(|| Theme {
         foreground: "#000000".to_owned(),
         background: "#eeeeee".to_owned(),
     });
 
     html! {
-        // `ctx` is type `Rc<Theme>` while we need `Theme` so we deref it
+        // `ctx` is type `Rc<UseStateHandle<Theme>>` while we need `Theme` so we deref it
+        // It derefs to `&Theme`, hence the clone
         <ContextProvider<Theme> context=(*ctx).clone()>
             // Every child here and their children will have access to this context.
             <Toolbar />
