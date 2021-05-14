@@ -9,6 +9,5 @@ license = "MIT OR Apache-2.0"
 serde = "1"
 serde_derive = "1"
 yew = { path = "../../packages/yew" }
-gloo-storage = { git = "https://github.com/hamza1311/gloo/", branch = "storage" }
-gloo-dialogs = { git = "https://github.com/rustwasm/gloo/" }
+gloo = { git = "https://github.com/rustwasm/gloo/" }
 

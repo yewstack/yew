@@ -1,4 +1,4 @@
-use gloo_storage::{LocalStorage, Storage};
+use gloo::storage::{LocalStorage, Storage};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]

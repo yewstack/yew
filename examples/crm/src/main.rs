@@ -1,5 +1,5 @@
 use add_client::AddClientForm;
-use gloo_storage::{LocalStorage, Storage};
+use gloo::storage::{LocalStorage, Storage};
 use serde::{Deserialize, Serialize};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
@@ -74,7 +74,7 @@ impl Component for Model {
                 matches!(self.scene, Scene::ClientsList)
             }
             Msg::ClearClients => {
-                if gloo_dialogs::confirm("Do you really want to clear the data?") {
+                if gloo::dialogs::confirm("Do you really want to clear the data?") {
                     self.clients.clear();
                     LocalStorage::delete(KEY);
                     true
