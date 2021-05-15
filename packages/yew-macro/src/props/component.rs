@@ -137,13 +137,11 @@ impl ComponentProps {
                     }
                 });
 
-                let set_children = if let Some(children) = children_renderer {
-                    Some(quote_spanned! {props_ty.span()=>
+                let set_children = children_renderer.map(|children| {
+                    quote_spanned! {props_ty.span()=>
                         .children(#children)
-                    })
-                } else {
-                    None
-                };
+                    }
+                });
 
                 quote_spanned! {props_ty.span()=>
                     <#props_ty as ::yew::html::Properties>::builder()
@@ -154,13 +152,11 @@ impl ComponentProps {
             }
             Self::With(with_props) => {
                 let ident = Ident::new("__yew_props", props_ty.span());
-                let set_children = if let Some(children) = children_renderer {
-                    Some(quote_spanned! {props_ty.span()=>
+                let set_children = children_renderer.map(|children| {
+                    quote_spanned! {props_ty.span()=>
                         #ident.children = #children;
-                    })
-                } else {
-                    None
-                };
+                    }
+                });
 
                 let expr = &with_props.expr;
                 quote! {
