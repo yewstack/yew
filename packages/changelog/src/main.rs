@@ -99,7 +99,7 @@ impl Cli {
 
         let (features, fixes): (Vec<_>, Vec<_>) = logs
             .into_iter()
-            .partition(|(msg, _, _)| msg.contains("fix"));
+            .partition(|(msg, _, _)| msg.to_lowercase().contains("fix"));
 
         writeln!(
             f,

@@ -6,11 +6,8 @@
 
 - #### ⚡️ Features
 
-- #### 🛠 Fixes
-
   - Implicit optional attributes (#1637). [[@siku2] [#1637]](https://github.com/yewstack/yew/pull/1637)
   - Added callback_future_once in yewtil (#1696) (#1712). [[@fraillt] [#1696]](https://github.com/yewstack/yew/pull/1696)
-  - Fix CI by using local ws echo server (#1711). [[@jstarry] [#1711]](https://github.com/yewstack/yew/pull/1711)
   - yew-functional: Reorganize hooks into hook module (#1710). [[@jstarry] [#1710]](https://github.com/yewstack/yew/pull/1710)
   - Added relevant examples section to the docs (#1695). [[@oOBoomberOo] [#1695]](https://github.com/yewstack/yew/pull/1695)
   - Enable std feature for indexmap (#1709). [[@jstarry] [#1709]](https://github.com/yewstack/yew/pull/1709)
@@ -19,11 +16,9 @@
   - Move top-level crates to packages/<crate> (#1680). [[@philip-peterson] [#1680]](https://github.com/yewstack/yew/pull/1680)
   - Refactor component lifecycle event handling (#1692). [[@jstarry] [#1692]](https://github.com/yewstack/yew/pull/1692)
   - Prune stdweb examples to reduce maintenance burden (#1690). [[@jstarry] [#1690]](https://github.com/yewstack/yew/pull/1690)
-  - Fix CI timeouts when running on chrome (#1691). [[@jstarry] [#1691]](https://github.com/yewstack/yew/pull/1691)
   - Refactor html module into new component submodule (#1689). [[@jstarry] [#1689]](https://github.com/yewstack/yew/pull/1689)
   - Rename internal Agent structs to match Component (#1688). [[@jstarry] [#1688]](https://github.com/yewstack/yew/pull/1688)
   - Revert "Update rand requirement from 0.7 to 0.8 (#1682)" (#1684). [[@siku2] [#1682]](https://github.com/yewstack/yew/pull/1682)
-  - Fix broken import in yew-functional (#1683). [[@Th3-M4jor] [#1683]](https://github.com/yewstack/yew/pull/1683)
   - Add discussion link to issue selector (#1674). [[@jstarry] [#1674]](https://github.com/yewstack/yew/pull/1674)
   - Update link to Material Design Components (#1662). [[@TapioT] [#1662]](https://github.com/yewstack/yew/pull/1662)
   - Extract Classes to a separate macro (#1601). [[@cecton] [#1601]](https://github.com/yewstack/yew/pull/1601)
@@ -32,11 +27,17 @@
   - Add docs for Hooks  (#1643). [[@hamza1311] [#1643]](https://github.com/yewstack/yew/pull/1643)
   - Add documentation for component children (#1616). [[@K4rakara] [#1616]](https://github.com/yewstack/yew/pull/1616)
   - Add attribute for generating function components from functions (#1638). [[@hamza1311] [#1638]](https://github.com/yewstack/yew/pull/1638)
-  - Fix missing redirects (#1640). [[@siku2] [#1640]](https://github.com/yewstack/yew/pull/1640)
   - More ergonomic use state 1505 (#1630). [[@mattferrin] [#1630]](https://github.com/yewstack/yew/pull/1630)
   - Remove Drop bound from Task trait (#1627). [[@siku2] [#1627]](https://github.com/yewstack/yew/pull/1627)
   - Document dynamic tag names (#1628). [[@siku2] [#1628]](https://github.com/yewstack/yew/pull/1628)
   - Add a macro for building properties outside of html! (#1599). [[@siku2] [#1599]](https://github.com/yewstack/yew/pull/1599)
+
+- #### 🛠 Fixes
+
+  - Fix CI by using local ws echo server (#1711). [[@jstarry] [#1711]](https://github.com/yewstack/yew/pull/1711)
+  - Fix CI timeouts when running on chrome (#1691). [[@jstarry] [#1691]](https://github.com/yewstack/yew/pull/1691)
+  - Fix broken import in yew-functional (#1683). [[@Th3-M4jor] [#1683]](https://github.com/yewstack/yew/pull/1683)
+  - Fix missing redirects (#1640). [[@siku2] [#1640]](https://github.com/yewstack/yew/pull/1640)
 
 ## ✨ **0.17.4** *(2020-10-18)*
 
