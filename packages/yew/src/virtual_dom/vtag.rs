@@ -227,7 +227,7 @@ impl VTag {
     ) {
         self.listeners = listeners
             .into_iter()
-            .filter_map(std::convert::identity)
+            .flatten()
             .collect();
     }
 
