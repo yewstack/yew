@@ -1,6 +1,6 @@
 [package]
 name = "yewtil"
-version = "0.3.2"
+version = "0.4.0"
 authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 edition = "2018"
 description = "Utility crate for Yew"
