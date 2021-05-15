@@ -110,6 +110,18 @@ impl Cli {
         writeln!(f, "#### Changelog")?;
         writeln!(f)?;
 
+        writeln!(f, "- #### 🛠 Fixes")?;
+        writeln!(f)?;
+        for (msg, user, issue) in fixes {
+            writeln!(
+                f,
+                "  - {msg}. [[@{user}] [#{issue}]](https://github.com/yewstack/yew/pull/{issue})",
+                msg = msg,
+                user = user,
+                issue = issue
+            )?;
+        }
+
         writeln!(f, "- #### ⚡️ Features")?;
         writeln!(f)?;
         for (msg, user, issue) in features {
@@ -122,19 +134,7 @@ impl Cli {
             )?;
         }
 
-        writeln!(f, "- #### 🛠 Fixes")?;
         writeln!(f)?;
-        for (msg, user, issue) in fixes {
-            writeln!(
-                f,
-                "  - {msg}. [[@{user}] [#{issue}]](https://github.com/yewstack/yew/pull/{issue})",
-                msg = msg,
-                user = user,
-                issue = issue
-            )?;
-        }
-        writeln!(f)?;
-
         io::copy(&mut old_changelog, &mut f)?;
 
         drop(old_changelog);

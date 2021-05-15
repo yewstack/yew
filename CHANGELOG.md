@@ -4,6 +4,13 @@
 
 #### Changelog
 
+- #### 🛠 Fixes
+
+  - Fix CI by using local ws echo server (#1711). [[@jstarry] [#1711]](https://github.com/yewstack/yew/pull/1711)
+  - Fix CI timeouts when running on chrome (#1691). [[@jstarry] [#1691]](https://github.com/yewstack/yew/pull/1691)
+  - Fix broken import in yew-functional (#1683). [[@Th3-M4jor] [#1683]](https://github.com/yewstack/yew/pull/1683)
+  - Fix missing redirects (#1640). [[@siku2] [#1640]](https://github.com/yewstack/yew/pull/1640)
+
 - #### ⚡️ Features
 
   - Implicit optional attributes (#1637). [[@siku2] [#1637]](https://github.com/yewstack/yew/pull/1637)
@@ -31,13 +38,6 @@
   - Remove Drop bound from Task trait (#1627). [[@siku2] [#1627]](https://github.com/yewstack/yew/pull/1627)
   - Document dynamic tag names (#1628). [[@siku2] [#1628]](https://github.com/yewstack/yew/pull/1628)
   - Add a macro for building properties outside of html! (#1599). [[@siku2] [#1599]](https://github.com/yewstack/yew/pull/1599)
-
-- #### 🛠 Fixes
-
-  - Fix CI by using local ws echo server (#1711). [[@jstarry] [#1711]](https://github.com/yewstack/yew/pull/1711)
-  - Fix CI timeouts when running on chrome (#1691). [[@jstarry] [#1691]](https://github.com/yewstack/yew/pull/1691)
-  - Fix broken import in yew-functional (#1683). [[@Th3-M4jor] [#1683]](https://github.com/yewstack/yew/pull/1683)
-  - Fix missing redirects (#1640). [[@siku2] [#1640]](https://github.com/yewstack/yew/pull/1640)
 
 ## ✨ **0.17.4** *(2020-10-18)*
 
