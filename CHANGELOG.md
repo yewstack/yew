@@ -6,16 +6,12 @@
 
 - #### 🛠 Fixes
 
-  - Fix CI by using local ws echo server (#1711). [[@jstarry] [#1711]](https://github.com/yewstack/yew/pull/1711)
-  - Fix CI timeouts when running on chrome (#1691). [[@jstarry] [#1691]](https://github.com/yewstack/yew/pull/1691)
-  - Fix broken import in yew-functional (#1683). [[@Th3-M4jor] [#1683]](https://github.com/yewstack/yew/pull/1683)
   - Fix missing redirects (#1640). [[@siku2] [#1640]](https://github.com/yewstack/yew/pull/1640)
 
 - #### ⚡️ Features
 
   - Implicit optional attributes (#1637). [[@siku2] [#1637]](https://github.com/yewstack/yew/pull/1637)
   - Added callback_future_once in yewtil (#1696) (#1712). [[@fraillt] [#1696]](https://github.com/yewstack/yew/pull/1696)
-  - yew-functional: Reorganize hooks into hook module (#1710). [[@jstarry] [#1710]](https://github.com/yewstack/yew/pull/1710)
   - Added relevant examples section to the docs (#1695). [[@oOBoomberOo] [#1695]](https://github.com/yewstack/yew/pull/1695)
   - Enable std feature for indexmap (#1709). [[@jstarry] [#1709]](https://github.com/yewstack/yew/pull/1709)
   - Added missing KeyboardService re-export (#1694). [[@SOF3] [#1694]](https://github.com/yewstack/yew/pull/1694)
@@ -31,9 +27,7 @@
   - Extract Classes to a separate macro (#1601). [[@cecton] [#1601]](https://github.com/yewstack/yew/pull/1601)
   - Improve the "keyed_list" example (#1650). [[@titaneric] [#1650]](https://github.com/yewstack/yew/pull/1650)
   - Apply new Clippy lints, examples deployment, and stdweb integration tests (#1651). [[@siku2] [#1651]](https://github.com/yewstack/yew/pull/1651)
-  - Add docs for Hooks  (#1643). [[@hamza1311] [#1643]](https://github.com/yewstack/yew/pull/1643)
   - Add documentation for component children (#1616). [[@K4rakara] [#1616]](https://github.com/yewstack/yew/pull/1616)
-  - Add attribute for generating function components from functions (#1638). [[@hamza1311] [#1638]](https://github.com/yewstack/yew/pull/1638)
   - More ergonomic use state 1505 (#1630). [[@mattferrin] [#1630]](https://github.com/yewstack/yew/pull/1630)
   - Remove Drop bound from Task trait (#1627). [[@siku2] [#1627]](https://github.com/yewstack/yew/pull/1627)
   - Document dynamic tag names (#1628). [[@siku2] [#1628]](https://github.com/yewstack/yew/pull/1628)
