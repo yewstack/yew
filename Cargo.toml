@@ -44,4 +44,7 @@ members = [
   "examples/todomvc",
   "examples/two_apps",
   "examples/webgl",
+
+  # Release tools
+  "packages/changelog",
 ]
