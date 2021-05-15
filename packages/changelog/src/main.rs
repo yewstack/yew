@@ -1,6 +1,9 @@
 use anyhow::{bail, Context, Result};
 use serde::Deserialize;
 use std::collections::HashMap;
+use std::fs;
+use std::io;
+use std::io::Write;
 use structopt::StructOpt;
 
 fn main() -> Result<()> {
@@ -38,6 +41,15 @@ impl Cli {
     }
 
     fn run(&mut self) -> Result<()> {
+        let mut old_changelog =
+            fs::File::open("CHANGELOG.md").context("could not open CHANGELOG.md for reading")?;
+        let mut f = fs::OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open("CHANGELOG.md.new")
+            .context("could not open CHANGELOG.md.new for writing")?;
+
         let mut revwalk = self.repo.revwalk()?;
         revwalk.set_sorting(git2::Sort::TOPOLOGICAL)?;
 
@@ -89,30 +101,46 @@ impl Cli {
             .into_iter()
             .partition(|(msg, _, _)| msg.contains("fix"));
 
-        println!("## ✨ **0.18.0** *(2021-05-02)*");
-        println!();
+        writeln!(
+            f,
+            "## ✨ **x.y.z** *({})*",
+            chrono::Utc::now().format("%Y-%m-%d")
+        )?;
+        writeln!(f)?;
 
-        println!("- #### ⚡️ Features");
-        println!();
+        writeln!(f, "- #### ⚡️ Features")?;
+        writeln!(f)?;
         for (msg, user, issue) in features {
-            println!(
+            writeln!(
+                f,
                 "  - {msg}. [[@{user}] [#{issue}]](https://github.com/yewstack/yew/pull/{issue})",
                 msg = msg,
                 user = user,
                 issue = issue
-            );
+            )?;
         }
 
-        println!("- #### 🛠 Fixes");
-        println!();
+        writeln!(f, "- #### 🛠 Fixes")?;
+        writeln!(f)?;
         for (msg, user, issue) in fixes {
-            println!(
+            writeln!(
+                f,
                 "  - {msg}. [[@{user}] [#{issue}]](https://github.com/yewstack/yew/pull/{issue})",
                 msg = msg,
                 user = user,
                 issue = issue
-            );
+            )?;
         }
+        writeln!(f)?;
+
+        io::copy(&mut old_changelog, &mut f)?;
+
+        drop(old_changelog);
+        drop(f);
+
+        fs::remove_file("CHANGELOG.md").context("Could not delete CHANGELOG.md")?;
+        fs::rename("CHANGELOG.md.new", "CHANGELOG.md")
+            .context("Could not replace CHANGELOG.md with CHANGELOG.md.new")?;
 
         Ok(())
     }
