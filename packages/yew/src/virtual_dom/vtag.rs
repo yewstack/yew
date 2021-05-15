@@ -225,10 +225,7 @@ impl VTag {
         &mut self,
         listeners: impl IntoIterator<Item = Option<Rc<dyn Listener>>>,
     ) {
-        self.listeners = listeners
-            .into_iter()
-            .flatten()
-            .collect();
+        self.listeners = listeners.into_iter().flatten().collect();
     }
 
     /// Every render it removes all listeners and attach it back later
