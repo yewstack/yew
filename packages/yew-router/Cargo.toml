@@ -19,6 +19,8 @@ js-sys = "0.3"
 weblog = "0.3.0"
 gloo = "0.2.1"
 route-recognizer = "0.3.0"
+serde = "1.0"
+serde_urlencoded = "0.7"
 
 [dependencies.web-sys]
 version = "0.3"
@@ -37,6 +39,7 @@ features = [
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
 yew-functional = { path = "../yew-functional" }
+serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies.web-sys]
 version = "0.3"

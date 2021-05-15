@@ -2,9 +2,9 @@ use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::prelude::*;
 use yew_functional::function_component;
 use yew_router::prelude::*;
+use serde::Serialize;
 
 mod utils;
-use std::collections::HashMap;
 use utils::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
@@ -36,18 +36,19 @@ fn no(props: &NoProps) -> Html {
     }
 }
 
+#[derive(Serialize)]
+struct Query {
+    foo: &'static str,
+}
+
 #[function_component(Comp)]
 fn component() -> Html {
     let switch = Router::render(|routes| {
         let onclick = Callback::from(|_| {
-            service::push(
+            service::push_with_query(
                 Routes::No { id: 2 },
-                Some({
-                    let mut map = HashMap::new();
-                    map.insert("foo", "bar".to_string());
-                    map
-                }),
-            )
+                Query { foo: "bar" },
+            ).unwrap();
         });
 
         match routes {

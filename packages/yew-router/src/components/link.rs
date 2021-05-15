@@ -31,7 +31,7 @@ impl<R: Routable + Clone + PartialEq + 'static> Component for Link<R> {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::OnClick => {
-                service::push(self.props.route.clone(), None);
+                service::push(self.props.route.clone());
                 false
             }
         }
