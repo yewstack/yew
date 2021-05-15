@@ -1,6 +1,6 @@
 [package]
 name = "yewtil-macro"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
 edition = "2018"
 license = "MIT/Apache-2.0"

@@ -49,7 +49,7 @@ serde = {version= "1.0.102", optional = true}
 serde_json = { version = "1.0.41", optional = true }
 wasm-bindgen = {version = "0.2.51", features=["serde-serialize"], optional = true}
 wasm-bindgen-futures = {version = "0.4.3", optional = true}
-yewtil-macro = { version = "0.2.0", path = "../yewtil-macro", optional = true }
+yewtil-macro = { version = "^0.3.0", path = "../yewtil-macro", optional = true }
 
 [dependencies.yew]
 path = "../yew"
