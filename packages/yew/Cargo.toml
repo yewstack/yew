@@ -11,6 +11,7 @@ homepage = "https://github.com/yewstack/yew"
 documentation = "https://docs.rs/yew/"
 license = "MIT OR Apache-2.0"
 readme = "../README.md"
+readme = "../../README.md"
 keywords = ["web", "webasm", "javascript"]
 categories = ["gui", "wasm", "web-programming"]
 description = "A framework for making client-side single-page apps"
