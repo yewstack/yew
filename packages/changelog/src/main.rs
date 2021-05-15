@@ -107,6 +107,8 @@ impl Cli {
             chrono::Utc::now().format("%Y-%m-%d")
         )?;
         writeln!(f)?;
+        writeln!(f, "#### Changelog")?;
+        writeln!(f)?;
 
         writeln!(f, "- #### ⚡️ Features")?;
         writeln!(f)?;
