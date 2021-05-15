@@ -38,7 +38,7 @@ thiserror = "1"
 toml = { version = "0.5", optional = true }
 wasm-bindgen = { version = "0.2.60", optional = true }
 wasm-bindgen-futures = { version = "0.4", optional = true }
-yew-macro = { version = "0.17.0", path = "../yew-macro" }
+yew-macro = { version = "^0.18.0", path = "../yew-macro" }
 
 [dependencies.web-sys]
 version = "0.3"
