@@ -27,7 +27,7 @@
 //! # }
 //!
 //! fn switch(routes: Routes) -> Html {
-//!     let onclick_callback = Callback::from(|_| service::push(Routes::Home, None));
+//!     let onclick_callback = Callback::from(|_| service::push(Routes::Home));
 //!     match routes {
 //!         Routes::Home => html! { <h1>{ "Home" }</h1> },
 //!         Routes::Secure => html! {
