@@ -33,7 +33,7 @@ web_sys = [
 [dependencies]
 yew = { version = "^0.18.0", path = "../yew", features = ["services", "agent"], default-features= false, optional = true }
 yew-router-macro = { version = "0.14.0", path = "../yew-router-macro" }
-yew-router-route-parser = { version = "0.14.0", path = "../yew-router-route-parser" }
+yew-router-route-parser = { version = "^0.15.0", path = "../yew-router-route-parser" }
 
 cfg-if = "1.0.0"
 cfg-match = "0.2"

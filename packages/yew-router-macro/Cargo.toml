@@ -13,7 +13,7 @@ proc-macro = true
 [dependencies]
 syn = "1.0.2"
 quote = "1.0.1"
-yew-router-route-parser = { version = "0.14.0", path = "../yew-router-route-parser"}
+yew-router-route-parser = { version = "^0.15.0", path = "../yew-router-route-parser"}
 proc-macro2 = "1.0.1"
 
 [dev-dependencies]
