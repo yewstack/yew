@@ -53,7 +53,7 @@ yewtil-macro = { version = "0.2.0", path = "../yewtil-macro", optional = true }
 
 [dependencies.yew]
 path = "../yew"
-version = "0.17.0"
+version = "^0.18.0"
 default-features = false
 features = ["agent"]
 
