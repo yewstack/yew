@@ -144,9 +144,9 @@ impl ComponentProps {
                 });
 
                 let set_children = children_renderer.map(|children| {
-                    Some(quote_spanned! {props_ty.span()=>
+                    quote_spanned! {props_ty.span()=>
                         .children(#children)
-                    })
+                    }
                 });
 
                 quote_spanned! {props_ty.span()=>
@@ -159,9 +159,9 @@ impl ComponentProps {
             Self::With(with_props) => {
                 let ident = Ident::new("__yew_props", props_ty.span());
                 let set_children = children_renderer.map(|children| {
-                    Some(quote_spanned! {props_ty.span()=>
+                    quote_spanned! {props_ty.span()=>
                         #ident.children = #children;
-                    })
+                    }
                 });
 
                 let expr = &with_props.expr;
