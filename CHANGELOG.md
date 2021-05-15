@@ -1,5 +1,38 @@
 # Changelog
 
+## ✨ **0.18.0** *(2021-05-15)*
+
+#### Changelog
+
+- #### 🛠 Fixes
+
+  - Fix missing redirects (#1640). [[@siku2] [#1640]](https://github.com/yewstack/yew/pull/1640)
+
+- #### ⚡️ Features
+
+  - Implicit optional attributes (#1637). [[@siku2] [#1637]](https://github.com/yewstack/yew/pull/1637)
+  - Added callback_future_once in yewtil (#1696) (#1712). [[@fraillt] [#1696]](https://github.com/yewstack/yew/pull/1696)
+  - Added relevant examples section to the docs (#1695). [[@oOBoomberOo] [#1695]](https://github.com/yewstack/yew/pull/1695)
+  - Enable std feature for indexmap (#1709). [[@jstarry] [#1709]](https://github.com/yewstack/yew/pull/1709)
+  - Added missing KeyboardService re-export (#1694). [[@SOF3] [#1694]](https://github.com/yewstack/yew/pull/1694)
+  - Clean up component lifecycle state (#1700). [[@jstarry] [#1700]](https://github.com/yewstack/yew/pull/1700)
+  - Move top-level crates to packages/<crate> (#1680). [[@philip-peterson] [#1680]](https://github.com/yewstack/yew/pull/1680)
+  - Refactor component lifecycle event handling (#1692). [[@jstarry] [#1692]](https://github.com/yewstack/yew/pull/1692)
+  - Prune stdweb examples to reduce maintenance burden (#1690). [[@jstarry] [#1690]](https://github.com/yewstack/yew/pull/1690)
+  - Refactor html module into new component submodule (#1689). [[@jstarry] [#1689]](https://github.com/yewstack/yew/pull/1689)
+  - Rename internal Agent structs to match Component (#1688). [[@jstarry] [#1688]](https://github.com/yewstack/yew/pull/1688)
+  - Revert "Update rand requirement from 0.7 to 0.8 (#1682)" (#1684). [[@siku2] [#1682]](https://github.com/yewstack/yew/pull/1682)
+  - Add discussion link to issue selector (#1674). [[@jstarry] [#1674]](https://github.com/yewstack/yew/pull/1674)
+  - Update link to Material Design Components (#1662). [[@TapioT] [#1662]](https://github.com/yewstack/yew/pull/1662)
+  - Extract Classes to a separate macro (#1601). [[@cecton] [#1601]](https://github.com/yewstack/yew/pull/1601)
+  - Improve the "keyed_list" example (#1650). [[@titaneric] [#1650]](https://github.com/yewstack/yew/pull/1650)
+  - Apply new Clippy lints, examples deployment, and stdweb integration tests (#1651). [[@siku2] [#1651]](https://github.com/yewstack/yew/pull/1651)
+  - Add documentation for component children (#1616). [[@K4rakara] [#1616]](https://github.com/yewstack/yew/pull/1616)
+  - More ergonomic use state 1505 (#1630). [[@mattferrin] [#1630]](https://github.com/yewstack/yew/pull/1630)
+  - Remove Drop bound from Task trait (#1627). [[@siku2] [#1627]](https://github.com/yewstack/yew/pull/1627)
+  - Document dynamic tag names (#1628). [[@siku2] [#1628]](https://github.com/yewstack/yew/pull/1628)
+  - Add a macro for building properties outside of html! (#1599). [[@siku2] [#1599]](https://github.com/yewstack/yew/pull/1599)
+
 ## ✨ **0.17.4** *(2020-10-18)*
 
 #### Changelog
@@ -301,7 +334,7 @@ Lastly, take note that API docs on https://docs.rs/yew will be using the `"web_s
   - Implemented `PartialEq` for `ChildrenRenderer` to allow `children` comparison. [[@jstarry], [#916](https://github.com/yewstack/yew/pull/916)]
   - Reduced restrictions on `ComponentLink` methods to improve `Future` support. [[@jplatte], [#931](https://github.com/yewstack/yew/pull/931)]
   - Added `referrer`, `referrer_policy` and `integrity` to `FetchOptions`. [[@leo-lb], [#931](https://github.com/yewstack/yew/pull/931)]
- 
+
 - #### 🛠 Fixes
 
   - Fixed touch event listeners. [[@AlephAlpha], [#872](https://github.com/yewstack/yew/pull/872)]

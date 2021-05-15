@@ -255,6 +255,7 @@ mod tests {
     #[derive(Clone, Properties, Default)]
     struct Props {
         lifecycle: Rc<RefCell<Vec<String>>>,
+        #[allow(dead_code)]
         #[cfg(feature = "wasm_test")]
         create_message: Option<bool>,
         update_message: RefCell<Option<bool>>,
