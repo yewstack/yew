@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen::JsCast;
 
 fn strip_slash(path: String) -> String {
     if path != "/" {
@@ -34,22 +34,15 @@ pub fn build_path_with_base(to: &str) -> String {
 
 pub fn get_query_params() -> HashMap<String, String> {
     let url = web_sys::Url::new(&yew::utils::document().url().unwrap()).unwrap();
-
-    let iter = js_sys::try_iter(&JsValue::from(&url.search_params()))
-        .expect("try_iter failed")
-        .expect("try_iter failed")
+    let search_params = js_sys::Array::from(url.search_params().as_ref()).to_vec();
+    search_params
         .into_iter()
-        .map(|it| it.unwrap().unchecked_into::<js_sys::Array>().to_vec())
-        .map(|it| {
-            let mut iter = it.into_iter();
-            // unwraps are unreachable
-            // there will be at least 2 values here
-            // both of them will be strings
+        .map(|value| js_sys::Array::from(&value).to_vec())
+        .map(|chunk| {
             (
-                iter.next().unwrap().as_string().unwrap(),
-                iter.next().unwrap().as_string().unwrap(),
+                chunk[0].as_string().expect("0"),
+                chunk[1].as_string().expect("1"),
             )
-        });
-
-    iter.collect()
+        })
+        .collect()
 }

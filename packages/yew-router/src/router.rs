@@ -122,7 +122,7 @@ where
             None => {
                 weblog::console_log!("no route matched");
                 html! {}
-            },
+            }
         }
     }
 

@@ -1,9 +1,9 @@
+use serde::Serialize;
 use std::collections::HashMap;
 use wasm_bindgen_test::wasm_bindgen_test as test;
 use yew::utils::*;
 use yew_router::prelude::*;
 use yew_router::utils::*;
-use serde::Serialize;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -37,7 +37,7 @@ fn test_base_url() {
 #[derive(Serialize, Clone)]
 struct QueryParams {
     foo: String,
-    bar: u32
+    bar: u32,
 }
 
 #[test]
@@ -49,10 +49,7 @@ fn test_get_query_params() {
         bar: 69,
     };
 
-    service::push_with_query(
-        Routes::Home,
-        query.clone(),
-    ).unwrap();
+    service::push_with_query(Routes::Home, query.clone()).unwrap();
 
     let params = get_query_params();
 

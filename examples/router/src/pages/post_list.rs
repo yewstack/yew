@@ -1,11 +1,11 @@
 use crate::components::{pagination::Pagination, post_card::PostCard};
 use crate::Route;
+use serde::Serialize;
 use yew::prelude::*;
 use yew_router::service;
-use serde::Serialize;
 
 const ITEMS_PER_PAGE: u64 = 10;
-const TOTAL_PAGES: u64 = std::u64::MAX / ITEMS_PER_PAGE;
+const TOTAL_PAGES: u64 = u64::MAX / ITEMS_PER_PAGE;
 
 pub enum Msg {
     ShowPage(u64),
@@ -13,7 +13,7 @@ pub enum Msg {
 
 #[derive(Serialize)]
 struct PageQuery {
-    page: u64
+    page: u64,
 }
 
 pub struct PostList {

@@ -1,21 +1,24 @@
 use crate::utils::build_path_with_base;
 use crate::Routable;
+use serde::Serialize;
 use std::collections::HashMap;
 use wasm_bindgen::JsValue;
 use web_sys::Event;
-use serde::Serialize;
 
 /// Navigate to a specific route.
 pub fn push(route: impl Routable) {
     push_impl(route.to_route())
-
 }
 
 /// Navigate to a specific route with query parameters.
 ///
 /// This should be used in cases where [`Link`](crate::prelude::Link) is insufficient.
-pub fn push_with_query<S>(route: impl Routable, query: S) -> Result<(), serde_urlencoded::ser::Error>
-    where S: Serialize
+pub fn push_with_query<S>(
+    route: impl Routable,
+    query: S,
+) -> Result<(), serde_urlencoded::ser::Error>
+where
+    S: Serialize,
 {
     let mut url = route.to_route();
     let query = serde_urlencoded::to_string(query)?;

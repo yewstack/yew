@@ -1,8 +1,8 @@
+use serde::Serialize;
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::prelude::*;
 use yew_functional::function_component;
 use yew_router::prelude::*;
-use serde::Serialize;
 
 mod utils;
 use utils::*;
@@ -45,10 +45,7 @@ struct Query {
 fn component() -> Html {
     let switch = Router::render(|routes| {
         let onclick = Callback::from(|_| {
-            service::push_with_query(
-                Routes::No { id: 2 },
-                Query { foo: "bar" },
-            ).unwrap();
+            service::push_with_query(Routes::No { id: 2 }, Query { foo: "bar" }).unwrap();
         });
 
         match routes {
