@@ -90,8 +90,8 @@ impl<S: Store> Agent for StoreWrapper<S> {
 
         StoreWrapper {
             handlers,
-            state,
             link,
+            state,
             self_dispatcher,
         }
     }
