@@ -15,11 +15,7 @@ The router then detects this change and then decides what to render.
 ### `Router`
 
 The Router component. It takes in a callback and renders the HTML based on the returned value of the callback. It is usually placed 
-at the top of application.
-
-### `RouteService`
-
-Interfaces with the `Router`. It can be used to navigate to a specific route. 
+at the top of application. 
 
 ## Usage
 
@@ -50,7 +46,7 @@ fn app() -> Html {
 }
 
 fn switch(routes: Routes) -> Html {
-    let onclick_callback = Callback::from(|_| RouterService::push(Routes::Home, None));
+    let onclick_callback = Callback::from(|_| service::push(Routes::Home, None));
     match routes {
         Routes::Home => html! { <h1>{ "Home" }</h1> },
         Routes::Secure => html! {
@@ -66,7 +62,7 @@ fn switch(routes: Routes) -> Html {
 
 ### Navigation
 
-In order to navigate between pages, either `Link` component (which renders a `<a>` element) or `RouterService::push` 
+In order to navigate between pages, either `Link` component (which renders a `<a>` element) or `yew_router::service::push` 
 function is used.
 
 ## Relevant examples

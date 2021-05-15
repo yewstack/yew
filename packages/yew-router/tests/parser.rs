@@ -37,7 +37,7 @@ fn test_base_url() {
 fn test_get_query_params() {
     assert_eq!(get_query_params(), HashMap::new());
 
-    RouterService::push(
+    service::push(
         Routes::Home,
         Some({
             let mut map = HashMap::new();

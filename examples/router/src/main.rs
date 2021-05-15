@@ -11,7 +11,7 @@ use pages::{
 };
 
 #[derive(Routable, PartialEq, Clone, Debug)]
-pub enum Routes {
+pub enum Route {
     #[at("/posts/:id")]
     Post { id: u64 },
     #[at("/posts")]
@@ -65,7 +65,7 @@ impl Component for Model {
                 { self.view_nav() }
 
                 <main>
-                    <Router<Routes> render=Router::render(switch) />
+                    <Router<Route> render=Router::render(switch) />
                 </main>
                 <footer class="footer">
                     <div class="content has-text-centered">
@@ -108,12 +108,12 @@ impl Model {
                 </div>
                 <div class=classes!("navbar-menu", active_class)>
                     <div class="navbar-start">
-                        <Link<Routes> classes="navbar-item" route=Routes::Home>
+                        <Link<Route> classes="navbar-item" route=Route::Home>
                             { "Home" }
-                        </Link<Routes>>
-                        <Link<Routes> classes="navbar-item" route=Routes::Posts>
+                        </Link<Route>>
+                        <Link<Route> classes="navbar-item" route=Route::Posts>
                             { "Posts" }
-                        </Link<Routes>>
+                        </Link<Route>>
 
                         <div class="navbar-item has-dropdown is-hoverable">
                             <a class="navbar-link">
@@ -121,9 +121,9 @@ impl Model {
                             </a>
                             <div class="navbar-dropdown">
                                 <a class="navbar-item">
-                                    <Link<Routes> classes="navbar-item" route=Routes::Authors>
+                                    <Link<Route> classes="navbar-item" route=Route::Authors>
                                         { "Meet the authors" }
-                                    </Link<Routes>>
+                                    </Link<Route>>
                                 </a>
                             </div>
                         </div>
@@ -134,24 +134,24 @@ impl Model {
     }
 }
 
-fn switch(routes: Routes) -> Html {
+fn switch(routes: Route) -> Html {
     match routes {
-        Routes::Post { id } => {
+        Route::Post { id } => {
             html! { <Post seed=id /> }
         }
-        Routes::Posts => {
+        Route::Posts => {
             html! { <PostList /> }
         }
-        Routes::Author { id } => {
+        Route::Author { id } => {
             html! { <Author seed=id /> }
         }
-        Routes::Authors => {
+        Route::Authors => {
             html! { <AuthorList /> }
         }
-        Routes::Home => {
+        Route::Home => {
             html! { <Home /> }
         }
-        Routes::NotFound => {
+        Route::NotFound => {
             html! { <PageNotFound /> }
         }
     }

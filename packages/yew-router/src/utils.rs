@@ -1,6 +1,16 @@
 use std::collections::HashMap;
 use wasm_bindgen::{JsCast, JsValue};
 
+fn strip_slash(path: String) -> String {
+    if path != "/" {
+        path.strip_suffix("/")
+            .map(|it| it.to_string())
+            .unwrap_or(path)
+    } else {
+        path
+    }
+}
+
 pub fn base_url() -> Option<String> {
     match yew::utils::document().query_selector("base[href]") {
         Ok(Some(base)) => {
@@ -9,13 +19,7 @@ pub fn base_url() -> Option<String> {
             let url = web_sys::Url::new(&base).unwrap();
             let base = url.pathname();
 
-            let base = if base != "/" {
-                base.strip_suffix("/")
-                    .map(|it| it.to_string())
-                    .unwrap_or(base)
-            } else {
-                base
-            };
+            let base = strip_slash(base);
             Some(base)
         }
         _ => None,
@@ -25,13 +29,7 @@ pub fn base_url() -> Option<String> {
 pub fn build_path_with_base(to: &str) -> String {
     let to = format!("{}{}", base_url().as_deref().unwrap_or(""), to);
 
-    let path = if to == "/" {
-        to
-    } else {
-        to.strip_suffix("/").map(|it| it.to_string()).unwrap_or(to)
-    };
-
-    path
+    strip_slash(to)
 }
 
 pub fn get_query_params() -> HashMap<String, String> {

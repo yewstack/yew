@@ -7,9 +7,13 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use yew::prelude::*;
 
+/// Wraps `Rc` around `Fn` so it can be passed as a prop.
 pub struct RenderFn<R>(Rc<dyn Fn(R) -> Html>);
 
 impl<R> RenderFn<R> {
+    /// Creates a new [`RenderFn`]
+    ///
+    /// It is recommended that you use [`Router::render`] instead
     pub fn new(value: impl Fn(R) -> Html + 'static) -> Self {
         Self(Rc::new(value))
     }
@@ -32,8 +36,7 @@ impl<T> PartialEq for RenderFn<T> {
 /// Props for [`Router`]
 #[derive(Properties, Clone, PartialEq)]
 pub struct RouterProps<R: Clone> {
-    #[prop_or(None)]
-    pub not_found_route: Option<String>,
+    /// Callback which returns [`Html`] to be rendered for the current route.
     pub render: RenderFn<R>,
 }
 
@@ -44,8 +47,8 @@ pub enum Msg {
 
 /// The router component.
 ///
-/// When a route can't be matched, it looks for the `not_found_route` prop.
-/// If the said prop is specified, it redirects to the specified route.
+/// When a route can't be matched, it looks for the route with `not_found` attribute.
+/// If such a route is provided, it redirects to the specified route.
 /// Otherwise `html! {}` is rendered and a message is logged to console
 /// stating that no route can be matched.
 /// See the [crate level document][crate] for more information.
@@ -107,7 +110,7 @@ where
                 Ok(matched) => {
                     R::from_path(matched.handler(), &matched.params().into_iter().collect())
                 }
-                Err(_) => match self.props.not_found_route.as_ref() {
+                Err(_) => match R::not_found_route() {
                     Some(it) => R::from_path(it, &HashMap::new()),
                     None => None,
                 },
@@ -120,8 +123,8 @@ where
         }
     }
 
-    fn rendered(&mut self, first_render: bool) {
-        if first_render {
+    fn rendered(&mut self, _first_render: bool) {
+        if self.on_popstate_listener.is_none() {
             let link = self.link.clone();
             self.on_popstate_listener = Some(EventListener::new(
                 &yew::utils::window(),

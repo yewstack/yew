@@ -27,7 +27,7 @@
 //! # }
 //!
 //! fn switch(routes: Routes) -> Html {
-//!     let onclick_callback = Callback::from(|_| RouterService::push(Routes::Home, None));
+//!     let onclick_callback = Callback::from(|_| service::push(Routes::Home, None));
 //!     match routes {
 //!         Routes::Home => html! { <h1>{ "Home" }</h1> },
 //!         Routes::Secure => html! {
@@ -44,10 +44,8 @@
 //! # Internals
 //!
 //! The router keeps its own internal state which is used to store the current route and its associated data.
-//! This allows the [Router] to be operated using the [service][RouterService] with an API that
-//! isn't cumbersome to use. It also caches results of computations such as the query parameters of
-//! [current route][CurrentRoute], making calls to [`CurrentRoute::query`][CurrentRoute::query()]
-//! or [`CurrentRoute::route`][CurrentRoute::route()] fairly cheap.
+//! This allows the [Router] to be operated using the [service] with an API that
+//! isn't cumbersome to use.
 //!
 //! # State
 //!
@@ -58,14 +56,11 @@
 pub mod components;
 mod routable;
 pub mod router;
-mod service;
+pub mod service;
 pub mod utils;
 
 pub use routable::Routable;
 pub use router::{RenderFn, Router};
-pub use service::RouterService;
-
-pub use yew_router_macro::Routable;
 
 pub mod prelude {
     //! Prelude module to be imported when working with `yew-router`.
@@ -73,7 +68,7 @@ pub mod prelude {
     //! This module re-exports the frequently used types from the crate.
 
     pub use crate::components::Link;
-    pub use crate::Router;
     #[doc(no_inline)]
-    pub use crate::{Routable, RouterService};
+    pub use crate::Routable;
+    pub use crate::{service, Router};
 }

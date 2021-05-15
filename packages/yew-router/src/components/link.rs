@@ -1,4 +1,4 @@
-use crate::{Routable, RouterService};
+use crate::{service, Routable};
 use yew::prelude::*;
 
 /// Props for [`Link`]
@@ -31,7 +31,7 @@ impl<R: Routable + Clone + PartialEq + 'static> Component for Link<R> {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::OnClick => {
-                RouterService::push(self.props.route.clone(), None);
+                service::push(self.props.route.clone(), None);
                 false
             }
         }

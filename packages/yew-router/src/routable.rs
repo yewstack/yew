@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+pub use yew_router_macro::Routable;
+
 /// Marks an `enum` as routable.
 ///
 /// # Implementation

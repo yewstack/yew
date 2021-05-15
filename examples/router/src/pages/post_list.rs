@@ -1,8 +1,8 @@
 use crate::components::{pagination::Pagination, post_card::PostCard};
-use crate::Routes;
+use crate::Route;
 use std::collections::HashMap;
 use yew::prelude::*;
-use yew_router::RouterService;
+use yew_router::service;
 
 const ITEMS_PER_PAGE: u64 = 10;
 const TOTAL_PAGES: u64 = std::u64::MAX / ITEMS_PER_PAGE;
@@ -18,14 +18,14 @@ impl Component for PostList {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self { link }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::ShowPage(page) => {
-                RouterService::push(Routes::Posts, {
+                service::push(Route::Posts, {
                     let mut map = HashMap::new();
                     map.insert("page", page.to_string());
                     Some(map)
@@ -83,10 +83,9 @@ impl PostList {
     }
 
     fn current_page(&self) -> u64 {
-        RouterService::query()
+        service::query()
             .get("page")
-            .map(|it| it.parse().ok())
-            .flatten()
+            .and_then(|it| it.parse().ok())
             .unwrap_or(1)
     }
 }

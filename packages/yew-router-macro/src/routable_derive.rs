@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
@@ -22,14 +22,14 @@ impl Parse for Routable {
         let data = match data {
             Data::Enum(data) => data,
             Data::Struct(s) => {
-                return Err(syn::Error::new_spanned(
-                    s.struct_token,
+                return Err(syn::Error::new(
+                    s.struct_token.span(),
                     "expected enum, found struct",
                 ))
             }
             Data::Union(u) => {
-                return Err(syn::Error::new_spanned(
-                    u.union_token,
+                return Err(syn::Error::new(
+                    u.union_token.span(),
                     "expected enum, found union",
                 ))
             }
@@ -69,7 +69,7 @@ fn parse_variants_attributes(
             .collect::<Vec<_>>();
 
         let attr = match at_attrs.len() {
-            1 => *at_attrs.first().expect("unreachable"),
+            1 => *at_attrs.first().unwrap(),
             0 => {
                 return Err(syn::Error::new(
                     variant.span(),
@@ -81,17 +81,14 @@ fn parse_variants_attributes(
             }
             _ => {
                 return Err(syn::Error::new_spanned(
-                    at_attrs
-                        .iter()
-                        .map(|it| it.to_token_stream())
-                        .collect::<TokenStream>(),
+                    quote! { #(#at_attrs)* },
                     format!("only one {} attribute must be present", AT_ATTR_IDENT),
                 ))
             }
         };
 
         let lit = attr.parse_args::<LitStr>()?;
-        ats.push(lit.clone());
+        ats.push(lit);
 
         for attr in attrs.iter() {
             if attr.path.is_ident(NOT_FOUND_ATTR_IDENT) {
@@ -101,7 +98,7 @@ fn parse_variants_attributes(
                     .find(|attr| attr.path.is_ident(AT_ATTR_IDENT))
                     // if we reach here, it means we have already cleared `at` attrs checks
                     // `at` attr must be present on this field
-                    .expect("unreachable");
+                    .unwrap();
 
                 not_found_attrs.push(attr);
                 not_founds.push(at_attr.parse_args::<LitStr>()?)
@@ -111,10 +108,7 @@ fn parse_variants_attributes(
 
     if not_founds.len() > 1 {
         return Err(syn::Error::new_spanned(
-            not_found_attrs
-                .iter()
-                .map(|it| it.to_token_stream())
-                .collect::<TokenStream>(),
+            quote! { #(#not_found_attrs)* },
             format!("there can only be one {}", NOT_FOUND_ATTR_IDENT),
         ));
     }
@@ -129,13 +123,16 @@ impl Routable {
             let right = match &variant.fields {
                 Fields::Unit => quote! { Self::#ident },
                 Fields::Named(field) => {
-                    let fields = field.named.iter().map(|it| it.ident.as_ref().expect("unreachable: named fields have idents"));
+                    let fields = field.named.iter().map(|it| {
+                        //named fields have idents
+                        it.ident.as_ref().unwrap()
+                    });
                     quote! { Self::#ident { #(#fields: params.get(stringify!(#fields))?.parse().ok()?)*, } }
                 }
                 Fields::Unnamed(_) => unreachable!(), // already checked
             };
 
-            let left = self.ats.get(i).expect("unreachable");
+            let left = self.ats.get(i).unwrap();
             quote! {
                 #left => ::std::option::Option::Some(#right)
             }
@@ -145,7 +142,7 @@ impl Routable {
             fn from_path(path: &str, params: &::std::collections::HashMap<&str, &str>) -> ::std::option::Option<Self> {
                 match path {
                     #(#from_path_matches),*,
-                    _ => std::option::Option::None,
+                    _ => ::std::option::Option::None,
                 }
             }
         }
@@ -154,7 +151,7 @@ impl Routable {
     fn build_to_route(&self) -> TokenStream {
         let to_route_matches = self.variants.iter().enumerate().map(|(i, variant)| {
             let ident = &variant.ident;
-            let mut right = self.ats.get(i).expect("unreachable").value();
+            let mut right = self.ats.get(i).unwrap().value();
 
             match &variant.fields {
                 Fields::Unit => quote! { Self::#ident => ::std::string::ToString::to_string(#right) },
@@ -162,7 +159,7 @@ impl Routable {
                     let fields = field
                         .named
                         .iter()
-                        .map(|it| it.ident.as_ref().expect("unreachable"))
+                        .map(|it| it.ident.as_ref().unwrap())
                         .collect::<Vec<_>>();
 
                     for field in fields.iter() {

@@ -31,7 +31,7 @@ fn no(props: &NoProps) -> Html {
     html! {
         <>
             <div id="result-params">{ route }</div>
-            <div id="result-query">{ RouterService::query().get("foo").unwrap() }</div>
+            <div id="result-query">{ service::query().get("foo").unwrap() }</div>
         </>
     }
 }
@@ -40,7 +40,7 @@ fn no(props: &NoProps) -> Html {
 fn component() -> Html {
     let switch = Router::render(|routes| {
         let onclick = Callback::from(|_| {
-            RouterService::push(
+            service::push(
                 Routes::No { id: 2 },
                 Some({
                     let mut map = HashMap::new();

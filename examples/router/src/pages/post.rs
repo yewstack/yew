@@ -1,4 +1,4 @@
-use crate::{content, generator::Generated, Routes};
+use crate::{content, generator::Generated, Route};
 use content::PostPart;
 use yew::prelude::*;
 use yew_router::prelude::*;
@@ -53,9 +53,9 @@ impl Component for Post {
                             </h1>
                             <h2 class="subtitle">
                                 { "by " }
-                                <Link<Routes> classes="has-text-weight-semibold" route=Routes::Author { id: post.author.seed }>
+                                <Link<Route> classes="has-text-weight-semibold" route=Route::Author { id: post.author.seed }>
                                     { &post.author.name }
-                                </Link<Routes>>
+                                </Link<Route>>
                             </h2>
                             <div class="tags">
                                 { for keywords }
@@ -81,9 +81,9 @@ impl Post {
                 </figure>
                 <div class="media-content">
                     <div class="content">
-                        <Link<Routes> classes="is-size-5" route=Routes::Author { id: quote.author.seed }>
+                        <Link<Route> classes="is-size-5" route=Route::Author { id: quote.author.seed }>
                             <strong>{ &quote.author.name }</strong>
-                        </Link<Routes>>
+                        </Link<Route>>
                         <p class="is-family-secondary">
                             { &quote.content }
                         </p>
