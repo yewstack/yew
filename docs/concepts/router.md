@@ -21,6 +21,7 @@ at the top of the application.
 
 Routes are defined by an `enum` which derives `Routable`:
 ```rust
+#[derive(Routable)]
 enum Route {
     #[at("/")]
     Home,
