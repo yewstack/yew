@@ -8,7 +8,7 @@ use yew::Callback;
 
 /// Navigate to a specific route.
 pub fn push_route(route: impl Routable) {
-    push_impl(route.to_route())
+    push_impl(route.to_path())
 }
 
 /// Navigate to a specific route with query parameters.
@@ -21,7 +21,7 @@ pub fn push_route_with_query<S>(
 where
     S: Serialize,
 {
-    let mut url = route.to_route();
+    let mut url = route.to_path();
     let query = serde_urlencoded::to_string(query)?;
     if !query.is_empty() {
         url.push_str(&format!("?{}", query));

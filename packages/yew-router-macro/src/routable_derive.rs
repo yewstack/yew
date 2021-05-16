@@ -12,7 +12,7 @@ pub struct Routable {
     ident: Ident,
     ats: Vec<LitStr>,
     variants: Punctuated<Variant, syn::token::Comma>,
-    not_found_route: Option<LitStr>,
+    not_found_route: Option<Ident>,
 }
 
 impl Parse for Routable {
@@ -48,7 +48,7 @@ impl Parse for Routable {
 
 fn parse_variants_attributes(
     variants: &Punctuated<Variant, syn::token::Comma>,
-) -> syn::Result<(Option<LitStr>, Vec<LitStr>)> {
+) -> syn::Result<(Option<Ident>, Vec<LitStr>)> {
     let mut not_founds = vec![];
     let mut ats: Vec<LitStr> = vec![];
 
@@ -92,16 +92,8 @@ fn parse_variants_attributes(
 
         for attr in attrs.iter() {
             if attr.path.is_ident(NOT_FOUND_ATTR_IDENT) {
-                // the `at` attribute for this variant
-                let at_attr = at_attrs
-                    .iter()
-                    .find(|attr| attr.path.is_ident(AT_ATTR_IDENT))
-                    // if we reach here, it means we have already cleared `at` attrs checks
-                    // `at` attr must be present on this field
-                    .unwrap();
-
                 not_found_attrs.push(attr);
-                not_founds.push(at_attr.parse_args::<LitStr>()?)
+                not_founds.push(variant.ident.clone())
             }
         }
     }
@@ -148,8 +140,8 @@ impl Routable {
         }
     }
 
-    fn build_to_route(&self) -> TokenStream {
-        let to_route_matches = self.variants.iter().enumerate().map(|(i, variant)| {
+    fn build_to_path(&self) -> TokenStream {
+        let to_path_matches = self.variants.iter().enumerate().map(|(i, variant)| {
             let ident = &variant.ident;
             let mut right = self.ats.get(i).unwrap().value();
 
@@ -177,9 +169,9 @@ impl Routable {
         });
 
         quote! {
-            fn to_route(&self) -> ::std::string::String {
+            fn to_path(&self) -> ::std::string::String {
                 match self {
-                    #(#to_route_matches),*,
+                    #(#to_path_matches),*,
                 }
             }
         }
@@ -195,10 +187,10 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
     } = &input;
 
     let from_path = input.build_from_path();
-    let to_route = input.build_to_route();
+    let to_path = input.build_to_path();
 
     let not_found_route = match not_found_route {
-        Some(route) => quote! { ::std::option::Option::Some(#route) },
+        Some(route) => quote! { ::std::option::Option::Some(Self::#route) },
         None => quote! { ::std::option::Option::None },
     };
 
@@ -206,13 +198,13 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
         #[automatically_derived]
         impl ::yew_router::Routable for #ident {
             #from_path
-            #to_route
+            #to_path
 
             fn routes() -> ::std::vec::Vec<&'static str> {
                 ::std::vec![#(#ats),*]
             }
 
-            fn not_found_route() -> ::std::option::Option<&'static str> {
+            fn not_found_route() -> ::std::option::Option<Self> {
                 #not_found_route
             }
 

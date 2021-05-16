@@ -1,6 +1,5 @@
 use crate::utils::{base_url, build_path_with_base};
 use crate::Routable;
-use std::collections::HashMap;
 
 // re-export Router because the macro needs to access it
 pub type Router = route_recognizer::Router<String>;
@@ -26,6 +25,6 @@ pub fn recognize_with_router<R: Routable>(router: &Router, pathname: &str) -> Op
 
     match matched {
         Ok(matched) => R::from_path(matched.handler(), &matched.params().into_iter().collect()),
-        Err(_) => R::not_found_route().and_then(|path| R::from_path(path, &HashMap::new())),
+        Err(_) => R::not_found_route(),
     }
 }

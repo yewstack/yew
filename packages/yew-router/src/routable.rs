@@ -15,13 +15,13 @@ pub trait Routable {
         Self: Sized;
 
     /// Converts the route to a string that can passed to the history API.
-    fn to_route(&self) -> String;
+    fn to_path(&self) -> String;
 
     /// Lists all the available routes
     fn routes() -> Vec<&'static str>;
 
     /// The route to redirect to on 404
-    fn not_found_route() -> Option<&'static str>;
+    fn not_found_route() -> Option<Self> where Self: Sized;
 
     /// Match a route based on the path
     fn recognize(pathname: &str) -> Option<Self>
