@@ -1,4 +1,3 @@
-#![allow(missing_debug_implementations, missing_docs)]
 //! Function components are a simplified version of normal components.
 //! They consist of a single function annotated with the attribute `#[function_component(_)]`
 //! that receives props and determines what should be rendered by returning [`Html`].
@@ -18,6 +17,7 @@ use crate::html::AnyScope;
 use crate::{Component, ComponentLink, Html, Properties};
 use scoped_tls_hkt::scoped_thread_local;
 use std::cell::RefCell;
+use std::fmt;
 use std::rc::Rc;
 
 mod hooks;
@@ -64,18 +64,30 @@ struct HookState {
     destroy_listeners: Vec<Box<dyn FnOnce()>>,
 }
 
+/// Trait that allows a struct to act as Function Component.
 pub trait FunctionProvider {
+    /// Properties for the Function Component.
     type TProps: Properties + PartialEq;
+
+    /// Render the component. This function returns the [`Html`] to be rendered for the component.
+    ///
+    /// Equivalent of [`Component::view`].
     fn run(props: &Self::TProps) -> Html;
 }
 
-#[allow(missing_debug_implementations)]
+/// Wrapper that allows a struct implementing [`FunctionProvider`] to be consumed as a component.
 pub struct FunctionComponent<T: FunctionProvider + 'static> {
     _never: std::marker::PhantomData<T>,
     props: T::TProps,
     hook_state: RefCell<HookState>,
     link: ComponentLink<Self>,
     message_queue: MsgQueue,
+}
+
+impl<T: FunctionProvider> fmt::Debug for FunctionComponent<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("FunctionComponent<_>")
+    }
 }
 
 impl<T> FunctionComponent<T>
@@ -121,12 +133,6 @@ where
         }
     }
 
-    fn rendered(&mut self, _first_render: bool) {
-        for msg in self.message_queue.drain() {
-            self.link.send_message(msg);
-        }
-    }
-
     fn update(&mut self, msg: Self::Message) -> bool {
         msg()
     }
@@ -139,6 +145,12 @@ where
 
     fn view(&self) -> Html {
         self.with_hook_state(|| T::run(&self.props))
+    }
+
+    fn rendered(&mut self, _first_render: bool) {
+        for msg in self.message_queue.drain() {
+            self.link.send_message(msg);
+        }
     }
 
     fn destroy(&mut self) {
@@ -187,6 +199,7 @@ pub struct HookUpdater {
     process_message: ProcessMessage,
 }
 impl HookUpdater {
+    /// Callback which runs the hook.
     pub fn callback<T: 'static, F>(&self, cb: F)
     where
         F: FnOnce(&mut T) -> bool + 'static,
@@ -209,6 +222,7 @@ impl HookUpdater {
         );
     }
 
+    /// Callback called after the render
     pub fn post_render<T: 'static, F>(&self, cb: F)
     where
         F: FnOnce(&mut T) -> bool + 'static,
@@ -217,7 +231,7 @@ impl HookUpdater {
         let process_message = self.process_message.clone();
 
         // Update the component
-        // We're calling "messag_equeue.push", so not calling it post-render
+        // We're calling "message_queue.push", so not calling it post-render
         let post_render = true;
         process_message(
             Box::new(move || {

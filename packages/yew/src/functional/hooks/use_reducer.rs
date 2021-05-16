@@ -154,6 +154,7 @@ pub struct UseReducerHandle<State, Action> {
 }
 
 impl<State, Action> UseReducerHandle<State, Action> {
+    /// Calls the dispatch with the given value
     pub fn dispatch(&self, value: Action) {
         (self.setter)(value)
     }

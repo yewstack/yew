@@ -75,6 +75,7 @@ impl<T: fmt::Debug> fmt::Debug for UseStateHandle<T> {
 }
 
 impl<T> UseStateHandle<T> {
+    /// Updates the value
     pub fn set(&self, value: T) {
         (self.setter)(value)
     }
