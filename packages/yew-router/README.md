@@ -3,13 +3,14 @@ A routing library for the [Yew](https://github.com/yewstack/yew) frontend framew
 
 
 ### Example
+
 ```rust
  use yew::prelude::*;
- use yew_functional::*;
- use yew_router::prelude::*;
+use yew_functional::*;
+use yew_router::prelude::*;
 
-[derive(Debug, Clone, Copy, PartialEq, Routable)]
-enum Routes {
+#[derive(Debug, Clone, Copy, PartialEq, Routable)]
+enum Route {
     #[at("/")]
     Home,
     #[at("/secure")]
@@ -19,23 +20,23 @@ enum Routes {
     NotFound,
 }
 
-fn switch(routes: Routes) -> Html {
-    let onclick_callback = Callback::from(|_| service::push(Routes::Home, None));
+fn switch(routes: Route) -> Html {
+    let onclick_callback = Callback::from(|_| yew_router::service::push(Route::Home, None));
     match routes {
-        Routes::Home => html! { <h1>{ "Home" }</h1> },
-        Routes::Secure => html! {
+        Route::Home => html! { <h1>{ "Home" }</h1> },
+        Route::Secure => html! {
             <div>
                 <h1>{ "Secure" }</h1>
                 <button onclick=onclick_callback>{ "Go Home" }</button>
             </div>
         },
-        Routes::NotFound => html! { <h1>{ "404" }</h1> },
+        Route::NotFound => html! { <h1>{ "404" }</h1> },
     }
 }
 
 // Component's `view` method
 html! {
-    <Router<Routes> render=Router::render(switch) />
+    <Router<Route> render=Router::render(switch) />
 }
 ```
 

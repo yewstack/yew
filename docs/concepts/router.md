@@ -21,7 +21,7 @@ at the top of application.
 
 Routes are defined by an `enum` which derives `Routable`:
 ```rust
-enum Routes {
+enum Route {
     #[at("/")]
     Home,
     #[at("/secure")]
@@ -41,14 +41,14 @@ nothing is rendered, and a message is logged to console stating that no route wa
 #[function_component(Main)]
 fn app() -> Html {
     html! {
-        <Router<Routes> render=Router::render(switch) />
+        <Router<Route> render=Router::render(switch) />
     }
 }
 
 fn switch(routes: Routes) -> Html {
     match route {
-        Routes::Home => html! { <h1>{ "Home" }</h1> },
-        Routes::Secure => {
+        Route::Home => html! { <h1>{ "Home" }</h1> },
+        Route::Secure => {
             let callback = Callback::from(|_| yew_router::service::push(Routes::Home));
             html! {
                 <div>
@@ -57,7 +57,7 @@ fn switch(routes: Routes) -> Html {
                 </div>
             }
         },
-        Routes::NotFound => html! { <h1>{ "404" }</h1> },
+        Route::NotFound => html! { <h1>{ "404" }</h1> },
     }
 }
 ```

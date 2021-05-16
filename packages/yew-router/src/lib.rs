@@ -9,7 +9,7 @@
 //! # use yew_router::prelude::*;
 //!
 //! #[derive(Debug, Clone, Copy, PartialEq, Routable)]
-//! enum Routes {
+//! enum Route {
 //!     #[at("/")]
 //!     Home,
 //!     #[at("/secure")]
@@ -22,21 +22,21 @@
 //! # #[function_component(Main)]
 //! # fn app() -> Html {
 //! html! {
-//!     <Router<Routes> render=Router::render(switch) />
+//!     <Router<Route> render=Router::render(switch) />
 //! }
 //! # }
 //!
-//! fn switch(routes: Routes) -> Html {
-//!     let onclick_callback = Callback::from(|_| service::push(Routes::Home));
+//! fn switch(routes: Route) -> Html {
+//!     let onclick_callback = Callback::from(|_| yew_router::service::push_route(Route::Home));
 //!     match routes {
-//!         Routes::Home => html! { <h1>{ "Home" }</h1> },
-//!         Routes::Secure => html! {
+//!         Route::Home => html! { <h1>{ "Home" }</h1> },
+//!         Route::Secure => html! {
 //!             <div>
 //!                 <h1>{ "Secure" }</h1>
 //!                 <button onclick=onclick_callback>{ "Go Home" }</button>
 //!             </div>
 //!         },
-//!         Routes::NotFound => html! { <h1>{ "404" }</h1> },
+//!         Route::NotFound => html! { <h1>{ "404" }</h1> },
 //!     }
 //! }
 //! ```
@@ -56,8 +56,10 @@
 pub mod components;
 mod routable;
 pub mod router;
-pub mod service;
+mod service;
 pub mod utils;
+
+pub use service::*;
 
 pub use routable::Routable;
 pub use router::{RenderFn, Router};
@@ -70,5 +72,5 @@ pub mod prelude {
     pub use crate::components::Link;
     #[doc(no_inline)]
     pub use crate::Routable;
-    pub use crate::{service, Router};
+    pub use crate::Router;
 }

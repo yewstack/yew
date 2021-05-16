@@ -5,7 +5,7 @@ use yew::prelude::*;
 #[derive(Properties, Clone, PartialEq)]
 pub struct LinkProps<R: Routable + Clone> {
     #[prop_or_default]
-    pub classes: String,
+    pub classes: Classes,
     pub route: R,
     pub children: Children,
 }
@@ -31,7 +31,7 @@ impl<R: Routable + Clone + PartialEq + 'static> Component for Link<R> {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::OnClick => {
-                service::push(self.props.route.clone());
+                service::push_route(self.props.route.clone());
                 false
             }
         }

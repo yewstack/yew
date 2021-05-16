@@ -2,7 +2,6 @@ use crate::components::{pagination::Pagination, post_card::PostCard};
 use crate::Route;
 use serde::Serialize;
 use yew::prelude::*;
-use yew_router::service;
 
 const ITEMS_PER_PAGE: u64 = 10;
 const TOTAL_PAGES: u64 = u64::MAX / ITEMS_PER_PAGE;
@@ -30,7 +29,7 @@ impl Component for PostList {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::ShowPage(page) => {
-                service::push_with_query(Route::Posts, PageQuery { page }).unwrap();
+                yew_router::push_route_with_query(Route::Posts, PageQuery { page }).unwrap();
                 true
             }
         }
@@ -84,7 +83,7 @@ impl PostList {
     }
 
     fn current_page(&self) -> u64 {
-        service::query()
+        yew_router::query_parameters()
             .get("page")
             .and_then(|it| it.parse().ok())
             .unwrap_or(1)

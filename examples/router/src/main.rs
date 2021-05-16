@@ -108,10 +108,10 @@ impl Model {
                 </div>
                 <div class=classes!("navbar-menu", active_class)>
                     <div class="navbar-start">
-                        <Link<Route> classes="navbar-item" route=Route::Home>
+                        <Link<Route> classes=classes!("navbar-item") route=Route::Home>
                             { "Home" }
                         </Link<Route>>
-                        <Link<Route> classes="navbar-item" route=Route::Posts>
+                        <Link<Route> classes=classes!("navbar-item") route=Route::Posts>
                             { "Posts" }
                         </Link<Route>>
 
@@ -121,7 +121,7 @@ impl Model {
                             </a>
                             <div class="navbar-dropdown">
                                 <a class="navbar-item">
-                                    <Link<Route> classes="navbar-item" route=Route::Authors>
+                                    <Link<Route> classes=classes!("navbar-item") route=Route::Authors>
                                         { "Meet the authors" }
                                     </Link<Route>>
                                 </a>

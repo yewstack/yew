@@ -53,7 +53,7 @@ impl Component for Post {
                             </h1>
                             <h2 class="subtitle">
                                 { "by " }
-                                <Link<Route> classes="has-text-weight-semibold" route=Route::Author { id: post.author.seed }>
+                                <Link<Route> classes=classes!("has-text-weight-semibold") route=Route::Author { id: post.author.seed }>
                                     { &post.author.name }
                                 </Link<Route>>
                             </h2>
@@ -81,7 +81,7 @@ impl Post {
                 </figure>
                 <div class="media-content">
                     <div class="content">
-                        <Link<Route> classes="is-size-5" route=Route::Author { id: quote.author.seed }>
+                        <Link<Route> classes=classes!("is-size-5") route=Route::Author { id: quote.author.seed }>
                             <strong>{ &quote.author.name }</strong>
                         </Link<Route>>
                         <p class="is-family-secondary">

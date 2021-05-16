@@ -6,14 +6,14 @@ use wasm_bindgen::JsValue;
 use web_sys::Event;
 
 /// Navigate to a specific route.
-pub fn push(route: impl Routable) {
+pub fn push_route(route: impl Routable) {
     push_impl(route.to_route())
 }
 
 /// Navigate to a specific route with query parameters.
 ///
 /// This should be used in cases where [`Link`](crate::prelude::Link) is insufficient.
-pub fn push_with_query<S>(
+pub fn push_route_with_query<S>(
     route: impl Routable,
     query: S,
 ) -> Result<(), serde_urlencoded::ser::Error>
@@ -43,6 +43,6 @@ fn push_impl(url: String) {
         .expect("dispatch");
 }
 
-pub fn query() -> HashMap<String, String> {
+pub fn query_parameters() -> HashMap<String, String> {
     crate::utils::get_query_params()
 }
