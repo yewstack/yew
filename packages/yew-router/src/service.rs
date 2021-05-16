@@ -1,9 +1,9 @@
 use crate::utils::build_path_with_base;
 use crate::Routable;
-use serde::Serialize;
-use std::collections::HashMap;
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::JsValue;
 use web_sys::Event;
+use std::fmt;
 
 /// Navigate to a specific route.
 pub fn push_route(route: impl Routable) {
@@ -43,6 +43,29 @@ fn push_impl(url: String) {
         .expect("dispatch");
 }
 
-pub fn query_parameters() -> HashMap<String, String> {
-    crate::utils::get_query_params()
+#[derive(Debug, thiserror::Error)]
+pub enum ParseQueryError {
+    /// Serialize error
+    Ser(#[from] serde_urlencoded::ser::Error),
+    /// Deserialize error
+    De(#[from] serde_urlencoded::de::Error),
+}
+
+impl fmt::Display for ParseQueryError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ParseQueryError::Ser(e) => write!(f, "{}", e),
+            ParseQueryError::De(e) => write!(f, "{}", e),
+        }
+    }
+}
+
+pub fn parse_query<T>() -> Result<T, ParseQueryError>
+where
+    T: for<'de> Deserialize<'de>,
+{
+    let raw = crate::utils::get_query_params();
+    let string = serde_urlencoded::to_string(&raw)?;
+    let parsed = serde_urlencoded::from_str(&string)?;
+    Ok(parsed)
 }
