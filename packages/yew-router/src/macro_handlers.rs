@@ -1,14 +1,13 @@
-// re-export Router because the macro needs to access it
 use crate::utils::{base_url, build_path_with_base};
 use crate::Routable;
 use std::collections::HashMap;
 
+// re-export Router because the macro needs to access it
 pub type Router = route_recognizer::Router<String>;
 
 /// Build a `route_recognizer::Router` from a `Routable` type.
 pub fn build_router<R: Routable>() -> Router {
     let base = base_url();
-    // build the router like in the router component
     let mut router = Router::new();
     R::routes().iter().for_each(|path| {
         let path = match &base {

@@ -72,7 +72,8 @@ To navigate between pages, use either a `Link` component (which renders a `<a>` 
 #### Specifying query parameters when navigating
 
 In order to specify query parameters when navigating to a new route, use `yew_router::push_route_with_query` function.
-It uses `serde` to serialize the parameters into query string for the URL.
+It uses `serde` to serialize the parameters into query string for the URL so any type that implements `Serialize` can be passed.
+In its simplest form this is just a `HashMap` containing string pairs.
 
 #### Obtaining query parameters for current route
 

@@ -4,8 +4,10 @@ use yew::prelude::*;
 /// Props for [`Link`]
 #[derive(Properties, Clone, PartialEq)]
 pub struct LinkProps<R: Routable + Clone> {
+    /// CSS classes to add to the anchor element (optional).
     #[prop_or_default]
     pub classes: Classes,
+    /// Route that will be pushed when the anchor is clicked.
     pub route: R,
     pub children: Children,
 }

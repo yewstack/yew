@@ -14,7 +14,7 @@ pub trait Routable {
     where
         Self: Sized;
 
-    /// Converts an instance of the routes enum to a route that can passed to browser history API.
+    /// Converts the route to a string that can passed to the history API.
     fn to_route(&self) -> String;
 
     /// Lists all the available routes

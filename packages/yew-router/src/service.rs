@@ -48,10 +48,8 @@ pub fn parse_query<T>() -> Result<T, serde_urlencoded::de::Error>
 where
     T: for<'de> Deserialize<'de>,
 {
-    let url = web_sys::Url::new(&yew::utils::document().url().unwrap()).unwrap();
-    let parsed =
-        serde_urlencoded::from_str(&url.search().strip_prefix("?").as_deref().unwrap_or(""))?;
-    Ok(parsed)
+    let query = yew::utils::document().location().unwrap().search().unwrap();
+    serde_urlencoded::from_str(query.strip_prefix("?").unwrap_or(""))
 }
 
 pub fn current_route<R: Routable>() -> Option<R> {
@@ -59,7 +57,6 @@ pub fn current_route<R: Routable>() -> Option<R> {
     R::recognize(&pathname)
 }
 
-// just an opaque handle to the actual listener so we don't expose implementation details
 /// Handle for the router's path event listener
 pub struct RouteListener {
     // this exists so listener is dropped when handle is dropped
@@ -67,7 +64,7 @@ pub struct RouteListener {
     listener: EventListener,
 }
 
-/// Adds a listener which is called when a route is changed.
+/// Adds a listener which is called when the current route is changed.
 ///
 /// The callback receives `Option<R>` so it can handle the error case itself.
 pub fn add_onpush_listener<R: Routable + 'static>(callback: Callback<Option<R>>) -> RouteListener {
