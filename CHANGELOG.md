@@ -6,7 +6,7 @@
 
 - #### 🛠 Fixes
 
-  - Fix missing redirects (#1640). [[@siku2] [#1640]](https://github.com/yewstack/yew/pull/1640)
+  - Fix missing redirects (#1640). [[@siku2], [#1640](https://github.com/yewstack/yew/pull/1640)]
 
 - #### ⚡️ Features
 
