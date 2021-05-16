@@ -20,7 +20,7 @@
     <span> | </span>
     <a href="https://yew.rs/docs/next/intro/">Documentation (latest)</a>
     <span> | </span>
-    <a href="https://github.com/yewstack/yew/tree/v0.17/examples">Examples</a>
+    <a href="https://github.com/yewstack/yew/tree/v0.18/examples">Examples</a>
     <span> | </span>
     <a href="https://github.com/yewstack/yew/blob/master/CHANGELOG.md">Changelog</a>
     <span> | </span>
