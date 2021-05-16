@@ -115,7 +115,7 @@ impl Cli {
         for (msg, user, issue) in fixes {
             writeln!(
                 f,
-                "  - {msg}. [[@{user}], [#{issue}](https://github.com/yewstack/yew/pull/{issue})]",
+                "  - {msg}. [[@{user}](https://github.com/{user}), [#{issue}](https://github.com/yewstack/yew/pull/{issue})]",
                 msg = msg,
                 user = user,
                 issue = issue
@@ -127,7 +127,7 @@ impl Cli {
         for (msg, user, issue) in features {
             writeln!(
                 f,
-                "  - {msg}. [[@{user}], [#{issue}](https://github.com/yewstack/yew/pull/{issue})]",
+                "  - {msg}. [[@{user}](https://github.com/{user}), [#{issue}](https://github.com/yewstack/yew/pull/{issue})]",
                 msg = msg,
                 user = user,
                 issue = issue
