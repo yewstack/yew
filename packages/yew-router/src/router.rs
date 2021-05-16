@@ -1,7 +1,6 @@
 //! Router Component.
 
-use crate::Routable;
-use gloo::events::EventListener;
+use crate::{attach_route_listener, current_route, Routable, RouteListener};
 use std::rc::Rc;
 use yew::prelude::*;
 
@@ -39,8 +38,8 @@ pub struct RouterProps<R: Clone> {
 }
 
 #[doc(hidden)]
-pub enum Msg {
-    ReRender,
+pub enum Msg<R> {
+    UpdateRoute(Option<R>),
 }
 
 /// The router component.
@@ -52,28 +51,34 @@ pub enum Msg {
 /// See the [crate level document][crate] for more information.
 pub struct Router<R: Routable + Clone + PartialEq + 'static> {
     props: RouterProps<R>,
-    link: ComponentLink<Self>,
-    on_popstate_listener: Option<EventListener>,
+    #[allow(dead_code)] // only exists to drop listener on component drop
+    route_listener: RouteListener,
+    route: Option<R>,
 }
 
 impl<R> Component for Router<R>
 where
     R: Routable + Clone + PartialEq + 'static,
 {
-    type Message = Msg;
+    type Message = Msg<R>;
     type Properties = RouterProps<R>;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let route_listener = attach_route_listener(link.callback(Msg::UpdateRoute));
+
         Self {
             props,
-            link,
-            on_popstate_listener: None,
+            route_listener,
+            route: current_route(),
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> bool {
         match msg {
-            Msg::ReRender => true,
+            Msg::UpdateRoute(route) => {
+                self.route = route;
+                true
+            }
         }
     }
 
@@ -83,27 +88,12 @@ where
     }
 
     fn view(&self) -> Html {
-        let pathname = yew::utils::window().location().pathname().unwrap();
-
-        let route = R::recognize(&pathname);
-
-        match route {
+        match self.route.clone() {
             Some(route) => (self.props.render.0)(route),
             None => {
                 weblog::console_log!("no route matched");
                 html! {}
             }
-        }
-    }
-
-    fn rendered(&mut self, _first_render: bool) {
-        if self.on_popstate_listener.is_none() {
-            let link = self.link.clone();
-            self.on_popstate_listener = Some(EventListener::new(
-                &yew::utils::window(),
-                "popstate",
-                move |_| link.send_message(Msg::ReRender),
-            ))
         }
     }
 }
