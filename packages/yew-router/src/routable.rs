@@ -22,4 +22,9 @@ pub trait Routable {
 
     /// The route to redirect to on 404
     fn not_found_route() -> Option<&'static str>;
+
+    /// Match a route based on the path
+    fn recognize(pathname: &str) -> Option<Self>
+    where
+        Self: Sized;
 }

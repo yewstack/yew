@@ -1,9 +1,10 @@
 use crate::utils::build_path_with_base;
 use crate::Routable;
+use gloo::events::EventListener;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::JsValue;
 use web_sys::Event;
-use std::fmt;
+use yew::Callback;
 
 /// Navigate to a specific route.
 pub fn push_route(route: impl Routable) {
@@ -43,29 +44,36 @@ fn push_impl(url: String) {
         .expect("dispatch");
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum ParseQueryError {
-    /// Serialize error
-    Ser(#[from] serde_urlencoded::ser::Error),
-    /// Deserialize error
-    De(#[from] serde_urlencoded::de::Error),
-}
-
-impl fmt::Display for ParseQueryError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ParseQueryError::Ser(e) => write!(f, "{}", e),
-            ParseQueryError::De(e) => write!(f, "{}", e),
-        }
-    }
-}
-
-pub fn parse_query<T>() -> Result<T, ParseQueryError>
+pub fn parse_query<T>() -> Result<T, serde_urlencoded::de::Error>
 where
     T: for<'de> Deserialize<'de>,
 {
-    let raw = crate::utils::get_query_params();
-    let string = serde_urlencoded::to_string(&raw)?;
-    let parsed = serde_urlencoded::from_str(&string)?;
+    let url = web_sys::Url::new(&yew::utils::document().url().unwrap()).unwrap();
+    let parsed =
+        serde_urlencoded::from_str(&url.search().strip_prefix("?").as_deref().unwrap_or(""))?;
     Ok(parsed)
+}
+
+pub fn current_route<R: Routable>() -> Option<R> {
+    let pathname = yew::utils::window().location().pathname().unwrap();
+    R::recognize(&pathname)
+}
+
+// just an opaque handle to the actual listener so we don't expose implementation details
+/// Handle for the router's path event listener
+pub struct RouteListener {
+    // this exists so listener is dropped when handle is dropped
+    #[allow(dead_code)]
+    listener: EventListener,
+}
+
+/// Adds a listener which is called when a route is changed.
+///
+/// The callback receives `Option<R>` so it can handle the error case itself.
+pub fn add_onpush_listener<R: Routable + 'static>(callback: Callback<Option<R>>) -> RouteListener {
+    let listener = EventListener::new(&yew::utils::window(), "popstate", move |_| {
+        callback.emit(current_route())
+    });
+
+    RouteListener { listener }
 }

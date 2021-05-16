@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::prelude::*;
 use yew_functional::function_component;
@@ -8,6 +8,11 @@ mod utils;
 use utils::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
+
+#[derive(Serialize, Deserialize)]
+struct Query {
+    foo: String,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Routable)]
 enum Routes {
@@ -31,21 +36,22 @@ fn no(props: &NoProps) -> Html {
     html! {
         <>
             <div id="result-params">{ route }</div>
-            <div id="result-query">{ service::query().get("foo").unwrap() }</div>
+            <div id="result-query">{ yew_router::parse_query::<Query>().unwrap().foo }</div>
         </>
     }
-}
-
-#[derive(Serialize)]
-struct Query {
-    foo: &'static str,
 }
 
 #[function_component(Comp)]
 fn component() -> Html {
     let switch = Router::render(|routes| {
         let onclick = Callback::from(|_| {
-            service::push_with_query(Routes::No { id: 2 }, Query { foo: "bar" }).unwrap();
+            yew_router::push_route_with_query(
+                Routes::No { id: 2 },
+                Query {
+                    foo: "bar".to_string(),
+                },
+            )
+            .unwrap();
         });
 
         match routes {

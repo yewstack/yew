@@ -215,6 +215,13 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
             fn not_found_route() -> ::std::option::Option<&'static str> {
                 #not_found_route
             }
+
+            fn recognize(pathname: &str) -> ::std::option::Option<Self> {
+                ::std::thread_local! {
+                    static ROUTER: ::yew_router::__macro::Router = ::yew_router::__macro::build_router::<#ident>();
+                }
+                ROUTER.with(|router| ::yew_router::__macro::recognize_with_router(router, pathname))
+            }
         }
     }
 }

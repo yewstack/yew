@@ -1,9 +1,7 @@
 //! Router Component.
 
-use crate::utils::{base_url, build_path_with_base};
 use crate::Routable;
 use gloo::events::EventListener;
-use std::collections::HashMap;
 use std::rc::Rc;
 use yew::prelude::*;
 
@@ -56,7 +54,6 @@ pub struct Router<R: Routable + Clone + PartialEq + 'static> {
     props: RouterProps<R>,
     link: ComponentLink<Self>,
     on_popstate_listener: Option<EventListener>,
-    router: route_recognizer::Router<String>,
 }
 
 impl<R> Component for Router<R>
@@ -67,25 +64,10 @@ where
     type Properties = RouterProps<R>;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let base: Option<String> = base_url();
-
-        let router = {
-            let mut router = route_recognizer::Router::new();
-            R::routes().iter().for_each(|path| {
-                let path = match &base {
-                    Some(base) if base != "/" => build_path_with_base(path),
-                    _ => path.to_string(),
-                };
-                router.add(&path, path.clone());
-            });
-            router
-        };
-
         Self {
             props,
             link,
             on_popstate_listener: None,
-            router,
         }
     }
 
@@ -103,19 +85,7 @@ where
     fn view(&self) -> Html {
         let pathname = yew::utils::window().location().pathname().unwrap();
 
-        let route = {
-            let router = &self.router;
-            let matched = router.recognize(&pathname.strip_suffix("/").unwrap_or(&pathname));
-            match matched {
-                Ok(matched) => {
-                    R::from_path(matched.handler(), &matched.params().into_iter().collect())
-                }
-                Err(_) => match R::not_found_route() {
-                    Some(it) => R::from_path(it, &HashMap::new()),
-                    None => None,
-                },
-            }
-        };
+        let route = R::recognize(&pathname);
 
         match route {
             Some(route) => (self.props.render.0)(route),

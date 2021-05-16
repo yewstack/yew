@@ -2,6 +2,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 use wasm_bindgen_test::wasm_bindgen_test as test;
 use yew::utils::*;
+use yew_router::parse_query;
 use yew_router::prelude::*;
 use yew_router::utils::*;
 
@@ -42,16 +43,19 @@ struct QueryParams {
 
 #[test]
 fn test_get_query_params() {
-    assert_eq!(get_query_params(), HashMap::new());
+    assert_eq!(
+        parse_query::<HashMap<String, String>>().unwrap(),
+        HashMap::new()
+    );
 
     let query = QueryParams {
         foo: "test".to_string(),
         bar: 69,
     };
 
-    service::push_with_query(Routes::Home, query.clone()).unwrap();
+    yew_router::push_route_with_query(Routes::Home, query.clone()).unwrap();
 
-    let params = get_query_params();
+    let params: HashMap<String, String> = parse_query().unwrap();
 
     assert_eq!(params, {
         let mut map = HashMap::new();
