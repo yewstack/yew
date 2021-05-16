@@ -54,7 +54,7 @@
 //! [yewdux](https://github.com/intendednull/yewdux) be used.
 
 #[doc(hidden)]
-#[path = "macro_handlers.rs"]
+#[path = "macro_helpers.rs"]
 pub mod __macro;
 pub mod components;
 mod routable;

@@ -67,7 +67,7 @@ pub struct RouteListener {
 /// Adds a listener which is called when the current route is changed.
 ///
 /// The callback receives `Option<R>` so it can handle the error case itself.
-pub fn add_onpush_listener<R: Routable + 'static>(callback: Callback<Option<R>>) -> RouteListener {
+pub fn attach_route_listener<R: Routable + 'static>(callback: Callback<Option<R>>) -> RouteListener {
     let listener = EventListener::new(&yew::utils::window(), "popstate", move |_| {
         callback.emit(current_route())
     });

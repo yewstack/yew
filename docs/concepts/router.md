@@ -50,7 +50,7 @@ fn switch(routes: Routes) -> Html {
     match route {
         Route::Home => html! { <h1>{ "Home" }</h1> },
         Route::Secure => {
-            let callback = Callback::from(|_| yew_router::service::push(Routes::Home));
+            let callback = Callback::from(|_| yew_router::push_route(Routes::Home));
             html! {
                 <div>
                     <h1>{ "Secure" }</h1>
