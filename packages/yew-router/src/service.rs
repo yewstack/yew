@@ -22,7 +22,9 @@ where
 {
     let mut url = route.to_route();
     let query = serde_urlencoded::to_string(query)?;
-    url.push_str(&format!("?{}", query));
+    if !query.is_empty() {
+        url.push_str(&format!("?{}", query));
+    }
 
     push_impl(url);
 

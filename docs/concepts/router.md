@@ -32,8 +32,8 @@ enum Routes {
 }
 ```
 
-`Router` component takes that enum that defines the routes as its type parameter, finds the one whose path matches the 
-browser's current URL and passes it to the `render` callback. The callback returns the HTML which is to be rendered. 
+The `Router` component takes the `Routable` enum as its type parameter, finds the first variant whose path matches the 
+browser's current URL and passes it to the `render` callback. The callback then decides what to render. 
 In case no path is matched, the router navigates to the path with `not_found` attribute. If no route is specified, 
 nothing is rendered, and a message is logged to console stating that no route was matched.
 
@@ -46,24 +46,25 @@ fn app() -> Html {
 }
 
 fn switch(routes: Routes) -> Html {
-    let onclick_callback = Callback::from(|_| service::push(Routes::Home));
-    match routes {
+    match route {
         Routes::Home => html! { <h1>{ "Home" }</h1> },
-        Routes::Secure => html! {
-            <div>
-                <h1>{ "Secure" }</h1>
-                <button onclick=onclick_callback>{ "Go Home" }</button>
-            </div>
+        Routes::Secure => {
+            let callback = Callback::from(|_| yew_router::service::push(Routes::Home));
+            html! {
+                <div>
+                    <h1>{ "Secure" }</h1>
+                    <button onclick=callback>{ "Go Home" }</button>
+                </div>
+            }
         },
-        Routes::NotFound => html! {<h1>{"404"}</h1>},
+        Routes::NotFound => html! { <h1>{ "404" }</h1> },
     }
 }
 ```
 
 ### Navigation
 
-In order to navigate between pages, either `Link` component (which renders a `<a>` element) or `yew_router::service::push` 
-function is used.
+To navigate between pages, use either a `Link` component (which renders a `<a>` element) or the `yew_router::service::push` function.
 
 ## Relevant examples
 - [Router](https://github.com/yewstack/yew/tree/master/examples/router)
