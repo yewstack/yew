@@ -17,4 +17,4 @@ yew-router-route-parser = { version = "^0.15.0", path = "../yew-router-route-par
 proc-macro2 = "1.0.1"
 
 [dev-dependencies]
-yew-router = { version = "0.14.0", path = "../yew-router" } # This should probably be removed, it makes the deploy process much more annoying.
+yew-router = { version = "0.15.0", path = "../yew-router" } # This should probably be removed, it makes the deploy process much more annoying.

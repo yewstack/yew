@@ -25,7 +25,7 @@ pub struct Cli {
     #[structopt(skip)]
     github_users: GitHubUsers,
 
-    #[structopt(skip = regex::Regex::new(r"\(#(\d+)\)").unwrap())]
+    #[structopt(skip = regex::Regex::new(r"\s*\(#(\d+)\)").unwrap())]
     re_issue: regex::Regex,
 }
 
@@ -81,9 +81,14 @@ impl Cli {
                 continue;
             }
 
-            let issue =
-                if let Some(issue) = self.re_issue.captures(first_line).map(|x| x[1].to_string()) {
-                    issue
+            let (issue, first_line) =
+                if let Some(caps) = self.re_issue.captures_iter(first_line).last() {
+                    let first_line_stripped = vec![
+                        &first_line[..caps.get(0).unwrap().start()],
+                        &first_line[caps.get(0).unwrap().end()..],
+                    ]
+                    .join("");
+                    (caps[1].to_string(), first_line_stripped)
                 } else {
                     eprintln!("Missing issue for commit: {}", oid);
                     continue;
@@ -94,7 +99,7 @@ impl Cli {
                 .find_user_by_commit_author(email, oid.to_string())
                 .with_context(|| format!("Could not find GitHub user for commit: {}", oid))?;
 
-            logs.push((first_line.to_owned(), user.to_owned(), issue.to_owned()));
+            logs.push((first_line.to_string(), user.to_owned(), issue.to_owned()));
         }
 
         let (features, fixes): (Vec<_>, Vec<_>) = logs
