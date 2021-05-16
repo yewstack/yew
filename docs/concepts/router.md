@@ -15,7 +15,7 @@ The router then detects this change and then decides what to render.
 ### `Router`
 
 The Router component. It takes in a callback and renders the HTML based on the returned value of the callback. It is usually placed 
-at the top of application. 
+at the top of the application. 
 
 ## Usage
 
