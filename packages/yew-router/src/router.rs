@@ -5,13 +5,13 @@ use std::rc::Rc;
 use yew::prelude::*;
 
 /// Wraps `Rc` around `Fn` so it can be passed as a prop.
-pub struct RenderFn<R>(Rc<dyn Fn(R) -> Html>);
+pub struct RenderFn<R>(Rc<dyn Fn(&R) -> Html>);
 
 impl<R> RenderFn<R> {
     /// Creates a new [`RenderFn`]
     ///
     /// It is recommended that you use [`Router::render`] instead
-    pub fn new(value: impl Fn(R) -> Html + 'static) -> Self {
+    pub fn new(value: impl Fn(&R) -> Html + 'static) -> Self {
         Self(Rc::new(value))
     }
 }
@@ -31,7 +31,7 @@ impl<T> PartialEq for RenderFn<T> {
 }
 
 /// Props for [`Router`]
-#[derive(Properties, Clone, PartialEq)]
+#[derive(Properties)]
 pub struct RouterProps<R> {
     /// Callback which returns [`Html`] to be rendered for the current route.
     pub render: RenderFn<R>,
@@ -39,7 +39,15 @@ pub struct RouterProps<R> {
 
 impl<R> Clone for RouterProps<R> {
     fn clone(&self) -> Self {
-        Self { render: self.render.clone() }
+        Self {
+            render: self.render.clone(),
+        }
+    }
+}
+
+impl<R> PartialEq for RouterProps<R> {
+    fn eq(&self, other: &Self) -> bool {
+        self.render.eq(&other.render)
     }
 }
 
@@ -55,7 +63,7 @@ pub enum Msg<R> {
 /// Otherwise `html! {}` is rendered and a message is logged to console
 /// stating that no route can be matched.
 /// See the [crate level document][crate] for more information.
-pub struct Router<R: Routable + Clone + PartialEq + 'static> {
+pub struct Router<R: Routable + 'static> {
     props: RouterProps<R>,
     #[allow(dead_code)] // only exists to drop listener on component drop
     route_listener: RouteListener,
@@ -64,7 +72,7 @@ pub struct Router<R: Routable + Clone + PartialEq + 'static> {
 
 impl<R> Component for Router<R>
 where
-    R: Routable + Clone + PartialEq + 'static,
+    R: Routable + 'static,
 {
     type Message = Msg<R>;
     type Properties = RouterProps<R>;
@@ -94,7 +102,7 @@ where
     }
 
     fn view(&self) -> Html {
-        match self.route.clone() {
+        match &self.route {
             Some(route) => (self.props.render.0)(route),
             None => {
                 weblog::console_log!("no route matched");
@@ -106,11 +114,11 @@ where
 
 impl<R> Router<R>
 where
-    R: Routable + Clone + PartialEq + 'static,
+    R: Routable + Clone + 'static,
 {
     pub fn render<F>(func: F) -> RenderFn<R>
     where
-        F: Fn(R) -> Html + 'static,
+        F: Fn(&R) -> Html + 'static,
     {
         RenderFn::new(func)
     }
