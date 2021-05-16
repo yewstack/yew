@@ -16,7 +16,6 @@
   - Added callback_future_once in yewtil.(#1712). [[@fraillt](https://github.com/fraillt), [#1696](https://github.com/yewstack/yew/pull/1696)]
   - Added relevant examples section to the docs. [[@oOBoomberOo](https://github.com/oOBoomberOo), [#1695](https://github.com/yewstack/yew/pull/1695)]
   - Added missing KeyboardService re-export. [[@SOF3](https://github.com/SOF3), [#1694](https://github.com/yewstack/yew/pull/1694)]
-  - Clean up component lifecycle state. [[@jstarry](https://github.com/jstarry), [#1700](https://github.com/yewstack/yew/pull/1700)]
   - Rename internal Agent structs to match Component. [[@jstarry](https://github.com/jstarry), [#1688](https://github.com/yewstack/yew/pull/1688)]
   - Add discussion link to issue selector. [[@jstarry](https://github.com/jstarry), [#1674](https://github.com/yewstack/yew/pull/1674)]
   - Update link to Material Design Components. [[@TapioT](https://github.com/TapioT), [#1662](https://github.com/yewstack/yew/pull/1662)]
