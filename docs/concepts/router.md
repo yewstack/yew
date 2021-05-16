@@ -10,14 +10,10 @@ Instead of the default behavior of requesting a different remote resource when a
 the router instead sets the URL locally to point to a valid route in your application. 
 The router then detects this change and then decides what to render.
 
-## Core Elements
-
-### `Router`
-
-The Router component. It takes in a callback and renders the HTML based on the returned value of the callback. It is usually placed 
-at the top of the application. 
-
 ## Usage
+
+The Router component. It takes in a callback and renders the HTML based on the returned value of the callback. It is usually placed
+at the top of the application.
 
 Routes are defined by an `enum` which derives `Routable`:
 ```rust
@@ -37,6 +33,9 @@ The `Router` component takes the `Routable` enum as its type parameter, finds th
 browser's current URL and passes it to the `render` callback. The callback then decides what to render. 
 In case no path is matched, the router navigates to the path with `not_found` attribute. If no route is specified, 
 nothing is rendered, and a message is logged to console stating that no route was matched.
+
+`yew_router::current_route` is used to programmatically obtain the current route.
+`yew_router::attach_route_listener` is used to attach a listener which is called every time route is changed. 
 
 ```rust
 #[function_component(Main)]
