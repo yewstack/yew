@@ -32,9 +32,15 @@ impl<T> PartialEq for RenderFn<T> {
 
 /// Props for [`Router`]
 #[derive(Properties, Clone, PartialEq)]
-pub struct RouterProps<R: Clone> {
+pub struct RouterProps<R> {
     /// Callback which returns [`Html`] to be rendered for the current route.
     pub render: RenderFn<R>,
+}
+
+impl<R> Clone for RouterProps<R> {
+    fn clone(&self) -> Self {
+        Self { render: self.render.clone() }
+    }
 }
 
 #[doc(hidden)]
