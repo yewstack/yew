@@ -1,4 +1,4 @@
-//! This module is a container of servies to interact with the external resources.
+//! This module is a container of services to interact with external resources.
 //!
 //! It carries a similar role as subscriptions in Elm, but can be used directly
 //! from the `update` method.
