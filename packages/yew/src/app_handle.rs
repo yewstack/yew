@@ -14,15 +14,6 @@ pub struct AppHandle<COMP: Component> {
     pub(crate) scope: Scope<COMP>,
 }
 
-impl<COMP> Default for AppHandle<COMP>
-where
-    COMP: Component,
-{
-    fn default() -> Self {
-        AppHandle::new()
-    }
-}
-
 impl<COMP> AppHandle<COMP>
 where
     COMP: Component,
