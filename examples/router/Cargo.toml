@@ -15,3 +15,4 @@ yew = { path = "../../packages/yew" }
 yew-router = { path = "../../packages/yew-router" }
 yewtil = { path = "../../packages/yewtil" }
 yew-services = { path = "../../packages/yew-services" }
+serde = { version = "1.0", features = ["derive"] }

@@ -1,10 +1,7 @@
-use crate::{
-    content,
-    generator::Generated,
-    switch::{AppAnchor, AppRoute},
-};
+use crate::{content, generator::Generated, Route};
 use content::PostPart;
 use yew::prelude::*;
+use yew_router::prelude::*;
 
 #[derive(Clone, Debug, Eq, PartialEq, Properties)]
 pub struct Props {
@@ -56,9 +53,9 @@ impl Component for Post {
                             </h1>
                             <h2 class="subtitle">
                                 { "by " }
-                                <AppAnchor classes="has-text-weight-semibold" route=AppRoute::Author(post.author.seed)>
+                                <Link<Route> classes=classes!("has-text-weight-semibold") route=Route::Author { id: post.author.seed }>
                                     { &post.author.name }
-                                </AppAnchor>
+                                </Link<Route>>
                             </h2>
                             <div class="tags">
                                 { for keywords }
@@ -84,9 +81,9 @@ impl Post {
                 </figure>
                 <div class="media-content">
                     <div class="content">
-                        <AppAnchor classes="is-size-5" route=AppRoute::Author(quote.author.seed)>
+                        <Link<Route> classes=classes!("is-size-5") route=Route::Author { id: quote.author.seed }>
                             <strong>{ &quote.author.name }</strong>
-                        </AppAnchor>
+                        </Link<Route>>
                         <p class="is-family-secondary">
                             { &quote.content }
                         </p>

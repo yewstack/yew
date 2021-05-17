@@ -1,57 +1,46 @@
-use crate::{
-    components::{pagination::Pagination, post_card::PostCard},
-    switch::AppRoute,
-};
+use crate::components::{pagination::Pagination, post_card::PostCard};
+use crate::Route;
+use serde::{Deserialize, Serialize};
 use yew::prelude::*;
-use yew_router::agent::{RouteAgentDispatcher, RouteRequest};
-use yewtil::NeqAssign;
 
 const ITEMS_PER_PAGE: u64 = 10;
-const TOTAL_PAGES: u64 = std::u64::MAX / ITEMS_PER_PAGE;
+const TOTAL_PAGES: u64 = u64::MAX / ITEMS_PER_PAGE;
 
 pub enum Msg {
     ShowPage(u64),
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Properties)]
-pub struct Props {
-    pub page: u64,
+#[derive(Serialize, Deserialize)]
+struct PageQuery {
+    page: u64,
 }
 
 pub struct PostList {
-    props: Props,
     link: ComponentLink<Self>,
-    route_dispatcher: RouteAgentDispatcher,
 }
 impl Component for PostList {
     type Message = Msg;
-    type Properties = Props;
+    type Properties = ();
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self {
-            props,
-            link,
-            route_dispatcher: RouteAgentDispatcher::new(),
-        }
+    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Self { link }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::ShowPage(page) => {
-                let route = AppRoute::PostListPage(page);
-                self.route_dispatcher
-                    .send(RouteRequest::ChangeRoute(route.into_route()));
-                false
+                yew_router::push_route_with_query(Route::Posts, PageQuery { page }).unwrap();
+                true
             }
         }
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props.neq_assign(props)
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+        false
     }
 
     fn view(&self) -> Html {
-        let Props { page } = self.props;
+        let page = self.current_page();
 
         html! {
             <div class="section container">
@@ -69,7 +58,7 @@ impl Component for PostList {
 }
 impl PostList {
     fn view_posts(&self) -> Html {
-        let start_seed = (self.props.page - 1) * ITEMS_PER_PAGE;
+        let start_seed = (self.current_page() - 1) * ITEMS_PER_PAGE;
         let mut cards = (0..ITEMS_PER_PAGE).map(|seed_offset| {
             html! {
                 <li class="list-item mb-5">
@@ -91,5 +80,11 @@ impl PostList {
                 </div>
             </div>
         }
+    }
+
+    fn current_page(&self) -> u64 {
+        yew_router::parse_query::<PageQuery>()
+            .map(|it| it.page)
+            .unwrap_or(1)
     }
 }

@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use yew_router::{route::Route, switch::Permissive};
+use yew_router::prelude::*;
 
 mod components;
 mod content;
@@ -9,8 +9,23 @@ use pages::{
     author::Author, author_list::AuthorList, home::Home, page_not_found::PageNotFound, post::Post,
     post_list::PostList,
 };
-mod switch;
-use switch::{AppAnchor, AppRoute, AppRouter, PublicUrlSwitch};
+
+#[derive(Routable, PartialEq, Clone, Debug)]
+pub enum Route {
+    #[at("/posts/:id")]
+    Post { id: u64 },
+    #[at("/posts")]
+    Posts,
+    #[at("/authors/:id")]
+    Author { id: u64 },
+    #[at("/authors")]
+    Authors,
+    #[at("/")]
+    Home,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
+}
 
 pub enum Msg {
     ToggleNavbar,
@@ -50,12 +65,7 @@ impl Component for Model {
                 { self.view_nav() }
 
                 <main>
-                    <AppRouter
-                        render=AppRouter::render(Self::switch)
-                        redirect=AppRouter::redirect(|route: Route| {
-                            AppRoute::PageNotFound(Permissive(Some(route.route))).into_public()
-                        })
-                    />
+                    <Router<Route> render=Router::render(switch) />
                 </main>
                 <footer class="footer">
                     <div class="content has-text-centered">
@@ -98,12 +108,12 @@ impl Model {
                 </div>
                 <div class=classes!("navbar-menu", active_class)>
                     <div class="navbar-start">
-                        <AppAnchor classes="navbar-item" route=AppRoute::Home>
+                        <Link<Route> classes=classes!("navbar-item") route=Route::Home>
                             { "Home" }
-                        </AppAnchor>
-                        <AppAnchor classes="navbar-item" route=AppRoute::PostList>
+                        </Link<Route>>
+                        <Link<Route> classes=classes!("navbar-item") route=Route::Posts>
                             { "Posts" }
-                        </AppAnchor>
+                        </Link<Route>>
 
                         <div class="navbar-item has-dropdown is-hoverable">
                             <a class="navbar-link">
@@ -111,9 +121,9 @@ impl Model {
                             </a>
                             <div class="navbar-dropdown">
                                 <a class="navbar-item">
-                                    <AppAnchor classes="navbar-item" route=AppRoute::AuthorList>
+                                    <Link<Route> classes=classes!("navbar-item") route=Route::Authors>
                                         { "Meet the authors" }
-                                    </AppAnchor>
+                                    </Link<Route>>
                                 </a>
                             </div>
                         </div>
@@ -122,30 +132,27 @@ impl Model {
             </nav>
         }
     }
+}
 
-    fn switch(switch: PublicUrlSwitch) -> Html {
-        match switch.route() {
-            AppRoute::Post(id) => {
-                html! { <Post seed=id /> }
-            }
-            AppRoute::PostListPage(page) => {
-                html! { <PostList page=page.max(1) /> }
-            }
-            AppRoute::PostList => {
-                html! { <PostList page=1 /> }
-            }
-            AppRoute::Author(id) => {
-                html! { <Author seed=id /> }
-            }
-            AppRoute::AuthorList => {
-                html! { <AuthorList /> }
-            }
-            AppRoute::Home => {
-                html! { <Home /> }
-            }
-            AppRoute::PageNotFound(Permissive(route)) => {
-                html! { <PageNotFound route=route /> }
-            }
+fn switch(routes: &Route) -> Html {
+    match routes {
+        Route::Post { id } => {
+            html! { <Post seed=*id /> }
+        }
+        Route::Posts => {
+            html! { <PostList /> }
+        }
+        Route::Author { id } => {
+            html! { <Author seed=*id /> }
+        }
+        Route::Authors => {
+            html! { <AuthorList /> }
+        }
+        Route::Home => {
+            html! { <Home /> }
+        }
+        Route::NotFound => {
+            html! { <PageNotFound /> }
         }
     }
 }
