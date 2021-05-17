@@ -296,11 +296,8 @@ pub mod events {
 use crate::app_handle::AppHandle;
 use web_sys::Element;
 
-/// The main entry point of a Yew application. It works similarly to the `program`
-/// function in Elm. You should provide an initial model, `update` function
-/// which will update the state of the model and a `view` function which
-/// will render the model to a virtual DOM tree. If you would like to pass props,
-/// use the `start_app_with_props` method.
+/// The main entry point of a Yew application.
+/// If you would like to pass props, use the `start_app_with_props` method.
 pub fn start_app<COMP>(element: Element) -> AppHandle<COMP>
 where
     COMP: Component,
