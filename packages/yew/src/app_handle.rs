@@ -18,21 +18,15 @@ impl<COMP> AppHandle<COMP>
 where
     COMP: Component,
 {
-    /// Creates a new `App` with a component in a context.
-    pub(crate) fn new() -> Self {
-        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-        Self {
-            scope: Scope::new(None),
-        }
-    }
-
     /// The main entry point of a Yew program which also allows passing properties. It works
     /// similarly to the `program` function in Elm. You should provide an initial model, `update`
     /// function which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
     pub(crate) fn mount_with_props(element: Element, props: COMP::Properties) -> Self {
         clear_element(&element);
-        let app = Self::new();
+        let app = Self {
+            scope: Scope::new(None),
+        };
         app.scope
             .mount_in_place(element, NodeRef::default(), NodeRef::default(), props);
 
