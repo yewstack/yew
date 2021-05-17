@@ -143,7 +143,7 @@ impl<COMP: Component> Mountable for PropsWrapper<COMP> {
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        let scope = scope.mount_in_place(parent, next_sibling, node_ref, self.props);
+        scope.mount_in_place(parent, next_sibling, node_ref, self.props);
 
         Box::new(scope)
     }

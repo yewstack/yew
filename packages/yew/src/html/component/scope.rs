@@ -162,12 +162,12 @@ impl<COMP: Component> Scope<COMP> {
 
     /// Mounts a component with `props` to the specified `element` in the DOM.
     pub(crate) fn mount_in_place(
-        self,
+        &self,
         parent: Element,
         next_sibling: NodeRef,
         node_ref: NodeRef,
         props: COMP::Properties,
-    ) -> Scope<COMP> {
+    ) {
         let placeholder = {
             let placeholder: Node = document().create_text_node("").into();
             insert_node(&placeholder, &parent, next_sibling.get());
@@ -184,8 +184,6 @@ impl<COMP: Component> Scope<COMP> {
             props,
             scope: self.clone(),
         }));
-
-        self
     }
 
     pub(crate) fn reuse(&self, props: COMP::Properties, node_ref: NodeRef, next_sibling: NodeRef) {
