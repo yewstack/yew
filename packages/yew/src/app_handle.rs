@@ -38,12 +38,8 @@ where
     /// when you need to manipulate the body element. For example, adding/removing app-wide
     /// CSS classes of the body element.
     pub(crate) fn mount_as_body_with_props(props: COMP::Properties) -> Self {
-        let html_element = document()
-            .document_element()
-            .unwrap();
-        let body_element = document()
-            .body()
-            .expect("no body node found");
+        let html_element = document().document_element().unwrap();
+        let body_element = document().body().expect("no body node found");
         html_element
             .remove_child(&body_element)
             .expect("can't remove body child");
