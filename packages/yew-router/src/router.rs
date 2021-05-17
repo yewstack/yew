@@ -1,232 +1,125 @@
 //! Router Component.
 
-use crate::{
-    agent::{RouteAgentBridge, RouteRequest},
-    route::Route,
-    RouteState, Switch,
-};
-use std::{
-    fmt::{self, Debug, Error as FmtError, Formatter},
-    rc::Rc,
-};
-use yew::{html, virtual_dom::VNode, Component, ComponentLink, Html, Properties, ShouldRender};
+use crate::{attach_route_listener, current_route, Routable, RouteListener};
+use std::rc::Rc;
+use yew::prelude::*;
 
-/// Any state that can be managed by the `Router` must meet the criteria of this trait.
-pub trait RouterState: RouteState + PartialEq {}
-impl<STATE> RouterState for STATE where STATE: RouteState + PartialEq {}
+/// Wraps `Rc` around `Fn` so it can be passed as a prop.
+pub struct RenderFn<R>(Rc<dyn Fn(&R) -> Html>);
 
-/// Rendering control flow component.
-///
-/// # Example
-/// ```
-/// use yew::{prelude::*, virtual_dom::VNode};
-/// use yew_router::{router::Router, Switch};
-///
-/// pub enum Msg {}
-///
-/// pub struct Model {}
-/// impl Component for Model {
-///     //...
-/// #   type Message = Msg;
-/// #   type Properties = ();
-/// #   fn create(_: Self::Properties, _link: ComponentLink<Self>) -> Self {
-/// #       Model {}
-/// #   }
-/// #   fn update(&mut self, msg: Self::Message) -> ShouldRender {
-/// #        false
-/// #   }
-/// #   fn change(&mut self, props: Self::Properties) -> ShouldRender {
-/// #        false
-/// #   }
-///
-///     fn view(&self) -> VNode {
-///         html! {
-///         <Router<S>
-///            render = Router::render(|switch: S| {
-///                match switch {
-///                    S::Variant => html!{"variant route was matched"},
-///                }
-///            })
-///         />
-///         }
-///     }
-/// }
-///
-/// #[derive(Switch, Clone)]
-/// enum S {
-///     #[at = "/v"]
-///     Variant,
-/// }
-/// ```
-// TODO, can M just be removed due to not having to explicitly deal with callbacks anymore? - Just get rid of M
-#[derive(Debug)]
-pub struct Router<SW: Switch + Clone + 'static, STATE: RouterState = ()> {
-    switch: Option<SW>,
-    props: Props<STATE, SW>,
-    router_agent: RouteAgentBridge<STATE>,
-}
-
-impl<SW, STATE> Router<SW, STATE>
-where
-    STATE: RouterState,
-    SW: Switch + Clone + 'static,
-{
-    /// Wrap a render closure so that it can be used by the Router.
-    /// # Example
-    /// ```
-    /// # use yew_router::Switch;
-    /// # use yew_router::router::{Router, Render};
-    /// # use yew::{html, Html};
-    /// # #[derive(Switch, Clone)]
-    /// # enum S {
-    /// #     #[at = "/route"]
-    /// #     Variant
-    /// # }
-    /// # pub enum Msg {}
+impl<R> RenderFn<R> {
+    /// Creates a new [`RenderFn`]
     ///
-    /// # fn dont_execute() {
-    /// let render: Render<S> = Router::render(|switch: S| -> Html {
-    ///     match switch {
-    ///         S::Variant => html! {"Variant"},
-    ///     }
-    /// });
-    /// # }
-    /// ```
-    pub fn render<F: RenderFn<Router<SW, STATE>, SW> + 'static>(f: F) -> Render<SW, STATE> {
-        Render::new(f)
-    }
-
-    /// Wrap a redirect function so that it can be used by the Router.
-    pub fn redirect<F: RedirectFn<SW, STATE> + 'static>(f: F) -> Option<Redirect<SW, STATE>> {
-        Some(Redirect::new(f))
+    /// It is recommended that you use [`Router::render`] instead
+    pub fn new(value: impl Fn(&R) -> Html + 'static) -> Self {
+        Self(Rc::new(value))
     }
 }
 
-/// Message for Router.
-#[derive(Debug, Clone)]
-pub enum Msg<STATE> {
-    /// Updates the route
-    UpdateRoute(Route<STATE>),
-}
-
-/// Render function that takes a switched route and converts it to HTML
-pub trait RenderFn<CTX: Component, SW>: Fn(SW) -> Html {}
-impl<T, CTX: Component, SW> RenderFn<CTX, SW> for T where T: Fn(SW) -> Html {}
-/// Owned Render function.
-#[derive(Clone)]
-pub struct Render<SW: Switch + Clone + 'static, STATE: RouterState = ()>(
-    pub(crate) Rc<dyn RenderFn<Router<SW, STATE>, SW>>,
-);
-impl<STATE: RouterState, SW: Switch + Clone> Render<SW, STATE> {
-    /// New render function
-    fn new<F: RenderFn<Router<SW, STATE>, SW> + 'static>(f: F) -> Self {
-        Render(Rc::new(f))
-    }
-}
-impl<STATE: RouterState, SW: Switch + Clone> Debug for Render<SW, STATE> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Render").finish()
+impl<T> Clone for RenderFn<T> {
+    fn clone(&self) -> Self {
+        Self(Rc::clone(&self.0))
     }
 }
 
-/// Redirection function that takes a route that didn't match any of the Switch variants,
-/// and converts it to a switch variant.
-pub trait RedirectFn<SW, STATE>: Fn(Route<STATE>) -> SW {}
-impl<T, SW, STATE> RedirectFn<SW, STATE> for T where T: Fn(Route<STATE>) -> SW {}
-/// Clonable Redirect function
-#[derive(Clone)]
-pub struct Redirect<SW: Switch + 'static, STATE: RouterState>(
-    pub(crate) Rc<dyn RedirectFn<SW, STATE>>,
-);
-impl<STATE: RouterState, SW: Switch + 'static> Redirect<SW, STATE> {
-    fn new<F: RedirectFn<SW, STATE> + 'static>(f: F) -> Self {
-        Redirect(Rc::new(f))
-    }
-}
-impl<STATE: RouterState, SW: Switch> Debug for Redirect<SW, STATE> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Redirect").finish()
+impl<T> PartialEq for RenderFn<T> {
+    fn eq(&self, other: &Self) -> bool {
+        // https://github.com/rust-lang/rust-clippy/issues/6524
+        #[allow(clippy::vtable_address_comparisons)]
+        Rc::ptr_eq(&self.0, &other.0)
     }
 }
 
-/// Properties for Router.
-#[derive(Properties, Clone)]
-pub struct Props<STATE: RouterState, SW: Switch + Clone + 'static> {
-    /// Render function that takes a Switch and produces Html
-    pub render: Render<SW, STATE>,
-    /// Optional redirect function that will convert the route to a known switch variant if explicit matching fails.
-    /// This should mostly be used to handle 404s and redirection.
-    /// It is not strictly necessary as your Switch is capable of handling unknown routes using `#[at = "/{*:any}"]`.
-    #[prop_or_default]
-    pub redirect: Option<Redirect<SW, STATE>>,
+/// Props for [`Router`]
+#[derive(Properties)]
+pub struct RouterProps<R> {
+    /// Callback which returns [`Html`] to be rendered for the current route.
+    pub render: RenderFn<R>,
 }
 
-impl<STATE: RouterState, SW: Switch + Clone> Debug for Props<STATE, SW> {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
-        f.debug_struct("Props").finish()
+impl<R> Clone for RouterProps<R> {
+    fn clone(&self) -> Self {
+        Self {
+            render: self.render.clone(),
+        }
     }
 }
 
-impl<STATE, SW> Component for Router<SW, STATE>
+impl<R> PartialEq for RouterProps<R> {
+    fn eq(&self, other: &Self) -> bool {
+        self.render.eq(&other.render)
+    }
+}
+
+#[doc(hidden)]
+pub enum Msg<R> {
+    UpdateRoute(Option<R>),
+}
+
+/// The router component.
+///
+/// When a route can't be matched, it looks for the route with `not_found` attribute.
+/// If such a route is provided, it redirects to the specified route.
+/// Otherwise `html! {}` is rendered and a message is logged to console
+/// stating that no route can be matched.
+/// See the [crate level document][crate] for more information.
+pub struct Router<R: Routable + 'static> {
+    props: RouterProps<R>,
+    #[allow(dead_code)] // only exists to drop listener on component drop
+    route_listener: RouteListener,
+    route: Option<R>,
+}
+
+impl<R> Component for Router<R>
 where
-    STATE: RouterState,
-    SW: Switch + Clone + 'static,
+    R: Routable + 'static,
 {
-    type Message = Msg<STATE>;
-    type Properties = Props<STATE, SW>;
+    type Message = Msg<R>;
+    type Properties = RouterProps<R>;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.callback(Msg::UpdateRoute);
-        let mut router_agent = RouteAgentBridge::new(callback);
-        router_agent.send(RouteRequest::GetCurrentRoute);
+        let route_listener = attach_route_listener(link.callback(Msg::UpdateRoute));
 
-        Router {
-            switch: Default::default(), /* This must be updated by immediately requesting a route
-                                         * update from the service bridge. */
+        Self {
             props,
-            router_agent,
+            route_listener,
+            route: current_route(),
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> bool {
         match msg {
             Msg::UpdateRoute(route) => {
-                let mut switch = SW::switch(route.clone());
-
-                if switch.is_none() {
-                    if let Some(redirect) = &self.props.redirect {
-                        let redirected: SW = (&redirect.0)(route);
-
-                        log::trace!(
-                            "Route failed to match, but redirecting route to a known switch."
-                        );
-                        // Replace the route in the browser with the redirected.
-                        self.router_agent
-                            .send(RouteRequest::ReplaceRouteNoBroadcast(
-                                redirected.clone().into(),
-                            ));
-                        switch = Some(redirected)
-                    }
-                }
-
-                self.switch = switch;
+                self.route = route;
                 true
             }
         }
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props = props;
-        true
+    fn change(&mut self, mut props: Self::Properties) -> bool {
+        std::mem::swap(&mut self.props, &mut props);
+        props != self.props
     }
 
-    fn view(&self) -> VNode {
-        match self.switch.clone() {
-            Some(switch) => (&self.props.render.0)(switch),
+    fn view(&self) -> Html {
+        match &self.route {
+            Some(route) => (self.props.render.0)(route),
             None => {
-                log::warn!("No route matched, provide a redirect prop to the router to handle cases where no route can be matched");
-                html! {"No route matched"}
+                weblog::console_log!("no route matched");
+                html! {}
             }
         }
+    }
+}
+
+impl<R> Router<R>
+where
+    R: Routable + Clone + 'static,
+{
+    pub fn render<F>(func: F) -> RenderFn<R>
+    where
+        F: Fn(&R) -> Html + 'static,
+    {
+        RenderFn::new(func)
     }
 }

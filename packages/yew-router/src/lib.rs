@@ -1,124 +1,79 @@
-#![recursion_limit = "128"]
-//! Provides routing faculties for the Yew web framework.
+//! Provides routing faculties using the browser history API to build
+//! Single Page Applications (SPAs) using [Yew web framework](https://yew.rs).
 //!
-//! ## Contents
-//! This crate consists of multiple types, some independently useful on their own,
-//! that are used together to facilitate routing within the Yew framework.
-//! Among them are:
-//! * RouteService - Hooks into the History API and listens to `PopStateEvent`s to respond to users
-//!   clicking the back/forwards buttons.
-//! * RouteAgent - A singleton agent that owns a RouteService that provides an easy place for other
-//!   components and agents to hook into it.
-//! * Switch - A trait/derive macro that allows specification of how enums or structs can be constructed
-//! from Routes.
-//! * Router - A component connected to the RouteAgent, and is capable of resolving Routes to
-//! Switch implementors, so you can use them to render Html.
-//! * Route - A struct containing an the route string and state.
-//! * RouteButton & RouteLink - Wrapper components around buttons and anchor tags respectively that
-//!   allow users to change the route.
+//! # Usage
 //!
-//! ## State and Aliases
-//! Because the History API allows you to store data along with a route string,
-//! most types have at type parameter that allows you to specify which type is being stored.
-//! As this behavior is uncommon, aliases using the unit type (`()`) are provided to remove the
-//! need to specify the storage type you likely aren't using.
+//! ```rust
+//! # use yew::prelude::*;
+//! # use yew_functional::*;
+//! # use yew_router::prelude::*;
 //!
-//! If you want to store state using the history API, it is recommended that you generate your own
-//! aliases using the `define_router_state` macro.
-//! Give it a typename, and it will generate a module containing aliases and functions useful for
-//! routing. If you specify your own router_state aliases and functions, you will want to disable
-//! the `unit_alias` feature to prevent the default `()` aliases from showing up in the prelude.
+//! #[derive(Debug, Clone, Copy, PartialEq, Routable)]
+//! enum Route {
+//!     #[at("/")]
+//!     Home,
+//!     #[at("/secure")]
+//!     Secure,
+//!     #[not_found]
+//!     #[at("/404")]
+//!     NotFound,
+//! }
 //!
-//! ## Features
-//! This crate has some feature-flags that allow you to not include some parts in your compilation.
-//! * "default" - Everything is included by default.
-//! * "core" - The fully feature complete ("router", "components", "matchers"), but without
-//!   unit_alias.
-//! * "unit_alias" - If enabled, a module will be added to the route and expanded within the prelude
-//! for aliases of Router types to their `()` variants.
-//! * "router" - If enabled, the Router component and its dependent infrastructure (including
-//!   "agent") will be included.
-//! * "agent" - If enabled, the RouteAgent and its associated types will be included.
-//! * "components" - If enabled, the accessory components will be made available.
+//! # #[function_component(Main)]
+//! # fn app() -> Html {
+//! html! {
+//!     <Router<Route> render=Router::render(switch) />
+//! }
+//! # }
+//!
+//! fn switch(routes: &Route) -> Html {
+//!     let onclick_callback = Callback::from(|_| yew_router::push_route(Route::Home));
+//!     match routes {
+//!         Route::Home => html! { <h1>{ "Home" }</h1> },
+//!         Route::Secure => html! {
+//!             <div>
+//!                 <h1>{ "Secure" }</h1>
+//!                 <button onclick=onclick_callback>{ "Go Home" }</button>
+//!             </div>
+//!         },
+//!         Route::NotFound => html! { <h1>{ "404" }</h1> },
+//!     }
+//! }
+//! ```
+//!
+//! # Internals
+//!
+//! The router keeps its own internal state which is used to store the current route and its associated data.
+//! This allows the [Router] to be operated using the [service] with an API that
+//! isn't cumbersome to use.
+//!
+//! # State
+//!
+//! The browser history API allows users to state associated with the route. This crate does
+//! not expose or make use of it. It is instead recommended that a state management library like
+//! [yewdux](https://github.com/intendednull/yewdux) be used.
 
-#![deny(
-    missing_docs,
-    missing_debug_implementations,
-    missing_copy_implementations,
-    trivial_casts,
-    trivial_numeric_casts,
-    unsafe_code,
-    unstable_features,
-    unused_qualifications
-)]
-// This will break the project at some point, but it will break yew as well.
-// It can be dealt with at the same time.
-#![allow(macro_expanded_macro_exports_accessed_by_absolute_paths)]
-
-pub use yew_router_route_parser;
-
-#[macro_use]
-mod alias;
-
-#[cfg(feature = "service")]
-pub mod service;
-
-#[cfg(feature = "agent")]
-pub mod agent;
-
-pub mod route;
-
-#[cfg(feature = "components")]
+#[doc(hidden)]
+#[path = "macro_helpers.rs"]
+pub mod __macro;
 pub mod components;
-
-#[cfg(feature = "router")]
+mod routable;
 pub mod router;
+mod service;
+pub mod utils;
 
-/// Prelude module that can be imported when working with the yew_router
+pub use service::*;
+
+pub use routable::Routable;
+pub use router::{RenderFn, Router};
+
 pub mod prelude {
-    pub use super::matcher::Captures;
+    //! Prelude module to be imported when working with `yew-router`.
+    //!
+    //! This module re-exports the frequently used types from the crate.
 
-    #[cfg(feature = "service")]
-    pub use crate::route::RouteState;
-    #[cfg(feature = "service")]
-    pub use crate::service::RouteService;
-
-    #[cfg(feature = "agent")]
-    pub use crate::agent::RouteAgent;
-    #[cfg(feature = "agent")]
-    pub use crate::agent::RouteAgentBridge;
-    #[cfg(feature = "agent")]
-    pub use crate::agent::RouteAgentDispatcher;
-
-    #[cfg(feature = "components")]
-    pub use crate::components::RouterAnchor;
-    #[cfg(feature = "components")]
-    pub use crate::components::RouterButton;
-
-    #[cfg(feature = "router")]
-    pub use crate::router::Router;
-
-    #[cfg(feature = "router")]
-    pub use crate::router::RouterState;
-
-    pub use crate::{
-        route::Route,
-        switch::{Routable, Switch},
-    };
-    pub use yew_router_macro::Switch;
+    pub use crate::components::Link;
+    #[doc(no_inline)]
+    pub use crate::Routable;
+    pub use crate::Router;
 }
-
-pub use alias::*;
-
-pub mod matcher;
-
-pub use matcher::Captures;
-
-#[cfg(feature = "service")]
-pub use crate::route::RouteState;
-#[cfg(feature = "router")]
-pub use crate::router::RouterState;
-
-pub mod switch;
-pub use switch::Switch;
-pub use yew_router_macro::Switch;
