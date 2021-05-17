@@ -56,13 +56,11 @@ where
     /// CSS classes of the body element.
     pub(crate) fn mount_as_body_with_props(props: COMP::Properties) -> Self {
         let html_element = document()
-            .query_selector("html")
-            .expect("can't get html node for rendering")
-            .expect("can't unwrap html node");
+            .document_element()
+            .unwrap();
         let body_element = document()
-            .query_selector("body")
-            .expect("can't get body node for rendering")
-            .expect("can't unwrap body node");
+            .body()
+            .expect("no body node found");
         html_element
             .remove_child(&body_element)
             .expect("can't remove body child");
