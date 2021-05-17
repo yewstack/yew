@@ -18,4 +18,4 @@ trunk serve --release
 
 ## Concepts
 
-Demonstrates the use of the Yew App struct by dynamically creating and destroying apps.
+Demonstrates the use of the Yew app handle by dynamically creating and destroying apps.
