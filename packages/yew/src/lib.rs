@@ -347,7 +347,13 @@ pub fn start_app_with_props<COMP>(props: COMP::Properties) -> AppHandle<COMP>
 where
     COMP: Component,
 {
-    start_app_with_props_in_element(crate::utils::document().body().expect("no body node found"), props)
+    start_app_with_props_in_element(
+        crate::utils::document()
+            .body()
+            .expect("no body node found")
+            .into(),
+        props,
+    )
 }
 
 /// The main entry point of a Yew application.
