@@ -1,6 +1,8 @@
 //! This module contains the `App` struct, which is used to bootstrap
 //! a component in an isolated scope.
 
+use std::ops::Deref;
+
 use crate::html::{Component, NodeRef, Scope, Scoped};
 use crate::utils::document;
 use web_sys::Element;
@@ -81,11 +83,13 @@ where
     }
 }
 
-impl<COMP> AsRef<Scope<COMP>> for AppHandle<COMP>
+impl<COMP> Deref for AppHandle<COMP>
 where
     COMP: Component,
 {
-    fn as_ref(&self) -> &Scope<COMP> {
+    type Target = Scope<COMP>;
+
+    fn deref(&self) -> &Self::Target {
         &self.scope
     }
 }
