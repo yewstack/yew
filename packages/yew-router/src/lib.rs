@@ -26,7 +26,7 @@
 //! }
 //! # }
 //!
-//! fn switch(routes: Route) -> Html {
+//! fn switch(routes: &Route) -> Html {
 //!     let onclick_callback = Callback::from(|_| yew_router::push_route(Route::Home));
 //!     match routes {
 //!         Route::Home => html! { <h1>{ "Home" }</h1> },

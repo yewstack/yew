@@ -134,16 +134,16 @@ impl Model {
     }
 }
 
-fn switch(routes: Route) -> Html {
+fn switch(routes: &Route) -> Html {
     match routes {
         Route::Post { id } => {
-            html! { <Post seed=id /> }
+            html! { <Post seed=*id /> }
         }
         Route::Posts => {
             html! { <PostList /> }
         }
         Route::Author { id } => {
-            html! { <Author seed=id /> }
+            html! { <Author seed=*id /> }
         }
         Route::Authors => {
             html! { <AuthorList /> }

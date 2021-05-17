@@ -45,7 +45,7 @@ fn app() -> Html {
     }
 }
 
-fn switch(routes: Routes) -> Html {
+fn switch(route: &Route) -> Html {
     match route {
         Route::Home => html! { <h1>{ "Home" }</h1> },
         Route::Secure => {

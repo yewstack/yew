@@ -20,7 +20,7 @@ enum Route {
     NotFound,
 }
 
-fn switch(routes: Route) -> Html {
+fn switch(routes: &Route) -> Html {
     let onclick_callback = Callback::from(|_| yew_router::service::push(Route::Home, None));
     match routes {
         Route::Home => html! { <h1>{ "Home" }</h1> },
