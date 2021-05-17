@@ -59,9 +59,9 @@ impl Component for CounterModel {
             <>
                 // Display the current value of the counter
                 <p class="counter">
-                    { "App have lived for " }
+                    { "App has lived for " }
                     { self.counter }
-                    { " seconds" }
+                    { " ticks" }
                 </p>
 
                 // Add button to send a destroy command to the parent app
