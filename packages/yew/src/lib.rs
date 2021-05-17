@@ -302,7 +302,8 @@ thread_local! {
     static PANIC_HOOK_IS_SET: Cell<bool> = Cell::new(false);
 }
 
-/// Sets a custom panic hook. Unless a panic hook is set through this function, Yew will
+/// Set a custom panic hook.
+/// Unless a panic hook is set through this function, Yew will
 /// overwrite any existing panic hook when one of the `start_app*` functions are called.
 pub fn set_custom_panic_hook(hook: Box<dyn Fn(&PanicInfo<'_>) + Sync + Send + 'static>) {
     std::panic::set_hook(hook);
