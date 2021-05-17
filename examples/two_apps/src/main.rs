@@ -1,4 +1,4 @@
-use yew::{app_handle::AppHandle, html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, AppHandle, Component, ComponentLink, Html, ShouldRender};
 
 pub enum Msg {
     SetOpposite(ComponentLink<Model>),
@@ -77,17 +77,13 @@ impl Component for Model {
 fn mount_app(selector: &'static str) -> AppHandle<Model> {
     let document = yew::utils::document();
     let element = document.query_selector(selector).unwrap().unwrap();
-    yew::start_app(element)
+    yew::start_app_in_element(element)
 }
 
 fn main() {
     let first_app = mount_app(".first-app");
     let second_app = mount_app(".second-app");
 
-    first_app
-        .as_ref()
-        .send_message(Msg::SetOpposite(second_app.as_ref().clone()));
-    second_app
-        .as_ref()
-        .send_message(Msg::SetOpposite(first_app.as_ref().clone()));
+    first_app.send_message(Msg::SetOpposite(second_app.clone()));
+    second_app.send_message(Msg::SetOpposite(first_app.clone()));
 }

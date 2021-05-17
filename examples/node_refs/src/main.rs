@@ -83,5 +83,5 @@ impl Component for Model {
 }
 
 fn main() {
-    yew::start_app_in_body::<Model>();
+    yew::start_app::<Model>();
 }

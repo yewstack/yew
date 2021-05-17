@@ -57,7 +57,7 @@ impl Component for Model {
                 // Get the key for the entry and create and mount a new CounterModel app
                 // with a callback that destroys the app when emitted
                 let app_key = app_entry.key();
-                let new_counter_app = yew::start_app_with_props(
+                let new_counter_app = yew::start_app_with_props_in_element(
                     app_div.clone(),
                     CounterProps {
                         destroy_callback: self
@@ -113,5 +113,5 @@ impl Component for Model {
 
 fn main() {
     // Start main app
-    yew::start_app_in_body::<Model>();
+    yew::start_app::<Model>();
 }

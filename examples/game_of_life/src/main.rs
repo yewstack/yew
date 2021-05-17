@@ -232,5 +232,5 @@ fn wrap(coord: isize, range: isize) -> usize {
 fn main() {
     wasm_logger::init(wasm_logger::Config::default());
     log::trace!("Initializing yew...");
-    yew::start_app_in_body::<Model>();
+    yew::start_app::<Model>();
 }
