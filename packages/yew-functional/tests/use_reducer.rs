@@ -46,7 +46,7 @@ fn use_reducer_works() {
         }
     }
     type UseReducerComponent = FunctionComponent<UseReducerFunction>;
-    yew::start_app::<UseReducerComponent>(
+    yew::start_app_in_element::<UseReducerComponent>(
         yew::utils::document().get_element_by_id("output").unwrap(),
     );
     let result = obtain_result();

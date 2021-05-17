@@ -27,7 +27,7 @@ fn props_are_passed() {
         }
     }
     type PropsComponent = FunctionComponent<PropsPassedFunction>;
-    yew::start_app_with_props::<PropsComponent>(
+    yew::start_app_with_props_in_element::<PropsComponent>(
         yew::utils::document().get_element_by_id("output").unwrap(),
         PropsPassedFunctionProps {
             value: "props".to_string(),
