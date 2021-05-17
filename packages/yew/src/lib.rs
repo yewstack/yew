@@ -341,8 +341,8 @@ where
     AppHandle::<COMP>::mount_with_props(element, props)
 }
 
-/// The main entry point of a Yew application. This function does the
-/// same as `start_app_in_body(...)` but allows to start an Yew application with properties.
+/// The main entry point of a Yew application.
+/// This function does the same as `start_app_in_body(...)` but allows to start an Yew application with properties.
 pub fn start_app_in_body_with_props<COMP>(props: COMP::Properties) -> AppHandle<COMP>
 where
     COMP: Component,
