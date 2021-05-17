@@ -74,5 +74,5 @@ fn main() {
 
     body.append_child(&mount_point).unwrap();
 
-    yew::App::<Model>::new().mount(mount_point);
+    yew::start_app_in_element::<Model>(mount_point);
 }
