@@ -86,6 +86,8 @@
 #![recursion_limit = "512"]
 extern crate self as yew;
 
+use std::{cell::Cell, panic::PanicInfo};
+
 /// This macro provides a convenient way to create [`Classes`].
 ///
 /// The macro takes a list of items similar to the [`vec!`] macro and returns a [`Classes`] instance.
@@ -296,6 +298,23 @@ pub mod events {
 pub use crate::app_handle::AppHandle;
 use web_sys::Element;
 
+thread_local! {
+    static PANIC_HOOK_IS_SET: Cell<bool> = Cell::new(false);
+}
+
+/// Sets a custom panic hook. Unless a panic hook is set through this function, Yew will
+/// overwrite any existing panic hook when one of the `start_app*` functions are called.
+pub fn set_custom_panic_hook(hook: Box<dyn Fn(&PanicInfo<'_>) + Sync + Send + 'static>) {
+    std::panic::set_hook(hook);
+    PANIC_HOOK_IS_SET.with(|hook_is_set| hook_is_set.set(true));
+}
+
+fn set_default_panic_hook() {
+    if !PANIC_HOOK_IS_SET.with(|hook_is_set| hook_is_set.replace(true)) {
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+    }
+}
+
 /// The main entry point of a Yew application.
 /// If you would like to pass props, use the `start_app_with_props_in_element` method.
 pub fn start_app_in_element<COMP>(element: Element) -> AppHandle<COMP>
@@ -338,6 +357,7 @@ pub fn start_app_with_props_in_element<COMP>(
 where
     COMP: Component,
 {
+    set_default_panic_hook();
     AppHandle::<COMP>::mount_with_props(element, props)
 }
 
@@ -365,6 +385,7 @@ pub fn start_app_with_props_as_body<COMP>(props: COMP::Properties) -> AppHandle<
 where
     COMP: Component,
 {
+    set_default_panic_hook();
     AppHandle::<COMP>::mount_as_body_with_props(props)
 }
 
