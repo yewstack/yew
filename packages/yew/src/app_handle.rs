@@ -28,8 +28,7 @@ where
     /// Creates a new `App` with a component in a context.
     pub(crate) fn new() -> Self {
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-        let scope = Scope::new(None);
-        AppHandle { scope }
+        Self { scope: Scope::new(None) }
     }
 
     /// The main entry point of a Yew program which also allows passing properties. It works
