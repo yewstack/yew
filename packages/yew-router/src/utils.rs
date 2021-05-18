@@ -1,5 +1,9 @@
 use wasm_bindgen::JsCast;
 
+pub(crate) fn strip_slash_suffix(path: &str) -> &str {
+    path.strip_suffix("/").unwrap_or(&path)
+}
+
 pub fn base_url() -> Option<String> {
     match yew::utils::document().query_selector("base[href]") {
         Ok(Some(base)) => {
@@ -9,26 +13,22 @@ pub fn base_url() -> Option<String> {
             let base = url.pathname();
 
             let base = if base != "/" {
-                base.strip_suffix("/")
-                    .map(|it| it.to_string())
-                    .unwrap_or(base)
+                strip_slash_suffix(&base)
             } else {
                 return None;
             };
 
-            Some(base)
+            Some(base.to_string())
         }
         _ => None,
     }
 }
 
 pub fn build_path_with_base(to: &str) -> String {
-    format!(
+    let path = format!(
         "{}{}",
-        base_url()
-            .as_deref()
-            .map(|it| it.strip_suffix("/").unwrap_or(it))
-            .unwrap_or(""),
+        base_url().as_deref().map(strip_slash_suffix).unwrap_or(""),
         to
-    )
+    );
+    strip_slash_suffix(&path).to_string()
 }

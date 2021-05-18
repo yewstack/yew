@@ -36,9 +36,13 @@ fn push_impl(url: String) {
     let history = yew::utils::window().history().expect("no history");
 
     let path = build_path_with_base(&url);
-
+    // using this little trick to avoid allocating `/` string
+    let mut path = path.as_str();
+    if path.is_empty() {
+        path = "/";
+    }
     history
-        .push_state_with_url(&JsValue::NULL, "", Some(&path))
+        .push_state_with_url(&JsValue::NULL, "", Some(path))
         .expect("push history");
     let event = Event::new("popstate").unwrap();
     yew::utils::window()
