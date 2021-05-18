@@ -35,8 +35,10 @@ where
 fn push_impl(url: String) {
     let history = yew::utils::window().history().expect("no history");
 
+    let path = build_path_with_base(&url);
+
     history
-        .push_state_with_url(&JsValue::NULL, "", Some(&build_path_with_base(&url)))
+        .push_state_with_url(&JsValue::NULL, "", Some(&path))
         .expect("push history");
     let event = Event::new("popstate").unwrap();
     yew::utils::window()
