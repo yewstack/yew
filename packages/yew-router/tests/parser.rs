@@ -20,6 +20,8 @@ enum Routes {
 
 #[test]
 fn test_base_url() {
+    document().head().unwrap().set_inner_html(r#""#);
+
     assert_eq!(base_url(), None);
 
     document()
@@ -63,4 +65,25 @@ fn test_get_query_params() {
         map.insert("bar".to_string(), "69".to_string());
         map
     });
+}
+
+#[test]
+fn test_build_base_url() {
+    document().head().unwrap().set_inner_html(r#""#);
+
+    assert_eq!(build_path_with_base("/posts"), "/posts");
+
+    document()
+        .head()
+        .unwrap()
+        .set_inner_html(r#"<base href="/router">"#);
+
+    assert_eq!(build_path_with_base("/posts/"), "/router/posts/");
+
+    document()
+        .head()
+        .unwrap()
+        .set_inner_html(r#"<base href="/">"#);
+
+    assert_eq!(build_path_with_base("/posts"), "/posts");
 }
