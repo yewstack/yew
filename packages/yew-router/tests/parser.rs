@@ -78,7 +78,7 @@ fn test_build_base_url() {
         .unwrap()
         .set_inner_html(r#"<base href="/router">"#);
 
-    assert_eq!(build_path_with_base("/posts/"), "/router/posts/");
+    assert_eq!(build_path_with_base("/posts/"), "/router/posts");
 
     document()
         .head()
