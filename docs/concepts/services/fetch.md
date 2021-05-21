@@ -26,7 +26,7 @@ pub type Binary = Result<Vec<u8>, Error>;
 Here is what a typical GET request will look like:
 ```rust
 use yew::format::Nothing;
-use yew_services::fetch::Request;
+use yew::services::fetch::Request;
 let get_request = Request::get("https://example.com/api/v1/get/something")
     .body(Nothing)
     .expect("Could not build that request");
@@ -36,7 +36,7 @@ Here is what a typical POST request will look like:
 ```rust
 use serde_json::json;
 use yew::format::Json;
-use yew_services::fetch::Request;
+use yew::services::fetch::Request;
 let post_request = Request::post("https://example.com/api/v1/post/something")
     .header("Content-Type", "application/json")
     .body(Json(&json!({"key": "value"})))
@@ -95,7 +95,7 @@ An illustrated example of how to fetch data from an API giving information about
 
 use serde::Deserialize;
 use yew::{format::{Json, Nothing}, prelude::*};
-use yew_services::fetch::{FetchService, FetchTask, Request, Response};
+use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct ISSPosition {
@@ -238,6 +238,6 @@ The Rust Wasm Book also contains [useful debugging tips](https://rustwasm.github
 for Wasm applications.
 
 ## Further reading
-* [The API documentation](https://docs.rs/yew-services/latest/yew_services/fetch/index.html)
+* [The API documentation](https://docs.rs/yew/latest/yew/services/fetch/index.html)
 * The [dashboard](https://github.com/yewstack/yew/tree/master/examples/dashboard) example.
 * [The Rust Wasm Book on debugging Wasm applications](https://rustwasm.github.io/book/reference/debugging.html)

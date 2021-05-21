@@ -5,12 +5,12 @@ title: Debugging
 ## Panics
 
 The [`console_error_panic`](https://github.com/rustwasm/console_error_panic_hook) crate catches
-`panic!`s and outputs them to the console. Yew will automatically catch `panic!`s and log them to
-your browser's console.
+`panic!`s and outputs them to the console. Yew automatically catches `panic!`s and logs them to
+the browser console.
 
 ## Console Logging
 
-In general, Wasm web apps are able to interact with Browser APIs, and the `console.log` API is no 
+In general, Wasm web apps are able to interact with Browser APIs. The `console.log` API is no 
 exception. There are a few options available:
 
 ### [`wasm-logger`](https://crates.io/crates/wasm-logger)
@@ -27,9 +27,9 @@ fn main() {
 log::info!("Update: {:?}", msg);
 ```
 
-### [`ConsoleService`](https://docs.rs/yew-services/latest/yew_services/struct.ConsoleService.html)
+### [`ConsoleService`](https://docs.rs/yew/latest/yew/services/console/struct.ConsoleService.html)
 
-This service is included within the [`yew-services`](https://crates.io/crates/yew-services) crate:
+This service is included with Yew.
 
 ```rust
 // usage
@@ -38,7 +38,7 @@ ConsoleService::info(format!("Update: {:?}", msg));
 
 ## Source Maps
 
-There is currently no first-class support for source maps for Rust / Wasm web apps. This, of course, is subject to change. If this is no longer true or if progress is made, please suggest a change!
+There is currently no first-class support for source maps for Rust/Wasm web apps. This could change in the future.
 
 ### Latest Info
 
