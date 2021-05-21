@@ -55,7 +55,7 @@ fn test_get_query_params() {
         bar: 69,
     };
 
-    yew_router::push_route_with_query(Routes::Home, query.clone()).unwrap();
+    yew_router::push_route_with_query(Routes::Home, query).unwrap();
 
     let params: HashMap<String, String> = parse_query().unwrap();
 
