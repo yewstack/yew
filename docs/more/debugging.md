@@ -10,7 +10,7 @@ the browser's console.
 
 ## Console Logging
 
-In general, Wasm web apps are able to interact with Browser APIs. The `console.log` API is no 
+Wasm web apps can call Browser APIs. The `console.log` API is no 
 exception. There are a few options available:
 
 ### [`wasm-logger`](https://crates.io/crates/wasm-logger)
