@@ -6,7 +6,7 @@ title: Debugging
 
 The [`console_error_panic`](https://github.com/rustwasm/console_error_panic_hook) crate catches
 `panic!`s and outputs them to the console. Yew automatically catches `panic!`s and logs them to
-the browser console.
+the browser's console.
 
 ## Console Logging
 
