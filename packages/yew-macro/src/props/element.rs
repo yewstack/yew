@@ -70,6 +70,7 @@ lazy_static! {
         vec![
             "async",
             "autofocus",
+            "autoplay",
             "controls",
             "default",
             "defer",

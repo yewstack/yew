@@ -23,6 +23,7 @@ fn compile_pass() {
                     <option selected=true disabled=false value="">{"Selected"}</option>
                     <option selected=false disabled=true value="">{"Unselected"}</option>
                 </select>
+                <video autoplay=true controls=true />
             </div>
             <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M60.5776 13.8268L51.8673 42.6431L77.7475 37.331L60.5776 13.8268Z" fill="#DEB819"/>
