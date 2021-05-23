@@ -33,7 +33,6 @@ enum ElementType {
 }
 
 impl ElementType {
-    #[inline]
     fn from_tag(tag: &str) -> Self {
         match tag.to_ascii_lowercase().as_str() {
             "input" => Self::Input,
@@ -124,7 +123,6 @@ impl VTag {
     // Allows the compiler to inline property and child list construction in the html! macro.
     // This enables higher instruction parallelism by reducing data dependency and avoids `memcpy`
     // of child `VTag`s.
-    #[inline]
     #[allow(clippy::too_many_arguments)]
     pub fn __new_complete(
         tag: impl Into<Cow<'static, str>>,

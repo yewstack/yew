@@ -55,12 +55,10 @@ type Listeners = Vec<Rc<dyn Listener>>;
 pub struct PositionalAttr(pub &'static str, pub Option<Cow<'static, str>>);
 impl PositionalAttr {
     /// Create a positional attribute
-    #[inline]
     pub fn new(key: &'static str, value: impl Into<Cow<'static, str>>) -> Self {
         Self(key, Some(value.into()))
     }
     /// Create a placeholder for removed attributes
-    #[inline]
     pub fn new_placeholder(key: &'static str) -> Self {
         Self(key, None)
     }
