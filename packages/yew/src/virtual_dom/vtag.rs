@@ -103,23 +103,56 @@ impl Clone for VTag {
 impl VTag {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new(tag: impl Into<Cow<'static, str>>) -> Self {
+        Self::__new_complete(
+            tag,
+            Default::default(),
+            Default::default(),
+            None,
+            None,
+            Default::default(),
+            Default::default(),
+            Default::default(),
+            Default::default(),
+        )
+    }
+
+    /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
+    ///
+    /// Unlike `new()`, this sets all the public fields of `VTag` in one call. This allows the
+    /// compiler to inline property and child list construction in the html! macro. This enables
+    /// higher instruction parallelism by reducing data dependency and avoids `memcpy` of Vtag
+    /// fields amd child `VTag`s.
+    #[doc(hidden)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn __new_complete(
+        tag: impl Into<Cow<'static, str>>,
+        node_ref: NodeRef,
+        key: Option<Key>,
+        value: Option<String>,
+        kind: Option<Cow<'static, str>>,
+        checked: bool,
+        // at bottom for more readable macro-expanded coded
+        attributes: Attributes,
+        listeners: Listeners,
+        children: VList,
+    ) -> Self {
         let tag: Cow<'static, str> = tag.into();
         let element_type = ElementType::from_tag(&tag);
         VTag {
             tag,
             element_type,
             reference: None,
-            attributes: Attributes::new(),
-            listeners: Vec::new(),
+            attributes,
+            listeners,
             captured: Vec::new(),
-            children: VList::new(),
-            node_ref: NodeRef::default(),
-            key: None,
-            value: None,
-            kind: None,
+            children,
+            node_ref,
+            key,
+            value,
+            kind,
             // In HTML node `checked` attribute sets `defaultChecked` parameter,
             // but we use own field to control real `checked` parameter
-            checked: false,
+            checked,
         }
     }
 
