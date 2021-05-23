@@ -185,12 +185,16 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is 
    |
 43 |     html! { <input type=() /> };
    |                         ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
+   |
+   = note: required by `into_prop_value`
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
   --> $DIR/element-fail.rs:44:26
    |
 44 |     html! { <input value=() /> };
    |                          ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
+   |
+   = note: required by `into_prop_value`
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
   --> $DIR/element-fail.rs:45:21
@@ -198,9 +202,9 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is 
 45 |     html! { <a href=() /> };
    |                     ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
    |
-  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs:61:47
+  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
    |
-61 |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
+   |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
    |                                               -------------------------------- required by this bound in `PositionalAttr::new`
 
 error[E0277]: the trait bound `NotToString: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
@@ -209,9 +213,9 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<Cow<'static, st
 46 |     html! { <input string=NotToString /> };
    |                           ^^^^^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `NotToString`
    |
-  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs:61:47
+  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
    |
-61 |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
+   |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
    |                                               -------------------------------- required by this bound in `PositionalAttr::new`
 
 error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
@@ -220,9 +224,9 @@ error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<Cow<'st
 47 |     html! { <a media=Some(NotToString) /> };
    |                      ^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `Option<NotToString>`
    |
-  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs:61:47
+  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
    |
-61 |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
+   |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
    |                                               -------------------------------- required by this bound in `PositionalAttr::new`
    |
    = help: the following implementations were found:
@@ -236,9 +240,9 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<Cow<'stat
 48 |     html! { <a href=Some(5) /> };
    |                     ^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `Option<{integer}>`
    |
-  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs:61:47
+  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
    |
-61 |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
+   |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
    |                                               -------------------------------- required by this bound in `PositionalAttr::new`
    |
    = help: the following implementations were found:
@@ -252,9 +256,9 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<Option<yew::Callback<Mou
 51  |       html! { <input onclick=1 /> };
     |                              ^ the trait `IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not implemented for `{integer}`
     |
-   ::: $WORKSPACE/packages/yew/src/html/listener/events.rs:2:1
+   ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
     |
-2   | / impl_action! {
+    | / impl_action! {
 3   | |     onabort(name: "abort", event: Event) -> web_sys::Event => |_, event| { event }
 4   | |     onauxclick(name: "auxclick", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
 5   | |     onblur(name: "blur", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
@@ -276,9 +280,9 @@ error[E0277]: the trait bound `yew::Callback<String>: IntoPropValue<Option<yew::
 52  |       html! { <input onclick=Callback::from(|a: String| ()) /> };
     |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not implemented for `yew::Callback<String>`
     |
-   ::: $WORKSPACE/packages/yew/src/html/listener/events.rs:2:1
+   ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
     |
-2   | / impl_action! {
+    | / impl_action! {
 3   | |     onabort(name: "abort", event: Event) -> web_sys::Event => |_, event| { event }
 4   | |     onauxclick(name: "auxclick", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
 5   | |     onblur(name: "blur", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
@@ -293,9 +297,9 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<yew::Call
 53  |       html! { <input onfocus=Some(5) /> };
     |                              ^^^^^^^ the trait `IntoPropValue<Option<yew::Callback<FocusEvent>>>` is not implemented for `Option<{integer}>`
     |
-   ::: $WORKSPACE/packages/yew/src/html/listener/events.rs:2:1
+   ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
     |
-2   | / impl_action! {
+    | / impl_action! {
 3   | |     onabort(name: "abort", event: Event) -> web_sys::Event => |_, event| { event }
 4   | |     onauxclick(name: "auxclick", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
 5   | |     onblur(name: "blur", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
@@ -309,20 +313,25 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<yew::Call
               <Option<&'static str> as IntoPropValue<Option<String>>>
               <Option<String> as IntoPropValue<Option<Cow<'static, str>>>>
 
-error[E0308]: mismatched types
+error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
   --> $DIR/element-fail.rs:56:24
    |
 56 |     html! { <input ref=() /> };
-   |                        ^^ expected struct `yew::NodeRef`, found `()`
+   |                        ^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `()`
+   |
+   = note: required by `into_prop_value`
 
-error[E0308]: mismatched types
+error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>` is not satisfied
   --> $DIR/element-fail.rs:57:24
    |
 57 |     html! { <input ref=Some(NodeRef::default()) /> };
-   |                        ^^^^^^^^^^^^^^^^^^^^^^^^ expected struct `yew::NodeRef`, found enum `Option`
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `Option<yew::NodeRef>`
    |
-   = note: expected struct `yew::NodeRef`
-                found enum `Option<yew::NodeRef>`
+   = help: the following implementations were found:
+             <Option<&'static str> as IntoPropValue<Option<Cow<'static, str>>>>
+             <Option<&'static str> as IntoPropValue<Option<String>>>
+             <Option<String> as IntoPropValue<Option<Cow<'static, str>>>>
+   = note: required by `into_prop_value`
 
 error[E0277]: the trait bound `Cow<'static, str>: From<{integer}>` is not satisfied
   --> $DIR/element-fail.rs:71:15

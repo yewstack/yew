@@ -33,6 +33,7 @@ enum ElementType {
 }
 
 impl ElementType {
+    #[inline]
     fn from_tag(tag: &str) -> Self {
         match tag.to_ascii_lowercase().as_str() {
             "input" => Self::Input,
@@ -103,23 +104,57 @@ impl Clone for VTag {
 impl VTag {
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     pub fn new(tag: impl Into<Cow<'static, str>>) -> Self {
-        let tag = tag.into();
+        Self::__new_complete(
+            tag,
+            Default::default(),
+            Default::default(),
+            None,
+            None,
+            Default::default(),
+            Default::default(),
+            Default::default(),
+            Default::default(),
+        )
+    }
+
+    /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
+    ///
+    /// Unlike `new()`, this sets all the public fields of `VTag` in one call.
+    #[doc(hidden)]
+    // Allows the compiler to inline property and child list construction in the html! macro.
+    // This enables higher instruction parallelism by reducing data dependency and avoids `memcpy`
+    // of child `VTag`s.
+    #[inline]
+    #[allow(clippy::too_many_arguments)]
+    pub fn __new_complete(
+        tag: impl Into<Cow<'static, str>>,
+        node_ref: NodeRef,
+        key: Option<Key>,
+        value: Option<AttrValue>,
+        kind: Option<Cow<'static, str>>,
+        checked: bool,
+        // at bottom for more readable macro-expanded coded
+        attributes: Attributes,
+        listeners: Listeners,
+        children: VList,
+    ) -> Self {
+        let tag: Cow<'static, str> = tag.into();
         let element_type = ElementType::from_tag(&tag);
         VTag {
             tag,
             element_type,
             reference: None,
-            attributes: Attributes::new(),
-            listeners: Vec::new(),
+            attributes,
+            listeners,
             captured: Vec::new(),
-            children: VList::new(),
-            node_ref: NodeRef::default(),
-            key: None,
-            value: None,
-            kind: None,
+            children,
+            node_ref,
+            key,
+            value,
+            kind,
             // In HTML node `checked` attribute sets `defaultChecked` parameter,
             // but we use own field to control real `checked` parameter
-            checked: false,
+            checked,
         }
     }
 
@@ -151,21 +186,11 @@ impl VTag {
         self.kind = value.into_prop_value();
     }
 
-    #[doc(hidden)]
-    pub fn __macro_set_key(&mut self, value: impl Into<Key>) {
-        self.key = Some(value.into())
-    }
-
     /// Sets `checked` property of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     /// (Not a value of node's attribute).
     pub fn set_checked(&mut self, value: bool) {
         self.checked = value;
-    }
-
-    #[doc(hidden)]
-    pub fn __macro_set_node_ref(&mut self, value: impl IntoPropValue<NodeRef>) {
-        self.node_ref = value.into_prop_value()
     }
 
     /// Adds a key-value pair to attributes
@@ -206,14 +231,6 @@ impl VTag {
     /// Later `Listener::attach` will attach an actual listener to a DOM node.
     pub fn add_listeners(&mut self, listeners: Listeners) {
         self.listeners.extend(listeners);
-    }
-
-    #[doc(hidden)]
-    pub fn __macro_set_listeners(
-        &mut self,
-        listeners: impl IntoIterator<Item = Option<Rc<dyn Listener>>>,
-    ) {
-        self.listeners = listeners.into_iter().flatten().collect();
     }
 
     /// Every render it removes all listeners and attach it back later

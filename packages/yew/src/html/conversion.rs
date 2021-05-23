@@ -21,6 +21,7 @@ pub trait IntoPropValue<T> {
 }
 
 impl<T> IntoPropValue<T> for T {
+    #[inline]
     fn into_prop_value(self) -> T {
         self
     }
@@ -29,12 +30,14 @@ impl<T> IntoPropValue<T> for &T
 where
     T: ImplicitClone,
 {
+    #[inline]
     fn into_prop_value(self) -> T {
         self.clone()
     }
 }
 
 impl<T> IntoPropValue<Option<T>> for T {
+    #[inline]
     fn into_prop_value(self) -> Option<T> {
         Some(self)
     }
@@ -43,6 +46,7 @@ impl<T> IntoPropValue<Option<T>> for &T
 where
     T: ImplicitClone,
 {
+    #[inline]
     fn into_prop_value(self) -> Option<T> {
         Some(self.clone())
     }
@@ -52,6 +56,7 @@ macro_rules! impl_into_prop {
     (|$value:ident: $from_ty:ty| -> $to_ty:ty { $conversion:expr }) => {
         // implement V -> T
         impl IntoPropValue<$to_ty> for $from_ty {
+            #[inline]
             fn into_prop_value(self) -> $to_ty {
                 let $value = self;
                 $conversion
@@ -59,6 +64,7 @@ macro_rules! impl_into_prop {
         }
         // implement V -> Option<T>
         impl IntoPropValue<Option<$to_ty>> for $from_ty {
+            #[inline]
             fn into_prop_value(self) -> Option<$to_ty> {
                 let $value = self;
                 Some({ $conversion })
@@ -66,6 +72,7 @@ macro_rules! impl_into_prop {
         }
         // implement Option<V> -> Option<T>
         impl IntoPropValue<Option<$to_ty>> for Option<$from_ty> {
+            #[inline]
             fn into_prop_value(self) -> Option<$to_ty> {
                 self.map(IntoPropValue::into_prop_value)
             }

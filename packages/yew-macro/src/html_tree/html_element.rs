@@ -132,40 +132,46 @@ impl ToTokens for HtmlElement {
 
         // attributes with special treatment
 
-        let set_node_ref = node_ref.as_ref().map(|attr| {
-            let value = &attr.value;
-            quote! {
-                #vtag.node_ref = #value;
-            }
-        });
-        let set_key = key.as_ref().map(|attr| {
-            let value = attr.value.optimize_literals();
-            quote! {
-                #vtag.__macro_set_key(#value);
-            }
-        });
-        let set_value = value.as_ref().map(|attr| {
-            let value = attr.value.optimize_literals();
-            quote! {
-                #vtag.set_value(#value);
-            }
-        });
-        let set_kind = kind.as_ref().map(|attr| {
-            let value = attr.value.optimize_literals();
-            quote! {
-                #vtag.set_kind(#value);
-            }
-        });
-        let set_checked = checked.as_ref().map(|attr| {
-            let value = &attr.value;
-            quote! {
-                #vtag.set_checked(#value);
-            }
-        });
+        let node_ref = node_ref
+            .as_ref()
+            .map(|attr| {
+                let value = &attr.value;
+                quote_spanned! {value.span()=>
+                    ::yew::html::IntoPropValue::<::yew::html::NodeRef>
+                    ::into_prop_value(#value)
+                }
+            })
+            .unwrap_or(quote! { ::std::default::Default::default() });
+        let key = key
+            .as_ref()
+            .map(|attr| {
+                let value = attr.value.optimize_literals();
+                quote_spanned! {value.span()=>
+                    ::std::option::Option::Some(
+                        ::std::convert::Into::<::yew::virtual_dom::Key>::into(#value)
+                    )
+                }
+            })
+            .unwrap_or(quote! { ::std::option::Option::None });
+        let value = value
+            .as_ref()
+            .map(wrap_attr_prop)
+            .unwrap_or(quote! { ::std::option::Option::None });
+        let kind = kind
+            .as_ref()
+            .map(wrap_attr_prop)
+            .unwrap_or(quote! { ::std::option::Option::None });
+        let checked = checked
+            .as_ref()
+            .map(|attr| {
+                let value = &attr.value;
+                quote_spanned! {value.span()=> #value}
+            })
+            .unwrap_or(quote! { false });
 
         // other attributes
 
-        let set_attributes = {
+        let attributes = {
             let normal_attrs = attributes.iter().map(|Prop { label, value, .. }| {
                 let key = label.to_lit_str();
                 let value = value.optimize_literals();
@@ -224,12 +230,12 @@ impl ToTokens for HtmlElement {
 
             let attrs = normal_attrs.chain(boolean_attrs).chain(class_attr);
             quote! {
-                #vtag.attributes = ::yew::virtual_dom::Attributes::Vec(::std::vec![#(#attrs),*]);
+                ::yew::virtual_dom::Attributes::Vec(::std::vec![#(#attrs),*])
             }
         };
 
-        let set_listeners = if listeners.is_empty() {
-            None
+        let listeners = if listeners.is_empty() {
+            quote! { ::std::vec![] }
         } else {
             let listeners_it = listeners.iter().map(|Prop { label, value, .. }| {
                 let name = &label.name;
@@ -238,18 +244,7 @@ impl ToTokens for HtmlElement {
                 }
             });
 
-            Some(quote! {
-                #vtag.__macro_set_listeners(::std::vec![#(#listeners_it),*]);
-            })
-        };
-
-        let add_children = if children.is_empty() {
-            None
-        } else {
-            Some(quote! {
-                #[allow(clippy::redundant_clone, unused_braces)]
-                #vtag.add_children(#children);
-            })
+            quote! { ::std::vec![#(#listeners_it),*].into_iter().flatten().collect() }
         };
 
         // These are the runtime-checks exclusive to dynamic tags.
@@ -284,18 +279,21 @@ impl ToTokens for HtmlElement {
 
         tokens.extend(quote_spanned! {name.span()=>
             {
-                #[allow(unused_braces)]
-                let mut #vtag = ::yew::virtual_dom::VTag::new(#name_sr);
-
-                #set_node_ref
-                #set_key
-                #set_value
-                #set_kind
-                #set_checked
-                #set_attributes
-                #set_listeners
-
-                #add_children
+                #[allow(clippy::redundant_clone, unused_braces)]
+                let mut #vtag = ::yew::virtual_dom::VTag::__new_complete(
+                    #name_sr,
+                    #node_ref,
+                    #key,
+                    #value,
+                    #kind,
+                    #checked,
+                    #attributes,
+                    #listeners,
+                    ::yew::virtual_dom::VList{
+                        key: ::std::option::Option::None,
+                        children: #children,
+                    },
+                );
 
                 #dyn_tag_runtime_checks
                 {
@@ -304,6 +302,18 @@ impl ToTokens for HtmlElement {
                 }
             }
         });
+    }
+}
+
+fn wrap_attr_prop(prop: &Prop) -> TokenStream {
+    let value = prop.value.optimize_literals();
+    quote_spanned! {value.span()=>
+        ::yew::html::IntoPropValue::<
+            ::std::option::Option<
+                ::yew::virtual_dom::AttrValue
+            >
+        >
+        ::into_prop_value(#value)
     }
 }
 

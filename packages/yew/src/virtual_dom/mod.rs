@@ -58,12 +58,14 @@ pub type AttrValue = Cow<'static, str>;
 pub struct PositionalAttr(pub &'static str, pub Option<AttrValue>);
 impl PositionalAttr {
     /// Create a positional attribute
+    #[inline]
     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
         Self(key, value.into_prop_value())
     }
 
     /// Create a boolean attribute.
     /// `present` controls whether the attribute is added
+    #[inline]
     pub fn new_boolean(key: &'static str, present: bool) -> Self {
         let value = if present {
             Some(Cow::Borrowed(key))
@@ -74,15 +76,18 @@ impl PositionalAttr {
     }
 
     /// Create a placeholder for removed attributes
+    #[inline]
     pub fn new_placeholder(key: &'static str) -> Self {
         Self(key, None)
     }
 
+    #[inline]
     fn transpose(self) -> Option<(&'static str, AttrValue)> {
         let Self(key, value) = self;
         value.map(|v| (key, v))
     }
 
+    #[inline]
     fn transposed<'a>(&'a self) -> Option<(&'static str, &'a AttrValue)> {
         let Self(key, value) = self;
         value.as_ref().map(|v| (*key, v))
