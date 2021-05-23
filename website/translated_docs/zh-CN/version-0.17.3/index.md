@@ -1,5 +1,7 @@
 ---
-title: Introduction
+title: 简介
+id: version-0.17.3-intro
+original_id: intro
 ---
 
 ## Yew 是什么？
@@ -34,7 +36,7 @@ WebAssembly *(Wasm)* 是一种可移植的底层语言，并且可以由 Rust �
 
 #### 好的，那为什么选用 Rust 呢？
 
-Rust 是一门运行速度超快，并且以他丰富的类型系统和可信赖的所有权模型而闻名的语言。尽管它的学习曲线非常的陡峭，但是带来的回报完全成正比！Rust 已经连续四年在 Stack Overflow 开发者调查报告中被评选为最受喜爱的编程语言：[2016](https://insights.stackoverflow.com/survey/2016#technology-most-loved-dreaded-and-wanted)，[2017](https://insights.stackoverflow.com/survey/2017#most-loved-dreaded-and-wanted)，[2018](https://insights.stackoverflow.com/survey/2018#technology-_-most-loved-dreaded-and-wanted-languages) 和 [2019](https://insights.stackoverflow.com/survey/2019#technology-_-most-loved-dreaded-and-wanted-languages)。
+Rust 是一门运行速度超快，并且以他丰富的类型系统和可信赖的所有权模型而闻名的语言。尽管它的学习曲线非常的陡峭，但是带来的回报完全成正比！Rust 已经连续五年在 Stack Overflow 开发者调查报告中被评选为最受喜爱的编程语言：[2016](https://insights.stackoverflow.com/survey/2016#technology-most-loved-dreaded-and-wanted)，[2017](https://insights.stackoverflow.com/survey/2017#most-loved-dreaded-and-wanted)，[2018](https://insights.stackoverflow.com/survey/2018#technology-_-most-loved-dreaded-and-wanted-languages)，[2019](https://insights.stackoverflow.com/survey/2019#technology-_-most-loved-dreaded-and-wanted-languages) 和 [2020](https://insights.stackoverflow.com/survey/2020#most-loved-dreaded-and-wanted).
 
 Rust 同样可以用它丰富的类型系统和可信赖的所有权模型来帮助开发者编写出更加安全的代码。和那些在 JavaScript 中难以定位的竞争条件 Bug 们说再见吧！ 事实上，通过 Rust ，大部分的 Bugs 都将在项目上线之前的编写阶段被编译器发现。同时不用担心，当你的应用出现错误的时候，你仍然可以在浏览器的调试控制台中获得你 Rust 代码的完整的错误栈追踪。
 

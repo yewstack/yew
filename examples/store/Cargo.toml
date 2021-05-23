@@ -3,7 +3,9 @@ name = "store"
 version = "0.1.0"
 authors = ["Michał Kawalec <michal@monad.cat>"]
 edition = "2018"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
-yew = { path = "../../yew" }
-yewtil = { path = "../../yewtil" }
+yew = { path = "../../packages/yew" }
+yewtil = { path = "../../packages/yewtil" }
+yew-services = { path = "../../packages/yew-services" }

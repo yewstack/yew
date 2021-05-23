@@ -1,0 +1,65 @@
+error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
+ --> $DIR/node-fail.rs:4:21
+  |
+4 |     html! { "valid" "invalid" };
+  |                     ^^^^^^^^^
+
+error: unexpected token
+ --> $DIR/node-fail.rs:5:29
+  |
+5 |     html! { <span>{ "valid" "invalid" }</span> };
+  |                             ^^^^^^^^^
+
+error: unsupported type
+  --> $DIR/node-fail.rs:10:14
+   |
+10 |     html! {  b'a' };
+   |              ^^^^
+
+error: unsupported type
+  --> $DIR/node-fail.rs:11:14
+   |
+11 |     html! {  b"str" };
+   |              ^^^^^^
+
+error: unsupported type
+  --> $DIR/node-fail.rs:12:22
+   |
+12 |     html! {  <span>{ b'a' }</span> };
+   |                      ^^^^
+
+error: unsupported type
+  --> $DIR/node-fail.rs:13:22
+   |
+13 |     html! {  <span>{ b"str" }</span> };
+   |                      ^^^^^^
+
+error[E0425]: cannot find value `invalid` in this scope
+ --> $DIR/node-fail.rs:7:13
+  |
+7 |     html! { invalid };
+  |             ^^^^^^^ not found in this scope
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+ --> $DIR/node-fail.rs:6:13
+  |
+6 |     html! { () };
+  |             ^^ `()` cannot be formatted with the default formatter
+  |
+  = help: the trait `std::fmt::Display` is not implemented for `()`
+  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+  = note: required because of the requirements on the impl of `ToString` for `()`
+  = note: required because of the requirements on the impl of `From<()>` for `VNode`
+  = note: required by `from`
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> $DIR/node-fail.rs:17:9
+   |
+17 |         not_node()
+   |         ^^^^^^^^^^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `ToString` for `()`
+   = note: required because of the requirements on the impl of `From<()>` for `VNode`
+   = note: required by `from`

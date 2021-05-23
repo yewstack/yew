@@ -1,0 +1,17 @@
+[package]
+name = "yew-components"
+version = "0.2.0"
+edition = "2018"
+authors = ["Yew Maintainers <maintainers@yew.rs>"]
+repository = "https://github.com/yewstack/yew"
+homepage = "https://github.com/yewstack/yew"
+documentation = "https://docs.rs/yew-components/"
+license = "MIT OR Apache-2.0"
+keywords = ["web", "asmjs", "webasm", "javascript"]
+categories = ["gui", "web-programming"]
+description = "A collection of community-created Yew components"
+
+[dependencies]
+wasm-bindgen = "0.2.60"
+web-sys = "0.3"
+yew = { version = "0.17", path = "../yew" }

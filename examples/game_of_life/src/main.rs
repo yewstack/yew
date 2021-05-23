@@ -1,8 +1,8 @@
 use cell::Cellule;
 use rand::Rng;
 use std::time::Duration;
-use yew::services::interval::{IntervalService, IntervalTask};
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{classes, html, Component, ComponentLink, Html, ShouldRender};
+use yew_services::interval::{IntervalService, IntervalTask};
 
 mod cell;
 
@@ -96,7 +96,7 @@ impl Model {
             }
         };
         html! {
-            <div key=idx class=("game-cellule", cellule_status)
+            <div key=idx class=classes!("game-cellule", cellule_status)
                 onclick=self.link.callback(move |_| Msg::ToggleCellule(idx))>
             </div>
         }

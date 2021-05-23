@@ -1,0 +1,101 @@
+error: unexpected end of input, expected expression
+  --> $DIR/fail.rs:57:18
+   |
+57 |         #[prop_or()]
+   |                  ^^
+
+error: cannot find attribute `props` in this scope
+  --> $DIR/fail.rs:22:11
+   |
+22 |         #[props(default)]
+   |           ^^^^^
+   |
+   = note: consider importing one of these items:
+           yew::props
+           yew_macro::props
+
+error[E0425]: cannot find value `foo` in this scope
+  --> $DIR/fail.rs:87:24
+   |
+87 |         #[prop_or_else(foo)]
+   |                        ^^^ not found in this scope
+   |
+help: consider importing one of these items
+   |
+83 |     use crate::t10::foo;
+   |
+83 |     use crate::t9::foo;
+   |
+
+error[E0277]: the trait bound `t1::Value: std::default::Default` is not satisfied
+ --> $DIR/fail.rs:9:21
+  |
+9 |     #[derive(Clone, Properties)]
+  |                     ^^^^^^^^^^ the trait `std::default::Default` is not implemented for `t1::Value`
+  |
+  = note: required by `std::default::Default::default`
+  = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no method named `build` found for struct `t3::PropsBuilder<t3::PropsBuilderStep_missing_required_prop_value>` in the current scope
+  --> $DIR/fail.rs:35:26
+   |
+29 |     #[derive(Clone, Properties)]
+   |                     ---------- method `build` not found for this
+...
+35 |         Props::builder().build();
+   |                          ^^^^^ method not found in `t3::PropsBuilder<t3::PropsBuilderStep_missing_required_prop_value>`
+
+error[E0599]: no method named `b` found for struct `t4::PropsBuilder<PropsBuilderStep_missing_required_prop_a>` in the current scope
+  --> $DIR/fail.rs:48:26
+   |
+41 |     #[derive(Clone, Properties)]
+   |                     ---------- method `b` not found for this
+...
+48 |         Props::builder().b(1).a(2).build();
+   |                          ^ help: there is an associated function with a similar name: `a`
+
+error[E0308]: mismatched types
+  --> $DIR/fail.rs:67:19
+   |
+67 |         #[prop_or(123)]
+   |                   ^^^ expected struct `String`, found integer
+   |
+help: try using a conversion method
+   |
+67 |         #[prop_or(123.to_string())]
+   |                   ^^^^^^^^^^^^^^^
+67 |         #[prop_or(123.to_string())]
+   |                   ^^^^^^^^^^^^^^^
+
+error[E0618]: expected function, found `{integer}`
+  --> $DIR/fail.rs:77:24
+   |
+77 |         #[prop_or_else(123)]
+   |                        ^^^ call expression requires function
+
+error[E0061]: this function takes 1 argument but 0 arguments were supplied
+   --> $DIR/fail.rs:97:24
+    |
+97  |         #[prop_or_else(foo)]
+    |                        ^^^- supplied 0 arguments
+    |                        |
+    |                        expected 1 argument
+    |
+note: function defined here
+   --> $DIR/fail.rs:101:8
+    |
+101 |     fn foo(bar: i32) -> String {
+    |        ^^^ --------
+
+error[E0308]: mismatched types
+   --> $DIR/fail.rs:111:24
+    |
+111 |         #[prop_or_else(foo)]
+    |                        ^^^ expected struct `String`, found `i32`
+    |
+help: try using a conversion method
+    |
+111 |         #[prop_or_else(foo.to_string())]
+    |                        ^^^^^^^^^^^^^^^
+111 |         #[prop_or_else(foo.to_string())]
+    |                        ^^^^^^^^^^^^^^^

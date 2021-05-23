@@ -40,9 +40,9 @@ where
     }
 }
 
-impl Into<Html> for ListVariant {
-    fn into(self) -> Html {
-        match self.props {
+impl From<ListVariant> for Html {
+    fn from(variant: ListVariant) -> Html {
+        match variant.props {
             Variants::Header(props) => {
                 VComp::new::<ListHeader>(props, NodeRef::default(), None).into()
             }
@@ -103,7 +103,7 @@ impl Component for List {
         let onmouseout = self.props.on_hover.reform(|_| Hovered::None);
         html! {
             <div class="list-container" onmouseout=onmouseout onmouseover=onmouseover>
-                <div class=("list", inactive)>
+                <div class=classes!("list", inactive)>
                     { self.view_header() }
                     <div class="items">
                         { self.view_items() }

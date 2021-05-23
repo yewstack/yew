@@ -1,0 +1,27 @@
+button {
+  border: 0;
+  color: white;
+  padding: 14px 14px;
+  text-align: center;
+  font-size: 16px;
+}
+
+button.create {
+  background-color: #008f53; /* Green */
+  width: 200px;
+}
+
+button.destroy {
+  background-color: #ff1f1f; /* Red */
+}
+
+.counter {
+  color: #008f53;
+  font-size: 48px;
+  text-align: center;
+}
+
+.panel {
+  display: flex;
+  justify-content: center;
+}

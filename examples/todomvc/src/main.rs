@@ -1,10 +1,10 @@
 use state::{Entry, Filter, State};
 use strum::IntoEnumIterator;
 use yew::format::Json;
-use yew::services::storage::{Area, StorageService};
 use yew::web_sys::HtmlInputElement as InputElement;
+use yew::{classes, html, Component, ComponentLink, Html, InputData, NodeRef, ShouldRender};
 use yew::{events::KeyboardEvent, Classes};
-use yew::{html, Component, ComponentLink, Html, InputData, NodeRef, ShouldRender};
+use yew_services::storage::{Area, StorageService};
 
 mod state;
 
@@ -134,7 +134,7 @@ impl Component for Model {
                         <h1>{ "todos" }</h1>
                         { self.view_input() }
                     </header>
-                    <section class=("main", hidden_class)>
+                    <section class=classes!("main", hidden_class)>
                         <input
                             type="checkbox"
                             class="toggle-all"
@@ -147,7 +147,7 @@ impl Component for Model {
                             { for self.state.entries.iter().filter(|e| self.state.filter.fits(e)).enumerate().map(|e| self.view_entry(e)) }
                         </ul>
                     </section>
-                    <footer class=("footer", hidden_class)>
+                    <footer class=classes!("footer", hidden_class)>
                         <span class="todo-count">
                             <strong>{ self.state.total() }</strong>
                             { " item(s) left" }

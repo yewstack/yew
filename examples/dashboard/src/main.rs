@@ -1,9 +1,9 @@
 use anyhow::Error;
 use serde_derive::{Deserialize, Serialize};
 use yew::format::{Json, Nothing, Toml};
-use yew::services::fetch::{FetchService, FetchTask, Request, Response};
-use yew::services::websocket::{WebSocketService, WebSocketStatus, WebSocketTask};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew_services::fetch::{FetchService, FetchTask, Request, Response};
+use yew_services::websocket::{WebSocketService, WebSocketStatus, WebSocketTask};
 
 type AsBinary = bool;
 
@@ -53,9 +53,8 @@ pub struct WsResponse {
 
 pub struct Model {
     link: ComponentLink<Model>,
-    fetching: bool,
     data: Option<u32>,
-    ft: Option<FetchTask>,
+    _ft: Option<FetchTask>,
     ws: Option<WebSocketTask>,
 }
 
@@ -72,7 +71,7 @@ impl Model {
         }
     }
 
-    fn fetch_json(&mut self, binary: AsBinary) -> yew::services::fetch::FetchTask {
+    fn fetch_json(&mut self, binary: AsBinary) -> yew_services::fetch::FetchTask {
         let callback = self.link.batch_callback(
             move |response: Response<Json<Result<DataFromFile, Error>>>| {
                 let (meta, Json(data)) = response.into_parts();
@@ -92,7 +91,7 @@ impl Model {
         }
     }
 
-    pub fn fetch_toml(&mut self, binary: AsBinary) -> yew::services::fetch::FetchTask {
+    pub fn fetch_toml(&mut self, binary: AsBinary) -> yew_services::fetch::FetchTask {
         let callback = self.link.batch_callback(
             move |response: Response<Toml<Result<DataFromFile, Error>>>| {
                 let (meta, Toml(data)) = response.into_parts();
@@ -120,9 +119,8 @@ impl Component for Model {
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
             link,
-            fetching: false,
             data: None,
-            ft: None,
+            _ft: None,
             ws: None,
         }
     }
@@ -130,12 +128,11 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::FetchData(format, binary) => {
-                self.fetching = true;
                 let task = match format {
                     Format::Json => self.fetch_json(binary),
                     Format::Toml => self.fetch_toml(binary),
                 };
-                self.ft = Some(task);
+                self._ft = Some(task);
                 true
             }
             Msg::WsAction(action) => match action {
@@ -172,7 +169,6 @@ impl Component for Model {
                 }
             },
             Msg::FetchReady(response) => {
-                self.fetching = false;
                 self.data = response.map(|data| data.value).ok();
                 true
             }

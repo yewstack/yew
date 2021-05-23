@@ -1,0 +1,15 @@
+[package]
+name = "yewtil-macro"
+version = "0.2.0"
+authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+description = "Macros to be re-exported from the yewtil crate"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0.6"
+quote = "1.0.2"
+syn = { version = "1.0.11", features = ["full", "extra-traits"] }

@@ -1,0 +1,22 @@
+[package]
+name = "yew-router-macro"
+version = "0.14.0"
+authors = ["Hamza <muhammadhamza1311@gmail.com>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+description = "Contains macros used with yew-router"
+repository = "https://github.com/yewstack/yew"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+heck = "0.3.2"
+proc-macro2 = "1.0.24"
+quote = "1.0.9"
+syn = { version = "1.0.64", features = ["full","extra-traits"] }
+
+[dev-dependencies]
+rustversion = "1.0"
+trybuild = "1.0"
+yew-router = { path = "../yew-router" }

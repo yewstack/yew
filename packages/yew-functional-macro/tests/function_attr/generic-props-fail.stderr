@@ -1,0 +1,66 @@
+error[E0412]: cannot find type `INVALID` in this scope
+  --> $DIR/generic-props-fail.rs:26:19
+   |
+21 | fn compile_fail() {
+   |                - help: you might be missing a type parameter: `<INVALID>`
+...
+26 |     html! { <Comp<INVALID> /> };
+   |                   ^^^^^^^ not found in this scope
+
+error[E0599]: no method named `build` found for struct `PropsBuilder<PropsBuilderStep_missing_required_prop_a>` in the current scope
+  --> $DIR/generic-props-fail.rs:23:14
+   |
+4  | #[derive(Clone, Properties, PartialEq)]
+   |                 ---------- method `build` not found for this
+...
+23 |     html! { <Comp<Props> /> };
+   |              ^^^^ method not found in `PropsBuilder<PropsBuilderStep_missing_required_prop_a>`
+
+error[E0599]: the function or associated item `new` exists for struct `VChild<FunctionComponent<comp<MissingTypeBounds>>>`, but its trait bounds were not satisfied
+  --> $DIR/generic-props-fail.rs:28:14
+   |
+28 |     html! { <Comp<MissingTypeBounds> /> };
+   |              ^^^^ function or associated item cannot be called on `VChild<FunctionComponent<comp<MissingTypeBounds>>>` due to unsatisfied trait bounds
+   |
+  ::: $WORKSPACE/packages/yew-functional/src/lib.rs
+   |
+   | pub struct FunctionComponent<T: FunctionProvider + 'static> {
+   | ----------------------------------------------------------- doesn't satisfy `_: yew::Component`
+   |
+   = note: the following trait bounds were not satisfied:
+           `FunctionComponent<comp<MissingTypeBounds>>: yew::Component`
+
+error[E0277]: the trait bound `MissingTypeBounds: yew::Properties` is not satisfied
+  --> $DIR/generic-props-fail.rs:28:14
+   |
+28 |     html! { <Comp<MissingTypeBounds> /> };
+   |              ^^^^ the trait `yew::Properties` is not implemented for `MissingTypeBounds`
+   |
+   = note: required because of the requirements on the impl of `FunctionProvider` for `comp<MissingTypeBounds>`
+
+error[E0277]: can't compare `MissingTypeBounds` with `MissingTypeBounds`
+  --> $DIR/generic-props-fail.rs:28:14
+   |
+28 |     html! { <Comp<MissingTypeBounds> /> };
+   |              ^^^^ no implementation for `MissingTypeBounds == MissingTypeBounds`
+   |
+   = help: the trait `PartialEq` is not implemented for `MissingTypeBounds`
+   = note: required because of the requirements on the impl of `FunctionProvider` for `comp<MissingTypeBounds>`
+
+error[E0107]: missing generics for type alias `Comp`
+  --> $DIR/generic-props-fail.rs:31:14
+   |
+31 |     html! { <Comp /> };
+   |              ^^^^ expected 1 type argument
+   |
+note: type alias defined here, with 1 type parameter: `P`
+  --> $DIR/generic-props-fail.rs:9:22
+   |
+9  | #[function_component(Comp)]
+   |                      ^^^^
+10 | fn comp<P>(_props: &P) -> Html
+   |         -
+help: use angle brackets to add missing type argument
+   |
+31 |     html! { <Comp<P> /> };
+   |                  ^^^
