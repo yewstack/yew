@@ -118,11 +118,11 @@ impl VTag {
 
     /// Creates a new `VTag` instance with `tag` name (cannot be changed later in DOM).
     ///
-    /// Unlike `new()`, this sets all the public fields of `VTag` in one call.
+    /// Unlike `new()`, this sets all the public fields of `VTag` in one call. This allows the
+    /// compiler to inline property and child list construction in the html! macro. This enables
+    /// higher instruction parallelism by reducing data dependency and avoids `memcpy` of Vtag
+    /// fields amd child `VTag`s.
     #[doc(hidden)]
-    // Allows the compiler to inline property and child list construction in the html! macro.
-    // This enables higher instruction parallelism by reducing data dependency and avoids `memcpy`
-    // of child `VTag`s.
     #[allow(clippy::too_many_arguments)]
     pub fn __new_complete(
         tag: impl Into<Cow<'static, str>>,
