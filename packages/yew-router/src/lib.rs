@@ -53,6 +53,8 @@
 //! not expose or make use of it. It is instead recommended that a state management library like
 //! [yewdux](https://github.com/intendednull/yewdux) be used.
 
+extern crate self as yew_router;
+
 #[doc(hidden)]
 #[path = "macro_helpers.rs"]
 pub mod __macro;
@@ -60,8 +62,7 @@ pub mod components;
 mod routable;
 pub mod router;
 mod service;
-#[doc(hidden)]
-pub mod utils;
+pub(crate) mod utils;
 
 pub use service::*;
 
