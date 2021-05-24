@@ -106,7 +106,7 @@ where
         match route {
             Some(route) => (self.props.render.0)(&route),
             None => {
-                weblog::console_log!("no route matched");
+                weblog::console_warn!("no route matched");
                 html! {}
             }
         }
