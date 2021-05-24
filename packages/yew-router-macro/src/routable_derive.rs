@@ -221,10 +221,13 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
                     static ROUTER: ::yew_router::__macro::Router = ::yew_router::__macro::build_router::<#ident>();
                 }
                 let route = ROUTER.with(|router| ::yew_router::__macro::recognize_with_router(router, pathname));
-                __ROUTER_CURRENT_ROUTE_CACHE.with(move |val| {
-                    *val.borrow_mut() = route;
-                });
-                route.clone()
+                {
+                    let route = route.clone();
+                    __ROUTER_CURRENT_ROUTE_CACHE.with(move |val| {
+                        *val.borrow_mut() = route;
+                    });
+                }
+                route
             }
         }
     }
