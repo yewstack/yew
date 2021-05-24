@@ -65,8 +65,7 @@ where
 }
 
 pub fn current_route<R: Routable>() -> Option<R> {
-    let pathname = yew::utils::window().location().pathname().unwrap();
-    R::recognize(&pathname)
+    R::current_route()
 }
 
 /// Handle for the router's path event listener

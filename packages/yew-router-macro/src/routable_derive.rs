@@ -195,6 +195,10 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
     };
 
     quote! {
+        ::std::thread_local! {
+            static __ROUTER_CURRENT_ROUTE_CACHE: ::std::cell::RefCell<::std::option::Option<#ident>> = ::std::cell::RefCell::new(::std::option::Option::None);
+        }
+
         #[automatically_derived]
         impl ::yew_router::Routable for #ident {
             #from_path
@@ -208,11 +212,19 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
                 #not_found_route
             }
 
+            fn current_route() -> Option<Self> {
+                __ROUTER_CURRENT_ROUTE_CACHE.with(|val| val.borrow_mut().clone())
+            }
+
             fn recognize(pathname: &str) -> ::std::option::Option<Self> {
                 ::std::thread_local! {
                     static ROUTER: ::yew_router::__macro::Router = ::yew_router::__macro::build_router::<#ident>();
                 }
-                ROUTER.with(|router| ::yew_router::__macro::recognize_with_router(router, pathname))
+                let route = ROUTER.with(|router| ::yew_router::__macro::recognize_with_router(router, pathname));
+                __ROUTER_CURRENT_ROUTE_CACHE.with(move |val| {
+                    *val.borrow_mut() = route;
+                });
+                route.clone()
             }
         }
     }
