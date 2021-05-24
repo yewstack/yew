@@ -22,19 +22,19 @@ enum Routes {
 fn test_base_url() {
     document().head().unwrap().set_inner_html(r#""#);
 
-    assert_eq!(base_url(), None);
+    assert_eq!(fetch_base_url(), None);
 
     document()
         .head()
         .unwrap()
         .set_inner_html(r#"<base href="/base/">"#);
-    assert_eq!(base_url(), Some("/base".to_string()));
+    assert_eq!(fetch_base_url(), Some("/base".to_string()));
 
     document()
         .head()
         .unwrap()
         .set_inner_html(r#"<base href="/base">"#);
-    assert_eq!(base_url(), Some("/base".to_string()));
+    assert_eq!(fetch_base_url(), Some("/base".to_string()));
 }
 
 #[derive(Serialize, Clone)]

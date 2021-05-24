@@ -1,5 +1,5 @@
-use wasm_bindgen::JsCast;
 use std::cell::RefCell;
+use wasm_bindgen::JsCast;
 
 pub(crate) fn strip_slash_suffix(path: &str) -> &str {
     path.strip_suffix("/").unwrap_or(&path)

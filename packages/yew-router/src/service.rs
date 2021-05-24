@@ -1,4 +1,4 @@
-use crate::utils::{base_url};
+use crate::utils::base_url;
 use crate::Routable;
 use gloo::events::EventListener;
 use serde::{Deserialize, Serialize};
@@ -43,8 +43,8 @@ fn push_impl(url: String) {
             } else {
                 path
             }
-        },
-        None => url
+        }
+        None => url,
     };
 
     history

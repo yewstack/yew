@@ -60,6 +60,7 @@ pub mod components;
 mod routable;
 pub mod router;
 mod service;
+#[doc(hidden)]
 pub mod utils;
 
 pub use service::*;

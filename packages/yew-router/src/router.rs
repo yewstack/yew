@@ -1,6 +1,6 @@
 //! Router Component.
 
-use crate::{Routable};
+use crate::Routable;
 use gloo::events::EventListener;
 use std::rc::Rc;
 use yew::prelude::*;
