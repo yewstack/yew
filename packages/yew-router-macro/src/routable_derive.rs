@@ -212,8 +212,8 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
                 #not_found_route
             }
 
-            fn current_route() -> Option<Self> {
-                __ROUTER_CURRENT_ROUTE_CACHE.with(|val| val.borrow_mut().clone())
+            fn current_route() -> ::std::option::Option<Self> {
+                __ROUTER_CURRENT_ROUTE_CACHE.with(|val| ::std::clone::Clone::clone(&*val.borrow_mut()))
             }
 
             fn recognize(pathname: &str) -> ::std::option::Option<Self> {
@@ -222,7 +222,7 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
                 }
                 let route = ROUTER.with(|router| ::yew_router::__macro::recognize_with_router(router, pathname));
                 {
-                    let route = route.clone();
+                    let route = ::std::clone::Clone::clone(&route);
                     __ROUTER_CURRENT_ROUTE_CACHE.with(move |val| {
                         *val.borrow_mut() = route;
                     });
