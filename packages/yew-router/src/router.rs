@@ -8,8 +8,8 @@ use yew::html::AnyScope;
 use yew::prelude::*;
 use yew_functional::{get_current_scope, use_hook};
 
-use crate::agents::router::{RouterAction, RouterAgent};
 use crate::context::RoutingContext;
+use crate::services::router::{RouterAction, RouterListener, RouterService};
 use crate::Routable;
 
 pub struct Router<T: Routable>(Rc<InnerRouter<T>>);
@@ -26,11 +26,11 @@ enum InnerRouter<T: Routable> {
         current: RefCell<Rc<RoutingContext<T>>>,
         _handle: ContextHandle<Rc<RoutingContext<T>>>,
     },
-    // Used when we're directly interacting with the router agent
-    Agent {
+    // Used when we're directly interacting with the router service
+    Service {
         // Lazily initialize this to avoid unnecessary work
         current: RefCell<Option<Rc<T>>>,
-        bridge: RefCell<Box<dyn Bridge<RouterAgent<T>>>>,
+        _listener: RouterListener<T>,
     },
 }
 
@@ -42,7 +42,7 @@ enum InnerRouterUpdate<T: Routable> {
     // Used when we're mounted inside a routing context
     Context(Rc<RoutingContext<T>>),
     // Used when we're directly interacting with the router agent
-    Agent(Rc<T>),
+    Service(Rc<T>),
 }
 
 impl<T: Routable> Router<T> {
@@ -58,16 +58,16 @@ impl<T: Routable> Router<T> {
                 }
             } else {
                 let current = RefCell::new(None);
-                let bridge = RefCell::new(RouterAgent::bridge(
-                    callback.reform(|routable| RouterUpdate(InnerRouterUpdate::Agent(routable))),
-                ));
-                InnerRouter::Agent { current, bridge }
+                let _listener = RouterService::register(
+                    callback.reform(|routable| RouterUpdate(InnerRouterUpdate::Service(routable))),
+                );
+                InnerRouter::Service { current, _listener }
             },
         ))
     }
     pub fn update(&self, update: RouterUpdate<T>) {
         match (&*self.0, update.0) {
-            (InnerRouter::Agent { current, .. }, InnerRouterUpdate::Agent(routable)) => {
+            (InnerRouter::Service { current, .. }, InnerRouterUpdate::Service(routable)) => {
                 *current.borrow_mut() = Some(routable);
             }
             (InnerRouter::Context { current, .. }, InnerRouterUpdate::Context(ctx)) => {
@@ -78,12 +78,12 @@ impl<T: Routable> Router<T> {
     }
     pub fn route(&self) -> Rc<T> {
         match &*self.0 {
-            InnerRouter::Agent { current, .. } => {
+            InnerRouter::Service { current, .. } => {
                 let mut current = current.borrow_mut();
                 if let Some(route) = &*current {
                     route.clone()
                 } else {
-                    let route = Rc::new(RouterAgent::<T>::current());
+                    let route = RouterService::current::<T>();
                     *current = Some(route.clone());
                     route
                 }
@@ -93,7 +93,7 @@ impl<T: Routable> Router<T> {
     }
     pub fn dispatch(&self, action: RouterAction<T>) {
         match &*self.0 {
-            InnerRouter::Agent { bridge, .. } => bridge.borrow_mut().send(action),
+            InnerRouter::Service { .. } => RouterService::dispatch(action),
             InnerRouter::Context { current, .. } => current.borrow().onroute.emit(action),
         }
     }

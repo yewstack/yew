@@ -1,5 +1,5 @@
-use crate::agents::router::RouterAction;
 use crate::router::use_router;
+use crate::services::router::RouterAction;
 use crate::Routable;
 use yew::prelude::*;
 

@@ -53,20 +53,20 @@
 //! not expose or make use of it. It is instead recommended that a state management library like
 //! [yewdux](https://github.com/intendednull/yewdux) be used.
 
-mod agents;
 pub mod components;
 mod context;
 mod routable;
 pub mod router;
+pub mod services;
 pub mod utils;
 
 #[doc(hidden)]
 pub mod hidden;
 
-pub use crate::agents::router::RouterAction;
-pub use agents::history::HistoryAgent;
 pub use routable::Routable;
 pub use router::{use_router, Router};
+pub use services::history::HistoryService;
+pub use services::router::RouterAction;
 
 pub mod prelude {
     //! Prelude module to be imported when working with `yew-router`.

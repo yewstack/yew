@@ -1,4 +1,4 @@
-use crate::agents::history::Route;
+use crate::services::history::Route;
 
 pub use yew_router_macro::Routable;
 

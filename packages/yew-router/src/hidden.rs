@@ -14,7 +14,7 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 use wasm_bindgen::{JsCast, JsValue};
 
-use crate::agents::history::Route;
+use crate::services::history::Route;
 pub use crate::Routable;
 
 /// This trait is implemented by the derive macro. There is a blanket implementation of
@@ -299,6 +299,10 @@ impl Muncher for PathSegmentMuncher {
 
         rev_path_acc.reverse();
         route.path = rev_path_acc.concat();
+
+        if route.path.is_empty() {
+            route.path = "/".into();
+        }
         args.store_route(route);
     }
 }

@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use yew::Callback;
 
-use crate::agents::router::RouterAction;
+use crate::services::router::RouterAction;
 use crate::Routable;
 
 #[derive(Debug, PartialEq)]
