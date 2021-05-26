@@ -1,8 +1,4 @@
----
-title: 常量和表达式
-id: version-0.17.3-literals-and-expressions
-original_id: literals-and-expressions
----
+# 常量和表达式
 
 ## 常量
 
@@ -59,3 +55,4 @@ html! {
      <div>{maybe_display_link()}</div>
 }
 ```
+
