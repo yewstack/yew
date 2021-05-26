@@ -2,10 +2,15 @@
   "hosting": [
     {
       "target": "website",
-      "public": "website/build/yew",
+      "public": "website/build/",
       "cleanUrls": true,
       "redirects": [
         // `/intro` -> `/` (2020-10-15)
+        {
+          "source": "/",
+          "destination": "/docs/index/",
+          "type": 302
+        },
         {
           "source": "/docs/:lang/intro",
           "destination": "/docs/:lang/",

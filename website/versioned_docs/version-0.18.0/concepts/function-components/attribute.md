@@ -1,8 +1,6 @@
 ---
-title: #[function_component]
-description: The #[function_component] attribute
-id: version-0.18.0-attribute
-original_id: attribute
+title: "#[function_component]"
+description: "The #[function_component] attribute"
 ---
 
 

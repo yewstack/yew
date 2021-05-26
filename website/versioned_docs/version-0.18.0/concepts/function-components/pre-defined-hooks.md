@@ -1,8 +1,6 @@
 ---
-title: Pre-defined Hooks
-description: The pre-defined Hooks that Yew comes with
-id: version-0.18.0-pre-defined-hooks
-original_id: pre-defined-hooks
+title: "Pre-defined Hooks"
+description: "The pre-defined Hooks that Yew comes with "
 ---
 
 :::note Why do Hooks return `Rc`?

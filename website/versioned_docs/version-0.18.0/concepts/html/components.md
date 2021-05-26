@@ -1,8 +1,6 @@
 ---
-title: Components
-description: Create complex layouts with component hierarchies
-id: version-0.18.0-components
-original_id: components
+title: "Components"
+description: "Create complex layouts with component hierarchies"
 ---
 
 ## Basic
