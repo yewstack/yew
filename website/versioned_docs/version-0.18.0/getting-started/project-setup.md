@@ -1,9 +1,7 @@
 ---
-title: Project Setup
+title: "Project Setup"
 sidebar_label: Introduction
-description: Set yourself up for success
-id: version-0.18.0-project-setup
-original_id: project-setup
+description: "Set yourself up for success"
 ---
 
 ## Rust

@@ -1,7 +1,5 @@
 ---
-title: Starter templates
-id: version-0.18.0-starter-templates
-original_id: starter-templates
+title: "Starter templates"
 ---
 
 ## `trunk`

@@ -1,7 +1,5 @@
 ---
-title: Build a sample app
-id: version-0.18.0-build-a-sample-app
-original_id: build-a-sample-app
+title: "Build a sample app"
 ---
 
 First, create a new cargo project:

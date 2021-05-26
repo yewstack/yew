@@ -1,7 +1,6 @@
 ---
-id: version-0.18.0-fetch
-title: Fetch
-original_id: fetch
+id: fetch
+title: "Fetch"
 ---
 ## Introduction
 The fetch service can be used to make HTTP requests to a server. This enables applications to
