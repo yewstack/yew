@@ -38,22 +38,22 @@ RouterコンポーネントはRouteAgentとやり取りし、エージェント�
 これは通常は列挙型ですが、構造体もサポートされており、`Switch` を実装した他のアイテムを内部に入れ子にすることができることに注意してください。
 
 次に、`Switch`を型に継承させなければいけません。
-列挙型の場合は全てのvariantは`#[at = "/some/route"]`とアノテーションされている必要があり、代わり構造体を用いている場合は構造体宣言が外部から見えるようにしてなければいけません。
+列挙型の場合は全てのvariantは`#[to = "/some/route"]`とアノテーションされている必要があり、代わり構造体を用いている場合は構造体宣言が外部から見えるようにしてなければいけません。
 
 ```rust
 #[derive(Switch)]
 enum AppRoute {
-  #[at = "/login"]
+  #[to="/login"]
   Login,
-  #[at = "/register"]
+  #[to="/register"]
   Register,
-  #[at = "/delete_account"]
+  #[to="/delete_account"]
   Delete, 
-  #[at = "/posts/{id}"]
+  #[to="/posts/{id}"]
   ViewPost(i32),
-  #[at = "/posts/view"]
+  #[to="/posts/view"]
   ViewPosts,
-  #[at = "/"]
+  #[to="/"]
   Home
 }
 ```
@@ -64,23 +64,23 @@ enum AppRoute {
 ```rust
 #[derive(Switch)]
 enum AppRoute {
-  #[at = "/"]
+  #[to="/"]
   Home,
-  #[at = "/login"]
+  #[to="/login"]
   Login,
-  #[at = "/register"]
+  #[to="/register"]
   Register,
-  #[at = "/delete_account"]
+  #[to="/delete_account"]
   Delete, 
-  #[at = "/posts/{id}"]
+  #[to="/posts/{id}"]
   ViewPost(i32),
-  #[at = "/posts/view"]
+  #[to="/posts/view"]
   ViewPosts,
 }
 ```
 :::
 
-また、`#[at = ""]`アノテーションの中で`{}`のバリエーションを使ってセクションをキャプチャすることもできます。
+また、`#[to = ""]`アノテーションの中で`{}`のバリエーションを使ってセクションをキャプチャすることもできます。
 `{}`は、次の区切り文字\(コンテキストに応じて "/", "?", "&", "#" のいずれか\) までのテキストをキャプチャします。
 `{*}`は、次の文字が一致するまでテキストをキャプチャすることを意味します。
 `{<number>}`は、指定した数の区切り文字が見つかるまでテキストをキャプチャすることを意味します
