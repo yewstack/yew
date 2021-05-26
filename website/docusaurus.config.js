@@ -22,6 +22,10 @@ module.exports = {
           position: 'left',
         },
         {
+          type: 'localeDropdown',
+          position: 'left',
+        },
+        {
           type: 'doc',
           docId: 'index',
           position: 'left',
@@ -90,6 +94,10 @@ module.exports = {
       apiKey: "bbaacf676920f3836ccab85fb87dd37c",
       indexName: "yew",
     }
+  },
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'ja', 'zh-CN', 'zh-TW'],
   },
   presets: [
     [
