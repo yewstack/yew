@@ -1,0 +1,77 @@
+{
+  "version-0.18.0-docs": {
+    "Getting Started": [
+      "version-0.18.0-index",
+      {
+        "type": "subcategory",
+        "label": "Project setup",
+        "ids": [
+          "version-0.18.0-getting-started/project-setup",
+          "version-0.18.0-getting-started/project-setup/using-trunk",
+          "version-0.18.0-getting-started/project-setup/using-wasm-pack",
+          "version-0.18.0-getting-started/project-setup/using-cargo-web"
+        ]
+      },
+      "version-0.18.0-getting-started/build-a-sample-app",
+      "version-0.18.0-getting-started/choose-web-library",
+      "version-0.18.0-getting-started/examples",
+      "version-0.18.0-getting-started/starter-templates"
+    ],
+    "Concepts": [
+      {
+        "type": "subcategory",
+        "label": "Components",
+        "ids": [
+          "version-0.18.0-concepts/components",
+          "version-0.18.0-concepts/components/callbacks",
+          "version-0.18.0-concepts/components/properties",
+          "version-0.18.0-concepts/components/children",
+          "version-0.18.0-concepts/components/refs"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "HTML",
+        "ids": [
+          "version-0.18.0-concepts/html",
+          "version-0.18.0-concepts/html/components",
+          "version-0.18.0-concepts/html/elements",
+          "version-0.18.0-concepts/html/classes",
+          "version-0.18.0-concepts/html/lists",
+          "version-0.18.0-concepts/html/literals-and-expressions"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Services",
+        "ids": [
+          "version-0.18.0-concepts/services",
+          "version-0.18.0-concepts/services/fetch",
+          "version-0.18.0-concepts/services/format"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Function Components",
+        "ids": [
+          "version-0.18.0-concepts/function-components",
+          "version-0.18.0-concepts/function-components/attribute",
+          "version-0.18.0-concepts/function-components/pre-defined-hooks",
+          "version-0.18.0-concepts/function-components/custom-hooks"
+        ]
+      },
+      "version-0.18.0-concepts/router",
+      "version-0.18.0-concepts/agents"
+    ],
+    "Advanced topics": [
+      "version-0.18.0-advanced-topics/how-it-works",
+      "version-0.18.0-advanced-topics/optimizations"
+    ],
+    "More": [
+      "version-0.18.0-more/debugging",
+      "version-0.18.0-more/css",
+      "version-0.18.0-more/testing",
+      "version-0.18.0-more/roadmap"
+    ]
+  }
+}

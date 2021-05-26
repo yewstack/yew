@@ -1,45 +1,40 @@
 ---
-title: 路线图
 description: Yew 框架规划功能的路线图
-id: version-0.17.3-roadmap
-original_id: roadmap
 ---
 
-## 优先次序
+# 路线图
 
-由社区决定将来特性的开发优先度以及需要侧重的关注点。 在2020年春季，发起过开发者调查问卷，收集有关项目发展方向的反馈。您可以在[Yew Wiki中](https://github.com/yewstack/yew/wiki/Dev-Survey-%5BSpring-2020%5D)找到摘要。
+## `v1.0.0`
 
-:::note
-可以在[Yew Github项目 ](https://github.com/yewstack/yew/projects)中跟踪所有主要计划的状态 
-:::
+### 规划中的功能
 
-## 关注点
-
-1. 高优先级的功能
-2. 生产环境准备
-3. 文档
-4. 痛点
-
-### 高优先级的功能
-
-1. [函数式组件](https://github.com/yewstack/yew/projects/3)
-2. [组件库](https://github.com/yewstack/yew/projects/4)
-3. 更好的状态管理
-4. [服务端渲染](https://github.com/yewstack/yew/projects/5)
+* 标记 key 的列表项：[https://github.com/yewstack/yew/issues/479](https://github.com/yewstack/yew/issues/479)
+* 路由：[https://github.com/yewstack/yew\_router](https://github.com/yewstack/yew_router)
 
 ### 生产环境准备
 
-- 提高 Yew 测试覆盖率
-- 缩减二进制文件的大小
-- [基准表现](https://github.com/yewstack/yew/issues/5)
+* 浏览器兼容性
+* 提高 Yew 框架的测试覆盖率
+* 增加性能基准测试：[https://github.com/yewstack/yew/issues/5](https://github.com/yewstack/yew/issues/5)
 
-### 文档
+### 指南
 
-- 创建教程
-- 简化项目设置
+* 最佳实践：[https://yew.rs/docs/optimizations](https://yew.rs/docs/optimizations)
+* 端到端教程
+* Futures / 并发
+* CSS / 样式
+* 测试
+* 状态管理
 
-### 痛点
+## 未来
 
-- [组件样板](https://github.com/yewstack/yew/issues/830)
-- Fetch API
-- [代理](https://github.com/yewstack/yew/projects/6)
+### 潜在功能
+
+* 服务端渲染：[https://github.com/yewstack/yew/issues/41](https://github.com/yewstack/yew/issues/41)
+* 组件库：[https://github.com/yewstrap/yewstrap](https://github.com/yewstrap/yewstrap)
+* 代码分割：[https://github.com/yewstack/yew/issues/599](https://github.com/yewstack/yew/issues/599)
+* 允许不同的虚拟 DOM 后端：[https://github.com/yewstack/yew/issues/482](https://github.com/yewstack/yew/issues/482)
+* 反思 Services：[https://github.com/yewstack/yew/issues/364](https://github.com/yewstack/yew/issues/364)
+* 成熟的工具包：[https://github.com/yewstack/yewtil](https://github.com/yewstack/yewtil)
+* HTML 模板备选方案：[https://github.com/yewstack/yew/issues/438](https://github.com/yewstack/yew/issues/438)
+

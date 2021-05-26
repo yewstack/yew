@@ -30,6 +30,10 @@
       "concepts/components/refs": {
         "title": "Refs"
       },
+      "concepts/contexts": {
+        "title": "Contexts",
+        "sidebar_label": "Contexts"
+      },
       "concepts/function-components": {
         "title": "Function Components",
         "sidebar_label": "Introduction"
@@ -114,6 +118,9 @@
       },
       "more/testing": {
         "title": "Testing apps"
+      },
+      "more/wasm-build-tools": {
+        "title": "Wasm Build Tools"
       },
       "README": {
         "title": "README"
@@ -210,6 +217,103 @@
         "title": "Roadmap"
       },
       "version-0.17.3/more/version-0.17.3-testing": {
+        "title": "Testing apps"
+      },
+      "version-0.18.0/advanced-topics/version-0.18.0-how-it-works": {
+        "title": "How it works"
+      },
+      "version-0.18.0/advanced-topics/version-0.18.0-optimizations": {
+        "title": "Optimizations & Best Practices",
+        "sidebar_label": "Optimizations"
+      },
+      "version-0.18.0/concepts/version-0.18.0-components": {
+        "title": "Introduction"
+      },
+      "version-0.18.0/concepts/components/version-0.18.0-callbacks": {
+        "title": "Callbacks"
+      },
+      "version-0.18.0/concepts/components/version-0.18.0-children": {
+        "title": "Children"
+      },
+      "version-0.18.0/concepts/components/version-0.18.0-properties": {
+        "title": "Properties"
+      },
+      "version-0.18.0/concepts/components/version-0.18.0-refs": {
+        "title": "Refs"
+      },
+      "version-0.18.0/concepts/version-0.18.0-function-components": {
+        "title": "Function Components",
+        "sidebar_label": "Introduction"
+      },
+      "version-0.18.0/concepts/function-components/version-0.18.0-attribute": {
+        "title": "#[function_component]"
+      },
+      "version-0.18.0/concepts/function-components/version-0.18.0-custom-hooks": {
+        "title": "Custom Hooks"
+      },
+      "version-0.18.0/concepts/function-components/version-0.18.0-pre-defined-hooks": {
+        "title": "Pre-defined Hooks"
+      },
+      "version-0.18.0/concepts/version-0.18.0-html": {
+        "title": "HTML",
+        "sidebar_label": "Introduction"
+      },
+      "version-0.18.0/concepts/html/version-0.18.0-classes": {
+        "title": "Classes"
+      },
+      "version-0.18.0/concepts/html/version-0.18.0-components": {
+        "title": "Components"
+      },
+      "version-0.18.0/concepts/html/version-0.18.0-elements": {
+        "title": "Elements"
+      },
+      "version-0.18.0/concepts/html/version-0.18.0-lists": {
+        "title": "Lists"
+      },
+      "version-0.18.0/concepts/version-0.18.0-router": {
+        "title": "Router"
+      },
+      "version-0.18.0/concepts/services/version-0.18.0-fetch": {
+        "title": "Fetch"
+      },
+      "version-0.18.0/getting-started/version-0.18.0-build-a-sample-app": {
+        "title": "Build a sample app"
+      },
+      "version-0.18.0/getting-started/version-0.18.0-choose-web-library": {
+        "title": "Choosing a web library"
+      },
+      "version-0.18.0/getting-started/version-0.18.0-examples": {
+        "title": "Examples"
+      },
+      "version-0.18.0/getting-started/version-0.18.0-project-setup": {
+        "title": "Project Setup",
+        "sidebar_label": "Introduction"
+      },
+      "version-0.18.0/getting-started/project-setup/version-0.18.0-using-trunk": {
+        "title": "Using trunk"
+      },
+      "version-0.18.0/getting-started/project-setup/version-0.18.0-using-wasm-pack": {
+        "title": "Using wasm-pack"
+      },
+      "version-0.18.0/getting-started/version-0.18.0-starter-templates": {
+        "title": "Starter templates"
+      },
+      "version-0.18.0/version-0.18.0-index": {
+        "title": "Introduction"
+      },
+      "version-0.18.0/more/version-0.18.0-css": {
+        "title": "CSS"
+      },
+      "version-0.18.0/more/version-0.18.0-debugging": {
+        "title": "Debugging"
+      },
+      "version-0.18.0/more/version-0.18.0-external-libs": {
+        "title": "External libraries"
+      },
+      "version-0.18.0/more/version-0.18.0-roadmap": {
+        "title": "Roadmap"
+      },
+      "version-0.18.0/more/version-0.18.0-testing": {
         "title": "Testing apps"
       }
     },

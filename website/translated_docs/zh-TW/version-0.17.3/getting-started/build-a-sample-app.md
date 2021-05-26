@@ -3,13 +3,12 @@
 首先，先建立一個新的 binary 專案：
 
 ```bash
-cargo new --lib yew-app && cd yew-app
+cargo new --bin yew-app && cd yew-app
 ```
 
 在依賴庫裡加入 `yew` 與 `wasm-bindgen`（最新的版號，請參考[這裡](https://docs.rs/yew)）
 
 {% code title="Cargo.toml" %}
-
 ```text
 [package]
 name = "yew-app"
@@ -21,13 +20,11 @@ edition = "2018"
 yew = "0.16"
 wasm-bindgen = "0.2"
 ```
-
 {% endcode %}
 
 將下面的模板複製進你的 `src/lib.rs` 檔案：
 
 {% code title="src/lib.rs" %}
-
 ```rust
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
@@ -79,7 +76,6 @@ pub fn run_app() {
     App::<Model>::new().mount_to_body();
 }
 ```
-
 {% endcode %}
 
 模板會建置名叫 `Model` 的根元件 `Component`，Model 會顯示一個按鈕，當你按下按鈕時， `Model` 會更新自己的狀態。需要特別注意的是，在 `main()` 裡的 `App::<Model>::new().mount_to_body()`，他會啟動你的 app 並且掛載 `Model` 裡的 HTML 到 `<body>` 標籤中。如果你想要在啟動應用程式時，帶入動態的屬性，你可以改用 `App::<Model>::new().mount_to_body_with_props(..)`。
@@ -91,7 +87,6 @@ mkdir static
 ```
 
 {% code title="index.html" %}
-
 ```bash
 <!doctype html>
 <html lang="en">
@@ -106,7 +101,6 @@ mkdir static
     <body></body>
 </html>
 ```
-
 {% endcode %}
 
 ## 執行你的 App！
@@ -125,3 +119,4 @@ wasm-pack build --target web --out-name wasm --out-dir ./static
 cargo +nightly install miniserve
 miniserve ./static --index index.html
 ```
+
