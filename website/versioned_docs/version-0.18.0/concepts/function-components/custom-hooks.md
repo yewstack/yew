@@ -1,8 +1,6 @@
 ---
-title: Custom Hooks
-description: Defining your own Hooks
-id: version-0.18.0-custom-hooks
-original_id: custom-hooks
+title: "Custom Hooks"
+description: "Defining your own Hooks "
 ---
 
 ## Defining custom Hooks

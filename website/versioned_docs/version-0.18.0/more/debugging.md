@@ -1,7 +1,5 @@
 ---
-title: Debugging
-id: version-0.18.0-debugging
-original_id: debugging
+title: "Debugging"
 ---
 
 ## Panics

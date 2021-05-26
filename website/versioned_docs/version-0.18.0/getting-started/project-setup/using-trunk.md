@@ -1,7 +1,5 @@
 ---
-title: Using trunk
-id: version-0.18.0-using-trunk
-original_id: using-trunk
+title: "Using trunk"
 ---
 
 ## Install

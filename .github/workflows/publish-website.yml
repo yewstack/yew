@@ -27,7 +27,7 @@ jobs:
           workflow: build-website.yml
           run_id: ${{ github.event.workflow_run.id }}
           name: website
-          path: website/build/yew
+          path: website/build
 
       - if: github.event.workflow_run.event == 'pull_request'
         name: Download pr info

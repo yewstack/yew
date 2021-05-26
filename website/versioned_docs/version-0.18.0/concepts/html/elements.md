@@ -1,8 +1,6 @@
 ---
-title: Elements
-description: Both HTML and SVG elements are supported
-id: version-0.18.0-elements
-original_id: elements
+title: "Elements"
+description: "Both HTML and SVG elements are supported"
 ---
 
 ## Dynamic tag names

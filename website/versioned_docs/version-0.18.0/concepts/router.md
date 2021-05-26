@@ -1,8 +1,6 @@
 ---
-title: Router
-description: Yew's official router
-id: version-0.18.0-router
-original_id: router
+title: "Router"
+description: "Yew's official router"
 ---
 
 [The router on crates.io](https://crates.io/crates/yew-router)

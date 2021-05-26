@@ -1,8 +1,6 @@
 ---
-title: Introduction
-description: Components and their lifecycle hooks
-id: version-0.18.0-components
-original_id: components
+title: "Introduction"
+description: "Components and their lifecycle hooks"
 ---
 
 ## What are Components?

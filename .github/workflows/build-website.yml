@@ -35,7 +35,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: website
-          path: website/build/yew
+          path: website/build/
           retention-days: 1
 
       - if: github.event_name == 'pull_request'
