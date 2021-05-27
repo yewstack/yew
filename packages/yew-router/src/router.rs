@@ -111,6 +111,10 @@ where
             }
         }
     }
+
+    fn destroy(&mut self) {
+        R::cleanup();
+    }
 }
 
 impl<R> Router<R>

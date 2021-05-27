@@ -229,6 +229,12 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
                 }
                 route
             }
+
+            fn cleanup() {
+                __ROUTER_CURRENT_ROUTE_CACHE.with(move |val| {
+                    *val.borrow_mut() = ::std::option::Option::None;
+                });
+            }
         }
     }
 }
