@@ -93,7 +93,11 @@ module.exports = {
     algolia: {
       apiKey: "bbaacf676920f3836ccab85fb87dd37c",
       indexName: "yew",
-    }
+    },
+    googleAnalytics: {
+      trackingID: 'UA-175524777-1',
+      anonymizeIP: true, // Should IPs be anonymized?
+    },
   },
   i18n: {
     defaultLocale: 'en',
