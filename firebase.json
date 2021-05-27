@@ -5,42 +5,15 @@
       "public": "website/build/",
       "cleanUrls": true,
       "redirects": [
-        // `/intro` -> `/` (2020-10-15)
         {
           "source": "/",
-          "destination": "/docs/index/",
+          "destination": "/docs/intro/",
           "type": 302
         },
         {
-          "source": "/docs/:lang/index",
-          "destination": "/:lang/docs/index",
-          "type": 301
-        },
-        {
-          "source": "/docs/:lang/next/intro",
-          "destination": "/:lang/docs/next/index",
-          "type": 301
-        },
-        // legacy (2020-08-15)
-        {
-          "source": "/docs/v/zh_cn",
-          "destination": "/zh-CN/docs/",
-          "type": 301
-        },
-        {
-          "source": "/docs/v/zh_tw",
-          "destination": "/zh-TW/docs/",
-          "type": 301
-        },
-        {
-          "regex": "/docs/v/zh_cn/(.*)",
-          "destination": "/zh-CN/docs/:1",
-          "type": 301
-        },
-        {
-          "regex": "/docs/v/zh_tw/(.*)",
-          "destination": "/zh-TW/docs/:1",
-          "type": 301
+          "source": "/docs/next",
+          "destination": "/docs/next/intro/",
+          "type": 302
         }
       ]
     },
