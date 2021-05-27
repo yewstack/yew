@@ -27,7 +27,7 @@ module.exports = {
         },
         {
           type: 'doc',
-          docId: 'index',
+          docId: 'intro',
           position: 'left',
           label: 'Docs',
         },
