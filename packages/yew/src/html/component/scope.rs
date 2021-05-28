@@ -7,7 +7,7 @@ use super::{
     Component,
 };
 use crate::callback::Callback;
-use crate::context::{ContextHandle, ContextProvider};
+use crate::context::{Context, ContextProvider};
 use crate::html::NodeRef;
 use crate::scheduler::{scheduler, Shared};
 use crate::utils::document;
@@ -79,13 +79,10 @@ impl AnyScope {
 
     /// Accesses a value provided by a parent `ContextProvider` component of the
     /// same type.
-    pub fn context<T: Clone + PartialEq + 'static>(
-        &self,
-        callback: Callback<T>,
-    ) -> Option<(T, ContextHandle<T>)> {
+    pub fn context<T: Clone + PartialEq + 'static>(&self) -> Option<Context<T>> {
         let scope = self.find_parent_scope::<ContextProvider<T>>()?;
         let component = scope.get_component()?;
-        Some(component.subscribe_consumer(callback))
+        Some(component.context.clone())
     }
 }
 
@@ -338,11 +335,8 @@ impl<COMP: Component> Scope<COMP> {
 
     /// Accesses a value provided by a parent `ContextProvider` component of the
     /// same type.
-    pub fn context<T: Clone + PartialEq + 'static>(
-        &self,
-        callback: Callback<T>,
-    ) -> Option<(T, ContextHandle<T>)> {
-        self.to_any().context(callback)
+    pub fn context<T: Clone + PartialEq + 'static>(&self) -> Option<Context<T>> {
+        self.to_any().context()
     }
 }
 

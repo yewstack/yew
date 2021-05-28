@@ -1,4 +1,4 @@
-use crate::services::history::Route;
+use crate::history::Route;
 
 pub use yew_router_macro::Routable;
 
@@ -8,7 +8,7 @@ pub use yew_router_macro::Routable;
 ///
 /// Use derive macro to implement it. Although it *is* possible to implement it manually,
 /// it is discouraged.
-pub trait Routable: PartialEq + 'static {
+pub trait Routable: PartialEq + Clone + 'static {
     /// Converts path to an instance of the routes enum. If the conversion succeeds, the
     /// returned variant corresponds to the route. If the conversion fails, a fallback variant
     /// is returned, which the caller should redirect to.

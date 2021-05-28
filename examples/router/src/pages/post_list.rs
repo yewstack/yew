@@ -20,7 +20,7 @@ impl Component for PostList {
     type Properties = PostListProps;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let router = Router::new(link, Callback::noop());
+        let router = Router::new(link);
         Self { router, props }
     }
 

@@ -1,5 +1,8 @@
 use crate::{get_current_scope, use_hook};
-use yew::context::ContextHandle;
+use yew::{
+    context::{Context, ContextListener},
+    Callback,
+};
 
 /// Hook for consuming context values in function components.
 /// The context of the type passed as `T` is returned. If there is no such context in scope, `None` is returned.
@@ -32,7 +35,7 @@ use yew::context::ContextHandle;
 pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<T> {
     struct UseContextState<T2: Clone + PartialEq + 'static> {
         initialized: bool,
-        context: Option<(T2, ContextHandle<T2>)>,
+        context: Option<(Context<T2>, ContextListener<T2>)>,
     }
 
     let scope = get_current_scope()
@@ -46,18 +49,15 @@ pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<T> {
         |state: &mut UseContextState<T>, updater| {
             if !state.initialized {
                 state.initialized = true;
-                let callback = move |ctx: T| {
-                    updater.callback(|state: &mut UseContextState<T>| {
-                        if let Some(context) = &mut state.context {
-                            context.0 = ctx;
-                        }
-                        true
-                    });
-                };
-                state.context = scope.context::<T>(callback.into());
+                if let Some(context) = scope.context::<T>() {
+                    let listener = context.register(Callback::from(move |_| {
+                        updater.callback(|_: &mut UseContextState<T>| true);
+                    }));
+                    state.context = Some((context, listener));
+                }
             }
 
-            Some(state.context.as_ref()?.0.clone())
+            Some(state.context.as_ref()?.0.current())
         },
         |state| {
             state.context = None;

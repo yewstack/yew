@@ -14,12 +14,12 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 use wasm_bindgen::{JsCast, JsValue};
 
-use crate::services::history::Route;
+use crate::history::Route;
 pub use crate::Routable;
 
 /// This trait is implemented by the derive macro. There is a blanket implementation of
 /// `Routeable` for all `DerivedRoutable`.
-pub trait DerivedRoutable: PartialEq + Any + Default {
+pub trait DerivedRoutable: PartialEq + Any + Default + Clone {
     const VARIANTS: &'static [RouteMuncher<Self>];
 
     fn to_args(&self) -> (usize, Args);

@@ -1,9 +1,9 @@
 //! This module defines the `ContextProvider` component.
 
-use crate::html::Scope;
 use crate::{html, Callback, Children, Component, ComponentLink, Html, Properties};
 use slab::Slab;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 /// Props for [`ContextProvider`]
 #[derive(Debug, Clone, PartialEq, Properties)]
@@ -22,54 +22,87 @@ pub struct ContextProviderProps<T: Clone + PartialEq> {
 #[derive(Debug)]
 pub struct ContextProvider<T: Clone + PartialEq + 'static> {
     link: ComponentLink<Self>,
-    context: T,
     children: Children,
-    consumers: RefCell<Slab<Callback<T>>>,
+    pub(crate) context: Context<T>,
+}
+
+#[derive(Debug)]
+struct ContextState<T: Clone + PartialEq + 'static> {
+    value: T,
+    listeners: Slab<Callback<T>>,
+}
+
+/// A context returned by `scope.context()`. This can be used to access the
+/// current context value, or register a callback for when the value changes.
+#[derive(Debug, Clone)]
+pub struct Context<T: Clone + PartialEq + 'static> {
+    state: Rc<RefCell<ContextState<T>>>,
+}
+
+impl<T: Clone + PartialEq + 'static> Context<T> {
+    fn new(value: T) -> Self {
+        Self {
+            state: Rc::new(RefCell::new(ContextState {
+                value,
+                listeners: Slab::new(),
+            })),
+        }
+    }
+
+    /// Get the current context value.
+    pub fn current(&self) -> T {
+        self.state.borrow().value.clone()
+    }
+
+    /// Register a callback to be called whenever the context changes.
+    /// The callback will be unregistered when the listener is dropped.
+    pub fn register(&self, callback: Callback<T>) -> ContextListener<T> {
+        let key = (*self.state).borrow_mut().listeners.insert(callback);
+        ContextListener {
+            context: self.clone(),
+            key,
+        }
+    }
+    fn store(&self, value: T) {
+        let triggers = {
+            let mut state = (*self.state).borrow_mut();
+            if state.value != value {
+                state.value = value;
+                state
+                    .listeners
+                    .iter()
+                    .map(|(_, callback)| {
+                        let value = state.value.clone();
+                        let callback = callback.clone();
+                        move || callback.emit(value)
+                    })
+                    .collect()
+            } else {
+                Vec::new()
+            }
+        };
+
+        // Call into user-code only once state is no longer borrowed.
+        for trigger in triggers {
+            trigger();
+        }
+    }
 }
 
 /// Owns the connection to a context provider. When dropped, the component will
 /// no longer receive updates from the provider.
 #[derive(Debug)]
-pub struct ContextHandle<T: Clone + PartialEq + 'static> {
-    provider: Scope<ContextProvider<T>>,
+pub struct ContextListener<T: Clone + PartialEq + 'static> {
+    context: Context<T>,
     key: usize,
 }
 
-impl<T: Clone + PartialEq + 'static> Drop for ContextHandle<T> {
+impl<T: Clone + PartialEq + 'static> Drop for ContextListener<T> {
     fn drop(&mut self) {
-        if let Some(component) = self.provider.get_component() {
-            component.consumers.borrow_mut().remove(self.key);
-        }
-    }
-}
-
-impl<T: Clone + PartialEq> ContextProvider<T> {
-    /// Add the callback to the subscriber list to be called whenever the context changes.
-    /// The consumer is unsubscribed as soon as the callback is dropped.
-    pub(crate) fn subscribe_consumer(&self, callback: Callback<T>) -> (T, ContextHandle<T>) {
-        let ctx = self.context.clone();
-        let key = self.consumers.borrow_mut().insert(callback);
-
-        (
-            ctx,
-            ContextHandle {
-                provider: self.link.clone(),
-                key,
-            },
-        )
-    }
-
-    /// Notify all subscribed consumers and remove dropped consumers from the list.
-    fn notify_consumers(&mut self) {
-        let consumers: Vec<Callback<T>> = self
-            .consumers
-            .borrow()
-            .iter()
-            .map(|(_, v)| v.clone())
-            .collect();
-        for consumer in consumers {
-            consumer.emit(self.context.clone());
-        }
+        (*self.context.state)
+            .borrow_mut()
+            .listeners
+            .remove(self.key);
     }
 }
 
@@ -81,8 +114,7 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
         Self {
             link,
             children: props.children,
-            context: props.context,
-            consumers: RefCell::new(Slab::new()),
+            context: Context::new(props.context),
         }
     }
 
@@ -98,10 +130,7 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
             true
         };
 
-        if self.context != props.context {
-            self.context = props.context;
-            self.notify_consumers();
-        }
+        self.context.store(props.context);
 
         should_render
     }

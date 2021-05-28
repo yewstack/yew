@@ -5,7 +5,7 @@ use crate::Routable;
 use anymap::AnyMap;
 use yew::Callback;
 
-use super::history::{HistoryListener, HistoryService, Route};
+use super::history::{self, HistoryListener, Route};
 
 type Entry<'a, T> = anymap::Entry<'a, dyn anymap::any::Any, T>;
 
@@ -51,14 +51,14 @@ impl<T: Routable> RouterState<T> {
         }
     }
     fn determine_current_route() -> Result<T, T> {
-        T::from_route(&*HistoryService::current())
+        T::from_route(&*history::current())
     }
     fn new() -> Result<Self, T> {
         let last_route = Rc::new(Self::determine_current_route()?);
         Ok(Self {
             last_route,
             subscribers: Vec::new(),
-            _listener: HistoryService::register(Callback::from(Self::update)),
+            _listener: history::register(Callback::from(Self::update)),
         })
     }
 
@@ -101,7 +101,7 @@ impl<T: Routable> RouterState<T> {
 
     fn handle_error(error: T) {
         // Whenever we fail to recognize a route, we redirect to the default one
-        HistoryService::replace(error.to_route());
+        history::replace(error.to_route());
     }
 
     fn update(route: Rc<Route>) {
@@ -116,9 +116,9 @@ impl<T: Routable> RouterState<T> {
         Ok(Self::try_insert(entry)?.last_route.clone())
     }
 
-    fn register(entry: Entry<Self>, callback: Callback<Rc<T>>) -> Result<RouterListener<T>, T> {
+    fn register(entry: Entry<Self>, callback: Callback<Rc<T>>) -> Result<TopLevelListener<T>, T> {
         Self::try_insert(entry)?.subscribers.push(callback.clone());
-        Ok(RouterListener(callback))
+        Ok(TopLevelListener(callback))
     }
 
     fn unregister(entry: Entry<Self>, callback: &Callback<Rc<T>>) {
@@ -134,34 +134,29 @@ impl<T: Routable> RouterState<T> {
         }
     }
 }
-pub struct RouterListener<T: Routable>(Callback<Rc<T>>);
+pub struct TopLevelListener<T: Routable>(Callback<Rc<T>>);
 
-impl<T: Routable> Drop for RouterListener<T> {
+impl<T: Routable> Drop for TopLevelListener<T> {
     fn drop(&mut self) {
         RouterState::with(|entry| RouterState::unregister(entry, &self.0));
     }
 }
 
-#[derive(Debug)]
-pub struct RouterService;
-
-impl RouterService {
-    pub fn dispatch<T: Routable>(action: RouterAction<T>) {
-        match action {
-            RouterAction::Push(route) => HistoryService::push(route.to_route()),
-            RouterAction::Replace(route) => HistoryService::replace(route.to_route()),
-        }
+pub fn dispatch<T: Routable>(action: RouterAction<T>) {
+    match action {
+        RouterAction::Push(route) => history::push(route.to_route()),
+        RouterAction::Replace(route) => history::replace(route.to_route()),
     }
-    pub fn push<T: Routable>(route: T) {
-        Self::dispatch(RouterAction::Push(route));
-    }
-    pub fn replace<T: Routable>(route: T) {
-        Self::dispatch(RouterAction::Replace(route));
-    }
-    pub fn current<T: Routable>() -> Rc<T> {
-        RouterState::try_with(RouterState::current_route)
-    }
-    pub fn register<T: Routable>(callback: Callback<Rc<T>>) -> RouterListener<T> {
-        RouterState::try_with(|entry| RouterState::register(entry, callback.clone()))
-    }
+}
+pub fn push<T: Routable>(route: T) {
+    dispatch(RouterAction::Push(route));
+}
+pub fn replace<T: Routable>(route: T) {
+    dispatch(RouterAction::Replace(route));
+}
+pub fn current<T: Routable>() -> Rc<T> {
+    RouterState::try_with(RouterState::current_route)
+}
+pub fn register<T: Routable>(callback: Callback<Rc<T>>) -> TopLevelListener<T> {
+    RouterState::try_with(|entry| RouterState::register(entry, callback.clone()))
 }

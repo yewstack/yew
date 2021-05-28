@@ -2,8 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::utils::base_url;
-use wasm_bindgen::prelude::Closure;
-use wasm_bindgen::JsCast;
+use gloo::events::EventListener;
 use wasm_bindgen::JsValue;
 use web_sys::EventTarget;
 use yew::utils::window;
@@ -100,16 +99,12 @@ pub enum HistoryAction {
 struct HistoryState {
     last_route: Rc<Route>,
     subscribers: Vec<Callback<Rc<Route>>>,
-    cb: Closure<dyn Fn()>,
+    _listeners: [EventListener; 2],
 }
 
 thread_local! {
     static HISTORY_STATE: RefCell<Option<HistoryState>> = RefCell::new(None);
 }
-
-/// Service to interface with the history API.
-#[derive(Debug)]
-pub struct HistoryService;
 
 impl HistoryState {
     fn with<R>(f: impl FnOnce(&mut Option<Self>) -> R) -> R {
@@ -135,18 +130,16 @@ impl HistoryState {
 
     fn new() -> Self {
         // Install event listeners
-        let cb: Closure<dyn Fn()> = Closure::wrap(Box::new(Self::update));
-
         let et: EventTarget = window().into();
-        et.add_event_listener_with_callback("popstate", cb.as_ref().unchecked_ref())
-            .expect("add popstate listener");
-        et.add_event_listener_with_callback("hashchange", cb.as_ref().unchecked_ref())
-            .expect("add hashchange listener");
+        let _listeners = [
+            EventListener::new(&et, "popstate", |_| Self::update()),
+            EventListener::new(&et, "hashchange", |_| Self::update()),
+        ];
 
         Self {
             last_route: Rc::new(Self::determine_current_route()),
             subscribers: Vec::new(),
-            cb,
+            _listeners,
         }
     }
 
@@ -204,16 +197,6 @@ impl HistoryState {
     }
 }
 
-impl Drop for HistoryState {
-    fn drop(&mut self) {
-        let et: EventTarget = window().into();
-        et.remove_event_listener_with_callback("popstate", self.cb.as_ref().unchecked_ref())
-            .expect("remove popstate listener");
-        et.remove_event_listener_with_callback("hashchange", self.cb.as_ref().unchecked_ref())
-            .expect("remove hashchange listener");
-    }
-}
-
 pub struct HistoryListener(Callback<Rc<Route>>);
 
 impl Drop for HistoryListener {
@@ -222,52 +205,50 @@ impl Drop for HistoryListener {
     }
 }
 
-impl HistoryService {
-    pub fn dispatch(action: HistoryAction) {
-        let history = window().history().expect("no history");
-        match action {
-            HistoryAction::Push(mut route) => {
-                route.apply_base();
-                history
-                    .push_state_with_url(&route.state, "", Some(&route.url()))
-                    .expect("push history");
+pub fn dispatch(action: HistoryAction) {
+    let history = window().history().expect("no history");
+    match action {
+        HistoryAction::Push(mut route) => {
+            route.apply_base();
+            history
+                .push_state_with_url(&route.state, "", Some(&route.url()))
+                .expect("push history");
 
-                // Not triggered automatically by `pushState`.
-                HistoryState::update();
-            }
-            HistoryAction::Replace(mut route) => {
-                route.apply_base();
-                history
-                    .replace_state_with_url(&route.state, "", Some(&route.url()))
-                    .expect("replace history");
-
-                // Not triggered automatically by `replaceState`.
-                HistoryState::update();
-            }
-            HistoryAction::Back => history.back().expect("back history"),
-            HistoryAction::Forward => history.forward().expect("forward history"),
-            HistoryAction::Go(index) => history.go_with_delta(index).expect("go history"),
+            // Not triggered automatically by `pushState`.
+            HistoryState::update();
         }
+        HistoryAction::Replace(mut route) => {
+            route.apply_base();
+            history
+                .replace_state_with_url(&route.state, "", Some(&route.url()))
+                .expect("replace history");
+
+            // Not triggered automatically by `replaceState`.
+            HistoryState::update();
+        }
+        HistoryAction::Back => history.back().expect("back history"),
+        HistoryAction::Forward => history.forward().expect("forward history"),
+        HistoryAction::Go(index) => history.go_with_delta(index).expect("go history"),
     }
-    pub fn push(route: Route) {
-        Self::dispatch(HistoryAction::Push(route));
-    }
-    pub fn replace(route: Route) {
-        Self::dispatch(HistoryAction::Replace(route));
-    }
-    pub fn forward() {
-        Self::dispatch(HistoryAction::Forward);
-    }
-    pub fn back() {
-        Self::dispatch(HistoryAction::Back);
-    }
-    pub fn go(index: i32) {
-        Self::dispatch(HistoryAction::Go(index));
-    }
-    pub fn current() -> Rc<Route> {
-        HistoryState::with(HistoryState::current_route)
-    }
-    pub fn register(callback: Callback<Rc<Route>>) -> HistoryListener {
-        HistoryState::with(|state| HistoryState::register(state, callback))
-    }
+}
+pub fn push(route: Route) {
+    dispatch(HistoryAction::Push(route));
+}
+pub fn replace(route: Route) {
+    dispatch(HistoryAction::Replace(route));
+}
+pub fn forward() {
+    dispatch(HistoryAction::Forward);
+}
+pub fn back() {
+    dispatch(HistoryAction::Back);
+}
+pub fn go(index: i32) {
+    dispatch(HistoryAction::Go(index));
+}
+pub fn current() -> Rc<Route> {
+    HistoryState::with(HistoryState::current_route)
+}
+pub fn register(callback: Callback<Rc<Route>>) -> HistoryListener {
+    HistoryState::with(|state| HistoryState::register(state, callback))
 }

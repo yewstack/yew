@@ -56,7 +56,7 @@ fn component() -> Html {
         }))
     });
 
-    match &*router.route() {
+    match &*router.current() {
         Routes::Home => html! {
             <>
                 <div id="result">{"Home"}</div>

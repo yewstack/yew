@@ -55,9 +55,10 @@
 
 pub mod components;
 mod context;
+pub mod history;
 mod routable;
 pub mod router;
-pub mod services;
+pub mod top_level;
 pub mod utils;
 
 #[doc(hidden)]
@@ -65,8 +66,7 @@ pub mod hidden;
 
 pub use routable::Routable;
 pub use router::{use_router, Router};
-pub use services::history::HistoryService;
-pub use services::router::RouterAction;
+pub use top_level::RouterAction;
 
 pub mod prelude {
     //! Prelude module to be imported when working with `yew-router`.

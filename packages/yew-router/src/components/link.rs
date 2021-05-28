@@ -1,13 +1,12 @@
 use crate::router::use_router;
-use crate::services::router::RouterAction;
-use crate::Routable;
+use crate::{Routable, RouterAction};
 use yew::prelude::*;
 
 use yew_functional::function_component;
 
 /// Props for [`Link`]
 #[derive(Properties, Clone, PartialEq)]
-pub struct LinkProps<R: Routable + Clone> {
+pub struct LinkProps<R: Routable> {
     /// CSS classes to add to the anchor element (optional).
     #[prop_or_default]
     pub classes: Classes,
@@ -19,7 +18,7 @@ pub struct LinkProps<R: Routable + Clone> {
 #[function_component(Link)]
 pub fn link<R>(props: &LinkProps<R>) -> Html
 where
-    R: Routable + Clone + PartialEq + 'static,
+    R: Routable,
 {
     let router = use_router::<R>();
     let route = props.route.clone();

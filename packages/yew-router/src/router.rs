@@ -1,18 +1,18 @@
 //! Router Component.
 
-use std::cell::RefCell;
+use std::fmt::{self, Debug};
 use std::rc::Rc;
 
-use yew::context::ContextHandle;
+use yew::context::{Context, ContextListener};
 use yew::html::AnyScope;
 use yew::prelude::*;
 use yew_functional::{get_current_scope, use_hook};
 
 use crate::context::RoutingContext;
-use crate::services::router::{RouterAction, RouterListener, RouterService};
+use crate::top_level::{self, RouterAction, TopLevelListener};
 use crate::Routable;
 
-pub struct Router<T: Routable>(Rc<InnerRouter<T>>);
+pub struct Router<T: Routable>(Option<Context<RoutingContext<T>>>);
 
 impl<T: Routable> Clone for Router<T> {
     fn clone(&self) -> Self {
@@ -20,81 +20,50 @@ impl<T: Routable> Clone for Router<T> {
     }
 }
 
-enum InnerRouter<T: Routable> {
-    // Used when we're mounted inside a routing context
-    Context {
-        current: RefCell<Rc<RoutingContext<T>>>,
-        _handle: ContextHandle<Rc<RoutingContext<T>>>,
-    },
-    // Used when we're directly interacting with the router service
-    Service {
-        // Lazily initialize this to avoid unnecessary work
-        current: RefCell<Option<Rc<T>>>,
-        _listener: RouterListener<T>,
-    },
+impl<T: Routable> Debug for Router<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("Router").finish()
+    }
 }
 
-#[derive(Debug)]
-pub struct RouterUpdate<T: Routable>(InnerRouterUpdate<T>);
+enum RouterListenerInner<T: Routable> {
+    Mounted(ContextListener<RoutingContext<T>>),
+    TopLevel(TopLevelListener<T>),
+}
+pub struct RouterListener<T: Routable>(RouterListenerInner<T>);
 
-#[derive(Debug)]
-enum InnerRouterUpdate<T: Routable> {
-    // Used when we're mounted inside a routing context
-    Context(Rc<RoutingContext<T>>),
-    // Used when we're directly interacting with the router agent
-    Service(Rc<T>),
+impl<T: Routable> Debug for RouterListener<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("RouterListener").finish()
+    }
 }
 
 impl<T: Routable> Router<T> {
-    pub fn new(link: impl Into<AnyScope>, callback: Callback<RouterUpdate<T>>) -> Self {
+    pub fn new(link: impl Into<AnyScope>) -> Self {
         let link = link.into();
-        Self(Rc::new(
-            if let Some((current, handle)) =
-                link.context(callback.reform(|ctx| RouterUpdate(InnerRouterUpdate::Context(ctx))))
-            {
-                InnerRouter::Context {
-                    current: RefCell::new(current),
-                    _handle: handle,
-                }
-            } else {
-                let current = RefCell::new(None);
-                let _listener = RouterService::register(
-                    callback.reform(|routable| RouterUpdate(InnerRouterUpdate::Service(routable))),
-                );
-                InnerRouter::Service { current, _listener }
-            },
-        ))
+        Self(link.context())
     }
-    pub fn update(&self, update: RouterUpdate<T>) {
-        match (&*self.0, update.0) {
-            (InnerRouter::Service { current, .. }, InnerRouterUpdate::Service(routable)) => {
-                *current.borrow_mut() = Some(routable);
-            }
-            (InnerRouter::Context { current, .. }, InnerRouterUpdate::Context(ctx)) => {
-                *current.borrow_mut() = ctx;
-            }
-            _ => unreachable!(),
-        }
+    pub fn register(&self, callback: Callback<Rc<T>>) -> RouterListener<T> {
+        RouterListener(if let Some(context) = &self.0 {
+            RouterListenerInner::Mounted(
+                context.register(callback.reform(|ctx: RoutingContext<T>| ctx.route)),
+            )
+        } else {
+            RouterListenerInner::TopLevel(top_level::register(callback))
+        })
     }
-    pub fn route(&self) -> Rc<T> {
-        match &*self.0 {
-            InnerRouter::Service { current, .. } => {
-                let mut current = current.borrow_mut();
-                if let Some(route) = &*current {
-                    route.clone()
-                } else {
-                    let route = RouterService::current::<T>();
-                    *current = Some(route.clone());
-                    route
-                }
-            }
-            InnerRouter::Context { current, .. } => current.borrow().route.clone(),
+    pub fn current(&self) -> Rc<T> {
+        if let Some(context) = &self.0 {
+            context.current().route
+        } else {
+            top_level::current()
         }
     }
     pub fn dispatch(&self, action: RouterAction<T>) {
-        match &*self.0 {
-            InnerRouter::Service { .. } => RouterService::dispatch(action),
-            InnerRouter::Context { current, .. } => current.borrow().onroute.emit(action),
+        if let Some(context) = &self.0 {
+            context.current().onroute.emit(action)
+        } else {
+            top_level::dispatch(action)
         }
     }
     pub fn dispatcher<U>(
@@ -119,7 +88,7 @@ impl<T: Routable> Router<T> {
 
 pub fn use_router<T: Routable>() -> Router<T> {
     struct UseRouterState<T2: Routable> {
-        router: Option<Router<T2>>,
+        router: Option<(Router<T2>, RouterListener<T2>)>,
     }
 
     let scope = get_current_scope()
@@ -129,20 +98,14 @@ pub fn use_router<T: Routable>() -> Router<T> {
         move || UseRouterState { router: None },
         |state: &mut UseRouterState<T>, updater| {
             if state.router.is_none() {
-                let callback = move |update: RouterUpdate<T>| {
-                    updater.callback(|state: &mut UseRouterState<T>| {
-                        if let Some(router) = &state.router {
-                            router.update(update);
-                            true
-                        } else {
-                            false
-                        }
-                    });
-                };
-                state.router = Some(Router::new(scope, callback.into()))
+                let router = Router::new(scope);
+                let listener = router.register(Callback::from(move |_| {
+                    updater.callback(|_: &mut UseRouterState<T>| true);
+                }));
+                state.router = Some((router, listener));
             }
 
-            state.router.clone().unwrap()
+            state.router.as_ref().unwrap().0.clone()
         },
         |state| {
             state.router = None;
