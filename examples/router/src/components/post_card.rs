@@ -1,4 +1,4 @@
-use crate::{content::Post, generator::Generated, Route};
+use crate::{content::PostMeta, generator::Generated, Route};
 use yew::prelude::*;
 use yew_router::components::Link;
 
@@ -8,7 +8,7 @@ pub struct Props {
 }
 
 pub struct PostCard {
-    post: Post,
+    post: PostMeta,
 }
 impl Component for PostCard {
     type Message = ();
@@ -16,7 +16,7 @@ impl Component for PostCard {
 
     fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
         Self {
-            post: Post::generate_from_seed(props.seed),
+            post: PostMeta::generate_from_seed(props.seed),
         }
     }
 
@@ -28,7 +28,7 @@ impl Component for PostCard {
         if self.post.seed == props.seed {
             false
         } else {
-            self.post = Post::generate_from_seed(props.seed);
+            self.post = PostMeta::generate_from_seed(props.seed);
             true
         }
     }
