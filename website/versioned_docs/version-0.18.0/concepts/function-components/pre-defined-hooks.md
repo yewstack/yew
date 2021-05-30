@@ -228,7 +228,7 @@ Sometimes, it's needed to manually define dependencies for [`use_effect`](#use_e
 use_effect_with_deps(
     move |_| {
         // ...
-        || {}
+        || ()
     },
     (), // dependents
 );
