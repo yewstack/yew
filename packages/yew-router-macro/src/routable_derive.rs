@@ -194,9 +194,16 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
         None => quote! { ::std::option::Option::None },
     };
 
+    let cache_thread_local_ident = Ident::new(
+        &format!("__{}_ROUTER_CURRENT_ROUTE_CACHE", ident),
+        ident.span(),
+    );
+
     quote! {
         ::std::thread_local! {
-            static __ROUTER_CURRENT_ROUTE_CACHE: ::std::cell::RefCell<::std::option::Option<#ident>> = ::std::cell::RefCell::new(::std::option::Option::None);
+            #[doc(hidden)]
+            #[allow(non_upper_case_globals)]
+            static #cache_thread_local_ident: ::std::cell::RefCell<::std::option::Option<#ident>> = ::std::cell::RefCell::new(::std::option::Option::None);
         }
 
         #[automatically_derived]
@@ -213,7 +220,7 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
             }
 
             fn current_route() -> ::std::option::Option<Self> {
-                __ROUTER_CURRENT_ROUTE_CACHE.with(|val| ::std::clone::Clone::clone(&*val.borrow_mut()))
+                #cache_thread_local_ident.with(|val| ::std::clone::Clone::clone(&*val.borrow()))
             }
 
             fn recognize(pathname: &str) -> ::std::option::Option<Self> {
@@ -223,7 +230,7 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
                 let route = ROUTER.with(|router| ::yew_router::__macro::recognize_with_router(router, pathname));
                 {
                     let route = ::std::clone::Clone::clone(&route);
-                    __ROUTER_CURRENT_ROUTE_CACHE.with(move |val| {
+                    #cache_thread_local_ident.with(move |val| {
                         *val.borrow_mut() = route;
                     });
                 }
@@ -231,7 +238,7 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
             }
 
             fn cleanup() {
-                __ROUTER_CURRENT_ROUTE_CACHE.with(move |val| {
+                #cache_thread_local_ident.with(move |val| {
                     *val.borrow_mut() = ::std::option::Option::None;
                 });
             }
