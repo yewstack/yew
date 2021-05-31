@@ -1,4 +1,4 @@
-use crate::utils::build_path_with_base;
+use crate::utils::base_url;
 use crate::Routable;
 use gloo::events::EventListener;
 use serde::{Deserialize, Serialize};
@@ -34,15 +34,21 @@ where
 
 fn push_impl(url: String) {
     let history = yew::utils::window().history().expect("no history");
+    let base = base_url();
+    let path = match base {
+        Some(base) => {
+            let path = format!("{}{}", base, url);
+            if path.is_empty() {
+                "/".to_string()
+            } else {
+                path
+            }
+        }
+        None => url,
+    };
 
-    let path = build_path_with_base(&url);
-    // using this little trick to avoid allocating `/` string
-    let mut path = path.as_str();
-    if path.is_empty() {
-        path = "/";
-    }
     history
-        .push_state_with_url(&JsValue::NULL, "", Some(path))
+        .push_state_with_url(&JsValue::NULL, "", Some(&path))
         .expect("push history");
     let event = Event::new("popstate").unwrap();
     yew::utils::window()
@@ -59,8 +65,7 @@ where
 }
 
 pub fn current_route<R: Routable>() -> Option<R> {
-    let pathname = yew::utils::window().location().pathname().unwrap();
-    R::recognize(&pathname)
+    R::current_route()
 }
 
 /// Handle for the router's path event listener

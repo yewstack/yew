@@ -15,7 +15,7 @@ The router then detects this change and then decides what to render.
 The Router component. It takes in a callback and renders the HTML based on the returned value of the callback. It is usually placed
 at the top of the application.
 
-Routes are defined by an `enum` which derives `Routable`:
+Routes are defined by an `enum` which derives `Routable`. This enum must be `Clone + Sized.
 ```rust
 #[derive(Routable)]
 enum Route {
