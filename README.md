@@ -50,7 +50,7 @@ Yew is a community effort and we welcome all kinds of contributions, big or smal
 
 #### 🤠 New to Yew?
 
-Start learning about the framework by helping us improve our [documentation](https://github.com/yewstack/yew/tree/master/docs). Pull requests which improve test coverage are also very welcome.
+Start learning about the framework by helping us improve our [documentation](https://github.com/yewstack/yew/tree/master/website/docs). Pull requests which improve test coverage are also very welcome.
 
 #### 😎 Looking for inspiration?
 
