@@ -1,6 +1,7 @@
 //! Router Component.
 
-use crate::{attach_route_listener, current_route, Routable, RouteListener};
+use crate::Routable;
+use gloo::events::EventListener;
 use std::rc::Rc;
 use yew::prelude::*;
 
@@ -52,8 +53,8 @@ impl<R> PartialEq for RouterProps<R> {
 }
 
 #[doc(hidden)]
-pub enum Msg<R> {
-    UpdateRoute(Option<R>),
+pub enum Msg {
+    ReRender,
 }
 
 /// The router component.
@@ -66,33 +67,30 @@ pub enum Msg<R> {
 pub struct Router<R: Routable + 'static> {
     props: RouterProps<R>,
     #[allow(dead_code)] // only exists to drop listener on component drop
-    route_listener: RouteListener,
-    route: Option<R>,
+    route_listener: EventListener,
 }
 
 impl<R> Component for Router<R>
 where
     R: Routable + 'static,
 {
-    type Message = Msg<R>;
+    type Message = Msg;
     type Properties = RouterProps<R>;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let route_listener = attach_route_listener(link.callback(Msg::UpdateRoute));
+        let route_listener = EventListener::new(&yew::utils::window(), "popstate", move |_| {
+            link.send_message(Msg::ReRender)
+        });
 
         Self {
             props,
             route_listener,
-            route: current_route(),
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> bool {
         match msg {
-            Msg::UpdateRoute(route) => {
-                self.route = route;
-                true
-            }
+            Msg::ReRender => true,
         }
     }
 
@@ -102,13 +100,20 @@ where
     }
 
     fn view(&self) -> Html {
-        match &self.route {
-            Some(route) => (self.props.render.0)(route),
+        let pathname = yew::utils::window().location().pathname().unwrap();
+        let route = R::recognize(&pathname);
+
+        match route {
+            Some(route) => (self.props.render.0)(&route),
             None => {
-                weblog::console_log!("no route matched");
+                weblog::console_warn!("no route matched");
                 html! {}
             }
         }
+    }
+
+    fn destroy(&mut self) {
+        R::cleanup();
     }
 }
 

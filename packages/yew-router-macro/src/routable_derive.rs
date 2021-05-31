@@ -194,7 +194,18 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
         None => quote! { ::std::option::Option::None },
     };
 
+    let cache_thread_local_ident = Ident::new(
+        &format!("__{}_ROUTER_CURRENT_ROUTE_CACHE", ident),
+        ident.span(),
+    );
+
     quote! {
+        ::std::thread_local! {
+            #[doc(hidden)]
+            #[allow(non_upper_case_globals)]
+            static #cache_thread_local_ident: ::std::cell::RefCell<::std::option::Option<#ident>> = ::std::cell::RefCell::new(::std::option::Option::None);
+        }
+
         #[automatically_derived]
         impl ::yew_router::Routable for #ident {
             #from_path
@@ -208,11 +219,28 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
                 #not_found_route
             }
 
+            fn current_route() -> ::std::option::Option<Self> {
+                #cache_thread_local_ident.with(|val| ::std::clone::Clone::clone(&*val.borrow()))
+            }
+
             fn recognize(pathname: &str) -> ::std::option::Option<Self> {
                 ::std::thread_local! {
                     static ROUTER: ::yew_router::__macro::Router = ::yew_router::__macro::build_router::<#ident>();
                 }
-                ROUTER.with(|router| ::yew_router::__macro::recognize_with_router(router, pathname))
+                let route = ROUTER.with(|router| ::yew_router::__macro::recognize_with_router(router, pathname));
+                {
+                    let route = ::std::clone::Clone::clone(&route);
+                    #cache_thread_local_ident.with(move |val| {
+                        *val.borrow_mut() = route;
+                    });
+                }
+                route
+            }
+
+            fn cleanup() {
+                #cache_thread_local_ident.with(move |val| {
+                    *val.borrow_mut() = ::std::option::Option::None;
+                });
             }
         }
     }
