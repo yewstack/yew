@@ -26,11 +26,11 @@
     <span> | </span>
     <a href="https://yew.rs/docs/more/roadmap">Roadmap</a>
     <span> | </span>
-    <a href="https://yew.rs/zh-CN/docs/">简体中文文档</a>
+    <a href="https://yew.rs/zh-CN/docs/intro">简体中文文档</a>
     <span> | </span>
-    <a href="https://yew.rs/zh-TW/docs/">繁體中文文檔</a>
+    <a href="https://yew.rs/zh-TW/docs/intro">繁體中文文檔</a>
     <span> | </span>
-    <a href="https://yew.rs/ja/docs/">ドキュメント</a>
+    <a href="https://yew.rs/ja/docs/intro/">ドキュメント</a>
   </h4>
 </div>
 
