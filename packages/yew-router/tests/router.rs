@@ -9,17 +9,16 @@ use utils::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
-#[derive(Serialize, Deserialize)]
-struct Query {
-    foo: String,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Routable)]
+#[derive(Debug, Clone, PartialEq, Routable)]
 enum Routes {
     #[at("/")]
     Home,
     #[at("/no/:id")]
-    No { id: u32 },
+    No {
+        id: u32,
+        #[bind(query)]
+        query_param: String,
+    },
     #[at("/404")]
     NotFound,
 }
@@ -27,6 +26,7 @@ enum Routes {
 #[derive(Properties, PartialEq, Clone)]
 struct NoProps {
     id: u32,
+    query_param: String,
 }
 
 #[function_component(No)]
@@ -36,7 +36,7 @@ fn no(props: &NoProps) -> Html {
     html! {
         <>
             <div id="result-params">{ route }</div>
-            <div id="result-query">{ yew_router::parse_query::<Query>().unwrap().foo }</div>
+            <div id="result-query">{ props.query_param.clone() }</div>
         </>
     }
 }
@@ -45,13 +45,10 @@ fn no(props: &NoProps) -> Html {
 fn component() -> Html {
     let switch = Router::render(|routes| {
         let onclick = Callback::from(|_| {
-            yew_router::push_route_with_query(
-                Routes::No { id: 2 },
-                Query {
-                    foo: "bar".to_string(),
-                },
-            )
-            .unwrap();
+            yew_router::push_route(Routes::No {
+                id: 2,
+                query_param: "bar".to_string(),
+            })
         });
 
         match routes {
@@ -61,7 +58,7 @@ fn component() -> Html {
                     <a onclick=onclick>{"click me"}</a>
                 </>
             },
-            Routes::No { id } => html! { <No id=id /> },
+            Routes::No { id, query_param } => html! { <No id=id query_param=query_param /> },
             Routes::NotFound => html! { <div id="result">{"404"}</div> },
         }
     });

@@ -15,14 +15,17 @@ pub enum Route {
     #[at("/posts/:id")]
     Post { id: u64 },
     #[at("/posts")]
-    Posts,
+    Posts {
+        #[bind(query)]
+        page: u64,
+    },
     #[at("/authors/:id")]
     Author { id: u64 },
     #[at("/authors")]
     Authors,
     #[at("/")]
     Home,
-    #[not_found]
+    #[bind(not_found)]
     #[at("/404")]
     NotFound,
 }
@@ -111,7 +114,7 @@ impl Model {
                         <Link<Route> classes=classes!("navbar-item") route=Route::Home>
                             { "Home" }
                         </Link<Route>>
-                        <Link<Route> classes=classes!("navbar-item") route=Route::Posts>
+                        <Link<Route> classes=classes!("navbar-item") route=Route::Posts { page: 1 }>
                             { "Posts" }
                         </Link<Route>>
 
@@ -139,8 +142,8 @@ fn switch(routes: &Route) -> Html {
         Route::Post { id } => {
             html! { <Post seed=*id /> }
         }
-        Route::Posts => {
-            html! { <PostList /> }
+        Route::Posts { page } => {
+            html! { <PostList page=page /> }
         }
         Route::Author { id } => {
             html! { <Author seed=*id /> }

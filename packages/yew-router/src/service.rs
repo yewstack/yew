@@ -1,38 +1,13 @@
 use crate::utils::base_url;
 use crate::Routable;
 use gloo::events::EventListener;
-use serde::{Deserialize, Serialize};
 use wasm_bindgen::JsValue;
 use web_sys::Event;
 use yew::Callback;
 
 /// Navigate to a specific route.
 pub fn push_route(route: impl Routable) {
-    push_impl(route.to_path())
-}
-
-/// Navigate to a specific route with query parameters.
-///
-/// This should be used in cases where [`Link`](crate::prelude::Link) is insufficient.
-pub fn push_route_with_query<S>(
-    route: impl Routable,
-    query: S,
-) -> Result<(), serde_urlencoded::ser::Error>
-where
-    S: Serialize,
-{
-    let mut url = route.to_path();
-    let query = serde_urlencoded::to_string(query)?;
-    if !query.is_empty() {
-        url.push_str(&format!("?{}", query));
-    }
-
-    push_impl(url);
-
-    Ok(())
-}
-
-fn push_impl(url: String) {
+    let url = route.to_path();
     let history = yew::utils::window().history().expect("no history");
     let base = base_url();
     let path = match base {
@@ -54,14 +29,6 @@ fn push_impl(url: String) {
     yew::utils::window()
         .dispatch_event(&event)
         .expect("dispatch");
-}
-
-pub fn parse_query<T>() -> Result<T, serde_urlencoded::de::Error>
-where
-    T: for<'de> Deserialize<'de>,
-{
-    let query = yew::utils::document().location().unwrap().search().unwrap();
-    serde_urlencoded::from_str(query.strip_prefix("?").unwrap_or(""))
 }
 
 pub fn current_route<R: Routable>() -> Option<R> {

@@ -1,6 +1,6 @@
 mod routable_derive;
-use routable_derive::{routable_derive_impl, Routable};
-use syn::parse_macro_input;
+use routable_derive::routable_derive_impl;
+use syn::{parse_macro_input, DeriveInput};
 
 /// Derive macro used to mark an enum as Routable.
 ///
@@ -23,8 +23,10 @@ use syn::parse_macro_input;
 ///     NotFound,
 /// }
 /// ```
-#[proc_macro_derive(Routable, attributes(at, not_found))]
+#[proc_macro_derive(Routable, attributes(at, bind))]
 pub fn routable_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let input = parse_macro_input!(input as Routable);
-    routable_derive_impl(input).into()
+    let input = parse_macro_input!(input as DeriveInput);
+    routable_derive_impl(input)
+        .unwrap_or_else(|it| it.to_compile_error())
+        .into()
 }
