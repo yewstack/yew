@@ -15,7 +15,7 @@ pub use yew_router_macro::Routable;
 /// the functions exposed at the [crate's root][crate] to perform operations with the router.
 pub trait Routable: Sized + Clone {
     /// Converts path to an instance of the routes enum.
-    fn from_path(path: &str, params: &HashMap<&str, &str>) -> Option<Self>;
+    fn from_path(path: &str, params: &HashMap<&str, &str>, queries: HashMap<String, String>) -> Option<Self>;
 
     /// Converts the route to a string that can passed to the history API.
     fn to_path(&self) -> String;
@@ -32,7 +32,7 @@ pub trait Routable: Sized + Clone {
     fn current_route() -> Option<Self>;
 
     /// Match a route based on the path
-    fn recognize(pathname: &str) -> Option<Self>;
+    fn recognize(location: web_sys::Location) -> Option<Self>;
 
     /// Called when [`Router`](crate::Router) is destroyed.
     fn cleanup() {}

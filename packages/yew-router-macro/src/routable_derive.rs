@@ -119,6 +119,7 @@ impl Routable {
                         //named fields have idents
                         it.ident.as_ref().unwrap()
                     });
+
                     quote! { Self::#ident { #(#fields: params.get(stringify!(#fields))?.parse().ok()?)*, } }
                 }
                 Fields::Unnamed(_) => unreachable!(), // already checked
@@ -131,7 +132,11 @@ impl Routable {
         });
 
         quote! {
-            fn from_path(path: &str, params: &::std::collections::HashMap<&str, &str>) -> ::std::option::Option<Self> {
+            fn from_path(
+                path: &str,
+                params: &::std::collections::HashMap<&str, &str>,
+                queries: ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+            ) -> ::std::option::Option<Self> {
                 match path {
                     #(#from_path_matches),*,
                     _ => ::std::option::Option::None,
@@ -223,11 +228,11 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
                 #cache_thread_local_ident.with(|val| ::std::clone::Clone::clone(&*val.borrow()))
             }
 
-            fn recognize(pathname: &str) -> ::std::option::Option<Self> {
+            fn recognize(location: ::yew_router::__macro::Location) -> ::std::option::Option<Self> {
                 ::std::thread_local! {
                     static ROUTER: ::yew_router::__macro::Router = ::yew_router::__macro::build_router::<#ident>();
                 }
-                let route = ROUTER.with(|router| ::yew_router::__macro::recognize_with_router(router, pathname));
+                let route = ROUTER.with(|router| ::yew_router::__macro::recognize_with_router(router, location));
                 {
                     let route = ::std::clone::Clone::clone(&route);
                     #cache_thread_local_ident.with(move |val| {

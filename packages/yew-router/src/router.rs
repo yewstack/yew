@@ -100,8 +100,7 @@ where
     }
 
     fn view(&self) -> Html {
-        let pathname = yew::utils::window().location().pathname().unwrap();
-        let route = R::recognize(&pathname);
+        let route = R::recognize(yew::utils::window().location());
 
         match route {
             Some(route) => (self.props.render.0)(&route),
