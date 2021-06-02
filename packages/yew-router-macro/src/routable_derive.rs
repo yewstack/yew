@@ -53,7 +53,16 @@ pub fn routable_derive_impl(input: DeriveInput) -> syn::Result<TokenStream> {
                     let attrs = field
                         .attrs
                         .iter()
-                        .filter(|attr| attr.path.is_ident(BIND_ATTR_PATH));
+                        .filter(|attr| attr.path.is_ident(BIND_ATTR_PATH))
+                        .collect::<Vec<_>>();
+
+                    if attrs.len() > 1 {
+                        return Err(syn::Error::new_spanned(
+                            quote! { #(#attrs)* },
+                            "a field can have only one `#[bind(...)]`"
+                        ))
+                    }
+
                     for attr in attrs {
                         // todo maybe don't clone?
                         let ident = field.ident.clone().unwrap(); // named fields have idents

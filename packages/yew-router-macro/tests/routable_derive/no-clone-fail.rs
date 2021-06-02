@@ -1,6 +1,6 @@
 #![no_implicit_prelude]
 
-#[derive(Debug, PartialEq, Clone, ::yew_router::Routable)]
+#[derive(::yew_router::Routable)]
 enum Routes {
     #[at("/")]
     One,

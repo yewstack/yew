@@ -1,4 +1,3 @@
-use serde::{Deserialize, Serialize};
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::prelude::*;
 use yew_functional::function_component;

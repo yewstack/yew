@@ -1,12 +1,20 @@
-error: at attribute must be present on every variant
- --> $DIR/bad-ats-fail.rs:3:5
+error: at attribute not found
+ --> $DIR/bad-ats-fail.rs:1:10
   |
-3 |     One,
-  |     ^^^
+1 | #[derive(yew_router::Routable)]
+  |          ^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: only one at attribute must be present
- --> $DIR/bad-ats-fail.rs:8:5
-  |
-8 | /     #[at("/one")]
-9 | |     #[at("/two")]
-  | |_________________^
+error[E0277]: the trait bound `RoutesTwo: Clone` is not satisfied
+  --> $DIR/bad-ats-fail.rs:6:10
+   |
+6  | #[derive(yew_router::Routable)]
+   |          ^^^^^^^^^^^^^^^^^^^^ the trait `Clone` is not implemented for `RoutesTwo`
+   |
+  ::: $WORKSPACE/packages/yew-router/src/routable.rs
+   |
+   | pub trait Routable: Sized + Clone {
+   |                             ----- required by this bound in `Routable`
+   |
+   = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)

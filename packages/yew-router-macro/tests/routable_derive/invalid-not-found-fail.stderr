@@ -1,15 +1,19 @@
-error: there can only be one not_found
- --> $DIR/invalid-not-found-fail.rs:4:5
-  |
-4 | /     #[not_found]
-5 | |     Home,
-6 | |     #[at("/404")]
-7 | |     #[not_found]
-  | |________________^
-
-error: there can only be one not_found
+error: only one `#[bind(not_found)]` can be present
   --> $DIR/invalid-not-found-fail.rs:14:5
    |
-14 | /     #[not_found]
-15 | |     #[not_found]
-   | |________________^
+14 | /     #[bind(not_found)]
+15 | |     #[bind(not_found)]
+   | |______________________^
+
+error[E0277]: the trait bound `RoutesOne: Clone` is not satisfied
+  --> $DIR/invalid-not-found-fail.rs:1:28
+   |
+1  | #[derive(Debug, PartialEq, yew_router::Routable)]
+   |                            ^^^^^^^^^^^^^^^^^^^^ the trait `Clone` is not implemented for `RoutesOne`
+   |
+  ::: $WORKSPACE/packages/yew-router/src/routable.rs
+   |
+   | pub trait Routable: Sized + Clone {
+   |                             ----- required by this bound in `Routable`
+   |
+   = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -1,0 +1,6 @@
+error: a field can have only one `#[bind(...)]`
+ --> $DIR/invalid-bind-fail.rs:5:9
+  |
+5 | /         #[bind(query)]
+6 | |         #[bind(query)]
+  | |______________________^

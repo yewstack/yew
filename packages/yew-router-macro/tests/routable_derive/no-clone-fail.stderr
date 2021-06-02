@@ -1,0 +1,12 @@
+error[E0277]: the trait bound `Routes: Clone` is not satisfied
+  --> $DIR/no-clone-fail.rs:3:10
+   |
+3  | #[derive(::yew_router::Routable)]
+   |          ^^^^^^^^^^^^^^^^^^^^^^ the trait `Clone` is not implemented for `Routes`
+   |
+  ::: $WORKSPACE/packages/yew-router/src/routable.rs
+   |
+   | pub trait Routable: Sized + Clone {
+   |                             ----- required by this bound in `Routable`
+   |
+   = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)
