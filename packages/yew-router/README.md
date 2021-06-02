@@ -15,7 +15,7 @@ enum Route {
     Home,
     #[at("/secure")]
     Secure,
-    #[not_found]
+    #[bind(not_found)]
     #[at("/404")]
     NotFound,
 }

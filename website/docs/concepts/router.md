@@ -23,7 +23,7 @@ enum Route {
     Home,
     #[at("/secure")]
     Secure,
-    #[not_found]
+    #[bind(not_found)]
     #[at("/404")]
     NotFound,
 }
@@ -31,7 +31,7 @@ enum Route {
 
 The `Router` component takes the `Routable` enum as its type parameter, finds the first variant whose path matches the 
 browser's current URL and passes it to the `render` callback. The callback then decides what to render. 
-In case no path is matched, the router navigates to the path with `not_found` attribute. If no route is specified, 
+In case no path is matched, the router navigates to the path with `#[bind(not_found)]` attribute. If no route is specified, 
 nothing is rendered, and a message is logged to console stating that no route was matched.
 
 `yew_router::current_route` is used to programmatically obtain the current route.
@@ -68,16 +68,8 @@ To navigate between pages, use either a `Link` component (which renders a `<a>` 
 
 ### Query Parameters
 
-#### Specifying query parameters when navigating
-
-In order to specify query parameters when navigating to a new route, use `yew_router::push_route_with_query` function.
-It uses `serde` to serialize the parameters into query string for the URL so any type that implements `Serialize` can be passed.
-In its simplest form this is just a `HashMap` containing string pairs.
-
-#### Obtaining query parameters for current route
-
-`yew_router::parse_query` is used to obtain the query parameters.
-It uses `serde` to deserialize the parameters from query string in the URL.
+The fields in the routes enum variant can be marked ``#[bind(query)]` to be perceived 
+as query parameters. 
 
 ## Relevant examples
 - [Router](https://github.com/yewstack/yew/tree/master/examples/router)
