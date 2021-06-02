@@ -68,7 +68,7 @@ To navigate between pages, use either a `Link` component (which renders a `<a>` 
 
 ### Query Parameters
 
-The fields in the routes enum variant can be marked ``#[bind(query)]` to be perceived 
+The fields in the routes enum variant can be marked `#[bind(query)]` to be perceived 
 as query parameters. 
 
 ## Relevant examples
