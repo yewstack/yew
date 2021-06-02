@@ -13,7 +13,7 @@ pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
 
-use crate::html::{AnyScope, IntoOptPropValue, NodeRef};
+use crate::html::{AnyScope, IntoPropValue, NodeRef};
 use gloo::events::EventListener;
 use indexmap::IndexMap;
 use std::{borrow::Cow, collections::HashMap, fmt, hint::unreachable_unchecked, iter, mem, rc::Rc};
@@ -58,8 +58,8 @@ pub type AttrValue = Cow<'static, str>;
 pub struct PositionalAttr(pub &'static str, pub Option<AttrValue>);
 impl PositionalAttr {
     /// Create a positional attribute
-    pub fn new(key: &'static str, value: impl IntoOptPropValue<AttrValue>) -> Self {
-        Self(key, value.into_opt_prop_value())
+    pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
+        Self(key, value.into_prop_value())
     }
 
     /// Create a boolean attribute.

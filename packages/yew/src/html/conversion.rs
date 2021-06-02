@@ -58,15 +58,15 @@ macro_rules! impl_into_prop {
             }
         }
         // implement V -> Option<T>
-        impl IntoOptPropValue<$to_ty> for $from_ty {
-            fn into_opt_prop_value(self) -> Option<$to_ty> {
+        impl IntoPropValue<Option<$to_ty>> for $from_ty {
+            fn into_prop_value(self) -> Option<$to_ty> {
                 let $value = self;
                 Some({ $conversion })
             }
         }
         // implement Option<V> -> Option<T>
-        impl IntoOptPropValue<$to_ty> for Option<$from_ty> {
-            fn into_opt_prop_value(self) -> Option<$to_ty> {
+        impl IntoPropValue<Option<$to_ty>> for Option<$from_ty> {
+            fn into_prop_value(self) -> Option<$to_ty> {
                 self.map(IntoPropValue::into_prop_value)
             }
         }
@@ -79,17 +79,15 @@ impl_into_prop!(|value: &'static str| -> String { value.to_owned() });
 impl_into_prop!(|value: &'static str| -> Cow<'static, str> { Cow::Borrowed(value) });
 impl_into_prop!(|value: String| -> Cow<'static, str> { Cow::Owned(value) });
 
-/// A trait similar to `Into<Option<T>>` which allows conversion to an optional value of a
-/// `Properties` struct.
-pub trait IntoOptPropValue<T> {
-    /// Convert `self` to an optional value of a `Properties` struct.
-    fn into_opt_prop_value(self) -> Option<T>;
-}
-impl<T, V> IntoOptPropValue<V> for T
-where
-    T: IntoPropValue<Option<V>>,
-{
-    fn into_opt_prop_value(self) -> Option<V> {
-        self.into_prop_value()
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_str() {
+        let _: String = "foo".into_prop_value();
+        let _: Option<String> = "foo".into_prop_value();
+        let _: Cow<'static, str> = "foo".into_prop_value();
+        let _: Option<Cow<'static, str>> = "foo".into_prop_value();
     }
 }
