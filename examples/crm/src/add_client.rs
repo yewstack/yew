@@ -78,19 +78,19 @@ impl Component for AddClientForm {
                     <input
                         class=classes!("new-client", "firstname")
                         placeholder="First name"
-                        value=&client.first_name
+                        value=client.first_name.clone()
                         oninput=link.callback(|e: InputData| Msg::UpdateFirstName(e.value))
                     />
                     <input
                         class=classes!("new-client", "lastname")
                         placeholder="Last name"
-                        value=&client.last_name
+                        value=client.last_name.clone()
                         oninput=link.callback(|e: InputData| Msg::UpdateLastName(e.value))
                     />
                     <textarea
                         class=classes!("new-client", "description")
                         placeholder="Description"
-                        value=&client.description
+                        value=client.description.clone()
                         oninput=link.callback(|e: InputData| Msg::UpdateDescription(e.value))
                     />
                 </div>
