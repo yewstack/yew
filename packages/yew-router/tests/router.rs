@@ -61,7 +61,7 @@ fn component() -> Html {
                     <a onclick=onclick>{"click me"}</a>
                 </>
             },
-            Routes::No { id } => html! { <No id=id /> },
+            Routes::No { id } => html! { <No id=*id /> },
             Routes::NotFound => html! { <div id="result">{"404"}</div> },
         }
     });
