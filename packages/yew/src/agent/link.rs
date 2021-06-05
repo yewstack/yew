@@ -1,6 +1,6 @@
 use super::*;
 use crate::callback::Callback;
-use crate::scheduler::{scheduler, Runnable, Shared};
+use crate::scheduler::{self, Runnable, Shared};
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
@@ -109,11 +109,10 @@ impl<AGN: Agent> AgentScope<AGN> {
 
     /// Schedule message for sending to agent
     pub fn send(&self, event: AgentLifecycleEvent<AGN>) {
-        let runnable: Box<dyn Runnable> = Box::new(AgentRunnable {
+        scheduler::push(Box::new(AgentRunnable {
             state: self.state.clone(),
             event,
-        });
-        scheduler().push(runnable);
+        }));
     }
 }
 
