@@ -9,7 +9,7 @@ use super::{
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
 use crate::html::NodeRef;
-use crate::scheduler::{scheduler, Shared};
+use crate::scheduler::{self, Shared};
 use crate::utils::document;
 use crate::virtual_dom::{insert_node, VNode};
 use std::any::{Any, TypeId};
@@ -191,26 +191,24 @@ impl<COMP: Component> Scope<COMP> {
     }
 
     pub(crate) fn process(&self, event: ComponentLifecycleEvent<COMP>) {
-        let scheduler = scheduler();
-        scheduler.component.push(
-            event.as_runnable_type(),
-            Box::new(ComponentRunnable {
-                state: self.state.clone(),
-                event,
-            }),
-        );
-        scheduler.start();
+        self.schedule(event);
+        scheduler::start();
     }
 
     fn schedule(&self, event: ComponentLifecycleEvent<COMP>) {
-        let scheduler = &scheduler().component;
-        scheduler.push(
-            event.as_runnable_type(),
-            Box::new(ComponentRunnable {
-                state: self.state.clone(),
-                event,
-            }),
-        );
+        use ComponentLifecycleEvent::*;
+
+        let push = match &event {
+            Create(_) => scheduler::push_component_create,
+            Update(_) => scheduler::push_component_update,
+            Render => scheduler::push_component_render,
+            Rendered => scheduler::push_component_rendered,
+            Destroy => scheduler::push_component_destroy,
+        };
+        push(Box::new(ComponentRunnable {
+            state: self.state.clone(),
+            event,
+        }));
     }
 
     /// Send a message to the component.
