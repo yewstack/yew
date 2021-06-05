@@ -1,6 +1,6 @@
 [package]
 name = "yew-router"
-version = "0.14.0"
+version = "0.15.0"
 authors = ["Hamza <muhammadhamza1311@gmail.com>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
