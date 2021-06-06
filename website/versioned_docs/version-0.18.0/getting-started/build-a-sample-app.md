@@ -107,7 +107,8 @@ If you haven't already, install [Trunk](https://github.com/thedodd/trunk):
 cargo install trunk wasm-bindgen-cli
 ```
 
-Also, if not already done, you need to install the wasm32-unknown-unknown target to compile Rust to Wasm. If you're using rustup, you just need to run :
+If you haven't already installed it, you need to add the `wasm32-unknown-unknown` target. 
+To install this with Rustup:
 
 ```bash
 rustup target add wasm32-unknown-unknown
