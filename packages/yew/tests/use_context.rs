@@ -3,10 +3,10 @@ mod common;
 use common::obtain_result_by_id;
 use std::rc::Rc;
 use wasm_bindgen_test::*;
-use yew::{html, Children, ContextProvider, Html, Properties};
 use yew::functional::{
     use_context, use_effect, use_ref, use_state, FunctionComponent, FunctionProvider,
 };
+use yew::{html, Children, ContextProvider, Html, Properties};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 

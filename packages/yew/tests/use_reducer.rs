@@ -2,10 +2,10 @@ mod common;
 
 use common::obtain_result;
 use wasm_bindgen_test::*;
-use yew::{html, Html};
 use yew::functional::{
     use_effect_with_deps, use_reducer_with_init, FunctionComponent, FunctionProvider,
 };
+use yew::{html, Html};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 

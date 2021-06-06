@@ -5,7 +5,7 @@
 //!
 //! ```rust
 //! # use yew::prelude::*;
-//! # use yew_functional::*;
+//! # use yew::functional::*;
 //! # use yew_router::prelude::*;
 //!
 //! #[derive(Debug, Clone, Copy, PartialEq, Routable)]

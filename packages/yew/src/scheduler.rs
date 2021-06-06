@@ -46,7 +46,7 @@ fn with(f: impl FnOnce(&mut Scheduler)) {
 
 /// Push a generic Runnable to be executed
 #[inline]
-pub(crate) fn push(runnable: Box<dyn Runnable>) {
+pub fn push(runnable: Box<dyn Runnable>) {
     with(|s| s.main.push_back(runnable));
 }
 

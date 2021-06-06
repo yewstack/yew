@@ -1,12 +1,12 @@
 use super::*;
+use std::cell::RefCell;
+use std::fmt;
+use std::future::Future;
+use std::rc::Rc;
+use wasm_bindgen_futures::spawn_local;
 use yew::callback::Callback;
 use yew::html::ImplicitClone;
 use yew::scheduler::{self, Runnable, Shared};
-use std::cell::RefCell;
-use std::fmt;
-use std::rc::Rc;
-use std::future::Future;
-use wasm_bindgen_futures::spawn_local;
 
 /// Defines communication from Worker to Consumers
 pub(crate) trait Responder<AGN: Agent> {

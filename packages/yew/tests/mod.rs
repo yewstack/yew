@@ -2,8 +2,8 @@ mod common;
 
 use common::obtain_result;
 use wasm_bindgen_test::*;
+use yew::functional::{FunctionComponent, FunctionProvider};
 use yew::{html, Html, Properties};
-use yew_functional::{FunctionComponent, FunctionProvider};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 

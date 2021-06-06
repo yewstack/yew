@@ -38,7 +38,6 @@ features = [
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
-yew-functional = { path = "../yew-functional" }
 serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies.web-sys]

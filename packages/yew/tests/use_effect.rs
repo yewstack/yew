@@ -4,10 +4,10 @@ use common::obtain_result;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use wasm_bindgen_test::*;
-use yew::{html, Html, Properties};
 use yew::functional::{
     use_effect_with_deps, use_ref, use_state, FunctionComponent, FunctionProvider,
 };
+use yew::{html, Html, Properties};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
