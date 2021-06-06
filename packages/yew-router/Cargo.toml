@@ -20,7 +20,7 @@ js-sys = "0.3"
 weblog = "0.3.0"
 gloo = "0.2.1"
 route-recognizer = "0.3.0"
-regex = "1.5.4"
+regex = { version = "1.5.4", optional = true }
 percent-encoding = "2.1.0"
 anymap = "0.12"
 

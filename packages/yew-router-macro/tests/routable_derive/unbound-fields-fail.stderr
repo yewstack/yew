@@ -1,0 +1,5 @@
+error: unbound field
+ --> $DIR/unbound-fields-fail.rs:4:9
+  |
+4 |     One(u32),
+  |         ^^^

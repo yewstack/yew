@@ -9,6 +9,11 @@ use syn::parse_macro_input;
 ///  `yew_router::Routable` trait and `const`s for the routes passed which are used with `Route`
 /// component.
 ///
+/// The type must also implement `Default`. This implementation will be used if none of the routes
+/// match the URL. If there is at least one "wildcard" variant in the enum that matches any route
+/// then the `Default` implementation will never be used, but it must still be present to satisfy
+/// the required bounds.
+///
 /// # Example
 ///
 /// ```
@@ -21,6 +26,14 @@ use syn::parse_macro_input;
 ///     Secure,
 ///     #[at("/404")]
 ///     NotFound,
+/// }
+///
+/// impl Default for Routes {
+///     fn default() -> Self {
+///         // The browser will be redirected to this route if the URL doesn't match any of
+///         // the patterns above.
+///         Self::NotFound
+///     }
 /// }
 /// ```
 #[proc_macro_derive(Routable, attributes(at, bind))]

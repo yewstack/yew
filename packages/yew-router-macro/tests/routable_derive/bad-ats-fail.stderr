@@ -1,12 +1,11 @@
-error: at attribute must be present on every variant
+error: exactly one at attribute must be present on each variant
  --> $DIR/bad-ats-fail.rs:3:5
   |
 3 |     One,
   |     ^^^
 
-error: only one at attribute must be present
+error: exactly one at attribute must be present on each variant
  --> $DIR/bad-ats-fail.rs:8:5
   |
-8 | /     #[at("/one")]
-9 | |     #[at("/two")]
-  | |_________________^
+8 |     #[at("/one")]
+  |     ^

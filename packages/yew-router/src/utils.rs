@@ -2,7 +2,9 @@ use std::cell::RefCell;
 
 use wasm_bindgen::JsCast;
 
-pub fn find_base_url() -> Option<String> {
+type BaseUrl = Option<String>;
+
+pub fn find_base_url() -> BaseUrl {
     match yew::utils::document().query_selector("base[href]") {
         Ok(Some(base)) => {
             let base = base.unchecked_into::<web_sys::HtmlBaseElement>().href();
@@ -24,9 +26,9 @@ pub fn find_base_url() -> Option<String> {
     }
 }
 
-pub fn base_url() -> Option<String> {
+pub fn base_url() -> BaseUrl {
     thread_local! {
-        static BASE_URL: RefCell<Option<Option<String>>> = RefCell::new(None);
+        static BASE_URL: RefCell<Option<BaseUrl>> = RefCell::new(None);
     }
 
     BASE_URL.with(|maybe_base_url| {

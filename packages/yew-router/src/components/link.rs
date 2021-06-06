@@ -9,6 +9,7 @@ pub struct LinkProps<R: Routable + Clone> {
     pub classes: Classes,
     /// Route that will be pushed when the anchor is clicked.
     pub route: R,
+    /// Children
     pub children: Children,
 }
 
@@ -18,6 +19,7 @@ pub struct Link<R: Routable + Clone + PartialEq + 'static> {
     props: LinkProps<R>,
 }
 
+#[doc(hidden)]
 pub enum Msg {
     OnClick,
 }

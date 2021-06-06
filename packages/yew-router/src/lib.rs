@@ -14,9 +14,12 @@
 //!     Home,
 //!     #[at("/secure")]
 //!     Secure,
-//!     #[not_found]
 //!     #[at("/404")]
 //!     NotFound,
+//! }
+//!
+//! impl Default for Route {
+//!     fn default() -> Self { Self::NotFound }
 //! }
 //!
 //! # #[function_component(Main)]
@@ -44,8 +47,7 @@
 //! # Internals
 //!
 //! The router keeps its own internal state which is used to store the current route and its associated data.
-//! This allows the [Router] to be operated using the [service] with an API that
-//! isn't cumbersome to use.
+//! This allows the [Router] to be operated with an API that isn't cumbersome to use.
 //!
 //! # State
 //!
@@ -53,20 +55,23 @@
 //! not expose or make use of it. It is instead recommended that a state management library like
 //! [yewdux](https://github.com/intendednull/yewdux) be used.
 
+#![deny(missing_docs)]
+
 extern crate self as yew_router;
 
 pub mod components;
-pub mod history;
+mod history;
 mod routable;
-pub mod router;
+mod router;
 mod service;
 pub(crate) mod utils;
 
 pub use service::*;
 
 #[doc(hidden)]
-pub mod hidden;
+pub mod macro_helpers;
 
+pub use history::Route;
 pub use routable::Routable;
 pub use router::{RenderFn, Router};
 

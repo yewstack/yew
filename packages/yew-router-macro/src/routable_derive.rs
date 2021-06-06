@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, quote};
+use quote::{format_ident, quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
@@ -11,7 +11,7 @@ const AT_ATTR_IDENT: &str = "at";
 const BIND_ATTR_IDENT: &str = "bind";
 
 fn hidden_module() -> TokenStream {
-    quote! { ::yew_router::hidden }
+    quote! { ::yew_router::macro_helpers }
 }
 
 pub struct Routable {
@@ -82,12 +82,12 @@ impl BindType {
     }
 }
 
-struct ConstMuncher {
-    muncher: Option<TokenStream>,
+struct ConstProcessor {
+    processor: Option<TokenStream>,
     binds: Vec<(usize, BindType)>,
 }
 
-fn generate_path_muncher(fields: &[ParsedField], at: &ParsedAt) -> syn::Result<ConstMuncher> {
+fn generate_path_processor(fields: &[ParsedField], at: &ParsedAt) -> syn::Result<ConstProcessor> {
     let hidden = hidden_module();
     let mut binds = Vec::new();
     for name in &at.names {
@@ -96,10 +96,11 @@ fn generate_path_muncher(fields: &[ParsedField], at: &ParsedAt) -> syn::Result<C
         } else {
             return Err(syn::Error::new(
                 at.span,
-                format_args!("No field named {:?}", name),
+                format_args!("no field named {:?}", name),
             ));
         }
     }
+    let allow_partial = at.allow_partial;
     let parts: TokenStream = at
         .parts
         .iter()
@@ -109,9 +110,10 @@ fn generate_path_muncher(fields: &[ParsedField], at: &ParsedAt) -> syn::Result<C
             PathPart::ExtractAll => quote! { #hidden::PathPart::ExtractAll, },
         })
         .collect();
-    Ok(ConstMuncher {
-        muncher: Some(quote! {
-            #hidden::PathSegmentMuncher {
+    Ok(ConstProcessor {
+        processor: Some(quote! {
+            #hidden::PathSegmentProcessor {
+                allow_partial: #allow_partial,
                 parts: &[#parts]
             }
         }),
@@ -119,7 +121,10 @@ fn generate_path_muncher(fields: &[ParsedField], at: &ParsedAt) -> syn::Result<C
     })
 }
 
-fn generate_arg_muncher(muncher: &Ident, fields: &[ParsedField]) -> syn::Result<ConstMuncher> {
+fn generate_arg_processor(
+    processor: &Ident,
+    fields: &[ParsedField],
+) -> syn::Result<ConstProcessor> {
     let hidden = hidden_module();
     let mut binds = Vec::new();
     let mut names = Vec::new();
@@ -133,16 +138,16 @@ fn generate_arg_muncher(muncher: &Ident, fields: &[ParsedField]) -> syn::Result<
             _ => {
                 return Err(syn::Error::new(
                     field.meta.span(),
-                    "Invalid argument binding",
+                    "invalid argument binding",
                 ))
             }
         };
         names.push(name);
         binds.push((field.index, BindType::String));
     }
-    Ok(ConstMuncher {
-        muncher: Some(quote! {
-            #hidden::#muncher {
+    Ok(ConstProcessor {
+        processor: Some(quote! {
+            #hidden::#processor {
                 names: &[#(#names,)*]
             }
         }),
@@ -150,53 +155,66 @@ fn generate_arg_muncher(muncher: &Ident, fields: &[ParsedField]) -> syn::Result<
     })
 }
 
-fn generate_rest_glue(fields: &[ParsedField]) -> syn::Result<ConstMuncher> {
+fn generate_rest_glue(fields: &[ParsedField]) -> syn::Result<ConstProcessor> {
     let binds = match fields {
         [field] => vec![(field.index, BindType::Rest)],
         _ => {
+            let all_names: TokenStream = fields
+                .iter()
+                .flat_map(|field| &field.meta)
+                .map(|meta| meta.to_token_stream())
+                .collect();
             return Err(syn::Error::new(
-                Span::call_site(),
-                "Only one `rest` binding can be used",
-            ))
+                all_names.span(),
+                "only one `rest` binding can be used",
+            ));
         }
     };
 
-    Ok(ConstMuncher {
-        muncher: None,
+    Ok(ConstProcessor {
+        processor: None,
         binds,
     })
 }
 
 impl BindMode {
+    const QUERY_ARG: &'static str = "query_arg";
+    const HASH_ARG: &'static str = "hash_arg";
+    const REST: &'static str = "rest";
+
     fn from_path(path: &syn::Path) -> syn::Result<Self> {
-        Ok(if path.is_ident("query_arg") {
+        Ok(if path.is_ident(Self::QUERY_ARG) {
             Self::QueryArg
-        } else if path.is_ident("hash_arg") {
+        } else if path.is_ident(Self::HASH_ARG) {
             Self::HashArg
-        } else if path.is_ident("rest") {
+        } else if path.is_ident(Self::REST) {
             Self::Rest
         } else {
             return Err(syn::Error::new(
                 path.span(),
-                format!("Unknown binding mode: {:?}", path),
+                format!("unknown binding mode: {:?}", path),
             ));
         })
     }
-    fn parse_and_gen(&self, fields: Vec<ParsedField>, at: &ParsedAt) -> syn::Result<ConstMuncher> {
+    fn parse_and_gen(
+        &self,
+        fields: Vec<ParsedField>,
+        at: &ParsedAt,
+    ) -> syn::Result<ConstProcessor> {
         match self {
-            BindMode::Path => generate_path_muncher(&fields, at),
+            BindMode::Path => generate_path_processor(&fields, at),
             BindMode::QueryArg => {
-                generate_arg_muncher(&Ident::new("QueryArgMuncher", Span::call_site()), &fields)
+                generate_arg_processor(&Ident::new("QueryArgProcessor", Span::call_site()), &fields)
             }
             BindMode::HashArg => {
-                generate_arg_muncher(&Ident::new("HashArgMuncher", Span::call_site()), &fields)
+                generate_arg_processor(&Ident::new("HashArgProcessor", Span::call_site()), &fields)
             }
             BindMode::Rest => generate_rest_glue(&fields),
         }
     }
 }
 
-fn parse_fields(fields: &Fields, at: &mut ParsedAt) -> syn::Result<Vec<ConstMuncher>> {
+fn parse_fields(fields: &Fields, at: &mut ParsedAt) -> syn::Result<Vec<ConstProcessor>> {
     let mut map = BTreeMap::<_, Vec<_>>::default();
 
     map.insert(BindMode::Path, Vec::new());
@@ -214,7 +232,7 @@ fn parse_fields(fields: &Fields, at: &mut ParsedAt) -> syn::Result<Vec<ConstMunc
         match bind_attrs.as_slice() {
             [] => {
                 if !at.names.contains(&name) {
-                    return Err(syn::Error::new(field.span(), "Unbound field"));
+                    return Err(syn::Error::new(field.span(), "unbound field"));
                 }
 
                 map.entry(BindMode::Path).or_default().push(ParsedField {
@@ -228,11 +246,11 @@ fn parse_fields(fields: &Fields, at: &mut ParsedAt) -> syn::Result<Vec<ConstMunc
                     syn::Meta::List(mut ml) if ml.nested.len() == 1 => {
                         ml.nested.pop().unwrap().into_value()
                     }
-                    _ => return Err(syn::Error::new(field.span(), "Invalid binding attribute")),
+                    _ => return Err(syn::Error::new(field.span(), "invalid binding attribute")),
                 };
                 let meta = match nested_meta {
                     syn::NestedMeta::Meta(meta) => meta,
-                    _ => return Err(syn::Error::new(field.span(), "Invalid binding attribute")),
+                    _ => return Err(syn::Error::new(field.span(), "invalid binding attribute")),
                 };
                 let bind_mode = BindMode::from_path(meta.path())?;
                 map.entry(bind_mode).or_default().push(ParsedField {
@@ -244,7 +262,7 @@ fn parse_fields(fields: &Fields, at: &mut ParsedAt) -> syn::Result<Vec<ConstMunc
             _ => {
                 return Err(syn::Error::new(
                     field.span(),
-                    "Only one bind attribute allowed per field",
+                    "only one bind attribute allowed per field",
                 ))
             }
         }
@@ -258,6 +276,7 @@ fn parse_fields(fields: &Fields, at: &mut ParsedAt) -> syn::Result<Vec<ConstMunc
         } else {
             at.regex += "(?:/|$)";
         }
+        at.allow_partial = true;
     } else {
         // Otherwise, require the path to terminate.
         if at.regex.is_empty() {
@@ -265,6 +284,7 @@ fn parse_fields(fields: &Fields, at: &mut ParsedAt) -> syn::Result<Vec<ConstMunc
         } else {
             at.regex += "/?$";
         }
+        at.allow_partial = false;
     }
 
     let mut res = Vec::new();
@@ -286,18 +306,19 @@ struct ParsedAt {
     regex: String,
     names: Vec<String>,
     parts: Vec<PathPart>,
+    allow_partial: bool,
 }
 
 fn parse_at(span: Span, at: &str) -> syn::Result<ParsedAt> {
-    if !at.starts_with("/") {
-        return Err(syn::Error::new(span, "Url must begin with /"));
+    if !at.starts_with('/') {
+        return Err(syn::Error::new(span, "url must begin with /"));
     }
 
     let mut regex = "^".to_string();
     let mut names = Vec::new();
     let mut parts = Vec::new();
 
-    for part in at[1..].split("/") {
+    for part in at[1..].split('/') {
         if part.is_empty() {
             continue;
         } else if let Some(name) = part.strip_prefix(":") {
@@ -315,23 +336,18 @@ fn parse_at(span: Span, at: &str) -> syn::Result<ParsedAt> {
         }
     }
 
-    if regex.is_empty() {
-        regex += "/";
-    } else {
-        regex += "(?:/|$)";
-    }
-
     Ok(ParsedAt {
         regex,
         names,
         parts,
         span,
+        allow_partial: false,
     })
 }
 
 struct ParsedVariant {
     parsed_at: ParsedAt,
-    munchers: Vec<ConstMuncher>,
+    processors: Vec<ConstProcessor>,
     pattern: TokenStream,
 }
 
@@ -364,11 +380,11 @@ fn parse_variants(
 
         let at_str = at_attr.parse_args::<LitStr>()?.value();
         let mut parsed_at = parse_at(at_attr.span(), &at_str)?;
-        let munchers = parse_fields(&variant.fields, &mut parsed_at)?;
+        let processors = parse_fields(&variant.fields, &mut parsed_at)?;
 
         res.push(ParsedVariant {
             parsed_at,
-            munchers,
+            processors,
             pattern: fields_to_pattern(ident, &variant.ident, &variant.fields),
         });
     }
@@ -421,11 +437,15 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
         let regex = &variant.parsed_at.regex;
         let pattern = &variant.pattern;
 
-        let munchers = variant.munchers.iter().map(|muncher| &muncher.muncher);
+        let processors = variant
+            .processors
+            .iter()
+            .map(|processor| &processor.processor);
         let decode_args: TokenStream = variant
-            .munchers
+            .processors
             .iter()
             .flat_map(|m| &m.binds)
+            .rev()
             .map(|(index, bind_type)| {
                 let name = format_ident!("arg{}", index);
                 let decoder = bind_type.decoder();
@@ -436,12 +456,12 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
             .collect();
 
         quote! {
-            #hidden::RouteMuncher {
+            #hidden::RouteVariant {
                 regex: #regex,
-                munchers: &[#(&#munchers,)*],
+                processors: &[#(&#processors,)*],
                 ctor: &|mut args| {
                     #decode_args
-                    Some(#pattern)
+                    ::core::option::Option::Some(#pattern)
                 }
             }
         }
@@ -450,7 +470,7 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
     let match_arms = variants.iter().enumerate().map(|(variant_index, variant)| {
         let pattern = &variant.pattern;
         let encode_args: TokenStream = variant
-            .munchers
+            .processors
             .iter()
             .flat_map(|m| &m.binds)
             .map(|(index, bind_type)| {
@@ -470,10 +490,10 @@ pub fn routable_derive_impl(input: Routable) -> TokenStream {
     quote! {
         #[automatically_derived]
         impl #hidden::DerivedRoutable for #ident {
-            const VARIANTS: &'static [#hidden::RouteMuncher<Self>] = &[
+            const VARIANTS: &'static [#hidden::RouteVariant<Self>] = &[
                 #(#variants_arr,)*
             ];
-            fn to_args(&self) -> (usize, #hidden::Args) {
+            fn to_variant_index_and_args(&self) -> (usize, #hidden::Args) {
                 match self {
                     #(#match_arms,)*
                 }

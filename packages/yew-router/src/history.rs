@@ -8,6 +8,7 @@ use web_sys::EventTarget;
 use yew::utils::window;
 use yew::Callback;
 
+/// A type representing an unprocessed route.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Route {
     pub(crate) path: String,
@@ -15,17 +16,8 @@ pub struct Route {
     pub(crate) hash: String,
 }
 
-impl Default for Route {
-    fn default() -> Self {
-        Self {
-            path: Default::default(),
-            query: Default::default(),
-            hash: Default::default(),
-        }
-    }
-}
-
 impl Route {
+    /// Construct a new `Route` with the given path.
     pub fn new(path: impl Into<String>) -> Self {
         Self {
             path: path.into(),
@@ -33,29 +25,35 @@ impl Route {
             hash: String::new(),
         }
     }
+    /// Set the query string to the given value.
     pub fn with_query(mut self, query: impl Into<String>) -> Self {
         self.query = query.into();
         self
     }
+    /// Set the hash string to the given value.
     pub fn with_hash(mut self, hash: impl Into<String>) -> Self {
         self.hash = hash.into();
         self
     }
+    /// Returns this route's path component.
     pub fn path(&self) -> &str {
         &self.path
     }
+    /// Returns this route's query string.
     pub fn query(&self) -> &str {
         &self.query
     }
+    /// Returns this route's hash string.
     pub fn hash(&self) -> &str {
         &self.hash
     }
-    pub fn url(&self) -> String {
+    /// Builds a URL from this route. This URL will begin with the path component.
+    pub fn build_url(&self) -> String {
         format!("{}{}{}", self.path, self.query, self.hash)
     }
     fn apply_base(&mut self) {
         if let Some(base_url) = base_url() {
-            if self.path.starts_with("/") {
+            if self.path.starts_with('/') {
                 if self.path == "/" {
                     self.path = base_url;
                 } else {
@@ -67,12 +65,19 @@ impl Route {
     fn unapply_base(&mut self) {
         if let Some(base_url) = base_url() {
             if let Some(path) = self.path.strip_prefix(&base_url) {
-                if path.starts_with("/") {
+                if path.starts_with('/') {
                     self.path = path.into();
                 } else if path.is_empty() {
                     self.path = "/".into();
                 }
             }
+        }
+    }
+    pub(crate) fn empty() -> Self {
+        Self {
+            path: Default::default(),
+            query: Default::default(),
+            hash: Default::default(),
         }
     }
 }
@@ -81,9 +86,6 @@ impl Route {
 pub enum HistoryAction {
     Push(Route),
     Replace(Route),
-    Forward,
-    Back,
-    Go(i32),
 }
 
 struct HistoryState {
@@ -194,7 +196,7 @@ pub fn dispatch(action: HistoryAction) {
         HistoryAction::Push(mut route) => {
             route.apply_base();
             history
-                .push_state_with_url(&JsValue::NULL, "", Some(&route.url()))
+                .push_state_with_url(&JsValue::NULL, "", Some(&route.build_url()))
                 .expect("push history");
 
             // Not triggered automatically by `pushState`.
@@ -203,15 +205,12 @@ pub fn dispatch(action: HistoryAction) {
         HistoryAction::Replace(mut route) => {
             route.apply_base();
             history
-                .replace_state_with_url(&JsValue::NULL, "", Some(&route.url()))
+                .replace_state_with_url(&JsValue::NULL, "", Some(&route.build_url()))
                 .expect("replace history");
 
             // Not triggered automatically by `replaceState`.
             HistoryState::update();
         }
-        HistoryAction::Back => history.back().expect("back history"),
-        HistoryAction::Forward => history.forward().expect("forward history"),
-        HistoryAction::Go(index) => history.go_with_delta(index).expect("go history"),
     }
 }
 pub fn push(route: Route) {
@@ -219,15 +218,6 @@ pub fn push(route: Route) {
 }
 pub fn replace(route: Route) {
     dispatch(HistoryAction::Replace(route));
-}
-pub fn forward() {
-    dispatch(HistoryAction::Forward);
-}
-pub fn back() {
-    dispatch(HistoryAction::Back);
-}
-pub fn go(index: i32) {
-    dispatch(HistoryAction::Go(index));
 }
 pub fn current() -> Rc<Route> {
     HistoryState::with(HistoryState::current_route)

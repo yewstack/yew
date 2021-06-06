@@ -11,18 +11,9 @@ type Entry<'a, T> = anymap::Entry<'a, dyn anymap::any::Any, T>;
 
 #[derive(Debug, Clone)]
 #[non_exhaustive]
-pub enum RouterAction<T: Routable> {
+enum RouterAction<T: Routable> {
     Push(T),
     Replace(T),
-}
-
-impl<T: Routable> RouterAction<T> {
-    pub fn map<U: Routable>(self, f: impl FnOnce(T) -> U) -> RouterAction<U> {
-        match self {
-            Self::Push(routable) => RouterAction::Push(f(routable)),
-            Self::Replace(routable) => RouterAction::Replace(f(routable)),
-        }
-    }
 }
 
 /// Specializes the history API for a particular `Routable` type
@@ -134,6 +125,9 @@ impl<T: Routable> RouterState<T> {
         }
     }
 }
+
+/// A guard returned from `attach_route_listener`. When dropped, the callback will
+/// be detached and will no longer receive events.
 pub struct RouteListener<T: Routable>(Callback<Rc<T>>);
 
 impl<T: Routable> Drop for RouteListener<T> {
@@ -142,21 +136,25 @@ impl<T: Routable> Drop for RouteListener<T> {
     }
 }
 
-pub fn dispatch<T: Routable>(action: RouterAction<T>) {
+fn dispatch<T: Routable>(action: RouterAction<T>) {
     match action {
         RouterAction::Push(route) => history::push(route.to_route()),
         RouterAction::Replace(route) => history::replace(route.to_route()),
     }
 }
+/// Navigate to the specified route. This will add a new entry to the user's history.
 pub fn push_route<T: Routable>(route: T) {
     dispatch(RouterAction::Push(route));
 }
+/// Navigate to the specified route. This will replace the current entry in the user's history.
 pub fn replace_route<T: Routable>(route: T) {
     dispatch(RouterAction::Replace(route));
 }
+/// Obtain the current route.
 pub fn current_route<T: Routable>() -> Rc<T> {
     RouterState::try_with(RouterState::current_route)
 }
+/// Register a callback to be notified if the route changes.
 pub fn attach_route_listener<T: Routable>(callback: Callback<Rc<T>>) -> RouteListener<T> {
     RouterState::try_with(|entry| RouterState::register(entry, callback.clone()))
 }
