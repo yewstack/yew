@@ -22,9 +22,9 @@ error[E0599]: the function or associated item `new` exists for struct `VChild<Fu
 28 |     html! { <Comp<MissingTypeBounds> /> };
    |              ^^^^ function or associated item cannot be called on `VChild<FunctionComponent<comp<MissingTypeBounds>>>` due to unsatisfied trait bounds
    |
-  ::: $WORKSPACE/packages/yew-functional/src/lib.rs
+  ::: $WORKSPACE/packages/yew-functional/src/lib.rs:73:1
    |
-   | pub struct FunctionComponent<T: FunctionProvider + 'static> {
+73 | pub struct FunctionComponent<T: FunctionProvider + 'static> {
    | ----------------------------------------------------------- doesn't satisfy `_: yew::Component`
    |
    = note: the following trait bounds were not satisfied:
