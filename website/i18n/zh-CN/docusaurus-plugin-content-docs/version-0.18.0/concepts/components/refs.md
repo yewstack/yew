@@ -1,11 +1,11 @@
 ---
 title: Refs
-description: 超出界限的 DOM 访问
+description: 界限外的 DOM 访问
 ---
 
-`ref` 关键词可被用在任何 HTML 元素或组件内部以获得该项所附加到的 DOM 元素。这可被用于在 `view` 生命周期方法之外来对 DOM 进行更改。
+`ref` 关键词可被用在任何 HTML 元素或组件内部以获得与之关联的 DOM `元素`。这样就能在 `view` 生命周期方法之外对 DOM 进行更改。
 
-这对于获取 canvas 元素或者滚动到页面的不同部分是有用的。
+这对于获取canvas元素或将页面滑动到不同部分非常有用。例如，在组件的`rendered` 方法中使用 `NodeRef` 可以让canvas元素在被 `view`渲染后进行绘制。
 
 语法如下：
 
@@ -21,3 +21,7 @@ html! {
 // 在 update 中
 let has_attributes = self.node_ref.cast::<Element>().unwrap().has_attributes();
 ```
+
+## 相关例子
+
+- [Node Refs](https://github.com/yewstack/yew/tree/master/examples/node_refs)
