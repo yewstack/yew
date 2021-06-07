@@ -1,6 +1,5 @@
-# Format
+---
+title: Format
+---
 
-:::note
-`Contribute to our docs:` [Explain the format module in depth](https://github.com/yewstack/docs/issues/24)
-:::
-
+:::important contribute `为我们的文档做出贡献：`[深入解释格式模块](https://github.com/yewstack/docs/issues/24) :::
