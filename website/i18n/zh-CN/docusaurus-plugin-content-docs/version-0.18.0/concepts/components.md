@@ -1,18 +1,15 @@
 ---
+title: 介绍
 description: 组件及其生命周期钩子
 ---
 
-# 组件（Components）
-
 ## 组件是什么？
 
-组件是 Yew 的基石。它们管理自己的状态，并可以渲染为 DOM。组件是通过实现描述组件生命周期的 `Component` trait 来创建的。
+组件是 Yew 的基石。它们管理自己的状态，并可以渲染为 DOM。组件是通过实现描述组件生命周期的 `Component` trait 来创建的。`Component` trait 有许多方法需要被实现； 而 Yew 会在不同的生命周期调用这些方法。
 
 ## 生命周期
 
-:::note
-`为我们的文档做出贡献：`[添加组件的生命周期图示](https://github.com/yewstack/docs/issues/22)
-:::
+:::note `为我们的文档做出贡献：`[添加组件的生命周期图示](https://github.com/yewstack/docs/issues/22) :::
 
 ## 生命周期方法
 
@@ -20,7 +17,7 @@ description: 组件及其生命周期钩子
 
 当一个组件被创建时，它会从其父组件以及一个 `ComponentLink` 接收属性（properties）。属性（properties）可用于初始化组件的状态，“link”可用于注册回调或向组件发送消息。
 
-通常将 props 和 link 存储在组件的结构体中，如下所示：
+通常将 props （可以通过这个在父子组件之间传递数据） 和 `ComponentLink` 存储在组件的结构体中，如下所示：
 
 ```rust
 pub struct MyComponent {
@@ -57,11 +54,11 @@ impl Component for MyComponent {
 }
 ```
 
-有关用法的详细信息，请查看 [`html!` 宏指南](html.md)]
+有关用法的详细信息，请查看 [`html!` 宏指南](html.md)。
 
-### Mounted
+### Rendered
 
-`mounted()` 组件生命周期方法调用是在 `view()` 被处理并且 Yew 已经把组件挂载到 DOM 上之后，浏览器刷新页面之前。组件通常希望实现此方法以执行只能在组件渲染元素之后才能执行的操作。如果你想在做出一些更改后重新渲染组件，返回 `true` 就可以了。
+`rendered`生命周期方法的调用时机是在：调用完`view`并且 Yew 将结果渲染到 DOM ，而浏览器还未刷新页面的时候。当您想要执行只能在组件呈现元素后才能完成的操作时，此方法很有用。还有一个名为`first_render`的参数可用于确定是否是在第一次渲染中调用此函数。
 
 ```rust
 use stdweb::web::html_element::InputElement;
@@ -81,18 +78,17 @@ impl Component for MyComponent {
         }
     }
 
-    fn mounted(&mut self) -> ShouldRender {
-        if let Some(input) = self.node_ref.cast::<InputElement>() {
-            input.focus();
+    fn rendered(&mut self, first_render: bool) {
+        if first_render {
+            if let Some(input) = self.node_ref.cast::<InputElement>() {
+                input.focus();
+            }
         }
-        false
     }
 }
 ```
 
-:::note
-请注意，此生命周期方法不要求必须实现，默认情况下不会执行任何操作。
-:::
+:::tip note 请注意，可以不实现此生命周期方法，默认情况下不会执行任何操作。 :::
 
 ### Update
 
@@ -127,17 +123,21 @@ impl Component for MyComponent {
 
 ### Change
 
-组件可能被其父节点重新渲染。发生这种情况时，它们可以接收新的属性（properties）并选择重新渲染。这种设计通过更改属性（properties）来促进父子组件之间的通信。你不是必须实现 `change()`，但是如果想在组件被创建后通过 props 来更新组件，则可能要这么做。
+组件可能被其父节点重新渲染。发生这种情况时，它们可以接收新的属性（properties）并选择重新渲染。这种设计通过更改属性（properties）来建立父子组件之间的通信。
 
-一个原始的实现可能看起来像：
+一个典型的实现可能看起来像：
 
 ```rust
 impl Component for MyComponent {
     // ...
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-       self.props = props;
-       true // 当提供了新的 props 将始终重新渲染。
+        if self.props != props {
+            self.props = props;
+            true
+        } else {
+            false
+        }
     }
 }
 ```
@@ -159,13 +159,15 @@ impl Component for MyComponent {
 }
 ```
 
-`Message` 表示组件可以处理以触发某些副作用的各种消息。例如，你可能有一条 `Click` 消息，该消息触发 API 请求或者切换 UI 组件的外观。通常的做法是在组件模块中创建一个叫做 `Msg` 的枚举并将其用作组件中的消息类型。通常将“message”缩写为“msg”。
+`Message`类型用于在事件发生后向组件发送消息；例如，您可能希望在用户单击按钮或向下滚动页面时执行某些操作。因为组件往往必须响应多个事件，所以`Message`类型通常是一个枚举（enum），其中每个变量都是一个要处理的事件。
+
+在组织代码库时，一个明智的做法是将`Message`类型的定义写到其对应的组件模块中。此外最好是对消息类型采用一致的命名约定。有一种选择（虽然不是唯一的）是将类型命名为`ComponentNameMsg` ，例如，如果您的组件被称为`Homepage`那么它的类型可以命名为`HomepageMsg` 。
 
 ```rust
 enum Msg {
     Click,
+    FormInput(String)
 }
 ```
 
 `Properties` 表示从父级传递到组件的信息。此类型必须实现 `Properties` trait（通常通过派生），并且可以指定某些属性（properties）是必需的还是可选的。创建和更新组件时使用此类型。通常的做法是在组件模块中创建一个叫做 `Props` 的结构体并将其用作组件的 `Properties` 类型。通常将“properties”缩写为“props”。由于 props 是从父组件传递下来的，因此应用程序的根组件通常有一个类型为 `()` 的 `Properties`。如果你希望为根组件指定属性（properties），请使用 `App::mount_with_props` 方法。
-
