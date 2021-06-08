@@ -19,7 +19,7 @@ description: ComponentLink 和 Callbacks.
 
 ### callback
 
-创建一个回调，该回调将在执行时向组件发送消息。 实际上，它会 <br>将闭包返回的结果传递给`send_message` 。
+创建一个回调，该回调将在执行时向组件发送消息。 实际上，它会 将闭包返回的结果传递给`send_message` 。
 
 有一种不同的方法叫做`callback_once` ，它接受`FnOnce`而不是`Fn` 。但是，您应该小心使用它，因为如果这个方法执行多次，其回调将会引发panic。
 
