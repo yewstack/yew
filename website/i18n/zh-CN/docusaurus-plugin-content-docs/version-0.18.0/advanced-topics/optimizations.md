@@ -32,7 +32,7 @@ impl Example {
 }
 ```
 
-但是我们可以更进一步！对于任何实现了 `PartialEq` 的项，可以使用一个 trait 和一个 blanket implementation 将这六行样板代码减少到一行。<br>看看[`yewtil` 是如何为他的 `NeqAssign` trait](https://docs.rs/yewtil/*/yewtil/trait.NeqAssign.html)实现此功能的。
+但是我们可以更进一步！对于任何实现了 `PartialEq` 的项，可以使用一个 trait 和一个 blanket implementation 将这六行样板代码减少到一行。看看[`yewtil` 是如何为他的 `NeqAssign` trait](https://docs.rs/yewtil/*/yewtil/trait.NeqAssign.html)实现此功能的。
 
 ## 有效使用智能指针（smart pointers）
 
