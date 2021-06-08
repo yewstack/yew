@@ -44,7 +44,7 @@ fn use_subscribe() -> Rc<RefCell<Vec<String>>> {
 
 钩子的逻辑在`use_hook`的回调中。 `use_hook`指的是自定义 Hook 的处理函数。它接受 2 个参数： `hook_runner`和`initial_state_producer` 。
 
-`hook_runner`是所有钩子逻辑的所在，它的回调返回的值又会被`use_hook`返回。 <br><br>`hook_runner`本身需要 2 个参数：分别是对钩子和`hook_callback`它们的内部状态的可变引用。 <br><br>而`hook_callback`还接受 2 个参数：一个回调和一个 bool，回调接受`internal_state` ，也就是对内部状态实例的可变引用，并且回调执行实际的更改，返回`ShouldRender`布尔值，第二个参数bool的用处是指示它是否在组件渲染后运行。 <br><br>`use_hook`的第二个参数`initial_state_producer`接受用于创建内部状态实例的回调。内部状态是一个实现`Hook`特性的结构体。
+`hook_runner`中包含了所有钩子的逻辑，它的回调的返回值又会被`use_hook`返回。 `hook_runner`需要 2 个参数：分别是对钩子和`hook_callback`它们两个的内部状态的可变引用。 而`hook_callback`同样也要 2 个参数：一个回调和一个 bool，回调接受`internal_state` ，也就是对内部状态实例的可变引用，并且会调执行实际的更改，还会返回表示`ShouldRender`的布尔值，第二个参数bool的用处是指示它是否在组件渲染后运行。`use_hook`的第二个参数`initial_state_producer`接受用于创建内部状态实例的回调。这里说的内部状态指的是一个实现了`Hook` trait的结构体。
 
 现在让我们为`use_subscribe`钩子创建状态（state struct）。
 
