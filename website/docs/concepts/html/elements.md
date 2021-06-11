@@ -19,6 +19,43 @@ html! {
 }
 ```
 
+## Boolean Attributes 
+
+Some content attributes (e.g checked, hidden, required) are called boolean attributes. In Yew, 
+boolean attributes need to be explicitly set to 'true':
+
+```rust
+    html! {
+        <div hidden=true>
+            { "This div is hidden." }
+        </div>
+    }
+```
+
+This will result in the following **HTML**: 
+```html
+    <div hidden>This div is hidden.</div>
+```
+
+Setting a boolean attribute to false is equivalent to not using the attribute at all; values from 
+boolean expressions can be used:
+
+```rust
+    let no = 1 + 1 != 2;
+
+    html! {
+        <div hidden=no>
+            { "This div is NOT hidden." }
+        </div>
+    }
+```
+
+This will result in the following **HTML**:
+
+```html
+    <div>This div is NOT hidden.</div>
+```
+
 ## Optional attributes for HTML elements
 
 Most HTML attributes can be marked as optional by placing a `?` in front of
