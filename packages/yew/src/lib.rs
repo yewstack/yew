@@ -119,7 +119,7 @@ pub use yew_macro::classes;
 ///
 /// [`Html`]: ./html/type.Html.html
 /// [`html_nested!`]: ./macro.html_nested.html
-/// [Yew Docs]: https://yew.rs/docs/en/concepts/html/
+/// [Yew Docs]: https://yew.rs/docs/concepts/html/
 pub use yew_macro::html;
 
 /// This macro is similar to [`html!`], but preserves the component type instead
@@ -259,7 +259,7 @@ pub use yew_macro::html_nested;
 ///
 /// [`html!`]: ./macro.html.html
 /// [`Properties`]: ./html/trait.Properties.html
-/// [yew docs]: https://yew.rs/docs/en/concepts/components/properties
+/// [Yew Docs]: https://yew.rs/docs/concepts/components/properties
 pub use yew_macro::props;
 
 /// This module contains macros which implements html! macro and JSX-like templates
