@@ -22,7 +22,7 @@ html! {
 ## Boolean Attributes 
 
 Some content attributes (e.g checked, hidden, required) are called boolean attributes. In Yew, 
-boolean attributes need to be explicitly set to 'true':
+boolean attributes need to be set to a bool value:
 
 ```rust
     html! {
@@ -32,7 +32,7 @@ boolean attributes need to be explicitly set to 'true':
     }
 ```
 
-This will result in the following **HTML**: 
+This will result in **HTML** that's functionally equivalent to this:
 ```html
     <div hidden>This div is hidden.</div>
 ```
