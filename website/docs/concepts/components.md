@@ -12,7 +12,7 @@ in the lifecycle of a component.
 ## Lifecycle
 
 :::important contribute
-`Contribute to our docs:` [Add a diagram of the component lifecycle](https://github.com/yewstack/docs/issues/22)
+`Contribute to our docs:` [Add a diagram of the component lifecycle](https://github.com/yewstack/yew/issues/1915)
 :::
 
 ## Lifecycle Methods
