@@ -1,13 +1,13 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use anymap::AnyMap;
+use anymap2::AnyMap;
 use yew::Callback;
 
 use super::history::{self, HistoryListener, Route};
 use crate::Routable;
 
-type Entry<'a, T> = anymap::Entry<'a, dyn anymap::any::Any, T>;
+type Entry<'a, T> = anymap2::Entry<'a, dyn anymap2::any::Any, T>;
 
 #[derive(Debug, Clone)]
 #[non_exhaustive]
@@ -28,31 +28,46 @@ thread_local! {
 }
 
 impl<T: Routable> RouterState<T> {
+    /// Run a function, passing in the current state.
     fn with<R>(f: impl FnOnce(Entry<Self>) -> R) -> R {
         ROUTER_STATE.with(|state| f(state.borrow_mut().entry()))
     }
+    /// Run a function, passing in the current state. If the function returns
+    /// an error, redirect to the route specified in the error and try again.
     fn try_with<R>(mut f: impl FnMut(Entry<Self>) -> Result<R, T>) -> R {
+        // On the first attempt, the function may return an error if
+        // the route does not match any variant.
         match Self::with(&mut f) {
+            // If there was no problem, return immediately.
             Ok(res) => return res,
-            Err(error) => Self::handle_error(error),
+            // Else, handle the error by redirecting to the specified route.
+            Err(error) => Self::handle_not_found(error),
         };
+        // The second attempt should always succeed, since we'll have
+        // redirected to a valid route. An error here means that the
+        // `Routable` trait is implemented incorrectly for this type,
+        // since the specified route did not round-trip correctly.
         match Self::with(&mut f) {
             Ok(res) => res,
             Err(_) => panic!("Bug in `Routable` implementation"),
         }
     }
+    /// Parse the current location into a `T: Routable`.
     fn determine_current_route() -> Result<T, T> {
         T::from_route(&*history::current())
     }
+
+    /// Construct (activate) a router state for this `T`.
     fn new() -> Result<Self, T> {
         let last_route = Rc::new(Self::determine_current_route()?);
         Ok(Self {
             last_route,
             subscribers: Vec::new(),
-            _listener: history::register(Callback::from(Self::update)),
+            _listener: history::attach_listener(Callback::from(Self::update)),
         })
     }
 
+    /// Access the router state in this entry, constructing it if the entry is vacant.
     fn try_insert(entry: Entry<Self>) -> Result<&mut Self, T> {
         Ok(match entry {
             Entry::Occupied(occ) => occ.into_mut(),
@@ -90,16 +105,16 @@ impl<T: Routable> RouterState<T> {
         })
     }
 
-    fn handle_error(error: T) {
-        // Whenever we fail to recognize a route, we redirect to the default one
-        history::replace(error.to_route());
+    fn handle_not_found(fallback: T) {
+        // Whenever we fail to recognize a route, we redirect to the default one.
+        history::replace(fallback.to_route());
     }
 
     fn update(route: Rc<Route>) {
         match Self::with(|entry| Self::update_inner(entry, route)) {
             Ok(None) => {}
             Ok(Some(f)) => f(),
-            Err(error) => Self::handle_error(error),
+            Err(error) => Self::handle_not_found(error),
         }
     }
 

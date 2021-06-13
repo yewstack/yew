@@ -222,6 +222,6 @@ pub fn replace(route: Route) {
 pub fn current() -> Rc<Route> {
     HistoryState::with(HistoryState::current_route)
 }
-pub fn register(callback: Callback<Rc<Route>>) -> HistoryListener {
+pub fn attach_listener(callback: Callback<Rc<Route>>) -> HistoryListener {
     HistoryState::with(|state| HistoryState::register(state, callback))
 }

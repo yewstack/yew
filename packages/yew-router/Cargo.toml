@@ -22,7 +22,7 @@ gloo = "0.2.1"
 route-recognizer = "0.3.0"
 regex = { version = "1.5.4", optional = true }
 percent-encoding = "2.1.0"
-anymap = "0.12"
+anymap2 = "0.13.0"
 
 [dependencies.web-sys]
 version = "0.3"
