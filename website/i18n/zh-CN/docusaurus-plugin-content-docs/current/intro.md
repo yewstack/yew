@@ -1,5 +1,6 @@
 ---
 title: Introduction
+slug: /
 ---
 
 ## Yew 是什么？

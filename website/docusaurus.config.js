@@ -26,12 +26,6 @@ module.exports = {
           position: 'left',
         },
         {
-          type: 'doc',
-          docId: 'intro',
-          position: 'left',
-          label: 'Docs',
-        },
-        {
           href: 'https://docs.rs/yew',
           position: 'right',
           label: 'API',
@@ -109,8 +103,8 @@ module.exports = {
       {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl:
-            'https://github.com/yewstack/yew/blob/master/website/',
+          editUrl: 'https://github.com/yewstack/yew/blob/master/website/',
+          routeBasePath: '/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
