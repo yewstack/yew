@@ -6,7 +6,7 @@ This example shows two input fields which are automatically focused when hovered
 
 ## Concepts
 
-The example uses [Refs](https://yew.rs/docs/en/concepts/components/refs/) to
+The example uses [Refs](https://yew.rs/en/concepts/components/refs/) to
 manipulate the underlying DOM element directly.
 
 ## Improvements

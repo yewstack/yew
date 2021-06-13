@@ -251,7 +251,7 @@ impl Component for MyComponent {
 :::note
 以下のテーブルでは`yew`を`web-sys`と使う場合 (デフォルトでは使うようになっている) `web-sys`のイベントの型が使われるべきです。
 `yew-stdweb`クレートを使う場合は`stdweb`のイベントの型を使用してください。
-詳細については[`web-sys`と`stdweb`をどちらを使うべきかについてのドキュメント](https://yew.rs/docs/getting-started/choose-web-library)をご確認ください。
+詳細については[`web-sys`と`stdweb`をどちらを使うべきかについてのドキュメント](https://yew.rs/getting-started/choose-web-library)をご確認ください。
 :::
 
 :::note

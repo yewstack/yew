@@ -19,7 +19,7 @@ description: Yew 框架规划功能的路线图
 
 ### 指南
 
-* 最佳实践：[https://yew.rs/docs/optimizations](https://yew.rs/docs/optimizations)
+* 最佳实践：[https://yew.rs/optimizations](https://yew.rs/optimizations)
 * 端到端教程
 * Futures / 并发
 * CSS / 样式
