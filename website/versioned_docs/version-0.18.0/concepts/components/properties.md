@@ -37,11 +37,6 @@ For example, to default a boolean prop to `true`, use the attribute `#[prop_or(t
 
 Call `function` to initialize the prop value. `function` should have the signature `FnMut() -> T` where `T` is the field type.
 
-:::warning
-The function is currently called even if the prop is explicitly set. If your function is performance intensive, consider using `Option` where `None` values are initialized in the `create` method.
-See [#1623](https://github.com/yewstack/yew/issues/1623)
-:::
-
 ## PartialEq
 
 It makes sense to derive `PartialEq` on your props if you can do so.
