@@ -16,21 +16,21 @@
   </p>
 
   <h4>
-    <a href="https://yew.rs/docs/intro/">Documentation (stable)</a>
+    <a href="https://yew.rs/intro/">Documentation (stable)</a>
     <span> | </span>
-    <a href="https://yew.rs/docs/next/intro/">Documentation (latest)</a>
+    <a href="https://yew.rs/next/intro/">Documentation (latest)</a>
     <span> | </span>
     <a href="https://github.com/yewstack/yew/tree/v0.18/examples">Examples</a>
     <span> | </span>
     <a href="https://github.com/yewstack/yew/blob/master/CHANGELOG.md">Changelog</a>
     <span> | </span>
-    <a href="https://yew.rs/docs/more/roadmap">Roadmap</a>
+    <a href="https://yew.rs/more/roadmap">Roadmap</a>
     <span> | </span>
-    <a href="https://yew.rs/zh-CN/docs/intro">简体中文文档</a>
+    <a href="https://yew.rs/zh-CN">简体中文文档</a>
     <span> | </span>
-    <a href="https://yew.rs/zh-TW/docs/intro">繁體中文文檔</a>
+    <a href="https://yew.rs/zh-TW">繁體中文文檔</a>
     <span> | </span>
-    <a href="https://yew.rs/ja/docs/intro/">ドキュメント</a>
+    <a href="https://yew.rs/ja">ドキュメント</a>
   </h4>
 </div>
 
