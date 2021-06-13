@@ -10,7 +10,7 @@ It's possible to create new clients and clear the list entirely.
 
 This example features multiple views ("scenes") which the user can switch between.
 
-For a much more sophisticated approach check out [`yew-router`](https://yew.rs/docs/en/concepts/router/).
+For a much more sophisticated approach check out [`yew-router`](https://yew.rs/en/concepts/router/).
 One major flaw with the implementation used by this example is that the scenes aren't tied to the URL.
 Reloading the page always brings the user back to the initial scene.
 

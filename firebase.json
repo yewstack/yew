@@ -4,18 +4,7 @@
       "target": "website",
       "public": "website/build/",
       "cleanUrls": true,
-      "redirects": [
-        {
-          "source": "/",
-          "destination": "/docs/intro/",
-          "type": 302
-        },
-        {
-          "source": "/docs/next",
-          "destination": "/docs/next/intro/",
-          "type": 302
-        }
-      ]
+      "redirects": []
     },
     {
       "target": "examples",

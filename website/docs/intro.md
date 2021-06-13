@@ -1,5 +1,6 @@
 ---
 title: "Introduction"
+slug: /
 ---
 
 ## What is Yew?

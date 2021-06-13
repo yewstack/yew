@@ -12,7 +12,7 @@
 //! }
 //! ```
 //!
-//! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/next/concepts/function-components)
+//! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/next/concepts/function-components)
 
 use scoped_tls_hkt::scoped_thread_local;
 use std::cell::RefCell;
