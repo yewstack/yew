@@ -37,6 +37,7 @@ impl Component for List {
 
 ## Advanced usage
 
+### Typed children
 In cases where you want one type of component to be passed as children to your component,
 you can use `yew::html::ChildrenWithProps<T>`.
 
@@ -70,6 +71,7 @@ impl Component for ListProps {
 }
 ```
 
+### Enum typed children
 Of course, sometimes you might need to restrict the children to a few different
 components. In these cases, you have to get a little more hands-on with Yew.
 
@@ -124,3 +126,51 @@ impl Component for List {
 }
 ```
 
+### Optional typed child
+You can also have a single optional child component of a specific type too: 
+
+```rust
+use yew::prelude::*;
+use yew::virtual_dom::VChild;
+
+
+#[derive(Clone, Properties)]
+pub struct PageProps {
+    #[prop_or_default]
+    pub sidebar: Option<VChild<PageSideBar>>,
+}
+
+struct Page {
+    props: PageProps,
+}
+
+impl Component for Page {
+    type Properties = PageProps;
+    // ...
+
+    fn view(&self) -> Html {
+        html! {
+            <div class="page">
+                { self.props.sidebar.clone().map(Html::from).unwrap_or_default() }
+                // ... page content
+            </div>
+        }
+    }
+}
+```
+
+The page component can be called either with the sidebar or without: 
+
+```rust
+    // Page without sidebar
+    html! {
+        <Page />
+    }
+
+    // Page with sidebar
+    html! {
+        <Page>
+            <PageSideBar />
+        </Page>
+    }
+```
