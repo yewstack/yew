@@ -6,7 +6,7 @@ module.exports = {
   baseUrl: '/',
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
-  favicon: 'img/favicon.png',
+  favicon: 'img/logo.png',
   organizationName: 'yewstack', // Usually your GitHub org/user name.
   projectName: 'yew', // Usually your repo name.
   themeConfig: {
