@@ -3,6 +3,30 @@ title: "Elements"
 description: "Both HTML and SVG elements are supported"
 ---
 
+## DOM nodes
+
+There are many reasons why you might want to create or manage DOM nodes manually in Yew, such as
+when integrating with JS libraries that can cause conflicts with managed components.
+
+Using `web-sys`, you can create DOM elements and convert them into a `Node` - which can then be 
+used as a `Html` value using `VRef`:
+
+```rust
+    // ...
+    fn view(&self) -> Html {
+        use yew::{utils::document, web_sys::{Element, Node}};
+
+        // Create a div element from the document
+        let div: Element = document().create_element("div").unwrap();
+        // Add content, classes etc.
+        div.set_inner_html("Hello, World!");
+        // Convert Element into a Node
+        let node: Node = div.into();
+        // Return that Node as a Html value
+        Html::VRef(node)
+    }
+```
+
 ## Dynamic tag names
 
 When building a higher-order component you might find yourself in a situation where the element's tag name isn't static.
@@ -288,3 +312,6 @@ end up using a version which conflicts with the version that Yew specifies.
 | `ontransitionend`           | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
 | `ontransitionrun`           | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
 | `ontransitionstart`         | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
+
+## Relevant examples
+- [Inner HTML](https://github.com/yewstack/yew/tree/master/examples/inner_html)
