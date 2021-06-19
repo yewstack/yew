@@ -5,11 +5,13 @@ on:
     paths:
       - "website/**"
       - "firebase.json"
+      - ".github/workflows/*-website.yml"
   push:
     branches: [master]
     paths:
       - "website/**"
       - "firebase.json"
+      - ".github/workflows/*-website.yml"
 
 jobs:
   build:

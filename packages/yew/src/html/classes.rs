@@ -174,7 +174,7 @@ impl<T: Into<Classes>> From<Vec<T>> for Classes {
 
 impl<T: Into<Classes> + Clone> From<&[T]> for Classes {
     fn from(t: &[T]) -> Self {
-        Self::from_iter(t.iter().cloned())
+        t.iter().cloned().collect()
     }
 }
 
