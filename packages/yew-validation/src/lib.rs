@@ -175,58 +175,58 @@ mod tests {
 
     #[test]
     fn valid_custom_element() {
-        assert_eq!(is_valid_html_custom_element_name("foo-bar"), true);
-        assert_eq!(is_valid_html_custom_element_name("foo-"), true);
-        assert_eq!(is_valid_html_custom_element_name("bar-baz"), true);
+        assert!(is_valid_html_custom_element_name("foo-bar"));
+        assert!(is_valid_html_custom_element_name("foo-"));
+        assert!(is_valid_html_custom_element_name("bar-baz"));
     }
 
     #[test]
     fn invalid_custom_element() {
-        assert_eq!(is_valid_html_custom_element_name("foobar"), false);
-        assert_eq!(is_valid_html_custom_element_name("-bar"), false);
-        assert_eq!(is_valid_html_custom_element_name("foo bar"), false);
-        assert_eq!(is_valid_html_custom_element_name(""), false);
-        assert_eq!(is_valid_html_custom_element_name("foo\nbar"), false);
-        assert_eq!(is_valid_html_custom_element_name("-"), false);
+        assert!(!is_valid_html_custom_element_name("foobar"));
+        assert!(!is_valid_html_custom_element_name("-bar"));
+        assert!(!is_valid_html_custom_element_name("foo bar"));
+        assert!(!is_valid_html_custom_element_name(""));
+        assert!(!is_valid_html_custom_element_name("foo\nbar"));
+        assert!(!is_valid_html_custom_element_name("-"));
     }
 
     #[test]
     fn valid_html_element() {
-        assert_eq!(resembles_standard_html_element_name("section"), true);
-        assert_eq!(resembles_standard_html_element_name("h2"), true);
-        assert_eq!(resembles_standard_html_element_name("applet"), true);
-        assert_eq!(resembles_standard_html_element_name("appLET"), true);
-        assert_eq!(resembles_standard_html_element_name("aPPlet"), true);
-        assert_eq!(resembles_standard_html_element_name("foo-bar"), true);
+        assert!(resembles_standard_html_element_name("section"));
+        assert!(resembles_standard_html_element_name("h2"));
+        assert!(resembles_standard_html_element_name("applet"));
+        assert!(resembles_standard_html_element_name("appLET"));
+        assert!(resembles_standard_html_element_name("aPPlet"));
+        assert!(resembles_standard_html_element_name("foo-bar"));
     }
 
     #[test]
     fn invalid_html_element() {
-        assert_eq!(resembles_standard_html_element_name(" foo"), false);
-        assert_eq!(resembles_standard_html_element_name("foo "), false);
-        assert_eq!(resembles_standard_html_element_name("-"), false);
-        assert_eq!(resembles_standard_html_element_name("!doctype"), false);
+        assert!(!resembles_standard_html_element_name(" foo"));
+        assert!(!resembles_standard_html_element_name("foo "));
+        assert!(!resembles_standard_html_element_name("-"));
+        assert!(!resembles_standard_html_element_name("!doctype"));
     }
 
     #[test]
     fn valid_html_attribute() {
-        assert_eq!(is_valid_html_attribute_name("-foo-bar"), true);
-        assert_eq!(is_valid_html_attribute_name("data-foobar"), true);
-        assert_eq!(is_valid_html_attribute_name("foo<bar"), true); // shocking but true
+        assert!(is_valid_html_attribute_name("-foo-bar"));
+        assert!(is_valid_html_attribute_name("data-foobar"));
+        assert!(is_valid_html_attribute_name("foo<bar")); // shocking but true
     }
 
     #[test]
     fn invalid_html_attribute() {
-        assert_eq!(is_valid_html_attribute_name("foo=bar"), false);
-        assert_eq!(is_valid_html_attribute_name("\"foo\""), false);
-        assert_eq!(is_valid_html_attribute_name("foo bar"), false);
-        assert_eq!(is_valid_html_attribute_name("foo>bar"), false);
+        assert!(!is_valid_html_attribute_name("foo=bar"));
+        assert!(!is_valid_html_attribute_name("\"foo\""));
+        assert!(!is_valid_html_attribute_name("foo bar"));
+        assert!(!is_valid_html_attribute_name("foo>bar"));
     }
 
     #[test]
     fn invalid_sgml_tag() {
-        assert_eq!(is_valid_sgml_tag("f>bar"), false);
-        assert_eq!(is_valid_sgml_tag("f<bar"), false);
-        assert_eq!(is_valid_sgml_tag("/>"), false);
+        assert!(!is_valid_sgml_tag("f>bar"));
+        assert!(!is_valid_sgml_tag("f<bar"));
+        assert!(!is_valid_sgml_tag("/>"));
     }
 }
