@@ -16,9 +16,9 @@
   </p>
 
   <h4>
-    <a href="https://yew.rs/intro/">Documentation (stable)</a>
+    <a href="https://yew.rs/">Documentation (stable)</a>
     <span> | </span>
-    <a href="https://yew.rs/next/intro/">Documentation (latest)</a>
+    <a href="https://yew.rs/next/">Documentation (latest)</a>
     <span> | </span>
     <a href="https://github.com/yewstack/yew/tree/v0.18/examples">Examples</a>
     <span> | </span>
@@ -66,7 +66,7 @@ After reviewing the [Contribution Guide](CONTRIBUTING.md), check out the ["Good 
 
 #### 🤑 Let's help each other!
 
-Come help us on the [issues that matter that the most](https://github.com/yewstack/yew/labels/%3Adollar%3A%20Funded%20on%20Issuehunt) and receive a small cash reward for your troubles. We use [Issuehunt](https://issuehunt.io/r/yewstack/yew/) to fund issues from our Open Collective funds. If you really care about an issue, you can choose to add funds yourself! 
+Come help us on the [issues that matter that the most](https://github.com/yewstack/yew/labels/%3Adollar%3A%20Funded%20on%20Issuehunt) and receive a small cash reward for your troubles. We use [Issuehunt](https://issuehunt.io/r/yewstack/yew/) to fund issues from our Open Collective funds. If you really care about an issue, you can choose to add funds yourself!
 
 #### 😱 Found a bug?
 
