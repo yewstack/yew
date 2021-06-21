@@ -120,7 +120,10 @@ impl PropsBuilder<'_> {
             .filter(|pf| pf.is_required())
             .map(|pf| pf.to_step_name(prefix))
             .collect();
-        step_names.push(Ident::new(&format!("{}_build", prefix), Span::call_site()));
+        step_names.push(Ident::new(
+            &format!("{}PropsBuilder", prefix),
+            prefix.span(),
+        ));
         step_names
     }
 
