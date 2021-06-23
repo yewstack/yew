@@ -121,3 +121,10 @@ trunk serve
 ```
 
 This will start a development server which continually updates the app every time you change something.
+
+## Troubleshooting
+
+* Trunk's installation failed:
+
+  Make sure you have the development packages of openssl installed.
+  For example, libssl-dev on Ubuntu or openssl-devel on Fedora.
