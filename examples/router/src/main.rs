@@ -87,7 +87,7 @@ impl Model {
                 <div class="navbar-brand">
                     <h1 class="navbar-item is-size-3">{ "Yew Blog" }</h1>
 
-                    <a role="button"
+                    <a href="javascript:void(0)" role="button"
                         class={classes!("navbar-burger", "burger", active_class)}
                         aria-label="menu" aria-expanded="false"
                         onclick={link.callback(|_| Msg::ToggleNavbar)}
@@ -107,15 +107,13 @@ impl Model {
                         </Link<Route>>
 
                         <div class="navbar-item has-dropdown is-hoverable">
-                            <a class="navbar-link">
+                            <a href="javascript:void(0)" class="navbar-link">
                                 { "More" }
                             </a>
                             <div class="navbar-dropdown">
-                                <a class="navbar-item">
-                                    <Link<Route> classes={classes!("navbar-item")} to={Route::Authors}>
-                                        { "Meet the authors" }
-                                    </Link<Route>>
-                                </a>
+                                <Link<Route> classes={classes!("navbar-item")} route={Route::Authors}>
+                                    { "Meet the authors" }
+                                </Link<Route>>
                             </div>
                         </div>
                     </div>

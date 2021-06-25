@@ -30,7 +30,7 @@ impl Component for PostCard {
             <div class="card">
                 <div class="card-image">
                     <figure class="image is-2by1">
-                        <img src={post.image_url.clone()} loading="lazy" />
+                        <img alt="This post's image" src={post.image_url.clone()} loading="lazy" />
                     </figure>
                 </div>
                 <div class="card-content">

@@ -43,7 +43,7 @@ impl Pagination {
 
         html! {
             <li>
-                <a class={classes!("pagination-link", is_current_class)} aria-label={format!("Goto page {}", to_page)} {onclick}>
+                <a href="javascript:void(0)" class={classes!("pagination-link", is_current_class)} aria-label={format!("Goto page {}", to_page)} {onclick}>
                     { to_page }
                 </a>
             </li>
@@ -104,20 +104,32 @@ impl Pagination {
         } = *props;
 
         html! {
-            <>
-                <a class="pagination-previous"
-                    disabled={page==1}
-                    onclick={on_switch_page.reform(move |_| page - 1)}
-                >
-                    { "Previous" }
-                </a>
-                <a class="pagination-next"
-                    disabled={page==total_pages}
-                    onclick={on_switch_page.reform(move |_| page + 1)}
-                >
-                    { "Next page" }
-                </a>
-            </>
-        }
+                    <>
+        <<<<<<< HEAD
+                        <a class="pagination-previous"
+                            disabled={page==1}
+                            onclick={on_switch_page.reform(move |_| page - 1)}
+                        >
+                            { "Previous" }
+                        </a>
+                        <a class="pagination-next"
+                            disabled={page==total_pages}
+                            onclick={on_switch_page.reform(move |_| page + 1)}
+        =======
+                        <a href="javascript:void(0)" class="pagination-previous"
+                            disabled=page==1
+                            onclick=on_switch_page.reform(move |_| page - 1)
+                        >
+                            { "Previous" }
+                        </a>
+                        <a href="javascript:void(0)" class="pagination-next"
+                            disabled=page==total_pages
+                            onclick=on_switch_page.reform(move |_| page + 1)
+        >>>>>>> fbcb13a6 (Fix the examples.)
+                        >
+                            { "Next page" }
+                        </a>
+                    </>
+                }
     }
 }

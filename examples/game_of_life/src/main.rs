@@ -185,7 +185,7 @@ impl Component for Model {
             <div>
                 <section class="game-container">
                     <header class="app-header">
-                        <img src="favicon.ico" class="app-logo"/>
+                        <img alt="The app logo" src="favicon.ico" class="app-logo"/>
                         <h1 class="app-title">{ "Game of Life" }</h1>
                     </header>
                     <section class="game-area">
