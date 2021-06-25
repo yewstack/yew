@@ -1,13 +1,13 @@
 warning: All `<a>` elements should have a `href` attribute. This makes it possible for assistive technologies to correctly interpret what your links point to.
  --> $DIR/fail.rs:5:10
   |
-5 |         <a>{"I don't have a href attribute"}</a>
+5 |         <a>{ "I don't have a href attribute" }</a>
   |          ^
 
 warning: '#' is not a suitable value for the `href` attribute. Without a meaningful attribute assistive technologies will struggle to understand your webpage. (hint: use a tag other than `<a>` here or `javascript:void(0)` for the `href` attribute)
  --> $DIR/fail.rs:8:17
   |
-8 |         <a href="#">{"I have a malformed href attribute"}</a>
+8 |         <a href="#">{ "I have a malformed href attribute" }</a>
   |                 ^^^
 
 warning: All `<img>` tags should have an `alt` attribute which provides a human-readable description
