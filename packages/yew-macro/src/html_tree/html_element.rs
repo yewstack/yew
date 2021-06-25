@@ -451,7 +451,7 @@ fn wrap_attr_prop(prop: &Prop) -> TokenStream {
     }
 }
 
-struct DynamicName {
+pub struct DynamicName {
     at: Token![@],
     expr: Option<Block>,
 }
