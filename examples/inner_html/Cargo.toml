@@ -10,5 +10,5 @@ yew = { path = "../../packages/yew" }
 yew-services = { path = "../../packages/yew-services" }
 
 [dependencies.web-sys]
-version = "0.3"
+version = "0.3.51"
 features = ["console", "Document", "Element", "Node", "Window"]

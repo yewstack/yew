@@ -6,6 +6,6 @@ edition = "2018"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-js-sys = "0.3"
+js-sys = "0.3.51"
 yew = { path = "../../packages/yew" }
 yew-services = { path = "../../packages/yew-services" }

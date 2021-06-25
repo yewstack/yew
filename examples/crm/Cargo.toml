@@ -6,7 +6,7 @@ edition = "2018"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-serde = "1"
-serde_derive = "1"
+serde = "1.0.126"
+serde_derive = "1.0.126"
 yew = { path = "../../packages/yew" }
 yew-services = { path = "../../packages/yew-services" }

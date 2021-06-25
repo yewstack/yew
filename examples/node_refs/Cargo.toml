@@ -7,5 +7,5 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 yew = { path = "../../packages/yew" }
-web-sys = { version = "0.3", features = ["HtmlElement", "HtmlInputElement", "Node"] }
+web-sys = { version = "0.3.51", features = ["HtmlElement", "HtmlInputElement", "Node"] }
 yew-services = { path = "../../packages/yew-services" }

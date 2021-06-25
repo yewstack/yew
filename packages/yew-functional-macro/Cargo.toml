@@ -10,13 +10,13 @@ license = "MIT OR Apache-2.0"
 proc-macro = true
 
 [dependencies]
-proc-macro2 = "1.0.6"
-quote = "1.0"
-syn = { version = "1.0.11", features = ["full"] }
+proc-macro2 = "1.0.27"
+quote = "1.0.9"
+syn = { version = "1.0.73", features = ["full"] }
 
 # testing
 [dev-dependencies]
-rustversion = "1.0"
-trybuild = "1.0"
+rustversion = "1.0.5"
+trybuild = "1.0.42"
 yew = { path = "../yew" }
 yew-functional = { path = "../yew-functional" }

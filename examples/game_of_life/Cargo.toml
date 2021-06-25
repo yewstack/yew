@@ -10,9 +10,9 @@ edition = "2018"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-getrandom = { version = "0.2", features = ["js"] }
-log = "0.4"
-rand = "0.8"
-wasm-logger = "0.2"
+getrandom = { version = "0.2.3", features = ["js"] }
+log = "0.4.14"
+rand = "0.8.4"
+wasm-logger = "0.2.0"
 yew = { path = "../../packages/yew" }
 yew-services = { path = "../../packages/yew-services" }

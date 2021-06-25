@@ -12,6 +12,6 @@ categories = ["gui", "web-programming"]
 description = "A collection of community-created Yew components"
 
 [dependencies]
-wasm-bindgen = "0.2.60"
-web-sys = "0.3"
+wasm-bindgen = "0.2.74"
+web-sys = "0.3.51"
 yew = { version = "^0.18", path = "../yew" }
