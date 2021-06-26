@@ -42,7 +42,7 @@ impl Component for AuthorList {
             html! {
                 <div class="tile is-parent">
                     <div class="tile is-child">
-                        <AuthorCard seed=seed />
+                        <AuthorCard seed={seed} />
                     </div>
                 </div>
             }
@@ -71,7 +71,7 @@ impl Component for AuthorList {
                     <div class="tile is-ancestor">
                         { for authors }
                     </div>
-                    <ProgressDelay duration_ms=CAROUSEL_DELAY_MS on_complete=self.link.callback(|_| Msg::NextAuthors) />
+                    <ProgressDelay duration_ms={CAROUSEL_DELAY_MS} on_complete={self.link.callback(|_| Msg::NextAuthors)} />
                 </div>
             </div>
         }

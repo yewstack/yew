@@ -43,10 +43,10 @@ impl Component for PostCard {
                     </figure>
                 </div>
                 <div class="card-content">
-                    <Link<Route> classes=classes!("title", "is-block") route=Route::Post { id: post.seed }>
+                    <Link<Route> classes={classes!("title", "is-block")} route={Route::Post { id: post.seed }}>
                         { &post.title }
                     </Link<Route>>
-                    <Link<Route> classes=classes!("subtitle", "is-block") route=Route::Author { id: post.author.seed }>
+                    <Link<Route> classes={classes!("subtitle", "is-block")} route={Route::Author { id: post.author.seed }}>
                         { &post.author.name }
                     </Link<Route>>
                 </div>

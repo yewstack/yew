@@ -147,7 +147,7 @@ impl Component for Model {
         html! {
             <div class="container">
                 <div class="row">
-                    <p class="h2" ref=self.delta_ref.clone()/>
+                    <p class="h2" ref={self.delta_ref.clone()}/>
                     <hr />
                 </div>
                 { self.action_view() }
@@ -169,8 +169,8 @@ impl Model {
                             { self.build_component_ratio }
                         </p>
                         <input name="ratio" type="range" class="form-control-range" min="0.0" max="1.0" step="any"
-                            value=self.build_component_ratio.to_string()
-                            oninput=self.link.callback(|e: InputData| Msg::ChangeRatio(e.value))
+                            value={self.build_component_ratio.to_string()}
+                            oninput={self.link.callback(|e: InputData| Msg::ChangeRatio(e.value))}
                         />
                     </div>
                 </div>
@@ -182,74 +182,74 @@ impl Model {
             <>
                 <div class="row">
                     <div class="col">
-                        <button class="btn_size alert alert-danger" onclick=self.link.callback(|_| Msg::DeleteEverybody)>
+                        <button class="btn_size alert alert-danger" onclick={self.link.callback(|_| Msg::DeleteEverybody)}>
                             { "Delete everybody" }
                         </button>
                     </div>
                     <div class="col">
-                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersons(1))>
+                        <button class="btn_size alert alert-success" onclick={self.link.callback(|_| Msg::CreatePersons(1))}>
                             { "Create 1" }
                     </button>
                     </div>
                     <div class="col">
-                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersons(5))>
+                        <button class="btn_size alert alert-success" onclick={self.link.callback(|_| Msg::CreatePersons(5))}>
                             { "Create 5" }
                         </button>
                     </div>
                     <div class="col">
-                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersons(100))>
+                        <button class="btn_size alert alert-success" onclick={self.link.callback(|_| Msg::CreatePersons(100))}>
                             { "Create 100" }
                         </button>
                     </div>
                     <div class="col">
-                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersons(500))>
+                        <button class="btn_size alert alert-success" onclick={self.link.callback(|_| Msg::CreatePersons(500))}>
                             { "Create 500" }
                         </button>
                     </div>
                     <div class="col">
-                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersonsPrepend(1))>
+                        <button class="btn_size alert alert-success" onclick={self.link.callback(|_| Msg::CreatePersonsPrepend(1))}>
                             { "Prepend 1" }
                         </button>
                     </div>
                     <div class="col">
-                        <button class="btn_size alert alert-success" onclick=self.link.callback(|_| Msg::CreatePersonsPrepend(5))>
+                        <button class="btn_size alert alert-success" onclick={self.link.callback(|_| Msg::CreatePersonsPrepend(5))}>
                             { "Prepend 5" }
                         </button>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col">
-                        <button class="btn_size alert alert-warning" onclick=self.link.callback(|_| Msg::ToggleKeyed)>
+                        <button class="btn_size alert alert-warning" onclick={self.link.callback(|_| Msg::ToggleKeyed)}>
                             { if self.keyed { "Disable keys" } else { "Enable keys" } }
                         </button>
                     </div>
                     <div class="col">
-                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SwapRandom)>
+                        <button class="btn_size alert alert-info" onclick={self.link.callback(|_| Msg::SwapRandom)}>
                             { "Swap random" }
                         </button>
                     </div>
                     <div class="col">
-                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::ReverseList)>
+                        <button class="btn_size alert alert-info" onclick={self.link.callback(|_| Msg::ReverseList)}>
                             { "Reverse list" }
                         </button>
                     </div>
                     <div class="col">
-                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SortById)>
+                        <button class="btn_size alert alert-info" onclick={self.link.callback(|_| Msg::SortById)}>
                             { "Sort by id" }
                         </button>
                     </div>
                     <div class="col">
-                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SortByName)>
+                        <button class="btn_size alert alert-info" onclick={self.link.callback(|_| Msg::SortByName)}>
                             { "Sort by name" }
                         </button>
                     </div>
                     <div class="col">
-                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SortByAge)>
+                        <button class="btn_size alert alert-info" onclick={self.link.callback(|_| Msg::SortByAge)}>
                             { "Sort by age" }
                         </button>
                     </div>
                     <div class="col">
-                        <button class="btn_size alert alert-info" onclick=self.link.callback(|_| Msg::SortByAddress)>
+                        <button class="btn_size alert alert-info" onclick={self.link.callback(|_| Msg::SortByAddress)}>
                             { "Sort by address" }
                         </button>
                     </div>

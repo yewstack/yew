@@ -42,18 +42,18 @@ fn use_context_scoping_works() {
             type ExampleContextProvider = ContextProvider<ExampleContext>;
             return html! {
                 <div>
-                    <ExampleContextProvider context=ExampleContext("wrong1".into())>
+                    <ExampleContextProvider context={ExampleContext("wrong1".into())}>
                         <div>{"ignored"}</div>
                     </ExampleContextProvider>
-                    <ExampleContextProvider context=ExampleContext("wrong2".into())>
-                        <ExampleContextProvider context=ExampleContext("correct".into())>
-                            <ExampleContextProvider context=ExampleContext("wrong1".into())>
+                    <ExampleContextProvider context={ExampleContext("wrong2".into())}>
+                        <ExampleContextProvider context={ExampleContext("correct".into())}>
+                            <ExampleContextProvider context={ExampleContext("wrong1".into())}>
                                 <div>{"ignored"}</div>
                             </ExampleContextProvider>
                             <UseContextComponentInner />
                         </ExampleContextProvider>
                     </ExampleContextProvider>
-                    <ExampleContextProvider context=ExampleContext("wrong3".into())>
+                    <ExampleContextProvider context={ExampleContext("wrong3".into())}>
                         <div>{"ignored"}</div>
                     </ExampleContextProvider>
                     <ExpectNoContextComponent />
@@ -148,9 +148,9 @@ fn use_context_works_with_multiple_types() {
 
             return html! {
                 <div>
-                    <ContextAProvider context=ContextA(0)>
-                        <ContextBProvider context=ContextB(1)>
-                            <ContextAProvider context=ContextA(2)>
+                    <ContextAProvider context={ContextA(0)}>
+                        <ContextBProvider context={ContextB(1)}>
+                            <ContextAProvider context={ContextA(2)}>
                                 <Test1/>
                             </ContextAProvider>
                             <Test2/>
@@ -189,7 +189,7 @@ fn use_context_update_works() {
             *counter.borrow_mut() += 1;
             return html! {
                 <>
-                    <div id=props.id.clone()>
+                    <div id={props.id.clone()}>
                         { format!("total: {}", counter.borrow()) }
                     </div>
                     { props.children.clone() }
@@ -218,7 +218,7 @@ fn use_context_update_works() {
             return html! {
                 <>
                     <div>{ format!("magic: {}\n", props.magic) }</div>
-                    <div id=props.id.clone()>
+                    <div id={props.id.clone()}>
                         { format!("current: {}, total: {}", ctx.0, counter.borrow()) }
                     </div>
                 </>
@@ -264,10 +264,10 @@ fn use_context_update_works() {
                 });
             }
             return html! {
-                <MyContextProvider context=Rc::new((*ctx).clone())>
+                <MyContextProvider context={Rc::new((*ctx).clone())}>
                     <RenderCounter id="test-0">
                         <ContextOutlet id="test-1"/>
-                        <ContextOutlet id="test-2" magic=magic/>
+                        <ContextOutlet id="test-2" magic={magic}/>
                     </RenderCounter>
                 </MyContextProvider>
             };

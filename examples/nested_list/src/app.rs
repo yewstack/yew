@@ -49,20 +49,20 @@ impl Component for App {
 
         // note the use of `html_nested!` instead of `html!`.
         let letters = ('A'..='C')
-            .map(|letter| html_nested! { <ListItem name=letter.to_string() on_hover=on_hover /> });
+            .map(|letter| html_nested! { <ListItem name={letter.to_string()} on_hover={on_hover} /> });
 
         html! {
-            <div class="main" onmouseenter=onmouseenter>
+            <div class="main" onmouseenter={onmouseenter}>
                 <h1>{ "Nested List Demo" }</h1>
-                <List on_hover=on_hover weak_link=list_link>
-                    <ListHeader text="Calling all Rusties!" on_hover=on_hover list_link=list_link />
-                    <ListItem name="Rustin" on_hover=on_hover />
-                    <ListItem hide=true name="Rustaroo" on_hover=on_hover />
-                    <ListItem name="Rustifer" on_hover=on_hover>
+                <List on_hover={on_hover} weak_link={list_link}>
+                    <ListHeader text="Calling all Rusties!" on_hover={on_hover} list_link={list_link} />
+                    <ListItem name="Rustin" on_hover={on_hover} />
+                    <ListItem hide=true name="Rustaroo" on_hover={on_hover} />
+                    <ListItem name="Rustifer" on_hover={on_hover}>
                         <div class="sublist">{ "Sublist!" }</div>
-                        <List on_hover=on_hover weak_link=sub_list_link>
-                            <ListHeader text="Sub Rusties!" on_hover=on_hover list_link=sub_list_link/>
-                            <ListItem hide=true name="Hidden Sub" on_hover=on_hover />
+                        <List on_hover={on_hover} weak_link={sub_list_link}>
+                            <ListHeader text="Sub Rusties!" on_hover={on_hover} list_link={sub_list_link}/>
+                            <ListItem hide=true name="Hidden Sub" on_hover={on_hover} />
                             { for letters }
                         </List>
                     </ListItem>

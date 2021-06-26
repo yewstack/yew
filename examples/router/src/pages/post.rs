@@ -47,7 +47,7 @@ impl Component for Post {
         html! {
             <>
                 <section class="hero is-medium is-light has-background">
-                    <img class="hero-background is-transparent" src=Cow::Owned(post.meta.image_url.clone()) />
+                    <img class="hero-background is-transparent" src={Cow::Owned(post.meta.image_url.clone())} />
                     <div class="hero-body">
                         <div class="container">
                             <h1 class="title">
@@ -55,7 +55,7 @@ impl Component for Post {
                             </h1>
                             <h2 class="subtitle">
                                 { "by " }
-                                <Link<Route> classes=classes!("has-text-weight-semibold") route=Route::Author { id: post.meta.author.seed }>
+                                <Link<Route> classes={classes!("has-text-weight-semibold")} route={Route::Author { id: post.author.seed }}>
                                     { &post.meta.author.name }
                                 </Link<Route>>
                             </h2>
@@ -78,12 +78,12 @@ impl Post {
             <article class="media block box my-6">
                 <figure class="media-left">
                     <p class="image is-64x64">
-                        <img src=Cow::Owned(quote.author.image_url.clone()) loading="lazy" />
+                        <img src={Cow::Owned(quote.author.image_url.clone())} loading="lazy" />
                     </p>
                 </figure>
                 <div class="media-content">
                     <div class="content">
-                        <Link<Route> classes=classes!("is-size-5") route=Route::Author { id: quote.author.seed }>
+                        <Link<Route> classes={classes!("is-size-5")} route={Route::Author { id: quote.author.seed }}>
                             <strong>{ &quote.author.name }</strong>
                         </Link<Route>>
                         <p class="is-family-secondary">
@@ -98,7 +98,7 @@ impl Post {
     fn render_section_hero(&self, section: &content::Section) -> Html {
         html! {
             <section class="hero is-dark has-background mt-6 mb-3">
-                <img class="hero-background is-transparent" src=Cow::Owned(section.image_url.clone()) loading="lazy" />
+                <img class="hero-background is-transparent" src={Cow::Owned(section.image_url.clone())} loading="lazy" />
                 <div class="hero-body">
                     <div class="container">
                         <h2 class="subtitle">{ &section.title }</h2>

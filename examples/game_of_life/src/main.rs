@@ -95,8 +95,8 @@ impl Model {
             }
         };
         html! {
-            <div key=idx class=classes!("game-cellule", cellule_status)
-                onclick=self.link.callback(move |_| Msg::ToggleCellule(idx))>
+            <div key={idx} class={classes!("game-cellule", cellule_status)}
+                onclick={self.link.callback(move |_| Msg::ToggleCellule(idx))}>
             </div>
         }
     }
@@ -180,7 +180,7 @@ impl Component for Model {
                         .enumerate()
                         .map(|(x, cell)| self.view_cellule(idx_offset + x, cell));
                     html! {
-                        <div key=y class="game-row">
+                        <div key={y} class="game-row">
                             { for cells }
                         </div>
                     }
@@ -198,11 +198,11 @@ impl Component for Model {
                             { for cell_rows }
                         </div>
                         <div class="game-buttons">
-                            <button class="game-button" onclick=self.link.callback(|_| Msg::Random)>{ "Random" }</button>
-                            <button class="game-button" onclick=self.link.callback(|_| Msg::Step)>{ "Step" }</button>
-                            <button class="game-button" onclick=self.link.callback(|_| Msg::Start)>{ "Start" }</button>
-                            <button class="game-button" onclick=self.link.callback(|_| Msg::Stop)>{ "Stop" }</button>
-                            <button class="game-button" onclick=self.link.callback(|_| Msg::Reset)>{ "Reset" }</button>
+                            <button class="game-button" onclick={self.link.callback(|_| Msg::Random)}>{ "Random" }</button>
+                            <button class="game-button" onclick={self.link.callback(|_| Msg::Step)}>{ "Step" }</button>
+                            <button class="game-button" onclick={self.link.callback(|_| Msg::Start)}>{ "Start" }</button>
+                            <button class="game-button" onclick={self.link.callback(|_| Msg::Stop)}>{ "Stop" }</button>
+                            <button class="game-button" onclick={self.link.callback(|_| Msg::Reset)}>{ "Reset" }</button>
                         </div>
                     </section>
                 </section>

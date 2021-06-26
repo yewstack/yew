@@ -65,16 +65,16 @@ impl Component for Model {
                     <label>{ "Using tag ref: " }</label>
                     <input
                         type="text"
-                        ref=self.refs[0].clone()
+                        ref={self.refs[0].clone()}
                         class="input-element"
-                        onmouseover=self.link.callback(|_| Msg::HoverIndex(0))
+                        onmouseover={self.link.callback(|_| Msg::HoverIndex(0))}
                     />
                 </div>
                 <div>
                     <label>{ "Using component ref: " }</label>
                     <InputComponent
-                        ref=self.refs[1].clone()
-                        on_hover=self.link.callback(|_| Msg::HoverIndex(1))
+                        ref={self.refs[1].clone()}
+                        on_hover={self.link.callback(|_| Msg::HoverIndex(1))}
                     />
                 </div>
             </div>

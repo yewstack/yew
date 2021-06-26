@@ -130,7 +130,7 @@ impl Boid {
             points.push_str(&format!("{:.2},{:.2} ", x, y));
         }
 
-        html! { <polygon points=points fill=color /> }
+        html! { <polygon points={points} fill={color} /> }
     }
 }
 

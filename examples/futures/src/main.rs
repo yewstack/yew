@@ -118,10 +118,10 @@ impl Component for Model {
         match &self.markdown {
             FetchState::NotFetching => html! {
                 <>
-                    <button onclick=self.link.callback(|_| Msg::GetMarkdown)>
+                    <button onclick={self.link.callback(|_| Msg::GetMarkdown)}>
                         { "Get Markdown" }
                     </button>
-                    <button onclick=self.link.callback(|_| Msg::GetError)>
+                    <button onclick={self.link.callback(|_| Msg::GetError)}>
                         { "Get using incorrect URL" }
                     </button>
                 </>

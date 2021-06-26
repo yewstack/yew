@@ -45,7 +45,7 @@ impl Component for ListItem {
             })
         };
         html! {
-            <div class="list-item" onmouseover=onmouseover>
+            <div class="list-item" onmouseover={onmouseover}>
                 { &self.props.name }
                 { self.view_details() }
             </div>

@@ -104,7 +104,7 @@ impl Component for Simulation {
         let view_box = format!("0 0 {} {}", SIZE.x, SIZE.y);
 
         html! {
-            <svg class="simulation-window" viewBox=view_box>
+            <svg class="simulation-window" viewBox={view_box}>
                 { for self.boids.iter().map(Boid::render) }
             </svg>
         }
