@@ -60,7 +60,7 @@ fn validate_prop(expr: &Expr) -> syn::Result<()> {
         Expr::Block(_) | Expr::Lit(_) => Ok(()),
         _ => Err(syn::Error::new_spanned(
             expr,
-            format!("property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: {{ {} }}", expr.to_token_stream()),
+            format!("the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: {{ {} }}", expr.to_token_stream()),
         )),
     }
 }
