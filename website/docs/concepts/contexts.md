@@ -11,14 +11,14 @@ theme using props:
 // root
 let theme = // ...
 html! {
-    <Navbar theme=theme />
+    <Navbar theme={theme} />
 }
 
 // Navbar component
 html! {
     <div>
-        <Title theme=theme>{ "App title" }<Title>
-        <NavButton theme=theme>{ "Somewhere" }</NavButton>
+        <Title theme={theme}>{ "App title" }<Title>
+        <NavButton theme={theme}>{ "Somewhere" }</NavButton>
     </div>
 }
 ```
@@ -63,7 +63,7 @@ impl Component for ContextDemo {
     fn view(&self) -> Html {
         let theme = self.link.context::<Theme>();
         html! {
-            <button style=format!("background: {}; color: {};", theme.background, theme.foreground)>
+            <button style={format!("background: {}; color: {};", theme.background, theme.foreground)}>
                 { "Click me!" }
             </button>
         }

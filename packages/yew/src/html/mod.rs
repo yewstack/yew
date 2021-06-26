@@ -59,7 +59,7 @@ pub type Html = VNode;
 ///
 ///     fn view(&self) -> Html {
 ///         html! {
-///             <input ref=self.node_ref.clone() type="text" />
+///             <input ref={self.node_ref.clone()} type="text" />
 ///         }
 ///     }
 /// }

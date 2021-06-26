@@ -141,8 +141,6 @@ warning: use of deprecated function `compile_fail::deprecated_use_of_class`: the
    |
 74 |     html! { <div class=("deprecated", "warning") /> };
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: `#[warn(deprecated)]` on by default
 
 error[E0308]: mismatched types
   --> $DIR/element-fail.rs:36:28

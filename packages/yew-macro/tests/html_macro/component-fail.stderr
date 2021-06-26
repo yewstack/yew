@@ -34,23 +34,23 @@ error: there are two `with <props>` definitions for this component (note: you ca
 61 |     html! { <Child with p1 with p2 /> };
    |                    ^^^^^^^
 
-error: `ref` can only be set once
-  --> $DIR/component-fail.rs:62:38
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { () }
+  --> $DIR/component-fail.rs:62:35
    |
 62 |     html! { <Child with props ref=() ref=() /> };
-   |                                      ^^^
+   |                                   ^^
 
-error: `ref` can only be set once
-  --> $DIR/component-fail.rs:63:38
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { () }
+  --> $DIR/component-fail.rs:63:35
    |
 63 |     html! { <Child with props ref=() ref=() value=1 /> };
-   |                                      ^^^
+   |                                   ^^
 
-error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
-  --> $DIR/component-fail.rs:64:38
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { () }
+  --> $DIR/component-fail.rs:64:35
    |
 64 |     html! { <Child with props ref=() value=1 ref=() /> };
-   |                                      ^^^^^
+   |                                   ^^
 
 error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
   --> $DIR/component-fail.rs:65:31
@@ -70,11 +70,11 @@ error: Using the `with props` syntax in combination with named props is not allo
 67 |     html! { <Child value=1 ref=() with props ref=() /> };
    |                    ^^^^^
 
-error: `ref` can only be set once
-  --> $DIR/component-fail.rs:68:27
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { () }
+  --> $DIR/component-fail.rs:68:24
    |
 68 |     html! { <Child ref=() ref=() value=1  with props  /> };
-   |                           ^^^
+   |                        ^^
 
 error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
   --> $DIR/component-fail.rs:70:20
@@ -123,11 +123,17 @@ error: `int` can only be specified once but is given here again
 76 |     html! { <Child int=1 int=2 int=3 /> };
    |                                ^^^
 
-error: `ref` can only be specified once
-  --> $DIR/component-fail.rs:81:26
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { () }
+  --> $DIR/component-fail.rs:80:30
+   |
+80 |     html! { <Child int=1 ref=() /> };
+   |                              ^^
+
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { () }
+  --> $DIR/component-fail.rs:81:30
    |
 81 |     html! { <Child int=1 ref=() ref=() /> };
-   |                          ^^^
+   |                              ^^
 
 error: this closing tag has no corresponding opening tag
   --> $DIR/component-fail.rs:84:13
@@ -147,11 +153,11 @@ error: only one root html element is allowed (hint: you can wrap multiple html e
 86 |     html! { <Child></Child><Child></Child> };
    |                            ^^^^^^^^^^^^^^^
 
-error: cannot specify the `children` prop when the component already has children
-   --> $DIR/component-fail.rs:105:25
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { children }
+   --> $DIR/component-fail.rs:105:34
     |
 105 |         <ChildContainer children=children>
-    |                         ^^^^^^^^
+    |                                  ^^^^^^^^
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
    --> $DIR/component-fail.rs:112:9

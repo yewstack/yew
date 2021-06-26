@@ -56,11 +56,18 @@ impl Parse for Prop {
 
 fn strip_braces(expr: Expr) -> syn::Result<Expr> {
     match expr {
-        Expr::Block(ExprBlock { block: Block { ref stmts, .. }, .. }) if stmts.len() == 1 => {
-            if let Stmt::Expr(expr) = &stmts[0] {
-                Ok(expr.clone())
-            } else  {
-                Ok(expr)
+        Expr::Block(ExprBlock { block: Block { mut stmts, .. }, .. }) if stmts.len() == 1 => {
+            let stmt = stmts.remove(0);
+            match stmt {
+                Stmt::Expr(expr) => Ok(expr),
+                Stmt::Semi(_expr, semi) => Err(syn::Error::new_spanned(
+                        semi,
+                        "only an expression may be assigned as a property. Consider removing this semicolon",
+                )),
+                _ =>             Err(syn::Error::new_spanned(
+                        stmt,
+                        "only an expression may be assigned as a property",
+                ))
             }
         }
         Expr::Lit(_) | Expr::Block(_) => Ok(expr),

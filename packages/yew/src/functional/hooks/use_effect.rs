@@ -31,7 +31,7 @@ struct UseEffect<Destructor> {
 ///     };
 ///
 ///     html! {
-///         <button onclick=onclick>{ format!("Increment to {}", *counter) }</button>
+///         <button onclick={onclick}>{ format!("Increment to {}", *counter) }</button>
 ///     }
 /// }
 /// ```

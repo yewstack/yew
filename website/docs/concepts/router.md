@@ -53,7 +53,7 @@ fn switch(route: &Route) -> Html {
             html! {
                 <div>
                     <h1>{ "Secure" }</h1>
-                    <button onclick=callback>{ "Go Home" }</button>
+                    <button onclick={callback}>{ "Go Home" }</button>
                 </div>
             }
         },
