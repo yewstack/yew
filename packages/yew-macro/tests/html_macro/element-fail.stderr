@@ -106,6 +106,12 @@ error: `ref` can only be specified once
 33 |     html! { <input ref=() ref=() /> };
    |                    ^^^
 
+error: `ref` can only be specified once
+  --> $DIR/element-fail.rs:46:20
+   |
+46 |     html! { <input ref={()} ref={()} /> };
+   |                    ^^^
+
 error: the tag `<input>` is a void element and cannot have children (hint: rewrite this as `<input/>`)
   --> $DIR/element-fail.rs:60:13
    |
@@ -322,7 +328,43 @@ error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
    |
    = note: required by `into_prop_value`
 
+<<<<<<< HEAD
 error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>` is not satisfied
+=======
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> $DIR/element-fail.rs:31:26
+   |
+31 |     html! { <input type={()} /> };
+   |                          ^^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `ToString` for `()`
+   = note: required by `to_string`
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> $DIR/element-fail.rs:32:27
+   |
+32 |     html! { <input value={()} /> };
+   |                           ^^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `ToString` for `()`
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> $DIR/element-fail.rs:34:22
+   |
+34 |     html! { <a href={()} /> };
+   |                      ^^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `ToString` for `()`
+   = note: required by `to_string`
+
+error[E0308]: mismatched types
+>>>>>>> 36c6abc2 (Add some test cases for new syntax)
   --> $DIR/element-fail.rs:57:24
    |
 57 |     html! { <input ref=Some(NodeRef::default()) /> };
@@ -333,6 +375,32 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
              <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<String> as IntoPropValue<Option<Cow<'static, str>>>>
    = note: required by `into_prop_value`
+
+error[E0308]: mismatched types
+  --> $DIR/element-fail.rs:38:29
+   |
+38 |     html! { <input onclick={Callback::from(|a: String| ())} /> };
+   |                             ^^^^^^^^ expected struct `MouseEvent`, found struct `String`
+   |
+   = note: expected enum `yew::Callback<MouseEvent>`
+              found enum `yew::Callback<String>`
+
+error[E0277]: `NotToString` doesn't implement `std::fmt::Display`
+  --> $DIR/element-fail.rs:41:28
+   |
+41 |     html! { <input string={NotToString} /> };
+   |                            ^^^^^^^^^^^ `NotToString` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `NotToString`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `ToString` for `NotToString`
+   = note: required by `to_string`
+
+error[E0308]: mismatched types
+  --> $DIR/element-fail.rs:45:25
+   |
+45 |     html! { <input ref={()} /> };
+   |                         ^^ expected struct `NodeRef`, found `()`
 
 error[E0277]: the trait bound `Cow<'static, str>: From<{integer}>` is not satisfied
   --> $DIR/element-fail.rs:71:15

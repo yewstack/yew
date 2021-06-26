@@ -34,47 +34,47 @@ error: there are two `with <props>` definitions for this component (note: you ca
 61 |     html! { <Child with p1 with p2 /> };
    |                    ^^^^^^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { () }
-  --> $DIR/component-fail.rs:62:35
+error: `ref` can only be set once
+  --> $DIR/component-fail.rs:62:40
    |
-62 |     html! { <Child with props ref=() ref=() /> };
-   |                                   ^^
+62 |     html! { <Child with props ref={()} ref={()} /> };
+   |                                        ^^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { () }
-  --> $DIR/component-fail.rs:63:35
+error: `ref` can only be set once
+  --> $DIR/component-fail.rs:63:40
    |
-63 |     html! { <Child with props ref=() ref=() value=1 /> };
-   |                                   ^^
+63 |     html! { <Child with props ref={()} ref={()} value=1 /> };
+   |                                        ^^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { () }
-  --> $DIR/component-fail.rs:64:35
+error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
+  --> $DIR/component-fail.rs:64:40
    |
-64 |     html! { <Child with props ref=() value=1 ref=() /> };
-   |                                   ^^
+64 |     html! { <Child with props ref={()} value=1 ref={()} /> };
+   |                                        ^^^^^
 
 error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
   --> $DIR/component-fail.rs:65:31
    |
-65 |     html! { <Child with props value=1 ref=()  ref=() /> };
+65 |     html! { <Child with props value=1 ref={()}  ref={()} /> };
    |                               ^^^^^
 
 error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
   --> $DIR/component-fail.rs:66:20
    |
-66 |     html! { <Child value=1 with props  ref=()  ref=() /> };
+66 |     html! { <Child value=1 with props  ref={()}  ref={()} /> };
    |                    ^^^^^
 
 error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
   --> $DIR/component-fail.rs:67:20
    |
-67 |     html! { <Child value=1 ref=() with props ref=() /> };
+67 |     html! { <Child value=1 ref={()} with props ref={()} /> };
    |                    ^^^^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { () }
-  --> $DIR/component-fail.rs:68:24
+error: `ref` can only be set once
+  --> $DIR/component-fail.rs:68:29
    |
-68 |     html! { <Child ref=() ref=() value=1  with props  /> };
-   |                        ^^
+68 |     html! { <Child ref={()} ref={()} value=1  with props  /> };
+   |                             ^^^
 
 error: Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)
   --> $DIR/component-fail.rs:70:20
@@ -99,70 +99,70 @@ help: you can escape reserved keywords to use them as identifiers
 72 |     html! { <Child r#type=0 /> };
    |                    ^^^^^^
 
-error: expected a valid Rust identifier
-  --> $DIR/component-fail.rs:73:20
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { () }
+  --> $DIR/component-fail.rs:73:24
    |
-73 |     html! { <Child invalid-prop-name=0 /> };
+73 |     html! { <Child ref=() /> };
+   |                        ^^
+
+error: expected a valid Rust identifier
+  --> $DIR/component-fail.rs:74:20
+   |
+74 |     html! { <Child invalid-prop-name=0 /> };
    |                    ^^^^^^^^^^^^^^^^^
 
 error: expected an expression following this equals sign
-  --> $DIR/component-fail.rs:75:26
+  --> $DIR/component-fail.rs:76:26
    |
-75 |     html! { <Child string= /> };
+76 |     html! { <Child string= /> };
    |                          ^
 
 error: `int` can only be specified once but is given here again
-  --> $DIR/component-fail.rs:76:26
+  --> $DIR/component-fail.rs:77:26
    |
-76 |     html! { <Child int=1 int=2 int=3 /> };
+77 |     html! { <Child int=1 int=2 int=3 /> };
    |                          ^^^
 
 error: `int` can only be specified once but is given here again
-  --> $DIR/component-fail.rs:76:32
+  --> $DIR/component-fail.rs:77:32
    |
-76 |     html! { <Child int=1 int=2 int=3 /> };
+77 |     html! { <Child int=1 int=2 int=3 /> };
    |                                ^^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { () }
-  --> $DIR/component-fail.rs:80:30
+error: `ref` can only be specified once
+  --> $DIR/component-fail.rs:82:26
    |
-80 |     html! { <Child int=1 ref=() /> };
-   |                              ^^
-
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { () }
-  --> $DIR/component-fail.rs:81:30
-   |
-81 |     html! { <Child int=1 ref=() ref=() /> };
-   |                              ^^
+82 |     html! { <Child int=1 ref={()} ref={()} /> };
+   |                          ^^^
 
 error: this closing tag has no corresponding opening tag
-  --> $DIR/component-fail.rs:84:13
+  --> $DIR/component-fail.rs:85:13
    |
-84 |     html! { </Child> };
+85 |     html! { </Child> };
    |             ^^^^^^^^
 
 error: this opening tag has no corresponding closing tag
-  --> $DIR/component-fail.rs:85:13
+  --> $DIR/component-fail.rs:86:13
    |
-85 |     html! { <Child><Child></Child> };
+86 |     html! { <Child><Child></Child> };
    |             ^^^^^^^
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
-  --> $DIR/component-fail.rs:86:28
+  --> $DIR/component-fail.rs:87:28
    |
-86 |     html! { <Child></Child><Child></Child> };
+87 |     html! { <Child></Child><Child></Child> };
    |                            ^^^^^^^^^^^^^^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { children }
-   --> $DIR/component-fail.rs:105:34
+   --> $DIR/component-fail.rs:106:34
     |
-105 |         <ChildContainer children=children>
+106 |         <ChildContainer children=children>
     |                                  ^^^^^^^^
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
-   --> $DIR/component-fail.rs:112:9
+   --> $DIR/component-fail.rs:113:9
     |
-112 |         <span>{ 2 }</span>
+113 |         <span>{ 2 }</span>
     |         ^^^^^^^^^^^^^^^^^^
 
 error[E0425]: cannot find value `blah` in this scope
@@ -189,20 +189,20 @@ error[E0599]: no method named `r#type` found for struct `ChildPropertiesBuilder<
    |                    ^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
 
 error[E0609]: no field `unknown` on type `ChildProperties`
-  --> $DIR/component-fail.rs:74:20
+  --> $DIR/component-fail.rs:75:20
    |
-74 |     html! { <Child unknown="unknown" /> };
+75 |     html! { <Child unknown="unknown" /> };
    |                    ^^^^^^^ unknown field
    |
    = note: available fields are: `string`, `int`
 
 error[E0599]: no method named `unknown` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> $DIR/component-fail.rs:74:20
+  --> $DIR/component-fail.rs:75:20
    |
 4  | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `unknown` not found for this
 ...
-74 |     html! { <Child unknown="unknown" /> };
+75 |     html! { <Child unknown="unknown" /> };
    |                    ^^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
 
 error[E0277]: the trait bound `(): IntoPropValue<String>` is not satisfied
@@ -250,47 +250,38 @@ error[E0277]: the trait bound `u32: IntoPropValue<i32>` is not satisfied
    |                        ^^^^ the trait `IntoPropValue<i32>` is not implemented for `u32`
 
 error[E0599]: no method named `string` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> $DIR/component-fail.rs:83:20
+  --> $DIR/component-fail.rs:84:20
    |
 4  | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `string` not found for this
 ...
-83 |     html! { <Child string="abc" /> };
+84 |     html! { <Child string="abc" /> };
    |                    ^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
 
 error[E0609]: no field `children` on type `ChildProperties`
-  --> $DIR/component-fail.rs:87:14
+  --> $DIR/component-fail.rs:88:14
    |
-87 |     html! { <Child>{ "Not allowed" }</Child> };
+88 |     html! { <Child>{ "Not allowed" }</Child> };
    |              ^^^^^ unknown field
    |
    = note: available fields are: `string`, `int`
 
 error[E0599]: no method named `children` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> $DIR/component-fail.rs:87:14
+  --> $DIR/component-fail.rs:88:14
    |
 4  | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `children` not found for this
 ...
-87 |     html! { <Child>{ "Not allowed" }</Child> };
+88 |     html! { <Child>{ "Not allowed" }</Child> };
    |              ^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
 
 error[E0609]: no field `children` on type `ChildProperties`
-  --> $DIR/component-fail.rs:91:10
+  --> $DIR/component-fail.rs:92:10
    |
-91 |         <Child with ChildProperties { string: "hello".to_owned(), int: 5 }>
+92 |         <Child with ChildProperties { string: "hello".to_owned(), int: 5 }>
    |          ^^^^^ unknown field
    |
    = note: available fields are: `string`, `int`
-
-error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
-  --> $DIR/component-fail.rs:96:14
-   |
-30 | #[derive(Clone, Properties)]
-   |                 ---------- method `build` not found for this
-...
-96 |     html! { <ChildContainer /> };
-   |              ^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
 
 error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
   --> $DIR/component-fail.rs:97:14
@@ -298,31 +289,40 @@ error[E0599]: no method named `build` found for struct `ChildContainerProperties
 30 | #[derive(Clone, Properties)]
    |                 ---------- method `build` not found for this
 ...
-97 |     html! { <ChildContainer></ChildContainer> };
+97 |     html! { <ChildContainer /> };
+   |              ^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
+
+error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
+  --> $DIR/component-fail.rs:98:14
+   |
+30 | #[derive(Clone, Properties)]
+   |                 ---------- method `build` not found for this
+...
+98 |     html! { <ChildContainer></ChildContainer> };
    |              ^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
 
 error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VText>` is not satisfied
-  --> $DIR/component-fail.rs:98:31
+  --> $DIR/component-fail.rs:99:31
    |
-98 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
+99 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
    |                               ^^^^^^^^^^^^^ the trait `From<yew::virtual_dom::VText>` is not implemented for `VChild<Child>`
    |
    = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `yew::virtual_dom::VText`
    = note: required by `into`
 
 error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
-  --> $DIR/component-fail.rs:99:29
-   |
-99 |     html! { <ChildContainer><></></ChildContainer> };
-   |                             ^ the trait `From<VNode>` is not implemented for `VChild<Child>`
-   |
-   = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
-   = note: required by `into`
+   --> $DIR/component-fail.rs:100:29
+    |
+100 |     html! { <ChildContainer><></></ChildContainer> };
+    |                             ^ the trait `From<VNode>` is not implemented for `VChild<Child>`
+    |
+    = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
+    = note: required by `into`
 
 error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
-   --> $DIR/component-fail.rs:100:30
+   --> $DIR/component-fail.rs:101:30
     |
-100 |     html! { <ChildContainer><other /></ChildContainer> };
+101 |     html! { <ChildContainer><other /></ChildContainer> };
     |                              ^^^^^ the trait `From<VNode>` is not implemented for `VChild<Child>`
     |
     = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
