@@ -8,7 +8,7 @@ use std::{
 };
 use syn::{
     parse::{Parse, ParseStream},
-    Expr, Token,
+    Block, Expr, ExprBlock, Stmt, Token,
 };
 
 pub enum PropPunct {
@@ -45,8 +45,7 @@ impl Parse for Prop {
                 "expected an expression following this equals sign",
             ));
         }
-        let value = input.parse::<Expr>()?;
-        validate_prop(&value)?;
+        let value = strip_braces(input.parse::<Expr>()?)?;
         Ok(Self {
             label,
             punct: Some(PropPunct::Eq(equals)),
@@ -55,12 +54,19 @@ impl Parse for Prop {
     }
 }
 
-fn validate_prop(expr: &Expr) -> syn::Result<()> {
+fn strip_braces(expr: Expr) -> syn::Result<Expr> {
     match expr {
-        Expr::Block(_) | Expr::Lit(_) => Ok(()),
+        Expr::Block(ExprBlock { block: Block { ref stmts, .. }, .. }) if stmts.len() == 1 => {
+            if let Stmt::Expr(expr) = &stmts[0] {
+                Ok(expr.clone())
+            } else  {
+                Ok(expr)
+            }
+        }
+        Expr::Lit(_) | Expr::Block(_) => Ok(expr),
         _ => Err(syn::Error::new_spanned(
-            expr,
-            format!("the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: {{ {} }}", expr.to_token_stream()),
+                &expr,
+                format!("the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: {{ {} }}", expr.to_token_stream()),
         )),
     }
 }

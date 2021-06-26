@@ -48,8 +48,9 @@ impl Component for App {
         let sub_list_link = &self.sub_list_link;
 
         // note the use of `html_nested!` instead of `html!`.
-        let letters = ('A'..='C')
-            .map(|letter| html_nested! { <ListItem name={letter.to_string()} on_hover={on_hover} /> });
+        let letters = ('A'..='C').map(
+            |letter| html_nested! { <ListItem name={letter.to_string()} on_hover={on_hover} /> },
+        );
 
         html! {
             <div class="main" onmouseenter={onmouseenter}>
