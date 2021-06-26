@@ -153,11 +153,11 @@ error: only one root html element is allowed (hint: you can wrap multiple html e
 87 |     html! { <Child></Child><Child></Child> };
    |                            ^^^^^^^^^^^^^^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { children }
-   --> $DIR/component-fail.rs:106:34
+error: cannot specify the `children` prop when the component already has children
+   --> $DIR/component-fail.rs:106:25
     |
-106 |         <ChildContainer children=children>
-    |                                  ^^^^^^^^
+106 |         <ChildContainer children={children}>
+    |                         ^^^^^^^^
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
    --> $DIR/component-fail.rs:113:9

@@ -92,6 +92,6 @@ html! {
 }
 // or
 html! {
-    <MyGenericComponent<Foo> data=foo />
+    <MyGenericComponent<Foo> data={foo} />
 }
 ```

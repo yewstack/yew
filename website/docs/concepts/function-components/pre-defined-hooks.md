@@ -70,7 +70,7 @@ fn ref_hook() -> Html {
 
     html! {
         <div>
-            <input onchange={onchange} value=message />
+            <input onchange={onchange} value={message} />
             <button onclick={onclick}>{ "Send" }</button>
         </div>
     }
@@ -237,7 +237,7 @@ pub fn app() -> Html {
     html! {
         // `ctx` is type `Rc<UseStateHandle<Theme>>` while we need `Theme` so we deref it
         // It derefs to `&Theme`, hence the clone
-        <ContextProvider<Theme> context=(*ctx).clone()>
+        <ContextProvider<Theme> context={(*ctx).clone()}>
             // Every child here and their children will have access to this context.
             <Toolbar />
         </ContextProvider<Theme>>

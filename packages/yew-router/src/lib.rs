@@ -22,7 +22,7 @@
 //! # #[function_component(Main)]
 //! # fn app() -> Html {
 //! html! {
-//!     <Router<Route> render=Router::render(switch) />
+//!     <Router<Route> render={Router::render(switch)} />
 //! }
 //! # }
 //!

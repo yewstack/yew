@@ -40,7 +40,7 @@ use yew::{html, Properties};
 /// fn view(link: ComponentLink<Model>) -> Html {
 ///     let scenes = vec![Scene::First, Scene::Second];
 ///     html! {
-///         <Select<Scene> options=scenes on_change=link.callback(|_| ()) />
+///         <Select<Scene> options={scenes} on_change={link.callback(|_| ())} />
 ///     }
 /// }
 /// ```

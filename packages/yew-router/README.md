@@ -36,7 +36,7 @@ fn switch(routes: &Route) -> Html {
 
 // Component's `view` method
 html! {
-    <Router<Route> render=Router::render(switch) />
+    <Router<Route> render={Router::render(switch)} />
 }
 ```
 

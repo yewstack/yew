@@ -89,7 +89,7 @@ let onkeypress = self.link.batch_callback(|event| {
 });
 
 html! {
-    <input type="text" onkeypress=onkeypress />
+    <input type="text" onkeypress={onkeypress} />
 }
 ```
 
