@@ -46,11 +46,22 @@ impl Parse for Prop {
             ));
         }
         let value = input.parse::<Expr>()?;
+        validate_prop(&value)?;
         Ok(Self {
             label,
             punct: Some(PropPunct::Eq(equals)),
             value,
         })
+    }
+}
+
+fn validate_prop(expr: &Expr) -> syn::Result<()> {
+    match expr {
+        Expr::Block(_) | Expr::Lit(_) => Ok(()),
+        _ => Err(syn::Error::new_spanned(
+            expr,
+            format!("property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: {{ {} }}", expr.to_token_stream()),
+        )),
     }
 }
 
