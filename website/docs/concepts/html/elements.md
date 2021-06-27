@@ -68,7 +68,7 @@ boolean expressions can be used:
     let no = 1 + 1 != 2;
 
     html! {
-        <div hidden=no>
+        <div hidden={no}>
             { "This div is NOT hidden." }
         </div>
     }

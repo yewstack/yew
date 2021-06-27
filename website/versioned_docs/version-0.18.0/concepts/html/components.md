@@ -67,7 +67,7 @@ impl Component for Container {
 
     fn view(&self) -> Html {
        html! {
-           <div id=self.0.id.clone()>
+           <div id={self.0.id.clone()}>
                { self.0.children.clone() }
            </div>
        }
