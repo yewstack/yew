@@ -24,7 +24,7 @@ is that every expression implements `Into<Classes>`.
 
 ```rust
 html! {
-  <div class={classes!("container")}></div>
+  <div class=classes!("container")></div>
 }
 ```
 
@@ -32,7 +32,7 @@ html! {
 
 ```rust
 html! {
-  <div class={classes!("class-1", "class-2")}></div>
+  <div class=classes!("class-1", "class-2")></div>
 }
 ```
 
@@ -42,7 +42,7 @@ html! {
 let my_classes = String::from("class-1 class-2");
 
 html! {
-  <div class={classes!(my_classes)}></div>
+  <div class=classes!(my_classes)></div>
 }
 ```
 
@@ -50,7 +50,7 @@ html! {
 
 ```rust
 html! {
-  <div class={classes!(Some("class"))} />
+  <div class=classes!(Some("class")) />
 }
 ```
 
@@ -58,7 +58,7 @@ html! {
 
 ```rust
 html! {
-  <div class={classes!(vec!["class-1", "class-2"])}></div>
+  <div class=classes!(vec!["class-1", "class-2"])></div>
 }
 ```
 
@@ -68,7 +68,7 @@ html! {
 let my_classes = ["class-1", "class-2"];
 
 html! {
-  <div class={classes!(&my_classes)}></div>
+  <div class=classes!(&my_classes)></div>
 }
 ```
 

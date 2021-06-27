@@ -68,7 +68,7 @@ boolean expressions can be used:
     let no = 1 + 1 != 2;
 
     html! {
-        <div hidden={no}>
+        <div hidden=no>
             { "This div is NOT hidden." }
         </div>
     }
@@ -89,7 +89,7 @@ to omit the attribute if the attribute is marked as optional.
 let maybe_id = Some("foobar");
 
 html! {
-    <div id={maybe_id}></div>
+    <div id=maybe_id></div>
 }
 ```
 
@@ -102,7 +102,7 @@ like `Into<Option<T>>`:
 let id = "foobar";
 
 html! {
-    <div id={id}></div>
+    <div id=id></div>
 }
 ```
 
@@ -142,7 +142,7 @@ impl Component for MyComponent {
         // Create a callback from a component link to handle it in a component
         let click_callback = self.link.callback(|_: ClickEvent| Msg::Click);
         html! {
-            <button onclick={click_callback}>
+            <button onclick=click_callback>
                 { "Click me!" }
             </button>
         }
@@ -175,7 +175,7 @@ impl Component for MyComponent {
         // Create a callback from a worker to handle it in another context
         let click_callback = self.worker.callback(|_: ClickEvent| WorkerMsg::Process);
         html! {
-            <button onclick={click_callback}>
+            <button onclick=click_callback>
                 { "Click me!" }
             </button>
         }
@@ -207,7 +207,7 @@ impl Component for MyComponent {
         });
 
         html! {
-            <button onclick={click_callback}>
+            <button onclick=click_callback>
                 { "Click me!" }
             </button>
         }

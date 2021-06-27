@@ -49,7 +49,7 @@ fn state() -> Html {
 
     html! {
         <div>
-            <button onclick={onclick}>{ "Increment value" }</button>
+            <button onclick=onclick>{ "Increment value" }</button>
             <p>
                 <b>{ "Current value: " }</b>
                 { counter }
@@ -93,8 +93,8 @@ fn ref_hook() -> Html {
 
     html! {
         <div>
-            <input onchange={onchange} value={message} />
-            <button onclick={onclick}>{ "Send" }</button>
+            <input onchange=onchange value=message />
+            <button onclick=onclick>{ "Send" }</button>
         </div>
     }
 }
@@ -156,8 +156,8 @@ fn reducer() -> Html {
         <>
             <div id="result">{ counter.counter }</div>
 
-            <button onclick={double_onclick}>{ "Double" }</button>
-            <button onclick={square_onclick}>{ "Square" }</button>
+            <button onclick=double_onclick>{ "Double" }</button>
+            <button onclick=square_onclick>{ "Square" }</button>
         </>
     }
 }
@@ -216,7 +216,7 @@ fn effect() -> Html {
     };
 
     html! {
-        <button onclick={onclick}>{ format!("Increment to {}", counter) }</button>
+        <button onclick=onclick>{ format!("Increment to {}", counter) }</button>
     }
 }
 ```
@@ -248,14 +248,14 @@ Consider the following example which passes down the theme using props:
 // root
 let theme = // ...
 html! {
-    <Navbar theme={theme} />
+    <Navbar theme=theme />
 }
 
 // Navbar component
 html! {
     <div>
-        <Title theme={theme}>{ "App title" }<Title>
-        <NavButton theme={theme}>{ "Somewhere" }</NavButton>
+        <Title theme=theme>{ "App title" }<Title>
+        <NavButton theme=theme>{ "Somewhere" }</NavButton>
     </div>
 }
 ```
@@ -293,7 +293,7 @@ pub fn app() -> Html {
     });
 
     html! {
-        <ContextProvider<Theme> context={ctx}>
+        <ContextProvider<Theme> context=ctx>
             // Every child here and their children will have access to this context.
             <Toolbar />
         </ContextProvider<Theme>>
@@ -318,7 +318,7 @@ pub fn themed_button() -> Html {
     let theme = use_context::<Rc<Theme>>().expect("no ctx found");
 
     html! {
-        <button style={format!("background: {}; color: {};", theme.background, theme.foreground)}>
+        <button style=format!("background: {}; color: {};", theme.background, theme.foreground)>
             { "Click me!" }
         </button>
     }

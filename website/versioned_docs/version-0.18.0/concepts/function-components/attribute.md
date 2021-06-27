@@ -49,7 +49,7 @@ fn app() -> Html {
 
     html! {
         <div>
-            <button onclick={onclick}>{ "Increment value" }</button>
+            <button onclick=onclick>{ "Increment value" }</button>
             <p>
                 <b>{ "Current value: " }</b>
                 { counter }

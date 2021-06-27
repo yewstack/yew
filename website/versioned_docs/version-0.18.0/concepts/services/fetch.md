@@ -142,7 +142,7 @@ impl FetchServiceExample {
             }
             None => {
                 html! {
-                     <button onclick={self.link.callback(|_| Msg::GetLocation)}>
+                     <button onclick=self.link.callback(|_| Msg::GetLocation)>
                          { "Where is the ISS?" }
                      </button>
                 }
