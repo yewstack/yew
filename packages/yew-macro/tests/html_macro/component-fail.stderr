@@ -206,15 +206,15 @@ error[E0599]: no method named `unknown` found for struct `ChildPropertiesBuilder
    |                    ^^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
 
 error[E0277]: the trait bound `(): IntoPropValue<String>` is not satisfied
-  --> $DIR/component-fail.rs:77:33
+  --> $DIR/component-fail.rs:78:33
    |
-77 |     html! { <Child int=1 string={} /> };
+78 |     html! { <Child int=1 string={} /> };
    |                                 ^^ the trait `IntoPropValue<String>` is not implemented for `()`
 
 error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfied
-  --> $DIR/component-fail.rs:78:33
+  --> $DIR/component-fail.rs:79:33
    |
-78 |     html! { <Child int=1 string=3 /> };
+79 |     html! { <Child int=1 string=3 /> };
    |                                 ^ the trait `IntoPropValue<String>` is not implemented for `{integer}`
    |
    = help: the following implementations were found:
@@ -225,10 +225,10 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
            and 11 others
 
 error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfied
-  --> $DIR/component-fail.rs:79:26
+  --> $DIR/component-fail.rs:80:34
    |
-79 |     html! { <Child int=1 string={3} /> };
-   |                          ^^^^^^ the trait `IntoPropValue<String>` is not implemented for `{integer}`
+80 |     html! { <Child int=1 string={3} /> };
+   |                                  ^ the trait `IntoPropValue<String>` is not implemented for `{integer}`
    |
    = help: the following implementations were found:
              <&'static str as IntoPropValue<Cow<'static, str>>>
@@ -238,15 +238,15 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
            and 11 others
 
 error[E0308]: mismatched types
-  --> $DIR/component-fail.rs:80:30
+  --> $DIR/component-fail.rs:81:31
    |
-80 |     html! { <Child int=1 ref=() /> };
-   |                              ^^ expected struct `NodeRef`, found `()`
+81 |     html! { <Child int=1 ref={()} /> };
+   |                               ^^ expected struct `NodeRef`, found `()`
 
 error[E0277]: the trait bound `u32: IntoPropValue<i32>` is not satisfied
-  --> $DIR/component-fail.rs:82:24
+  --> $DIR/component-fail.rs:83:24
    |
-82 |     html! { <Child int=0u32 /> };
+83 |     html! { <Child int=0u32 /> };
    |                        ^^^^ the trait `IntoPropValue<i32>` is not implemented for `u32`
 
 error[E0599]: no method named `string` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope

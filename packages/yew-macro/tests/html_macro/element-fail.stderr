@@ -1,3 +1,18 @@
+error: this file contains an unclosed delimiter
+  --> $DIR/element-fail.rs:95:14
+   |
+5  | fn compile_fail() {
+   |                   - unclosed delimiter
+...
+52 |     html! { <input onclick={Callback::from(|a: String| ()) /> };
+   |           - this delimiter might not be properly closed...
+...
+93 | }
+   | - ...as it matches this but it has different indentation
+94 |
+95 | fn main() {}
+   |              ^
+
 error: this opening tag has no corresponding closing tag
  --> $DIR/element-fail.rs:7:13
   |
@@ -103,50 +118,22 @@ error: `class` can only be specified once but is given here again
 error: `ref` can only be specified once
   --> $DIR/element-fail.rs:33:20
    |
-33 |     html! { <input ref=() ref=() /> };
+33 |     html! { <input ref={()} ref={()} /> };
    |                    ^^^
 
-error: `ref` can only be specified once
-  --> $DIR/element-fail.rs:46:20
+error: unexpected end of input, expected token tree
+  --> $DIR/element-fail.rs:52:5
    |
-46 |     html! { <input ref={()} ref={()} /> };
-   |                    ^^^
-
-error: the tag `<input>` is a void element and cannot have children (hint: rewrite this as `<input/>`)
-  --> $DIR/element-fail.rs:60:13
+52 | /     html! { <input onclick={Callback::from(|a: String| ()) /> };
+53 | |     html! { <input onfocus={Some(5)} /> };
+54 | |
+55 | |     // NodeRef type mismatch
+...  |
+92 | |     html! { <input string=NotToString /> };
+93 | | }
+   | |_^
    |
-60 |     html! { <input type="text"></input> };
-   |             ^^^^^^^^^^^^^^^^^^^
-
-error: the tag `<iNpUt>` is a void element and cannot have children (hint: rewrite this as `<iNpUt/>`)
-  --> $DIR/element-fail.rs:62:13
-   |
-62 |     html! { <iNpUt type="text"></iNpUt> };
-   |             ^^^^^^^^^^^^^^^^^^^
-
-error: this dynamic tag is missing an expression block defining its value
-  --> $DIR/element-fail.rs:65:14
-   |
-65 |     html! { <@></@> };
-   |              ^
-
-error: this dynamic tag is missing an expression block defining its value
-  --> $DIR/element-fail.rs:66:14
-   |
-66 |     html! { <@/> };
-   |              ^
-
-error: dynamic closing tags must not have a body (hint: replace it with just `</@>`)
-  --> $DIR/element-fail.rs:69:27
-   |
-69 |     html! { <@{"test"}></@{"test"}> };
-   |                           ^^^^^^^^
-
-warning: use of deprecated function `compile_fail::deprecated_use_of_class`: the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead.
-  --> $DIR/element-fail.rs:74:24
-   |
-74 |     html! { <div class=("deprecated", "warning") /> };
-   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0308]: mismatched types
   --> $DIR/element-fail.rs:36:28
@@ -155,10 +142,10 @@ error[E0308]: mismatched types
    |                            ^ expected `bool`, found integer
 
 error[E0308]: mismatched types
-  --> $DIR/element-fail.rs:37:28
+  --> $DIR/element-fail.rs:37:29
    |
-37 |     html! { <input checked=Some(false) /> };
-   |                            ^^^^^^^^^^^ expected `bool`, found enum `Option`
+37 |     html! { <input checked={Some(false)} /> };
+   |                             ^^^^^^^^^^^ expected `bool`, found enum `Option`
    |
    = note: expected type `bool`
               found enum `Option<bool>`
@@ -170,10 +157,10 @@ error[E0308]: mismatched types
    |                             ^ expected `bool`, found integer
 
 error[E0308]: mismatched types
-  --> $DIR/element-fail.rs:39:29
+  --> $DIR/element-fail.rs:39:30
    |
-39 |     html! { <input disabled=Some(true) /> };
-   |                             ^^^^^^^^^^ expected `bool`, found enum `Option`
+39 |     html! { <input disabled={Some(true)} /> };
+   |                              ^^^^^^^^^^ expected `bool`, found enum `Option`
    |
    = note: expected type `bool`
               found enum `Option<bool>`
@@ -185,8 +172,9 @@ error[E0308]: mismatched types
    |                              ^ expected `bool`, found integer
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
-  --> $DIR/element-fail.rs:43:25
+  --> $DIR/element-fail.rs:43:26
    |
+<<<<<<< HEAD
 43 |     html! { <input type=() /> };
    |                         ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
    |
@@ -194,20 +182,29 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is 
    |
    |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
    |                                               -------------------------------- required by this bound in `PositionalAttr::new`
+=======
+43 |     html! { <input type={()} /> };
+   |                          ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
+>>>>>>> e4bcb833 (Update tests)
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
-  --> $DIR/element-fail.rs:44:26
+  --> $DIR/element-fail.rs:44:27
    |
+<<<<<<< HEAD
 44 |     html! { <input value=() /> };
    |                          ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
    |
    = note: required by `into_prop_value`
+=======
+44 |     html! { <input value={()} /> };
+   |                           ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
+>>>>>>> e4bcb833 (Update tests)
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
-  --> $DIR/element-fail.rs:45:21
+  --> $DIR/element-fail.rs:45:22
    |
-45 |     html! { <a href=() /> };
-   |                     ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
+45 |     html! { <a href={()} /> };
+   |                      ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
    |
   ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
    |
@@ -215,10 +212,10 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is 
    |                                               -------------------------------- required by this bound in `PositionalAttr::new`
 
 error[E0277]: the trait bound `NotToString: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
-  --> $DIR/element-fail.rs:46:27
+  --> $DIR/element-fail.rs:46:28
    |
-46 |     html! { <input string=NotToString /> };
-   |                           ^^^^^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `NotToString`
+46 |     html! { <input string={NotToString} /> };
+   |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `NotToString`
    |
   ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
    |
@@ -226,10 +223,10 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<Cow<'static, st
    |                                               -------------------------------- required by this bound in `PositionalAttr::new`
 
 error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
-  --> $DIR/element-fail.rs:47:22
+  --> $DIR/element-fail.rs:47:23
    |
-47 |     html! { <a media=Some(NotToString) /> };
-   |                      ^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `Option<NotToString>`
+47 |     html! { <a media={Some(NotToString)} /> };
+   |                       ^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `Option<NotToString>`
    |
   ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
    |
@@ -242,10 +239,10 @@ error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<Cow<'st
              <Option<String> as IntoPropValue<Option<Cow<'static, str>>>>
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
-  --> $DIR/element-fail.rs:48:21
+  --> $DIR/element-fail.rs:48:22
    |
-48 |     html! { <a href=Some(5) /> };
-   |                     ^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `Option<{integer}>`
+48 |     html! { <a href={Some(5)} /> };
+   |                      ^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `Option<{integer}>`
    |
   ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
    |
@@ -280,6 +277,7 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<Option<yew::Callback<Mou
               <&'static str as IntoPropValue<Option<String>>>
               <&'static str as IntoPropValue<String>>
             and 11 others
+<<<<<<< HEAD
 
 error[E0277]: the trait bound `yew::Callback<String>: IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not satisfied
    --> $DIR/element-fail.rs:52:28
@@ -416,3 +414,5 @@ error[E0277]: the trait bound `Cow<'static, str>: From<{integer}>` is not satisf
            and 11 others
    = note: required because of the requirements on the impl of `Into<Cow<'static, str>>` for `{integer}`
    = note: required by `into`
+=======
+>>>>>>> 33785951 (Update tests)

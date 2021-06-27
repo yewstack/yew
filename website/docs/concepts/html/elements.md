@@ -90,7 +90,7 @@ wrapped in an `Option<T>`:
 let maybe_id = Some("foobar");
 
 html! {
-    <div id?=maybe_id></div>
+    <div id?={maybe_id}></div>
 }
 ```
 
