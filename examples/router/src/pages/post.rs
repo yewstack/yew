@@ -55,7 +55,7 @@ impl Component for Post {
                             </h1>
                             <h2 class="subtitle">
                                 { "by " }
-                                <Link<Route> classes={classes!("has-text-weight-semibold")} route={Route::Author { id: post.author.seed }}>
+                                <Link<Route> classes={classes!("has-text-weight-semibold")} route={Route::Author { id: post.meta.author.seed }}>
                                     { &post.meta.author.name }
                                 </Link<Route>>
                             </h2>
