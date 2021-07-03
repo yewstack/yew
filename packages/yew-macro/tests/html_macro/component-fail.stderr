@@ -314,10 +314,11 @@ error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
    = note: required by `into`
 
 error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
-   --> $DIR/component-fail.rs:100:30
+   --> $DIR/component-fail.rs:100:5
     |
 100 |     html! { <ChildContainer><other /></ChildContainer> };
-    |                              ^^^^^ the trait `From<VNode>` is not implemented for `VChild<Child>`
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `From<VNode>` is not implemented for `VChild<Child>`
     |
     = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
     = note: required by `into`
+    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)

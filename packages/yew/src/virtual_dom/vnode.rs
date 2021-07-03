@@ -173,11 +173,10 @@ impl<T: ToString> From<T> for VNode {
 
 impl<A: Into<VNode>> FromIterator<A> for VNode {
     fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
-        let vlist = iter.into_iter().fold(VList::default(), |mut acc, x| {
-            acc.add_child(x.into());
-            acc
-        });
-        VNode::VList(vlist)
+        VNode::VList(VList {
+            key: None,
+            children: iter.into_iter().map(|n| n.into()).collect(),
+        })
     }
 }
 

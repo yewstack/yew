@@ -97,25 +97,6 @@ impl ToTokens for HtmlElement {
             children,
         } = self;
 
-        let name_sr = match &name {
-            TagName::Lit(name) => name.stringify(),
-            TagName::Expr(name) => {
-                let expr = &name.expr;
-                let vtag_name = Ident::new("__yew_vtag_name", expr.span());
-                // this way we get a nice error message (with the correct span) when the expression doesn't return a valid value
-                quote_spanned! {expr.span()=> {
-                    #[allow(unused_braces)]
-                    let mut #vtag_name = ::std::convert::Into::<::std::borrow::Cow::<'static, str>>::into(#expr);
-                    if !#vtag_name.is_ascii() {
-                        ::std::panic!("a dynamic tag returned a tag name containing non ASCII characters: `{}`", #vtag_name);
-                    };
-                    // convert to lowercase because the runtime checks rely on it.
-                    #vtag_name.to_mut().make_ascii_lowercase();
-                    #vtag_name
-                }}
-            }
-        };
-
         let ElementProps {
             classes,
             attributes,
@@ -127,8 +108,6 @@ impl ToTokens for HtmlElement {
             key,
             listeners,
         } = &props;
-
-        let vtag = Ident::new("__yew_vtag", name.span());
 
         // attributes with special treatment
 
@@ -247,59 +226,154 @@ impl ToTokens for HtmlElement {
             quote! { ::std::vec![#(#listeners_it),*].into_iter().flatten().collect() }
         };
 
-        // These are the runtime-checks exclusive to dynamic tags.
-        // For literal tags this is already done at compile-time.
-        let dyn_tag_runtime_checks = if matches!(&name, TagName::Expr(_)) {
-            // when Span::source_file Span::start get stabilised or yew-macro introduces a nightly feature flag
-            // we should expand the panic message to contain the exact location of the dynamic tag.
-            Some(quote! {
-                // check void element
-                if !#vtag.children.is_empty() {
-                    match #vtag.tag() {
-                        "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
-                        | "meta" | "param" | "source" | "track" | "wbr" => {
-                            ::std::panic!("a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.", #vtag.tag());
+        tokens.extend(match &name {
+            TagName::Lit(name) => {
+                let name = name.to_ascii_lowercase_string();
+                match &*name {
+                    "input" => {
+                        quote_spanned! {name.span()=>
+                            #[allow(clippy::redundant_clone, unused_braces)]
+                            ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
+                                ::yew::virtual_dom::VTag::__new_input(
+                                    #value,
+                                    #kind,
+                                    #checked,
+                                    #node_ref,
+                                    #key,
+                                    #attributes,
+                                    #listeners,
+                                ),
+                            )
                         }
-                        _ => {}
                     }
-                };
+                    "textarea" => {
+                        quote_spanned! {name.span()=>
+                            #[allow(clippy::redundant_clone, unused_braces)]
+                            ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
+                                ::yew::virtual_dom::VTag::__new_textarea(
+                                    #value,
+                                    #node_ref,
+                                    #key,
+                                    #attributes,
+                                    #listeners,
+                                ),
+                            )
+                        }
+                    }
+                    _ => {
+                        quote_spanned! {name.span()=>
+                            #[allow(clippy::redundant_clone, unused_braces)]
+                            ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
+                                ::yew::virtual_dom::VTag::__new_other(
+                                    ::std::borrow::Cow::<'static, str>::Borrowed(#name),
+                                    #node_ref,
+                                    #key,
+                                    #attributes,
+                                    #listeners,
+                                    ::yew::virtual_dom::VList{
+                                        key: ::std::option::Option::None,
+                                        children: #children,
+                                    },
+                                ),
+                            )
+                        }
+                    }
+                }
+            }
+            TagName::Expr(name) => {
+                #[allow(unused_braces)]
+                let vtag = Ident::new("__yew_vtag", name.span());
+                let expr = &name.expr;
+                let vtag_name = Ident::new("__yew_vtag_name", expr.span());
 
                 // handle special attribute value
-                match #vtag.tag() {
-                    "input" | "textarea" => {}
-                    _ => {
-                        let __yew_v = #vtag.value.take();
-                        #vtag.__macro_push_attr(::yew::virtual_dom::PositionalAttr::new("value", __yew_v));
+                let handle_value_attr = props.value.as_ref().map(|prop| {
+                    let v = prop.value.optimize_literals();
+                    quote_spanned! {v.span()=> {
+                        __yew_vtag.__macro_push_attr(
+                            ::yew::virtual_dom::PositionalAttr::new("value", #v),
+                        );
+                    }}
+                });
+
+                // this way we get a nice error message (with the correct span) when the expression
+                // doesn't return a valid value
+                quote_spanned! {expr.span()=> {
+                    let mut #vtag_name = ::std::convert::Into::<
+                        ::std::borrow::Cow::<'static, str>
+                    >::into(#expr);
+                    if !#vtag_name.is_ascii() {
+                        ::std::panic!(
+                            "a dynamic tag returned a tag name containing non ASCII characters: `{}`",
+                            #vtag_name,
+                        );
                     }
-                }
-            })
-        } else {
-            None
-        };
+                    // convert to lowercase because the runtime checks rely on it.
+                    #vtag_name.to_mut().make_ascii_lowercase();
 
-        tokens.extend(quote_spanned! {name.span()=>
-            {
-                #[allow(clippy::redundant_clone, unused_braces)]
-                let mut #vtag = ::yew::virtual_dom::VTag::__new_complete(
-                    #name_sr,
-                    #node_ref,
-                    #key,
-                    #value,
-                    #kind,
-                    #checked,
-                    #attributes,
-                    #listeners,
-                    ::yew::virtual_dom::VList{
-                        key: ::std::option::Option::None,
-                        children: #children,
-                    },
-                );
+                    #[allow(clippy::redundant_clone, unused_braces)]
+                    let mut #vtag = match ::std::convert::AsRef::<str>::as_ref(&#vtag_name) {
+                        "input" => {
+                            ::yew::virtual_dom::VTag::__new_textarea(
+                                #value,
+                                #node_ref,
+                                #key,
+                                #attributes,
+                                #listeners,
+                            )
+                        }
+                        "textarea" => {
+                            ::yew::virtual_dom::VTag::__new_textarea(
+                                #value,
+                                #node_ref,
+                                #key,
+                                #attributes,
+                                #listeners,
+                            )
+                        }
+                        _ => {
+                            let mut __yew_vtag = ::yew::virtual_dom::VTag::__new_other(
+                                #vtag_name,
+                                #node_ref,
+                                #key,
+                                #attributes,
+                                #listeners,
+                                ::yew::virtual_dom::VList{
+                                    key: ::std::option::Option::None,
+                                    children: #children,
+                                },
+                            );
 
-                #dyn_tag_runtime_checks
-                {
-                    use ::std::convert::From;
-                    ::yew::virtual_dom::VNode::from(#vtag)
-                }
+                            #handle_value_attr
+
+                            __yew_vtag
+                        }
+                    };
+
+                    // These are the runtime-checks exclusive to dynamic tags.
+                    // For literal tags this is already done at compile-time.
+                    //
+                    // When Span::source_file Span::start get stabilised or yew-macro introduces a
+                    // nightly feature flag we should expand the panic message to contain the exact
+                    // location of the dynamic tag.
+                    //
+                    // check void element
+                    if !#vtag.children().is_empty() {
+                        match #vtag.tag() {
+                            "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input"
+                                | "link" | "meta" | "param" | "source" | "track" | "wbr"
+                            => {
+                                ::std::panic!(
+                                    "a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.",
+                                    #vtag.tag(),
+                                );
+                            }
+                            _ => {}
+                        }
+                    }
+
+                    ::std::convert::Into::<::yew::virtual_dom::VNode>::into(#vtag)
+                }}
             }
         });
     }
