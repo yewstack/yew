@@ -1,7 +1,9 @@
 use super::*;
 use queue::Queue;
+use std::cell::RefCell;
 use std::fmt;
 use std::marker::PhantomData;
+use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use web_sys::Worker;
 use yew::callback::Callback;
@@ -51,15 +53,22 @@ where
             }
         };
 
-        // TODO(#947): Drop handler when bridge is dropped
         let name_of_resource = AGN::name_of_resource();
+        let handler_cell = Rc::new(RefCell::new(Some(handler)));
+
         let worker = {
+            let handler_cell = handler_cell.clone();
             let worker = worker_new(name_of_resource, AGN::is_module());
             let worker_clone = worker.clone();
-            worker.set_onmessage_closure(move |data: Vec<u8>| handler(data, &worker_clone));
+            worker.set_onmessage_closure(move |data: Vec<u8>| {
+                if let Some(handler) = handler_cell.borrow().as_ref() {
+                    handler(data, &worker_clone)
+                }
+            });
             worker
         };
         let bridge = PrivateBridge {
+            handler_cell,
             worker,
             _agent: PhantomData,
             id,
@@ -70,22 +79,25 @@ where
 }
 
 /// A connection manager for components interaction with workers.
-pub struct PrivateBridge<AGN>
+pub struct PrivateBridge<AGN, HNDL>
 where
     AGN: Agent,
     <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+    HNDL: Fn(Vec<u8>, &Worker),
 {
+    handler_cell: Rc<RefCell<Option<HNDL>>>,
     worker: Worker,
     _agent: PhantomData<AGN>,
     id: usize,
 }
 
-impl<AGN> PrivateBridge<AGN>
+impl<AGN, HNDL> PrivateBridge<AGN, HNDL>
 where
     AGN: Agent,
     <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+    HNDL: Fn(Vec<u8>, &Worker),
 {
     /// Send a message to the worker, queuing the message if necessary
     fn send_message(&self, msg: ToWorker<AGN::Input>) {
@@ -98,22 +110,25 @@ where
         });
     }
 }
-impl<AGN> fmt::Debug for PrivateBridge<AGN>
+
+impl<AGN, HNDL> fmt::Debug for PrivateBridge<AGN, HNDL>
 where
     AGN: Agent,
     <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+    HNDL: Fn(Vec<u8>, &Worker),
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("PrivateBridge<_>")
     }
 }
 
-impl<AGN> Bridge<AGN> for PrivateBridge<AGN>
+impl<AGN, HNDL> Bridge<AGN> for PrivateBridge<AGN, HNDL>
 where
     AGN: Agent,
     <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+    HNDL: Fn(Vec<u8>, &Worker),
 {
     fn send(&mut self, msg: AGN::Input) {
         let msg = ToWorker::ProcessInput(SINGLETON_ID, msg);
@@ -121,11 +136,12 @@ where
     }
 }
 
-impl<AGN> Drop for PrivateBridge<AGN>
+impl<AGN, HNDL> Drop for PrivateBridge<AGN, HNDL>
 where
     AGN: Agent,
     <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
     <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+    HNDL: Fn(Vec<u8>, &Worker),
 {
     fn drop(&mut self) {
         let disconnected = ToWorker::Disconnected(SINGLETON_ID);
@@ -133,6 +149,8 @@ where
 
         let destroy = ToWorker::Destroy;
         send_to_remote::<AGN>(&self.worker, destroy);
+
+        self.handler_cell.borrow_mut().take();
 
         QUEUE.with(|queue| {
             queue.remove_agent(&self.id);
