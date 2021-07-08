@@ -16,7 +16,7 @@ pub mod vtext;
 use crate::html::{AnyScope, IntoPropValue, NodeRef};
 use gloo::events::EventListener;
 use indexmap::IndexMap;
-use std::{borrow::Cow, collections::HashMap, fmt, hint::unreachable_unchecked, iter, mem, rc::Rc};
+use std::{borrow::Cow, collections::HashMap, fmt, hint::unreachable_unchecked, iter, mem};
 use web_sys::{Element, Node};
 
 #[doc(inline)]
@@ -47,11 +47,20 @@ impl fmt::Debug for dyn Listener {
     }
 }
 
-/// A list of event listeners.
-type Listeners = Vec<Rc<dyn Listener>>;
-
 /// Attribute value
 pub type AttrValue = Cow<'static, str>;
+
+/// Applies contained changes to DOM [Element]
+trait Apply {
+    /// [Element] type to apply the changes to
+    type Element;
+
+    /// Apply contained values to [Element] with no ancestor
+    fn apply(&mut self, el: &Self::Element);
+
+    /// Apply diff between [self] and `ancestor` to [Element].
+    fn apply_diff(&mut self, el: &Self::Element, ancestor: Self);
+}
 
 /// Key-value tuple which makes up an item of the [`Attributes::Vec`] variant.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -300,6 +309,46 @@ impl Attributes {
             (Self::IndexMap(new), Self::IndexMap(old)) => {
                 let new_iter = new.iter().map(|(k, v)| (*k, v.as_ref()));
                 Self::diff_index_map(new_iter, new, old)
+            }
+        }
+    }
+
+    fn set_attribute(el: &Element, key: &str, value: &str) {
+        el.set_attribute(&key, &value)
+            .expect("invalid attribute key")
+    }
+}
+
+impl Apply for Attributes {
+    type Element = Element;
+
+    fn apply(&mut self, el: &Element) {
+        match self {
+            Self::Vec(v) => {
+                for attr in v.iter() {
+                    if let Some(v) = &attr.1 {
+                        Self::set_attribute(el, &attr.0, v)
+                    }
+                }
+            }
+            Self::IndexMap(m) => {
+                for (k, v) in m.iter() {
+                    Self::set_attribute(el, k, v)
+                }
+            }
+        }
+    }
+
+    fn apply_diff(&mut self, el: &Element, ancestor: Self) {
+        for change in Self::diff(self, &ancestor) {
+            match change {
+                Patch::Add(key, value) | Patch::Replace(key, value) => {
+                    Self::set_attribute(el, key, value);
+                }
+                Patch::Remove(key) => {
+                    el.remove_attribute(&key)
+                        .expect("could not remove attribute");
+                }
             }
         }
     }

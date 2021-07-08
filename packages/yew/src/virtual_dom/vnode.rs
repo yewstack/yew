@@ -13,7 +13,7 @@ use web_sys::{Element, Node};
 #[derive(Clone)]
 pub enum VNode {
     /// A bind between `VTag` and `Element`.
-    VTag(Box<VTag>),
+    VTag(VTag),
     /// A bind between `VText` and `TextNode`.
     VText(VText),
     /// A bind between `VComp` and `Element`.
@@ -133,24 +133,28 @@ impl Default for VNode {
 }
 
 impl From<VText> for VNode {
+    #[inline]
     fn from(vtext: VText) -> Self {
         VNode::VText(vtext)
     }
 }
 
 impl From<VList> for VNode {
+    #[inline]
     fn from(vlist: VList) -> Self {
         VNode::VList(vlist)
     }
 }
 
 impl From<VTag> for VNode {
+    #[inline]
     fn from(vtag: VTag) -> Self {
-        VNode::VTag(Box::new(vtag))
+        VNode::VTag(vtag)
     }
 }
 
 impl From<VComp> for VNode {
+    #[inline]
     fn from(vcomp: VComp) -> Self {
         VNode::VComp(vcomp)
     }
@@ -195,7 +199,7 @@ impl fmt::Debug for VNode {
 impl PartialEq for VNode {
     fn eq(&self, other: &VNode) -> bool {
         match (self, other) {
-            (VNode::VTag(a), VNode::VTag(b)) => a == b,
+            (VNode::VTag(a), VNode::VTag(b)) => a.eq(b),
             (VNode::VText(a), VNode::VText(b)) => a == b,
             (VNode::VList(a), VNode::VList(b)) => a == b,
             (VNode::VRef(a), VNode::VRef(b)) => a == b,

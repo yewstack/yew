@@ -101,7 +101,6 @@ impl ToTokens for HtmlElement {
             classes,
             attributes,
             booleans,
-            kind,
             value,
             checked,
             node_ref,
@@ -133,10 +132,6 @@ impl ToTokens for HtmlElement {
             })
             .unwrap_or(quote! { ::std::option::Option::None });
         let value = value
-            .as_ref()
-            .map(wrap_attr_prop)
-            .unwrap_or(quote! { ::std::option::Option::None });
-        let kind = kind
             .as_ref()
             .map(wrap_attr_prop)
             .unwrap_or(quote! { ::std::option::Option::None });
@@ -236,7 +231,6 @@ impl ToTokens for HtmlElement {
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_input(
                                     #value,
-                                    #kind,
                                     #checked,
                                     #node_ref,
                                     #key,

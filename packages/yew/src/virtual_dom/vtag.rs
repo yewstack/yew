@@ -1,29 +1,121 @@
 //! This module contains the implementation of a virtual element node [VTag].
 
-use super::{
-    AttrValue, Attributes, Key, Listener, Listeners, Patch, PositionalAttr, VDiff, VList, VNode,
-};
+use super::{Apply, AttrValue, Attributes, Key, Listener, PositionalAttr, VDiff, VList, VNode};
 use crate::html::{AnyScope, IntoPropValue, NodeRef};
 use crate::utils::document;
 use gloo::events::EventListener;
 use log::warn;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
+use std::hint::unreachable_unchecked;
+use std::marker::PhantomData;
 use std::mem::MaybeUninit;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::sync::Once;
 use wasm_bindgen::JsCast;
-use web_sys::{
-    Element, HtmlButtonElement, HtmlInputElement as InputElement,
-    HtmlTextAreaElement as TextAreaElement,
-};
+use web_sys::{Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
 
 /// SVG namespace string used for creating svg elements
 pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
 
 /// Default namespace for html elements
 pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
+
+// Value field corresponding to an [Element]'s `value` property
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct Value<T: AccessValue>(Option<AttrValue>, PhantomData<T>);
+
+impl<T: AccessValue> Default for Value<T> {
+    fn default() -> Self {
+        Value(None, PhantomData)
+    }
+}
+
+impl<T: AccessValue> Apply for Value<T> {
+    type Element = T;
+
+    fn apply(&mut self, el: &Self::Element) {
+        if let Some(v) = &self.0 {
+            el.set_value(v);
+        }
+    }
+
+    fn apply_diff(&mut self, el: &Self::Element, ancestor: Self) {
+        match (&self.0, &ancestor.0) {
+            (Some(new), Some(_)) => {
+                // Refresh value from the DOM. It might have changed.
+                if new != &el.value() {
+                    el.set_value(new);
+                }
+            }
+            (Some(new), None) => el.set_value(new),
+            (None, Some(_)) => el.set_value(""),
+            (None, None) => (),
+        }
+    }
+}
+
+/// Able to have its value read or set
+trait AccessValue {
+    fn value(&self) -> String;
+    fn set_value(&self, v: &str);
+}
+
+macro_rules! impl_access_value {
+    ($( $type:ty )*) => {
+        $(
+            impl AccessValue for $type {
+                #[inline]
+                fn value(&self) -> String {
+                    <$type>::value(&self)
+                }
+
+                #[inline]
+                fn set_value(&self, v: &str) {
+                    <$type>::set_value(&self, v)
+                }
+            }
+        )*
+    };
+}
+impl_access_value! {InputElement TextAreaElement}
+
+/// Fields specific to
+/// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) [VTag]s
+#[derive(Debug, Clone, Default, Eq, PartialEq)]
+struct InputFields {
+    /// Contains a value of an
+    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
+    value: Value<InputElement>,
+
+    /// Represents `checked` attribute of
+    /// [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-checked).
+    /// It exists to override standard behavior of `checked` attribute, because
+    /// in original HTML it sets `defaultChecked` value of `InputElement`, but for reactive
+    /// frameworks it's more useful to control `checked` value of an `InputElement`.
+    checked: bool,
+}
+
+impl Apply for InputFields {
+    type Element = InputElement;
+
+    fn apply(&mut self, el: &Self::Element) {
+        // IMPORTANT! This parameter has to be set every time
+        // to prevent strange behaviour in the browser when the DOM changes
+        el.set_checked(self.checked);
+
+        self.value.apply(el);
+    }
+
+    fn apply_diff(&mut self, el: &Self::Element, ancestor: Self) {
+        // IMPORTANT! This parameter has to be set every time
+        // to prevent strange behaviour in the browser when the DOM changes
+        el.set_checked(self.checked);
+
+        self.value.apply_diff(el, ancestor.value);
+    }
+}
 
 /// [VTag] fields that are specific to different [VTag] kinds.
 /// Decreases the memory footprint of [VTag] by avoiding impossible field and value combinations.
@@ -32,23 +124,7 @@ enum VTagInner {
     /// Fields specific to
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input)
     /// [VTag]s
-    Input {
-        /// Contains a value of an
-        /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
-        value: Option<AttrValue>,
-
-        /// Contains
-        /// [kind](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Form_%3Cinput%3E_types)
-        /// value of an `InputElement`.
-        kind: Option<AttrValue>,
-
-        /// Represents `checked` attribute of
-        /// [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-checked).
-        /// It exists to override standard behavior of `checked` attribute, because
-        /// in original HTML it sets `defaultChecked` value of `InputElement`, but for reactive
-        /// frameworks it's more useful to control `checked` value of an `InputElement`.
-        checked: bool,
-    },
+    Input(InputFields),
 
     /// Fields specific to
     /// [TextArea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
@@ -56,7 +132,7 @@ enum VTagInner {
     Textarea {
         /// Contains a value of an
         /// [TextArea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
-        value: Option<AttrValue>,
+        value: Value<TextAreaElement>,
     },
 
     /// Fields for all other kinds of [VTag]s
@@ -69,6 +145,67 @@ enum VTagInner {
     },
 }
 
+/// A list of event listeners, either registered or pending registration
+/// TODO(#943): Compare references of handler to do listeners update better
+#[derive(Debug)]
+enum Listeners {
+    /// Listeners pending registration
+    Pending(Vec<Rc<dyn Listener>>),
+
+    /// Already registered listeners.
+    /// Keeps handlers for attached listeners to have an opportunity to drop them later
+    Registered(Vec<EventListener>),
+}
+
+impl Apply for Listeners {
+    type Element = Element;
+
+    fn apply(&mut self, el: &Self::Element) {
+        if let Self::Pending(v) = self {
+            *self = Self::Registered(
+                std::mem::take(v)
+                    .into_iter()
+                    .map(|l| l.attach(&el))
+                    .collect(),
+            );
+        }
+    }
+
+    fn apply_diff(&mut self, el: &Self::Element, _ancestor: Self) {
+        // All we need to do with `_ancestor` is drop it
+
+        self.apply(el);
+    }
+}
+
+impl PartialEq for Listeners {
+    fn eq(&self, other: &Self) -> bool {
+        use Listeners::*;
+
+        match (self, other) {
+            (Pending(s), Pending(o)) => {
+                s.len() == o.len() && s.iter().map(|l| l.kind()).eq(o.iter().map(|l| l.kind()))
+            }
+            _ => false,
+        }
+    }
+}
+
+impl Clone for Listeners {
+    fn clone(&self) -> Self {
+        match self {
+            Self::Pending(v) => Self::Pending(v.clone()),
+            Self::Registered(_) => Self::Registered(vec![]),
+        }
+    }
+}
+
+impl From<Vec<Rc<dyn Listener>>> for Listeners {
+    fn from(v: Vec<Rc<dyn Listener>>) -> Self {
+        Self::Pending(v)
+    }
+}
+
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
 /// representation.
@@ -77,20 +214,17 @@ pub struct VTag {
     /// [VTag] fields that are specific to different [VTag] kinds.
     inner: VTagInner,
 
+    /// List of attached listeners.
+    listeners: Listeners,
+
     /// A reference to the DOM `Element`.
     pub reference: Option<Element>,
-
-    /// List of attached listeners.
-    pub listeners: Listeners,
-
-    /// List of attributes.
-    pub attributes: Attributes,
 
     /// A node reference used for DOM access in Component lifecycle methods
     pub node_ref: NodeRef,
 
-    /// Keeps handler for attached listeners to have an opportunity to drop them later.
-    captured: Vec<EventListener>,
+    /// List of attributes.
+    pub attributes: Attributes,
 
     pub key: Option<Key>,
 }
@@ -104,7 +238,6 @@ impl Clone for VTag {
             attributes: self.attributes.clone(),
             node_ref: self.node_ref.clone(),
             key: self.key.clone(),
-            captured: Vec::new(),
         }
     }
 }
@@ -115,12 +248,10 @@ impl VTag {
         let tag: Cow<'static, str> = tag.into();
         Self::new_base(
             match &*tag.to_ascii_lowercase() {
-                "input" => VTagInner::Input {
-                    value: None,
-                    kind: None,
-                    checked: false,
+                "input" => VTagInner::Input(Default::default()),
+                "textarea" => VTagInner::Textarea {
+                    value: Default::default(),
                 },
-                "textarea" => VTagInner::Textarea { value: None },
                 _ => VTagInner::Other {
                     tag,
                     children: Default::default(),
@@ -145,22 +276,20 @@ impl VTag {
     #[allow(clippy::too_many_arguments)]
     pub fn __new_input(
         value: Option<AttrValue>,
-        kind: Option<Cow<'static, str>>,
         checked: bool,
         node_ref: NodeRef,
         key: Option<Key>,
         // at bottom for more readable macro-expanded coded
         attributes: Attributes,
-        listeners: Listeners,
+        listeners: Vec<Rc<dyn Listener>>,
     ) -> Self {
         VTag::new_base(
-            VTagInner::Input {
-                value,
-                kind,
+            VTagInner::Input(InputFields {
+                value: Value(value, PhantomData),
                 // In HTML node `checked` attribute sets `defaultChecked` parameter,
                 // but we use own field to control real `checked` parameter
                 checked,
-            },
+            }),
             node_ref,
             key,
             attributes,
@@ -184,10 +313,12 @@ impl VTag {
         key: Option<Key>,
         // at bottom for more readable macro-expanded coded
         attributes: Attributes,
-        listeners: Listeners,
+        listeners: Vec<Rc<dyn Listener>>,
     ) -> Self {
         VTag::new_base(
-            VTagInner::Textarea { value },
+            VTagInner::Textarea {
+                value: Value(value, PhantomData),
+            },
             node_ref,
             key,
             attributes,
@@ -209,7 +340,7 @@ impl VTag {
         key: Option<Key>,
         // at bottom for more readable macro-expanded coded
         attributes: Attributes,
-        listeners: Listeners,
+        listeners: Vec<Rc<dyn Listener>>,
         children: VList,
     ) -> Self {
         VTag::new_base(
@@ -229,14 +360,13 @@ impl VTag {
         node_ref: NodeRef,
         key: Option<Key>,
         attributes: Attributes,
-        listeners: Listeners,
+        listeners: Vec<Rc<dyn Listener>>,
     ) -> Self {
         VTag {
             inner,
             reference: None,
             attributes,
-            listeners,
-            captured: Vec::new(),
+            listeners: listeners.into(),
             node_ref,
             key,
         }
@@ -296,7 +426,8 @@ impl VTag {
     /// [TextArea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
     pub fn value(&self) -> &Option<AttrValue> {
         match &self.inner {
-            VTagInner::Input { value, .. } | VTagInner::Textarea { value } => value,
+            VTagInner::Input(f) => &f.value.0,
+            VTagInner::Textarea { value } => &value.0,
             VTagInner::Other { .. } => &None,
         }
     }
@@ -306,29 +437,13 @@ impl VTag {
     /// [TextArea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
     pub fn set_value(&mut self, value: impl IntoPropValue<Option<AttrValue>>) {
         match &mut self.inner {
-            VTagInner::Input { value: dst, .. } | VTagInner::Textarea { value: dst } => {
-                *dst = value.into_prop_value()
+            VTagInner::Input(f) => {
+                f.value.0 = value.into_prop_value();
+            }
+            VTagInner::Textarea { value: dst } => {
+                dst.0 = value.into_prop_value();
             }
             VTagInner::Other { .. } => (),
-        }
-    }
-
-    /// Returns `kind` property of an
-    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
-    /// Same as set `type` attribute.
-    pub fn kind(&self) -> &Option<AttrValue> {
-        match &self.inner {
-            VTagInner::Input { kind, .. } => kind,
-            _ => &None,
-        }
-    }
-
-    /// Sets `kind` property of an
-    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
-    /// Same as set `type` attribute.
-    pub fn set_kind(&mut self, value: impl IntoPropValue<Option<AttrValue>>) {
-        if let VTagInner::Input { kind, .. } = &mut self.inner {
-            *kind = value.into_prop_value();
         }
     }
 
@@ -337,7 +452,7 @@ impl VTag {
     /// (Not a value of node's attribute).
     pub fn checked(&mut self) -> bool {
         match &mut self.inner {
-            VTagInner::Input { checked, .. } => *checked,
+            VTagInner::Input(f) => f.checked,
             _ => false,
         }
     }
@@ -346,15 +461,15 @@ impl VTag {
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     /// (Not a value of node's attribute).
     pub fn set_checked(&mut self, value: bool) {
-        if let VTagInner::Input { checked, .. } = &mut self.inner {
-            *checked = value;
+        if let VTagInner::Input(f) = &mut self.inner {
+            f.checked = value;
         }
     }
 
     /// Adds a key-value pair to attributes
     ///
     /// Not every attribute works when it set as an attribute. We use workarounds for:
-    /// `type/kind`, `value` and `checked`.
+    /// `value` and `checked`.
     pub fn add_attribute(&mut self, key: &'static str, value: impl Into<AttrValue>) {
         self.attributes
             .get_mut_index_map()
@@ -364,7 +479,7 @@ impl VTag {
     /// Sets attributes to a virtual node.
     ///
     /// Not every attribute works when it set as an attribute. We use workarounds for:
-    /// `type/kind`, `value` and `checked`.
+    /// `value` and `checked`.
     pub fn set_attributes(&mut self, attrs: impl Into<Attributes>) {
         self.attributes = attrs.into();
     }
@@ -381,179 +496,17 @@ impl VTag {
     /// It's boxed because we want to keep it in a single list.
     /// Later `Listener::attach` will attach an actual listener to a DOM node.
     pub fn add_listener(&mut self, listener: Rc<dyn Listener>) {
-        self.listeners.push(listener);
+        if let Listeners::Pending(v) = &mut self.listeners {
+            v.push(listener);
+        }
     }
 
     /// Adds new listeners to the node.
     /// They are boxed because we want to keep them in a single list.
     /// Later `Listener::attach` will attach an actual listener to a DOM node.
-    pub fn add_listeners(&mut self, listeners: Listeners) {
-        self.listeners.extend(listeners);
-    }
-
-    /// Every render it removes all listeners and attach it back later
-    /// TODO(#943): Compare references of handler to do listeners update better
-    fn recreate_listeners(&mut self, ancestor: &mut Option<Box<Self>>) {
-        if let Some(ancestor) = ancestor.as_mut() {
-            ancestor.captured.clear();
-        }
-
-        let element = self.reference.clone().expect("element expected");
-
-        for listener in self.listeners.drain(..) {
-            let handle = listener.attach(&element);
-            self.captured.push(handle);
-        }
-    }
-
-    fn refresh_value(&mut self) {
-        macro_rules! refresh {
-            ($value:expr, $el_type:ty) => {
-                // Don't refresh value if the element is not controlled
-                if $value.is_none() {
-                    return;
-                }
-
-                if let Some(element) = self.reference.as_ref() {
-                    if let Some(el) = element.dyn_ref::<$el_type>() {
-                        *$value = Some(Cow::Owned(el.value()));
-                    }
-                }
-            };
-        }
-
-        match &mut self.inner {
-            VTagInner::Input { value, .. } => {
-                refresh!(value, InputElement);
-            }
-            VTagInner::Textarea { value, .. } => {
-                refresh!(value, TextAreaElement);
-            }
-            _ => (),
-        }
-    }
-
-    /// Compares new kind with ancestor and produces a patch to apply, if any
-    fn diff_kind<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
-        match (&self.inner, ancestor.as_ref().map(|a| &a.inner)) {
-            (VTagInner::Input { kind: left, .. }, Some(VTagInner::Input { kind: right, .. })) => {
-                match (left, right) {
-                    (Some(ref left), Some(ref right)) => {
-                        if left != right {
-                            Some(Patch::Replace(&**left, ()))
-                        } else {
-                            None
-                        }
-                    }
-                    (Some(ref left), None) => Some(Patch::Add(&**left, ())),
-                    (None, Some(right)) => Some(Patch::Remove(&**right)),
-                    (None, None) => None,
-                }
-            }
-            _ => None,
-        }
-    }
-
-    /// Compares new value with ancestor and produces a patch to apply, if any
-    fn diff_value<'a>(&'a self, ancestor: &'a Option<Box<Self>>) -> Option<Patch<&'a str, ()>> {
-        match (&self.inner, ancestor.as_ref().map(|a| &a.inner)) {
-            (VTagInner::Input { value: left, .. }, Some(VTagInner::Input { value: right, .. })) => {
-                match (left, right) {
-                    (Some(ref left), Some(ref right)) => {
-                        if left != right {
-                            Some(Patch::Replace(&**left, ()))
-                        } else {
-                            None
-                        }
-                    }
-                    (Some(ref left), None) => Some(Patch::Add(&**left, ())),
-                    (None, Some(right)) => Some(Patch::Remove(&**right)),
-                    (None, None) => None,
-                }
-            }
-            _ => None,
-        }
-    }
-
-    fn apply_diffs(&mut self, ancestor: &mut Option<Box<Self>>) {
-        let changes = if let Some(old_attributes) = ancestor.as_mut().map(|a| &mut a.attributes) {
-            Attributes::diff(&self.attributes, old_attributes)
-        } else {
-            self.attributes
-                .iter()
-                .map(|(k, v)| Patch::Add(k, v))
-                .collect()
-        };
-
-        let element = self.reference.as_ref().expect("element expected");
-
-        for change in changes {
-            match change {
-                Patch::Add(key, value) | Patch::Replace(key, value) => {
-                    element
-                        .set_attribute(&key, &value)
-                        .expect("invalid attribute key");
-                }
-                Patch::Remove(key) => {
-                    element
-                        .remove_attribute(&key)
-                        .expect("could not remove attribute");
-                }
-            }
-        }
-
-        match &self.inner {
-            VTagInner::Other { tag, .. } => {
-                if &*tag == "button" {
-                    if let Some(button) = element.dyn_ref::<HtmlButtonElement>() {
-                        if let Some(change) = self.diff_kind(ancestor) {
-                            let kind = match change {
-                                Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
-                                Patch::Remove(_) => "",
-                            };
-                            button.set_type(kind);
-                        }
-                    }
-                }
-            }
-            // `input` element has extra parameters to control
-            // I override behavior of attributes to make it more clear
-            // and useful in templates. For example I interpret `checked`
-            // attribute as `checked` parameter, not `defaultChecked` as browsers do
-            VTagInner::Input { checked, .. } => {
-                if let Some(input) = element.dyn_ref::<InputElement>() {
-                    if let Some(change) = self.diff_kind(ancestor) {
-                        let kind = match change {
-                            Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
-                            Patch::Remove(_) => "",
-                        };
-                        input.set_type(kind)
-                    }
-
-                    if let Some(change) = self.diff_value(ancestor) {
-                        let raw_value = match change {
-                            Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
-                            Patch::Remove(_) => "",
-                        };
-                        input.set_value(raw_value)
-                    }
-
-                    // IMPORTANT! This parameter has to be set every time
-                    // to prevent strange behaviour in the browser when the DOM changes
-                    input.set_checked(*checked);
-                }
-            }
-            VTagInner::Textarea { .. } => {
-                if let Some(tae) = { element.dyn_ref::<TextAreaElement>() } {
-                    if let Some(change) = self.diff_value(ancestor) {
-                        let value = match change {
-                            Patch::Add(kind, _) | Patch::Replace(kind, _) => kind,
-                            Patch::Remove(_) => "",
-                        };
-                        tae.set_value(value);
-                    }
-                }
-            }
+    pub fn add_listeners(&mut self, listeners: Vec<Rc<dyn Listener>>) {
+        if let Listeners::Pending(v) = &mut self.listeners {
+            v.extend(listeners);
         }
     }
 
@@ -603,58 +556,106 @@ impl VDiff for VTag {
         next_sibling: NodeRef,
         ancestor: Option<VNode>,
     ) -> NodeRef {
-        let mut ancestor_tag = ancestor.and_then(|mut ancestor| {
-            match ancestor {
+        // This kind of branching patching routine reduces branch predictor misses and the need to
+        // unpack the enums (including `Option`s) all the time, resulting in a more streamlined
+        // patching flow
+        let (ancestor_tag, el) = match ancestor {
+            Some(mut ancestor) => {
                 // If the ancestor is a tag of the same type, don't recreate, keep the
                 // old tag and update its attributes and children.
-                VNode::VTag(vtag) if self.tag() == vtag.tag() && self.key == vtag.key => Some(vtag),
-                _ => {
-                    let element = self.create_element(parent);
-                    super::insert_node(&element, parent, Some(ancestor.first_node()));
-                    self.reference = Some(element);
+                if match &ancestor {
+                    VNode::VTag(a) => {
+                        self.key == a.key
+                            && match (&self.inner, &a.inner) {
+                                (VTagInner::Input(_), VTagInner::Input(_))
+                                | (VTagInner::Textarea { .. }, VTagInner::Textarea { .. }) => true,
+                                (
+                                    VTagInner::Other { tag: l, .. },
+                                    VTagInner::Other { tag: r, .. },
+                                ) => l == r,
+                                _ => false,
+                            }
+                    }
+                    _ => false,
+                } {
+                    match ancestor {
+                        VNode::VTag(mut a) => {
+                            // Preserve the reference that already exists
+                            let el = a.reference.take().unwrap();
+                            (Some(a), el)
+                        }
+                        _ => unsafe { unreachable_unchecked() },
+                    }
+                } else {
+                    let el = self.create_element(parent);
+                    super::insert_node(&el, parent, Some(ancestor.first_node()));
                     ancestor.detach(parent);
-                    None
+                    (None, el)
                 }
             }
-        });
+            None => (None, {
+                let el = self.create_element(parent);
+                super::insert_node(&el, parent, next_sibling.get());
+                el
+            }),
+        };
 
-        if let Some(ref mut ancestor_tag) = &mut ancestor_tag {
-            // Refresh the current value to later compare it against the desired value
-            // since it may have been changed since we last set it.
-            ancestor_tag.refresh_value();
-            // Preserve the reference that already exists.
-            self.reference = ancestor_tag.reference.take();
-        } else if self.reference.is_none() {
-            let element = self.create_element(parent);
-            super::insert_node(&element, parent, next_sibling.get());
-            self.reference = Some(element);
+        macro_rules! cast_el {
+            () => {
+                el.dyn_ref().unwrap()
+            };
         }
 
-        self.apply_diffs(&mut ancestor_tag);
-        self.recreate_listeners(&mut ancestor_tag);
+        match ancestor_tag {
+            None => {
+                self.attributes.apply(&el);
+                self.listeners.apply(&el);
 
-        // Process children
-        let element = self.reference.as_ref().expect("Reference should be set");
-        if let VTagInner::Other { children, .. } = &mut self.inner {
-            if !children.is_empty() {
-                children.apply(
-                    parent_scope,
-                    element,
-                    NodeRef::default(),
-                    match ancestor_tag.map(|a| a.inner) {
-                        Some(VTagInner::Other { children, .. }) => Some(children.into()),
-                        _ => None,
-                    },
-                );
-            } else if let Some(VTagInner::Other { children, .. }) =
-                ancestor_tag.as_mut().map(|a| &mut a.inner)
-            {
-                children.detach(element);
+                match &mut self.inner {
+                    VTagInner::Input(f) => {
+                        f.apply(cast_el!());
+                    }
+                    VTagInner::Textarea { value } => {
+                        value.apply(cast_el!());
+                    }
+                    VTagInner::Other { children, .. } => {
+                        if !children.is_empty() {
+                            children.apply(parent_scope, &el, NodeRef::default(), None);
+                        }
+                    }
+                }
             }
-        }
+            Some(ancestor) => {
+                self.attributes.apply_diff(&el, ancestor.attributes);
+                self.listeners.apply_diff(&el, ancestor.listeners);
 
-        let node = element.deref();
-        self.node_ref.set(Some(node.clone()));
+                match (&mut self.inner, ancestor.inner) {
+                    (VTagInner::Input(new), VTagInner::Input(old)) => {
+                        new.apply_diff(cast_el!(), old);
+                    }
+                    (VTagInner::Textarea { value: new }, VTagInner::Textarea { value: old }) => {
+                        new.apply_diff(cast_el!(), old);
+                    }
+                    (
+                        VTagInner::Other { children: new, .. },
+                        VTagInner::Other {
+                            children: mut old, ..
+                        },
+                    ) => {
+                        if !new.is_empty() {
+                            new.apply(parent_scope, &el, NodeRef::default(), Some(old.into()));
+                        } else if !old.is_empty() {
+                            old.detach(&el);
+                        }
+                    }
+                    // Can not happen, because we checked for tag equability above
+                    _ => unsafe { unreachable_unchecked() },
+                }
+            }
+        };
+
+        self.node_ref.set(Some(el.deref().clone()));
+        self.reference = el.into();
         self.node_ref.clone()
     }
 }
@@ -665,26 +666,13 @@ impl PartialEq for VTag {
 
         (match (&self.inner, &other.inner) {
             (
-                Input {
-                    value: value_l,
-                    kind: kind_l,
-                    checked: checked_l,
-                },
-                Input {
-                    value: value_r,
-                    kind: kind_r,
-                    checked: checked_r,
-                },
-            ) => value_l == value_r && kind_l == kind_r && checked_l == checked_r,
+                 Input(l),
+                Input (r),
+            ) => l == r,
             (Textarea { value: value_l }, Textarea { value: value_r }) => value_l == value_r,
             (Other { tag: tag_l, .. }, Other { tag: tag_r, .. }) => tag_l == tag_r,
             _ => false,
-        }) && self.listeners.len() == other.listeners.len()
-            && self
-                .listeners
-                .iter()
-                .map(|l| l.kind())
-                .eq(other.listeners.iter().map(|l| l.kind()))
+        }) && self.listeners.eq(&other.listeners)
             && self.attributes == other.attributes
             // Diff children last, as recursion is the most expensive
             && match (&self.inner, &other.inner) {

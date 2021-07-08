@@ -186,7 +186,10 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is 
 43 |     html! { <input type=() /> };
    |                         ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
    |
-   = note: required by `into_prop_value`
+  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
+   |
+   |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
+   |                                               -------------------------------- required by this bound in `PositionalAttr::new`
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
   --> $DIR/element-fail.rs:44:26
