@@ -305,7 +305,7 @@ impl ToTokens for HtmlElement {
                     // convert to lowercase because the runtime checks rely on it.
                     #vtag_name.to_mut().make_ascii_lowercase();
 
-                    #[allow(clippy::redundant_clone, unused_braces, let_and_return)]
+                    #[allow(clippy::redundant_clone, unused_braces, clippy::let_and_return)]
                     let mut #vtag = match ::std::convert::AsRef::<str>::as_ref(&#vtag_name) {
                         "input" => {
                             ::yew::virtual_dom::VTag::__new_textarea(
