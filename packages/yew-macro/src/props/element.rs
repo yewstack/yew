@@ -121,6 +121,10 @@ lazy_static! {
             "onended",
             "onerror",
             "onfocus",
+            // onfocusin + onfocusout not in standard but added due to browser support
+            // see issue 1896: https://github.com/yewstack/yew/issues/1896
+            "onfocusin",
+            "onfocusout",
             "onformdata",
             "oninput",
             "oninvalid",
