@@ -6,7 +6,7 @@ impl_action! {
     oncancel(name: "cancel", event: Event) -> web_sys::Event => |_, event| { event }
     oncanplay(name: "canplay", event: Event) -> web_sys::Event => |_, event| { event }
     oncanplaythrough(name: "canplaythrough", event: Event) -> web_sys::Event => |_, event| { event }
-    onchange(name: "change", event: Event) -> ChangeData => |this: &Element, _| { onchange_handler(this) }
+    onchange(name: "change", event: Event) -> ChangeData => |_, event: web_sys::Event| { onchange_handler(event) }
     onclick(name: "click", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
     onclose(name: "close", event: Event) -> web_sys::Event => |_, event| { event }
     oncontextmenu(name: "contextmenu", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }

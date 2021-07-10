@@ -56,31 +56,44 @@ fn oninput_handler(this: &Element, event: InputEvent) -> InputData {
     InputData { value, event }
 }
 
-fn onchange_handler(this: &Element) -> ChangeData {
-    match this.node_name().as_ref() {
-        "INPUT" => {
-            let input = this.dyn_ref::<InputElement>().unwrap();
-            let is_file = input
-                .get_attribute("type")
-                .map(|value| value.eq_ignore_ascii_case("file"))
-                .unwrap_or(false);
-            if is_file {
-                let files: FileList = input.files().unwrap();
-                ChangeData::Files(files)
-            } else {
-                ChangeData::Value(input.value())
+fn onchange_handler(event: web_sys::Event) -> ChangeData {
+    // change event bubbles so look for target to create ChangeData
+    if let Some(target) = event
+        .target()
+        .and_then(|target| target.dyn_into::<Element>().ok())
+    {
+        match target.node_name().as_ref() {
+            "INPUT" => {
+                let input = target.dyn_ref::<InputElement>().unwrap();
+                let is_file = input
+                    .get_attribute("type")
+                    .map(|value| value.eq_ignore_ascii_case("file"))
+                    .unwrap_or(false);
+                if is_file {
+                    let files: FileList = input.files().unwrap();
+                    ChangeData::Files(files)
+                } else {
+                    ChangeData::Value(input.value())
+                }
+            }
+            "TEXTAREA" => {
+                let tae = target.dyn_ref::<TextAreaElement>().unwrap();
+                ChangeData::Value(tae.value())
+            }
+            "SELECT" => {
+                let se = target.dyn_ref::<SelectElement>().unwrap().clone();
+                ChangeData::Select(se)
+            }
+            _ => {
+                // A change event has been dispatched from an element which is not a input, textarea,
+                // or select element - panic as we don't know what the ChangeData could be!
+                panic!(
+                    "change event only supported when dispatched from one of the following: InputElement, TextAreaElement, or SelectElement."
+                );
             }
         }
-        "TEXTAREA" => {
-            let tae = this.dyn_ref::<TextAreaElement>().unwrap();
-            ChangeData::Value(tae.value())
-        }
-        "SELECT" => {
-            let se = this.dyn_ref::<SelectElement>().unwrap().clone();
-            ChangeData::Select(se)
-        }
-        _ => {
-            panic!("only an InputElement, TextAreaElement or SelectElement can have an onchange event listener");
-        }
+    } else {
+        // Event was fired either without a target (older browser) or the target was not on an element
+        panic!("change event target field undefined.");
     }
 }
