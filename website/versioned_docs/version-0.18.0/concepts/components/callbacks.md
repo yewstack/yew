@@ -94,5 +94,5 @@ html! {
 ```
 
 ## Relevant examples
-- [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
-- [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)
+- [Counter](https://github.com/yewstack/yew/tree/v0.18/examples/counter)
+- [Timer](https://github.com/yewstack/yew/tree/v0.18/examples/timer)
