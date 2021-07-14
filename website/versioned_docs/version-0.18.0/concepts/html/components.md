@@ -113,6 +113,6 @@ impl Component for List {
 ```
 
 ## Relevant examples
-- [Boids](https://github.com/yewstack/yew/tree/master/examples/boids)
-- [Router](https://github.com/yewstack/yew/tree/master/examples/router)
-- [Store](https://github.com/yewstack/yew/tree/master/examples/store)
+- [Boids](https://github.com/yewstack/yew/tree/v0.18/examples/boids)
+- [Router](https://github.com/yewstack/yew/tree/v0.18/examples/router)
+- [Store](https://github.com/yewstack/yew/tree/v0.18/examples/store)
