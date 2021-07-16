@@ -46,6 +46,9 @@ fn with(f: impl FnOnce(&mut Scheduler)) {
 #[inline]
 pub(crate) fn push(runnable: Box<dyn Runnable>) {
     with(|s| s.main.push_back(runnable));
+    // Execute pending immediately. Necessary for runnables added outside the component lifecycle,
+    // which would otherwise be delayed.
+    start();
 }
 
 /// Push a component creation Runnable to be executed
