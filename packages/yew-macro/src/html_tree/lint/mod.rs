@@ -59,15 +59,13 @@ impl Lint for AHrefLint {
             };
             if let Some(prop) = get_attribute(&element.props, "href") {
                 if let syn::Expr::Lit(lit) = &prop.value {
-                    if let syn::Lit::Str(str) = &lit.lit {
-                        if str.value() == "#" {
+                    if let syn::Lit::Str(href) = &lit.lit {
+                        if href.value() == "#" {
                             emit_warning!(
                                 lit.span(),
                                 "'#' is not a suitable value for the `href` attribute. \
                                         Without a meaningful attribute assistive technologies \
-                                        will struggle to understand your webpage. (hint: use a \
-                                        tag other than `<a>` here or `javascript:void(0)` for \
-                                        the `href` attribute)"
+                                        will struggle to understand your webpage."
                             )
                         }
                     }
