@@ -116,3 +116,27 @@ impl Scheduler {
             .or_else(|| self.main.pop_front())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn push_executes_runnables_immediately() {
+        use std::cell::Cell;
+
+        thread_local! {
+            static FLAG: Cell<bool> = Default::default();
+        }
+
+        struct Test;
+        impl Runnable for Test {
+            fn run(self: Box<Self>) {
+                FLAG.with(|v| v.set(true));
+            }
+        }
+
+        push(Box::new(Test));
+        FLAG.with(|v| assert!(v.get()));
+    }
+}
