@@ -186,10 +186,7 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is 
 43 |     html! { <input type=() /> };
    |                         ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
    |
-  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
-   |
-   |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
-   |                                               -------------------------------- required by this bound in `PositionalAttr::new`
+   = note: required by `into_prop_value`
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
   --> $DIR/element-fail.rs:44:26
@@ -205,10 +202,7 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is 
 45 |     html! { <a href=() /> };
    |                     ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
    |
-  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
-   |
-   |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
-   |                                               -------------------------------- required by this bound in `PositionalAttr::new`
+   = note: required by `into_prop_value`
 
 error[E0277]: the trait bound `NotToString: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
   --> $DIR/element-fail.rs:46:27
@@ -216,10 +210,7 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<Cow<'static, st
 46 |     html! { <input string=NotToString /> };
    |                           ^^^^^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `NotToString`
    |
-  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
-   |
-   |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
-   |                                               -------------------------------- required by this bound in `PositionalAttr::new`
+   = note: required by `into_prop_value`
 
 error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
   --> $DIR/element-fail.rs:47:22
@@ -227,15 +218,11 @@ error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<Cow<'st
 47 |     html! { <a media=Some(NotToString) /> };
    |                      ^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `Option<NotToString>`
    |
-  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
-   |
-   |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
-   |                                               -------------------------------- required by this bound in `PositionalAttr::new`
-   |
    = help: the following implementations were found:
              <Option<&'static str> as IntoPropValue<Option<Cow<'static, str>>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<String> as IntoPropValue<Option<Cow<'static, str>>>>
+   = note: required by `into_prop_value`
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
   --> $DIR/element-fail.rs:48:21
@@ -243,15 +230,11 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<Cow<'stat
 48 |     html! { <a href=Some(5) /> };
    |                     ^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `Option<{integer}>`
    |
-  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
-   |
-   |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
-   |                                               -------------------------------- required by this bound in `PositionalAttr::new`
-   |
    = help: the following implementations were found:
              <Option<&'static str> as IntoPropValue<Option<Cow<'static, str>>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<String> as IntoPropValue<Option<Cow<'static, str>>>>
+   = note: required by `into_prop_value`
 
 error[E0277]: the trait bound `{integer}: IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not satisfied
    --> $DIR/element-fail.rs:51:28

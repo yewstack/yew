@@ -1,6 +1,6 @@
 //! This module contains the implementation of a virtual element node [VTag].
 
-use super::{Apply, AttrValue, Attributes, Key, Listener, PositionalAttr, VDiff, VList, VNode};
+use super::{Apply, AttrValue, Attributes, Key, Listener, VDiff, VList, VNode};
 use crate::html::{AnyScope, IntoPropValue, NodeRef};
 use crate::utils::document;
 use gloo::events::EventListener;
@@ -485,11 +485,10 @@ impl VTag {
     }
 
     #[doc(hidden)]
-    pub fn __macro_push_attr(&mut self, attr: PositionalAttr) {
-        match &mut self.attributes {
-            Attributes::Vec(attrs) => attrs.push(attr),
-            _ => unreachable!("the macro always uses positional attributes"),
-        }
+    pub fn __macro_push_attr(&mut self, key: &'static str, value: impl IntoPropValue<AttrValue>) {
+        self.attributes
+            .get_mut_index_map()
+            .insert(key, value.into_prop_value());
     }
 
     /// Adds new listener to the node.
@@ -685,7 +684,7 @@ impl PartialEq for VTag {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::html;
+    use crate::{html, Html};
 
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
@@ -734,7 +733,7 @@ mod tests {
     }
 
     #[test]
-    fn it_compares_attributes() {
+    fn it_compares_attributes_static() {
         let a = html! {
             <div a="test"></div>
         };
@@ -745,6 +744,24 @@ mod tests {
 
         let c = html! {
             <div a="fail"></div>
+        };
+
+        assert_eq!(a, b);
+        assert_ne!(a, c);
+    }
+
+    #[test]
+    fn it_compares_attributes_dynamic() {
+        let a = html! {
+            <div a="test".to_owned()></div>
+        };
+
+        let b = html! {
+            <div a="test".to_owned()></div>
+        };
+
+        let c = html! {
+            <div a="fail".to_owned()></div>
         };
 
         assert_eq!(a, b);
@@ -776,7 +793,7 @@ mod tests {
     }
 
     #[test]
-    fn it_compares_classes() {
+    fn it_compares_classes_static() {
         let a = html! {
             <div class="test"></div>
         };
@@ -795,7 +812,30 @@ mod tests {
 
         assert_eq!(a, b);
         assert_ne!(a, c);
-        assert_eq!(c, d);
+        assert_ne!(a, d);
+    }
+
+    #[test]
+    fn it_compares_classes_dynamic() {
+        let a = html! {
+            <div class="test".to_owned()></div>
+        };
+
+        let b = html! {
+            <div class="test".to_owned()></div>
+        };
+
+        let c = html! {
+            <div class="fail".to_owned()></div>
+        };
+
+        let d = html! {
+            <div class=format!("fail{}", "")></div>
+        };
+
+        assert_eq!(a, b);
+        assert_ne!(a, c);
+        assert_ne!(a, d);
     }
 
     fn assert_vtag(node: &VNode) -> &VTag {
@@ -952,18 +992,27 @@ mod tests {
         assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
     }
 
-    #[test]
-    fn it_sets_class_name() {
+    fn test_set_class_name(gen_html: impl FnOnce() -> Html) {
         let scope = test_scope();
         let parent = document().create_element("div").unwrap();
 
         document().body().unwrap().append_child(&parent).unwrap();
 
-        let mut elem = html! { <div class="ferris the crab"></div> };
+        let mut elem = gen_html();
         elem.apply(&scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag_mut(&mut elem);
         // test if the className has been set
         assert!(vtag.reference.as_ref().unwrap().has_attribute("class"));
+    }
+
+    #[test]
+    fn it_sets_class_name_static() {
+        test_set_class_name(|| html! { <div class="ferris the crab"></div> });
+    }
+
+    #[test]
+    fn it_sets_class_name_dynamic() {
+        test_set_class_name(|| html! { <div class="ferris the crab".to_owned()></div> });
     }
 
     #[test]

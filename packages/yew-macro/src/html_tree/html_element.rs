@@ -1,6 +1,6 @@
 use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
 use crate::props::{ClassesForm, ElementProps, Prop};
-use crate::stringify::Stringify;
+use crate::stringify::{Stringify, Value};
 use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::{Delimiter, TokenStream};
@@ -8,7 +8,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{Block, Ident, Token};
+use syn::{Block, Expr, Ident, Lit, LitStr, Token};
 
 pub struct HtmlElement {
     name: TagName,
@@ -144,20 +144,37 @@ impl ToTokens for HtmlElement {
             .unwrap_or(quote! { false });
 
         // other attributes
-
         let attributes = {
             let normal_attrs = attributes.iter().map(|Prop { label, value, .. }| {
-                let key = label.to_lit_str();
-                let value = value.optimize_literals();
-                quote! {
-                    ::yew::virtual_dom::PositionalAttr::new(#key, #value)
-                }
+                (label.to_lit_str(), value.optimize_literals_tagged())
             });
-            let boolean_attrs = booleans.iter().map(|Prop { label, value, .. }| {
+            let boolean_attrs = booleans.iter().filter_map(|Prop { label, value, .. }| {
                 let key = label.to_lit_str();
-                quote! {
-                    ::yew::virtual_dom::PositionalAttr::new_boolean(#key, #value)
-                }
+                Some((
+                    key.clone(),
+                    match value {
+                        Expr::Lit(e) => match &e.lit {
+                            Lit::Bool(b) => Value::Static(if b.value {
+                                quote! { #key }
+                            } else {
+                                return None;
+                            }),
+                            _ => Value::Dynamic(quote_spanned! {value.span()=> {
+                                ::yew::utils::__ensure_type::<bool>(#value);
+                                #key
+                            }}),
+                        },
+                        expr => Value::Dynamic(quote_spanned! {expr.span()=>
+                            if #expr {
+                                ::std::option::Option::Some(
+                                    ::std::borrow::Cow::<'static, str>::Borrowed(#key)
+                                )
+                            } else {
+                                None
+                            }
+                        }),
+                    },
+                ))
             });
             let class_attr = classes.as_ref().and_then(|classes| match classes {
                 ClassesForm::Tuple(classes) => {
@@ -176,36 +193,78 @@ impl ToTokens for HtmlElement {
                         };
                     };
 
-                    Some(quote! {
-                        {
-                            let mut __yew_classes = ::yew::html::Classes::with_capacity(#n);
-                            #(__yew_classes.push(#classes);)*
+                    Some((
+                        LitStr::new("class", span),
+                        Value::Dynamic(quote! {
+                            {
+                                #deprecation_warning
 
-                            #deprecation_warning
-
-                            ::yew::virtual_dom::PositionalAttr::new("class", __yew_classes)
-                        }
-                    })
+                                let mut __yew_classes = ::yew::html::Classes::with_capacity(#n);
+                                #(__yew_classes.push(#classes);)*
+                                __yew_classes
+                            }
+                        }),
+                    ))
                 }
-                ClassesForm::Single(classes) => match classes.try_into_lit() {
-                    Some(lit) => {
-                        if lit.value().is_empty() {
-                            None
-                        } else {
-                            let sr = lit.stringify();
-                            Some(quote! { ::yew::virtual_dom::PositionalAttr::new("class", #sr) })
+                ClassesForm::Single(classes) => {
+                    match classes.try_into_lit() {
+                        Some(lit) => {
+                            if lit.value().is_empty() {
+                                None
+                            } else {
+                                Some((
+                                    LitStr::new("class", lit.span()),
+                                    Value::Static(quote! { #lit }),
+                                ))
+                            }
                         }
-                    }
-                    None => {
-                        Some(quote! { ::yew::virtual_dom::PositionalAttr::new("class", ::std::convert::Into::<::yew::html::Classes>::into(#classes)) })
+                        None => {
+                            Some((
+                                LitStr::new("class", classes.span()),
+                                Value::Dynamic(quote! {
+                                    ::std::convert::Into::<::yew::html::Classes>::into(#classes)
+                                }),
+                            ))
+                        }
                     }
                 }
             });
 
-            let attrs = normal_attrs.chain(boolean_attrs).chain(class_attr);
-            quote! {
-                ::yew::virtual_dom::Attributes::Vec(::std::vec![#(#attrs),*])
+            /// Try to turn attribute list into a `::yew::virtual_dom::Attributes::Static`
+            fn try_into_static(src: &[(LitStr, Value)]) -> Option<TokenStream> {
+                let mut kv = Vec::with_capacity(src.len());
+                for (k, v) in src.iter() {
+                    let v = match v {
+                        Value::Static(v) => quote! { #v },
+                        Value::Dynamic(_) => return None,
+                    };
+                    kv.push(quote! { [ #k, #v ] });
+                }
+
+                Some(quote! { ::yew::virtual_dom::Attributes::Static(&[#(#kv),*]) })
             }
+
+            let attrs = normal_attrs
+                .chain(boolean_attrs)
+                .chain(class_attr)
+                .collect::<Vec<(LitStr, Value)>>();
+            try_into_static(&attrs).unwrap_or_else(|| {
+                let keys = attrs.iter().map(|(k, _)| quote! { #k });
+                let values = attrs.iter().map(|(_, v)| {
+                    quote_spanned! {v.span()=>
+                        ::yew::html::IntoPropValue::<
+                            ::std::option::Option::<::yew::virtual_dom::AttrValue>
+                        >
+                        ::into_prop_value(#v)
+                    }
+                });
+                quote! {
+                    ::yew::virtual_dom::Attributes::Dynamic{
+                        keys: &[#(#keys),*],
+                        values: ::std::vec![#(#values),*],
+                    }
+                }
+            })
         };
 
         let listeners = if listeners.is_empty() {
@@ -284,9 +343,7 @@ impl ToTokens for HtmlElement {
                 let handle_value_attr = props.value.as_ref().map(|prop| {
                     let v = prop.value.optimize_literals();
                     quote_spanned! {v.span()=> {
-                        __yew_vtag.__macro_push_attr(
-                            ::yew::virtual_dom::PositionalAttr::new("value", #v),
-                        );
+                        __yew_vtag.__macro_push_attr("value", #v);
                     }}
                 });
 
