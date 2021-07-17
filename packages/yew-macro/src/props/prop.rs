@@ -73,7 +73,7 @@ fn strip_braces(expr: Expr) -> syn::Result<Expr> {
         Expr::Lit(_) | Expr::Block(_) => Ok(expr),
         _ => Err(syn::Error::new_spanned(
                 &expr,
-                format!("the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: {{ {} }}", expr.to_token_stream()),
+                format!("the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: {{{}}}", expr.to_token_stream()),
         )),
     }
 }
