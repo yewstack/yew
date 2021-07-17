@@ -111,28 +111,28 @@ html! {
 <!--Interpolated-->
 ```rust
 html! {
-  <div class={format!("{}-container", size)}></div>
+  <div class=format!("{}-container", size)></div>
 }
 ```
 
 <!--Expression-->
 ```rust
 html! {
-  <div class={self.classes()}></div>
+  <div class=self.classes()></div>
 }
 ```
 
 <!--Tuple-->
 ```rust
 html! {
-  <div class={("class-1", "class-2")}></div>
+  <div class=("class-1", "class-2")></div>
 }
 ```
 
 <!--Vector-->
 ```rust
 html! {
-  <div class={vec!["class-1", "class-2"]}></div>
+  <div class=vec!["class-1", "class-2"]></div>
 }
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
@@ -173,7 +173,7 @@ impl Component for MyComponent {
         // Create a callback from a component link to handle it in a component
         let click_callback = self.link.callback(|_: ClickEvent| Msg::Click);
         html! {
-            <button onclick={click_callback}>
+            <button onclick=click_callback>
                 { "Click me!" }
             </button>
         }
@@ -206,7 +206,7 @@ impl Component for MyComponent {
         // Create a callback from a worker to handle it in another context
         let click_callback = self.worker.callback(|_: ClickEvent| WorkerMsg::Process);
         html! {
-            <button onclick={click_callback}>
+            <button onclick=click_callback>
                 { "Click me!" }
             </button>
         }
@@ -237,7 +237,7 @@ impl Component for MyComponent {
         });
 
         html! {
-            <button onclick={click_callback}>
+            <button onclick=click_callback>
                 { "Click me!" }
             </button>
         }

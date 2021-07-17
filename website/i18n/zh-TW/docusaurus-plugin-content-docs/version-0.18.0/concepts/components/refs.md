@@ -18,7 +18,7 @@ self.node_ref = NodeRef::default();
 
 // 在 view 裡
 html! {
-    <div ref={self.node_ref.clone()}></div>
+    <div ref=self.node_ref.clone()></div>
 }
 
 // 更新

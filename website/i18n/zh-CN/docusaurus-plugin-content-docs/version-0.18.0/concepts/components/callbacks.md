@@ -60,7 +60,7 @@ Callbacks 用于与 Yew 中的 services，agents 和父组件进行通信。它�
 ```rust
 let onclick = self.link.callback(|_| Msg::Clicked);
 html! {
-    <button onclick={onclick}>{ "Click" }</button>
+    <button onclick=onclick>{ "Click" }</button>
 }
 ```
 
@@ -78,7 +78,7 @@ let onkeypress = self.link.batch_callback(|event| {
 });
 
 html! {
-    <input type="text" onkeypress={onkeypress} />
+    <input type="text" onkeypress=onkeypress />
 }
 ```
 

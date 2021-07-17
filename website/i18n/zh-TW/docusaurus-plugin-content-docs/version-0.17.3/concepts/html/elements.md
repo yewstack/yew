@@ -111,28 +111,28 @@ html! {
 <!--Interpolated-->
 ```rust
 html! {
-  <div class={format!("{}-container", size)}></div>
+  <div class=format!("{}-container", size)></div>
 }
 ```
 
 <!--Expression-->
 ```rust
 html! {
-  <div class={self.classes()}></div>
+  <div class=self.classes()></div>
 }
 ```
 
 <!--Tuple-->
 ```rust
 html! {
-  <div class={("class-1", "class-2")}></div>
+  <div class=("class-1", "class-2")></div>
 }
 ```
 
 <!--Vector-->
 ```rust
 html! {
-  <div class={vec!["class-1", "class-2"]}></div>
+  <div class=vec!["class-1", "class-2"]></div>
 }
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
@@ -172,7 +172,7 @@ impl Component for MyComponent {
         // 從一個元件連結中，建立一個 callback 並在元件中處理他
         let click_callback = self.link.callback(|_: ClickEvent| Msg::Click);
         html! {
-            <button onclick={click_callback}>
+            <button onclick=click_callback>
                 { "Click me!" }
             </button>
         }
@@ -204,7 +204,7 @@ impl Component for MyComponent {
         // 從一個 worker 中建立一個 callback，並在其他的 context 中處理他
         let click_callback = self.worker.callback(|_: ClickEvent| WorkerMsg::Process);
         html! {
-            <button onclick={click_callback}>
+            <button onclick=click_callback>
                 { "Click me!" }
             </button>
         }
@@ -235,7 +235,7 @@ impl Component for MyComponent {
         });
 
         html! {
-            <button onclick={click_callback}>
+            <button onclick=click_callback>
                 { "Click me!" }
             </button>
         }
