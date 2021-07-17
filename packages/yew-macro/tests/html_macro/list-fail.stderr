@@ -46,7 +46,7 @@ error: expected an expression following this equals sign
 18 |     html! { <key=></> };
    |                 ^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { "key" . to_string() }
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: {"key" . to_string()}
   --> $DIR/list-fail.rs:20:18
    |
 20 |     html! { <key="key".to_string()></key> };

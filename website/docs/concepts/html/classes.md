@@ -104,11 +104,11 @@ impl Component for MyComponent {
         } = &self.props;
         html! {
             <div
-                class=classes!(
+                class={classes!(
                     "my-container-class",
                     fill.as_some("my-fill-class"),
                     class.clone(),
-                )
+                )}
             >
                 { children.clone() }
             </div>

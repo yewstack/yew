@@ -99,7 +99,7 @@ help: you can escape reserved keywords to use them as identifiers
 72 |     html! { <Child r#type=0 /> };
    |                    ^^^^^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: { () }
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression like this: {()}
   --> $DIR/component-fail.rs:73:24
    |
 73 |     html! { <Child ref=() /> };

@@ -169,8 +169,8 @@ The page component can be called either with the sidebar or without:
 
     // Page with sidebar
     html! {
-        <Page sidebar=html_nested! {
+        <Page sidebar={html_nested! {
             <PageSideBar />
-        } />
+        }} />
     }
 ```
