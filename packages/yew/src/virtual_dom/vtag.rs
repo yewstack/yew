@@ -594,14 +594,14 @@ impl VDiff for VTag {
                     }
                 } else {
                     let el = self.create_element(parent);
-                    super::insert_node(&el, parent, Some(ancestor.first_node()));
+                    super::insert_node(&el, parent, Some(&ancestor.first_node()));
                     ancestor.detach(parent);
                     (None, el)
                 }
             }
             None => (None, {
                 let el = self.create_element(parent);
-                super::insert_node(&el, parent, next_sibling.get());
+                super::insert_node(&el, parent, next_sibling.get().as_ref());
                 el
             }),
         };

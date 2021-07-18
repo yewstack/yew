@@ -221,11 +221,13 @@ impl ToTokens for HtmlElement {
             quote! { ::std::vec![#(#listeners_it),*].into_iter().flatten().collect() }
         };
 
+        // TODO: if none of the children have possibly None expressions or literals as keys, we can
+        // compute `VList.fully_keyed` at compile time.
         let child_list = quote! {
-            ::yew::virtual_dom::VList{
-                key: ::std::option::Option::None,
-                children: #children,
-            }
+            ::yew::virtual_dom::VList::with_children(
+                #children,
+                ::std::option::Option::None,
+            )
         };
 
         tokens.extend(match &name {

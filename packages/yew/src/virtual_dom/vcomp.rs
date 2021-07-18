@@ -99,7 +99,6 @@ impl VComp {
         }
     }
 
-    #[allow(unused)]
     pub(crate) fn root_vnode(&self) -> Option<impl Deref<Target = VNode> + '_> {
         self.scope.as_ref().and_then(|scope| scope.root_vnode())
     }
@@ -202,7 +201,7 @@ impl PartialEq for VComp {
 
 impl fmt::Debug for VComp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("VComp")
+        write!(f, "VComp {{ root: {:?} }}", self.root_vnode().as_deref())
     }
 }
 
