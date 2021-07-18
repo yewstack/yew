@@ -422,7 +422,7 @@ pub(crate) trait VDiff {
     ) -> NodeRef;
 }
 
-pub(crate) fn insert_node(node: &Node, parent: &Element, next_sibling: &Option<Node>) {
+pub(crate) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&Node>) {
     match next_sibling {
         Some(next_sibling) => parent
             .insert_before(&node, Some(next_sibling))
