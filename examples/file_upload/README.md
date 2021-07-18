@@ -7,7 +7,7 @@ The contents of the selected file are then rendered to the page either as a whol
 
 ## Concepts
 
-Demonstrates reading from files in Yew with the help of `gloo::file`.
+Demonstrates reading from files in Yew with the help of [`gloo::file`](https://gloo-rs.web.app/docs/file).
 
 ## Improvements
 

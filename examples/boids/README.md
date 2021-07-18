@@ -17,7 +17,7 @@ trunk serve --release
 
 ## Concepts
 
-The example uses `gloo::timers` implementation of `setInterval` to drive the Yew game loop.
+The example uses [`gloo::timers`](https://gloo-rs.web.app/docs/timer) implementation of `setInterval` to drive the Yew game loop.
 
 ## Improvements
 
