@@ -64,10 +64,10 @@ impl Component for Model {
     fn view(&self) -> Html {
         html! {
             <>
-                <TextInput value="New post" onsubmit=self.link.callback(Msg::CreatePost) />
+                <TextInput value="New post" onsubmit={self.link.callback(Msg::CreatePost)} />
 
                 <div>
-                    { for self.post_ids.iter().map(|&id| html!{ <Post key=id id=id /> }) }
+                    { for self.post_ids.iter().map(|&id| html!{ <Post key={id} id={id} /> }) }
                 </div>
             </>
         }

@@ -30,31 +30,37 @@ fn compile_fail() {
     html! { <input disabled=true disabled=false /> };
     html! { <option selected=true selected=false /> };
     html! { <div class="first" class="second" /> };
-    html! { <input ref=() ref=() /> };
+    html! { <input ref={()} ref={()} /> };
 
     // boolean attribute type mismatch
     html! { <input checked=1 /> };
-    html! { <input checked=Some(false) /> };
+    html! { <input checked={Some(false)} /> };
     html! { <input disabled=1 /> };
-    html! { <input disabled=Some(true) /> };
+    html! { <input disabled={Some(true)} /> };
     html! { <option selected=1 /> };
 
     // normal attribute type mismatch
-    html! { <input type=() /> };
-    html! { <input value=() /> };
-    html! { <a href=() /> };
-    html! { <input string=NotToString /> };
-    html! { <a media=Some(NotToString) /> };
-    html! { <a href=Some(5) /> };
+    html! { <input type={()} /> };
+    html! { <input value={()} /> };
+    html! { <a href={()} /> };
+    html! { <input string={NotToString} /> };
+    html! { <a media={Some(NotToString)} /> };
+    html! { <a href={Some(5)} /> };
 
     // listener type mismatch
     html! { <input onclick=1 /> };
-    html! { <input onclick=Callback::from(|a: String| ()) /> };
-    html! { <input onfocus=Some(5) /> };
+    html! { <input onclick={Callback::from(|a: String| ()) /> };
+    html! { <input onfocus={Some(5)} /> };
 
     // NodeRef type mismatch
-    html! { <input ref=() /> };
-    html! { <input ref=Some(NodeRef::default()) /> };
+    html! { <input ref={()} /> };
+    html! { <input ref={Some(NodeRef::default())} /> };
+    html! { <input onclick={Callback::from(|a: String| ())} /> };
+
+    html! { <input string={NotToString} /> };
+
+    html! { <input ref={()} /> };
+    html! { <input ref={()} ref={()} /> };
 
     // void element with children
     html! { <input type="text"></input> };
@@ -71,7 +77,19 @@ fn compile_fail() {
     html! { <@{55}></@> };
 
     // check for deprecation warning
+    html! { <div class={("deprecated", "warning")} /> };
+
+    // Missing curly braces
     html! { <div class=("deprecated", "warning") /> };
+    html! { <input ref=() /> };
+    html! { <input ref=() ref=() /> };
+    html! { <input onfocus=Some(5) /> };
+    html! { <input string=NotToString /> };
+    html! { <a media=Some(NotToString) /> };
+    html! { <a href=Some(5) /> };
+    html! { <input type=() /> };
+    html! { <input value=() /> };
+    html! { <input string=NotToString /> };
 }
 
 fn main() {}

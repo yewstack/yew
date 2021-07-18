@@ -64,7 +64,7 @@ impl Component for ProgressDelay {
     fn view(&self) -> Html {
         let value = self.value;
         html! {
-            <progress class="progress is-primary" value=value.to_string() max=1.0>
+            <progress class="progress is-primary" value={value.to_string()} max=1.0>
                 { format!("{:.0}%", 100.0 * value) }
             </progress>
         }

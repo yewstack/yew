@@ -56,7 +56,7 @@
 //!     fn view(&self) -> Html {
 //!         html! {
 //!             <div>
-//!                 <button onclick=self.link.callback(|_| Msg::AddOne)>{ "+1" }</button>
+//!                 <button onclick={self.link.callback(|_| Msg::AddOne)}>{ "+1" }</button>
 //!                 <p>{ self.value }</p>
 //!             </div>
 //!         }
@@ -98,7 +98,7 @@ use std::{cell::Cell, panic::PanicInfo};
 /// let vec_of_classes = vec!["one-bean", "two-beans", "three-beans", "a-very-small-casserole"];
 ///
 /// html! {
-///     <div class=classes!("my-container-class", conditional_class, vec_of_classes)>
+///     <div class={classes!("my-container-class", conditional_class, vec_of_classes)}>
 ///         // ...
 ///     </div>
 /// };

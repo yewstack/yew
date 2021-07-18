@@ -98,13 +98,13 @@ impl Component for Model {
                     // Create button to create a new app
                     <button
                         class="create"
-                        onclick=self.link.callback(|_| Msg::SpawnCounterAppInstance)
+                        onclick={self.link.callback(|_| Msg::SpawnCounterAppInstance)}
                     >
                         { "Spawn new CounterModel app" }
                     </button>
                 </div>
                 // Create a container for all the app instances
-                <div ref=self.apps_container_ref.clone()>
+                <div ref={self.apps_container_ref.clone()}>
                 </div>
             </>
         }

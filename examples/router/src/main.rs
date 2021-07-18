@@ -65,7 +65,7 @@ impl Component for Model {
                 { self.view_nav() }
 
                 <main>
-                    <Router<Route> render=Router::render(switch) />
+                    <Router<Route> render={Router::render(switch)} />
                 </main>
                 <footer class="footer">
                     <div class="content has-text-centered">
@@ -97,21 +97,21 @@ impl Model {
                     <h1 class="navbar-item is-size-3">{ "Yew Blog" }</h1>
 
                     <a role="button"
-                        class=classes!("navbar-burger", "burger", active_class)
+                        class={classes!("navbar-burger", "burger", active_class)}
                         aria-label="menu" aria-expanded="false"
-                        onclick=link.callback(|_| Msg::ToggleNavbar)
+                        onclick={link.callback(|_| Msg::ToggleNavbar)}
                     >
                         <span aria-hidden="true"></span>
                         <span aria-hidden="true"></span>
                         <span aria-hidden="true"></span>
                     </a>
                 </div>
-                <div class=classes!("navbar-menu", active_class)>
+                <div class={classes!("navbar-menu", active_class)}>
                     <div class="navbar-start">
-                        <Link<Route> classes=classes!("navbar-item") route=Route::Home>
+                        <Link<Route> classes={classes!("navbar-item")} route={Route::Home}>
                             { "Home" }
                         </Link<Route>>
-                        <Link<Route> classes=classes!("navbar-item") route=Route::Posts>
+                        <Link<Route> classes={classes!("navbar-item")} route={Route::Posts}>
                             { "Posts" }
                         </Link<Route>>
 
@@ -121,7 +121,7 @@ impl Model {
                             </a>
                             <div class="navbar-dropdown">
                                 <a class="navbar-item">
-                                    <Link<Route> classes=classes!("navbar-item") route=Route::Authors>
+                                    <Link<Route> classes={classes!("navbar-item")} route={Route::Authors}>
                                         { "Meet the authors" }
                                     </Link<Route>>
                                 </a>
@@ -137,13 +137,13 @@ impl Model {
 fn switch(routes: &Route) -> Html {
     match routes {
         Route::Post { id } => {
-            html! { <Post seed=*id /> }
+            html! { <Post seed={*id} /> }
         }
         Route::Posts => {
             html! { <PostList /> }
         }
         Route::Author { id } => {
-            html! { <Author seed=*id /> }
+            html! { <Author seed={*id} /> }
         }
         Route::Authors => {
             html! { <AuthorList /> }

@@ -10,7 +10,7 @@ fn main() {
         </>
     };
     ::yew::html! {
-        <key=::std::string::ToString::to_string("key")>
+        <key={::std::string::ToString::to_string("key")}>
         </>
     };
 

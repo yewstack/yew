@@ -27,7 +27,7 @@ fn switch(routes: &Route) -> Html {
         Route::Secure => html! {
             <div>
                 <h1>{ "Secure" }</h1>
-                <button onclick=onclick_callback>{ "Go Home" }</button>
+                <button onclick={onclick_callback}>{ "Go Home" }</button>
             </div>
         },
         Route::NotFound => html! { <h1>{ "404" }</h1> },
@@ -36,7 +36,7 @@ fn switch(routes: &Route) -> Html {
 
 // Component's `view` method
 html! {
-    <Router<Route> render=Router::render(switch) />
+    <Router<Route> render={Router::render(switch)} />
 }
 ```
 

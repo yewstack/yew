@@ -82,8 +82,8 @@ mod test {
     fn all_key_conversions() {
         html! {
             <key="string literal">
-                <img key="String".to_owned() />
-                <p key=Rc::<str>::from("rc")></p>
+                <img key={"String".to_owned()} />
+                <p key={Rc::<str>::from("rc")}></p>
                 <key='a'>
                     <p key=11_usize></p>
                     <p key=12_u8></p>

@@ -58,16 +58,16 @@ fn component() -> Html {
             Routes::Home => html! {
                 <>
                     <div id="result">{"Home"}</div>
-                    <a onclick=onclick>{"click me"}</a>
+                    <a onclick={onclick}>{"click me"}</a>
                 </>
             },
-            Routes::No { id } => html! { <No id=*id /> },
+            Routes::No { id } => html! { <No id={*id} /> },
             Routes::NotFound => html! { <div id="result">{"404"}</div> },
         }
     });
 
     html! {
-        <Router<Routes> render=switch>
+        <Router<Routes> render={switch}>
         </Router<Routes>>
     }
 }
