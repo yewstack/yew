@@ -3,18 +3,15 @@ name: Benchmark
 on:
   pull_request:
     branches: [master]
-    # TODO: restore after made sure the CI runs this on a PR
-    # types: [labeled, synchronize]
-    types: [synchronize]
+    types: [labeled, synchronize]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    # TODO: restore after made sure the CI runs this on a PR
-    # if: >-
-    #   (github.event.action == 'labeled' && github.event.label.name == 'performance') ||
-    #   (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'performance'))
+    if: >-
+      (github.event.action == 'labeled' && github.event.label.name == 'performance') ||
+      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'performance'))
 
     steps:
       - uses: actions/checkout@v2
