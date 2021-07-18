@@ -10,7 +10,7 @@ use web_sys::{Element, Text as TextNode};
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
 /// representation.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct VText {
     /// Contains a text of the node.
     pub text: AttrValue,
@@ -25,6 +25,20 @@ impl VText {
             text: text.into(),
             reference: None,
         }
+    }
+}
+
+impl std::fmt::Debug for VText {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "VText {{ text: \"{}\", reference: {} }}",
+            self.text,
+            match &self.reference {
+                Some(_) => "Some(...)",
+                None => "None",
+            }
+        )
     }
 }
 
@@ -66,7 +80,7 @@ impl VDiff for VText {
         }
 
         let text_node = document().create_text_node(&self.text);
-        super::insert_node(&text_node, parent, next_sibling.get());
+        super::insert_node(&text_node, parent, next_sibling.get().as_ref());
         self.reference = Some(text_node.clone());
         NodeRef::new(text_node.into())
     }

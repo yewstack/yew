@@ -94,3 +94,13 @@ impl<IN, OUT> IntoIterator for NodeSeq<IN, OUT> {
         self.0.into_iter()
     }
 }
+
+/// Print the [web_sys::Node]'s contents as a string for debugging purposes
+pub fn print_node(n: &web_sys::Node) -> String {
+    use wasm_bindgen::JsCast;
+
+    match n.dyn_ref::<web_sys::Element>() {
+        Some(el) => el.outer_html(),
+        None => n.text_content().unwrap_or_default(),
+    }
+}
