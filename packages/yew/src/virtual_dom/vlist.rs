@@ -73,7 +73,7 @@ impl VList {
     }
 
     /// Creates a new [VList] instance with children.
-    pub fn new_with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
+    pub fn with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
         VList {
             fully_keyed: children.iter().all(|ch| ch.has_key()),
             children,

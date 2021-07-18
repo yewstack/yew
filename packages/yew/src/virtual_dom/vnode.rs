@@ -49,8 +49,7 @@ impl VNode {
     pub(crate) fn first_node(&self) -> Node {
         match self {
             VNode::VTag(vtag) => vtag
-                .reference
-                .as_ref()
+                .reference()
                 .expect("VTag is not mounted")
                 .clone()
                 .into(),
@@ -139,24 +138,28 @@ impl Default for VNode {
 }
 
 impl From<VText> for VNode {
+    #[inline]
     fn from(vtext: VText) -> Self {
         VNode::VText(vtext)
     }
 }
 
 impl From<VList> for VNode {
+    #[inline]
     fn from(vlist: VList) -> Self {
         VNode::VList(vlist)
     }
 }
 
 impl From<VTag> for VNode {
+    #[inline]
     fn from(vtag: VTag) -> Self {
         VNode::VTag(Box::new(vtag))
     }
 }
 
 impl From<VComp> for VNode {
+    #[inline]
     fn from(vcomp: VComp) -> Self {
         VNode::VComp(vcomp)
     }
@@ -179,11 +182,10 @@ impl<T: ToString> From<T> for VNode {
 
 impl<A: Into<VNode>> FromIterator<A> for VNode {
     fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
-        let vlist = iter.into_iter().fold(VList::default(), |mut acc, x| {
-            acc.add_child(x.into());
-            acc
-        });
-        VNode::VList(vlist)
+        VNode::VList(VList::with_children(
+            iter.into_iter().map(|n| n.into()).collect(),
+            None,
+        ))
     }
 }
 
