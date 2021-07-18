@@ -278,6 +278,7 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<Option<yew::Callback<Mou
               <&'static str as IntoPropValue<String>>
             and 11 others
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 error[E0277]: the trait bound `yew::Callback<String>: IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not satisfied
    --> $DIR/element-fail.rs:52:28
@@ -416,3 +417,5 @@ error[E0277]: the trait bound `Cow<'static, str>: From<{integer}>` is not satisf
    = note: required by `into`
 =======
 >>>>>>> 33785951 (Update tests)
+=======
+>>>>>>> e259ff7a (Update errors after rebase)
