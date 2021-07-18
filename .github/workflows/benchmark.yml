@@ -3,7 +3,9 @@ name: Benchmark
 on:
   pull_request:
     branches: [master]
-    types: [labeled, synchronize]
+    # TODO: restore after made sure the CI runs this on a PR
+    # types: [labeled, synchronize]
+    types: [synchronize]
 
 jobs:
   build:
