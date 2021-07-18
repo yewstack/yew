@@ -8,4 +8,4 @@ We also welcome Pull Requests and issues for when they inevitably get neglected 
 
 For more details including a list of examples, refer to the [README][examples].
 
-[examples]: https://github.com/yewstack/yew/tree/master/examples
+[examples]: https://github.com/yewstack/yew/tree/v0.18/examples
