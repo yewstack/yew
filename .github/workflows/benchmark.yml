@@ -9,18 +9,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    if: >-
-      (github.event.action == 'labeled' && github.event.label.name == 'performance') ||
-      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'performance'))
+    # TODO: restore after made sure the CI runs this on a PR
+    # if: >-
+    #   (github.event.action == 'labeled' && github.event.label.name == 'performance') ||
+    #   (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'performance'))
 
     steps:
       - uses: actions/checkout@v2
         with:
-          repository: yewstack/js-framework-benchmark
+          repository: bakape/js-framework-benchmark
 
       - name: Configure benchmark
         run: |
-          search="{ git = \"https://github.com/yewstack/yew\", branch = \"master\" }"
+          search="{path = \"PATH\"}"
           replace="{ git = \"${{ github.event.pull_request.head.repo.html_url }}\", branch = \"${{ github.event.pull_request.head.ref }}\" }"
           input=$(cat frameworks/keyed/yew/Cargo.toml)
           output=${input//"$search"/"$replace"}
