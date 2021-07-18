@@ -76,7 +76,7 @@ impl VNode {
                     .expect("VComp has no root vnode")
                     .move_before(parent, next_sibling);
             }
-            _ => super::insert_node(&self.first_node(), parent, next_sibling),
+            _ => super::insert_node(&self.first_node(), parent, next_sibling.as_ref()),
         };
     }
 }
@@ -124,7 +124,7 @@ impl VDiff for VNode {
                     }
                     ancestor.detach(parent);
                 }
-                super::insert_node(node, parent, &next_sibling.get());
+                super::insert_node(node, parent, next_sibling.get().as_ref());
                 NodeRef::new(node.clone())
             }
         }

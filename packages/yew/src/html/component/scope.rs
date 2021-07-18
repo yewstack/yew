@@ -172,7 +172,7 @@ impl<COMP: Component> Scope<COMP> {
     ) {
         let placeholder = {
             let placeholder: Node = document().create_text_node("").into();
-            insert_node(&placeholder, &parent, &next_sibling.get());
+            insert_node(&placeholder, &parent, next_sibling.get().as_ref());
             node_ref.set(Some(placeholder.clone()));
             VNode::VRef(placeholder)
         };

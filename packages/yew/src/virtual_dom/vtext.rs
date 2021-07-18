@@ -80,7 +80,7 @@ impl VDiff for VText {
         }
 
         let text_node = document().create_text_node(&self.text);
-        super::insert_node(&text_node, parent, &next_sibling.get());
+        super::insert_node(&text_node, parent, next_sibling.get().as_ref());
         self.reference = Some(text_node.clone());
         NodeRef::new(text_node.into())
     }
