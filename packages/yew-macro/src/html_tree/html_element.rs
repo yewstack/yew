@@ -221,12 +221,20 @@ impl ToTokens for HtmlElement {
             quote! { ::std::vec![#(#listeners_it),*].into_iter().flatten().collect() }
         };
 
+        let child_list = quote! {
+            ::yew::virtual_dom::VList{
+                key: ::std::option::Option::None,
+                children: #children,
+            }
+        };
+
         tokens.extend(match &name {
             TagName::Lit(name) => {
+                let name_span = name.span();
                 let name = name.to_ascii_lowercase_string();
                 match &*name {
                     "input" => {
-                        quote_spanned! {name.span()=>
+                        quote_spanned! {name_span=>
                             #[allow(clippy::redundant_clone, unused_braces)]
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_input(
@@ -241,7 +249,7 @@ impl ToTokens for HtmlElement {
                         }
                     }
                     "textarea" => {
-                        quote_spanned! {name.span()=>
+                        quote_spanned! {name_span=>
                             #[allow(clippy::redundant_clone, unused_braces)]
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_textarea(
@@ -255,7 +263,7 @@ impl ToTokens for HtmlElement {
                         }
                     }
                     _ => {
-                        quote_spanned! {name.span()=>
+                        quote_spanned! {name_span=>
                             #[allow(clippy::redundant_clone, unused_braces)]
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_other(
@@ -264,10 +272,7 @@ impl ToTokens for HtmlElement {
                                     #key,
                                     #attributes,
                                     #listeners,
-                                    ::yew::virtual_dom::VList{
-                                        key: ::std::option::Option::None,
-                                        children: #children,
-                                    },
+                                    #child_list,
                                 ),
                             )
                         }
@@ -332,10 +337,7 @@ impl ToTokens for HtmlElement {
                                 #key,
                                 #attributes,
                                 #listeners,
-                                ::yew::virtual_dom::VList{
-                                    key: ::std::option::Option::None,
-                                    children: #children,
-                                },
+                                #child_list,
                             );
 
                             #handle_value_attr
