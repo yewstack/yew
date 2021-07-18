@@ -97,21 +97,21 @@ impl Component for Model {
                     <div class="clients">
                         { for self.clients.iter().map(Client::render) }
                     </div>
-                    <button onclick=self.link.callback(|_| Msg::SwitchTo(Scene::NewClientForm))>{ "Add New" }</button>
-                    <button onclick=self.link.callback(|_| Msg::SwitchTo(Scene::Settings))>{ "Settings" }</button>
+                    <button onclick={self.link.callback(|_| Msg::SwitchTo(Scene::NewClientForm))}>{ "Add New" }</button>
+                    <button onclick={self.link.callback(|_| Msg::SwitchTo(Scene::Settings))}>{ "Settings" }</button>
                 </div>
             },
             Scene::NewClientForm => html! {
                 <div class="crm">
                     <h1>{"Add a new client"}</h1>
-                    <AddClientForm on_add=self.link.callback(Msg::AddClient) on_abort=self.link.callback(|_| Msg::SwitchTo(Scene::ClientsList)) />
+                    <AddClientForm on_add={self.link.callback(Msg::AddClient)} on_abort={self.link.callback(|_| Msg::SwitchTo(Scene::ClientsList))} />
                 </div>
             },
             Scene::Settings => html! {
                 <div>
                     <h1>{"Settings"}</h1>
-                    <button onclick=self.link.callback(|_| Msg::ClearClients)>{ "Remove all clients" }</button>
-                    <button onclick=self.link.callback(|_| Msg::SwitchTo(Scene::ClientsList))>{ "Go Back" }</button>
+                    <button onclick={self.link.callback(|_| Msg::ClearClients)}>{ "Remove all clients" }</button>
+                    <button onclick={self.link.callback(|_| Msg::SwitchTo(Scene::ClientsList))}>{ "Go Back" }</button>
                 </div>
             },
         }

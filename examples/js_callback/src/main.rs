@@ -57,13 +57,13 @@ impl Component for Model {
             <>
                 <textarea
                     class="code-block"
-                    oninput=self.link.callback(|input: InputData| Msg::Payload(input.value))
-                    value=self.payload.clone()
+                    oninput={self.link.callback(|input: InputData| Msg::Payload(input.value))}
+                    value={self.payload.clone()}
                 />
-                <button onclick=self.link.callback(|_| Msg::Payload(bindings::get_payload()))>
+                <button onclick={self.link.callback(|_| Msg::Payload(bindings::get_payload()))}>
                     { "Get the payload!" }
                 </button>
-                <button onclick=self.link.callback(|_| Msg::AsyncPayload) >
+                <button onclick={self.link.callback(|_| Msg::AsyncPayload)} >
                     { "Get the payload later!" }
                 </button>
                 <p class="code-block">

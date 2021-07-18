@@ -39,14 +39,14 @@ impl Component for PostCard {
             <div class="card">
                 <div class="card-image">
                     <figure class="image is-2by1">
-                        <img src=post.image_url.clone() loading="lazy" />
+                        <img src={post.image_url.clone()} loading="lazy" />
                     </figure>
                 </div>
                 <div class="card-content">
-                    <Link<Route> classes=classes!("title", "is-block") route=Route::Post { id: post.seed }>
+                    <Link<Route> classes={classes!("title", "is-block")} route={Route::Post { id: post.seed }}>
                         { &post.title }
                     </Link<Route>>
-                    <Link<Route> classes=classes!("subtitle", "is-block") route=Route::Author { id: post.author.seed }>
+                    <Link<Route> classes={classes!("subtitle", "is-block")} route={Route::Author { id: post.author.seed }}>
                         { &post.author.name }
                     </Link<Route>>
                 </div>

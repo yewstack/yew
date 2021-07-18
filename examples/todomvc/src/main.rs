@@ -124,20 +124,20 @@ impl Component for Model {
                         <h1>{ "todos" }</h1>
                         { self.view_input() }
                     </header>
-                    <section class=classes!("main", hidden_class)>
+                    <section class={classes!("main", hidden_class)}>
                         <input
                             type="checkbox"
                             class="toggle-all"
                             id="toggle-all"
-                            checked=self.state.is_all_completed()
-                            onclick=self.link.callback(|_| Msg::ToggleAll)
+                            checked={self.state.is_all_completed()}
+                            onclick={self.link.callback(|_| Msg::ToggleAll)}
                         />
                         <label for="toggle-all" />
                         <ul class="todo-list">
                             { for self.state.entries.iter().filter(|e| self.state.filter.fits(e)).enumerate().map(|e| self.view_entry(e)) }
                         </ul>
                     </section>
-                    <footer class=classes!("footer", hidden_class)>
+                    <footer class={classes!("footer", hidden_class)}>
                         <span class="todo-count">
                             <strong>{ self.state.total() }</strong>
                             { " item(s) left" }
@@ -145,7 +145,7 @@ impl Component for Model {
                         <ul class="filters">
                             { for Filter::iter().map(|flt| self.view_filter(flt)) }
                         </ul>
-                        <button class="clear-completed" onclick=self.link.callback(|_| Msg::ClearCompleted)>
+                        <button class="clear-completed" onclick={self.link.callback(|_| Msg::ClearCompleted)}>
                             { format!("Clear completed ({})", self.state.total_completed()) }
                         </button>
                     </footer>
@@ -169,9 +169,9 @@ impl Model {
         };
         html! {
             <li>
-                <a class=cls
-                   href=filter.as_href()
-                   onclick=self.link.callback(move |_| Msg::SetFilter(filter))
+                <a class={cls}
+                   href={filter.as_href()}
+                   onclick={self.link.callback(move |_| Msg::SetFilter(filter))}
                 >
                     { filter }
                 </a>
@@ -186,11 +186,11 @@ impl Model {
             <input
                 class="new-todo"
                 placeholder="What needs to be done?"
-                value=self.state.value.clone()
-                oninput=self.link.callback(|e: InputData| Msg::Update(e.value))
-                onkeypress=self.link.batch_callback(|e: KeyboardEvent| {
+                value={self.state.value.clone()}
+                oninput={self.link.callback(|e: InputData| Msg::Update(e.value))}
+                onkeypress={self.link.batch_callback(|e: KeyboardEvent| {
                     if e.key() == "Enter" { Some(Msg::Add) } else { None }
-                })
+                })}
             />
             /* Or multiline:
             <ul>
@@ -209,16 +209,16 @@ impl Model {
             class.push(" completed");
         }
         html! {
-            <li class=class>
+            <li class={class}>
                 <div class="view">
                     <input
                         type="checkbox"
                         class="toggle"
-                        checked=entry.completed
-                        onclick=self.link.callback(move |_| Msg::Toggle(idx))
+                        checked={entry.completed}
+                        onclick={self.link.callback(move |_| Msg::Toggle(idx))}
                     />
-                    <label ondblclick=self.link.callback(move |_| Msg::ToggleEdit(idx))>{ &entry.description }</label>
-                    <button class="destroy" onclick=self.link.callback(move |_| Msg::Remove(idx)) />
+                    <label ondblclick={self.link.callback(move |_| Msg::ToggleEdit(idx))}>{ &entry.description }</label>
+                    <button class="destroy" onclick={self.link.callback(move |_| Msg::Remove(idx))} />
                 </div>
                 { self.view_entry_edit_input((idx, &entry)) }
             </li>
@@ -231,14 +231,14 @@ impl Model {
                 <input
                     class="edit"
                     type="text"
-                    ref=self.focus_ref.clone()
-                    value=self.state.edit_value.clone()
-                    onmouseover=self.link.callback(|_| Msg::Focus)
-                    oninput=self.link.callback(|e: InputData| Msg::UpdateEdit(e.value))
-                    onblur=self.link.callback(move |_| Msg::Edit(idx))
-                    onkeypress=self.link.batch_callback(move |e: KeyboardEvent| {
+                    ref={self.focus_ref.clone()}
+                    value={self.state.edit_value.clone()}
+                    onmouseover={self.link.callback(|_| Msg::Focus)}
+                    oninput={self.link.callback(|e: InputData| Msg::UpdateEdit(e.value))}
+                    onblur={self.link.callback(move |_| Msg::Edit(idx))}
+                    onkeypress={self.link.batch_callback(move |e: KeyboardEvent| {
                         if e.key() == "Enter" { Some(Msg::Edit(idx)) } else { None }
-                    })
+                    })}
                 />
             }
         } else {

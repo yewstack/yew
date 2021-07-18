@@ -39,8 +39,8 @@ impl Component for Model {
         html! {
             <div>
                 <input
-                    value=self.name.clone()
-                    oninput=self.link.callback(|e: InputData| Msg::UpdateName(e.value))
+                    value={self.name.clone()}
+                    oninput={self.link.callback(|e: InputData| Msg::UpdateName(e.value))}
                 />
                 <p>{ self.name.chars().rev().collect::<String>() }</p>
             </div>

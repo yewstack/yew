@@ -60,7 +60,7 @@ fn use_effect_destroys_on_component_drop() {
             if *show {
                 let effect_called: Rc<dyn Fn()> = { Rc::new(move || show.set(false)) };
                 html! {
-                    <UseEffectComponent destroy_called=props.destroy_called.clone() effect_called=effect_called />
+                    <UseEffectComponent destroy_called={props.destroy_called.clone()} effect_called={effect_called} />
                 }
             } else {
                 html! {

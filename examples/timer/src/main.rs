@@ -131,13 +131,13 @@ impl Component for Model {
         html! {
             <>
                 <div id="buttons">
-                    <button disabled=has_job onclick=self.link.callback(|_| Msg::StartTimeout)>
+                    <button disabled={has_job} onclick={self.link.callback(|_| Msg::StartTimeout)}>
                         { "Start Timeout" }
                     </button>
-                    <button disabled=has_job onclick=self.link.callback(|_| Msg::StartInterval)>
+                    <button disabled={has_job} onclick={self.link.callback(|_| Msg::StartInterval)}>
                         { "Start Interval" }
                     </button>
-                    <button disabled=!has_job onclick=self.link.callback(|_| Msg::Cancel)>
+                    <button disabled={!has_job} onclick={self.link.callback(|_| Msg::Cancel)}>
                         { "Cancel!" }
                     </button>
                 </div>

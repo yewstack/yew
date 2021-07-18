@@ -76,9 +76,9 @@ impl Component for Model {
         html! {
             <div>
                 <nav class="menu">
-                    <button onclick=self.link.callback(|_| Msg::SendToWorker)>{ "Send to Thread" }</button>
-                    <button onclick=self.link.callback(|_| Msg::SendToJob)>{ "Send to Job" }</button>
-                    <button onclick=self.link.callback(|_| Msg::SendToContext)>{ "Send to Context" }</button>
+                    <button onclick={self.link.callback(|_| Msg::SendToWorker)}>{ "Send to Thread" }</button>
+                    <button onclick={self.link.callback(|_| Msg::SendToJob)}>{ "Send to Job" }</button>
+                    <button onclick={self.link.callback(|_| Msg::SendToContext)}>{ "Send to Context" }</button>
                 </nav>
             </div>
         }

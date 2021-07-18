@@ -13,7 +13,7 @@ fn compile_pass() {
     html! {
         <div>
             <div data-key="abc"></div>
-            <div ref=parent_ref class="parent">
+            <div ref={parent_ref} class="parent">
                 <span class="child" value="anything"></span>
                 <label for="first-name">{"First Name"}</label>
                 <input type="text" id="first-name" value="placeholder" />
@@ -40,9 +40,9 @@ fn compile_pass() {
                     </filter>
                 </defs>
             </svg>
-            <img class=classes!("avatar", "hidden") src="http://pic.com" />
+            <img class={classes!("avatar", "hidden")} src="http://pic.com" />
             <img class="avatar hidden" />
-            <button onclick=&onclick onclick=onclick />
+            <button onclick={&onclick} onclick={onclick} />
             <a href="http://google.com" />
             <custom-tag-a>
                 <custom-tag-b />
@@ -61,10 +61,10 @@ fn compile_pass() {
                 }
             }/>
 
-            <a href=Some(Cow::Borrowed("http://google.com")) media=cow_none.clone() />
-            <track kind=Some(Cow::Borrowed("subtitles")) src=cow_none.clone() />
-            <track kind=Some(Cow::Borrowed("5")) mixed="works" />
-            <input value=Some(Cow::Borrowed("value")) onblur=Some(Callback::from(|_| ())) />
+            <a href={Some(Cow::Borrowed("http://google.com"))} media={cow_none.clone()} />
+            <track kind={Some(Cow::Borrowed("subtitles"))} src={cow_none.clone()} />
+            <track kind={Some(Cow::Borrowed("5"))} mixed="works" />
+            <input value={Some(Cow::Borrowed("value"))} onblur={Some(Callback::from(|_| ()))} />
         </div>
     };
 
@@ -75,8 +75,8 @@ fn compile_pass() {
     html! { <div>{children}</div> };
 
     // handle misleading angle brackets
-    html! { <div data-val=<String as Default>::default()></div> };
-    html! { <div><a data-val=<String as Default>::default() /></div> };
+    html! { <div data-val={<String as Default>::default()}></div> };
+    html! { <div><a data-val={<String as Default>::default()} /></div> };
 }
 
 fn main() {}

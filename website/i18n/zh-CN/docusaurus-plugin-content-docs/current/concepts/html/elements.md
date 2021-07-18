@@ -111,28 +111,28 @@ html! {
 <!--插值-->
 ```rust
 html! {
-  <div class=format!("{}-container", size)></div>
+  <div class={format!("{}-container", size)}></div>
 }
 ```
 
 <!--表达式-->
 ```rust
 html! {
-  <div class=self.classes()></div>
+  <div class={self.classes()}></div>
 }
 ```
 
 <!--元组-->
 ```rust
 html! {
-  <div class=("class-1", "class-2")></div>
+  <div class={("class-1", "class-2")}></div>
 }
 ```
 
 <!--Vector-->
 ```rust
 html! {
-  <div class=vec!["class-1", "class-2"]></div>
+  <div class={vec!["class-1", "class-2"]}></div>
 }
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
@@ -172,7 +172,7 @@ impl Component for MyComponent {
         // 从组件 link 中创建回调来在组件中处理它
         let click_callback = self.link.callback(|_: ClickEvent| Msg::Click);
         html! {
-            <button onclick=click_callback>
+            <button onclick={click_callback}>
                 { "Click me!" }
             </button>
         }
@@ -204,7 +204,7 @@ impl Component for MyComponent {
         // 从 worker 中创建回调来在另一个上下文中处理它
         let click_callback = self.worker.callback(|_: ClickEvent| WorkerMsg::Process);
         html! {
-            <button onclick=click_callback>
+            <button onclick={click_callback}>
                 { "Click me!" }
             </button>
         }
@@ -235,7 +235,7 @@ impl Component for MyComponent {
         });
 
         html! {
-            <button onclick=click_callback>
+            <button onclick={click_callback}>
                 { "Click me!" }
             </button>
         }

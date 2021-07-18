@@ -790,7 +790,7 @@ mod tests {
         };
 
         let d = html! {
-            <div class=format!("fail{}", "")></div>
+            <div class={format!("fail{}", "")}></div>
         };
 
         assert_eq!(a, b);
@@ -976,7 +976,7 @@ mod tests {
         let expected = "not_changed_value";
 
         // Initial state
-        let mut elem = html! { <input value=expected /> };
+        let mut elem = html! { <input value={expected} /> };
         elem.apply(&scope, &parent, NodeRef::default(), None);
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -990,7 +990,7 @@ mod tests {
         input.unwrap().set_value("User input");
 
         let ancestor = vtag;
-        let mut elem = html! { <input value=expected /> };
+        let mut elem = html! { <input value={expected} /> };
         let vtag = assert_vtag_mut(&mut elem);
 
         // Sync happens here
@@ -1115,39 +1115,13 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let node_ref = NodeRef::default();
-        let mut elem: VNode = html! { <div ref=node_ref.clone()></div> };
+        let mut elem: VNode = html! { <div ref={node_ref.clone()}></div> };
         assert_vtag_mut(&mut elem);
         elem.apply(&scope, &parent, NodeRef::default(), None);
         let parent_node = parent.deref();
         assert_eq!(node_ref.get(), parent_node.first_child());
         elem.detach(&parent);
         assert!(node_ref.get().is_none());
-    }
-
-    /// Returns the class attribute as str reference, or "" if the attribute is not set.
-    fn get_class_str(vtag: &VTag) -> &str {
-        vtag.attributes
-            .iter()
-            .find(|(k, _)| k == &"class")
-            .map(|(_, v)| AsRef::as_ref(v))
-            .unwrap_or("")
-    }
-
-    #[test]
-    fn old_class_syntax_is_still_supported() {
-        let a_classes = "class-1 class-2".to_string();
-        #[allow(deprecated)]
-        let a = html! {
-            <div class=("class-1", a_classes)></div>
-        };
-
-        if let VNode::VTag(vtag) = a {
-            assert!(get_class_str(&vtag).contains("class-1"));
-            assert!(get_class_str(&vtag).contains("class-2"));
-            assert!(!get_class_str(&vtag).contains("class-3"));
-        } else {
-            panic!("vtag expected");
-        }
     }
 }
 

@@ -72,8 +72,8 @@ impl Component for Post {
                 <h2>{ format!("Post #{}", self.id) }</h2>
                 <p>{text}</p>
 
-                <TextInput value=text.to_owned() onsubmit=self.link.callback(Msg::UpdateText) />
-                <button onclick=self.link.callback(|_| Msg::Delete)>
+                <TextInput value={text.to_owned()} onsubmit={self.link.callback(Msg::UpdateText)} />
+                <button onclick={self.link.callback(|_| Msg::Delete)}>
                     { "Delete" }
                 </button>
             </div>

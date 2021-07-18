@@ -102,8 +102,8 @@ impl Component for List {
         let onmouseover = self.props.on_hover.reform(|_| Hovered::List);
         let onmouseout = self.props.on_hover.reform(|_| Hovered::None);
         html! {
-            <div class="list-container" onmouseout=onmouseout onmouseover=onmouseover>
-                <div class=classes!("list", inactive)>
+            <div class="list-container" onmouseout={onmouseout} onmouseover={onmouseover}>
+                <div class={classes!("list", inactive)}>
                     { self.view_header() }
                     <div class="items">
                         { self.view_items() }

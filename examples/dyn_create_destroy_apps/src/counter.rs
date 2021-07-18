@@ -58,7 +58,7 @@ impl Component for CounterModel {
                 </p>
 
                 // Add button to send a destroy command to the parent app
-                <button class="destroy" onclick=Callback::from(move |_| destroy_callback.emit(()))>
+                <button class="destroy" onclick={Callback::from(move |_| destroy_callback.emit(()))}>
                     { "Destroy this app" }
                 </button>
             </>
