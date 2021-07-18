@@ -1,14 +1,10 @@
-use std::time::Duration;
+use gloo::timers::callback::Interval;
 use yew::prelude::*;
-use yew_services::{
-    interval::{IntervalService, IntervalTask},
-    ConsoleService,
-};
 
 pub struct CounterModel {
     counter: usize,
     props: CounterProps,
-    _interval_task: IntervalTask,
+    _interval: Interval,
 }
 
 #[derive(Clone, Properties)]
@@ -27,14 +23,11 @@ impl Component for CounterModel {
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         // Create a Tick message every second
-        let interval_task = IntervalService::spawn(
-            Duration::from_secs(1),
-            link.callback(|()| Self::Message::Tick),
-        );
+        let interval = Interval::new(1, move || link.send_message(Self::Message::Tick));
         Self {
             counter: 0,
             props,
-            _interval_task: interval_task,
+            _interval: interval,
         }
     }
 
@@ -73,6 +66,6 @@ impl Component for CounterModel {
     }
 
     fn destroy(&mut self) {
-        ConsoleService::log("CounterModel app destroyed");
+        weblog::console_log!("CounterModel app destroyed");
     }
 }

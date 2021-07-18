@@ -193,7 +193,7 @@ impl Component for MyComponent {
     fn view(&self) -> Html {
         // Create an ephemeral callback
         let click_callback = Callback::from(|| {
-            ConsoleService::new().log("clicked!");
+            console_log!("clicked!");
         });
 
         html! {
@@ -243,6 +243,8 @@ end up using a version which conflicts with the version that Yew specifies.
 | `onended`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
 | `onerror`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
 | `onfocus`                   | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html)           |
+| `onfocusin`                 | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html)           |
+| `onfocusout`                | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html)           |
 | `onformdata`                | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
 | `oninput`                   | [InputData](https://docs.rs/yew/latest/yew/events/struct.InputData.html)              |
 | `oninvalid`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |

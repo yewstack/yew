@@ -1,9 +1,8 @@
 use crate::boid::Boid;
 use crate::math::Vector2D;
 use crate::settings::Settings;
-use std::time::Duration;
+use gloo::timers::callback::Interval;
 use yew::{html, Component, ComponentLink, Html, Properties, ShouldRender};
-use yew_services::interval::{IntervalService, IntervalTask};
 
 pub const SIZE: Vector2D = Vector2D::new(1600.0, 1000.0);
 
@@ -26,7 +25,7 @@ pub struct Simulation {
     props: Props,
     link: ComponentLink<Self>,
     boids: Vec<Boid>,
-    interval_task: IntervalTask,
+    interval: Interval,
 }
 impl Component for Simulation {
     type Message = Msg;
@@ -38,16 +37,18 @@ impl Component for Simulation {
             .map(|_| Boid::new_random(settings))
             .collect();
 
-        let interval_task = IntervalService::spawn(
-            Duration::from_millis(settings.tick_interval_ms),
-            link.callback(|_| Msg::Tick),
-        );
+        let interval = {
+            let link = link.clone();
+            Interval::new(settings.tick_interval_ms as u32, move || {
+                link.send_message(Msg::Tick)
+            })
+        };
 
         Self {
             props,
             link,
             boids,
-            interval_task,
+            interval,
         }
     }
 
@@ -86,10 +87,12 @@ impl Component for Simulation {
             if settings.tick_interval_ms != self.props.settings.tick_interval_ms {
                 // as soon as the previous task is dropped it is cancelled.
                 // We don't need to worry about manually stopping it.
-                self.interval_task = IntervalService::spawn(
-                    Duration::from_millis(settings.tick_interval_ms),
-                    self.link.callback(|_| Msg::Tick),
-                );
+                self.interval = {
+                    let link = self.link.clone();
+                    Interval::new(settings.tick_interval_ms as u32, move || {
+                        link.send_message(Msg::Tick)
+                    })
+                }
             }
 
             self.props = props;

@@ -27,15 +27,6 @@ fn main() {
 log::info!("Update: {:?}", msg);
 ```
 
-### [`ConsoleService`](https://docs.rs/yew-services/latest/yew_services/struct.ConsoleService.html)
-
-This service is included within the [`yew-services`](https://crates.io/crates/yew-services) crate:
-
-```rust
-// usage
-ConsoleService::info(format!("Update: {:?}", msg));
-```
-
 ## Source Maps
 
 There is currently no first-class support for source maps for Rust / Wasm web apps. This, of course, is subject to change. If this is no longer true or if progress is made, please suggest a change!

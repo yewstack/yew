@@ -266,8 +266,8 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<Option<yew::Callback<Mou
 4   | |     onauxclick(name: "auxclick", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
 5   | |     onblur(name: "blur", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
 ...   |
-99  | |     ontransitionstart(name: "transitionstart", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
-100 | | }
+101 | |     ontransitionstart(name: "transitionstart", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
+102 | | }
     | |_- required by this bound in `yew::html::onclick::Wrapper::__macro_new`
     |
     = help: the following implementations were found:
@@ -290,8 +290,8 @@ error[E0277]: the trait bound `yew::Callback<String>: IntoPropValue<Option<yew::
 4   | |     onauxclick(name: "auxclick", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
 5   | |     onblur(name: "blur", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
 ...   |
-99  | |     ontransitionstart(name: "transitionstart", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
-100 | | }
+101 | |     ontransitionstart(name: "transitionstart", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
+102 | | }
     | |_- required by this bound in `yew::html::onclick::Wrapper::__macro_new`
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<yew::Callback<FocusEvent>>>` is not satisfied
@@ -307,8 +307,8 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<yew::Call
 4   | |     onauxclick(name: "auxclick", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
 5   | |     onblur(name: "blur", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
 ...   |
-99  | |     ontransitionstart(name: "transitionstart", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
-100 | | }
+101 | |     ontransitionstart(name: "transitionstart", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
+102 | | }
     | |_- required by this bound in `yew::html::onfocus::Wrapper::__macro_new`
     |
     = help: the following implementations were found:

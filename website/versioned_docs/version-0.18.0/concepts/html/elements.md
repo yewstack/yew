@@ -326,4 +326,4 @@ Using the types from `yew::events` makes it easier to ensure version compatibili
 | `ontransitionstart`         | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) | Unsupported                                                                                                   |
 
 ## Relevant examples
-- [Inner HTML](https://github.com/yewstack/yew/tree/master/examples/inner_html)
+- [Inner HTML](https://github.com/yewstack/yew/tree/v0.18/examples/inner_html)

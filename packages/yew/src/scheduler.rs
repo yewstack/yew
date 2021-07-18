@@ -4,7 +4,8 @@ use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::rc::Rc;
 
-pub(crate) type Shared<T> = Rc<RefCell<T>>;
+/// Alias for Rc<RefCell<T>>
+pub type Shared<T> = Rc<RefCell<T>>;
 
 thread_local! {
     /// This is a global scheduler suitable to schedule and run any tasks.
@@ -15,13 +16,14 @@ thread_local! {
 }
 
 /// A routine which could be run.
-pub(crate) trait Runnable {
+pub trait Runnable {
     /// Runs a routine with a context instance.
     fn run(self: Box<Self>);
 }
 
 /// This is a global scheduler suitable to schedule and run any tasks.
 #[derive(Default)]
+#[allow(missing_debug_implementations)] // todo
 struct Scheduler {
     // Main queue
     main: VecDeque<Box<dyn Runnable>>,
@@ -44,8 +46,11 @@ fn with(f: impl FnOnce(&mut Scheduler)) {
 
 /// Push a generic Runnable to be executed
 #[inline]
-pub(crate) fn push(runnable: Box<dyn Runnable>) {
+pub fn push(runnable: Box<dyn Runnable>) {
     with(|s| s.main.push_back(runnable));
+    // Execute pending immediately. Necessary for runnables added outside the component lifecycle,
+    // which would otherwise be delayed.
+    start();
 }
 
 /// Push a component creation Runnable to be executed
@@ -111,5 +116,29 @@ impl Scheduler {
             .or_else(|| self.render.pop_front())
             .or_else(|| self.rendered.pop())
             .or_else(|| self.main.pop_front())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn push_executes_runnables_immediately() {
+        use std::cell::Cell;
+
+        thread_local! {
+            static FLAG: Cell<bool> = Default::default();
+        }
+
+        struct Test;
+        impl Runnable for Test {
+            fn run(self: Box<Self>) {
+                FLAG.with(|v| v.set(true));
+            }
+        }
+
+        push(Box::new(Test));
+        FLAG.with(|v| assert!(v.get()));
     }
 }
