@@ -32,12 +32,10 @@ wasm-bindgen = "0.2.74"
 wasm-bindgen-futures = "0.4"
 yew-macro = { version = "^0.18.0", path = "../yew-macro" }
 
+scoped-tls-hkt = "0.1.2"
+
 # optional encodings
 bincode = { version = "1", optional = true }
-rmp-serde = { version = "0.15.0", optional = true }
-serde_cbor = { version = "0.11.1", optional = true }
-serde_yaml = { version = "0.8.4", optional = true }
-toml = { version = "0.5", optional = true }
 
 [dependencies.web-sys]
 version = "0.3"
@@ -115,9 +113,6 @@ doc_test = []
 wasm_test = []
 wasm_bench = []
 agent = ["bincode"]
-yaml = ["serde_yaml"]
-msgpack = ["rmp-serde"]
-cbor = ["serde_cbor"]
 
 [package.metadata.docs.rs]
-features = ["yaml", "cbor", "toml", "msgpack", "doc_test"]
+features = ["doc_test"]

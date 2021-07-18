@@ -1,7 +1,7 @@
 use crate::random;
 use std::rc::Rc;
+use yew::utils::NeqAssign;
 use yew::{html, Component, ComponentLink, Html, Properties, ShouldRender};
-use yewtil::NeqAssign;
 
 use fake::faker::address::raw::*;
 use fake::faker::name::raw::*;

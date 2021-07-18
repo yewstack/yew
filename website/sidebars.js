@@ -63,15 +63,6 @@ module.exports = {
                 },
                 {
                     type: "category",
-                    label: "Services",
-                    items: [
-                        "concepts/services",
-                        "concepts/services/fetch",
-                        "concepts/services/format"
-                    ]
-                },
-                {
-                    type: "category",
                     label: "Function Components",
                     items: [
                         "concepts/function-components",

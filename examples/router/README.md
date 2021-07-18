@@ -21,7 +21,6 @@ Content generation can take up quite a bit of time in debug builds.
 This example involves many different parts, here are just the Yew specific things:
 
 - Uses [`yew-router`] to render and switch between multiple pages.
-- Uses [`IntervalService`] for the [`ProgressDelay`](src/components/progress_delay.rs) component.
 
 The example automatically adapts to the `--public-url` value passed to Trunk.
 This allows it to be hosted on any path, not just at the root.
@@ -44,5 +43,4 @@ Take a look at [`PublicUrlSwitch`](src/switch.rs) for the implementation.
 - Home (`/`) should include links to the post list and the author introduction
 - Detect sub-path from `--public-url` value passed to Trunk. See: thedodd/trunk#51
 
-[`intervalservice`]: https://docs.rs/yew-services/latest/yew_services/struct.IntervalService.html
 [`yew-router`]: https://docs.rs/yew-router/latest/yew_router/
