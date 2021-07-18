@@ -95,7 +95,7 @@ impl<IN, OUT> IntoIterator for NodeSeq<IN, OUT> {
     }
 }
 
-/// Print the `Node`'s contents as a string for debugging purposes
+/// Print the [web_sys::Node]'s contents as a string for debugging purposes
 pub fn print_node(n: &web_sys::Node) -> String {
     use wasm_bindgen::JsCast;
 

@@ -8,10 +8,10 @@ use web_sys::Element;
 /// This struct represents a fragment of the Virtual DOM tree.
 #[derive(Clone, Debug, PartialEq)]
 pub struct VList {
-    /// The list of children nodes.
+    /// The list of child [VNode]s
     children: Vec<VNode>,
 
-    // All Nodes in the VList have keys
+    /// All [VNode]s in the VList have keys
     fully_keyed: bool,
 
     pub key: Option<Key>,
@@ -67,12 +67,12 @@ macro_rules! advance_next_sibling {
 }
 
 impl VList {
-    /// Creates a new empty `VList` instance.
+    /// Creates a new empty [VList] instance.
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Creates a new `VList` instance with children.
+    /// Creates a new [VList] instance with children.
     pub fn new_with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
         VList {
             fully_keyed: children.iter().all(|ch| ch.has_key()),
@@ -81,7 +81,7 @@ impl VList {
         }
     }
 
-    /// Add `VNode` child.
+    /// Add [VNode] child.
     pub fn add_child(&mut self, child: VNode) {
         if self.fully_keyed && !child.has_key() {
             self.fully_keyed = false;
@@ -89,7 +89,7 @@ impl VList {
         self.children.push(child);
     }
 
-    /// Add multiple `VNode` children.
+    /// Add multiple [VNode] children.
     pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode>) {
         let it = children.into_iter();
         let bound = it.size_hint();
