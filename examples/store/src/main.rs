@@ -5,9 +5,10 @@ mod text_input;
 use agents::posts::{PostId, PostStore, Request};
 use post::Post;
 use text_input::TextInput;
+use weblog::console_log;
 use yew::prelude::*;
-use yew_services::ConsoleService;
-use yewtil::store::{Bridgeable, ReadOnly, StoreWrapper};
+use yew_agent::utils::store::{Bridgeable, ReadOnly, StoreWrapper};
+use yew_agent::Bridge;
 
 pub enum Msg {
     CreatePost(String),
@@ -42,7 +43,7 @@ impl Component for Model {
             Msg::PostStoreMsg(state) => {
                 // We can see this is logged once before we click any button.
                 // The state of the store is sent when we open a bridge.
-                ConsoleService::log("Received update");
+                console_log!("Received update");
 
                 let state = state.borrow();
                 if state.posts.len() != self.post_ids.len() {

@@ -1,6 +1,6 @@
 use super::event_bus::EventBus;
-use yew::agent::Bridged;
-use yew::{html, Bridge, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew_agent::{Bridge, Bridged};
 
 pub enum Msg {
     NewMessage(String),

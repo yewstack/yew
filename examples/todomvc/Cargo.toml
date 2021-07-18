@@ -11,4 +11,4 @@ strum_macros = "0.21"
 serde = "1"
 serde_derive = "1"
 yew = { path = "../../packages/yew" }
-yew-services = { path = "../../packages/yew-services" }
+gloo = { git = "https://github.com/rustwasm/gloo/" }

@@ -193,7 +193,7 @@ impl Component for MyComponent {
     fn view(&self) -> Html {
         // Create an ephemeral callback
         let click_callback = Callback::from(|| {
-            ConsoleService::new().log("clicked!");
+            console_log!("clicked!");
         });
 
         html! {

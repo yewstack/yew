@@ -8,4 +8,3 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 wasm-bindgen = "0.2"
 yew = { path = "../../packages/yew" }
-yew-services = { path = "../../packages/yew-services" }

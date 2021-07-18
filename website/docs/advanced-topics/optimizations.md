@@ -37,8 +37,7 @@ impl Example {
 ```
 
 But we can go further! This is six lines of boilerplate can be reduced down to one by using a trait 
-and a blanket implementation for anything that implements `PartialEq`. Check out the [`yewtil` 
-crate's `NeqAssign` trait](https://docs.rs/yewtil/*/yewtil/trait.NeqAssign.html) which implements
+and a blanket implementation for anything that implements `PartialEq`. Check out the [`NeqAssign` trait](https://docs.rs/yew/*/yew/utils/trait.NeqAssign.html) which implements
 this.
 
 ## Using smart pointers effectively

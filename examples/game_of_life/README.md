@@ -15,5 +15,5 @@ trunk serve --release
 
 ## Concepts
 
-Uses `IntervalService` to automatically step the simulation.
-Logs to the console using the [`log`](https://crates.io/crates/log) crate with the [`wasm_logger`](https://crates.io/crates/wasm-logger) adapter.
+- Uses [`gloo_timer`](https://gloo-rs.web.app/docs/timer) to automatically step the simulation.
+- Logs to the console using the [`weblog`](https://crates.io/crates/weblog) crate.
