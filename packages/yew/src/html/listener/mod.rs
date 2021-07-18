@@ -33,8 +33,9 @@ pub enum ChangeData {
     /// Value of the element in cases of `<input>`, `<textarea>`
     Value(String),
     /// SelectElement in case of `<select>` element. You can use one of methods of SelectElement
-    /// to collect your required data such as: `value`, `selected_index`, `selected_indices` or
-    /// `selected_values`. You can also iterate throught `selected_options` yourself.
+    /// to collect your required data such as `value` and `selected_index`.
+    /// You can also iterate throught `selected_options` yourself, this does require adding the
+    /// [web-sys](https://crates.io/crates/web-sys) crate with the `HtmlCollection` feature.
     Select(SelectElement),
     /// Files
     Files(FileList),

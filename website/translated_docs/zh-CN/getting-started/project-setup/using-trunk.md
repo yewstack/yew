@@ -11,7 +11,7 @@ cargo install wasm-bindgen-cli
 
 ## 用法
 
-请查看[“构建示例应用程序”](../build-a-sample-app.md) ，以获取有关如何使用Trunk构建Yew应用程序的简短指南。
+请查看[“构建示例应用程序”](../build-a-sample-app.md)，以获取有关如何使用Trunk构建Yew应用程序的简短指南。
 
 您还可以通过查看我们的[示例](https://github.com/yewstack/yew/tree/master/examples)来查看实际情况，所有示例都是使用Trunk构建的。
 

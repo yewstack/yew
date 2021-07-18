@@ -1,7 +1,7 @@
 use crate::random;
 use std::rc::Rc;
+use yew::utils::NeqAssign;
 use yew::{html, Component, ComponentLink, Html, Properties, ShouldRender};
-use yewtil::NeqAssign;
 
 use fake::faker::address::raw::*;
 use fake::faker::name::raw::*;
@@ -116,9 +116,9 @@ impl PersonType {
             }
             Self::Component(info) => {
                 if keyed {
-                    html! { <PersonComponent key=info.id.to_string() info=info /> }
+                    html! { <PersonComponent key=info.id.to_string() info=info.clone() /> }
                 } else {
-                    html! { <PersonComponent info=info /> }
+                    html! { <PersonComponent info=info.clone() /> }
                 }
             }
         }

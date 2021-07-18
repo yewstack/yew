@@ -10,4 +10,5 @@ log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 wasm-logger = "0.2"
 yew = { path = "../../packages/yew" }
-yew-services = { path = "../../packages/yew-services" }
+yew-agent = { path = "../../packages/yew-agent" }
+gloo = "0.2"

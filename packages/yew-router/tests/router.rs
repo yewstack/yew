@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+use yew::functional::function_component;
 use yew::prelude::*;
-use yew_functional::function_component;
 use yew_router::prelude::*;
 
 mod utils;
@@ -61,7 +61,7 @@ fn component() -> Html {
                     <a onclick=onclick>{"click me"}</a>
                 </>
             },
-            Routes::No { id } => html! { <No id=id /> },
+            Routes::No { id } => html! { <No id=*id /> },
             Routes::NotFound => html! { <div id="result">{"404"}</div> },
         }
     });

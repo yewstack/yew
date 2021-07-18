@@ -14,10 +14,6 @@
 //!
 //! ### Important Notes
 //! - Yew is not (yet) production ready but is great for side projects and internal tools
-#![cfg_attr(
-    feature = "web_sys",
-    doc = " - If your app is built with `stdweb`, we recommend using [`yew-stdweb`](https://docs.rs/yew-stdweb) instead."
-)]
 //!
 //! ## Example
 //!
@@ -119,7 +115,7 @@ pub use yew_macro::classes;
 ///
 /// [`Html`]: ./html/type.Html.html
 /// [`html_nested!`]: ./macro.html_nested.html
-/// [Yew Docs]: https://yew.rs/docs/en/concepts/html/
+/// [Yew Docs]: https://yew.rs/concepts/html/
 pub use yew_macro::html;
 
 /// This macro is similar to [`html!`], but preserves the component type instead
@@ -259,7 +255,7 @@ pub use yew_macro::html_nested;
 ///
 /// [`html!`]: ./macro.html.html
 /// [`Properties`]: ./html/trait.Properties.html
-/// [yew docs]: https://yew.rs/docs/en/concepts/components/properties
+/// [Yew Docs]: https://yew.rs/concepts/components/properties
 pub use yew_macro::props;
 
 /// This module contains macros which implements html! macro and JSX-like templates
@@ -273,14 +269,11 @@ pub mod macros {
 mod app_handle;
 pub mod callback;
 pub mod context;
-pub mod format;
+pub mod functional;
 pub mod html;
-mod scheduler;
+pub mod scheduler;
 pub mod utils;
 pub mod virtual_dom;
-
-#[cfg(feature = "agent")]
-pub mod agent;
 
 pub use web_sys;
 
@@ -399,8 +392,6 @@ where
 /// use yew::prelude::*;
 /// ```
 pub mod prelude {
-    #[cfg(feature = "agent")]
-    pub use crate::agent::{Bridge, Bridged, Dispatched, Threaded};
     pub use crate::app_handle::AppHandle;
     pub use crate::callback::Callback;
     pub use crate::context::ContextProvider;
@@ -411,13 +402,7 @@ pub mod prelude {
     };
     pub use crate::macros::{classes, html, html_nested};
 
-    /// Prelude module for creating worker.
-    #[cfg(feature = "agent")]
-    pub mod worker {
-        pub use crate::agent::{
-            Agent, AgentLink, Bridge, Bridged, Context, HandlerId, Job, Private, Public,
-        };
-    }
+    pub use crate::functional::*;
 }
 
 pub use self::prelude::*;

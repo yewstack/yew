@@ -1,5 +1,6 @@
 use crate::{content, generator::Generated, Route};
 use content::PostPart;
+use std::borrow::Cow;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
@@ -26,7 +27,7 @@ impl Component for Post {
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.post.seed == props.seed {
+        if self.post.meta.seed == props.seed {
             false
         } else {
             self.post = content::Post::generate_from_seed(props.seed);
@@ -38,6 +39,7 @@ impl Component for Post {
         let Self { post } = self;
 
         let keywords = post
+            .meta
             .keywords
             .iter()
             .map(|keyword| html! { <span class="tag is-info">{ keyword }</span> });
@@ -45,16 +47,16 @@ impl Component for Post {
         html! {
             <>
                 <section class="hero is-medium is-light has-background">
-                    <img class="hero-background is-transparent" src=post.image_url />
+                    <img class="hero-background is-transparent" src=Cow::Owned(post.meta.image_url.clone()) />
                     <div class="hero-body">
                         <div class="container">
                             <h1 class="title">
-                                { &post.title }
+                                { &post.meta.title }
                             </h1>
                             <h2 class="subtitle">
                                 { "by " }
-                                <Link<Route> classes=classes!("has-text-weight-semibold") route=Route::Author { id: post.author.seed }>
-                                    { &post.author.name }
+                                <Link<Route> classes=classes!("has-text-weight-semibold") route=Route::Author { id: post.meta.author.seed }>
+                                    { &post.meta.author.name }
                                 </Link<Route>>
                             </h2>
                             <div class="tags">
@@ -76,7 +78,7 @@ impl Post {
             <article class="media block box my-6">
                 <figure class="media-left">
                     <p class="image is-64x64">
-                        <img src=quote.author.image_url loading="lazy" />
+                        <img src=Cow::Owned(quote.author.image_url.clone()) loading="lazy" />
                     </p>
                 </figure>
                 <div class="media-content">
@@ -96,7 +98,7 @@ impl Post {
     fn render_section_hero(&self, section: &content::Section) -> Html {
         html! {
             <section class="hero is-dark has-background mt-6 mb-3">
-                <img class="hero-background is-transparent" src=section.image_url loading="lazy" />
+                <img class="hero-background is-transparent" src=Cow::Owned(section.image_url.clone()) loading="lazy" />
                 <div class="hero-body">
                     <div class="container">
                         <h2 class="subtitle">{ &section.title }</h2>

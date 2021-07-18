@@ -1,10 +1,9 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
-use super::{VDiff, VNode};
+use super::{AttrValue, VDiff, VNode};
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
 use log::warn;
-use std::borrow::Cow;
 use std::cmp::PartialEq;
 use web_sys::{Element, Text as TextNode};
 
@@ -14,14 +13,14 @@ use web_sys::{Element, Text as TextNode};
 #[derive(Clone)]
 pub struct VText {
     /// Contains a text of the node.
-    pub text: Cow<'static, str>,
+    pub text: AttrValue,
     /// A reference to the `TextNode`.
     pub reference: Option<TextNode>,
 }
 
 impl VText {
     /// Creates new virtual text node with a content.
-    pub fn new(text: impl Into<Cow<'static, str>>) -> Self {
+    pub fn new(text: impl Into<AttrValue>) -> Self {
         VText {
             text: text.into(),
             reference: None,

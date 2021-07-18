@@ -1,10 +1,9 @@
+use gloo::storage::{LocalStorage, Storage};
 use state::{Entry, Filter, State};
 use strum::IntoEnumIterator;
-use yew::format::Json;
 use yew::web_sys::HtmlInputElement as InputElement;
 use yew::{classes, html, Component, ComponentLink, Html, InputData, NodeRef, ShouldRender};
 use yew::{events::KeyboardEvent, Classes};
-use yew_services::storage::{Area, StorageService};
 
 mod state;
 
@@ -26,7 +25,6 @@ pub enum Msg {
 
 pub struct Model {
     link: ComponentLink<Self>,
-    storage: StorageService,
     state: State,
     focus_ref: NodeRef,
 }
@@ -36,14 +34,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let storage = StorageService::new(Area::Local).expect("storage was disabled by the user");
-        let entries = {
-            if let Json(Ok(restored_model)) = storage.restore(KEY) {
-                restored_model
-            } else {
-                Vec::new()
-            }
-        };
+        let entries = LocalStorage::get(KEY).unwrap_or_else(|_| Vec::new());
         let state = State {
             entries,
             filter: Filter::All,
@@ -53,7 +44,6 @@ impl Component for Model {
         let focus_ref = NodeRef::default();
         Self {
             link,
-            storage,
             state,
             focus_ref,
         }
@@ -113,7 +103,7 @@ impl Component for Model {
                 }
             }
         }
-        self.storage.store(KEY, Json(&self.state.entries));
+        LocalStorage::set(KEY, &self.state.entries).expect("failed to set");
         true
     }
 
@@ -196,7 +186,7 @@ impl Model {
             <input
                 class="new-todo"
                 placeholder="What needs to be done?"
-                value=&self.state.value
+                value=self.state.value.clone()
                 oninput=self.link.callback(|e: InputData| Msg::Update(e.value))
                 onkeypress=self.link.batch_callback(|e: KeyboardEvent| {
                     if e.key() == "Enter" { Some(Msg::Add) } else { None }
@@ -242,7 +232,7 @@ impl Model {
                     class="edit"
                     type="text"
                     ref=self.focus_ref.clone()
-                    value=&self.state.edit_value
+                    value=self.state.edit_value.clone()
                     onmouseover=self.link.callback(|_| Msg::Focus)
                     oninput=self.link.callback(|e: InputData| Msg::UpdateEdit(e.value))
                     onblur=self.link.callback(move |_| Msg::Edit(idx))

@@ -1,4 +1,4 @@
-use crate::utils::{base_url, build_path_with_base, strip_slash_suffix};
+use crate::utils::{base_url, strip_slash_suffix};
 use crate::Routable;
 
 // re-export Router because the macro needs to access it
@@ -10,13 +10,10 @@ pub fn build_router<R: Routable>() -> Router {
     let mut router = Router::new();
     R::routes().iter().for_each(|path| {
         match &base {
-            Some(base) if base != "/" => {
-                let route = build_path_with_base(path);
-                let mut dest = route.replace(base, "");
-                if dest.is_empty() {
-                    dest = "/".to_string();
-                }
-                router.add(&route, dest);
+            Some(base) => {
+                let route = format!("{}{}", base, path);
+                let route = strip_slash_suffix(&route);
+                router.add(route, path.to_string());
             }
             _ => {
                 router.add(&path, path.to_string());

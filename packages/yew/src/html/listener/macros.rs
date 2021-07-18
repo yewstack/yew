@@ -6,11 +6,12 @@ macro_rules! impl_action {
         pub mod $action {
             use crate::callback::Callback;
             #[allow(unused_imports)]
-            use crate::html::listener::*;
+            use crate::html::{listener::*, IntoPropValue};
             use crate::virtual_dom::Listener;
             use gloo::events::{EventListener, EventListenerOptions};
             use wasm_bindgen::JsValue;
             use web_sys::{$type as WebSysType, Element, EventTarget};
+            use std::rc::Rc;
 
             /// A wrapper for a callback which attaches event listeners to elements.
             #[derive(Clone, Debug)]
@@ -22,6 +23,12 @@ macro_rules! impl_action {
                 /// Create a wrapper for an event-typed callback
                 pub fn new(callback: Callback<Event>) -> Self {
                     Wrapper { callback }
+                }
+
+                #[doc(hidden)]
+                pub fn __macro_new(callback: impl IntoPropValue<Option<Callback<Event>>>) -> Option<Rc<dyn Listener>> {
+                    let callback = callback.into_prop_value()?;
+                    Some(Rc::new(Self::new(callback)))
                 }
             }
 

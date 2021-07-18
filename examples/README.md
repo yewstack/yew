@@ -31,9 +31,8 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [boids](boids)                                      | Yew port of [Boids](https://en.wikipedia.org/wiki/Boids)                                                                           |
 | [counter](counter)                                  | Simple counter which can be incremented and decremented                                                                            |
 | [crm](crm)                                          | Shallow customer relationship management tool                                                                                      |
-| [dashboard](dashboard)                              | Uses the `fetch` and `websocket` services to load external data                                                                    |
 | [dyn_create_destroy_apps](dyn_create_destroy_apps)  | Uses the function `start_app_in_element` and the `AppHandle` struct to dynamically create and delete Yew apps                      |
-| [file_upload](file_upload)                          | Uses the `reader` service to read the content of user uploaded files                                                               |
+| [file_upload](file_upload)                          | Uses the `gloo::file` to read the content of user uploaded files                                                               |
 | [futures](futures)                                  | Demonstrates how you can use futures and async code with Yew. Features a Markdown renderer.                                        |
 | [game_of_life](game_of_life)                        | Implementation of [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)                                   |
 | [inner_html](inner_html)                            | Embeds an external document as raw HTML by manually managing the element                                                           |
@@ -42,8 +41,8 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [mount_point](mount_point)                          | Shows how to mount the root component to a custom element                                                                          |
 | [multi_thread](multi_thread)                        | Demonstrates the use of Web Workers to offload computation to the background                                                       |
 | [nested_list](nested_list)                          | Renders a styled list which tracks hover events                                                                                    |
-| [node_refs](node_refs)                              | Uses a [`NodeRef`](https://yew.rs/docs/concepts/components/refs) to focus the input element under the cursor                       |
-| [pub_sub](pub_sub)                                  | Cross-component communication using [Agents](https://yew.rs/docs/concepts/agents)                                                  |
+| [node_refs](node_refs)                              | Uses a [`NodeRef`](https://yew.rs/concepts/components/refs) to focus the input element under the cursor                       |
+| [pub_sub](pub_sub)                                  | Cross-component communication using [Agents](https://yew.rs/concepts/agents)                                                  |
 | [router](router)                                    | The best yew blog built with `yew-router`                                                                                          |
 | [store](store)                                      | Showcases the `yewtil::store` API                                                                                                  |
 | [timer](timer)                                      | Demonstrates the use of the interval and timeout services                                                                          |
@@ -53,7 +52,7 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 
 ## Next steps
 
-Have a look at Yew's [starter templates](https://yew.rs/docs/getting-started/starter-templates) when starting a project using Yew – they can significantly simplify things.
+Have a look at Yew's [starter templates](https://yew.rs/getting-started/starter-templates) when starting a project using Yew – they can significantly simplify things.
 
 ## Help out
 

@@ -46,7 +46,15 @@ impl<R: Routable + Clone + PartialEq + 'static> Component for Link<R> {
 
     fn view(&self) -> Html {
         html! {
-            <a class=self.props.classes.clone() onclick=self.link.callback(|_| Msg::OnClick)>{ self.props.children.clone() }</a>
+            <a class=self.props.classes.clone()
+                href=self.props.route.to_path()
+                onclick=self.link.callback(|e: MouseEvent| {
+                    e.prevent_default();
+                    Msg::OnClick
+                })
+            >
+                { self.props.children.clone() }
+            </a>
         }
     }
 }

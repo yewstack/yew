@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use yewtil::NeqAssign;
+use yew::utils::NeqAssign;
 
 const ELLIPSIS: &str = "\u{02026}";
 

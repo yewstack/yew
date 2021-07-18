@@ -34,7 +34,7 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
 15 |         <>{ for (0..3).map(|_| not_tree()) }</>
    |                 ^^^^^^ `()` cannot be formatted with the default formatter
    |
-  ::: $WORKSPACE/packages/yew/src/utils.rs
+  ::: $WORKSPACE/packages/yew/src/utils/mod.rs
    |
    |     T: Into<R>,
    |        ------- required by this bound in `into_node_iter`

@@ -22,26 +22,19 @@ impl Generated for Author {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Post {
+pub struct PostMeta {
     pub seed: u64,
     pub title: String,
     pub author: Author,
     pub keywords: Vec<String>,
     pub image_url: String,
-    pub content: Vec<PostPart>,
 }
-impl Generated for Post {
+impl Generated for PostMeta {
     fn generate(gen: &mut Generator) -> Self {
-        const PARTS_MIN: usize = 1;
-        const PARTS_MAX: usize = 10;
-
         let title = gen.title();
         let author = Author::generate_from_seed(gen.new_seed());
         let keywords = gen.keywords();
         let image_url = gen.image_url((1000, 500), &keywords);
-
-        let n_parts = gen.range(PARTS_MIN, PARTS_MAX);
-        let content = (0..n_parts).map(|_| PostPart::generate(gen)).collect();
 
         Self {
             seed: gen.seed,
@@ -49,8 +42,26 @@ impl Generated for Post {
             author,
             keywords,
             image_url,
-            content,
         }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Post {
+    pub meta: PostMeta,
+    pub content: Vec<PostPart>,
+}
+impl Generated for Post {
+    fn generate(gen: &mut Generator) -> Self {
+        const PARTS_MIN: usize = 1;
+        const PARTS_MAX: usize = 10;
+
+        let meta = PostMeta::generate(gen);
+
+        let n_parts = gen.range(PARTS_MIN, PARTS_MAX);
+        let content = (0..n_parts).map(|_| PostPart::generate(gen)).collect();
+
+        Self { meta, content }
     }
 }
 

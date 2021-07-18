@@ -41,12 +41,6 @@ jobs:
           command: clippy
           args: --all-targets -- -D warnings
 
-      - name: Run clippy - yew with all features
-        if: always()
-        run: |
-          cd packages/yew
-          cargo clippy --all-targets --features "cbor msgpack toml yaml" -- -D warnings
-
   check_examples:
     name: Check Examples
     runs-on: ubuntu-latest
@@ -110,20 +104,11 @@ jobs:
       - name: Run doctest - yew with features
         run: |
           cd packages/yew
-          cargo test --doc --features "doc_test wasm_test yaml msgpack cbor toml"
+          cargo test --doc --features "doc_test wasm_test"
 
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
     runs-on: ubuntu-latest
-    services:
-      httpbin:
-        image: kennethreitz/httpbin@sha256:599fe5e5073102dbb0ee3dbb65f049dab44fa9fc251f6835c9990f8fb196a72b
-        ports:
-          - 8080:80
-      echo_server:
-        image: jmalloc/echo-server@sha256:c461e7e54d947a8777413aaf9c624b4ad1f1bac5d8272475da859ae82c1abd7d
-        ports:
-          - 8081:8080
 
     strategy:
       matrix:
@@ -162,20 +147,6 @@ jobs:
         run: |
           cd packages/yew-router
           wasm-pack test --chrome --firefox --headless
-
-      - name: Run tests - yew-functional
-        run: |
-          cd packages/yew-functional
-          wasm-pack test --chrome --firefox --headless
-
-      - name: Run tests - yew-services
-        env:
-          HTTPBIN_URL: "http://localhost:8080"
-          ECHO_SERVER_URL: "ws://localhost:8081"
-        run: |
-          cd packages/yew-services
-          wasm-pack test --chrome --firefox --headless -- --features "wasm_test httpbin_test echo_server_test"
-
 
   unit_tests:
     name: Unit Tests on ${{ matrix.toolchain }}

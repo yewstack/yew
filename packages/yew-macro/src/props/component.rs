@@ -138,18 +138,15 @@ impl ComponentProps {
         let build_props = match self {
             Self::List(props) => {
                 let set_props = props.iter().map(|Prop { label, value, .. }| {
-                        quote_spanned! {value.span()=> .#label(
-                            #[allow(unused_braces)]
-                            <::yew::virtual_dom::VComp as ::yew::virtual_dom::Transformer<_, _>>::transform(
-                                #value
-                            )
-                        )}
-                    });
+                    quote_spanned! {value.span()=>
+                        .#label(#value)
+                    }
+                });
 
                 let set_children = children_renderer.map(|children| {
-                    Some(quote_spanned! {props_ty.span()=>
+                    quote_spanned! {props_ty.span()=>
                         .children(#children)
-                    })
+                    }
                 });
 
                 quote_spanned! {props_ty.span()=>
@@ -162,9 +159,9 @@ impl ComponentProps {
             Self::With(with_props) => {
                 let ident = Ident::new("__yew_props", props_ty.span());
                 let set_children = children_renderer.map(|children| {
-                    Some(quote_spanned! {props_ty.span()=>
+                    quote_spanned! {props_ty.span()=>
                         #ident.children = #children;
-                    })
+                    }
                 });
 
                 let expr = &with_props.expr;
@@ -200,12 +197,7 @@ impl TryFrom<Props> for ComponentProps {
     fn try_from(props: Props) -> Result<Self, Self::Error> {
         props.check_no_duplicates()?;
         props.check_all(|prop| {
-            if prop.question_mark.is_some() {
-                Err(syn::Error::new_spanned(
-                    &prop.label,
-                    "optional attributes are only supported on elements. Components can use `Option<T>` properties to accomplish the same thing.",
-                ))
-            } else if !prop.label.extended.is_empty() {
+            if !prop.label.extended.is_empty() {
                 Err(syn::Error::new_spanned(
                     &prop.label,
                     "expected a valid Rust identifier",

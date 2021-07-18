@@ -1,6 +1,6 @@
 [package]
 name = "yew-router"
-version = "0.14.0"
+version = "0.15.0"
 authors = ["Hamza <muhammadhamza1311@gmail.com>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
@@ -38,7 +38,6 @@ features = [
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
-yew-functional = { path = "../yew-functional" }
 serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies.web-sys]

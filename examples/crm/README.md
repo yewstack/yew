@@ -10,11 +10,11 @@ It's possible to create new clients and clear the list entirely.
 
 This example features multiple views ("scenes") which the user can switch between.
 
-For a much more sophisticated approach check out [`yew-router`](https://yew.rs/docs/en/concepts/router/).
+For a much more sophisticated approach check out [`yew-router`](https://yew.rs/concepts/router/).
 One major flaw with the implementation used by this example is that the scenes aren't tied to the URL.
 Reloading the page always brings the user back to the initial scene.
 
-The example also uses the [`StorageService`](https://docs.rs/yew-services/latest/yew_services/struct.StorageService.html)
+The example also uses the [`gloo::storage`](https://gloo-rs.web.app/docs/storage)
 to persist the clients across sessions.
 
 ## Improvements

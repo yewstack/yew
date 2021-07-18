@@ -57,7 +57,7 @@ impl Component for TextInput {
         html! {
             <input
                 type="text"
-                value=&self.text
+                value=self.text.clone()
                 oninput=self.link.callback(|e: InputData| Msg::SetText(e.value))
                 onkeydown=self.link.batch_callback(move |e: KeyboardEvent| {
                     e.stop_propagation();

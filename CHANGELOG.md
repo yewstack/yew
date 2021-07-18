@@ -1,5 +1,29 @@
 # Changelog
 
+## ✨ **0.18.0** *(2021-05-15)*
+
+#### Changelog
+
+- #### 🛠 Fixes
+
+  - Fix missing redirects. [[@siku2](https://github.com/siku2), [#1640](https://github.com/yewstack/yew/pull/1640)]
+  - Remove Drop bound from Task trait. [[@siku2](https://github.com/siku2), [#1627](https://github.com/yewstack/yew/pull/1627)]
+  - Enable std feature for indexmap. [[@jstarry](https://github.com/jstarry), [#1709](https://github.com/yewstack/yew/pull/1709)]
+
+- #### ⚡️ Features
+
+  - Implicit optional attributes. [[@siku2](https://github.com/siku2), [#1637](https://github.com/yewstack/yew/pull/1637)]
+  - Added callback_future_once in yewtil.(#1712). [[@fraillt](https://github.com/fraillt), [#1696](https://github.com/yewstack/yew/pull/1696)]
+  - Added relevant examples section to the docs. [[@oOBoomberOo](https://github.com/oOBoomberOo), [#1695](https://github.com/yewstack/yew/pull/1695)]
+  - Added missing KeyboardService re-export. [[@SOF3](https://github.com/SOF3), [#1694](https://github.com/yewstack/yew/pull/1694)]
+  - Rename internal Agent structs to match Component. [[@jstarry](https://github.com/jstarry), [#1688](https://github.com/yewstack/yew/pull/1688)]
+  - Add discussion link to issue selector. [[@jstarry](https://github.com/jstarry), [#1674](https://github.com/yewstack/yew/pull/1674)]
+  - Update link to Material Design Components. [[@TapioT](https://github.com/TapioT), [#1662](https://github.com/yewstack/yew/pull/1662)]
+  - Extract Classes to a separate macro. [[@cecton](https://github.com/cecton), [#1601](https://github.com/yewstack/yew/pull/1601)]
+  - Improve the "keyed_list" example. [[@titaneric](https://github.com/titaneric), [#1650](https://github.com/yewstack/yew/pull/1650)]
+  - Add documentation for component children. [[@K4rakara](https://github.com/K4rakara), [#1616](https://github.com/yewstack/yew/pull/1616)]
+  - Add a macro for building properties outside of html!. [[@siku2](https://github.com/siku2), [#1599](https://github.com/yewstack/yew/pull/1599)]
+
 ## ✨ **0.17.4** *(2020-10-18)*
 
 #### Changelog
@@ -301,7 +325,7 @@ Lastly, take note that API docs on https://docs.rs/yew will be using the `"web_s
   - Implemented `PartialEq` for `ChildrenRenderer` to allow `children` comparison. [[@jstarry], [#916](https://github.com/yewstack/yew/pull/916)]
   - Reduced restrictions on `ComponentLink` methods to improve `Future` support. [[@jplatte], [#931](https://github.com/yewstack/yew/pull/931)]
   - Added `referrer`, `referrer_policy` and `integrity` to `FetchOptions`. [[@leo-lb], [#931](https://github.com/yewstack/yew/pull/931)]
- 
+
 - #### 🛠 Fixes
 
   - Fixed touch event listeners. [[@AlephAlpha], [#872](https://github.com/yewstack/yew/pull/872)]

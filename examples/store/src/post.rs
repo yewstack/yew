@@ -1,8 +1,9 @@
 use crate::agents::posts::{PostId, PostStore, Request};
 use crate::text_input::TextInput;
 use yew::prelude::*;
-use yewtil::store::{Bridgeable, ReadOnly, StoreWrapper};
-use yewtil::NeqAssign;
+use yew::utils::NeqAssign;
+use yew_agent::utils::store::{Bridgeable, ReadOnly, StoreWrapper};
+use yew_agent::Bridge;
 
 pub enum Msg {
     UpdateText(String),
@@ -71,7 +72,7 @@ impl Component for Post {
                 <h2>{ format!("Post #{}", self.id) }</h2>
                 <p>{text}</p>
 
-                <TextInput value=text onsubmit=self.link.callback(Msg::UpdateText) />
+                <TextInput value=text.to_owned() onsubmit=self.link.callback(Msg::UpdateText) />
                 <button onclick=self.link.callback(|_| Msg::Delete)>
                     { "Delete" }
                 </button>

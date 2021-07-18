@@ -7,4 +7,3 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 yew = { path = "../../packages/yew" }
-yew-services = { path = "../../packages/yew-services" }

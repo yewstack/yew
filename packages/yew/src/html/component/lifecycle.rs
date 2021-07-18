@@ -1,7 +1,7 @@
 //! Component lifecycle module
 
 use super::{Component, Scope};
-use crate::scheduler::{scheduler, ComponentRunnableType, Runnable, Shared};
+use crate::scheduler::{self, Runnable, Shared};
 use crate::virtual_dom::{VDiff, VNode};
 use crate::NodeRef;
 use web_sys::Element;
@@ -44,14 +44,12 @@ impl<COMP: Component> ComponentState<COMP> {
 
     fn drain_pending_updates(&mut self, state: &Shared<Option<ComponentState<COMP>>>) {
         if !self.pending_updates.is_empty() {
-            scheduler()
-                .component
-                .push_update_batch(self.pending_updates.drain(..).map(|update| {
-                    Box::new(ComponentRunnable {
-                        state: state.clone(),
-                        event: update.into(),
-                    }) as Box<dyn Runnable>
-                }));
+            scheduler::push_component_updates(self.pending_updates.drain(..).map(|update| {
+                Box::new(ComponentRunnable {
+                    state: state.clone(),
+                    event: update.into(),
+                }) as Box<dyn Runnable>
+            }));
         }
     }
 }
@@ -63,18 +61,6 @@ pub(crate) enum ComponentLifecycleEvent<COMP: Component> {
     Render,
     Rendered,
     Destroy,
-}
-
-impl<COMP: Component> ComponentLifecycleEvent<COMP> {
-    pub(crate) fn as_runnable_type(&self) -> ComponentRunnableType {
-        match self {
-            Self::Create(_) => ComponentRunnableType::Create,
-            Self::Update(_) => ComponentRunnableType::Update,
-            Self::Render => ComponentRunnableType::Render,
-            Self::Rendered => ComponentRunnableType::Rendered,
-            Self::Destroy => ComponentRunnableType::Destroy,
-        }
-    }
 }
 
 impl<COMP: Component> From<CreateEvent<COMP>> for ComponentLifecycleEvent<COMP> {
@@ -248,6 +234,8 @@ mod tests {
     #[derive(Clone, Properties, Default)]
     struct Props {
         lifecycle: Rc<RefCell<Vec<String>>>,
+        #[allow(dead_code)]
+        #[cfg(feature = "wasm_test")]
         create_message: Option<bool>,
         update_message: RefCell<Option<bool>>,
         view_message: RefCell<Option<bool>>,
@@ -265,6 +253,7 @@ mod tests {
 
         fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
             props.lifecycle.borrow_mut().push("create".into());
+            #[cfg(feature = "wasm_test")]
             if let Some(msg) = props.create_message {
                 link.send_message(msg);
             }
@@ -344,6 +333,7 @@ mod tests {
         test_lifecycle(
             Props {
                 lifecycle: lifecycle.clone(),
+                #[cfg(feature = "wasm_test")]
                 create_message: Some(false),
                 ..Props::default()
             },
@@ -423,6 +413,7 @@ mod tests {
         test_lifecycle(
             Props {
                 lifecycle,
+                #[cfg(feature = "wasm_test")]
                 create_message: Some(true),
                 update_message: RefCell::new(Some(true)),
                 ..Props::default()
