@@ -44,13 +44,13 @@ impl Component for Model {
                 self.files.push(info);
                 true
             }
-            Msg::Files(files, chunks) => {
+            Msg::Files(files, bytes) => {
                 for file in files.into_iter() {
                     let task = {
                         let file_name = file.name();
                         let link = self.link.clone();
 
-                        if chunks {
+                        if bytes {
                             gloo::file::callbacks::read_as_bytes(&file, move |res| {
                                 link.send_message(Msg::LoadedBytes(
                                     file_name,

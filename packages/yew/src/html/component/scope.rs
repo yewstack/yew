@@ -336,7 +336,7 @@ impl<COMP: Component> Scope<COMP> {
         Callback::once(closure)
     }
 
-    /// This method creates a `Callback` which returns a Future which
+    /// This method creates a [`Callback`] which returns a Future which
     /// returns a message to be sent back to the component's event
     /// loop.
     ///
@@ -359,7 +359,7 @@ impl<COMP: Component> Scope<COMP> {
         closure.into()
     }
 
-    /// This method creates a `Callback` from `FnOnce` which returns a Future
+    /// This method creates a [`Callback`] from [`FnOnce`] which returns a Future
     /// which returns a message to be sent back to the component's event
     /// loop.
     ///
@@ -400,7 +400,7 @@ impl<COMP: Component> Scope<COMP> {
         spawn_local(js_future);
     }
 
-    /// Registers a future that resolves to multiple messages.
+    /// Registers a Future that resolves to multiple messages.
     /// # Panics
     /// If the future panics, then the promise will not resolve, and will leak.
     pub fn send_future_batch<F>(&self, future: F)

@@ -69,7 +69,7 @@ impl<AGN: Agent> AgentLink<AGN> {
         closure.into()
     }
 
-    /// This method creates a `Callback` which returns a Future which
+    /// This method creates a [`Callback`] which returns a Future which
     /// returns a message to be sent back to the agent
     ///
     /// # Panics
@@ -91,7 +91,7 @@ impl<AGN: Agent> AgentLink<AGN> {
         closure.into()
     }
 
-    /// This method creates a `Callback` from `FnOnce` which returns a Future
+    /// This method creates a [`Callback`] from [`FnOnce`] which returns a Future
     /// which returns a message to be sent back to the agent.
     ///
     /// # Panics
