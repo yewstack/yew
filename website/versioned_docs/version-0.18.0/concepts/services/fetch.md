@@ -241,7 +241,6 @@ The Rust Wasm Book also contains [useful debugging tips](https://rustwasm.github
 for Wasm applications.
 
 ## Further reading
-* [The API documentation](https://docs.rs/yew/0.14.3/yew/services/fetch/index.html)
-* The [dashboard](https://github.com/yewstack/yew/tree/master/examples/dashboard) and 
-[npm_and_rest](https://github.com/yewstack/yew/tree/master/examples/web_sys/npm_and_rest) examples.
+* [The API documentation](https://docs.rs/yew/0.18.0/yew/services/fetch/index.html)
+* The [dashboard](https://github.com/yewstack/yew/tree/v0.18/examples/dashboard) example
 * [The Rust Wasm Book on debugging Wasm applications](https://rustwasm.github.io/book/reference/debugging.html)

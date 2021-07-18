@@ -6,7 +6,7 @@ module.exports = {
   baseUrl: '/',
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
-  favicon: 'img/favicon.png',
+  favicon: 'img/logo.png',
   organizationName: 'yewstack', // Usually your GitHub org/user name.
   projectName: 'yew', // Usually your repo name.
   themeConfig: {
@@ -24,12 +24,6 @@ module.exports = {
         {
           type: 'localeDropdown',
           position: 'left',
-        },
-        {
-          type: 'doc',
-          docId: 'intro',
-          position: 'left',
-          label: 'Docs',
         },
         {
           href: 'https://docs.rs/yew',
@@ -109,8 +103,8 @@ module.exports = {
       {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl:
-            'https://github.com/yewstack/yew/blob/master/website/',
+          editUrl: 'https://github.com/yewstack/yew/blob/master/website/',
+          routeBasePath: '/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),

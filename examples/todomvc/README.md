@@ -17,4 +17,4 @@ including: all entries, entered text and chosen filter.
 - Use `yew-router` for the hash based routing
 - Clean up the code
 
-[`refs`]: https://yew.rs/docs/en/concepts/components/refs/
+[`refs`]: https://yew.rs/concepts/components/refs/

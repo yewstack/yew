@@ -25,6 +25,8 @@ impl_action! {
     onended(name: "ended", event: Event) -> web_sys::Event => |_, event| { event }
     onerror(name: "error", event: Event) -> web_sys::Event => |_, event| { event }
     onfocus(name: "focus", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
+    onfocusin(name: "focusin", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
+    onfocusout(name: "focusout", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
     // web_sys doesn't have a struct for `FormDataEvent`
     onformdata(name: "formdata", event: Event) -> web_sys::Event => |_, event| { event }
     oninput(name: "input", event: InputEvent) -> InputData => |this: &Element, event| { oninput_handler(this, event) }

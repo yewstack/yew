@@ -27,7 +27,7 @@ use std::rc::Rc;
 ///
 /// See the pre-defined hooks for examples of how to use this function.
 ///
-/// [Yew Docs]: https://yew.rs/docs/en/next/concepts/function-components/custom-hooks
+/// [Yew Docs]: https://yew.rs/next/concepts/function-components/custom-hooks
 pub fn use_hook<InternalHook: 'static, Output, Tear: FnOnce(&mut InternalHook) + 'static>(
     initializer: impl FnOnce() -> InternalHook,
     runner: impl FnOnce(&mut InternalHook, HookUpdater) -> Output,

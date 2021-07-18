@@ -48,6 +48,9 @@ fn with(f: impl FnOnce(&mut Scheduler)) {
 #[inline]
 pub fn push(runnable: Box<dyn Runnable>) {
     with(|s| s.main.push_back(runnable));
+    // Execute pending immediately. Necessary for runnables added outside the component lifecycle,
+    // which would otherwise be delayed.
+    start();
 }
 
 /// Push a component creation Runnable to be executed
@@ -113,5 +116,29 @@ impl Scheduler {
             .or_else(|| self.render.pop_front())
             .or_else(|| self.rendered.pop())
             .or_else(|| self.main.pop_front())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn push_executes_runnables_immediately() {
+        use std::cell::Cell;
+
+        thread_local! {
+            static FLAG: Cell<bool> = Default::default();
+        }
+
+        struct Test;
+        impl Runnable for Test {
+            fn run(self: Box<Self>) {
+                FLAG.with(|v| v.set(true));
+            }
+        }
+
+        push(Box::new(Test));
+        FLAG.with(|v| assert!(v.get()));
     }
 }

@@ -3,6 +3,30 @@ title: "Elements"
 description: "Both HTML and SVG elements are supported"
 ---
 
+## DOM nodes
+
+There are many reasons why you might want to create or manage DOM nodes manually in Yew, such as
+when integrating with JS libraries that can cause conflicts with managed components.
+
+Using `web-sys`, you can create DOM elements and convert them into a `Node` - which can then be 
+used as a `Html` value using `VRef`:
+
+```rust
+    // ...
+    fn view(&self) -> Html {
+        use yew::{utils::document, web_sys::{Element, Node}};
+
+        // Create a div element from the document
+        let div: Element = document().create_element("div").unwrap();
+        // Add content, classes etc.
+        div.set_inner_html("Hello, World!");
+        // Convert Element into a Node
+        let node: Node = div.into();
+        // Return that Node as a Html value
+        Html::VRef(node)
+    }
+```
+
 ## Dynamic tag names
 
 When building a higher-order component you might find yourself in a situation where the element's tag name isn't static.
@@ -17,6 +41,43 @@ let text = "Hello World!".to_owned()
 html! {
     <@{format!("h{}", level)} class="title">{ content }</@>
 }
+```
+
+## Boolean Attributes 
+
+Some content attributes (e.g checked, hidden, required) are called boolean attributes. In Yew, 
+boolean attributes need to be set to a bool value:
+
+```rust
+    html! {
+        <div hidden=true>
+            { "This div is hidden." }
+        </div>
+    }
+```
+
+This will result in **HTML** that's functionally equivalent to this:
+```html
+    <div hidden>This div is hidden.</div>
+```
+
+Setting a boolean attribute to false is equivalent to not using the attribute at all; values from 
+boolean expressions can be used:
+
+```rust
+    let no = 1 + 1 != 2;
+
+    html! {
+        <div hidden=no>
+            { "This div is NOT hidden." }
+        </div>
+    }
+```
+
+This will result in the following **HTML**:
+
+```html
+    <div>This div is NOT hidden.</div>
 ```
 
 ## Optional attributes for HTML elements
@@ -182,6 +243,8 @@ end up using a version which conflicts with the version that Yew specifies.
 | `onended`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
 | `onerror`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
 | `onfocus`                   | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html)           |
+| `onfocusin`                 | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html)           |
+| `onfocusout`                | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html)           |
 | `onformdata`                | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
 | `oninput`                   | [InputData](https://docs.rs/yew/latest/yew/events/struct.InputData.html)              |
 | `oninvalid`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
@@ -251,3 +314,6 @@ end up using a version which conflicts with the version that Yew specifies.
 | `ontransitionend`           | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
 | `ontransitionrun`           | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
 | `ontransitionstart`         | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
+
+## Relevant examples
+- [Inner HTML](https://github.com/yewstack/yew/tree/master/examples/inner_html)

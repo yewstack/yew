@@ -38,5 +38,5 @@ wasm-bindgen = "0.2"
 ## その他のテンプレート
 
 * [Parcel Template](https://github.com/spielrs/yew-parcel-template) - コミュニティのメンバーによって開発され、
-Parcel](https://parceljs.org/)を使っています。
+[Parcel](https://parceljs.org/)を使っています。
 

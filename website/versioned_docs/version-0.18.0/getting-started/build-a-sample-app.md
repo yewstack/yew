@@ -20,7 +20,7 @@ edition = "2018"
 
 [dependencies]
 # you can check the latest version here: https://crates.io/crates/yew
-yew = "0.17"
+yew = "0.18"
 ```
 
 Copy the following template into your `src/main.rs` file:
@@ -107,6 +107,13 @@ If you haven't already, install [Trunk](https://github.com/thedodd/trunk):
 cargo install trunk wasm-bindgen-cli
 ```
 
+If you haven't already installed it, you need to add the `wasm32-unknown-unknown` target. 
+To install this with Rustup:
+
+```bash
+rustup target add wasm32-unknown-unknown
+```
+
 Now all you have to do is run the following:
 
 ```bash
@@ -114,3 +121,10 @@ trunk serve
 ```
 
 This will start a development server which continually updates the app every time you change something.
+
+## Troubleshooting
+
+* Trunk's installation failed:
+
+  Make sure you have the development packages of openssl installed.
+  For example, libssl-dev on Ubuntu or openssl-devel on Fedora.

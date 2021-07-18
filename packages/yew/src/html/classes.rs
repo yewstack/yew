@@ -1,4 +1,4 @@
-use super::{IntoOptPropValue, IntoPropValue};
+use super::IntoPropValue;
 use crate::virtual_dom::AttrValue;
 use indexmap::IndexSet;
 use std::{
@@ -74,8 +74,8 @@ impl IntoPropValue<AttrValue> for Classes {
     }
 }
 
-impl IntoOptPropValue<AttrValue> for Classes {
-    fn into_opt_prop_value(self) -> Option<AttrValue> {
+impl IntoPropValue<Option<AttrValue>> for Classes {
+    fn into_prop_value(self) -> Option<AttrValue> {
         if self.is_empty() {
             None
         } else {
@@ -174,7 +174,7 @@ impl<T: Into<Classes>> From<Vec<T>> for Classes {
 
 impl<T: Into<Classes> + Clone> From<&[T]> for Classes {
     fn from(t: &[T]) -> Self {
-        Self::from_iter(t.iter().cloned())
+        t.iter().cloned().collect()
     }
 }
 

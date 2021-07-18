@@ -1,12 +1,10 @@
 ---
-title: "Children"
+title: Children
 ---
 
-## General usage
+## 普通用法
 
-_Most of the time,_ when allowing a component to have children, you don't care 
-what type of children the component has. In such cases, the below example will
-suffice.
+*大多数情况下，*在组件内部包含有children时，您并不关心组件具体有什么类型的children。在这种情况下，下面的例子就足够了。
 
 ```rust
 use yew::prelude::*;
@@ -35,11 +33,9 @@ impl Component for List {
 }
 ```
 
-## Advanced usage
+## 高级用法
 
-### Typed children
-In cases where you want one type of component to be passed as children to your component,
-you can use `yew::html::ChildrenWithProps<T>`.
+当您希望将某一种类型的组件作为children传递给您的组件时，您可以使用`yew::html::ChildrenWithProps<T>` 。
 
 ```rust
 use yew::html::ChildrenWithProps;
@@ -71,13 +67,9 @@ impl Component for ListProps {
 }
 ```
 
-### Enum typed children
-Of course, sometimes you might need to restrict the children to a few different
-components. In these cases, you have to get a little more hands-on with Yew.
+当然，有时您可能需要将children限制为几个不同的组件。在这种情况下，您要再深入一点 Yew。
 
-The [`derive_more`](https://github.com/JelteF/derive_more) crate is used here
-for better ergonomics. If you don't want to use it, you can manually implement
-`From` for each variant.
+[`derive_more`](https://github.com/JelteF/derive_more) crate 在这种情况下非常有用。如果你不想用它的话, 你需要手动为每个变量实现 `From` 。
 
 ```rust
 use yew::prelude::*;
@@ -92,7 +84,7 @@ pub enum Item {
     Secondary(VChild<Secondary>),
 }
 
-// Now, we implement `Into<Html>` so that yew knows how to render `Item`.
+// Now, we implment `Into<Html>` so that yew knows how to render `Item`.
 impl Into<Html> for Item {
     fn into(self) -> Html {
         match self {
@@ -124,53 +116,4 @@ impl Component for List {
         }
     }
 }
-```
-
-### Optional typed child
-You can also have a single optional child component of a specific type too: 
-
-```rust
-use yew::prelude::*;
-use yew::virtual_dom::VChild;
-
-
-#[derive(Clone, Properties)]
-pub struct PageProps {
-    #[prop_or_default]
-    pub sidebar: Option<VChild<PageSideBar>>,
-}
-
-struct Page {
-    props: PageProps,
-}
-
-impl Component for Page {
-    type Properties = PageProps;
-    // ...
-
-    fn view(&self) -> Html {
-        html! {
-            <div class="page">
-                { self.props.sidebar.clone().map(Html::from).unwrap_or_default() }
-                // ... page content
-            </div>
-        }
-    }
-}
-```
-
-The page component can be called either with the sidebar or without: 
-
-```rust
-    // Page without sidebar
-    html! {
-        <Page />
-    }
-
-    // Page with sidebar
-    html! {
-        <Page sidebar=html_nested! {
-            <PageSideBar />
-        } />
-    }
 ```

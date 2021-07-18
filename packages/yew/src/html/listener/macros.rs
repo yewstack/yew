@@ -6,7 +6,7 @@ macro_rules! impl_action {
         pub mod $action {
             use crate::callback::Callback;
             #[allow(unused_imports)]
-            use crate::html::{listener::*, IntoOptPropValue};
+            use crate::html::{listener::*, IntoPropValue};
             use crate::virtual_dom::Listener;
             use gloo::events::{EventListener, EventListenerOptions};
             use wasm_bindgen::JsValue;
@@ -26,8 +26,8 @@ macro_rules! impl_action {
                 }
 
                 #[doc(hidden)]
-                pub fn __macro_new(callback: impl IntoOptPropValue<Callback<Event>>) -> Option<Rc<dyn Listener>> {
-                    let callback = callback.into_opt_prop_value()?;
+                pub fn __macro_new(callback: impl IntoPropValue<Option<Callback<Event>>>) -> Option<Rc<dyn Listener>> {
+                    let callback = callback.into_prop_value()?;
                     Some(Rc::new(Self::new(callback)))
                 }
             }

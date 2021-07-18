@@ -3,15 +3,15 @@ on:
   pull_request:
     branches: [master]
     paths:
-      - "docs/**"
       - "website/**"
-      # firebase.json has no effect here
+      - "firebase.json"
+      - ".github/workflows/*-website.yml"
   push:
     branches: [master]
     paths:
-      - "docs/**"
       - "website/**"
       - "firebase.json"
+      - ".github/workflows/*-website.yml"
 
 jobs:
   build:
@@ -23,7 +23,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v1
         with:
-          node-version: "12.x"
+          node-version: "14.x"
 
       - name: Build
         run: |

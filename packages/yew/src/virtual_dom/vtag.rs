@@ -3,7 +3,7 @@
 use super::{
     AttrValue, Attributes, Key, Listener, Listeners, Patch, PositionalAttr, VDiff, VList, VNode,
 };
-use crate::html::{AnyScope, IntoOptPropValue, IntoPropValue, NodeRef};
+use crate::html::{AnyScope, IntoPropValue, NodeRef};
 use crate::utils::document;
 use gloo::events::EventListener;
 use log::warn;
@@ -140,15 +140,15 @@ impl VTag {
 
     /// Sets `value` for an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
-    pub fn set_value(&mut self, value: impl IntoOptPropValue<AttrValue>) {
-        self.value = value.into_opt_prop_value();
+    pub fn set_value(&mut self, value: impl IntoPropValue<Option<AttrValue>>) {
+        self.value = value.into_prop_value();
     }
 
     /// Sets `kind` property of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     /// Same as set `type` attribute.
-    pub fn set_kind(&mut self, value: impl IntoOptPropValue<AttrValue>) {
-        self.kind = value.into_opt_prop_value();
+    pub fn set_kind(&mut self, value: impl IntoPropValue<Option<AttrValue>>) {
+        self.kind = value.into_prop_value();
     }
 
     #[doc(hidden)]
