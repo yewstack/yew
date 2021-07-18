@@ -7,7 +7,7 @@ The contents of the selected file are then rendered to the page either as a whol
 
 ## Concepts
 
-Demonstrates the use of `ReaderService`.
+Demonstrates reading from files in Yew with the help of `gloo::file`.
 
 ## Improvements
 
