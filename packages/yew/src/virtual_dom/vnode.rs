@@ -35,7 +35,7 @@ impl VNode {
         }
     }
 
-    /// Returns, if the VNode has a key without needlessly cloning the key
+    /// Returns true if the `VNode` has a key without needlessly cloning the key.
     pub fn has_key(&self) -> bool {
         match self {
             VNode::VComp(vcomp) => vcomp.key.is_some(),
