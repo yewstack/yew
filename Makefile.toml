@@ -36,7 +36,7 @@ run_task = { name = ["lint-flow"], fork = true }
 category = "Testing"
 description = "Run all tests"
 dependencies = ["tests-setup"]
-env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["**/examples/*"] }
+env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["**/examples/*", "**/packages/changelog"] }
 run_task = { name = ["test-flow", "doc-test-flow"], fork = true }
 
 [tasks.benchmarks]

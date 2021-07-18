@@ -97,30 +97,10 @@ impl ToTokens for HtmlElement {
             children,
         } = self;
 
-        let name_sr = match &name {
-            TagName::Lit(name) => name.stringify(),
-            TagName::Expr(name) => {
-                let expr = &name.expr;
-                let vtag_name = Ident::new("__yew_vtag_name", expr.span());
-                // this way we get a nice error message (with the correct span) when the expression doesn't return a valid value
-                quote_spanned! {expr.span()=> {
-                    #[allow(unused_braces)]
-                    let mut #vtag_name = ::std::convert::Into::<::std::borrow::Cow::<'static, str>>::into(#expr);
-                    if !#vtag_name.is_ascii() {
-                        ::std::panic!("a dynamic tag returned a tag name containing non ASCII characters: `{}`", #vtag_name);
-                    };
-                    // convert to lowercase because the runtime checks rely on it.
-                    #vtag_name.to_mut().make_ascii_lowercase();
-                    #vtag_name
-                }}
-            }
-        };
-
         let ElementProps {
             classes,
             attributes,
             booleans,
-            kind,
             value,
             checked,
             node_ref,
@@ -128,44 +108,44 @@ impl ToTokens for HtmlElement {
             listeners,
         } = &props;
 
-        let vtag = Ident::new("__yew_vtag", name.span());
-
         // attributes with special treatment
 
-        let set_node_ref = node_ref.as_ref().map(|attr| {
-            let value = &attr.value;
-            quote! {
-                #vtag.node_ref = #value;
-            }
-        });
-        let set_key = key.as_ref().map(|attr| {
-            let value = attr.value.optimize_literals();
-            quote! {
-                #vtag.__macro_set_key(#value);
-            }
-        });
-        let set_value = value.as_ref().map(|attr| {
-            let value = attr.value.optimize_literals();
-            quote! {
-                #vtag.set_value(#value);
-            }
-        });
-        let set_kind = kind.as_ref().map(|attr| {
-            let value = attr.value.optimize_literals();
-            quote! {
-                #vtag.set_kind(#value);
-            }
-        });
-        let set_checked = checked.as_ref().map(|attr| {
-            let value = &attr.value;
-            quote! {
-                #vtag.set_checked(#value);
-            }
-        });
+        let node_ref = node_ref
+            .as_ref()
+            .map(|attr| {
+                let value = &attr.value;
+                quote_spanned! {value.span()=>
+                    ::yew::html::IntoPropValue::<::yew::html::NodeRef>
+                    ::into_prop_value(#value)
+                }
+            })
+            .unwrap_or(quote! { ::std::default::Default::default() });
+        let key = key
+            .as_ref()
+            .map(|attr| {
+                let value = attr.value.optimize_literals();
+                quote_spanned! {value.span()=>
+                    ::std::option::Option::Some(
+                        ::std::convert::Into::<::yew::virtual_dom::Key>::into(#value)
+                    )
+                }
+            })
+            .unwrap_or(quote! { ::std::option::Option::None });
+        let value = value
+            .as_ref()
+            .map(wrap_attr_prop)
+            .unwrap_or(quote! { ::std::option::Option::None });
+        let checked = checked
+            .as_ref()
+            .map(|attr| {
+                let value = &attr.value;
+                quote_spanned! {value.span()=> #value}
+            })
+            .unwrap_or(quote! { false });
 
         // other attributes
 
-        let set_attributes = {
+        let attributes = {
             let normal_attrs = attributes.iter().map(|Prop { label, value, .. }| {
                 let key = label.to_lit_str();
                 let value = value.optimize_literals();
@@ -224,12 +204,12 @@ impl ToTokens for HtmlElement {
 
             let attrs = normal_attrs.chain(boolean_attrs).chain(class_attr);
             quote! {
-                #vtag.attributes = ::yew::virtual_dom::Attributes::Vec(::std::vec![#(#attrs),*]);
+                ::yew::virtual_dom::Attributes::Vec(::std::vec![#(#attrs),*])
             }
         };
 
-        let set_listeners = if listeners.is_empty() {
-            None
+        let listeners = if listeners.is_empty() {
+            quote! { ::std::vec![] }
         } else {
             let listeners_it = listeners.iter().map(|Prop { label, value, .. }| {
                 let name = &label.name;
@@ -238,72 +218,172 @@ impl ToTokens for HtmlElement {
                 }
             });
 
-            Some(quote! {
-                #vtag.__macro_set_listeners(::std::vec![#(#listeners_it),*]);
-            })
+            quote! { ::std::vec![#(#listeners_it),*].into_iter().flatten().collect() }
         };
 
-        let add_children = if children.is_empty() {
-            None
-        } else {
-            Some(quote! {
-                #[allow(clippy::redundant_clone, unused_braces)]
-                #vtag.add_children(#children);
-            })
+        let child_list = quote! {
+            ::yew::virtual_dom::VList{
+                key: ::std::option::Option::None,
+                children: #children,
+            }
         };
 
-        // These are the runtime-checks exclusive to dynamic tags.
-        // For literal tags this is already done at compile-time.
-        let dyn_tag_runtime_checks = if matches!(&name, TagName::Expr(_)) {
-            // when Span::source_file Span::start get stabilised or yew-macro introduces a nightly feature flag
-            // we should expand the panic message to contain the exact location of the dynamic tag.
-            Some(quote! {
-                // check void element
-                if !#vtag.children.is_empty() {
-                    match #vtag.tag() {
-                        "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
-                        | "meta" | "param" | "source" | "track" | "wbr" => {
-                            ::std::panic!("a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.", #vtag.tag());
+        tokens.extend(match &name {
+            TagName::Lit(name) => {
+                let name_span = name.span();
+                let name = name.to_ascii_lowercase_string();
+                match &*name {
+                    "input" => {
+                        quote_spanned! {name_span=>
+                            #[allow(clippy::redundant_clone, unused_braces)]
+                            ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
+                                ::yew::virtual_dom::VTag::__new_input(
+                                    #value,
+                                    #checked,
+                                    #node_ref,
+                                    #key,
+                                    #attributes,
+                                    #listeners,
+                                ),
+                            )
                         }
-                        _ => {}
                     }
-                };
-
-                // handle special attribute value
-                match #vtag.tag() {
-                    "input" | "textarea" => {}
+                    "textarea" => {
+                        quote_spanned! {name_span=>
+                            #[allow(clippy::redundant_clone, unused_braces)]
+                            ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
+                                ::yew::virtual_dom::VTag::__new_textarea(
+                                    #value,
+                                    #node_ref,
+                                    #key,
+                                    #attributes,
+                                    #listeners,
+                                ),
+                            )
+                        }
+                    }
                     _ => {
-                        let __yew_v = #vtag.value.take();
-                        #vtag.__macro_push_attr(::yew::virtual_dom::PositionalAttr::new("value", __yew_v));
+                        quote_spanned! {name_span=>
+                            #[allow(clippy::redundant_clone, unused_braces)]
+                            ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
+                                ::yew::virtual_dom::VTag::__new_other(
+                                    ::std::borrow::Cow::<'static, str>::Borrowed(#name),
+                                    #node_ref,
+                                    #key,
+                                    #attributes,
+                                    #listeners,
+                                    #child_list,
+                                ),
+                            )
+                        }
                     }
-                }
-            })
-        } else {
-            None
-        };
-
-        tokens.extend(quote_spanned! {name.span()=>
-            {
-                #[allow(unused_braces)]
-                let mut #vtag = ::yew::virtual_dom::VTag::new(#name_sr);
-
-                #set_node_ref
-                #set_key
-                #set_value
-                #set_kind
-                #set_checked
-                #set_attributes
-                #set_listeners
-
-                #add_children
-
-                #dyn_tag_runtime_checks
-                {
-                    use ::std::convert::From;
-                    ::yew::virtual_dom::VNode::from(#vtag)
                 }
             }
+            TagName::Expr(name) => {
+                #[allow(unused_braces)]
+                let vtag = Ident::new("__yew_vtag", name.span());
+                let expr = &name.expr;
+                let vtag_name = Ident::new("__yew_vtag_name", expr.span());
+
+                // handle special attribute value
+                let handle_value_attr = props.value.as_ref().map(|prop| {
+                    let v = prop.value.optimize_literals();
+                    quote_spanned! {v.span()=> {
+                        __yew_vtag.__macro_push_attr(
+                            ::yew::virtual_dom::PositionalAttr::new("value", #v),
+                        );
+                    }}
+                });
+
+                // this way we get a nice error message (with the correct span) when the expression
+                // doesn't return a valid value
+                quote_spanned! {expr.span()=> {
+                    let mut #vtag_name = ::std::convert::Into::<
+                        ::std::borrow::Cow::<'static, str>
+                    >::into(#expr);
+                    if !#vtag_name.is_ascii() {
+                        ::std::panic!(
+                            "a dynamic tag returned a tag name containing non ASCII characters: `{}`",
+                            #vtag_name,
+                        );
+                    }
+                    // convert to lowercase because the runtime checks rely on it.
+                    #vtag_name.to_mut().make_ascii_lowercase();
+
+                    #[allow(clippy::redundant_clone, unused_braces, clippy::let_and_return)]
+                    let mut #vtag = match ::std::convert::AsRef::<str>::as_ref(&#vtag_name) {
+                        "input" => {
+                            ::yew::virtual_dom::VTag::__new_textarea(
+                                #value,
+                                #node_ref,
+                                #key,
+                                #attributes,
+                                #listeners,
+                            )
+                        }
+                        "textarea" => {
+                            ::yew::virtual_dom::VTag::__new_textarea(
+                                #value,
+                                #node_ref,
+                                #key,
+                                #attributes,
+                                #listeners,
+                            )
+                        }
+                        _ => {
+                            let mut __yew_vtag = ::yew::virtual_dom::VTag::__new_other(
+                                #vtag_name,
+                                #node_ref,
+                                #key,
+                                #attributes,
+                                #listeners,
+                                #child_list,
+                            );
+
+                            #handle_value_attr
+
+                            __yew_vtag
+                        }
+                    };
+
+                    // These are the runtime-checks exclusive to dynamic tags.
+                    // For literal tags this is already done at compile-time.
+                    //
+                    // When Span::source_file Span::start get stabilised or yew-macro introduces a
+                    // nightly feature flag we should expand the panic message to contain the exact
+                    // location of the dynamic tag.
+                    //
+                    // check void element
+                    if !#vtag.children().is_empty() {
+                        match #vtag.tag() {
+                            "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input"
+                                | "link" | "meta" | "param" | "source" | "track" | "wbr"
+                            => {
+                                ::std::panic!(
+                                    "a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.",
+                                    #vtag.tag(),
+                                );
+                            }
+                            _ => {}
+                        }
+                    }
+
+                    ::std::convert::Into::<::yew::virtual_dom::VNode>::into(#vtag)
+                }}
+            }
         });
+    }
+}
+
+fn wrap_attr_prop(prop: &Prop) -> TokenStream {
+    let value = prop.value.optimize_literals();
+    quote_spanned! {value.span()=>
+        ::yew::html::IntoPropValue::<
+            ::std::option::Option<
+                ::yew::virtual_dom::AttrValue
+            >
+        >
+        ::into_prop_value(#value)
     }
 }
 
