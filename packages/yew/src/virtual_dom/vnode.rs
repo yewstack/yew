@@ -199,7 +199,7 @@ impl fmt::Debug for VNode {
 impl PartialEq for VNode {
     fn eq(&self, other: &VNode) -> bool {
         match (self, other) {
-            (VNode::VTag(a), VNode::VTag(b)) => a.eq(b),
+            (VNode::VTag(a), VNode::VTag(b)) => a == b,
             (VNode::VText(a), VNode::VText(b)) => a == b,
             (VNode::VList(a), VNode::VList(b)) => a == b,
             (VNode::VRef(a), VNode::VRef(b)) => a == b,
