@@ -39,8 +39,7 @@ impl VNode {
     pub(crate) fn first_node(&self) -> Node {
         match self {
             VNode::VTag(vtag) => vtag
-                .reference
-                .as_ref()
+                .reference()
                 .expect("VTag is not mounted")
                 .clone()
                 .into(),

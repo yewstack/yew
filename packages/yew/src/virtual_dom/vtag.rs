@@ -218,7 +218,7 @@ pub struct VTag {
     listeners: Listeners,
 
     /// A reference to the DOM `Element`.
-    pub reference: Option<Element>,
+    reference: Option<Element>,
 
     /// A node reference used for DOM access in Component lifecycle methods
     pub node_ref: NodeRef,
@@ -424,11 +424,11 @@ impl VTag {
     /// Returns the `value` of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) or
     /// [TextArea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
-    pub fn value(&self) -> &Option<AttrValue> {
+    pub fn value(&self) -> Option<&AttrValue> {
         match &self.inner {
-            VTagInner::Input(f) => &f.value.0,
-            VTagInner::Textarea { value } => &value.0,
-            VTagInner::Other { .. } => &None,
+            VTagInner::Input(f) => f.value.0.as_ref(),
+            VTagInner::Textarea { value } => value.0.as_ref(),
+            VTagInner::Other { .. } => None,
         }
     }
 
@@ -464,6 +464,12 @@ impl VTag {
         if let VTagInner::Input(f) = &mut self.inner {
             f.checked = value;
         }
+    }
+
+    /// Returns reference to the [Element] associated with this [VTag], if this [VTag] has already
+    /// been mounted in the DOM
+    pub fn reference(&self) -> Option<&Element> {
+        self.reference.as_ref()
     }
 
     /// Adds a key-value pair to attributes
@@ -600,12 +606,6 @@ impl VDiff for VTag {
             }),
         };
 
-        macro_rules! cast_el {
-            () => {
-                el.dyn_ref().unwrap()
-            };
-        }
-
         match ancestor_tag {
             None => {
                 self.attributes.apply(&el);
@@ -613,10 +613,10 @@ impl VDiff for VTag {
 
                 match &mut self.inner {
                     VTagInner::Input(f) => {
-                        f.apply(cast_el!());
+                        f.apply(el.unchecked_ref());
                     }
                     VTagInner::Textarea { value } => {
-                        value.apply(cast_el!());
+                        value.apply(el.unchecked_ref());
                     }
                     VTagInner::Other { children, .. } => {
                         if !children.is_empty() {
@@ -631,10 +631,10 @@ impl VDiff for VTag {
 
                 match (&mut self.inner, ancestor.inner) {
                     (VTagInner::Input(new), VTagInner::Input(old)) => {
-                        new.apply_diff(cast_el!(), old);
+                        new.apply_diff(el.unchecked_ref(), old);
                     }
                     (VTagInner::Textarea { value: new }, VTagInner::Textarea { value: old }) => {
-                        new.apply_diff(cast_el!(), old);
+                        new.apply_diff(el.unchecked_ref(), old);
                     }
                     (
                         VTagInner::Other { children: new, .. },
@@ -1094,7 +1094,7 @@ mod tests {
             <@{"input"} value="World"/>
         };
         let input_vtag = assert_vtag_mut(&mut input_el);
-        assert_eq!(input_vtag.value(), &Some(Cow::Borrowed("World")));
+        assert_eq!(input_vtag.value(), Some(&Cow::Borrowed("World")));
         assert!(!input_vtag.attributes.iter().any(|(k, _)| k == "value"));
     }
 
