@@ -53,9 +53,20 @@ pub fn render_markdown(src: &str) -> Html {
                     pre.add_child(top.into());
                     top = pre;
                 } else if let Tag::Table(aligns) = tag {
-                    for r in top.children.iter_mut() {
+                    for r in top
+                        .children_mut()
+                        .iter_mut()
+                        .map(|ch| ch.iter_mut())
+                        .flatten()
+                    {
                         if let VNode::VTag(ref mut vtag) = r {
-                            for (i, c) in vtag.children.iter_mut().enumerate() {
+                            for (i, c) in vtag
+                                .children_mut()
+                                .iter_mut()
+                                .map(|ch| ch.iter_mut())
+                                .flatten()
+                                .enumerate()
+                            {
                                 if let VNode::VTag(ref mut vtag) = c {
                                     match aligns[i] {
                                         Alignment::None => {}
@@ -68,7 +79,12 @@ pub fn render_markdown(src: &str) -> Html {
                         }
                     }
                 } else if let Tag::TableHead = tag {
-                    for c in top.children.iter_mut() {
+                    for c in top
+                        .children_mut()
+                        .iter_mut()
+                        .map(|ch| ch.iter_mut())
+                        .flatten()
+                    {
                         if let VNode::VTag(ref mut vtag) = c {
                             // TODO
                             //                            vtag.tag = "th".into();

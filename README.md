@@ -12,7 +12,7 @@
     <a href="https://docs.rs/yew/"><img alt="API Docs" src="https://img.shields.io/badge/docs.rs-yew-green"/></a>
     <a href="https://discord.gg/VQck8X4"><img alt="Discord Chat" src="https://img.shields.io/discord/701068342760570933"/></a>
     <a href="https://gitlocalize.com/repo/4999/whole_project?utm_source=badge"> <img src="https://gitlocalize.com/repo/4999/whole_project/badge.svg" /> </a>
-    <a href="https://blog.rust-lang.org/2020/07/16/Rust-1.45.0.html"><img alt="Rustc Version 1.45+" src="https://img.shields.io/badge/rustc-1.45%2B-lightgrey.svg"/></a>
+    <a href="https://blog.rust-lang.org/2020/12/31/Rust-1.49.0.html"><img alt="Rustc Version 1.49.0+" src="https://img.shields.io/badge/rustc-1.49%2B-lightgrey.svg"/></a>
   </p>
 
   <h4>
