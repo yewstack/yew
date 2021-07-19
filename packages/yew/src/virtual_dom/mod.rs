@@ -81,7 +81,7 @@ pub enum Attributes {
         keys: &'static [&'static str],
 
         /// Attribute values. Matches [keys]. Optional attributes are designated by setting [None].
-        values: Vec<Option<AttrValue>>,
+        values: Box<[Option<AttrValue>]>,
     },
 
     /// IndexMap is used to provide runtime attribute deduplication in cases where the html! macro
@@ -131,9 +131,9 @@ impl Attributes {
             Self::Dynamic { keys, values } => {
                 *self = Self::IndexMap(
                     std::mem::take(values)
-                        .into_iter()
+                        .iter_mut()
                         .zip(keys.iter())
-                        .filter_map(|(v, k)| v.map(|v| (*k, v)))
+                        .filter_map(|(v, k)| v.take().map(|v| (*k, v)))
                         .collect(),
                 );
                 unpack!()
@@ -142,7 +142,6 @@ impl Attributes {
     }
 
     #[cold]
-    #[inline(never)]
     fn apply_diff_index_maps<'a, A, B>(
         el: &Element,
         // this makes it possible to diff `&'a IndexMap<_, A>` and `IndexMap<_, &'a A>`.
@@ -197,7 +196,6 @@ impl Attributes {
     /// Convert [Attributes] pair to [HashMap]s and patch changes to `el`.
     /// Works with any [Attributes] variants.
     #[cold]
-    #[inline(never)]
     fn apply_diff_as_maps<'a>(el: &Element, new: &'a Self, old: &'a Self) {
         fn collect<'a>(src: &'a Attributes) -> HashMap<&'static str, &'a str> {
             use Attributes::*;

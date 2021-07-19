@@ -3,6 +3,7 @@ use crate::virtual_dom::AttrValue;
 use indexmap::IndexSet;
 use std::{
     borrow::{Borrow, Cow},
+    hint::unreachable_unchecked,
     iter::FromIterator,
 };
 
@@ -65,9 +66,13 @@ impl Classes {
 }
 
 impl IntoPropValue<AttrValue> for Classes {
+    #[inline]
     fn into_prop_value(mut self) -> AttrValue {
         if self.set.len() == 1 {
-            self.set.pop().unwrap()
+            match self.set.pop() {
+                Some(attr) => attr,
+                None => unsafe { unreachable_unchecked() },
+            }
         } else {
             Cow::Owned(self.to_string())
         }
@@ -75,6 +80,7 @@ impl IntoPropValue<AttrValue> for Classes {
 }
 
 impl IntoPropValue<Option<AttrValue>> for Classes {
+    #[inline]
     fn into_prop_value(self) -> Option<AttrValue> {
         if self.is_empty() {
             None

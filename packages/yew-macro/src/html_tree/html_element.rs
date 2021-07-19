@@ -262,7 +262,7 @@ impl ToTokens for HtmlElement {
                 quote! {
                     ::yew::virtual_dom::Attributes::Dynamic{
                         keys: &[#(#keys),*],
-                        values: ::std::vec![#(#values),*],
+                        values: ::std::boxed::Box::new([#(#values),*]),
                     }
                 }
             })
