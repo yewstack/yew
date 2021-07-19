@@ -214,10 +214,7 @@ impl<COMP: Component> fmt::Debug for VChild<COMP> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        html, utils::document, Children, Component, ComponentLink, Html, NodeRef, Properties,
-        ShouldRender,
-    };
+    use crate::{html, utils::document, Children, Component, Html, NodeRef, Properties, ShouldRender, Context};
     use web_sys::Node;
 
     #[cfg(feature = "wasm_test")]
@@ -240,19 +237,19 @@ mod tests {
         type Message = ();
         type Properties = Props;
 
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        fn create(_: Self::Properties, _: &Context<Self>) -> Self {
             Comp
         }
 
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
             unimplemented!();
         }
 
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>, _: Self::Properties) -> ShouldRender {
             true
         }
 
-        fn view(&self) -> Html {
+        fn view(&self, _ctx: &Context<Self>) -> Html {
             html! { <div/> }
         }
     }
@@ -390,16 +387,16 @@ mod tests {
         type Message = ();
         type Properties = ListProps;
 
-        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+        fn create(props: Self::Properties, _: &Context<Self>) -> Self {
             Self(props)
         }
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
+        fn update(&mut self,_ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
             unimplemented!();
         }
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
+        fn changed(&mut self,_ctx: &Context<Self>, _: Self::Properties) -> ShouldRender {
             unimplemented!();
         }
-        fn view(&self) -> Html {
+        fn view(&self, _ctx: &Context<Self>) -> Html {
             let item_iter = self.0.children.iter().map(|item| html! {<li>{ item }</li>});
             html! {
                 <ul>{ for item_iter }</ul>
@@ -495,7 +492,7 @@ mod layout_tests {
 
     use crate::html;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
-    use crate::{Children, Component, ComponentLink, Html, Properties, ShouldRender};
+    use crate::{Children, Component, Context, Html, Properties, ShouldRender};
     use std::marker::PhantomData;
 
     #[cfg(feature = "wasm_test")]
@@ -519,23 +516,23 @@ mod layout_tests {
         type Message = ();
         type Properties = CompProps;
 
-        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+        fn create(props: Self::Properties, _: &Context<Self>) -> Self {
             Comp {
                 _marker: PhantomData::default(),
                 props,
             }
         }
 
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
+        fn update(&mut self,_ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
             unimplemented!();
         }
 
-        fn change(&mut self, props: Self::Properties) -> ShouldRender {
-            self.props = props;
+        fn changed(&mut self, _ctx: &Context<Self>, props: Self::Properties) -> ShouldRender {
+            self.props = props.clone();
             true
         }
 
-        fn view(&self) -> Html {
+        fn view(&self, _ctx: &Context<Self>) -> Html {
             html! {
                 <>{ self.props.children.clone() }</>
             }

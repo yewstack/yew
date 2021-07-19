@@ -1,9 +1,10 @@
 //! This module defines the `ContextProvider` component.
 
 use crate::html::Scope;
-use crate::{html, Callback, Children, Component, ComponentLink, Html, Properties};
+use crate::{html, Callback, Children, Component, Html, Properties, ShouldRender};
 use slab::Slab;
 use std::cell::RefCell;
+use crate::html::Context;
 
 /// Props for [`ContextProvider`]
 #[derive(Debug, Clone, PartialEq, Properties)]
@@ -21,7 +22,7 @@ pub struct ContextProviderProps<T: Clone + PartialEq> {
 /// In function components the `use_context` hook is used.
 #[derive(Debug)]
 pub struct ContextProvider<T: Clone + PartialEq + 'static> {
-    link: ComponentLink<Self>,
+    component_context: Context<Self>,
     context: T,
     children: Children,
     consumers: RefCell<Slab<Callback<T>>>,
@@ -53,7 +54,7 @@ impl<T: Clone + PartialEq> ContextProvider<T> {
         (
             ctx,
             ContextHandle {
-                provider: self.link.clone(),
+                provider: self.component_context.clone(),
                 key,
             },
         )
@@ -77,20 +78,19 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
     type Message = ();
     type Properties = ContextProviderProps<T>;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(props: Self::Properties, ctx: &Context<Self>) -> Self {
         Self {
-            link,
+            component_context: ctx.clone(),
             children: props.children,
             context: props.context,
             consumers: RefCell::new(Slab::new()),
         }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> bool {
-        true
-    }
+    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> ShouldRender { true }
 
-    fn change(&mut self, props: Self::Properties) -> bool {
+
+    fn changed(&mut self, _ctx: &Context<Self>, props: Self::Properties) -> bool {
         let should_render = if self.children == props.children {
             false
         } else {
@@ -106,7 +106,7 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
         should_render
     }
 
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         html! { <>{ self.children.clone() }</> }
     }
 }

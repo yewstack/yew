@@ -14,7 +14,7 @@
 //! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/next/concepts/function-components)
 
 use crate::html::AnyScope;
-use crate::{Component, ComponentLink, Html, Properties};
+use crate::{Component,  Html, Properties};
 use scoped_tls_hkt::scoped_thread_local;
 use std::cell::RefCell;
 use std::fmt;
@@ -50,6 +50,7 @@ pub use hooks::*;
 /// }
 /// ```
 pub use yew_macro::function_component;
+use crate::html::Context;
 
 scoped_thread_local!(static mut CURRENT_HOOK: HookState);
 
@@ -80,7 +81,6 @@ pub struct FunctionComponent<T: FunctionProvider + 'static> {
     _never: std::marker::PhantomData<T>,
     props: T::TProps,
     hook_state: RefCell<HookState>,
-    link: ComponentLink<Self>,
     message_queue: MsgQueue,
 }
 
@@ -108,52 +108,53 @@ where
     type Message = Box<dyn FnOnce() -> bool>;
     type Properties = T::TProps;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let scope = AnyScope::from(link.clone());
+    fn create(props: Self::Properties, ctx: &Context<Self>) -> Self {
+        let scope = AnyScope::from(ctx.clone());
         let message_queue = MsgQueue::default();
 
         Self {
             _never: std::marker::PhantomData::default(),
             props,
-            link: link.clone(),
             message_queue: message_queue.clone(),
             hook_state: RefCell::new(HookState {
                 counter: 0,
                 scope,
-                process_message: Rc::new(move |msg, post_render| {
-                    if post_render {
-                        message_queue.push(msg);
-                    } else {
-                        link.send_message(msg);
-                    }
-                }),
+                process_message: {
+                    let ctx = ctx.clone();
+                    Rc::new(move |msg, post_render| {
+                        if post_render {
+                            message_queue.push(msg);
+                        } else {
+                            ctx.send_message(msg);
+                        }
+                    })
+                },
                 hooks: vec![],
                 destroy_listeners: vec![],
             }),
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         msg()
     }
 
-    fn change(&mut self, props: Self::Properties) -> bool {
-        let mut props = props;
-        std::mem::swap(&mut self.props, &mut props);
-        props != self.props
+    fn changed(&mut self,_ctx: &Context<Self>, props: Self::Properties) -> bool {
+        self.props = props;
+        true
     }
 
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         self.with_hook_state(|| T::run(&self.props))
     }
 
-    fn rendered(&mut self, _first_render: bool) {
+    fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
         for msg in self.message_queue.drain() {
-            self.link.send_message(msg);
+            ctx.send_message(msg);
         }
     }
 
-    fn destroy(&mut self) {
+    fn destroy(&mut self, _ctx: &Context<Self>) {
         let mut hook_state = self.hook_state.borrow_mut();
         for hook in hook_state.destroy_listeners.drain(..) {
             hook()

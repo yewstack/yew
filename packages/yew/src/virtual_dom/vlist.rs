@@ -450,7 +450,7 @@ mod layout_tests_keys {
     use crate::html;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
-    use crate::{Children, Component, ComponentLink, Html, Properties, ShouldRender};
+    use crate::{Children, Component, Context, Html, Properties, ShouldRender};
     use web_sys::Node;
 
     #[cfg(feature = "wasm_test")]
@@ -475,14 +475,14 @@ mod layout_tests_keys {
         type Message = ();
         type Properties = CountingCompProps;
 
-        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+        fn create(props: Self::Properties, _: &Context<Self>) -> Self {
             Comp {
                 id: props.id,
                 panic_if_changes: props.can_change,
             }
         }
 
-        fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>, props: Self::Properties) -> ShouldRender {
             #[cfg(feature = "wasm_test")]
             wasm_bindgen_test::console_log!("Comp changed: {} -> {}", self.id, props.id);
             let changed = self.id != props.id;
@@ -496,11 +496,11 @@ mod layout_tests_keys {
             changed
         }
 
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
             unimplemented!();
         }
 
-        fn view(&self) -> Html {
+        fn view(&self, _ctx: &Context<Self>) -> Html {
             html! { <p>{ self.id }</p> }
         }
     }
@@ -516,20 +516,20 @@ mod layout_tests_keys {
         type Message = ();
         type Properties = ListProps;
 
-        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+        fn create(props: Self::Properties, _: &Context<Self>) -> Self {
             Self(props)
         }
 
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
             unimplemented!();
         }
 
-        fn change(&mut self, mut props: Self::Properties) -> ShouldRender {
-            std::mem::swap(&mut self.0, &mut props);
-            self.0.children != props.children
+        fn changed(&mut self,_ctx: &Context<Self>, props: Self::Properties) -> ShouldRender {
+            self.0 = props.clone();
+            true
         }
 
-        fn view(&self) -> Html {
+        fn view(&self, _ctx: &Context<Self>) -> Html {
             html! { <>{ for self.0.children.iter() }</> }
         }
     }

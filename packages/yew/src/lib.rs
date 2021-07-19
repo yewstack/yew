@@ -274,6 +274,7 @@ pub mod html;
 pub mod scheduler;
 pub mod utils;
 pub mod virtual_dom;
+pub mod component;
 
 pub use web_sys;
 
@@ -397,7 +398,7 @@ pub mod prelude {
     pub use crate::context::ContextProvider;
     pub use crate::events::*;
     pub use crate::html::{
-        Children, ChildrenWithProps, Classes, Component, ComponentLink, Html, NodeRef, Properties,
+        Children, ChildrenWithProps, Classes, Component, Context, Html, NodeRef, Properties,
         ShouldRender,
     };
     pub use crate::macros::{classes, html, html_nested};
