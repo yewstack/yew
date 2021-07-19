@@ -217,7 +217,7 @@ pub struct VTag {
     /// List of attached listeners.
     listeners: Listeners,
 
-    /// A reference to the DOM [Element].
+    /// A reference to the DOM [`Element`].
     reference: Option<Element>,
 
     /// A node reference used for DOM access in Component lifecycle methods
