@@ -5,6 +5,7 @@ use crate::scheduler::{self, Runnable, Shared};
 use crate::virtual_dom::{VDiff, VNode};
 use crate::NodeRef;
 use web_sys::Element;
+use std::rc::Rc;
 
 pub(crate) struct ComponentState<COMP: Component> {
     pub(crate) component: Box<COMP>,
@@ -26,9 +27,9 @@ impl<COMP: Component> ComponentState<COMP> {
         root_node: VNode,
         node_ref: NodeRef,
         scope: Scope<COMP>,
-        props: COMP::Properties,
+        props: Rc<COMP::Properties>,
     ) -> Self {
-        let component = Box::new(COMP::create(props, &scope));
+        let component = Box::new(COMP::create(Rc::clone(&props), &scope));
         Self {
             component,
             root_node,
@@ -74,7 +75,7 @@ pub(crate) struct CreateEvent<COMP: Component> {
     pub(crate) next_sibling: NodeRef,
     pub(crate) placeholder: VNode,
     pub(crate) node_ref: NodeRef,
-    pub(crate) props: COMP::Properties,
+    pub(crate) props: Rc<COMP::Properties>,
     pub(crate) scope: Scope<COMP>,
 }
 
@@ -92,7 +93,7 @@ pub(crate) enum UpdateEvent<COMP: Component> {
     /// Wraps batch of messages for a component.
     MessageBatch(Vec<COMP::Message>),
     /// Wraps properties, node ref, and next sibling for a component.
-    Properties(COMP::Properties, NodeRef, NodeRef),
+    Properties(Rc<COMP::Properties>, NodeRef, NodeRef),
 }
 
 pub(crate) struct ComponentRunnable<COMP: Component> {
@@ -138,7 +139,7 @@ impl<COMP: Component> Runnable for ComponentRunnable<COMP> {
                             state.node_ref = node_ref;
                             // When components are updated, their siblings were likely also updated
                             state.next_sibling = next_sibling;
-                            state.component.changed(&state.scope, props)
+                            state.component.changed(&state.scope, Rc::clone(&props))
                         }
                     };
 
@@ -201,14 +202,14 @@ mod tests {
     }
 
     struct Child {
-        props: ChildProps,
+        props: Rc<ChildProps>,
     }
 
     impl Component for Child {
         type Message = ();
         type Properties = ChildProps;
 
-        fn create(props: Self::Properties, _ctx: &Context<Self>) -> Self {
+        fn create(props: Rc<Self::Properties>, _ctx: &Context<Self>) -> Self {
             Child { props }
         }
 
@@ -223,7 +224,7 @@ mod tests {
             false
         }
 
-        fn changed(&mut self, _ctx: &Context<Self>, _: Self::Properties) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>, _: Rc<Self::Properties>) -> ShouldRender {
             false
         }
 
@@ -244,14 +245,14 @@ mod tests {
     }
 
     struct Comp {
-        props: Props,
+        props: Rc<Props>,
     }
 
     impl Component for Comp {
         type Message = bool;
         type Properties = Props;
 
-        fn create(props: Self::Properties, ctx: &Context<Self>) -> Self {
+        fn create(props: Rc<Self::Properties>, ctx: &Context<Self>) -> Self {
             props.lifecycle.borrow_mut().push("create".into());
             #[cfg(feature = "wasm_test")]
             if let Some(msg) = props.create_message {
@@ -281,7 +282,7 @@ mod tests {
             msg
         }
 
-        fn changed(&mut self, _ctx: &Context<Self>, _: Self::Properties) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>, _: Rc<Self::Properties>) -> ShouldRender {
             self.props.lifecycle.borrow_mut().push("change".into());
             false
         }
@@ -308,7 +309,7 @@ mod tests {
         let lifecycle = props.lifecycle.clone();
 
         lifecycle.borrow_mut().clear();
-        scope.mount_in_place(el, NodeRef::default(), NodeRef::default(), props);
+        scope.mount_in_place(el, NodeRef::default(), NodeRef::default(), Rc::new(props));
 
         assert_eq!(&lifecycle.borrow_mut().deref()[..], expected);
     }

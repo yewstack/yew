@@ -7,6 +7,7 @@ use std::borrow::Borrow;
 use std::fmt;
 use std::ops::Deref;
 use web_sys::Element;
+use std::rc::Rc;
 
 /// A virtual component.
 pub struct VComp {
@@ -36,7 +37,7 @@ impl Clone for VComp {
 /// A virtual child component.
 pub struct VChild<COMP: Component> {
     /// The component properties
-    pub props: COMP::Properties,
+    pub props: Rc<COMP::Properties>,
     /// Reference to the mounted node
     node_ref: NodeRef,
     key: Option<Key>,
@@ -45,7 +46,7 @@ pub struct VChild<COMP: Component> {
 impl<COMP: Component> Clone for VChild<COMP> {
     fn clone(&self) -> Self {
         VChild {
-            props: self.props.clone(),
+            props: Rc::clone(&self.props),
             node_ref: self.node_ref.clone(),
             key: self.key.clone(),
         }
@@ -68,7 +69,7 @@ where
     /// Creates a child component that can be accessed and modified by its parent.
     pub fn new(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self {
         Self {
-            props,
+            props: Rc::new(props),
             node_ref,
             key,
         }
@@ -86,7 +87,7 @@ where
 
 impl VComp {
     /// Creates a new `VComp` instance.
-    pub fn new<COMP>(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self
+    pub fn new<COMP>(props: Rc<COMP::Properties>, node_ref: NodeRef, key: Option<Key>) -> Self
     where
         COMP: Component,
     {
@@ -117,11 +118,11 @@ trait Mountable {
 }
 
 struct PropsWrapper<COMP: Component> {
-    props: COMP::Properties,
+    props: Rc<COMP::Properties>,
 }
 
 impl<COMP: Component> PropsWrapper<COMP> {
-    pub fn new(props: COMP::Properties) -> Self {
+    pub fn new(props: Rc<COMP::Properties>) -> Self {
         Self { props }
     }
 }
@@ -129,7 +130,7 @@ impl<COMP: Component> PropsWrapper<COMP> {
 impl<COMP: Component> Mountable for PropsWrapper<COMP> {
     fn copy(&self) -> Box<dyn Mountable> {
         let wrapper: PropsWrapper<COMP> = PropsWrapper {
-            props: self.props.clone(),
+            props: Rc::clone(&self.props),
         };
         Box::new(wrapper)
     }
@@ -237,7 +238,7 @@ mod tests {
         type Message = ();
         type Properties = Props;
 
-        fn create(_: Self::Properties, _: &Context<Self>) -> Self {
+        fn create(_: Rc<Self::Properties>, _: &Context<Self>) -> Self {
             Comp
         }
 
@@ -245,7 +246,7 @@ mod tests {
             unimplemented!();
         }
 
-        fn changed(&mut self, _ctx: &Context<Self>, _: Self::Properties) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>, _: Rc<Self::Properties>) -> ShouldRender {
             true
         }
 
@@ -382,18 +383,18 @@ mod tests {
     pub struct ListProps {
         pub children: Children,
     }
-    pub struct List(ListProps);
+    pub struct List(Rc<ListProps>);
     impl Component for List {
         type Message = ();
         type Properties = ListProps;
 
-        fn create(props: Self::Properties, _: &Context<Self>) -> Self {
+        fn create(props: Rc<Self::Properties>, _: &Context<Self>) -> Self {
             Self(props)
         }
         fn update(&mut self,_ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
             unimplemented!();
         }
-        fn changed(&mut self,_ctx: &Context<Self>, _: Self::Properties) -> ShouldRender {
+        fn changed(&mut self,_ctx: &Context<Self>, _: Rc<Self::Properties>) -> ShouldRender {
             unimplemented!();
         }
         fn view(&self, _ctx: &Context<Self>) -> Html {
@@ -497,13 +498,14 @@ mod layout_tests {
 
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use std::rc::Rc;
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     struct Comp<T> {
         _marker: PhantomData<T>,
-        props: CompProps,
+        props: Rc<CompProps>,
     }
 
     #[derive(Properties, Clone)]
@@ -516,7 +518,7 @@ mod layout_tests {
         type Message = ();
         type Properties = CompProps;
 
-        fn create(props: Self::Properties, _: &Context<Self>) -> Self {
+        fn create(props: Rc<Self::Properties>, _: &Context<Self>) -> Self {
             Comp {
                 _marker: PhantomData::default(),
                 props,
@@ -527,7 +529,7 @@ mod layout_tests {
             unimplemented!();
         }
 
-        fn changed(&mut self, _ctx: &Context<Self>, props: Self::Properties) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>, props: Rc<Self::Properties>) -> ShouldRender {
             self.props = props.clone();
             true
         }

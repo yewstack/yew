@@ -3,7 +3,7 @@
 pub use yew_macro::Properties;
 
 /// Trait for building properties for a component
-pub trait Properties: Clone {
+pub trait Properties {
     /// Builder that will be used to construct properties
     type Builder;
 

@@ -399,13 +399,14 @@ mod layout_tests {
     use super::*;
     use crate::html::{AnyScope, Scope};
     use crate::{Component, Context, Html, ShouldRender};
+    use std::rc::Rc;
 
     struct Comp;
     impl Component for Comp {
         type Message = ();
         type Properties = ();
 
-        fn create(_: Self::Properties, _: &Context<Self>) -> Self {
+        fn create(_: Rc<Self::Properties>, _: &Context<Self>) -> Self {
             unimplemented!()
         }
 
@@ -413,7 +414,7 @@ mod layout_tests {
             unimplemented!();
         }
 
-        fn changed(&mut self, _ctx: &Context<Self>,_: Self::Properties) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>,_: Rc<Self::Properties>) -> ShouldRender {
             unimplemented!()
         }
 

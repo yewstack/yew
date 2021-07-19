@@ -10,6 +10,7 @@ pub use children::*;
 pub use properties::*;
 pub(crate) use scope::Scoped;
 pub use scope::{AnyScope, Scope, SendAsMessage};
+use std::rc::Rc;
 
 /// Should Render
 pub type ShouldRender = bool;
@@ -23,11 +24,11 @@ pub trait Component: Sized + 'static {
     type Message: 'static;
     type Properties: Properties;
 
-    fn create(props: Self::Properties, ctx: &Context<Self>) -> Self;
+    fn create(props: Rc<Self::Properties>, ctx: &Context<Self>) -> Self;
     fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> ShouldRender {
         false
     }
-    fn changed(&mut self, _ctx: &Context<Self>, _new_props: Self::Properties) -> ShouldRender {
+    fn changed(&mut self, _ctx: &Context<Self>, _new_props: Rc<Self::Properties>) -> ShouldRender {
         true
     }
     fn view(&self, ctx: &Context<Self>) -> Html;

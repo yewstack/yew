@@ -353,7 +353,7 @@ where
     COMP: Component,
 {
     set_default_panic_hook();
-    AppHandle::<COMP>::mount_with_props(element, props)
+    AppHandle::<COMP>::mount_with_props(element, Rc::new(props))
 }
 
 /// The main entry point of a Yew application.
@@ -381,7 +381,7 @@ where
     COMP: Component,
 {
     set_default_panic_hook();
-    AppHandle::<COMP>::mount_as_body_with_props(props)
+    AppHandle::<COMP>::mount_as_body_with_props(Rc::new(props))
 }
 
 /// The Yew Prelude
@@ -407,3 +407,4 @@ pub mod prelude {
 }
 
 pub use self::prelude::*;
+use std::rc::Rc;

@@ -5,6 +5,7 @@ use crate::{html, Callback, Children, Component, Html, Properties, ShouldRender}
 use slab::Slab;
 use std::cell::RefCell;
 use crate::html::Context;
+use std::rc::Rc;
 
 /// Props for [`ContextProvider`]
 #[derive(Debug, Clone, PartialEq, Properties)]
@@ -78,11 +79,11 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
     type Message = ();
     type Properties = ContextProviderProps<T>;
 
-    fn create(props: Self::Properties, ctx: &Context<Self>) -> Self {
+    fn create(props: Rc<Self::Properties>, ctx: &Context<Self>) -> Self {
         Self {
             component_context: ctx.clone(),
-            children: props.children,
-            context: props.context,
+            children: props.children.clone(),
+            context: props.context.clone(),
             consumers: RefCell::new(Slab::new()),
         }
     }
@@ -90,16 +91,16 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
     fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> ShouldRender { true }
 
 
-    fn changed(&mut self, _ctx: &Context<Self>, props: Self::Properties) -> bool {
+    fn changed(&mut self, _ctx: &Context<Self>, props: Rc<Self::Properties>) -> bool {
         let should_render = if self.children == props.children {
             false
         } else {
-            self.children = props.children;
+            self.children = props.children.clone();
             true
         };
 
         if self.context != props.context {
-            self.context = props.context;
+            self.context = props.context.clone();
             self.notify_consumers();
         }
 

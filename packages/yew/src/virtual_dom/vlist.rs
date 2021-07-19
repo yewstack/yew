@@ -452,6 +452,7 @@ mod layout_tests_keys {
     use crate::virtual_dom::VNode;
     use crate::{Children, Component, Context, Html, Properties, ShouldRender};
     use web_sys::Node;
+    use std::rc::Rc;
 
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
@@ -475,14 +476,14 @@ mod layout_tests_keys {
         type Message = ();
         type Properties = CountingCompProps;
 
-        fn create(props: Self::Properties, _: &Context<Self>) -> Self {
+        fn create(props: Rc<Self::Properties>, _: &Context<Self>) -> Self {
             Comp {
                 id: props.id,
                 panic_if_changes: props.can_change,
             }
         }
 
-        fn changed(&mut self, _ctx: &Context<Self>, props: Self::Properties) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>, props: Rc<Self::Properties>) -> ShouldRender {
             #[cfg(feature = "wasm_test")]
             wasm_bindgen_test::console_log!("Comp changed: {} -> {}", self.id, props.id);
             let changed = self.id != props.id;
@@ -510,13 +511,13 @@ mod layout_tests_keys {
         pub children: Children,
     }
 
-    pub struct List(ListProps);
+    pub struct List(Rc<ListProps>);
 
     impl Component for List {
         type Message = ();
         type Properties = ListProps;
 
-        fn create(props: Self::Properties, _: &Context<Self>) -> Self {
+        fn create(props: Rc<Self::Properties>, _: &Context<Self>) -> Self {
             Self(props)
         }
 
@@ -524,8 +525,8 @@ mod layout_tests_keys {
             unimplemented!();
         }
 
-        fn changed(&mut self,_ctx: &Context<Self>, props: Self::Properties) -> ShouldRender {
-            self.0 = props.clone();
+        fn changed(&mut self,_ctx: &Context<Self>, props: Rc<Self::Properties>) -> ShouldRender {
+            self.0 = props;
             true
         }
 

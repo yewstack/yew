@@ -79,7 +79,7 @@ pub trait FunctionProvider {
 /// Wrapper that allows a struct implementing [`FunctionProvider`] to be consumed as a component.
 pub struct FunctionComponent<T: FunctionProvider + 'static> {
     _never: std::marker::PhantomData<T>,
-    props: T::TProps,
+    props: Rc<T::TProps>,
     hook_state: RefCell<HookState>,
     message_queue: MsgQueue,
 }
@@ -108,13 +108,13 @@ where
     type Message = Box<dyn FnOnce() -> bool>;
     type Properties = T::TProps;
 
-    fn create(props: Self::Properties, ctx: &Context<Self>) -> Self {
+    fn create(props: Rc<Self::Properties>, ctx: &Context<Self>) -> Self {
         let scope = AnyScope::from(ctx.clone());
         let message_queue = MsgQueue::default();
 
         Self {
             _never: std::marker::PhantomData::default(),
-            props,
+            props: Rc::clone(&props),
             message_queue: message_queue.clone(),
             hook_state: RefCell::new(HookState {
                 counter: 0,
@@ -139,7 +139,7 @@ where
         msg()
     }
 
-    fn changed(&mut self,_ctx: &Context<Self>, props: Self::Properties) -> bool {
+    fn changed(&mut self,_ctx: &Context<Self>, props: Rc<Self::Properties>) -> bool {
         self.props = props;
         true
     }
