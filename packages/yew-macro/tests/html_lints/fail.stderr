@@ -4,7 +4,7 @@ warning: All `<a>` elements should have a `href` attribute. This makes it possib
 5 |         <a>{ "I don't have a href attribute" }</a>
   |          ^
 
-warning: '#' is not a suitable value for the `href` attribute. Without a meaningful attribute assistive technologies will struggle to understand your webpage. (hint: use a tag other than `<a>` here or `javascript:void(0)` for the `href` attribute)
+warning: '#' is not a suitable value for the `href` attribute. Without a meaningful attribute assistive technologies will struggle to understand your webpage.
  --> $DIR/fail.rs:8:17
   |
 8 |         <a href="#">{ "I have a malformed href attribute" }</a>
