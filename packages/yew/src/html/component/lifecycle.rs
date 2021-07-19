@@ -4,8 +4,8 @@ use super::{Component, Scope};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::virtual_dom::{VDiff, VNode};
 use crate::NodeRef;
-use web_sys::Element;
 use std::rc::Rc;
+use web_sys::Element;
 
 pub(crate) struct ComponentState<COMP: Component> {
     pub(crate) component: Box<COMP>,

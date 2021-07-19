@@ -5,8 +5,8 @@ use std::ops::Deref;
 
 use crate::html::{Component, NodeRef, Scope, Scoped};
 use crate::utils::document;
-use web_sys::Element;
 use std::rc::Rc;
+use web_sys::Element;
 
 /// An instance of an application.
 #[derive(Debug)]

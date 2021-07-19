@@ -451,8 +451,8 @@ mod layout_tests_keys {
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
     use crate::{Children, Component, Context, Html, Properties, ShouldRender};
-    use web_sys::Node;
     use std::rc::Rc;
+    use web_sys::Node;
 
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
@@ -525,7 +525,7 @@ mod layout_tests_keys {
             unimplemented!();
         }
 
-        fn changed(&mut self,_ctx: &Context<Self>, props: Rc<Self::Properties>) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>, props: Rc<Self::Properties>) -> ShouldRender {
             self.0 = props;
             true
         }

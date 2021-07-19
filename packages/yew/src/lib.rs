@@ -274,7 +274,6 @@ pub mod html;
 pub mod scheduler;
 pub mod utils;
 pub mod virtual_dom;
-pub mod component;
 
 pub use web_sys;
 

@@ -6,8 +6,8 @@ use std::any::TypeId;
 use std::borrow::Borrow;
 use std::fmt;
 use std::ops::Deref;
-use web_sys::Element;
 use std::rc::Rc;
+use web_sys::Element;
 
 /// A virtual component.
 pub struct VComp {
@@ -215,7 +215,10 @@ impl<COMP: Component> fmt::Debug for VChild<COMP> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{html, utils::document, Children, Component, Html, NodeRef, Properties, ShouldRender, Context};
+    use crate::{
+        html, utils::document, Children, Component, Context, Html, NodeRef, Properties,
+        ShouldRender,
+    };
     use web_sys::Node;
 
     #[cfg(feature = "wasm_test")]
@@ -391,10 +394,10 @@ mod tests {
         fn create(props: Rc<Self::Properties>, _: &Context<Self>) -> Self {
             Self(props)
         }
-        fn update(&mut self,_ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
             unimplemented!();
         }
-        fn changed(&mut self,_ctx: &Context<Self>, _: Rc<Self::Properties>) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>, _: Rc<Self::Properties>) -> ShouldRender {
             unimplemented!();
         }
         fn view(&self, _ctx: &Context<Self>) -> Html {
@@ -496,9 +499,9 @@ mod layout_tests {
     use crate::{Children, Component, Context, Html, Properties, ShouldRender};
     use std::marker::PhantomData;
 
+    use std::rc::Rc;
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-    use std::rc::Rc;
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
@@ -525,7 +528,7 @@ mod layout_tests {
             }
         }
 
-        fn update(&mut self,_ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
             unimplemented!();
         }
 

@@ -188,7 +188,12 @@ impl<COMP: Component> Scope<COMP> {
         }));
     }
 
-    pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, node_ref: NodeRef, next_sibling: NodeRef) {
+    pub(crate) fn reuse(
+        &self,
+        props: Rc<COMP::Properties>,
+        node_ref: NodeRef,
+        next_sibling: NodeRef,
+    ) {
         self.process(UpdateEvent::Properties(props, node_ref, next_sibling).into());
     }
 

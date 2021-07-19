@@ -410,11 +410,11 @@ mod layout_tests {
             unimplemented!()
         }
 
-        fn update(&mut self,_ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
             unimplemented!();
         }
 
-        fn changed(&mut self, _ctx: &Context<Self>,_: Rc<Self::Properties>) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>, _: Rc<Self::Properties>) -> ShouldRender {
             unimplemented!()
         }
 

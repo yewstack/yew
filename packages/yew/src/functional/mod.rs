@@ -14,7 +14,7 @@
 //! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/next/concepts/function-components)
 
 use crate::html::AnyScope;
-use crate::{Component,  Html, Properties};
+use crate::{Component, Html, Properties};
 use scoped_tls_hkt::scoped_thread_local;
 use std::cell::RefCell;
 use std::fmt;
@@ -23,6 +23,7 @@ use std::rc::Rc;
 mod hooks;
 pub use hooks::*;
 
+use crate::html::Context;
 /// This attribute creates a function component from a normal Rust function.
 ///
 /// Functions with this attribute **must** return `Html` and can optionally take an argument for props.
@@ -50,7 +51,6 @@ pub use hooks::*;
 /// }
 /// ```
 pub use yew_macro::function_component;
-use crate::html::Context;
 
 scoped_thread_local!(static mut CURRENT_HOOK: HookState);
 
@@ -139,7 +139,7 @@ where
         msg()
     }
 
-    fn changed(&mut self,_ctx: &Context<Self>, props: Rc<Self::Properties>) -> bool {
+    fn changed(&mut self, _ctx: &Context<Self>, props: Rc<Self::Properties>) -> bool {
         self.props = props;
         true
     }

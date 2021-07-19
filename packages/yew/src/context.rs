@@ -1,10 +1,10 @@
 //! This module defines the `ContextProvider` component.
 
+use crate::html::Context;
 use crate::html::Scope;
 use crate::{html, Callback, Children, Component, Html, Properties, ShouldRender};
 use slab::Slab;
 use std::cell::RefCell;
-use crate::html::Context;
 use std::rc::Rc;
 
 /// Props for [`ContextProvider`]
@@ -88,8 +88,9 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> ShouldRender { true }
-
+    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> ShouldRender {
+        true
+    }
 
     fn changed(&mut self, _ctx: &Context<Self>, props: Rc<Self::Properties>) -> bool {
         let should_render = if self.children == props.children {
