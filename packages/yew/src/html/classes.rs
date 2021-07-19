@@ -71,6 +71,7 @@ impl IntoPropValue<AttrValue> for Classes {
         if self.set.len() == 1 {
             match self.set.pop() {
                 Some(attr) => attr,
+                // SAFETY: the collection is checked to be non-empty above
                 None => unsafe { unreachable_unchecked() },
             }
         } else {
