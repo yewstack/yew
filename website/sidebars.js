@@ -90,6 +90,7 @@ module.exports = {
             items: [
                 "more/debugging",
                 "more/development-tips",
+                "more/external-libs",
                 "more/css",
                 "more/testing",
                 "more/roadmap",
