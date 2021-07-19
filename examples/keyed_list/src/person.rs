@@ -1,7 +1,7 @@
 use crate::random;
 use std::rc::Rc;
+use yew::utils::NeqAssign;
 use yew::{html, Component, ComponentLink, Html, Properties, ShouldRender};
-use yewtil::NeqAssign;
 
 use fake::faker::address::raw::*;
 use fake::faker::name::raw::*;
@@ -69,7 +69,7 @@ impl Component for PersonComponent {
 
     fn view(&self) -> Html {
         html! {
-            <div class="text-info" id=self.info.id.to_string()>
+            <div class="text-info" id={self.info.id.to_string()}>
                 { self.info.render() }
             </div>
         }
@@ -102,13 +102,13 @@ impl PersonType {
             Self::Inline(info) => {
                 if keyed {
                     html! {
-                        <div key=info.id.to_string() class="text-danger" id=info.id.to_string()>
+                        <div key={info.id.to_string()} class="text-danger" id={info.id.to_string()}>
                             { info.render() }
                         </div>
                     }
                 } else {
                     html! {
-                        <div class="text-danger" id=info.id.to_string()>
+                        <div class="text-danger" id={info.id.to_string()}>
                             { info.render() }
                         </div>
                     }
@@ -116,9 +116,9 @@ impl PersonType {
             }
             Self::Component(info) => {
                 if keyed {
-                    html! { <PersonComponent key=info.id.to_string() info=info.clone() /> }
+                    html! { <PersonComponent key={info.id.to_string()} info={info.clone()} /> }
                 } else {
-                    html! { <PersonComponent info=info.clone() /> }
+                    html! { <PersonComponent info={info.clone()} /> }
                 }
             }
         }

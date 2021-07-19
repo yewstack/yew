@@ -35,12 +35,21 @@ impl VNode {
         }
     }
 
+    /// Returns true if the [VNode] has a key without needlessly cloning the key.
+    pub fn has_key(&self) -> bool {
+        match self {
+            VNode::VComp(vcomp) => vcomp.key.is_some(),
+            VNode::VList(vlist) => vlist.key.is_some(),
+            VNode::VRef(_) | VNode::VText(_) => false,
+            VNode::VTag(vtag) => vtag.key.is_some(),
+        }
+    }
+
     /// Returns the first DOM node that is used to designate the position of the virtual DOM node.
     pub(crate) fn first_node(&self) -> Node {
         match self {
             VNode::VTag(vtag) => vtag
-                .reference
-                .as_ref()
+                .reference()
                 .expect("VTag is not mounted")
                 .clone()
                 .into(),
@@ -49,20 +58,16 @@ impl VNode {
                 text_node.clone().into()
             }
             VNode::VComp(vcomp) => vcomp.node_ref.get().expect("VComp is not mounted"),
-            VNode::VList(vlist) => vlist
-                .children
-                .get(0)
-                .expect("VList is not mounted")
-                .first_node(),
+            VNode::VList(vlist) => vlist.get(0).expect("VList is not mounted").first_node(),
             VNode::VRef(node) => node.clone(),
         }
     }
 
-    pub(crate) fn move_before(&self, parent: &Element, next_sibling: Option<Node>) {
+    pub(crate) fn move_before(&self, parent: &Element, next_sibling: &Option<Node>) {
         match self {
             VNode::VList(vlist) => {
-                for node in vlist.children.iter() {
-                    node.move_before(parent, next_sibling.clone());
+                for node in vlist.iter() {
+                    node.move_before(parent, next_sibling);
                 }
             }
             VNode::VComp(vcomp) => {
@@ -71,7 +76,7 @@ impl VNode {
                     .expect("VComp has no root vnode")
                     .move_before(parent, next_sibling);
             }
-            _ => super::insert_node(&self.first_node(), parent, next_sibling),
+            _ => super::insert_node(&self.first_node(), parent, next_sibling.as_ref()),
         };
     }
 }
@@ -119,7 +124,7 @@ impl VDiff for VNode {
                     }
                     ancestor.detach(parent);
                 }
-                super::insert_node(node, parent, next_sibling.get());
+                super::insert_node(node, parent, next_sibling.get().as_ref());
                 NodeRef::new(node.clone())
             }
         }
@@ -177,10 +182,10 @@ impl<T: ToString> From<T> for VNode {
 
 impl<A: Into<VNode>> FromIterator<A> for VNode {
     fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
-        VNode::VList(VList {
-            key: None,
-            children: iter.into_iter().map(|n| n.into()).collect(),
-        })
+        VNode::VList(VList::with_children(
+            iter.into_iter().map(|n| n.into()).collect(),
+            None,
+        ))
     }
 }
 
@@ -191,7 +196,7 @@ impl fmt::Debug for VNode {
             VNode::VText(ref vtext) => vtext.fmt(f),
             VNode::VComp(ref vcomp) => vcomp.fmt(f),
             VNode::VList(ref vlist) => vlist.fmt(f),
-            VNode::VRef(ref vref) => vref.fmt(f),
+            VNode::VRef(ref vref) => write!(f, "VRef ( \"{}\" )", crate::utils::print_node(vref)),
         }
     }
 }

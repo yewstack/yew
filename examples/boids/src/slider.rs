@@ -80,13 +80,13 @@ impl Component for Slider {
 
         html! {
             <div class="slider">
-                <label for=id.clone() class="slider__label">{ label }</label>
+                <label for={id.clone()} class="slider__label">{ label }</label>
                 <input type="range"
-                    id=id
+                    id={id}
                     class="slider__input"
-                    min=min.to_string() max=max.to_string() step=step.to_string()
-                    oninput=onchange.reform(|data: InputData| data.value.parse().unwrap())
-                    value=value.to_string()
+                    min={min.to_string()} max={max.to_string()} step={step.to_string()}
+                    oninput={onchange.reform(|data: InputData| data.value.parse().unwrap())}
+                    value={value.to_string()}
                 />
                 <span class="slider__value">{ display_value }</span>
             </div>

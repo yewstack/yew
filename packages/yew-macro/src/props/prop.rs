@@ -8,7 +8,7 @@ use std::{
 };
 use syn::{
     parse::{Parse, ParseStream},
-    Expr, Token,
+    Block, Expr, ExprBlock, Stmt, Token,
 };
 
 pub enum PropPunct {
@@ -45,12 +45,36 @@ impl Parse for Prop {
                 "expected an expression following this equals sign",
             ));
         }
-        let value = input.parse::<Expr>()?;
+        let value = strip_braces(input.parse::<Expr>()?)?;
         Ok(Self {
             label,
             punct: Some(PropPunct::Eq(equals)),
             value,
         })
+    }
+}
+
+fn strip_braces(expr: Expr) -> syn::Result<Expr> {
+    match expr {
+        Expr::Block(ExprBlock { block: Block { mut stmts, .. }, .. }) if stmts.len() == 1 => {
+            let stmt = stmts.remove(0);
+            match stmt {
+                Stmt::Expr(expr) => Ok(expr),
+                Stmt::Semi(_expr, semi) => Err(syn::Error::new_spanned(
+                        semi,
+                        "only an expression may be assigned as a property. Consider removing this semicolon",
+                )),
+                _ =>             Err(syn::Error::new_spanned(
+                        stmt,
+                        "only an expression may be assigned as a property",
+                ))
+            }
+        }
+        Expr::Lit(_) | Expr::Block(_) => Ok(expr),
+        _ => Err(syn::Error::new_spanned(
+                &expr,
+                "the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.".to_string(),
+        )),
     }
 }
 

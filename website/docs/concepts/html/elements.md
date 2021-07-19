@@ -68,7 +68,7 @@ boolean expressions can be used:
     let no = 1 + 1 != 2;
 
     html! {
-        <div hidden=no>
+        <div hidden={no}>
             { "This div is NOT hidden." }
         </div>
     }
@@ -82,15 +82,13 @@ This will result in the following **HTML**:
 
 ## Optional attributes for HTML elements
 
-Most HTML attributes can be marked as optional by placing a `?` in front of
-the `=` sign. This makes them accept the same type of value as otherwise, but
-wrapped in an `Option<T>`:
+Most HTML attributes can use optional values (Some(x) or None). This allows us to omit the attribute if the attribute is marked as optional.
 
 ```rust
 let maybe_id = Some("foobar");
 
 html! {
-    <div id?=maybe_id></div>
+    <div id={maybe_id}></div>
 }
 ```
 
@@ -132,7 +130,7 @@ impl Component for MyComponent {
         // Create a callback from a component link to handle it in a component
         let click_callback = self.link.callback(|_: ClickEvent| Msg::Click);
         html! {
-            <button onclick=click_callback>
+            <button onclick={click_callback}>
                 { "Click me!" }
             </button>
         }
@@ -165,7 +163,7 @@ impl Component for MyComponent {
         // Create a callback from a worker to handle it in another context
         let click_callback = self.worker.callback(|_: ClickEvent| WorkerMsg::Process);
         html! {
-            <button onclick=click_callback>
+            <button onclick={click_callback}>
                 { "Click me!" }
             </button>
         }
@@ -193,11 +191,11 @@ impl Component for MyComponent {
     fn view(&self) -> Html {
         // Create an ephemeral callback
         let click_callback = Callback::from(|| {
-            ConsoleService::new().log("clicked!");
+            console_log!("clicked!");
         });
 
         html! {
-            <button onclick=click_callback>
+            <button onclick={click_callback}>
                 { "Click me!" }
             </button>
         }

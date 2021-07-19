@@ -59,19 +59,29 @@ pub type Html = VNode;
 ///
 ///     fn view(&self) -> Html {
 ///         html! {
-///             <input ref=self.node_ref.clone() type="text" />
+///             <input ref={self.node_ref.clone()} type="text" />
 ///         }
 ///     }
 /// }
 /// ```
 /// ## Relevant examples
 /// - [Node Refs](https://github.com/yewstack/yew/tree/master/examples/node_refs)
-#[derive(Debug, Default, Clone)]
+#[derive(Default, Clone)]
 pub struct NodeRef(Rc<RefCell<NodeRefInner>>);
 
 impl PartialEq for NodeRef {
     fn eq(&self, other: &Self) -> bool {
         self.0.as_ptr() == other.0.as_ptr() || Some(self) == other.0.borrow().link.as_ref()
+    }
+}
+
+impl std::fmt::Debug for NodeRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "NodeRef {{ references: {:?} }}",
+            self.get().map(|n| crate::utils::print_node(&n))
+        )
     }
 }
 

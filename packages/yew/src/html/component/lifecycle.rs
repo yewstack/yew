@@ -291,7 +291,7 @@ mod tests {
                 self.link.send_message(msg);
             }
             self.props.lifecycle.borrow_mut().push("view".into());
-            html! { <Child lifecycle=self.props.lifecycle.clone() /> }
+            html! { <Child lifecycle={self.props.lifecycle.clone()} /> }
         }
     }
 

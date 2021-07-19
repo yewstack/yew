@@ -48,9 +48,9 @@ impl Component for PostList {
                 <h2 class="subtitle">{ "All of our quality writing in one place" }</h2>
                 { self.view_posts() }
                 <Pagination
-                    page=page
-                    total_pages=TOTAL_PAGES
-                    on_switch_page=self.link.callback(Msg::ShowPage)
+                    page={page}
+                    total_pages={TOTAL_PAGES}
+                    on_switch_page={self.link.callback(Msg::ShowPage)}
                 />
             </div>
         }
@@ -62,7 +62,7 @@ impl PostList {
         let mut cards = (0..ITEMS_PER_PAGE).map(|seed_offset| {
             html! {
                 <li class="list-item mb-5">
-                    <PostCard seed=start_seed + seed_offset />
+                    <PostCard seed={start_seed + seed_offset} />
                 </li>
             }
         });

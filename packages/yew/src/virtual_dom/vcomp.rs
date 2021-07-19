@@ -99,7 +99,6 @@ impl VComp {
         }
     }
 
-    #[allow(unused)]
     pub(crate) fn root_vnode(&self) -> Option<impl Deref<Target = VNode> + '_> {
         self.scope.as_ref().and_then(|scope| scope.root_vnode())
     }
@@ -202,7 +201,7 @@ impl PartialEq for VComp {
 
 impl fmt::Debug for VComp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("VComp")
+        write!(f, "VComp {{ root: {:?} }}", self.root_vnode().as_deref())
     }
 }
 
@@ -320,11 +319,11 @@ mod tests {
         };
         let props_2 = props.clone();
 
-        check_key(html! { <Comp key=test_key.clone() /> });
-        check_key(html! { <Comp key=test_key.clone() field_1=1 /> });
-        check_key(html! { <Comp field_1=1 key=test_key.clone() /> });
-        check_key(html! { <Comp with props key=test_key.clone() /> });
-        check_key(html! { <Comp key=test_key.clone() with props_2 /> });
+        check_key(html! { <Comp key={test_key.clone()} /> });
+        check_key(html! { <Comp key={test_key.clone()} field_1=1 /> });
+        check_key(html! { <Comp field_1=1 key={test_key.clone()} /> });
+        check_key(html! { <Comp with props key={test_key.clone()} /> });
+        check_key(html! { <Comp key={test_key.clone()} with props_2 /> });
     }
 
     #[test]
@@ -341,11 +340,11 @@ mod tests {
         };
         let props_2 = props.clone();
 
-        check_node_ref(html! { <Comp ref=test_node_ref.clone() /> });
-        check_node_ref(html! { <Comp ref=test_node_ref.clone() field_1=1 /> });
-        check_node_ref(html! { <Comp field_1=1 ref=test_node_ref.clone() /> });
-        check_node_ref(html! { <Comp with props ref=test_node_ref.clone() /> });
-        check_node_ref(html! { <Comp ref=test_node_ref.clone() with props_2 /> });
+        check_node_ref(html! { <Comp ref={test_node_ref.clone()} /> });
+        check_node_ref(html! { <Comp ref={test_node_ref.clone()} field_1=1 /> });
+        check_node_ref(html! { <Comp field_1=1 ref={test_node_ref.clone()} /> });
+        check_node_ref(html! { <Comp with props ref={test_node_ref.clone()} /> });
+        check_node_ref(html! { <Comp ref={test_node_ref.clone()} with props_2 /> });
     }
 
     #[test]
@@ -444,7 +443,7 @@ mod tests {
         </ul>";
 
         let prop_method = html! {
-            <List children=children_renderer.clone()/>
+            <List children={children_renderer.clone()} />
         };
         assert_eq!(get_html(prop_method, &scope, &parent), expected_html);
 
@@ -481,7 +480,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let node_ref = NodeRef::default();
-        let mut elem: VNode = html! { <Comp ref=node_ref.clone()></Comp> };
+        let mut elem: VNode = html! { <Comp ref={node_ref.clone()}></Comp> };
         elem.apply(&scope, &parent, NodeRef::default(), None);
         let parent_node = parent.deref();
         assert_eq!(node_ref.get(), parent_node.first_child());

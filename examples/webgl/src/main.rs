@@ -1,8 +1,7 @@
+use gloo_render::{request_animation_frame, AnimationFrame};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGlRenderingContext as GL};
 use yew::{html, Component, ComponentLink, Html, NodeRef, ShouldRender};
-use yew_services::render::RenderTask;
-use yew_services::RenderService;
 
 pub enum Msg {
     Render(f64),
@@ -12,7 +11,7 @@ pub struct Model {
     gl: Option<GL>,
     link: ComponentLink<Self>,
     node_ref: NodeRef,
-    _render_loop: Option<RenderTask>,
+    _render_loop: Option<AnimationFrame>,
 }
 
 impl Component for Model {
@@ -51,8 +50,10 @@ impl Component for Model {
         if first_render {
             // The callback to request animation frame is passed a time value which can be used for
             // rendering motion independent of the framerate which may vary.
-            let render_frame = self.link.callback(Msg::Render);
-            let handle = RenderService::request_animation_frame(render_frame);
+            let handle = {
+                let link = self.link.clone();
+                request_animation_frame(move |time| link.send_message(Msg::Render(time)))
+            };
 
             // A reference to the handle must be stored, otherwise it is dropped and the render won't
             // occur.
@@ -75,7 +76,7 @@ impl Component for Model {
 
     fn view(&self) -> Html {
         html! {
-            <canvas ref=self.node_ref.clone() />
+            <canvas ref={self.node_ref.clone()} />
         }
     }
 
@@ -127,8 +128,10 @@ impl Model {
 
         gl.draw_arrays(GL::TRIANGLES, 0, 6);
 
-        let render_frame = self.link.callback(Msg::Render);
-        let handle = RenderService::request_animation_frame(render_frame);
+        let handle = {
+            let link = self.link.clone();
+            request_animation_frame(move |time| link.send_message(Msg::Render(time)))
+        };
 
         // A reference to the new handle must be retained for the next render to run.
         self._render_loop = Some(handle);

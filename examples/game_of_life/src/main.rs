@@ -1,8 +1,7 @@
 use cell::Cellule;
+use gloo::timers::callback::Interval;
 use rand::Rng;
-use std::time::Duration;
 use yew::{classes, html, Component, ComponentLink, Html, ShouldRender};
-use yew_services::interval::{IntervalService, IntervalTask};
 
 mod cell;
 
@@ -22,7 +21,7 @@ pub struct Model {
     cellules: Vec<Cellule>,
     cellules_width: usize,
     cellules_height: usize,
-    _task: IntervalTask,
+    _interval: Interval,
 }
 
 impl Model {
@@ -96,8 +95,8 @@ impl Model {
             }
         };
         html! {
-            <div key=idx class=classes!("game-cellule", cellule_status)
-                onclick=self.link.callback(move |_| Msg::ToggleCellule(idx))>
+            <div key={idx} class={classes!("game-cellule", cellule_status)}
+                onclick={self.link.callback(move |_| Msg::ToggleCellule(idx))}>
             </div>
         }
     }
@@ -108,7 +107,7 @@ impl Component for Model {
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let callback = link.callback(|_| Msg::Tick);
-        let task = IntervalService::spawn(Duration::from_millis(200), callback);
+        let interval = Interval::new(200, move || callback.emit(()));
 
         let (cellules_width, cellules_height) = (53, 40);
 
@@ -118,7 +117,7 @@ impl Component for Model {
             cellules: vec![Cellule::new_dead(); cellules_width * cellules_height],
             cellules_width,
             cellules_height,
-            _task: task,
+            _interval: interval,
         }
     }
 
@@ -181,7 +180,7 @@ impl Component for Model {
                         .enumerate()
                         .map(|(x, cell)| self.view_cellule(idx_offset + x, cell));
                     html! {
-                        <div key=y class="game-row">
+                        <div key={y} class="game-row">
                             { for cells }
                         </div>
                     }
@@ -199,11 +198,11 @@ impl Component for Model {
                             { for cell_rows }
                         </div>
                         <div class="game-buttons">
-                            <button class="game-button" onclick=self.link.callback(|_| Msg::Random)>{ "Random" }</button>
-                            <button class="game-button" onclick=self.link.callback(|_| Msg::Step)>{ "Step" }</button>
-                            <button class="game-button" onclick=self.link.callback(|_| Msg::Start)>{ "Start" }</button>
-                            <button class="game-button" onclick=self.link.callback(|_| Msg::Stop)>{ "Stop" }</button>
-                            <button class="game-button" onclick=self.link.callback(|_| Msg::Reset)>{ "Reset" }</button>
+                            <button class="game-button" onclick={self.link.callback(|_| Msg::Random)}>{ "Random" }</button>
+                            <button class="game-button" onclick={self.link.callback(|_| Msg::Step)}>{ "Step" }</button>
+                            <button class="game-button" onclick={self.link.callback(|_| Msg::Start)}>{ "Start" }</button>
+                            <button class="game-button" onclick={self.link.callback(|_| Msg::Stop)}>{ "Stop" }</button>
+                            <button class="game-button" onclick={self.link.callback(|_| Msg::Reset)}>{ "Reset" }</button>
                         </div>
                     </section>
                 </section>

@@ -4,12 +4,6 @@ sidebar_label: Introduction
 description: "Introduction to function components "
 ---
 
-:::warning
-We're still working on function components and Hooks. They're not quite ready to be used yet.
-If you'd like to help out, take a look at the [project board](https://github.com/yewstack/yew/projects/3) for a list of things that still need to be done.
-:::
-
-
 Function components are a simplified version of normal components.
 They consist of a single function that receives props and determines what should be rendered by returning `Html`.
 Basically, it's a component that's been reduced to just the `view` method.

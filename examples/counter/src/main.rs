@@ -1,6 +1,6 @@
 use js_sys::Date;
+use weblog::console_log;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
-use yew_services::ConsoleService;
 
 // Define the possible messages which can be sent to the component
 pub enum Msg {
@@ -25,12 +25,12 @@ impl Component for Model {
         match msg {
             Msg::Increment => {
                 self.value += 1;
-                ConsoleService::log("plus one"); // Will output a string to the browser console
+                console_log!("plus one"); // Will output a string to the browser console
                 true // Return true to cause the displayed change to update
             }
             Msg::Decrement => {
                 self.value -= 1;
-                ConsoleService::log("minus one");
+                console_log!("minus one");
                 true
             }
         }
@@ -45,17 +45,17 @@ impl Component for Model {
             <div>
                 <div class="panel">
                     // A button to send the Increment message
-                    <button class="button" onclick=self.link.callback(|_| Msg::Increment)>
+                    <button class="button" onclick={self.link.callback(|_| Msg::Increment)}>
                         { "+1" }
                     </button>
 
                     // A button to send the Decrement message
-                    <button onclick=self.link.callback(|_| Msg::Decrement)>
+                    <button onclick={self.link.callback(|_| Msg::Decrement)}>
                         { "-1" }
                     </button>
 
                     // A button to send two Increment messages
-                    <button onclick=self.link.batch_callback(|_| vec![Msg::Increment, Msg::Increment])>
+                    <button onclick={self.link.batch_callback(|_| vec![Msg::Increment, Msg::Increment])}>
                         { "+1, +1" }
                     </button>
 

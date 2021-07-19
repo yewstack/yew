@@ -217,8 +217,8 @@ pub struct VTag {
     /// List of attached listeners.
     listeners: Listeners,
 
-    /// A reference to the DOM `Element`.
-    pub reference: Option<Element>,
+    /// A reference to the DOM [Element].
+    reference: Option<Element>,
 
     /// A node reference used for DOM access in Component lifecycle methods
     pub node_ref: NodeRef,
@@ -424,11 +424,11 @@ impl VTag {
     /// Returns the `value` of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) or
     /// [TextArea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
-    pub fn value(&self) -> &Option<AttrValue> {
+    pub fn value(&self) -> Option<&AttrValue> {
         match &self.inner {
-            VTagInner::Input(f) => &f.value.0,
-            VTagInner::Textarea { value } => &value.0,
-            VTagInner::Other { .. } => &None,
+            VTagInner::Input(f) => f.value.0.as_ref(),
+            VTagInner::Textarea { value } => value.0.as_ref(),
+            VTagInner::Other { .. } => None,
         }
     }
 
@@ -464,6 +464,12 @@ impl VTag {
         if let VTagInner::Input(f) = &mut self.inner {
             f.checked = value;
         }
+    }
+
+    /// Returns reference to the [Element] associated with this [VTag], if this [VTag] has already
+    /// been mounted in the DOM
+    pub fn reference(&self) -> Option<&Element> {
+        self.reference.as_ref()
     }
 
     /// Adds a key-value pair to attributes
@@ -587,23 +593,17 @@ impl VDiff for VTag {
                     }
                 } else {
                     let el = self.create_element(parent);
-                    super::insert_node(&el, parent, Some(ancestor.first_node()));
+                    super::insert_node(&el, parent, Some(&ancestor.first_node()));
                     ancestor.detach(parent);
                     (None, el)
                 }
             }
             None => (None, {
                 let el = self.create_element(parent);
-                super::insert_node(&el, parent, next_sibling.get());
+                super::insert_node(&el, parent, next_sibling.get().as_ref());
                 el
             }),
         };
-
-        macro_rules! cast_el {
-            () => {
-                el.dyn_ref().unwrap()
-            };
-        }
 
         match ancestor_tag {
             None => {
@@ -612,10 +612,10 @@ impl VDiff for VTag {
 
                 match &mut self.inner {
                     VTagInner::Input(f) => {
-                        f.apply(cast_el!());
+                        f.apply(el.unchecked_ref());
                     }
                     VTagInner::Textarea { value } => {
-                        value.apply(cast_el!());
+                        value.apply(el.unchecked_ref());
                     }
                     VTagInner::Other { children, .. } => {
                         if !children.is_empty() {
@@ -630,10 +630,10 @@ impl VDiff for VTag {
 
                 match (&mut self.inner, ancestor.inner) {
                     (VTagInner::Input(new), VTagInner::Input(old)) => {
-                        new.apply_diff(cast_el!(), old);
+                        new.apply_diff(el.unchecked_ref(), old);
                     }
                     (VTagInner::Textarea { value: new }, VTagInner::Textarea { value: old }) => {
-                        new.apply_diff(cast_el!(), old);
+                        new.apply_diff(el.unchecked_ref(), old);
                     }
                     (
                         VTagInner::Other { children: new, .. },
@@ -753,15 +753,15 @@ mod tests {
     #[test]
     fn it_compares_attributes_dynamic() {
         let a = html! {
-            <div a="test".to_owned()></div>
+            <div a={"test".to_owned()}></div>
         };
 
         let b = html! {
-            <div a="test".to_owned()></div>
+            <div a={"test".to_owned()}></div>
         };
 
         let c = html! {
-            <div a="fail".to_owned()></div>
+            <div a={"fail".to_owned()}></div>
         };
 
         assert_eq!(a, b);
@@ -807,7 +807,7 @@ mod tests {
         };
 
         let d = html! {
-            <div class=format!("fail{}", "")></div>
+            <div class={format!("fail{}", "")}></div>
         };
 
         assert_eq!(a, b);
@@ -818,19 +818,19 @@ mod tests {
     #[test]
     fn it_compares_classes_dynamic() {
         let a = html! {
-            <div class="test".to_owned()></div>
+            <div class={"test".to_owned()}></div>
         };
 
         let b = html! {
-            <div class="test".to_owned()></div>
+            <div class={"test".to_owned()}></div>
         };
 
         let c = html! {
-            <div class="fail".to_owned()></div>
+            <div class={"fail".to_owned()}></div>
         };
 
         let d = html! {
-            <div class=format!("fail{}", "")></div>
+            <div class={format!("fail{}", "")}></div>
         };
 
         assert_eq!(a, b);
@@ -986,7 +986,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = html! { <div></div> };
-        elem.apply(&scope, &parent, NodeRef::default(), None);
+        VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag_mut(&mut elem);
         // test if the className has not been set
         assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -999,7 +999,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let mut elem = gen_html();
-        elem.apply(&scope, &parent, NodeRef::default(), None);
+        VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag_mut(&mut elem);
         // test if the className has been set
         assert!(vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -1012,7 +1012,7 @@ mod tests {
 
     #[test]
     fn it_sets_class_name_dynamic() {
-        test_set_class_name(|| html! { <div class="ferris the crab".to_owned()></div> });
+        test_set_class_name(|| html! { <div class={"ferris the crab".to_owned()}></div> });
     }
 
     #[test]
@@ -1025,8 +1025,8 @@ mod tests {
         let expected = "not_changed_value";
 
         // Initial state
-        let mut elem = html! { <input value=expected /> };
-        elem.apply(&scope, &parent, NodeRef::default(), None);
+        let mut elem = html! { <input value={expected} /> };
+        VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
         } else {
@@ -1039,7 +1039,7 @@ mod tests {
         input.unwrap().set_value("User input");
 
         let ancestor = vtag;
-        let mut elem = html! { <input value=expected /> };
+        let mut elem = html! { <input value={expected} /> };
         let vtag = assert_vtag_mut(&mut elem);
 
         // Sync happens here
@@ -1069,7 +1069,7 @@ mod tests {
 
         // Initial state
         let mut elem = html! { <input /> };
-        elem.apply(&scope, &parent, NodeRef::default(), None);
+        VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
         } else {
@@ -1116,7 +1116,7 @@ mod tests {
             builder
         }/> };
 
-        elem.apply(&scope, &parent, NodeRef::default(), None);
+        VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag_mut(&mut elem);
         // make sure the new tag name is used internally
         assert_eq!(vtag.tag(), "a");
@@ -1143,7 +1143,7 @@ mod tests {
             <@{"input"} value="World"/>
         };
         let input_vtag = assert_vtag_mut(&mut input_el);
-        assert_eq!(input_vtag.value(), &Some(Cow::Borrowed("World")));
+        assert_eq!(input_vtag.value(), Some(&Cow::Borrowed("World")));
         assert!(!input_vtag.attributes.iter().any(|(k, _)| k == "value"));
     }
 
@@ -1164,39 +1164,13 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let node_ref = NodeRef::default();
-        let mut elem: VNode = html! { <div ref=node_ref.clone()></div> };
+        let mut elem: VNode = html! { <div ref={node_ref.clone()}></div> };
         assert_vtag_mut(&mut elem);
         elem.apply(&scope, &parent, NodeRef::default(), None);
         let parent_node = parent.deref();
         assert_eq!(node_ref.get(), parent_node.first_child());
         elem.detach(&parent);
         assert!(node_ref.get().is_none());
-    }
-
-    /// Returns the class attribute as str reference, or "" if the attribute is not set.
-    fn get_class_str(vtag: &VTag) -> &str {
-        vtag.attributes
-            .iter()
-            .find(|(k, _)| k == &"class")
-            .map(|(_, v)| AsRef::as_ref(v))
-            .unwrap_or("")
-    }
-
-    #[test]
-    fn old_class_syntax_is_still_supported() {
-        let a_classes = "class-1 class-2".to_string();
-        #[allow(deprecated)]
-        let a = html! {
-            <div class=("class-1", a_classes)></div>
-        };
-
-        if let VNode::VTag(vtag) = a {
-            assert!(get_class_str(&vtag).contains("class-1"));
-            assert!(get_class_str(&vtag).contains("class-2"));
-            assert!(!get_class_str(&vtag).contains("class-3"));
-        } else {
-            panic!("vtag expected");
-        }
     }
 }
 

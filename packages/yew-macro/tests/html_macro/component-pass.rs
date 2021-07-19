@@ -152,8 +152,8 @@ fn compile_pass() {
     html! {
         <>
             <Child with props />
-            <Child ref=node_ref.clone() with yew::props!(Child::Properties { int: 5 }) />
-            <Child with <Child as Component>::Properties::default() ref=node_ref />
+            <Child ref={node_ref.clone()} with yew::props!(Child::Properties { int: 5 }) />
+            <Child with <Child as Component>::Properties::default() ref={node_ref} />
         </>
     };
 
@@ -165,29 +165,31 @@ fn compile_pass() {
             <Child int=1 vec={vec![1]} />
             <Child string={String::from("child")} int=1 />
 
-            <Child opt_str=String::from("child") int=1 />
-            <Child opt_str=Some(String::from("child")) int=1 />
+            <Child opt_str="child" int=1 />
+            <Child opt_str={String::from("child")} int=1 />
+            <Child opt_str={Some("child")} int=1 />
+            <Child opt_str={Some(String::from("child"))} int=1 />
         </>
     };
 
     let name_expr = "child";
     html! {
-        <Child int=1 string=name_expr />
+        <Child int=1 string={name_expr} />
     };
 
     html! {
         <>
             <Child int=1 />
-            <Child int=1 optional_callback=Some(Callback::from(|_| ())) />
-            <Child int=1 optional_callback=Callback::from(|_| ()) />
-            <Child int=1 optional_callback=None::<Callback<_>> />
+            <Child int=1 optional_callback={Some(Callback::from(|_| ()))} />
+            <Child int=1 optional_callback={Callback::from(|_| ())} />
+            <Child int=1 optional_callback={None::<Callback<_>>} />
         </>
     };
 
     let node_ref = NodeRef::default();
     html! {
         <>
-            <Child int=1 ref=node_ref />
+            <Child int=1 ref={node_ref} />
         </>
     };
 
@@ -209,9 +211,9 @@ fn compile_pass() {
                 <scoped::Container int=2/>
             </scoped::Container>
 
-            <Container int=1 children=ChildrenRenderer::new(
+            <Container int=1 children={ChildrenRenderer::new(
                 vec![html!{ "String" }]
-            ) />
+            )} />
         </>
     };
 
@@ -235,7 +237,7 @@ fn compile_pass() {
             }
             {
                 (0..2)
-                    .map(|i| { html_nested! { <Child int=i /> } })
+                    .map(|i| { html_nested! { <Child int={i} /> } })
                     .collect::<Vec<_>>()
             }
         </ChildContainer>

@@ -1,7 +1,6 @@
+use gloo::timers::callback::Interval;
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
-use yew::worker::{Agent, AgentLink, HandlerId, Job};
-use yew_services::interval::{IntervalService, IntervalTask};
+use yew_agent::{Agent, AgentLink, HandlerId, Job};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Request {
@@ -21,7 +20,7 @@ pub enum Msg {
 
 pub struct Worker {
     link: AgentLink<Worker>,
-    _task: IntervalTask,
+    _interval: Interval,
 }
 
 impl Agent for Worker {
@@ -31,13 +30,17 @@ impl Agent for Worker {
     type Output = Response;
 
     fn create(link: AgentLink<Self>) -> Self {
-        let duration = Duration::from_secs(3);
-        let callback = link.callback(|_| Msg::Updating);
+        let duration = 3;
+
+        let interval = {
+            let link = link.clone();
+            Interval::new(duration, move || link.send_message(Msg::Updating))
+        };
 
         link.send_message(Msg::Initialized);
         Self {
             link,
-            _task: IntervalService::spawn(duration, callback),
+            _interval: interval,
         }
     }
 

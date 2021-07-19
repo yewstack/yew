@@ -1,8 +1,7 @@
+use gloo::timers::callback::Interval;
 use instant::Instant;
-use std::time::Duration;
 use yew::prelude::*;
-use yew_services::interval::{IntervalService, IntervalTask};
-use yewtil::NeqAssign;
+use yew::utils::NeqAssign;
 
 const RESOLUTION: u64 = 500;
 const MIN_INTERVAL_MS: u64 = 50;
@@ -21,7 +20,7 @@ pub struct Props {
 
 pub struct ProgressDelay {
     props: Props,
-    _task: IntervalTask,
+    _interval: Interval,
     start: Instant,
     value: f64,
 }
@@ -31,13 +30,10 @@ impl Component for ProgressDelay {
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let interval = (props.duration_ms / RESOLUTION).min(MIN_INTERVAL_MS);
-        let task = IntervalService::spawn(
-            Duration::from_millis(interval),
-            link.callback(|_| Msg::Tick),
-        );
+        let interval = Interval::new(interval as u32, move || link.send_message(Msg::Tick));
         Self {
             props,
-            _task: task,
+            _interval: interval,
             start: Instant::now(),
             value: 0.0,
         }
@@ -68,7 +64,7 @@ impl Component for ProgressDelay {
     fn view(&self) -> Html {
         let value = self.value;
         html! {
-            <progress class="progress is-primary" value=value.to_string() max=1.0>
+            <progress class="progress is-primary" value={value.to_string()} max=1.0>
                 { format!("{:.0}%", 100.0 * value) }
             </progress>
         }

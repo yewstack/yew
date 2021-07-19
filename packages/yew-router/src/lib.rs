@@ -5,7 +5,7 @@
 //!
 //! ```rust
 //! # use yew::prelude::*;
-//! # use yew_functional::*;
+//! # use yew::functional::*;
 //! # use yew_router::prelude::*;
 //!
 //! #[derive(Debug, Clone, Copy, PartialEq, Routable)]
@@ -22,7 +22,7 @@
 //! # #[function_component(Main)]
 //! # fn app() -> Html {
 //! html! {
-//!     <Router<Route> render=Router::render(switch) />
+//!     <Router<Route> render={Router::render(switch)} />
 //! }
 //! # }
 //!
@@ -33,7 +33,7 @@
 //!         Route::Secure => html! {
 //!             <div>
 //!                 <h1>{ "Secure" }</h1>
-//!                 <button onclick=onclick_callback>{ "Go Home" }</button>
+//!                 <button onclick={onclick_callback}>{ "Go Home" }</button>
 //!             </div>
 //!         },
 //!         Route::NotFound => html! { <h1>{ "404" }</h1> },

@@ -7,7 +7,6 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
-use yewtil::future::LinkFuture;
 
 mod markdown;
 
@@ -119,10 +118,10 @@ impl Component for Model {
         match &self.markdown {
             FetchState::NotFetching => html! {
                 <>
-                    <button onclick=self.link.callback(|_| Msg::GetMarkdown)>
+                    <button onclick={self.link.callback(|_| Msg::GetMarkdown)}>
                         { "Get Markdown" }
                     </button>
-                    <button onclick=self.link.callback(|_| Msg::GetError)>
+                    <button onclick={self.link.callback(|_| Msg::GetError)}>
                         { "Get using incorrect URL" }
                     </button>
                 </>

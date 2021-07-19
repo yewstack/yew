@@ -1,6 +1,6 @@
 use crate::event_bus::{EventBus, Request};
-use yew::agent::{Dispatched, Dispatcher};
 use yew::prelude::*;
+use yew_agent::{Dispatched, Dispatcher};
 
 pub enum Msg {
     Clicked,
@@ -38,7 +38,7 @@ impl Component for Producer {
 
     fn view(&self) -> Html {
         html! {
-            <button onclick=self.link.callback(|_| Msg::Clicked)>
+            <button onclick={self.link.callback(|_| Msg::Clicked)}>
                 { "PRESS ME" }
             </button>
         }
