@@ -1,13 +1,12 @@
 use wasm_bindgen::JsValue;
 use web_sys::{CanvasRenderingContext2d, Document, HtmlCanvasElement};
-use yew::{html, Component, ComponentLink, Html, InputData, ShouldRender};
+use yew::{html, Component, Html, InputData, ShouldRender, Context};
 
 pub enum Msg {
     UpdateName(String),
 }
 
 pub struct Model {
-    link: ComponentLink<Self>,
     name: String,
 }
 
@@ -15,14 +14,13 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            link,
             name: "Reversed".to_owned(),
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::UpdateName(new_name) => {
                 self.name = new_name;
@@ -31,16 +29,12 @@ impl Component for Model {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div>
                 <input
                     value={self.name.clone()}
-                    oninput={self.link.callback(|e: InputData| Msg::UpdateName(e.value))}
+                    oninput={ctx.link().callback(|e: InputData| Msg::UpdateName(e.value))}
                 />
                 <p>{ self.name.chars().rev().collect::<String>() }</p>
             </div>
