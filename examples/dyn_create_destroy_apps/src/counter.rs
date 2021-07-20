@@ -3,7 +3,6 @@ use yew::prelude::*;
 
 pub struct CounterModel {
     counter: usize,
-    props: CounterProps,
     _interval: Interval,
 }
 
@@ -21,17 +20,17 @@ impl Component for CounterModel {
 
     type Properties = CounterProps;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
         // Create a Tick message every second
+        let link = ctx.link().clone();
         let interval = Interval::new(1, move || link.send_message(Self::Message::Tick));
         Self {
             counter: 0,
-            props,
             _interval: interval,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self,_ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             // Count our internal state up by one
             Self::Message::Tick => {
@@ -41,12 +40,8 @@ impl Component for CounterModel {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
-        let destroy_callback = self.props.destroy_callback.clone();
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let destroy_callback = ctx.props().destroy_callback.clone();
 
         html! {
             <>
@@ -65,7 +60,7 @@ impl Component for CounterModel {
         }
     }
 
-    fn destroy(&mut self) {
+    fn destroy(&mut self, _ctx: &Context<Self>) {
         weblog::console_log!("CounterModel app destroyed");
     }
 }
