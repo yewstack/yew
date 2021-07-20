@@ -2,6 +2,7 @@
 
 use crate::Routable;
 use gloo::events::EventListener;
+use std::marker::PhantomData;
 use std::rc::Rc;
 use yew::prelude::*;
 
@@ -65,9 +66,9 @@ pub enum Msg {
 /// stating that no route can be matched.
 /// See the [crate level document][crate] for more information.
 pub struct Router<R: Routable + 'static> {
-    props: RouterProps<R>,
     #[allow(dead_code)] // only exists to drop listener on component drop
     route_listener: EventListener,
+    _data: PhantomData<R>,
 }
 
 impl<R> Component for Router<R>
@@ -77,34 +78,30 @@ where
     type Message = Msg;
     type Properties = RouterProps<R>;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
+        let link = ctx.link().clone();
         let route_listener = EventListener::new(&yew::utils::window(), "popstate", move |_| {
             link.send_message(Msg::ReRender)
         });
 
         Self {
-            props,
             route_listener,
+            _data: PhantomData,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::ReRender => true,
         }
     }
 
-    fn change(&mut self, mut props: Self::Properties) -> bool {
-        std::mem::swap(&mut self.props, &mut props);
-        props != self.props
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let pathname = yew::utils::window().location().pathname().unwrap();
         let route = R::recognize(&pathname);
 
         match route {
-            Some(route) => (self.props.render.0)(&route),
+            Some(route) => (ctx.props().render.0)(&route),
             None => {
                 weblog::console_warn!("no route matched");
                 html! {}
@@ -112,7 +109,7 @@ where
         }
     }
 
-    fn destroy(&mut self) {
+    fn destroy(&mut self, _ctx: &Context<Self>) {
         R::cleanup();
     }
 }

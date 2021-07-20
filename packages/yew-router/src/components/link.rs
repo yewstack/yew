@@ -1,4 +1,5 @@
 use crate::{service, Routable};
+use std::marker::PhantomData;
 use yew::prelude::*;
 
 /// Props for [`Link`]
@@ -14,8 +15,7 @@ pub struct LinkProps<R: Routable + Clone> {
 
 /// A wrapper around `<a>` tag to be used with [`Router`](crate::Router)
 pub struct Link<R: Routable + Clone + PartialEq + 'static> {
-    link: ComponentLink<Self>,
-    props: LinkProps<R>,
+    _data: PhantomData<R>,
 }
 
 pub enum Msg {
@@ -26,34 +26,29 @@ impl<R: Routable + Clone + PartialEq + 'static> Component for Link<R> {
     type Message = Msg;
     type Properties = LinkProps<R>;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { link, props }
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self { _data: PhantomData }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::OnClick => {
-                service::push_route(self.props.route.clone());
+                service::push_route(ctx.props().route.clone());
                 false
             }
         }
     }
 
-    fn change(&mut self, mut props: Self::Properties) -> ShouldRender {
-        std::mem::swap(&mut self.props, &mut props);
-        props != self.props
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
-            <a class={self.props.classes.clone()}
-                href={self.props.route.to_path()}
-                onclick={self.link.callback(|e: MouseEvent| {
+            <a class={ctx.props().classes.clone()}
+                href={ctx.props().route.to_path()}
+                onclick={ctx.link().callback(|e: MouseEvent| {
                     e.prevent_default();
                     Msg::OnClick
                 })}
             >
-                { self.props.children.clone() }
+                { ctx.props().children.clone() }
             </a>
         }
     }
