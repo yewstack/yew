@@ -1,6 +1,6 @@
 use crate::Client;
 use yew::{
-    classes, html, Callback, Component, ComponentLink, Html, InputData, Properties, ShouldRender,
+    classes, html, Callback, Component, Context, Html, InputData, Properties, ShouldRender,
 };
 
 #[derive(Debug)]
@@ -19,23 +19,19 @@ pub struct Props {
 }
 
 pub struct AddClientForm {
-    props: Props,
-    link: ComponentLink<Self>,
     client: Client,
 }
 impl Component for AddClientForm {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            props,
-            link,
             client: Client::default(),
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self,ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         let client = &mut self.client;
         match msg {
             Msg::UpdateFirstName(value) => {
@@ -51,27 +47,19 @@ impl Component for AddClientForm {
                 true
             }
             Msg::Add => {
-                self.props.on_add.emit(std::mem::take(client));
+                ctx.props().on_add.emit(std::mem::take(client));
                 true
             }
             Msg::Abort => {
-                self.props.on_abort.emit(());
+                ctx.props().on_abort.emit(());
                 false
             }
         }
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.props == props {
-            false
-        } else {
-            self.props = props;
-            true
-        }
-    }
-
-    fn view(&self) -> Html {
-        let Self { link, client, .. } = self;
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let link = &ctx.link();
+        let Self { client, .. } = self;
         html! {
             <>
                 <div class="names">
