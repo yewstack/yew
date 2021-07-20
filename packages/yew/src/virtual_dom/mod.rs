@@ -406,7 +406,7 @@ mod layout_tests {
         type Message = ();
         type Properties = ();
 
-        fn create(_: Rc<Self::Properties>, _: &Context<Self>) -> Self {
+        fn create(_: &Context<Self>) -> Self {
             unimplemented!()
         }
 
@@ -414,7 +414,7 @@ mod layout_tests {
             unimplemented!();
         }
 
-        fn changed(&mut self, _ctx: &Context<Self>, _: Rc<Self::Properties>) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>) -> ShouldRender {
             unimplemented!()
         }
 

@@ -460,10 +460,7 @@ mod layout_tests_keys {
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
-    struct Comp {
-        id: usize,
-        panic_if_changes: bool,
-    }
+    struct Comp {}
 
     #[derive(Properties, Clone)]
     struct CountingCompProps {
@@ -476,33 +473,16 @@ mod layout_tests_keys {
         type Message = ();
         type Properties = CountingCompProps;
 
-        fn create(props: Rc<Self::Properties>, _: &Context<Self>) -> Self {
-            Comp {
-                id: props.id,
-                panic_if_changes: props.can_change,
-            }
-        }
-
-        fn changed(&mut self, _ctx: &Context<Self>, props: Rc<Self::Properties>) -> ShouldRender {
-            #[cfg(feature = "wasm_test")]
-            wasm_bindgen_test::console_log!("Comp changed: {} -> {}", self.id, props.id);
-            let changed = self.id != props.id;
-            if self.panic_if_changes && changed {
-                panic!(
-                    "VComp changed but should not have: {} -> {}.",
-                    self.id, props.id
-                );
-            }
-            self.id = props.id;
-            changed
+        fn create(_: &Context<Self>) -> Self {
+            Comp {}
         }
 
         fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
             unimplemented!();
         }
 
-        fn view(&self, _ctx: &Context<Self>) -> Html {
-            html! { <p>{ self.id }</p> }
+        fn view(&self, ctx: &Context<Self>) -> Html {
+            html! { <p>{ ctx.props().id }</p> }
         }
     }
 
@@ -511,27 +491,22 @@ mod layout_tests_keys {
         pub children: Children,
     }
 
-    pub struct List(Rc<ListProps>);
+    pub struct List();
 
     impl Component for List {
         type Message = ();
         type Properties = ListProps;
 
-        fn create(props: Rc<Self::Properties>, _: &Context<Self>) -> Self {
-            Self(props)
+        fn create(_: &Context<Self>) -> Self {
+            Self()
         }
 
         fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
             unimplemented!();
         }
 
-        fn changed(&mut self, _ctx: &Context<Self>, props: Rc<Self::Properties>) -> ShouldRender {
-            self.0 = props;
-            true
-        }
-
-        fn view(&self, _ctx: &Context<Self>) -> Html {
-            html! { <>{ for self.0.children.iter() }</> }
+        fn view(&self, ctx: &Context<Self>) -> Html {
+            html! { <>{ for ctx.props().children.iter() }</> }
         }
     }
 

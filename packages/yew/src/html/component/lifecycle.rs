@@ -3,7 +3,7 @@
 use super::{Component, Scope};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::virtual_dom::{VDiff, VNode};
-use crate::NodeRef;
+use crate::{Context, NodeRef};
 use std::rc::Rc;
 use web_sys::Element;
 
@@ -11,7 +11,7 @@ pub(crate) struct ComponentState<COMP: Component> {
     pub(crate) component: Box<COMP>,
     pub(crate) root_node: VNode,
 
-    scope: Scope<COMP>,
+    context: Context<COMP>,
     parent: Element,
     next_sibling: NodeRef,
     node_ref: NodeRef,
@@ -29,11 +29,13 @@ impl<COMP: Component> ComponentState<COMP> {
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
     ) -> Self {
-        let component = Box::new(COMP::create(Rc::clone(&props), &scope));
+        let context = Context { scope, props };
+
+        let component = Box::new(COMP::create(&context));
         Self {
             component,
             root_node,
-            scope,
+            context,
             parent,
             next_sibling,
             node_ref,
@@ -127,11 +129,11 @@ impl<COMP: Component> Runnable for ComponentRunnable<COMP> {
                     let should_render = match event {
                         UpdateEvent::First => true,
                         UpdateEvent::Message(message) => {
-                            state.component.update(&state.scope, message)
+                            state.component.update(&state.context, message)
                         }
                         UpdateEvent::MessageBatch(messages) => {
                             messages.into_iter().fold(false, |acc, msg| {
-                                state.component.update(&state.scope, msg) || acc
+                                state.component.update(&state.context, msg) || acc
                             })
                         }
                         UpdateEvent::Properties(props, node_ref, next_sibling) => {
@@ -139,13 +141,14 @@ impl<COMP: Component> Runnable for ComponentRunnable<COMP> {
                             state.node_ref = node_ref;
                             // When components are updated, their siblings were likely also updated
                             state.next_sibling = next_sibling;
-                            state.component.changed(&state.scope, Rc::clone(&props))
+                            state.context.props = Rc::clone(&props);
+                            state.component.changed(&state.context)
                         }
                     };
 
                     if should_render {
-                        state.pending_root = Some(state.component.view(&state.scope));
-                        state.scope.process(ComponentLifecycleEvent::Render);
+                        state.pending_root = Some(state.component.view(&state.context));
+                        state.context.scope.process(ComponentLifecycleEvent::Render);
                     };
                 }
             }
@@ -155,25 +158,28 @@ impl<COMP: Component> Runnable for ComponentRunnable<COMP> {
                         std::mem::swap(&mut new_root, &mut state.root_node);
                         let ancestor = Some(new_root);
                         let new_root = &mut state.root_node;
-                        let scope = state.scope.clone().into();
+                        let scope = state.context.scope.clone().into();
                         let next_sibling = state.next_sibling.clone();
                         let node = new_root.apply(&scope, &state.parent, next_sibling, ancestor);
                         state.node_ref.link(node);
-                        state.scope.process(ComponentLifecycleEvent::Rendered);
+                        state
+                            .context
+                            .scope
+                            .process(ComponentLifecycleEvent::Rendered);
                     }
                 }
             }
             ComponentLifecycleEvent::Rendered => {
                 if let Some(mut state) = current_state.as_mut() {
                     let first_render = !state.has_rendered;
-                    state.component.rendered(&state.scope, first_render);
+                    state.component.rendered(&state.context, first_render);
                     state.has_rendered = true;
                     state.drain_pending_updates(&self.state);
                 }
             }
             ComponentLifecycleEvent::Destroy => {
                 if let Some(mut state) = current_state.take() {
-                    state.component.destroy(&state.scope);
+                    state.component.destroy(&state.context);
                     state.root_node.detach(&state.parent);
                     state.node_ref.set(None);
                 }
@@ -201,20 +207,18 @@ mod tests {
         lifecycle: Rc<RefCell<Vec<String>>>,
     }
 
-    struct Child {
-        props: Rc<ChildProps>,
-    }
+    struct Child {}
 
     impl Component for Child {
         type Message = ();
         type Properties = ChildProps;
 
-        fn create(props: Rc<Self::Properties>, _ctx: &Context<Self>) -> Self {
-            Child { props }
+        fn create(_ctx: &Context<Self>) -> Self {
+            Child {}
         }
 
-        fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
-            self.props
+        fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
+            ctx.props()
                 .lifecycle
                 .borrow_mut()
                 .push("child rendered".into());
@@ -224,7 +228,7 @@ mod tests {
             false
         }
 
-        fn changed(&mut self, _ctx: &Context<Self>, _: Rc<Self::Properties>) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>) -> ShouldRender {
             false
         }
 
@@ -245,60 +249,63 @@ mod tests {
     }
 
     struct Comp {
-        props: Rc<Props>,
+        lifecycle: Rc<RefCell<Vec<String>>>,
     }
 
     impl Component for Comp {
         type Message = bool;
         type Properties = Props;
 
-        fn create(props: Rc<Self::Properties>, ctx: &Context<Self>) -> Self {
-            props.lifecycle.borrow_mut().push("create".into());
+        fn create(ctx: &Context<Self>) -> Self {
+            ctx.props().lifecycle.borrow_mut().push("create".into());
             #[cfg(feature = "wasm_test")]
-            if let Some(msg) = props.create_message {
-                ctx.send_message(msg);
+            if let Some(msg) = ctx.props().create_message {
+                ctx.link().send_message(msg);
             }
-            Comp { props }
+            Comp {
+                lifecycle: Rc::clone(&ctx.props().lifecycle),
+            }
         }
 
         fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
-            if let Some(msg) = self.props.rendered_message.borrow_mut().take() {
-                ctx.send_message(msg);
+            if let Some(msg) = ctx.props().rendered_message.borrow_mut().take() {
+                ctx.link().send_message(msg);
             }
-            self.props
+            ctx.props()
                 .lifecycle
                 .borrow_mut()
                 .push(format!("rendered({})", first_render));
         }
 
         fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
-            if let Some(msg) = self.props.update_message.borrow_mut().take() {
-                ctx.send_message(msg);
+            if let Some(msg) = ctx.props().update_message.borrow_mut().take() {
+                ctx.link().send_message(msg);
             }
-            self.props
+            ctx.props()
                 .lifecycle
                 .borrow_mut()
                 .push(format!("update({})", msg));
             msg
         }
 
-        fn changed(&mut self, _ctx: &Context<Self>, _: Rc<Self::Properties>) -> ShouldRender {
-            self.props.lifecycle.borrow_mut().push("change".into());
+        fn changed(&mut self, ctx: &Context<Self>) -> ShouldRender {
+            self.lifecycle = Rc::clone(&ctx.props().lifecycle);
+            self.lifecycle.borrow_mut().push("change".into());
             false
         }
 
         fn view(&self, ctx: &Context<Self>) -> Html {
-            if let Some(msg) = self.props.view_message.borrow_mut().take() {
-                ctx.send_message(msg);
+            if let Some(msg) = ctx.props().view_message.borrow_mut().take() {
+                ctx.link().send_message(msg);
             }
-            self.props.lifecycle.borrow_mut().push("view".into());
-            html! { <Child lifecycle={self.props.lifecycle.clone()} /> }
+            self.lifecycle.borrow_mut().push("view".into());
+            html! { <Child lifecycle={self.lifecycle.clone()} /> }
         }
     }
 
     impl Drop for Comp {
         fn drop(&mut self) {
-            self.props.lifecycle.borrow_mut().push("drop".into());
+            self.lifecycle.borrow_mut().push("drop".into());
         }
     }
 

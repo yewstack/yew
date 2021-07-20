@@ -241,16 +241,12 @@ mod tests {
         type Message = ();
         type Properties = Props;
 
-        fn create(_: Rc<Self::Properties>, _: &Context<Self>) -> Self {
+        fn create(_: &Context<Self>) -> Self {
             Comp
         }
 
         fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
             unimplemented!();
-        }
-
-        fn changed(&mut self, _ctx: &Context<Self>, _: Rc<Self::Properties>) -> ShouldRender {
-            true
         }
 
         fn view(&self, _ctx: &Context<Self>) -> Html {
@@ -386,22 +382,26 @@ mod tests {
     pub struct ListProps {
         pub children: Children,
     }
-    pub struct List(Rc<ListProps>);
+    pub struct List;
     impl Component for List {
         type Message = ();
         type Properties = ListProps;
 
-        fn create(props: Rc<Self::Properties>, _: &Context<Self>) -> Self {
-            Self(props)
+        fn create(_: &Context<Self>) -> Self {
+            Self
         }
         fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
             unimplemented!();
         }
-        fn changed(&mut self, _ctx: &Context<Self>, _: Rc<Self::Properties>) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>) -> ShouldRender {
             unimplemented!();
         }
-        fn view(&self, _ctx: &Context<Self>) -> Html {
-            let item_iter = self.0.children.iter().map(|item| html! {<li>{ item }</li>});
+        fn view(&self, ctx: &Context<Self>) -> Html {
+            let item_iter = ctx
+                .props()
+                .children
+                .iter()
+                .map(|item| html! {<li>{ item }</li>});
             html! {
                 <ul>{ for item_iter }</ul>
             }
@@ -508,7 +508,6 @@ mod layout_tests {
 
     struct Comp<T> {
         _marker: PhantomData<T>,
-        props: Rc<CompProps>,
     }
 
     #[derive(Properties, Clone)]
@@ -521,10 +520,9 @@ mod layout_tests {
         type Message = ();
         type Properties = CompProps;
 
-        fn create(props: Rc<Self::Properties>, _: &Context<Self>) -> Self {
+        fn create(_: &Context<Self>) -> Self {
             Comp {
                 _marker: PhantomData::default(),
-                props,
             }
         }
 
@@ -532,14 +530,9 @@ mod layout_tests {
             unimplemented!();
         }
 
-        fn changed(&mut self, _ctx: &Context<Self>, props: Rc<Self::Properties>) -> ShouldRender {
-            self.props = props.clone();
-            true
-        }
-
-        fn view(&self, _ctx: &Context<Self>) -> Html {
+        fn view(&self, ctx: &Context<Self>) -> Html {
             html! {
-                <>{ self.props.children.clone() }</>
+                <>{ ctx.props().children.clone() }</>
             }
         }
     }

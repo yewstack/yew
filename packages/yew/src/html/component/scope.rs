@@ -86,8 +86,9 @@ impl AnyScope {
         callback: Callback<T>,
     ) -> Option<(T, ContextHandle<T>)> {
         let scope = self.find_parent_scope::<ContextProvider<T>>()?;
+        let scope_clone = scope.clone();
         let component = scope.get_component()?;
-        Some(component.subscribe_consumer(callback))
+        Some(component.subscribe_consumer(callback, scope_clone))
     }
 }
 
