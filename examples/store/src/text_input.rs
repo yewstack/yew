@@ -12,54 +12,45 @@ pub struct Props {
 }
 
 pub struct TextInput {
-    link: ComponentLink<Self>,
     text: String,
-    props: Props,
 }
 
 impl Component for TextInput {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
         Self {
-            link,
-            text: props.value.clone(),
-            props,
+            text: ctx.props().value.clone(),
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::SetText(text) => {
                 self.text = text;
                 true
             }
             Msg::Submit => {
-                let text = std::mem::replace(&mut self.text, self.props.value.clone());
-                self.props.onsubmit.emit(text);
+                let text = std::mem::replace(&mut self.text, ctx.props().value.clone());
+                ctx.props().onsubmit.emit(text);
                 true
             }
         }
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.props != props {
-            self.props = props;
-            self.text = self.props.value.clone();
-            true
-        } else {
-            false
-        }
+    fn changed(&mut self, ctx: &Context<Self>) -> ShouldRender {
+        self.text = ctx.props().value.clone();
+        true
     }
 
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <input
                 type="text"
                 value={self.text.clone()}
-                oninput={self.link.callback(|e: InputData| Msg::SetText(e.value))}
-                onkeydown={self.link.batch_callback(move |e: KeyboardEvent| {
+                oninput={ctx.link().callback(|e: InputData| Msg::SetText(e.value))}
+                onkeydown={ctx.link().batch_callback(move |e: KeyboardEvent| {
                     e.stop_propagation();
                     if e.key() == "Enter" { Some(Msg::Submit) } else { None }
                 })}

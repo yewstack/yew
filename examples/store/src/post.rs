@@ -17,7 +17,6 @@ pub struct Props {
 }
 
 pub struct Post {
-    link: ComponentLink<Self>,
     id: PostId,
     text: Option<String>,
     post_store: Box<dyn Bridge<StoreWrapper<PostStore>>>,
@@ -27,17 +26,16 @@ impl Component for Post {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.callback(Msg::PostStore);
+    fn create(ctx: &Context<Self>) -> Self {
+        let callback = ctx.link().callback(Msg::PostStore);
         Self {
-            link,
-            id: props.id,
+            id: ctx.props().id,
             text: None,
             post_store: PostStore::bridge(callback),
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::UpdateText(text) => {
                 self.post_store.send(PostRequest::Update(self.id, text));
@@ -60,11 +58,12 @@ impl Component for Post {
         }
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.id.neq_assign(props.id)
+    fn changed(&mut self, ctx: &Context<Self>) -> ShouldRender {
+        self.id = ctx.props().id;
+        true
     }
 
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let text = self.text.as_deref().unwrap_or("<pending>");
 
         html! {
@@ -72,8 +71,8 @@ impl Component for Post {
                 <h2>{ format!("Post #{}", self.id) }</h2>
                 <p>{text}</p>
 
-                <TextInput value={text.to_owned()} onsubmit={self.link.callback(Msg::UpdateText)} />
-                <button onclick={self.link.callback(|_| Msg::Delete)}>
+                <TextInput value={text.to_owned()} onsubmit={ctx.link().callback(Msg::UpdateText)} />
+                <button onclick={ctx.link().callback(|_| Msg::Delete)}>
                     { "Delete" }
                 </button>
             </div>
