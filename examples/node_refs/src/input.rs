@@ -9,39 +9,31 @@ pub struct Props {
     pub on_hover: Callback<()>,
 }
 
-pub struct InputComponent {
-    props: Props,
-    link: ComponentLink<Self>,
-}
+pub struct InputComponent;
 
 impl Component for InputComponent {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { props, link }
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self,ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Hover => {
-                self.props.on_hover.emit(());
+                ctx.props().on_hover.emit(());
                 false
             }
         }
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props = props;
-        true
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <input
                 type="text"
                 class="input-component"
-                onmouseover={self.link.callback(|_| Msg::Hover)}
+                onmouseover={ctx.link().callback(|_| Msg::Hover)}
             />
         }
     }
