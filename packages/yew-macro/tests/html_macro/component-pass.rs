@@ -2,7 +2,7 @@ use yew::html::ChildrenRenderer;
 use yew::prelude::*;
 use yew::virtual_dom::{VChild, VNode};
 
-#[derive(Clone, Properties, Default)]
+#[derive(Clone, Properties, Default, PartialEq)]
 pub struct ContainerProperties {
     pub int: i32,
     #[prop_or_default]
@@ -14,21 +14,15 @@ impl Component for Container {
     type Message = ();
     type Properties = ContainerProperties;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         unimplemented!()
     }
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        unimplemented!()
-    }
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         unimplemented!()
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum ChildrenVariants {
     Child(VChild<Child>),
     AltChild(VChild<AltChild>),
@@ -73,16 +67,10 @@ impl Component for Child {
     type Message = ();
     type Properties = ChildProperties;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         unimplemented!()
     }
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        unimplemented!()
-    }
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         unimplemented!()
     }
 }
@@ -92,21 +80,15 @@ impl Component for AltChild {
     type Message = ();
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         unimplemented!()
     }
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        unimplemented!()
-    }
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         unimplemented!()
     }
 }
 
-#[derive(Clone, Properties, Default)]
+#[derive(Clone, Properties, Default, PartialEq)]
 pub struct ChildContainerProperties {
     pub int: i32,
     #[prop_or_default]
@@ -118,16 +100,10 @@ impl Component for ChildContainer {
     type Message = ();
     type Properties = ChildContainerProperties;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         unimplemented!()
     }
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        unimplemented!()
-    }
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         unimplemented!()
     }
 }
