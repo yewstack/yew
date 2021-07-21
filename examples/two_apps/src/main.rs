@@ -1,5 +1,5 @@
-use yew::{html, AppHandle, Component, Context, Html, ShouldRender};
 use yew::html::Scope;
+use yew::{html, AppHandle, Component, Context, Html, ShouldRender};
 
 pub enum Msg {
     SetOpposite(Scope<Model>),
@@ -25,7 +25,7 @@ impl Component for Model {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>,msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::SetOpposite(opposite) => {
                 self.opposite = Some(opposite);

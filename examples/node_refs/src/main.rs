@@ -30,7 +30,7 @@ impl Component for Model {
         }
     }
 
-    fn rendered(&mut self,_ctx: &Context<Self>, first_render: bool) {
+    fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
         if first_render {
             self.apply_focus();
         }

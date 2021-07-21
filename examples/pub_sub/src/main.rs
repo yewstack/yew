@@ -4,7 +4,7 @@ mod subscriber;
 
 use producer::Producer;
 use subscriber::Subscriber;
-use yew::{html, Component, Html, Context};
+use yew::{html, Component, Context, Html};
 
 pub struct Model;
 

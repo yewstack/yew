@@ -56,7 +56,7 @@ impl Component for Model {
         }
     }
 
-    fn update(&mut self,ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::StartTimeout => {
                 let handle = {

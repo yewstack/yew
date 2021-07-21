@@ -1,10 +1,10 @@
 use gloo::storage::{LocalStorage, Storage};
 use state::{Entry, Filter, State};
 use strum::IntoEnumIterator;
+use yew::html::Scope;
 use yew::web_sys::HtmlInputElement as InputElement;
 use yew::{classes, html, Component, Context, Html, InputData, NodeRef, ShouldRender};
 use yew::{events::KeyboardEvent, Classes};
-use yew::html::Scope;
 
 mod state;
 
@@ -42,13 +42,10 @@ impl Component for Model {
             edit_value: "".into(),
         };
         let focus_ref = NodeRef::default();
-        Self {
-            state,
-            focus_ref,
-        }
+        Self { state, focus_ref }
     }
 
-    fn update(&mut self,_ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Add => {
                 let description = self.state.value.trim();

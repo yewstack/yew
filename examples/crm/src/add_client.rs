@@ -1,7 +1,5 @@
 use crate::Client;
-use yew::{
-    classes, html, Callback, Component, Context, Html, InputData, Properties, ShouldRender,
-};
+use yew::{classes, html, Callback, Component, Context, Html, InputData, Properties, ShouldRender};
 
 #[derive(Debug)]
 pub enum Msg {
@@ -31,7 +29,7 @@ impl Component for AddClientForm {
         }
     }
 
-    fn update(&mut self,ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         let client = &mut self.client;
         match msg {
             Msg::UpdateFirstName(value) => {

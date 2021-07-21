@@ -26,7 +26,7 @@ impl Component for App {
         }
     }
 
-    fn update(&mut self,_ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Hover(hovered) => {
                 self.hovered = hovered;

@@ -1,8 +1,8 @@
 use settings::Settings;
 use simulation::Simulation;
 use slider::Slider;
-use yew::{html, Component, Html, ShouldRender, Context};
 use yew::html::Scope;
+use yew::{html, Component, Context, Html, ShouldRender};
 
 mod boid;
 mod math;

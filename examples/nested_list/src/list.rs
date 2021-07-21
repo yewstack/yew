@@ -1,10 +1,10 @@
 use crate::header::{ListHeader, Props as HeaderProps};
 use crate::item::{ListItem, Props as ItemProps};
 use crate::{Hovered, WeakComponentLink};
+use std::rc::Rc;
 use yew::html::{ChildrenRenderer, NodeRef};
 use yew::prelude::*;
 use yew::virtual_dom::{VChild, VComp};
-use std::rc::Rc;
 
 #[derive(Clone, PartialEq)]
 pub enum Variants {
@@ -72,7 +72,10 @@ impl Component for List {
     type Properties = Props;
 
     fn create(ctx: &Context<Self>) -> Self {
-        ctx.props().weak_link.borrow_mut().replace(ctx.link().clone());
+        ctx.props()
+            .weak_link
+            .borrow_mut()
+            .replace(ctx.link().clone());
         Self { inactive: false }
     }
 

@@ -1,5 +1,5 @@
 use web_sys::console;
-use yew::{Component, Html, Context};
+use yew::{Component, Context, Html};
 
 const HTML: &str = include_str!("document.html");
 

@@ -1,6 +1,6 @@
 use crate::random;
 use std::rc::Rc;
-use yew::{html, Component, Html, Properties, Context};
+use yew::{html, Component, Context, Html, Properties};
 
 use fake::faker::address::raw::*;
 use fake::faker::name::raw::*;

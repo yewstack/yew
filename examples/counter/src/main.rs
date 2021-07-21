@@ -35,7 +35,6 @@ impl Component for Model {
         }
     }
 
-
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div>

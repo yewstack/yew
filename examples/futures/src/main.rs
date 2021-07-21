@@ -108,7 +108,7 @@ impl Component for Model {
         }
     }
 
-    fn view(&self, ctx: &Context<Self>,) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         match &self.markdown {
             FetchState::NotFetching => html! {
                 <>
