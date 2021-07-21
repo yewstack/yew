@@ -18,6 +18,13 @@
           "source": "/todomvc/**",
           "destination": "/todomvc/index.html"
         }
+      ],
+      "redirects": [
+        {
+          "source": "/",
+          "destination": "https://yew.rs/getting-started/examples",
+          "type": 302
+        }
       ]
     }
   ]
