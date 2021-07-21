@@ -2,7 +2,6 @@ use instant::Instant;
 use person::PersonType;
 use yew::html::Scope;
 use yew::prelude::*;
-use yew::utils::NeqAssign;
 use yew::web_sys::HtmlElement;
 
 mod person;
@@ -70,7 +69,9 @@ impl Component for Model {
             }
             Msg::ChangeRatio(ratio) => {
                 let ratio: f64 = ratio.parse().unwrap_or(0.5);
-                if self.build_component_ratio.neq_assign(ratio) {
+                #[allow(clippy::float_cmp)] // it's fine here?
+                if self.build_component_ratio != ratio {
+                    self.build_component_ratio = ratio;
                     log::info!("Ratio changed: {}", ratio);
                     true
                 } else {

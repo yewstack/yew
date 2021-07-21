@@ -14,26 +14,18 @@ impl Component for AuthorCard {
     type Message = ();
     type Properties = Props;
 
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
         Self {
-            author: Author::generate_from_seed(props.seed),
+            author: Author::generate_from_seed(ctx.props().seed),
         }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        unimplemented!()
+    fn changed(&mut self, ctx: &Context<Self>) -> ShouldRender {
+        self.author = Author::generate_from_seed(ctx.props().seed);
+        true
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.author.seed == props.seed {
-            false
-        } else {
-            self.author = Author::generate_from_seed(props.seed);
-            true
-        }
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         let Self { author } = self;
         html! {
             <div class="card">

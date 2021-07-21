@@ -1,7 +1,6 @@
 use crate::agents::posts::{PostId, PostRequest, PostStore};
 use crate::text_input::TextInput;
 use yew::prelude::*;
-use yew::utils::NeqAssign;
 use yew_agent::utils::store::{Bridgeable, ReadOnly, StoreWrapper};
 use yew_agent::Bridge;
 
@@ -50,7 +49,12 @@ impl Component for Post {
 
                 // Only update if the post changed.
                 if let Some(text) = state.posts.get(&self.id) {
-                    self.text.neq_assign(Some(text.clone()))
+                    if self.text.as_ref().map(|it| *it != *text).unwrap_or(false) {
+                        self.text = Some(text.clone());
+                        true
+                    } else {
+                        false
+                    }
                 } else {
                     false
                 }
