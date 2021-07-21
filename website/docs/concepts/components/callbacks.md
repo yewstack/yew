@@ -3,16 +3,17 @@ title: "Callbacks"
 description: "ComponentLink and Callbacks"
 ---
 
-The component "link" is the mechanism through which components are able to create callbacks and update themselves.
+## Component's `Scope<_>` API
 
-## ComponentLink API
+The component "`Scope`" is the mechanism through which components are able to create callbacks and update themselves 
+using messages. We obtain a reference to this by calling `link()` on the context object passed to the component.
 
-### send_message
+### `send_message`
 
 Sends a message to the component.
 Messages are handled by the `update` method which determines whether the component should re-render.
 
-### send_message_batch
+### `send_message_batch`
 
 Sends multiple messages to the component at the same time.
 This is similar to `send_message` but if any of the messages cause the `update` method to return `true`,
@@ -20,7 +21,7 @@ the component will re-render after all messages in the batch have been processed
 
 If the given vector is empty, this function doesn't do anything.
 
-### callback
+### `callback`
 
 Create a callback that will send a message to the component when it is executed.
 Under the hood, it will call `send_message` with the message returned by the provided closure.
@@ -40,7 +41,7 @@ let cb = link.callback(Msg::Text);
 cb.emit("Hello World!".to_owned());
 ```
 
-### batch_callback
+### `batch_callback`
 
 Create a callback that will send a batch of messages to the component when it is executed.
 The difference to `callback` is that the closure passed to this method doesn't have to return a message.

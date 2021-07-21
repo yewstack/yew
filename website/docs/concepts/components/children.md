@@ -11,7 +11,7 @@ suffice.
 ```rust
 use yew::prelude::*;
 
-#[derive(Properties, Clone)]
+#[derive(Properties, PartialEq)]
 pub struct ListProps {
     #[prop_or_default]
     pub children: Children,
@@ -47,7 +47,7 @@ use yew::prelude::*;
 
 // ...
 
-#[derive(Properties, Clone)]
+#[derive(Properties, PartialEq)]
 pub struct ListProps {
     #[prop_or_default]
     pub children: ChildrenWithProps<Item>,
@@ -102,7 +102,7 @@ impl Into<Html> for Item {
     }
 }
 
-#[derive(Properties, Clone)]
+#[derive(Properties, PartialEq)]
 pub struct ListProps {
     #[prop_or_default]
     pub children: ChildrenRenderer<Item>,
@@ -134,7 +134,7 @@ use yew::prelude::*;
 use yew::virtual_dom::VChild;
 
 
-#[derive(Clone, Properties)]
+#[derive(Properties, PartialEq)]
 pub struct PageProps {
     #[prop_or_default]
     pub sidebar: Option<VChild<PageSideBar>>,
