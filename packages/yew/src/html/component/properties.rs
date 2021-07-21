@@ -3,7 +3,7 @@
 pub use yew_macro::Properties;
 
 /// Trait for building properties for a component
-pub trait Properties {
+pub trait Properties: PartialEq {
     /// Builder that will be used to construct properties
     type Builder;
 
@@ -12,7 +12,7 @@ pub trait Properties {
 }
 
 /// Builder for when a component has no properties
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 #[doc(hidden)]
 pub struct EmptyBuilder;
 

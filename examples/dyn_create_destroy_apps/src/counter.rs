@@ -6,7 +6,7 @@ pub struct CounterModel {
     _interval: Interval,
 }
 
-#[derive(Clone, Properties)]
+#[derive(Clone, Properties, PartialEq)]
 pub struct CounterProps {
     pub destroy_callback: Callback<()>,
 }

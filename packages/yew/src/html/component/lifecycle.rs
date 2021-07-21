@@ -141,8 +141,13 @@ impl<COMP: Component> Runnable for ComponentRunnable<COMP> {
                             state.node_ref = node_ref;
                             // When components are updated, their siblings were likely also updated
                             state.next_sibling = next_sibling;
-                            state.context.props = Rc::clone(&props);
-                            state.component.changed(&state.context)
+                            // Only trigger changed if props were changed
+                            if state.context.props != props {
+                                state.context.props = Rc::clone(&props);
+                                state.component.changed(&state.context)
+                            } else {
+                                false
+                            }
                         }
                     };
 
@@ -202,7 +207,7 @@ mod tests {
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
-    #[derive(Clone, Properties, Default)]
+    #[derive(Clone, Properties, Default, PartialEq)]
     struct ChildProps {
         lifecycle: Rc<RefCell<Vec<String>>>,
     }
@@ -237,7 +242,7 @@ mod tests {
         }
     }
 
-    #[derive(Clone, Properties, Default)]
+    #[derive(Clone, Properties, Default, PartialEq)]
     struct Props {
         lifecycle: Rc<RefCell<Vec<String>>>,
         #[allow(dead_code)]

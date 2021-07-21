@@ -451,7 +451,6 @@ mod layout_tests_keys {
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
     use crate::{Children, Component, Context, Html, Properties, ShouldRender};
-    use std::rc::Rc;
     use web_sys::Node;
 
     #[cfg(feature = "wasm_test")]
@@ -462,7 +461,7 @@ mod layout_tests_keys {
 
     struct Comp {}
 
-    #[derive(Properties, Clone)]
+    #[derive(Properties, Clone, PartialEq)]
     struct CountingCompProps {
         id: usize,
         #[prop_or(false)]
@@ -486,7 +485,7 @@ mod layout_tests_keys {
         }
     }
 
-    #[derive(Clone, Properties)]
+    #[derive(Clone, Properties, PartialEq)]
     pub struct ListProps {
         pub children: Children,
     }

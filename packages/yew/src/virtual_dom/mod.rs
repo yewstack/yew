@@ -399,7 +399,6 @@ mod layout_tests {
     use super::*;
     use crate::html::{AnyScope, Scope};
     use crate::{Component, Context, Html, ShouldRender};
-    use std::rc::Rc;
 
     struct Comp;
     impl Component for Comp {

@@ -378,7 +378,7 @@ mod tests {
         assert_ne!(vchild2, vchild3);
     }
 
-    #[derive(Clone, Properties)]
+    #[derive(Clone, Properties, PartialEq)]
     pub struct ListProps {
         pub children: Children,
     }
@@ -499,7 +499,6 @@ mod layout_tests {
     use crate::{Children, Component, Context, Html, Properties, ShouldRender};
     use std::marker::PhantomData;
 
-    use std::rc::Rc;
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
@@ -510,7 +509,7 @@ mod layout_tests {
         _marker: PhantomData<T>,
     }
 
-    #[derive(Properties, Clone)]
+    #[derive(Properties, Clone, PartialEq)]
     struct CompProps {
         #[prop_or_default]
         children: Children,
