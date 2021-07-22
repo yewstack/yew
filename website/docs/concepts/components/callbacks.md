@@ -70,7 +70,7 @@ They have an `emit` function that takes their `<IN>` type as an argument and con
 A simple use of a callback might look something like this:
 
 ```rust
-let onclick = self.link.callback(|_| Msg::Clicked);
+let onclick = link.callback(|_| Msg::Clicked);
 html! {
     <button {onclick}>{ "Click" }</button>
 }
@@ -81,7 +81,7 @@ The function passed to `callback` must always take a parameter. For example, the
 If you need a callback that might not need to cause an update, use `batch_callback`.
 
 ```rust
-let onkeypress = self.link.batch_callback(|event| {
+let onkeypress = link.batch_callback(|event| {
     if event.key() == "Enter" {
         Some(Msg::Submit)
     } else {

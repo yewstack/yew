@@ -38,7 +38,7 @@ Yew supports two different syntaxes for building html from an iterator:
 ```rust
 html! {
     <ul class="item-list">
-        { self.props.items.iter().map(renderItem).collect::<Html>() }
+        { props.items.iter().map(renderItem).collect::<Html>() }
     </ul>
 }
 ```
@@ -47,7 +47,7 @@ html! {
 ```rust
 html! {
     <ul class="item-list">
-        { for self.props.items.iter().map(renderItem) }
+        { for props.items.iter().map(renderItem) }
     </ul>
 }
 ```

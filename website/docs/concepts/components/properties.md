@@ -12,7 +12,7 @@ reason for it to be anything but a struct where each field represents a property
 
 Instead of implementing the `Properties` trait yourself, you should use `#[derive(Properties)]` to
 automatically generate the implementation instead.
-Types for which you derive `Properties` must also implement `Clone`.
+Types for which you derive `Properties` must also implement `PartialEq`.
 
 ### Field attributes
 

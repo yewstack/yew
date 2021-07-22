@@ -13,7 +13,7 @@ used as a `Html` value using `VRef`:
 
 ```rust
     // ...
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         use yew::{utils::document, web_sys::{Element, Node}};
 
         // Create a div element from the document

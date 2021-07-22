@@ -46,7 +46,7 @@ impl PersonInfo {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Properties)]
+#[derive(Debug, Eq, PartialEq, Properties)]
 pub struct PersonProps {
     info: PersonInfo,
 }

@@ -17,18 +17,16 @@ pub struct ListProps {
     pub children: Children,
 }
 
-pub struct List {
-    props: ListProps,
-}
+pub struct List;
 
 impl Component for List {
     type Properties = ListProps;
     // ...
 
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div class="list">
-                { for self.props.children.iter() }
+                { for ctx.props().children.iter() }
             </div>
         }
     }
@@ -53,18 +51,16 @@ pub struct ListProps {
     pub children: ChildrenWithProps<Item>,
 }
 
-pub struct List {
-    props: ListProps,
-}
+pub struct List;
 
 impl Component for ListProps {
     type Properties = ListProps;
     // ...
 
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div class="list">
-                { for self.props.children.iter() }
+                { for ctx.props().children.iter() }
             </div>
         }
     }
@@ -108,18 +104,16 @@ pub struct ListProps {
     pub children: ChildrenRenderer<Item>,
 }
 
-pub struct List {
-    props: ListProps,
-}
+pub struct List;
 
 impl Component for List {
     type Properties = ListProps;
     // ...
 
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div class="list">
-                { for self.props.children.iter() }
+                { for ctx.props().children.iter() }
             </div>
         }
     }
@@ -140,18 +134,16 @@ pub struct PageProps {
     pub sidebar: Option<VChild<PageSideBar>>,
 }
 
-struct Page {
-    props: PageProps,
-}
+struct Page;
 
 impl Component for Page {
     type Properties = PageProps;
     // ...
 
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div class="page">
-                { self.props.sidebar.clone().map(Html::from).unwrap_or_default() }
+                { ctx.props().sidebar.clone().map(Html::from).unwrap_or_default() }
                 // ... page content
             </div>
         }

@@ -21,7 +21,7 @@ html! { <ChatContainer /> }
 <!--With props-->
 
 ```rust
-#[derive(Properties, Clone, PartialEq)]
+#[derive(Properties, PartialEq)]
 pub struct RenderedAtProps {
     pub time: String,
 }
@@ -68,16 +68,16 @@ fn app() -> Html {
 The `#[function_component(_)]` attribute also works with generic functions for creating generic components.
 
 ```rust
-#[derive(Properties, Clone, PartialEq)]
+#[derive(Properties, PartialEq)]
 pub struct Props<T>
-    where T: Clone + PartialEq
+    where T: PartialEq
 {
     data: T,
 }
 
 #[function_component(MyGenericComponent)]
 pub fn my_generic_component<T>(props: &Props<T>) -> Html
-    where T: Clone + PartialEq + Display
+    where T: PartialEq + Display
 {
     html! {
         <p>

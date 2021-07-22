@@ -79,7 +79,7 @@ html! {
 ```rust
 use boolinator::Boolinator;
 
-#[derive(Clone, Properties)]
+#[derive(Properties)]
 struct Props {
     #[prop_or_default]
     class: Classes,
@@ -87,21 +87,19 @@ struct Props {
     children: Children,
 }
 
-struct MyComponent {
-    props: Props,
-}
+struct MyComponent;
 
 impl Component for MyComponent {
     type Properties = Props;
 
     // ...
 
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let Props {
             class,
             fill,
             children,
-        } = &self.props;
+        } = &ctx.props();
         html! {
             <div
                 class={classes!(

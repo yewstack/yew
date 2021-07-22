@@ -123,9 +123,8 @@ pub type Children = ChildrenRenderer<Html>;
 ///#   fn view(&self, ctx: &Context<Self>) -> Html {
 ///         html!{{
 ///             for ctx.props().children.iter().map(|mut item| {
-///                 let mut props = (*item.props).clone();
-///                 props.value = format!("item-{}", item.props.value);
-///                 item.props = Rc::new(props);
+///                 let mut props = Rc::make_mut(&mut item.props);
+///                 props.value = format!("item-{}", props.value);
 ///                 item
 ///             })
 ///         }}
