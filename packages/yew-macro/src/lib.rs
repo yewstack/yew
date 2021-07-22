@@ -7,7 +7,7 @@
 //!
 //! struct Component;
 //!
-//! #[derive(Clone, Properties, PartialEq)]
+//! #[derive(Properties, PartialEq)]
 //! struct Props {
 //!     prop: String,
 //! }

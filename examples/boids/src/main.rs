@@ -79,7 +79,7 @@ impl Model {
         let pause_text = if self.paused { "Resume" } else { "Pause" };
         html! {
             <div class="panel">
-                { self.view_settings(&link) }
+                { self.view_settings(link) }
                 <div class="panel__buttons">
                     <button onclick={link.callback(|_| Msg::TogglePause)}>{ pause_text }</button>
                     <button onclick={link.callback(|_| Msg::ResetSettings)}>{ "Use Defaults" }</button>

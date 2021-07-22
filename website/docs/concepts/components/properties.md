@@ -44,7 +44,7 @@ only when they change.
 
 ## Memory/speed overhead of using Properties
 
-Internally properties are reference counted. This means that only a pointer to is passed down the component tree for props.
+Internally properties are reference counted. This means that only a pointer is passed down the component tree for props.
 It saves us from the cost of having to clone the entire props, which might be expensive.
 
 ## Example

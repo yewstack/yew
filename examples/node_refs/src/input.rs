@@ -4,7 +4,7 @@ pub enum Msg {
     Hover,
 }
 
-#[derive(Clone, Properties, PartialEq)]
+#[derive(Properties, PartialEq)]
 pub struct Props {
     pub on_hover: Callback<()>,
 }

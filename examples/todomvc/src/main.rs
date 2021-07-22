@@ -114,7 +114,7 @@ impl Component for Model {
                 <section class="todoapp">
                     <header class="header">
                         <h1>{ "todos" }</h1>
-                        { self.view_input(&ctx.link()) }
+                        { self.view_input(ctx.link()) }
                     </header>
                     <section class={classes!("main", hidden_class)}>
                         <input
@@ -126,7 +126,7 @@ impl Component for Model {
                         />
                         <label for="toggle-all" />
                         <ul class="todo-list">
-                            { for self.state.entries.iter().filter(|e| self.state.filter.fits(e)).enumerate().map(|e| self.view_entry(e, &ctx.link())) }
+                            { for self.state.entries.iter().filter(|e| self.state.filter.fits(e)).enumerate().map(|e| self.view_entry(e, ctx.link())) }
                         </ul>
                     </section>
                     <footer class={classes!("footer", hidden_class)}>
@@ -135,7 +135,7 @@ impl Component for Model {
                             { " item(s) left" }
                         </span>
                         <ul class="filters">
-                            { for Filter::iter().map(|flt| self.view_filter(flt, &ctx.link())) }
+                            { for Filter::iter().map(|flt| self.view_filter(flt, ctx.link())) }
                         </ul>
                         <button class="clear-completed" onclick={ctx.link().callback(|_| Msg::ClearCompleted)}>
                             { format!("Clear completed ({})", self.state.total_completed()) }

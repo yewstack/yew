@@ -56,7 +56,7 @@ impl Component for AddClientForm {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let link = &ctx.link();
+        let link = ctx.link();
         let Self { client, .. } = self;
         html! {
             <>

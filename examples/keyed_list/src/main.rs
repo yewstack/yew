@@ -157,7 +157,7 @@ impl Model {
     fn action_view(&self, link: &Scope<Self>) -> Html {
         html! {
             <>
-                { self.button_view(&link) }
+                { self.button_view(link) }
                 <div class="row">
                     <div class="col">
                         <p class="h5">
