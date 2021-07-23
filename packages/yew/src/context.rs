@@ -1,8 +1,7 @@
 //! This module defines the `ContextProvider` component.
 
-use crate::html::Context;
 use crate::html::Scope;
-use crate::{html, Callback, Children, Component, Html, Properties, ShouldRender};
+use crate::{html, Callback, Children, Component, Context, Html, Properties};
 use slab::Slab;
 use std::cell::RefCell;
 
@@ -23,6 +22,7 @@ pub struct ContextProviderProps<T: Clone + PartialEq> {
 #[derive(Debug)]
 pub struct ContextProvider<T: Clone + PartialEq + 'static> {
     context: T,
+    children: Children,
     consumers: RefCell<Slab<Callback<T>>>,
 }
 
@@ -81,22 +81,32 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
     type Properties = ContextProviderProps<T>;
 
     fn create(ctx: &Context<Self>) -> Self {
+        let props = ctx.props();
         Self {
-            context: ctx.props().context.clone(),
+            children: props.children.clone(),
+            context: props.context.clone(),
             consumers: RefCell::new(Slab::new()),
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> ShouldRender {
-        true
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+        let props = ctx.props();
+        let should_render = if self.children == props.children {
+            false
+        } else {
+            self.children = props.children.clone();
+            true
+        };
+
+        if self.context != props.context {
+            self.context = props.context.clone();
+            self.notify_consumers();
+        }
+
+        should_render
     }
 
-    fn changed(&mut self, _ctx: &Context<Self>) -> bool {
-        self.notify_consumers();
-        true
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        html! { <>{ ctx.props().children.clone() }</> }
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! { <>{ self.children.clone() }</> }
     }
 }
