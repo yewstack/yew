@@ -5,7 +5,7 @@ description: "The #[function_component] attribute"
 
 `#[function_component(_)]` turns a normal Rust function into a function component.
 Functions with the attribute have to return `Html` and may take a single parameter for the type of props the component should accept.
-The parameter type needs to be a reference to a type which implements `Properties` and `PartialEq` (ex. `props: &MyProps`).
+The parameter type needs to be a reference to a `Properties` type (ex. `props: &MyProps`).
 If the function doesn't have any parameters the resulting component doesn't accept any props.
 
 The attribute doesn't replace your original function with a component. You need to provide a name as an input to the attribute which will be the identifier of the component.

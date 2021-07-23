@@ -53,9 +53,7 @@ impl Component for $NAME$ {
 		"body": [
 			"use yew::prelude::*;",
 			"",
-			"pub struct ${1} {",
-			"    link: ComponentLink<Self>,",
-			"}",
+			"pub struct ${1};",
 			"",
 			"pub enum Msg {",
 			"}",

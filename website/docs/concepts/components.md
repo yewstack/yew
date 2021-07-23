@@ -55,7 +55,7 @@ impl Component for MyComponent {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let onclick = ctx.link().callback(|_| Msg::Click);
         html! {
-            <button {onclick}>{ self.props.button_text }</button>
+            <button {onclick}>{ ctx.props().button_text }</button>
         }
     }
 }
@@ -136,28 +136,12 @@ impl Component for MyComponent {
 }
 ```
 
-### Change
+### Changed
 
 Components may be re-rendered by their parents. When this happens, they could receive new properties
 and need to re-render. This design facilitates parent to child component communication by just
-changing the values of a property.
-
-A typical implementation would look something like:
-
-```rust
-impl Component for MyComponent {
-    // ...
-
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.props != props {
-            self.props = props;
-            true
-        } else {
-            false
-        }
-    }
-}
-```
+changing the values of a property. There is a default implementation which re-renders the component
+when props are changed.
 
 ### Destroy
 
