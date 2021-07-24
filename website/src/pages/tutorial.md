@@ -1,26 +1,26 @@
 ## Introduction
 
-In this hands-on tutorial, we will take a look at how we can use Yew to build applications for the browser.
-**Yew** is a modern [Rust](https://www.rust-lang.org/) framework front-end web apps using [WebAssembly](https://webassembly.org/).
-It lets us build web applications in a modern and well-structured way, focusing on the maintainability and re-usability of components
-and management of the application state. It is supported by a large ecosystem of community-created materials and components.
+In this hands-on tutorial, we will take a look at how we can use Yew to build web applications.
+**Yew** is a modern [Rust](https://www.rust-lang.org/) framework for building front-end web apps using [WebAssembly](https://webassembly.org/).
+Yew encourages a reusable, maintainable, and well-structured architecture by leveraging Rust's powerful type system.
+A large ecosystem of community-created libraries (or crates?) provide components that work out-of-the-box and
+commonly-used patterns such as state management.
 
-Of course, using webassembly and Rust allows us to reuse our knowledge about language, it's syntax and tooling to
-build front-end applications with modern technology while making use of crates available on [crates.io](https://crates.io/)
+Using WebAssembly also allows us to take advantage of numerous crates available on [crates.io](https://crates.io)
 
 ### What we are going to build
 
-Rustconf is an intergalactic gathering of the Rust-language community that happens annually.
-Last year, Rustconf 2020 had a plethora of talks that provided a good amount of information.
-In this hands on tutorial, we'll be building a web application that may helps, us, Rustaceans,
+Rustconf is an intergalactic gathering of the Rust community that happens annually.
+Rustconf 2020 had a plethora of talks that provided a good amount of information.
+In this hands on tutorial, we will be building a web application to help fellow Rustaceans
 have overview of the talks, and watch them all from one page.
 
 ## Setting up
 
 ### Prerequisites
 
-To get started, let's make sure we have installed an up-to-date development environment.
-We need the following tools to get started:
+To get started, let's make sure we have an up-to-date development environment.
+We will need the following tools:
 - [Rust](https://www.rust-lang.org/).
 - [`trunk`](https://trunkrs.dev/)
 
@@ -32,16 +32,10 @@ First, create a new cargo project:
 
 ```bash
 cargo new yew-app
-```
-
-Navigate to the newly created `yew-app` directory. 
-
-```bash
 cd yew-app
-```
 
 To verify the Rust environment is set up properly, run the initial project using the cargo build tool. 
-After output about the build process, you should see the expected "Hello World" message.
+After output about the build process, you should see the expected "Hello, world!" message.
 
 ```bash
 cargo run
@@ -83,7 +77,6 @@ Now, let's create and `index.html` at the root of the project.
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Title</title>
 </head>
 <body>
 
@@ -91,7 +84,7 @@ Now, let's create and `index.html` at the root of the project.
 </html>
 ```
 
-### Run the development server
+### Start the development server
 
 Run the following command to build and serve the application locally.
 
@@ -99,11 +92,11 @@ Run the following command to build and serve the application locally.
 trunk serve
 ```
 
-Trunk will helpfully rebuild your application if you modify any of its files.
+Trunk will helpfully rebuild your application if you modify any source files.
 
 ### Congratulations
 
-You have now successfully set up your Yew development environment, and built your first Yew web application.
+You have now successfully set up your Yew development environment and built your first Yew web application.
 
 ## Building HTML
 
@@ -249,8 +242,8 @@ fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
 }
 ```
 
-Notice the parameters of our `VideosList` function component. A function component takes in only one argument which 
-defines its "props" (short for "properties"). Props are used to pass data down from parent component to child component.
+Notice the parameters of our `VideosList` function component. A function component takes only one argument which 
+defines its "props" (short for "properties"). Props are used to pass data down from a parent component to a child component.
 In this case, `VideosListProps` is a struct which defines the props.
 
 :::important
@@ -484,7 +477,7 @@ fn app() -> Html {
 We're using `unwrap`s here because it is a demo application. In a real world, you want to have proper error handling.
 :::
 
-Now look at the browser to see everything working as expected... Which would've been the case if it weren't for CORS.
+Now look at the browser to see everything working as expected... which would've been the case if it weren't for CORS.
 In order to fix that, we need a proxy server. Luckily trunk provides that.
 
 Update the following line:
@@ -502,7 +495,7 @@ Now, rerun the server with the following command:
 trunk serve --proxy-backend=https://yew.rs/tutorial
 ```
 
-Refresh the tab and incredible, everything works as expected.
+Refresh the tab and everything should work as expected.
 
 ## Wrapping up
 
