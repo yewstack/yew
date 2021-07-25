@@ -1,4 +1,4 @@
-use super::{ComponentProps, Prop, PropPunct, Props, SortedPropList};
+use super::{ComponentProps, Prop, Props, SortedPropList};
 use crate::html_tree::HtmlDashedName;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
@@ -42,40 +42,25 @@ fn is_associated_properties(ty: &TypePath) -> bool {
 
 struct PropValue {
     label: HtmlDashedName,
-    colon_token: Option<Token![:]>,
     value: Expr,
 }
 impl Parse for PropValue {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let label = input.parse()?;
-        let (colon_token, value) = if input.peek(Token![:]) {
-            let colon_token = input.parse()?;
-            let value = input.parse()?;
-            (Some(colon_token), value)
+        let value = if input.peek(Token![:]) {
+            let _colon_token: Token![:] = input.parse()?;
+            input.parse()?
         } else {
-            let value = syn::parse_quote!(#label);
-            (None, value)
+            syn::parse_quote!(#label)
         };
-        Ok(Self {
-            label,
-            colon_token,
-            value,
-        })
+        Ok(Self { label, value })
     }
 }
 
 impl From<PropValue> for Prop {
     fn from(prop_value: PropValue) -> Prop {
-        let PropValue {
-            label,
-            colon_token,
-            value,
-        } = prop_value;
-        Prop {
-            label,
-            punct: colon_token.map(PropPunct::Colon),
-            value,
-        }
+        let PropValue { label, value } = prop_value;
+        Prop { label, value }
     }
 }
 
