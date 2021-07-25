@@ -53,7 +53,7 @@ impl Pagination {
 
         html! {
             <li>
-                <a class={classes!("pagination-link", is_current_class)} aria-label={format!("Goto page {}", to_page)} onclick={onclick}>
+                <a class={classes!("pagination-link", is_current_class)} aria-label={format!("Goto page {}", to_page)} {onclick}>
                     { to_page }
                 </a>
             </li>

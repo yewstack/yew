@@ -154,10 +154,10 @@ error: only one root html element is allowed (hint: you can wrap multiple html e
    |                            ^^^^^^^^^^^^^^^
 
 error: cannot specify the `children` prop when the component already has children
-   --> $DIR/component-fail.rs:106:25
+   --> $DIR/component-fail.rs:106:26
     |
-106 |         <ChildContainer children={children}>
-    |                         ^^^^^^^^
+106 |         <ChildContainer {children}>
+    |                          ^^^^^^^^
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
    --> $DIR/component-fail.rs:113:9

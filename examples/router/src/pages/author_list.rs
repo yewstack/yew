@@ -42,7 +42,7 @@ impl Component for AuthorList {
             html! {
                 <div class="tile is-parent">
                     <div class="tile is-child">
-                        <AuthorCard seed={seed} />
+                        <AuthorCard {seed} />
                     </div>
                 </div>
             }

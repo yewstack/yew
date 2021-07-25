@@ -209,7 +209,7 @@ impl Model {
             class.push(" completed");
         }
         html! {
-            <li class={class}>
+            <li {class}>
                 <div class="view">
                     <input
                         type="checkbox"
