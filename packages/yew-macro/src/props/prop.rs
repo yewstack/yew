@@ -41,20 +41,18 @@ impl Prop {
             ref path,
         }) = expr
         {
-            let ident = path.get_ident();
-            if !attrs.is_empty() || ident.is_none() {
-                return Err(syn::Error::new_spanned(
+            if let (Some(ident), true) = (path.get_ident(), attrs.is_empty()) {
+                syn::Result::Ok(HtmlDashedName::from(ident.clone()))
+            } else {
+                Err(syn::Error::new_spanned(
                     path,
                     "only simple identifiers are allowed in the shorthand property syntax",
-                ));
+                ))
             }
-            // The above if-statement ensures that path is a simple identifier
-            // So this unwrap will never return None
-            syn::Result::Ok(HtmlDashedName::from(ident.unwrap().clone()))
         } else {
             return Err(syn::Error::new_spanned(
                 expr,
-                "misisng label for property value. If trying to use the shorthand property syntax, only identifiers may be used",
+                "missing label for property value. If trying to use the shorthand property syntax, only identifiers may be used",
             ));
         }?;
 
