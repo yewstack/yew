@@ -2,7 +2,7 @@ mod agents;
 mod post;
 mod text_input;
 
-use agents::posts::{PostId, PostStore, Request};
+use agents::posts::{PostId, PostStore, PostRequest};
 use post::Post;
 use text_input::TextInput;
 use weblog::console_log;
@@ -37,7 +37,7 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::CreatePost(text) => {
-                self.post_store.send(Request::CreatePost(text));
+                self.post_store.send(PostRequest::Create(text));
                 false
             }
             Msg::PostStoreMsg(state) => {
