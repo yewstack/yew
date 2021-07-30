@@ -1,4 +1,4 @@
-use crate::agents::posts::{PostId, PostStore, PostRequest};
+use crate::agents::posts::{PostId, PostRequest, PostStore};
 use crate::text_input::TextInput;
 use yew::prelude::*;
 use yew::utils::NeqAssign;

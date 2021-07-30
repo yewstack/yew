@@ -2,7 +2,7 @@ mod agents;
 mod post;
 mod text_input;
 
-use agents::posts::{PostId, PostStore, PostRequest};
+use agents::posts::{PostId, PostRequest, PostStore};
 use post::Post;
 use text_input::TextInput;
 use weblog::console_log;

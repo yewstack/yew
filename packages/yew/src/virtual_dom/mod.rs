@@ -314,8 +314,7 @@ impl Attributes {
     }
 
     fn set_attribute(el: &Element, key: &str, value: &str) {
-        el.set_attribute(key, value)
-            .expect("invalid attribute key")
+        el.set_attribute(key, value).expect("invalid attribute key")
     }
 }
 
