@@ -103,11 +103,11 @@ impl Model {
         gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &verts, GL::STATIC_DRAW);
 
         let vert_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
-        gl.shader_source(&vert_shader, &vert_code);
+        gl.shader_source(&vert_shader, vert_code);
         gl.compile_shader(&vert_shader);
 
         let frag_shader = gl.create_shader(GL::FRAGMENT_SHADER).unwrap();
-        gl.shader_source(&frag_shader, &frag_code);
+        gl.shader_source(&frag_shader, frag_code);
         gl.compile_shader(&frag_shader);
 
         let shader_program = gl.create_program().unwrap();

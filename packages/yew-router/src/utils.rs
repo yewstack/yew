@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use wasm_bindgen::JsCast;
 
 pub(crate) fn strip_slash_suffix(path: &str) -> &str {
-    path.strip_suffix("/").unwrap_or(&path)
+    path.strip_suffix('/').unwrap_or(path)
 }
 
 static BASE_URL_LOADED: std::sync::Once = std::sync::Once::new();

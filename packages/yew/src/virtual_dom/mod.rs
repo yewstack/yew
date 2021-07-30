@@ -314,8 +314,7 @@ impl Attributes {
     }
 
     fn set_attribute(el: &Element, key: &str, value: &str) {
-        el.set_attribute(&key, &value)
-            .expect("invalid attribute key")
+        el.set_attribute(key, value).expect("invalid attribute key")
     }
 }
 
@@ -327,7 +326,7 @@ impl Apply for Attributes {
             Self::Vec(v) => {
                 for attr in v.iter() {
                     if let Some(v) = &attr.1 {
-                        Self::set_attribute(el, &attr.0, v)
+                        Self::set_attribute(el, attr.0, v)
                     }
                 }
             }
@@ -346,7 +345,7 @@ impl Apply for Attributes {
                     Self::set_attribute(el, key, value);
                 }
                 Patch::Remove(key) => {
-                    el.remove_attribute(&key)
+                    el.remove_attribute(key)
                         .expect("could not remove attribute");
                 }
             }
@@ -425,7 +424,7 @@ pub(crate) trait VDiff {
 pub(crate) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&Node>) {
     match next_sibling {
         Some(next_sibling) => parent
-            .insert_before(&node, Some(next_sibling))
+            .insert_before(node, Some(next_sibling))
             .expect("failed to insert tag before next sibling"),
         None => parent.append_child(node).expect("failed to append child"),
     };
@@ -606,17 +605,17 @@ mod benchmarks {
         const TIME_LIMIT: f64 = 2.0;
 
         let vv = easybench_wasm::bench_env_limit(TIME_LIMIT, (&new_vec, &old_vec), |(new, old)| {
-            format!("{:?}", Attributes::diff(&new, &old))
+            format!("{:?}", Attributes::diff(new, old))
         });
         let mm = easybench_wasm::bench_env_limit(TIME_LIMIT, (&new_map, &old_map), |(new, old)| {
-            format!("{:?}", Attributes::diff(&new, &old))
+            format!("{:?}", Attributes::diff(new, old))
         });
 
         let vm = easybench_wasm::bench_env_limit(TIME_LIMIT, (&new_vec, &old_map), |(new, old)| {
-            format!("{:?}", Attributes::diff(&new, &old))
+            format!("{:?}", Attributes::diff(new, old))
         });
         let mv = easybench_wasm::bench_env_limit(TIME_LIMIT, (&new_map, &old_vec), |(new, old)| {
-            format!("{:?}", Attributes::diff(&new, &old))
+            format!("{:?}", Attributes::diff(new, old))
         });
 
         wasm_bindgen_test::console_log!(

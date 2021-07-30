@@ -1,4 +1,4 @@
-use crate::agents::posts::{PostId, PostStore, Request};
+use crate::agents::posts::{PostId, PostRequest, PostStore};
 use crate::text_input::TextInput;
 use yew::prelude::*;
 use yew::utils::NeqAssign;
@@ -8,7 +8,7 @@ use yew_agent::Bridge;
 pub enum Msg {
     UpdateText(String),
     Delete,
-    PostStoreMsg(ReadOnly<PostStore>),
+    PostStore(ReadOnly<PostStore>),
 }
 
 #[derive(Properties, Clone, PartialEq)]
@@ -28,7 +28,7 @@ impl Component for Post {
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.callback(Msg::PostStoreMsg);
+        let callback = link.callback(Msg::PostStore);
         Self {
             link,
             id: props.id,
@@ -40,14 +40,14 @@ impl Component for Post {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::UpdateText(text) => {
-                self.post_store.send(Request::UpdatePost(self.id, text));
+                self.post_store.send(PostRequest::Update(self.id, text));
                 false
             }
             Msg::Delete => {
-                self.post_store.send(Request::RemovePost(self.id));
+                self.post_store.send(PostRequest::Remove(self.id));
                 false
             }
-            Msg::PostStoreMsg(state) => {
+            Msg::PostStore(state) => {
                 let state = state.borrow();
 
                 // Only update if the post changed.
