@@ -422,7 +422,7 @@ mod tests {
         // clear parent
         parent.set_inner_html("");
 
-        node.apply(&scope, &parent, NodeRef::default(), None);
+        node.apply(scope, parent, NodeRef::default(), None);
         parent.inner_html()
     }
 
