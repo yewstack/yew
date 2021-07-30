@@ -46,7 +46,7 @@ impl Prop {
             } else {
                 Err(syn::Error::new_spanned(
                     path,
-                    "only simple identifiers may be used with the shorthand property syntax",
+                    "only simple identifiers are allowed in the shorthand property syntax",
                 ))
             }
         } else {
