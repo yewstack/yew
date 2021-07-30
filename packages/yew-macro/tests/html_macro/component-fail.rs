@@ -112,6 +112,11 @@ fn compile_fail() {
         <span>{ 1 }</span>
         <span>{ 2 }</span>
     };
+
+    html! { <Child {std::f64::consts::PI} /> };
+    html! { <Child {7 + 6} /> };
+    html! { <Child {children.len()} /> };
+
 }
 
 fn main() {}

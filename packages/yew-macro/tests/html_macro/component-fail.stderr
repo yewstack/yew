@@ -165,6 +165,24 @@ error: only one root html element is allowed (hint: you can wrap multiple html e
 113 |         <span>{ 2 }</span>
     |         ^^^^^^^^^^^^^^^^^^
 
+error: only simple identifiers are allowed in the shorthand property syntax
+   --> $DIR/component-fail.rs:116:21
+    |
+116 |     html! { <Child {std::f64::consts::PI} /> };
+    |                     ^^^^^^^^^^^^^^^^^^^^
+
+error: missing label for property value. If trying to use the shorthand property syntax, only identifiers may be used
+   --> $DIR/component-fail.rs:117:21
+    |
+117 |     html! { <Child {7 + 6} /> };
+    |                     ^^^^^
+
+error: missing label for property value. If trying to use the shorthand property syntax, only identifiers may be used
+   --> $DIR/component-fail.rs:118:21
+    |
+118 |     html! { <Child {children.len()} /> };
+    |                     ^^^^^^^^^^^^^^
+
 error[E0425]: cannot find value `blah` in this scope
   --> $DIR/component-fail.rs:69:25
    |
