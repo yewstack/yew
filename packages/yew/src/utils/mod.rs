@@ -95,6 +95,12 @@ impl<IN, OUT> IntoIterator for NodeSeq<IN, OUT> {
     }
 }
 
+/// Hack to force type mismatch compile errors in yew-macro.
+//
+// TODO: replace with `compile_error!`, when `type_name_of_val` is stabilised (https://github.com/rust-lang/rust/issues/66359).
+#[doc(hidden)]
+pub fn __ensure_type<T>(_: T) {}
+
 /// Print the [web_sys::Node]'s contents as a string for debugging purposes
 pub fn print_node(n: &web_sys::Node) -> String {
     use wasm_bindgen::JsCast;

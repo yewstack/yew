@@ -51,9 +51,9 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
             <Classes as From<&[T]>>
           and 4 others
   = note: required because of the requirements on the impl of `Into<Classes>` for `{integer}`
-  = note: required because of the requirements on the impl of `From<std::vec::Vec<{integer}>>` for `Classes`
+  = note: required because of the requirements on the impl of `From<Vec<{integer}>>` for `Classes`
   = note: 1 redundant requirements hidden
-  = note: required because of the requirements on the impl of `Into<Classes>` for `std::vec::Vec<{integer}>`
+  = note: required because of the requirements on the impl of `Into<Classes>` for `Vec<{integer}>`
 
 error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
   --> $DIR/classes-fail.rs:13:14
