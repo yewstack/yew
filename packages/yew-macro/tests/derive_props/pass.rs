@@ -188,6 +188,20 @@ mod t10 {
 mod t11 {
     use super::*;
 
+    // this test makes sure that Yew handles generic params with const generics properly.
+
+    #[derive(Clone, Properties)]
+    pub struct Foo<T, const N: usize>
+    where
+        T: Clone,
+    {
+        bar: [T; N],
+    }
+}
+
+mod t12 {
+    use super::*;
+
     #[derive(Clone, Properties)]
     pub struct Props<T: Clone> {
         value: Option<T>,
