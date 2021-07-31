@@ -97,7 +97,7 @@ impl<IN, OUT> IntoIterator for NodeSeq<IN, OUT> {
 
 /// Hack to force type mismatch compile errors in yew-macro.
 //
-// TODO: replace with `compile_error!`, when `type_name_of_val` is stabilised.
+// TODO: replace with `compile_error!`, when `type_name_of_val` is stabilised (https://github.com/rust-lang/rust/issues/66359).
 #[doc(hidden)]
 pub fn __ensure_type<T>(_: T) {}
 
