@@ -8,7 +8,7 @@ use syn::{
 /// Alias for a comma-separated list of `GenericArgument`
 pub type GenericArguments = Punctuated<GenericArgument, Token![,]>;
 
-/// Finds the index of the first generic param with a default value.
+/// Finds the index of the first generic param with a default value or a const generic.
 fn first_default_or_const_param_position(generics: &Generics) -> Option<usize> {
     generics.params.iter().position(|param| match param {
         GenericParam::Type(param) => param.default.is_some(),
