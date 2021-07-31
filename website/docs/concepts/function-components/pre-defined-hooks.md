@@ -26,7 +26,7 @@ fn state() -> Html {
 
     html! {
         <div>
-            <button onclick={onclick}>{ "Increment value" }</button>
+            <button {onclick}>{ "Increment value" }</button>
             <p>
                 <b>{ "Current value: " }</b>
                 { *counter }
@@ -70,8 +70,8 @@ fn ref_hook() -> Html {
 
     html! {
         <div>
-            <input onchange={onchange} value={message} />
-            <button onclick={onclick}>{ "Send" }</button>
+            <input {onchange} value={message} />
+            <button {onclick}>{ "Send" }</button>
         </div>
     }
 }
@@ -191,7 +191,7 @@ fn effect() -> Html {
     };
 
     html! {
-        <button onclick={onclick}>{ format!("Increment to {}", counter) }</button>
+        <button {onclick}>{ format!("Increment to {}", counter) }</button>
     }
 }
 ```

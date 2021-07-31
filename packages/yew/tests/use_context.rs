@@ -267,7 +267,7 @@ fn use_context_update_works() {
                 <MyContextProvider context={Rc::new((*ctx).clone())}>
                     <RenderCounter id="test-0">
                         <ContextOutlet id="test-1"/>
-                        <ContextOutlet id="test-2" magic={magic}/>
+                        <ContextOutlet id="test-2" {magic}/>
                     </RenderCounter>
                 </MyContextProvider>
             };

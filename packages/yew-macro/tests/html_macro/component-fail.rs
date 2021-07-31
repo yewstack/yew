@@ -103,7 +103,7 @@ fn compile_fail() {
     // using `children` as a prop while simultaneously passing children using the syntactic sugar
     let children = ChildrenRenderer::new(vec![html_nested! { <Child int=0 /> }]);
     html! {
-        <ChildContainer children={children}>
+        <ChildContainer {children}>
             <Child int=1 />
         </ChildContainer>
     };
@@ -112,6 +112,11 @@ fn compile_fail() {
         <span>{ 1 }</span>
         <span>{ 2 }</span>
     };
+
+    html! { <Child {std::f64::consts::PI} /> };
+    html! { <Child {7 + 6} /> };
+    html! { <Child {children.len()} /> };
+
 }
 
 fn main() {}

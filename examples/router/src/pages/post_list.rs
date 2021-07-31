@@ -48,7 +48,7 @@ impl Component for PostList {
                 <h2 class="subtitle">{ "All of our quality writing in one place" }</h2>
                 { self.view_posts() }
                 <Pagination
-                    page={page}
+                    {page}
                     total_pages={TOTAL_PAGES}
                     on_switch_page={self.link.callback(Msg::ShowPage)}
                 />
