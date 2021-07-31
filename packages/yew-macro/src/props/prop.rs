@@ -1,6 +1,4 @@
 use crate::html_tree::HtmlDashedName;
-use proc_macro2::TokenStream;
-use quote::ToTokens;
 use std::{
     cmp::Ordering,
     convert::TryFrom,
@@ -11,23 +9,9 @@ use syn::{
     Block, Expr, ExprBlock, Stmt, Token,
 };
 
-pub enum PropPunct {
-    Eq(Token![=]),
-    Colon(Token![:]),
-}
-impl ToTokens for PropPunct {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        match self {
-            Self::Eq(p) => p.to_tokens(tokens),
-            Self::Colon(p) => p.to_tokens(tokens),
-        }
-    }
-}
-
 pub struct Prop {
     pub label: HtmlDashedName,
     /// Punctuation between `label` and `value`.
-    pub punct: Option<PropPunct>,
     pub value: Expr,
 }
 impl Parse for Prop {
@@ -46,11 +30,7 @@ impl Parse for Prop {
             ));
         }
         let value = strip_braces(input.parse::<Expr>()?)?;
-        Ok(Self {
-            label,
-            punct: Some(PropPunct::Eq(equals)),
-            value,
-        })
+        Ok(Self { label, value })
     }
 }
 

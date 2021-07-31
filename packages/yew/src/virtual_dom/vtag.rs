@@ -165,7 +165,7 @@ impl Apply for Listeners {
             *self = Self::Registered(
                 std::mem::take(v)
                     .into_iter()
-                    .map(|l| l.attach(&el))
+                    .map(|l| l.attach(el))
                     .collect(),
             );
         }

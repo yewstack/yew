@@ -41,13 +41,13 @@ impl ToTokens for PropsBuilder<'_> {
 
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         let turbofish_generics = ty_generics.as_turbofish();
-        let generic_args = to_arguments(&generics, build_step.clone());
+        let generic_args = to_arguments(generics, build_step.clone());
 
         // Each builder step implements the `BuilderStep` trait and `step_generics` is used to
         // enforce that.
         let step_generic_param = Ident::new("YEW_PROPS_BUILDER_STEP", Span::call_site());
         let step_generics =
-            with_param_bounds(&generics, step_generic_param.clone(), (*step_trait).clone());
+            with_param_bounds(generics, step_generic_param.clone(), (*step_trait).clone());
 
         let builder = quote! {
             #(

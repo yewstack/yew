@@ -233,12 +233,11 @@ impl Attributes {
     }
 
     fn set_attribute(el: &Element, key: &str, value: &str) {
-        el.set_attribute(&key, &value)
-            .expect("invalid attribute key")
+        el.set_attribute(key, value).expect("invalid attribute key")
     }
 
     fn remove_attribute(el: &Element, key: &str) {
-        el.remove_attribute(&key)
+        el.remove_attribute(key)
             .expect("could not remove attribute")
     }
 }
@@ -250,7 +249,7 @@ impl Apply for Attributes {
         match self {
             Self::Static(arr) => {
                 for kv in arr.iter() {
-                    Self::set_attribute(el, &kv[0], kv[1]);
+                    Self::set_attribute(el, kv[0], kv[1]);
                 }
             }
             Self::Dynamic { keys, values } => {
@@ -389,7 +388,7 @@ pub(crate) trait VDiff {
 pub(crate) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&Node>) {
     match next_sibling {
         Some(next_sibling) => parent
-            .insert_before(&node, Some(next_sibling))
+            .insert_before(node, Some(next_sibling))
             .expect("failed to insert tag before next sibling"),
         None => parent.append_child(node).expect("failed to append child"),
     };

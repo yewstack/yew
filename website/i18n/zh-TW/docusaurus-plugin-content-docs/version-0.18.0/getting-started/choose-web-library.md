@@ -43,68 +43,11 @@ window.alert("hello from wasm!");
 
 以下列出幾點，幫助你從不同的角度去考慮要使用 `web-sys` 還是 `stdweb`。請注意，雖然你可以兩個 crates 都使用，但是為了減少編譯成 `.wasm` 的檔案大小，最好還是只選一個使用。
 
-|  | `web-sys` | `stdweb` |
-| :--- | :--- | :--- |
-
-
+|| `web-sys` | `stdweb` |
+| --- | --- | --- |
 | 專案狀態 | 由 [Rust / Wasm Working Group](https://rustwasm.github.io/) 持續維護中 | GitHub repo 已經有四個月沒有動靜了 |
-| :--- | :--- | :--- |
-
-
 | Web API 覆蓋率 | Rust APIs 是由 Web IDL 自動產生，所以應該已經有 100% 的覆蓋率 | 依社群所需加入 Browser APIs  |
-| :--- | :--- | :--- |
-
-
 | Rust API 設計 | 使用保守的方式，大多的 API 呼叫後會返回 `Result` | 通常比起使用 `Result` 更傾向於直接造成 panic。例如，在 worker 中呼叫 `stdweb::web::window()` 的話就會 panic。 |
-| :--- | :--- | :--- |
+| 支援的建置工具 | <ul><li><code>wasm-bindgen</code></li><li><code>wasm-pack</code></li></ul>|<ul><li><code>cargo-web</code></li><li><code>wasm-bindgen</code></li><li><code>wasm-pack</code></li></ul>|
+| 支援的目標平台	|<ul><li><code>wasm32-unknown-unknown</code></li></ul>|<ul><li><code>wasm32-unknown-unknown</code></li><li><code>wasm32-unknown-emscripten</code></li>          <li><code>asmjs-unknown-emscripten</code></li></ul>|
 
-
-<table>
-  <thead>
-    <tr>
-      <th style={{ textAlign: "left" }}>&#x652F;&#x63F4;&#x7684;&#x5EFA;&#x7F6E;&#x5DE5;&#x5177;</th>
-      <th style={{ textAlign: "left" }}>
-        <ul>
-          <li><code>wasm-bindgen</code>
-          </li>
-          <li><code>wasm-pack</code>
-          </li>
-        </ul>
-      </th>
-      <th style={{ textAlign: "left" }}>
-        <ul>
-          <li><code>cargo-web</code>
-          </li>
-          <li><code>wasm-bindgen</code>
-          </li>
-          <li><code>wasm-pack</code>
-          </li>
-        </ul>
-      </th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table><table>
-  <thead>
-    <tr>
-      <th style={{ textAlign: "left" }}>&#x652F;&#x63F4;&#x7684;&#x76EE;&#x6A19;&#x5E73;&#x53F0;</th>
-      <th style={{ textAlign: "left" }}>
-        <ul>
-          <li><code>wasm32-unknown-unknown</code>
-          </li>
-        </ul>
-      </th>
-      <th style={{ textAlign: "left" }}>
-        <ul>
-          <li><code>wasm32-unknown-unknown</code>
-          </li>
-          <li><code>wasm32-unknown-emscripten</code>
-          </li>
-          <li><code>asmjs-unknown-emscripten</code>
-          </li>
-        </ul>
-      </th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
