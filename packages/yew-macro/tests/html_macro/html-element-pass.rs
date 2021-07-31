@@ -42,7 +42,7 @@ fn compile_pass() {
             </svg>
             <img class={classes!("avatar", "hidden")} src="http://pic.com" />
             <img class="avatar hidden" />
-            <button onclick={&onclick} onclick={onclick} />
+            <button onclick={&onclick} {onclick} />
             <a href="http://google.com" />
             <custom-tag-a>
                 <custom-tag-b />

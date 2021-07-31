@@ -154,16 +154,34 @@ error: only one root html element is allowed (hint: you can wrap multiple html e
    |                            ^^^^^^^^^^^^^^^
 
 error: cannot specify the `children` prop when the component already has children
-   --> $DIR/component-fail.rs:106:25
+   --> $DIR/component-fail.rs:106:26
     |
-106 |         <ChildContainer children={children}>
-    |                         ^^^^^^^^
+106 |         <ChildContainer {children}>
+    |                          ^^^^^^^^
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
    --> $DIR/component-fail.rs:113:9
     |
 113 |         <span>{ 2 }</span>
     |         ^^^^^^^^^^^^^^^^^^
+
+error: only simple identifiers are allowed in the shorthand property syntax
+   --> $DIR/component-fail.rs:116:21
+    |
+116 |     html! { <Child {std::f64::consts::PI} /> };
+    |                     ^^^^^^^^^^^^^^^^^^^^
+
+error: missing label for property value. If trying to use the shorthand property syntax, only identifiers may be used
+   --> $DIR/component-fail.rs:117:21
+    |
+117 |     html! { <Child {7 + 6} /> };
+    |                     ^^^^^
+
+error: missing label for property value. If trying to use the shorthand property syntax, only identifiers may be used
+   --> $DIR/component-fail.rs:118:21
+    |
+118 |     html! { <Child {children.len()} /> };
+    |                     ^^^^^^^^^^^^^^
 
 error[E0425]: cannot find value `blah` in this scope
   --> $DIR/component-fail.rs:69:25

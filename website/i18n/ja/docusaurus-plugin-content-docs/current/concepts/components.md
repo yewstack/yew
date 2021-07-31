@@ -55,7 +55,7 @@ impl Component for MyComponent {
     fn view(&self) -> Html {
         let onclick = self.link.callback(|_| Msg::Click);
         html! {
-            <button onclick={onclick}>{ self.props.button_text }</button>
+            <button {onclick}>{ self.props.button_text }</button>
         }
     }
 }

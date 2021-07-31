@@ -73,7 +73,7 @@ impl Component for Model {
         html! {
             <>
                 <h1 class="title">{ "Boids" }</h1>
-                <Simulation settings={settings.clone()} generation={generation} paused={paused} />
+                <Simulation settings={settings.clone()} {generation} {paused} />
                 { self.view_panel() }
             </>
         }
