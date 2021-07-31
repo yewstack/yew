@@ -2,6 +2,7 @@
 
 use crate::Routable;
 use gloo::events::EventListener;
+use std::collections::BTreeMap;
 use std::rc::Rc;
 use yew::prelude::*;
 
@@ -36,12 +37,16 @@ impl<T> PartialEq for RenderFn<T> {
 pub struct RouterProps<R> {
     /// Callback which returns [`Html`] to be rendered for the current route.
     pub render: RenderFn<R>,
+    /// The basis from which the route is determined.
+    #[prop_or_default]
+    pub basis: RouteBasis,
 }
 
 impl<R> Clone for RouterProps<R> {
     fn clone(&self) -> Self {
         Self {
             render: self.render.clone(),
+            basis: self.basis.clone(),
         }
     }
 }
@@ -55,6 +60,42 @@ impl<R> PartialEq for RouterProps<R> {
 #[doc(hidden)]
 pub enum Msg {
     ReRender,
+}
+
+/// The basis from which the route is determined.
+#[derive(Debug, Clone)]
+pub enum RouteBasis {
+    /// The path of the URL.
+    Pathname,
+    /// A search parameter of the URL.
+    Query(String),
+    /// The hash component of the URL.
+    Hash,
+}
+
+impl RouteBasis {
+    /// Resolves the route from the environment.
+    pub fn resolve(&self) -> String {
+        match self {
+            Self::Pathname => yew::utils::window().location().pathname().unwrap(),
+            Self::Query(which) => {
+                let query = yew::utils::window().location().search().unwrap();
+                let map: BTreeMap<String, String> =
+                    match serde_urlencoded::from_str(query.strip_prefix('?').unwrap_or("")) {
+                        Ok(map) => map,
+                        Err(_) => return String::new(),
+                    };
+                map.get(which).map_or_else(String::new, String::clone)
+            }
+            Self::Hash => yew::utils::window().location().hash().unwrap(),
+        }
+    }
+}
+
+impl Default for RouteBasis {
+    fn default() -> Self {
+        Self::Pathname
+    }
 }
 
 /// The router component.
@@ -100,7 +141,7 @@ where
     }
 
     fn view(&self) -> Html {
-        let pathname = yew::utils::window().location().pathname().unwrap();
+        let pathname = self.props.basis.resolve();
         let route = R::recognize(&pathname);
 
         match route {
