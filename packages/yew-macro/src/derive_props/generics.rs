@@ -8,10 +8,11 @@ use syn::{
 /// Alias for a comma-separated list of `GenericArgument`
 pub type GenericArguments = Punctuated<GenericArgument, Token![,]>;
 
-/// Finds the index of the first generic param with a default value.
-fn first_default_param_position(generics: &Generics) -> Option<usize> {
+/// Finds the index of the first generic param with a default value or a const generic.
+fn first_default_or_const_param_position(generics: &Generics) -> Option<usize> {
     generics.params.iter().position(|param| match param {
         GenericParam::Type(param) => param.default.is_some(),
+        GenericParam::Const(_) => true,
         _ => false,
     })
 }
@@ -25,11 +26,11 @@ pub fn to_arguments(generics: &Generics, type_ident: Ident) -> GenericArguments 
         GenericParam::Lifetime(lifetime_param) => {
             GenericArgument::Lifetime(lifetime_param.lifetime.clone())
         }
-        _ => unimplemented!("const params are not supported in the derive macro"),
+        GenericParam::Const(const_param) => new_generic_type_arg(const_param.ident.clone()),
     }));
 
     let new_arg = new_generic_type_arg(type_ident);
-    if let Some(index) = first_default_param_position(generics) {
+    if let Some(index) = first_default_or_const_param_position(generics) {
         args.insert(index, new_arg);
     } else {
         args.push(new_arg);
@@ -44,7 +45,7 @@ pub fn with_param_bounds(generics: &Generics, param_ident: Ident, param_bounds: 
     let mut new_generics = generics.clone();
     let params = &mut new_generics.params;
     let new_param = new_param_bounds(param_ident, param_bounds);
-    if let Some(index) = first_default_param_position(generics) {
+    if let Some(index) = first_default_or_const_param_position(generics) {
         params.insert(index, new_param);
     } else {
         params.push(new_param);
