@@ -9,6 +9,7 @@ use web_sys::{
 };
 
 pub use events::*;
+use crate::Callback;
 
 /// A type representing data from `oninput` event.
 #[derive(Debug)]
@@ -82,5 +83,48 @@ fn onchange_handler(this: &Element) -> ChangeData {
         _ => {
             panic!("only an InputElement, TextAreaElement or SelectElement can have an onchange event listener");
         }
+    }
+}
+
+/// A trait similar to `Into<T>` which allows conversion of a value into a [`Callback`].
+/// This is used for event listeners.
+pub trait IntoEventCallback<EVENT> {
+    /// Convert `self` to `Option<Callback<EVENT>>`
+    fn into_event_callback(self) -> Option<Callback<EVENT>>;
+}
+
+impl<EVENT> IntoEventCallback<EVENT> for Callback<EVENT> {
+    fn into_event_callback(self) -> Option<Callback<EVENT>> {
+        Some(self)
+    }
+}
+
+impl<EVENT> IntoEventCallback<EVENT> for &Callback<EVENT> {
+    fn into_event_callback(self) -> Option<Callback<EVENT>> {
+        Some(self.clone())
+    }
+}
+
+impl<EVENT> IntoEventCallback<EVENT> for Option<Callback<EVENT>> {
+    fn into_event_callback(self) -> Option<Callback<EVENT>> {
+        self
+    }
+}
+
+impl<T, EVENT> IntoEventCallback<EVENT> for T
+    where
+        T: Fn(EVENT) + 'static,
+{
+    fn into_event_callback(self) -> Option<Callback<EVENT>> {
+        Some(Callback::from(self))
+    }
+}
+
+impl<T, EVENT> IntoEventCallback<EVENT> for Option<T>
+    where
+        T: Fn(EVENT) + 'static,
+{
+    fn into_event_callback(self) -> Option<Callback<EVENT>> {
+        Some(Callback::from(self?))
     }
 }
