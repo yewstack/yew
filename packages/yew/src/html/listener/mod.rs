@@ -8,8 +8,8 @@ use web_sys::{
     HtmlTextAreaElement as TextAreaElement, InputEvent,
 };
 
-pub use events::*;
 use crate::Callback;
+pub use events::*;
 
 /// A type representing data from `oninput` event.
 #[derive(Debug)]
@@ -112,8 +112,8 @@ impl<EVENT> IntoEventCallback<EVENT> for Option<Callback<EVENT>> {
 }
 
 impl<T, EVENT> IntoEventCallback<EVENT> for T
-    where
-        T: Fn(EVENT) + 'static,
+where
+    T: Fn(EVENT) + 'static,
 {
     fn into_event_callback(self) -> Option<Callback<EVENT>> {
         Some(Callback::from(self))
@@ -121,8 +121,8 @@ impl<T, EVENT> IntoEventCallback<EVENT> for T
 }
 
 impl<T, EVENT> IntoEventCallback<EVENT> for Option<T>
-    where
-        T: Fn(EVENT) + 'static,
+where
+    T: Fn(EVENT) + 'static,
 {
     fn into_event_callback(self) -> Option<Callback<EVENT>> {
         Some(Callback::from(self?))
