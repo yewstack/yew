@@ -1,0 +1,269 @@
+error: this file contains an unclosed delimiter
+  --> $DIR/element-fail.rs:95:14
+   |
+5  | fn compile_fail() {
+   |                   - unclosed delimiter
+...
+52 |     html! { <input onclick={Callback::from(|a: String| ()) /> };
+   |           - this delimiter might not be properly closed...
+...
+93 | }
+   | - ...as it matches this but it has different indentation
+94 |
+95 | fn main() {}
+   |              ^
+
+error: this opening tag has no corresponding closing tag
+ --> $DIR/element-fail.rs:7:13
+  |
+7 |     html! { <div> };
+  |             ^^^^^
+
+error: this opening tag has no corresponding closing tag
+ --> $DIR/element-fail.rs:8:18
+  |
+8 |     html! { <div><div> };
+  |                  ^^^^^
+
+error: this opening tag has no corresponding closing tag
+ --> $DIR/element-fail.rs:9:13
+  |
+9 |     html! { <div><div></div> };
+  |             ^^^^^
+
+error: this closing tag has no corresponding opening tag
+  --> $DIR/element-fail.rs:12:13
+   |
+12 |     html! { </div> };
+   |             ^^^^^^
+
+error: this closing tag has no corresponding opening tag
+  --> $DIR/element-fail.rs:13:18
+   |
+13 |     html! { <div></span></div> };
+   |                  ^^^^^^^
+
+error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
+  --> $DIR/element-fail.rs:14:20
+   |
+14 |     html! { <img /></img> };
+   |                    ^^^^^^
+
+error: this closing tag has no corresponding opening tag
+  --> $DIR/element-fail.rs:17:18
+   |
+17 |     html! { <div></span> };
+   |                  ^^^^^^^
+
+error: this closing tag has no corresponding opening tag
+  --> $DIR/element-fail.rs:18:20
+   |
+18 |     html! { <tag-a></tag-b> };
+   |                    ^^^^^^^^
+
+error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
+  --> $DIR/element-fail.rs:21:24
+   |
+21 |     html! { <div></div><div></div> };
+   |                        ^^^^^^^^^^^
+
+error: expected a valid html element
+  --> $DIR/element-fail.rs:23:18
+   |
+23 |     html! { <div>Invalid</div> };
+   |                  ^^^^^^^
+
+error: `attr` can only be specified once but is given here again
+  --> $DIR/element-fail.rs:26:27
+   |
+26 |     html! { <input attr=1 attr=2 /> };
+   |                           ^^^^
+
+error: `value` can only be specified once but is given here again
+  --> $DIR/element-fail.rs:27:32
+   |
+27 |     html! { <input value="123" value="456" /> };
+   |                                ^^^^^
+
+error: `kind` can only be specified once but is given here again
+  --> $DIR/element-fail.rs:28:36
+   |
+28 |     html! { <input kind="checkbox" kind="submit" /> };
+   |                                    ^^^^
+
+error: `checked` can only be specified once but is given here again
+  --> $DIR/element-fail.rs:29:33
+   |
+29 |     html! { <input checked=true checked=false /> };
+   |                                 ^^^^^^^
+
+error: `disabled` can only be specified once but is given here again
+  --> $DIR/element-fail.rs:30:34
+   |
+30 |     html! { <input disabled=true disabled=false /> };
+   |                                  ^^^^^^^^
+
+error: `selected` can only be specified once but is given here again
+  --> $DIR/element-fail.rs:31:35
+   |
+31 |     html! { <option selected=true selected=false /> };
+   |                                   ^^^^^^^^
+
+error: `class` can only be specified once but is given here again
+  --> $DIR/element-fail.rs:32:32
+   |
+32 |     html! { <div class="first" class="second" /> };
+   |                                ^^^^^
+
+error: `ref` can only be specified once
+  --> $DIR/element-fail.rs:33:20
+   |
+33 |     html! { <input ref={()} ref={()} /> };
+   |                    ^^^
+
+error: unexpected end of input, expected token tree
+  --> $DIR/element-fail.rs:52:5
+   |
+52 | /     html! { <input onclick={Callback::from(|a: String| ()) /> };
+53 | |     html! { <input onfocus={Some(5)} /> };
+54 | |
+55 | |     // NodeRef type mismatch
+...  |
+92 | |     html! { <input string=NotToString /> };
+93 | | }
+   | |_^
+   |
+   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> $DIR/element-fail.rs:36:28
+   |
+36 |     html! { <input checked=1 /> };
+   |                            ^ expected `bool`, found integer
+
+error[E0308]: mismatched types
+  --> $DIR/element-fail.rs:37:29
+   |
+37 |     html! { <input checked={Some(false)} /> };
+   |                             ^^^^^^^^^^^ expected `bool`, found enum `Option`
+   |
+   = note: expected type `bool`
+              found enum `Option<bool>`
+
+error[E0308]: mismatched types
+  --> $DIR/element-fail.rs:38:29
+   |
+38 |     html! { <input disabled=1 /> };
+   |                             ^ expected `bool`, found integer
+
+error[E0308]: mismatched types
+  --> $DIR/element-fail.rs:39:30
+   |
+39 |     html! { <input disabled={Some(true)} /> };
+   |                              ^^^^^^^^^^ expected `bool`, found enum `Option`
+   |
+   = note: expected type `bool`
+              found enum `Option<bool>`
+
+error[E0308]: mismatched types
+  --> $DIR/element-fail.rs:40:30
+   |
+40 |     html! { <option selected=1 /> };
+   |                              ^ expected `bool`, found integer
+
+error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
+  --> $DIR/element-fail.rs:43:26
+   |
+43 |     html! { <input type={()} /> };
+   |                          ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
+   |
+  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
+   |
+   |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
+   |                                               -------------------------------- required by this bound in `PositionalAttr::new`
+
+error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
+  --> $DIR/element-fail.rs:44:27
+   |
+44 |     html! { <input value={()} /> };
+   |                           ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
+   |
+   = note: required by `into_prop_value`
+
+error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
+  --> $DIR/element-fail.rs:45:22
+   |
+45 |     html! { <a href={()} /> };
+   |                      ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
+   |
+  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
+   |
+   |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
+   |                                               -------------------------------- required by this bound in `PositionalAttr::new`
+
+error[E0277]: the trait bound `NotToString: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
+  --> $DIR/element-fail.rs:46:28
+   |
+46 |     html! { <input string={NotToString} /> };
+   |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `NotToString`
+   |
+  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
+   |
+   |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
+   |                                               -------------------------------- required by this bound in `PositionalAttr::new`
+
+error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
+  --> $DIR/element-fail.rs:47:23
+   |
+47 |     html! { <a media={Some(NotToString)} /> };
+   |                       ^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `Option<NotToString>`
+   |
+  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
+   |
+   |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
+   |                                               -------------------------------- required by this bound in `PositionalAttr::new`
+   |
+   = help: the following implementations were found:
+             <Option<&'static str> as IntoPropValue<Option<Cow<'static, str>>>>
+             <Option<&'static str> as IntoPropValue<Option<String>>>
+             <Option<String> as IntoPropValue<Option<Cow<'static, str>>>>
+
+error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
+  --> $DIR/element-fail.rs:48:22
+   |
+48 |     html! { <a href={Some(5)} /> };
+   |                      ^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `Option<{integer}>`
+   |
+  ::: $WORKSPACE/packages/yew/src/virtual_dom/mod.rs
+   |
+   |     pub fn new(key: &'static str, value: impl IntoPropValue<Option<AttrValue>>) -> Self {
+   |                                               -------------------------------- required by this bound in `PositionalAttr::new`
+   |
+   = help: the following implementations were found:
+             <Option<&'static str> as IntoPropValue<Option<Cow<'static, str>>>>
+             <Option<&'static str> as IntoPropValue<Option<String>>>
+             <Option<String> as IntoPropValue<Option<Cow<'static, str>>>>
+
+error[E0277]: the trait bound `{integer}: IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not satisfied
+   --> $DIR/element-fail.rs:51:28
+    |
+51  |       html! { <input onclick=1 /> };
+    |                              ^ the trait `IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not implemented for `{integer}`
+    |
+   ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
+    |
+    | / impl_short! {
+131 | |     onauxclick(MouseEvent)
+132 | |     onclick(MouseEvent)
+133 | |
+...   |
+192 | |     ontransitionstart(TransitionEvent)
+193 | | }
+    | |_- required by this bound in `yew::html::onclick::Wrapper::__macro_new`
+    |
+    = help: the following implementations were found:
+              <&'static str as IntoPropValue<Cow<'static, str>>>
+              <&'static str as IntoPropValue<Option<Cow<'static, str>>>>
+              <&'static str as IntoPropValue<Option<String>>>
+              <&'static str as IntoPropValue<String>>
+            and 11 others

@@ -1,0 +1,5 @@
+error: only named fields are supported
+ --> $DIR/unnamed-fields-fail.rs:4:8
+  |
+4 |     One(u32),
+  |        ^^^^^

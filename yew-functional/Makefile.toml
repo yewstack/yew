@@ -1,8 +1,0 @@
-
-[tasks.test]
-clear = true
-extend = "core::wasm-pack-base"
-args = [
-    "test",
-    "@@split(YEW_TEST_FLAGS, )"
-]

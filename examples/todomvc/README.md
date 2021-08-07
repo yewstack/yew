@@ -1,15 +1,20 @@
-## Yew TodoMVC Demo
+# TodoMVC Example
 
-This is an implementation of [TodoMVC](http://todomvc.com/) app.
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Ftodomvc)](https://examples.yew.rs/todomvc)
+
+This is an implementation of [TodoMVC](http://todomvc.com/) for Yew.
 
 Unlike other implementations, this stores the full state of the model,
 including: all entries, entered text and chosen filter.
 
-### How to run:
+## Concepts
 
-```sh
-wasm-pack build --target web --out-name wasm --out-dir ./static && miniserve ./static --index index.html
-```
-This will compile the project, bundle the compiler output and static assets together, and start a HTTP server running locally on port 8080 (to access the example you can use your browser to navigate to [localhost:8080](http://127.0.0.1:8080)).
+- Uses [`gloo_storage`](https://gloo-rs.web.app/docs/storage) to persist the state
+- [`Refs`] are used to manipulate DOM elements after they're rendered (to automatically focus input fields for instance)
 
-To run this example you'll need to have [wasm-pack](https://github.com/rustwasm/wasm-pack) and [miniserve](https://github.com/svenstaro/miniserve) installed.
+## Improvements
+
+- Use `yew-router` for the hash based routing
+- Clean up the code
+
+[`refs`]: https://yew.rs/concepts/components/refs/

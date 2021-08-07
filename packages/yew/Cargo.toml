@@ -1,0 +1,120 @@
+[package]
+name = "yew"
+version = "0.18.0"
+edition = "2018"
+authors = [
+  "Denis Kolodin <deniskolodin@gmail.com>",
+  "Justin Starry <justin@yew.rs>",
+]
+repository = "https://github.com/yewstack/yew"
+homepage = "https://github.com/yewstack/yew"
+documentation = "https://docs.rs/yew/"
+license = "MIT OR Apache-2.0"
+readme = "../README.md"
+keywords = ["web", "webasm", "javascript"]
+categories = ["gui", "wasm", "web-programming"]
+description = "A framework for making client-side single-page apps"
+
+[dependencies]
+anyhow = "1"
+anymap = "0.12"
+console_error_panic_hook = "0.1"
+gloo = "0.2.1"
+http = "0.2"
+indexmap = { version = "1.5", features = ["std"] }
+js-sys = "0.3"
+log = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+slab = "0.4"
+thiserror = "1"
+wasm-bindgen = "0.2.74"
+wasm-bindgen-futures = "0.4"
+yew-macro = { version = "^0.18.0", path = "../yew-macro" }
+
+scoped-tls-hkt = "0.1.2"
+
+# optional encodings
+bincode = { version = "1", optional = true }
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  "AbortController",
+  "AbortSignal",
+  "AnimationEvent",
+  "BinaryType",
+  "Blob",
+  "BlobPropertyBag",
+  "console",
+  "DedicatedWorkerGlobalScope",
+  "Document",
+  "DomTokenList",
+  "DragEvent",
+  "Element",
+  "ErrorEvent",
+  "Event",
+  "EventInit",
+  "EventTarget",
+  "File",
+  "FileList",
+  "FileReader",
+  "FocusEvent",
+  "Headers",
+  "HtmlElement",
+  "HtmlButtonElement",
+  "HtmlInputElement",
+  "HtmlSelectElement",
+  "HtmlTextAreaElement",
+  "InputEvent",
+  "InputEventInit",
+  "KeyboardEvent",
+  "Location",
+  "MessageEvent",
+  "MouseEvent",
+  "Node",
+  "ObserverCallback",
+  "PointerEvent",
+  "ProgressEvent",
+  "ReferrerPolicy",
+  "Request",
+  "RequestCache",
+  "RequestCredentials",
+  "RequestInit",
+  "RequestMode",
+  "RequestRedirect",
+  "Response",
+  "Storage",
+  "Text",
+  "TouchEvent",
+  "TransitionEvent",
+  "UiEvent",
+  "Url",
+  "WebSocket",
+  "WheelEvent",
+  "Window",
+  "Worker",
+  "WorkerGlobalScope",
+  "WorkerOptions",
+]
+
+[dev-dependencies]
+base64 = "0.13.0"
+bincode = "1"
+easybench-wasm = "0.2.1"
+rmp-serde = "0.15.0"
+rustversion = "1.0"
+serde_derive = "1"
+ssri = "6.0.0"
+trybuild = "1.0"
+wasm-bindgen-test = "0.3.24"
+
+[features]
+default = ["agent"]
+doc_test = []
+wasm_test = []
+wasm_bench = []
+agent = ["bincode"]
+
+[package.metadata.docs.rs]
+features = ["doc_test"]

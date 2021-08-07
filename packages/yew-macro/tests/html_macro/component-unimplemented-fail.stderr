@@ -1,0 +1,17 @@
+error[E0599]: the function or associated item `new` exists for struct `VChild<Unimplemented>`, but its trait bounds were not satisfied
+ --> $DIR/component-unimplemented-fail.rs:6:14
+  |
+3 | struct Unimplemented;
+  | --------------------- doesn't satisfy `Unimplemented: yew::Component`
+...
+6 |     html! { <Unimplemented /> };
+  |              ^^^^^^^^^^^^^ function or associated item cannot be called on `VChild<Unimplemented>` due to unsatisfied trait bounds
+  |
+  = note: the following trait bounds were not satisfied:
+          `Unimplemented: yew::Component`
+
+error[E0277]: the trait bound `Unimplemented: yew::Component` is not satisfied
+ --> $DIR/component-unimplemented-fail.rs:6:14
+  |
+6 |     html! { <Unimplemented /> };
+  |              ^^^^^^^^^^^^^ the trait `yew::Component` is not implemented for `Unimplemented`

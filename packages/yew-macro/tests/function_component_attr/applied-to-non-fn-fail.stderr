@@ -1,0 +1,5 @@
+error: `function_component` attribute can only be applied to functions
+  --> $DIR/applied-to-non-fn-fail.rs:10:1
+   |
+10 | struct Test;
+   | ^^^^^^^^^^^^

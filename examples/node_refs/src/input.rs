@@ -1,8 +1,7 @@
 use yew::prelude::*;
 
-pub struct InputComponent {
-    props: Props,
-    link: ComponentLink<Self>,
+pub enum Msg {
+    Hover,
 }
 
 #[derive(Clone, Properties)]
@@ -10,8 +9,9 @@ pub struct Props {
     pub on_hover: Callback<()>,
 }
 
-pub enum Msg {
-    Hover,
+pub struct InputComponent {
+    props: Props,
+    link: ComponentLink<Self>,
 }
 
 impl Component for InputComponent {
@@ -19,16 +19,16 @@ impl Component for InputComponent {
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        InputComponent { props, link }
+        Self { props, link }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Hover => {
                 self.props.on_hover.emit(());
+                false
             }
         }
-        false
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
@@ -41,7 +41,8 @@ impl Component for InputComponent {
             <input
                 type="text"
                 class="input-component"
-                onmouseover=self.link.callback(|_| Msg::Hover) />
+                onmouseover={self.link.callback(|_| Msg::Hover)}
+            />
         }
     }
 }

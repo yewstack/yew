@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://static.yew.rs/logo.svg" width="150" />
+  <img src="https://yew.rs/img/logo.png" width="150" />
 
   <h1>Yew</h1>
 
@@ -12,21 +12,25 @@
     <a href="https://docs.rs/yew/"><img alt="API Docs" src="https://img.shields.io/badge/docs.rs-yew-green"/></a>
     <a href="https://discord.gg/VQck8X4"><img alt="Discord Chat" src="https://img.shields.io/discord/701068342760570933"/></a>
     <a href="https://gitlocalize.com/repo/4999/whole_project?utm_source=badge"> <img src="https://gitlocalize.com/repo/4999/whole_project/badge.svg" /> </a>
-    <a href="https://blog.rust-lang.org/2020/07/16/Rust-1.45.0.html"><img alt="Rustc Version 1.45+" src="https://img.shields.io/badge/rustc-1.45%2B-lightgrey.svg"/></a>
+    <a href="https://blog.rust-lang.org/2020/12/31/Rust-1.49.0.html"><img alt="Rustc Version 1.49.0+" src="https://img.shields.io/badge/rustc-1.49%2B-lightgrey.svg"/></a>
   </p>
 
   <h4>
-    <a href="https://yew.rs/docs">Documentation</a>
+    <a href="https://yew.rs/">Documentation (stable)</a>
     <span> | </span>
-    <a href="https://github.com/yewstack/yew/tree/v0.17/examples">Examples</a>
+    <a href="https://yew.rs/next/">Documentation (latest)</a>
+    <span> | </span>
+    <a href="https://github.com/yewstack/yew/tree/v0.18/examples">Examples</a>
     <span> | </span>
     <a href="https://github.com/yewstack/yew/blob/master/CHANGELOG.md">Changelog</a>
     <span> | </span>
-    <a href="https://yew.rs/docs/more/roadmap">Roadmap</a>
+    <a href="https://yew.rs/more/roadmap">Roadmap</a>
     <span> | </span>
-    <a href="https://yew.rs/docs/zh-CN/">简体中文文档</a>
+    <a href="https://yew.rs/zh-CN">简体中文文档</a>
     <span> | </span>
-    <a href="https://yew.rs/docs/zh-TW/">繁體中文文檔</a>
+    <a href="https://yew.rs/zh-TW">繁體中文文檔</a>
+    <span> | </span>
+    <a href="https://yew.rs/ja">ドキュメント</a>
   </h4>
 </div>
 
@@ -46,7 +50,7 @@ Yew is a community effort and we welcome all kinds of contributions, big or smal
 
 #### 🤠 New to Yew?
 
-Start learning about the framework by helping us improve our [documentation](https://github.com/yewstack/yew/tree/master/docs). Pull requests which improve test coverage are also very welcome.
+Start learning about the framework by helping us improve our [documentation](https://github.com/yewstack/yew/tree/master/website/docs). Pull requests which improve test coverage are also very welcome.
 
 #### 😎 Looking for inspiration?
 
@@ -62,7 +66,7 @@ After reviewing the [Contribution Guide](CONTRIBUTING.md), check out the ["Good 
 
 #### 🤑 Let's help each other!
 
-Come help us on the [issues that matter that the most](https://github.com/yewstack/yew/labels/%3Adollar%3A%20Funded%20on%20Issuehunt) and receive a small cash reward for your troubles. We use [Issuehunt](https://issuehunt.io/r/yewstack/yew/) to fund issues from our Open Collective funds. If you really care about an issue, you can choose to add funds yourself! 
+Come help us on the [issues that matter that the most](https://github.com/yewstack/yew/labels/%3Adollar%3A%20Funded%20on%20Issuehunt) and receive a small cash reward for your troubles. We use [Issuehunt](https://issuehunt.io/r/yewstack/yew/) to fund issues from our Open Collective funds. If you really care about an issue, you can choose to add funds yourself!
 
 #### 😱 Found a bug?
 

@@ -1,0 +1,21 @@
+error[E0277]: the trait bound `std::vec::Vec<_>: yew::Properties` is not satisfied
+  --> $DIR/resolve-prop-fail.rs:38:17
+   |
+38 |     yew::props!(Vec<_> {});
+   |                 ^^^ the trait `yew::Properties` is not implemented for `std::vec::Vec<_>`
+   |
+   = note: required by `builder`
+
+error[E0277]: the trait bound `MyComp: yew::Properties` is not satisfied
+  --> $DIR/resolve-prop-fail.rs:39:17
+   |
+39 |     yew::props!(MyComp {});
+   |                 ^^^^^^ the trait `yew::Properties` is not implemented for `MyComp`
+   |
+   = note: required by `builder`
+
+error[E0277]: the trait bound `MyNotAComponent: yew::Component` is not satisfied
+  --> $DIR/resolve-prop-fail.rs:40:17
+   |
+40 |     yew::props!(MyNotAComponent::Properties {});
+   |                 ^^^^^^^^^^^^^^^ the trait `yew::Component` is not implemented for `MyNotAComponent`

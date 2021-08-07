@@ -1,0 +1,16 @@
+.component-person {
+  color: blue;
+}
+
+.basic-person {
+  color: red;
+}
+
+.btn_size {
+  width: 100%;
+  height: 75px;
+}
+
+.card_style {
+  margin:5px;
+}
