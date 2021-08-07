@@ -56,8 +56,8 @@ struct UseReducer<State> {
 ///         <>
 ///             <div id="result">{ counter.counter }</div>
 ///
-///             <button onclick={double_onclick}>{ "Double" }</button>
-///             <button onclick={square_onclick}>{ "Square" }</button>
+///             <button on:click={double_onclick}>{ "Double" }</button>
+///             <button on:click={square_onclick}>{ "Square" }</button>
 ///         </>
 ///     }
 /// }
@@ -103,7 +103,7 @@ where
 ///         <>
 ///             <div id="result">{counter.counter}</div>
 ///
-///             <button onclick={Callback::from(move |_| counter.dispatch(10))}>{"Increment by 10"}</button>
+///             <button on:click={Callback::from(move |_| counter.dispatch(10))}>{"Increment by 10"}</button>
 ///         </>
 ///     }
 /// }

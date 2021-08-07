@@ -101,3 +101,60 @@ impl_action! {
     ontransitionrun(name: "transitionrun", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
     ontransitionstart(name: "transitionstart", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
 }
+
+#[doc(hidden)]
+pub mod oncustom {
+    use crate::callback::Callback;
+    use crate::html::IntoPropValue;
+    use crate::virtual_dom::Listener;
+    use gloo::events::{EventListener, EventListenerOptions};
+    use std::rc::Rc;
+    use wasm_bindgen::JsCast;
+    use web_sys::{CustomEvent, Element, EventTarget};
+
+    /// A wrapper for a callback which attaches event listeners to elements.
+    #[derive(Clone, Debug)]
+    pub struct Wrapper {
+        callback: Callback<CustomEvent>,
+        event: &'static str,
+    }
+
+    impl Wrapper {
+        /// Create a wrapper for an event-typed callback
+        pub fn new(event: &'static str, callback: Callback<CustomEvent>) -> Self {
+            Wrapper { callback, event }
+        }
+
+        #[doc(hidden)]
+        #[inline]
+        pub fn __macro_new(
+            event: &'static str,
+            callback: impl IntoPropValue<Option<Callback<CustomEvent>>>,
+        ) -> Option<Rc<dyn Listener>> {
+            let callback = callback.into_prop_value()?;
+            Some(Rc::new(Self::new(event, callback)))
+        }
+    }
+
+    impl Listener for Wrapper {
+        fn kind(&self) -> &'static str {
+            stringify!($action)
+        }
+
+        fn attach(&self, element: &Element) -> EventListener {
+            let callback = self.callback.clone();
+            let listener = move |event: &web_sys::Event| {
+                // Event can always be made into a CustomEvent
+                callback.emit(event.clone().unchecked_into());
+            };
+
+            let options = EventListenerOptions::enable_prevent_default();
+            EventListener::new_with_options(
+                &EventTarget::from(element.clone()),
+                self.event,
+                options,
+                listener,
+            )
+        }
+    }
+}

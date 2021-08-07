@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use yew::prelude::*;
 
 fn compile_pass() {
-    let onclick = Callback::from(|_: MouseEvent| ());
+    let click = Callback::from(|_: MouseEvent| ());
     let parent_ref = NodeRef::default();
 
     let dyn_tag = || String::from("test");
@@ -42,7 +42,7 @@ fn compile_pass() {
             </svg>
             <img class={classes!("avatar", "hidden")} src="http://pic.com" />
             <img class="avatar hidden" />
-            <button onclick={&onclick} {onclick} />
+            <button on:click={&click} on:{click} />
             <a href="http://google.com" />
             <custom-tag-a>
                 <custom-tag-b />
@@ -64,7 +64,8 @@ fn compile_pass() {
             <a href={Some(Cow::Borrowed("http://google.com"))} media={cow_none.clone()} />
             <track kind={Some(Cow::Borrowed("subtitles"))} src={cow_none.clone()} />
             <track kind={Some(Cow::Borrowed("5"))} mixed="works" />
-            <input value={Some(Cow::Borrowed("value"))} onblur={Some(Callback::from(|_| ()))} />
+            <input value={Some(Cow::Borrowed("value"))} on:blur={Some(Callback::from(|_| ()))} />
+            <div on:"custom event"={Callback::from(|_| ())}></div>
         </div>
     };
 

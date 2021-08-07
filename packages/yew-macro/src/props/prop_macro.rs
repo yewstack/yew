@@ -1,4 +1,4 @@
-use super::{ComponentProps, Prop, Props, SortedPropList};
+use super::{ComponentProps, Prop, PropLabel, Props, SortedPropList};
 use crate::html_tree::HtmlDashedName;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
@@ -60,7 +60,11 @@ impl Parse for PropValue {
 impl From<PropValue> for Prop {
     fn from(prop_value: PropValue) -> Prop {
         let PropValue { label, value } = prop_value;
-        Prop { label, value }
+        Prop {
+            label: PropLabel::Static(label),
+            value,
+            is_listener: false,
+        }
     }
 }
 

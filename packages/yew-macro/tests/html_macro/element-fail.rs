@@ -48,14 +48,14 @@ fn compile_fail() {
     html! { <a href={Some(5)} /> };
 
     // listener type mismatch
-    html! { <input onclick=1 /> };
-    html! { <input onclick={Callback::from(|a: String| ())} /> };
-    html! { <input onfocus={Some(5)} /> };
+    html! { <input on:click=1 /> };
+    html! { <input on:click={Callback::from(|a: String| ())} /> };
+    html! { <input on:focus={Some(5)} /> };
 
     // NodeRef type mismatch
     html! { <input ref={()} /> };
     html! { <input ref={Some(NodeRef::default())} /> };
-    html! { <input onclick={Callback::from(|a: String| ())} /> };
+    html! { <input on:click={Callback::from(|a: String| ())} /> };
 
     html! { <input string={NotToString} /> };
 
@@ -83,7 +83,7 @@ fn compile_fail() {
     html! { <div class=("deprecated", "warning") /> };
     html! { <input ref=() /> };
     html! { <input ref=() ref=() /> };
-    html! { <input onfocus=Some(5) /> };
+    html! { <input on:focus=Some(5) /> };
     html! { <input string=NotToString /> };
     html! { <a media=Some(NotToString) /> };
     html! { <a href=Some(5) /> };

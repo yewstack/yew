@@ -1,10 +1,10 @@
 use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
-use crate::props::{ClassesForm, ElementProps, Prop};
+use crate::props::{is_custom, ClassesForm, ElementProps, Prop, PropLabel};
 use crate::stringify::{Stringify, Value};
 use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::{Delimiter, TokenStream};
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
@@ -271,12 +271,37 @@ impl ToTokens for HtmlElement {
         let listeners = if listeners.is_empty() {
             quote! { ::std::vec![] }
         } else {
-            let listeners_it = listeners.iter().map(|Prop { label, value, .. }| {
-                let name = &label.name;
-                quote! {
-                    ::yew::html::#name::Wrapper::__macro_new(#value)
-                }
-            });
+            let listeners_it = listeners
+                .iter()
+                .map(|Prop { label, value, .. }| match label {
+                    PropLabel::Static(label) => {
+                        let handler = format_ident!("on{}", label.name);
+                        if is_custom(handler.to_string()) {
+                            let name = label.name.to_string();
+                            quote! {
+                                ::yew::html::oncustom::Wrapper::__macro_new(#name, #value)
+                            }
+                        } else {
+                            quote! {
+                                ::yew::html::#handler::Wrapper::__macro_new(#value)
+                            }
+                        }
+                    }
+                    PropLabel::Custom(label) => {
+                        let mut event_handler_name = String::from("on");
+                        event_handler_name.push_str(&label.value());
+                        if is_custom(event_handler_name) {
+                            quote! {
+                                ::yew::html::oncustom::Wrapper::__macro_new(#label, #value)
+                            }
+                        } else {
+                            let handler = format_ident!("on{}", label.value(), span = label.span());
+                            quote! {
+                                ::yew::html::#handler::Wrapper::__macro_new(#value)
+                            }
+                        }
+                    }
+                });
 
             quote! { ::std::vec![#(#listeners_it),*].into_iter().flatten().collect() }
         };

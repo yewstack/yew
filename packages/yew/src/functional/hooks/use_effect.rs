@@ -25,13 +25,13 @@ struct UseEffect<Destructor> {
 ///         || yew::utils::document().set_title(&format!("You clicked 0 times"))
 ///     });
 ///
-///     let onclick = {
+///     let click = {
 ///         let counter = counter.clone();
 ///         Callback::from(move |_| counter.set(*counter + 1))
 ///     };
 ///
 ///     html! {
-///         <button {onclick}>{ format!("Increment to {}", *counter) }</button>
+///         <button on:{click}>{ format!("Increment to {}", *counter) }</button>
 ///     }
 /// }
 /// ```

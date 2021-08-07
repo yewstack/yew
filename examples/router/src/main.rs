@@ -90,7 +90,7 @@ impl Model {
                     <a role="button"
                         class={classes!("navbar-burger", "burger", active_class)}
                         aria-label="menu" aria-expanded="false"
-                        onclick={link.callback(|_| Msg::ToggleNavbar)}
+                        on:click={link.callback(|_| Msg::ToggleNavbar)}
                     >
                         <span aria-hidden="true"></span>
                         <span aria-hidden="true"></span>

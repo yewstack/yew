@@ -82,7 +82,7 @@ impl Component for Model {
             <div>
                 <div>
                     <p>{ "Choose a file to upload to see the uploaded bytes" }</p>
-                    <input type="file" multiple=true onchange={ctx.link().callback(move |e: Event| {
+                    <input type="file" multiple=true on:change={ctx.link().callback(move |e: Event| {
                             let mut result = Vec::new();
                             let input: HtmlInputElement = e.target_unchecked_into();
 
@@ -100,7 +100,7 @@ impl Component for Model {
                 </div>
                 <div>
                     <label>{ "Read bytes" }</label>
-                    <input type="checkbox" checked={flag} onclick={ctx.link().callback(|_| Msg::ToggleReadBytes)} />
+                    <input type="checkbox" checked={flag} on:click={ctx.link().callback(|_| Msg::ToggleReadBytes)} />
                 </div>
                 <ul>
                     { for self.files.iter().map(|f| Self::view_file(f)) }

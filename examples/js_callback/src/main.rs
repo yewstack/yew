@@ -51,16 +51,16 @@ impl Component for Model {
             <>
                 <textarea
                     class="code-block"
-                    oninput={ctx.link().callback(|e: InputEvent| {
+                    on:input={ctx.link().callback(|e: InputEvent| {
                         let input: HtmlTextAreaElement = e.target_unchecked_into();
                         Msg::Payload(input.value())
                     })}
                     value={self.payload.clone()}
                 />
-                <button onclick={ctx.link().callback(|_| Msg::Payload(bindings::get_payload()))}>
+                <button on:click={ctx.link().callback(|_| Msg::Payload(bindings::get_payload()))}>
                     { "Get the payload!" }
                 </button>
-                <button onclick={ctx.link().callback(|_| Msg::AsyncPayload)} >
+                <button on:click={ctx.link().callback(|_| Msg::AsyncPayload)} >
                     { "Get the payload later!" }
                 </button>
                 <p class="code-block">

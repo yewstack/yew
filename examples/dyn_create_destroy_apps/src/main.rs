@@ -92,7 +92,7 @@ impl Component for Model {
                     // Create button to create a new app
                     <button
                         class="create"
-                        onclick={ctx.link().callback(|_| Msg::SpawnCounterAppInstance)}
+                        on:click={ctx.link().callback(|_| Msg::SpawnCounterAppInstance)}
                     >
                         { "Spawn new CounterModel app" }
                     </button>

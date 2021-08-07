@@ -19,7 +19,7 @@ use std::{cell::RefCell, rc::Rc};
 ///     let message = use_state(|| "".to_string());
 ///     let message_count = use_ref(|| 0);
 ///
-///     let onclick = Callback::from(move |e| {
+///     let click = Callback::from(move |e| {
 ///         let window = yew::utils::window();
 ///
 ///         if *message_count.borrow_mut() > 3 {
@@ -30,7 +30,7 @@ use std::{cell::RefCell, rc::Rc};
 ///         }
 ///     });
 ///
-///     let onchange = {
+///     let change = {
 ///         let message = message.clone();
 ///           Callback::from(move |e: Event| {
 ///             let input: HtmlInputElement = e.target_unchecked_into();
@@ -40,8 +40,8 @@ use std::{cell::RefCell, rc::Rc};
 ///
 ///     html! {
 ///         <div>
-///             <input {onchange} value={(*message).clone()} />
-///             <button {onclick}>{ "Send" }</button>
+///             <input on:{change} value={(*message).clone()} />
+///             <button on:{click}>{ "Send" }</button>
 ///         </div>
 ///     }
 /// }

@@ -76,7 +76,7 @@ impl Component for Post {
                 <p>{text}</p>
 
                 <TextInput value={text.to_owned()} onsubmit={ctx.link().callback(Msg::UpdateText)} />
-                <button onclick={ctx.link().callback(|_| Msg::Delete)}>
+                <button on:click={ctx.link().callback(|_| Msg::Delete)}>
                     { "Delete" }
                 </button>
             </div>

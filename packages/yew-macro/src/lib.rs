@@ -28,7 +28,7 @@
 //!
 //! html! {
 //!   <div>
-//!     <button onclick={ctx.link().callback(|_| Msg::Submit)}>
+//!     <button on:click={ctx.link().callback(|_| Msg::Submit)}>
 //!       { "Submit" }
 //!     </button>
 //!     <>

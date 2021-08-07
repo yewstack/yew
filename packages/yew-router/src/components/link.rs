@@ -43,7 +43,7 @@ impl<R: Routable + Clone + PartialEq + 'static> Component for Link<R> {
         html! {
             <a class={ctx.props().classes.clone()}
                 href={ctx.props().route.to_path()}
-                onclick={ctx.link().callback(|e: MouseEvent| {
+                on:click={ctx.link().callback(|e: MouseEvent| {
                     e.prevent_default();
                     Msg::OnClick
                 })}

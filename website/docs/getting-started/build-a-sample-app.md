@@ -92,7 +92,11 @@ impl Component for Model {
         let link = ctx.link();
         html! {
             <div>
+<<<<<<< HEAD
                 <button onclick={link.callback(|_| Msg::AddOne)}>{ "+1" }</button>
+=======
+                <button on:click={self.link.callback(|_| Msg::AddOne)}>{ "+1" }</button>
+>>>>>>> 3a6fe591 (Add event listener syntax to support custom event)
                 <p>{ self.value }</p>
             </div>
         }

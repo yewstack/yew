@@ -1,27 +1,85 @@
 use crate::html_tree::HtmlDashedName;
+use quote::ToTokens;
 use std::{
     cmp::Ordering,
     convert::TryFrom,
+    fmt::Display,
     ops::{Deref, DerefMut},
 };
 use syn::{
     braced,
     parse::{Parse, ParseStream},
     token::Brace,
-    Block, Expr, ExprBlock, ExprPath, Stmt, Token,
+    Block, Expr, ExprBlock, ExprPath, LitStr, Stmt, Token,
 };
 
+mod kw {
+    syn::custom_keyword!(on);
+}
+
+pub fn parse_listener_prefix(input: ParseStream) -> syn::Result<()> {
+    input.parse::<kw::on>()?;
+    input.parse::<Token![:]>()?;
+    Ok(())
+}
+
+#[derive(PartialEq)]
+pub enum PropLabel {
+    Static(HtmlDashedName),
+    Custom(LitStr),
+}
+
+impl PropLabel {
+    pub fn to_lit_str(&self) -> LitStr {
+        match &self {
+            PropLabel::Static(label) => label.to_lit_str(),
+            PropLabel::Custom(label) => label.clone(),
+        }
+    }
+}
+
+impl Parse for PropLabel {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        if let Ok(label) = input.parse::<HtmlDashedName>() {
+            Ok(PropLabel::Static(label))
+        } else {
+            Ok(PropLabel::Custom(input.parse()?))
+        }
+    }
+}
+
+impl Display for PropLabel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self {
+            Self::Static(name) => name.fmt(f),
+            Self::Custom(lit) => f.write_str(&lit.value()),
+        }
+    }
+}
+
+impl ToTokens for PropLabel {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        match &self {
+            Self::Static(name) => name.to_tokens(tokens),
+            Self::Custom(lit) => lit.to_tokens(tokens),
+        }
+    }
+}
+
 pub struct Prop {
-    pub label: HtmlDashedName,
+    pub is_listener: bool,
+    pub label: PropLabel,
     /// Punctuation between `label` and `value`.
     pub value: Expr,
 }
 impl Parse for Prop {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        // check for 'on' + ':' for listeners
+        let is_listener = parse_listener_prefix(input).is_ok();
         if input.peek(Brace) {
-            Self::parse_shorthand_prop_assignment(input)
+            Self::parse_shorthand_prop_assignment(input, is_listener)
         } else {
-            Self::parse_prop_assignment(input)
+            Self::parse_prop_assignment(input, is_listener)
         }
     }
 }
@@ -31,7 +89,7 @@ impl Prop {
     /// Parse a prop using the shorthand syntax `{value}`, short for `value={value}`
     /// This only allows for labels with no hyphens, as it would otherwise create
     /// an ambiguity in the syntax
-    fn parse_shorthand_prop_assignment(input: ParseStream) -> syn::Result<Self> {
+    fn parse_shorthand_prop_assignment(input: ParseStream, is_listener: bool) -> syn::Result<Self> {
         let value;
         let _brace = braced!(value in input);
         let expr = value.parse::<Expr>()?;
@@ -56,17 +114,23 @@ impl Prop {
             ));
         }?;
 
-        Ok(Self { label, value: expr })
+        Ok(Self {
+            label: PropLabel::Static(label),
+            value: expr,
+            is_listener,
+        })
     }
 
     /// Parse a prop of the form `label={value}`
-    fn parse_prop_assignment(input: ParseStream) -> syn::Result<Self> {
-        let label = input.parse::<HtmlDashedName>()?;
+    fn parse_prop_assignment(input: ParseStream, is_listener: bool) -> syn::Result<Self> {
+        let label = input.parse::<PropLabel>()?;
         let equals = input.parse::<Token![=]>().map_err(|_| {
-            syn::Error::new_spanned(
-                &label,
-                format!("`{}` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)", label),
-            )
+            let mut message = format!("`{}` doesn't have a value.", label);
+            if !is_listener {
+                message
+                    .push_str(" (hint: set the value to `true` or `false` for boolean attributes)");
+            }
+            syn::Error::new_spanned(&label, message)
         })?;
         if input.is_empty() {
             return Err(syn::Error::new_spanned(
@@ -75,7 +139,11 @@ impl Prop {
             ));
         }
         let value = strip_braces(input.parse::<Expr>()?)?;
-        Ok(Self { label, value })
+        Ok(Self {
+            label,
+            value,
+            is_listener,
+        })
     }
 }
 

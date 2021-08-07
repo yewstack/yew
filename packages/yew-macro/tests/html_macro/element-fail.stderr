@@ -1,3 +1,21 @@
+<<<<<<< HEAD
+=======
+error: this file contains an unclosed delimiter
+  --> $DIR/element-fail.rs:95:14
+   |
+5  | fn compile_fail() {
+   |                   - unclosed delimiter
+...
+52 |     html! { <input on:click={Callback::from(|a: String| ()) /> };
+   |           - this delimiter might not be properly closed...
+...
+93 | }
+   | - ...as it matches this but it has different indentation
+94 |
+95 | fn main() {}
+   |              ^
+
+>>>>>>> d00c22f6 (Add event listener syntax to support custom event)
 error: this opening tag has no corresponding closing tag
  --> $DIR/element-fail.rs:7:13
   |
@@ -127,6 +145,7 @@ error: the tag `<iNpUt>` is a void element and cannot have children (hint: rewri
 error: this dynamic tag is missing an expression block defining its value
   --> $DIR/element-fail.rs:71:14
    |
+<<<<<<< HEAD
 71 |     html! { <@></@> };
    |              ^
 
@@ -174,6 +193,16 @@ error: the property value must be either a literal or enclosed in braces. Consid
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
   --> $DIR/element-fail.rs:88:22
+=======
+52 | /     html! { <input on:click={Callback::from(|a: String| ()) /> };
+53 | |     html! { <input on:focus={Some(5)} /> };
+54 | |
+55 | |     // NodeRef type mismatch
+...  |
+92 | |     html! { <input string=NotToString /> };
+93 | | }
+   | |_^
+>>>>>>> d00c22f6 (Add event listener syntax to support custom event)
    |
 88 |     html! { <a media=Some(NotToString) /> };
    |                      ^^^^^^^^^^^^^^^^^
@@ -302,6 +331,7 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<Cow<'stat
              <Option<String> as IntoPropValue<Option<Cow<'static, str>>>>
    = note: required by `into_prop_value`
 
+<<<<<<< HEAD
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `{integer}`
    --> $DIR/element-fail.rs:51:28
     |
@@ -330,6 +360,13 @@ error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<Strin
     |                               |
     |                               expected an implementor of trait `IntoEventCallback<MouseEvent>`
     |                               help: consider borrowing here: `&Callback::from(|a: String| ())`
+=======
+error[E0277]: the trait bound `{integer}: IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not satisfied
+   --> $DIR/element-fail.rs:51:29
+    |
+51  |       html! { <input on:click=1 /> };
+    |                               ^ the trait `IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not implemented for `{integer}`
+>>>>>>> d00c22f6 (Add event listener syntax to support custom event)
     |
    ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
     |

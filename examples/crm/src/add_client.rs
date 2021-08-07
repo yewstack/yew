@@ -78,27 +78,27 @@ impl Component for AddClientForm {
                     <input
                         class={classes!("new-client", "firstname")}
                         placeholder="First name"
-                        onchange={update_name(Msg::UpdateFirstName)}
+                        on:change={update_name(Msg::UpdateFirstName)}
                     />
                     <input
                         class={classes!("new-client", "lastname")}
                         placeholder="Last name"
-                        onchange={update_name(Msg::UpdateLastName)}
+                        on:change={update_name(Msg::UpdateLastName)}
                     />
                     <textarea
                         class={classes!("new-client", "description")}
                         placeholder="Description"
-                        onchange={update_desc}
+                        on:change={update_desc}
                     />
                 </div>
 
                 <button
                     disabled={client.first_name.is_empty() || client.last_name.is_empty()}
-                    onclick={link.callback(|_| Msg::Add)}
+                    on:click={link.callback(|_| Msg::Add)}
                 >
                     { "Add New" }
                 </button>
-                <button onclick={link.callback(|_| Msg::Abort)}>
+                <button on:click={link.callback(|_| Msg::Abort)}>
                     { "Go Back" }
                 </button>
             </>

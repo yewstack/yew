@@ -18,7 +18,7 @@ This value remains up-to-date on subsequent renders.
 #[function_component(UseState)]
 fn state() -> Html {
     let counter = use_state(|| 0);
-    let onclick = {
+    let click = {
         let counter = counter.clone();
         Callback::from(move |_| counter.set(*counter + 1))
     };
@@ -26,7 +26,7 @@ fn state() -> Html {
 
     html! {
         <div>
-            <button {onclick}>{ "Increment value" }</button>
+            <button on:{click}>{ "Increment value" }</button>
             <p>
                 <b>{ "Current value: " }</b>
                 { *counter }
@@ -51,7 +51,7 @@ fn ref_hook() -> Html {
     let message = use_state(|| "".to_string());
     let message_count = use_ref(|| 0);
 
-    let onclick = Callback::from(move |e| {
+    let click = Callback::from(move |e| {
         let window = yew::utils::window();
 
         if *message_count.borrow_mut() > 3 {
@@ -62,7 +62,7 @@ fn ref_hook() -> Html {
         }
     });
 
-    let onchange = {
+    let change = {
         let message = message.clone();
         Callback::from(move |e: Event| {
             let input: HtmlInputElement = e.target_unchecked_into();
@@ -72,8 +72,8 @@ fn ref_hook() -> Html {
 
     html! {
         <div>
-            <input {onchange} value={message} />
-            <button {onclick}>{ "Send" }</button>
+            <input on:{change} value={message} />
+            <button on:{click}>{ "Send" }</button>
         </div>
     }
 }
@@ -133,8 +133,8 @@ fn reducer() -> Html {
         <>
             <div id="result">{ counter.counter }</div>
 
-            <button onclick={double_onclick}>{ "Double" }</button>
-            <button onclick={square_onclick}>{ "Square" }</button>
+            <button on:click={double_onclick}>{ "Double" }</button>
+            <button on:click={square_onclick}>{ "Square" }</button>
         </>
     }
 }
@@ -187,13 +187,13 @@ fn effect() -> Html {
             || yew::utils::document().set_title("You clicked 0 times")
         });
     }    
-    let onclick = {
+    let click = {
         let counter = Rc::clone(&counter);
         Callback::from(move |_| set_counter(*counter + 1))
     };
 
     html! {
-        <button {onclick}>{ format!("Increment to {}", counter) }</button>
+        <button on:{click}>{ format!("Increment to {}", counter) }</button>
     }
 }
 ```

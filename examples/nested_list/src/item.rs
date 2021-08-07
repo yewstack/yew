@@ -22,7 +22,7 @@ impl Component for ListItem {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let onmouseover = {
+        let mouseover = {
             let name = ctx.props().name.clone();
             ctx.props().on_hover.reform(move |e: MouseEvent| {
                 e.stop_propagation();
@@ -30,7 +30,7 @@ impl Component for ListItem {
             })
         };
         html! {
-            <div class="list-item" {onmouseover}>
+            <div class="list-item" on:{mouseover}>
                 { &ctx.props().name }
                 { Self::view_details(&ctx.props().children) }
             </div>

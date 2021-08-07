@@ -36,7 +36,7 @@ impl Component for Model {
             <div>
                 <input
                     value={self.name.clone()}
-                    oninput={ctx.link().callback(|e: InputEvent| {
+                    on:input={ctx.link().callback(|e: InputEvent| {
                         let input = e.target_unchecked_into::<HtmlInputElement>();
                         Msg::UpdateName(input.value())
                     })}

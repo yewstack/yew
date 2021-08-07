@@ -44,14 +44,14 @@ pub fn rendered_at(props: &RenderedAtProps) -> Html {
 fn app() -> Html {
     let (counter, set_counter) = use_state(|| 0);
 
-    let onclick = {
+    let click = {
         let counter = Rc::clone(&counter);
         Callback::from(move |_| set_counter(*counter + 1))
     };
 
     html! {
         <div>
-            <button {onclick}>{ "Increment value" }</button>
+            <button on:{click}>{ "Increment value" }</button>
             <p>
                 <b>{ "Current value: " }</b>
                 { counter }

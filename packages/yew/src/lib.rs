@@ -50,7 +50,7 @@
 //!     fn view(&self, ctx: &Context<Self>) -> Html {
 //!         html! {
 //!             <div>
-//!                 <button onclick={ctx.link().callback(|_| Msg::AddOne)}>{ "+1" }</button>
+//!                 <button on:click={ctx.link().callback(|_| Msg::AddOne)}>{ "+1" }</button>
 //!                 <p>{ self.value }</p>
 //!             </div>
 //!         }
@@ -273,8 +273,9 @@ pub mod events {
 
     #[doc(no_inline)]
     pub use web_sys::{
-        AnimationEvent, DragEvent, ErrorEvent, Event, FocusEvent, InputEvent, KeyboardEvent,
-        MouseEvent, PointerEvent, ProgressEvent, TouchEvent, TransitionEvent, UiEvent, WheelEvent,
+        AnimationEvent, CustomEvent, DragEvent, ErrorEvent, Event, FocusEvent, InputEvent,
+        KeyboardEvent, MouseEvent, PointerEvent, ProgressEvent, TouchEvent, TransitionEvent,
+        UiEvent, WheelEvent,
     };
 }
 

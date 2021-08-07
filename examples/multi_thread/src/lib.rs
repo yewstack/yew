@@ -71,9 +71,9 @@ impl Component for Model {
         html! {
             <div>
                 <nav class="menu">
-                    <button onclick={ctx.link().callback(|_| Msg::SendToWorker)}>{ "Send to Thread" }</button>
-                    <button onclick={ctx.link().callback(|_| Msg::SendToJob)}>{ "Send to Job" }</button>
-                    <button onclick={ctx.link().callback(|_| Msg::SendToContext)}>{ "Send to Context" }</button>
+                    <button on:click={ctx.link().callback(|_| Msg::SendToWorker)}>{ "Send to Thread" }</button>
+                    <button on:click={ctx.link().callback(|_| Msg::SendToJob)}>{ "Send to Job" }</button>
+                    <button on:click={ctx.link().callback(|_| Msg::SendToContext)}>{ "Send to Context" }</button>
                 </nav>
             </div>
         }

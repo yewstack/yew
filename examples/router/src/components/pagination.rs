@@ -38,12 +38,12 @@ impl Pagination {
             ..
         } = *props;
 
-        let onclick = on_switch_page.reform(move |_| to_page);
+        let click = on_switch_page.reform(move |_| to_page);
         let is_current_class = if to_page == page { "is-current" } else { "" };
 
         html! {
             <li>
-                <a class={classes!("pagination-link", is_current_class)} aria-label={format!("Goto page {}", to_page)} {onclick}>
+                <a class={classes!("pagination-link", is_current_class)} aria-label={format!("Goto page {}", to_page)} on:{click}>
                     { to_page }
                 </a>
             </li>
@@ -107,13 +107,13 @@ impl Pagination {
             <>
                 <a class="pagination-previous"
                     disabled={page==1}
-                    onclick={on_switch_page.reform(move |_| page - 1)}
+                    on:click={on_switch_page.reform(move |_| page - 1)}
                 >
                     { "Previous" }
                 </a>
                 <a class="pagination-next"
                     disabled={page==total_pages}
-                    onclick={on_switch_page.reform(move |_| page + 1)}
+                    on:click={on_switch_page.reform(move |_| page + 1)}
                 >
                     { "Next page" }
                 </a>

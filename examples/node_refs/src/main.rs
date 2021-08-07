@@ -61,7 +61,7 @@ impl Component for Model {
                         type="text"
                         ref={self.refs[0].clone()}
                         class="input-element"
-                        onmouseover={ctx.link().callback(|_| Msg::HoverIndex(0))}
+                        on:mouseover={ctx.link().callback(|_| Msg::HoverIndex(0))}
                     />
                 </div>
                 <div>

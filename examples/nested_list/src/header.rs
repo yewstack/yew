@@ -21,7 +21,7 @@ impl Component for ListHeader {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let list_link = ctx.props().list_link.borrow().clone().unwrap();
-        let onmouseover = ctx.props().on_hover.reform(|e: MouseEvent| {
+        let mouseover = ctx.props().on_hover.reform(|e: MouseEvent| {
             e.stop_propagation();
             Hovered::Header
         });
@@ -29,8 +29,8 @@ impl Component for ListHeader {
         html! {
             <div
                 class="list-header"
-                {onmouseover}
-                onclick={list_link.callback(|_| ListMsg::HeaderClick)}
+                on:{mouseover}
+                on:click={list_link.callback(|_| ListMsg::HeaderClick)}
             >
                 { &ctx.props().text }
             </div>

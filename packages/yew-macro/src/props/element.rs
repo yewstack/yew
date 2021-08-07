@@ -32,8 +32,7 @@ impl Parse for ElementProps {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut props = input.parse::<Props>()?;
 
-        let listeners =
-            props.drain_filter(|prop| LISTENER_SET.contains(prop.label.to_string().as_str()));
+        let listeners = props.drain_filter(|prop| prop.is_listener);
 
         // Multiple listener attributes are allowed, but no others
         props.check_no_duplicates()?;
@@ -86,6 +85,10 @@ lazy_static! {
         .into_iter()
         .collect()
     };
+}
+
+pub(crate) fn is_custom(event_handler: String) -> bool {
+    !LISTENER_SET.contains(event_handler.as_str())
 }
 
 lazy_static! {

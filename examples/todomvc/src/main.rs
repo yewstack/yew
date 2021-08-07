@@ -108,7 +108,7 @@ impl Component for Model {
                             class="toggle-all"
                             id="toggle-all"
                             checked={self.state.is_all_completed()}
-                            onclick={ctx.link().callback(|_| Msg::ToggleAll)}
+                            on:click={ctx.link().callback(|_| Msg::ToggleAll)}
                         />
                         <label for="toggle-all" />
                         <ul class="todo-list">
@@ -123,7 +123,7 @@ impl Component for Model {
                         <ul class="filters">
                             { for Filter::iter().map(|flt| self.view_filter(flt, ctx.link())) }
                         </ul>
-                        <button class="clear-completed" onclick={ctx.link().callback(|_| Msg::ClearCompleted)}>
+                        <button class="clear-completed" on:click={ctx.link().callback(|_| Msg::ClearCompleted)}>
                             { format!("Clear completed ({})", self.state.total_completed()) }
                         </button>
                     </footer>
@@ -149,7 +149,7 @@ impl Model {
             <li>
                 <a class={cls}
                    href={filter.as_href()}
-                   onclick={link.callback(move |_| Msg::SetFilter(filter))}
+                   on:click={link.callback(move |_| Msg::SetFilter(filter))}
                 >
                     { filter }
                 </a>
@@ -158,7 +158,7 @@ impl Model {
     }
 
     fn view_input(&self, link: &Scope<Self>) -> Html {
-        let onkeypress = link.batch_callback(|e: KeyboardEvent| {
+        let keypress = link.batch_callback(|e: KeyboardEvent| {
             if e.key() == "Enter" {
                 let input: InputElement = e.target_unchecked_into();
                 let value = input.value();
@@ -174,7 +174,7 @@ impl Model {
             <input
                 class="new-todo"
                 placeholder="What needs to be done?"
-                {onkeypress}
+                on:{keypress}
             />
             /* Or multiline:
             <ul>
@@ -199,10 +199,10 @@ impl Model {
                         type="checkbox"
                         class="toggle"
                         checked={entry.completed}
-                        onclick={link.callback(move |_| Msg::Toggle(idx))}
+                        on:click={link.callback(move |_| Msg::Toggle(idx))}
                     />
-                    <label ondblclick={link.callback(move |_| Msg::ToggleEdit(idx))}>{ &entry.description }</label>
-                    <button class="destroy" onclick={link.callback(move |_| Msg::Remove(idx))} />
+                    <label on:dblclick={link.callback(move |_| Msg::ToggleEdit(idx))}>{ &entry.description }</label>
+                    <button class="destroy" on:click={link.callback(move |_| Msg::Remove(idx))} />
                 </div>
                 { self.view_entry_edit_input((idx, entry), link) }
             </li>
@@ -216,9 +216,9 @@ impl Model {
             Msg::Edit((idx, value))
         };
 
-        let onblur = link.callback(move |e: FocusEvent| edit(e.target_unchecked_into()));
+        let blur = link.callback(move |e: FocusEvent| edit(e.target_unchecked_into()));
 
-        let onkeypress = link.batch_callback(move |e: KeyboardEvent| {
+        let keypress = link.batch_callback(move |e: KeyboardEvent| {
             (e.key() == "Enter").then(|| edit(e.target_unchecked_into()))
         });
 
@@ -229,9 +229,9 @@ impl Model {
                     type="text"
                     ref={self.focus_ref.clone()}
                     value={self.state.edit_value.clone()}
-                    onmouseover={link.callback(|_| Msg::Focus)}
-                    {onblur}
-                    {onkeypress}
+                    on:mouseover={link.callback(|_| Msg::Focus)}
+                    on:{blur}
+                    on:{keypress}
                 />
             }
         } else {

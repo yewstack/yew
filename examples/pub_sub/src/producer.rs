@@ -32,7 +32,7 @@ impl Component for Producer {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
-            <button onclick={ctx.link().callback(|_| Msg::Clicked)}>
+            <button on:click={ctx.link().callback(|_| Msg::Clicked)}>
                 { "PRESS ME" }
             </button>
         }

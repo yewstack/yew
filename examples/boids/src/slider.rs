@@ -70,7 +70,7 @@ impl Component for Slider {
             10f64.powi(-(p as i32))
         });
 
-        let oninput = onchange.reform(|e: InputEvent| {
+        let input = onchange.reform(|e: InputEvent| {
             let input: HtmlInputElement = e.target_unchecked_into();
             input.value_as_number()
         });
@@ -82,7 +82,7 @@ impl Component for Slider {
                     {id}
                     class="slider__input"
                     min={min.to_string()} max={max.to_string()} step={step.to_string()}
-                    {oninput}
+                    on:{input}
                 />
                 <span class="slider__value">{ display_value }</span>
             </div>

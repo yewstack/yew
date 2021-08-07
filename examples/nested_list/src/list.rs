@@ -90,10 +90,10 @@ impl Component for List {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let inactive = if self.inactive { "inactive" } else { "" };
-        let onmouseover = ctx.props().on_hover.reform(|_| Hovered::List);
-        let onmouseout = ctx.props().on_hover.reform(|_| Hovered::None);
+        let mouseover = ctx.props().on_hover.reform(|_| Hovered::List);
+        let mouseout = ctx.props().on_hover.reform(|_| Hovered::None);
         html! {
-            <div class="list-container" {onmouseout} {onmouseover}>
+            <div class="list-container" on:{mouseout} on:{mouseover}>
                 <div class={classes!("list", inactive)}>
                     { Self::view_header(&ctx.props().children) }
                     <div class="items">

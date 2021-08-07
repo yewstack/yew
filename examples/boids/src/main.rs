@@ -81,9 +81,9 @@ impl Model {
             <div class="panel">
                 { self.view_settings(link) }
                 <div class="panel__buttons">
-                    <button onclick={link.callback(|_| Msg::TogglePause)}>{ pause_text }</button>
-                    <button onclick={link.callback(|_| Msg::ResetSettings)}>{ "Use Defaults" }</button>
-                    <button onclick={link.callback(|_| Msg::RestartSimulation)}>{ "Restart" }</button>
+                    <button on:click={link.callback(|_| Msg::TogglePause)}>{ pause_text }</button>
+                    <button on:click={link.callback(|_| Msg::ResetSettings)}>{ "Use Defaults" }</button>
+                    <button on:click={link.callback(|_| Msg::RestartSimulation)}>{ "Restart" }</button>
                 </div>
             </div>
         }

@@ -17,7 +17,7 @@ struct UseState<T2> {
 /// #[function_component(UseState)]
 /// fn state() -> Html {
 ///     let counter = use_state(|| 0);
-///     let onclick = {
+///     let click = {
 ///         let counter = counter.clone();
 ///         Callback::from(move |_| counter.set(*counter + 1))
 ///     };
@@ -25,7 +25,7 @@ struct UseState<T2> {
 ///
 ///     html! {
 ///         <div>
-///             <button {onclick}>{ "Increment value" }</button>
+///             <button on:{click}>{ "Increment value" }</button>
 ///             <p>
 ///                 <b>{ "Current value: " }</b>
 ///                 { *counter }

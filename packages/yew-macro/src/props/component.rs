@@ -1,4 +1,4 @@
-use super::{Prop, Props, SpecialProps};
+use super::{Prop, PropLabel, Props, SpecialProps};
 use proc_macro2::{Ident, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use std::convert::TryFrom;
@@ -197,14 +197,20 @@ impl TryFrom<Props> for ComponentProps {
     fn try_from(props: Props) -> Result<Self, Self::Error> {
         props.check_no_duplicates()?;
         props.check_all(|prop| {
-            if !prop.label.extended.is_empty() {
-                Err(syn::Error::new_spanned(
-                    &prop.label,
-                    "expected a valid Rust identifier",
-                ))
-            } else {
-                Ok(())
+            match &prop.label {
+                PropLabel::Static(label) if !label.extended.is_empty() => Err(
+                    syn::Error::new_spanned(&prop.label, "expected a valid Rust identifier"),
+                ),
+                _ => Ok(()),
             }
+            // if !prop.label.extended.is_empty() {
+            //     Err(syn::Error::new_spanned(
+            //         &prop.label,
+            //         "expected a valid Rust identifier",
+            //     ))
+            // } else {
+            //     Ok(())
+            // }
         })?;
 
         Ok(Self::List(props))

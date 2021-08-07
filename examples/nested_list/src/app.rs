@@ -37,7 +37,7 @@ impl Component for App {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let on_hover = &ctx.link().callback(Msg::Hover);
-        let onmouseenter = &ctx.link().callback(|_| Msg::Hover(Hovered::None));
+        let mouseenter = &ctx.link().callback(|_| Msg::Hover(Hovered::None));
         let list_link = &self.list_link;
         let sub_list_link = &self.sub_list_link;
 
@@ -46,7 +46,7 @@ impl Component for App {
             .map(|letter| html_nested! { <ListItem name={letter.to_string()} {on_hover} /> });
 
         html! {
-            <div class="main" {onmouseenter}>
+            <div class="main" on:{mouseenter}>
                 <h1>{ "Nested List Demo" }</h1>
                 <List {on_hover} weak_link={list_link}>
                     <ListHeader text="Calling all Rusties!" {on_hover} {list_link} />

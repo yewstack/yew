@@ -44,7 +44,7 @@ fn no(props: &NoProps) -> Html {
 #[function_component(Comp)]
 fn component() -> Html {
     let switch = Router::render(|routes| {
-        let onclick = Callback::from(|_| {
+        let click = Callback::from(|_| {
             yew_router::push_route_with_query(
                 Routes::No { id: 2 },
                 Query {
@@ -58,7 +58,7 @@ fn component() -> Html {
             Routes::Home => html! {
                 <>
                     <div id="result">{"Home"}</div>
-                    <a {onclick}>{"click me"}</a>
+                    <a on:{click}>{"click me"}</a>
                 </>
             },
             Routes::No { id } => html! { <No id={*id} /> },

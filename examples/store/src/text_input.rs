@@ -40,7 +40,7 @@ impl Component for TextInput {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let onkeydown = ctx.link().batch_callback(|e: KeyboardEvent| {
+        let keydown = ctx.link().batch_callback(|e: KeyboardEvent| {
             e.stop_propagation();
             if e.key() == "Enter" {
                 let input: HtmlInputElement = e.target_unchecked_into();
@@ -56,7 +56,7 @@ impl Component for TextInput {
             <input
                 placeholder={ctx.props().value.clone()}
                 type="text"
-                {onkeydown}
+                on:{keydown}
             />
         }
     }

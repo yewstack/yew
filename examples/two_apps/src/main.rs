@@ -60,10 +60,10 @@ impl Component for Model {
         html! {
             <div>
                 <h3>{ format!("{} received <{}>", self.selector, self.title) }</h3>
-                <button onclick={ctx.link().callback(|_| Msg::SendToOpposite("One".into()))}>{ "One" }</button>
-                <button onclick={ctx.link().callback(|_| Msg::SendToOpposite("Two".into()))}>{ "Two" }</button>
-                <button onclick={ctx.link().callback(|_| Msg::SendToOpposite("Three".into()))}>{ "Three" }</button>
-                <button onclick={ctx.link().callback(|_| Msg::SendToOpposite("Ping".into()))}>{ "Ping" }</button>
+                <button on:click={ctx.link().callback(|_| Msg::SendToOpposite("One".into()))}>{ "One" }</button>
+                <button on:click={ctx.link().callback(|_| Msg::SendToOpposite("Two".into()))}>{ "Two" }</button>
+                <button on:click={ctx.link().callback(|_| Msg::SendToOpposite("Three".into()))}>{ "Three" }</button>
+                <button on:click={ctx.link().callback(|_| Msg::SendToOpposite("Ping".into()))}>{ "Ping" }</button>
             </div>
         }
     }

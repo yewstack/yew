@@ -91,8 +91,8 @@ impl Component for Model {
                     <div class="clients">
                         { for self.clients.iter().map(Client::render) }
                     </div>
-                    <button onclick={ctx.link().callback(|_| Msg::SwitchTo(Scene::NewClientForm))}>{ "Add New" }</button>
-                    <button onclick={ctx.link().callback(|_| Msg::SwitchTo(Scene::Settings))}>{ "Settings" }</button>
+                    <button on:click={ctx.link().callback(|_| Msg::SwitchTo(Scene::NewClientForm))}>{ "Add New" }</button>
+                    <button on:click={ctx.link().callback(|_| Msg::SwitchTo(Scene::Settings))}>{ "Settings" }</button>
                 </div>
             },
             Scene::NewClientForm => html! {
@@ -104,8 +104,8 @@ impl Component for Model {
             Scene::Settings => html! {
                 <div>
                     <h1>{"Settings"}</h1>
-                    <button onclick={ctx.link().callback(|_| Msg::ClearClients)}>{ "Remove all clients" }</button>
-                    <button onclick={ctx.link().callback(|_| Msg::SwitchTo(Scene::ClientsList))}>{ "Go Back" }</button>
+                    <button on:click={ctx.link().callback(|_| Msg::ClearClients)}>{ "Remove all clients" }</button>
+                    <button on:click={ctx.link().callback(|_| Msg::SwitchTo(Scene::ClientsList))}>{ "Go Back" }</button>
                 </div>
             },
         }

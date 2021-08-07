@@ -128,7 +128,7 @@ impl Component for MyComponent {
         // Create a callback from a component link to handle it in a component
         let click_callback = ctx.link().callback(|_: ClickEvent| Msg::Click);
         html! {
-            <button onclick={click_callback}>
+            <button on:click={click_callback}>
                 { "Click me!" }
             </button>
         }
@@ -157,7 +157,7 @@ impl Component for MyComponent {
         // Create a callback from a worker to handle it in another context
         let click_callback = self.worker.callback(|_: ClickEvent| WorkerMsg::Process);
         html! {
-            <button onclick={click_callback}>
+            <button on:click={click_callback}>
                 { "Click me!" }
             </button>
         }
@@ -185,7 +185,7 @@ impl Component for MyComponent {
         });
 
         html! {
-            <button onclick={click_callback}>
+            <button on:click={click_callback}>
                 { "Click me!" }
             </button>
         }
@@ -204,7 +204,7 @@ if you were to manually include `web-sys` as a dependency in your crate because 
 end up using a version which conflicts with the version that Yew specifies.
 :::
 
-| Event name                  | `web_sys` Event Type                                                                  |
+| Global event handler name   | `web_sys` Event Type                                                                  |
 | --------------------------- | ------------------------------------------------------------------------------------- |
 | `onabort`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
 | `onauxclick`                | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
@@ -302,6 +302,51 @@ end up using a version which conflicts with the version that Yew specifies.
 | `ontransitionend`           | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
 | `ontransitionrun`           | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
 | `ontransitionstart`         | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
+
+
+## Custom Events 
+
+Yew can't know what type of event will be supplied at compile time so will use `web_sys::CustomEvent`.
+
+The syntax supported for custom events can mimic those for the events listed above using the shorthand
+with idents, however, to support custom events with names that cannot be represented in Rust a literal
+`str` can be used. 
+
+```rust
+struct MyComponent;
+
+impl Component for MyComponent {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        MyComponent
+    }
+
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        false
+    }
+
+    fn view(&self) -> Html {
+        let custard = self.link.callback(|e: CustomEvent| {
+            // we just got a `custard` event!
+        });
+
+        html! {
+            <dessert-web-comp 
+                on:{custard}
+                on:"Event T*hat Cou&&3^^ld never be parsed in rust"={self.link.callback(|e: CustomEvent| {
+                    // we just got a really bizarre event...
+                })}
+            >
+            </dessert-web-comp>
+        }
+    }
+}
+```
+
+This does allow for using `on:"click"' as if it is a custom event, however, Yew will pick this up and 
+will except a `Callback<web_sys::MouseEvent>`. 
 
 ## Relevant examples
 - [Inner HTML](https://github.com/yewstack/yew/tree/master/examples/inner_html)
