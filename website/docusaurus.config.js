@@ -26,6 +26,14 @@ module.exports = {
           position: 'left',
         },
         {
+          to: '/',
+          label: 'Docs'
+        },
+        {
+          to: '/tutorial',
+          label: 'Tutorial'
+        },
+        {
           href: 'https://docs.rs/yew',
           position: 'right',
           label: 'API',
