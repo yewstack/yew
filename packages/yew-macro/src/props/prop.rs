@@ -1,37 +1,66 @@
 use crate::html_tree::HtmlDashedName;
-use proc_macro2::TokenStream;
-use quote::ToTokens;
 use std::{
     cmp::Ordering,
     convert::TryFrom,
     ops::{Deref, DerefMut},
 };
 use syn::{
+    braced,
     parse::{Parse, ParseStream},
-    Block, Expr, ExprBlock, Stmt, Token,
+    token::Brace,
+    Block, Expr, ExprBlock, ExprPath, Stmt, Token,
 };
-
-pub enum PropPunct {
-    Eq(Token![=]),
-    Colon(Token![:]),
-}
-impl ToTokens for PropPunct {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        match self {
-            Self::Eq(p) => p.to_tokens(tokens),
-            Self::Colon(p) => p.to_tokens(tokens),
-        }
-    }
-}
 
 pub struct Prop {
     pub label: HtmlDashedName,
     /// Punctuation between `label` and `value`.
-    pub punct: Option<PropPunct>,
     pub value: Expr,
 }
 impl Parse for Prop {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        if input.peek(Brace) {
+            Self::parse_shorthand_prop_assignment(input)
+        } else {
+            Self::parse_prop_assignment(input)
+        }
+    }
+}
+
+/// Helpers for parsing props
+impl Prop {
+    /// Parse a prop using the shorthand syntax `{value}`, short for `value={value}`
+    /// This only allows for labels with no hyphens, as it would otherwise create
+    /// an ambiguity in the syntax
+    fn parse_shorthand_prop_assignment(input: ParseStream) -> syn::Result<Self> {
+        let value;
+        let _brace = braced!(value in input);
+        let expr = value.parse::<Expr>()?;
+        let label = if let Expr::Path(ExprPath {
+            ref attrs,
+            qself: None,
+            ref path,
+        }) = expr
+        {
+            if let (Some(ident), true) = (path.get_ident(), attrs.is_empty()) {
+                syn::Result::Ok(HtmlDashedName::from(ident.clone()))
+            } else {
+                Err(syn::Error::new_spanned(
+                    path,
+                    "only simple identifiers are allowed in the shorthand property syntax",
+                ))
+            }
+        } else {
+            return Err(syn::Error::new_spanned(
+                expr,
+                "missing label for property value. If trying to use the shorthand property syntax, only identifiers may be used",
+            ));
+        }?;
+
+        Ok(Self { label, value: expr })
+    }
+
+    /// Parse a prop of the form `label={value}`
+    fn parse_prop_assignment(input: ParseStream) -> syn::Result<Self> {
         let label = input.parse::<HtmlDashedName>()?;
         let equals = input.parse::<Token![=]>().map_err(|_| {
             syn::Error::new_spanned(
@@ -46,11 +75,7 @@ impl Parse for Prop {
             ));
         }
         let value = strip_braces(input.parse::<Expr>()?)?;
-        Ok(Self {
-            label,
-            punct: Some(PropPunct::Eq(equals)),
-            value,
-        })
+        Ok(Self { label, value })
     }
 }
 

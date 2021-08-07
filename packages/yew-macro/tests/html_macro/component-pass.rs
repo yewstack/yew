@@ -177,6 +177,12 @@ fn compile_pass() {
         <Child int=1 string={name_expr} />
     };
 
+    let string = "child";
+    let int = 1;
+    html! {
+        <Child {int} {string} />
+    };
+
     html! {
         <>
             <Child int=1 />
@@ -192,6 +198,15 @@ fn compile_pass() {
             <Child int=1 ref={node_ref} />
         </>
     };
+
+    let int = 1;
+    let node_ref = NodeRef::default();
+    html! {
+        <>
+            <Child {int} ref={node_ref} />
+        </>
+    };
+
 
     let props = <Container as Component>::Properties::default();
     html! {

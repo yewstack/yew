@@ -1,8 +1,8 @@
-error[E0277]: the trait bound `std::vec::Vec<_>: yew::Properties` is not satisfied
+error[E0277]: the trait bound `Vec<_>: yew::Properties` is not satisfied
   --> $DIR/resolve-prop-fail.rs:38:17
    |
 38 |     yew::props!(Vec<_> {});
-   |                 ^^^ the trait `yew::Properties` is not implemented for `std::vec::Vec<_>`
+   |                 ^^^ the trait `yew::Properties` is not implemented for `Vec<_>`
    |
    = note: required by `builder`
 

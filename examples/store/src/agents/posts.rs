@@ -5,10 +5,10 @@ use yew_agent::AgentLink;
 pub type PostId = u32;
 
 #[derive(Debug)]
-pub enum Request {
-    CreatePost(String),
-    UpdatePost(PostId, String),
-    RemovePost(PostId),
+pub enum PostRequest {
+    Create(String),
+    Update(PostId, String),
+    Remove(PostId),
 }
 
 #[derive(Debug)]
@@ -25,7 +25,7 @@ pub struct PostStore {
 
 impl Store for PostStore {
     type Action = Action;
-    type Input = Request;
+    type Input = PostRequest;
 
     fn new() -> Self {
         let mut posts = HashMap::new();
@@ -42,13 +42,13 @@ impl Store for PostStore {
 
     fn handle_input(&self, link: AgentLink<StoreWrapper<Self>>, msg: Self::Input) {
         match msg {
-            Request::CreatePost(text) => {
+            PostRequest::Create(text) => {
                 link.send_message(Action::SetPost(None, text));
             }
-            Request::UpdatePost(id, text) => {
+            PostRequest::Update(id, text) => {
                 link.send_message(Action::SetPost(Some(id), text));
             }
-            Request::RemovePost(id) => {
+            PostRequest::Remove(id) => {
                 link.send_message(Action::RemovePost(id));
             }
         }

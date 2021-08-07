@@ -61,7 +61,7 @@ where
     T: for<'de> Deserialize<'de>,
 {
     let query = yew::utils::document().location().unwrap().search().unwrap();
-    serde_urlencoded::from_str(query.strip_prefix("?").unwrap_or(""))
+    serde_urlencoded::from_str(query.strip_prefix('?').unwrap_or(""))
 }
 
 pub fn current_route<R: Routable>() -> Option<R> {

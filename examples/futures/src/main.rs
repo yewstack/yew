@@ -127,7 +127,7 @@ impl Component for Model {
                 </>
             },
             FetchState::Fetching => html! { "Fetching" },
-            FetchState::Success(data) => html! { markdown::render_markdown(&data) },
+            FetchState::Success(data) => html! { markdown::render_markdown(data) },
             FetchState::Failed(err) => html! { err },
         }
     }

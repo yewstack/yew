@@ -119,7 +119,7 @@ impl Routable {
                         //named fields have idents
                         it.ident.as_ref().unwrap()
                     });
-                    quote! { Self::#ident { #(#fields: params.get(stringify!(#fields))?.parse().ok()?)*, } }
+                    quote! { Self::#ident { #(#fields: params.get(stringify!(#fields))?.parse().ok()?,)* } }
                 }
                 Fields::Unnamed(_) => unreachable!(), // already checked
             };

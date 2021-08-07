@@ -1,4 +1,3 @@
-#[macro_use]
 macro_rules! impl_action {
     ($($action:ident(name: $name:literal, event: $type:ident) -> $ret:ty => $convert:expr)*) => {$(
         /// An abstract implementation of a listener.

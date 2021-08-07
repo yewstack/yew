@@ -44,7 +44,7 @@ impl Component for ListHeader {
         html! {
             <div
                 class="list-header"
-                onmouseover={onmouseover}
+                {onmouseover}
                 onclick={list_link.callback(|_| ListMsg::HeaderClick)}
             >
                 { &self.props.text }

@@ -11,14 +11,14 @@ theme using props:
 // root
 let theme = // ...
 html! {
-    <Navbar theme={theme} />
+    <Navbar {theme} />
 }
 
 // Navbar component
 html! {
     <div>
-        <Title theme={theme}>{ "App title" }<Title>
-        <NavButton theme={theme}>{ "Somewhere" }</NavButton>
+        <Title {theme}>{ "App title" }<Title>
+        <NavButton {theme}>{ "Somewhere" }</NavButton>
     </div>
 }
 ```

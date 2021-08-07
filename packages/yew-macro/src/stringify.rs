@@ -24,10 +24,18 @@ pub trait Stringify {
     where
         Self: ToTokens,
     {
+        self.optimize_literals_tagged().to_token_stream()
+    }
+
+    /// Like `optimize_literals` but tags static or dynamic strings with [Value]
+    fn optimize_literals_tagged(&self) -> Value
+    where
+        Self: ToTokens,
+    {
         if let Some(lit) = self.try_into_lit() {
-            lit.to_token_stream()
+            Value::Static(lit.to_token_stream())
         } else {
-            self.to_token_stream()
+            Value::Dynamic(self.to_token_stream())
         }
     }
 }
@@ -38,6 +46,21 @@ impl<T: Stringify + ?Sized> Stringify for &T {
 
     fn stringify(&self) -> TokenStream {
         (*self).stringify()
+    }
+}
+
+/// A stringified value that can be either static (known at compile time) or dynamic (known only at
+/// runtime)
+pub enum Value {
+    Static(TokenStream),
+    Dynamic(TokenStream),
+}
+
+impl ToTokens for Value {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        tokens.extend(match self {
+            Value::Static(tt) | Value::Dynamic(tt) => tt.clone(),
+        });
     }
 }
 

@@ -16,7 +16,7 @@ pub fn build_router<R: Routable>() -> Router {
                 router.add(route, path.to_string());
             }
             _ => {
-                router.add(&path, path.to_string());
+                router.add(path, path.to_string());
             }
         };
     });
