@@ -44,7 +44,6 @@ pub trait Listener {
 
     /// Makes the event listener passive.
     /// [addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).
-    /// Defines flags to modify the handling of the event. See yew::callback for more details.
     fn passive(&self) -> bool;
 }
 
