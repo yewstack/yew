@@ -128,3 +128,23 @@ where
         Some(Callback::from(self?))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn supported_into_event_callback_types() {
+        let f = |_: usize| ();
+        let cb = Callback::from(f);
+
+        // Callbacks
+        let _: Option<Callback<usize>> = cb.clone().into_event_callback();
+        let _: Option<Callback<usize>> = (&cb).into_event_callback();
+        let _: Option<Callback<usize>> = Some(cb).into_event_callback();
+
+        // Fns
+        let _: Option<Callback<usize>> = f.into_event_callback();
+        let _: Option<Callback<usize>> = Some(f).into_event_callback();
+    }
+}
