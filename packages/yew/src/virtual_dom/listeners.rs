@@ -26,6 +26,10 @@ static mut BUBBLE_EVENTS: bool = true;
 /// Bubbling is enabled by default. Disabling bubbling can lead to substantial improvements in event
 /// handling performance.
 ///
+/// Note that yew uses event delegation and implements internal even bubbling for performance
+/// reasons. Calling `Event.stopPropagation()` or `Event.stopImmediatePropagation()` in the event
+/// handler has no effect.
+///
 /// This function should be called before any component is mounted.
 pub fn set_event_bubbling(bubble: bool) {
     unsafe {
@@ -504,6 +508,9 @@ impl Registry {
                     Some(el) => el,
                     None => break,
                 };
+                // XXX: we have no way to detect, if the callback called `Event.stopPropagation()`
+                // or `Event.stopImmediatePropagation()` without breaking the callback API.
+                // It's arguably not worth the cost.
                 run_handler(&el);
             }
         }
