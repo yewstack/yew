@@ -252,7 +252,7 @@ impl PartialEq for Listeners {
             | (Pending(pending), Registered(registered_id)) => {
                 use std::option::Option::None;
 
-                Registry::with(|reg| match reg.by_id.get(&registered_id) {
+                Registry::with(|reg| match reg.by_id.get(registered_id) {
                     Some(reg) => {
                         if reg.len() != pending.len() {
                             return false;
@@ -262,7 +262,7 @@ impl PartialEq for Listeners {
                             match reg.get(&EventDescriptor::from(l.deref())) {
                                 Some(reg) => reg.iter().any(|reg| {
                                     #[allow(clippy::vtable_address_comparisons)]
-                                    Rc::ptr_eq(reg, &l)
+                                    Rc::ptr_eq(reg, l)
                                 }),
                                 None => false,
                             }
@@ -451,7 +451,7 @@ impl Registry {
         self.id_counter += 1;
 
         LISTENER_ID_PROP.with(|prop| {
-            if !js_sys::Reflect::set(el, &prop, &js_sys::Number::from(id)).unwrap() {
+            if !js_sys::Reflect::set(el, prop, &js_sys::Number::from(id)).unwrap() {
                 panic!("failed to set listener ID property");
             }
         });
@@ -476,7 +476,7 @@ impl Registry {
     fn run_handlers(desc: EventDescriptor, event: Event, target: web_sys::Element) {
         let run_handler = |el: &web_sys::Element| {
             if let Some(l) = LISTENER_ID_PROP
-                .with(|prop| js_sys::Reflect::get(el, &prop).ok())
+                .with(|prop| js_sys::Reflect::get(el, prop).ok())
                 .map(|v| v.dyn_into().ok())
                 .flatten()
                 .map(|num: js_sys::Number| {
