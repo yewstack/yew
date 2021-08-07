@@ -325,23 +325,85 @@ impl From<&dyn Listener> for EventDescriptor {
     }
 }
 
-/// Global multiplexing event handler registry
+/// Ensures global event handler registration.
+//
+// Separate struct to DRY, while avoiding partial struct mutability.
 #[derive(Default, Debug)]
-struct Registry {
-    /// Counter for assigning new IDs
-    id_counter: u32,
-
+struct GlobalHandlers {
     /// Events with registered handlers that are possibly passive
     handling: HashSet<EventDescriptor>,
-
-    /// Contains all registered event listeners by listener ID
-    by_id: HashMap<u32, HashMap<EventDescriptor, Vec<Rc<dyn Listener>>>>,
 
     /// Keep track of all listeners to drop them on registry drop.
     /// The registry is never dropped in production.
     #[cfg(test)]
     #[allow(clippy::type_complexity)]
     registered: Vec<(ListenerKind, Closure<dyn Fn(web_sys::Event)>)>,
+}
+
+impl GlobalHandlers {
+    /// Ensure a descriptor has a global event handler assigned
+    fn ensure_handled(&mut self, desc: EventDescriptor) {
+        if !self.handling.contains(&desc) {
+            let cl = BODY.with(|body| {
+                let cl = Closure::wrap(
+                    Box::new(move |e: Event| Registry::handle(desc, e)) as Box<dyn Fn(Event)>
+                );
+                AsRef::<web_sys::EventTarget>::as_ref(body)
+                    .add_event_listener_with_callback_and_add_event_listener_options(
+                        &desc.kind.as_ref()[2..],
+                        cl.as_ref().unchecked_ref(),
+                        &{
+                            let mut opts = web_sys::AddEventListenerOptions::new();
+                            if desc.passive {
+                                opts.passive(true);
+                            }
+                            opts
+                        },
+                    )
+                    .map_err(|e| format!("could not register global listener: {:?}", e))
+                    .unwrap();
+                cl
+            });
+
+            // Never drop the closure as this event handler is static
+            #[cfg(not(test))]
+            cl.forget();
+            #[cfg(test)]
+            self.registered.push((desc.kind, cl));
+
+            self.handling.insert(desc);
+        }
+    }
+}
+
+// Enable resetting between tests
+#[cfg(test)]
+impl Drop for GlobalHandlers {
+    fn drop(&mut self) {
+        BODY.with(|body| {
+            for (kind, cl) in std::mem::take(&mut self.registered) {
+                AsRef::<web_sys::EventTarget>::as_ref(body)
+                    .remove_event_listener_with_callback(
+                        &kind.as_ref()[2..],
+                        cl.as_ref().unchecked_ref(),
+                    )
+                    .unwrap();
+            }
+        });
+    }
+}
+
+/// Global multiplexing event handler registry
+#[derive(Default, Debug)]
+struct Registry {
+    /// Counter for assigning new IDs
+    id_counter: u32,
+
+    /// Registered global event handlers
+    global: GlobalHandlers,
+
+    /// Contains all registered event listeners by listener ID
+    by_id: HashMap<u32, HashMap<EventDescriptor, Vec<Rc<dyn Listener>>>>,
 }
 
 impl Registry {
@@ -356,19 +418,7 @@ impl Registry {
             HashMap::<EventDescriptor, Vec<Rc<dyn Listener>>>::with_capacity(listeners.len());
         for l in listeners.iter().filter_map(|l| l.as_ref()).cloned() {
             let desc = EventDescriptor::from(l.deref());
-
-            // Ensure a descriptor has a global event handler assigned
-            if !self.handling.contains(&desc) {
-                let cl = Self::create_global_handler(desc);
-                // Never drop the closure as this event handler is static
-                #[cfg(not(test))]
-                cl.forget();
-                #[cfg(test)]
-                self.registered.push((desc.kind, cl));
-
-                self.handling.insert(desc);
-            }
-
+            self.global.ensure_handled(desc);
             by_desc.entry(desc).or_default().push(l);
         }
         self.by_id.insert(id, by_desc);
@@ -384,46 +434,10 @@ impl Registry {
 
             for l in listeners.iter().filter_map(|l| l.as_ref()).cloned() {
                 let desc = EventDescriptor::from(l.deref());
-
-                // Ensure a descriptor has a global event handler assigned
-                if !self.handling.contains(&desc) {
-                    let cl = Self::create_global_handler(desc);
-                    // Never drop the closure as this event handler is static
-                    #[cfg(not(test))]
-                    cl.forget();
-                    #[cfg(test)]
-                    self.registered.push((desc.kind, cl));
-
-                    self.handling.insert(desc);
-                }
-
+                self.global.ensure_handled(desc);
                 by_desc.entry(desc).or_default().push(l);
             }
         }
-    }
-
-    /// Create a global event handler to call into the registry
-    fn create_global_handler(desc: EventDescriptor) -> Closure<dyn Fn(Event)> {
-        BODY.with(|body| {
-            let cl = Closure::wrap(
-                Box::new(move |e: Event| Registry::handle(desc, e)) as Box<dyn Fn(Event)>
-            );
-            AsRef::<web_sys::EventTarget>::as_ref(body)
-                .add_event_listener_with_callback_and_add_event_listener_options(
-                    &desc.kind.as_ref()[2..],
-                    cl.as_ref().unchecked_ref(),
-                    &{
-                        let mut opts = web_sys::AddEventListenerOptions::new();
-                        if desc.passive {
-                            opts.passive(true);
-                        }
-                        opts
-                    },
-                )
-                .map_err(|e| format!("could not register global listener: {:?}", e))
-                .unwrap();
-            cl
-        })
     }
 
     /// Unregister any existing listeners for ID
@@ -494,23 +508,6 @@ impl Registry {
                 run_handler(&el);
             }
         }
-    }
-}
-
-// Enable resetting between tests
-#[cfg(test)]
-impl Drop for Registry {
-    fn drop(&mut self) {
-        BODY.with(|body| {
-            for (kind, cl) in std::mem::take(&mut self.registered) {
-                AsRef::<web_sys::EventTarget>::as_ref(body)
-                    .remove_event_listener_with_callback(
-                        &kind.as_ref()[2..],
-                        cl.as_ref().unchecked_ref(),
-                    )
-                    .unwrap();
-            }
-        });
     }
 }
 
