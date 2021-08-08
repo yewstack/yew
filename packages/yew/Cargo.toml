@@ -47,7 +47,6 @@ features = [
   "Blob",
   "BlobPropertyBag",
   "console",
-  "CustomEvent",
   "DedicatedWorkerGlobalScope",
   "Document",
   "DomTokenList",

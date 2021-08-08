@@ -100,6 +100,67 @@ use std::{cell::Cell, panic::PanicInfo};
 /// ```
 pub use yew_macro::classes;
 
+/// This attribute will implement the supporting traits to support this custom event NewType.
+///
+/// The attribute can only be applied to NewType structs which wrap a type that implements
+/// [`JsCast`](wasm_bindgen::JsCast), this includes any [`web_sys`](web_sys) events and any type
+/// imported in a [wasm_bindgen] extern block.
+///
+/// The following traits will be implemented by this attribute macro on the NewType struct:
+/// - [`Deref`](std::ops::Deref) where Target is the type wrapped by this NewType.
+/// - [`AsRef<T>`](std::convert::AsRef) where T is [`JsValue`](wasm_bindgen::JsValue).
+/// - [`Into<T>`](std::convert::Into) where T is [`JsValue`](wasm_bindgen::JsValue).
+/// - [`JsCast`](wasm_bindgen::JsCast)
+/// - [`CustomEventHandler`](crate::html::CustomEventHandler) where [`Event`](crate::html::CustomEventHandler::Event)
+///   is Self.
+///
+/// # Examples
+///
+/// ## NewType around [`web_sys`](web_sys) Events
+///  
+/// ```
+/// use yew::{Callback, custom_event, web_sys::Event};
+///
+/// // when the ident will match the event name such as (custom = "custom") a shorthand can be used.
+/// #[custom_event(custom)]
+/// struct MyCustomEvent(Event);
+///
+/// let custom = Callback::from(|e: MyCustomEvent| ());
+///
+/// html! {
+///     <div on:{custom} on:custom={Callback::from(|_| ())} />
+/// };
+/// ```
+///
+///
+/// ## NewType around imported type
+///
+/// ```
+/// #[wasm_bindgen(module = "..")]
+/// extern "C" {
+///     #[wasm_bindgen(js_name = "MDCSnackbar:closed")]
+///     type RawSnackBarClosed;
+///
+///     #[wasm_bindgen(method, getter)]
+///     fn reason(this: &RawSnackBarClosed) -> String;
+/// }
+///
+/// #[custom_event(snackbarclosed = "MDCSnackbar:closed")]
+/// pub struct SnackBarClosed(RawSnackBarClosed);
+///
+/// let snackbarclosed = Callback::from(|e: SnackBarClosed| {
+///     let reason = e.reason();
+///     // do something with reason.
+/// });
+///
+/// html! {
+///     <div on:{snackbarclosed} />
+/// };
+///
+/// ```
+///
+pub use yew_macro::custom_event;
+
 /// This macro implements JSX-like templates.
 ///
 /// This macro always returns [`Html`].
@@ -251,6 +312,7 @@ pub use yew_macro::props;
 /// This module contains macros which implements html! macro and JSX-like templates
 pub mod macros {
     pub use crate::classes;
+    pub use crate::custom_event;
     pub use crate::html;
     pub use crate::html_nested;
     pub use crate::props;
@@ -273,9 +335,8 @@ pub mod events {
 
     #[doc(no_inline)]
     pub use web_sys::{
-        AnimationEvent, CustomEvent, DragEvent, ErrorEvent, Event, FocusEvent, InputEvent,
-        KeyboardEvent, MouseEvent, PointerEvent, ProgressEvent, TouchEvent, TransitionEvent,
-        UiEvent, WheelEvent,
+        AnimationEvent, DragEvent, ErrorEvent, Event, FocusEvent, InputEvent, KeyboardEvent,
+        MouseEvent, PointerEvent, ProgressEvent, TouchEvent, TransitionEvent, UiEvent, WheelEvent,
     };
 }
 

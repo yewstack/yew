@@ -87,7 +87,7 @@ lazy_static! {
     };
 }
 
-pub(crate) fn is_custom(event_handler: String) -> bool {
+pub(crate) fn is_custom_event_handler(event_handler: String) -> bool {
     !LISTENER_SET.contains(event_handler.as_str())
 }
 

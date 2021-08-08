@@ -1,6 +1,13 @@
 use std::borrow::Cow;
 use yew::prelude::*;
 
+yew::custom_event_handler! {
+    OnCustom {
+        type Event = CustomEvent;
+        custom: "custom"
+    }
+}
+
 fn compile_pass() {
     let click = Callback::from(|_: MouseEvent| ());
     let parent_ref = NodeRef::default();
@@ -65,7 +72,7 @@ fn compile_pass() {
             <track kind={Some(Cow::Borrowed("subtitles"))} src={cow_none.clone()} />
             <track kind={Some(Cow::Borrowed("5"))} mixed="works" />
             <input value={Some(Cow::Borrowed("value"))} on:blur={Some(Callback::from(|_| ()))} />
-            <div on:"custom event"={Callback::from(|_| ())}></div>
+            <div on:custom={Callback::from(|_| ())}></div>
         </div>
     };
 

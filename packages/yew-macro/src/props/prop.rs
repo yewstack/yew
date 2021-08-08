@@ -1,16 +1,14 @@
 use crate::html_tree::HtmlDashedName;
-use quote::ToTokens;
 use std::{
     cmp::Ordering,
     convert::TryFrom,
-    fmt::Display,
     ops::{Deref, DerefMut},
 };
 use syn::{
     braced,
     parse::{Parse, ParseStream},
     token::Brace,
-    Block, Expr, ExprBlock, ExprPath, LitStr, Stmt, Token,
+    Block, Expr, ExprBlock, ExprPath, Stmt, Token,
 };
 
 mod kw {
@@ -23,52 +21,9 @@ pub fn parse_listener_prefix(input: ParseStream) -> syn::Result<()> {
     Ok(())
 }
 
-#[derive(PartialEq)]
-pub enum PropLabel {
-    Static(HtmlDashedName),
-    Custom(LitStr),
-}
-
-impl PropLabel {
-    pub fn to_lit_str(&self) -> LitStr {
-        match &self {
-            PropLabel::Static(label) => label.to_lit_str(),
-            PropLabel::Custom(label) => label.clone(),
-        }
-    }
-}
-
-impl Parse for PropLabel {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        if let Ok(label) = input.parse::<HtmlDashedName>() {
-            Ok(PropLabel::Static(label))
-        } else {
-            Ok(PropLabel::Custom(input.parse()?))
-        }
-    }
-}
-
-impl Display for PropLabel {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self {
-            Self::Static(name) => name.fmt(f),
-            Self::Custom(lit) => f.write_str(&lit.value()),
-        }
-    }
-}
-
-impl ToTokens for PropLabel {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        match &self {
-            Self::Static(name) => name.to_tokens(tokens),
-            Self::Custom(lit) => lit.to_tokens(tokens),
-        }
-    }
-}
-
 pub struct Prop {
     pub is_listener: bool,
-    pub label: PropLabel,
+    pub label: HtmlDashedName,
     /// Punctuation between `label` and `value`.
     pub value: Expr,
 }
@@ -115,7 +70,7 @@ impl Prop {
         }?;
 
         Ok(Self {
-            label: PropLabel::Static(label),
+            label,
             value: expr,
             is_listener,
         })
@@ -123,7 +78,7 @@ impl Prop {
 
     /// Parse a prop of the form `label={value}`
     fn parse_prop_assignment(input: ParseStream, is_listener: bool) -> syn::Result<Self> {
-        let label = input.parse::<PropLabel>()?;
+        let label = input.parse::<HtmlDashedName>()?;
         let equals = input.parse::<Token![=]>().map_err(|_| {
             let mut message = format!("`{}` doesn't have a value.", label);
             if !is_listener {

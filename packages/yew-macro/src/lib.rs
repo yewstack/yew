@@ -47,12 +47,14 @@
 //! Please refer to [https://github.com/yewstack/yew](https://github.com/yewstack/yew) for how to set this up.
 
 mod classes;
+mod custom_event;
 mod derive_props;
 mod function_component;
 mod html_tree;
 mod props;
 mod stringify;
 
+use custom_event::CustomEvent;
 use derive_props::DerivePropsInput;
 use function_component::{function_component_impl, FunctionComponent, FunctionComponentName};
 use html_tree::{HtmlRoot, HtmlRootVNode};
@@ -60,6 +62,8 @@ use proc_macro::TokenStream;
 use quote::ToTokens;
 use syn::buffer::Cursor;
 use syn::parse_macro_input;
+
+use crate::custom_event::{custom_event_impl, CustomEventName};
 
 trait Peek<'a, T> {
     fn peek(cursor: Cursor<'a>) -> Option<(T, Cursor<'a>)>;
@@ -88,6 +92,16 @@ fn join_errors(mut it: impl Iterator<Item = syn::Error>) -> syn::Result<()> {
         }
         Err(err)
     })
+}
+
+#[proc_macro_attribute]
+pub fn custom_event(
+    attr: proc_macro::TokenStream,
+    item: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    let event_name = parse_macro_input!(attr as CustomEventName);
+    let custom_event = parse_macro_input!(item as CustomEvent);
+    TokenStream::from(custom_event_impl(event_name, custom_event))
 }
 
 #[proc_macro_derive(Properties, attributes(prop_or, prop_or_else, prop_or_default))]

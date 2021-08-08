@@ -102,56 +102,68 @@ impl_action! {
     ontransitionstart(name: "transitionstart", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
 }
 
+use wasm_bindgen::JsCast;
+
+/// A trait to define custom event handling within the [`html`](crate::html!) macro
+pub trait CustomEventHandler {
+    /// Type of the custom event
+    ///
+    /// Event type must implement [`JsCast`] so that Yew can cast it to the correct type.
+    type Event: JsCast + 'static;
+
+    /// Name of the custom event
+    fn event_name() -> &'static str;
+}
+
 #[doc(hidden)]
 pub mod oncustom {
+    use super::CustomEventHandler;
     use crate::callback::Callback;
     use crate::html::IntoPropValue;
     use crate::virtual_dom::Listener;
     use gloo::events::{EventListener, EventListenerOptions};
     use std::rc::Rc;
     use wasm_bindgen::JsCast;
-    use web_sys::{CustomEvent, Element, EventTarget};
+    use web_sys::{Element, EventTarget};
 
     /// A wrapper for a callback which attaches event listeners to elements.
     #[derive(Clone, Debug)]
-    pub struct Wrapper {
-        callback: Callback<CustomEvent>,
-        event: &'static str,
+    pub struct Wrapper<T: CustomEventHandler> {
+        callback: Callback<T::Event>,
     }
 
-    impl Wrapper {
+    impl<T: CustomEventHandler + 'static> Wrapper<T> {
         /// Create a wrapper for an event-typed callback
-        pub fn new(event: &'static str, callback: Callback<CustomEvent>) -> Self {
-            Wrapper { callback, event }
+        pub fn new(callback: Callback<T::Event>) -> Self {
+            Wrapper { callback }
         }
 
         #[doc(hidden)]
         #[inline]
         pub fn __macro_new(
-            event: &'static str,
-            callback: impl IntoPropValue<Option<Callback<CustomEvent>>>,
+            callback: impl IntoPropValue<Option<Callback<T::Event>>>,
         ) -> Option<Rc<dyn Listener>> {
             let callback = callback.into_prop_value()?;
-            Some(Rc::new(Self::new(event, callback)))
+            Some(Rc::new(Self::new(callback)))
         }
     }
 
-    impl Listener for Wrapper {
+    impl<T: CustomEventHandler> Listener for Wrapper<T> {
         fn kind(&self) -> &'static str {
             stringify!($action)
         }
 
         fn attach(&self, element: &Element) -> EventListener {
+            let event_name = T::event_name();
             let callback = self.callback.clone();
             let listener = move |event: &web_sys::Event| {
-                // Event can always be made into a CustomEvent
                 callback.emit(event.clone().unchecked_into());
             };
 
             let options = EventListenerOptions::enable_prevent_default();
             EventListener::new_with_options(
                 &EventTarget::from(element.clone()),
-                self.event,
+                event_name,
                 options,
                 listener,
             )
