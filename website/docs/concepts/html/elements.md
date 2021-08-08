@@ -343,6 +343,8 @@ Imported types using `wasm_bindgen` extern blocks implement `JsCast`.
 :::caution
 The `custom_event` macro only accepts tuple structs with a single type and that type **MUST** implement
 `JsCast`.
+
+The `custom_event` macro requires `wasm_bindgen` to implement `JsCast` for the type applied to.
 :::
 
 This is where the `custom_event` attribute macro comes in to implement all the traits required on
