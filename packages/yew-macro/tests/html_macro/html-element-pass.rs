@@ -1,12 +1,10 @@
 use std::borrow::Cow;
 use yew::prelude::*;
 
-yew::custom_event_handler! {
-    OnCustom {
-        type Event = CustomEvent;
-        custom: "custom"
-    }
-}
+use yew::macros::custom_event;
+
+#[custom_event(custom)]
+struct MyCustomEvent(yew::web_sys::Event);
 
 fn compile_pass() {
     let click = Callback::from(|_: MouseEvent| ());

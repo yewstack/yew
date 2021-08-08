@@ -26,6 +26,7 @@ syn = { version = "1.0", features = ["full", "extra-traits"] }
 rustversion = "1.0"
 trybuild = "1.0"
 yew = { path = "../yew" }
+wasm-bindgen = "0.2"
 
 [build-dependencies]
 
