@@ -318,7 +318,7 @@ struct MyCustomEvent(Event);
 impl CustomEventHandler for MyCustomEvent {
     type Event = Event;
 
-    fn event_name(&self) -> &'static str {
+    fn event_name() -> &'static str {
         "custom"
     }
 }
