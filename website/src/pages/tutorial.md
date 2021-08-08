@@ -541,4 +541,4 @@ See [external libraries](/next/more/external-libs) for more details.
 ### Learning more about Yew
 
 Read our [official documentation](/next). It explains a lot of concepts in much more details.
-To learn more about our the Yew API, see our [API docs](https://yew.rs).
+To learn more about our the Yew API, see our [API docs](https://docs.rs/yew).
