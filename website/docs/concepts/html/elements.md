@@ -332,7 +332,7 @@ html! {
 ```
 Implementing the `CustomEventHandler` trait by hand adds boiler plate and in order to use the 
 `MyCustomEvent` type defined in the Callback the `CustomEventHandler::Event` would have to be set to
-`Self` which requires implementing [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html) for `MyCustomEvent` which is not trival. 
+`Self` which requires implementing [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html) for `MyCustomEvent` which is not trivial. 
 
 :::tip
 Imported types using `wasm_bindgen` extern blocks implement `JsCast`.
@@ -380,7 +380,7 @@ html! {
 ```
 
 :::tip
-Event types are case sensitive and contain whitespaces. 
+Event types are case sensitive and contain white spaces. 
 
 If your application is not catching custom events then check that the 
 event type matches the value in the `custom_event` attribute!
