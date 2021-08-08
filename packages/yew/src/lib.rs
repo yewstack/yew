@@ -119,7 +119,7 @@ pub use yew_macro::classes;
 /// ## NewType around [`web_sys`](web_sys) Events
 ///  
 /// ```
-/// use yew::{Callback, custom_event, web_sys::Event};
+/// use yew::{Callback, custom_event, html, web_sys::Event};
 ///
 /// // when the ident will match the event name such as (custom = "custom") a shorthand can be used.
 /// #[custom_event(custom)]
@@ -135,7 +135,11 @@ pub use yew_macro::classes;
 ///
 /// ## NewType around imported type
 ///
-/// ```
+/// ```ignore
+/// # can't run this doc test because of wasm_bindgen
+/// use yew::{Callback, custom_event, html};
+/// use wasm_bindgen::prelude::*;
+///
 /// #[wasm_bindgen(module = "..")]
 /// extern "C" {
 ///     #[wasm_bindgen(js_name = "MDCSnackbar:closed")]
