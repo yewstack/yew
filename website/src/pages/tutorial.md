@@ -3,9 +3,9 @@
 In this hands-on tutorial, we will take a look at how we can use Yew to build web applications.
 **Yew** is a modern [Rust](https://www.rust-lang.org/) framework for building front-end web apps using [WebAssembly](https://webassembly.org/).
 Yew encourages a reusable, maintainable, and well-structured architecture by leveraging Rust's powerful type system.
-A large ecosystem of community-created libraries, known in Rust as [crates](https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html), 
+A large ecosystem of community-created libraries, known in Rust as [crates](https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html),
 provide components for commonly-used patterns such as state management.
-[Cargo](https://doc.rust-lang.org/cargo/), the package manager for Rust, allows us to take advantage of the 
+[Cargo](https://doc.rust-lang.org/cargo/), the package manager for Rust, allows us to take advantage of the
 numerous crates available on [crates.io](https://crates.io), such as Yew.
 
 ### What we are going to build
@@ -25,8 +25,8 @@ We will need the following tools:
 - [`trunk`](https://trunkrs.dev/)
 - `wasm32-unknown-unknown` target, the WASM compiler and build target for Rust.
 
-This tutorial also assumes you're already familiar with Rust. If you're new to Rust, 
-the free [Rust Book](https://doc.rust-lang.org/book/ch00-00-introduction.html) offers a great starting point for 
+This tutorial also assumes you're already familiar with Rust. If you're new to Rust,
+the free [Rust Book](https://doc.rust-lang.org/book/ch00-00-introduction.html) offers a great starting point for
 beginners and continues to be an excellent resource even for experienced Rust developers.
 
 
@@ -54,7 +54,7 @@ cargo new yew-app
 cd yew-app
 ```
 
-To verify the Rust environment is set up properly, run the initial project using the cargo build tool. 
+To verify the Rust environment is set up properly, run the initial project using the cargo build tool.
 After output about the build process, you should see the expected "Hello, world!" message.
 
 ```bash
@@ -120,13 +120,13 @@ You have now successfully set up your Yew development environment and built your
 
 ## Building HTML
 
-Yew makes use of Rust's procedural macros and provides us with a syntax similar to JSX (an extension to JavaScript 
+Yew makes use of Rust's procedural macros and provides us with a syntax similar to JSX (an extension to JavaScript
 which allows you to write HTML-like code inside of JavaScript) to create the markup.
 
 ### Converting classic HTML
 
-Since we already have a pretty good idea of what our website will look like, we can simply translate our mental draft 
-into a representation compatible with `html!`. If you're comfortable writing simple HTML, you should have no problem 
+Since we already have a pretty good idea of what our website will look like, we can simply translate our mental draft
+into a representation compatible with `html!`. If you're comfortable writing simple HTML, you should have no problem
 writing marking inside `html!`. It is important to note that the macro does differ from HTML in a few ways:
 
 1. Expressions must be wrapped in curly braces (`{ }`)
@@ -192,7 +192,7 @@ struct Video {
 }
 ```
 
-Next, we'll create instances of this struct in our `app` function and use those instead of hardcoding the data:
+Next, we will create instances of this struct in our `app` function and use those instead of hardcoding the data:
 
 ```rust
 let videos = vec![
@@ -223,7 +223,7 @@ let videos = vec![
 ];
 ```
 
-In order to display them, we need to convert these `Vec`s into `Html`. We can do that by creating an iterator, 
+In order to display them, we need to convert these `Vec`s into `Html`. We can do that by creating an iterator,
 mapping it to `html!` and collecting it as `Html`:
 
 ```rust
@@ -234,8 +234,8 @@ let videos = videos.iter().map(|video| html! {
 
 ## Components
 
-Components are the building blocks of Yew application. By combining components, which can be made of other components, 
-we build our application. By structuring our components for re-usability and keeping them generic, we'll be able to use 
+Components are the building blocks of Yew applications. By combining components, which can be made of other components,
+we build our application. By structuring our components for re-usability and keeping them generic, we will be able to use
 them in multiple parts of our application without having to duplicate code or logic.
 
 In fact, the `app` function we have been using so far is a component, called `App`. It is a "function component".
@@ -243,9 +243,9 @@ There are two different types of components in Yew.
 1. Struct Components
 2. Function Components
 
-In this tutorial, we'll be using function components.
+In this tutorial, we will be using function components.
 
-Now, let's split up our `App` component into smaller components. We'll begin by extracting the videos list into 
+Now, let's split up our `App` component into smaller components. We'll begin by extracting the videos list into
 its own component.
 
 ```rust
@@ -262,7 +262,7 @@ fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
 }
 ```
 
-Notice the parameters of our `VideosList` function component. A function component takes only one argument which 
+Notice the parameters of our `VideosList` function component. A function component takes only one argument which
 defines its "props" (short for "properties"). Props are used to pass data down from a parent component to a child component.
 In this case, `VideosListProps` is a struct which defines the props.
 
@@ -306,14 +306,14 @@ fn app() -> Html {
 }
 ```
 
-By looking at the browser window, we can verify that the lists are rendered as they are supposed to.
-We have moved the rendering logic of lists to its own component. This shortens the `App` component’s source code, 
+By looking at the browser window, we can verify that the lists are rendered as they should be.
+We have moved the rendering logic of lists to its own component. This shortens the `App` component’s source code,
 making it easier for us to read and understand.
 
 ### Making it interactive
 
-The final goal here is to display the selected video. In order to do that, `VideosList` component need to "notify" it's 
-parent when a video is selected, which is done via a `Callback`. This concept is called "passing handlers". 
+The final goal here is to display the selected video. In order to do that, `VideosList` component needs to "notify" its
+parent when a video is selected, which is done via a `Callback`. This concept is called "passing handlers".
 We modify its props to take an `on_click` callback:
 
 ```rust {4}
@@ -403,14 +403,14 @@ fn app() -> Html {
 }
 ```
 
-Don't worry about the `use_state` right now, we'll come back to it later. 
+Don't worry about the `use_state` right now, we will come back to that later.
 Note the trick we pulled with `{ for details }`. `Option<_>` implements `Iterator` so we can use it to display the only
 element returned by the `Iterator` with the `{ for ... }` syntax.
 
 ### Handling state
 
-Remember the `use_state` used earlier? That is a special function, called a "hook". Hooks are used to "hook" into 
-lifecycle of a function component and perform actions. You can learn more about this hook, and others 
+Remember the `use_state` used earlier? That is a special function, called a "hook". Hooks are used to "hook" into
+lifecycle of a function component and perform actions. You can learn more about this hook, and others
 [here](/next/concepts/function-components/pre-defined-hooks#use_state)
 
 :::note
@@ -419,12 +419,12 @@ Struct components act differently. See [the documentation](/concepts/components)
 
 ## Fetching data (using external REST API)
 
-In a real world application, data will usually come from an API instead of being hardcoded. Let's fetch our 
+In a real world application, data will usually come from an API instead of being hardcoded. Let's fetch our
 videos list from external source. For this we will need to add the following crates:
 - [`reqwasm`](https://crates.io/crates/reqwasm)
   For making the fetch call.
 - [`serde`](https://serde.rs) with derive features
-  For de-serializing the JSON response 
+  For de-serializing the JSON response
 - [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
   For executing Rust Future as a Promise
 
@@ -478,7 +478,7 @@ fn app() -> Html {
 +    }
 
     // ...
- 
+
     html! {
         <>
             <h1>{ "RustConf Explorer" }</h1>
@@ -494,7 +494,7 @@ fn app() -> Html {
 ```
 
 :::note
-We're using `unwrap`s here because it is a demo application. In a real world, In a real world, you want to have 
+We're using `unwrap`s here because this is a demo application. In a real world app, you would likely want to have
 [proper error handling](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html).
 :::
 
@@ -520,11 +520,11 @@ Refresh the tab and everything should work as expected.
 
 ## Wrapping up
 
-Congratulations! You’ve created a web application that fetches data from external API and displays a list of videos.
+Congratulations! You’ve created a web application that fetches data from an external API and displays a list of videos.
 
 ## What's next
 
-Obviously, this application is very far from perfect or useful. After going through this tutorial, 
+Obviously, this application is very far from perfect or useful. After going through this tutorial,
 you can use it as a jumping-off point to explore more advanced topics.
 
 ### Styles
@@ -541,4 +541,4 @@ See [external libraries](/next/more/external-libs) for more details.
 ### Learning more about Yew
 
 Read our [official documentation](/next). It explains a lot of concepts in much more details.
-To learn more about our the Yew API, see our [API docs](https://yew.rs). 
+To learn more about our the Yew API, see our [API docs](https://docs.rs/yew).
