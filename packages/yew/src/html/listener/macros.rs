@@ -26,8 +26,8 @@ macro_rules! impl_action {
 
                 #[doc(hidden)]
                 #[inline]
-                pub fn __macro_new(callback: impl IntoPropValue<Option<Callback<Event>>>) -> Option<Rc<dyn Listener>> {
-                    let callback = callback.into_prop_value()?;
+                pub fn __macro_new(callback: impl IntoEventCallback<Event>) -> Option<Rc<dyn Listener>> {
+                    let callback = callback.into_event_callback()?;
                     Some(Rc::new(Self::new(callback)))
                 }
             }

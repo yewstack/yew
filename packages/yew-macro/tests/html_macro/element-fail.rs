@@ -49,7 +49,7 @@ fn compile_fail() {
 
     // listener type mismatch
     html! { <input onclick=1 /> };
-    html! { <input onclick={Callback::from(|a: String| ()) /> };
+    html! { <input onclick={Callback::from(|a: String| ())} /> };
     html! { <input onfocus={Some(5)} /> };
 
     // NodeRef type mismatch
