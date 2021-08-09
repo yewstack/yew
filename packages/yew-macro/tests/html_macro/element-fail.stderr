@@ -246,60 +246,60 @@ error[E0308]: mismatched types
 40 |     html! { <option selected=1 /> };
    |                              ^ expected `bool`, found integer
 
-error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
+error[E0277]: the trait bound `(): IntoPropValue<Option<AttrValue>>` is not satisfied
   --> $DIR/element-fail.rs:43:26
    |
 43 |     html! { <input type={()} /> };
-   |                          ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
+   |                          ^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `()`
    |
    = note: required by `into_prop_value`
 
-error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
+error[E0277]: the trait bound `(): IntoPropValue<Option<AttrValue>>` is not satisfied
   --> $DIR/element-fail.rs:44:27
    |
 44 |     html! { <input value={()} /> };
-   |                           ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
+   |                           ^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `()`
    |
    = note: required by `into_prop_value`
 
-error[E0277]: the trait bound `(): IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
+error[E0277]: the trait bound `(): IntoPropValue<Option<AttrValue>>` is not satisfied
   --> $DIR/element-fail.rs:45:22
    |
 45 |     html! { <a href={()} /> };
-   |                      ^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `()`
+   |                      ^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `()`
    |
    = note: required by `into_prop_value`
 
-error[E0277]: the trait bound `NotToString: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
+error[E0277]: the trait bound `NotToString: IntoPropValue<Option<AttrValue>>` is not satisfied
   --> $DIR/element-fail.rs:46:28
    |
 46 |     html! { <input string={NotToString} /> };
-   |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `NotToString`
+   |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `NotToString`
    |
    = note: required by `into_prop_value`
 
-error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
+error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<AttrValue>>` is not satisfied
   --> $DIR/element-fail.rs:47:23
    |
 47 |     html! { <a media={Some(NotToString)} /> };
-   |                       ^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `Option<NotToString>`
+   |                       ^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `Option<NotToString>`
    |
    = help: the following implementations were found:
-             <Option<&'static str> as IntoPropValue<Option<Cow<'static, str>>>>
+             <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
-             <Option<String> as IntoPropValue<Option<Cow<'static, str>>>>
+             <Option<String> as IntoPropValue<Option<AttrValue>>>
    = note: required by `into_prop_value`
 
-error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
+error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<AttrValue>>` is not satisfied
   --> $DIR/element-fail.rs:48:22
    |
 48 |     html! { <a href={Some(5)} /> };
-   |                      ^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `Option<{integer}>`
+   |                      ^^^^^^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `Option<{integer}>`
    |
    = help: the following implementations were found:
-             <Option<&'static str> as IntoPropValue<Option<Cow<'static, str>>>>
+             <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
-             <Option<String> as IntoPropValue<Option<Cow<'static, str>>>>
+             <Option<String> as IntoPropValue<Option<AttrValue>>>
    = note: required by `into_prop_value`
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `{integer}`
@@ -381,9 +381,9 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
    |                         ^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `Option<yew::NodeRef>`
    |
    = help: the following implementations were found:
-             <Option<&'static str> as IntoPropValue<Option<Cow<'static, str>>>>
+             <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
-             <Option<String> as IntoPropValue<Option<Cow<'static, str>>>>
+             <Option<String> as IntoPropValue<Option<AttrValue>>>
    = note: required by `into_prop_value`
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
@@ -409,11 +409,11 @@ error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<Strin
     = note: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
     = note: required because of the requirements on the impl of `IntoEventCallback<MouseEvent>` for `yew::Callback<String>`
 
-error[E0277]: the trait bound `NotToString: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
+error[E0277]: the trait bound `NotToString: IntoPropValue<Option<AttrValue>>` is not satisfied
   --> $DIR/element-fail.rs:60:28
    |
 60 |     html! { <input string={NotToString} /> };
-   |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<Cow<'static, str>>>` is not implemented for `NotToString`
+   |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `NotToString`
    |
    = note: required by `into_prop_value`
 

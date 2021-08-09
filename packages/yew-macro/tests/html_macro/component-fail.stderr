@@ -342,8 +342,8 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
    |                                 ^ the trait `IntoPropValue<String>` is not implemented for `{integer}`
    |
    = help: the following implementations were found:
-             <&'static str as IntoPropValue<Cow<'static, str>>>
-             <&'static str as IntoPropValue<Option<Cow<'static, str>>>>
+             <&'static str as IntoPropValue<AttrValue>>
+             <&'static str as IntoPropValue<Option<AttrValue>>>
              <&'static str as IntoPropValue<Option<String>>>
              <&'static str as IntoPropValue<String>>
            and 11 others
@@ -355,8 +355,8 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
    |                                  ^ the trait `IntoPropValue<String>` is not implemented for `{integer}`
    |
    = help: the following implementations were found:
-             <&'static str as IntoPropValue<Cow<'static, str>>>
-             <&'static str as IntoPropValue<Option<Cow<'static, str>>>>
+             <&'static str as IntoPropValue<AttrValue>>
+             <&'static str as IntoPropValue<Option<AttrValue>>>
              <&'static str as IntoPropValue<Option<String>>>
              <&'static str as IntoPropValue<String>>
            and 11 others

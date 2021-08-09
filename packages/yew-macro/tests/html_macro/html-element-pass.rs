@@ -45,7 +45,7 @@ fn compile_pass() {
     let dyn_tag = || <::std::string::String as ::std::convert::From<&::std::primitive::str>>::from("test");
     let mut extra_tags_iter = ::std::iter::IntoIterator::into_iter(::std::vec!["a", "b"]);
 
-    let cow_none: ::std::option::Option<::std::borrow::Cow<'static, ::std::primitive::str>> =
+    let cow_none: ::std::option::Option<::yew::virtual_dom::AttrValue> =
         ::std::option::Option::None;
 
     ::yew::html! {
@@ -99,10 +99,10 @@ fn compile_pass() {
                 }
             }/>
 
-            <a href={::std::option::Option::Some(::std::borrow::Cow::Borrowed("http://google.com"))} media={::std::clone::Clone::clone(&cow_none)} />
-            <track kind={::std::option::Option::Some(::std::borrow::Cow::Borrowed("subtitles"))} src={::std::clone::Clone::clone(&cow_none)} />
-            <track kind={::std::option::Option::Some(::std::borrow::Cow::Borrowed("5"))} mixed="works" />
-            <input value={::std::option::Option::Some(::std::borrow::Cow::Borrowed("value"))}
+            <a href={::std::option::Option::Some(::yew::virtual_dom::AttrValue("http://google.com"))} media={::std::clone::Clone::clone(&cow_none)} />
+            <track kind={::std::option::Option::Some(::yew::virtual_dom::AttrValue("subtitles"))} src={::std::clone::Clone::clone(&cow_none)} />
+            <track kind={::std::option::Option::Some(::yew::virtual_dom::AttrValue("5"))} mixed="works" />
+            <input value={::std::option::Option::Some(::yew::virtual_dom::AttrValue("value"))}
                 onblur={::std::option::Option::Some(<::yew::Callback<::yew::FocusEvent> as ::std::convert::From<_>>::from(|_| ()))}
             />
         </div>

@@ -17,7 +17,7 @@ pub mod vtext;
 
 use crate::html::{AnyScope, NodeRef};
 use indexmap::IndexMap;
-use std::{borrow::Cow, collections::HashMap, hint::unreachable_unchecked, iter};
+use std::{collections::HashMap, fmt, hint::unreachable_unchecked, iter};
 use web_sys::{Element, Node};
 
 #[doc(inline)]
@@ -34,9 +34,78 @@ pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
+use std::fmt::Formatter;
+use std::ops::Deref;
+use std::rc::Rc;
 
 /// Attribute value
-pub type AttrValue = Cow<'static, str>;
+#[derive(Eq, PartialEq, Debug)]
+pub enum AttrValue {
+    /// String living for `'static`
+    Static(&'static str),
+    /// Owned string
+    Owned(String),
+    /// Reference counted string
+    ReferenceCounted(Rc<str>),
+}
+
+impl Deref for AttrValue {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        match self {
+            AttrValue::Static(s) => *s,
+            AttrValue::Owned(s) => s.as_str(),
+            AttrValue::ReferenceCounted(s) => &*s,
+        }
+    }
+}
+
+impl From<&'static str> for AttrValue {
+    fn from(s: &'static str) -> Self {
+        AttrValue::Static(s)
+    }
+}
+
+impl From<String> for AttrValue {
+    fn from(s: String) -> Self {
+        AttrValue::Owned(s)
+    }
+}
+
+impl From<Rc<str>> for AttrValue {
+    fn from(s: Rc<str>) -> Self {
+        AttrValue::ReferenceCounted(s)
+    }
+}
+
+impl Clone for AttrValue {
+    fn clone(&self) -> Self {
+        match self {
+            AttrValue::Static(s) => AttrValue::Static(s),
+            AttrValue::Owned(s) => AttrValue::Owned(s.clone()),
+            AttrValue::ReferenceCounted(s) => AttrValue::ReferenceCounted(Rc::clone(s)),
+        }
+    }
+}
+
+impl PartialEq<String> for AttrValue {
+    fn eq(&self, other: &String) -> bool {
+        self.as_ref() == other.as_str()
+    }
+}
+
+impl AsRef<str> for AttrValue {
+    fn as_ref(&self) -> &str {
+        &*self
+    }
+}
+
+impl fmt::Display for AttrValue {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self)
+    }
+}
 
 /// Applies contained changes to DOM [Element]
 trait Apply {
@@ -628,7 +697,7 @@ mod benchmarks {
     fn bench_diff_change_first() {
         let old = sample_values();
         let mut new = old.clone();
-        new[0] = AttrValue::Borrowed("changed");
+        new[0] = AttrValue::Static("changed");
 
         let dynamic = (make_dynamic(old.clone()), make_dynamic(new.clone()));
         let map = (make_indexed_map(old), make_indexed_map(new));
@@ -670,7 +739,7 @@ mod benchmarks {
             "danny", "the", "the", "calling", "glen", "glen", "down", "mountain", "",
         ]
         .iter()
-        .map(|v| AttrValue::Borrowed(*v))
+        .map(|v| AttrValue::Static(*v))
         .collect()
     }
 
