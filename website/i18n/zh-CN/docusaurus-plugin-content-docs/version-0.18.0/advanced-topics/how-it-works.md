@@ -16,7 +16,7 @@ description: 有关框架的底层细节
 请注意，在查看扩展的宏代码时，您可能会遇到异常冗长的代码。因为生成的代码有时可能会与应用程序中的其他代码冲突。为了防止出现问题，请保持`proc_macro` 的“卫生”。以下是一些示例：
 
 1. 使用`::yew::<module>` 而不是 `yew::<module>` 来保证对Yew包的正确引用。这也是为什么呼吁使用`::alloc::vec::Vec::new()`来代替`Vec::new()`调用。
-2. 由于潜在的trait方法名称冲突，使用`<Type as Trait>`来确保我们使用的是正确的trait。
+2. 为了避免潜在的trait方法名称冲突，使用`<Type as Trait>`来确保我们使用的是正确的trait。
 
 ## 什么是虚拟DOM？
 
@@ -36,4 +36,4 @@ Yew 的虚拟 DOM 与浏览器 DOM 并不是完全对应的。它还包括用于
 
 - [从 Rust Book 中了解更多宏的信息](https://doc.rust-lang.org/stable/book/ch19-06-macros.html)
 - [更多有关`cargo-expand`的信息](https://github.com/dtolnay/cargo-expand)
-- [`yew::virtual_dom`的 API 文档](https://docs.rs/yew/*/yew/virtual_dom/index.html)
+- [在API文档中查看`yew::virtual_dom`](https://docs.rs/yew/*/yew/virtual_dom/index.html)
