@@ -56,12 +56,13 @@ which describes the proposal.
 
 Rust is blazing fast and reliable with its rich type system and ownership model. It has a tough 
 learning curve but is well worth the effort. Rust has been voted the most loved programming 
-language in Stack Overflow's Developer Survey five years in a row: 
+language in Stack Overflow's Developer Survey six years in a row: 
 [2016](https://insights.stackoverflow.com/survey/2016#technology-most-loved-dreaded-and-wanted), 
 [2017](https://insights.stackoverflow.com/survey/2017#most-loved-dreaded-and-wanted), 
 [2018](https://insights.stackoverflow.com/survey/2018#technology-_-most-loved-dreaded-and-wanted-languages), 
-[2019](https://insights.stackoverflow.com/survey/2019#technology-_-most-loved-dreaded-and-wanted-languages) 
-and [2020](https://insights.stackoverflow.com/survey/2020#most-loved-dreaded-and-wanted).
+[2019](https://insights.stackoverflow.com/survey/2019#technology-_-most-loved-dreaded-and-wanted-languages), 
+[2020](https://insights.stackoverflow.com/survey/2020#most-loved-dreaded-and-wanted) and 
+[2021](https://insights.stackoverflow.com/survey/2021/#technology-most-loved-dreaded-and-wanted).
 
 Rust also helps developers write safer code with its rich type system and ownership model. Say 
 goodbye to hard to track down race condition bugs in JavaScript! In fact, with Rust, most of your 
