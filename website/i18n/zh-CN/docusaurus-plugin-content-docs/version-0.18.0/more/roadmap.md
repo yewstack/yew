@@ -1,40 +1,41 @@
 ---
+title: 路线图
 description: Yew 框架规划功能的路线图
 ---
 
-# 路线图
+## 优先次序
 
-## `v1.0.0`
+由社区决定将来特性的开发优先度以及需要侧重的关注点。 在2020年春季，发起过开发者调查问卷，收集有关项目发展方向的反馈。您可以在[Yew Wiki](https://github.com/yewstack/yew/wiki/Dev-Survey-%5BSpring-2020%5D)中找到摘要。
 
-### 规划中的功能
+:::note 所有主要计划都可以在 Yew Github[项目板](https://github.com/yewstack/yew/projects) 中查看进展 :::
 
-* 标记 key 的列表项：[https://github.com/yewstack/yew/issues/479](https://github.com/yewstack/yew/issues/479)
-* 路由：[https://github.com/yewstack/yew\_router](https://github.com/yewstack/yew_router)
+## 关注点
 
-### 生产环境准备
+1. 高优先级的功能
+2. 生产环境预备
+3. 文档
+4. 痛点
 
-* 浏览器兼容性
-* 提高 Yew 框架的测试覆盖率
-* 增加性能基准测试：[https://github.com/yewstack/yew/issues/5](https://github.com/yewstack/yew/issues/5)
+### 高优先级的功能
 
-### 指南
+1. [函数式组件](https://github.com/yewstack/yew/projects/3)
+2. [组件库](https://github.com/yewstack/yew/projects/4)
+3. 更好的状态管理
+4. [服务端渲染](https://github.com/yewstack/yew/projects/5)
 
-* 最佳实践：[https://yew.rs/optimizations](https://yew.rs/optimizations)
-* 端到端教程
-* Futures / 并发
-* CSS / 样式
-* 测试
-* 状态管理
+### 为了在生产环境使用还需解决的需求
 
-## 未来
+- 提高 Yew 框架的测试覆盖率
+- 缩减二进制文件的大小
+- [基准表现](https://github.com/yewstack/yew/issues/5)
 
-### 潜在功能
+### 文档
 
-* 服务端渲染：[https://github.com/yewstack/yew/issues/41](https://github.com/yewstack/yew/issues/41)
-* 组件库：[https://github.com/yewstrap/yewstrap](https://github.com/yewstrap/yewstrap)
-* 代码分割：[https://github.com/yewstack/yew/issues/599](https://github.com/yewstack/yew/issues/599)
-* 允许不同的虚拟 DOM 后端：[https://github.com/yewstack/yew/issues/482](https://github.com/yewstack/yew/issues/482)
-* 反思 Services：[https://github.com/yewstack/yew/issues/364](https://github.com/yewstack/yew/issues/364)
-* 成熟的工具包：[https://github.com/yewstack/yewtil](https://github.com/yewstack/yewtil)
-* HTML 模板备选方案：[https://github.com/yewstack/yew/issues/438](https://github.com/yewstack/yew/issues/438)
+- 创建教程
+- 简化项目设置
 
+### 痛点
+
+- [组件样板](https://github.com/yewstack/yew/issues/830)
+- Fetch API
+- [代理（Agents）](https://github.com/yewstack/yew/projects/6)
