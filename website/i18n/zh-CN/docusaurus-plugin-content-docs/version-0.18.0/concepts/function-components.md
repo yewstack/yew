@@ -4,7 +4,9 @@ sidebar_label: 简介
 description: 介绍函数式组件
 ---
 
-:::warning 我们仍在研究函数式组件和 Hooks。它们还没有完全准备好使用。如果您想提供帮助，请查看[项目板](https://github.com/yewstack/yew/projects/3)以获取仍需要完成的事项列表。 :::
+:::warning
+我们仍在研究函数式组件和 Hooks。它们还没有完全准备好使用。如果您想提供帮助，请查看[项目板](https://github.com/yewstack/yew/projects/3)以获取仍需要完成的事项列表。
+:::
 
 函数式组件是普通组件的简化版本。它们由一个接收 props 的函数组成，并通过返回`Html`来确定应该呈现什么。基本上，它是一个简化为`view`方法的组件。就其本身而言，这将是相当有限的，因为您只能创建纯组件，而这就是 Hook 大展身手的地方。Hook 允许函数组件无需实现`Component` trait，就可以使用状态（state）和其他 Yew 功能。
 
@@ -40,4 +42,4 @@ Yew 带有以下预定义的钩子：
 
 #### 自定义钩子（Custom Hooks）
 
-在某些情况下，您出于一些原因想要定义自己的 Hook。 Yew 允许你这么做，即你可以使用Hooks从组件中提取潜在的带有状态的逻辑到可重用的函数中。更多有关信息，请参阅[定义自定义挂钩部分](function-components/custom-hooks.md#defining-custom-hooks)。
+在某些情况下，您出于一些原因想要定义自己的 Hook。 Yew 允许你这么做，即你可以使用 Hooks 从组件中提取潜在的带有状态的逻辑到可重用的函数中。更多有关信息，请参阅[定义自定义挂钩部分](function-components/custom-hooks.md#defining-custom-hooks)。
