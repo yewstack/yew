@@ -5,9 +5,11 @@ description: Yew 框架规划功能的路线图
 
 ## 优先次序
 
-由社区决定将来特性的开发优先度以及需要侧重的关注点。 在2020年春季，发起过开发者调查问卷，收集有关项目发展方向的反馈。您可以在[Yew Wiki](https://github.com/yewstack/yew/wiki/Dev-Survey-%5BSpring-2020%5D)中找到摘要。
+由社区决定将来特性的开发优先度以及需要侧重的关注点。 在 2020 年春季，发起过开发者调查问卷，收集有关项目发展方向的反馈。您可以在[Yew Wiki](https://github.com/yewstack/yew/wiki/Dev-Survey-%5BSpring-2020%5D)中找到摘要。
 
-:::note 所有主要计划都可以在 Yew Github[项目板](https://github.com/yewstack/yew/projects) 中查看进展 :::
+:::note
+所有主要计划都可以在 Yew Github[项目板](https://github.com/yewstack/yew/projects) 中查看进展
+:::
 
 ## 关注点
 

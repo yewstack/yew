@@ -10,7 +10,9 @@ description: 为成功做好准备
 
 此外，为了将 Rust 编译为 Wasm，您还需要安装`wasm32-unknown-unknown`。如果你使用的是 rustup，只需运行`rustup target add wasm32-unknown-unknown` 。
 
-:::important Yew 支持的最低 Rust 版本 (MSRV) 是`1.49.0` 。旧版本可能会导致意外问题，并伴有难以理解的错误消息。你可以使用 `rustup show` （在“active toolchain”下）或 `rustc --version`检查您的工具链版本。要更新您的工具链，请运行`rustup update` 。 :::
+:::important
+Yew 支持的最低 Rust 版本 (MSRV) 是`1.49.0` 。旧版本可能会导致意外问题，并伴有难以理解的错误消息。你可以使用 `rustup show` （在“active toolchain”下）或 `rustc --version`检查您的工具链版本。要更新您的工具链，请运行`rustup update` 。
+:::
 
 ## **Wasm 构建工具**
 
@@ -20,7 +22,7 @@ description: 为成功做好准备
 
 一个实际是为了构建 Yew 应用程序的而制作的工具。它可以构建任何基于`wasm-bindgen`的应用程序，其设计灵感来自 rollup.js。使用 Trunk，您无需安装 Node.js 或接触任何 JavaScript 代码。它可以将资源（assets）绑定到的你的应用程序，甚至附带 Sass 编译器。
 
-我们所有的示例都基于Trunk构建。
+我们所有的示例都基于 Trunk 构建。
 
 [开始使用 `trunk`](project-setup/using-trunk.md)
 
