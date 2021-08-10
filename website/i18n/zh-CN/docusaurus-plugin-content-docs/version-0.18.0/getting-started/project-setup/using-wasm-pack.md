@@ -4,7 +4,8 @@ title: 使用 wasm-pack
 
 这个工具由 Rust / Wasm 工作组开发维护，并且是现在最为活跃的 WebAssembly 应用开发工具。 它支持将代码打包成 `npm` 模块，并且随附了 [Webpack 插件](https://github.com/wasm-tool/wasm-pack-plugin)，可以轻松的与已有的 JavaScript 应用结合。可以点击[这里](https://rustwasm.github.io/docs/wasm-pack/introduction.html)了解更多。
 
-:::note 注：如果使用 `wasm-pack`作为开发工具，`Cargo.toml` 中的 `crate-type` 需要指定为 `cdylib`
+:::note
+注：如果使用 `wasm-pack`作为开发工具，`Cargo.toml` 中的 `crate-type` 需要指定为 `cdylib`
 
 ```toml
 [lib]
@@ -35,7 +36,7 @@ wasm-pack build --target web
 rollup ./main.js --format iife --file ./pkg/bundle.js
 ```
 
-当使用诸如rollup.js打包时，你可以省去 `--target web`。
+当使用诸如 rollup.js 打包时，你可以省去 `--target web`。
 
 ## 部署
 

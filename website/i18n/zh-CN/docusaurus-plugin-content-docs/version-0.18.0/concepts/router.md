@@ -3,7 +3,7 @@ title: 路由（Router）
 description: Yew 的官方 Router
 ---
 
-[在crates.io上查看 router ](https://crates.io/crates/yew-router)
+[在 crates.io 上查看 router ](https://crates.io/crates/yew-router)
 
 Routers 在单页应用（SPA）中根据 URL 的不同显示不同的页面。当点击一个链接时，Router 在本地设置 URL 以指向应用程序中有效的路由，而不是默认请求一个不同的远程资源。然后 Router 检测到此更改后决定要渲染的内容。
 
@@ -53,7 +53,8 @@ enum AppRoute {
 }
 ```
 
-:::caution 请注意，通过为派生宏生成实现 `Switch`将按照从前到后的顺序为每个标注的路径进行匹配，所以当有路由符合多个`to` 注解的路径时，将会永远只会匹配第一个符合的路径。例如，如果您定义了以下`Switch`，将只会匹配到`AppRoute::Home`路由。
+:::caution
+请注意，通过为派生宏生成实现 `Switch`将按照从前到后的顺序为每个标注的路径进行匹配，所以当有路由符合多个`to` 注解的路径时，将会永远只会匹配第一个符合的路径。例如，如果您定义了以下`Switch`，将只会匹配到`AppRoute::Home`路由。
 
 ```rust
 #[derive(Switch)]

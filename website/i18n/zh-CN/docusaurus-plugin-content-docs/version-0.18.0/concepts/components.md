@@ -9,7 +9,9 @@ description: 组件及其生命周期钩子
 
 ## 生命周期
 
-:::note `为我们的文档做出贡献：`[添加组件的生命周期图示](https://github.com/yewstack/docs/issues/22) :::
+:::important contribute
+`为我们的文档做出贡献：`[添加组件的生命周期图示](https://github.com/yewstack/docs/issues/22)
+:::
 
 ## 生命周期方法
 
@@ -88,7 +90,9 @@ impl Component for MyComponent {
 }
 ```
 
-:::tip note 请注意，可以不实现此生命周期方法，默认情况下不会执行任何操作。 :::
+:::tip note
+请注意，可以不实现此生命周期方法，默认情况下不会执行任何操作。
+:::
 
 ### Update
 
