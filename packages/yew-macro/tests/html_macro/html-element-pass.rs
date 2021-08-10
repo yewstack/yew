@@ -99,10 +99,10 @@ fn compile_pass() {
                 }
             }/>
 
-            <a href={::std::option::Option::Some(::yew::virtual_dom::AttrValue("http://google.com"))} media={::std::clone::Clone::clone(&cow_none)} />
-            <track kind={::std::option::Option::Some(::yew::virtual_dom::AttrValue("subtitles"))} src={::std::clone::Clone::clone(&cow_none)} />
-            <track kind={::std::option::Option::Some(::yew::virtual_dom::AttrValue("5"))} mixed="works" />
-            <input value={::std::option::Option::Some(::yew::virtual_dom::AttrValue("value"))}
+            <a href={::std::option::Option::Some(::yew::virtual_dom::AttrValue::Static("http://google.com"))} media={::std::clone::Clone::clone(&cow_none)} />
+            <track kind={::std::option::Option::Some(::yew::virtual_dom::AttrValue::Static("subtitles"))} src={::std::clone::Clone::clone(&cow_none)} />
+            <track kind={::std::option::Option::Some(::yew::virtual_dom::AttrValue::Static("5"))} mixed="works" />
+            <input value={::std::option::Option::Some(::yew::virtual_dom::AttrValue::Static("value"))}
                 onblur={::std::option::Option::Some(<::yew::Callback<::yew::FocusEvent> as ::std::convert::From<_>>::from(|_| ()))}
             />
         </div>

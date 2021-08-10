@@ -95,7 +95,7 @@ mod test {
     fn test_str() {
         let _: String = "foo".into_prop_value();
         let _: Option<String> = "foo".into_prop_value();
-        let _: Cow<'static, str> = "foo".into_prop_value();
-        let _: Option<Cow<'static, str>> = "foo".into_prop_value();
+        let _: AttrValue = "foo".into_prop_value();
+        let _: Option<AttrValue> = "foo".into_prop_value();
     }
 }
