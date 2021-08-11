@@ -1,45 +1,49 @@
-# 第一个简单的 App
+---
+title: 第一个简单的 App
+---
 
-首先创建一个二进制项目:
+首先，创建一个新的 cargo 项目：
 
 ```bash
-cargo new --bin yew-app && cd yew-app
+cargo new yew-app
 ```
 
-添加 `yew` 到你的依赖库中（[这里](https://docs.rs/yew) 可以查看最新版本的 Yew）
+进入刚刚创建的目录。
 
-{% code title="Cargo.toml" %}
-```text
+现在，让我们在`Cargo.toml`文件中添加`yew`作为依赖项：
+
+```toml
 [package]
 name = "yew-app"
 version = "0.1.0"
-authors = ["Yew App Developer <name@example.com>"]
 edition = "2018"
 
 [dependencies]
-yew = { version = "0.14.3", features = ["std_web"] }
+# 你可以在此处查看最新版本: https://crates.io/crates/yew
+yew = "0.18"
 ```
-{% endcode %}
 
-将这份代码复制到你的 `src/main.rs` 文件中:
+将以下代码复制到您的`src/main.rs`文件中：
 
-{% code title="src/main.rs" %}
 ```rust
 use yew::prelude::*;
-
-struct Model {
-    link: ComponentLink<Self>,
-    value: i64,
-}
 
 enum Msg {
     AddOne,
 }
 
+struct Model {
+    // `ComponentLink` is like a reference to a component.
+    // It can be used to send messages to the component
+    link: ComponentLink<Self>,
+    value: i64,
+}
+
 impl Component for Model {
     type Message = Msg;
     type Properties = ();
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+
+    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
             link,
             value: 0,
@@ -48,9 +52,20 @@ impl Component for Model {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::AddOne => self.value += 1
+            Msg::AddOne => {
+                self.value += 1;
+                // the value has changed so we need to
+                // re-render for it to appear on the page
+                true
+            }
         }
-        true // 指示组件应该重新渲染
+    }
+
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+        // Should only return "true" if new properties are different to
+        // previously received properties.
+        // This component has no properties so we will always return "false".
+        false
     }
 
     fn view(&self) -> Html {
@@ -64,21 +79,48 @@ impl Component for Model {
 }
 
 fn main() {
-    yew::initialize();
-    App::<Model>::new().mount_to_body();
+    yew::start_app::<Model>();
 }
 ```
-{% endcode %}
 
-这份代码将构建你的称为 `Model` 的 `Component` 根组件，它会显示一个按钮，当你点击它时，`Model` 将会更新自己的状态。特别注意 `main()` 中的 `App::<Model>::new().mount_to_body()`，它会启动你的应用并将其挂载到页面的 `<body>` 标签中。如果你想使用任何动态属性来启动应用程序，则可以使用 `App::<Model>::new().mount_to_body_with_props(..)`。
+这份代码通过一个 `Model` 构建了你的根 `组件`，它会显示一个按钮，当你点击按钮时，Model 将会更新自己的状态。特别注意 main() 中的 `yew::start_app::<Model>()`，它会启动你的应用并将其挂载到页面的 `<body>` 标签中。如果你想使用任何动态属性来启动应用程序，则可以使用 `yew::start_app_with_props::<Model>(..)`。
+
+最后，将`index.html`文件添加当前应用的根目录下：
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Yew App</title>
+  </head>
+</html>
+```
 
 ## 运行你的应用程序!
 
-启动并运行你的应用的最快方式就是使用 [`cargo-web`](https://github.com/koute/cargo-web)。如果你还没有的话，请用 `cargo install cargo-web` 命令来安装这个工具然后通过运行下述命令来构建和启动一个开发服务器：
+如果尚未安装 [Trunk](https://github.com/thedodd/trunk)，请执行以下操作：
 
 ```bash
-cargo web start
+cargo install trunk wasm-bindgen-cli
 ```
 
-`cargo-web` 将会自动为你添加 `wasm32-unknown-unknown` 作为目标代码，然后构建你的应用，你的应用将默认在 [http://\[::1\]:8000](http://[::1]:8000) 被访问。可以通过 `cargo web start --help` 命令来获取更多选项和帮助。
+将`wasm32-unknown-unknown`添加为编译目标。 如果还未安装，请使用 Rustup 运行以下指令：
 
+```bash
+rustup target add wasm32-unknown-unknown
+```
+
+现在，您所要做的就是运行以下命令：
+
+```bash
+trunk serve
+```
+
+这将启动一个开发服务器，该服务器在您每次进行更改时都会更新应用程序。
+
+## 常见问题
+
+- Trunk 安装失败：
+
+    确保你已经安装了 openssl 的开发包。例如，Ubuntu 上的 libssl-dev 或 Fedora 上的 openssl-devel。
