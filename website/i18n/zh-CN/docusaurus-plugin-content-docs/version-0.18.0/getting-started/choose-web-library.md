@@ -52,7 +52,7 @@ window.alert("hello from wasm!");
 <table>
   <thead>
     <tr>
-      <th style={{ textAlign: "left" }}></th></th>
+      <th style={{ textAlign: "left" }}></th>
       <th style={{ textAlign: "left" }}></th>
 <code>web-sys</code>
       </th>
