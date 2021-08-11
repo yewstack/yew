@@ -53,11 +53,9 @@ window.alert("hello from wasm!");
   <thead>
     <tr>
       <th style={{ textAlign: "left" }}></th>
-      <th style={{ textAlign: "left" }}></th>
-<code>web-sys</code>
+      <th style={{ textAlign: "left" }}><code>web-sys</code>
       </th>
-      <th style={{ textAlign: "left" }}></th>
-<code>stdweb</code>
+      <th style={{ textAlign: "left" }}><code>stdweb</code>
       </th>
     </tr>
   </thead>
