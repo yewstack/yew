@@ -16,7 +16,9 @@ yew = { version = "0.17", package = "yew-stdweb" }
 
 我们建议选择 `web-sys`，因为它是由 [Rust / Wasm 工作组](https://rustwasm.github.io/) 提供支持。
 
-:::warning Yew 对`stdweb`的支持将会停留在v0.18 。它仍然接受补丁修复，但不会添加新功能。见[#1569](https://github.com/yewstack/yew/issues/1569) :::
+:::warning 
+Yew 对`stdweb`的支持将会停留在v0.18 。它仍然接受补丁修复，但不会添加新功能。见[#1569](https://github.com/yewstack/yew/issues/1569) 
+:::
 
 ## 示例用法
 
@@ -50,35 +52,35 @@ window.alert("hello from wasm!");
 <table>
   <thead>
     <tr>
-      <th style="{{" textalign:></th>
-      <th style="{{" textalign:>
+      <th style={{ textAlign: "left" }}></th></th>
+      <th style={{ textAlign: "left" }}></th>
 <code>web-sys</code>
       </th>
-      <th style="{{" textalign:>
+      <th style={{ textAlign: "left" }}></th>
 <code>stdweb</code>
       </th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td style="{{" textalign:>项目状态</td>
-      <td style="{{" textalign:>由 <a href="https://rustwasm.github.io/">Rust / Wasm 工作组</a>积极维护</td>
-      <td style="{{" textalign:>超过八个月没有任何Github活动</td>
+      <td style={{ textAlign: "left" }}>项目状态</td>
+      <td style={{ textAlign: "left" }}>由 <a href="https://rustwasm.github.io/">Rust / Wasm 工作组</a>积极维护</td>
+      <td style={{ textAlign: "left" }}>超过八个月没有任何Github活动</td>
     </tr>
     <tr>
-      <td style="{{" textalign:>Web API 覆盖率</td>
-      <td style="{{" textalign:>Rust API 是根据 Web IDL 规范自动生成的</td>
-      <td style="{{" textalign:>浏览器 API 是根据需求由社区添加</td>
+      <td style={{ textAlign: "left" }}>Web API 覆盖率</td>
+      <td style={{ textAlign: "left" }}>Rust API 是根据 Web IDL 规范自动生成的</td>
+      <td style={{ textAlign: "left" }}>浏览器 API 是根据需求由社区添加</td>
     </tr>
     <tr>
-      <td style="{{" textalign:>Rust API 设计</td>
-      <td style="{{" textalign:>采取保守的方法，为大多数 API 调用返回 <code>Result</code>
+      <td style={{ textAlign: "left" }}>Rust API 设计</td>
+      <td style={{ textAlign: "left" }}>采取保守的方法，为大多数 API 调用返回 <code>Result</code>
 </td>
-      <td style="{{" textalign:>通常不会返回<code>Result</code>而更倾向于使用 panic。例如，在 worker 中调用 <code>stdweb::web::window()</code>将 panic。</td>
+      <td style={{ textAlign: "left" }}>通常不会返回<code>Result</code>而更倾向于使用 panic。例如，在 worker 中调用 <code>stdweb::web::window()</code>将 panic。</td>
     </tr>
     <tr>
-      <td style="{{" textalign:>支持的构建工具</td>
-      <td style="{{" textalign:>
+      <td style={{ textAlign: "left" }}>支持的构建工具</td>
+      <td style={{ textAlign: "left" }}>
         <p></p>
         <ul>
           <li>
@@ -89,7 +91,7 @@ window.alert("hello from wasm!");
           </li>
         </ul>
       </td>
-      <td style="{{" textalign:>
+      <td style={{ textAlign: "left" }}>
         <p></p>
         <ul>
           <li>
@@ -99,15 +101,15 @@ window.alert("hello from wasm!");
       </td>
     </tr>
     <tr>
-      <td style="{{" textalign:>支持生成的目标代码</td>
-      <td style="{{" textalign:>
+      <td style={{ textAlign: "left" }}>支持生成的目标代码</td>
+      <td style={{ textAlign: "left" }}>
         <ul>
           <li>
 <code>wasm32-unknown-unknown</code>
           </li>
         </ul>
       </td>
-      <td style="{{" textalign:>
+      <td style={{ textAlign: "left" }}>
         <ul>
           <li>
 <code>wasm32-unknown-unknown</code>
