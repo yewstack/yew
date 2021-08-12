@@ -279,7 +279,7 @@ pub use web_sys;
 
 /// The module that contains all events available in the framework.
 pub mod events {
-    pub use crate::html::{ChangeData, InputData};
+    pub use crate::html::TypedTarget;
 
     #[doc(no_inline)]
     pub use web_sys::{
