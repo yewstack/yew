@@ -2,7 +2,7 @@ use crate::Client;
 use yew::{
     classes, html,
     web_sys::{Event, HtmlInputElement, HtmlTextAreaElement},
-    Callback, Component, ComponentLink, Html, Properties, ShouldRender, TypedTarget,
+    Callback, Component, ComponentLink, Html, Properties, ShouldRender, TargetCast,
 };
 
 #[derive(Debug)]

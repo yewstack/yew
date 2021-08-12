@@ -1,7 +1,7 @@
 use std::cell::Cell;
 use yew::{
     html, web_sys::HtmlInputElement, Callback, Component, ComponentLink, Html, InputEvent,
-    Properties, ShouldRender, TypedTarget,
+    Properties, ShouldRender, TargetCast,
 };
 
 thread_local! {

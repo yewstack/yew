@@ -12,7 +12,7 @@ pub use events::*;
 ///
 /// The methods in this trait are convenient helpers that use the [`JsCast`] trait internally
 /// to do the conversion.
-pub trait TypedTarget
+pub trait TargetCast
 where
     Self: AsRef<Event>,
 {
@@ -60,7 +60,7 @@ where
     /// # }
     /// ```
     /// _Note: if you can apply the [`Callback`] directly onto an element which doesn't have a child
-    /// consider using [`TypedTarget::target_unchecked_into<T>`]_
+    /// consider using [`TargetCast::target_unchecked_into<T>`]_
     #[inline]
     fn target_dyn_into<T>(&self) -> Option<T>
     where
@@ -123,7 +123,7 @@ where
     }
 }
 
-impl<E: AsRef<Event>> TypedTarget for E {}
+impl<E: AsRef<Event>> TargetCast for E {}
 
 /// A trait similar to `Into<T>` which allows conversion of a value into a [`Callback`].
 /// This is used for event listeners.

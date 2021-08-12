@@ -3,7 +3,7 @@ use state::{Entry, Filter, State};
 use strum::IntoEnumIterator;
 use yew::web_sys::HtmlInputElement as InputElement;
 use yew::{
-    classes, html, Component, ComponentLink, FocusEvent, Html, NodeRef, ShouldRender, TypedTarget,
+    classes, html, Component, ComponentLink, FocusEvent, Html, NodeRef, ShouldRender, TargetCast,
 };
 use yew::{events::KeyboardEvent, Classes};
 

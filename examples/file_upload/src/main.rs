@@ -1,5 +1,5 @@
 use web_sys::{Event, HtmlInputElement};
-use yew::{html, html::TypedTarget, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, html::TargetCast, Component, ComponentLink, Html, ShouldRender};
 
 use gloo::file::callbacks::FileReader;
 use gloo::file::File;
