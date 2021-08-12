@@ -2,7 +2,9 @@ use gloo::storage::{LocalStorage, Storage};
 use state::{Entry, Filter, State};
 use strum::IntoEnumIterator;
 use yew::web_sys::HtmlInputElement as InputElement;
-use yew::{classes, html, Component, ComponentLink, Html, InputData, NodeRef, ShouldRender};
+use yew::{
+    classes, html, Component, ComponentLink, FocusEvent, Html, NodeRef, ShouldRender, TypedTarget,
+};
 use yew::{events::KeyboardEvent, Classes};
 
 mod state;
@@ -10,10 +12,8 @@ mod state;
 const KEY: &str = "yew.todomvc.self";
 
 pub enum Msg {
-    Add,
-    Edit(usize),
-    Update(String),
-    UpdateEdit(String),
+    Add(String),
+    Edit((usize, String)),
     Remove(usize),
     SetFilter(Filter),
     ToggleAll,
@@ -38,7 +38,6 @@ impl Component for Model {
         let state = State {
             entries,
             filter: Filter::All,
-            value: "".into(),
             edit_value: "".into(),
         };
         let focus_ref = NodeRef::default();
@@ -51,30 +50,19 @@ impl Component for Model {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::Add => {
-                let description = self.state.value.trim();
+            Msg::Add(description) => {
                 if !description.is_empty() {
                     let entry = Entry {
-                        description: description.to_string(),
+                        description: description.trim().to_string(),
                         completed: false,
                         editing: false,
                     };
                     self.state.entries.push(entry);
                 }
-                self.state.value = "".to_string();
             }
-            Msg::Edit(idx) => {
-                let edit_value = self.state.edit_value.trim().to_string();
-                self.state.complete_edit(idx, edit_value);
+            Msg::Edit((idx, edit_value)) => {
+                self.state.complete_edit(idx, edit_value.trim().to_string());
                 self.state.edit_value = "".to_string();
-            }
-            Msg::Update(val) => {
-                println!("Input: {}", val);
-                self.state.value = val;
-            }
-            Msg::UpdateEdit(val) => {
-                println!("Input: {}", val);
-                self.state.edit_value = val;
             }
             Msg::Remove(idx) => {
                 self.state.remove(idx);
@@ -180,17 +168,23 @@ impl Model {
     }
 
     fn view_input(&self) -> Html {
+        let onkeypress = self.link.batch_callback(|e: KeyboardEvent| {
+            if e.key() == "Enter" {
+                let input: InputElement = e.target_unchecked_into();
+                let value = input.value();
+                input.set_value("");
+                Some(Msg::Add(value))
+            } else {
+                None
+            }
+        });
         html! {
             // You can use standard Rust comments. One line:
             // <li></li>
             <input
                 class="new-todo"
                 placeholder="What needs to be done?"
-                value={self.state.value.clone()}
-                oninput={self.link.callback(|e: InputData| Msg::Update(e.value))}
-                onkeypress={self.link.batch_callback(|e: KeyboardEvent| {
-                    if e.key() == "Enter" { Some(Msg::Add) } else { None }
-                })}
+                {onkeypress}
             />
             /* Or multiline:
             <ul>
@@ -226,6 +220,20 @@ impl Model {
     }
 
     fn view_entry_edit_input(&self, (idx, entry): (usize, &Entry)) -> Html {
+        let edit = move |input: InputElement| {
+            let value = input.value();
+            input.set_value("");
+            Msg::Edit((idx, value))
+        };
+
+        let onblur = self
+            .link
+            .callback(move |e: FocusEvent| edit(e.target_unchecked_into()));
+
+        let onkeypress = self.link.batch_callback(move |e: KeyboardEvent| {
+            (e.key() == "Enter").then(|| edit(e.target_unchecked_into()))
+        });
+
         if entry.editing {
             html! {
                 <input
@@ -234,11 +242,8 @@ impl Model {
                     ref={self.focus_ref.clone()}
                     value={self.state.edit_value.clone()}
                     onmouseover={self.link.callback(|_| Msg::Focus)}
-                    oninput={self.link.callback(|e: InputData| Msg::UpdateEdit(e.value))}
-                    onblur={self.link.callback(move |_| Msg::Edit(idx))}
-                    onkeypress={self.link.batch_callback(move |e: KeyboardEvent| {
-                        if e.key() == "Enter" { Some(Msg::Edit(idx)) } else { None }
-                    })}
+                    {onblur}
+                    {onkeypress}
                 />
             }
         } else {

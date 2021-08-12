@@ -1,6 +1,8 @@
 use wasm_bindgen::JsValue;
-use web_sys::{CanvasRenderingContext2d, Document, HtmlCanvasElement};
-use yew::{html, Component, ComponentLink, Html, InputData, ShouldRender};
+use web_sys::{
+    CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlInputElement, InputEvent,
+};
+use yew::{html, Component, ComponentLink, Html, ShouldRender, TypedTarget};
 
 pub enum Msg {
     UpdateName(String),
@@ -40,7 +42,10 @@ impl Component for Model {
             <div>
                 <input
                     value={self.name.clone()}
-                    oninput={self.link.callback(|e: InputData| Msg::UpdateName(e.value))}
+                    oninput={self.link.callback(|e: InputEvent| {
+                        let input = e.target_unchecked_into::<HtmlInputElement>();
+                        Msg::UpdateName(input.value())
+                    })}
                 />
                 <p>{ self.name.chars().rev().collect::<String>() }</p>
             </div>
