@@ -3,7 +3,7 @@ mod macros;
 mod events;
 
 use wasm_bindgen::JsCast;
-use web_sys::{Event, HtmlElement};
+use web_sys::{Event, EventTarget};
 
 use crate::Callback;
 pub use events::*;
@@ -64,7 +64,7 @@ where
     #[inline]
     fn target_dyn_into<T>(&self) -> Option<T>
     where
-        T: AsRef<HtmlElement> + JsCast,
+        T: AsRef<EventTarget> + JsCast,
     {
         self.as_ref()
             .target()
@@ -117,7 +117,7 @@ where
     #[inline]
     fn target_unchecked_into<T>(&self) -> T
     where
-        T: AsRef<HtmlElement> + JsCast,
+        T: AsRef<EventTarget> + JsCast,
     {
         self.as_ref().target().unwrap().unchecked_into()
     }
