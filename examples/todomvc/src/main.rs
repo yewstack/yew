@@ -212,7 +212,7 @@ impl Model {
                     <label ondblclick={link.callback(move |_| Msg::ToggleEdit(idx))}>{ &entry.description }</label>
                     <button class="destroy" onclick={link.callback(move |_| Msg::Remove(idx))} />
                 </div>
-                { self.view_entry_edit_input((idx, &entry), link) }
+                { self.view_entry_edit_input((idx, entry), link) }
             </li>
         }
     }

@@ -33,7 +33,7 @@ impl Component for Model {
                 // it into it's own function rather than keeping it inline in the update match
                 // case. This also allows for updating other UI elements that may be rendered in
                 // the DOM like a framerate counter, or other overlaid textual elements.
-                self.render_gl(timestamp, &ctx.link());
+                self.render_gl(timestamp, ctx.link());
                 false
             }
         }

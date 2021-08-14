@@ -173,7 +173,7 @@ impl Component for Model {
                     let cells = cellules
                         .iter()
                         .enumerate()
-                        .map(|(x, cell)| self.view_cellule(idx_offset + x, cell, &ctx.link()));
+                        .map(|(x, cell)| self.view_cellule(idx_offset + x, cell, ctx.link()));
                     html! {
                         <div key={y} class="game-row">
                             { for cells }
