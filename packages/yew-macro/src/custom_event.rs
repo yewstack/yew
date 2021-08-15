@@ -83,6 +83,12 @@ pub fn custom_event_impl(name: CustomEventName, custom_event: CustomEvent) -> To
             }
         }
 
+        impl ::std::convert::AsRef<::yew::web_sys::Event> for #ident {
+            fn as_ref(&self) -> &::yew::web_sys::Event {
+                &self.0
+            }
+        }
+
         impl ::std::convert::AsRef<::wasm_bindgen::JsValue> for #ident {
             fn as_ref(&self) -> &::wasm_bindgen::JsValue {
                 &self.0
@@ -118,7 +124,7 @@ pub fn custom_event_impl(name: CustomEventName, custom_event: CustomEvent) -> To
         #[doc(hidden)]
         #vis type #event_ident = #ident;
 
-        impl ::yew::CustomEventHandler for #ident {
+        impl ::yew::EventMeta for #ident {
             type Event = Self;
 
             fn event_name() -> &'static str {

@@ -104,20 +104,20 @@ impl_action! {
 
 use wasm_bindgen::JsCast;
 
-/// A trait to define custom event handling within the [`html`](crate::html!) macro
-pub trait CustomEventHandler {
-    /// Type of the custom event
+/// A trait to define event meta data statically.
+pub trait EventMeta {
+    /// Type of the event
     ///
     /// Event type must implement [`JsCast`] so that Yew can cast it to the correct type.
-    type Event: JsCast + 'static;
+    type Event: AsRef<web_sys::Event> + JsCast + 'static;
 
-    /// Name of the custom event
+    /// Name of the event
     fn event_name() -> &'static str;
 }
 
 #[doc(hidden)]
 pub mod oncustom {
-    use super::CustomEventHandler;
+    use super::EventMeta;
     use crate::callback::Callback;
     use crate::html::IntoPropValue;
     use crate::virtual_dom::Listener;
@@ -128,11 +128,11 @@ pub mod oncustom {
 
     /// A wrapper for a callback which attaches event listeners to elements.
     #[derive(Clone, Debug)]
-    pub struct Wrapper<T: CustomEventHandler> {
+    pub struct Wrapper<T: EventMeta> {
         callback: Callback<T::Event>,
     }
 
-    impl<T: CustomEventHandler + 'static> Wrapper<T> {
+    impl<T: EventMeta + 'static> Wrapper<T> {
         /// Create a wrapper for an event-typed callback
         pub fn new(callback: Callback<T::Event>) -> Self {
             Wrapper { callback }
@@ -148,9 +148,9 @@ pub mod oncustom {
         }
     }
 
-    impl<T: CustomEventHandler> Listener for Wrapper<T> {
+    impl<T: EventMeta> Listener for Wrapper<T> {
         fn kind(&self) -> &'static str {
-            stringify!($action)
+            T::event_name()
         }
 
         fn attach(&self, element: &Element) -> EventListener {
