@@ -113,7 +113,7 @@ jobs:
     strategy:
       matrix:
         toolchain:
-          # - 1.49.0 # MSRV
+          - 1.49.0 # MSRV
           - stable
 
     steps:

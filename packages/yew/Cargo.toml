@@ -14,6 +14,7 @@ readme = "../README.md"
 keywords = ["web", "webasm", "javascript"]
 categories = ["gui", "wasm", "web-programming"]
 description = "A framework for making client-side single-page apps"
+rust = "1.49"
 
 [dependencies]
 anyhow = "1"

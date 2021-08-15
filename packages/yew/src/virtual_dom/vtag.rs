@@ -1028,6 +1028,10 @@ mod tests {
 
         // check whether not changed virtual dom value has been set to the input element
         assert_eq!(current_value, "User input");
+
+        // Need to remove the element to clean up the dirty state of the DOM. Failing this causes
+        // event listener tests to fail.
+        parent.remove();
     }
 
     #[test]
