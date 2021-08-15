@@ -12,7 +12,9 @@ description: 用于生成 HTML 和 SVG 的宏程序
 2. 空的 `html! {}` 宏调用是有效的但不会渲染任何内容
 3. 常量必须始终被引号括起来并被包含在大括号里：`html! { "Hello, World" }`
 
-:::note `html!`宏可以轻松达到编译器的默认递归限制。如果遇到编译错误，建议增大其值。在根 crate 使用这样的属性`#![recursion_limit="1024"]` 处理这个问题。 :::
+:::note
+`html!`宏可以轻松达到编译器的默认递归限制。如果遇到编译错误，建议增大其值。在根 crate 使用这样的属性`#![recursion_limit="1024"]` 处理这个问题。
+:::
 
 ## 标签结构
 
@@ -56,7 +58,9 @@ html! {
 
 <!--END_DOCUSAURUS_CODE_TABS-->
 
-:::tip 为方便起见，*通常*需要关闭标签的元素**可以**自行关闭。比如这样写`html! { <div class="placeholder" /> }`是有效的。 :::
+:::tip
+为方便起见，*通常*需要关闭标签的元素**可以**自行关闭。比如这样写`html! { <div class="placeholder" /> }`是有效的。
+:::
 
 ## Children
 
@@ -111,12 +115,14 @@ html! {
 
 ## 特殊属性
 
-有一些特殊的属性不会直接影响 DOM，而是充当 Yew 虚拟 DOM 的指令。目前，有这样两个特殊的props： `ref`和`key` 。
+有一些特殊的属性不会直接影响 DOM，而是充当 Yew 虚拟 DOM 的指令。目前，有这样两个特殊的 props： `ref`和`key` 。
 
 `ref`允许您直接访问和操作底层 DOM 节点。见[参考文献](components/refs)获取的更多细节。
 
 `key`为元素提供了一个唯一标识符，Yew 可以将其用于优化。
 
-:::important 关于key的文档尚未编写。见[#1263](https://github.com/yewstack/yew/issues/1263) 。
+:::important
+关于 key 的文档尚未编写。见[#1263](https://github.com/yewstack/yew/issues/1263) 。
 
-目前来说，当您有一个内部元素会发生位置变化的列表时，请使用key。比如在除了列表尾部的任何位置插入或删除元素。 :::
+目前来说，当您有一个内部元素会发生位置变化的列表时，请使用 key。比如在除了列表尾部的任何位置插入或删除元素。
+:::

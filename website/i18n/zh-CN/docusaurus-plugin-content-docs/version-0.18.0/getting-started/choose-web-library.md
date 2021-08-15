@@ -1,22 +1,28 @@
-# 选择 web-sys 还是 stdweb
+---
+title: 选择一个web库
+---
 
 ## 简介
 
 Yew 应用程序可以通过 [`web-sys`](https://docs.rs/web-sys) 或者 [`stdweb`](https://docs.rs/stdweb) 来构建。这两个 crates 提供了 Rust 和 Web API 之间的绑定。当把 `yew` 添加到你的 cargo 依赖时，你需要选择它们其中之一：
 
-{% code title="Cargo.toml" %}
-```rust
+```toml
 # 选择 `web-sys`
-yew = { version = "0.13", features = ["web_sys"] }
+yew = "0.17"
 
 # 选择 `stdweb`
-yew = { version = "0.13", features = ["std_web"] }
+yew = { version = "0.17", package = "yew-stdweb" }
 ```
-{% endcode %}
 
 我们建议选择 `web-sys`，因为它是由 [Rust / Wasm 工作组](https://rustwasm.github.io/) 提供支持。
 
+:::warning 
+Yew 对`stdweb`的支持将会停留在v0.18 。它仍然接受补丁修复，但不会添加新功能。见[#1569](https://github.com/yewstack/yew/issues/1569) 
+:::
+
 ## 示例用法
+
+此示例说明了这两个库在使用中的差异。你不需要自己再运行一遍这个。
 
 ```rust
 // web-sys
@@ -41,7 +47,7 @@ window.alert("hello from wasm!");
 
 ## 选择其中之一
 
-当为你的应用程序选择使用 `web-sys` 还是 `stdweb` 时，有几个不同的角度需要考虑。注意，可以在一个应用程序中同时使用两者，但是为了最小化编译的 `.wasm` 二进制体积，最好选择其中之一。
+当你在`web-sys`与`stdweb`之间摇摆不定时，参考以下几个不同的角度进行考虑。请注意，可以在一个应用程序中同时使用这两种方法，但要最小化已编译 crate 的二进制大小，最好仅使用两者之一。
 
 <table>
   <thead>
@@ -55,67 +61,65 @@ window.alert("hello from wasm!");
   </thead>
   <tbody>
     <tr>
-      <td style={{ textAlign: "left" }}>&#x9879;&#x76EE;&#x72B6;&#x6001;</td>
-      <td style={{ textAlign: "left" }}>&#x7531;<a href="https://rustwasm.github.io/">Rust / Wasm &#x5DE5;&#x4F5C;&#x7EC4;</a>&#x79EF;&#x6781;&#x7EF4;&#x62A4;</td>
-      <td
-      style={{ textAlign: "left" }}>&#x8D85;&#x8FC7;&#x56DB;&#x4E2A;&#x6708;&#x6CA1;&#x6709; Github &#x6D3B;&#x52A8;</td>
+      <td style={{ textAlign: "left" }}>项目状态</td>
+      <td style={{ textAlign: "left" }}>由 <a href="https://rustwasm.github.io/">Rust / Wasm 工作组</a>积极维护</td>
+      <td style={{ textAlign: "left" }}>超过八个月没有任何Github活动</td>
     </tr>
     <tr>
-      <td style={{ textAlign: "left" }}>Web API &#x8986;&#x76D6;&#x7387;</td>
-      <td style={{ textAlign: "left" }}>Rust API &#x662F;&#x4ECE; Web IDL &#x89C4;&#x8303;&#x81EA;&#x52A8;&#x751F;&#x6210;&#xFF0C;&#x56E0;&#x6B64;&#x7406;&#x8BBA;&#x4E0A;&#x6709;
-        100% &#x7684;&#x8986;&#x76D6;&#x7387;&#x3002;</td>
-      <td style={{ textAlign: "left" }}>&#x6D4F;&#x89C8;&#x5668; API &#x662F;&#x6839;&#x636E;&#x9700;&#x6C42;&#x7531;&#x793E;&#x533A;&#x6DFB;&#x52A0;</td>
+      <td style={{ textAlign: "left" }}>Web API 覆盖率</td>
+      <td style={{ textAlign: "left" }}>Rust API 是根据 Web IDL 规范自动生成的</td>
+      <td style={{ textAlign: "left" }}>浏览器 API 是根据需求由社区添加</td>
     </tr>
     <tr>
-      <td style={{ textAlign: "left" }}>Rust API &#x8BBE;&#x8BA1;</td>
-      <td style={{ textAlign: "left" }}>&#x91C7;&#x53D6;&#x4FDD;&#x5B88;&#x7684;&#x65B9;&#x6CD5;&#xFF0C;&#x4E3A;&#x5927;&#x591A;&#x6570;
-        API &#x8C03;&#x7528;&#x8FD4;&#x56DE; <code>Result</code>
-      </td>
-      <td style={{ textAlign: "left" }}>&#x901A;&#x5E38;&#x62D2;&#x7EDD;&#x8FD4;&#x56DE; <code>Result</code> &#x800C;&#x66F4;&#x503E;&#x5411;&#x4E8E;&#x4F7F;&#x7528;
-        panic&#x3002;&#x4F8B;&#x5982;&#xFF0C;&#x5728; worker &#x4E2D;&#x8C03;&#x7528; <code>stdweb::web::window()</code> &#x5C06;
-        panic&#x3002;</td>
+      <td style={{ textAlign: "left" }}>Rust API 设计</td>
+      <td style={{ textAlign: "left" }}>采取保守的方法，为大多数 API 调用返回 <code>Result</code>
+</td>
+      <td style={{ textAlign: "left" }}>通常不会返回<code>Result</code>而更倾向于使用 panic。例如，在 worker 中调用 <code>stdweb::web::window()</code>将 panic。</td>
     </tr>
     <tr>
-      <td style={{ textAlign: "left" }}>&#x652F;&#x6301;&#x7684;&#x6784;&#x5EFA;&#x5DE5;&#x5177;</td>
+      <td style={{ textAlign: "left" }}>支持的构建工具</td>
       <td style={{ textAlign: "left" }}>
+        <p></p>
         <ul>
-          <li><code>wasm-bindgen</code>
+          <li>
+<code>trunk</code>
           </li>
-          <li><code>wasm-pack</code>
+          <li>
+<code>wasm-pack</code>
           </li>
         </ul>
       </td>
       <td style={{ textAlign: "left" }}>
+        <p></p>
         <ul>
-          <li><code>cargo-web</code>
-          </li>
-          <li><code>wasm-bindgen</code>
-          </li>
-          <li><code>wasm-pack</code>
+          <li>
+<code>cargo-web</code>
           </li>
         </ul>
       </td>
     </tr>
     <tr>
-      <td style={{ textAlign: "left" }}>&#x652F;&#x6301;&#x751F;&#x6210;&#x7684;&#x76EE;&#x6807;&#x4EE3;&#x7801;</td>
-      <td
-      style={{ textAlign: "left" }}>
+      <td style={{ textAlign: "left" }}>支持生成的目标代码</td>
+      <td style={{ textAlign: "left" }}>
         <ul>
-          <li><code>wasm32-unknown-unknown</code>
+          <li>
+<code>wasm32-unknown-unknown</code>
           </li>
         </ul>
-        </td>
-        <td style={{ textAlign: "left" }}>
-          <ul>
-            <li><code>wasm32-unknown-unknown</code>
-            </li>
-            <li><code>wasm32-unknown-emscripten</code>
-            </li>
-            <li><code>asmjs-unknown-emscripten</code>
-            </li>
-          </ul>
-        </td>
+      </td>
+      <td style={{ textAlign: "left" }}>
+        <ul>
+          <li>
+<code>wasm32-unknown-unknown</code>
+          </li>
+          <li>
+<code>wasm32-unknown-emscripten</code>
+          </li>
+          <li>
+<code>asmjs-unknown-emscripten</code>
+          </li>
+        </ul>
+      </td>
     </tr>
   </tbody>
-</table>有关更多挑选构建工具的信息，请参阅 [Wasm 构建工具](project-setup/#wasm-build-tools) 指南。
-
+</table>
