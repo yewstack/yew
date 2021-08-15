@@ -517,17 +517,16 @@ impl Registry {
     }
 }
 
-#[cfg(all(test, feature = "wasm_test", listener_tests))]
+#[cfg(all(test, feature = "wasm_test"))]
 mod tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     wasm_bindgen_test_configure!(run_in_browser);
 
     use crate::{
-        callback::{Flags, DEFER, HANDLE_BUBBLED, NO_FLAGS, PASSIVE},
         html,
-        html::listener::{ChangeData, InputData},
+        html::{ChangeData, InputData},
         utils::document,
-        App, Component, ComponentLink, Html,
+        AppHandle, Component, ComponentLink, Html,
     };
     use wasm_bindgen::JsCast;
     use wasm_bindgen_futures::JsFuture;
@@ -548,7 +547,9 @@ mod tests {
     }
 
     trait Mixin {
-        fn flags() -> Flags;
+        fn passive() -> Option<bool> {
+            None
+        }
 
         fn view<C>(link: &ComponentLink<C>, state: &State) -> Html
         where
@@ -560,7 +561,7 @@ mod tests {
                 }
             } else {
                 html! {
-                    <a onclick=link.callback_with_flags(Self::flags(), |_| Message::Click)>
+                    <a onclick={link.callback_with_passive(Self::passive(), |_| Message::Click)}>
                         {state.clicked}
                     </a>
                 }
@@ -630,7 +631,7 @@ mod tests {
             .unwrap()
     }
 
-    fn init<M>(tag: &str) -> (ComponentLink<Comp<M>>, web_sys::HtmlElement)
+    fn init<M>(tag: &str) -> (AppHandle<Comp<M>>, web_sys::HtmlElement)
     where
         M: Mixin,
     {
@@ -642,20 +643,16 @@ mod tests {
 
         let root = document().create_element("div").unwrap();
         document().body().unwrap().append_child(&root).unwrap();
-        let link = App::<Comp<M>>::new().mount(root);
+        let app = crate::start_app_in_element::<Comp<M>>(root);
 
-        (link, get_el_by_tag(tag))
+        (app, get_el_by_tag(tag))
     }
 
     #[test]
     fn synchronous() {
         struct Synchronous();
 
-        impl Mixin for Synchronous {
-            fn flags() -> Flags {
-                NO_FLAGS
-            }
-        }
+        impl Mixin for Synchronous {}
 
         let (link, el) = init::<Synchronous>("a");
 
@@ -687,8 +684,8 @@ mod tests {
         struct Passive();
 
         impl Mixin for Passive {
-            fn flags() -> Flags {
-                PASSIVE
+            fn passive() -> Option<bool> {
+                Some(true)
             }
         }
 
@@ -721,10 +718,6 @@ mod tests {
         struct Bubbling();
 
         impl Mixin for Bubbling {
-            fn flags() -> Flags {
-                HANDLE_BUBBLED
-            }
-
             fn view<C>(link: &ComponentLink<C>, state: &State) -> Html
             where
                 C: Component<Message = Message>,
@@ -738,10 +731,10 @@ mod tests {
                         </div>
                     }
                 } else {
-                    let cb = link.callback_with_flags(Self::flags(), |_| Message::Click);
+                    let cb = link.callback(|_| Message::Click);
                     html! {
-                        <div onclick=cb.clone()>
-                            <a onclick=cb>
+                        <div onclick={cb.clone()}>
+                            <a onclick={cb}>
                                 {state.clicked}
                             </a>
                         </div>
@@ -765,19 +758,6 @@ mod tests {
         assert_count(&el, 4);
     }
 
-    #[test]
-    async fn deferred() {
-        struct Deferred();
-
-        impl Mixin for Deferred {
-            fn flags() -> Flags {
-                DEFER
-            }
-        }
-
-        assert_async::<Deferred>().await;
-    }
-
     fn test_input_listener<E>(make_event: impl Fn() -> E)
     where
         E: JsCast + std::fmt::Debug,
@@ -785,10 +765,6 @@ mod tests {
         struct Input();
 
         impl Mixin for Input {
-            fn flags() -> Flags {
-                NO_FLAGS
-            }
-
             fn view<C>(link: &ComponentLink<C>, state: &State) -> Html
             where
                 C: Component<Message = Message>,
@@ -805,16 +781,14 @@ mod tests {
                         <div>
                             <input
                                 type="text"
-                                onchange=link
-                                    .callback_with_flags(Self::flags(), |d: ChangeData| match d {
-                                        ChangeData::Value(s) => Message::SetText(s),
-                                        _ => Message::NOP,
-                                    })
-                                oninput=link
-                                    .callback_with_flags(Self::flags(), |InputData { value, .. }| {
-                                        Message::SetText(value)
-                                    })
-                                />
+                                onchange={link.callback(|d: ChangeData| match d {
+                                    ChangeData::Value(s) => Message::SetText(s),
+                                    _ => Message::NOP,
+                                })}
+                                oninput={link.callback(|InputData { value, .. }| {
+                                    Message::SetText(value)
+                                })}
+                            />
                             <p>{state.text.clone()}</p>
                         </div>
                     }

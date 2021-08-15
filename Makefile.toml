@@ -81,11 +81,6 @@ private = true
 workspace = true
 dependencies = ["doc-test"]
 
-# TODO: port event listener tets and make them a dep of pr-flow
-# # Event listener tests have to be run in their own `wasm-pack test` invocation or they won't work.
-# RUSTFLAGS="--cfg  listener_tests" wasm-pack test "${test_flags[@]}" -- \
-# --features "${test_features}" yew::html::listener::registry &&
-
 [tasks.doc-test]
 private = true
 command = "cargo"
