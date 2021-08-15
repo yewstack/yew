@@ -113,9 +113,8 @@ jobs:
     strategy:
       matrix:
         toolchain:
-          # Works for me on 1.54. Let's see what happens.
+          - 1.53.0 # MSRV
           - stable
-          - 1.49.0 # MSRV
 
     steps:
       - uses: actions/checkout@v2
