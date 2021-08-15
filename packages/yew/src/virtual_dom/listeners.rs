@@ -37,7 +37,7 @@ pub fn set_event_bubbling(bubble: bool) {
     }
 }
 
-/// The `Listener` trait is an universal implementation of an event listener
+/// The [Listener] trait is an universal implementation of an event listener
 /// which is used to bind Rust-listener to JS-listener (DOM).
 pub trait Listener {
     /// Returns the name of the event
@@ -46,7 +46,7 @@ pub trait Listener {
     /// Handles an event firing
     fn handle(&self, event: web_sys::Event);
 
-    /// Makes the event listener passive.
+    /// Makes the event listener passive. See
     /// [addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).
     fn passive(&self) -> bool;
 }
@@ -411,6 +411,7 @@ struct Registry {
 
 impl Registry {
     /// Run f with access to global Registry
+    #[inline]
     fn with<R>(f: impl FnOnce(&mut Registry) -> R) -> R {
         REGISTRY.with(|r| f(&mut *r.borrow_mut()))
     }
