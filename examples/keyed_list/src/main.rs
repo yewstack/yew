@@ -2,7 +2,7 @@ use instant::Instant;
 use person::PersonType;
 use yew::prelude::*;
 use yew::utils::NeqAssign;
-use yew::web_sys::HtmlElement;
+use yew::web_sys::{HtmlElement, HtmlInputElement};
 
 mod person;
 mod random;
@@ -10,7 +10,7 @@ mod random;
 pub enum Msg {
     CreatePersons(usize),
     CreatePersonsPrepend(usize),
-    ChangeRatio(String),
+    ChangeRatio(f64),
     DeletePersonById(usize),
     DeleteEverybody,
     SwapRandom,
@@ -70,7 +70,6 @@ impl Component for Model {
                 true
             }
             Msg::ChangeRatio(ratio) => {
-                let ratio: f64 = ratio.parse().unwrap_or(0.5);
                 if self.build_component_ratio.neq_assign(ratio) {
                     log::info!("Ratio changed: {}", ratio);
                     true
@@ -169,8 +168,10 @@ impl Model {
                             { self.build_component_ratio }
                         </p>
                         <input name="ratio" type="range" class="form-control-range" min="0.0" max="1.0" step="any"
-                            value={self.build_component_ratio.to_string()}
-                            oninput={self.link.callback(|e: InputData| Msg::ChangeRatio(e.value))}
+                            oninput={self.link.callback(|e: InputEvent| {
+                                let input: HtmlInputElement = e.target_unchecked_into();
+                                Msg::ChangeRatio(input.value_as_number())
+                            })}
                         />
                     </div>
                 </div>

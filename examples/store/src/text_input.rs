@@ -1,8 +1,8 @@
+use weblog::web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 pub enum Msg {
-    SetText(String),
-    Submit,
+    Submit(String),
 }
 
 #[derive(Properties, Clone, PartialEq)]
@@ -31,12 +31,7 @@ impl Component for TextInput {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::SetText(text) => {
-                self.text = text;
-                true
-            }
-            Msg::Submit => {
-                let text = std::mem::replace(&mut self.text, self.props.value.clone());
+            Msg::Submit(text) => {
                 self.props.onsubmit.emit(text);
                 true
             }
@@ -54,15 +49,23 @@ impl Component for TextInput {
     }
 
     fn view(&self) -> Html {
+        let onkeydown = self.link.batch_callback(|e: KeyboardEvent| {
+            e.stop_propagation();
+            if e.key() == "Enter" {
+                let input: HtmlInputElement = e.target_unchecked_into();
+                let value = input.value();
+                input.set_value("");
+                Some(Msg::Submit(value))
+            } else {
+                None
+            }
+        });
+
         html! {
             <input
+                placeholder={self.props.value.clone()}
                 type="text"
-                value={self.text.clone()}
-                oninput={self.link.callback(|e: InputData| Msg::SetText(e.value))}
-                onkeydown={self.link.batch_callback(move |e: KeyboardEvent| {
-                    e.stop_propagation();
-                    if e.key() == "Enter" { Some(Msg::Submit) } else { None }
-                })}
+                {onkeydown}
             />
         }
     }
