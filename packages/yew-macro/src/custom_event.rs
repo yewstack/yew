@@ -9,7 +9,8 @@ pub struct CustomEvent {
     inner_type: Type,
 }
 
-const CUSTOM_EVENT_MSG: &str = "`custom_event` attribute can only be applied to NewType structs";
+const CUSTOM_EVENT_MSG: &str =
+    "custom_event attribute macro can only be applied to NewType structs";
 
 impl Parse for CustomEvent {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
