@@ -76,23 +76,15 @@ pub fn custom_event_impl(name: CustomEventName, custom_event: CustomEvent) -> To
 
         #base
 
-        impl ::std::ops::Deref for #ident{
-            type Target = #inner_type;
-
-            fn deref(&self) -> &Self::Target {
-                &self.0
-            }
-        }
-
         impl ::std::convert::AsRef<::yew::web_sys::Event> for #ident {
             fn as_ref(&self) -> &::yew::web_sys::Event {
-                &self.0
+                self.0.as_ref()
             }
         }
 
         impl ::std::convert::AsRef<::wasm_bindgen::JsValue> for #ident {
             fn as_ref(&self) -> &::wasm_bindgen::JsValue {
-                &self.0
+                self.0.as_ref()
             }
         }
 

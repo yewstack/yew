@@ -421,7 +421,6 @@ html! {
 #### Traits implemented
 
 The `custom_event` attribute macro implements the following traits:
-- [`Deref`](https://doc.rust-lang.org/std/ops/trait.Deref.html) where `Target` is the type wrapped by this Newtype.
 - [`AsRef<T>`](https://doc.rust-lang.org/std/convert/trait.AsRef.html) where `T` is:
     - [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
     - [`Event`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html)
