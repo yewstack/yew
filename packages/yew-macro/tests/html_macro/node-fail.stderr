@@ -39,6 +39,13 @@ error[E0425]: cannot find value `invalid` in this scope
   |
 7 |     html! { invalid };
   |             ^^^^^^^ not found in this scope
+  |
+help: consider importing one of these items
+  |
+1 | use crate::listener::invalid;
+  |
+1 | use yew::listener::invalid;
+  |
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
  --> $DIR/node-fail.rs:6:13
