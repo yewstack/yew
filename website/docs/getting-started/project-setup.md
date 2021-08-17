@@ -12,7 +12,8 @@ Your local development environment will need a couple of tools to compile, build
 
 To install Rust follow the [official instructions](https://www.rust-lang.org/tools/install).
 
-The minimum supported Rust version for Yew is `1.49.0`. Older versions can cause unexpected issues accompanied by incomprehensible error messages.
+:::important
+The minimum supported Rust version (MSRV) for Yew is `1.49.0`. Older versions can cause unexpected issues accompanied by incomprehensible error messages.
 You can check your toolchain version using `rustup show` (under "active toolchain") or alternatively `rustc --version`. To update your toolchain, run `rustup update`.
 
 ## Install WebAssembly target
