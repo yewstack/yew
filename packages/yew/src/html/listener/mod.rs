@@ -40,7 +40,7 @@ where
     /// fn view(&self, ctx: &Context<Self>) -> Html {
     ///     html! {
     ///         <div
-    ///             onchange={ctx.link().batch_callback(|e: Event| {
+    ///             on:change={ctx.link().batch_callback(|e: Event| {
     ///                 if let Some(input) = e.target_dyn_into::<HtmlTextAreaElement>() {
     ///                     Some(Msg::Value(input.value()))
     ///                 } else {
@@ -96,7 +96,7 @@ where
     /// fn view(&self, ctx: &Context<Self>) -> Html {
     ///     html! {
     ///         <input type="text"
-    ///             onchange={ctx.link().callback(|e: Event| {
+    ///             on:change={ctx.link().callback(|e: Event| {
     ///                 // Safe to use as callback is on an `input` element so this event can
     ///                 // only come from this input!
     ///                 let input: HtmlInputElement = e.target_unchecked_into();
