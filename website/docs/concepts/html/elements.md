@@ -304,18 +304,18 @@ end up using a version which conflicts with the version that Yew specifies.
 | `ontransitionstart`         | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
 
 
-## Custom Events 
+## Custom events
 
-Yew supports custom events by allowing you to implement the `CustomEventHandler` trait for a given
-type. This allows Yew to know what event is expected and the type of the event in Rust for the 
-`html!` macro. 
+Yew supports custom events by allowing you to implement the `StaticEvent` trait for a given
+type. This allows Yew to know what event is expected and the type of the event in Rust for the
+`html!` macro.
 
 ```rust
-use yew::{Callback, CustomEventHandler, html, web_sys::Event};
+use yew::{Callback, StaticEvent, html, web_sys::Event};
 
 struct MyCustomEvent(Event);
 
-impl CustomEventHandler for MyCustomEvent {
+impl StaticEvent for MyCustomEvent {
     type Event = Event;
 
     fn event_name() -> &'static str {
@@ -330,15 +330,19 @@ html! {
     />
 }
 ```
-Implementing the `CustomEventHandler` trait by hand adds boiler plate and in order to use the 
-`MyCustomEvent` type defined in the Callback the `CustomEventHandler::Event` would have to be set to
-`Self` which requires implementing [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html) for `MyCustomEvent` which is not trivial. 
+Implementing the `StaticEvent` trait by hand adds boiler plate and in order to use the
+`MyCustomEvent` type defined in the Callback the `StaticEvent::Event` would have to be set to
+`Self` which requires implementing [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
+and `AsRef<web_sys::Event>` for `MyCustomEvent` which is not trivial.
 
 :::tip
-Imported types using `wasm_bindgen` extern blocks implement `JsCast`.
+Imported types using `wasm_bindgen` extern blocks implement `JsCast`, use
+[extends](https://rustwasm.github.io/wasm-bindgen/reference/attributes/on-js-imports/extends.html)
+on event types
+to automatically implement `AsRef` for `web_sys::Event` to!
 :::
 
-### Custom Event Macro
+### Custom event macro
 
 :::caution
 The `custom_event` macro only accepts tuple structs with a single type and that type **MUST** implement
@@ -348,14 +352,15 @@ The `custom_event` macro requires `wasm_bindgen` to implement `JsCast` for the t
 :::
 
 This is where the `custom_event` attribute macro comes in to implement all the traits required on
-your Newtype (a tuple struct with a single field) and adds a type alias so that you can use the property shorthand with custom events too!
+your Newtype (a tuple struct with a single field) and adds a type alias so that you can use the
+property shorthand with custom events too!
 
 The `custom_event` macro can only be used on a Newtype, where the type within the Newtype implements
 `JsCast`. 
 
-This macro accepts an attribute which binds a Rust name (Ident) to the 
-[type of the event](https://dom.spec.whatwg.org/#interface-event). If the type of the event can be 
-represented as a Rust ident then the shorthand syntax can be used. 
+This macro accepts an attribute which binds a Rust name (Ident) to the
+[type of the event](https://dom.spec.whatwg.org/#interface-event). If the type of the event can be
+represented as a Rust ident then the shorthand syntax can be used.
 
 ```rust title="Shorthand attribute"
 // bind ident to event type `custard`
@@ -380,19 +385,28 @@ html! {
 ```
 
 :::tip
-Event types are case sensitive and contain white spaces. 
+Event types are case sensitive and can contain white spaces.
 
-If your application is not catching custom events then check that the 
-event type matches the value in the `custom_event` attribute!
+If your application is not catching custom events then check that the event type matches the
+value in the `custom_event` attribute!
 :::
 
-Putting it all together: 
+Putting it all together:
 
 ```rust
 use yew::{Callback, macros::custom_event, html, web_sys::Event};
 
 #[custom_event(custom)]
-struct MyCustomEvent(Event);
+pub struct MyCustomEvent(Event);
+
+// The struct can have functions and will be available to the event
+impl MyCustomEvent {
+    // make sure the functions are public so this custom event can used
+    // by other modules or crates!
+    pub fn do_something(&self) {
+        // do something amazing here :)
+    }
+}
 
 // The shorthand works here when the variable name matches the type name
 html! {
@@ -400,19 +414,20 @@ html! {
     <div
         on:{custom}
         // you can still use the struct name if you prefer!
-        on:MyCustomEvent={Callback::from(|e: MyCustomEvent| ())}
+        on:MyCustomEvent={Callback::from(|e: MyCustomEvent| e.do_something())}
     />
 }
 ```
+#### Traits implemented
+
 The `custom_event` attribute macro implements the following traits:
 - [`Deref`](https://doc.rust-lang.org/std/ops/trait.Deref.html) where `Target` is the type wrapped by this Newtype.
-- [`AsRef<T>`](https://doc.rust-lang.org/std/convert/trait.AsRef.html) where `T` is [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html).
+- [`AsRef<T>`](https://doc.rust-lang.org/std/convert/trait.AsRef.html) where `T` is:
+    - [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
+    - [`Event`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html)
 - [`Into<T>`](https://doc.rust-lang.org/std/convert/trait.Into.html) where `T` is [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html).
 - [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
-- `CustomEventHandler` where `Event` is `Self`.
-
-
-
+- `StaticEvent` where `Event` is `Self`.
 
 ## Relevant examples
 - [Inner HTML](https://github.com/yewstack/yew/tree/master/examples/inner_html)
