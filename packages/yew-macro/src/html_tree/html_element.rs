@@ -4,7 +4,7 @@ use crate::stringify::{Stringify, Value};
 use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::{Delimiter, TokenStream};
-use quote::{format_ident, quote, quote_spanned, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
@@ -275,15 +275,14 @@ impl ToTokens for HtmlElement {
                 let mut handler = String::from("on");
                 handler.push_str(&label.name.to_string());
 
+                let ty = &label.name;
                 if is_custom_event_handler(handler) {
-                    let ty = label.name.clone();
                     quote! {
-                        ::yew::html::oncustom::Wrapper::<#ty>::__macro_new(#value)
+                        ::yew::events::listener::Wrapper::<#ty>::__macro_new(#value)
                     }
                 } else {
-                    let handler = format_ident!("on{}", label.name);
                     quote! {
-                        ::yew::html::#handler::Wrapper::__macro_new(#value)
+                        ::yew::events::listener::Wrapper::<::yew::events::listener::#ty>::__macro_new(#value)
                     }
                 }
             });

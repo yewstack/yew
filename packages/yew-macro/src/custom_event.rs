@@ -105,7 +105,7 @@ pub fn custom_event_impl(name: CustomEventName, custom_event: CustomEvent) -> To
 
         impl ::wasm_bindgen::JsCast for #ident {
             fn instanceof(val: &::wasm_bindgen::JsValue) -> bool {
-                <#inner_type as wasm_bindgen::JsCast>::instanceof(val)
+                <#inner_type as ::wasm_bindgen::JsCast>::instanceof(val)
             }
 
             fn unchecked_from_js(val: ::wasm_bindgen::JsValue) -> Self {
@@ -124,7 +124,7 @@ pub fn custom_event_impl(name: CustomEventName, custom_event: CustomEvent) -> To
         #[doc(hidden)]
         #vis type #event_ident = #ident;
 
-        impl ::yew::EventMeta for #ident {
+        impl ::yew::StaticEvent for #ident {
             type Event = Self;
 
             fn event_name() -> &'static str {

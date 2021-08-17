@@ -3,7 +3,8 @@
 mod classes;
 mod component;
 mod conversion;
-mod listener;
+#[doc(hidden)]
+pub mod listener;
 
 pub use classes::*;
 pub use component::*;

@@ -335,7 +335,8 @@ pub use web_sys;
 
 /// The module that contains all events available in the framework.
 pub mod events {
-    pub use crate::html::TargetCast;
+    pub use crate::html::listener;
+    pub use crate::html::{StaticEvent, TargetCast};
 
     #[doc(no_inline)]
     pub use web_sys::{
