@@ -38,7 +38,7 @@ $ cargo install trunk
 
 ## Install wasm-bindgen-cli
 
-Trunk uses a tool called  to perform deployment and packaging, which should be installed using the following command:
+Trunk uses a tool called wasm-bindgen-cli to perform deployment and packaging, which should be installed using the following command:
 
 ```shell
 $ cargo install wasm-bindgen-cli
