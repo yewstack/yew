@@ -37,14 +37,6 @@ See [Wasm Build Tools](./../more/wasm-build-tools.md) for more information on pa
 $ cargo install trunk
 ```
 
-## Install wasm-bindgen-cli
-
-Trunk uses a tool called wasm-bindgen-cli to perform deployment and packaging, which should be installed using the following command:
-
-```shell
-$ cargo install wasm-bindgen-cli
-```
-
 ## Summary
 
 Now that you have all the tools needed, we can [build a sample application](./build-a-sample-app.md).
