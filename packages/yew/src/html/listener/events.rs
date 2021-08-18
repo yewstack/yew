@@ -120,11 +120,12 @@ pub trait StaticEvent {
 }
 
 use crate::callback::Callback;
-use crate::html::IntoPropValue;
 use crate::virtual_dom::Listener;
 use gloo::events::{EventListener, EventListenerOptions};
 use std::rc::Rc;
 use web_sys::{Element, EventTarget};
+
+use super::IntoEventCallback;
 
 /// A wrapper for a callback which attaches event listeners to elements.
 #[derive(Clone, Debug)]
@@ -140,10 +141,8 @@ impl<T: StaticEvent + 'static> Wrapper<T> {
 
     #[doc(hidden)]
     #[inline]
-    pub fn __macro_new(
-        callback: impl IntoPropValue<Option<Callback<T::Event>>>,
-    ) -> Option<Rc<dyn Listener>> {
-        let callback = callback.into_prop_value()?;
+    pub fn __macro_new(callback: impl IntoEventCallback<T::Event>) -> Option<Rc<dyn Listener>> {
+        let callback = callback.into_event_callback()?;
         Some(Rc::new(Self::new(callback)))
     }
 }
