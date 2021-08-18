@@ -52,6 +52,7 @@ impl ToTokens for PropsBuilder<'_> {
         let builder = quote! {
             #(
                 #[doc(hidden)]
+                #[allow(non_camel_case_types)]
                 #vis struct #step_names;
             )*
 
