@@ -22,7 +22,7 @@ You can check your toolchain version using `rustup show` (under "active toolchai
 Rust can compile source codes for different "targets" (e.g. different processors). The compilation target for browser-based WebAssembly is called "wasm32-unknown-unknown".  The following command will add this target to your development environment.
 
 ```shell
-$ rustup target add wasm32-unknown-unknown
+rustup target add wasm32-unknown-unknown
 ```
 
 ## Install Trunk
@@ -34,7 +34,7 @@ See [Wasm Build Tools](./../more/wasm-build-tools.md) for more information on pa
 # note that this might take a while to install, because it compiles everything from scratch
 # Trunk also provides prebuilt binaries for a number of major package managers
 # See https://trunkrs.dev/#install for further details
-$ cargo install trunk
+cargo install trunk
 ```
 
 ## Summary
