@@ -59,7 +59,8 @@ impl_action! {
     onselect(name: "select", event: Event) -> web_sys::Event => |_, event| { event }
     onslotchange(name: "slotchange", event: Event) -> web_sys::Event => |_, event| { event }
     onstalled(name: "stalled", event: Event) -> web_sys::Event => |_, event| { event }
-    onsubmit(name: "submit", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
+    // web_sys doesn't have a struct for `SubmitEvent`
+    onsubmit(name: "submit", event: Event) -> web_sys::Event => |_, event| { event }
     onsuspend(name: "suspend", event: Event) -> web_sys::Event => |_, event| { event }
     ontimeupdate(name: "timeupdate", event: Event) -> web_sys::Event => |_, event| { event }
     ontoggle(name: "toggle", event: Event) -> web_sys::Event => |_, event| { event }
