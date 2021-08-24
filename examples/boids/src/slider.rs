@@ -1,5 +1,8 @@
 use std::cell::Cell;
-use yew::{html, Callback, Component, Context, Html, InputData, Properties, ShouldRender};
+use yew::{
+    html, web_sys::HtmlInputElement, Callback, Component, Context, Html, InputEvent,
+    Properties, ShouldRender, TargetCast,
+};
 
 thread_local! {
     static SLIDER_ID: Cell<usize> = Cell::default();
@@ -67,6 +70,11 @@ impl Component for Slider {
             10f64.powi(-(p as i32))
         });
 
+        let oninput = onchange.reform(|e: InputEvent| {
+            let input: HtmlInputElement = e.target_unchecked_into();
+            input.value_as_number()
+        });
+
         html! {
             <div class="slider">
                 <label for={id.clone()} class="slider__label">{ label }</label>
@@ -74,8 +82,7 @@ impl Component for Slider {
                     {id}
                     class="slider__input"
                     min={min.to_string()} max={max.to_string()} step={step.to_string()}
-                    oninput={onchange.reform(|data: InputData| data.value.parse().unwrap())}
-                    value={value.to_string()}
+                    {oninput}
                 />
                 <span class="slider__value">{ display_value }</span>
             </div>

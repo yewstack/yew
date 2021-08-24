@@ -48,7 +48,7 @@ If you need the component to be re-rendered on state change, consider using [`us
 ```rust
 #[function_component(UseRef)]
 fn ref_hook() -> Html {
-    let (message, set_message) = use_state(|| "".to_string());
+    let message = use_state(|| "".to_string());
     let message_count = use_ref(|| 0);
 
     let onclick = Callback::from(move |e| {
@@ -62,11 +62,13 @@ fn ref_hook() -> Html {
         }
     });
 
-    let onchange = Callback::from(move |e| {
-        if let ChangeData::Value(value) = e {
-            set_message(value)
-        }
-    });
+    let onchange = {
+        let message = message.clone();
+        Callback::from(move |e: Event| {
+            let input: HtmlInputElement = e.target_unchecked_into();
+            message.set(input.value());
+        })
+    };
 
     html! {
         <div>

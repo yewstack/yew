@@ -1,5 +1,5 @@
 use wasm_bindgen::prelude::*;
-use yew::prelude::*;
+use yew::{prelude::*, web_sys::HtmlTextAreaElement};
 
 mod bindings;
 
@@ -51,7 +51,10 @@ impl Component for Model {
             <>
                 <textarea
                     class="code-block"
-                    oninput={ctx.link().callback(|input: InputData| Msg::Payload(input.value))}
+                    oninput={ctx.link().callback(|e: InputEvent| {
+                        let input: HtmlTextAreaElement = e.target_unchecked_into();
+                        Msg::Payload(input.value())
+                    })}
                     value={self.payload.clone()}
                 />
                 <button onclick={ctx.link().callback(|_| Msg::Payload(bindings::get_payload()))}>

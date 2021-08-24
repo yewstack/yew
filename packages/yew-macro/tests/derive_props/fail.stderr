@@ -27,31 +27,31 @@ help: consider importing one of these items
 83 |     use crate::t9::foo;
    |
 
-error[E0277]: the trait bound `t1::Value: std::default::Default` is not satisfied
+error[E0277]: the trait bound `Value: std::default::Default` is not satisfied
  --> $DIR/fail.rs:9:21
   |
 9 |     #[derive(Clone, Properties, PartialEq)]
-  |                     ^^^^^^^^^^ the trait `std::default::Default` is not implemented for `t1::Value`
+  |                     ^^^^^^^^^^ the trait `std::default::Default` is not implemented for `Value`
   |
   = note: required by `Option::<T>::unwrap_or_default`
   = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0369]: binary operation `==` cannot be applied to type `t1::Value`
+error[E0369]: binary operation `==` cannot be applied to type `Value`
   --> $DIR/fail.rs:13:9
    |
 13 |         value: Value,
    |         ^^^^^^^^^^^^
    |
-   = note: an implementation of `std::cmp::PartialEq` might be missing for `t1::Value`
+   = note: an implementation of `std::cmp::PartialEq` might be missing for `Value`
    = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0369]: binary operation `!=` cannot be applied to type `t1::Value`
+error[E0369]: binary operation `!=` cannot be applied to type `Value`
   --> $DIR/fail.rs:13:9
    |
 13 |         value: Value,
    |         ^^^^^^^^^^^^
    |
-   = note: an implementation of `std::cmp::PartialEq` might be missing for `t1::Value`
+   = note: an implementation of `std::cmp::PartialEq` might be missing for `Value`
    = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `build` found for struct `t3::PropsBuilder<t3::PropsBuilderStep_missing_required_prop_value>` in the current scope

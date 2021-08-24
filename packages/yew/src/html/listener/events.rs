@@ -6,7 +6,7 @@ impl_action! {
     oncancel(name: "cancel", event: Event) -> web_sys::Event => |_, event| { event }
     oncanplay(name: "canplay", event: Event) -> web_sys::Event => |_, event| { event }
     oncanplaythrough(name: "canplaythrough", event: Event) -> web_sys::Event => |_, event| { event }
-    onchange(name: "change", event: Event) -> ChangeData => |this: &Element, _| { onchange_handler(this) }
+    onchange(name: "change", event: Event) -> web_sys::Event => |_, event| { event }
     onclick(name: "click", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
     onclose(name: "close", event: Event) -> web_sys::Event => |_, event| { event }
     oncontextmenu(name: "contextmenu", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
@@ -29,7 +29,7 @@ impl_action! {
     onfocusout(name: "focusout", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
     // web_sys doesn't have a struct for `FormDataEvent`
     onformdata(name: "formdata", event: Event) -> web_sys::Event => |_, event| { event }
-    oninput(name: "input", event: InputEvent) -> InputData => |this: &Element, event| { oninput_handler(this, event) }
+    oninput(name: "input", event: InputEvent) -> web_sys::InputEvent => |_, event| { event }
     oninvalid(name: "invalid", event: Event) -> web_sys::Event => |_, event| { event }
     onkeydown(name: "keydown", event: KeyboardEvent) -> web_sys::KeyboardEvent => |_, event| { event }
     onkeypress(name: "keypress", event: KeyboardEvent) -> web_sys::KeyboardEvent => |_, event| { event }
@@ -59,7 +59,8 @@ impl_action! {
     onselect(name: "select", event: Event) -> web_sys::Event => |_, event| { event }
     onslotchange(name: "slotchange", event: Event) -> web_sys::Event => |_, event| { event }
     onstalled(name: "stalled", event: Event) -> web_sys::Event => |_, event| { event }
-    onsubmit(name: "submit", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
+    // web_sys doesn't have a struct for `SubmitEvent`
+    onsubmit(name: "submit", event: Event) -> web_sys::Event => |_, event| { event }
     onsuspend(name: "suspend", event: Event) -> web_sys::Event => |_, event| { event }
     ontimeupdate(name: "timeupdate", event: Event) -> web_sys::Event => |_, event| { event }
     ontoggle(name: "toggle", event: Event) -> web_sys::Event => |_, event| { event }

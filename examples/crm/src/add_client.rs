@@ -1,5 +1,6 @@
 use crate::Client;
-use yew::{classes, html, Callback, Component, Context, Html, InputData, Properties, ShouldRender};
+use yew::{classes, html, Callback, Component, Context, Html, Properties, ShouldRender, TargetCast};
+use yew::web_sys::{Event, HtmlInputElement, HtmlTextAreaElement};
 
 #[derive(Debug)]
 pub enum Msg {
@@ -58,26 +59,36 @@ impl Component for AddClientForm {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let link = ctx.link();
         let Self { client, .. } = self;
+
+        let update_name = |f: fn(String) -> Msg| {
+            link.callback(move |e: Event| {
+                let input: HtmlInputElement = e.target_unchecked_into();
+                f(input.value())
+            })
+        };
+
+        let update_desc = link.callback(|e: Event| {
+            let textarea: HtmlTextAreaElement = e.target_unchecked_into();
+            Msg::UpdateDescription(textarea.value())
+        });
+
         html! {
             <>
                 <div class="names">
                     <input
                         class={classes!("new-client", "firstname")}
                         placeholder="First name"
-                        value={client.first_name.clone()}
-                        oninput={link.callback(|e: InputData| Msg::UpdateFirstName(e.value))}
+                        onchange={update_name(Msg::UpdateFirstName)}
                     />
                     <input
                         class={classes!("new-client", "lastname")}
                         placeholder="Last name"
-                        value={client.last_name.clone()}
-                        oninput={link.callback(|e: InputData| Msg::UpdateLastName(e.value))}
+                        onchange={update_name(Msg::UpdateLastName)}
                     />
                     <textarea
                         class={classes!("new-client", "description")}
                         placeholder="Description"
-                        value={client.description.clone()}
-                        oninput={link.callback(|e: InputData| Msg::UpdateDescription(e.value))}
+                        onchange={update_desc}
                     />
                 </div>
 

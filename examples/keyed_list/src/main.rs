@@ -2,7 +2,7 @@ use instant::Instant;
 use person::PersonType;
 use yew::html::Scope;
 use yew::prelude::*;
-use yew::web_sys::HtmlElement;
+use yew::web_sys::{HtmlElement, HtmlInputElement};
 
 mod person;
 mod random;
@@ -10,7 +10,7 @@ mod random;
 pub enum Msg {
     CreatePersons(usize),
     CreatePersonsPrepend(usize),
-    ChangeRatio(String),
+    ChangeRatio(f64),
     DeletePersonById(usize),
     DeleteEverybody,
     SwapRandom,
@@ -68,7 +68,6 @@ impl Component for Model {
                 true
             }
             Msg::ChangeRatio(ratio) => {
-                let ratio: f64 = ratio.parse().unwrap_or(0.5);
                 #[allow(clippy::float_cmp)] // it's fine here?
                 if self.build_component_ratio != ratio {
                     self.build_component_ratio = ratio;
@@ -165,8 +164,10 @@ impl Model {
                             { self.build_component_ratio }
                         </p>
                         <input name="ratio" type="range" class="form-control-range" min="0.0" max="1.0" step="any"
-                            value={self.build_component_ratio.to_string()}
-                            oninput={link.callback(|e: InputData| Msg::ChangeRatio(e.value))}
+                            oninput={link.callback(|e: InputEvent| {
+                                let input: HtmlInputElement = e.target_unchecked_into();
+                                Msg::ChangeRatio(input.value_as_number())
+                            })}
                         />
                     </div>
                 </div>
