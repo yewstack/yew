@@ -3,9 +3,7 @@ use state::{Entry, Filter, State};
 use strum::IntoEnumIterator;
 use yew::html::Scope;
 use yew::web_sys::HtmlInputElement as InputElement;
-use yew::{
-    classes, html, Component, Context, FocusEvent, Html, NodeRef, ShouldRender, TargetCast,
-};
+use yew::{classes, html, Component, Context, FocusEvent, Html, NodeRef, ShouldRender, TargetCast};
 use yew::{events::KeyboardEvent, Classes};
 
 mod state;
@@ -218,8 +216,7 @@ impl Model {
             Msg::Edit((idx, value))
         };
 
-        let onblur = link
-            .callback(move |e: FocusEvent| edit(e.target_unchecked_into()));
+        let onblur = link.callback(move |e: FocusEvent| edit(e.target_unchecked_into()));
 
         let onkeypress = link.batch_callback(move |e: KeyboardEvent| {
             (e.key() == "Enter").then(|| edit(e.target_unchecked_into()))

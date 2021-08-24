@@ -29,24 +29,20 @@ where
     /// # enum Msg {
     /// #   Value(String),
     /// # }
-    /// # struct Comp {
-    /// #    link: ComponentLink<Self>,
-    /// # }
+    /// # struct Comp;
     /// # impl Component for Comp {
-    /// # type Properties = ();
     /// # type Message = Msg;
-    /// # fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-    /// #   Self { link }
+    /// # type Properties = ();
+    /// # fn create(ctx: &Context<Self>) -> Self {
+    /// #   Self
     /// # }
-    /// # fn update(&mut self, _: Self::Message) -> ShouldRender { false }
-    /// # fn change(&mut self, _: Self::Properties) -> ShouldRender { false }
     ///
-    /// fn view(&self) -> Html {
+    /// fn view(&self, ctx: &Context<Self>) -> Html {
     ///     html! {
     ///         <div
-    ///             onchange={self.link.batch_callback(|e: Event| {
+    ///             onchange={ctx.link().batch_callback(|e: Event| {
     ///                 if let Some(input) = e.target_dyn_into::<HtmlTextAreaElement>() {
-    ///                     Some(Msg::Value(input.value()))   
+    ///                     Some(Msg::Value(input.value()))
     ///                 } else {
     ///                     None
     ///                 }
@@ -71,6 +67,7 @@ where
             .and_then(|target| target.dyn_into().ok())
     }
 
+    #[inline]
     /// Performs a zero-cost unchecked cast of this events target into the type `T`.
     ///
     /// This method **does not check whether the event target is an instance of `T`**. If used
@@ -88,33 +85,28 @@ where
     /// # enum Msg {
     /// #   Value(String),
     /// # }
-    /// # struct Comp {
-    /// #    link: ComponentLink<Self>,
-    /// # }
+    /// # struct Comp;
     /// # impl Component for Comp {
-    /// # type Properties = ();
     /// # type Message = Msg;
-    /// # fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-    /// #   Self { link }
+    /// # type Properties = ();
+    /// # fn create(ctx: &Context<Self>) -> Self {
+    /// #   Self
     /// # }
-    /// # fn update(&mut self, _: Self::Message) -> ShouldRender { false }
-    /// # fn change(&mut self, _: Self::Properties) -> ShouldRender { false }
     ///
-    /// fn view(&self) -> Html {
+    /// fn view(&self, ctx: &Context<Self>) -> Html {
     ///     html! {
     ///         <input type="text"
-    ///             onchange={self.link.callback(|e: Event| {
+    ///             onchange={ctx.link().callback(|e: Event| {
     ///                 // Safe to use as callback is on an `input` element so this event can
     ///                 // only come from this input!
     ///                 let input: HtmlInputElement = e.target_unchecked_into();
-    ///                 Msg::Value(input.value())      
+    ///                 Msg::Value(input.value())
     ///             })}
     ///         />
     ///     }
     /// }
     /// # }
     /// ```
-    #[inline]
     fn target_unchecked_into<T>(&self) -> T
     where
         T: AsRef<EventTarget> + JsCast,
