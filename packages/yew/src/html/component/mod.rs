@@ -61,12 +61,14 @@ pub trait Component: Sized + 'static {
     ///
     /// Components handle messages in their `update` method and commonly use this method
     /// to update their state and (optionally) re-render themselves.
-    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> ShouldRender {
+    #[allow(unused_variables)]
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         false
     }
 
     /// Called when properties passed to the component change
-    fn changed(&mut self, _ctx: &Context<Self>) -> ShouldRender {
+    #[allow(unused_variables)]
+    fn changed(&mut self, ctx: &Context<Self>) -> ShouldRender {
         true
     }
 
@@ -77,8 +79,10 @@ pub trait Component: Sized + 'static {
 
     /// The `rendered` method is called after each time a Component is rendered but
     /// before the browser updates the page.
-    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {}
+    #[allow(unused_variables)]
+    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {}
 
     /// Called right before a Component is unmounted.
-    fn destroy(&mut self, _ctx: &Context<Self>) {}
+    #[allow(unused_variables)]
+    fn destroy(&mut self, ctx: &Context<Self>) {}
 }
