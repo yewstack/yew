@@ -2,7 +2,7 @@ use gloo_render::{request_animation_frame, AnimationFrame};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGlRenderingContext as GL};
 use yew::html::Scope;
-use yew::{html, Component, Context, Html, NodeRef, ShouldRender};
+use yew::{html, Component, Context, Html, NodeRef};
 
 pub enum Msg {
     Render(f64),
@@ -26,7 +26,7 @@ impl Component for Model {
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Render(timestamp) => {
                 // Render functions are likely to get quite large, so it is good practice to split

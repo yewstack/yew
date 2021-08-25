@@ -215,10 +215,7 @@ impl<COMP: Component> fmt::Debug for VChild<COMP> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        html, utils::document, Children, Component, Context, Html, NodeRef, Properties,
-        ShouldRender,
-    };
+    use crate::{html, utils::document, Children, Component, Context, Html, NodeRef, Properties};
     use web_sys::Node;
 
     #[cfg(feature = "wasm_test")]
@@ -245,7 +242,7 @@ mod tests {
             Comp
         }
 
-        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
 
@@ -390,10 +387,10 @@ mod tests {
         fn create(_: &Context<Self>) -> Self {
             Self
         }
-        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
-        fn changed(&mut self, _ctx: &Context<Self>) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>) -> bool {
             unimplemented!();
         }
         fn view(&self, ctx: &Context<Self>) -> Html {
@@ -496,7 +493,7 @@ mod layout_tests {
 
     use crate::html;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
-    use crate::{Children, Component, Context, Html, Properties, ShouldRender};
+    use crate::{Children, Component, Context, Html, Properties};
     use std::marker::PhantomData;
 
     #[cfg(feature = "wasm_test")]
@@ -525,7 +522,7 @@ mod layout_tests {
             }
         }
 
-        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
 

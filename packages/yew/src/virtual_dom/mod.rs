@@ -398,7 +398,7 @@ pub(crate) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&N
 mod layout_tests {
     use super::*;
     use crate::html::{AnyScope, Scope};
-    use crate::{Component, Context, Html, ShouldRender};
+    use crate::{Component, Context, Html};
 
     struct Comp;
     impl Component for Comp {
@@ -409,11 +409,11 @@ mod layout_tests {
             unimplemented!()
         }
 
-        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
 
-        fn changed(&mut self, _ctx: &Context<Self>) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>) -> bool {
             unimplemented!()
         }
 

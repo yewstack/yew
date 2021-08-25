@@ -37,7 +37,7 @@ impl Component for ProgressDelay {
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Tick => {
                 let duration = ctx.props().duration_ms;

@@ -2,7 +2,7 @@ use wasm_bindgen::JsValue;
 use web_sys::{
     CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlInputElement, InputEvent,
 };
-use yew::{html, Component, Context, Html, ShouldRender, TargetCast};
+use yew::{html, Component, Context, Html, TargetCast};
 
 pub enum Msg {
     UpdateName(String),
@@ -22,7 +22,7 @@ impl Component for Model {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::UpdateName(new_name) => {
                 self.name = new_name;

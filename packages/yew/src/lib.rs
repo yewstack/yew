@@ -38,7 +38,7 @@
 //!         }
 //!     }
 //!
-//!     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+//!     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
 //!         match msg {
 //!             Msg::AddOne => {
 //!                 self.value += 1;
@@ -388,7 +388,6 @@ pub mod prelude {
     pub use crate::events::*;
     pub use crate::html::{
         Children, ChildrenWithProps, Classes, Component, Context, Html, NodeRef, Properties,
-        ShouldRender,
     };
     pub use crate::macros::{classes, html, html_nested};
 

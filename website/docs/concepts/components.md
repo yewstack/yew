@@ -121,7 +121,7 @@ impl Component for MyComponent {
 
     // ...
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
        match msg {
            Msg::SetInputEnabled(enabled) => {
                if self.input_enabled != enabled {

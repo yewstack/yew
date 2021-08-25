@@ -22,7 +22,7 @@ impl Component for Post {
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>) -> ShouldRender {
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
         self.post = content::Post::generate_from_seed(ctx.props().seed);
         true
     }

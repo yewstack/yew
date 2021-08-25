@@ -34,7 +34,7 @@ impl Component for Post {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::UpdateText(text) => {
                 self.post_store.send(PostRequest::Update(self.id, text));
@@ -62,7 +62,7 @@ impl Component for Post {
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>) -> ShouldRender {
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
         self.id = ctx.props().id;
         true
     }

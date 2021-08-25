@@ -22,7 +22,7 @@ impl Component for AuthorList {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::NextAuthors => {
                 self.seeds = random_author_seeds();

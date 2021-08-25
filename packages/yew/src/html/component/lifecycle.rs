@@ -229,11 +229,11 @@ mod tests {
                 .push("child rendered".into());
         }
 
-        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             false
         }
 
-        fn changed(&mut self, _ctx: &Context<Self>) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>) -> bool {
             false
         }
 
@@ -282,7 +282,7 @@ mod tests {
                 .push(format!("rendered({})", first_render));
         }
 
-        fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+        fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
             if let Some(msg) = ctx.props().update_message.borrow_mut().take() {
                 ctx.link().send_message(msg);
             }
@@ -293,7 +293,7 @@ mod tests {
             msg
         }
 
-        fn changed(&mut self, ctx: &Context<Self>) -> ShouldRender {
+        fn changed(&mut self, ctx: &Context<Self>) -> bool {
             self.lifecycle = Rc::clone(&ctx.props().lifecycle);
             self.lifecycle.borrow_mut().push("change".into());
             false
