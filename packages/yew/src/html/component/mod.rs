@@ -12,9 +12,6 @@ pub(crate) use scope::Scoped;
 pub use scope::{AnyScope, Scope, SendAsMessage};
 use std::rc::Rc;
 
-/// This type indicates that component should be rendered again.
-pub type ShouldRender = bool;
-
 /// The [`Component`]'s context. This contains component's [`Scope`] and and props and
 /// is passed to every lifecycle method.
 #[derive(Debug)]
@@ -61,14 +58,18 @@ pub trait Component: Sized + 'static {
     ///
     /// Components handle messages in their `update` method and commonly use this method
     /// to update their state and (optionally) re-render themselves.
+    ///
+    /// Returned bool indicates whether to render this Component after update.
     #[allow(unused_variables)]
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         false
     }
 
     /// Called when properties passed to the component change
+    ///
+    /// Returned bool indicates whether to render this Component after changed.
     #[allow(unused_variables)]
-    fn changed(&mut self, ctx: &Context<Self>) -> ShouldRender {
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
         true
     }
 

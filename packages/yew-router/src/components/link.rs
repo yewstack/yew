@@ -30,7 +30,7 @@ impl<R: Routable + Clone + PartialEq + 'static> Component for Link<R> {
         Self { _data: PhantomData }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::OnClick => {
                 service::push_route(ctx.props().route.clone());

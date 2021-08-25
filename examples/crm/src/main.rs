@@ -1,7 +1,7 @@
 use add_client::AddClientForm;
 use gloo::storage::{LocalStorage, Storage};
 use serde::{Deserialize, Serialize};
-use yew::{html, Component, Context, Html, ShouldRender};
+use yew::{html, Component, Context, Html};
 
 mod add_client;
 
@@ -59,7 +59,7 @@ impl Component for Model {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::SwitchTo(scene) => {
                 self.scene = scene;

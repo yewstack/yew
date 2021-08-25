@@ -1,5 +1,5 @@
 use super::event_bus::EventBus;
-use yew::{html, Component, Context, Html, ShouldRender};
+use yew::{html, Component, Context, Html};
 use yew_agent::{Bridge, Bridged};
 
 pub enum Msg {
@@ -22,7 +22,7 @@ impl Component for Subscriber {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::NewMessage(s) => {
                 self.message = s;

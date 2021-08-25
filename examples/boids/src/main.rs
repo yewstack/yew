@@ -2,7 +2,7 @@ use settings::Settings;
 use simulation::Simulation;
 use slider::Slider;
 use yew::html::Scope;
-use yew::{html, Component, Context, Html, ShouldRender};
+use yew::{html, Component, Context, Html};
 
 mod boid;
 mod math;
@@ -34,7 +34,7 @@ impl Component for Model {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Msg) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Msg) -> bool {
         match msg {
             Msg::ChangeSettings(settings) => {
                 self.settings = settings;

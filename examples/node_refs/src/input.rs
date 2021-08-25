@@ -19,7 +19,7 @@ impl Component for InputComponent {
         Self
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Hover => {
                 ctx.props().on_hover.emit(());

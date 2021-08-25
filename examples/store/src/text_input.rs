@@ -25,7 +25,7 @@ impl Component for TextInput {
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Submit(text) => {
                 ctx.props().onsubmit.emit(text);
@@ -34,7 +34,7 @@ impl Component for TextInput {
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>) -> ShouldRender {
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
         self.text = ctx.props().value.clone();
         true
     }

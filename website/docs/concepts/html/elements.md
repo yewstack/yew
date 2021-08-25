@@ -116,7 +116,7 @@ impl Component for MyComponent {
         MyComponent;
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> bool {
         match msg {
             Msg::Click => {
                 // Handle Click

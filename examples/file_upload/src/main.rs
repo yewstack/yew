@@ -1,5 +1,5 @@
 use web_sys::{Event, HtmlInputElement};
-use yew::{html, html::TargetCast, Component, Context, Html, ShouldRender};
+use yew::{html, html::TargetCast, Component, Context, Html};
 
 use gloo::file::callbacks::FileReader;
 use gloo::file::File;
@@ -31,7 +31,7 @@ impl Component for Model {
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Loaded(file_name, data) => {
                 let info = format!("file_name: {}, data: {:?}", file_name, data);

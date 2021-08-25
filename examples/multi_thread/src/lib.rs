@@ -2,7 +2,7 @@ pub mod context;
 pub mod job;
 pub mod native_worker;
 
-use yew::{html, Component, Context, Html, ShouldRender};
+use yew::{html, Component, Context, Html};
 use yew_agent::{Bridge, Bridged};
 
 pub enum Msg {
@@ -45,7 +45,7 @@ impl Component for Model {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::SendToWorker => {
                 self.worker.send(native_worker::Request::GetDataFromServer);
