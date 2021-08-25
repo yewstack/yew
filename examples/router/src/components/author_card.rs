@@ -20,7 +20,7 @@ impl Component for AuthorCard {
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>) -> ShouldRender {
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
         self.author = Author::generate_from_seed(ctx.props().seed);
         true
     }

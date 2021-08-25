@@ -30,7 +30,7 @@ impl Component for CounterModel {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             // Count our internal state up by one
             Self::Message::Tick => {

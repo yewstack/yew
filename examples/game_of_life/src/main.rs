@@ -2,7 +2,7 @@ use cell::Cellule;
 use gloo::timers::callback::Interval;
 use rand::Rng;
 use yew::html::Scope;
-use yew::{classes, html, Component, Context, Html, ShouldRender};
+use yew::{classes, html, Component, Context, Html};
 
 mod cell;
 
@@ -120,7 +120,7 @@ impl Component for Model {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Random => {
                 self.random_mutate();

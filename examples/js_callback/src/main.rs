@@ -25,7 +25,7 @@ impl Component for Model {
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Payload(payload) => {
                 if payload != self.payload {

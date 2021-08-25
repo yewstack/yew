@@ -2,7 +2,7 @@ use crate::boid::Boid;
 use crate::math::Vector2D;
 use crate::settings::Settings;
 use gloo::timers::callback::Interval;
-use yew::{html, Component, Context, Html, Properties, ShouldRender};
+use yew::{html, Component, Context, Html, Properties};
 
 pub const SIZE: Vector2D = Vector2D::new(1600.0, 1000.0);
 
@@ -45,7 +45,7 @@ impl Component for Simulation {
         Self { boids, interval }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Tick => {
                 let Props {
@@ -64,7 +64,7 @@ impl Component for Simulation {
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>) -> ShouldRender {
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
         self.boids.clear();
 
         let settings = &ctx.props().settings;

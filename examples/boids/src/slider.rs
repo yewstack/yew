@@ -1,7 +1,7 @@
 use std::cell::Cell;
 use yew::{
     html, web_sys::HtmlInputElement, Callback, Component, Context, Html, InputEvent, Properties,
-    ShouldRender, TargetCast,
+    TargetCast,
 };
 
 thread_local! {
@@ -40,7 +40,7 @@ impl Component for Slider {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
         unimplemented!()
     }
 

@@ -450,7 +450,7 @@ mod layout_tests_keys {
     use crate::html;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
-    use crate::{Children, Component, Context, Html, Properties, ShouldRender};
+    use crate::{Children, Component, Context, Html, Properties};
     use web_sys::Node;
 
     #[cfg(feature = "wasm_test")]
@@ -476,7 +476,7 @@ mod layout_tests_keys {
             Comp {}
         }
 
-        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
 
@@ -500,7 +500,7 @@ mod layout_tests_keys {
             Self()
         }
 
-        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
 

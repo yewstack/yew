@@ -1,7 +1,7 @@
 use gloo::console_timer::ConsoleTimer;
 use gloo::timers::callback::{Interval, Timeout};
 use weblog::*;
-use yew::{html, Component, Context, Html, ShouldRender};
+use yew::{html, Component, Context, Html};
 
 pub enum Msg {
     StartTimeout,
@@ -56,7 +56,7 @@ impl Component for Model {
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::StartTimeout => {
                 let handle = {

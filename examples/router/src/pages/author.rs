@@ -19,7 +19,7 @@ impl Component for Author {
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>) -> ShouldRender {
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
         self.author = content::Author::generate_from_seed(ctx.props().seed);
         true
     }

@@ -3,7 +3,7 @@ use state::{Entry, Filter, State};
 use strum::IntoEnumIterator;
 use yew::html::Scope;
 use yew::web_sys::HtmlInputElement as InputElement;
-use yew::{classes, html, Component, Context, FocusEvent, Html, NodeRef, ShouldRender, TargetCast};
+use yew::{classes, html, Component, Context, FocusEvent, Html, NodeRef, TargetCast};
 use yew::{events::KeyboardEvent, Classes};
 
 mod state;
@@ -42,7 +42,7 @@ impl Component for Model {
         Self { state, focus_ref }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Add(description) => {
                 if !description.is_empty() {

@@ -31,7 +31,7 @@ impl Component for Model {
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         let app_container = self
             .apps_container_ref
             .cast::<Element>()

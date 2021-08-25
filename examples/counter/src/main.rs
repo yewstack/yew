@@ -1,6 +1,6 @@
 use js_sys::Date;
 use weblog::console_log;
-use yew::{html, Component, Context, Html, ShouldRender};
+use yew::{html, Component, Context, Html};
 
 // Define the possible messages which can be sent to the component
 pub enum Msg {
@@ -20,7 +20,7 @@ impl Component for Model {
         Self { value: 0 }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Increment => {
                 self.value += 1;

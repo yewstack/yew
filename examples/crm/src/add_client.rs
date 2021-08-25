@@ -1,8 +1,6 @@
 use crate::Client;
 use yew::web_sys::{Event, HtmlInputElement, HtmlTextAreaElement};
-use yew::{
-    classes, html, Callback, Component, Context, Html, Properties, ShouldRender, TargetCast,
-};
+use yew::{classes, html, Callback, Component, Context, Html, Properties, TargetCast};
 
 #[derive(Debug)]
 pub enum Msg {
@@ -32,7 +30,7 @@ impl Component for AddClientForm {
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         let client = &mut self.client;
         match msg {
             Msg::UpdateFirstName(value) => {

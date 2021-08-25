@@ -19,7 +19,7 @@ impl Component for PostCard {
             post: PostMeta::generate_from_seed(ctx.props().seed),
         }
     }
-    fn changed(&mut self, ctx: &Context<Self>) -> ShouldRender {
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
         self.post = PostMeta::generate_from_seed(ctx.props().seed);
         true
     }
