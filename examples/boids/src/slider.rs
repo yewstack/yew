@@ -1,7 +1,7 @@
 use std::cell::Cell;
 use yew::{
-    html, web_sys::HtmlInputElement, Callback, Component, ComponentLink, Html, InputEvent,
-    Properties, ShouldRender, TargetCast,
+    html, web_sys::HtmlInputElement, Callback, Component, Context, Html, InputEvent, Properties,
+    ShouldRender, TargetCast,
 };
 
 thread_local! {
@@ -28,34 +28,23 @@ pub struct Props {
 }
 
 pub struct Slider {
-    props: Props,
     id: usize,
 }
 impl Component for Slider {
     type Message = ();
     type Properties = Props;
 
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            props,
             id: next_slider_id(),
         }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> ShouldRender {
         unimplemented!()
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.props != props {
-            self.props = props;
-            true
-        } else {
-            false
-        }
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let Props {
             label,
             value,
@@ -65,7 +54,7 @@ impl Component for Slider {
             min,
             max,
             step,
-        } = self.props;
+        } = *ctx.props();
 
         let precision = precision.unwrap_or_else(|| if percentage { 1 } else { 0 });
 

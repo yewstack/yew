@@ -9,7 +9,6 @@ pub enum Msg {
 }
 
 pub struct Model {
-    link: ComponentLink<Self>,
     refs: Vec<NodeRef>,
     focus_index: usize,
 }
@@ -24,21 +23,20 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            link,
             focus_index: 0,
             refs: vec![NodeRef::default(), NodeRef::default()],
         }
     }
 
-    fn rendered(&mut self, first_render: bool) {
+    fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
         if first_render {
             self.apply_focus();
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::HoverIndex(index) => {
                 self.focus_index = index;
@@ -48,11 +46,7 @@ impl Component for Model {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div class="main">
                 <h1>{ "Node Refs Example" }</h1>
@@ -67,14 +61,14 @@ impl Component for Model {
                         type="text"
                         ref={self.refs[0].clone()}
                         class="input-element"
-                        onmouseover={self.link.callback(|_| Msg::HoverIndex(0))}
+                        onmouseover={ctx.link().callback(|_| Msg::HoverIndex(0))}
                     />
                 </div>
                 <div>
                     <label>{ "Using component ref: " }</label>
                     <InputComponent
                         ref={self.refs[1].clone()}
-                        on_hover={self.link.callback(|_| Msg::HoverIndex(1))}
+                        on_hover={ctx.link().callback(|_| Msg::HoverIndex(1))}
                     />
                 </div>
             </div>

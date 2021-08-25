@@ -1,5 +1,5 @@
 use web_sys::{Event, HtmlInputElement};
-use yew::{html, html::TargetCast, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, html::TargetCast, Component, Context, Html, ShouldRender};
 
 use gloo::file::callbacks::FileReader;
 use gloo::file::File;
@@ -14,7 +14,6 @@ pub enum Msg {
 }
 
 pub struct Model {
-    link: ComponentLink<Model>,
     readers: Vec<FileReader>,
     files: Vec<String>,
     read_bytes: bool,
@@ -24,16 +23,15 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            link,
             readers: vec![],
             files: vec![],
             read_bytes: false,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Loaded(file_name, data) => {
                 let info = format!("file_name: {}, data: {:?}", file_name, data);
@@ -49,7 +47,7 @@ impl Component for Model {
                 for file in files.into_iter() {
                     let task = {
                         let file_name = file.name();
-                        let link = self.link.clone();
+                        let link = ctx.link().clone();
 
                         if bytes {
                             gloo::file::callbacks::read_as_bytes(&file, move |res| {
@@ -78,17 +76,13 @@ impl Component for Model {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let flag = self.read_bytes;
         html! {
             <div>
                 <div>
                     <p>{ "Choose a file to upload to see the uploaded bytes" }</p>
-                    <input type="file" multiple=true onchange={self.link.callback(move |e: Event| {
+                    <input type="file" multiple=true onchange={ctx.link().callback(move |e: Event| {
                             let mut result = Vec::new();
                             let input: HtmlInputElement = e.target_unchecked_into();
 
@@ -106,7 +100,7 @@ impl Component for Model {
                 </div>
                 <div>
                     <label>{ "Read bytes" }</label>
-                    <input type="checkbox" checked={flag} onclick={self.link.callback(|_| Msg::ToggleReadBytes)} />
+                    <input type="checkbox" checked={flag} onclick={ctx.link().callback(|_| Msg::ToggleReadBytes)} />
                 </div>
                 <ul>
                     { for self.files.iter().map(|f| Self::view_file(f)) }

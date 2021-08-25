@@ -1,7 +1,7 @@
 //! This module defines the `ContextProvider` component.
 
 use crate::html::Scope;
-use crate::{html, Callback, Children, Component, ComponentLink, Html, Properties};
+use crate::{html, Callback, Children, Component, Context, Html, Properties};
 use slab::Slab;
 use std::cell::RefCell;
 
@@ -21,7 +21,6 @@ pub struct ContextProviderProps<T: Clone + PartialEq> {
 /// In function components the `use_context` hook is used.
 #[derive(Debug)]
 pub struct ContextProvider<T: Clone + PartialEq + 'static> {
-    link: ComponentLink<Self>,
     context: T,
     children: Children,
     consumers: RefCell<Slab<Callback<T>>>,
@@ -46,14 +45,18 @@ impl<T: Clone + PartialEq + 'static> Drop for ContextHandle<T> {
 impl<T: Clone + PartialEq> ContextProvider<T> {
     /// Add the callback to the subscriber list to be called whenever the context changes.
     /// The consumer is unsubscribed as soon as the callback is dropped.
-    pub(crate) fn subscribe_consumer(&self, callback: Callback<T>) -> (T, ContextHandle<T>) {
+    pub(crate) fn subscribe_consumer(
+        &self,
+        callback: Callback<T>,
+        scope: Scope<Self>,
+    ) -> (T, ContextHandle<T>) {
         let ctx = self.context.clone();
         let key = self.consumers.borrow_mut().insert(callback);
 
         (
             ctx,
             ContextHandle {
-                provider: self.link.clone(),
+                provider: scope,
                 key,
             },
         )
@@ -77,36 +80,33 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
     type Message = ();
     type Properties = ContextProviderProps<T>;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
+        let props = ctx.props();
         Self {
-            link,
-            children: props.children,
-            context: props.context,
+            children: props.children.clone(),
+            context: props.context.clone(),
             consumers: RefCell::new(Slab::new()),
         }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> bool {
-        true
-    }
-
-    fn change(&mut self, props: Self::Properties) -> bool {
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+        let props = ctx.props();
         let should_render = if self.children == props.children {
             false
         } else {
-            self.children = props.children;
+            self.children = props.children.clone();
             true
         };
 
         if self.context != props.context {
-            self.context = props.context;
+            self.context = props.context.clone();
             self.notify_consumers();
         }
 
         should_render
     }
 
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         html! { <>{ self.children.clone() }</> }
     }
 }

@@ -1,5 +1,5 @@
-use weblog::web_sys::HtmlInputElement;
 use yew::prelude::*;
+use yew::web_sys::HtmlInputElement;
 
 pub enum Msg {
     Submit(String),
@@ -12,44 +12,35 @@ pub struct Props {
 }
 
 pub struct TextInput {
-    link: ComponentLink<Self>,
     text: String,
-    props: Props,
 }
 
 impl Component for TextInput {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
         Self {
-            link,
-            text: props.value.clone(),
-            props,
+            text: ctx.props().value.clone(),
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Submit(text) => {
-                self.props.onsubmit.emit(text);
+                ctx.props().onsubmit.emit(text);
                 true
             }
         }
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.props != props {
-            self.props = props;
-            self.text = self.props.value.clone();
-            true
-        } else {
-            false
-        }
+    fn changed(&mut self, ctx: &Context<Self>) -> ShouldRender {
+        self.text = ctx.props().value.clone();
+        true
     }
 
-    fn view(&self) -> Html {
-        let onkeydown = self.link.batch_callback(|e: KeyboardEvent| {
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let onkeydown = ctx.link().batch_callback(|e: KeyboardEvent| {
             e.stop_propagation();
             if e.key() == "Enter" {
                 let input: HtmlInputElement = e.target_unchecked_into();
@@ -63,7 +54,7 @@ impl Component for TextInput {
 
         html! {
             <input
-                placeholder={self.props.value.clone()}
+                placeholder={ctx.props().value.clone()}
                 type="text"
                 {onkeydown}
             />

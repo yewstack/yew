@@ -9,34 +9,19 @@ pub struct Props {
     pub list_link: WeakComponentLink<List>,
 }
 
-pub struct ListHeader {
-    props: Props,
-}
+pub struct ListHeader;
 
 impl Component for ListHeader {
     type Message = ();
     type Properties = Props;
 
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        Self { props }
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.props != props {
-            self.props = props;
-            true
-        } else {
-            false
-        }
-    }
-
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-
-    fn view(&self) -> Html {
-        let list_link = self.props.list_link.borrow().clone().unwrap();
-        let onmouseover = self.props.on_hover.reform(|e: MouseEvent| {
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let list_link = ctx.props().list_link.borrow().clone().unwrap();
+        let onmouseover = ctx.props().on_hover.reform(|e: MouseEvent| {
             e.stop_propagation();
             Hovered::Header
         });
@@ -47,7 +32,7 @@ impl Component for ListHeader {
                 {onmouseover}
                 onclick={list_link.callback(|_| ListMsg::HeaderClick)}
             >
-                { &self.props.text }
+                { &ctx.props().text }
             </div>
         }
     }

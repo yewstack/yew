@@ -86,8 +86,9 @@ impl AnyScope {
         callback: Callback<T>,
     ) -> Option<(T, ContextHandle<T>)> {
         let scope = self.find_parent_scope::<ContextProvider<T>>()?;
+        let scope_clone = scope.clone();
         let component = scope.get_component()?;
-        Some(component.subscribe_consumer(callback))
+        Some(component.subscribe_consumer(callback, scope_clone))
     }
 }
 
@@ -168,7 +169,7 @@ impl<COMP: Component> Scope<COMP> {
         parent: Element,
         next_sibling: NodeRef,
         node_ref: NodeRef,
-        props: COMP::Properties,
+        props: Rc<COMP::Properties>,
     ) {
         let placeholder = {
             let placeholder: Node = document().create_text_node("").into();
@@ -188,7 +189,12 @@ impl<COMP: Component> Scope<COMP> {
         }));
     }
 
-    pub(crate) fn reuse(&self, props: COMP::Properties, node_ref: NodeRef, next_sibling: NodeRef) {
+    pub(crate) fn reuse(
+        &self,
+        props: Rc<COMP::Properties>,
+        node_ref: NodeRef,
+        next_sibling: NodeRef,
+    ) {
         self.process(UpdateEvent::Properties(props, node_ref, next_sibling).into());
     }
 

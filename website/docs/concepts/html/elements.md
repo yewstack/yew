@@ -13,7 +13,7 @@ used as a `Html` value using `VRef`:
 
 ```rust
     // ...
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         use yew::{utils::document, web_sys::{Element, Node}};
 
         // Create a div element from the document
@@ -102,9 +102,7 @@ Listener attributes need to be passed a `Callback` which is a wrapper around a c
 <!--Component handler-->
 
 ```rust
-struct MyComponent {
-    link: ComponentLink<Self>,
-}
+struct MyComponent;
 
 enum Msg {
     Click,
@@ -114,8 +112,8 @@ impl Component for MyComponent {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        MyComponent { link }
+    fn create(_ctx: &Context<Self>) -> Self {
+        MyComponent;
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -126,9 +124,9 @@ impl Component for MyComponent {
         }
     }
 
-    fn view(&self) -> Html {
+    fn view(&self, ctx: Context<Self>) -> Html {
         // Create a callback from a component link to handle it in a component
-        let click_callback = self.link.callback(|_: ClickEvent| Msg::Click);
+        let click_callback = ctx.link().callback(|_: ClickEvent| Msg::Click);
         html! {
             <button onclick={click_callback}>
                 { "Click me!" }
@@ -149,17 +147,13 @@ impl Component for MyComponent {
     type Message = ();
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         MyComponent {
             worker: MyWorker::dispatcher()
         }
     }
 
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         // Create a callback from a worker to handle it in another context
         let click_callback = self.worker.callback(|_: ClickEvent| WorkerMsg::Process);
         html! {
@@ -180,15 +174,11 @@ impl Component for MyComponent {
     type Message = ();
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         MyComponent
     }
 
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         // Create an ephemeral callback
         let click_callback = Callback::from(|| {
             console_log!("clicked!");
