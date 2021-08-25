@@ -1,7 +1,7 @@
 use gloo::console_timer::ConsoleTimer;
 use gloo::timers::callback::{Interval, Timeout};
 use weblog::*;
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Component, Context, Html, ShouldRender};
 
 pub enum Msg {
     StartTimeout,
@@ -13,7 +13,6 @@ pub enum Msg {
 }
 
 pub struct Model {
-    link: ComponentLink<Self>,
     time: String,
     messages: Vec<&'static str>,
     _standalone: (Interval, Interval),
@@ -38,17 +37,16 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
         let standalone_handle =
             Interval::new(10, || console_debug!("Example of a standalone callback."));
 
         let clock_handle = {
-            let link = link.clone();
+            let link = ctx.link().clone();
             Interval::new(1, move || link.send_message(Msg::UpdateTime))
         };
 
         Self {
-            link,
             time: Model::get_current_time(),
             messages: Vec::new(),
             _standalone: (standalone_handle, clock_handle),
@@ -58,11 +56,11 @@ impl Component for Model {
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::StartTimeout => {
                 let handle = {
-                    let link = self.link.clone();
+                    let link = ctx.link().clone();
                     Timeout::new(3, move || link.send_message(Msg::Done))
                 };
 
@@ -77,7 +75,7 @@ impl Component for Model {
             }
             Msg::StartInterval => {
                 let handle = {
-                    let link = self.link.clone();
+                    let link = ctx.link().clone();
                     Interval::new(1, move || link.send_message(Msg::Tick))
                 };
                 self.interval = Some(handle);
@@ -122,22 +120,18 @@ impl Component for Model {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let has_job = self.timeout.is_some() || self.interval.is_some();
         html! {
             <>
                 <div id="buttons">
-                    <button disabled={has_job} onclick={self.link.callback(|_| Msg::StartTimeout)}>
+                    <button disabled={has_job} onclick={ctx.link().callback(|_| Msg::StartTimeout)}>
                         { "Start Timeout" }
                     </button>
-                    <button disabled={has_job} onclick={self.link.callback(|_| Msg::StartInterval)}>
+                    <button disabled={has_job} onclick={ctx.link().callback(|_| Msg::StartInterval)}>
                         { "Start Interval" }
                     </button>
-                    <button disabled={!has_job} onclick={self.link.callback(|_| Msg::Cancel)}>
+                    <button disabled={!has_job} onclick={ctx.link().callback(|_| Msg::Cancel)}>
                         { "Cancel!" }
                     </button>
                 </div>

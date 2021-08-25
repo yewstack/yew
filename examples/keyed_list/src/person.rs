@@ -1,7 +1,6 @@
 use crate::random;
 use std::rc::Rc;
-use yew::utils::NeqAssign;
-use yew::{html, Component, ComponentLink, Html, Properties, ShouldRender};
+use yew::{html, Component, Context, Html, Properties};
 
 use fake::faker::address::raw::*;
 use fake::faker::name::raw::*;
@@ -47,30 +46,25 @@ impl PersonInfo {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Properties)]
-pub struct PersonComponent {
+#[derive(Debug, Eq, PartialEq, Properties)]
+pub struct PersonProps {
     info: PersonInfo,
 }
+
+pub struct PersonComponent;
+
 impl Component for PersonComponent {
     type Message = ();
-    type Properties = Self;
+    type Properties = PersonProps;
 
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        props
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.neq_assign(props)
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
-            <div class="text-info" id={self.info.id.to_string()}>
-                { self.info.render() }
+            <div class="text-info" id={ctx.props().info.id.to_string()}>
+                { ctx.props().info.render() }
             </div>
         }
     }

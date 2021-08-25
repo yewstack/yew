@@ -63,9 +63,6 @@ enum Msg {
 }
 
 struct Model {
-    // `ComponentLink` is like a reference to a component.
-    // It can be used to send messages to the component
-    link: ComponentLink<Self>,
     value: i64,
 }
 
@@ -73,14 +70,13 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            link,
             value: 0,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::AddOne => {
                 self.value += 1;
@@ -91,17 +87,12 @@ impl Component for Model {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        // Should only return "true" if new properties are different to
-        // previously received properties.
-        // This component has no properties so we will always return "false".
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // This gives us a component's "`Scope`" which allows us to send messages, etc to the component. 
+        let link = ctx.link();
         html! {
             <div>
-                <button onclick={self.link.callback(|_| Msg::AddOne)}>{ "+1" }</button>
+                <button onclick={link.callback(|_| Msg::AddOne)}>{ "+1" }</button>
                 <p>{ self.value }</p>
             </div>
         }

@@ -33,7 +33,7 @@ error[E0609]: no field `fail` on type `Props`
 error[E0599]: no method named `fail` found for struct `PropsBuilder<PropsBuilderStepPropsBuilder>` in the current scope
   --> $DIR/props-fail.rs:10:31
    |
-3  | #[derive(Clone, Properties)]
+3  | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `fail` not found for this
 ...
 10 |     yew::props!(Props { a: 5, fail: 10 });
@@ -50,7 +50,7 @@ error[E0609]: no field `does_not_exist` on type `Props`
 error[E0599]: no method named `does_not_exist` found for struct `PropsBuilder<PropsBuilderStep_missing_required_prop_a>` in the current scope
   --> $DIR/props-fail.rs:15:25
    |
-3  | #[derive(Clone, Properties)]
+3  | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `does_not_exist` not found for this
 ...
 15 |     yew::props!(Props { does_not_exist });

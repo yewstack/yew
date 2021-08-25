@@ -1,7 +1,8 @@
 use settings::Settings;
 use simulation::Simulation;
 use slider::Slider;
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::html::Scope;
+use yew::{html, Component, Context, Html, ShouldRender};
 
 mod boid;
 mod math;
@@ -17,7 +18,6 @@ pub enum Msg {
 }
 
 pub struct Model {
-    link: ComponentLink<Self>,
     settings: Settings,
     generation: usize,
     paused: bool,
@@ -26,16 +26,15 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            link,
             settings: Settings::load(),
             generation: 0,
             paused: false,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Msg) -> ShouldRender {
         match msg {
             Msg::ChangeSettings(settings) => {
                 self.settings = settings;
@@ -58,11 +57,7 @@ impl Component for Model {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let Self {
             ref settings,
             generation,
@@ -74,18 +69,17 @@ impl Component for Model {
             <>
                 <h1 class="title">{ "Boids" }</h1>
                 <Simulation settings={settings.clone()} {generation} {paused} />
-                { self.view_panel() }
+                { self.view_panel(ctx.link()) }
             </>
         }
     }
 }
 impl Model {
-    fn view_panel(&self) -> Html {
-        let link = &self.link;
+    fn view_panel(&self, link: &Scope<Self>) -> Html {
         let pause_text = if self.paused { "Resume" } else { "Pause" };
         html! {
             <div class="panel">
-                { self.view_settings() }
+                { self.view_settings(link) }
                 <div class="panel__buttons">
                     <button onclick={link.callback(|_| Msg::TogglePause)}>{ pause_text }</button>
                     <button onclick={link.callback(|_| Msg::ResetSettings)}>{ "Use Defaults" }</button>
@@ -95,8 +89,8 @@ impl Model {
         }
     }
 
-    fn view_settings(&self) -> Html {
-        let Self { link, settings, .. } = self;
+    fn view_settings(&self, link: &Scope<Self>) -> Html {
+        let Self { settings, .. } = self;
 
         // This helper macro creates a callback which applies the new value to the current settings and sends `Msg::ChangeSettings`.
         // Thanks to this, we don't need to have "ChangeBoids", "ChangeCohesion", etc. messages,

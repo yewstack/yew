@@ -59,16 +59,16 @@ pub struct Props {
     pub children: Children,
 }
 
-pub struct Container(Props);
+pub struct Container;
 impl Component for Container {
     type Properties = Props;
 
     // ...
 
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
        html! {
-           <div id={self.0.id.clone()}>
-               { self.0.children.clone() }
+           <div id={ctx.props().id.clone()}>
+               { ctx.props().children.clone() }
            </div>
        }
     }
@@ -95,16 +95,17 @@ pub struct Props {
     pub children: ChildrenWithProps<ListItem>,
 }
 
-pub struct List(Props);
+pub struct List;
 impl Component for List {
     type Properties = Props;
 
     // ...
 
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html!{{
-            for self.0.children.iter().map(|mut item| {
-                item.props.value = format!("item-{}", item.props.value);
+            for ctx.props().children.iter().map(|mut item| {
+                let mut props = Rc::make_mut(&mut item.props);
+                props.value = format!("item-{}", props.value);
                 item
             })
         }}
