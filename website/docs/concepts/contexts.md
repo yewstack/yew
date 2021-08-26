@@ -17,11 +17,11 @@ pub struct Theme {
 }
 
 #[derive(PartialEq, Properties)]
-struct NavbarProps {
+pub struct NavbarProps {
     theme: Theme,
 }
 
-struct Navbar;
+pub struct Navbar;
 
 impl Component for Navbar {
     type Message = ();
@@ -127,7 +127,7 @@ impl Component for ContextDemo {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let (theme, _) = ctx
             .link()
-            .context::<Theme>(Callback::from(|_| {}))
+            .context::<Theme>(Callback::noop())
             .expect("context to be set");
         html! {
             <button style={format!(

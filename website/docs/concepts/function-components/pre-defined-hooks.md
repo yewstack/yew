@@ -272,7 +272,8 @@ pub fn app() -> Html {
     });
 
     html! {
-        // `ctx` is type `Rc<UseStateHandle<Theme>>` while we need `Theme` so we deref it
+        // `ctx` is type `Rc<UseStateHandle<Theme>>` while we need `Theme`
+        // so we deref it.
         // It derefs to `&Theme`, hence the clone
         <ContextProvider<Theme> context={(*ctx).clone()}>
             // Every child here and their children will have access to this context.

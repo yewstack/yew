@@ -45,7 +45,13 @@ impl Component for MyComponentWithProps {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
-            { format!("prop1: {} and prop2: {}", ctx.props().prop1, ctx.props().prop2) }
+            {
+                format!(
+                    "prop1: {} and prop2: {}",
+                    ctx.props().prop1,
+                    ctx.props().prop2
+                )
+            }
         }
     }
 }
@@ -144,6 +150,7 @@ let props = yew::props!(Container::Properties {
     id: "container-2",
     children: Children::default(),
 });
+
 html! {
     <Container with props>
         // props.children will be overwritten with this

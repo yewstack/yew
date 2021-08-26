@@ -19,10 +19,9 @@ in the lifecycle of a component.
 
 ### Create
 
-When a component is created, it receives properties from its parent component as well as a `ComponentLink`. The properties can be used to initialize the component's state and the "link" can be used to register callbacks or send messages to the component.
-
-It is common to store the props (data which can be passed from parent to child components) and the
-`ComponentLink` in your component struct, like so:
+When a component is created, it receives properties from its parent component and is stored within 
+the `Context<Self>` thats passed down to the `create` method. The properties can be used to 
+initialize the component's state and the "link" can be used to register callbacks or send messages to the component.
 
 ```rust
 use yew::{Component, Context, html, Html, Properties};
@@ -36,9 +35,11 @@ impl Component for MyComponent {
     type Message = ();
     type Properties = Props;
 
+    // highlight-start
     fn create(ctx: &Context<Self>) -> Self {
         MyComponent
     }
+    // highlight-end
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
@@ -79,12 +80,14 @@ impl Component for MyComponent {
         Self
     }
 
+    // highlight-start
     fn view(&self, ctx: &Context<Self>) -> Html {
         let onclick = ctx.link().callback(|_| Msg::Click);
         html! {
             <button {onclick}>{ &ctx.props().button_text }</button>
         }
     }
+    // highlight-end
 }
 ```
 
@@ -124,6 +127,7 @@ impl Component for MyComponent {
         }
     }
 
+    // highlight-start
     fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
         if first_render {
             if let Some(input) = self.node_ref.cast::<HtmlInputElement>() {
@@ -131,6 +135,7 @@ impl Component for MyComponent {
             }
         }
     }
+    // highlight-end
 }
 ```
 
@@ -150,15 +155,18 @@ Here's an example of what an implementation of `update` could look like:
 ```rust
 use yew::{Component, Context, html, Html};
 
+// highlight-start
 pub enum Msg {
     SetInputEnabled(bool)
 }
+// highlight-end
 
 struct MyComponent {
     input_enabled: bool,
 }
 
 impl Component for MyComponent {
+    // highlight-next-line
     type Message = Msg;
     type Properties = ();
 
@@ -168,6 +176,7 @@ impl Component for MyComponent {
         }
     }
 
+    // highlight-start
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::SetInputEnabled(enabled) => {
@@ -180,6 +189,7 @@ impl Component for MyComponent {
             }
         }
     }
+    // highlight-end
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {

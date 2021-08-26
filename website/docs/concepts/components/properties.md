@@ -125,11 +125,13 @@ pub struct LinkProps {
 
 impl LinkProps {
     pub fn new_link_with_size(href: String, text: String, size: u32) -> Self {
+        // highlight-start
         props! {LinkProps {
             href,
             text: Rc::from(text),
             size,
         }}
+        // highlight-end
     }
 }
 ```

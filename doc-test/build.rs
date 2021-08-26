@@ -83,13 +83,10 @@ impl Level {
                 .unwrap()
                 .replace("-", "_");
 
-            // panic!("STEM: {}", stem);
-
             self.write_space(dst, level);
             writeln!(dst, "#[doc = include_str!(\"{}\")]", file.display())?;
             self.write_space(dst, level);
             writeln!(dst, "pub fn {}_md() {{}}", stem)?;
-            // write!(dst, "doc_comment!(include_str!(\"{}\"));\n", file.display())?;
         }
 
         Ok(())

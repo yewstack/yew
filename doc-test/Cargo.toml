@@ -5,10 +5,11 @@ edition = "2018"
 build = "build.rs"
 publish = false
 
+[dependencies]
+yew-agent = { path = "../packages/yew-agent/" }
 
 [dev-dependencies]
 yew = { path = "../packages/yew/" }
-yew-agent = { path = "../packages/yew-agent/" }
 yew-router = { path = "../packages/yew-router/" }
 derive_more = "0.99"
 boolinator = "2.4"

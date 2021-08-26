@@ -26,18 +26,25 @@ impl Component for Comp {
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
+            // highlight-next-line
             node_ref: NodeRef::default(),
         }
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
+            // highlight-next-line
             <div ref={self.node_ref.clone()}></div>
         }
     }
 
     fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
-        let has_attributes = self.node_ref.cast::<Element>().unwrap().has_attributes();
+        // highlight-start
+        let has_attributes = self.node_ref
+            .cast::<Element>()
+            .unwrap()
+            .has_attributes();
+        // highlight-end
     }
 }
 ```

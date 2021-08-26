@@ -10,28 +10,10 @@ Component's stateful logic can be extracted into usable function by creating cus
 Consider that we have a component which subscribes to an agent and displays the messages sent to it.
 ```rust
 use yew::{function_component, html, use_effect, use_state, Callback};
-use yew_agent::{Agent, Bridged, Public};
+use yew_agent::Bridged;
+// EventBus is an implementation yew_agent::Agent
+use doc_test::agents::EventBus;
 
-struct EventBus;
-impl Agent for EventBus {
-    type Reach = Public<Self>;
-    type Message = ();
-    type Input = ();
-    type Output = String;
-
-    fn create(_link: yew_agent::AgentLink<Self>) -> Self {
-        // impl
-        Self
-    }
-
-    fn update(&mut self, _msg: Self::Message) {
-        // impl
-    }
-
-    fn handle_input(&mut self, _msg: Self::Input, _id: yew_agent::HandlerId) {
-        // impl
-    }
-}
 
 #[function_component(ShowMessages)]
 pub fn show_messages() -> Html {
@@ -74,29 +56,11 @@ We'll use `use_state` hook to store the `Vec` for messages, so they persist betw
 We'll also use `use_effect` to subscribe to the `EventBus` `Agent` so the subscription can be tied to component's lifecycle. 
 
 ```rust
+use std::collections::HashSet;
 use yew::{use_effect, use_state, Callback};
-use yew_agent::{Agent, Bridged, Public};
-
-struct EventBus;
-impl Agent for EventBus {
-    type Reach = Public<Self>;
-    type Message = ();
-    type Input = ();
-    type Output = String;
-
-    fn create(_link: yew_agent::AgentLink<Self>) -> Self {
-        // impl
-        Self
-    }
-
-    fn update(&mut self, _msg: Self::Message) {
-        // impl
-    }
-
-    fn handle_input(&mut self, _msg: Self::Input, _id: yew_agent::HandlerId) {
-        // impl
-    }
-}
+use yew_agent::Bridged;
+// EventBus is an implementation yew_agent::Agent
+use doc_test::agents::EventBus;
 
 fn use_subscribe() -> Vec<String> {
     let state = use_state(Vec::new);

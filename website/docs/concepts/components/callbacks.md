@@ -48,14 +48,18 @@ impl Component for Comp {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        // Create a callback that accepts some text and sends it to the component as the `Msg::Text` message variant.
+        // Create a callback that accepts some text and sends it 
+        // to the component as the `Msg::Text` message variant.
+        // highlight-next-line
         let cb = ctx.link().callback(|text: String| Msg::Text(text));
             
         // The previous line is needlessly verbose to make it clearer.
         // It can be simplified it to this:
+        // highlight-next-line
         let cb = ctx.link().callback(Msg::Text);
             
         // Will send `Msg::Text("Hello World!")` to the component.
+        // highlight-next-line
         cb.emit("Hello World!".to_owned());
 
         html! {
@@ -112,8 +116,10 @@ impl Component for Comp {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        // highlight-next-line
         let onclick = ctx.link().callback(|_| Msg::Clicked);
         html! {
+            // highlight-next-line
             <button {onclick}>{ "Click" }</button>
         }
     }
@@ -143,6 +149,7 @@ impl Component for Comp {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        // highlight-start
         let onkeypress = ctx.link().batch_callback(|event: KeyboardEvent| {
             if event.key() == "Enter" {
                 Some(Msg::Submit)
@@ -154,6 +161,7 @@ impl Component for Comp {
         html! {
             <input type="text" {onkeypress} />
         }
+        // highlight-end
     }
 }
 ```

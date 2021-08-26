@@ -164,33 +164,8 @@ impl Component for MyComponent {
 
 ```rust
 use yew::{html, Component, Context, Html};
-use yew_agent::{Agent, AgentLink, Dispatched, Dispatcher, HandlerId};
-
-pub enum WorkerMsg {
-    Process,
-}
-
-pub struct MyWorker;
-
-impl Agent for MyWorker {
-    type Reach = yew_agent::Context<Self>;
-
-    type Message = ();
-    type Input = WorkerMsg;
-    type Output = ();
-
-    fn create(_link: AgentLink<Self>) -> Self {
-        Self
-    }
-
-    fn update(&mut self, _msg: Self::Message) {
-        // impl
-    }
-
-    fn handle_input(&mut self, _msg: Self::Input, _id: HandlerId) {
-        // impl
-    }
-}
+use yew_agent::{Dispatcher, Dispatched};
+use doc_test::agents::{MyWorker, WorkerMsg};
 
 struct MyComponent {
     worker: Dispatcher<MyWorker>,
