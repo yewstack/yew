@@ -25,17 +25,26 @@ It is common to store the props (data which can be passed from parent to child c
 `ComponentLink` in your component struct, like so:
 
 ```rust
+use yew::{Component, Context, html, Html, Properties};
+
+#[derive(PartialEq, Properties)]
+pub struct Props;
+
 pub struct MyComponent;
 
 impl Component for MyComponent {
+    type Message = ();
     type Properties = Props;
-    // ...
 
     fn create(ctx: &Context<Self>) -> Self {
         MyComponent
     }
 
-    // ...
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            // impl
+        }
+    }
 }
 ```
 
@@ -49,13 +58,31 @@ differences in programming language aside).
 One difference is that Yew provides a shorthand syntax for properties, similar to Svelte, where instead of writing `onclick={onclick}`, you can just write `{onclick}`.
 
 ```rust
+use yew::{Component, Context, html, Html, Properties};
+
+enum Msg {
+    Click,
+}
+
+#[derive(PartialEq, Properties)]
+struct Props {
+    button_text: String,
+}
+
+struct MyComponent;
+
 impl Component for MyComponent {
-    // ...
+    type Message = Msg;
+    type Properties = Props;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let onclick = ctx.link().callback(|_| Msg::Click);
         html! {
-            <button {onclick}>{ ctx.props().button_text }</button>
+            <button {onclick}>{ &ctx.props().button_text }</button>
         }
     }
 }
@@ -72,15 +99,24 @@ is also a parameter called `first_render` which can be used to determine whether
 being called on the first render, or instead a subsequent one.
 
 ```rust
-use web_sys::HtmlInputElement;
-use yew::prelude::*;
+use yew::{
+    Component, Context, html, Html, NodeRef, 
+    web_sys::HtmlInputElement
+};
 
 pub struct MyComponent {
     node_ref: NodeRef,
 }
 
 impl Component for MyComponent {
-    // ...
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {
+            node_ref: NodeRef::default(),
+        }
+    }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
@@ -112,27 +148,45 @@ by event listeners, child components, Agents, Services, or Futures.
 Here's an example of what an implementation of `update` could look like:
 
 ```rust
+use yew::{Component, Context, html, Html};
+
 pub enum Msg {
     SetInputEnabled(bool)
 }
 
+struct MyComponent {
+    input_enabled: bool,
+}
+
 impl Component for MyComponent {
     type Message = Msg;
+    type Properties = ();
 
-    // ...
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {
+            input_enabled: false,
+        }
+    }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-       match msg {
-           Msg::SetInputEnabled(enabled) => {
-               if self.input_enabled != enabled {
-                   self.input_enabled = enabled;
-                   true // Re-render
-               } else {
-                   false
-               }
-           }
-       }
+        match msg {
+            Msg::SetInputEnabled(enabled) => {
+                if self.input_enabled != enabled {
+                    self.input_enabled = enabled;
+                    true // Re-render
+                } else {
+                    false
+                }
+            }
+        }
     }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            // impl
+        }
+    } 
+
 }
 ```
 
@@ -153,7 +207,7 @@ before it is destroyed. This method is optional and does nothing by default.
 
 The `Component` trait has two associated types: `Message` and `Properties`.
 
-```rust
+```rust ,ignore
 impl Component for MyComponent {
     type Message = Msg;
     type Properties = Props;

@@ -8,19 +8,71 @@ Generally data is passed down the component tree using props but that becomes te
 user preferences, authentication information etc. Consider the following example which passes down the 
 theme using props:
 ```rust
-// root
-let theme = // ...
-html! {
-    <Navbar {theme} />
+use yew::{html, Children, Component, Context, Html, Properties};
+
+#[derive(Clone, PartialEq)]
+pub struct Theme {
+    foreground: String,
+    background: String,
 }
 
-// Navbar component
-html! {
-    <div>
-        <Title {theme}>{ "App title" }<Title>
-        <NavButton {theme}>{ "Somewhere" }</NavButton>
-    </div>
+#[derive(PartialEq, Properties)]
+struct NavbarProps {
+    theme: Theme,
 }
+
+struct Navbar;
+
+impl Component for Navbar {
+    type Message = ();
+    type Properties = NavbarProps;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <div>
+                <Title theme={ctx.props().theme.clone()}>
+                    { "App title" }
+                </Title>
+                <NavButton theme={ctx.props().theme.clone()}>
+                    { "Somewhere" }
+                </NavButton>
+            </div>
+        }
+    }
+}
+
+#[derive(PartialEq, Properties)]
+pub struct ThemeProps {
+    theme: Theme,
+    children: Children,
+}
+
+#[yew::function_component(Title)]
+fn title(_props: &ThemeProps) -> Html {
+    html! {
+        // impl
+    }
+}
+#[yew::function_component(NavButton)]
+fn nav_button(_props: &ThemeProps) -> Html {
+    html! {
+        // impl
+    }
+}
+
+// root
+let theme = Theme {
+    foreground: "yellow".to_owned(),
+    background: "pink".to_owned(),
+};
+
+html! {
+    <Navbar {theme} />
+};
 ```
 
 Passing down data like this isn't ideal for something like a theme which needs to be available everywhere. 
@@ -54,14 +106,36 @@ The `Scope::context` method is used to consume contexts in struct components.
 ##### Example
 
 ```rust
+use yew::{Callback, html, Component, Context, Html};
+
+#[derive(Clone, Debug, PartialEq)]
+struct Theme {
+    foreground: String,
+    background: String,
+}
+
 struct ContextDemo;
 
 impl Component for ContextDemo {
-    /// ...
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let theme = ctx.link().context::<Theme>();
+        let (theme, _) = ctx
+            .link()
+            .context::<Theme>(Callback::from(|_| {}))
+            .expect("context to be set");
         html! {
-            <button style={format!("background: {}; color: {};", theme.background, theme.foreground)}>
+            <button style={format!(
+                    "background: {}; color: {};", 
+                    theme.background, 
+                    theme.foreground
+                )}
+            >
                 { "Click me!" }
             </button>
         }

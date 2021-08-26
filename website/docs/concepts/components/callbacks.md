@@ -30,15 +30,39 @@ There is a different method called `callback_once` which accepts a `FnOnce` inst
 You should use this with care though, as the resulting callback will panic if executed more than once.
 
 ```rust
-// Create a callback that accepts some text and sends it to the component as the `Msg::Text` message variant.
-let cb = link.callback(|text: String| Msg::Text(text));
+use yew::{html, Component, Context, Html};
 
-// The previous line is needlessly verbose to make it clearer.
-// It can be simplified it to this:
-let cb = link.callback(Msg::Text);
+enum Msg {
+    Text(String),
+}
 
-// Will send `Msg::Text("Hello World!")` to the component.
-cb.emit("Hello World!".to_owned());
+struct Comp;
+
+impl Component for Comp {
+
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // Create a callback that accepts some text and sends it to the component as the `Msg::Text` message variant.
+        let cb = ctx.link().callback(|text: String| Msg::Text(text));
+            
+        // The previous line is needlessly verbose to make it clearer.
+        // It can be simplified it to this:
+        let cb = ctx.link().callback(Msg::Text);
+            
+        // Will send `Msg::Text("Hello World!")` to the component.
+        cb.emit("Hello World!".to_owned());
+
+        html! {
+            // html here
+        }
+    }
+}
 ```
 
 ### `batch_callback`
@@ -70,9 +94,29 @@ They have an `emit` function that takes their `<IN>` type as an argument and con
 A simple use of a callback might look something like this:
 
 ```rust
-let onclick = link.callback(|_| Msg::Clicked);
-html! {
-    <button {onclick}>{ "Click" }</button>
+use yew::{html, Component, Context, Html};
+
+enum Msg {
+    Clicked,
+}
+
+struct Comp;
+
+impl Component for Comp {
+
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let onclick = ctx.link().callback(|_| Msg::Clicked);
+        html! {
+            <button {onclick}>{ "Click" }</button>
+        }
+    }
 }
 ```
 
@@ -81,16 +125,36 @@ The function passed to `callback` must always take a parameter. For example, the
 If you need a callback that might not need to cause an update, use `batch_callback`.
 
 ```rust
-let onkeypress = link.batch_callback(|event| {
-    if event.key() == "Enter" {
-        Some(Msg::Submit)
-    } else {
-        None
-    }
-});
+use yew::{html, Component, Context, Html, KeyboardEvent};
 
-html! {
-    <input type="text" {onkeypress} />
+enum Msg {
+    Submit,
+}
+
+struct Comp;
+
+impl Component for Comp {
+
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let onkeypress = ctx.link().batch_callback(|event: KeyboardEvent| {
+            if event.key() == "Enter" {
+                Some(Msg::Submit)
+            } else {
+                None
+            }
+        });
+        
+        html! {
+            <input type="text" {onkeypress} />
+        }
+    }
 }
 ```
 

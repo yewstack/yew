@@ -91,15 +91,45 @@ The macro uses the same syntax as a struct expression except that you can't use 
 The type path can either point to the props directly (`path::to::Props`) or the associated properties of a component (`MyComp::Properties`).
 
 ```rust
-let props = yew::props!(LinkProps {
-    href: "/",
-    text: Rc::from("imagine this text being really long"),
-    size: 64,
-});
+use std::rc::Rc;
+use yew::{props, Properties};
 
-// build the associated properties of a component
-let props = yew::props!(Model::Properties {
-    href: "/book",
-    text: Rc::from("my bestselling novel"),
-});
+#[derive(Clone, PartialEq)]
+pub enum LinkColor {
+    Blue,
+    Red,
+    Green,
+    Black,
+    Purple,
+}
+
+fn create_default_link_color() -> LinkColor {
+    LinkColor::Blue
+}
+
+#[derive(Properties, PartialEq)]
+pub struct LinkProps {
+    /// The link must have a target.
+    href: String,
+    text: Rc<String>,
+    /// Color of the link. Defaults to `Blue`.
+    #[prop_or_else(create_default_link_color)]
+    color: LinkColor,
+    /// The view function will not specify a size if this is None.
+    #[prop_or_default]
+    size: Option<u32>,
+    /// When the view function doesn't specify active, it defaults to true.
+    #[prop_or(true)]
+    active: bool,
+}
+
+impl LinkProps {
+    pub fn new_link_with_size(href: String, text: String, size: u32) -> Self {
+        props! {LinkProps {
+            href,
+            text: Rc::from(text),
+            size,
+        }}
+    }
+}
 ```
