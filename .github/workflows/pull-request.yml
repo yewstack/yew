@@ -105,11 +105,6 @@ jobs:
         run: |
           cd packages/yew
           cargo test --doc --features "doc_test wasm_test"
-      
-      - name: Run website code snippet tests
-        run: |
-          cd doc-test/
-          cargo test
 
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
@@ -185,4 +180,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-targets --workspace --exclude yew
+          args: --all-targets --workspace --exclude yew doc-test
