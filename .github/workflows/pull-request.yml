@@ -105,6 +105,11 @@ jobs:
         run: |
           cd packages/yew
           cargo test --doc --features "doc_test wasm_test"
+      
+      - name: Run website code snippet tests
+        run: |
+          cd doc-test/
+          cargo test
 
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
