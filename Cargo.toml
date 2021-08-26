@@ -32,9 +32,6 @@ members = [
   "examples/two_apps",
   "examples/webgl",
 
-  # Website testing
-  "doc-test/",
-
   # Release tools
   "packages/changelog",
 ]
