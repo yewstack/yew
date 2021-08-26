@@ -133,29 +133,6 @@
           ]
         },
         {
-          "collapsed": true,
-          "type": "category",
-          "label": "Function Components",
-          "items": [
-            {
-              "type": "doc",
-              "id": "version-0.18.0/concepts/function-components"
-            },
-            {
-              "type": "doc",
-              "id": "version-0.18.0/concepts/function-components/attribute"
-            },
-            {
-              "type": "doc",
-              "id": "version-0.18.0/concepts/function-components/pre-defined-hooks"
-            },
-            {
-              "type": "doc",
-              "id": "version-0.18.0/concepts/function-components/custom-hooks"
-            }
-          ]
-        },
-        {
           "type": "doc",
           "id": "version-0.18.0/concepts/router"
         },
