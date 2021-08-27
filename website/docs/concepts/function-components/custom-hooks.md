@@ -12,7 +12,7 @@ Consider that we have a component which subscribes to an agent and displays the 
 use yew::{function_component, html, use_effect, use_state, Callback};
 use yew_agent::Bridged;
 // EventBus is an implementation yew_agent::Agent
-use doc_test::agents::EventBus;
+use website_test::agents::EventBus;
 
 
 #[function_component(ShowMessages)]
@@ -60,7 +60,7 @@ use std::collections::HashSet;
 use yew::{use_effect, use_state, Callback};
 use yew_agent::Bridged;
 // EventBus is an implementation yew_agent::Agent
-use doc_test::agents::EventBus;
+use website_test::agents::EventBus;
 
 fn use_subscribe() -> Vec<String> {
     let state = use_state(Vec::new);

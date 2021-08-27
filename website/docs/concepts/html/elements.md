@@ -165,7 +165,7 @@ impl Component for MyComponent {
 ```rust
 use yew::{html, Component, Context, Html};
 use yew_agent::{Dispatcher, Dispatched};
-use doc_test::agents::{MyWorker, WorkerMsg};
+use website_test::agents::{MyWorker, WorkerMsg};
 
 struct MyComponent {
     worker: Dispatcher<MyWorker>,

@@ -89,7 +89,7 @@ args = ["test", "--doc"]
 [tasks.website-test]
 script = [
     """
-    cd packages/doc-test
+    cd packages/website-test
     cargo test
     """
 ]

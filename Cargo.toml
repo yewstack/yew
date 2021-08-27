@@ -36,5 +36,5 @@ members = [
   "packages/changelog",
 ]
 exclude = [
-  "packages/doc-test",
+  "packages/website-test",
 ]

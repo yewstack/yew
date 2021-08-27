@@ -33,7 +33,7 @@ fn main() {
         level.insert(path.clone(), &parts[..]);
     }
 
-    let out = format!("{}/doctests.rs", env::var("OUT_DIR").unwrap());
+    let out = format!("{}/website_tests.rs", env::var("OUT_DIR").unwrap());
 
     fs::write(&out, level.to_contents()).unwrap();
 }
