@@ -13,8 +13,8 @@ struct Level {
 
 fn main() {
     let home = env::var("CARGO_MANIFEST_DIR").unwrap();
-    let pattern = format!("{}/../website/docs/**/*.md", home);
-    let base = format!("{}/../website", home);
+    let pattern = format!("{}/../../website/docs/**/*.md", home);
+    let base = format!("{}/../../website", home);
     let base = Path::new(&base).canonicalize().unwrap();
 
     let mut level = Level::default();
