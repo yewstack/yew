@@ -17,7 +17,7 @@ exception. There are a few options available:
 
 This crate integrates with the familiar Rust `log` crate:
 
-```rust
+```rust ,ignore
 // setup
 fn main() {
     wasm_logger::init(wasm_logger::Config::default());
