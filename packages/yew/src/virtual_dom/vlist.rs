@@ -450,7 +450,7 @@ mod layout_tests_keys {
     use crate::html;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
-    use crate::{Children, Component, ComponentLink, Html, Properties, ShouldRender};
+    use crate::{Children, Component, Context, Html, Properties};
     use web_sys::Node;
 
     #[cfg(feature = "wasm_test")]
@@ -459,12 +459,9 @@ mod layout_tests_keys {
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
-    struct Comp {
-        id: usize,
-        panic_if_changes: bool,
-    }
+    struct Comp {}
 
-    #[derive(Properties, Clone)]
+    #[derive(Properties, Clone, PartialEq)]
     struct CountingCompProps {
         id: usize,
         #[prop_or(false)]
@@ -475,62 +472,40 @@ mod layout_tests_keys {
         type Message = ();
         type Properties = CountingCompProps;
 
-        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-            Comp {
-                id: props.id,
-                panic_if_changes: props.can_change,
-            }
+        fn create(_: &Context<Self>) -> Self {
+            Comp {}
         }
 
-        fn change(&mut self, props: Self::Properties) -> ShouldRender {
-            #[cfg(feature = "wasm_test")]
-            wasm_bindgen_test::console_log!("Comp changed: {} -> {}", self.id, props.id);
-            let changed = self.id != props.id;
-            if self.panic_if_changes && changed {
-                panic!(
-                    "VComp changed but should not have: {} -> {}.",
-                    self.id, props.id
-                );
-            }
-            self.id = props.id;
-            changed
-        }
-
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
 
-        fn view(&self) -> Html {
-            html! { <p>{ self.id }</p> }
+        fn view(&self, ctx: &Context<Self>) -> Html {
+            html! { <p>{ ctx.props().id }</p> }
         }
     }
 
-    #[derive(Clone, Properties)]
+    #[derive(Clone, Properties, PartialEq)]
     pub struct ListProps {
         pub children: Children,
     }
 
-    pub struct List(ListProps);
+    pub struct List();
 
     impl Component for List {
         type Message = ();
         type Properties = ListProps;
 
-        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-            Self(props)
+        fn create(_: &Context<Self>) -> Self {
+            Self()
         }
 
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
 
-        fn change(&mut self, mut props: Self::Properties) -> ShouldRender {
-            std::mem::swap(&mut self.0, &mut props);
-            self.0.children != props.children
-        }
-
-        fn view(&self) -> Html {
-            html! { <>{ for self.0.children.iter() }</> }
+        fn view(&self, ctx: &Context<Self>) -> Html {
+            html! { <>{ for ctx.props().children.iter() }</> }
         }
     }
 

@@ -1,6 +1,6 @@
 use js_sys::Date;
 use weblog::console_log;
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Component, Context, Html};
 
 // Define the possible messages which can be sent to the component
 pub enum Msg {
@@ -9,7 +9,6 @@ pub enum Msg {
 }
 
 pub struct Model {
-    link: ComponentLink<Self>,
     value: i64, // This will store the counter value
 }
 
@@ -17,11 +16,11 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { link, value: 0 }
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self { value: 0 }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Increment => {
                 self.value += 1;
@@ -36,26 +35,22 @@ impl Component for Model {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div>
                 <div class="panel">
                     // A button to send the Increment message
-                    <button class="button" onclick={self.link.callback(|_| Msg::Increment)}>
+                    <button class="button" onclick={ctx.link().callback(|_| Msg::Increment)}>
                         { "+1" }
                     </button>
 
                     // A button to send the Decrement message
-                    <button onclick={self.link.callback(|_| Msg::Decrement)}>
+                    <button onclick={ctx.link().callback(|_| Msg::Decrement)}>
                         { "-1" }
                     </button>
 
                     // A button to send two Increment messages
-                    <button onclick={self.link.batch_callback(|_| vec![Msg::Increment, Msg::Increment])}>
+                    <button onclick={ctx.link().batch_callback(|_| vec![Msg::Increment, Msg::Increment])}>
                         { "+1, +1" }
                     </button>
 

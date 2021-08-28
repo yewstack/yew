@@ -2,50 +2,10 @@
 mod events;
 
 use wasm_bindgen::JsCast;
-use web_sys::{Element, Event, HtmlInputElement, HtmlSelectElement, HtmlTextAreaElement};
+use web_sys::{Event, EventTarget};
 
 use crate::Callback;
 pub use events::*;
-
-/// A type representing data from `oninput` event.
-#[derive(Debug)]
-pub struct InputData {
-    /// Inserted characters. Contains value from
-    /// [InputEvent](https://developer.mozilla.org/en-US/docs/Web/API/InputEvent/data).
-    pub value: String,
-    /// The InputEvent received.
-    pub event: web_sys::InputEvent,
-}
-
-// There is no '.../Web/API/ChangeEvent/data' (for onchange) similar to
-// https://developer.mozilla.org/en-US/docs/Web/API/InputEvent/data (for oninput).
-// ChangeData actually contains the value of the InputElement/TextAreaElement
-// after `change` event occured or contains the SelectElement (see more at the
-// variant ChangeData::Select)
-
-/// A type representing change of value(s) of an element after committed by user
-/// ([onchange event](https://developer.mozilla.org/en-US/docs/Web/Events/change)).
-#[derive(Debug)]
-pub enum ChangeData {
-    /// Value of the element in cases of `<input>`, `<textarea>`
-    Value(String),
-    /// SelectElement in case of `<select>` element. You can use one of methods of SelectElement
-    /// to collect your required data such as `value` and `selected_index`.
-    /// You can also iterate throught `selected_options` yourself, this does require adding the
-    /// [web-sys](https://crates.io/crates/web-sys) crate with the `HtmlCollection` feature.
-    Select(HtmlSelectElement),
-    /// Files
-    Files(web_sys::FileList),
-}
-
-/// Extract target as Element from event
-fn extract_target(event: &Event) -> Element {
-    event
-        .target()
-        .expect("no target on event")
-        .dyn_into()
-        .unwrap()
-}
 
 /// Cast [Event] `e` into it's target `T`.
 ///
@@ -55,60 +15,119 @@ fn extract_target(event: &Event) -> Element {
 #[inline]
 pub(crate) fn cast_event<T>(e: Event) -> T
 where
-    T: wasm_bindgen::JsCast,
+    T: JsCast,
 {
     e.unchecked_into()
 }
 
-pub(crate) fn oninput_handler(event: Event) -> InputData {
-    let this = extract_target(&event);
-    let event: web_sys::InputEvent = cast_event(event);
+/// A trait to obtain a generic event target.
+///
+/// The methods in this trait are convenient helpers that use the [`JsCast`] trait internally
+/// to do the conversion.
+pub trait TargetCast
+where
+    Self: AsRef<Event>,
+{
+    /// Performs a dynamic cast (checked at runtime) of this events target into the type `T`.
+    ///
+    /// This method can return [`None`] for two reasons:
+    /// - The event's target was [`None`]
+    /// - The event's target type did not match `T`
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use yew::{prelude::*, web_sys::{Event, HtmlTextAreaElement}};
+    /// # enum Msg {
+    /// #   Value(String),
+    /// # }
+    /// # struct Comp;
+    /// # impl Component for Comp {
+    /// # type Message = Msg;
+    /// # type Properties = ();
+    /// # fn create(ctx: &Context<Self>) -> Self {
+    /// #   Self
+    /// # }
+    ///
+    /// fn view(&self, ctx: &Context<Self>) -> Html {
+    ///     html! {
+    ///         <div
+    ///             onchange={ctx.link().batch_callback(|e: Event| {
+    ///                 if let Some(input) = e.target_dyn_into::<HtmlTextAreaElement>() {
+    ///                     Some(Msg::Value(input.value()))
+    ///                 } else {
+    ///                     None
+    ///                 }
+    ///             })}
+    ///         >
+    ///             <textarea />
+    ///             <input type="text" />
+    ///         </div>
+    ///     }
+    /// }
+    /// # }
+    /// ```
+    /// _Note: if you can apply the [`Callback`] directly onto an element which doesn't have a child
+    /// consider using [`TargetCast::target_unchecked_into<T>`]_
+    #[inline]
+    fn target_dyn_into<T>(&self) -> Option<T>
+    where
+        T: AsRef<EventTarget> + JsCast,
+    {
+        self.as_ref()
+            .target()
+            .and_then(|target| target.dyn_into().ok())
+    }
 
-    // Normally only InputElement or TextAreaElement can have an oninput event listener. In
-    // practice though any element with `contenteditable=true` may generate such events,
-    // therefore here we fall back to just returning the text content of the node.
-    // See https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/input_event.
-    let value = this
-        .dyn_ref()
-        .map(|input: &HtmlInputElement| input.value())
-        .or_else(|| {
-            this.dyn_ref()
-                .map(|input: &HtmlTextAreaElement| input.value())
-        })
-        .or_else(|| this.text_content())
-        .expect(concat!(
-            "only an InputElement or TextAreaElement or an element with contenteditable=true ",
-            "can have an oninput event listener"
-        ));
-    InputData { value, event }
-}
-
-pub(crate) fn onchange_handler(event: Event) -> ChangeData {
-    let this = extract_target(&event);
-
-    match this.node_name().as_ref() {
-        "INPUT" => {
-            let input = this.dyn_into::<HtmlInputElement>().unwrap();
-            if input
-                .get_attribute("type")
-                .map(|value| value.eq_ignore_ascii_case("file"))
-                .unwrap_or(false)
-            {
-                ChangeData::Files(input.files().unwrap())
-            } else {
-                ChangeData::Value(input.value())
-            }
-        }
-        "TEXTAREA" => ChangeData::Value(this.dyn_into::<HtmlTextAreaElement>().unwrap().value()),
-        "SELECT" => ChangeData::Select(this.dyn_into::<HtmlSelectElement>().unwrap()),
-        _ => {
-            panic!(concat!(
-                "only an InputElement, TextAreaElement or SelectElement ",
-                "can have an onchange event listener"
-            ));
-        }
+    #[inline]
+    /// Performs a zero-cost unchecked cast of this events target into the type `T`.
+    ///
+    /// This method **does not check whether the event target is an instance of `T`**. If used
+    /// incorrectly then this method may cause runtime exceptions in both Rust and JS, this should
+    /// be used with caution.
+    ///
+    /// A common safe usage of this method is within a [`Callback`] that is applied directly to an
+    /// element that has no children, thus `T` will be the type of the element the [`Callback`] is
+    /// applied to.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use yew::{prelude::*, web_sys::{Event, HtmlInputElement}};
+    /// # enum Msg {
+    /// #   Value(String),
+    /// # }
+    /// # struct Comp;
+    /// # impl Component for Comp {
+    /// # type Message = Msg;
+    /// # type Properties = ();
+    /// # fn create(ctx: &Context<Self>) -> Self {
+    /// #   Self
+    /// # }
+    ///
+    /// fn view(&self, ctx: &Context<Self>) -> Html {
+    ///     html! {
+    ///         <input type="text"
+    ///             onchange={ctx.link().callback(|e: Event| {
+    ///                 // Safe to use as callback is on an `input` element so this event can
+    ///                 // only come from this input!
+    ///                 let input: HtmlInputElement = e.target_unchecked_into();
+    ///                 Msg::Value(input.value())
+    ///             })}
+    ///         />
+    ///     }
+    /// }
+    /// # }
+    /// ```
+    fn target_unchecked_into<T>(&self) -> T
+    where
+        T: AsRef<EventTarget> + JsCast,
+    {
+        self.as_ref().target().unwrap().unchecked_into()
     }
 }
+
+impl<E: AsRef<Event>> TargetCast for E {}
 
 /// A trait similar to `Into<T>` which allows conversion of a value into a [`Callback`].
 /// This is used for event listeners.

@@ -19,9 +19,7 @@ Feel free to contribute to add instructions for your editor of choice.
 ```rust
 use yew::prelude::*;
 
-struct $NAME$ {
-    link: ComponentLink<Self>
-}
+struct $NAME$;
 
 enum Msg {
 }
@@ -30,21 +28,11 @@ impl Component for $NAME$ {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { 
-            link 
-        }
+    fn create(ctx: &Context<Self>) -> Self {
+        Self
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {}
-    }
-
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             $HTML$
         }
@@ -65,9 +53,7 @@ impl Component for $NAME$ {
 		"body": [
 			"use yew::prelude::*;",
 			"",
-			"pub struct ${1} {",
-			"    link: ComponentLink<Self>,",
-			"}",
+			"pub struct ${1};",
 			"",
 			"pub enum Msg {",
 			"}",
@@ -76,21 +62,11 @@ impl Component for $NAME$ {
 			"    type Message = Msg;",
 			"    type Properties = ();",
 			"",
-			"    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {",
-			"        Self {",
-			"            link,",
-			"        }",
+			"    fn create(ctx: &Context<Self>) -> Self {",
+			"        Self",
 			"    }",
 			"",
-			"    fn update(&mut self, msg: Self::Message) -> ShouldRender {",
-			"        match msg {}",
-			"    }",
-			"",
-			"    fn change(&mut self, _props: Self::Properties) -> ShouldRender {",
-			"        false",
-			"    }",
-			"",
-			"    fn view(&self) -> Html {",
+			"    fn view(&self, ctx: &Context<Self>) -> Html {",
 			"        html! {",
 			"            ${0}",
 			"        }",

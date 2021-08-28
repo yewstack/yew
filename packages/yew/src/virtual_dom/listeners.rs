@@ -520,15 +520,12 @@ impl Registry {
 
 #[cfg(all(test, feature = "wasm_test"))]
 mod tests {
+    use std::marker::PhantomData;
+
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     wasm_bindgen_test_configure!(run_in_browser);
 
-    use crate::{
-        html,
-        html::{ChangeData, InputData},
-        utils::document,
-        AppHandle, Component, ComponentLink, Html,
-    };
+    use crate::{html, html::TargetCast, utils::document, AppHandle, Component, Context, Html};
     use wasm_bindgen::JsCast;
     use wasm_bindgen_futures::JsFuture;
 
@@ -537,7 +534,6 @@ mod tests {
         Click,
         StopListening,
         SetText(String),
-        NOP,
     }
 
     #[derive(Default)]
@@ -552,7 +548,7 @@ mod tests {
             None
         }
 
-        fn view<C>(link: &ComponentLink<C>, state: &State) -> Html
+        fn view<C>(ctx: &Context<C>, state: &State) -> Html
         where
             C: Component<Message = Message>,
         {
@@ -562,7 +558,10 @@ mod tests {
                 }
             } else {
                 html! {
-                    <a onclick={link.callback_with_passive(Self::passive(), |_| Message::Click)}>
+                    <a onclick={ctx.link().callback_with_passive(
+                        Self::passive(),
+                        |_| Message::Click,
+                    )}>
                         {state.clicked}
                     </a>
                 }
@@ -575,7 +574,7 @@ mod tests {
         M: Mixin + 'static,
     {
         state: State,
-        link: ComponentLink<Self>,
+        pd: PhantomData<M>,
     }
 
     impl<M> Component for Comp<M>
@@ -585,14 +584,14 @@ mod tests {
         type Message = Message;
         type Properties = ();
 
-        fn create(_: Self::Properties, link: crate::ComponentLink<Self>) -> Self {
+        fn create(_: &Context<Self>) -> Self {
             Comp {
-                link,
                 state: Default::default(),
+                pd: PhantomData,
             }
         }
 
-        fn update(&mut self, msg: Self::Message) -> bool {
+        fn update(&mut self, _: &Context<Self>, msg: Self::Message) -> bool {
             match msg {
                 Message::Click => {
                     self.state.clicked += 1;
@@ -603,19 +602,12 @@ mod tests {
                 Message::SetText(s) => {
                     self.state.text = s;
                 }
-                Message::NOP => {
-                    return false;
-                }
             };
             true
         }
 
-        fn change(&mut self, _: Self::Properties) -> bool {
-            false
-        }
-
-        fn view(&self) -> crate::Html {
-            M::view(&self.link, &self.state)
+        fn view(&self, ctx: &Context<Self>) -> crate::Html {
+            M::view(ctx, &self.state)
         }
     }
 
@@ -651,7 +643,7 @@ mod tests {
 
     #[test]
     fn synchronous() {
-        struct Synchronous();
+        struct Synchronous;
 
         impl Mixin for Synchronous {}
 
@@ -682,7 +674,7 @@ mod tests {
 
     #[test]
     async fn passive() {
-        struct Passive();
+        struct Passive;
 
         impl Mixin for Passive {
             fn passive() -> Option<bool> {
@@ -716,10 +708,10 @@ mod tests {
 
     #[test]
     fn bubbling() {
-        struct Bubbling();
+        struct Bubbling;
 
         impl Mixin for Bubbling {
-            fn view<C>(link: &ComponentLink<C>, state: &State) -> Html
+            fn view<C>(ctx: &Context<C>, state: &State) -> Html
             where
                 C: Component<Message = Message>,
             {
@@ -732,7 +724,7 @@ mod tests {
                         </div>
                     }
                 } else {
-                    let cb = link.callback(|_| Message::Click);
+                    let cb = ctx.link().callback(|_| Message::Click);
                     html! {
                         <div onclick={cb.clone()}>
                             <a onclick={cb}>
@@ -763,10 +755,10 @@ mod tests {
     where
         E: JsCast + std::fmt::Debug,
     {
-        struct Input();
+        struct Input;
 
         impl Mixin for Input {
-            fn view<C>(link: &ComponentLink<C>, state: &State) -> Html
+            fn view<C>(ctx: &Context<C>, state: &State) -> Html
             where
                 C: Component<Message = Message>,
             {
@@ -782,12 +774,13 @@ mod tests {
                         <div>
                             <input
                                 type="text"
-                                onchange={link.callback(|d: ChangeData| match d {
-                                    ChangeData::Value(s) => Message::SetText(s),
-                                    _ => Message::NOP,
+                                onchange={ctx.link().callback(|e: web_sys::Event| {
+                                    let el: web_sys::HtmlInputElement = e.target_unchecked_into();
+                                    Message::SetText(el.value())
                                 })}
-                                oninput={link.callback(|InputData { value, .. }| {
-                                    Message::SetText(value)
+                                oninput={ctx.link().callback(|e: web_sys::InputEvent| {
+                                    let el: web_sys::HtmlInputElement = e.target_unchecked_into();
+                                    Message::SetText(el.value())
                                 })}
                             />
                             <p>{state.text.clone()}</p>

@@ -5,7 +5,6 @@ use strum_macros::{EnumIter, ToString};
 pub struct State {
     pub entries: Vec<Entry>,
     pub filter: Filter,
-    pub value: String,
     pub edit_value: String,
 }
 

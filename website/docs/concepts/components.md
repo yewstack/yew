@@ -25,17 +25,14 @@ It is common to store the props (data which can be passed from parent to child c
 `ComponentLink` in your component struct, like so:
 
 ```rust
-pub struct MyComponent {
-    props: Props,
-    link: ComponentLink<Self>,
-}
+pub struct MyComponent;
 
 impl Component for MyComponent {
     type Properties = Props;
     // ...
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        MyComponent { props, link }
+    fn create(ctx: &Context<Self>) -> Self {
+        MyComponent
     }
 
     // ...
@@ -55,10 +52,10 @@ One difference is that Yew provides a shorthand syntax for properties, similar t
 impl Component for MyComponent {
     // ...
 
-    fn view(&self) -> Html {
-        let onclick = self.link.callback(|_| Msg::Click);
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let onclick = ctx.link().callback(|_| Msg::Click);
         html! {
-            <button {onclick}>{ self.props.button_text }</button>
+            <button {onclick}>{ ctx.props().button_text }</button>
         }
     }
 }
@@ -85,13 +82,13 @@ pub struct MyComponent {
 impl Component for MyComponent {
     // ...
 
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <input ref={self.node_ref.clone()} type="text" />
         }
     }
 
-    fn rendered(&mut self, first_render: bool) {
+    fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
         if first_render {
             if let Some(input) = self.node_ref.cast::<HtmlInputElement>() {
                 input.focus();
@@ -124,7 +121,7 @@ impl Component for MyComponent {
 
     // ...
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
        match msg {
            Msg::SetInputEnabled(enabled) => {
                if self.input_enabled != enabled {
@@ -139,28 +136,12 @@ impl Component for MyComponent {
 }
 ```
 
-### Change
+### Changed
 
 Components may be re-rendered by their parents. When this happens, they could receive new properties
 and need to re-render. This design facilitates parent to child component communication by just
-changing the values of a property.
-
-A typical implementation would look something like:
-
-```rust
-impl Component for MyComponent {
-    // ...
-
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.props != props {
-            self.props = props;
-            true
-        } else {
-            false
-        }
-    }
-}
-```
+changing the values of a property. There is a default implementation which re-renders the component
+when props are changed.
 
 ### Destroy
 
@@ -199,4 +180,10 @@ enum Msg {
 }
 ```
 
-`Properties` represents the information passed to a component from its parent. This type must implements the `Properties` trait \(usually by deriving it\) and can specify whether certain properties are required or optional. This type is used when creating and updating a component. It is common practice to create a struct called `Props` in your component's module and use that as the component's `Properties` type. It is common to shorten "properties" to "props". Since props are handed down from parent components, the root component of your application typically has a `Properties` type of `()`. If you wish to specify properties for your root component, use the `App::mount_with_props` method.
+`Properties` represents the information passed to a component from its parent. This type must implement the `Properties` trait \(usually by deriving it\) and can specify whether certain properties are required or optional. This type is used when creating and updating a component. It is common practice to create a struct called `Props` in your component's module and use that as the component's `Properties` type. It is common to shorten "properties" to "props". Since props are handed down from parent components, the root component of your application typically has a `Properties` type of `()`. If you wish to specify properties for your root component, use the `App::mount_with_props` method.
+
+## Context
+
+All component lifecycle methods take a context object. This object provides a reference to component's scope, which
+allows sending messages to a component and the props passed to the component.
+

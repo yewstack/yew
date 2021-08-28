@@ -11,56 +11,41 @@ pub struct Props {
     pub children: Children,
 }
 
-pub struct ListItem {
-    props: Props,
-}
+pub struct ListItem;
 
 impl Component for ListItem {
     type Message = ();
     type Properties = Props;
 
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        Self { props }
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.props != props {
-            self.props = props;
-            true
-        } else {
-            false
-        }
-    }
-
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let onmouseover = {
-            let name = self.props.name.clone();
-            self.props.on_hover.reform(move |e: MouseEvent| {
+            let name = ctx.props().name.clone();
+            ctx.props().on_hover.reform(move |e: MouseEvent| {
                 e.stop_propagation();
                 Hovered::Item(name.clone())
             })
         };
         html! {
             <div class="list-item" {onmouseover}>
-                { &self.props.name }
-                { self.view_details() }
+                { &ctx.props().name }
+                { Self::view_details(&ctx.props().children) }
             </div>
         }
     }
 }
 
 impl ListItem {
-    fn view_details(&self) -> Html {
-        if self.props.children.is_empty() {
+    fn view_details(children: &Children) -> Html {
+        if children.is_empty() {
             html! {}
         } else {
             html! {
                 <div class="list-item-details">
-                    { self.props.children.clone() }
+                    { children.clone() }
                 </div>
             }
         }

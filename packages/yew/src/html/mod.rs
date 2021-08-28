@@ -35,13 +35,13 @@ pub type Html = VNode;
 ///     type Message = ();
 ///     type Properties = ();
 ///
-///     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+///     fn create(_ctx: &Context<Self>) -> Self {
 ///         Input {
 ///             node_ref: NodeRef::default(),
 ///         }
 ///     }
 ///
-///     fn rendered(&mut self, first_render: bool) {
+///     fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
 ///         if first_render {
 ///             if let Some(input) = self.node_ref.cast::<HtmlInputElement>() {
 ///                 input.focus();
@@ -49,15 +49,7 @@ pub type Html = VNode;
 ///         }
 ///     }
 ///
-///     fn change(&mut self, _: Self::Properties) -> ShouldRender {
-///         false
-///     }
-///
-///     fn update(&mut self, _: Self::Message) -> ShouldRender {
-///         false
-///     }
-///
-///     fn view(&self) -> Html {
+///     fn view(&self, _ctx: &Context<Self>) -> Html {
 ///         html! {
 ///             <input ref={self.node_ref.clone()} type="text" />
 ///         }

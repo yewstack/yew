@@ -49,19 +49,17 @@ The children are re-rendered when the context changes.
 
 #### Struct components
 
-The `ComponentLink::context` method is used to consume contexts in struct components.
+The `Scope::context` method is used to consume contexts in struct components.
 
 ##### Example
 
 ```rust
-struct ContextDemo {
-    link: ComponentLink<Self> 
-}
+struct ContextDemo;
 
 impl Component for ContextDemo {
     /// ...
-    fn view(&self) -> Html {
-        let theme = self.link.context::<Theme>();
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let theme = ctx.link().context::<Theme>();
         html! {
             <button style={format!("background: {}; color: {};", theme.background, theme.foreground)}>
                 { "Click me!" }

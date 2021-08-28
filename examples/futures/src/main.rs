@@ -6,7 +6,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response};
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Component, Context, Html};
 
 mod markdown;
 
@@ -65,63 +65,57 @@ enum Msg {
 }
 struct Model {
     markdown: FetchState<String>,
-    link: ComponentLink<Self>,
 }
 
 impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
             markdown: FetchState::NotFetching,
-            link,
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::SetMarkdownFetchState(fetch_state) => {
                 self.markdown = fetch_state;
                 true
             }
             Msg::GetMarkdown => {
-                self.link.send_future(async {
+                ctx.link().send_future(async {
                     match fetch_markdown(MARKDOWN_URL).await {
                         Ok(md) => Msg::SetMarkdownFetchState(FetchState::Success(md)),
                         Err(err) => Msg::SetMarkdownFetchState(FetchState::Failed(err)),
                     }
                 });
-                self.link
+                ctx.link()
                     .send_message(Msg::SetMarkdownFetchState(FetchState::Fetching));
                 false
             }
             Msg::GetError => {
-                self.link.send_future(async {
+                ctx.link().send_future(async {
                     match fetch_markdown(INCORRECT_URL).await {
                         Ok(md) => Msg::SetMarkdownFetchState(FetchState::Success(md)),
                         Err(err) => Msg::SetMarkdownFetchState(FetchState::Failed(err)),
                     }
                 });
-                self.link
+                ctx.link()
                     .send_message(Msg::SetMarkdownFetchState(FetchState::Fetching));
                 false
             }
         }
     }
 
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         match &self.markdown {
             FetchState::NotFetching => html! {
                 <>
-                    <button onclick={self.link.callback(|_| Msg::GetMarkdown)}>
+                    <button onclick={ctx.link().callback(|_| Msg::GetMarkdown)}>
                         { "Get Markdown" }
                     </button>
-                    <button onclick={self.link.callback(|_| Msg::GetError)}>
+                    <button onclick={ctx.link().callback(|_| Msg::GetError)}>
                         { "Get using incorrect URL" }
                     </button>
                 </>

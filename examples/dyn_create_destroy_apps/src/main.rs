@@ -16,7 +16,6 @@ pub enum Msg {
 }
 
 pub struct Model {
-    link: ComponentLink<Self>,
     apps: Slab<(Element, AppHandle<CounterModel>)>, // Contains the spawned apps and their parent div elements
     apps_container_ref: NodeRef,
 }
@@ -25,15 +24,14 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            link,
             apps: Slab::new(),
             apps_container_ref: NodeRef::default(),
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         let app_container = self
             .apps_container_ref
             .cast::<Element>()
@@ -60,8 +58,8 @@ impl Component for Model {
                 let new_counter_app = yew::start_app_with_props_in_element(
                     app_div.clone(),
                     CounterProps {
-                        destroy_callback: self
-                            .link
+                        destroy_callback: ctx
+                            .link()
                             .callback(move |_| Msg::DestroyCounterApp(app_key)),
                     },
                 );
@@ -85,11 +83,7 @@ impl Component for Model {
         false
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         // We will only render once, and then do the rest of the DOM changes
         // by mounting/destroying appinstances of CounterModel
         html! {
@@ -98,7 +92,7 @@ impl Component for Model {
                     // Create button to create a new app
                     <button
                         class="create"
-                        onclick={self.link.callback(|_| Msg::SpawnCounterAppInstance)}
+                        onclick={ctx.link().callback(|_| Msg::SpawnCounterAppInstance)}
                     >
                         { "Spawn new CounterModel app" }
                     </button>

@@ -386,26 +386,26 @@ pub(crate) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&N
 mod layout_tests {
     use super::*;
     use crate::html::{AnyScope, Scope};
-    use crate::{Component, ComponentLink, Html, ShouldRender};
+    use crate::{Component, Context, Html};
 
     struct Comp;
     impl Component for Comp {
         type Message = ();
         type Properties = ();
 
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        fn create(_: &Context<Self>) -> Self {
             unimplemented!()
         }
 
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
 
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>) -> bool {
             unimplemented!()
         }
 
-        fn view(&self) -> Html {
+        fn view(&self, _ctx: &Context<Self>) -> Html {
             unimplemented!()
         }
     }

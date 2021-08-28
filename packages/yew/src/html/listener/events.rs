@@ -115,6 +115,8 @@ impl_short! {
     onvolumechange
     onwaiting
 
+    onchange
+
     oncopy
     oncut
     onpaste
@@ -165,6 +167,8 @@ impl_short! {
     onmouseup(MouseEvent)
     onwheel(WheelEvent)
 
+    oninput(InputEvent)
+
     onsubmit(FocusEvent)
 
     onanimationcancel(AnimationEvent)
@@ -209,11 +213,4 @@ impl_passive! {
 
     ontouchmove(TouchEvent)
     ontouchstart(TouchEvent)
-}
-
-// More specialized cases
-impl_action! {
-    onchange(Event) -> crate::html::listener::ChangeData => crate::html::listener::onchange_handler
-    oninput(InputEvent) -> crate::html::listener::InputData
-        => crate::html::listener::oninput_handler
 }

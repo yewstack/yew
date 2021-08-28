@@ -6,6 +6,7 @@ use std::any::TypeId;
 use std::borrow::Borrow;
 use std::fmt;
 use std::ops::Deref;
+use std::rc::Rc;
 use web_sys::Element;
 
 /// A virtual component.
@@ -36,7 +37,7 @@ impl Clone for VComp {
 /// A virtual child component.
 pub struct VChild<COMP: Component> {
     /// The component properties
-    pub props: COMP::Properties,
+    pub props: Rc<COMP::Properties>,
     /// Reference to the mounted node
     node_ref: NodeRef,
     key: Option<Key>,
@@ -45,7 +46,7 @@ pub struct VChild<COMP: Component> {
 impl<COMP: Component> Clone for VChild<COMP> {
     fn clone(&self) -> Self {
         VChild {
-            props: self.props.clone(),
+            props: Rc::clone(&self.props),
             node_ref: self.node_ref.clone(),
             key: self.key.clone(),
         }
@@ -68,7 +69,7 @@ where
     /// Creates a child component that can be accessed and modified by its parent.
     pub fn new(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self {
         Self {
-            props,
+            props: Rc::new(props),
             node_ref,
             key,
         }
@@ -86,7 +87,7 @@ where
 
 impl VComp {
     /// Creates a new `VComp` instance.
-    pub fn new<COMP>(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self
+    pub fn new<COMP>(props: Rc<COMP::Properties>, node_ref: NodeRef, key: Option<Key>) -> Self
     where
         COMP: Component,
     {
@@ -117,11 +118,11 @@ trait Mountable {
 }
 
 struct PropsWrapper<COMP: Component> {
-    props: COMP::Properties,
+    props: Rc<COMP::Properties>,
 }
 
 impl<COMP: Component> PropsWrapper<COMP> {
-    pub fn new(props: COMP::Properties) -> Self {
+    pub fn new(props: Rc<COMP::Properties>) -> Self {
         Self { props }
     }
 }
@@ -129,7 +130,7 @@ impl<COMP: Component> PropsWrapper<COMP> {
 impl<COMP: Component> Mountable for PropsWrapper<COMP> {
     fn copy(&self) -> Box<dyn Mountable> {
         let wrapper: PropsWrapper<COMP> = PropsWrapper {
-            props: self.props.clone(),
+            props: Rc::clone(&self.props),
         };
         Box::new(wrapper)
     }
@@ -214,10 +215,7 @@ impl<COMP: Component> fmt::Debug for VChild<COMP> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        html, utils::document, Children, Component, ComponentLink, Html, NodeRef, Properties,
-        ShouldRender,
-    };
+    use crate::{html, utils::document, Children, Component, Context, Html, NodeRef, Properties};
     use web_sys::Node;
 
     #[cfg(feature = "wasm_test")]
@@ -240,19 +238,15 @@ mod tests {
         type Message = ();
         type Properties = Props;
 
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        fn create(_: &Context<Self>) -> Self {
             Comp
         }
 
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
 
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            true
-        }
-
-        fn view(&self) -> Html {
+        fn view(&self, _ctx: &Context<Self>) -> Html {
             html! { <div/> }
         }
     }
@@ -381,26 +375,30 @@ mod tests {
         assert_ne!(vchild2, vchild3);
     }
 
-    #[derive(Clone, Properties)]
+    #[derive(Clone, Properties, PartialEq)]
     pub struct ListProps {
         pub children: Children,
     }
-    pub struct List(ListProps);
+    pub struct List;
     impl Component for List {
         type Message = ();
         type Properties = ListProps;
 
-        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-            Self(props)
+        fn create(_: &Context<Self>) -> Self {
+            Self
         }
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>) -> bool {
             unimplemented!();
         }
-        fn view(&self) -> Html {
-            let item_iter = self.0.children.iter().map(|item| html! {<li>{ item }</li>});
+        fn view(&self, ctx: &Context<Self>) -> Html {
+            let item_iter = ctx
+                .props()
+                .children
+                .iter()
+                .map(|item| html! {<li>{ item }</li>});
             html! {
                 <ul>{ for item_iter }</ul>
             }
@@ -495,7 +493,7 @@ mod layout_tests {
 
     use crate::html;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
-    use crate::{Children, Component, ComponentLink, Html, Properties, ShouldRender};
+    use crate::{Children, Component, Context, Html, Properties};
     use std::marker::PhantomData;
 
     #[cfg(feature = "wasm_test")]
@@ -506,10 +504,9 @@ mod layout_tests {
 
     struct Comp<T> {
         _marker: PhantomData<T>,
-        props: CompProps,
     }
 
-    #[derive(Properties, Clone)]
+    #[derive(Properties, Clone, PartialEq)]
     struct CompProps {
         #[prop_or_default]
         children: Children,
@@ -519,25 +516,19 @@ mod layout_tests {
         type Message = ();
         type Properties = CompProps;
 
-        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+        fn create(_: &Context<Self>) -> Self {
             Comp {
                 _marker: PhantomData::default(),
-                props,
             }
         }
 
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
 
-        fn change(&mut self, props: Self::Properties) -> ShouldRender {
-            self.props = props;
-            true
-        }
-
-        fn view(&self) -> Html {
+        fn view(&self, ctx: &Context<Self>) -> Html {
             html! {
-                <>{ self.props.children.clone() }</>
+                <>{ ctx.props().children.clone() }</>
             }
         }
     }
