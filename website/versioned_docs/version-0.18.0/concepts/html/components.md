@@ -8,7 +8,9 @@ description: "Create complex layouts with component hierarchies"
 Any type that implements `Component` can be used in the `html!` macro:
 
 ```rust
-html!{
+use yew::html;
+
+html! {
     <>
         // No properties
         <MyComponent />
@@ -27,6 +29,8 @@ html!{
 Components can be passed children if they have a `children` field in their `Properties`.
 
 ```rust title="parent.rs"
+use yew::html;
+
 html! {
     <Container id="container">
         <h4>{ "Hi" }</h4>
@@ -38,6 +42,8 @@ html! {
 When using the `with props` syntax, the children passed in the `html!` macro overwrite the ones already present in the props.
 
 ```rust
+use yew::{html, props, Children};
+
 let props = yew::props!(Container::Properties {
     id: "container-2",
     children: Children::default(),
@@ -53,6 +59,8 @@ html! {
 Here's the implementation of `Container`:
 
 ```rust
+use yew::{html, Children, Component, Html, Properties};
+
 #[derive(Properties, Clone)]
 pub struct Props {
     pub id: String,
@@ -80,6 +88,8 @@ impl Component for Container {
 Nested component properties can be accessed and mutated if the containing component types its children. In the following example, the `List` component can wrap `ListItem` components. For a real world example of this pattern, check out the `yew-router` source code. For a more advanced example, check out the `nested-list` example in the main yew repository.
 
 ```rust
+use yew::html;
+
 html! {
     <List>
         <ListItem value="a" />
@@ -90,6 +100,8 @@ html! {
 ```
 
 ```rust
+use yew::{html, ChildrenWithProps, Component, Html, Properties};
+
 #[derive(Properties, Clone)]
 pub struct Props {
     pub children: ChildrenWithProps<ListItem>,
