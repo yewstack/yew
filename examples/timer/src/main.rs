@@ -1,6 +1,7 @@
-use gloo::console_timer::ConsoleTimer;
-use gloo::timers::callback::{Interval, Timeout};
-use weblog::*;
+use gloo::{
+    console::{self, Timer},
+    timers::callback::{Interval, Timeout},
+};
 use yew::{html, Component, Context, Html};
 
 pub enum Msg {
@@ -18,7 +19,7 @@ pub struct Model {
     _standalone: (Interval, Interval),
     interval: Option<Interval>,
     timeout: Option<Timeout>,
-    console_timer: Option<ConsoleTimer<'static>>,
+    console_timer: Option<Timer<'static>>,
 }
 
 impl Model {
@@ -39,7 +40,7 @@ impl Component for Model {
 
     fn create(ctx: &Context<Self>) -> Self {
         let standalone_handle =
-            Interval::new(10, || console_debug!("Example of a standalone callback."));
+            Interval::new(10, || console::debug!("Example of a standalone callback."));
 
         let clock_handle = {
             let link = ctx.link().clone();
@@ -67,10 +68,10 @@ impl Component for Model {
                 self.timeout = Some(handle);
 
                 self.messages.clear();
-                console_clear!();
+                console::clear!();
 
                 self.messages.push("Timer started!");
-                self.console_timer = Some(ConsoleTimer::new("Timer"));
+                self.console_timer = Some(Timer::new("Timer"));
                 true
             }
             Msg::StartInterval => {
@@ -81,7 +82,7 @@ impl Component for Model {
                 self.interval = Some(handle);
 
                 self.messages.clear();
-                console_clear!();
+                console::clear!();
 
                 self.messages.push("Interval started!");
                 true
@@ -89,7 +90,7 @@ impl Component for Model {
             Msg::Cancel => {
                 self.cancel();
                 self.messages.push("Canceled!");
-                console_warn!("Canceled!");
+                console::warn!("Canceled!");
                 true
             }
             Msg::Done => {
@@ -98,7 +99,7 @@ impl Component for Model {
 
                 // todo weblog
                 // ConsoleService::group();
-                console_info!("Done!");
+                console::info!("Done!");
                 if let Some(timer) = self.console_timer.take() {
                     drop(timer);
                 }

@@ -1,5 +1,5 @@
 use super::*;
-use log::warn;
+use gloo_console as console;
 use slab::Slab;
 use yew::scheduler::Shared;
 
@@ -20,14 +20,17 @@ pub(crate) fn locate_callback_and_respond<AGN: Agent>(
         match slab.get(id.raw_id()).cloned() {
             Some(callback) => callback,
             None => {
-                warn!("Id of handler does not exist in the slab: {}.", id.raw_id());
+                console::warn!(format!(
+                    "Id of handler does not exist in the slab: {}.",
+                    id.raw_id()
+                ));
                 return;
             }
         }
     };
     match callback {
         Some(callback) => callback.emit(output),
-        None => warn!("The Id of the handler: {}, while present in the slab, is not associated with a callback.", id.raw_id()),
+        None => console::warn!(format!("The Id of the handler: {}, while present in the slab, is not associated with a callback.", id.raw_id())),
     }
 }
 

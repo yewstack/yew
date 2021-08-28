@@ -1,5 +1,5 @@
 use cell::Cellule;
-use gloo::timers::callback::Interval;
+use gloo_timers::callback::Interval;
 use rand::Rng;
 use yew::html::Scope;
 use yew::{classes, html, Component, Context, Html};
