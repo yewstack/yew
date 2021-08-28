@@ -28,33 +28,41 @@ Tags must either self-close `<... />` or have a corresponding end tag for each s
 <!--Open - Close-->
 
 ```rust
+use yew::html;
+
 html! {
   <div id="my_div"></div>
-}
+};
 ```
 
 <!--Invalid-->
 
-```rust
+```rust ,compile_fail
+use yew::html;
+
 html! {
   <div id="my_div"> // <- MISSING CLOSE TAG
-}
+};
 ```
 
 <!--Self-closing-->
 
 ```rust
+use yew::html;
+
 html! {
   <input id="my_input" />
-}
+};
 ```
 
 <!--Invalid-->
 
-```rust
+```rust ,compile_fail
+use yew::html;
+
 html! {
   <input id="my_input"> // <- MISSING SELF-CLOSE
-}
+};
 ```
 
 <!--END_DOCUSAURUS_CODE_TABS-->
@@ -71,6 +79,8 @@ Create complex nested HTML and SVG layouts with ease:
 <!--HTML-->
 
 ```rust
+use yew::html;
+
 html! {
     <div>
         <div data-key="abc"></div>
@@ -86,12 +96,14 @@ html! {
             </select>
         </div>
     </div>
-}
+};
 ```
 
 <!--SVG-->
 
 ```rust
+use yew::html;
+
 html! {
     <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M60.5776 13.8268L51.8673 42.6431L77.7475 37.331L60.5776 13.8268Z" fill="#DEB819"/>
@@ -108,7 +120,7 @@ html! {
             </filter>
         </defs>
     </svg>
-}
+};
 ```
 
 <!--END_DOCUSAURUS_CODE_TABS-->

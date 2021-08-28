@@ -9,7 +9,7 @@ what type of children the component has. In such cases, the below example will
 suffice.
 
 ```rust
-use yew::prelude::*;
+use yew::{html, Children, Component, Context, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct ListProps {
@@ -20,8 +20,12 @@ pub struct ListProps {
 pub struct List;
 
 impl Component for List {
+    type Message = ();
     type Properties = ListProps;
-    // ...
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
@@ -40,10 +44,24 @@ In cases where you want one type of component to be passed as children to your c
 you can use `yew::html::ChildrenWithProps<T>`.
 
 ```rust
-use yew::html::ChildrenWithProps;
-use yew::prelude::*;
+use yew::{html, ChildrenWithProps, Component, Context, Html, Properties};
 
-// ...
+pub struct Item;
+
+impl Component for Item {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            { "item" }
+        }
+    }
+}
 
 #[derive(Properties, PartialEq)]
 pub struct ListProps {
@@ -53,9 +71,13 @@ pub struct ListProps {
 
 pub struct List;
 
-impl Component for ListProps {
+impl Component for List {
+    type Message = ();
     type Properties = ListProps;
-    // ...
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
@@ -76,19 +98,53 @@ for better ergonomics. If you don't want to use it, you can manually implement
 `From` for each variant.
 
 ```rust
-use yew::prelude::*;
-use yew::html::ChildrenRenderer;
-use yew::virtual_dom::{ VChild, VComp };
+use yew::{
+    html, html::ChildrenRenderer, virtual_dom::VChild, Component, 
+    Context, Html, Properties,
+};
 
-// `derive_more::From` implements `From<VChild<Primary>>` and
-// `From<VChild<Secondary>>` for `Item` automatically!
-#[derive(Clone, derive_more::From)]
+pub struct Primary;
+
+impl Component for Primary {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            { "Primary" }
+        }
+    }
+}
+
+pub struct Secondary;
+
+impl Component for Secondary {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            { "Secondary" }
+        }
+    }
+}
+
+#[derive(Clone, derive_more::From, PartialEq)]
 pub enum Item {
     Primary(VChild<Primary>),
     Secondary(VChild<Secondary>),
 }
 
 // Now, we implement `Into<Html>` so that yew knows how to render `Item`.
+#[allow(clippy::from_over_into)]
 impl Into<Html> for Item {
     fn into(self) -> Html {
         match self {
@@ -107,8 +163,12 @@ pub struct ListProps {
 pub struct List;
 
 impl Component for List {
+    type Message = ();
     type Properties = ListProps;
-    // ...
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
@@ -124,9 +184,27 @@ impl Component for List {
 You can also have a single optional child component of a specific type too: 
 
 ```rust
-use yew::prelude::*;
-use yew::virtual_dom::VChild;
+use yew::{
+    html, html_nested, virtual_dom::VChild, Component, 
+    Context, Html, Properties
+};
 
+pub struct PageSideBar;
+
+impl Component for PageSideBar {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            { "sidebar" }
+        }
+    }
+}
 
 #[derive(Properties, PartialEq)]
 pub struct PageProps {
@@ -137,8 +215,12 @@ pub struct PageProps {
 struct Page;
 
 impl Component for Page {
+    type Message = ();
     type Properties = PageProps;
-    // ...
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
@@ -149,20 +231,22 @@ impl Component for Page {
         }
     }
 }
-```
 
-The page component can be called either with the sidebar or without: 
+// The page component can be called either with the sidebar or without: 
 
-```rust
-    // Page without sidebar
-    html! {
-        <Page />
+pub fn render_page(with_sidebar: bool) -> Html {
+    if with_sidebar {
+        // Page with sidebar
+        html! {
+            <Page sidebar={{html_nested! {
+                <PageSideBar />
+            }}} />
+        }
+    } else {
+        // Page without sidebar
+        html! {
+            <Page />
+        }
     }
-
-    // Page with sidebar
-    html! {
-        <Page sidebar={html_nested! {
-            <PageSideBar />
-        }} />
-    }
+}
 ```
