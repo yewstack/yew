@@ -3,6 +3,8 @@
 #[doc(hidden)]
 pub mod key;
 #[doc(hidden)]
+pub mod listeners;
+#[doc(hidden)]
 pub mod vcomp;
 #[doc(hidden)]
 pub mod vlist;
@@ -14,13 +16,14 @@ pub mod vtag;
 pub mod vtext;
 
 use crate::html::{AnyScope, NodeRef};
-use gloo::events::EventListener;
 use indexmap::IndexMap;
-use std::{borrow::Cow, collections::HashMap, fmt, hint::unreachable_unchecked, iter};
+use std::{borrow::Cow, collections::HashMap, hint::unreachable_unchecked, iter};
 use web_sys::{Element, Node};
 
 #[doc(inline)]
 pub use self::key::Key;
+#[doc(inline)]
+pub use self::listeners::*;
 #[doc(inline)]
 pub use self::vcomp::{VChild, VComp};
 #[doc(inline)]
@@ -31,21 +34,6 @@ pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
-
-/// The `Listener` trait is an universal implementation of an event listener
-/// which is used to bind Rust-listener to JS-listener (DOM).
-pub trait Listener {
-    /// Returns the name of the event
-    fn kind(&self) -> &'static str;
-    /// Attaches a listener to the element.
-    fn attach(&self, element: &Element) -> EventListener;
-}
-
-impl fmt::Debug for dyn Listener {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Listener {{ kind: {} }}", self.kind())
-    }
-}
 
 /// Attribute value
 pub type AttrValue = Cow<'static, str>;

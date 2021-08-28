@@ -1,5 +1,4 @@
 #[macro_use]
-mod macros;
 mod events;
 
 use wasm_bindgen::JsCast;
@@ -7,6 +6,19 @@ use web_sys::{Event, EventTarget};
 
 use crate::Callback;
 pub use events::*;
+
+/// Cast [Event] `e` into it's target `T`.
+///
+/// This function mainly exists to provide type inference in the [impl_action] macro to the compiler
+/// and avoid some verbosity by not having to type the signature over and over in closure
+/// definitions.
+#[inline]
+pub(crate) fn cast_event<T>(e: Event) -> T
+where
+    T: JsCast,
+{
+    e.unchecked_into()
+}
 
 /// A trait to obtain a generic event target.
 ///

@@ -271,6 +271,8 @@ pub use web_sys;
 pub mod events {
     pub use crate::html::TargetCast;
 
+    pub use crate::virtual_dom::listeners::set_event_bubbling;
+
     #[doc(no_inline)]
     pub use web_sys::{
         AnimationEvent, DragEvent, ErrorEvent, Event, FocusEvent, InputEvent, KeyboardEvent,
