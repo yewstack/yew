@@ -28,7 +28,7 @@ Yew 包含了這個 service，而且如果 `"services"` 這個 feaure 有被打�
 
 ```rust
 // 使用
-ConsoleService::new()::info(format!("Update: {:?}", msg));
+ConsoleService::info(format!("Update: {:?}", msg).as_ref());
 ```
 
 ## Source Maps

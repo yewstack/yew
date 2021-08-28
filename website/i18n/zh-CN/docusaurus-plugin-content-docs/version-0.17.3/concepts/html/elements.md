@@ -231,7 +231,7 @@ impl Component for MyComponent {
     fn view(&self) -> Html {
         // 创建一个短暂的回调
         let click_callback = Callback::from(|| {
-            ConsoleService::new().log("clicked!");
+            ConsoleService::log("clicked!");
         });
 
         html! {

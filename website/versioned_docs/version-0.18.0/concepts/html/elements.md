@@ -12,19 +12,18 @@ Using `web-sys`, you can create DOM elements and convert them into a `Node` - wh
 used as a `Html` value using `VRef`:
 
 ```rust
-    // ...
-    fn view(&self) -> Html {
-        use yew::{utils::document, web_sys::{Element, Node}};
-
-        // Create a div element from the document
-        let div: Element = document().create_element("div").unwrap();
-        // Add content, classes etc.
-        div.set_inner_html("Hello, World!");
-        // Convert Element into a Node
-        let node: Node = div.into();
-        // Return that Node as a Html value
-        Html::VRef(node)
-    }
+use yew::{utils::document, web_sys::{Element, Node}, Html};
+// ...
+fn view(&self) -> Html {
+    // Create a div element from the document
+    let div: Element = document().create_element("div").unwrap();
+    // Add content, classes etc.
+    div.set_inner_html("Hello, World!");
+    // Convert Element into a Node
+    let node: Node = div.into();
+    // Return that Node as a Html value
+    Html::VRef(node)
+}
 ```
 
 ## Dynamic tag names
@@ -35,6 +34,8 @@ Instead of having to use a big match expression, Yew allows you to set the tag n
 using `@{name}` where `name` can be any expression that returns a string.
 
 ```rust
+use yew::html;
+
 let level = 5;
 let text = "Hello World!".to_owned()
 
@@ -49,35 +50,39 @@ Some content attributes (e.g checked, hidden, required) are called boolean attri
 boolean attributes need to be set to a bool value:
 
 ```rust
-    html! {
-        <div hidden=true>
-            { "This div is hidden." }
-        </div>
-    }
+use yew::html;
+
+html! {
+    <div hidden=true>
+        { "This div is hidden." }
+    </div>
+}
 ```
 
 This will result in **HTML** that's functionally equivalent to this:
 ```html
-    <div hidden>This div is hidden.</div>
+<div hidden>This div is hidden.</div>
 ```
 
 Setting a boolean attribute to false is equivalent to not using the attribute at all; values from 
 boolean expressions can be used:
 
 ```rust
-    let no = 1 + 1 != 2;
+use yew::html;
 
-    html! {
-        <div hidden=no>
-            { "This div is NOT hidden." }
-        </div>
-    }
+let no = 1 + 1 != 2;
+
+html! {
+    <div hidden=no>
+        { "This div is NOT hidden." }
+    </div>
+}
 ```
 
 This will result in the following **HTML**:
 
 ```html
-    <div>This div is NOT hidden.</div>
+<div>This div is NOT hidden.</div>
 ```
 
 ## Optional attributes for HTML elements
@@ -86,6 +91,8 @@ Most HTML attributes can use optional values (`Some(x)` or `None`). This allows 
 to omit the attribute if the attribute is marked as optional.
 
 ```rust
+use yew::html;
+
 let maybe_id = Some("foobar");
 
 html! {
@@ -99,6 +106,8 @@ Please note that it is also valid to give only the value as properties behave
 like `Into<Option<T>>`:
 
 ```rust
+use yew::html;
+
 let id = "foobar";
 
 html! {
@@ -114,6 +123,11 @@ Listener attributes need to be passed a `Callback` which is a wrapper around a c
 <!--Component handler-->
 
 ```rust
+use yew::{
+    events::MouseEvent, html, Component,
+    ComponentLink, Html, ShouldRender
+};
+
 struct MyComponent {
     link: ComponentLink<Self>,
 }
@@ -140,7 +154,7 @@ impl Component for MyComponent {
 
     fn view(&self) -> Html {
         // Create a callback from a component link to handle it in a component
-        let click_callback = self.link.callback(|_: ClickEvent| Msg::Click);
+        let click_callback = self.link.callback(|_: MouseEvent| Msg::Click);
         html! {
             <button onclick=click_callback>
                 { "Click me!" }
@@ -153,6 +167,11 @@ impl Component for MyComponent {
 <!--Agent Handler-->
 
 ```rust
+use yew::{
+    agent::Dispatcher, events::MouseEvent, html, Component,
+    ComponentLink, Html, ShouldRender,
+};
+
 struct MyComponent {
     worker: Dispatcher<MyWorker>,
 }
@@ -173,7 +192,7 @@ impl Component for MyComponent {
 
     fn view(&self) -> Html {
         // Create a callback from a worker to handle it in another context
-        let click_callback = self.worker.callback(|_: ClickEvent| WorkerMsg::Process);
+        let click_callback = self.worker.callback(|_: MouseEvent| WorkerMsg::Process);
         html! {
             <button onclick=click_callback>
                 { "Click me!" }
@@ -186,6 +205,11 @@ impl Component for MyComponent {
 <!--Other Cases-->
 
 ```rust
+use yew::{
+    html, services::ConsoleService, Callback, Component,
+    ComponentLink, Html, ShouldRender,
+};
+
 struct MyComponent;
 
 impl Component for MyComponent {
@@ -202,8 +226,8 @@ impl Component for MyComponent {
 
     fn view(&self) -> Html {
         // Create an ephemeral callback
-        let click_callback = Callback::from(|| {
-            ConsoleService::new().log("clicked!");
+        let click_callback = Callback::from(|_| {
+            ConsoleService::log("clicked!");
         });
 
         html! {

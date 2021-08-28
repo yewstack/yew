@@ -35,7 +35,7 @@ log::info!("Update: {:?}", msg);
 
 ```rust
 // 使用方法
-ConsoleService::new()::info(format!("Update: {:?}", msg));
+ConsoleService::info(format!("Update: {:?}", msg).as_ref());
 ```
 
 ## ソースマップ

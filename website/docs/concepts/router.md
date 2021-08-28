@@ -17,7 +17,9 @@ at the top of the application.
 
 Routes are defined by an `enum` which derives `Routable`. This enum must be `Clone + Sized.
 ```rust
-#[derive(Routable)]
+use yew_router::Routable;
+
+#[derive(Clone, Routable)]
 enum Route {
     #[at("/")]
     Home,
@@ -38,6 +40,20 @@ nothing is rendered, and a message is logged to console stating that no route wa
 `yew_router::attach_route_listener` is used to attach a listener which is called every time route is changed. 
 
 ```rust
+use yew_router::{Router, Routable};
+use yew::{Callback, function_component, html, Html};
+
+#[derive(Clone, Routable)]
+enum Route {
+    #[at("/")]
+    Home,
+    #[at("/secure")]
+    Secure,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
+}
+
 #[function_component(Main)]
 fn app() -> Html {
     html! {
@@ -49,7 +65,7 @@ fn switch(route: &Route) -> Html {
     match route {
         Route::Home => html! { <h1>{ "Home" }</h1> },
         Route::Secure => {
-            let callback = Callback::from(|_| yew_router::push_route(Routes::Home));
+            let callback = Callback::from(|_| yew_router::push_route(Route::Home));
             html! {
                 <div>
                     <h1>{ "Secure" }</h1>
