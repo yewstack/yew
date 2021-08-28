@@ -39,7 +39,7 @@ This service is included within Yew and is available when the "services" feature
 
 ```rust
 // usage
-ConsoleService::info(format!("Update: {:?}", msg));
+ConsoleService::info(format!("Update: {:?}", msg).as_ref());
 ```
 
 ## Source Maps
