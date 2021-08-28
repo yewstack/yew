@@ -9,7 +9,7 @@ what type of children the component has. In such cases, the below example will
 suffice.
 
 ```rust
-use yew::prelude::*;
+use yew::{html, Children, Component, Html, Properties};
 
 #[derive(Properties, Clone)]
 pub struct ListProps {
@@ -42,8 +42,7 @@ In cases where you want one type of component to be passed as children to your c
 you can use `yew::html::ChildrenWithProps<T>`.
 
 ```rust
-use yew::html::ChildrenWithProps;
-use yew::prelude::*;
+use yew::{html, ChildrenWithProps, Component, Html, Properties};
 
 // ...
 
@@ -57,7 +56,7 @@ pub struct List {
     props: ListProps,
 }
 
-impl Component for ListProps {
+impl Component for List {
     type Properties = ListProps;
     // ...
 
@@ -80,9 +79,10 @@ for better ergonomics. If you don't want to use it, you can manually implement
 `From` for each variant.
 
 ```rust
-use yew::prelude::*;
-use yew::html::ChildrenRenderer;
-use yew::virtual_dom::{ VChild, VComp };
+use yew::{
+    html, html::ChildrenRenderer, virtual_dom::VChild, 
+    Component, Html, Properties
+};
 
 // `derive_more::From` implements `From<VChild<Primary>>` and
 // `From<VChild<Secondary>>` for `Item` automatically!
@@ -130,9 +130,7 @@ impl Component for List {
 You can also have a single optional child component of a specific type too: 
 
 ```rust
-use yew::prelude::*;
-use yew::virtual_dom::VChild;
-
+use yew::{html, virtual_dom::VChild, Component, Html, Properties};
 
 #[derive(Clone, Properties)]
 pub struct PageProps {
@@ -157,20 +155,18 @@ impl Component for Page {
         }
     }
 }
-```
 
-The page component can be called either with the sidebar or without: 
+// The page component can be called either with the sidebar or without: 
 
-```rust
-    // Page without sidebar
-    html! {
-        <Page />
-    }
+// Page without sidebar
+html! {
+    <Page />
+}
 
-    // Page with sidebar
-    html! {
-        <Page sidebar=html_nested! {
-            <PageSideBar />
-        } />
-    }
+// Page with sidebar
+html! {
+<Page sidebar=html_nested! {
+    <PageSideBar />
+    } />
+}
 ```

@@ -36,6 +36,8 @@ First, you want to create a type that represents all the states of your applicat
 Then you should derive `Switch` for your type. For enums, every variant must be annotated with `#[to = "/some/route"]`, or if you use a struct instead, that must appear outside the struct declaration.
 
 ```rust
+use yew_router::Switch;
+
 #[derive(Switch)]
 enum AppRoute {
   #[to="/login"]
@@ -61,6 +63,8 @@ if you defined the following `Switch`, the only route that would be matched woul
 `AppRoute::Home`.
 
 ```rust
+use yew_router::Switch;
+
 #[derive(Switch)]
 enum AppRoute {
   #[to="/"]
