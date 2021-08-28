@@ -22,7 +22,7 @@ struct ExampleProps;
 
 struct Example {
     props: ExampleProps,
-};
+}
 
 impl Example {
     fn change(&mut self, props: ExampleProps) -> ShouldRender {

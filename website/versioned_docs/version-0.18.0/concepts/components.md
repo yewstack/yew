@@ -25,6 +25,8 @@ It is common to store the props (data which can be passed from parent to child c
 `ComponentLink` in your component struct, like so:
 
 ```rust
+use yew::{Component, ComponentLink};
+
 pub struct MyComponent {
     props: Props,
     link: ComponentLink<Self>,
@@ -51,6 +53,8 @@ convenient way to render child components. The macro is somewhat similar to Reac
 differences in programming language aside).
 
 ```rust
+use yew::{html, Component, Html};
+
 impl Component for MyComponent {
     // ...
 
@@ -74,9 +78,7 @@ is also a parameter called `first_render` which can be used to determine whether
 being called on the first render, or instead a subsequent one.
 
 ```rust
-use stdweb::web::html_element::InputElement;
-use stdweb::web::IHtmlElement;
-use yew::prelude::*;
+use yew::{html, web_sys::HtmlInputElement, Component, Html, NodeRef};
 
 pub struct MyComponent {
     node_ref: NodeRef,
@@ -93,7 +95,7 @@ impl Component for MyComponent {
 
     fn rendered(&mut self, first_render: bool) {
         if first_render {
-            if let Some(input) = self.node_ref.cast::<InputElement>() {
+            if let Some(input) = self.node_ref.cast::<HtmlInputElement>() {
                 input.focus();
             }
         }
@@ -115,6 +117,8 @@ by event listeners, child components, Agents, Services, or Futures.
 Here's an example of what an implementation of `update` could look like:
 
 ```rust
+use yew::{Component, ShouldRender};
+
 pub enum Msg {
     SetInputEnabled(bool)
 }
@@ -148,6 +152,8 @@ changing the values of a property.
 A typical implementation would look something like:
 
 ```rust
+use yew::{Component, ShouldRender};
+
 impl Component for MyComponent {
     // ...
 
@@ -173,6 +179,8 @@ before it is destroyed. This method is optional and does nothing by default.
 The `Component` trait has two associated types: `Message` and `Properties`.
 
 ```rust
+use yew::Component;
+
 impl Component for MyComponent {
     type Message = Msg;
     type Properties = Props;
