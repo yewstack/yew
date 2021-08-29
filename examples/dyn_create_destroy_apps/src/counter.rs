@@ -1,4 +1,4 @@
-use gloo::timers::callback::Interval;
+use gloo::{console, timers::callback::Interval};
 use yew::prelude::*;
 
 pub struct CounterModel {
@@ -61,6 +61,6 @@ impl Component for CounterModel {
     }
 
     fn destroy(&mut self, _ctx: &Context<Self>) {
-        weblog::console_log!("CounterModel app destroyed");
+        console::log!("CounterModel app destroyed");
     }
 }

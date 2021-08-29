@@ -3,7 +3,7 @@
 use super::{Apply, AttrValue, Attributes, Key, Listener, Listeners, VDiff, VList, VNode};
 use crate::html::{AnyScope, IntoPropValue, NodeRef};
 use crate::utils::document;
-use log::warn;
+use gloo::console;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::hint::unreachable_unchecked;
@@ -474,7 +474,7 @@ impl VDiff for VTag {
             children.detach(&node);
         }
         if parent.remove_child(&node).is_err() {
-            warn!("Node not found to remove VTag");
+            console::warn!("Node not found to remove VTag");
         }
         self.node_ref.set(None);
     }

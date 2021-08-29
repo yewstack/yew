@@ -2,7 +2,7 @@
 
 use super::{Key, VChild, VComp, VDiff, VList, VTag, VText};
 use crate::html::{AnyScope, Component, NodeRef};
-use log::warn;
+use gloo::console;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::iter::FromIterator;
@@ -91,7 +91,7 @@ impl VDiff for VNode {
             VNode::VList(ref mut vlist) => vlist.detach(parent),
             VNode::VRef(ref node) => {
                 if parent.remove_child(node).is_err() {
-                    warn!("Node not found to remove VRef");
+                    console::warn!("Node not found to remove VRef");
                 }
             }
         }

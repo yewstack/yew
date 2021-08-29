@@ -15,4 +15,4 @@ yew = { path = "../../packages/yew" }
 yew-router = { path = "../../packages/yew-router" }
 serde = { version = "1.0", features = ["derive"] }
 lazy_static = "1.4.0"
-gloo = "0.2"
+gloo-timers = "0.2"

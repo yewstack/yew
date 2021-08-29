@@ -5,8 +5,6 @@ edition = "2018"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
-wasm-logger = "0.2.0"
 yew = { path = "../../packages/yew" }
 yew-agent = { path = "../../packages/yew-agent" }
