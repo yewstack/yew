@@ -34,6 +34,7 @@ pub use self::vnode::VNode;
 pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
+use wasm_bindgen::JsValue;
 
 /// Attribute value
 pub type AttrValue = Cow<'static, str>;
@@ -148,7 +149,7 @@ impl Attributes {
                         break;
                     }
                     if new_value != old_value.as_ref() {
-                        Self::set_attribute(el, new_key, new_value);
+                        Self::set_property_or_attribute(el, new_key, new_value);
                     }
                 }
                 // new attributes
@@ -157,11 +158,11 @@ impl Attributes {
                         match old.get(key) {
                             Some(old_value) => {
                                 if value != old_value.as_ref() {
-                                    Self::set_attribute(el, key, value);
+                                    Self::set_property_or_attribute(el, key, value);
                                 }
                             }
                             None => {
-                                Self::set_attribute(el, key, value);
+                                Self::set_property_or_attribute(el, key, value);
                             }
                         }
                     }
@@ -171,7 +172,7 @@ impl Attributes {
                 (None, Some(attr)) => {
                     for (key, _) in iter::once(attr).chain(old_iter) {
                         if !new.contains_key(key) {
-                            Self::remove_attribute(el, key);
+                            Self::remove_property_or_attribute(el, key);
                         }
                     }
                     break;
@@ -215,18 +216,44 @@ impl Attributes {
         // Remove missing
         for k in old.keys() {
             if !new.contains_key(k) {
-                Self::remove_attribute(el, k);
+                Self::remove_property_or_attribute(el, k);
             }
         }
+    }
+
+    fn set_property(el: &Element, key: &str, value: &str) {
+        js_sys::Reflect::set(el.as_ref(), &JsValue::from_str(key), &JsValue::from_str(value)).expect("failed to set property");
     }
 
     fn set_attribute(el: &Element, key: &str, value: &str) {
         el.set_attribute(key, value).expect("invalid attribute key")
     }
 
+    fn set_property_or_attribute(el: &Element, key: &str, value: &str) {
+        if el.has_own_property(&JsValue::from_str(key)) {
+            Self::set_property(el, key, value)
+        } else {
+            Self::set_attribute(el, key, value)
+        }
+    }
+
+    fn remove_property(el: &Element, key: &str) {
+        js_sys::Reflect::delete_property(el.as_ref(), &JsValue::from_str(key))
+            .expect("could not remove attribute");
+    }
+
     fn remove_attribute(el: &Element, key: &str) {
         el.remove_attribute(key)
             .expect("could not remove attribute")
+    }
+
+    fn remove_property_or_attribute(el: &Element, key: &str) {
+        if el.has_own_property(&JsValue::from_str(key)) {
+            Self::remove_property(el, key)
+        } else {
+            Self::remove_attribute(el, key)
+        }
+
     }
 }
 
@@ -237,19 +264,19 @@ impl Apply for Attributes {
         match self {
             Self::Static(arr) => {
                 for kv in arr.iter() {
-                    Self::set_attribute(el, kv[0], kv[1]);
+                    Self::set_property_or_attribute(el, kv[0], kv[1]);
                 }
             }
             Self::Dynamic { keys, values } => {
                 for (k, v) in keys.iter().zip(values.iter()) {
                     if let Some(v) = v {
-                        Self::set_attribute(el, k, v)
+                        Self::set_property_or_attribute(el, k, v)
                     }
                 }
             }
             Self::IndexMap(m) => {
                 for (k, v) in m.iter() {
-                    Self::set_attribute(el, k, v)
+                    Self::set_property_or_attribute(el, k, v)
                 }
             }
         }
@@ -298,7 +325,7 @@ impl Apply for Attributes {
                         }
                         (Some(new), None) => set!(new),
                         (None, Some(_)) => {
-                            Self::remove_attribute(el, key!());
+                            Self::remove_property_or_attribute(el, key!());
                         }
                         (None, None) => (),
                     }
