@@ -1,3 +1,4 @@
+use super::CHILDREN_LABEL;
 use crate::html_tree::HtmlDashedName;
 use std::{
     cmp::Ordering,
@@ -111,8 +112,6 @@ fn strip_braces(expr: Expr) -> syn::Result<Expr> {
 /// Use `check_no_duplicates` to ensure that there are no duplicates.
 pub struct SortedPropList(Vec<Prop>);
 impl SortedPropList {
-    const CHILDREN_LABEL: &'static str = "children";
-
     /// Create a new `SortedPropList` from a vector of props.
     /// The given `props` doesn't need to be sorted.
     pub fn new(mut props: Vec<Prop>) -> Self {
@@ -123,9 +122,9 @@ impl SortedPropList {
     fn cmp_label(a: &str, b: &str) -> Ordering {
         if a == b {
             Ordering::Equal
-        } else if a == Self::CHILDREN_LABEL {
+        } else if a == CHILDREN_LABEL {
             Ordering::Greater
-        } else if b == Self::CHILDREN_LABEL {
+        } else if b == CHILDREN_LABEL {
             Ordering::Less
         } else {
             a.cmp(b)
@@ -210,7 +209,8 @@ impl SortedPropList {
 impl Parse for SortedPropList {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut props: Vec<Prop> = Vec::new();
-        while !input.is_empty() {
+        // Stop parsing props if a base expression preceded by `..` is reached
+        while !input.is_empty() && !input.peek(Token![..]) {
             props.push(input.parse()?);
         }
 
@@ -238,14 +238,6 @@ impl SpecialProps {
         let node_ref = props.pop_unique(Self::REF_LABEL)?;
         let key = props.pop_unique(Self::KEY_LABEL)?;
         Ok(Self { node_ref, key })
-    }
-
-    pub fn get_slot_mut(&mut self, key: &str) -> Option<&mut Option<Prop>> {
-        match key {
-            Self::REF_LABEL => Some(&mut self.node_ref),
-            Self::KEY_LABEL => Some(&mut self.key),
-            _ => None,
-        }
     }
 
     fn iter(&self) -> impl Iterator<Item = &Prop> {

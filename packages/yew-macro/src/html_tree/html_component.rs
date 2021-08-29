@@ -68,14 +68,11 @@ impl Parse for HtmlComponent {
         input.parse::<HtmlComponentClose>()?;
 
         if !children.is_empty() {
-            // check if the `children` prop is given explicitly
-            if let ComponentProps::List(props) = &open.props {
-                if let Some(children_prop) = props.get_by_label("children") {
-                    return Err(syn::Error::new_spanned(
-                        &children_prop.label,
-                        "cannot specify the `children` prop when the component already has children",
-                    ));
-                }
+            if let Some(children_prop) = open.props.children() {
+                return Err(syn::Error::new_spanned(
+                    &children_prop.label,
+                    "cannot specify the `children` prop when the component already has children",
+                ));
             }
         }
 
