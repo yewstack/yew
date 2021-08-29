@@ -3,7 +3,7 @@
 use super::{AttrValue, VDiff, VNode};
 use crate::html::{AnyScope, NodeRef};
 use crate::utils::document;
-use log::warn;
+use gloo::console;
 use std::cmp::PartialEq;
 use web_sys::{Element, Text as TextNode};
 
@@ -50,7 +50,7 @@ impl VDiff for VText {
             .take()
             .expect("tried to remove not rendered VText from DOM");
         if parent.remove_child(&node).is_err() {
-            warn!("Node not found to remove VText");
+            console::warn!("Node not found to remove VText");
         }
     }
 
