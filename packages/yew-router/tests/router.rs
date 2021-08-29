@@ -55,7 +55,7 @@ fn component() -> Html {
         });
 
         let push_route = Callback::from(|_| {
-            yew_router::replace_route_with_query(
+            yew_router::push_route_with_query(
                 Routes::No { id: 3 },
                 Query {
                     foo: "baz".to_string(),
