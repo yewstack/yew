@@ -16,3 +16,11 @@ pub fn click(selector: &str) {
         .unwrap()
         .click();
 }
+
+pub fn history_length() -> u32 {
+    yew::utils::window()
+        .history()
+        .expect("No history found")
+        .length()
+        .expect("No history length found")
+}
