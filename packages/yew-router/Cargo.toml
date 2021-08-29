@@ -10,6 +10,9 @@ categories = ["gui", "web-programming"]
 description = "A router implementation for the Yew framework"
 repository = "https://github.com/yewstack/yew"
 
+[features]
+wasm_test = []
+
 [dependencies]
 yew = { path = "../yew", default-features= false }
 yew-router-macro = { path = "../yew-router-macro" }
