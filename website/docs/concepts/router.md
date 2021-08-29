@@ -80,13 +80,13 @@ fn switch(route: &Route) -> Html {
 
 ### Navigation
 
-To navigate between pages, use either a `Link` component (which renders a `<a>` element) or the `yew_router::push_route` function.
+To navigate between pages, use either a `Link` component (which renders a `<a>` element), the `yew_router::push_route` function, or the `yew_router::replace_route` function, which replaces the current page in the user's browser history instead of pushing a new one onto the stack.
 
 ### Query Parameters
 
 #### Specifying query parameters when navigating
 
-In order to specify query parameters when navigating to a new route, use `yew_router::push_route_with_query` function.
+In order to specify query parameters when navigating to a new route, use either `yew_router::push_route_with_query` or the `yew_router::replace_route_with_query` functions.
 It uses `serde` to serialize the parameters into query string for the URL so any type that implements `Serialize` can be passed.
 In its simplest form this is just a `HashMap` containing string pairs.
 
