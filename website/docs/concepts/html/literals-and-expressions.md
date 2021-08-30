@@ -9,6 +9,8 @@ All display text must be enclosed by `{}` blocks because text is handled as an e
 the largest deviation from normal HTML syntax that Yew makes.
 
 ```rust
+use yew::html;
+
 let text = "lorem ipsum";
 html!{
     <>
@@ -16,7 +18,7 @@ html!{
         <div>{"dolor sit"}</div>
         <span>{42}</span>
     </>
-}
+};
 ```
 
 ## Expressions
@@ -24,6 +26,10 @@ html!{
 You can insert expressions in your HTML using `{}` blocks, as long as they resolve to `Html`
 
 ```rust
+use yew::html;
+
+let show_link = true;
+
 html! {
   <div>
     {
@@ -36,12 +42,14 @@ html! {
       }
     }
   </div>
-}
+};
 ```
 
 It often makes sense to extract these expressions into functions or closures to optimize for readability:
 
 ```rust
+use yew::{html, Html};
+
 let show_link = true;
 let maybe_display_link = move || -> Html {
   if show_link {
@@ -55,5 +63,5 @@ let maybe_display_link = move || -> Html {
 
 html! {
      <div>{maybe_display_link()}</div>
-}
+};
 ```

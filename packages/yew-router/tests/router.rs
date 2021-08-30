@@ -44,11 +44,21 @@ fn no(props: &NoProps) -> Html {
 #[function_component(Comp)]
 fn component() -> Html {
     let switch = Router::render(|routes| {
-        let onclick = Callback::from(|_| {
-            yew_router::push_route_with_query(
+        let replace_route = Callback::from(|_| {
+            yew_router::replace_route_with_query(
                 Routes::No { id: 2 },
                 Query {
                     foo: "bar".to_string(),
+                },
+            )
+            .unwrap();
+        });
+
+        let push_route = Callback::from(|_| {
+            yew_router::push_route_with_query(
+                Routes::No { id: 3 },
+                Query {
+                    foo: "baz".to_string(),
                 },
             )
             .unwrap();
@@ -58,10 +68,15 @@ fn component() -> Html {
             Routes::Home => html! {
                 <>
                     <div id="result">{"Home"}</div>
-                    <a {onclick}>{"click me"}</a>
+                    <a onclick={replace_route}>{"replace a route"}</a>
                 </>
             },
-            Routes::No { id } => html! { <No id={*id} /> },
+            Routes::No { id } => html! {
+                <>
+                    <No id={*id} />
+                    <a onclick={push_route}>{"push a route"}</a>
+                </>
+            },
             Routes::NotFound => html! { <div id="result">{"404"}</div> },
         }
     });
@@ -86,7 +101,15 @@ fn router_works() {
 
     assert_eq!("Home", obtain_result_by_id("result"));
 
-    click("a");
+    let initial_length = history_length();
+
+    click("a"); // replacing the current route
     assert_eq!("2", obtain_result_by_id("result-params"));
     assert_eq!("bar", obtain_result_by_id("result-query"));
+    assert_eq!(initial_length, history_length());
+
+    click("a"); // pushing a new route
+    assert_eq!("3", obtain_result_by_id("result-params"));
+    assert_eq!("baz", obtain_result_by_id("result-query"));
+    assert_eq!(initial_length + 1, history_length());
 }

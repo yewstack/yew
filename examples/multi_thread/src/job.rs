@@ -1,4 +1,4 @@
-use gloo::timers::callback::Interval;
+use gloo_timers::callback::Interval;
 use serde::{Deserialize, Serialize};
 use yew_agent::{Agent, AgentLink, HandlerId, Job};
 

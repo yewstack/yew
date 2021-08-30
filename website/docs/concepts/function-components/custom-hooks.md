@@ -9,17 +9,23 @@ Component's stateful logic can be extracted into usable function by creating cus
 
 Consider that we have a component which subscribes to an agent and displays the messages sent to it.
 ```rust
+use yew::{function_component, html, use_effect, use_state, Callback};
+use yew_agent::Bridged;
+// EventBus is an implementation yew_agent::Agent
+use website_test::agents::EventBus;
+
+
 #[function_component(ShowMessages)]
 pub fn show_messages() -> Html {
-    let (state, set_state) = use_state(|| vec![]);
+    let state = use_state(Vec::new);
 
     {
-        let mut state = Rc::clone(&state);
+        let state = state.clone();
         use_effect(move || {
             let producer = EventBus::bridge(Callback::from(move |msg| {
                 let mut messages = (*state).clone();
                 messages.push(msg);
-                set_state(messages)
+                state.set(messages)
             }));
 
             || drop(producer)
@@ -38,6 +44,8 @@ We'll start by creating a new function called `use_subscribe`.
 The `use_` prefix conventionally denotes that a function is a hook.
 This function will take no arguments and return `Rc<RefCell<Vec<String>>>`.
 ```rust
+use std::{cell::RefCell, rc::Rc};
+
 fn use_subscribe() -> Rc<RefCell<Vec<String>>> {
     todo!()
 }
@@ -48,19 +56,27 @@ We'll use `use_state` hook to store the `Vec` for messages, so they persist betw
 We'll also use `use_effect` to subscribe to the `EventBus` `Agent` so the subscription can be tied to component's lifecycle. 
 
 ```rust
-fn use_subscribe() -> Rc<Vec<String>> {
-    let (state, set_state) = use_state(Vec::new);
-  
+use std::collections::HashSet;
+use yew::{use_effect, use_state, Callback};
+use yew_agent::Bridged;
+// EventBus is an implementation yew_agent::Agent
+use website_test::agents::EventBus;
+
+fn use_subscribe() -> Vec<String> {
+    let state = use_state(Vec::new);
+
+    let effect_state = state.clone();
+
     use_effect(move || {
         let producer = EventBus::bridge(Callback::from(move |msg| {
-            let mut messages = (*state).clone();
+            let mut messages = (*effect_state).clone();
             messages.push(msg);
-            set_state(messages)
+            effect_state.set(messages)
         }));
         || drop(producer)
     });
 
-    state
+    (*state).clone()
 }
 ```
 

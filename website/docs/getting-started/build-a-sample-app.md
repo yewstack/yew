@@ -55,7 +55,7 @@ If you would like to start your application with any dynamic properties, you can
 :::
 
 
-```rust
+```rust ,no_run
 use yew::prelude::*;
 
 enum Msg {
