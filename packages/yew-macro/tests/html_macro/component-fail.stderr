@@ -263,6 +263,14 @@ error[E0308]: mismatched types
    = note: expected struct `ChildProperties`
               found struct `std::ops::Range<_>`
 
+error[E0609]: no field `value` on type `ChildProperties`
+  --> $DIR/component-fail.rs:68:20
+   |
+68 |     html! { <Child value=1 ..props /> };
+   |                    ^^^^^ unknown field
+   |
+   = note: available fields are: `string`, `int`
+
 error[E0609]: no field `r#type` on type `ChildProperties`
   --> $DIR/component-fail.rs:70:20
    |
