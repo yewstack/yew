@@ -27,7 +27,7 @@ impl Component for MyComponent {
     }
 }
 
-#[derive(PartialEq, Properties)]
+#[derive(Clone, PartialEq, Properties)]
 struct Props {
     prop1: String,
     prop2: String,
@@ -71,10 +71,10 @@ html!{
         <MyComponentWithProps prop1="lorem" prop2="ipsum" />
 
         // With the whole set of props provided at once
-        <MyComponent ..props />
+        <MyComponentWithProps ..props.clone() />
 
         // With Properties from a variable and specific values overridden
-        <MyComponent prop2="lorem" ..props />
+        <MyComponentWithProps prop2="lorem" ..props />
     </>
 };
 ```
