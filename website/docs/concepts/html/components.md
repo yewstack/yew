@@ -17,7 +17,10 @@ html!{
         <MyComponent prop1="lorem" prop2="ipsum" />
 
         // With the whole set of props provided at once
-        <MyComponent with props />
+        <MyComponent ..props />
+
+        // With Properties from a variable and specific values overridden
+        <MyComponent prop2="lorem" ..props />
     </>
 }
 ```
@@ -35,7 +38,7 @@ html! {
 }
 ```
 
-When using the `with props` syntax, the children passed in the `html!` macro overwrite the ones already present in the props.
+When using the struct update syntax (passing props as `..props`), the children passed in the `html!` macro overwrite the ones already present in the props.
 
 ```rust
 let props = yew::props!(Container::Properties {
@@ -43,7 +46,7 @@ let props = yew::props!(Container::Properties {
     children: Children::default(),
 });
 html! {
-    <Container with props>
+    <Container ..props>
         // props.children will be overwritten with this
         <span>{ "I am a child, as you can see" }</span>
     </Container>
