@@ -18,7 +18,7 @@ html!{
         <MyComponent prop1="lorem" prop2="ipsum" />
 
         // 同时提供全套的 props
-        <MyComponent with props />
+        <MyComponent ..props />
     </>
 }
 ```
