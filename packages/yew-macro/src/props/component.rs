@@ -35,20 +35,18 @@ impl ComponentProps {
             None
         };
 
-        let check_props = match &self.base_expr {
-            None => self
-                .props
-                .iter()
-                .map(|Prop { label, .. }| {
-                    quote_spanned! {label.span()=> __yew_props.#label; }
-                })
-                .collect(),
-            Some(expr) => {
+        let check_props: TokenStream = self
+            .props
+            .iter()
+            .map(|Prop { label, .. }| {
+                quote_spanned! {label.span()=> __yew_props.#label; }
+            })
+            .chain(self.base_expr.iter().map(|expr| {
                 quote_spanned! {props_ty.span()=>
                     let _: #props_ty = #expr;
                 }
-            }
-        };
+            }))
+            .collect();
 
         quote_spanned! {props_ty.span()=>
             #[allow(clippy::no_effect)]
@@ -94,7 +92,7 @@ impl ComponentProps {
                 let ident = Ident::new("__yew_props", props_ty.span());
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
                     quote_spanned! {value.span()=>
-                        #ident.#label = #value;
+                        #ident.#label = #value.into();
                     }
                 });
                 let set_children = children_renderer.map(|children| {
