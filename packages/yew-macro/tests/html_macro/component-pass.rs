@@ -127,9 +127,12 @@ fn compile_pass() {
     let node_ref = NodeRef::default();
     html! {
         <>
-            <Child with props />
-            <Child ref={node_ref.clone()} with yew::props!(Child::Properties { int: 5 }) />
-            <Child with <Child as Component>::Properties::default() ref={node_ref} />
+            <Child ..props.clone() />
+            <Child int={1} ..props />
+            <Child ref={node_ref.clone()} int={2} ..yew::props!(Child::Properties { int: 5 }) />
+            <Child int=3 ref={node_ref.clone()} ..yew::props!(Child::Properties { int: 5 }) />
+            <Child ref={node_ref.clone()} ..yew::props!(Child::Properties { int: 5 }) />
+            <Child ref={node_ref} ..<Child as Component>::Properties::default() />
         </>
     };
 
@@ -190,7 +193,11 @@ fn compile_pass() {
             <Container int=1 />
             <Container int=1></Container>
 
-            <Container with props>
+            <Container ..props.clone()>
+                <div>{ "hello world" }</div>
+            </Container>
+
+            <Container int=1 ..props>
                 <div>{ "hello world" }</div>
             </Container>
 

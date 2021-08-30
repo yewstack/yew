@@ -337,8 +337,8 @@ mod tests {
         check_node_ref(html! { <Comp ref={test_node_ref.clone()} /> });
         check_node_ref(html! { <Comp ref={test_node_ref.clone()} field_1=1 /> });
         check_node_ref(html! { <Comp field_1=1 ref={test_node_ref.clone()} /> });
-        check_node_ref(html! { <Comp with props ref={test_node_ref.clone()} /> });
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} with props_2 /> });
+        check_node_ref(html! { <Comp ref={test_node_ref.clone()} ..props /> });
+        check_node_ref(html! { <Comp ref={test_node_ref.clone()} ..props_2 /> });
     }
 
     #[test]
