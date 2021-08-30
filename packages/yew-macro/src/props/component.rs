@@ -6,7 +6,7 @@ use syn::{
     parse::{Parse, ParseStream},
     spanned::Spanned,
     token::Dot2,
-    Expr,
+    Expr, ExprLit, Lit,
 };
 
 mod kw {
@@ -91,8 +91,14 @@ impl ComponentProps {
             Some(expr) => {
                 let ident = Ident::new("__yew_props", props_ty.span());
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
-                    quote_spanned! {value.span()=>
-                        #ident.#label = #value.into();
+                    if is_implicitly_converted(value) {
+                        quote_spanned! {value.span()=>
+                            #ident.#label = #value.into();
+                        }
+                    } else {
+                        quote_spanned! {value.span()=>
+                            #ident.#label = #value;
+                        }
                     }
                 });
                 let set_children = children_renderer.map(|children| {
@@ -117,6 +123,16 @@ impl ComponentProps {
             }
         }
     }
+}
+
+fn is_implicitly_converted(expr: &Expr) -> bool {
+    matches!(
+        expr,
+        Expr::Lit(ExprLit {
+            lit: Lit::Str(_),
+            ..
+        })
+    )
 }
 
 impl Parse for ComponentProps {
