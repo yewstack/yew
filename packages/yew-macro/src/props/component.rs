@@ -9,10 +9,6 @@ use syn::{
     Expr, ExprLit, Lit,
 };
 
-mod kw {
-    syn::custom_keyword!(with);
-}
-
 pub struct ComponentProps {
     props: Props,
     base_expr: Option<Expr>,
