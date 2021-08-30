@@ -96,14 +96,14 @@ fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
     } else {
         let expr = input.parse()?;
         match &expr {
-                Expr::Lit(_) => Ok(expr),
-                _ => {
-                            Err(syn::Error::new_spanned(
-                            &expr,
-                            "the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.".to_string(),
-                            ))
-                        }
+            Expr::Lit(_) => Ok(expr),
+            _ => {
+                Err(syn::Error::new_spanned(
+                    &expr,
+                    "the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.".to_string(),
+                ))
             }
+        }
     }
 }
 
