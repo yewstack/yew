@@ -149,7 +149,11 @@ fn advance_until_next_dot2(input: &ParseBuffer) -> syn::Result<()> {
                         return Ok(((), first_dot));
                     } else {
                         // Only consider dot as potential first if there is no spacing after it
-                        first_dot = (punct.spacing() == Spacing::Joint).then(|| rest);
+                        first_dot = if punct.spacing() == Spacing::Joint {
+                            Some(rest)
+                        } else {
+                            None
+                        };
                     }
                 }
                 _ => {
