@@ -88,6 +88,8 @@ impl ComponentProps {
                         .build()
                 }
             }
+            // Builder pattern is unnecessary in this case, since the base expression guarantees
+            // all values are initialized
             Some(expr) => {
                 let ident = Ident::new("__yew_props", props_ty.span());
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
@@ -141,9 +143,8 @@ impl TryFrom<Props> for ComponentProps {
     type Error = syn::Error;
 
     fn try_from(props: Props) -> Result<Self, Self::Error> {
-        let props = validate(props)?;
         Ok(Self {
-            props,
+            props: validate(props)?,
             base_expr: None,
         })
     }
