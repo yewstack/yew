@@ -1,7 +1,7 @@
 //! Router Component.
 
 use crate::Routable;
-use gloo::events::EventListener;
+use gloo::{console, events::EventListener};
 use std::marker::PhantomData;
 use std::rc::Rc;
 use yew::prelude::*;
@@ -103,7 +103,7 @@ where
         match route {
             Some(route) => (ctx.props().render.0)(&route),
             None => {
-                weblog::console_warn!("no route matched");
+                console::warn!("no route matched");
                 html! {}
             }
         }

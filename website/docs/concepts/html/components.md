@@ -8,13 +8,67 @@ description: "Create complex layouts with component hierarchies"
 Any type that implements `Component` can be used in the `html!` macro:
 
 ```rust
+use yew::{Component, Html, html, Context, Properties};
+
+struct MyComponent;
+
+impl Component for MyComponent {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            { "This component has no properties!" }
+        }
+    }
+}
+
+#[derive(PartialEq, Properties)]
+struct Props {
+    prop1: String,
+    prop2: String,
+}
+
+struct MyComponentWithProps;
+
+impl Component for MyComponentWithProps {
+    type Message = ();
+    type Properties = Props;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            {
+                format!(
+                    "prop1: {} and prop2: {}",
+                    ctx.props().prop1,
+                    ctx.props().prop2
+                )
+            }
+        }
+    }
+}
+
+let props = Props { 
+    prop1: "Hello".to_owned(),
+    prop2: "World".to_owned(), 
+};
+
+
 html!{
     <>
         // No properties
         <MyComponent />
 
         // With Properties
-        <MyComponent prop1="lorem" prop2="ipsum" />
+        <MyComponentWithProps prop1="lorem" prop2="ipsum" />
 
         // With the whole set of props provided at once
         <MyComponent ..props />
@@ -22,7 +76,7 @@ html!{
         // With Properties from a variable and specific values overridden
         <MyComponent prop2="lorem" ..props />
     </>
-}
+};
 ```
 
 ## Nested
@@ -30,52 +84,82 @@ html!{
 Components can be passed children if they have a `children` field in their `Properties`.
 
 ```rust title="parent.rs"
+use yew::{Children, Component, Context, html, Html, Properties};
+
+#[derive(PartialEq, Properties)]
+struct Props {
+    id: String,
+    children: Children,
+}
+
+struct Container;
+
+impl Component for Container {
+    type Message = ();
+    type Properties = Props;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <div id={ctx.props().id.clone()}>
+                { ctx.props().children.clone() }
+            </div>
+        }
+    }
+}
+
 html! {
     <Container id="container">
         <h4>{ "Hi" }</h4>
         <div>{ "Hello" }</div>
     </Container>
-}
+};
 ```
 
 When using the struct update syntax (passing props as `..props`), the children passed in the `html!` macro overwrite the ones already present in the props.
 
 ```rust
+use yew::{Children, Component, Context, html, Html, props, Properties}; 
+
+#[derive(PartialEq, Properties)]
+struct Props {
+    id: String,
+    children: Children,
+}
+
+struct Container;
+
+impl Component for Container {
+    type Message = ();
+    type Properties = Props;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <div id={ctx.props().id.clone()}>
+                { ctx.props().children.clone() }
+            </div>
+        }
+    }
+}
+
 let props = yew::props!(Container::Properties {
     id: "container-2",
     children: Children::default(),
 });
+
 html! {
     <Container ..props>
         // props.children will be overwritten with this
         <span>{ "I am a child, as you can see" }</span>
     </Container>
-}
-```
-
-Here's the implementation of `Container`:
-
-```rust
-#[derive(Properties, Clone)]
-pub struct Props {
-    pub id: String,
-    pub children: Children,
-}
-
-pub struct Container;
-impl Component for Container {
-    type Properties = Props;
-
-    // ...
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-       html! {
-           <div id={ctx.props().id.clone()}>
-               { ctx.props().children.clone() }
-           </div>
-       }
-    }
-}
+};
 ```
 
 ## Nested Children with Props
@@ -83,29 +167,49 @@ impl Component for Container {
 Nested component properties can be accessed and mutated if the containing component types its children. In the following example, the `List` component can wrap `ListItem` components. For a real world example of this pattern, check out the `yew-router` source code. For a more advanced example, check out the `nested-list` example in the main yew repository.
 
 ```rust
-html! {
-    <List>
-        <ListItem value="a" />
-        <ListItem value="b" />
-        <ListItem value="c" />
-    </List>
-}
-```
+use std::rc::Rc;
+use yew::{html, ChildrenWithProps, Component, Context, Html, Properties};
 
-```rust
-#[derive(Properties, Clone)]
+#[derive(Clone, PartialEq, Properties)]
+pub struct ListItemProps {
+    value: String,
+}
+
+pub struct ListItem;
+
+impl Component for ListItem {
+    type Message = ();
+    type Properties = ListItemProps;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <span>
+                { ctx.props().value.clone() }
+            </span>
+        }
+    }
+}
+
+#[derive(PartialEq, Properties)]
 pub struct Props {
     pub children: ChildrenWithProps<ListItem>,
 }
 
 pub struct List;
 impl Component for List {
+    type Message = ();
     type Properties = Props;
 
-    // ...
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        html!{{
+        html! {{
             for ctx.props().children.iter().map(|mut item| {
                 let mut props = Rc::make_mut(&mut item.props);
                 props.value = format!("item-{}", props.value);
@@ -114,6 +218,13 @@ impl Component for List {
         }}
     }
 }
+html! {
+    <List>
+        <ListItem value="a" />
+        <ListItem value="b" />
+        <ListItem value="c" />
+    </List>
+};
 ```
 
 ## Relevant examples

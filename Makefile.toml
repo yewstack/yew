@@ -37,7 +37,7 @@ category = "Testing"
 description = "Run all tests"
 dependencies = ["tests-setup"]
 env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["**/examples/*", "**/packages/changelog"] }
-run_task = { name = ["test-flow", "doc-test-flow"], fork = true }
+run_task = { name = ["test-flow", "doc-test-flow", "website-test"], fork = true }
 
 [tasks.benchmarks]
 category = "Testing"
@@ -85,6 +85,14 @@ dependencies = ["doc-test"]
 private = true
 command = "cargo"
 args = ["test", "--doc"]
+
+[tasks.website-test]
+script = [
+    """
+    cd packages/website-test
+    cargo test
+    """
+]
 
 [tasks.bench-flow]
 private = true

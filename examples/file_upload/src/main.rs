@@ -1,8 +1,8 @@
 use web_sys::{Event, HtmlInputElement};
 use yew::{html, html::TargetCast, Component, Context, Html};
 
-use gloo::file::callbacks::FileReader;
-use gloo::file::File;
+use gloo_file::callbacks::FileReader;
+use gloo_file::File;
 
 type Chunks = bool;
 
@@ -50,14 +50,14 @@ impl Component for Model {
                         let link = ctx.link().clone();
 
                         if bytes {
-                            gloo::file::callbacks::read_as_bytes(&file, move |res| {
+                            gloo_file::callbacks::read_as_bytes(&file, move |res| {
                                 link.send_message(Msg::LoadedBytes(
                                     file_name,
                                     res.expect("failed to read file"),
                                 ))
                             })
                         } else {
-                            gloo::file::callbacks::read_as_text(&file, move |res| {
+                            gloo_file::callbacks::read_as_text(&file, move |res| {
                                 link.send_message(Msg::Loaded(
                                     file_name,
                                     res.unwrap_or_else(|e| e.to_string()),

@@ -259,12 +259,38 @@ impl<COMP: Component> Scope<COMP> {
         M: Into<COMP::Message>,
         F: Fn(IN) -> M + 'static,
     {
+        self.callback_with_passive(None, function)
+    }
+
+    /// Creates a `Callback` which will send a message to the linked
+    /// component's update method when invoked.
+    ///
+    /// Setting `passive` to [Some] explicitly makes the event listener passive or not.
+    /// Yew sets sane defaults depending on the type of the listener.
+    /// See
+    /// [addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).
+    ///
+    /// Please be aware that currently the result of this callback
+    /// synchronously schedules a call to the [Component](Component)
+    /// interface.
+    pub fn callback_with_passive<F, IN, M>(
+        &self,
+        passive: impl Into<Option<bool>>,
+        function: F,
+    ) -> Callback<IN>
+    where
+        M: Into<COMP::Message>,
+        F: Fn(IN) -> M + 'static,
+    {
         let scope = self.clone();
         let closure = move |input| {
             let output = function(input);
             scope.send_message(output);
         };
-        closure.into()
+        Callback::Callback {
+            passive: passive.into(),
+            cb: Rc::new(closure),
+        }
     }
 
     /// Creates a `Callback` from an `FnOnce` which will send a message

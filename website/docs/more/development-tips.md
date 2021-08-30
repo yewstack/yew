@@ -16,7 +16,7 @@ Feel free to contribute to add instructions for your editor of choice.
 3. Give it a name and description of your preference.
 4. Paste the following snippet in Template Text section:
 
-```rust
+```rust ,ignore
 use yew::prelude::*;
 
 struct $NAME$;

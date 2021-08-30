@@ -1,0 +1,20 @@
+[package]
+name = "website-test"
+version = "0.1.0"
+edition = "2018"
+build = "build.rs"
+publish = false
+
+[dependencies]
+yew-agent = { path = "../../packages/yew-agent/" }
+
+[dev-dependencies]
+yew = { path = "../../packages/yew/" }
+yew-router = { path = "../../packages/yew-router/" }
+derive_more = "0.99"
+boolinator = "2.4"
+weblog = "0.3.0"
+wasm-bindgen = "0.2"
+
+[build-dependencies]
+glob = "0.3"

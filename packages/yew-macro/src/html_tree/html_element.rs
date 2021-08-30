@@ -269,7 +269,7 @@ impl ToTokens for HtmlElement {
         };
 
         let listeners = if listeners.is_empty() {
-            quote! { ::std::vec![] }
+            quote! { ::yew::virtual_dom::listeners::Listeners::None }
         } else {
             let listeners_it = listeners.iter().map(|Prop { label, value, .. }| {
                 let name = &label.name;
@@ -278,7 +278,11 @@ impl ToTokens for HtmlElement {
                 }
             });
 
-            quote! { ::std::vec![#(#listeners_it),*].into_iter().flatten().collect() }
+            quote! {
+                ::yew::virtual_dom::listeners::Listeners::Pending(
+                    ::std::boxed::Box::new([#(#listeners_it),*])
+                )
+            }
         };
 
         // TODO: if none of the children have possibly None expressions or literals as keys, we can

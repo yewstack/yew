@@ -1,5 +1,5 @@
+use gloo_console as console;
 use js_sys::Date;
-use weblog::console_log;
 use yew::{html, Component, Context, Html};
 
 // Define the possible messages which can be sent to the component
@@ -24,12 +24,12 @@ impl Component for Model {
         match msg {
             Msg::Increment => {
                 self.value += 1;
-                console_log!("plus one"); // Will output a string to the browser console
+                console::log!("plus one"); // Will output a string to the browser console
                 true // Return true to cause the displayed change to update
             }
             Msg::Decrement => {
                 self.value -= 1;
-                console_log!("minus one");
+                console::log!("minus one");
                 true
             }
         }
