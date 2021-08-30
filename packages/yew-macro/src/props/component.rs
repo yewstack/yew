@@ -87,7 +87,8 @@ impl ComponentProps {
             Some(expr) => {
                 let ident = Ident::new("__yew_props", props_ty.span());
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
-                    if is_implicitly_converted(value) {
+                    if is_string_literal(value) {
+                        // String literals should be implicitly converted into `String`
                         quote_spanned! {value.span()=>
                             #ident.#label = #value.into();
                         }
@@ -121,7 +122,7 @@ impl ComponentProps {
     }
 }
 
-fn is_implicitly_converted(expr: &Expr) -> bool {
+fn is_string_literal(expr: &Expr) -> bool {
     matches!(
         expr,
         Expr::Lit(ExprLit {
