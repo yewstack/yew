@@ -85,16 +85,19 @@ impl Prop {
 fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
     if input.peek(Brace) {
         strip_braces(input.parse()?)
-    } else if let Some(ExprRange {
-        from: Some(from), ..
-    }) = range_expression_peek(input)
-    {
-        // If a range expression is seen, treat the left-side expression as the value
-        // and leave the right-side expression to be parsed as a base expression
-        advance_until_next_dot2(input)?;
-        Ok(*from)
     } else {
-        let expr = input.parse()?;
+        let expr = if let Some(ExprRange {
+            from: Some(from), ..
+        }) = range_expression_peek(input)
+        {
+            // If a range expression is seen, treat the left-side expression as the value
+            // and leave the right-side expression to be parsed as a base expression
+            advance_until_next_dot2(input)?;
+            *from
+        } else {
+            input.parse()?
+        };
+
         match &expr {
             Expr::Lit(_) => Ok(expr),
             _ => {

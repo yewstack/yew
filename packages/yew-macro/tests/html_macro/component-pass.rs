@@ -188,6 +188,7 @@ fn compile_pass() {
 
 
     let props = <Container as Component>::Properties::default();
+    let child_props = <Child as Component>::Properties::default();
     html! {
         <>
             <Container int=1 />
@@ -197,8 +198,12 @@ fn compile_pass() {
                 <div>{ "hello world" }</div>
             </Container>
 
-            <Container int=1 ..props>
+            <Container int=1 ..props.clone()>
                 <div>{ "hello world" }</div>
+            </Container>
+
+            <Container int=1 ..props>
+                <Child int=2 string="hello" ..child_props />
             </Container>
 
             <Container int=1>

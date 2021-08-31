@@ -53,10 +53,10 @@ error: `with` doesn't have a value. (hint: set the value to `true` or `false` fo
    |                    ^^^^
 
 error: base props expression must appear last in list of props
-  --> $DIR/component-fail.rs:54:28
+  --> $DIR/component-fail.rs:54:22
    |
 54 |     html! { <Child ..props ref={()} ref={()} /> };
-   |                            ^^^
+   |                      ^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
   --> $DIR/component-fail.rs:55:20
@@ -65,10 +65,10 @@ error: `with` doesn't have a value. (hint: set the value to `true` or `false` fo
    |                    ^^^^
 
 error: base props expression must appear last in list of props
-  --> $DIR/component-fail.rs:56:28
+  --> $DIR/component-fail.rs:56:22
    |
 56 |     html! { <Child ..props ref={()} ref={()} value=1 /> };
-   |                            ^^^
+   |                      ^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
   --> $DIR/component-fail.rs:57:20
@@ -77,10 +77,10 @@ error: `with` doesn't have a value. (hint: set the value to `true` or `false` fo
    |                    ^^^^
 
 error: base props expression must appear last in list of props
-  --> $DIR/component-fail.rs:58:28
+  --> $DIR/component-fail.rs:58:22
    |
 58 |     html! { <Child ..props ref={()} value=1 ref={()} /> };
-   |                            ^^^
+   |                      ^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
   --> $DIR/component-fail.rs:59:20
@@ -89,10 +89,10 @@ error: `with` doesn't have a value. (hint: set the value to `true` or `false` fo
    |                    ^^^^
 
 error: base props expression must appear last in list of props
-  --> $DIR/component-fail.rs:60:28
+  --> $DIR/component-fail.rs:60:22
    |
 60 |     html! { <Child ..props value=1 ref={()}  ref={()} /> };
-   |                            ^^^^^
+   |                      ^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
   --> $DIR/component-fail.rs:61:28
@@ -101,10 +101,10 @@ error: `with` doesn't have a value. (hint: set the value to `true` or `false` fo
    |                            ^^^^
 
 error: base props expression must appear last in list of props
-  --> $DIR/component-fail.rs:62:37
+  --> $DIR/component-fail.rs:62:30
    |
 62 |     html! { <Child value=1 ..props  ref={()}  ref={()} /> };
-   |                                     ^^^
+   |                              ^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
   --> $DIR/component-fail.rs:63:37
@@ -113,10 +113,10 @@ error: `with` doesn't have a value. (hint: set the value to `true` or `false` fo
    |                                     ^^^^
 
 error: base props expression must appear last in list of props
-  --> $DIR/component-fail.rs:64:45
+  --> $DIR/component-fail.rs:64:39
    |
 64 |     html! { <Child value=1 ref={()} ..props ref={()} /> };
-   |                                             ^^^
+   |                                       ^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
   --> $DIR/component-fail.rs:65:47
@@ -131,10 +131,10 @@ error: `ref` can only be specified once
    |                    ^^^
 
 error: base props expression must appear last in list of props
-  --> $DIR/component-fail.rs:69:29
+  --> $DIR/component-fail.rs:69:23
    |
 69 |     html! { <Child .. props value=1 /> };
-   |                             ^^^^^
+   |                       ^^^^^
 
 error: expected identifier, found keyword `type`
   --> $DIR/component-fail.rs:70:20
@@ -201,34 +201,40 @@ error: only one root html element is allowed (hint: you can wrap multiple html e
 85 |     html! { <Child></Child><Child></Child> };
    |                            ^^^^^^^^^^^^^^^
 
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
+  --> $DIR/component-fail.rs:89:24
+   |
+89 |     html! { <Child int=num ..props /> };
+   |                        ^^^
+
 error: cannot specify the `children` prop when the component already has children
-   --> $DIR/component-fail.rs:104:26
+   --> $DIR/component-fail.rs:107:26
     |
-104 |         <ChildContainer {children}>
+107 |         <ChildContainer {children}>
     |                          ^^^^^^^^
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
-   --> $DIR/component-fail.rs:111:9
+   --> $DIR/component-fail.rs:114:9
     |
-111 |         <span>{ 2 }</span>
+114 |         <span>{ 2 }</span>
     |         ^^^^^^^^^^^^^^^^^^
 
 error: only simple identifiers are allowed in the shorthand property syntax
-   --> $DIR/component-fail.rs:114:21
+   --> $DIR/component-fail.rs:117:21
     |
-114 |     html! { <Child {std::f64::consts::PI} /> };
+117 |     html! { <Child {std::f64::consts::PI} /> };
     |                     ^^^^^^^^^^^^^^^^^^^^
 
 error: missing label for property value. If trying to use the shorthand property syntax, only identifiers may be used
-   --> $DIR/component-fail.rs:115:21
+   --> $DIR/component-fail.rs:118:21
     |
-115 |     html! { <Child {7 + 6} /> };
+118 |     html! { <Child {7 + 6} /> };
     |                     ^^^^^
 
 error: missing label for property value. If trying to use the shorthand property syntax, only identifiers may be used
-   --> $DIR/component-fail.rs:116:21
+   --> $DIR/component-fail.rs:119:21
     |
-116 |     html! { <Child {children.len()} /> };
+119 |     html! { <Child {children.len()} /> };
     |                     ^^^^^^^^^^^^^^
 
 error[E0425]: cannot find value `blah` in this scope
@@ -376,54 +382,54 @@ error[E0599]: no method named `children` found for struct `ChildPropertiesBuilde
    |              ^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
 
 error[E0609]: no field `children` on type `ChildProperties`
-  --> $DIR/component-fail.rs:90:10
+  --> $DIR/component-fail.rs:93:10
    |
-90 |         <Child ..ChildProperties { string: "hello".to_owned(), int: 5 }>
+93 |         <Child ..ChildProperties { string: "hello".to_owned(), int: 5 }>
    |          ^^^^^ unknown field
    |
    = note: available fields are: `string`, `int`
 
 error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
-  --> $DIR/component-fail.rs:95:14
+  --> $DIR/component-fail.rs:98:14
    |
 24 | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `build` not found for this
 ...
-95 |     html! { <ChildContainer /> };
+98 |     html! { <ChildContainer /> };
    |              ^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
 
 error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
-  --> $DIR/component-fail.rs:96:14
+  --> $DIR/component-fail.rs:99:14
    |
 24 | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `build` not found for this
 ...
-96 |     html! { <ChildContainer></ChildContainer> };
+99 |     html! { <ChildContainer></ChildContainer> };
    |              ^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
 
 error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VText>` is not satisfied
-  --> $DIR/component-fail.rs:97:31
-   |
-97 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
-   |                               ^^^^^^^^^^^^^ the trait `From<yew::virtual_dom::VText>` is not implemented for `VChild<Child>`
-   |
-   = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `yew::virtual_dom::VText`
-   = note: required by `into`
+   --> $DIR/component-fail.rs:100:31
+    |
+100 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
+    |                               ^^^^^^^^^^^^^ the trait `From<yew::virtual_dom::VText>` is not implemented for `VChild<Child>`
+    |
+    = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `yew::virtual_dom::VText`
+    = note: required by `into`
 
 error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
-  --> $DIR/component-fail.rs:98:29
-   |
-98 |     html! { <ChildContainer><></></ChildContainer> };
-   |                             ^ the trait `From<VNode>` is not implemented for `VChild<Child>`
-   |
-   = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
-   = note: required by `into`
+   --> $DIR/component-fail.rs:101:29
+    |
+101 |     html! { <ChildContainer><></></ChildContainer> };
+    |                             ^ the trait `From<VNode>` is not implemented for `VChild<Child>`
+    |
+    = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
+    = note: required by `into`
 
 error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
-  --> $DIR/component-fail.rs:99:30
-   |
-99 |     html! { <ChildContainer><other /></ChildContainer> };
-   |                              ^^^^^ the trait `From<VNode>` is not implemented for `VChild<Child>`
-   |
-   = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
-   = note: required by `into`
+   --> $DIR/component-fail.rs:102:30
+    |
+102 |     html! { <ChildContainer><other /></ChildContainer> };
+    |                              ^^^^^ the trait `From<VNode>` is not implemented for `VChild<Child>`
+    |
+    = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
+    = note: required by `into`

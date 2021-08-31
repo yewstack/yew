@@ -85,6 +85,9 @@ fn compile_fail() {
     html! { <Child></Child><Child></Child> };
     html! { <Child>{ "Not allowed" }</Child> };
 
+    let num = 1;
+    html! { <Child int=num ..props /> };
+
     // trying to overwrite `children` on props which don't take any.
     html! {
         <Child ..ChildProperties { string: "hello".to_owned(), int: 5 }>

@@ -145,7 +145,10 @@ impl Parse for ComponentProps {
         if input.is_empty() {
             Ok(Self { props, base_expr })
         } else {
-            Err(input.error("base props expression must appear last in list of props"))
+            Err(syn::Error::new_spanned(
+                base_expr,
+                "base props expression must appear last in list of props",
+            ))
         }
     }
 }

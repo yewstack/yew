@@ -119,7 +119,10 @@ html! {
 };
 ```
 
-When using the struct update syntax (passing props as `..props`), the children passed in the `html!` macro overwrite the ones already present in the props.
+The `html!` macro allows you to pass a base expression with the `..props` syntax instead of specifying each property individually,
+similarly to Rust's [Functional Update Syntax](https://doc.rust-lang.org/stable/reference/expressions/struct-expr.html#functional-update-syntax).
+This base expression must occur after any individual props are passed.
+When passing a base props expression with a `children` field, the children passed in the `html!` macro overwrite the ones already present in the props.
 
 ```rust
 use yew::{Children, Component, Context, html, Html, props, Properties}; 
