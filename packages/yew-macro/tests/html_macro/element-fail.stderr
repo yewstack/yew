@@ -302,11 +302,11 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<Cow<'stat
              <Option<String> as IntoPropValue<Option<Cow<'static, str>>>>
    = note: required by `into_prop_value`
 
-error[E0277]: the trait bound `{integer}: IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not satisfied
+error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `{integer}`
    --> $DIR/element-fail.rs:51:28
     |
 51  |       html! { <input onclick=1 /> };
-    |                              ^ the trait `IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not implemented for `{integer}`
+    |                              ^ expected an `Fn<(MouseEvent,)>` closure, found `{integer}`
     |
    ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
     |
@@ -319,18 +319,17 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<Option<yew::Callback<Mou
 197 | | }
     | |_- required by this bound in `yew::html::onclick::Wrapper::__macro_new`
     |
-    = help: the following implementations were found:
-              <&'static str as IntoPropValue<Cow<'static, str>>>
-              <&'static str as IntoPropValue<Option<Cow<'static, str>>>>
-              <&'static str as IntoPropValue<Option<String>>>
-              <&'static str as IntoPropValue<String>>
-            and 11 others
+    = help: the trait `Fn<(MouseEvent,)>` is not implemented for `{integer}`
+    = note: required because of the requirements on the impl of `IntoEventCallback<MouseEvent>` for `{integer}`
 
-error[E0277]: the trait bound `yew::Callback<String>: IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not satisfied
+error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
    --> $DIR/element-fail.rs:52:29
     |
 52  |       html! { <input onclick={Callback::from(|a: String| ())} /> };
-    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not implemented for `yew::Callback<String>`
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                               |
+    |                               expected an implementor of trait `IntoEventCallback<MouseEvent>`
+    |                               help: consider borrowing here: `&Callback::from(|a: String| ())`
     |
    ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
     |
@@ -342,12 +341,15 @@ error[E0277]: the trait bound `yew::Callback<String>: IntoPropValue<Option<yew::
 196 | |     ontransitionstart(TransitionEvent)
 197 | | }
     | |_- required by this bound in `yew::html::onclick::Wrapper::__macro_new`
+    |
+    = note: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
+    = note: required because of the requirements on the impl of `IntoEventCallback<MouseEvent>` for `yew::Callback<String>`
 
-error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<yew::Callback<FocusEvent>>>` is not satisfied
+error[E0277]: the trait bound `Option<{integer}>: IntoEventCallback<FocusEvent>` is not satisfied
    --> $DIR/element-fail.rs:53:29
     |
 53  |       html! { <input onfocus={Some(5)} /> };
-    |                               ^^^^^^^ the trait `IntoPropValue<Option<yew::Callback<FocusEvent>>>` is not implemented for `Option<{integer}>`
+    |                               ^^^^^^^ the trait `IntoEventCallback<FocusEvent>` is not implemented for `Option<{integer}>`
     |
    ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
     |
@@ -361,9 +363,8 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<yew::Call
     | |_- required by this bound in `yew::html::onfocus::Wrapper::__macro_new`
     |
     = help: the following implementations were found:
-              <Option<&'static str> as IntoPropValue<Option<Cow<'static, str>>>>
-              <Option<&'static str> as IntoPropValue<Option<String>>>
-              <Option<String> as IntoPropValue<Option<Cow<'static, str>>>>
+              <Option<T> as IntoEventCallback<EVENT>>
+              <Option<yew::Callback<EVENT>> as IntoEventCallback<EVENT>>
 
 error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
   --> $DIR/element-fail.rs:56:25
@@ -385,11 +386,14 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
              <Option<String> as IntoPropValue<Option<Cow<'static, str>>>>
    = note: required by `into_prop_value`
 
-error[E0277]: the trait bound `yew::Callback<String>: IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not satisfied
+error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
    --> $DIR/element-fail.rs:58:29
     |
 58  |       html! { <input onclick={Callback::from(|a: String| ())} /> };
-    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not implemented for `yew::Callback<String>`
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                               |
+    |                               expected an implementor of trait `IntoEventCallback<MouseEvent>`
+    |                               help: consider borrowing here: `&Callback::from(|a: String| ())`
     |
    ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
     |
@@ -401,6 +405,9 @@ error[E0277]: the trait bound `yew::Callback<String>: IntoPropValue<Option<yew::
 196 | |     ontransitionstart(TransitionEvent)
 197 | | }
     | |_- required by this bound in `yew::html::onclick::Wrapper::__macro_new`
+    |
+    = note: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
+    = note: required because of the requirements on the impl of `IntoEventCallback<MouseEvent>` for `yew::Callback<String>`
 
 error[E0277]: the trait bound `NotToString: IntoPropValue<Option<Cow<'static, str>>>` is not satisfied
   --> $DIR/element-fail.rs:60:28
