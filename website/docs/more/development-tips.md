@@ -45,7 +45,7 @@ set the Expression column to `snakeCase(NAME)` so that `ComponentName` will be a
 in the function definition.
 
 
-```rust, ignore
+```rust ,ignore
 #[derive(Properties, PartialEq, Clone)]
 pub struct $Name$Props {
 }
