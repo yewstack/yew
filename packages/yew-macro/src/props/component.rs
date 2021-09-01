@@ -17,8 +17,11 @@ struct BaseExpr {
 impl Parse for BaseExpr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let dot2 = input.parse()?;
-        let expr = input.parse().map_err(|_| {
-            syn::Error::new_spanned(dot2, "expected base props expression after `..`")
+        let expr = input.parse().map_err(|expr_error| {
+            let mut error =
+                syn::Error::new_spanned(dot2, "expected base props expression after `..`");
+            error.combine(expr_error);
+            error
         })?;
         Ok(Self { dot2, expr })
     }

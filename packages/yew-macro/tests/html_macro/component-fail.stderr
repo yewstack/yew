@@ -22,6 +22,12 @@ error: expected base props expression after `..`
 46 |     html! { <Child .. /> };
    |                    ^^
 
+error: unexpected end of input, expected expression
+  --> $DIR/component-fail.rs:46:13
+   |
+46 |     html! { <Child .. /> };
+   |             ^^^^^^^^^^^^
+
 error: `props` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
   --> $DIR/component-fail.rs:47:20
    |
