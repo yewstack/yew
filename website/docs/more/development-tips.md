@@ -101,14 +101,18 @@ pub fn $func_name$(props: &$Name$Props) -> Html {
 
 ```
 
-## Enable HTML intellisense for `html!` 
+## Support for the `html!` Macro 
 
 ### Jetbrains IDEs
+
+
 
 Since April 2021, Jetbrains has started to support proc-macro expansion as an experimental feature.
 The user has to manually enable it.
 [See the post here.](https://blog.jetbrains.com/rust/2021/04/08/intellij-rust-updates-for-2021-1/#proc-macros) 
 
+This still won't enable html autofill and formatting help, but fixes the bug in the plugin where 
+the return type of `html!` can't be resolved.
 
 ### VS Code
 
