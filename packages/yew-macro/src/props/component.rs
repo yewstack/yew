@@ -9,6 +9,27 @@ use syn::{
     Expr, ExprLit, Lit,
 };
 
+struct BaseExpr {
+    pub dot2: Dot2,
+    pub expr: Expr,
+}
+
+impl Parse for BaseExpr {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let dot2 = input.parse()?;
+        let expr = input.parse()?;
+
+        Ok(Self { dot2, expr })
+    }
+}
+
+impl ToTokens for BaseExpr {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let BaseExpr { dot2, expr } = self;
+        (quote! {#dot2#expr}).to_tokens(tokens);
+    }
+}
+
 pub struct ComponentProps {
     props: Props,
     base_expr: Option<Expr>,
@@ -138,11 +159,13 @@ impl Parse for ComponentProps {
         let base_expr = if input.is_empty() {
             None
         } else {
-            let _dots: Dot2 = input.parse()?;
-            Some(input.parse()?)
+            let dot2 = input.parse()?;
+            let expr = input.parse()?;
+            Some(BaseExpr { dot2, expr })
         };
 
         if input.is_empty() {
+            let base_expr = base_expr.map(|base| base.expr);
             Ok(Self { props, base_expr })
         } else {
             Err(syn::Error::new_spanned(

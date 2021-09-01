@@ -53,10 +53,10 @@ error: `with` doesn't have a value. (hint: set the value to `true` or `false` fo
    |                    ^^^^
 
 error: base props expression must appear last in list of props
-  --> $DIR/component-fail.rs:54:22
+  --> $DIR/component-fail.rs:54:20
    |
 54 |     html! { <Child ..props ref={()} ref={()} /> };
-   |                      ^^^^^
+   |                    ^^^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
   --> $DIR/component-fail.rs:55:20
@@ -65,10 +65,10 @@ error: `with` doesn't have a value. (hint: set the value to `true` or `false` fo
    |                    ^^^^
 
 error: base props expression must appear last in list of props
-  --> $DIR/component-fail.rs:56:22
+  --> $DIR/component-fail.rs:56:20
    |
 56 |     html! { <Child ..props ref={()} ref={()} value=1 /> };
-   |                      ^^^^^
+   |                    ^^^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
   --> $DIR/component-fail.rs:57:20
@@ -77,10 +77,10 @@ error: `with` doesn't have a value. (hint: set the value to `true` or `false` fo
    |                    ^^^^
 
 error: base props expression must appear last in list of props
-  --> $DIR/component-fail.rs:58:22
+  --> $DIR/component-fail.rs:58:20
    |
 58 |     html! { <Child ..props ref={()} value=1 ref={()} /> };
-   |                      ^^^^^
+   |                    ^^^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
   --> $DIR/component-fail.rs:59:20
@@ -89,10 +89,10 @@ error: `with` doesn't have a value. (hint: set the value to `true` or `false` fo
    |                    ^^^^
 
 error: base props expression must appear last in list of props
-  --> $DIR/component-fail.rs:60:22
+  --> $DIR/component-fail.rs:60:20
    |
 60 |     html! { <Child ..props value=1 ref={()}  ref={()} /> };
-   |                      ^^^^^
+   |                    ^^^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
   --> $DIR/component-fail.rs:61:28
@@ -101,10 +101,10 @@ error: `with` doesn't have a value. (hint: set the value to `true` or `false` fo
    |                            ^^^^
 
 error: base props expression must appear last in list of props
-  --> $DIR/component-fail.rs:62:30
+  --> $DIR/component-fail.rs:62:28
    |
 62 |     html! { <Child value=1 ..props  ref={()}  ref={()} /> };
-   |                              ^^^^^
+   |                            ^^^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
   --> $DIR/component-fail.rs:63:37
@@ -113,10 +113,10 @@ error: `with` doesn't have a value. (hint: set the value to `true` or `false` fo
    |                                     ^^^^
 
 error: base props expression must appear last in list of props
-  --> $DIR/component-fail.rs:64:39
+  --> $DIR/component-fail.rs:64:37
    |
 64 |     html! { <Child value=1 ref={()} ..props ref={()} /> };
-   |                                       ^^^^^
+   |                                     ^^^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
   --> $DIR/component-fail.rs:65:47
@@ -131,10 +131,10 @@ error: `ref` can only be specified once
    |                    ^^^
 
 error: base props expression must appear last in list of props
-  --> $DIR/component-fail.rs:69:23
+  --> $DIR/component-fail.rs:69:20
    |
 69 |     html! { <Child .. props value=1 /> };
-   |                       ^^^^^
+   |                    ^^^^^^^^
 
 error: expected identifier, found keyword `type`
   --> $DIR/component-fail.rs:70:20
