@@ -17,8 +17,9 @@ struct BaseExpr {
 impl Parse for BaseExpr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let dot2 = input.parse()?;
-        let expr = input.parse()?;
-
+        let expr = input.parse().map_err(|_| {
+            syn::Error::new_spanned(dot2, "expected base props expression after `..`")
+        })?;
         Ok(Self { dot2, expr })
     }
 }
@@ -159,9 +160,7 @@ impl Parse for ComponentProps {
         let base_expr = if input.is_empty() {
             None
         } else {
-            let dot2 = input.parse()?;
-            let expr = input.parse()?;
-            Some(BaseExpr { dot2, expr })
+            Some(input.parse::<BaseExpr>()?)
         };
 
         if input.is_empty() {

@@ -16,11 +16,11 @@ error: `with` doesn't have a value. (hint: set the value to `true` or `false` fo
 45 |     html! { <Child with /> };
    |                    ^^^^
 
-error: unexpected end of input, expected expression
-  --> $DIR/component-fail.rs:46:13
+error: expected base props expression after `..`
+  --> $DIR/component-fail.rs:46:20
    |
 46 |     html! { <Child .. /> };
-   |             ^^^^^^^^^^^^
+   |                    ^^
 
 error: `props` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
   --> $DIR/component-fail.rs:47:20
