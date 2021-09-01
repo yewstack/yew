@@ -44,6 +44,7 @@ fn compile_fail() {
     html! { <Child:: /> };
     html! { <Child with /> };
     html! { <Child .. /> };
+    html! { <Child ..{ 5 + } /> };
     html! { <Child props /> };
     html! { <Child with props > };
     html! { <Child ..props > };
