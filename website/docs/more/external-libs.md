@@ -15,7 +15,7 @@ with ease. It runs both on servers (and renders to strings) or in browsers (with
 
 ## Gloo
 
-[Gloo](https:://crates.io/crates/gloo) is a modular toolkit for building fast, reliable Web applications and
+[Gloo](https://crates.io/crates/gloo) is a modular toolkit for building fast, reliable Web applications and
 libraries with Rust and Wasm. Gloo provides ergonomic Rust APIs for working with:
 
 - [Console timers](https://crates.io/crates/gloo-console-timer)
