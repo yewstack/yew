@@ -514,6 +514,7 @@ impl VDiff for VTag {
                         VNode::VTag(mut a) => {
                             // Preserve the reference that already exists
                             let el = a.reference.take().unwrap();
+                            a.node_ref.set(None);
                             (Some(a), el)
                         }
                         _ => unsafe { unreachable_unchecked() },
