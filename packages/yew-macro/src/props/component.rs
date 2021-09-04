@@ -30,7 +30,7 @@ impl Parse for BaseExpr {
 impl ToTokens for BaseExpr {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let BaseExpr { dot2, expr } = self;
-        (quote! {#dot2#expr}).to_tokens(tokens);
+        tokens.extend(quote! { #dot2#expr });
     }
 }
 
@@ -59,9 +59,7 @@ impl ComponentProps {
         let check_props: TokenStream = self
             .props
             .iter()
-            .map(|Prop { label, .. }| {
-                quote_spanned! {label.span()=> __yew_props.#label; }
-            })
+            .map(|Prop { label, .. }| quote_spanned! ( label.span()=> __yew_props.#label; ))
             .chain(self.base_expr.iter().map(|expr| {
                 quote_spanned! {props_ty.span()=>
                     let _: #props_ty = #expr;
@@ -115,7 +113,7 @@ impl ComponentProps {
                     if is_string_literal(value) {
                         // String literals should be implicitly converted into `String`
                         quote_spanned! {value.span()=>
-                            #ident.#label = #value.into();
+                            #ident.#label = ::std::convert::Into::into(#value);
                         }
                     } else {
                         quote_spanned! {value.span()=>
