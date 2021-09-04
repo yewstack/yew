@@ -97,5 +97,6 @@ module.exports = {
                 "more/wasm-build-tools"
             ]
         },
+        "tutorial"
     ],
 };
