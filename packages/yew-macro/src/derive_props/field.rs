@@ -199,7 +199,7 @@ fn is_path_segments_an_option(path_segments: impl Iterator<Item = String>) -> bo
 /// Returns true when the [`Path`] seems like an [`Option`] type.
 ///
 /// This function considers the following paths as Options:
-/// - core::std::Option
+/// - core::option::Option
 /// - std::option::Option
 /// - Option::*
 ///
