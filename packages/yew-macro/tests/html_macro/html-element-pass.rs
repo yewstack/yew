@@ -1,16 +1,18 @@
-use std::borrow::Cow;
-use yew::prelude::*;
+#![no_implicit_prelude]
 
 fn compile_pass() {
-    let onclick = Callback::from(|_: MouseEvent| ());
-    let parent_ref = NodeRef::default();
+    let onclick = <::yew::Callback<::yew::MouseEvent> as ::std::convert::From<_>>::from(
+        |_: ::yew::MouseEvent| (),
+    );
+    let parent_ref = <::yew::NodeRef as ::std::default::Default>::default();
 
-    let dyn_tag = || String::from("test");
-    let mut extra_tags_iter = vec!["a", "b"].into_iter();
+    let dyn_tag = || <::std::string::String as ::std::convert::From<&str>>::from("test");
+    let mut extra_tags_iter = ::std::iter::IntoIterator::into_iter(::std::vec!["a", "b"]);
 
-    let cow_none: Option<Cow<'static, str>> = None;
+    let cow_none: ::std::option::Option<::std::borrow::Cow<'static, str>> =
+        ::std::option::Option::None;
 
-    html! {
+    ::yew::html! {
         <div>
             <div data-key="abc"></div>
             <div ref={parent_ref} class="parent">
@@ -40,7 +42,7 @@ fn compile_pass() {
                     </filter>
                 </defs>
             </svg>
-            <img class={classes!("avatar", "hidden")} src="http://pic.com" />
+            <img class={::yew::classes!("avatar", "hidden")} src="http://pic.com" />
             <img class="avatar hidden" />
             <button onclick={&onclick} {onclick} />
             <a href="http://google.com" />
@@ -48,8 +50,8 @@ fn compile_pass() {
                 <custom-tag-b />
             </custom-tag-a>
             <@{dyn_tag()}>
-                <@{extra_tags_iter.next().unwrap()} class="extra-a"/>
-                <@{extra_tags_iter.next().unwrap()} class="extra-b"/>
+                <@{::std::iter::Iterator::next(&mut extra_tags_iter).unwrap()} class="extra-a"/>
+                <@{::std::iter::Iterator::next(&mut extra_tags_iter).unwrap()} class="extra-b"/>
             </@>
 
             <@{
@@ -61,22 +63,24 @@ fn compile_pass() {
                 }
             }/>
 
-            <a href={Some(Cow::Borrowed("http://google.com"))} media={cow_none.clone()} />
-            <track kind={Some(Cow::Borrowed("subtitles"))} src={cow_none.clone()} />
-            <track kind={Some(Cow::Borrowed("5"))} mixed="works" />
-            <input value={Some(Cow::Borrowed("value"))} onblur={Some(Callback::from(|_| ()))} />
+            <a href={::std::option::Option::Some(::std::borrow::Cow::Borrowed("http://google.com"))} media={::std::clone::Clone::clone(&cow_none)} />
+            <track kind={::std::option::Option::Some(::std::borrow::Cow::Borrowed("subtitles"))} src={::std::clone::Clone::clone(&cow_none)} />
+            <track kind={::std::option::Option::Some(::std::borrow::Cow::Borrowed("5"))} mixed="works" />
+            <input value={::std::option::Option::Some(::std::borrow::Cow::Borrowed("value"))}
+                onblur={::std::option::Option::Some(<::yew::Callback<::yew::FocusEvent> as ::std::convert::From<_>>::from(|_| ()))}
+            />
         </div>
     };
 
-    let children = vec![
-        html! { <span>{ "Hello" }</span> },
-        html! { <span>{ "World" }</span> },
+    let children = ::std::vec![
+        ::yew::html! { <span>{ "Hello" }</span> },
+        ::yew::html! { <span>{ "World" }</span> },
     ];
-    html! { <div>{children}</div> };
+    ::yew::html! { <div>{children}</div> };
 
     // handle misleading angle brackets
-    html! { <div data-val={<String as Default>::default()}></div> };
-    html! { <div><a data-val={<String as Default>::default()} /></div> };
+    ::yew::html! { <div data-val={<::std::string::String as ::std::default::Default>::default()}></div> };
+    ::yew::html! { <div><a data-val={<::std::string::String as ::std::default::Default>::default()} /></div> };
 }
 
 fn main() {}
