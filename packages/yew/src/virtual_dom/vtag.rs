@@ -514,6 +514,7 @@ impl VDiff for VTag {
                         VNode::VTag(mut a) => {
                             // Preserve the reference that already exists
                             let el = a.reference.take().unwrap();
+                            a.node_ref.set(None);
                             (Some(a), el)
                         }
                         _ => unsafe { unreachable_unchecked() },
@@ -1102,6 +1103,32 @@ mod tests {
         assert_eq!(node_ref.get(), parent_node.first_child());
         elem.detach(&parent);
         assert!(node_ref.get().is_none());
+    }
+
+    #[test]
+    fn vtag_reuse_should_reset_ancestors_node_ref() {
+        let scope = test_scope();
+        let parent = document().create_element("div").unwrap();
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let node_ref_a = NodeRef::default();
+        let mut elem_a = html! { <div id="a" ref={node_ref_a.clone()} /> };
+        elem_a.apply(&scope, &parent, NodeRef::default(), None);
+
+        // save the Node to check later that it has been reused.
+        let node_a = node_ref_a.get().unwrap();
+
+        let node_ref_b = NodeRef::default();
+        let mut elem_b = html! { <div id="b" ref={node_ref_b.clone()} /> };
+        elem_b.apply(&scope, &parent, NodeRef::default(), Some(elem_a));
+
+        let node_b = node_ref_b.get().unwrap();
+
+        assert_eq!(node_a, node_b, "VTag should have reused the element");
+        assert!(
+            node_ref_a.get().is_none(),
+            "node_ref_a should have been reset when the element was reused."
+        );
     }
 }
 

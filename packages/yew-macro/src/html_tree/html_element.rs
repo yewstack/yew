@@ -171,7 +171,7 @@ impl ToTokens for HtmlElement {
                                     ::std::borrow::Cow::<'static, str>::Borrowed(#key)
                                 )
                             } else {
-                                None
+                                ::std::option::Option::None
                             }
                         }),
                     },

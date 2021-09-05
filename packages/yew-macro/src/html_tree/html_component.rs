@@ -105,7 +105,7 @@ impl ToTokens for HtmlComponent {
             let value = &node_ref.value;
             quote_spanned! {value.span()=> #value }
         } else {
-            quote! { ::yew::html::NodeRef::default() }
+            quote! { <::yew::html::NodeRef as ::std::default::Default>::default() }
         };
 
         let key = if let Some(key) = &special_props.key {
@@ -115,7 +115,7 @@ impl ToTokens for HtmlComponent {
                 Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#value))
             }
         } else {
-            quote! { None }
+            quote! { ::std::option::Option::None }
         };
 
         tokens.extend(quote_spanned! {ty.span()=>
