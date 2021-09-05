@@ -5,7 +5,7 @@ use std::cmp::{Ord, Ordering, PartialEq, PartialOrd};
 use std::convert::TryFrom;
 use syn::parse::Result;
 use syn::spanned::Spanned;
-use syn::{Error, Expr, Field, Type, TypePath, Visibility};
+use syn::{Error, Expr, Field, Path, Type, TypePath, Visibility};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(PartialEq, Eq)]
@@ -167,7 +167,7 @@ impl PropField {
         } else if matches!(
             &named_field.ty,
             Type::Path(TypePath { path, .. })
-            if path.segments.len() == 1 && path.segments[0].ident == "Option"
+            if is_path_an_option(path)
         ) {
             Ok(PropAttr::Option)
         } else {
@@ -176,6 +176,36 @@ impl PropField {
             Ok(PropAttr::Required { wrapped_name })
         }
     }
+}
+
+fn is_path_segments_an_option(path_segments: impl Iterator<Item = String>) -> bool {
+    fn is_option_path_seg(seg_index: usize, path: &str) -> u8 {
+        match (seg_index, path) {
+            (0, "core") => 0b001,
+            (0, "std") => 0b001,
+            (0, "Option") => 0b111,
+            (1, "option") => 0b010,
+            (2, "Option") => 0b100,
+            _ => 0,
+        }
+    }
+
+    path_segments
+        .enumerate()
+        .fold(0, |flags, (i, ps)| flags | is_option_path_seg(i, &ps))
+        == 0b111
+}
+
+/// Returns true when the [`Path`] seems like an [`Option`] type.
+///
+/// This function considers the following paths as Options:
+/// - core::std::Option
+/// - std::option::Option
+/// - Option::*
+///
+/// Users can define their own [`Option`] type and this will return true - this is unavoidable.
+fn is_path_an_option(path: &Path) -> bool {
+    is_path_segments_an_option(path.segments.iter().take(3).map(|ps| ps.ident.to_string()))
 }
 
 impl TryFrom<Field> for PropField {
@@ -221,5 +251,27 @@ impl Ord for PropField {
 impl PartialEq for PropField {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::derive_props::field::is_path_segments_an_option;
+
+    #[test]
+    fn all_std_and_core_option_path_seg_return_true() {
+        assert!(is_path_segments_an_option(
+            vec!["core".to_owned(), "option".to_owned(), "Option".to_owned()].into_iter()
+        ));
+        assert!(is_path_segments_an_option(
+            vec!["std".to_owned(), "option".to_owned(), "Option".to_owned()].into_iter()
+        ));
+        assert!(is_path_segments_an_option(
+            vec!["Option".to_owned()].into_iter()
+        ));
+        // why OR instead of XOR
+        assert!(is_path_segments_an_option(
+            vec!["Option".to_owned(), "Vec".to_owned(), "Option".to_owned()].into_iter()
+        ));
     }
 }
