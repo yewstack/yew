@@ -1,5 +1,4 @@
 use yew::prelude::*;
-use yew_functional::function_component;
 
 #[derive(Clone, Properties, PartialEq)]
 struct Props {
@@ -8,7 +7,6 @@ struct Props {
 
 #[function_component(Comp)]
 fn comp<'a>(props: &'a Props) -> Html {
-
     html! {
         <p>
             { props.a }

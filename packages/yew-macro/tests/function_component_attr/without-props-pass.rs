@@ -1,4 +1,6 @@
-#[::yew_functional::function_component(Comp)]
+#![no_implicit_prelude]
+
+#[::yew::function_component(Comp)]
 fn comp() -> ::yew::Html {
     ::yew::html! {
         <p>

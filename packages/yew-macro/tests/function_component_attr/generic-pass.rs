@@ -1,26 +1,28 @@
-#[derive(Clone, ::yew::Properties, PartialEq)]
+#![no_implicit_prelude]
+
+#[derive(::std::clone::Clone, ::yew::Properties, ::std::cmp::PartialEq)]
 struct Props {
     a: usize,
 }
 
-#[::yew_functional::function_component(Comp)]
+#[::yew::function_component(Comp)]
 fn comp<P>(_props: &P) -> ::yew::Html
 where
-    P: ::yew::Properties + PartialEq,
+    P: ::yew::Properties + ::std::cmp::PartialEq,
 {
     ::yew::html! {
         <p></p>
     }
 }
 
-#[::yew_functional::function_component(Comp1)]
+#[::yew::function_component(Comp1)]
 fn comp1<T1, T2>(_props: &()) -> ::yew::Html {
     ::yew::html! {
         <p></p>
     }
 }
 
-#[::yew_functional::function_component(ConstGenerics)]
+#[::yew::function_component(ConstGenerics)]
 fn const_generics<const N: i32>() -> ::yew::Html {
     ::yew::html! {
         <div>

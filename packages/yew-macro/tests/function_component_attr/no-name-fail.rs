@@ -1,5 +1,4 @@
 use yew::prelude::*;
-use yew_functional::function_component;
 
 #[derive(Clone, Properties, PartialEq)]
 struct Props {
