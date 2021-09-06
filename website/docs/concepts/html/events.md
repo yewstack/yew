@@ -23,6 +23,8 @@ end up using a version which conflicts with the version that Yew specifies.
 The event listener name is the expected name when adding an event `Callback` in the `html` macro:
 
 ```rust
+use yew::{html, Callback};
+
 html! {
     <button onclick={Callback::from(|_| ())}>
     //      ^^^^^^^ event listener name    
