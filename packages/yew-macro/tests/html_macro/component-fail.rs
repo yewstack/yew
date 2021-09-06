@@ -43,20 +43,31 @@ fn compile_fail() {
     html! { <Child> };
     html! { <Child:: /> };
     html! { <Child with /> };
+    html! { <Child .. /> };
+    html! { <Child ..{ 5 + } /> };
     html! { <Child props /> };
     html! { <Child with props > };
+    html! { <Child ..props > };
     let (p1, p2);
     html! { <Child with p1 with p2 /> };
+    html! { <Child ..p1 ..p2 /> };
     html! { <Child with props ref={()} ref={()} /> };
+    html! { <Child ..props ref={()} ref={()} /> };
     html! { <Child with props ref={()} ref={()} value=1 /> };
+    html! { <Child ..props ref={()} ref={()} value=1 /> };
     html! { <Child with props ref={()} value=1 ref={()} /> };
+    html! { <Child ..props ref={()} value=1 ref={()} /> };
     html! { <Child with props value=1 ref={()}  ref={()} /> };
+    html! { <Child ..props value=1 ref={()}  ref={()} /> };
     html! { <Child value=1 with props  ref={()}  ref={()} /> };
+    html! { <Child value=1 ..props  ref={()}  ref={()} /> };
     html! { <Child value=1 ref={()} with props ref={()} /> };
+    html! { <Child value=1 ref={()} ..props ref={()} /> };
     html! { <Child ref={()} ref={()} value=1  with props  /> };
-    html! { <Child with blah /> };
-    html! { <Child value=1 with props /> };
-    html! { <Child with props value=1 /> };
+    html! { <Child ref={()} ref={()} value=1 ..props  /> };
+    html! { <Child ..blah /> };
+    html! { <Child value=1 ..props /> };
+    html! { <Child .. props value=1 /> };
     html! { <Child type=0 /> };
     html! { <Child ref=() /> };
     html! { <Child invalid-prop-name=0 /> };
@@ -75,9 +86,12 @@ fn compile_fail() {
     html! { <Child></Child><Child></Child> };
     html! { <Child>{ "Not allowed" }</Child> };
 
+    let num = 1;
+    html! { <Child int=num ..props /> };
+
     // trying to overwrite `children` on props which don't take any.
     html! {
-        <Child with ChildProperties { string: "hello".to_owned(), int: 5 }>
+        <Child ..ChildProperties { string: "hello".to_owned(), int: 5 }>
             { "please error" }
         </Child>
     };

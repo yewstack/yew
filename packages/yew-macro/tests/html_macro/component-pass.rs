@@ -1,6 +1,8 @@
 #![no_implicit_prelude]
 
-#[derive(::std::clone::Clone, ::yew::Properties, ::std::default::Default, ::std::cmp::PartialEq)]
+#[derive(
+    ::std::clone::Clone, ::yew::Properties, ::std::default::Default, ::std::cmp::PartialEq,
+)]
 pub struct ContainerProperties {
     pub int: i32,
     #[prop_or_default]
@@ -41,13 +43,19 @@ impl ::std::convert::From<::yew::virtual_dom::VChild<AltChild>> for ChildrenVari
 impl ::std::convert::Into<::yew::virtual_dom::VNode> for ChildrenVariants {
     fn into(self) -> ::yew::virtual_dom::VNode {
         match self {
-            Self::Child(comp) => ::yew::virtual_dom::VNode::VComp(::std::convert::Into::<::yew::virtual_dom::VComp>::into(comp)),
-            Self::AltChild(comp) => ::yew::virtual_dom::VNode::VComp(::std::convert::Into::<::yew::virtual_dom::VComp>::into(comp)),
+            Self::Child(comp) => ::yew::virtual_dom::VNode::VComp(::std::convert::Into::<
+                ::yew::virtual_dom::VComp,
+            >::into(comp)),
+            Self::AltChild(comp) => ::yew::virtual_dom::VNode::VComp(::std::convert::Into::<
+                ::yew::virtual_dom::VComp,
+            >::into(comp)),
         }
     }
 }
 
-#[derive(::std::clone::Clone, ::yew::Properties, ::std::default::Default, ::std::cmp::PartialEq)]
+#[derive(
+    ::std::clone::Clone, ::yew::Properties, ::std::default::Default, ::std::cmp::PartialEq,
+)]
 pub struct ChildProperties {
     #[prop_or_default]
     pub string: ::std::string::String,
@@ -86,7 +94,9 @@ impl ::yew::Component for AltChild {
     }
 }
 
-#[derive(::std::clone::Clone, ::yew::Properties, ::std::default::Default, ::std::cmp::PartialEq)]
+#[derive(
+    ::std::clone::Clone, ::yew::Properties, ::std::default::Default, ::std::cmp::PartialEq,
+)]
 pub struct ChildContainerProperties {
     pub int: i32,
     #[prop_or_default]
@@ -125,9 +135,12 @@ fn compile_pass() {
     let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
     ::yew::html! {
         <>
-            <Child with props />
-            <Child ref={::std::clone::Clone::clone(&node_ref)} with ::yew::props!(Child::Properties { int: 5 }) />
-            <Child with <<Child as ::yew::Component>::Properties as ::std::default::Default>::default() ref={node_ref} />
+            <Child ..::std::clone::Clone::clone(&props) />
+            <Child int={1} ..props />
+            <Child ref={::std::clone::Clone::clone(&node_ref)} int={2} ..::yew::props!(Child::Properties { int: 5 }) />
+            <Child int=3 ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
+            <Child ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
+            <Child ref={node_ref} ..<<Child as ::yew::Component>::Properties as ::std::default::Default>::default() />
         </>
     };
 
@@ -182,13 +195,23 @@ fn compile_pass() {
     };
 
     let props = <<Container as ::yew::Component>::Properties as ::std::default::Default>::default();
+    let child_props =
+        <<Child as ::yew::Component>::Properties as ::std::default::Default>::default();
     ::yew::html! {
         <>
             <Container int=1 />
             <Container int=1></Container>
 
-            <Container with props>
+            <Container ..::std::clone::Clone::clone(&props)>
                 <div>{ "hello world" }</div>
+            </Container>
+
+            <Container int=1 ..::std::clone::Clone::clone(&props)>
+                <div>{ "hello world" }</div>
+            </Container>
+
+            <Container int=1 ..props>
+                <Child int=2 string="hello" ..child_props />
             </Container>
 
             <Container int=1>

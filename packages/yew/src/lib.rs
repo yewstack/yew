@@ -236,9 +236,9 @@ pub use yew_macro::html_nested;
 /// let props = yew::props!(Model::Properties { id: 2, name: Cow::from("Lemmy") });
 /// # assert_eq!(props.id, 2);
 ///
-/// // Use the `with props` syntax to create a component with the props.
+/// // Use the Rust-like struct update syntax to create a component with the props.
 /// html! {
-///     <Model key=1 with props />
+///     <Model key=1 ..props />
 /// }
 /// # }
 /// ```

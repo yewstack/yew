@@ -27,7 +27,7 @@ impl Component for MyComponent {
     }
 }
 
-#[derive(PartialEq, Properties)]
+#[derive(Clone, PartialEq, Properties)]
 struct Props {
     prop1: String,
     prop2: String,
@@ -71,7 +71,10 @@ html!{
         <MyComponentWithProps prop1="lorem" prop2="ipsum" />
 
         // With the whole set of props provided at once
-        <MyComponentWithProps with props />
+        <MyComponentWithProps ..props.clone() />
+
+        // With Properties from a variable and specific values overridden
+        <MyComponentWithProps prop2="lorem" ..props />
     </>
 };
 ```
@@ -116,7 +119,10 @@ html! {
 };
 ```
 
-When using the `with props` syntax, the children passed in the `html!` macro overwrite the ones already present in the props.
+The `html!` macro allows you to pass a base expression with the `..props` syntax instead of specifying each property individually,
+similar to Rust's [Functional Update Syntax](https://doc.rust-lang.org/stable/reference/expressions/struct-expr.html#functional-update-syntax).
+This base expression must occur after any individual props are passed.
+When passing a base props expression with a `children` field, the children passed in the `html!` macro overwrite the ones already present in the props.
 
 ```rust
 use yew::{Children, Component, Context, html, Html, props, Properties}; 
@@ -152,7 +158,7 @@ let props = yew::props!(Container::Properties {
 });
 
 html! {
-    <Container with props>
+    <Container ..props>
         // props.children will be overwritten with this
         <span>{ "I am a child, as you can see" }</span>
     </Container>

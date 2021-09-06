@@ -18,7 +18,7 @@ html!{
         <MyComponent prop1="lorem" prop2="ipsum" />
 
         // 一次提供很多屬性
-        <MyComponent with props />
+        <MyComponent ..props />
     </>
 }
 ```
