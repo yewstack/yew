@@ -4,12 +4,12 @@ title: "Events"
 
 ## Introduction
 
-Yew integrates with the [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate and 
-uses the events from that crate. The [table below](#event-types) lists all of the `web-sys` 
-events that are accepted in the `html!` macro. 
+Yew integrates with the [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate and
+uses the events from that crate. The [table below](#event-types) lists all of the `web-sys`
+events that are accepted in the `html!` macro.
 
-You can still add a [`Callback`](../components/callbacks.md) for an event that is not listed in the table below, 
-see [Manual event listener](#manual-event-listener).
+You can still add a [`Callback`](../components/callbacks.md) for an event that is not listed in the table
+below, see [Manual event listener](#manual-event-listener).
 
 ## Event Types
 
@@ -27,7 +27,7 @@ use yew::{html, Callback};
 
 html! {
     <button onclick={Callback::from(|_| ())}>
-    //      ^^^^^^^ event listener name    
+    //      ^^^^^^^ event listener name
         { "Click me!" }
     </button>
 };
@@ -146,8 +146,8 @@ This will **not** always be the element at which the `Callback` is placed, that 
 [Event.currentTarget](https://developer.mozilla.org/en-US/docs/Web/API/Event/currentTarget)
 :::
 
-In event `Callback`s you may want to get the target of that event. For example, the 
-`change` event gives no information but is used to notify that something has changed. 
+In event `Callback`s you may want to get the target of that event. For example, the
+`change` event gives no information but is used to notify that something has changed.
 
 In Yew getting the target element in the correct type can be done in a few ways and we will go through
 them here. Calling [`web_sys::Event::target`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target)
@@ -160,13 +160,13 @@ differs opposed to the problem at hand.
 **The Problem:**
 
 We have an `onchange` `Callback` on my `<input>` element and each time it is invoked we want to send
-an [update](../components#update) `Msg` to our component. 
+an [update](../components#update) `Msg` to our component.
 
-Our `Msg` enum looks like this: 
+Our `Msg` enum looks like this:
 
 ```rust
 pub enum Msg {
-	InputValue(String),
+    InputValue(String),
 }
 ```
 
@@ -174,11 +174,11 @@ pub enum Msg {
 
 The [`wasm-bindgen`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) crate has
 a useful trait; [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
-which allows us to hop and skip our way to the type we want, as long as it implements `JsCast`. We can 
-do this cautiously, which involves some runtime checks and failure types like `Option` and `Result`, 
+which allows us to hop and skip our way to the type we want, as long as it implements `JsCast`. We can
+do this cautiously, which involves some runtime checks and failure types like `Option` and `Result`,
 or we can do it dangerously.
 
-Enough talk, more code: 
+Enough talk, more code:
 
 ```toml title="Cargo.toml"
 [dependencies]
@@ -215,11 +215,11 @@ impl Component for Comp {
         // Use batch_callback so if something unexpected happens we can return
         // None and do nothing
         let on_cautious_change = link.batch_callback(|e: Event| {
-			// When events are created the target is undefined, it's only
-			// when dispatched does the target get added.
+            // When events are created the target is undefined, it's only
+            // when dispatched does the target get added.
             let target: Option<EventTarget> = e.target();
-			// Events can bubble so this listener might catch events from child 
-			// elements which are not of type HtmlInputElement
+            // Events can bubble so this listener might catch events from child
+            // elements which are not of type HtmlInputElement
             //highlight-next-line
             let input = target.and_then(|t| t.dyn_into::<HtmlInputElement>().ok());
 
@@ -230,8 +230,8 @@ impl Component for Comp {
             let target: EventTarget = e
                 .target()
                 .expect("Event should have a target when dispatched");
-			// You must KNOW target is a HtmlInputElement, otherwise 
-			// the call to value would be Undefined Behaviour (UB).
+            // You must KNOW target is a HtmlInputElement, otherwise
+            // the call to value would be Undefined Behaviour (UB).
             //highlight-next-line
             Msg::InputValue(target.unchecked_into::<HtmlInputElement>().value())
         });
@@ -241,18 +241,17 @@ impl Component for Comp {
                 <label for="cautious-input">
                     { "My cautious input:" }
                     <input onchange={on_cautious_change}
-						id="cautious-input"
-						type="text"
-					/>
+                        id="cautious-input"
+                        type="text"
+                    />
                 </label>
                 <label for="dangerous-input">
                     { "My dangerous input:" }
                     <input onchange={on_dangerous_change}
-						id="dangerous-input"
-						type="text"
-					/>
+                        id="dangerous-input"
+                        type="text"
+                    />
                 </label>
-
             </>
         }
     }
@@ -266,14 +265,14 @@ The methods from `JsCast` are [`dyn_into`](https://rustwasm.github.io/wasm-bindg
 and [`unchecked_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.unchecked_into)
 and you can probably see, they allowed
 us to go from `EventTarget` to [`HtmlInputElement`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.HtmlInputElement.html).
-The `dyn_into` method is cautious because at 
-runtime it will check whether the type is actually a `HtmlInputElement` and if not return an 
+The `dyn_into` method is cautious because at
+runtime it will check whether the type is actually a `HtmlInputElement` and if not return an
 `Err(JsValue)`, the [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
 is a catch-all type and is essentially giving you back the object to try again.
 
 At this point you might be thinking... when is the dangerous version ok to use? In the case above it
 is safe<sup>1</sup> as we've set the `Callback` on to an element with no children so the target can
-only be that same element. 
+only be that same element.
 
 
 _<sup>1</sup> As safe as anything can be when JS land is involved._
@@ -287,7 +286,7 @@ _<sup>1</sup> As safe as anything can be when JS land is involved._
 for the behaviour of `JsCast` but with the smaller scope of events and their targets.
 
 `TargetCast` vs `JsCast` is purely preference, you will find that `TargetCast` implements something
-similar to what you would using `JsCast`.  
+similar to what you would using `JsCast`.
 :::
 
 The `TargetCast` trait builds off of `JsCast` and is specialized towards getting typed event targets
@@ -330,8 +329,8 @@ impl Component for Comp {
         });
 
         let on_dangerous_change = link.callback(|e: Event| {
-            // You must KNOW target is a HtmlInputElement, otherwise 
-			// the call to value would be Undefined Behaviour (UB).
+            // You must KNOW target is a HtmlInputElement, otherwise
+            // the call to value would be Undefined Behaviour (UB).
             //highlight-next-line
             Msg::InputValue(e.target_unchecked_into::<HtmlInputElement>().value())
         });
@@ -341,32 +340,31 @@ impl Component for Comp {
                 <label for="cautious-input">
                     { "My cautious input:" }
                     <input onchange={on_cautious_change}
-						id="cautious-input"
-						type="text"
-					/>
+                        id="cautious-input"
+                        type="text"
+                    />
                 </label>
                 <label for="dangerous-input">
                     { "My dangerous input:" }
                     <input onchange={on_dangerous_change}
-						id="dangerous-input"
-						type="text"
-					/>
+                        id="dangerous-input"
+                        type="text"
+                    />
                 </label>
-
             </>
         }
     }
 }
 ```
 If you followed the advice above and read about `JsCast`, or know the trait, you can probably
-see that `TargetCast::target_dyn_into` feels similar to `JsCast::dyn_into` but specifically 
+see that `TargetCast::target_dyn_into` feels similar to `JsCast::dyn_into` but specifically
 does the cast on the target of the event. `TargetCast::target_unchecked_into` is similar to
 `JsCast::unchecked_into`, and as such all the same warnings above `JsCast` apply to `TargetCast`.
 
 
 ### Using `NodeRef`
 
-[`NodeRef`](../components/refs.md) can be used instead of querying the event given to a `Callback`. 
+[`NodeRef`](../components/refs.md) can be used instead of querying the event given to a `Callback`.
 
 ```rust
 //highlight-next-line
@@ -410,22 +408,21 @@ impl Component for Comp {
                     { "My input:" }
                     //highlight-next-line
                     <input ref={self.my_input.clone()}
-						{onchange}
-						id="my-input"
-						type="text"
-					/>
+                        {onchange}
+                        id="my-input"
+                        type="text"
+                    />
                 </label>
-
             </>
         }
     }
 }
 ```
 Using `NodeRef`, you can ignore the event and use the `NodeRef::cast` method to get an
-`Option<HtmlInputElement>` - this is optional as calling `cast` before the `NodeRef` has been 
-set, or when the type doesn't match will return `None` . 
+`Option<HtmlInputElement>` - this is optional as calling `cast` before the `NodeRef` has been
+set, or when the type doesn't match will return `None`.
 
-You might also see by using `NodeRef` we don't have to send the `String` back in the 
+You might also see by using `NodeRef` we don't have to send the `String` back in the
 `Msg::InputValue` as we always have `my_input` in the component state - so we could do the following:
 
 ```rust
@@ -436,7 +433,7 @@ pub struct Comp {
 }
 
 pub enum Msg {
-	// Signal the input element has changed
+    // Signal the input element has changed
     //highlight-next-line
     InputChanged,
 }
@@ -477,10 +474,10 @@ impl Component for Comp {
             <label for="my-input">
                 { "My input:" }
                 <input ref={self.my_input.clone()}
-					{onchange}
-					id="my-input"
-					type="text"
-				/>
+                    {onchange}
+                    id="my-input"
+                    type="text"
+                />
             </label>
         }
     }
@@ -497,7 +494,7 @@ You may want to listen to an event that is not supported by Yew's `html` macro, 
 
 In order to add an event listener to one of elements manually we need the help of
 [`NodeRef`](../components/refs) so that in the `rendered` method we can add a listener using the
-[`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/index.html) and 
+[`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/index.html) and
 [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) API.
 We do this in `rendered` as this is the only time we can guarantee that the element exists in
 the browser, Yew needs some time to create them after `view` is called.
@@ -511,7 +508,7 @@ in order to convert to the type required.
 
 ### Using `Closure` (verbose)
 
-Using the `web-sys` and `wasm-bindgen` API's directly for this can be a bit painful.. so brace 
+Using the `web-sys` and `wasm-bindgen` API's directly for this can be a bit painful.. so brace
 yourself ([there is a more concise way thanks to `gloo`](#using-gloo-concise)).
 
 ```rust
@@ -569,16 +566,16 @@ impl Component for Comp {
             // Create a Closure from a Box<dyn Fn> - this has to be 'static
             let listener =
                 Closure::<dyn Fn(Event)>::wrap(
-					Box::new(move |e: Event| oncustard.emit(e))
-				);
+                    Box::new(move |e: Event| oncustard.emit(e))
+                );
             element
                 .add_event_listener_with_callback(
-					"custard",
-					listener.as_ref().unchecked_ref()
-				)
+                    "custard",
+                    listener.as_ref().unchecked_ref()
+                )
                 .unwrap();
 
-			// Need to save listener in the component otherwise when the 
+			// Need to save listener in the component otherwise when the
 			// event is fired it will try and call the listener that no longer
 			// exists in memory!
             self.custard_listener = Some(listener);
@@ -586,18 +583,18 @@ impl Component for Comp {
     }
 
     fn destroy(&mut self, _: &Context<Self>) {
-		// All done with the component but need to remove
-		// the event listener before the custard_listener memory
-		// goes out of scope.
+        // All done with the component but need to remove
+        // the event listener before the custard_listener memory
+        // goes out of scope.
         if let (Some(element), Some(listener)) = (
             self.my_div.cast::<HtmlElement>(),
             self.custard_listener.take(),
         ) {
             element
                 .remove_event_listener_with_callback(
-					"custard",
-					listener.as_ref().unchecked_ref()
-				)
+                    "custard",
+                    listener.as_ref().unchecked_ref()
+                )
                 .unwrap();
         }
     }
@@ -609,7 +606,8 @@ For more information on `Closures`, see
 
 ### Using `gloo` (concise)
 
-The easier way is with `gloo`, more specifically [`gloo_events`](https://docs.rs/gloo-events/0.1.1/gloo_events/index.html) which is an abstraction for `web-sys`, `wasm-bindgen`. 
+The easier way is with `gloo`, more specifically [`gloo_events`](https://docs.rs/gloo-events/0.1.1/gloo_events/index.html)
+which is an abstraction for `web-sys`, `wasm-bindgen`.
 
 `gloo_events` has the `EventListener` type which can be used to create and store the
 event listener.
@@ -673,10 +671,10 @@ impl Component for Comp {
             let oncustard = ctx.link().callback(|_: Event| Msg::Custard);
 
             let listener = EventListener::new(
-				&element,
-				"custard",
-				move |e| oncustard.emit(e.clone())
-			);
+                &element,
+                "custard",
+                move |e| oncustard.emit(e.clone())
+            );
 
             self.custard_listener = Some(listener);
         }
@@ -684,9 +682,9 @@ impl Component for Comp {
 }
 ```
 
-Notice that when using an `EventListener` you don't need to do anything when the 
+Notice that when using an `EventListener` you don't need to do anything when the
 component is about to be destroyed as the `EventListener` has a `drop` implementation
-which will remove the event listener from the element. 
+which will remove the event listener from the element.
 
 For more information on `EventListener`, see the
 [gloo_events docs.rs](https://docs.rs/gloo-events/0.1.1/gloo_events/struct.EventListener.html).
