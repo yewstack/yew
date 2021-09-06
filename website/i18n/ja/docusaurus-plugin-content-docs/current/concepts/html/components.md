@@ -16,7 +16,10 @@ html!{
         <MyComponent prop1="lorem" prop2="ipsum" />
 
         // With the whole set of props provided at once
-        <MyComponent with props />
+        <MyComponent ..props />
+
+        // With Properties from a variable and specific values overridden
+        <MyComponent prop2="lorem" ..props />
     </>
 }
 ```
