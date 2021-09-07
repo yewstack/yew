@@ -1,10 +1,46 @@
 #![no_implicit_prelude]
 
+// Shadow primitives
+#[allow(non_camel_case_types)]
+pub struct bool;
+#[allow(non_camel_case_types)]
+pub struct char;
+#[allow(non_camel_case_types)]
+pub struct f32;
+#[allow(non_camel_case_types)]
+pub struct f64;
+#[allow(non_camel_case_types)]
+pub struct i128;
+#[allow(non_camel_case_types)]
+pub struct i16;
+#[allow(non_camel_case_types)]
+pub struct i32;
+#[allow(non_camel_case_types)]
+pub struct i64;
+#[allow(non_camel_case_types)]
+pub struct i8;
+#[allow(non_camel_case_types)]
+pub struct isize;
+#[allow(non_camel_case_types)]
+pub struct str;
+#[allow(non_camel_case_types)]
+pub struct u128;
+#[allow(non_camel_case_types)]
+pub struct u16;
+#[allow(non_camel_case_types)]
+pub struct u32;
+#[allow(non_camel_case_types)]
+pub struct u64;
+#[allow(non_camel_case_types)]
+pub struct u8;
+#[allow(non_camel_case_types)]
+pub struct usize;
+
 #[derive(
     ::std::clone::Clone, ::yew::Properties, ::std::default::Default, ::std::cmp::PartialEq,
 )]
 pub struct ContainerProperties {
-    pub int: i32,
+    pub int: ::std::primitive::i32,
     #[prop_or_default]
     pub children: ::yew::Children,
 }
@@ -59,11 +95,11 @@ impl ::std::convert::Into<::yew::virtual_dom::VNode> for ChildrenVariants {
 pub struct ChildProperties {
     #[prop_or_default]
     pub string: ::std::string::String,
-    pub int: i32,
+    pub int: ::std::primitive::i32,
     #[prop_or_default]
     pub opt_str: ::std::option::Option<::std::string::String>,
     #[prop_or_default]
-    pub vec: ::std::vec::Vec<i32>,
+    pub vec: ::std::vec::Vec<::std::primitive::i32>,
     #[prop_or_default]
     pub optional_callback: ::std::option::Option<::yew::Callback<()>>,
 }
@@ -98,7 +134,7 @@ impl ::yew::Component for AltChild {
     ::std::clone::Clone, ::yew::Properties, ::std::default::Default, ::std::cmp::PartialEq,
 )]
 pub struct ChildContainerProperties {
-    pub int: i32,
+    pub int: ::std::primitive::i32,
     #[prop_or_default]
     pub children: ::yew::html::ChildrenRenderer<ChildrenVariants>,
 }
@@ -150,12 +186,12 @@ fn compile_pass() {
             <Child int=1 />
             <Child int={1+1} />
             <Child int=1 vec={::std::vec![1]} />
-            <Child string={<::std::string::String as ::std::convert::From<&'static str>>::from("child")} int=1 />
+            <Child string={<::std::string::String as ::std::convert::From<&'static ::std::primitive::str>>::from("child")} int=1 />
 
             <Child opt_str="child" int=1 />
-            <Child opt_str={<::std::string::String as ::std::convert::From<&'static str>>::from("child")} int=1 />
+            <Child opt_str={<::std::string::String as ::std::convert::From<&'static ::std::primitive::str>>::from("child")} int=1 />
             <Child opt_str={::std::option::Option::Some("child")} int=1 />
-            <Child opt_str={::std::option::Option::Some(<::std::string::String as ::std::convert::From<&'static str>>::from("child"))} int=1 />
+            <Child opt_str={::std::option::Option::Some(<::std::string::String as ::std::convert::From<&'static ::std::primitive::str>>::from("child"))} int=1 />
         </>
     };
 
