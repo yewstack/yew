@@ -6,7 +6,7 @@ use syn::{Expr, Lit, LitStr};
 /// Stringify a value at runtime.
 fn stringify_at_runtime(src: impl ToTokens) -> TokenStream {
     quote_spanned! {src.span()=>
-        ::std::convert::Into::<::std::borrow::Cow::<'static, str>>::into(#src)
+        ::std::convert::Into::<::std::borrow::Cow::<'static, ::std::primitive::str>>::into(#src)
     }
 }
 
@@ -71,7 +71,7 @@ impl Stringify for LitStr {
 
     fn stringify(&self) -> TokenStream {
         quote_spanned! {self.span()=>
-            ::std::borrow::Cow::<'static, str>::Borrowed(#self)
+            ::std::borrow::Cow::<'static, ::std::primitive::str>::Borrowed(#self)
         }
     }
 }
