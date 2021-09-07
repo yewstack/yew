@@ -161,14 +161,14 @@ impl ToTokens for HtmlElement {
                                 return None;
                             }),
                             _ => Value::Dynamic(quote_spanned! {value.span()=> {
-                                ::yew::utils::__ensure_type::<bool>(#value);
+                                ::yew::utils::__ensure_type::<::std::primitive::bool>(#value);
                                 #key
                             }}),
                         },
                         expr => Value::Dynamic(quote_spanned! {expr.span()=>
                             if #expr {
                                 ::std::option::Option::Some(
-                                    ::std::borrow::Cow::<'static, str>::Borrowed(#key)
+                                    ::std::borrow::Cow::<'static, ::std::primitive::str>::Borrowed(#key)
                                 )
                             } else {
                                 ::std::option::Option::None
@@ -333,7 +333,7 @@ impl ToTokens for HtmlElement {
                             #[allow(clippy::redundant_clone, unused_braces)]
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_other(
-                                    ::std::borrow::Cow::<'static, str>::Borrowed(#name),
+                                    ::std::borrow::Cow::<'static, ::std::primitive::str>::Borrowed(#name),
                                     #node_ref,
                                     #key,
                                     #attributes,
@@ -363,7 +363,7 @@ impl ToTokens for HtmlElement {
                 // doesn't return a valid value
                 quote_spanned! {expr.span()=> {
                     let mut #vtag_name = ::std::convert::Into::<
-                        ::std::borrow::Cow::<'static, str>
+                        ::std::borrow::Cow::<'static, ::std::primitive::str>
                     >::into(#expr);
                     if !#vtag_name.is_ascii() {
                         ::std::panic!(
@@ -375,7 +375,7 @@ impl ToTokens for HtmlElement {
                     #vtag_name.to_mut().make_ascii_lowercase();
 
                     #[allow(clippy::redundant_clone, unused_braces, clippy::let_and_return)]
-                    let mut #vtag = match ::std::convert::AsRef::<str>::as_ref(&#vtag_name) {
+                    let mut #vtag = match ::std::convert::AsRef::<::std::primitive::str>::as_ref(&#vtag_name) {
                         "input" => {
                             ::yew::virtual_dom::VTag::__new_textarea(
                                 #value,
