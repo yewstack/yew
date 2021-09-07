@@ -1,6 +1,42 @@
 #![no_implicit_prelude]
 #![recursion_limit = "128"]
 
+// Shadow primitives
+#[allow(non_camel_case_types)]
+pub struct bool;
+#[allow(non_camel_case_types)]
+pub struct char;
+#[allow(non_camel_case_types)]
+pub struct f32;
+#[allow(non_camel_case_types)]
+pub struct f64;
+#[allow(non_camel_case_types)]
+pub struct i128;
+#[allow(non_camel_case_types)]
+pub struct i16;
+#[allow(non_camel_case_types)]
+pub struct i32;
+#[allow(non_camel_case_types)]
+pub struct i64;
+#[allow(non_camel_case_types)]
+pub struct i8;
+#[allow(non_camel_case_types)]
+pub struct isize;
+#[allow(non_camel_case_types)]
+pub struct str;
+#[allow(non_camel_case_types)]
+pub struct u128;
+#[allow(non_camel_case_types)]
+pub struct u16;
+#[allow(non_camel_case_types)]
+pub struct u32;
+#[allow(non_camel_case_types)]
+pub struct u64;
+#[allow(non_camel_case_types)]
+pub struct u8;
+#[allow(non_camel_case_types)]
+pub struct usize;
+
 mod t1 {
     #[derive(::std::clone::Clone, ::yew::Properties, ::std::cmp::PartialEq)]
     pub struct Props<T: ::std::clone::Clone + ::std::default::Default + ::std::cmp::PartialEq> {
@@ -11,8 +47,8 @@ mod t1 {
     fn optional_prop_generics_should_work() {
         use ::yew::Properties;
 
-        Props::<bool>::builder().build();
-        Props::<bool>::builder().value(true).build();
+        Props::<::std::primitive::bool>::builder().build();
+        Props::<::std::primitive::bool>::builder().value(true).build();
     }
 }
 
@@ -34,9 +70,9 @@ mod t2 {
 mod t3 {
     #[derive(::std::clone::Clone, ::yew::Properties, ::std::cmp::PartialEq)]
     pub struct Props {
-        b: i32,
+        b: ::std::primitive::i32,
         #[prop_or_default]
-        a: i32,
+        a: ::std::primitive::i32,
     }
 
     fn order_is_alphabetized() {
@@ -60,8 +96,8 @@ mod t4 {
     fn optional_prop_generics_should_work() {
         use ::yew::Properties;
 
-        Props::<bool>::builder().build();
-        Props::<bool>::builder().value(true).build();
+        Props::<::std::primitive::bool>::builder().build();
+        Props::<::std::primitive::bool>::builder().value(true).build();
     }
 }
 
@@ -72,7 +108,7 @@ mod t5 {
         T: ::std::clone::Clone + ::std::default::Default + ::std::cmp::PartialEq + 'a,
     > {
         #[prop_or_default]
-        static_value: &'static str,
+        static_value: &'static ::std::primitive::str,
         value: &'a T,
     }
 
@@ -134,7 +170,7 @@ mod t8 {
     #[derive(::std::clone::Clone, ::yew::Properties, ::std::cmp::PartialEq)]
     pub struct Props {
         #[prop_or_else(|| 123)]
-        value: i32,
+        value: ::std::primitive::i32,
     }
 
     fn prop_or_else_closure_should_work() {
@@ -169,7 +205,7 @@ mod t9 {
         use ::std::{assert_eq, result::Result::Ok};
         use ::yew::Properties;
 
-        let props = Props::<i32>::builder().build();
+        let props = Props::<::std::primitive::i32>::builder().build();
         assert_eq!(props.value, Ok(123));
         Props::<i32>::builder().value(Ok(456)).build();
     }
@@ -210,8 +246,8 @@ mod t12 {
     fn optional_prop_generics_should_work() {
         use ::yew::Properties;
 
-        Props::<bool>::builder().build();
-        Props::<bool>::builder().value(true).build();
+        Props::<::std::primitive::bool>::builder().build();
+        Props::<::std::primitive::bool>::builder().value(true).build();
     }
 }
 

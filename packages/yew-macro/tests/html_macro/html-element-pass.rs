@@ -1,15 +1,51 @@
 #![no_implicit_prelude]
 
+// Shadow primitives
+#[allow(non_camel_case_types)]
+pub struct bool;
+#[allow(non_camel_case_types)]
+pub struct char;
+#[allow(non_camel_case_types)]
+pub struct f32;
+#[allow(non_camel_case_types)]
+pub struct f64;
+#[allow(non_camel_case_types)]
+pub struct i128;
+#[allow(non_camel_case_types)]
+pub struct i16;
+#[allow(non_camel_case_types)]
+pub struct i32;
+#[allow(non_camel_case_types)]
+pub struct i64;
+#[allow(non_camel_case_types)]
+pub struct i8;
+#[allow(non_camel_case_types)]
+pub struct isize;
+#[allow(non_camel_case_types)]
+pub struct str;
+#[allow(non_camel_case_types)]
+pub struct u128;
+#[allow(non_camel_case_types)]
+pub struct u16;
+#[allow(non_camel_case_types)]
+pub struct u32;
+#[allow(non_camel_case_types)]
+pub struct u64;
+#[allow(non_camel_case_types)]
+pub struct u8;
+#[allow(non_camel_case_types)]
+pub struct usize;
+
 fn compile_pass() {
     let onclick = <::yew::Callback<::yew::MouseEvent> as ::std::convert::From<_>>::from(
         |_: ::yew::MouseEvent| (),
     );
     let parent_ref = <::yew::NodeRef as ::std::default::Default>::default();
 
-    let dyn_tag = || <::std::string::String as ::std::convert::From<&str>>::from("test");
+    let dyn_tag = || <::std::string::String as ::std::convert::From<&::std::primitive::str>>::from("test");
     let mut extra_tags_iter = ::std::iter::IntoIterator::into_iter(::std::vec!["a", "b"]);
 
-    let cow_none: ::std::option::Option<::std::borrow::Cow<'static, str>> =
+    let cow_none: ::std::option::Option<::std::borrow::Cow<'static, ::std::primitive::str>> =
         ::std::option::Option::None;
 
     ::yew::html! {
