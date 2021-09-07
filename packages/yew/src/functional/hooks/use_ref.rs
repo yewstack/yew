@@ -46,7 +46,7 @@ use std::{cell::RefCell, rc::Rc};
 ///     }
 /// }
 /// ```
-pub fn use_ref<T: 'static>(initial_value: impl FnOnce() -> T + 'static) -> Rc<RefCell<T>> {
+pub fn use_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<RefCell<T>> {
     use_hook(
         || Rc::new(RefCell::new(initial_value())),
         |state, _| state.clone(),
