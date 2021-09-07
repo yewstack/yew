@@ -118,7 +118,7 @@ where
     Action: 'static,
     State: 'static,
     InitialState: 'static,
-    InitFn: Fn(InitialState) -> State + 'static,
+    InitFn: Fn(InitialState) -> State,
 {
     let init = Box::new(init);
     let reducer = Rc::new(reducer);

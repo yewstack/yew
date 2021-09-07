@@ -34,7 +34,7 @@ struct UseState<T2> {
 ///     }
 /// }
 /// ```
-pub fn use_state<T: 'static, F: FnOnce() -> T + 'static>(initial_state_fn: F) -> UseStateHandle<T> {
+pub fn use_state<T: 'static, F: FnOnce() -> T>(initial_state_fn: F) -> UseStateHandle<T> {
     use_hook(
         // Initializer
         move || UseState {
