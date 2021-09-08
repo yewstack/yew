@@ -215,7 +215,7 @@ before it is destroyed. This method is optional and does nothing by default.
 
 ### Infinite loops
 
-Infinite loops are possible with yew's lifecycle methods, but are only caused when trying to update
+Infinite loops are possible with Yew's lifecycle methods, but are only caused when trying to update
 the same component after every render when that update also requests the component to be rendered.
 
 A simple example can be seen below:
