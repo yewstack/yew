@@ -213,6 +213,58 @@ After Components are unmounted from the DOM, Yew calls the `destroy` lifecycle m
 necessary if you need to undertake operations to clean up after earlier actions of a component
 before it is destroyed. This method is optional and does nothing by default.
 
+### Infinite loops
+
+Infinite loops are possible with Yew's lifecycle methods, but are only caused when trying to update
+the same component after every render when that update also requests the component to be rendered.
+
+A simple example can be seen below:
+
+```rust
+use yew::{Context, Component, Html};
+
+struct Comp;
+
+impl Component for Comp {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
+        // We are going to always request to re-render on any msg
+        true
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        // For this example it doesn't matter what is rendered
+        Html::default()
+    }
+
+    fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
+        // Request that the component is updated with this new msg
+        ctx.link().send_message(());
+    }
+}
+```
+
+Let's run through what happens here:
+1. Component is created using the `create` function.
+2. The `view` method is called so Yew knows what to render to the browser DOM.
+3. The `rendered` method is called, which schedules an update message using the `Context` link.
+4. Yew finishes the post-render phase.
+5. Yew checks for scheduled events and sees the update message queue is not empty so works through
+the messages.
+6. The `update` method is called which returns `true` to indicate something has changed and the
+component needs to re-render.
+7. Jump back to 2.
+
+You can still schedule updates in the `rendered` method and it's often useful to do so, but
+consider how your component will terminate this loop when you do.
+
+
 ## Associated Types
 
 The `Component` trait has two associated types: `Message` and `Properties`.
