@@ -101,6 +101,10 @@
             },
             {
               "type": "doc",
+              "id": "version-0.18.0/concepts/html/events"
+            },
+            {
+              "type": "doc",
               "id": "version-0.18.0/concepts/html/classes"
             },
             {
