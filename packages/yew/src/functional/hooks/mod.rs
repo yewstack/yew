@@ -33,6 +33,10 @@ pub fn use_hook<InternalHook: 'static, Output, Tear: FnOnce(&mut InternalHook) +
     runner: impl FnOnce(&mut InternalHook, HookUpdater) -> Output,
     destructor: Tear,
 ) -> Output {
+    if !CURRENT_HOOK.is_set() {
+        panic!("Hooks can only be used in the scope of a function component");
+    }
+
     // Extract current hook
     let updater = CURRENT_HOOK.with(|hook_state| {
         // Determine which hook position we're at and increment for the next hook
