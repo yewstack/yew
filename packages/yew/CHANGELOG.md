@@ -1,5 +1,350 @@
 # Changelog
 
+## ✨ Yew **0.19.0** *(TBD)*
+
+- #### 🛠 Fixes
+  - [Fix support for boolean attributes in the `html!` macro](https://github.com/yewstack/yew/pull/2051).
+  - [Fix `VTag` reuse to reset ancestor `NodeRef`](https://github.com/yewstack/yew/pull/2030).
+  - [Fix `onsubmit` handler to take `Event` and not `FocusEvent`](https://github.com/yewstack/yew/pull/2009).
+  - [Fix Clippy warnings with the `Properties` derive macro](https://github.com/yewstack/yew/pull/2007).
+  - [Fix scheduler main queue delay](https://github.com/yewstack/yew/pull/1954).
+  - [Fix some Clippy warnings when using the `Properties` derive macro](https://github.com/yewstack/yew/pull/1929).
+  - [Fix inability to set the `autoplay` attribute](https://github.com/yewstack/yew/pull/1866).
+
+- #### ⚡️ Features
+  - [Component lifecycle scheduler optimizations](https://github.com/yewstack/yew/pull/2065).
+    Deduplicated some lifecycle events, reduced indirection and branching for lifecycle event handlers,
+    reduced scheduler calls and memory foot print, and optimized task priorities and batching.
+  - [Allow taking `Fn(EVENT)` as a `Callback`](https://github.com/yewstack/yew/pull/1989).
+    
+    This adds support in the `html!` macro to consider a `Fn(EVENT)` as a
+    `Callback` - this is a nice ergonomic improvement for `Function Component`s: 
+
+    ```rust
+    #[function_component(App)]
+    fn app() -> Html {
+      use yew::web_sys::console;
+
+      let onclick = |_| console::log_1(&"Hello, World!".into());
+
+      html! {
+        <button {onclick}>{ "Click me!" }</button>
+      }
+    }
+    ```
+  - [Add support for const generics when using the `Properties` derive macro](https://github.com/yewstack/yew/pull/1978).
+
+    As of Rust 1.51 const generics are stabilized and now it can be used in `Properties`:
+    ```rust
+    #[derive(Clone, PartialEq, Properties)]
+    pub struct FooProps<T, const N: usize>
+    where
+      T: Clone + PartialEq,
+    {
+      bar: [T; N],
+    }
+    ```
+
+  - [Add shorthand syntax for `Properties` and attributes](https://github.com/yewstack/yew/pull/1970).
+
+    This allows you to omit the property or attribute name if the variable itself has the same name: 
+
+    ```rust
+    let id = "mydiv";
+    let onclick = Callback::from(|_| ());
+
+    html! {
+      <div {id} {onclick}>
+      </div>
+    }
+    ```
+
+    This works both on elements and components so enjoy saving yourself from typing another
+    redundant `onclick={onclick}`!
+
+  - [Static attribute lists](https://github.com/yewstack/yew/pull/1962). This reduces allocation
+  sizes for dynamic attribute lists and when possible will crate arrays for static attribute lists
+  so that comparisons can be done even faster.
+  - [Optimize `VList` diffing and patching](https://github.com/yewstack/yew/pull/1555). This
+  optimizes diffing and patching for both keyed and unkeyed lists for better performance with long
+  lists.
+  - [Optimize `VTag` construction, memory footprint and patching](https://github.com/yewstack/yew/pull/1947).
+  This moves more `VTag` construction logic to be compile-time using the `html!` macro, reduces
+  footprint by using enums, and reduces enum branching during `VTag` patching for another boost
+  of performance.
+  - [Add support for creating `Callback` from a `Future`](https://github.com/yewstack/yew/pull/1842).
+  - [Add Function Components and Hooks](https://github.com/yewstack/yew/pull/1842).
+
+    `Function Component` has been one of the top requested feature of Yew for awhile, the waiting
+    can stop because it's finally here 🎉.
+
+    ```rust
+    #[function_component(App)]
+    fn app() -> Html {
+      html! {
+        { "Hello, Yew 0.19.0!" }
+      }
+    }
+    ```
+
+    A `Function Component` is limited without a `Hook` or two so we threw them in too for good measure:
+
+    ```rust
+      #[function_component(Counter)]
+      fn counter() -> Html {
+        let counter = use_state(|| 0);
+
+        let onclick = {
+          let counter = counter.clone();
+          Callback::from(move |_| counter.set(*counter + 1))
+        };
+
+        html! {
+          <div>
+            <button {onclick}>{ "Increment value" }</button>
+            <p>
+              <b>{ "Current value: " }</b>
+              { *counter }
+            <p>
+          </div>
+        }
+      }
+      ```
+    
+    Yew will release with the following "pre-defined" hooks: 
+    - `use_state`
+    - `use_ref`
+    - `use_reducer`
+    - `use_reducer_with_init`
+    - `use_effect`
+    - `use_effect_with_deps`
+    - `use_context`
+
+    Yew will also provide the ability to create custom hooks by exposing the `use_hook` function
+    which is the common base that all the hooks are built from.
+
+  - [Add `focusin` and `focusout` event support in the `html!` macro](https://github.com/yewstack/yew/pull/1945).
+  - [`&str` can now be used for `Option<String>` and `Option<Cow<'static, str>>`](https://github.com/yewstack/yew/pull/1895).
+  - [Reduce scheduler call indirection](https://github.com/yewstack/yew/pull/1903). This brings
+  an 11% performance increase.
+  - [Optimize `VTag` construction](https://github.com/yewstack/yew/pull/1867). This reduces some
+  copying and reallocations when constructing `VTag` for a nice performance boost. 
+
+- #### 🚨 Breaking changes
+  - [Replace `with` expression for `..props` (props base expression)](https://github.com/yewstack/yew/pull/2024).
+
+    This can be used in conjunction with the `props!` macro just like with `with` syntax:
+
+    ```rust
+    #[derive(PartialEq, Properties)]
+    struct Props {
+      #[prop_or(String::from("Elm"))]
+      name: String,
+      value: u32,
+    }
+
+    let props = props!{Props {
+      value: 20,
+    }};
+
+    html! {
+      <Comp name="Yew" ..props />
+    }
+    ```
+
+    The restriction using `with` was that it was all or nothing; you couldn't mix using the `with`
+    syntax and overriding property assignment, but this is not the case with the new props base
+    expression!
+
+    In the above example the `Comp` `name` property will have "Yew" as it's value, this works in a
+    similar way as Rust's struct syntax also known as
+    [Functional update syntax](https://doc.rust-lang.org/stable/reference/expressions/struct-expr.html#functional-update-syntax).
+
+  - [Event listener multiplexer](https://github.com/yewstack/yew/pull/1542). This reduces overhead 
+  of creating and dropping event listeners by using a global multiplexer for another performance 
+  bump.
+
+    All Event handlers created in the `html!` macro are attached to the `body` element to reduce
+    tree traversal on propagation - The event target will still be the same, currentTarget will
+    always be the `body` element.
+  
+    This also adds the ability to create a
+    [passive](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
+    `Callback`:
+
+    ```rust
+    // ..
+    fn view(&self, ctx: &Context<Self>) -> Html {
+      // passive because we aren't calling `prevent_default` on the event!
+      let onclick = ctx.link().callback_with_passive(true, |_| Msg::Clicked);
+    }
+    ```
+    A passive event listeners can improve performance but only when the handler does not call
+    `prevent_default` on the event.
+
+    Adds a global control to disable event bubbling which if not required brings a big performance
+    increase.
+
+  - [Components trait V2](https://github.com/yewstack/yew/pull/1961) with
+  [underscore parameters](https://github.com/yewstack/yew/pull/2010) and
+  [`ShouldRender` type alias](https://github.com/yewstack/yew/pull/2011) removed.
+
+    ```rust
+    pub trait Component: Sized + 'static {
+      type Message: 'static;
+      type Properties: Properties;
+
+      fn create(ctx: &Context<Self>) -> Self;
+
+      fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        false
+      }
+
+      fn changed(&mut self, ctx: &Context<Self>) -> bool {
+        true
+      }
+
+      fn view(&self, ctx: &Context<Self>) -> Html;
+
+      fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {}
+
+      fn destroy(&mut self, ctx: &Context<Self>) {} 
+    }
+    ```
+
+    `Properties` no longer have to implement `Clone` but they do need to implement `PartialEq`,
+    yes...Yew gives with one hand and takes with the other 🙃.
+
+    `Context<Self>` has a method (`link()`) which is a replacement for `ComponentLink<Self>` and
+    also one that contains the component `Properties` (`props()`), this means that a component no
+    longer needs to store the `ComponentLink<Self>` or `Properties`.
+
+    Notice that, what was `change` is now called `changed`; this method is now called once the
+    `Properties` have changed, and been swapped in `Context`. It was a common pattern in the old
+    trait to check if the `Properties` had changed and if they had, swap them over. This was soo
+    common that we even made `NeqAssign`, this is now no longer required 🎉.
+
+    `update` and `changed` now have a sensible default implementation which can help reduce the
+    boilerplate even more. 
+
+    A simple counter component example to take the new trait for a spin:
+
+    ```rust
+    #[derive(PartialEq, Properties)]
+    pub struct CounterProps {
+      #[prop_or_default]
+      initial_value: i64,
+    }
+
+    pub struct Counter {
+      value: i64,
+    }
+
+    impl Component for Counter {
+      type Message = bool;
+      type Properties = CounterProps;
+
+      fn create(ctx: &Context<Self>) -> Self {
+        Self { value: ctx.props().initial_value }
+      }
+
+      fn update(&mut self, _: &Context<Self>, up: Self::Message) -> bool {
+        if up {
+          self.value += 1;
+        } else {
+          self.value -= 1;
+        }
+        true
+      }
+
+      fn view(&self, ctx: &Context<Self>) -> Html {
+        let increment = ctx.link().callback(|_| true);
+        let decrement = ctx.link().callback(|_| false);
+        html! {
+          <div>
+            <button onclick={increment}>{ "+1" }</button>
+            <button onclick={decrement}>{ "-1" }</button>
+            <p>
+              { self.value }
+            </p>
+          </div>
+        }
+      }
+    }
+    ```
+
+  - [Remove `InputData` and `ChangeData`](https://github.com/yewstack/yew/pull/2000).
+
+    `InputData` and `ChangeData` were too restrictive and required that the event
+    [currentTarget](https://developer.mozilla.org/en-US/docs/Web/API/Event/currentTarget) was the
+    same as the [target](https://developer.mozilla.org/en-US/docs/Web/API/Event/target). `ChangeData`
+    could also panic under certain conditions.
+
+    `oninput` and `onchange` now expect the `web_sys::InputEvent` and `web_sys::Event` respectively.
+
+    This change also added the `TargetCast` trait to help with getting the event's target element in
+    type you want, review the website documentation for more information!
+  - [Add requirement for braces around non-literal property values](https://github.com/yewstack/yew/pull/1939).
+  This allows Yew more flexibility when parsing in the `html!` macro which opens the door for some
+  new features too!
+  - [Rewrite of `agent` module to new `yew-agent` crate!](https://github.com/yewstack/yew/pull/1842).
+  - [Removal of `services` module](https://github.com/yewstack/yew/issues/1841).
+  
+    This removes the whole module from the project and the following are the recommended replacements: 
+    - `ConsoleService` - [weblog](https://crates.io/crates/weblog) or [gloo_console](https://crates.io/crates/gloo-console)
+    - `DialogService` - [gloo_dialogs](https://crates.io/crates/gloo-dialogs)
+    - `IntervalService` - [gloo-timers](https://crates.io/crates/gloo-timers)
+    - `KeyboardService` - `onkeydown` / `onkeypress` / `onkeyup` like so:
+      ```rust
+      let callback = Callback::from(|e| {
+        e.prevent_default();
+        todo!("use `e`, like you would in service methods.");
+      });
+
+      html! {
+        <input onkeydown={callback} />
+      }
+      ```
+    - `ResizeService` - use `EventListener` from [gloo_events](https://crates.io/crates/gloo-events)
+    to attach the event listener instead.
+    - `StorageService` - [gloo-storage](https://crates.io/crates/gloo-storage)
+    - `TimeoutService` - [gloo-timers](https://crates.io/crates/gloo-timers)
+    - `WebSocketService` - [wasm-sockets](https://crates.io/crates/wasm-sockets) or
+    [reqwasm](https://crates.io/crates/reqwasm)
+    - `FetchService` - [reqwest](https://crates.io/crates/reqwest) or [reqwasm](https://crates.io/crates/reqwasm)
+  
+  - [Removal of the `format` module](https://github.com/yewstack/yew/pull/1842).
+
+    Removal of `services` made `format` redundant and could cause conflicts or restrictions when
+    using other libraries.  
+
+  - [New Yew app entry points, multiple Yew apps enabled with `AppHandle` to control Yew app lifetime](https://github.com/yewstack/yew/pull/1825).
+  
+    This also removes the `App` struct, check out the new example `dyn_create_destroy_apps` to see
+    these changes in action!
+
+    Yew app entry function changes
+
+    From:
+    ```rust
+    fn start_app<COMP: Component>();
+    fn start_app_with_props<COMP: Component>(COMP::Properties);
+    fn App::<COMP: Component>::mount(self, Element) -> ComponentLink<COMP>;
+    fn App::<COMP: Component>::mount_with_props(self, Element, COMP::Properties) -> ComponentLink<COMP>;
+    fn App::<COMP: Component>::mount_as_body(self) -> ComponentLink<COMP>;
+    fn App::<COMP: Component>::mount_as_body_with_props(self, COMP::Properties) -> ComponentLink<COMP>;
+    ```
+    To:
+    ```rust
+    fn start_app<COMP: Component>() -> AppHandle<COMP>;
+    fn start_app_with_props<COMP: Component>(COMP::Properties) -> AppHandle<COMP>;
+    fn start_app_in_element<COMP: Component>(Element) -> AppHandle<COMP>;
+    fn start_app_with_props_in_element<COMP: Component>(Element, COMP::Properties) -> AppHandle<COMP>;
+    // mount_as_body can be replaced with this using `Default::default` or `()`
+    fn start_app_with_props_as_body<COMP: Component>(COMP::Properties) -> AppHandle<COMP>;
+    ```
+    _Note: Not valid syntax but displays the signature in a concise way for easier comparison!_
+
 ## ✨ **0.18.0** *(2021-05-15)*
 
 #### Changelog

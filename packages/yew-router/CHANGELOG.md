@@ -13,8 +13,82 @@
 
 END TEMPLATE-->
 
+## ✨ Yew Router 0.16.0 *(TBD)*
 
-## ✨ **0.15.0** *(TBD)*
+- #### 🛠 Fixes
+  - [Fix multiple field enum tokens](https://github.com/yewstack/yew/pull/1988).
+  - [Add href to Link Component](https://github.com/yewstack/yew/pull/1943). This improves the
+  accessibility when using the `Link` component.
+- #### ⚡️ Features
+  - [Add replace route calls](https://github.com/yewstack/yew/pull/2023).
+  - [Optimize new router more](https://github.com/yewstack/yew/pull/1869).
+
+- #### 🚨 Breaking changes
+  - [Router rewrite](https://github.com/yewstack/yew/pull/1791).
+  
+    This completely changes the routers API as it was confusing and added more boilerplate
+    than was necessary.
+    
+    The new router was written with function components in mind too!
+
+    **New `Routable` derive macro:**
+    ```rust
+    #[derive(Debug, Clone, PartialEq, Routable)]
+    pub enum Route {
+      #[at("/posts/:id")]
+      Post { id: u64 },
+      #[at("/posts")]
+      Posts,
+      #[at("/authors/:id")]
+      Author { id: u64 },
+      #[at("/authors")]
+      Authors,
+      #[at("/")]
+      Home,
+      #[not_found]
+      #[at("/404")]
+      NotFound,
+    }
+
+
+    fn switch(routes: &Route) -> Html {
+      match routes {
+        Route::Post { id } => {
+          html! { <Post seed={*id} /> }
+        }
+        //etc..
+      }
+    }
+
+    html! {
+      <Router<Route> render={Render::render(switch)} />
+    }
+    ```
+    
+    **New router `Link` component:**
+    ```rust
+    html! {
+      <Link<Route> route={Router::Home}>
+        { "Home" }
+      </Link<Route>>
+    }
+    ```
+
+    **New Programmatic API:**
+    ```rust
+    // pushing route
+    yew_router::push_route(Routes::Home);
+
+    // pushing route with a query - uses serde for serialization
+    #[derive(serde::Serialize)]
+    struct Query {
+      foo: &'static str,
+    }
+
+    yew_router::push_route_with_query(Routes::Author { id: 34 }, Query { foo: "bar" }).unwrap();
+    ```
+
+## ✨ **0.15.0** *(2021-05-15)*
 
 - #### ⚡️ Features
   - None
