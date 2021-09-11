@@ -142,8 +142,7 @@ In this section **target ([Event.target](https://developer.mozilla.org/en-US/doc
 is always referring to the element at which the event was dispatched from.
 
 
-This will **not** always be the element at which the `Callback` is placed, that is the
-[Event.currentTarget](https://developer.mozilla.org/en-US/docs/Web/API/Event/currentTarget)
+This will **not** always be the element at which the `Callback` is placed.
 :::
 
 In event `Callback`s you may want to get the target of that event. For example, the
