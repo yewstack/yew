@@ -65,6 +65,11 @@ impl Parse for ElementProps {
 lazy_static! {
     static ref BOOLEAN_SET: HashSet<&'static str> = {
         vec![
+            // Living Standard
+            // From: https://html.spec.whatwg.org/#attributes-3
+            // where `Value` = Boolean attribute
+            // Note: `checked` is uniquely handled in the html! macro.
+            "allowfullscreen",
             "async",
             "autofocus",
             "autoplay",
@@ -72,16 +77,22 @@ lazy_static! {
             "default",
             "defer",
             "disabled",
+            "formnovalidate",
             "hidden",
             "ismap",
+            "itemscope",
             "loop",
             "multiple",
             "muted",
+            "nomodule",
             "novalidate",
             "open",
+            "playsinline",
             "readonly",
             "required",
+            "reversed",
             "selected",
+            "truespeed",
         ]
         .into_iter()
         .collect()
