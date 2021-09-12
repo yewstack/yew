@@ -1,19 +1,11 @@
 //! This module contains a scheduler.
 
 use std::cell::RefCell;
-use std::collections::VecDeque;
+use std::collections::{hash_map::Entry, HashMap, VecDeque};
 use std::rc::Rc;
 
 /// Alias for Rc<RefCell<T>>
 pub type Shared<T> = Rc<RefCell<T>>;
-
-thread_local! {
-    /// This is a global scheduler suitable to schedule and run any tasks.
-    ///
-    /// Exclusivity of mutable access is controlled by only accessing it through a set of public
-    /// functions.
-    static SCHEDULER: RefCell<Scheduler> = Default::default();
-}
 
 /// A routine which could be run.
 pub trait Runnable {
@@ -29,22 +21,32 @@ struct Scheduler {
     main: VecDeque<Box<dyn Runnable>>,
 
     // Component queues
-    destroy: VecDeque<Box<dyn Runnable>>,
+    destroy: VecDeque<(usize, Box<dyn Runnable>)>,
     create: VecDeque<Box<dyn Runnable>>,
     update: VecDeque<Box<dyn Runnable>>,
-    render: VecDeque<Box<dyn Runnable>>,
+    render_first: VecDeque<Box<dyn Runnable>>,
+    render: RenderScheduler,
 
-    // Stack
-    rendered: Vec<Box<dyn Runnable>>,
+    /// Deduplicating stacks to ensure child calls are always before parent calls
+    rendered_first: Vec<Box<dyn Runnable>>,
+    rendered: RenderedScheduler,
 }
 
 /// Execute closure with a mutable reference to the scheduler
 #[inline]
-fn with(f: impl FnOnce(&mut Scheduler)) {
-    SCHEDULER.with(|s| f(&mut *s.borrow_mut()));
+fn with<R>(f: impl FnOnce(&mut Scheduler) -> R) -> R {
+    thread_local! {
+        /// This is a global scheduler suitable to schedule and run any tasks.
+        ///
+        /// Exclusivity of mutable access is controlled by only accessing it through a set of public
+        /// functions.
+        static SCHEDULER: RefCell<Scheduler> = Default::default();
+    }
+
+    SCHEDULER.with(|s| f(&mut *s.borrow_mut()))
 }
 
-/// Push a generic Runnable to be executed
+/// Push a generic [Runnable] to be executed
 #[inline]
 pub fn push(runnable: Box<dyn Runnable>) {
     with(|s| s.main.push_back(runnable));
@@ -53,43 +55,46 @@ pub fn push(runnable: Box<dyn Runnable>) {
     start();
 }
 
-/// Push a component creation Runnable to be executed
+/// Push a component creation, first render and rendered [Runnable]s to be executed
 #[inline]
-pub(crate) fn push_component_create(runnable: Box<dyn Runnable>) {
-    with(|s| s.create.push_back(runnable));
+pub(crate) fn push_component_create(
+    create: impl Runnable + 'static,
+    first_render: impl Runnable + 'static,
+    first_rendered: impl Runnable + 'static,
+) {
+    with(|s| {
+        s.create.push_back(Box::new(create));
+        s.render_first.push_back(Box::new(first_render));
+        s.rendered_first.push(Box::new(first_rendered));
+    });
 }
 
-/// Push a component destruction Runnable to be executed
+/// Push a component destruction [Runnable] to be executed
 #[inline]
-pub(crate) fn push_component_destroy(runnable: Box<dyn Runnable>) {
-    with(|s| s.destroy.push_back(runnable));
+pub(crate) fn push_component_destroy(component_id: usize, runnable: impl Runnable + 'static) {
+    with(|s| s.destroy.push_back((component_id, Box::new(runnable))));
 }
 
-/// Push a component render Runnable to be executed
+/// Push a component render and rendered [Runnable]s to be executed
 #[inline]
-pub(crate) fn push_component_render(runnable: Box<dyn Runnable>) {
-    with(|s| s.render.push_back(runnable));
+pub(crate) fn push_component_render(
+    component_id: usize,
+    render: impl Runnable + 'static,
+    rendered: impl Runnable + 'static,
+) {
+    with(|s| {
+        s.render.schedule(component_id, Box::new(render));
+        s.rendered.schedule(component_id, Box::new(rendered));
+    });
 }
 
-/// Push a component Runnable to be executed after a component is rendered
+/// Push a component update [Runnable] to be executed
 #[inline]
-pub(crate) fn push_component_rendered(runnable: Box<dyn Runnable>) {
-    with(|s| s.rendered.push(runnable));
+pub(crate) fn push_component_update(runnable: impl Runnable + 'static) {
+    with(|s| s.update.push_back(Box::new(runnable)));
 }
 
-/// Push a component update Runnable to be executed
-#[inline]
-pub(crate) fn push_component_update(runnable: Box<dyn Runnable>) {
-    with(|s| s.update.push_back(runnable));
-}
-
-/// Push a batch of component updates to be executed
-#[inline]
-pub(crate) fn push_component_updates(it: impl IntoIterator<Item = Box<dyn Runnable>>) {
-    with(|s| s.update.extend(it));
-}
-
-/// Execute any pending Runnables
+/// Execute any pending [Runnable]s
 pub(crate) fn start() {
     thread_local! {
         // The lock is used to prevent recursion. If the lock cannot be acquired, it is because the
@@ -99,7 +104,7 @@ pub(crate) fn start() {
 
     LOCK.with(|l| {
         if let Ok(_lock) = l.try_borrow_mut() {
-            while let Some(runnable) = SCHEDULER.with(|s| s.borrow_mut().next_runnable()) {
+            while let Some(runnable) = with(|s| s.next_runnable()) {
                 runnable.run();
             }
         }
@@ -109,13 +114,127 @@ pub(crate) fn start() {
 impl Scheduler {
     /// Pop next Runnable to be executed according to Runnable type execution priority
     fn next_runnable(&mut self) -> Option<Box<dyn Runnable>> {
-        self.destroy
+        // Placed first to avoid as much needless work as possible, handling all the other events
+        if let Some((id, runnable)) = self.destroy.pop_front() {
+            // Potentially avoids 2 scheduler cycles on removed components
+            self.render.unschedule(&id);
+            self.rendered.unschedule(&id);
+
+            return Some(runnable);
+        }
+
+        self.create
             .pop_front()
-            .or_else(|| self.create.pop_front())
+            // First render must never be skipped and takes priority over main, because it may need
+            // to init `NodeRef`s
+            .or_else(|| self.render_first.pop_front())
+            .or_else(|| self.rendered_first.pop())
+            // Updates are after the first render to ensure we always have the entire child tree
+            // rendered, once an update is processed.
             .or_else(|| self.update.pop_front())
-            .or_else(|| self.render.pop_front())
-            .or_else(|| self.rendered.pop())
+            // Likely to cause duplicate renders, so placed before them
             .or_else(|| self.main.pop_front())
+            // Most expensive, as these call `Component::view()`
+            .or_else(|| self.render.pop())
+            // `rendered()` should be run last, when we are sure there are no more renders, to
+            // reduce workload.
+            .or_else(|| self.rendered.pop())
+    }
+}
+
+/// Task to be executed for specific component
+struct QueueTask {
+    /// Tasks in the queue to skip for this component
+    skip: usize,
+
+    /// Runnable to execute
+    runnable: Box<dyn Runnable>,
+}
+
+/// Scheduler for non-first component renders with deduplication
+#[derive(Default)]
+struct RenderScheduler {
+    /// Task registry by component ID
+    tasks: HashMap<usize, QueueTask>,
+
+    /// Task queue by component ID
+    queue: VecDeque<usize>,
+}
+
+impl RenderScheduler {
+    /// Schedule render task execution
+    fn schedule(&mut self, component_id: usize, runnable: Box<dyn Runnable>) {
+        self.queue.push_back(component_id);
+        match self.tasks.entry(component_id) {
+            Entry::Vacant(e) => {
+                e.insert(QueueTask { skip: 0, runnable });
+            }
+            Entry::Occupied(mut e) => {
+                let v = e.get_mut();
+                v.skip += 1;
+
+                // Technically the 2 runners should be functionally identical, but might as well
+                // overwrite it for good measure, accounting for future changes. We have it here
+                // anyway.
+                v.runnable = runnable;
+            }
+        }
+    }
+
+    /// Try to pop a task from the queue, if any
+    fn pop(&mut self) -> Option<Box<dyn Runnable>> {
+        while let Some(id) = self.queue.pop_front() {
+            match self.tasks.entry(id) {
+                Entry::Occupied(mut e) => {
+                    let v = e.get_mut();
+                    if v.skip == 0 {
+                        return Some(e.remove().runnable);
+                    }
+                    v.skip -= 1;
+                }
+                Entry::Vacant(_) => (),
+            }
+        }
+        None
+    }
+
+    /// Invalidate all render tasks for a given component_id
+    fn unschedule(&mut self, component_id: &usize) {
+        self.tasks.remove(component_id);
+    }
+}
+
+/// Scheduler for component rendered calls with deduplication
+#[derive(Default)]
+struct RenderedScheduler {
+    /// Task registry by component ID
+    tasks: HashMap<usize, Box<dyn Runnable>>,
+
+    /// Task stack by component ID
+    stack: Vec<usize>,
+}
+
+impl RenderedScheduler {
+    /// Schedule rendered task execution
+    fn schedule(&mut self, component_id: usize, runnable: Box<dyn Runnable>) {
+        if self.tasks.insert(component_id, runnable).is_none() {
+            self.stack.push(component_id);
+        }
+    }
+
+    /// Try to pop a task from the stack, if any
+    fn pop(&mut self) -> Option<Box<dyn Runnable>> {
+        while let Some(id) = self.stack.pop() {
+            if let Some(runnable) = self.tasks.remove(&id) {
+                return Some(runnable);
+            }
+        }
+        None
+    }
+
+    /// Invalidate all rendered tasks for a given component_id
+    fn unschedule(&mut self, component_id: &usize) {
+        self.tasks.remove(component_id);
     }
 }
 
@@ -142,3 +261,5 @@ mod tests {
         FLAG.with(|v| assert!(v.get()));
     }
 }
+
+// TODO: 100% coverage for scheduler

@@ -2,7 +2,7 @@
 
 use super::{
     lifecycle::{
-        ComponentLifecycleEvent, ComponentRunnable, ComponentState, CreateEvent, UpdateEvent,
+        ComponentState, CreateRunner, DestroyRunner, RenderRunner, UpdateEvent, UpdateRunner,
     },
     Component,
 };
@@ -115,14 +115,20 @@ impl<COMP: Component> Scoped for Scope<COMP> {
 
     /// Process an event to destroy a component
     fn destroy(&mut self) {
-        self.process(ComponentLifecycleEvent::Destroy);
+        scheduler::push_component_destroy(
+            self.state.as_ptr() as usize,
+            DestroyRunner {
+                state: self.state.clone(),
+            },
+        );
+        scheduler::start();
     }
 }
 
 /// A context which allows sending messages to a component.
 pub struct Scope<COMP: Component> {
     parent: Option<Rc<AnyScope>>,
-    state: Shared<Option<ComponentState<COMP>>>,
+    pub(crate) state: Shared<Option<ComponentState<COMP>>>,
 }
 
 impl<COMP: Component> fmt::Debug for Scope<COMP> {
@@ -177,40 +183,36 @@ impl<COMP: Component> Scope<COMP> {
             VNode::VRef(placeholder)
         };
 
-        self.schedule(UpdateEvent::First.into());
-        self.process(ComponentLifecycleEvent::Create(CreateEvent {
-            parent,
-            next_sibling,
-            placeholder,
-            node_ref,
-            props,
-            scope: self.clone(),
-        }));
-    }
-
-    pub(crate) fn reuse(&self, props: COMP::Properties, node_ref: NodeRef, next_sibling: NodeRef) {
-        self.process(UpdateEvent::Properties(props, node_ref, next_sibling).into());
-    }
-
-    pub(crate) fn process(&self, event: ComponentLifecycleEvent<COMP>) {
-        self.schedule(event);
+        scheduler::push_component_create(
+            CreateRunner {
+                parent,
+                next_sibling,
+                placeholder,
+                node_ref,
+                props,
+                scope: self.clone(),
+            },
+            RenderRunner {
+                state: self.state.clone(),
+            },
+            RenderRunner {
+                state: self.state.clone(),
+            },
+        );
+        // Not guaranteed to already have the scheduler started
         scheduler::start();
     }
 
-    fn schedule(&self, event: ComponentLifecycleEvent<COMP>) {
-        use ComponentLifecycleEvent::*;
+    pub(crate) fn reuse(&self, props: COMP::Properties, node_ref: NodeRef, next_sibling: NodeRef) {
+        self.push_update(UpdateEvent::Properties(props, node_ref, next_sibling));
+    }
 
-        let push = match &event {
-            Create(_) => scheduler::push_component_create,
-            Update(_) => scheduler::push_component_update,
-            Render => scheduler::push_component_render,
-            Rendered => scheduler::push_component_rendered,
-            Destroy => scheduler::push_component_destroy,
-        };
-        push(Box::new(ComponentRunnable {
+    fn push_update(&self, event: UpdateEvent<COMP>) {
+        scheduler::push_component_update(UpdateRunner {
             state: self.state.clone(),
             event,
-        }));
+        });
+        scheduler::start();
     }
 
     /// Send a message to the component.
@@ -221,7 +223,7 @@ impl<COMP: Component> Scope<COMP> {
     where
         T: Into<COMP::Message>,
     {
-        self.process(UpdateEvent::Message(msg.into()).into());
+        self.push_update(UpdateEvent::Message(msg.into()));
     }
 
     /// Send a batch of messages to the component.
@@ -239,7 +241,7 @@ impl<COMP: Component> Scope<COMP> {
             return;
         }
 
-        self.process(UpdateEvent::MessageBatch(messages).into());
+        self.push_update(UpdateEvent::MessageBatch(messages));
     }
 
     /// Creates a `Callback` which will send a message to the linked

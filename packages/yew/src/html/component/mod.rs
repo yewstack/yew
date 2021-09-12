@@ -87,10 +87,19 @@ pub trait Component: Sized + 'static {
     /// Components define their visual layout using a JSX-style syntax through the use of the
     /// `html!` procedural macro. The full guide to using the macro can be found in [Yew's
     /// documentation](https://yew.rs/concepts/html).
+    ///
+    /// Note that `view()` calls do not always follow a render request from `update()` or
+    /// `change()`. Yew may optimize some calls out to reduce virtual DOM tree generation overhead.
+    /// The `create()` call is always followed by a call to `view()`.
     fn view(&self) -> Html;
 
     /// The `rendered` method is called after each time a Component is rendered but
     /// before the browser updates the page.
+    ///
+    /// Note that `rendered()` calls do not always follow a render request from `update()` or
+    /// `change()`. Yew may optimize some calls out to reduce virtual DOM tree generation overhead.
+    /// The `create()` call is always followed by a call to `view()` and later `rendered()`.
+    ///
     /// ## Examples
     /// ```rust
     ///# use yew::{Html, Component, ComponentLink, html, ShouldRender};
