@@ -3,7 +3,7 @@ mod common;
 use common::obtain_result;
 use std::ops::DerefMut;
 use wasm_bindgen_test::*;
-use yew::functional::{use_ref, use_state, FunctionComponent, FunctionProvider};
+use yew::functional::{use_mut_ref, use_state, FunctionComponent, FunctionProvider};
 use yew::{html, Html};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
@@ -15,7 +15,7 @@ fn use_ref_works() {
         type TProps = ();
 
         fn run(_: &Self::TProps) -> Html {
-            let ref_example = use_ref(|| 0);
+            let ref_example = use_mut_ref(|| 0);
             *ref_example.borrow_mut().deref_mut() += 1;
             let counter = use_state(|| 0);
             if *counter < 5 {

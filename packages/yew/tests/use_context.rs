@@ -4,7 +4,7 @@ use common::obtain_result_by_id;
 use std::rc::Rc;
 use wasm_bindgen_test::*;
 use yew::functional::{
-    use_context, use_effect, use_ref, use_state, FunctionComponent, FunctionProvider,
+    use_context, use_effect, use_mut_ref, use_state, FunctionComponent, FunctionProvider,
 };
 use yew::{html, Children, ContextProvider, Html, Properties};
 
@@ -185,7 +185,7 @@ fn use_context_update_works() {
         type TProps = RenderCounterProps;
 
         fn run(props: &Self::TProps) -> Html {
-            let counter = use_ref(|| 0);
+            let counter = use_mut_ref(|| 0);
             *counter.borrow_mut() += 1;
             return html! {
                 <>
@@ -210,7 +210,7 @@ fn use_context_update_works() {
         type TProps = ContextOutletProps;
 
         fn run(props: &Self::TProps) -> Html {
-            let counter = use_ref(|| 0);
+            let counter = use_mut_ref(|| 0);
             *counter.borrow_mut() += 1;
 
             let ctx = use_context::<Rc<MyContext>>().expect("context not passed down");
@@ -235,7 +235,7 @@ fn use_context_update_works() {
             type MyContextProvider = ContextProvider<Rc<MyContext>>;
 
             let ctx = use_state(|| MyContext("hello".into()));
-            let rendered = use_ref(|| 0);
+            let rendered = use_mut_ref(|| 0);
 
             // this is used to force an update specific to test-2
             let magic_rc = use_state(|| 0);
