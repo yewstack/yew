@@ -1,18 +1,21 @@
+use std::collections::HashMap;
+
 use yew::services::reader::{File, FileChunk, FileData, ReaderService, ReaderTask};
 use yew::{html, ChangeData, Component, ComponentLink, Html, ShouldRender};
 
+type FileName = String;
 type Chunks = bool;
 
 pub enum Msg {
-    Loaded(FileData),
-    Chunk(Option<FileChunk>),
+    Loaded((FileName, FileData)),
+    Chunk((FileName, Option<FileChunk>)),
     Files(Vec<File>, Chunks),
     ToggleByChunks,
 }
 
 pub struct Model {
     link: ComponentLink<Model>,
-    tasks: Vec<ReaderTask>,
+    tasks: HashMap<FileName, ReaderTask>,
     files: Vec<String>,
     by_chunks: bool,
 }
@@ -24,7 +27,7 @@ impl Component for Model {
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
             link,
-            tasks: vec![],
+            tasks: HashMap::default(),
             files: vec![],
             by_chunks: false,
         }
@@ -32,28 +35,38 @@ impl Component for Model {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::Loaded(file) => {
+            Msg::Loaded((file_name, file)) => {
                 let info = format!("file: {:?}", file);
                 self.files.push(info);
+                self.tasks.remove(&file_name);
                 true
             }
-            Msg::Chunk(Some(chunk)) => {
+            Msg::Chunk((file_name, Some(chunk))) => {
                 let info = format!("chunk: {:?}", chunk);
                 self.files.push(info);
+                if let FileChunk::Finished = chunk {
+                    self.tasks.remove(&file_name);
+                }
                 true
             }
             Msg::Files(files, chunks) => {
                 for file in files.into_iter() {
+                    let file_name = file.name();
                     let task = {
+                        let file_name = file_name.clone();
                         if chunks {
-                            let callback = self.link.callback(Msg::Chunk);
+                            let callback = self
+                                .link
+                                .callback(move |chunk| Msg::Chunk((file_name.clone(), chunk)));
                             ReaderService::read_file_by_chunks(file, callback, 10).unwrap()
                         } else {
-                            let callback = self.link.callback(Msg::Loaded);
+                            let callback = self
+                                .link
+                                .callback(move |data| Msg::Loaded((file_name.clone(), data)));
                             ReaderService::read_file(file, callback).unwrap()
                         }
                     };
-                    self.tasks.push(task);
+                    self.tasks.insert(file_name, task);
                 }
                 true
             }
