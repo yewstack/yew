@@ -357,6 +357,7 @@ impl GlobalHandlers {
                         cl.as_ref().unchecked_ref(),
                         &{
                             let mut opts = web_sys::AddEventListenerOptions::new();
+                            opts.capture(true);
                             if desc.passive {
                                 opts.passive(true);
                             }
