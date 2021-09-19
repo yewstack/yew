@@ -27,11 +27,11 @@ help: consider importing one of these items
 83 |     use crate::t9::foo;
    |
 
-error[E0277]: the trait bound `Value: std::default::Default` is not satisfied
+error[E0277]: the trait bound `Value: Default` is not satisfied
  --> $DIR/fail.rs:9:21
   |
 9 |     #[derive(Clone, Properties, PartialEq)]
-  |                     ^^^^^^^^^^ the trait `std::default::Default` is not implemented for `Value`
+  |                     ^^^^^^^^^^ the trait `Default` is not implemented for `Value`
   |
   = note: required by `Option::<T>::unwrap_or_default`
   = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)
