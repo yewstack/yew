@@ -117,12 +117,10 @@ impl<COMP: Component> Scoped for Scope<COMP> {
 
     /// Process an event to destroy a component
     fn destroy(&mut self) {
-        scheduler::push_component_destroy(
-            self.state.as_ptr() as usize,
-            DestroyRunner {
-                state: self.state.clone(),
-            },
-        );
+        scheduler::push_component_destroy(DestroyRunner {
+            state: self.state.clone(),
+        });
+        // Not guaranteed to already have the scheduler started
         scheduler::start();
     }
 }
@@ -219,6 +217,7 @@ impl<COMP: Component> Scope<COMP> {
             state: self.state.clone(),
             event,
         });
+        // Not guaranteed to already have the scheduler started
         scheduler::start();
     }
 

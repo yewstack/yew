@@ -18,12 +18,12 @@ pub trait Runnable {
 #[allow(missing_debug_implementations)] // todo
 struct Scheduler {
     // Main queue
-    main: VecDeque<Box<dyn Runnable>>,
+    main: Vec<Box<dyn Runnable>>,
 
     // Component queues
-    destroy: VecDeque<(usize, Box<dyn Runnable>)>,
-    create: VecDeque<Box<dyn Runnable>>,
-    update: VecDeque<Box<dyn Runnable>>,
+    destroy: Vec<Box<dyn Runnable>>,
+    create: Vec<Box<dyn Runnable>>,
+    update: Vec<Box<dyn Runnable>>,
     render_first: VecDeque<Box<dyn Runnable>>,
     render: RenderScheduler,
 
@@ -48,7 +48,7 @@ fn with<R>(f: impl FnOnce(&mut Scheduler) -> R) -> R {
 
 /// Push a generic [Runnable] to be executed
 pub fn push(runnable: Box<dyn Runnable>) {
-    with(|s| s.main.push_back(runnable));
+    with(|s| s.main.push(runnable));
     // Execute pending immediately. Necessary for runnables added outside the component lifecycle,
     // which would otherwise be delayed.
     start();
@@ -61,15 +61,15 @@ pub(crate) fn push_component_create(
     first_rendered: impl Runnable + 'static,
 ) {
     with(|s| {
-        s.create.push_back(Box::new(create));
+        s.create.push(Box::new(create));
         s.render_first.push_back(Box::new(first_render));
         s.rendered_first.push(Box::new(first_rendered));
     });
 }
 
 /// Push a component destruction [Runnable] to be executed
-pub(crate) fn push_component_destroy(component_id: usize, runnable: impl Runnable + 'static) {
-    with(|s| s.destroy.push_back((component_id, Box::new(runnable))));
+pub(crate) fn push_component_destroy(runnable: impl Runnable + 'static) {
+    with(|s| s.destroy.push(Box::new(runnable)));
 }
 
 /// Push a component render and rendered [Runnable]s to be executed
@@ -86,7 +86,7 @@ pub(crate) fn push_component_render(
 
 /// Push a component update [Runnable] to be executed
 pub(crate) fn push_component_update(runnable: impl Runnable + 'static) {
-    with(|s| s.update.push_back(Box::new(runnable)));
+    with(|s| s.update.push(Box::new(runnable)));
 }
 
 /// Execute any pending [Runnable]s
@@ -99,41 +99,72 @@ pub(crate) fn start() {
 
     LOCK.with(|l| {
         if let Ok(_lock) = l.try_borrow_mut() {
-            while let Some(runnable) = with(|s| s.next_runnable()) {
-                runnable.run();
+            let mut queue = vec![];
+            loop {
+                with(|s| s.fill_queue(&mut queue));
+                if queue.is_empty() {
+                    break;
+                }
+                for r in queue.drain(..) {
+                    r.run();
+                }
             }
         }
     });
 }
 
 impl Scheduler {
-    /// Pop next Runnable to be executed according to Runnable type execution priority
-    fn next_runnable(&mut self) -> Option<Box<dyn Runnable>> {
-        // Placed first to avoid as much needless work as possible, handling all the other events
-        if let Some((id, runnable)) = self.destroy.pop_front() {
-            // Potentially avoids 2 scheduler cycles on removed components
-            self.render.unschedule(&id);
-            self.rendered.unschedule(&id);
+    /// Fill vector with tasks to be executed according to Runnable type execution priority
+    ///
+    /// This method is optimized for typical usage, where possible, but does not break on
+    /// non-typical usage (like scheduling renders in [crate::Component::create()] or
+    /// [crate::Component::rendered()] calls).
+    fn fill_queue(&mut self, to_run: &mut Vec<Box<dyn Runnable>>) {
+        // Placed first to avoid as much needless work as possible, handling all the other events.
+        // Drained completely, because they are the highest priority events anyway.
+        to_run.extend(self.destroy.drain(..));
 
-            return Some(runnable);
+        // Create events can be batched, as they are typically just for object creation
+        to_run.extend(self.create.drain(..));
+
+        // First render must never be skipped and takes priority over main, because it may need
+        // to init `NodeRef`s
+        //
+        // Should be processed one at time, because they can spawn more create and rendered events
+        // for their children.
+        to_run.extend(self.render_first.pop_front());
+
+        // These typically do nothing and don't spawn any other events - can be batched.
+        // Should be run only after all first renders have finished.
+        if !to_run.is_empty() {
+            return;
         }
+        to_run.extend(self.rendered_first.drain(..).rev());
 
-        self.create
-            .pop_front()
-            // First render must never be skipped and takes priority over main, because it may need
-            // to init `NodeRef`s
-            .or_else(|| self.render_first.pop_front())
-            .or_else(|| self.rendered_first.pop())
-            // Updates are after the first render to ensure we always have the entire child tree
-            // rendered, once an update is processed.
-            .or_else(|| self.update.pop_front())
-            // Likely to cause duplicate renders, so placed before them
-            .or_else(|| self.main.pop_front())
-            // Most expensive, as these call `Component::view()`
-            .or_else(|| self.render.pop())
-            // `rendered()` should be run last, when we are sure there are no more renders, to
-            // reduce workload.
-            .or_else(|| self.rendered.pop())
+        // Updates are after the first render to ensure we always have the entire child tree
+        // rendered, once an update is processed.
+        //
+        // Can be batched, as they can cause only non-first renders.
+        to_run.extend(self.update.drain(..));
+
+        // Likely to cause duplicate renders via component updates, so placed before them
+        to_run.extend(self.main.drain(..));
+
+        // Run after all possible updates to avoid duplicate renders.
+        //
+        // Should be processed one at time, because they can spawn more create and first render
+        // events for their children.
+        if !to_run.is_empty() {
+            return;
+        }
+        to_run.extend(self.render.pop());
+
+        // These typically do nothing and don't spawn any other events - can be batched.
+        // Should be run only after all renders have finished.
+        if !to_run.is_empty() {
+            return;
+        }
+        self.rendered.drain_into(to_run);
     }
 }
 
@@ -192,14 +223,9 @@ impl RenderScheduler {
         }
         None
     }
-
-    /// Invalidate all render tasks for a given component_id
-    fn unschedule(&mut self, component_id: &usize) {
-        self.tasks.remove(component_id);
-    }
 }
 
-/// Scheduler for component rendered calls with deduplication
+/// Deduplicating scheduler for component rendered calls with deduplication
 #[derive(Default)]
 struct RenderedScheduler {
     /// Task registry by component ID
@@ -217,20 +243,13 @@ impl RenderedScheduler {
         }
     }
 
-    /// Try to pop a task from the stack, if any
-    fn pop(&mut self) -> Option<Box<dyn Runnable>> {
-        if let Some(id) = self.stack.pop() {
-            let t = self.tasks.remove(&id);
-            debug_assert!(t.is_some());
-            t
-        } else {
-            None
+    /// Drain all tasks into `dst`, if any
+    fn drain_into(&mut self, dst: &mut Vec<Box<dyn Runnable>>) {
+        for id in self.stack.drain(..).rev() {
+            if let Some(t) = self.tasks.remove(&id) {
+                dst.push(t);
+            }
         }
-    }
-
-    /// Invalidate all rendered tasks for a given component_id
-    fn unschedule(&mut self, component_id: &usize) {
-        self.tasks.remove(component_id);
     }
 }
 
