@@ -10,21 +10,19 @@ pub enum Msg {
 }
 
 pub struct AuthorList {
-    link: ComponentLink<Self>,
     seeds: Vec<u64>,
 }
 impl Component for AuthorList {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            link,
             seeds: random_author_seeds(),
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::NextAuthors => {
                 self.seeds = random_author_seeds();
@@ -33,11 +31,7 @@ impl Component for AuthorList {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let authors = self.seeds.iter().map(|&seed| {
             html! {
                 <div class="tile is-parent">
@@ -71,7 +65,7 @@ impl Component for AuthorList {
                     <div class="tile is-ancestor">
                         { for authors }
                     </div>
-                    <ProgressDelay duration_ms={CAROUSEL_DELAY_MS} on_complete={self.link.callback(|_| Msg::NextAuthors)} />
+                    <ProgressDelay duration_ms={CAROUSEL_DELAY_MS} on_complete={ctx.link().callback(|_| Msg::NextAuthors)} />
                 </div>
             </div>
         }

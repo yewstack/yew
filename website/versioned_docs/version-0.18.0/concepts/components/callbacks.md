@@ -69,6 +69,8 @@ They have an `emit` function that takes their `<IN>` type as an argument and con
 A simple use of a callback might look something like this:
 
 ```rust
+use yew::html;
+
 let onclick = self.link.callback(|_| Msg::Clicked);
 html! {
     <button onclick=onclick>{ "Click" }</button>
@@ -80,6 +82,8 @@ The function passed to `callback` must always take a parameter. For example, the
 If you need a callback that might not need to cause an update, use `batch_callback`.
 
 ```rust
+use yew::html;
+
 let onkeypress = self.link.batch_callback(|event| {
     if event.key() == "Enter" {
         Some(Msg::Submit)

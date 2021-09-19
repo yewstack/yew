@@ -67,10 +67,14 @@ implemented for `FormatDataType<Result<T, ::anyhow::Error>>` (not `FormatDataTyp
 
 This means that your callbacks should look like
 ```rust
+use yew::format::Json;
+
 self.link.callback(|response: Json<anyhow::Result<ResponseType>>|)
 ```
 rather than
 ```rust
+use yew::format::Json;
+
 self.link.callback(|response: Json<ResponseType>|)
 ```
 :::

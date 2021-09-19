@@ -27,7 +27,7 @@ struct Scheduler {
     render_first: VecDeque<Box<dyn Runnable>>,
     render: RenderScheduler,
 
-    /// Deduplicating stacks to ensure child calls are always before parent calls
+    /// Stacks to ensure child calls are always before parent calls
     rendered_first: Vec<Box<dyn Runnable>>,
     rendered: RenderedScheduler,
 }
@@ -47,7 +47,6 @@ fn with<R>(f: impl FnOnce(&mut Scheduler) -> R) -> R {
 }
 
 /// Push a generic [Runnable] to be executed
-#[inline]
 pub fn push(runnable: Box<dyn Runnable>) {
     with(|s| s.main.push_back(runnable));
     // Execute pending immediately. Necessary for runnables added outside the component lifecycle,
@@ -55,8 +54,7 @@ pub fn push(runnable: Box<dyn Runnable>) {
     start();
 }
 
-/// Push a component creation, first render and rendered [Runnable]s to be executed
-#[inline]
+/// Push a component creation, first render and first rendered [Runnable]s to be executed
 pub(crate) fn push_component_create(
     create: impl Runnable + 'static,
     first_render: impl Runnable + 'static,
@@ -70,13 +68,11 @@ pub(crate) fn push_component_create(
 }
 
 /// Push a component destruction [Runnable] to be executed
-#[inline]
 pub(crate) fn push_component_destroy(component_id: usize, runnable: impl Runnable + 'static) {
     with(|s| s.destroy.push_back((component_id, Box::new(runnable))));
 }
 
 /// Push a component render and rendered [Runnable]s to be executed
-#[inline]
 pub(crate) fn push_component_render(
     component_id: usize,
     render: impl Runnable + 'static,
@@ -89,7 +85,6 @@ pub(crate) fn push_component_render(
 }
 
 /// Push a component update [Runnable] to be executed
-#[inline]
 pub(crate) fn push_component_update(runnable: impl Runnable + 'static) {
     with(|s| s.update.push_back(Box::new(runnable)));
 }
@@ -224,12 +219,13 @@ impl RenderedScheduler {
 
     /// Try to pop a task from the stack, if any
     fn pop(&mut self) -> Option<Box<dyn Runnable>> {
-        while let Some(id) = self.stack.pop() {
-            if let Some(runnable) = self.tasks.remove(&id) {
-                return Some(runnable);
-            }
+        if let Some(id) = self.stack.pop() {
+            let t = self.tasks.remove(&id);
+            debug_assert!(t.is_some());
+            t
+        } else {
+            None
         }
-        None
     }
 
     /// Invalidate all rendered tasks for a given component_id
@@ -261,5 +257,3 @@ mod tests {
         FLAG.with(|v| assert!(v.get()));
     }
 }
-
-// TODO: 100% coverage for scheduler

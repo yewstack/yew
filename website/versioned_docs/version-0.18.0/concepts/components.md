@@ -25,6 +25,8 @@ It is common to store the props (data which can be passed from parent to child c
 `ComponentLink` in your component struct, like so:
 
 ```rust
+use yew::{Component, ComponentLink};
+
 pub struct MyComponent {
     props: Props,
     link: ComponentLink<Self>,
@@ -51,6 +53,8 @@ convenient way to render child components. The macro is somewhat similar to Reac
 differences in programming language aside).
 
 ```rust
+use yew::{html, Component, Html};
+
 impl Component for MyComponent {
     // ...
 
@@ -74,9 +78,7 @@ is also a parameter called `first_render` which can be used to determine whether
 being called on the first render, or instead a subsequent one.
 
 ```rust
-use stdweb::web::html_element::InputElement;
-use stdweb::web::IHtmlElement;
-use yew::prelude::*;
+use yew::{html, web_sys::HtmlInputElement, Component, Html, NodeRef};
 
 pub struct MyComponent {
     node_ref: NodeRef,
@@ -93,7 +95,7 @@ impl Component for MyComponent {
 
     fn rendered(&mut self, first_render: bool) {
         if first_render {
-            if let Some(input) = self.node_ref.cast::<InputElement>() {
+            if let Some(input) = self.node_ref.cast::<HtmlInputElement>() {
                 input.focus();
             }
         }
@@ -115,6 +117,8 @@ by event listeners, child components, Agents, Services, or Futures.
 Here's an example of what an implementation of `update` could look like:
 
 ```rust
+use yew::{Component, ShouldRender};
+
 pub enum Msg {
     SetInputEnabled(bool)
 }
@@ -148,6 +152,8 @@ changing the values of a property.
 A typical implementation would look something like:
 
 ```rust
+use yew::{Component, ShouldRender};
+
 impl Component for MyComponent {
     // ...
 
@@ -168,11 +174,66 @@ After Components are unmounted from the DOM, Yew calls the `destroy` lifecycle m
 necessary if you need to undertake operations to clean up after earlier actions of a component
 before it is destroyed. This method is optional and does nothing by default.
 
+### Infinite loops
+
+Infinite loops are possible with Yew's lifecycle methods, but are only caused when trying to update
+the same component after every render when that update also requests the component to be rendered.
+
+A simple example can be seen below:
+
+```rust
+use yew::{Component, ComponentLink, Html};
+
+struct Comp {
+    link: ComponentLink<Self>,
+}
+
+impl Component for Comp {
+    type Message = ();
+    type Properties = ();
+
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Self { link }
+    }
+
+    fn update(&mut self, _msg: Self::Message) -> bool {
+        // We are going to always request to re-render on any msg
+        true
+    }
+
+    fn view(&self) -> Html {
+        // For this example it doesn't matter what is rendered
+        Html::default()
+    }
+
+    fn rendered(&mut self, _first_render: bool) {
+        // Request that the component is updated with this new msg
+        self.link.send_message(());
+    }
+}
+```
+
+Let's run through what happens here:
+1. Component is created using the `create` function.
+2. The `view` method is called so Yew knows what to render to the browser DOM.
+3. The `rendered` method is called, which schedules an update message using the `ComponentLink`.
+4. Yew finishes the post-render phase.
+5. Yew checks for scheduled events and sees the update message queue is not empty so works through
+the messages.
+6. The `update` method is called which returns `true` to indicate something has changed and the
+component needs to re-render.
+7. Jump back to 2.
+
+You can still schedule updates in the `rendered` method and it's often useful to do so, but
+consider how your component will terminate this loop when you do.
+
 ## Associated Types
 
 The `Component` trait has two associated types: `Message` and `Properties`.
 
 ```rust
+use yew::Component;
+
 impl Component for MyComponent {
     type Message = Msg;
     type Properties = Props;

@@ -1,7 +1,7 @@
 use add_client::AddClientForm;
 use gloo::storage::{LocalStorage, Storage};
 use serde::{Deserialize, Serialize};
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Component, Context, Html};
 
 mod add_client;
 
@@ -43,7 +43,6 @@ pub enum Msg {
 }
 
 pub struct Model {
-    link: ComponentLink<Self>,
     clients: Vec<Client>,
     scene: Scene,
 }
@@ -52,16 +51,15 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         let clients = LocalStorage::get(KEY).unwrap_or_else(|_| Vec::new());
         Self {
-            link,
             clients,
             scene: Scene::ClientsList,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::SwitchTo(scene) => {
                 self.scene = scene;
@@ -85,11 +83,7 @@ impl Component for Model {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         match self.scene {
             Scene::ClientsList => html! {
                 <div class="crm">
@@ -97,21 +91,21 @@ impl Component for Model {
                     <div class="clients">
                         { for self.clients.iter().map(Client::render) }
                     </div>
-                    <button onclick={self.link.callback(|_| Msg::SwitchTo(Scene::NewClientForm))}>{ "Add New" }</button>
-                    <button onclick={self.link.callback(|_| Msg::SwitchTo(Scene::Settings))}>{ "Settings" }</button>
+                    <button onclick={ctx.link().callback(|_| Msg::SwitchTo(Scene::NewClientForm))}>{ "Add New" }</button>
+                    <button onclick={ctx.link().callback(|_| Msg::SwitchTo(Scene::Settings))}>{ "Settings" }</button>
                 </div>
             },
             Scene::NewClientForm => html! {
                 <div class="crm">
                     <h1>{"Add a new client"}</h1>
-                    <AddClientForm on_add={self.link.callback(Msg::AddClient)} on_abort={self.link.callback(|_| Msg::SwitchTo(Scene::ClientsList))} />
+                    <AddClientForm on_add={ctx.link().callback(Msg::AddClient)} on_abort={ctx.link().callback(|_| Msg::SwitchTo(Scene::ClientsList))} />
                 </div>
             },
             Scene::Settings => html! {
                 <div>
                     <h1>{"Settings"}</h1>
-                    <button onclick={self.link.callback(|_| Msg::ClearClients)}>{ "Remove all clients" }</button>
-                    <button onclick={self.link.callback(|_| Msg::SwitchTo(Scene::ClientsList))}>{ "Go Back" }</button>
+                    <button onclick={ctx.link().callback(|_| Msg::ClearClients)}>{ "Remove all clients" }</button>
+                    <button onclick={ctx.link().callback(|_| Msg::SwitchTo(Scene::ClientsList))}>{ "Go Back" }</button>
                 </div>
             },
         }

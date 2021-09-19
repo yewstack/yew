@@ -9,8 +9,8 @@ edition = "2018"
 [dependencies]
 anymap = "0.12"
 bincode = { version = "1" }
+gloo-console = "0.1.0"
 js-sys = "0.3"
-log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 slab = "0.4"
 wasm-bindgen = "0.2"

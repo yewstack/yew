@@ -68,14 +68,11 @@ impl Parse for HtmlComponent {
         input.parse::<HtmlComponentClose>()?;
 
         if !children.is_empty() {
-            // check if the `children` prop is given explicitly
-            if let ComponentProps::List(props) = &open.props {
-                if let Some(children_prop) = props.get_by_label("children") {
-                    return Err(syn::Error::new_spanned(
-                        &children_prop.label,
-                        "cannot specify the `children` prop when the component already has children",
-                    ));
-                }
+            if let Some(children_prop) = open.props.children() {
+                return Err(syn::Error::new_spanned(
+                    &children_prop.label,
+                    "cannot specify the `children` prop when the component already has children",
+                ));
             }
         }
 
@@ -108,7 +105,7 @@ impl ToTokens for HtmlComponent {
             let value = &node_ref.value;
             quote_spanned! {value.span()=> #value }
         } else {
-            quote! { ::yew::html::NodeRef::default() }
+            quote! { <::yew::html::NodeRef as ::std::default::Default>::default() }
         };
 
         let key = if let Some(key) = &special_props.key {
@@ -118,7 +115,7 @@ impl ToTokens for HtmlComponent {
                 Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#value))
             }
         } else {
-            quote! { None }
+            quote! { ::std::option::Option::None }
         };
 
         tokens.extend(quote_spanned! {ty.span()=>

@@ -14,16 +14,39 @@ a canvas element after it has been rendered from `view`.
 The syntax is:
 
 ```rust
-// In create
-self.node_ref = NodeRef::default();
+use yew::{html, web_sys::Element, Component, Context, Html, NodeRef};
 
-// In view
-html! {
-    <div ref={self.node_ref.clone()}></div>
+struct Comp {
+    node_ref: NodeRef,
 }
 
-// In rendered
-let has_attributes = self.node_ref.cast::<Element>().unwrap().has_attributes();
+impl Component for Comp {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {
+            // highlight-next-line
+            node_ref: NodeRef::default(),
+        }
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            // highlight-next-line
+            <div ref={self.node_ref.clone()}></div>
+        }
+    }
+
+    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
+        // highlight-start
+        let has_attributes = self.node_ref
+            .cast::<Element>()
+            .unwrap()
+            .has_attributes();
+        // highlight-end
+    }
+}
 ```
 
 ## Relevant examples

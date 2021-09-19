@@ -15,6 +15,8 @@ This value remains up-to-date on subsequent renders.
 ### Example
 
 ```rust
+use yew::{Callback, function_component, html, use_state};
+
 #[function_component(UseState)]
 fn state() -> Html {
     let counter = use_state(|| 0);
@@ -46,37 +48,44 @@ If you need the component to be re-rendered on state change, consider using [`us
 ### Example
 
 ```rust
+use yew::{
+    function_component, html, use_ref, use_state,
+    web_sys::{Event, HtmlInputElement},
+    Callback, TargetCast,
+};
+
 #[function_component(UseRef)]
 fn ref_hook() -> Html {
-    let (message, set_message) = use_state(|| "".to_string());
+    let message = use_state(|| "".to_string());
     let message_count = use_ref(|| 0);
 
-    let onclick = Callback::from(move |e| {
+    let onclick = Callback::from(move |_| {
         let window = yew::utils::window();
 
         if *message_count.borrow_mut() > 3 {
-            window.alert_with_message("Message limit reached");
+            window.alert_with_message("Message limit reached").unwrap();
         } else {
             *message_count.borrow_mut() += 1;
-            window.alert_with_message("Message sent");
+            window.alert_with_message("Message sent").unwrap();
         }
     });
 
-    let onchange = Callback::from(move |e| {
-        if let ChangeData::Value(value) = e {
-            set_message(value)
-        }
-    });
+    let onchange = {
+        let message = message.clone();
+        Callback::from(move |e: Event| {
+            let input: HtmlInputElement = e.target_unchecked_into();
+            message.set(input.value());
+        })
+    };
 
     html! {
         <div>
-            <input {onchange} value={message} />
+            <input {onchange} value={(*message).clone()} />
             <button {onclick}>{ "Send" }</button>
         </div>
     }
 }
 ```
-
 
 ## `use_reducer`
 
@@ -93,6 +102,9 @@ For lazy initialization, consider using [`use_reducer_with_init`](#use_reducer_w
 ### Example
 
 ```rust
+use std::rc::Rc;
+use yew::{function_component, html, use_reducer, Callback};
+
 #[function_component(UseReducer)]
 fn reducer() -> Html {
     /// reducer's Action
@@ -112,13 +124,13 @@ fn reducer() -> Html {
             counter: match action {
                 Action::Double => prev.counter * 2,
                 Action::Square => prev.counter * prev.counter,
-            }
+            },
         },
         // initial state
         CounterState { counter: 1 },
     );
 
-   let double_onclick = {
+    let double_onclick = {
         let counter = counter.clone();
         Callback::from(move |_| counter.dispatch(Action::Double))
     };
@@ -147,16 +159,34 @@ This is useful for lazy initialization where it is beneficial not to perform exp
 computation up-front.
 
 ```rust
-let counter = use_reducer_with_init(
-    // reducer function
-    |prev: Rc<CounterState>, action: i32| CounterState {
-        counter: prev.counter + action,
-    },
-    0, // initial value
-    |initial: i32| CounterState { // init method
-        counter: initial + 10,
-    },
-);
+use std::rc::Rc;
+use yew::{function_component, use_reducer_with_init, html};
+
+#[function_component(ReducerWithInit)]
+fn reducer_with_init() -> Html {
+
+    /// reducer's State
+    struct CounterState {
+        counter: i32,
+    }
+
+    let counter = use_reducer_with_init(
+        // reducer function
+        |prev: Rc<CounterState>, action: i32| CounterState {
+            counter: prev.counter + action,
+        },
+        0, // initial value
+        |initial: i32| CounterState { // init method
+            counter: initial + 10,
+        },
+    );
+
+    html! {
+        <>
+            <div id="result">{ counter.counter }</div>
+        </>
+    }
+}
 ```
 
 ## `use_effect`
@@ -171,27 +201,29 @@ The destructor can be used to clean up the effects introduced and it can take ow
 ### Example
 
 ```rust
+use yew::{Callback, function_component, html, use_effect, use_state};
+
 #[function_component(UseEffect)]
 fn effect() -> Html {
-    let (counter, set_counter) = use_state(|| 0);
+    let counter = use_state(|| 0);
 
     {
         let counter = counter.clone();
         use_effect(move || {
             // Make a call to DOM API after component is rendered
-            yew::utils::document().set_title(&format!("You clicked {} times", counter));
+            yew::utils::document().set_title(&format!("You clicked {} times", *counter));
     
             // Perform the cleanup
             || yew::utils::document().set_title("You clicked 0 times")
         });
     }    
     let onclick = {
-        let counter = Rc::clone(&counter);
-        Callback::from(move |_| set_counter(*counter + 1))
+        let counter = counter.clone();
+        Callback::from(move |_| counter.set(*counter + 1))
     };
 
     html! {
-        <button {onclick}>{ format!("Increment to {}", counter) }</button>
+        <button {onclick}>{ format!("Increment to {}", *counter) }</button>
     }
 }
 ```
@@ -199,7 +231,9 @@ fn effect() -> Html {
 ### `use_effect_with_deps`
 
 Sometimes, it's needed to manually define dependencies for [`use_effect`](#use_effect). In such cases, we use `use_effect_with_deps`.
-```rust
+```rust ,no_run
+use yew::use_effect_with_deps;
+
 use_effect_with_deps(
     move |_| {
         // ...
@@ -219,6 +253,9 @@ use_effect_with_deps(
 ### Example
 
 ```rust
+use yew::{ContextProvider, function_component, html, use_context, use_state};
+
+
 /// App theme
 #[derive(Clone, Debug, PartialEq)]
 struct Theme {
@@ -235,7 +272,8 @@ pub fn app() -> Html {
     });
 
     html! {
-        // `ctx` is type `Rc<UseStateHandle<Theme>>` while we need `Theme` so we deref it
+        // `ctx` is type `Rc<UseStateHandle<Theme>>` while we need `Theme`
+        // so we deref it.
         // It derefs to `&Theme`, hence the clone
         <ContextProvider<Theme> context={(*ctx).clone()}>
             // Every child here and their children will have access to this context.

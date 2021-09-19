@@ -8,5 +8,5 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 yew = { path = "../../packages/yew" }
 yew-agent = { path = "../../packages/yew-agent" }
-weblog = "0.3"
 wasm-bindgen = "0.2"
+gloo-console = "0.1"

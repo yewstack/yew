@@ -1,36 +1,65 @@
-use std::marker::PhantomData;
-use yew::prelude::*;
+#![no_implicit_prelude]
+
+// Shadow primitives
+#[allow(non_camel_case_types)]
+pub struct bool;
+#[allow(non_camel_case_types)]
+pub struct char;
+#[allow(non_camel_case_types)]
+pub struct f32;
+#[allow(non_camel_case_types)]
+pub struct f64;
+#[allow(non_camel_case_types)]
+pub struct i128;
+#[allow(non_camel_case_types)]
+pub struct i16;
+#[allow(non_camel_case_types)]
+pub struct i32;
+#[allow(non_camel_case_types)]
+pub struct i64;
+#[allow(non_camel_case_types)]
+pub struct i8;
+#[allow(non_camel_case_types)]
+pub struct isize;
+#[allow(non_camel_case_types)]
+pub struct str;
+#[allow(non_camel_case_types)]
+pub struct u128;
+#[allow(non_camel_case_types)]
+pub struct u16;
+#[allow(non_camel_case_types)]
+pub struct u32;
+#[allow(non_camel_case_types)]
+pub struct u64;
+#[allow(non_camel_case_types)]
+pub struct u8;
+#[allow(non_camel_case_types)]
+pub struct usize;
 
 pub struct Generic<T> {
-    marker: PhantomData<T>,
+    marker: ::std::marker::PhantomData<T>,
 }
 
-impl<T> Component for Generic<T>
+impl<T> ::yew::Component for Generic<T>
 where
     T: 'static,
 {
     type Message = ();
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        unimplemented!()
+    fn create(_ctx: &::yew::Context<Self>) -> Self {
+        ::std::unimplemented!()
     }
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        unimplemented!()
-    }
-    fn view(&self) -> Html {
-        unimplemented!()
+    fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
+        ::std::unimplemented!()
     }
 }
 
 pub struct Generic2<T1, T2> {
-    marker: PhantomData<(T1, T2)>,
+    marker: ::std::marker::PhantomData<(T1, T2)>,
 }
 
-impl<T1, T2> Component for Generic2<T1, T2>
+impl<T1, T2> ::yew::Component for Generic2<T1, T2>
 where
     T1: 'static,
     T2: 'static,
@@ -38,37 +67,31 @@ where
     type Message = ();
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        unimplemented!()
+    fn create(_ctx: &::yew::Context<Self>) -> Self {
+        ::std::unimplemented!()
     }
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        unimplemented!()
-    }
-    fn view(&self) -> Html {
-        unimplemented!()
+    fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
+        ::std::unimplemented!()
     }
 }
 
 fn compile_pass() {
-    html! { <Generic<String> /> };
-    html! { <Generic<String> ></Generic<String>> };
+    ::yew::html! { <Generic<::std::string::String> /> };
+    ::yew::html! { <Generic<::std::string::String> ></Generic<::std::string::String>> };
 
-    html! { <Generic<Vec<String>> /> };
-    html! { <Generic<Vec<String>>></ Generic<Vec<String>>> };
+    ::yew::html! { <Generic<::std::vec::Vec<::std::string::String>> /> };
+    ::yew::html! { <Generic<::std::vec::Vec<::std::string::String>>></ Generic<::std::vec::Vec<::std::string::String>>> };
 
-    html! { <Generic<usize> /> };
-    html! { <Generic<usize>></Generic<usize>> };
-    html! { <Generic<String, > /> };
-    html! { <Generic<String, >></Generic<String,>> };
+    ::yew::html! { <Generic<::std::primitive::usize> /> };
+    ::yew::html! { <Generic<::std::primitive::usize>></Generic<::std::primitive::usize>> };
+    ::yew::html! { <Generic<::std::string::String, > /> };
+    ::yew::html! { <Generic<::std::string::String, >></Generic<::std::string::String,>> };
 
-    html! { <Generic2<String, String> /> };
-    html! { <Generic2<String, String>></Generic2<String, String>> };
+    ::yew::html! { <Generic2<::std::string::String, ::std::string::String> /> };
+    ::yew::html! { <Generic2<::std::string::String, ::std::string::String>></Generic2<::std::string::String, ::std::string::String>> };
 
-    html! { <Generic2<String, String, > /> };
-    html! { <Generic2<String, String, >></Generic2<String, String, >> };
+    ::yew::html! { <Generic2<::std::string::String, ::std::string::String, > /> };
+    ::yew::html! { <Generic2<::std::string::String, ::std::string::String, >></Generic2<::std::string::String, ::std::string::String, >> };
 }
 
 fn main() {}

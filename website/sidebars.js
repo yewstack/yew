@@ -56,6 +56,7 @@ module.exports = {
                         "concepts/html",
                         "concepts/html/components",
                         "concepts/html/elements",
+                        "concepts/html/events",
                         "concepts/html/classes",
                         "concepts/html/lists",
                         "concepts/html/literals-and-expressions"
@@ -97,5 +98,6 @@ module.exports = {
                 "more/wasm-build-tools"
             ]
         },
+        "tutorial"
     ],
 };

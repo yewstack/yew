@@ -2,7 +2,8 @@
 
 use super::{
     lifecycle::{
-        ComponentState, CreateRunner, DestroyRunner, RenderRunner, UpdateEvent, UpdateRunner,
+        ComponentState, CreateRunner, DestroyRunner, RenderRunner, RenderedRunner, UpdateEvent,
+        UpdateRunner,
     },
     Component,
 };
@@ -86,8 +87,9 @@ impl AnyScope {
         callback: Callback<T>,
     ) -> Option<(T, ContextHandle<T>)> {
         let scope = self.find_parent_scope::<ContextProvider<T>>()?;
+        let scope_clone = scope.clone();
         let component = scope.get_component()?;
-        Some(component.subscribe_consumer(callback))
+        Some(component.subscribe_consumer(callback, scope_clone))
     }
 }
 
@@ -174,7 +176,7 @@ impl<COMP: Component> Scope<COMP> {
         parent: Element,
         next_sibling: NodeRef,
         node_ref: NodeRef,
-        props: COMP::Properties,
+        props: Rc<COMP::Properties>,
     ) {
         let placeholder = {
             let placeholder: Node = document().create_text_node("").into();
@@ -195,7 +197,7 @@ impl<COMP: Component> Scope<COMP> {
             RenderRunner {
                 state: self.state.clone(),
             },
-            RenderRunner {
+            RenderedRunner {
                 state: self.state.clone(),
             },
         );
@@ -203,7 +205,12 @@ impl<COMP: Component> Scope<COMP> {
         scheduler::start();
     }
 
-    pub(crate) fn reuse(&self, props: COMP::Properties, node_ref: NodeRef, next_sibling: NodeRef) {
+    pub(crate) fn reuse(
+        &self,
+        props: Rc<COMP::Properties>,
+        node_ref: NodeRef,
+        next_sibling: NodeRef,
+    ) {
         self.push_update(UpdateEvent::Properties(props, node_ref, next_sibling));
     }
 
@@ -255,12 +262,38 @@ impl<COMP: Component> Scope<COMP> {
         M: Into<COMP::Message>,
         F: Fn(IN) -> M + 'static,
     {
+        self.callback_with_passive(None, function)
+    }
+
+    /// Creates a `Callback` which will send a message to the linked
+    /// component's update method when invoked.
+    ///
+    /// Setting `passive` to [Some] explicitly makes the event listener passive or not.
+    /// Yew sets sane defaults depending on the type of the listener.
+    /// See
+    /// [addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).
+    ///
+    /// Please be aware that currently the result of this callback
+    /// synchronously schedules a call to the [Component](Component)
+    /// interface.
+    pub fn callback_with_passive<F, IN, M>(
+        &self,
+        passive: impl Into<Option<bool>>,
+        function: F,
+    ) -> Callback<IN>
+    where
+        M: Into<COMP::Message>,
+        F: Fn(IN) -> M + 'static,
+    {
         let scope = self.clone();
         let closure = move |input| {
             let output = function(input);
             scope.send_message(output);
         };
-        closure.into()
+        Callback::Callback {
+            passive: passive.into(),
+            cb: Rc::new(closure),
+        }
     }
 
     /// Creates a `Callback` from an `FnOnce` which will send a message

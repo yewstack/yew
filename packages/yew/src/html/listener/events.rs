@@ -1,102 +1,216 @@
 // Inspired by: http://package.elm-lang.org/packages/elm-lang/html/2.0.0/Html-Events
-impl_action! {
-    onabort(name: "abort", event: Event) -> web_sys::Event => |_, event| { event }
-    onauxclick(name: "auxclick", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
-    onblur(name: "blur", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
-    oncancel(name: "cancel", event: Event) -> web_sys::Event => |_, event| { event }
-    oncanplay(name: "canplay", event: Event) -> web_sys::Event => |_, event| { event }
-    oncanplaythrough(name: "canplaythrough", event: Event) -> web_sys::Event => |_, event| { event }
-    onchange(name: "change", event: Event) -> ChangeData => |this: &Element, _| { onchange_handler(this) }
-    onclick(name: "click", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
-    onclose(name: "close", event: Event) -> web_sys::Event => |_, event| { event }
-    oncontextmenu(name: "contextmenu", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
-    oncuechange(name: "cuechange", event: Event) -> web_sys::Event => |_, event| { event }
-    ondblclick(name: "dblclick", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
-    ondrag(name: "drag", event: DragEvent) -> web_sys::DragEvent => |_, event| { event }
-    ondragend(name: "dragend", event: DragEvent) -> web_sys::DragEvent => |_, event| { event }
-    ondragenter(name: "dragenter", event: DragEvent) -> web_sys::DragEvent => |_, event| { event }
-    ondragexit(name: "dragexit", event: DragEvent) -> web_sys::DragEvent => |_, event| { event }
-    ondragleave(name: "dragleave", event: DragEvent) -> web_sys::DragEvent => |_, event| { event }
-    ondragover(name: "dragover", event: DragEvent) -> web_sys::DragEvent => |_, event| { event }
-    ondragstart(name: "dragstart", event: DragEvent) -> web_sys::DragEvent => |_, event| { event }
-    ondrop(name: "drop", event: DragEvent) -> web_sys::DragEvent => |_, event| { event }
-    ondurationchange(name: "durationchange", event: Event) -> web_sys::Event => |_, event| { event }
-    onemptied(name: "emptied", event: Event) -> web_sys::Event => |_, event| { event }
-    onended(name: "ended", event: Event) -> web_sys::Event => |_, event| { event }
-    onerror(name: "error", event: Event) -> web_sys::Event => |_, event| { event }
-    onfocus(name: "focus", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
-    onfocusin(name: "focusin", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
-    onfocusout(name: "focusout", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
-    // web_sys doesn't have a struct for `FormDataEvent`
-    onformdata(name: "formdata", event: Event) -> web_sys::Event => |_, event| { event }
-    oninput(name: "input", event: InputEvent) -> InputData => |this: &Element, event| { oninput_handler(this, event) }
-    oninvalid(name: "invalid", event: Event) -> web_sys::Event => |_, event| { event }
-    onkeydown(name: "keydown", event: KeyboardEvent) -> web_sys::KeyboardEvent => |_, event| { event }
-    onkeypress(name: "keypress", event: KeyboardEvent) -> web_sys::KeyboardEvent => |_, event| { event }
-    onkeyup(name: "keyup", event: KeyboardEvent) -> web_sys::KeyboardEvent => |_, event| { event }
-    onload(name: "load", event: Event) -> web_sys::Event => |_, event| { event }
-    onloadeddata(name: "loadeddata", event: Event) -> web_sys::Event => |_, event| { event }
-    onloadedmetadata(name: "loadedmetadata", event: Event) -> web_sys::Event => |_, event| { event }
-    onloadstart(name: "loadstart", event: ProgressEvent) -> web_sys::ProgressEvent => |_, event| { event }
-    onmousedown(name: "mousedown", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
-    onmouseenter(name: "mouseenter", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
-    onmouseleave(name: "mouseleave", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
-    onmousemove(name: "mousemove", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
-    onmouseout(name: "mouseout", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
-    onmouseover(name: "mouseover", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
-    onmouseup(name: "mouseup", event: MouseEvent) -> web_sys::MouseEvent => |_, event| { event }
-    onpause(name: "pause", event: Event) -> web_sys::Event => |_, event| { event }
-    onplay(name: "play", event: Event) -> web_sys::Event => |_, event| { event }
-    onplaying(name: "playing", event: Event) -> web_sys::Event => |_, event| { event }
-    onprogress(name: "progress", event: ProgressEvent) -> web_sys::ProgressEvent => |_, event| { event }
-    onratechange(name: "ratechange", event: Event) -> web_sys::Event => |_, event| { event }
-    onreset(name: "reset", event: Event) -> web_sys::Event => |_, event| { event }
-    onresize(name: "resize", event: Event) -> web_sys::Event => |_, event| { event }
-    onscroll(name: "scroll", event: Event) -> web_sys::Event => |_, event| { event }
-    onsecuritypolicyviolation(name: "securitypolicyviolation", event: Event) -> web_sys::Event => |_, event| { event }
-    onseeked(name: "seeked", event: Event) -> web_sys::Event => |_, event| { event }
-    onseeking(name: "seeking", event: Event) -> web_sys::Event => |_, event| { event }
-    onselect(name: "select", event: Event) -> web_sys::Event => |_, event| { event }
-    onslotchange(name: "slotchange", event: Event) -> web_sys::Event => |_, event| { event }
-    onstalled(name: "stalled", event: Event) -> web_sys::Event => |_, event| { event }
-    onsubmit(name: "submit", event: FocusEvent) -> web_sys::FocusEvent => |_, event| { event }
-    onsuspend(name: "suspend", event: Event) -> web_sys::Event => |_, event| { event }
-    ontimeupdate(name: "timeupdate", event: Event) -> web_sys::Event => |_, event| { event }
-    ontoggle(name: "toggle", event: Event) -> web_sys::Event => |_, event| { event }
-    onvolumechange(name: "volumechange", event: Event) -> web_sys::Event => |_, event| { event }
-    onwaiting(name: "waiting", event: Event) -> web_sys::Event => |_, event| { event }
-    onwheel(name: "wheel", event: WheelEvent) -> web_sys::WheelEvent => |_, event| { event }
 
-    oncopy(name: "copy", event: Event) -> web_sys::Event => |_, event| { event }
-    oncut(name: "cut", event: Event) -> web_sys::Event => |_, event| { event }
-    onpaste(name: "paste", event: Event) -> web_sys::Event => |_, event| { event }
+macro_rules! impl_action {
+    ($($action:ident($type:ident) -> $ret:path => $convert:path)*) => {$(
+        impl_action!($action($type, false) -> $ret => $convert);
+    )*};
+    ($($action:ident($type:ident, $passive:literal) -> $ret:path => $convert:path)*) => {$(
+        /// An abstract implementation of a listener.
+        #[doc(hidden)]
+        pub mod $action {
+            use crate::callback::Callback;
+            use crate::virtual_dom::{Listener, ListenerKind};
+            use std::rc::Rc;
 
-    onanimationcancel(name: "animationcancel", event: AnimationEvent) -> web_sys::AnimationEvent => |_, event| { event }
-    onanimationend(name: "animationend", event: AnimationEvent) -> web_sys::AnimationEvent => |_, event| { event }
-    onanimationiteration(name: "animationiteration", event: AnimationEvent) -> web_sys::AnimationEvent => |_, event| { event }
-    onanimationstart(name: "animationstart", event: AnimationEvent) -> web_sys::AnimationEvent => |_, event| { event }
-    ongotpointercapture(name: "gotpointercapture", event: PointerEvent) -> web_sys::PointerEvent => |_, event| { event }
-    onloadend(name: "loadend", event: ProgressEvent) -> web_sys::ProgressEvent => |_, event| { event }
-    onlostpointercapture(name: "lostpointercapture", event: PointerEvent) -> web_sys::PointerEvent => |_, event| { event }
-    onpointercancel(name: "pointercancel", event: PointerEvent) -> web_sys::PointerEvent => |_, event| { event }
-    onpointerdown(name: "pointerdown", event: PointerEvent) -> web_sys::PointerEvent => |_, event| { event }
-    onpointerenter(name: "pointerenter", event: PointerEvent) -> web_sys::PointerEvent => |_, event| { event }
-    onpointerleave(name: "pointerleave", event: PointerEvent) -> web_sys::PointerEvent => |_, event| { event }
-    onpointerlockchange(name: "pointerlockchange", event: Event) -> web_sys::Event => |_, event| { event }
-    onpointerlockerror(name: "pointerlockerror", event: Event) -> web_sys::Event => |_, event| { event }
-    onpointermove(name: "pointermove", event: PointerEvent) -> web_sys::PointerEvent => |_, event| { event }
-    onpointerout(name: "pointerout", event: PointerEvent) -> web_sys::PointerEvent => |_, event| { event }
-    onpointerover(name: "pointerover", event: PointerEvent) -> web_sys::PointerEvent => |_, event| { event }
-    onpointerup(name: "pointerup", event: PointerEvent) -> web_sys::PointerEvent => |_, event| { event }
-    onselectionchange(name: "selectionchange", event: Event) -> web_sys::Event => |_, event| { event }
-    onselectstart(name: "selectstart", event: Event) -> web_sys::Event => |_, event| { event }
-    onshow(name: "show", event: Event) -> web_sys::Event => |_, event| { event }
-    ontouchcancel(name: "touchcancel", event: TouchEvent) -> web_sys::TouchEvent => |_, event| { event }
-    ontouchend(name: "touchend", event: TouchEvent) -> web_sys::TouchEvent => |_, event| { event }
-    ontouchmove(name: "touchmove", event: TouchEvent) -> web_sys::TouchEvent => |_, event| { event }
-    ontouchstart(name: "touchstart", event: TouchEvent) -> web_sys::TouchEvent => |_, event| { event }
-    ontransitioncancel(name: "transitioncancel", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
-    ontransitionend(name: "transitionend", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
-    ontransitionrun(name: "transitionrun", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
-    ontransitionstart(name: "transitionstart", event: TransitionEvent) -> web_sys::TransitionEvent => |_, event| { event }
+            /// A wrapper for a callback which attaches event listeners to elements.
+            #[derive(Clone, Debug)]
+            pub struct Wrapper {
+                callback: Callback<Event>,
+            }
+
+            impl Wrapper {
+                /// Create a wrapper for an event-typed callback
+                pub fn new(callback: Callback<Event>) -> Self {
+                    Wrapper { callback }
+                }
+
+                #[doc(hidden)]
+                #[inline]
+                pub fn __macro_new(
+                    callback: impl crate::html::IntoEventCallback<Event>,
+                ) -> Option<Rc<dyn Listener>> {
+                    let callback = callback.into_event_callback()?;
+                    Some(Rc::new(Self::new(callback)))
+                }
+            }
+
+            /// And event type which keeps the returned type.
+            pub type Event = $ret;
+
+            impl Listener for Wrapper {
+                fn kind(&self) -> ListenerKind {
+                    ListenerKind::$action
+                }
+
+                fn handle(&self, event: web_sys::Event) {
+                    self.callback.emit($convert(event));
+                }
+
+                fn passive(&self) -> bool {
+                    match &self.callback {
+                        Callback::Callback{passive, ..} => (*passive).unwrap_or($passive),
+                        _ => $passive,
+                    }
+                }
+            }
+        }
+    )*};
+}
+
+// Reduces repetition for common cases
+macro_rules! impl_short {
+    ($($action:ident)*) => {
+        impl_action! {
+            $(
+                $action(Event) -> web_sys::Event => std::convert::identity
+            )*
+        }
+    };
+    ($($action:ident($type:ident))*) => {
+        impl_action! {
+            $(
+                $action($type) -> web_sys::$type  => crate::html::listener::cast_event
+            )*
+        }
+    };
+}
+
+// Unspecialized event type
+impl_short! {
+    onabort
+    oncancel
+    oncanplay
+    oncanplaythrough
+    onclose
+    oncuechange
+    ondurationchange
+    onemptied
+    onended
+    onerror
+    onformdata  // web_sys doesn't have a struct for `FormDataEvent`
+    oninvalid
+
+    onload
+    onloadeddata
+    onloadedmetadata
+
+    onpause
+    onplay
+    onplaying
+
+    onratechange
+    onreset
+    onresize
+    onsecuritypolicyviolation
+
+    onseeked
+    onseeking
+
+    onselect
+    onslotchange
+    onstalled
+    onsuspend
+    ontimeupdate
+    ontoggle
+    onvolumechange
+    onwaiting
+
+    onchange
+
+    oncopy
+    oncut
+    onpaste
+
+    onpointerlockchange
+    onpointerlockerror
+    onselectionchange
+    onselectstart
+    onshow
+}
+
+// Specialized event type
+impl_short! {
+    onauxclick(MouseEvent)
+    onclick(MouseEvent)
+
+    oncontextmenu(MouseEvent)
+    ondblclick(MouseEvent)
+
+    ondrag(DragEvent)
+    ondragend(DragEvent)
+    ondragenter(DragEvent)
+    ondragexit(DragEvent)
+    ondragleave(DragEvent)
+    ondragover(DragEvent)
+    ondragstart(DragEvent)
+    ondrop(DragEvent)
+
+    onblur(FocusEvent)
+    onfocus(FocusEvent)
+    onfocusin(FocusEvent)
+    onfocusout(FocusEvent)
+
+    onkeydown(KeyboardEvent)
+    onkeypress(KeyboardEvent)
+    onkeyup(KeyboardEvent)
+
+    onloadstart(ProgressEvent)
+    onprogress(ProgressEvent)
+    onloadend(ProgressEvent)
+
+    onmousedown(MouseEvent)
+    onmouseenter(MouseEvent)
+    onmouseleave(MouseEvent)
+    onmousemove(MouseEvent)
+    onmouseout(MouseEvent)
+    onmouseover(MouseEvent)
+    onmouseup(MouseEvent)
+    onwheel(WheelEvent)
+
+    oninput(InputEvent)
+
+    onsubmit(FocusEvent)
+
+    onanimationcancel(AnimationEvent)
+    onanimationend(AnimationEvent)
+    onanimationiteration(AnimationEvent)
+    onanimationstart(AnimationEvent)
+
+    ongotpointercapture(PointerEvent)
+    onlostpointercapture(PointerEvent)
+    onpointercancel(PointerEvent)
+    onpointerdown(PointerEvent)
+    onpointerenter(PointerEvent)
+    onpointerleave(PointerEvent)
+    onpointermove(PointerEvent)
+    onpointerout(PointerEvent)
+    onpointerover(PointerEvent)
+    onpointerup(PointerEvent)
+
+    ontouchcancel(TouchEvent)
+    ontouchend(TouchEvent)
+
+    ontransitioncancel(TransitionEvent)
+    ontransitionend(TransitionEvent)
+    ontransitionrun(TransitionEvent)
+    ontransitionstart(TransitionEvent)
+}
+
+macro_rules! impl_passive {
+    ($($action:ident($type:ident))*) => {
+        impl_action! {
+            $(
+                $action($type, true) -> web_sys::$type
+                    => crate::html::listener::cast_event
+            )*
+        }
+    };
+}
+
+// Best used with passive listeners for responsiveness
+impl_passive! {
+    onscroll(Event)
+
+    ontouchmove(TouchEvent)
+    ontouchstart(TouchEvent)
 }

@@ -98,6 +98,9 @@ The macro uses the same syntax as a struct expression except that you can't use 
 The type path can either point to the props directly (`path::to::Props`) or the associated properties of a component (`MyComp::Properties`).
 
 ```rust
+use std::rc::Rc;
+use yew::props;
+
 let props = yew::props!(LinkProps {
     href: "/",
     text: Rc::from("imagine this text being really long"),

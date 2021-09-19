@@ -23,6 +23,8 @@ is that every expression implements `Into<Classes>`.
 <!--Literal-->
 
 ```rust
+use yew::{classes, html};
+
 html! {
   <div class=classes!("container")></div>
 }
@@ -31,6 +33,8 @@ html! {
 <!--Multiple-->
 
 ```rust
+use yew::{classes, html};
+
 html! {
   <div class=classes!("class-1", "class-2")></div>
 }
@@ -39,6 +43,8 @@ html! {
 <!--String-->
 
 ```rust
+use yew::{classes, html};
+
 let my_classes = String::from("class-1 class-2");
 
 html! {
@@ -49,6 +55,8 @@ html! {
 <!--Optional-->
 
 ```rust
+use yew::{classes, html};
+
 html! {
   <div class=classes!(Some("class")) />
 }
@@ -57,6 +65,8 @@ html! {
 <!--Vector-->
 
 ```rust
+use yew::{classes, html};
+
 html! {
   <div class=classes!(vec!["class-1", "class-2"])></div>
 }
@@ -65,6 +75,8 @@ html! {
 <!--Array-->
 
 ```rust
+use yew::{classes, html};
+
 let my_classes = ["class-1", "class-2"];
 
 html! {
@@ -78,6 +90,7 @@ html! {
 
 ```rust
 use boolinator::Boolinator;
+use yew::{classes, html, Children, Classes, Component, Html, Properties};
 
 #[derive(Clone, Properties)]
 struct Props {

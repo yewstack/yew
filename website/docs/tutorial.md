@@ -1,3 +1,8 @@
+---
+title: "Tutorial"
+slug: /tutorial
+---
+
 ## Introduction
 
 In this hands-on tutorial, we will take a look at how we can use Yew to build web applications.
@@ -76,7 +81,7 @@ edition = "2018"
 + yew = { git = "https://github.com/yewstack/yew/" }
 ```
 
-```rust title="src/main.rs"
+```rust ,no_run title="src/main.rs"
 use yew::prelude::*;
 
 #[function_component(App)]
@@ -154,7 +159,7 @@ We want to build a layout that looks something like this in raw HTML:
 Now, let's convert this HTML into `html!`. Type (or copy/paste) the following snippet into the body of `app` function
 such that the value of `html!` is returned by the function
 
-```rust
+```rust ,ignore
 html! {
     <>
         <h1>{ "RustConf Explorer" }</h1>
@@ -195,6 +200,8 @@ struct Video {
 Next, we will create instances of this struct in our `app` function and use those instead of hardcoding the data:
 
 ```rust
+use website_test::tutorial::Video;
+
 let videos = vec![
     Video {
         id: 1,
@@ -226,7 +233,7 @@ let videos = vec![
 In order to display them, we need to convert these `Vec`s into `Html`. We can do that by creating an iterator,
 mapping it to `html!` and collecting it as `Html`:
 
-```rust
+```rust ,ignore
 let videos = videos.iter().map(|video| html! {
     <p>{format!("{}: {}", video.speaker, video.title)}</p>
 }).collect::<Html>();
@@ -248,8 +255,17 @@ In this tutorial, we will be using function components.
 Now, let's split up our `App` component into smaller components. We'll begin by extracting the videos list into
 its own component.
 
-```rust
-#[derive(Clone, Properties, PartialEq)]
+```rust ,compile_fail
+use yew::prelude::*;
+
+struct Video {
+    id: usize,
+    title: String,
+    speaker: String,
+    url: String,
+}
+
+#[derive(Properties, PartialEq)]
 struct VideosListProps {
     videos: Vec<Video>,
 }
@@ -284,7 +300,7 @@ struct Video {
 
 Now, we can update our `App` component to make use of `VideosList` component.
 
-```rust {4-10,16-17,19-20}
+```rust ,ignore {4-10,16-17,19-20}
 #[function_component(App)]
 fn app() -> Html {
     // ...
@@ -316,7 +332,7 @@ The final goal here is to display the selected video. In order to do that, `Vide
 parent when a video is selected, which is done via a `Callback`. This concept is called "passing handlers".
 We modify its props to take an `on_click` callback:
 
-```rust {4}
+```rust ,ignore {4}
 #[derive(Clone, Properties, PartialEq)]
 struct VideosListProps {
     videos: Vec<Video>,
@@ -326,7 +342,7 @@ struct VideosListProps {
 
 Then we modify the `VideosList` component to pass the "emit" the selected video to the callback.
 
-```rust {5-11,14-15}
+```rust ,ignore {5-11,14-15}
 #[function_component(VideosList)]
 fn videos_list(VideosListProps { videos, on_click }: &VideosListProps) -> Html {
     let on_click = on_click.clone();
@@ -351,6 +367,9 @@ Next, we need to modify the usage of `VideosList` to pass that callback. But bef
 a new component, `VideoDetails`, component that is displayed when a video is clicked.
 
 ```rust
+use website_test::tutorial::Video;
+use yew::prelude::*;
+
 #[derive(Clone, Properties, PartialEq)]
 struct VideosDetailsProps {
     video: Video,
@@ -369,7 +388,7 @@ fn video_details(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
 
 Now, modify the `App` component to display `VideoDetails` component whenever a video is selected.
 
-```rust {4,6-11,13-15,24-29}
+```rust ,ignore {4,6-11,13-15,24-29}
 #[function_component(App)]
 fn app() -> Html {
     // ...
@@ -439,7 +458,7 @@ wasm-bindgen-futures = "0.4"
 
 Update the `Video` struct to derive the `Deserialize` trait:
 
-```rust {1-2}
+```rust ,ignore {1-2}
 - #[derive(Clone, PartialEq)]
 + #[derive(Clone, PartialEq, Deserialize)]
 struct Video {
@@ -452,7 +471,7 @@ struct Video {
 
 Now as the last step, we need to update our `App` component to make the fetch request instead of using hardcoded data
 
-```rust {3-23,32-33}
+```rust ,ignore {3-23,32-33}
 #[function_component(App)]
 fn app() -> Html {
 -    let videos = vec![
@@ -503,7 +522,7 @@ In order to fix that, we need a proxy server. Luckily trunk provides that.
 
 Update the following line:
 
-```rust {2-3}
+```rust ,ignore {2-3}
 // ...
 -                let fetched_videos: Vec<Video> = Request::get("https://yew.rs/tutorial/data.json")
 +                let fetched_videos: Vec<Video> = Request::get("/tutorial/data.json")

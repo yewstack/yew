@@ -14,7 +14,7 @@ module.exports = {
       title: 'Yew',
       logo: {
         alt: 'Yew Logo',
-          src: 'img/logo.png',
+        src: 'img/logo.png',
       },
       items: [
         {
@@ -28,10 +28,6 @@ module.exports = {
         {
           to: '/',
           label: 'Docs'
-        },
-        {
-          to: '/tutorial',
-          label: 'Tutorial'
         },
         {
           href: 'https://docs.rs/yew',

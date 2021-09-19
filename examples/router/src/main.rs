@@ -9,6 +9,7 @@ use pages::{
     author::Author, author_list::AuthorList, home::Home, page_not_found::PageNotFound, post::Post,
     post_list::PostList,
 };
+use yew::html::Scope;
 
 #[derive(Routable, PartialEq, Clone, Debug)]
 pub enum Route {
@@ -32,21 +33,19 @@ pub enum Msg {
 }
 
 pub struct Model {
-    link: ComponentLink<Self>,
     navbar_active: bool,
 }
 impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            link,
             navbar_active: false,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::ToggleNavbar => {
                 self.navbar_active = !self.navbar_active;
@@ -55,14 +54,10 @@ impl Component for Model {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <>
-                { self.view_nav() }
+                { self.view_nav(ctx.link()) }
 
                 <main>
                     <Router<Route> render={Router::render(switch)} />
@@ -82,12 +77,8 @@ impl Component for Model {
     }
 }
 impl Model {
-    fn view_nav(&self) -> Html {
-        let Self {
-            ref link,
-            navbar_active,
-            ..
-        } = *self;
+    fn view_nav(&self, link: &Scope<Self>) -> Html {
+        let Self { navbar_active, .. } = *self;
 
         let active_class = if navbar_active { "is-active" } else { "" };
 

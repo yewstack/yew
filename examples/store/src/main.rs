@@ -3,9 +3,9 @@ mod post;
 mod text_input;
 
 use agents::posts::{PostId, PostRequest, PostStore};
+use gloo_console as console;
 use post::Post;
 use text_input::TextInput;
-use weblog::console_log;
 use yew::prelude::*;
 use yew_agent::utils::store::{Bridgeable, ReadOnly, StoreWrapper};
 use yew_agent::Bridge;
@@ -16,7 +16,6 @@ pub enum Msg {
 }
 
 pub struct Model {
-    link: ComponentLink<Self>,
     post_ids: Vec<PostId>,
     post_store: Box<dyn Bridge<StoreWrapper<PostStore>>>,
 }
@@ -25,16 +24,15 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.callback(Msg::PostStoreMsg);
+    fn create(ctx: &Context<Self>) -> Self {
+        let callback = ctx.link().callback(Msg::PostStoreMsg);
         Self {
-            link,
             post_ids: Vec::new(),
             post_store: PostStore::bridge(callback),
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::CreatePost(text) => {
                 self.post_store.send(PostRequest::Create(text));
@@ -43,7 +41,7 @@ impl Component for Model {
             Msg::PostStoreMsg(state) => {
                 // We can see this is logged once before we click any button.
                 // The state of the store is sent when we open a bridge.
-                console_log!("Received update");
+                console::log!("Received update");
 
                 let state = state.borrow();
                 if state.posts.len() != self.post_ids.len() {
@@ -57,14 +55,10 @@ impl Component for Model {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <>
-                <TextInput value="New post" onsubmit={self.link.callback(Msg::CreatePost)} />
+                <TextInput value="New post" onsubmit={ctx.link().callback(Msg::CreatePost)} />
 
                 <div>
                     { for self.post_ids.iter().map(|&id| html!{ <Post key={id} {id} /> }) }

@@ -15,6 +15,8 @@ Hooks allow function components to use state and other Yew features without impl
 The easiest way to create a function component is to add the [`#[function_component]`](function-components/attribute.md) attribute to a function.
 
 ```rust
+use yew::{function_component, html};
+
 #[function_component(HelloWorld)]
 fn hello_world() -> Html {
     html! { "Hello world" }

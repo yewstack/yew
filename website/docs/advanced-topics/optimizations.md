@@ -4,42 +4,6 @@ sidebar_label: Optimizations
 description: "Make your app faster"
 ---
 
-## neq\_assign
-
-When a component receives props from its parent component, the `change` method is called. This, in 
-addition to allowing you to update the component's state, also allows you to return a `ShouldRender` 
-boolean value that indicates if the component should re-render itself in response to the prop changes.
-
-Re-rendering is expensive, and if you can avoid it, you should. As a general rule, you only want to 
-re-render when the props actually changed. The following block of code represents this rule, returning 
-`true` if the props differed from the previous props:
-
-```rust
-use yew::ShouldRender;
-
-#[derive(PartialEq)]
-struct ExampleProps;
-
-struct Example {
-    props: ExampleProps,
-};
-
-impl Example {
-    fn change(&mut self, props: ExampleProps) -> ShouldRender {
-        if self.props != props {
-            self.props = props;
-            true
-        } else {
-            false
-        }
-    }
-}
-```
-
-But we can go further! This is six lines of boilerplate can be reduced down to one by using a trait 
-and a blanket implementation for anything that implements `PartialEq`. Check out the [`NeqAssign` trait](https://docs.rs/yew/*/yew/utils/trait.NeqAssign.html) which implements
-this.
-
 ## Using smart pointers effectively
 
 **Note: if you're unsure about some of the terms used in this section, the Rust Book has a useful
@@ -51,7 +15,7 @@ references to the relevant data in your props and child components instead of th
 can avoid cloning any data until you need to modify it in the child component, where you can 
 use `Rc::make_mut` to clone and obtain a mutable reference to the data you want to alter. 
 
-This brings further benefits in `Component::change` when working out whether prop changes require 
+This brings further benefits in `Component::changed` when working out whether prop changes require 
 the component to re-render. This is because instead of comparing the value of the data the 
 underlying pointer addresses (i.e. the position in a machine's memory where the data is stored) can 
 instead be compared; if two pointers point to the same data then the value of the data they point to 
@@ -71,6 +35,10 @@ This optimization works best if the values are never updated by the children, an
 they are rarely updated by parents. This makes `Rc<_>s` a good choice for wrapping property values 
 in for pure components.
 
+However, it must be noted that unless you need to clone the data yourself in the child component, 
+this optimization is not only useless, it also adds unnecessary cost of reference counting. Props
+in Yew are already reference counted and no data clones occur internally.
+
 ## View functions
 
 For code readability reasons, it often makes sense to migrate sections of `html!` to their own 
@@ -88,11 +56,7 @@ instead of expression syntax \(`{some_view_function()}`\), and that depending on
 implementation, they can be memoized (this means that once a function is called its value is "saved"
 so that if it's called with the same arguments more than once it doesn't have to recompute its value
 and can just return the saved value from the first function call) - preventing re-renders for 
-identical props using the aforementioned `neq_assign` logic.
-
-Yew doesn't natively support pure or function components, but they are available via external crates.
-
-## Keyed DOM nodes when they arrive
+identical props. Yew compares the props internally and so the UI is only re-rendered if the props change.
 
 ## Reducing compile time using workspaces
 
@@ -131,7 +95,7 @@ implementation of the main page and render the component you are working on on t
 
 The slower speed and memory overhead are minor in comparison to the size gains made by not including the default allocator. This smaller file size means that your page will load faster, and so it is generally recommended that you use this allocator over the default, unless your app is doing some allocation-heavy work.
 
-```rust
+```rust ,ignore
 // Use `wee_alloc` as the global allocator.
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;

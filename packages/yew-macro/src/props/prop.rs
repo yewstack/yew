@@ -1,4 +1,6 @@
+use super::CHILDREN_LABEL;
 use crate::html_tree::HtmlDashedName;
+use proc_macro2::{Spacing, TokenTree};
 use std::{
     cmp::Ordering,
     convert::TryFrom,
@@ -6,9 +8,9 @@ use std::{
 };
 use syn::{
     braced,
-    parse::{Parse, ParseStream},
+    parse::{Parse, ParseBuffer, ParseStream},
     token::Brace,
-    Block, Expr, ExprBlock, ExprPath, Stmt, Token,
+    Block, Expr, ExprBlock, ExprPath, ExprRange, Stmt, Token,
 };
 
 pub struct Prop {
@@ -74,14 +76,46 @@ impl Prop {
                 "expected an expression following this equals sign",
             ));
         }
-        let value = strip_braces(input.parse::<Expr>()?)?;
+
+        let value = parse_prop_value(input)?;
         Ok(Self { label, value })
     }
 }
 
-fn strip_braces(expr: Expr) -> syn::Result<Expr> {
-    match expr {
-        Expr::Block(ExprBlock { block: Block { mut stmts, .. }, .. }) if stmts.len() == 1 => {
+fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
+    if input.peek(Brace) {
+        strip_braces(input.parse()?)
+    } else {
+        let expr = if let Some(ExprRange {
+            from: Some(from), ..
+        }) = range_expression_peek(input)
+        {
+            // If a range expression is seen, treat the left-side expression as the value
+            // and leave the right-side expression to be parsed as a base expression
+            advance_until_next_dot2(input)?;
+            *from
+        } else {
+            input.parse()?
+        };
+
+        match &expr {
+            Expr::Lit(_) => Ok(expr),
+            _ => {
+                Err(syn::Error::new_spanned(
+                    &expr,
+                    "the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.",
+                ))
+            }
+        }
+    }
+}
+
+fn strip_braces(block: ExprBlock) -> syn::Result<Expr> {
+    match block {
+        ExprBlock {
+            block: Block { mut stmts, .. },
+            ..
+        } if stmts.len() == 1 => {
             let stmt = stmts.remove(0);
             match stmt {
                 Stmt::Expr(expr) => Ok(expr),
@@ -95,12 +129,44 @@ fn strip_braces(expr: Expr) -> syn::Result<Expr> {
                 ))
             }
         }
-        Expr::Lit(_) | Expr::Block(_) => Ok(expr),
-        _ => Err(syn::Error::new_spanned(
-                &expr,
-                "the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.".to_string(),
-        )),
+        block => Ok(Expr::Block(block)),
     }
+}
+
+// Without advancing cursor, returns the range expression at the current cursor position if any
+fn range_expression_peek(input: &ParseBuffer) -> Option<ExprRange> {
+    match input.fork().parse::<Expr>().ok()? {
+        Expr::Range(range) => Some(range),
+        _ => None,
+    }
+}
+
+fn advance_until_next_dot2(input: &ParseBuffer) -> syn::Result<()> {
+    input.step(|cursor| {
+        let mut rest = *cursor;
+        let mut first_dot = None;
+        while let Some((tt, next)) = rest.token_tree() {
+            match &tt {
+                TokenTree::Punct(punct) if punct.as_char() == '.' => {
+                    if let Some(first_dot) = first_dot {
+                        return Ok(((), first_dot));
+                    } else {
+                        // Only consider dot as potential first if there is no spacing after it
+                        first_dot = if punct.spacing() == Spacing::Joint {
+                            Some(rest)
+                        } else {
+                            None
+                        };
+                    }
+                }
+                _ => {
+                    first_dot = None;
+                }
+            }
+            rest = next;
+        }
+        Err(cursor.error("no `..` found in expression"))
+    })
 }
 
 /// List of props sorted in alphabetical order*.
@@ -111,8 +177,6 @@ fn strip_braces(expr: Expr) -> syn::Result<Expr> {
 /// Use `check_no_duplicates` to ensure that there are no duplicates.
 pub struct SortedPropList(Vec<Prop>);
 impl SortedPropList {
-    const CHILDREN_LABEL: &'static str = "children";
-
     /// Create a new `SortedPropList` from a vector of props.
     /// The given `props` doesn't need to be sorted.
     pub fn new(mut props: Vec<Prop>) -> Self {
@@ -123,9 +187,9 @@ impl SortedPropList {
     fn cmp_label(a: &str, b: &str) -> Ordering {
         if a == b {
             Ordering::Equal
-        } else if a == Self::CHILDREN_LABEL {
+        } else if a == CHILDREN_LABEL {
             Ordering::Greater
-        } else if b == Self::CHILDREN_LABEL {
+        } else if b == CHILDREN_LABEL {
             Ordering::Less
         } else {
             a.cmp(b)
@@ -210,7 +274,8 @@ impl SortedPropList {
 impl Parse for SortedPropList {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut props: Vec<Prop> = Vec::new();
-        while !input.is_empty() {
+        // Stop parsing props if a base expression preceded by `..` is reached
+        while !input.is_empty() && !input.peek(Token![..]) {
             props.push(input.parse()?);
         }
 
@@ -238,14 +303,6 @@ impl SpecialProps {
         let node_ref = props.pop_unique(Self::REF_LABEL)?;
         let key = props.pop_unique(Self::KEY_LABEL)?;
         Ok(Self { node_ref, key })
-    }
-
-    pub fn get_slot_mut(&mut self, key: &str) -> Option<&mut Option<Prop>> {
-        match key {
-            Self::REF_LABEL => Some(&mut self.node_ref),
-            Self::KEY_LABEL => Some(&mut self.key),
-            _ => None,
-        }
     }
 
     fn iter(&self) -> impl Iterator<Item = &Prop> {

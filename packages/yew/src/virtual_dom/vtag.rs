@@ -1,10 +1,9 @@
 //! This module contains the implementation of a virtual element node [VTag].
 
-use super::{Apply, AttrValue, Attributes, Key, Listener, VDiff, VList, VNode};
+use super::{Apply, AttrValue, Attributes, Key, Listener, Listeners, VDiff, VList, VNode};
 use crate::html::{AnyScope, IntoPropValue, NodeRef};
 use crate::utils::document;
-use gloo::events::EventListener;
-use log::warn;
+use gloo::console;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::hint::unreachable_unchecked;
@@ -145,67 +144,6 @@ enum VTagInner {
     },
 }
 
-/// A list of event listeners, either registered or pending registration
-/// TODO(#943): Compare references of handler to do listeners update better
-#[derive(Debug)]
-enum Listeners {
-    /// Listeners pending registration
-    Pending(Vec<Rc<dyn Listener>>),
-
-    /// Already registered listeners.
-    /// Keeps handlers for attached listeners to have an opportunity to drop them later
-    Registered(Vec<EventListener>),
-}
-
-impl Apply for Listeners {
-    type Element = Element;
-
-    fn apply(&mut self, el: &Self::Element) {
-        if let Self::Pending(v) = self {
-            *self = Self::Registered(
-                std::mem::take(v)
-                    .into_iter()
-                    .map(|l| l.attach(el))
-                    .collect(),
-            );
-        }
-    }
-
-    fn apply_diff(&mut self, el: &Self::Element, _ancestor: Self) {
-        // All we need to do with `_ancestor` is drop it
-
-        self.apply(el);
-    }
-}
-
-impl PartialEq for Listeners {
-    fn eq(&self, other: &Self) -> bool {
-        use Listeners::*;
-
-        match (self, other) {
-            (Pending(s), Pending(o)) => {
-                s.len() == o.len() && s.iter().map(|l| l.kind()).eq(o.iter().map(|l| l.kind()))
-            }
-            _ => false,
-        }
-    }
-}
-
-impl Clone for Listeners {
-    fn clone(&self) -> Self {
-        match self {
-            Self::Pending(v) => Self::Pending(v.clone()),
-            Self::Registered(_) => Self::Registered(vec![]),
-        }
-    }
-}
-
-impl From<Vec<Rc<dyn Listener>>> for Listeners {
-    fn from(v: Vec<Rc<dyn Listener>>) -> Self {
-        Self::Pending(v)
-    }
-}
-
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
 /// representation.
@@ -281,7 +219,7 @@ impl VTag {
         key: Option<Key>,
         // at bottom for more readable macro-expanded coded
         attributes: Attributes,
-        listeners: Vec<Rc<dyn Listener>>,
+        listeners: Listeners,
     ) -> Self {
         VTag::new_base(
             VTagInner::Input(InputFields {
@@ -313,7 +251,7 @@ impl VTag {
         key: Option<Key>,
         // at bottom for more readable macro-expanded coded
         attributes: Attributes,
-        listeners: Vec<Rc<dyn Listener>>,
+        listeners: Listeners,
     ) -> Self {
         VTag::new_base(
             VTagInner::Textarea {
@@ -340,7 +278,7 @@ impl VTag {
         key: Option<Key>,
         // at bottom for more readable macro-expanded coded
         attributes: Attributes,
-        listeners: Vec<Rc<dyn Listener>>,
+        listeners: Listeners,
         children: VList,
     ) -> Self {
         VTag::new_base(
@@ -360,13 +298,13 @@ impl VTag {
         node_ref: NodeRef,
         key: Option<Key>,
         attributes: Attributes,
-        listeners: Vec<Rc<dyn Listener>>,
+        listeners: Listeners,
     ) -> Self {
         VTag {
             inner,
             reference: None,
             attributes,
-            listeners: listeners.into(),
+            listeners,
             node_ref,
             key,
         }
@@ -497,22 +435,9 @@ impl VTag {
             .insert(key, value.into_prop_value());
     }
 
-    /// Adds new listener to the node.
-    /// It's boxed because we want to keep it in a single list.
-    /// Later `Listener::attach` will attach an actual listener to a DOM node.
-    pub fn add_listener(&mut self, listener: Rc<dyn Listener>) {
-        if let Listeners::Pending(v) = &mut self.listeners {
-            v.push(listener);
-        }
-    }
-
-    /// Adds new listeners to the node.
-    /// They are boxed because we want to keep them in a single list.
-    /// Later `Listener::attach` will attach an actual listener to a DOM node.
-    pub fn add_listeners(&mut self, listeners: Vec<Rc<dyn Listener>>) {
-        if let Listeners::Pending(v) = &mut self.listeners {
-            v.extend(listeners);
-        }
+    /// Set event listeners on the [VTag]'s  [Element]
+    pub fn set_listener(&mut self, listeners: Box<[Option<Rc<dyn Listener>>]>) {
+        self.listeners = Listeners::Pending(listeners);
     }
 
     fn create_element(&self, parent: &Element) -> Element {
@@ -542,12 +467,14 @@ impl VDiff for VTag {
             .take()
             .expect("tried to remove not rendered VTag from DOM");
 
+        self.listeners.unregister();
+
         // recursively remove its children
         if let VTagInner::Other { children, .. } = &mut self.inner {
             children.detach(&node);
         }
         if parent.remove_child(&node).is_err() {
-            warn!("Node not found to remove VTag");
+            console::warn!("Node not found to remove VTag");
         }
         self.node_ref.set(None);
     }
@@ -587,6 +514,7 @@ impl VDiff for VTag {
                         VNode::VTag(mut a) => {
                             // Preserve the reference that already exists
                             let el = a.reference.take().unwrap();
+                            a.node_ref.set(None);
                             (Some(a), el)
                         }
                         _ => unsafe { unreachable_unchecked() },
@@ -1101,6 +1029,10 @@ mod tests {
 
         // check whether not changed virtual dom value has been set to the input element
         assert_eq!(current_value, "User input");
+
+        // Need to remove the element to clean up the dirty state of the DOM. Failing this causes
+        // event listener tests to fail.
+        parent.remove();
     }
 
     #[test]
@@ -1171,6 +1103,32 @@ mod tests {
         assert_eq!(node_ref.get(), parent_node.first_child());
         elem.detach(&parent);
         assert!(node_ref.get().is_none());
+    }
+
+    #[test]
+    fn vtag_reuse_should_reset_ancestors_node_ref() {
+        let scope = test_scope();
+        let parent = document().create_element("div").unwrap();
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let node_ref_a = NodeRef::default();
+        let mut elem_a = html! { <div id="a" ref={node_ref_a.clone()} /> };
+        elem_a.apply(&scope, &parent, NodeRef::default(), None);
+
+        // save the Node to check later that it has been reused.
+        let node_a = node_ref_a.get().unwrap();
+
+        let node_ref_b = NodeRef::default();
+        let mut elem_b = html! { <div id="b" ref={node_ref_b.clone()} /> };
+        elem_b.apply(&scope, &parent, NodeRef::default(), Some(elem_a));
+
+        let node_b = node_ref_b.get().unwrap();
+
+        assert_eq!(node_a, node_b, "VTag should have reused the element");
+        assert!(
+            node_ref_a.get().is_none(),
+            "node_ref_a should have been reset when the element was reused."
+        );
     }
 }
 

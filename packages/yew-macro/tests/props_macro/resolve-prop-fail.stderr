@@ -1,21 +1,13 @@
-error[E0277]: the trait bound `Vec<_>: yew::Properties` is not satisfied
-  --> $DIR/resolve-prop-fail.rs:38:17
-   |
-38 |     yew::props!(Vec<_> {});
-   |                 ^^^ the trait `yew::Properties` is not implemented for `Vec<_>`
-   |
-   = note: required by `builder`
-
-error[E0277]: the trait bound `MyComp: yew::Properties` is not satisfied
-  --> $DIR/resolve-prop-fail.rs:39:17
-   |
-39 |     yew::props!(MyComp {});
-   |                 ^^^^^^ the trait `yew::Properties` is not implemented for `MyComp`
-   |
-   = note: required by `builder`
-
-error[E0277]: the trait bound `MyNotAComponent: yew::Component` is not satisfied
-  --> $DIR/resolve-prop-fail.rs:40:17
-   |
-40 |     yew::props!(MyNotAComponent::Properties {});
-   |                 ^^^^^^^^^^^^^^^ the trait `yew::Component` is not implemented for `MyNotAComponent`
+error[E0277]: can't compare `Props` with `Props`
+ --> $DIR/resolve-prop-fail.rs:3:17
+  |
+3 | #[derive(Clone, Properties)]
+  |                 ^^^^^^^^^^ no implementation for `Props == Props`
+  |
+ ::: $WORKSPACE/packages/yew/src/html/component/properties.rs
+  |
+  | pub trait Properties: PartialEq {
+  |                       --------- required by this bound in `yew::Properties`
+  |
+  = help: the trait `PartialEq` is not implemented for `Props`
+  = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -25,7 +25,6 @@
 //! }
 //!
 //! struct Model {
-//!     link: ComponentLink<Self>,
 //!     value: i64,
 //! }
 //!
@@ -33,14 +32,13 @@
 //!     type Message = Msg;
 //!     type Properties = ();
 //!
-//!     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+//!     fn create(ctx: &Context<Self>) -> Self {
 //!         Self {
-//!             link,
 //!             value: 0,
 //!         }
 //!     }
 //!
-//!     fn update(&mut self, msg: Self::Message) -> ShouldRender {
+//!     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
 //!         match msg {
 //!             Msg::AddOne => {
 //!                 self.value += 1;
@@ -49,14 +47,10 @@
 //!         }
 //!     }
 //!
-//!     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-//!         false
-//!     }
-//!
-//!     fn view(&self) -> Html {
+//!     fn view(&self, ctx: &Context<Self>) -> Html {
 //!         html! {
 //!             <div>
-//!                 <button onclick={self.link.callback(|_| Msg::AddOne)}>{ "+1" }</button>
+//!                 <button onclick={ctx.link().callback(|_| Msg::AddOne)}>{ "+1" }</button>
 //!                 <p>{ self.value }</p>
 //!             </div>
 //!         }
@@ -134,30 +128,28 @@ pub use yew_macro::html;
 /// use yew::html::ChildrenRenderer;
 /// use yew::virtual_dom::VChild;
 ///
-/// #[derive(Clone, Properties)]
-/// struct List {
+/// #[derive(Clone, Properties, PartialEq)]
+/// struct ListProps {
 ///   children: ChildrenRenderer<ListItem>,
 /// }
+///
+/// struct List;
 /// impl Component for List {
 /// #   type Message = ();
-///   type Properties = Self;
+///   type Properties = ListProps;
 ///   // ...
-/// #   fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self { props }
-/// #   fn update(&mut self, _: Self::Message) -> ShouldRender { false }
-/// #   fn change(&mut self, _: Self::Properties) -> ShouldRender { false }
-/// #   fn view(&self) -> Html { unimplemented!() }
+/// #   fn create(ctx: &Context<Self>) -> Self { Self }
+/// #   fn view(&self, ctx: &Context<Self>) -> Html { unimplemented!() }
 /// }
 ///
-/// #[derive(Clone)]
+/// #[derive(Clone, PartialEq)]
 /// struct ListItem;
 /// impl Component for ListItem {
 /// #   type Message = ();
 /// #   type Properties = ();
 ///   // ...
-/// #   fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self { Self }
-/// #   fn update(&mut self, _: Self::Message) -> ShouldRender { false }
-/// #   fn change(&mut self, _: Self::Properties) -> ShouldRender { false }
-/// #   fn view(&self) -> Html { unimplemented!() }
+/// #   fn create(ctx: &Context<Self>) -> Self { Self }
+/// #   fn view(&self, ctx: &Context<Self>) -> Html { unimplemented!() }
 /// }
 ///
 /// // Required for ChildrenRenderer
@@ -166,7 +158,7 @@ pub use yew_macro::html;
 /// }
 ///
 /// impl Into<Html> for ListItem {
-///   fn into(self) -> Html { self.view() }
+///   fn into(self) -> Html { html! { <self /> } }
 /// }
 ///
 /// // You can use `List` with nested `ListItem` components.
@@ -220,7 +212,7 @@ pub use yew_macro::html_nested;
 /// # use yew::prelude::*;
 /// use std::borrow::Cow;
 ///
-/// #[derive(Clone, Properties)]
+/// #[derive(Clone, Properties, PartialEq)]
 /// struct Props {
 ///     #[prop_or_default]
 ///     id: usize,
@@ -232,10 +224,8 @@ pub use yew_macro::html_nested;
 /// #   type Message = ();
 ///     type Properties = Props;
 ///     // ...
-/// #   fn create(_props: Self::Properties, _link: ComponentLink<Self>) -> Self { unimplemented!() }
-/// #   fn update(&mut self, _msg: Self::Message) -> ShouldRender { unimplemented!() }
-/// #   fn change(&mut self, _props: Self::Properties) -> ShouldRender { unimplemented!() }
-/// #   fn view(&self) -> Html { unimplemented!() }
+/// #   fn create(ctx: &Context<Self>) -> Self { unimplemented!() }
+/// #   fn view(&self, ctx: &Context<Self>) -> Html { unimplemented!() }
 /// }
 ///
 /// # fn foo() -> Html {
@@ -246,9 +236,9 @@ pub use yew_macro::html_nested;
 /// let props = yew::props!(Model::Properties { id: 2, name: Cow::from("Lemmy") });
 /// # assert_eq!(props.id, 2);
 ///
-/// // Use the `with props` syntax to create a component with the props.
+/// // Use the Rust-like struct update syntax to create a component with the props.
 /// html! {
-///     <Model key=1 with props />
+///     <Model key=1 ..props />
 /// }
 /// # }
 /// ```
@@ -279,7 +269,9 @@ pub use web_sys;
 
 /// The module that contains all events available in the framework.
 pub mod events {
-    pub use crate::html::{ChangeData, InputData};
+    pub use crate::html::TargetCast;
+
+    pub use crate::virtual_dom::listeners::set_event_bubbling;
 
     #[doc(no_inline)]
     pub use web_sys::{
@@ -352,7 +344,7 @@ where
     COMP: Component,
 {
     set_default_panic_hook();
-    AppHandle::<COMP>::mount_with_props(element, props)
+    AppHandle::<COMP>::mount_with_props(element, Rc::new(props))
 }
 
 /// The main entry point of a Yew application.
@@ -380,7 +372,7 @@ where
     COMP: Component,
 {
     set_default_panic_hook();
-    AppHandle::<COMP>::mount_as_body_with_props(props)
+    AppHandle::<COMP>::mount_as_body_with_props(Rc::new(props))
 }
 
 /// The Yew Prelude
@@ -397,8 +389,7 @@ pub mod prelude {
     pub use crate::context::ContextProvider;
     pub use crate::events::*;
     pub use crate::html::{
-        Children, ChildrenWithProps, Classes, Component, ComponentLink, Html, NodeRef, Properties,
-        ShouldRender,
+        Children, ChildrenWithProps, Classes, Component, Context, Html, NodeRef, Properties,
     };
     pub use crate::macros::{classes, html, html_nested};
 
@@ -406,3 +397,4 @@ pub mod prelude {
 }
 
 pub use self::prelude::*;
+use std::rc::Rc;

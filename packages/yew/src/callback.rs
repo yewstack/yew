@@ -17,8 +17,18 @@ use std::rc::Rc;
 /// </aside>
 /// An `Rc` wrapper is used to make it cloneable.
 pub enum Callback<IN> {
-    /// A callback which can be called multiple times
-    Callback(Rc<dyn Fn(IN)>),
+    /// A callback which can be called multiple times with optional modifier flags
+    Callback {
+        /// A callback which can be called multiple times
+        cb: Rc<dyn Fn(IN)>,
+
+        /// Setting `passive` to [Some] explicitly makes the event listener passive or not.
+        /// Yew sets sane defaults depending on the type of the listener.
+        /// See
+        /// [addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).
+        passive: Option<bool>,
+    },
+
     /// A callback which can only be called once. The callback will panic if it is
     /// called more than once.
     CallbackOnce(Rc<CallbackOnce<IN>>),
@@ -28,14 +38,20 @@ type CallbackOnce<IN> = RefCell<Option<Box<dyn FnOnce(IN)>>>;
 
 impl<IN, F: Fn(IN) + 'static> From<F> for Callback<IN> {
     fn from(func: F) -> Self {
-        Callback::Callback(Rc::new(func))
+        Callback::Callback {
+            cb: Rc::new(func),
+            passive: None,
+        }
     }
 }
 
 impl<IN> Clone for Callback<IN> {
     fn clone(&self) -> Self {
         match self {
-            Callback::Callback(cb) => Callback::Callback(cb.clone()),
+            Callback::Callback { cb, passive } => Callback::Callback {
+                cb: cb.clone(),
+                passive: *passive,
+            },
             Callback::CallbackOnce(cb) => Callback::CallbackOnce(cb.clone()),
         }
     }
@@ -45,10 +61,16 @@ impl<IN> Clone for Callback<IN> {
 impl<IN> PartialEq for Callback<IN> {
     fn eq(&self, other: &Callback<IN>) -> bool {
         match (&self, &other) {
-            (Callback::Callback(cb), Callback::Callback(other_cb)) => Rc::ptr_eq(cb, other_cb),
             (Callback::CallbackOnce(cb), Callback::CallbackOnce(other_cb)) => {
                 Rc::ptr_eq(cb, other_cb)
             }
+            (
+                Callback::Callback { cb, passive },
+                Callback::Callback {
+                    cb: rhs_cb,
+                    passive: rhs_passive,
+                },
+            ) => Rc::ptr_eq(cb, rhs_cb) && passive == rhs_passive,
             _ => false,
         }
     }
@@ -57,7 +79,7 @@ impl<IN> PartialEq for Callback<IN> {
 impl<IN> fmt::Debug for Callback<IN> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let data = match self {
-            Callback::Callback(_) => "Callback<_>",
+            Callback::Callback { .. } => "Callback<_>",
             Callback::CallbackOnce(_) => "CallbackOnce<_>",
         };
 
@@ -69,10 +91,10 @@ impl<IN> Callback<IN> {
     /// This method calls the callback's function.
     pub fn emit(&self, value: IN) {
         match self {
-            Callback::Callback(cb) => cb(value),
+            Callback::Callback { cb, .. } => cb(value),
             Callback::CallbackOnce(rc) => {
                 let cb = rc.replace(None);
-                let f = cb.expect("callback in CallbackOnce has already been used");
+                let f = cb.expect("callback contains `FnOnce` which has already been used");
                 f(value)
             }
         };

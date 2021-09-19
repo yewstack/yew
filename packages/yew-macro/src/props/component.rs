@@ -1,99 +1,52 @@
-use super::{Prop, Props, SpecialProps};
-use proc_macro2::{Ident, TokenStream, TokenTree};
+use super::{Prop, Props, SpecialProps, CHILDREN_LABEL};
+use proc_macro2::{Ident, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use std::convert::TryFrom;
 use syn::{
     parse::{Parse, ParseStream},
     spanned::Spanned,
-    Expr, Token,
+    token::Dot2,
+    Expr, ExprLit, Lit,
 };
 
-mod kw {
-    syn::custom_keyword!(with);
-}
-
-pub struct WithProps {
-    pub special: SpecialProps,
-    pub with: kw::with,
+struct BaseExpr {
+    pub dot2: Dot2,
     pub expr: Expr,
 }
-impl WithProps {
-    /// Check if the `ParseStream` contains a `with expr` expression.
-    /// This function advances the given `ParseStream`!
-    fn contains_with_expr(input: ParseStream) -> bool {
-        while !input.is_empty() {
-            if input.peek(kw::with) && !input.peek2(Token![=]) {
-                return true;
-            }
-            input.parse::<TokenTree>().ok();
-        }
 
-        false
-    }
-}
-impl Parse for WithProps {
+impl Parse for BaseExpr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut special = SpecialProps::default();
-        let mut with_expr: Option<(kw::with, Expr)> = None;
-        while !input.is_empty() {
-            // no need to check if it's followed by `=` because `with` isn't a special prop
-            if input.peek(kw::with) {
-                if let Some((with, expr)) = with_expr {
-                    return Err(syn::Error::new_spanned(
-                        quote! { #with#expr },
-                        "there are two `with <props>` definitions for this component (note: you can only define `with <props>` once)"
-                    ));
-                }
-                let with = input.parse::<kw::with>()?;
-                if input.is_empty() {
-                    return Err(syn::Error::new_spanned(
-                        with,
-                        "expected expression following this `with`",
-                    ));
-                }
-                with_expr = Some((with, input.parse()?));
-            } else {
-                let prop = input.parse::<Prop>()?;
-
-                if let Some(slot) = special.get_slot_mut(&prop.label.to_string()) {
-                    if slot.is_some() {
-                        return Err(syn::Error::new_spanned(
-                            &prop.label,
-                            &format!("`{}` can only be set once", prop.label),
-                        ));
-                    }
-                    slot.replace(prop);
-                } else {
-                    return Err(syn::Error::new_spanned(
-                        prop.label,
-                        "Using the `with props` syntax in combination with named props is not allowed (note: this does not apply to special props like `ref` and `key`)",
-                    ));
-                }
-            }
-        }
-
-        let (with, expr) =
-            with_expr.ok_or_else(|| input.error("missing `with props` expression"))?;
-
-        Ok(Self {
-            special,
-            with,
-            expr,
-        })
+        let dot2 = input.parse()?;
+        let expr = input.parse().map_err(|expr_error| {
+            let mut error =
+                syn::Error::new_spanned(dot2, "expected base props expression after `..`");
+            error.combine(expr_error);
+            error
+        })?;
+        Ok(Self { dot2, expr })
     }
 }
 
-pub enum ComponentProps {
-    List(Props),
-    With(Box<WithProps>),
+impl ToTokens for BaseExpr {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let BaseExpr { dot2, expr } = self;
+        tokens.extend(quote! { #dot2#expr });
+    }
+}
+
+pub struct ComponentProps {
+    props: Props,
+    base_expr: Option<Expr>,
 }
 impl ComponentProps {
     /// Get the special props supported by both variants
     pub fn special(&self) -> &SpecialProps {
-        match self {
-            Self::List(props) => &props.special,
-            Self::With(props) => &props.special,
-        }
+        &self.props.special
+    }
+
+    // check if the `children` prop is given explicitly
+    pub fn children(&self) -> Option<&Prop> {
+        self.props.get_by_label(CHILDREN_LABEL)
     }
 
     fn prop_validation_tokens(&self, props_ty: impl ToTokens, has_children: bool) -> TokenStream {
@@ -103,20 +56,16 @@ impl ComponentProps {
             None
         };
 
-        let check_props = match self {
-            Self::List(props) => props
-                .iter()
-                .map(|Prop { label, .. }| {
-                    quote_spanned! {label.span()=> __yew_props.#label; }
-                })
-                .collect(),
-            Self::With(with_props) => {
-                let expr = &with_props.expr;
+        let check_props: TokenStream = self
+            .props
+            .iter()
+            .map(|Prop { label, .. }| quote_spanned! ( label.span()=> __yew_props.#label; ))
+            .chain(self.base_expr.iter().map(|expr| {
                 quote_spanned! {props_ty.span()=>
                     let _: #props_ty = #expr;
                 }
-            }
-        };
+            }))
+            .collect();
 
         quote_spanned! {props_ty.span()=>
             #[allow(clippy::no_effect)]
@@ -135,9 +84,9 @@ impl ComponentProps {
         children_renderer: Option<CR>,
     ) -> TokenStream {
         let validate_props = self.prop_validation_tokens(&props_ty, children_renderer.is_some());
-        let build_props = match self {
-            Self::List(props) => {
-                let set_props = props.iter().map(|Prop { label, value, .. }| {
+        let build_props = match &self.base_expr {
+            None => {
+                let set_props = self.props.iter().map(|Prop { label, value, .. }| {
                     quote_spanned! {value.span()=>
                         .#label(#value)
                     }
@@ -156,17 +105,31 @@ impl ComponentProps {
                         .build()
                 }
             }
-            Self::With(with_props) => {
+            // Builder pattern is unnecessary in this case, since the base expression guarantees
+            // all values are initialized
+            Some(expr) => {
                 let ident = Ident::new("__yew_props", props_ty.span());
+                let set_props = self.props.iter().map(|Prop { label, value, .. }| {
+                    if is_string_literal(value) {
+                        // String literals should be implicitly converted into `String`
+                        quote_spanned! {value.span()=>
+                            #ident.#label = ::std::convert::Into::into(#value);
+                        }
+                    } else {
+                        quote_spanned! {value.span()=>
+                            #ident.#label = #value;
+                        }
+                    }
+                });
                 let set_children = children_renderer.map(|children| {
                     quote_spanned! {props_ty.span()=>
                         #ident.children = #children;
                     }
                 });
 
-                let expr = &with_props.expr;
                 quote! {
                     let mut #ident = #expr;
+                    #(#set_props)*
                     #set_children
                     #ident
                 }
@@ -181,12 +144,34 @@ impl ComponentProps {
         }
     }
 }
+
+fn is_string_literal(expr: &Expr) -> bool {
+    matches!(
+        expr,
+        Expr::Lit(ExprLit {
+            lit: Lit::Str(_),
+            ..
+        })
+    )
+}
+
 impl Parse for ComponentProps {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        if WithProps::contains_with_expr(&input.fork()) {
-            input.parse().map(Self::With)
+        let props = validate(input.parse()?)?;
+        let base_expr = if input.is_empty() {
+            None
         } else {
-            input.parse::<Props>().and_then(Self::try_from)
+            Some(input.parse::<BaseExpr>()?)
+        };
+
+        if input.is_empty() {
+            let base_expr = base_expr.map(|base| base.expr);
+            Ok(Self { props, base_expr })
+        } else {
+            Err(syn::Error::new_spanned(
+                base_expr,
+                "base props expression must appear last in list of props",
+            ))
         }
     }
 }
@@ -195,18 +180,25 @@ impl TryFrom<Props> for ComponentProps {
     type Error = syn::Error;
 
     fn try_from(props: Props) -> Result<Self, Self::Error> {
-        props.check_no_duplicates()?;
-        props.check_all(|prop| {
-            if !prop.label.extended.is_empty() {
-                Err(syn::Error::new_spanned(
-                    &prop.label,
-                    "expected a valid Rust identifier",
-                ))
-            } else {
-                Ok(())
-            }
-        })?;
-
-        Ok(Self::List(props))
+        Ok(Self {
+            props: validate(props)?,
+            base_expr: None,
+        })
     }
+}
+
+fn validate(props: Props) -> Result<Props, syn::Error> {
+    props.check_no_duplicates()?;
+    props.check_all(|prop| {
+        if !prop.label.extended.is_empty() {
+            Err(syn::Error::new_spanned(
+                &prop.label,
+                "expected a valid Rust identifier",
+            ))
+        } else {
+            Ok(())
+        }
+    })?;
+
+    Ok(props)
 }

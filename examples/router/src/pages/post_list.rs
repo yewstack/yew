@@ -15,18 +15,17 @@ struct PageQuery {
     page: u64,
 }
 
-pub struct PostList {
-    link: ComponentLink<Self>,
-}
+pub struct PostList;
+
 impl Component for PostList {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { link }
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::ShowPage(page) => {
                 yew_router::push_route_with_query(Route::Posts, PageQuery { page }).unwrap();
@@ -35,11 +34,7 @@ impl Component for PostList {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let page = self.current_page();
 
         html! {
@@ -50,7 +45,7 @@ impl Component for PostList {
                 <Pagination
                     {page}
                     total_pages={TOTAL_PAGES}
-                    on_switch_page={self.link.callback(Msg::ShowPage)}
+                    on_switch_page={ctx.link().callback(Msg::ShowPage)}
                 />
             </div>
         }

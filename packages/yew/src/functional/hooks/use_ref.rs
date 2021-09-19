@@ -9,7 +9,7 @@ use std::{cell::RefCell, rc::Rc};
 ///
 /// # Example
 /// ```rust
-/// # use yew::prelude::*;
+/// # use yew::{prelude::*, web_sys::{Event, HtmlInputElement}};
 /// # use std::rc::Rc;
 /// # use std::cell::RefCell;
 /// # use std::ops::{Deref, DerefMut};
@@ -32,10 +32,9 @@ use std::{cell::RefCell, rc::Rc};
 ///
 ///     let onchange = {
 ///         let message = message.clone();
-///           Callback::from(move |e| {
-///             if let ChangeData::Value(value) = e {
-///                 message.set(value)
-///             }
+///           Callback::from(move |e: Event| {
+///             let input: HtmlInputElement = e.target_unchecked_into();
+///             message.set(input.value())
 ///         })
 ///     };
 ///
@@ -47,7 +46,7 @@ use std::{cell::RefCell, rc::Rc};
 ///     }
 /// }
 /// ```
-pub fn use_ref<T: 'static>(initial_value: impl FnOnce() -> T + 'static) -> Rc<RefCell<T>> {
+pub fn use_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<RefCell<T>> {
     use_hook(
         || Rc::new(RefCell::new(initial_value())),
         |state, _| state.clone(),
