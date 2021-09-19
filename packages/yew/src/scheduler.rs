@@ -122,17 +122,19 @@ impl Scheduler {
     fn fill_queue(&mut self, to_run: &mut Vec<Box<dyn Runnable>>) {
         // Placed first to avoid as much needless work as possible, handling all the other events.
         // Drained completely, because they are the highest priority events anyway.
-        to_run.extend(self.destroy.drain(..));
+        to_run.append(&mut self.destroy);
 
         // Create events can be batched, as they are typically just for object creation
-        to_run.extend(self.create.drain(..));
+        to_run.append(&mut self.create);
 
         // First render must never be skipped and takes priority over main, because it may need
         // to init `NodeRef`s
         //
         // Should be processed one at time, because they can spawn more create and rendered events
         // for their children.
-        to_run.extend(self.render_first.pop_front());
+        if let Some(r) = self.render_first.pop_front() {
+            to_run.push(r);
+        }
 
         // These typically do nothing and don't spawn any other events - can be batched.
         // Should be run only after all first renders have finished.
@@ -145,10 +147,10 @@ impl Scheduler {
         // rendered, once an update is processed.
         //
         // Can be batched, as they can cause only non-first renders.
-        to_run.extend(self.update.drain(..));
+        to_run.append(&mut self.update);
 
         // Likely to cause duplicate renders via component updates, so placed before them
-        to_run.extend(self.main.drain(..));
+        to_run.append(&mut self.main);
 
         // Run after all possible updates to avoid duplicate renders.
         //
@@ -157,7 +159,9 @@ impl Scheduler {
         if !to_run.is_empty() {
             return;
         }
-        to_run.extend(self.render.pop());
+        if let Some(r) = self.render.pop() {
+            to_run.push(r);
+        }
 
         // These typically do nothing and don't spawn any other events - can be batched.
         // Should be run only after all renders have finished.
