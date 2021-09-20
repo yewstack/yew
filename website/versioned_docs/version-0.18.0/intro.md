@@ -78,3 +78,5 @@ projects:
 * [Percy](https://github.com/chinedufn/percy) - _"A modular toolkit for building isomorphic web apps 
 with Rust + WebAssembly"_
 * [Seed](https://github.com/seed-rs/seed) - _"A Rust framework for creating web apps"_
+* [Perseus](https://github.com/arctic-hen7/perseus) - _"A high-level web development framework for Rust with full support for server-side rendering and static generation"_
+* [Sycamore](https://github.com/sycamore-rs/sycamore) - _"A reactive library for creating web apps in Rust and WebAssembly"_
