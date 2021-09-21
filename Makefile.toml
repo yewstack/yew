@@ -62,12 +62,12 @@ run_task = { name = ["check-release", "clippy-release"], fork = true }
 [tasks.check-release]
 private = true
 command = "cargo"
-args = ["check", "--release"]
+args = ["check", "--all-targets", "--release"]
 
 [tasks.clippy-release]
 private = true
 command = "cargo"
-args = ["clippy", "--release", "--", "--deny=warnings"]
+args = ["clippy", "--all-targets", "--release", "--", "--deny=warnings"]
 
 [tasks.tests-setup]
 private = true
