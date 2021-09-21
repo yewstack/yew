@@ -1,5 +1,5 @@
 use super::*;
-use anymap::{self, AnyMap};
+use anymap2::{self, AnyMap};
 use slab::Slab;
 use std::cell::RefCell;
 use std::marker::PhantomData;
@@ -28,8 +28,8 @@ where
         let bridge = LOCAL_AGENTS_POOL.with(|pool| {
             let mut pool = pool.borrow_mut();
             match pool.entry::<LocalAgent<AGN>>() {
-                anymap::Entry::Occupied(mut entry) => entry.get_mut().create_bridge(callback),
-                anymap::Entry::Vacant(entry) => {
+                anymap2::Entry::Occupied(mut entry) => entry.get_mut().create_bridge(callback),
+                anymap2::Entry::Vacant(entry) => {
                     let scope = AgentScope::<AGN>::new();
                     let launched = LocalAgent::new(&scope);
                     let responder = SlabResponder {
