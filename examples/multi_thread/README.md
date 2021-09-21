@@ -1,8 +1,11 @@
+# Warning
+
+The multi-thread example is a conceptual WIP and is currently blocked on [a future Trunk feature](https://github.com/thedodd/trunk/issues/46)
+
 # Multi-Thread Example
 
 [![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fmulti_thread)](https://examples.yew.rs/multi_thread)
 
-**WIP**: [thedodd/trunk#46](https://github.com/thedodd/trunk/issues/46)
 
 ## Concepts
 
