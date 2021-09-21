@@ -16,6 +16,10 @@ pub(crate) struct ComponentState<COMP: Component> {
     next_sibling: NodeRef,
     node_ref: NodeRef,
     has_rendered: bool,
+
+    // Used for debug logging
+    #[cfg(debug_assertions)]
+    pub(crate) vcomp_id: u64,
 }
 
 impl<COMP: Component> ComponentState<COMP> {
@@ -27,6 +31,12 @@ impl<COMP: Component> ComponentState<COMP> {
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
     ) -> Self {
+        #[cfg(debug_assertions)]
+        let vcomp_id = {
+            use super::Scoped;
+
+            scope.to_any().vcomp_id
+        };
         let context = Context { scope, props };
 
         let component = Box::new(COMP::create(&context));
@@ -38,6 +48,9 @@ impl<COMP: Component> ComponentState<COMP> {
             next_sibling,
             node_ref,
             has_rendered: false,
+
+            #[cfg(debug_assertions)]
+            vcomp_id,
         }
     }
 }
@@ -55,6 +68,9 @@ impl<COMP: Component> Runnable for CreateRunner<COMP> {
     fn run(self: Box<Self>) {
         let mut current_state = self.scope.state.borrow_mut();
         if current_state.is_none() {
+            #[cfg(debug_assertions)]
+            crate::virtual_dom::vcomp::log_event(self.scope.vcomp_id, "create");
+
             *current_state = Some(ComponentState::new(
                 self.parent,
                 self.next_sibling,
@@ -105,6 +121,13 @@ impl<COMP: Component> Runnable for UpdateRunner<COMP> {
                     }
                 }
             };
+
+            #[cfg(debug_assertions)]
+            crate::virtual_dom::vcomp::log_event(
+                state.vcomp_id,
+                format!("update(schedule_render={})", schedule_render),
+            );
+
             if schedule_render {
                 scheduler::push_component_render(
                     self.state.as_ptr() as usize,
@@ -128,6 +151,9 @@ pub(crate) struct DestroyRunner<COMP: Component> {
 impl<COMP: Component> Runnable for DestroyRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().take() {
+            #[cfg(debug_assertions)]
+            crate::virtual_dom::vcomp::log_event(state.vcomp_id, "destroy");
+
             state.component.destroy(&state.context);
             state.root_node.detach(&state.parent);
             state.node_ref.set(None);
@@ -142,6 +168,9 @@ pub(crate) struct RenderRunner<COMP: Component> {
 impl<COMP: Component> Runnable for RenderRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
+            #[cfg(debug_assertions)]
+            crate::virtual_dom::vcomp::log_event(state.vcomp_id, "render");
+
             let mut new_root = state.component.view(&state.context);
             std::mem::swap(&mut new_root, &mut state.root_node);
             let ancestor = Some(new_root);
@@ -161,6 +190,9 @@ pub(crate) struct RenderedRunner<COMP: Component> {
 impl<COMP: Component> Runnable for RenderedRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
+            #[cfg(debug_assertions)]
+            crate::virtual_dom::vcomp::log_event(state.vcomp_id, "rendered");
+
             let first_render = !state.has_rendered;
             state.component.rendered(&state.context, first_render);
             state.has_rendered = true;

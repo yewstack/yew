@@ -28,6 +28,10 @@ pub struct AnyScope {
     type_id: TypeId,
     parent: Option<Rc<AnyScope>>,
     state: Rc<dyn Any>,
+
+    // Used for debug logging
+    #[cfg(debug_assertions)]
+    pub(crate) vcomp_id: u64,
 }
 
 impl<COMP: Component> From<Scope<COMP>> for AnyScope {
@@ -36,6 +40,9 @@ impl<COMP: Component> From<Scope<COMP>> for AnyScope {
             type_id: TypeId::of::<COMP>(),
             parent: scope.parent,
             state: scope.state,
+
+            #[cfg(debug_assertions)]
+            vcomp_id: scope.vcomp_id,
         }
     }
 }
@@ -47,6 +54,9 @@ impl AnyScope {
             type_id: TypeId::of::<()>(),
             parent: None,
             state: Rc::new(()),
+
+            #[cfg(debug_assertions)]
+            vcomp_id: 0,
         }
     }
 
@@ -62,12 +72,24 @@ impl AnyScope {
 
     /// Attempts to downcast into a typed scope
     pub fn downcast<COMP: Component>(self) -> Scope<COMP> {
+        let state = self
+            .state
+            .downcast::<RefCell<Option<ComponentState<COMP>>>>()
+            .expect("unexpected component type");
+
+        #[cfg(debug_assertions)]
+        let vcomp_id = state
+            .borrow()
+            .as_ref()
+            .map(|s| s.vcomp_id)
+            .unwrap_or_default();
+
         Scope {
             parent: self.parent,
-            state: self
-                .state
-                .downcast::<RefCell<Option<ComponentState<COMP>>>>()
-                .expect("unexpected component type"),
+            state,
+
+            #[cfg(debug_assertions)]
+            vcomp_id,
         }
     }
 
@@ -129,6 +151,10 @@ impl<COMP: Component> Scoped for Scope<COMP> {
 pub struct Scope<COMP: Component> {
     parent: Option<Rc<AnyScope>>,
     pub(crate) state: Shared<Option<ComponentState<COMP>>>,
+
+    // Used for debug logging
+    #[cfg(debug_assertions)]
+    pub(crate) vcomp_id: u64,
 }
 
 impl<COMP: Component> fmt::Debug for Scope<COMP> {
@@ -142,6 +168,9 @@ impl<COMP: Component> Clone for Scope<COMP> {
         Scope {
             parent: self.parent.clone(),
             state: self.state.clone(),
+
+            #[cfg(debug_assertions)]
+            vcomp_id: self.vcomp_id,
         }
     }
 }
@@ -165,7 +194,17 @@ impl<COMP: Component> Scope<COMP> {
     pub(crate) fn new(parent: Option<AnyScope>) -> Self {
         let parent = parent.map(Rc::new);
         let state = Rc::new(RefCell::new(None));
-        Scope { parent, state }
+
+        #[cfg(debug_assertions)]
+        let vcomp_id = parent.as_ref().map(|p| p.vcomp_id).unwrap_or_default();
+
+        Scope {
+            state,
+            parent,
+
+            #[cfg(debug_assertions)]
+            vcomp_id,
+        }
     }
 
     /// Mounts a component with `props` to the specified `element` in the DOM.
@@ -176,6 +215,8 @@ impl<COMP: Component> Scope<COMP> {
         node_ref: NodeRef,
         props: Rc<COMP::Properties>,
     ) {
+        #[cfg(debug_assertions)]
+        crate::virtual_dom::vcomp::log_event(self.vcomp_id, "create placeholder");
         let placeholder = {
             let placeholder: Node = document().create_text_node("").into();
             insert_node(&placeholder, &parent, next_sibling.get().as_ref());
@@ -209,6 +250,9 @@ impl<COMP: Component> Scope<COMP> {
         node_ref: NodeRef,
         next_sibling: NodeRef,
     ) {
+        #[cfg(debug_assertions)]
+        crate::virtual_dom::vcomp::log_event(self.vcomp_id, "reuse");
+
         self.push_update(UpdateEvent::Properties(props, node_ref, next_sibling));
     }
 

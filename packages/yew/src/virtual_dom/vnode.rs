@@ -57,7 +57,16 @@ impl VNode {
                 let text_node = vtext.reference.as_ref().expect("VText is not mounted");
                 text_node.clone().into()
             }
-            VNode::VComp(vcomp) => vcomp.node_ref.get().expect("VComp is not mounted"),
+            VNode::VComp(vcomp) => vcomp.node_ref.get().unwrap_or_else(|| {
+                #[cfg(not(debug_assertions))]
+                panic!("no node_ref; VComp should be mounted");
+
+                #[cfg(debug_assertions)]
+                panic!(
+                    "no node_ref; VComp should be mounted after: {:?}",
+                    crate::virtual_dom::vcomp::get_event_log(vcomp.id),
+                );
+            }),
             VNode::VList(vlist) => vlist.get(0).expect("VList is not mounted").first_node(),
             VNode::VRef(node) => node.clone(),
         }
