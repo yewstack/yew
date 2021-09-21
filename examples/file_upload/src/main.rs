@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use web_sys::{Event, HtmlInputElement};
 use yew::{html, html::TargetCast, Component, Context, Html};
 
@@ -14,7 +16,7 @@ pub enum Msg {
 }
 
 pub struct Model {
-    readers: Vec<FileReader>,
+    readers: HashMap<String, FileReader>,
     files: Vec<String>,
     read_bytes: bool,
 }
@@ -25,7 +27,7 @@ impl Component for Model {
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            readers: vec![],
+            readers: HashMap::default(),
             files: vec![],
             read_bytes: false,
         }
@@ -36,17 +38,20 @@ impl Component for Model {
             Msg::Loaded(file_name, data) => {
                 let info = format!("file_name: {}, data: {:?}", file_name, data);
                 self.files.push(info);
+                self.readers.remove(&file_name);
                 true
             }
             Msg::LoadedBytes(file_name, data) => {
                 let info = format!("file_name: {}, data: {:?}", file_name, data);
                 self.files.push(info);
+                self.readers.remove(&file_name);
                 true
             }
             Msg::Files(files, bytes) => {
                 for file in files.into_iter() {
+                    let file_name = file.name();
                     let task = {
-                        let file_name = file.name();
+                        let file_name = file_name.clone();
                         let link = ctx.link().clone();
 
                         if bytes {
@@ -65,7 +70,7 @@ impl Component for Model {
                             })
                         }
                     };
-                    self.readers.push(task);
+                    self.readers.insert(file_name, task);
                 }
                 true
             }
