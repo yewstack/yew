@@ -16,8 +16,10 @@ pub(crate) struct ComponentState<COMP: Component> {
     next_sibling: NodeRef,
     node_ref: NodeRef,
     has_rendered: bool,
-    pending_root: Option<VNode>,
-    pending_updates: Vec<UpdateEvent<COMP>>,
+
+    // Used for debug logging
+    #[cfg(debug_assertions)]
+    pub(crate) vcomp_id: u64,
 }
 
 impl<COMP: Component> ComponentState<COMP> {
@@ -29,6 +31,12 @@ impl<COMP: Component> ComponentState<COMP> {
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
     ) -> Self {
+        #[cfg(debug_assertions)]
+        let vcomp_id = {
+            use super::Scoped;
+
+            scope.to_any().vcomp_id
+        };
         let context = Context { scope, props };
 
         let component = Box::new(COMP::create(&context));
@@ -40,39 +48,14 @@ impl<COMP: Component> ComponentState<COMP> {
             next_sibling,
             node_ref,
             has_rendered: false,
-            pending_root: None,
-            pending_updates: Vec::new(),
-        }
-    }
 
-    fn drain_pending_updates(&mut self, state: &Shared<Option<ComponentState<COMP>>>) {
-        if !self.pending_updates.is_empty() {
-            scheduler::push_component_updates(self.pending_updates.drain(..).map(|update| {
-                Box::new(ComponentRunnable {
-                    state: state.clone(),
-                    event: update.into(),
-                }) as Box<dyn Runnable>
-            }));
+            #[cfg(debug_assertions)]
+            vcomp_id,
         }
     }
 }
 
-/// Internal Component lifecycle event
-pub(crate) enum ComponentLifecycleEvent<COMP: Component> {
-    Create(CreateEvent<COMP>),
-    Update(UpdateEvent<COMP>),
-    Render,
-    Rendered,
-    Destroy,
-}
-
-impl<COMP: Component> From<CreateEvent<COMP>> for ComponentLifecycleEvent<COMP> {
-    fn from(create: CreateEvent<COMP>) -> Self {
-        Self::Create(create)
-    }
-}
-
-pub(crate) struct CreateEvent<COMP: Component> {
+pub(crate) struct CreateRunner<COMP: Component> {
     pub(crate) parent: Element,
     pub(crate) next_sibling: NodeRef,
     pub(crate) placeholder: VNode,
@@ -81,15 +64,26 @@ pub(crate) struct CreateEvent<COMP: Component> {
     pub(crate) scope: Scope<COMP>,
 }
 
-impl<COMP: Component> From<UpdateEvent<COMP>> for ComponentLifecycleEvent<COMP> {
-    fn from(update: UpdateEvent<COMP>) -> Self {
-        Self::Update(update)
+impl<COMP: Component> Runnable for CreateRunner<COMP> {
+    fn run(self: Box<Self>) {
+        let mut current_state = self.scope.state.borrow_mut();
+        if current_state.is_none() {
+            #[cfg(debug_assertions)]
+            crate::virtual_dom::vcomp::log_event(self.scope.vcomp_id, "create");
+
+            *current_state = Some(ComponentState::new(
+                self.parent,
+                self.next_sibling,
+                self.placeholder,
+                self.node_ref,
+                self.scope.clone(),
+                self.props,
+            ));
+        }
     }
 }
 
 pub(crate) enum UpdateEvent<COMP: Component> {
-    /// First update
-    First,
     /// Wraps messages for a component.
     Message(COMP::Message),
     /// Wraps batch of messages for a component.
@@ -98,97 +92,110 @@ pub(crate) enum UpdateEvent<COMP: Component> {
     Properties(Rc<COMP::Properties>, NodeRef, NodeRef),
 }
 
-pub(crate) struct ComponentRunnable<COMP: Component> {
+pub(crate) struct UpdateRunner<COMP: Component> {
     pub(crate) state: Shared<Option<ComponentState<COMP>>>,
-    pub(crate) event: ComponentLifecycleEvent<COMP>,
+    pub(crate) event: UpdateEvent<COMP>,
 }
 
-impl<COMP: Component> Runnable for ComponentRunnable<COMP> {
+impl<COMP: Component> Runnable for UpdateRunner<COMP> {
     fn run(self: Box<Self>) {
-        let mut current_state = self.state.borrow_mut();
-        match self.event {
-            ComponentLifecycleEvent::Create(event) => {
-                if current_state.is_none() {
-                    *current_state = Some(ComponentState::new(
-                        event.parent,
-                        event.next_sibling,
-                        event.placeholder,
-                        event.node_ref,
-                        event.scope.clone(),
-                        event.props,
-                    ));
+        if let Some(mut state) = self.state.borrow_mut().as_mut() {
+            let schedule_render = match self.event {
+                UpdateEvent::Message(message) => state.component.update(&state.context, message),
+                UpdateEvent::MessageBatch(messages) => {
+                    messages.into_iter().fold(false, |acc, msg| {
+                        state.component.update(&state.context, msg) || acc
+                    })
                 }
-            }
-            ComponentLifecycleEvent::Update(event) => {
-                if let Some(mut state) = current_state.as_mut() {
-                    if state.pending_root.is_some() {
-                        state.pending_updates.push(event);
-                        return;
-                    }
-
-                    let should_render = match event {
-                        UpdateEvent::First => true,
-                        UpdateEvent::Message(message) => {
-                            state.component.update(&state.context, message)
-                        }
-                        UpdateEvent::MessageBatch(messages) => {
-                            messages.into_iter().fold(false, |acc, msg| {
-                                state.component.update(&state.context, msg) || acc
-                            })
-                        }
-                        UpdateEvent::Properties(props, node_ref, next_sibling) => {
-                            // When components are updated, a new node ref could have been passed in
-                            state.node_ref = node_ref;
-                            // When components are updated, their siblings were likely also updated
-                            state.next_sibling = next_sibling;
-                            // Only trigger changed if props were changed
-                            if state.context.props != props {
-                                state.context.props = Rc::clone(&props);
-                                state.component.changed(&state.context)
-                            } else {
-                                false
-                            }
-                        }
-                    };
-
-                    if should_render {
-                        state.pending_root = Some(state.component.view(&state.context));
-                        state.context.scope.process(ComponentLifecycleEvent::Render);
-                    };
-                }
-            }
-            ComponentLifecycleEvent::Render => {
-                if let Some(state) = current_state.as_mut() {
-                    if let Some(mut new_root) = state.pending_root.take() {
-                        std::mem::swap(&mut new_root, &mut state.root_node);
-                        let ancestor = Some(new_root);
-                        let new_root = &mut state.root_node;
-                        let scope = state.context.scope.clone().into();
-                        let next_sibling = state.next_sibling.clone();
-                        let node = new_root.apply(&scope, &state.parent, next_sibling, ancestor);
-                        state.node_ref.link(node);
-                        state
-                            .context
-                            .scope
-                            .process(ComponentLifecycleEvent::Rendered);
+                UpdateEvent::Properties(props, node_ref, next_sibling) => {
+                    // When components are updated, a new node ref could have been passed in
+                    state.node_ref = node_ref;
+                    // When components are updated, their siblings were likely also updated
+                    state.next_sibling = next_sibling;
+                    // Only trigger changed if props were changed
+                    if state.context.props != props {
+                        state.context.props = Rc::clone(&props);
+                        state.component.changed(&state.context)
+                    } else {
+                        false
                     }
                 }
+            };
+
+            #[cfg(debug_assertions)]
+            crate::virtual_dom::vcomp::log_event(
+                state.vcomp_id,
+                format!("update(schedule_render={})", schedule_render),
+            );
+
+            if schedule_render {
+                scheduler::push_component_render(
+                    self.state.as_ptr() as usize,
+                    RenderRunner {
+                        state: self.state.clone(),
+                    },
+                    RenderedRunner {
+                        state: self.state.clone(),
+                    },
+                );
+                // Only run from the scheduler, so no need to call `scheduler::start()`
             }
-            ComponentLifecycleEvent::Rendered => {
-                if let Some(mut state) = current_state.as_mut() {
-                    let first_render = !state.has_rendered;
-                    state.component.rendered(&state.context, first_render);
-                    state.has_rendered = true;
-                    state.drain_pending_updates(&self.state);
-                }
-            }
-            ComponentLifecycleEvent::Destroy => {
-                if let Some(mut state) = current_state.take() {
-                    state.component.destroy(&state.context);
-                    state.root_node.detach(&state.parent);
-                    state.node_ref.set(None);
-                }
-            }
+        }
+    }
+}
+
+pub(crate) struct DestroyRunner<COMP: Component> {
+    pub(crate) state: Shared<Option<ComponentState<COMP>>>,
+}
+
+impl<COMP: Component> Runnable for DestroyRunner<COMP> {
+    fn run(self: Box<Self>) {
+        if let Some(mut state) = self.state.borrow_mut().take() {
+            #[cfg(debug_assertions)]
+            crate::virtual_dom::vcomp::log_event(state.vcomp_id, "destroy");
+
+            state.component.destroy(&state.context);
+            state.root_node.detach(&state.parent);
+            state.node_ref.set(None);
+        }
+    }
+}
+
+pub(crate) struct RenderRunner<COMP: Component> {
+    pub(crate) state: Shared<Option<ComponentState<COMP>>>,
+}
+
+impl<COMP: Component> Runnable for RenderRunner<COMP> {
+    fn run(self: Box<Self>) {
+        if let Some(state) = self.state.borrow_mut().as_mut() {
+            #[cfg(debug_assertions)]
+            crate::virtual_dom::vcomp::log_event(state.vcomp_id, "render");
+
+            let mut new_root = state.component.view(&state.context);
+            std::mem::swap(&mut new_root, &mut state.root_node);
+            let ancestor = Some(new_root);
+            let new_root = &mut state.root_node;
+            let scope = state.context.scope.clone().into();
+            let next_sibling = state.next_sibling.clone();
+            let node = new_root.apply(&scope, &state.parent, next_sibling, ancestor);
+            state.node_ref.link(node);
+        }
+    }
+}
+
+pub(crate) struct RenderedRunner<COMP: Component> {
+    pub(crate) state: Shared<Option<ComponentState<COMP>>>,
+}
+
+impl<COMP: Component> Runnable for RenderedRunner<COMP> {
+    fn run(self: Box<Self>) {
+        if let Some(state) = self.state.borrow_mut().as_mut() {
+            #[cfg(debug_assertions)]
+            crate::virtual_dom::vcomp::log_event(state.vcomp_id, "rendered");
+
+            let first_render = !state.has_rendered;
+            state.component.rendered(&state.context, first_render);
+            state.has_rendered = true;
         }
     }
 }
@@ -314,7 +321,7 @@ mod tests {
         }
     }
 
-    fn test_lifecycle(props: Props, expected: &[String]) {
+    fn test_lifecycle(props: Props, expected: &[&str]) {
         let document = crate::utils::document();
         let scope = Scope::<Comp>::new(None);
         let el = document.create_element("div").unwrap();
@@ -335,12 +342,7 @@ mod tests {
                 lifecycle: lifecycle.clone(),
                 ..Props::default()
             },
-            &[
-                "create".to_string(),
-                "view".to_string(),
-                "child rendered".to_string(),
-                "rendered(true)".to_string(),
-            ],
+            &["create", "view", "child rendered", "rendered(true)"],
         );
 
         test_lifecycle(
@@ -351,11 +353,11 @@ mod tests {
                 ..Props::default()
             },
             &[
-                "create".to_string(),
-                "view".to_string(),
-                "child rendered".to_string(),
-                "rendered(true)".to_string(),
-                "update(false)".to_string(),
+                "create",
+                "view",
+                "child rendered",
+                "rendered(true)",
+                "update(false)",
             ],
         );
 
@@ -366,13 +368,13 @@ mod tests {
                 ..Props::default()
             },
             &[
-                "create".to_string(),
-                "view".to_string(),
-                "child rendered".to_string(),
-                "rendered(true)".to_string(),
-                "update(true)".to_string(),
-                "view".to_string(),
-                "rendered(false)".to_string(),
+                "create",
+                "view",
+                "child rendered",
+                "rendered(true)",
+                "update(true)",
+                "view",
+                "rendered(false)",
             ],
         );
 
@@ -383,11 +385,11 @@ mod tests {
                 ..Props::default()
             },
             &[
-                "create".to_string(),
-                "view".to_string(),
-                "child rendered".to_string(),
-                "rendered(true)".to_string(),
-                "update(false)".to_string(),
+                "create",
+                "view",
+                "child rendered",
+                "rendered(true)",
+                "update(false)",
             ],
         );
 
@@ -398,11 +400,11 @@ mod tests {
                 ..Props::default()
             },
             &[
-                "create".to_string(),
-                "view".to_string(),
-                "child rendered".to_string(),
-                "rendered(true)".to_string(),
-                "update(false)".to_string(),
+                "create",
+                "view",
+                "child rendered",
+                "rendered(true)",
+                "update(false)",
             ],
         );
 
@@ -413,16 +415,17 @@ mod tests {
                 ..Props::default()
             },
             &[
-                "create".to_string(),
-                "view".to_string(),
-                "child rendered".to_string(),
-                "rendered(true)".to_string(),
-                "update(true)".to_string(),
-                "view".to_string(),
-                "rendered(false)".to_string(),
+                "create",
+                "view",
+                "child rendered",
+                "rendered(true)",
+                "update(true)",
+                "view",
+                "rendered(false)",
             ],
         );
 
+        // This also tests render deduplication after the first render
         test_lifecycle(
             Props {
                 lifecycle,
@@ -432,16 +435,14 @@ mod tests {
                 ..Props::default()
             },
             &[
-                "create".to_string(),
-                "view".to_string(),
-                "child rendered".to_string(),
-                "rendered(true)".to_string(),
-                "update(true)".to_string(),
-                "view".to_string(),
-                "rendered(false)".to_string(),
-                "update(true)".to_string(),
-                "view".to_string(),
-                "rendered(false)".to_string(),
+                "create",
+                "view",
+                "child rendered",
+                "rendered(true)",
+                "update(true)",
+                "update(true)",
+                "view",
+                "rendered(false)",
             ],
         );
     }

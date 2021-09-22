@@ -2,7 +2,8 @@
 
 use super::{
     lifecycle::{
-        ComponentLifecycleEvent, ComponentRunnable, ComponentState, CreateEvent, UpdateEvent,
+        ComponentState, CreateRunner, DestroyRunner, RenderRunner, RenderedRunner, UpdateEvent,
+        UpdateRunner,
     },
     Component,
 };
@@ -27,6 +28,10 @@ pub struct AnyScope {
     type_id: TypeId,
     parent: Option<Rc<AnyScope>>,
     state: Rc<dyn Any>,
+
+    // Used for debug logging
+    #[cfg(debug_assertions)]
+    pub(crate) vcomp_id: u64,
 }
 
 impl<COMP: Component> From<Scope<COMP>> for AnyScope {
@@ -35,6 +40,9 @@ impl<COMP: Component> From<Scope<COMP>> for AnyScope {
             type_id: TypeId::of::<COMP>(),
             parent: scope.parent,
             state: scope.state,
+
+            #[cfg(debug_assertions)]
+            vcomp_id: scope.vcomp_id,
         }
     }
 }
@@ -46,6 +54,9 @@ impl AnyScope {
             type_id: TypeId::of::<()>(),
             parent: None,
             state: Rc::new(()),
+
+            #[cfg(debug_assertions)]
+            vcomp_id: 0,
         }
     }
 
@@ -61,12 +72,24 @@ impl AnyScope {
 
     /// Attempts to downcast into a typed scope
     pub fn downcast<COMP: Component>(self) -> Scope<COMP> {
+        let state = self
+            .state
+            .downcast::<RefCell<Option<ComponentState<COMP>>>>()
+            .expect("unexpected component type");
+
+        #[cfg(debug_assertions)]
+        let vcomp_id = state
+            .borrow()
+            .as_ref()
+            .map(|s| s.vcomp_id)
+            .unwrap_or_default();
+
         Scope {
             parent: self.parent,
-            state: self
-                .state
-                .downcast::<RefCell<Option<ComponentState<COMP>>>>()
-                .expect("unexpected component type"),
+            state,
+
+            #[cfg(debug_assertions)]
+            vcomp_id,
         }
     }
 
@@ -116,14 +139,22 @@ impl<COMP: Component> Scoped for Scope<COMP> {
 
     /// Process an event to destroy a component
     fn destroy(&mut self) {
-        self.process(ComponentLifecycleEvent::Destroy);
+        scheduler::push_component_destroy(DestroyRunner {
+            state: self.state.clone(),
+        });
+        // Not guaranteed to already have the scheduler started
+        scheduler::start();
     }
 }
 
 /// A context which allows sending messages to a component.
 pub struct Scope<COMP: Component> {
     parent: Option<Rc<AnyScope>>,
-    state: Shared<Option<ComponentState<COMP>>>,
+    pub(crate) state: Shared<Option<ComponentState<COMP>>>,
+
+    // Used for debug logging
+    #[cfg(debug_assertions)]
+    pub(crate) vcomp_id: u64,
 }
 
 impl<COMP: Component> fmt::Debug for Scope<COMP> {
@@ -137,6 +168,9 @@ impl<COMP: Component> Clone for Scope<COMP> {
         Scope {
             parent: self.parent.clone(),
             state: self.state.clone(),
+
+            #[cfg(debug_assertions)]
+            vcomp_id: self.vcomp_id,
         }
     }
 }
@@ -160,7 +194,17 @@ impl<COMP: Component> Scope<COMP> {
     pub(crate) fn new(parent: Option<AnyScope>) -> Self {
         let parent = parent.map(Rc::new);
         let state = Rc::new(RefCell::new(None));
-        Scope { parent, state }
+
+        #[cfg(debug_assertions)]
+        let vcomp_id = parent.as_ref().map(|p| p.vcomp_id).unwrap_or_default();
+
+        Scope {
+            state,
+            parent,
+
+            #[cfg(debug_assertions)]
+            vcomp_id,
+        }
     }
 
     /// Mounts a component with `props` to the specified `element` in the DOM.
@@ -171,6 +215,8 @@ impl<COMP: Component> Scope<COMP> {
         node_ref: NodeRef,
         props: Rc<COMP::Properties>,
     ) {
+        #[cfg(debug_assertions)]
+        crate::virtual_dom::vcomp::log_event(self.vcomp_id, "create placeholder");
         let placeholder = {
             let placeholder: Node = document().create_text_node("").into();
             insert_node(&placeholder, &parent, next_sibling.get().as_ref());
@@ -178,15 +224,24 @@ impl<COMP: Component> Scope<COMP> {
             VNode::VRef(placeholder)
         };
 
-        self.schedule(UpdateEvent::First.into());
-        self.process(ComponentLifecycleEvent::Create(CreateEvent {
-            parent,
-            next_sibling,
-            placeholder,
-            node_ref,
-            props,
-            scope: self.clone(),
-        }));
+        scheduler::push_component_create(
+            CreateRunner {
+                parent,
+                next_sibling,
+                placeholder,
+                node_ref,
+                props,
+                scope: self.clone(),
+            },
+            RenderRunner {
+                state: self.state.clone(),
+            },
+            RenderedRunner {
+                state: self.state.clone(),
+            },
+        );
+        // Not guaranteed to already have the scheduler started
+        scheduler::start();
     }
 
     pub(crate) fn reuse(
@@ -195,28 +250,19 @@ impl<COMP: Component> Scope<COMP> {
         node_ref: NodeRef,
         next_sibling: NodeRef,
     ) {
-        self.process(UpdateEvent::Properties(props, node_ref, next_sibling).into());
+        #[cfg(debug_assertions)]
+        crate::virtual_dom::vcomp::log_event(self.vcomp_id, "reuse");
+
+        self.push_update(UpdateEvent::Properties(props, node_ref, next_sibling));
     }
 
-    pub(crate) fn process(&self, event: ComponentLifecycleEvent<COMP>) {
-        self.schedule(event);
-        scheduler::start();
-    }
-
-    fn schedule(&self, event: ComponentLifecycleEvent<COMP>) {
-        use ComponentLifecycleEvent::*;
-
-        let push = match &event {
-            Create(_) => scheduler::push_component_create,
-            Update(_) => scheduler::push_component_update,
-            Render => scheduler::push_component_render,
-            Rendered => scheduler::push_component_rendered,
-            Destroy => scheduler::push_component_destroy,
-        };
-        push(Box::new(ComponentRunnable {
+    fn push_update(&self, event: UpdateEvent<COMP>) {
+        scheduler::push_component_update(UpdateRunner {
             state: self.state.clone(),
             event,
-        }));
+        });
+        // Not guaranteed to already have the scheduler started
+        scheduler::start();
     }
 
     /// Send a message to the component.
@@ -227,7 +273,7 @@ impl<COMP: Component> Scope<COMP> {
     where
         T: Into<COMP::Message>,
     {
-        self.process(UpdateEvent::Message(msg.into()).into());
+        self.push_update(UpdateEvent::Message(msg.into()));
     }
 
     /// Send a batch of messages to the component.
@@ -245,7 +291,7 @@ impl<COMP: Component> Scope<COMP> {
             return;
         }
 
-        self.process(UpdateEvent::MessageBatch(messages).into());
+        self.push_update(UpdateEvent::MessageBatch(messages));
     }
 
     /// Creates a `Callback` which will send a message to the linked
