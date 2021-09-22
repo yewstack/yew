@@ -55,17 +55,6 @@ dependencies = ["core::check-format-flow", "core::clippy-flow"]
 [tasks.lint-release]
 category = "Checks"
 workspace = true
-description = "Run cargo check and Clippy in release profile"
-env = { CARGO_MAKE_CLIPPY_ARGS = "-- --deny=warnings --release" }
-run_task = { name = ["check-release", "clippy-release"], fork = true }
-
-[tasks.check-release]
-private = true
-command = "cargo"
-args = ["check", "--all-targets", "--release"]
-
-[tasks.clippy-release]
-private = true
 command = "cargo"
 args = ["clippy", "--all-targets", "--release", "--", "--deny=warnings"]
 
