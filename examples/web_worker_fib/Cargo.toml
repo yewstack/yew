@@ -1,0 +1,14 @@
+[package]
+name = "yew-worker-demo"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+yew = { path = "../../packages/yew" }
+yew-agent = { path = "../../packages/yew-agent" }
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+serde = "1"
