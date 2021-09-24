@@ -113,7 +113,7 @@ fn with_jscast(node_ref: NodeRef) {
 This section is to help show that any examples that use JavaScript to interact with the Web APIs
 can be adapted and written using Rust with `web-sys`.
 
-The JavaScript example:
+### JavaScript example
 
 ```js
 document.getElementById('mousemoveme').onmousemove = (e) => {
@@ -125,9 +125,62 @@ document.getElementById('mousemoveme').onmousemove = (e) => {
 }
 ```
 
+### `web-sys` example
+Using `web-sys` alone the above JavaSciprt example could be implemented like this:
+
+```toml title=Cargo.toml
+[dependencies]
+wasm-bindgen = "0.2"
+
+[dependencies.web-sys]
+version = "0.3"
+# We need to enable all the web-sys features we want to use!
+features = [
+    "console",
+    "Document",
+    "HtmlElement",
+    "MouseEvent",
+    "DomRect",
+]
+```
+
+```rust ,no_run
+use wasm_bindgen::{prelude::Closure, JsCast};
+use web_sys::{console, Document, HtmlElement, MouseEvent};
+
+let mousemove = Closure::<dyn Fn(MouseEvent)>::wrap(Box::new(|e| {
+    let rect = e
+        .target()
+        .expect("mouse event doesn't have a target")
+        .dyn_into::<HtmlElement>()
+        .expect("event target should be of type HtmlElement")
+        .get_bounding_client_rect();
+    let x = (e.client_x() as f64) - rect.left();
+    let y = (e.client_y() as f64) - rect.top();
+    console::log_1(&format!("Left? : {} ; Top? : {}", x, y).into());
+}));
+
+Document::new()
+    .expect("global document not set")
+    .get_element_by_id("mousemoveme")
+    .expect("element with id `mousemoveme` not present")
+    .unchecked_into::<HtmlElement>()
+    .set_onmousemove(mousemove.as_ref().dyn_ref());
+
+// we now need to save the `mousemove` Closure so that when
+// this event fires the closure is still in memory.
+```
+
+This version is much more verbose, but you will probably notice part of that is because of failure
+types reminding us that some of these function calls have invariants that must be held otherwise will
+cause a panic in Rust. Another part of the verbosity is the calls to `JsCast` in order to cast into
+different types so that you can call it's specific methods.
+
+### Yew example
+
 In Yew you will mostly be creating [`Callback`](../components/callbacks)s to use in the
 [`html!`](../html) macro so the example is going to use this approach instead of completely copying
-the approach above (but you could still do it!):
+the approach above:
 
 ```toml title=Cargo.toml
 [dependencies.web-sys]
@@ -135,7 +188,10 @@ version = "0.3"
 # We need to enable the `DomRect` feature in order to use the
 # `get_bounding_client_rect` method.
 features = [
-    "DomRect"
+    "console",
+    "HtmlElement",
+    "MouseEvent",
+    "DomRect",
 ]
 
 ```
@@ -143,9 +199,9 @@ features = [
 ```rust
 use yew::{
     html,
-    web_sys::{console, HtmlElement},
-    Callback, MouseEvent, TargetCast,
+    Callback, TargetCast,
 };
+use web_sys::{console, HtmlElement, MouseEvent};
 
 let onmousemove = Callback::from(|e: MouseEvent| {
     if let Some(target) = e.target_dyn_into::<HtmlElement>() {
@@ -160,10 +216,6 @@ html! {
     <div id="mousemoveme" {onmousemove}></div>
 };
 ```
-
-The `web-sys` feature kicks in even though the [`HtmlElement`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.HtmlElement.html)
-is used from the re-exported version of `web-sys` by Yew, this works but because features are
-additive but it's important that both versions of `web-sys` are compatible.
 
 ## External libraries
 
