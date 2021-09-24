@@ -210,6 +210,15 @@ fn compile_pass() {
                 <div>{ "hello world" }</div>
             </Container>
 
+            <Container int=1 ..::std::clone::Clone::clone(&props)>
+                <Child int=2 opt_str="hello" ..::std::clone::Clone::clone(&child_props) />
+            </Container>
+
+            <Container int=1 ..::std::clone::Clone::clone(&props)>
+                <Child int=2 vec={::std::vec![0]} ..::std::clone::Clone::clone(&child_props) />
+            </Container>
+
+
             <Container int=1 ..props>
                 <Child int=2 string="hello" ..child_props />
             </Container>
