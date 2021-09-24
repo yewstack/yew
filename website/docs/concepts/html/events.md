@@ -188,9 +188,9 @@ wasm-bindgen = "0.2"
 ```rust
 //highlight-next-line
 use wasm_bindgen::JsCast;
+use web_sys::{Event, EventTarget, HtmlInputElement};
 use yew::{
     html,
-    web_sys::{Event, EventTarget, HtmlInputElement},
     Component, Context, Html,
 };
 
@@ -295,9 +295,9 @@ from events.
 but it works in a very similar way to `JsCast`.
 
 ```rust
+use web_sys::{Event, HtmlInputElement};
 use yew::{
     html,
-    web_sys::{Event, HtmlInputElement},
     // Need to import TargetCast
     //highlight-next-line
     Component, Context, Html, TargetCast,
@@ -366,8 +366,10 @@ does the cast on the target of the event. `TargetCast::target_unchecked_into` is
 [`NodeRef`](../components/refs.md) can be used instead of querying the event given to a `Callback`.
 
 ```rust
-//highlight-next-line
-use yew::{html, web_sys::HtmlInputElement, Component, Context, Html, NodeRef};
+//highlight-start
+use web_sys::HtmlInputElement;
+use yew::{html, Component, Context, Html, NodeRef};
+//highlight-end
 
 pub struct Comp {
     //highlight-next-line
@@ -425,7 +427,8 @@ You might also see by using `NodeRef` we don't have to send the `String` back in
 `Msg::InputValue` as we always have `my_input` in the component state - so we could do the following:
 
 ```rust
-use yew::{html, web_sys::HtmlInputElement, Component, Context, Html, NodeRef};
+use web_sys::HtmlInputElement;
+use yew::{html, Component, Context, Html, NodeRef};
 
 pub struct Comp {
     my_input: NodeRef,
@@ -512,9 +515,9 @@ yourself ([there is a more concise way thanks to `gloo`](#using-gloo-concise)).
 
 ```rust
 use wasm_bindgen::{prelude::Closure, JsCast};
+use web_sys::{Event, HtmlElement};
 use yew::{
     html,
-    web_sys::{Event, HtmlElement},
     Component, Context, Html, NodeRef,
 };
 
@@ -617,9 +620,9 @@ gloo-events = "0.1"
 ```
 
 ```rust
+use web_sys::{Event, HtmlElement};
 use yew::{
     html,
-    web_sys::{Event, HtmlElement},
     Component, Context, Html, NodeRef,
 };
 

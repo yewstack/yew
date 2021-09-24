@@ -1,5 +1,6 @@
 use crate::{service, Routable};
 use std::marker::PhantomData;
+use web_sys::MouseEvent;
 use yew::prelude::*;
 
 /// Props for [`Link`]

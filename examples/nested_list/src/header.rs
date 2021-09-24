@@ -1,5 +1,6 @@
 use super::list::{List, Msg as ListMsg};
 use super::{Hovered, WeakComponentLink};
+use web_sys::MouseEvent;
 use yew::prelude::*;
 
 #[derive(Clone, PartialEq, Properties)]

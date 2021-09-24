@@ -1,5 +1,5 @@
 use crate::Client;
-use yew::web_sys::{Event, HtmlInputElement, HtmlTextAreaElement};
+use web_sys::{Event, HtmlInputElement, HtmlTextAreaElement};
 use yew::{classes, html, Callback, Component, Context, Html, Properties, TargetCast};
 
 #[derive(Debug)]

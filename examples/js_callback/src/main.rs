@@ -1,5 +1,6 @@
 use wasm_bindgen::prelude::*;
-use yew::{prelude::*, web_sys::HtmlTextAreaElement};
+use web_sys::{HtmlTextAreaElement, InputEvent};
+use yew::prelude::*;
 
 mod bindings;
 

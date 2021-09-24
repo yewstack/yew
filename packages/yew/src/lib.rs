@@ -265,19 +265,11 @@ pub mod scheduler;
 pub mod utils;
 pub mod virtual_dom;
 
-pub use web_sys;
-
 /// The module that contains all events available in the framework.
 pub mod events {
     pub use crate::html::TargetCast;
 
     pub use crate::virtual_dom::listeners::set_event_bubbling;
-
-    #[doc(no_inline)]
-    pub use web_sys::{
-        AnimationEvent, DragEvent, ErrorEvent, Event, FocusEvent, InputEvent, KeyboardEvent,
-        MouseEvent, PointerEvent, ProgressEvent, TouchEvent, TransitionEvent, UiEvent, WheelEvent,
-    };
 }
 
 pub use crate::app_handle::AppHandle;

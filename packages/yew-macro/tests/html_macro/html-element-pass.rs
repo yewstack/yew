@@ -37,12 +37,13 @@ pub struct u8;
 pub struct usize;
 
 fn compile_pass() {
-    let onclick = <::yew::Callback<::yew::MouseEvent> as ::std::convert::From<_>>::from(
-        |_: ::yew::MouseEvent| (),
+    let onclick = <::yew::Callback<::web_sys::MouseEvent> as ::std::convert::From<_>>::from(
+        |_: ::web_sys::MouseEvent| (),
     );
     let parent_ref = <::yew::NodeRef as ::std::default::Default>::default();
 
-    let dyn_tag = || <::std::string::String as ::std::convert::From<&::std::primitive::str>>::from("test");
+    let dyn_tag =
+        || <::std::string::String as ::std::convert::From<&::std::primitive::str>>::from("test");
     let mut extra_tags_iter = ::std::iter::IntoIterator::into_iter(::std::vec!["a", "b"]);
 
     let cow_none: ::std::option::Option<::std::borrow::Cow<'static, ::std::primitive::str>> =
@@ -103,7 +104,7 @@ fn compile_pass() {
             <track kind={::std::option::Option::Some(::std::borrow::Cow::Borrowed("subtitles"))} src={::std::clone::Clone::clone(&cow_none)} />
             <track kind={::std::option::Option::Some(::std::borrow::Cow::Borrowed("5"))} mixed="works" />
             <input value={::std::option::Option::Some(::std::borrow::Cow::Borrowed("value"))}
-                onblur={::std::option::Option::Some(<::yew::Callback<::yew::FocusEvent> as ::std::convert::From<_>>::from(|_| ()))}
+                onblur={::std::option::Option::Some(<::yew::Callback<::web_sys::FocusEvent> as ::std::convert::From<_>>::from(|_| ()))}
             />
         </div>
     };

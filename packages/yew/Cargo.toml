@@ -32,7 +32,6 @@ scoped-tls-hkt = "0.1"
 version = "0.3"
 features = [
   "AnimationEvent",
-  "console",
   "Document",
   "DragEvent",
   "Element",
@@ -40,14 +39,9 @@ features = [
   "Event",
   "EventInit",
   "EventTarget",
-  "File",
-  "FileList",
-  "FileReader",
   "FocusEvent",
   "HtmlElement",
-  "HtmlButtonElement",
   "HtmlInputElement",
-  "HtmlSelectElement",
   "HtmlTextAreaElement",
   "InputEvent",
   "InputEventInit",

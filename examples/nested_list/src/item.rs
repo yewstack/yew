@@ -1,4 +1,5 @@
 use crate::Hovered;
+use web_sys::MouseEvent;
 use yew::prelude::*;
 
 #[derive(PartialEq, Clone, Properties)]

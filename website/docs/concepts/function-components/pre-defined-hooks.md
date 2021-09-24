@@ -48,9 +48,9 @@ If you need the component to be re-rendered on state change, consider using [`us
 ### Example
 
 ```rust
+use web_sys::{Event, HtmlInputElement};
 use yew::{
     function_component, html, use_ref, use_state,
-    web_sys::{Event, HtmlInputElement},
     Callback, TargetCast,
 };
 
