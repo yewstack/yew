@@ -6,7 +6,7 @@ title: Introduction
 high-level interactions between Wasm modules and JavaScript; it is built with Rust by
 [The Rust and WebAssembly Working Group](https://rustwasm.github.io/).
 
-Yew builds off wasm-bindgen and specifically uses the following of it's crates:
+Yew builds off wasm-bindgen and specifically uses the following of its crates:
 - [`js-sys`](https://crates.io/crates/js-sys)
 - [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
 - [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
@@ -16,7 +16,7 @@ This section will explore some of these crates in a high level in order to make 
 and use `wasm-bindgen` APIs with Yew. For a more in-depth guide into `wasm-bindgen` and it's associated
 crates then check out [The `wasm-bindgen` Guide](https://rustwasm.github.io/docs/wasm-bindgen/).
 
-For documentation on the above crates then check out [`wasm-bindgen docs.rs`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html).
+For documentation on the above crates check out [`wasm-bindgen docs.rs`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html).
 
 :::tip
 Use the `wasm-bindgen` doc.rs search to find browser APIs and JavaScript types that have been imported
@@ -50,7 +50,7 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 extern "C" {
 
-	// Use `js_namespace` here to bind `console.log(..)` instead of just
+    // Use `js_namespace` here to bind `console.log(..)` instead of just
     // `log(..)`
     #[wasm_bindgen(js_namespace = console)]
     fn log(s: &str);
@@ -76,12 +76,13 @@ _This example was adapted from [1.2 Using console.log of The `wasm-bindgen` Guid
 ### Simulating inheritance
 
 Inheritance between JavaScript classes is a big part of the language and is a major part of how the
-Document Object Model (DOM) works on the web. When types are imported using `wasm-bindgen` you can
+Document Object Model (DOM). When types are imported using `wasm-bindgen` you can
 also add attributes that describe it's inheritance.
 
-In Rust this inheritance is simulated using [`Deref`](https://doc.rust-lang.org/std/ops/trait.Deref.html)
+In Rust this inheritance is simulated using the [`Deref`](https://doc.rust-lang.org/std/ops/trait.Deref.html)
 and [`AsRef`](https://doc.rust-lang.org/std/convert/trait.AsRef.html) traits. An example of this
-might help; so say you have three types `A`, `B`, and `C` where `C` extends `B` which extends `A`.
+might help; so say you have three types `A`, `B`, and `C` where `C` extends `B` which in turn
+extends `A`.
 When importing these types the `#[wasm-bindgen]` macro will implement the `Deref` and `AsRef`
 traits in the following way:
 
@@ -93,9 +94,9 @@ traits in the following way:
 These implementations allow you to call a method from `A` on an instance of `C` and to use `C` as if
 it was `&B` or `&A`.
 
-It's important to note that every single type imported using `#[wasm-bindgen]` has the same root type,
+Its important to note that every single type imported using `#[wasm-bindgen]` has the same root type,
 you can think of it as the `A` in the example above, this type is [`JsValue`](#jsvalue) which has
-it's own section
+its own section
 below.
 
 _[extends section in The `wasm-bindgen` Guide](https://rustwasm.github.io/docs/wasm-bindgen/reference/attributes/on-js-imports/extends.html)_
@@ -103,10 +104,10 @@ _[extends section in The `wasm-bindgen` Guide](https://rustwasm.github.io/docs/w
 ### [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
 
 This is a representation of an object owned by JavaScript, this is a root catch-all type for `wasm-bindgen`.
-Any other type that comes from `wasm-bindgen` is a `JsValue` and this is because JavaScript doesn't have
-a strong type system so any function that accepts a variable `x` doesn't define it's type so `x` can be
-an valid JavaScript value; hence `JsValue`. So when you are working with imported functions or types that
-accept a `JsValue` then any value is _technically_ valid.
+Any type that comes from `wasm-bindgen` is a `JsValue` and this is because JavaScript doesn't have
+a strong type system so any function that accepts a variable `x` doesn't define its type so `x` can be
+a valid JavaScript value; hence `JsValue`. So when you are working with imported functions or types that
+accept a `JsValue`, then any imported value is _technically_ valid.
 
 `JsValue` can be accepted by a function but that function may still only expect certain types and this
 can lead to panics - so when using raw `wasm-bindgen` APIs check the documentation of the JavaScript
@@ -118,7 +119,7 @@ _[`JsValue` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bind
 
 Rust has a strong type system and JavaScript...doesn't 😞 So in order for Rust to maintain these
 strong types but still be convenient the web assembly group came up with a pretty neat trait `JsCast`.
-It's job is to help you move from one JavaScript "type" to another, which sounds vague but it means
+Its job is to help you move from one JavaScript "type" to another, which sounds vague but it means
 that if you have one type which you know is really another then you can use the functions of `JsCast`
 to jump from one type to the other. It's a nice trait to get to know when working with `web-sys`,
 `wasm_bindgen`, `js-sys` - you'll notice lots of types will implement `JsCast` from those crates.
@@ -126,7 +127,7 @@ to jump from one type to the other. It's a nice trait to get to know when workin
 `JsCast` provides both checked and unchecked methods of casting - so that at runtime if you are
 unsure what type a certain object is you can try to cast it which returns possible failure types like
 [`Option`](https://doc.rust-lang.org/std/option/enum.Option.html) and
-[`Result`](https://doc.rust-lang.org/std/result/enum.Result.html()).
+[`Result`](https://doc.rust-lang.org/std/result/enum.Result.html).
 
 A common example of this in [`web-sys`](wasm-bindgen/web-sys) is when you are trying to get the
 target of an event, you might know what the target element is but the
@@ -140,18 +141,18 @@ use yew::web_sys::{Event, EventTarget, HtmlInputElement, HtmlSelectElement};
 use wasm_bindgen::JsCast;
 
 fn handle_event(event: Event) {
-	let target: EventTarget = event
-		.target()
-		.expect("I'm sure this event has a target!");
+    let target: EventTarget = event
+        .target()
+        .expect("I'm sure this event has a target!");
 	
-	// maybe the target is a select element?
-	if let Some(select_element) = target.dyn_ref::<HtmlSelectElement>() {
-		// do something amazing here
-		return;
-	}
+    // maybe the target is a select element?
+    if let Some(select_element) = target.dyn_ref::<HtmlSelectElement>() {
+        // do something amazing here
+        return;
+    }
 
-	// if it wasn't a select element then I KNOW it's a input element!
-	let input_element: HtmlInputElement = target.unchecked_into();
+    // if it wasn't a select element then I KNOW it's a input element!
+    let input_element: HtmlInputElement = target.unchecked_into();
 }
 ```
 
@@ -226,10 +227,10 @@ use wasm_bindgen_futures::spawn_local;
 async fn my_async_fn() -> String { String::from("Hello") }
 
 spawn_local(async {
-	let mut string = my_async_fn().await;
-	string.push_str(", world!");
-	// console log "Hello, world!"
-	console::log_1(&string.into());
+    let mut string = my_async_fn().await;
+    string.push_str(", world!");
+    // console log "Hello, world!"
+    console::log_1(&string.into());
 });
 ```
 

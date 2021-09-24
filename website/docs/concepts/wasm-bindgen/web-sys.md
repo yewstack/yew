@@ -24,47 +24,47 @@ the value is [`JsValue`](../wasm-bindgen#jsvalue):
 ```rust
 use std::ops::Deref;
 use web_sys::{
-	Element,
-	EventTarget,
-	HtmlElement,
-	HtmlTextAreaElement,
-	Node,
+    Element,
+    EventTarget,
+    HtmlElement,
+    HtmlTextAreaElement,
+    Node,
 };
 
 fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
-	// HtmlTextAreaElement is <textarea> in html.
-	let html_element: &HtmlElement = text_area.deref();
+    // HtmlTextAreaElement is <textarea> in html.
+    let html_element: &HtmlElement = text_area.deref();
 
-	let element: &Element = html_element.deref();
+    let element: &Element = html_element.deref();
 
-	let node: &Node = element.deref();
+    let node: &Node = element.deref();
 
-	let event_target: &EventTarget = node.deref();
+    let event_target: &EventTarget = node.deref();
 
-	// Notice we've moved from web-sys types now into built-in
-	// JavaScript types which are in the js-sys crate.
-	let object: &js_sys::Object = event_target.deref();
+    // Notice we've moved from web-sys types now into built-in
+    // JavaScript types which are in the js-sys crate.
+    let object: &js_sys::Object = event_target.deref();
 
-	// Notice we've moved from js-sys type to the root JsValue from
-	// the wasm-bindgen crate.
-	let js_value: &wasm_bindgen::JsValue = object.deref();
+    // Notice we've moved from js-sys type to the root JsValue from
+    // the wasm-bindgen crate.
+    let js_value: &wasm_bindgen::JsValue = object.deref();
 
-	// Using deref like this means we have to manually traverse
-	// the inheritance tree, however, you can call JsValue methods
-	// on the HtmlTextAreaElement type.
-	// The `is_string` method comes from JsValue.
-	assert!(!text_area.is_string());
+    // Using deref like this means we have to manually traverse
+    // the inheritance tree, however, you can call JsValue methods
+    // on the HtmlTextAreaElement type.
+    // The `is_string` method comes from JsValue.
+    assert!(!text_area.is_string());
 
-	// The AsRef implementations allow you to treat the HtmlTextAreaElement
-	// as an &EventTarget.
+    // The AsRef implementations allow you to treat the HtmlTextAreaElement
+    // as an &EventTarget.
 
-	// empty function just to prove we can pass HtmlTextAreaElement as a
-	// &EventTarget.
-	fn this_function_only_takes_event_targets(targets: &EventTarget) {};
+    // empty function just to prove we can pass HtmlTextAreaElement as a
+    // &EventTarget.
+    fn this_function_only_takes_event_targets(targets: &EventTarget) {};
 
-	// If you are reading this then it compiled because we check the website
-	// code blocks :)
-	this_function_only_takes_event_targets(&text_area);
+    // If you are reading this then it compiled because we check the website
+    // code blocks :)
+    this_function_only_takes_event_targets(&text_area);
 }
 ```
 
@@ -89,9 +89,9 @@ on the `web_sys::Node` returned from `NodeRef::get`.
 use yew::{web_sys::HtmlInputElement, NodeRef};
 
 fn with_node_ref_cast(node_ref: NodeRef) {
-	if let Some(input) = node_ref.cast::<HtmlInputElement>() {
-		// do something with HtmlInputElement
-	}
+    if let Some(input) = node_ref.cast::<HtmlInputElement>() {
+        // do something with HtmlInputElement
+    }
 }
 ```
 
@@ -100,11 +100,11 @@ use yew::{web_sys::HtmlInputElement, NodeRef};
 use wasm_bindgen::JsCast;
 
 fn with_jscast(node_ref: NodeRef) {
-	if let Some(input) = node_ref
-		.get()
-		.and_then(|node| node.dyn_into::<HtmlInputElement>().ok()) {
-		// do something with HtmlInputElement
-	}
+    if let Some(input) = node_ref
+        .get()
+        .and_then(|node| node.dyn_into::<HtmlInputElement>().ok()) {
+        // do something with HtmlInputElement
+    }
 }
 ```
 
@@ -135,7 +135,7 @@ version = "0.3"
 # We need to enable the `DomRect` feature in order to use the
 # `get_bounding_client_rect` method.
 features = [
-	"DomRect"
+    "DomRect"
 ]
 
 ```
@@ -143,7 +143,7 @@ features = [
 ```rust
 use yew::{
     html,
-	web_sys::{console, HtmlElement},
+    web_sys::{console, HtmlElement},
     Callback, MouseEvent, TargetCast,
 };
 
