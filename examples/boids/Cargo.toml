@@ -18,5 +18,4 @@ gloo = "0.3"
 version = "0.3"
 features = [
 	"HtmlInputElement",
-	"InputEvent",
 ]

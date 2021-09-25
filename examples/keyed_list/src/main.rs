@@ -1,6 +1,6 @@
 use instant::Instant;
 use person::PersonType;
-use web_sys::{HtmlElement, HtmlInputElement, InputEvent};
+use web_sys::{HtmlElement, HtmlInputElement};
 use yew::html::Scope;
 use yew::prelude::*;
 

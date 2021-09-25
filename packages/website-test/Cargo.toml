@@ -21,11 +21,9 @@ yew-router = { path = "../../packages/yew-router/" }
 version = "0.3"
 features = [
 	"Element",
-	"Event",
 	"EventTarget",
 	"HtmlElement",
 	"HtmlInputElement",
-	"KeyboardEvent",
 ]
 
 [build-dependencies]

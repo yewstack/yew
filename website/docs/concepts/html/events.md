@@ -188,8 +188,9 @@ wasm-bindgen = "0.2"
 ```rust
 //highlight-next-line
 use wasm_bindgen::JsCast;
-use web_sys::{Event, EventTarget, HtmlInputElement};
+use web_sys::{EventTarget, HtmlInputElement};
 use yew::{
+    events::Event,
     html,
     Component, Context, Html,
 };
@@ -295,8 +296,9 @@ from events.
 but it works in a very similar way to `JsCast`.
 
 ```rust
-use web_sys::{Event, HtmlInputElement};
+use web_sys::HtmlInputElement;
 use yew::{
+    events::Event,
     html,
     // Need to import TargetCast
     //highlight-next-line
@@ -515,8 +517,9 @@ yourself ([there is a more concise way thanks to `gloo`](#using-gloo-concise)).
 
 ```rust
 use wasm_bindgen::{prelude::Closure, JsCast};
-use web_sys::{Event, HtmlElement};
+use web_sys::HtmlElement;
 use yew::{
+    events::Event,
     html,
     Component, Context, Html, NodeRef,
 };
@@ -620,8 +623,9 @@ gloo-events = "0.1"
 ```
 
 ```rust
-use web_sys::{Event, HtmlElement};
+use web_sys::HtmlElement;
 use yew::{
+    events::Event,
     html,
     Component, Context, Html, NodeRef,
 };

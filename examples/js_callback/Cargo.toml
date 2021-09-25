@@ -13,5 +13,4 @@ yew = { path = "../../packages/yew" }
 version = "0.3"
 features = [
 	"HtmlTextAreaElement",
-	"InputEvent",
 ]

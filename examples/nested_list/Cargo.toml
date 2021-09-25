@@ -9,9 +9,3 @@ license = "MIT OR Apache-2.0"
 log = "0.4"
 wasm-logger = "0.2"
 yew = { path = "../../packages/yew" }
-
-[dependencies.web-sys]
-version = "0.3"
-features = [
-	"MouseEvent",
-]

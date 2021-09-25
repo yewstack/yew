@@ -10,7 +10,7 @@ use std::{cell::RefCell, rc::Rc};
 /// # Example
 /// ```rust
 /// # use yew::prelude::*;
-/// # use web_sys::{Event, HtmlInputElement};
+/// # use web_sys::HtmlInputElement;
 /// # use std::rc::Rc;
 /// # use std::cell::RefCell;
 /// # use std::ops::{Deref, DerefMut};

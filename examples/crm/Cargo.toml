@@ -14,7 +14,6 @@ gloo = "0.3"
 [dependencies.web-sys]
 version = "0.3"
 features = [
-	"Event",
 	"HtmlInputElement",
 	"HtmlTextAreaElement",
 ]

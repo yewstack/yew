@@ -37,8 +37,8 @@ pub struct u8;
 pub struct usize;
 
 fn compile_pass() {
-    let onclick = <::yew::Callback<::web_sys::MouseEvent> as ::std::convert::From<_>>::from(
-        |_: ::web_sys::MouseEvent| (),
+    let onclick = <::yew::Callback<::yew::events::MouseEvent> as ::std::convert::From<_>>::from(
+        |_: ::yew::events::MouseEvent| (),
     );
     let parent_ref = <::yew::NodeRef as ::std::default::Default>::default();
 
@@ -104,7 +104,7 @@ fn compile_pass() {
             <track kind={::std::option::Option::Some(::std::borrow::Cow::Borrowed("subtitles"))} src={::std::clone::Clone::clone(&cow_none)} />
             <track kind={::std::option::Option::Some(::std::borrow::Cow::Borrowed("5"))} mixed="works" />
             <input value={::std::option::Option::Some(::std::borrow::Cow::Borrowed("value"))}
-                onblur={::std::option::Option::Some(<::yew::Callback<::web_sys::FocusEvent> as ::std::convert::From<_>>::from(|_| ()))}
+                onblur={::std::option::Option::Some(<::yew::Callback<::yew::events::FocusEvent> as ::std::convert::From<_>>::from(|_| ()))}
             />
         </div>
     };

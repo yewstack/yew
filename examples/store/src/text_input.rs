@@ -1,4 +1,4 @@
-use web_sys::{HtmlInputElement, KeyboardEvent};
+use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 pub enum Msg {
