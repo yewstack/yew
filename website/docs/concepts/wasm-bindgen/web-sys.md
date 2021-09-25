@@ -7,9 +7,8 @@ some of the types are vague.
 
 The `web-sys` crate with all of it's features enabled can add lots of bloat to a Wasm application,
 in order to get around this issue most types are feature gated so that you only include the types
-you require for your application. Yew includes quite a number of features from `web-sys` and
-re-exports them, but you will often find that you need to add `web-sys` as a dependency yourself
-so you can enable features for APIs not used by Yew internally.
+you require for your application. Yew includes a number of features from `web-sys` and
+exposes some types in it's public API, you will often need to add `web-sys` as a dependency yourself.
 
 ## Inheritance in `web-sys`
 
@@ -86,7 +85,8 @@ the second is using [`JsCast::dyn_into`](https://rustwasm.github.io/wasm-bindgen
 on the `web_sys::Node` returned from `NodeRef::get`.
 
 ```rust
-use yew::{web_sys::HtmlInputElement, NodeRef};
+use web_sys::HtmlInputElement;
+use yew::NodeRef;
 
 fn with_node_ref_cast(node_ref: NodeRef) {
     if let Some(input) = node_ref.cast::<HtmlInputElement>() {
@@ -96,8 +96,9 @@ fn with_node_ref_cast(node_ref: NodeRef) {
 ```
 
 ```rust
-use yew::{web_sys::HtmlInputElement, NodeRef};
 use wasm_bindgen::JsCast;
+use web_sys::HtmlInputElement;
+use yew::NodeRef;
 
 fn with_jscast(node_ref: NodeRef) {
     if let Some(input) = node_ref
@@ -197,11 +198,11 @@ features = [
 ```
 
 ```rust
+use web_sys::{console, HtmlElement, MouseEvent};
 use yew::{
     html,
     Callback, TargetCast,
 };
-use web_sys::{console, HtmlElement, MouseEvent};
 
 let onmousemove = Callback::from(|e: MouseEvent| {
     if let Some(target) = e.target_dyn_into::<HtmlElement>() {

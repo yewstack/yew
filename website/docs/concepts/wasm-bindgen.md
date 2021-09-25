@@ -135,10 +135,9 @@ target of an event, you might know what the target element is but the
 so you will need to cast it to the element type so you can call it's methods.
 
 ```rust
-// yew exports some of web_sys
-use yew::web_sys::{Event, EventTarget, HtmlInputElement, HtmlSelectElement};
 // need to import the trait.
 use wasm_bindgen::JsCast;
+use web_sys::{Event, EventTarget, HtmlInputElement, HtmlSelectElement};
 
 fn handle_event(event: Event) {
     let target: EventTarget = event
