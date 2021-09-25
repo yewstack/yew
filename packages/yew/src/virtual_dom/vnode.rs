@@ -6,6 +6,7 @@ use gloo::console;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::iter::FromIterator;
+use wasm_bindgen::JsCast;
 
 use web_sys::{Element, Node};
 
@@ -45,8 +46,23 @@ impl VNode {
         }
     }
 
+    /// Returns the first DOM node if available
+    pub(crate) fn first_node(&self) -> Option<Node> {
+        match self {
+            VNode::VTag(vtag) => vtag.reference().cloned().map(JsCast::unchecked_into),
+            VNode::VText(vtext) => vtext
+                .reference
+                .as_ref()
+                .cloned()
+                .map(JsCast::unchecked_into),
+            VNode::VComp(vcomp) => vcomp.node_ref.get(),
+            VNode::VList(vlist) => vlist.get(0).and_then(VNode::first_node),
+            VNode::VRef(node) => Some(node.clone()),
+        }
+    }
+
     /// Returns the first DOM node that is used to designate the position of the virtual DOM node.
-    pub(crate) fn first_node(&self) -> Node {
+    pub(crate) fn unchecked_first_node(&self) -> Node {
         match self {
             VNode::VTag(vtag) => vtag
                 .reference()
@@ -67,7 +83,10 @@ impl VNode {
                     crate::virtual_dom::vcomp::get_event_log(vcomp.id),
                 );
             }),
-            VNode::VList(vlist) => vlist.get(0).expect("VList is not mounted").first_node(),
+            VNode::VList(vlist) => vlist
+                .get(0)
+                .expect("VList is not mounted")
+                .unchecked_first_node(),
             VNode::VRef(node) => node.clone(),
         }
     }
@@ -85,7 +104,7 @@ impl VNode {
                     .expect("VComp has no root vnode")
                     .move_before(parent, next_sibling);
             }
-            _ => super::insert_node(&self.first_node(), parent, next_sibling.as_ref()),
+            _ => super::insert_node(&self.unchecked_first_node(), parent, next_sibling.as_ref()),
         };
     }
 }
