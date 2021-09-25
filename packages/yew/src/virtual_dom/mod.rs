@@ -230,7 +230,7 @@ impl Attributes {
     }
 
     fn set_property_or_attribute(el: &Element, key: &str, value: &str) {
-        if el.has_own_property(&JsValue::from_str(key)) {
+        if js_sys::Object::get_prototype_of(el).has_own_property(&JsValue::from_str(key)) {
             Self::set_property(el, key, value)
         } else {
             Self::set_attribute(el, key, value)
