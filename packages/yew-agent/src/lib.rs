@@ -53,6 +53,11 @@ pub trait Agent: Sized + 'static {
         "main.js"
     }
 
+    /// Indicates whether the name of the resource is relative.
+    fn name_of_resource_is_relative() -> bool {
+        false
+    }
+
     /// Signifies if resource is a module.
     /// This has pending browser support.
     fn is_module() -> bool {
