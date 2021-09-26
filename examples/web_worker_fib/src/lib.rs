@@ -3,21 +3,18 @@
 
 pub mod app;
 
-use wasm_bindgen::prelude::*;
 use app::Model;
+use wasm_bindgen::prelude::*;
+use yew::AppHandle;
 use yew_agent::Threaded;
-use yew::app::App;
 
 #[wasm_bindgen(start)]
 pub fn start() {
     use js_sys::{global, Reflect};
-    
-    unsafe {
-        if Reflect::has(&global(), &JsValue::from_str("window")).unwrap() {
-            App::<Model>::new().mount_to_body();
-        } else {
-            app::Worker::register();
-        }
+
+    if Reflect::has(&global(), &JsValue::from_str("window")).unwrap() {
+        yew::start_app::<Model>();
+    } else {
+        app::Worker::register();
     }
 }
-
