@@ -1,10 +1,7 @@
+use serde::{Deserialize, Serialize};
 use yew::prelude::*;
-use yew_agent::{
-    Agent, AgentLink, HandlerId, Public, Bridge, Bridged
-};
 use yew::web_sys::HtmlInputElement;
-use serde::{Serialize, Deserialize};
-
+use yew_agent::{Agent, AgentLink, Bridge, Bridged, HandlerId, Public};
 
 pub(crate) struct Model {
     clicker_value: u32,
@@ -25,7 +22,8 @@ impl Component for Model {
 
     fn create(ctx: &Context<Self>) -> Self {
         let worker = Worker::bridge(
-            ctx.link().callback(|worker_output| Self::Message::WorkerMessage(worker_output))
+            ctx.link()
+                .callback(|worker_output| Self::Message::WorkerMessage(worker_output)),
         );
 
         Self {
@@ -45,9 +43,7 @@ impl Component for Model {
                 if let Some(input) = self.n_ref.cast::<HtmlInputElement>() {
                     if let Ok(value) = input.value().parse::<u32>() {
                         // start the worker off!
-                        self.worker.send(WorkerInput {
-                            n: value,
-                        });
+                        self.worker.send(WorkerInput { n: value });
                     }
                 }
             }
@@ -90,7 +86,6 @@ pub(crate) struct WorkerOutput {
     value: u32,
 }
 
-
 impl Agent for Worker {
     type Reach = Public<Self>;
     type Message = ();
@@ -98,9 +93,7 @@ impl Agent for Worker {
     type Output = WorkerOutput;
 
     fn create(link: AgentLink<Self>) -> Self {
-        Self {
-            link,
-        }
+        Self { link }
     }
 
     fn update(&mut self, _msg: Self::Message) {
@@ -115,12 +108,14 @@ impl Agent for Worker {
         let n = msg.n;
 
         fn fib(n: u32) -> u32 {
-            if n <= 1 { 1 } else { fib(n - 1) + fib(n - 2) }
+            if n <= 1 {
+                1
+            } else {
+                fib(n - 1) + fib(n - 2)
+            }
         }
 
-        let output = Self::Output {
-            value: fib(n),
-        };
+        let output = Self::Output { value: fib(n) };
 
         self.link.respond(id, output);
     }
