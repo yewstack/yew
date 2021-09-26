@@ -126,7 +126,7 @@ trait RevSplitOnce {
     ///
     /// Behaves identically to `rsplit_once` introduced with rust 1.52 but is
     /// available prior to 1.52.
-    fn revsplit_once<'a>(&'a self, delimiter: char) -> Option<(&'a str, &'a str)>;
+    fn revsplit_once(&self, delimiter: char) -> Option<(&str, &str)>;
 }
 
 impl RevSplitOnce for str {
