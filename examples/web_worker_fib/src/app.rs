@@ -13,7 +13,7 @@ pub(crate) struct Model {
 pub(crate) enum Message {
     Click,
     RunWorker,
-    WorkerMessage(WorkerOutput),
+    WorkerMsg(WorkerOutput),
 }
 
 impl Component for Model {
@@ -21,10 +21,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
-        let worker = Worker::bridge(
-            ctx.link()
-                .callback(|worker_output| Self::Message::WorkerMessage(worker_output)),
-        );
+        let worker = Worker::bridge(ctx.link().callback(Self::Message::WorkerMsg));
 
         Self {
             clicker_value: 0,
@@ -47,7 +44,7 @@ impl Component for Model {
                     }
                 }
             }
-            Self::Message::WorkerMessage(output) => {
+            Self::Message::WorkerMsg(output) => {
                 // the worker is done!
                 self.fibonacci_output = format!("Fibonacci value: {}", output.value);
             }

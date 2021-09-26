@@ -5,7 +5,6 @@ pub mod app;
 
 use app::Model;
 use wasm_bindgen::prelude::*;
-use yew::AppHandle;
 use yew_agent::Threaded;
 
 #[wasm_bindgen(start)]
