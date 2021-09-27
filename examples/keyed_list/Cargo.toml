@@ -13,3 +13,10 @@ log = "0.4"
 rand = "0.8"
 wasm-logger = "0.2"
 yew = { path = "../../packages/yew" }
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+	"HtmlElement",
+	"HtmlInputElement",
+]

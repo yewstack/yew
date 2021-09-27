@@ -17,5 +17,14 @@ weblog = "0.3.0"
 yew = { path = "../../packages/yew/" }
 yew-router = { path = "../../packages/yew-router/" }
 
+[dev-dependencies.web-sys]
+version = "0.3"
+features = [
+	"Element",
+	"EventTarget",
+	"HtmlElement",
+	"HtmlInputElement",
+]
+
 [build-dependencies]
 glob = "0.3"
