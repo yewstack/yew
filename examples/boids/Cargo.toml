@@ -13,3 +13,9 @@ rand = "0.8"
 serde = { version = "1.0", features = ["derive"] }
 yew = { path = "../../packages/yew" }
 gloo = "0.3"
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+	"HtmlInputElement",
+]

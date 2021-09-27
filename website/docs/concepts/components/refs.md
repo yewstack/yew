@@ -14,7 +14,8 @@ a canvas element after it has been rendered from `view`.
 The syntax is:
 
 ```rust
-use yew::{html, web_sys::Element, Component, Context, Html, NodeRef};
+use web_sys::Element;
+use yew::{html, Component, Context, Html, NodeRef};
 
 struct Comp {
     node_ref: NodeRef,

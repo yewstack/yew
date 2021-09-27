@@ -37,7 +37,8 @@ where
     /// # Example
     ///
     /// ```
-    /// use yew::{prelude::*, web_sys::{Event, HtmlTextAreaElement}};
+    /// use yew::prelude::*;
+    /// use web_sys::HtmlTextAreaElement;
     /// # enum Msg {
     /// #   Value(String),
     /// # }
@@ -93,7 +94,8 @@ where
     /// # Example
     ///
     /// ```
-    /// use yew::{prelude::*, web_sys::{Event, HtmlInputElement}};
+    /// use yew::prelude::*;
+    /// use web_sys::HtmlInputElement;
     /// # enum Msg {
     /// #   Value(String),
     /// # }
