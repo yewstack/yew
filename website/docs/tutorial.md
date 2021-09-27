@@ -480,7 +480,7 @@ fn app() -> Html {
 +    let videos = use_state(|| vec![]);
 +    {
 +        let videos = videos.clone();
-+        use_effect(move || {
++        use_effect_with_deps(move |_| {
 +            let videos = videos.clone();
 +            wasm_bindgen_futures::spawn_local(async move {
 +                let fetched_videos: Vec<Video> = Request::get("https://yew.rs/tutorial/data.json")
@@ -493,7 +493,7 @@ fn app() -> Html {
 +                videos.set(fetched_videos);
 +            });
 +            || ()
-+        });
++        }, ());
 +    }
 
     // ...
