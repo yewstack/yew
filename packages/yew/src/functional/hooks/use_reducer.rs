@@ -184,3 +184,11 @@ impl<T: fmt::Debug, V> fmt::Debug for UseReducerHandle<T, V> {
             .finish()
     }
 }
+
+impl<State, Action> PartialEq for UseReducerHandle<State, Action> {
+    fn eq(&self, other: &Self) -> bool {
+        // if the value is the same pointer
+        // then we can assume that that setter is also the same thing
+        Rc::ptr_eq(&self.value, &other.value)
+    }
+}
