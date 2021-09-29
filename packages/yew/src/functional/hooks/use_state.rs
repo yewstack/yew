@@ -97,3 +97,11 @@ impl<T> Clone for UseStateHandle<T> {
         }
     }
 }
+
+impl<T> PartialEq for UseStateHandle<T> {
+    fn eq(&self, other: &Self) -> bool {
+        // if the value is the same pointer
+        // then we can assume that that setter is also the same thing
+        Rc::ptr_eq(&self.value, &other.value)
+    }
+}
