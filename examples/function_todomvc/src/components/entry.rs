@@ -1,10 +1,7 @@
 use crate::state::Entry as Item;
-use web_sys::HtmlInputElement;
+use web_sys::{HtmlInputElement, MouseEvent};
 use yew::events::{FocusEvent, KeyboardEvent};
-use yew::{
-    function_component, html, use_state, /* use_ref, */ Callback, Classes, Properties,
-    TargetCast, /* NodeRef */
-};
+use yew::{function_component, html, use_state, Callback, Classes, Properties, TargetCast};
 
 #[derive(PartialEq, Properties, Clone)]
 pub struct EntryProps {
@@ -17,33 +14,33 @@ pub struct EntryProps {
 
 #[function_component(Entry)]
 pub fn entry(props: &EntryProps) -> Html {
+    let id = props.entry.id;
     let mut class = Classes::from("todo");
+
     if props.entry.editing {
-        class.push(" editing");
+        class.push("editing");
     }
+
     if props.entry.completed {
-        class.push(" completed");
+        class.push("completed");
     }
+
     html! {
         <li {class}>
-        <div class="view">
-            <input
-                type="checkbox"
-                class="toggle"
-                checked={props.entry.completed}
-                onclick={
-                    let props = props.clone();
-                    move |_| props.toggle_onclick.emit(props.entry.id)}
-            />
-            <label ondblclick={
-                let props = props.clone();
-                move |_| props.toggle_edit_onclick.emit(props.entry.id)}>{ &props.entry.description }</label>
-            <button class="destroy" onclick={
-                let props = props.clone();
-                move |_| props.remove_onclick.emit(props.entry.id)} />
-        </div>
-        <EntryEdit entry={props.entry.clone()} edit={props.edit.clone()} />
-    </li>
+            <div class="view">
+                <input
+                    type="checkbox"
+                    class="toggle"
+                    checked={props.entry.completed}
+                    onclick={props.toggle_onclick.reform(move |_| id)}
+                />
+                <label ondblclick={props.toggle_edit_onclick.reform(move |_| id)}>
+                    { &props.entry.description }
+                </label>
+                <button class="destroy" onclick={props.remove_onclick.reform(move |_| id)} />
+            </div>
+            <EntryEdit entry={props.entry.clone()} edit={props.edit.clone()} />
+        </li>
     }
 }
 
@@ -55,34 +52,43 @@ pub struct EntryEditProps {
 
 #[function_component(EntryEdit)]
 pub fn entry_edit(props: &EntryEditProps) -> Html {
-    let init_placeholder = props.entry.description.clone();
-    let edit_value = use_state(|| init_placeholder.clone());
-    // let focus_ref = use_ref(|| NodeRef::default()); Focus ref is not working
+    let id = props.entry.id;
+    let edit_value = use_state(|| props.entry.description.clone());
 
     let onblur = {
-        let props = props.clone();
+        let edit = props.edit.clone();
         let edit_value = edit_value.clone();
+
         move |e: FocusEvent| {
             let input: HtmlInputElement = e.target_unchecked_into();
             let value = input.value();
+
             input.set_value("");
-            edit_value.set(value.to_owned());
-            props.edit.emit((props.entry.id, value))
+            edit_value.set(value.clone());
+            edit.emit((id, value))
         }
     };
 
     let onkeypress = {
-        let props = props.clone();
+        let edit = props.edit.clone();
         let edit_value = edit_value.clone();
+
         move |e: KeyboardEvent| {
             (e.key() == "Enter").then(|| {
                 let input: HtmlInputElement = e.target_unchecked_into();
                 let value = input.value();
+
                 input.set_value("");
-                edit_value.set(value.to_owned());
-                props.edit.emit((props.entry.id, value))
+                edit_value.set(value.clone());
+                edit.emit((id, value))
             });
         }
+    };
+
+    let onmouseover = |e: MouseEvent| {
+        e.target_unchecked_into::<HtmlInputElement>()
+            .focus()
+            .unwrap_or_default();
     };
 
     if props.entry.editing {
@@ -90,9 +96,8 @@ pub fn entry_edit(props: &EntryEditProps) -> Html {
             <input
                 class="edit"
                 type="text"
-                // ref={focus_ref}
                 value={(*edit_value).clone()}
-                // onmouseover={link.callback(|_| Msg::Focus)}
+                {onmouseover}
                 {onblur}
                 {onkeypress}
             />

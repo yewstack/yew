@@ -8,11 +8,8 @@ This is an implementation of [TodoMVC](http://todomvc.com/) for Yew using functi
 
 - Uses [`function_components`](https://yew.rs/next/concepts/function-components)
 - Uses [`gloo_storage`](https://gloo-rs.web.app/docs/storage) to persist the state
-- [`Refs`] are used to manipulate DOM elements after they're rendered (to automatically focus input fields for instance)
 
 ## Improvements
 
 - Use `yew-router` for the hash based routing
 - Clean up the code
-
-[`refs`]: https://yew.rs/concepts/components/refs/

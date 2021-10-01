@@ -2,18 +2,17 @@ use gloo::storage::{LocalStorage, Storage};
 use state::{Entry, Filter, State};
 use std::rc::Rc;
 use strum::IntoEnumIterator;
-use web_sys::HtmlInputElement as InputElement;
-use yew::events::KeyboardEvent;
-use yew::{
-    classes, function_component, html, use_effect_with_deps, use_reducer, Callback, TargetCast,
-};
+use yew::{classes, function_component, html, use_effect_with_deps, use_reducer, Callback};
 
 mod components;
 mod state;
 
-use components::entry::Entry as EntryItem;
-use components::filter::Filter as FilterItem;
-use components::info_footer::InfoFooter;
+use components::{
+    entry::Entry as EntryItem,
+    filter::Filter as FilterItem,
+    info_footer::InfoFooter,
+    input::Input,
+};
 
 pub enum Action {
     Add(String),
@@ -24,7 +23,6 @@ pub enum Action {
     ToggleEdit(usize),
     Toggle(usize),
     ClearCompleted,
-    // Focus,
 }
 
 const KEY: &str = "yew.functiontodomvc.self";
@@ -127,29 +125,14 @@ fn app() -> Html {
 
     // Effect
     use_effect_with_deps(
-        {
-            let state = state.clone();
-            move |_| {
-                LocalStorage::set(KEY, &state.clone().entries).expect("failed to set");
-                || ()
-            }
+        move |state| {
+            LocalStorage::set(KEY, &state.clone().entries).expect("failed to set");
+            || ()
         },
         state.clone(),
     );
 
     // Callbacks
-    let onkeypress = {
-        let state = state.clone();
-        move |e: KeyboardEvent| {
-            if e.key() == "Enter" {
-                let input: InputElement = e.target_unchecked_into();
-                let value = input.value();
-                input.set_value("");
-                state.dispatch(Action::Add(value));
-            }
-        }
-    };
-
     let remove_onclick = {
         let state = state.clone();
         Callback::from(move |id: usize| state.dispatch(Action::Remove(id)))
@@ -182,6 +165,13 @@ fn app() -> Html {
         })
     };
 
+    let add = {
+        let state = state.clone();
+        Callback::from(move |value: String| {
+            state.dispatch(Action::Add(value));
+        })
+    };
+
     let set_filter_onclick = {
         let state = state.clone();
         Callback::from(move |filter: Filter| {
@@ -190,34 +180,18 @@ fn app() -> Html {
     };
 
     // Helpers
-    let completed = {
-        let state = state.clone();
-        state
-            .entries
-            .iter()
-            .filter(|entry| Filter::Completed.fits(entry))
-            .count()
-    };
+    let completed = state
+        .entries
+        .iter()
+        .filter(|entry| Filter::Completed.fits(entry))
+        .count();
 
-    let is_all_completed = {
-        let state = state.clone();
-        let mut filtered_iter = state
-            .entries
-            .iter()
-            .filter(|e| state.filter.fits(e))
-            .peekable();
+    let is_all_completed = state
+        .entries
+        .iter()
+        .all(|e| state.filter.fits(e) & e.completed);
 
-        if filtered_iter.peek().is_none() {
-            false
-        } else {
-            filtered_iter.all(|entry| entry.completed)
-        }
-    };
-
-    let total = {
-        let state = state.clone();
-        state.entries.len()
-    };
+    let total = state.entries.len();
 
     let hidden_class = if state.entries.is_empty() {
         "hidden"
@@ -230,11 +204,7 @@ fn app() -> Html {
             <section class="todoapp">
                 <header class="header">
                     <h1>{ "todos" }</h1>
-                    <input
-                        class="new-todo"
-                        placeholder="What needs to be done?"
-                        {onkeypress}
-                    />
+                    <Input {add} />
                 </header>
                 <section class={classes!("main", hidden_class)}>
                     <input
@@ -246,9 +216,14 @@ fn app() -> Html {
                     />
                     <label for="toggle-all" />
                     <ul class="todo-list">
-                        { for state.entries.iter().filter(|e| state.filter.fits(e)).map(|entry|
+                        { for state.entries.iter().filter(|e| state.filter.fits(e)).cloned().map(|entry|
                             html! {
-                                <EntryItem entry={entry.clone()} toggle_onclick={toggle_onclick.clone()} remove_onclick={remove_onclick.clone()} toggle_edit_onclick={toggle_edit_onclick.clone()} edit={edit.clone()} />
+                                <EntryItem {entry}
+                                    toggle_onclick={toggle_onclick.clone()}
+                                    remove_onclick={remove_onclick.clone()}
+                                    toggle_edit_onclick={toggle_edit_onclick.clone()}
+                                    edit={edit.clone()}
+                                />
                         }) }
                     </ul>
                 </section>
@@ -258,9 +233,12 @@ fn app() -> Html {
                         { " item(s) left" }
                     </span>
                     <ul class="filters">
-                        { for Filter::iter().map(|flt| {
+                        { for Filter::iter().map(|filter| {
                             html! {
-                                <FilterItem filter={flt} current_filter={state.filter.clone()} set_filter_onclick={set_filter_onclick.clone()}/>
+                                <FilterItem {filter}
+                                    selected={state.filter == filter}
+                                    set_filter_onclick={set_filter_onclick.clone()}
+                                />
                             }
                         }) }
                     </ul>
