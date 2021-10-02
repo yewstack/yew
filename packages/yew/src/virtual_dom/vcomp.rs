@@ -391,7 +391,7 @@ mod tests {
         let test_node: Node = document().create_text_node("test").into();
         let test_node_ref = NodeRef::new(test_node);
         let check_node_ref = |vnode: VNode| {
-            assert_eq!(vnode.first_node(), test_node_ref.get().unwrap());
+            assert_eq!(vnode.unchecked_first_node(), test_node_ref.get().unwrap());
         };
 
         let props = Props {
