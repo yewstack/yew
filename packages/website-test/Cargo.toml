@@ -22,12 +22,12 @@ yew-router = { path = "../../packages/yew-router/" }
 [dev-dependencies.web-sys]
 version = "0.3"
 features = [
-	"Element",
-	"EventTarget",
-	"HtmlElement",
-	"HtmlInputElement",
+    "Element",
+    "EventTarget",
+    "HtmlElement",
+    "HtmlInputElement",
     "HtmlSelectElement",
-	"DomRect",
+    "DomRect",
 ]
 
 [build-dependencies]
