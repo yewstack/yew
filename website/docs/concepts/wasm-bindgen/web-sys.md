@@ -54,16 +54,18 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
     // The `is_string` method comes from JsValue.
     assert!(!text_area.is_string());
 
-    // The AsRef implementations allow you to treat the HtmlTextAreaElement
-    // as an &EventTarget.
-
     // empty function just to prove we can pass HtmlTextAreaElement as a
     // &EventTarget.
     fn this_function_only_takes_event_targets(targets: &EventTarget) {};
 
-    // If you are reading this then it compiled because we check the website
-    // code blocks :)
+    // The compiler will walk down the deref chain in order to match the types here.
     this_function_only_takes_event_targets(&text_area);
+
+    // The AsRef implementations allow you to treat the HtmlTextAreaElement
+    // as an &EventTarget.
+
+    let event_target: &EventTarget = text_area.as_ref();
+
 }
 ```
 
