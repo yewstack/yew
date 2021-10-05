@@ -85,6 +85,21 @@
         {
           "collapsed": true,
           "type": "category",
+          "label": "wasm-bindgen",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-0.18.0/concepts/wasm-bindgen"
+            },
+            {
+              "type": "doc",
+              "id": "version-0.18.0/concepts/wasm-bindgen/web-sys"
+            }
+          ]
+        },
+        {
+          "collapsed": true,
+          "type": "category",
           "label": "HTML",
           "items": [
             {
