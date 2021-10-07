@@ -12,7 +12,6 @@ pub struct Entry {
     pub id: usize,
     pub description: String,
     pub completed: bool,
-    pub editing: bool,
 }
 
 #[derive(Clone, Copy, Debug, EnumIter, ToString, PartialEq, Serialize, Deserialize)]

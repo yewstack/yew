@@ -5,6 +5,7 @@ use strum::IntoEnumIterator;
 use yew::{classes, function_component, html, use_effect_with_deps, use_reducer, Callback};
 
 mod components;
+mod hooks;
 mod state;
 
 use components::{
@@ -18,7 +19,6 @@ pub enum Action {
     Remove(usize),
     SetFilter(Filter),
     ToggleAll,
-    ToggleEdit(usize),
     Toggle(usize),
     ClearCompleted,
 }
@@ -35,7 +35,6 @@ fn app() -> Html {
                     id: entries.last().map(|entry| entry.id + 1).unwrap_or(1),
                     description,
                     completed: false,
-                    editing: false,
                 });
                 State {
                     entries,
@@ -71,18 +70,6 @@ fn app() -> Html {
                 let entry = entries.iter_mut().find(|entry| entry.id == id);
                 if let Some(entry) = entry {
                     entry.description = description;
-                    entry.editing = false;
-                }
-                State {
-                    entries,
-                    filter: prev.filter,
-                }
-            }
-            Action::ToggleEdit(id) => {
-                let mut entries = prev.entries.clone();
-                let entry = entries.iter_mut().find(|entry| entry.id == id);
-                if let Some(entry) = entry {
-                    entry.editing = !entry.editing;
                 }
                 State {
                     entries,
@@ -144,11 +131,6 @@ fn app() -> Html {
     let ontoggle_all = {
         let state = state.clone();
         Callback::from(move |_| state.dispatch(Action::ToggleAll))
-    };
-
-    let ontoggle_edit = {
-        let state = state.clone();
-        Callback::from(move |id: usize| state.dispatch(Action::ToggleEdit(id)))
     };
 
     let onclear_completed = {
@@ -219,7 +201,6 @@ fn app() -> Html {
                                 <EntryItem {entry}
                                     ontoggle={ontoggle.clone()}
                                     onremove={onremove.clone()}
-                                    ontoggle_edit={ontoggle_edit.clone()}
                                     onedit={onedit.clone()}
                                 />
                         }) }

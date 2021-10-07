@@ -1,3 +1,4 @@
+use crate::hooks::use_bool_toggle::use_bool_toggle;
 use crate::state::Entry as Item;
 use web_sys::{HtmlInputElement, MouseEvent};
 use yew::events::{Event, FocusEvent, KeyboardEvent};
@@ -7,7 +8,6 @@ use yew::{function_component, html, Callback, Classes, Properties, TargetCast};
 pub struct EntryProps {
     pub entry: Item,
     pub ontoggle: Callback<usize>,
-    pub ontoggle_edit: Callback<usize>,
     pub onremove: Callback<usize>,
     pub onedit: Callback<(usize, String)>,
 }
@@ -17,7 +17,10 @@ pub fn entry(props: &EntryProps) -> Html {
     let id = props.entry.id;
     let mut class = Classes::from("todo");
 
-    if props.entry.editing {
+    let edit_toggle = use_bool_toggle(false);
+    let is_editing = *edit_toggle;
+
+    if is_editing {
         class.push("editing");
     }
 
@@ -34,12 +37,14 @@ pub fn entry(props: &EntryProps) -> Html {
                     checked={props.entry.completed}
                     onclick={props.ontoggle.reform(move |_| id)}
                 />
-                <label ondblclick={props.ontoggle_edit.reform(move |_| id)}>
+                <label ondblclick={Callback::once(move |_| {
+                    edit_toggle.toggle();
+                })}>
                     { &props.entry.description }
                 </label>
                 <button class="destroy" onclick={props.onremove.reform(move |_| id)} />
             </div>
-            <EntryEdit entry={props.entry.clone()} onedit={props.onedit.clone()} />
+            <EntryEdit entry={props.entry.clone()} onedit={props.onedit.clone()} editing={is_editing} />
         </li>
     }
 }
@@ -48,6 +53,7 @@ pub fn entry(props: &EntryProps) -> Html {
 pub struct EntryEditProps {
     pub entry: Item,
     pub onedit: Callback<(usize, String)>,
+    pub editing: bool,
 }
 
 #[function_component(EntryEdit)]
@@ -85,7 +91,7 @@ pub fn entry_edit(props: &EntryEditProps) -> Html {
             .unwrap_or_default();
     };
 
-    if props.entry.editing {
+    if props.editing {
         html! {
             <input
                 class="edit"
