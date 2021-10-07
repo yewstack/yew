@@ -1,15 +1,15 @@
 use crate::state::Entry as Item;
 use web_sys::{HtmlInputElement, MouseEvent};
-use yew::events::{FocusEvent, KeyboardEvent};
-use yew::{function_component, html, use_state, Callback, Classes, Properties, TargetCast};
+use yew::events::{Event, FocusEvent, KeyboardEvent};
+use yew::{function_component, html, Callback, Classes, Properties, TargetCast};
 
 #[derive(PartialEq, Properties, Clone)]
 pub struct EntryProps {
     pub entry: Item,
-    pub toggle_onclick: Callback<usize>,
-    pub toggle_edit_onclick: Callback<usize>,
-    pub remove_onclick: Callback<usize>,
-    pub edit: Callback<(usize, String)>,
+    pub ontoggle: Callback<usize>,
+    pub ontoggle_edit: Callback<usize>,
+    pub onremove: Callback<usize>,
+    pub onedit: Callback<(usize, String)>,
 }
 
 #[function_component(Entry)]
@@ -32,14 +32,14 @@ pub fn entry(props: &EntryProps) -> Html {
                     type="checkbox"
                     class="toggle"
                     checked={props.entry.completed}
-                    onclick={props.toggle_onclick.reform(move |_| id)}
+                    onclick={props.ontoggle.reform(move |_| id)}
                 />
-                <label ondblclick={props.toggle_edit_onclick.reform(move |_| id)}>
+                <label ondblclick={props.ontoggle_edit.reform(move |_| id)}>
                     { &props.entry.description }
                 </label>
-                <button class="destroy" onclick={props.remove_onclick.reform(move |_| id)} />
+                <button class="destroy" onclick={props.onremove.reform(move |_| id)} />
             </div>
-            <EntryEdit entry={props.entry.clone()} edit={props.edit.clone()} />
+            <EntryEdit entry={props.entry.clone()} onedit={props.onedit.clone()} />
         </li>
     }
 }
@@ -47,41 +47,35 @@ pub fn entry(props: &EntryProps) -> Html {
 #[derive(PartialEq, Properties, Clone)]
 pub struct EntryEditProps {
     pub entry: Item,
-    pub edit: Callback<(usize, String)>,
+    pub onedit: Callback<(usize, String)>,
 }
 
 #[function_component(EntryEdit)]
 pub fn entry_edit(props: &EntryEditProps) -> Html {
     let id = props.entry.id;
-    let edit_value = use_state(|| props.entry.description.clone());
+
+    let target_input_value = |e: &Event| {
+        let input: HtmlInputElement = e.target_unchecked_into();
+        input.value()
+    };
 
     let onblur = {
-        let edit = props.edit.clone();
-        let edit_value = edit_value.clone();
+        let edit = props.onedit.clone();
 
         move |e: FocusEvent| {
-            let input: HtmlInputElement = e.target_unchecked_into();
-            let value = input.value();
-
-            input.set_value("");
-            edit_value.set(value.clone());
+            let value = target_input_value(&e);
             edit.emit((id, value))
         }
     };
 
     let onkeypress = {
-        let edit = props.edit.clone();
-        let edit_value = edit_value.clone();
+        let edit = props.onedit.clone();
 
         move |e: KeyboardEvent| {
-            (e.key() == "Enter").then(|| {
-                let input: HtmlInputElement = e.target_unchecked_into();
-                let value = input.value();
-
-                input.set_value("");
-                edit_value.set(value.clone());
+            if e.key() == "Enter" {
+                let value = target_input_value(&e);
                 edit.emit((id, value))
-            });
+            }
         }
     };
 
@@ -96,7 +90,7 @@ pub fn entry_edit(props: &EntryEditProps) -> Html {
             <input
                 class="edit"
                 type="text"
-                value={(*edit_value).clone()}
+                value={props.entry.description.clone()}
                 {onmouseover}
                 {onblur}
                 {onkeypress}

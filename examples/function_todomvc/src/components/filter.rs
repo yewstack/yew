@@ -5,7 +5,7 @@ use yew::{function_component, html, Callback, Properties};
 pub struct FilterProps {
     pub filter: FilterEnum,
     pub selected: bool,
-    pub set_filter_onclick: Callback<FilterEnum>,
+    pub onset_filter: Callback<FilterEnum>,
 }
 
 #[function_component(Filter)]
@@ -22,7 +22,7 @@ pub fn filter(props: &FilterProps) -> Html {
         <li>
             <a class={cls}
                href={props.filter.as_href()}
-               onclick={props.set_filter_onclick.reform(move |_| filter)}
+               onclick={props.onset_filter.reform(move |_| filter)}
             >
                 { props.filter }
             </a>

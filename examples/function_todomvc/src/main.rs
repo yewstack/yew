@@ -8,10 +8,8 @@ mod components;
 mod state;
 
 use components::{
-    entry::Entry as EntryItem,
-    filter::Filter as FilterItem,
+    entry::Entry as EntryItem, filter::Filter as FilterItem, header_input::HeaderInput,
     info_footer::InfoFooter,
-    input::Input,
 };
 
 pub enum Action {
@@ -133,46 +131,46 @@ fn app() -> Html {
     );
 
     // Callbacks
-    let remove_onclick = {
+    let onremove = {
         let state = state.clone();
         Callback::from(move |id: usize| state.dispatch(Action::Remove(id)))
     };
 
-    let toggle_onclick = {
+    let ontoggle = {
         let state = state.clone();
         Callback::from(move |id: usize| state.dispatch(Action::Toggle(id)))
     };
 
-    let toggle_all_onclick = {
+    let ontoggle_all = {
         let state = state.clone();
         Callback::from(move |_| state.dispatch(Action::ToggleAll))
     };
 
-    let toggle_edit_onclick = {
+    let ontoggle_edit = {
         let state = state.clone();
         Callback::from(move |id: usize| state.dispatch(Action::ToggleEdit(id)))
     };
 
-    let clear_completed_onclick = {
+    let onclear_completed = {
         let state = state.clone();
         Callback::from(move |_| state.dispatch(Action::ClearCompleted))
     };
 
-    let edit = {
+    let onedit = {
         let state = state.clone();
         Callback::from(move |(id, value): (usize, String)| {
             state.dispatch(Action::Edit((id, value)));
         })
     };
 
-    let add = {
+    let onadd = {
         let state = state.clone();
         Callback::from(move |value: String| {
             state.dispatch(Action::Add(value));
         })
     };
 
-    let set_filter_onclick = {
+    let onset_filter = {
         let state = state.clone();
         Callback::from(move |filter: Filter| {
             state.dispatch(Action::SetFilter(filter));
@@ -204,7 +202,7 @@ fn app() -> Html {
             <section class="todoapp">
                 <header class="header">
                     <h1>{ "todos" }</h1>
-                    <Input {add} />
+                    <HeaderInput {onadd} />
                 </header>
                 <section class={classes!("main", hidden_class)}>
                     <input
@@ -212,17 +210,17 @@ fn app() -> Html {
                         class="toggle-all"
                         id="toggle-all"
                         checked={is_all_completed}
-                        onclick={toggle_all_onclick}
+                        onclick={ontoggle_all}
                     />
                     <label for="toggle-all" />
                     <ul class="todo-list">
                         { for state.entries.iter().filter(|e| state.filter.fits(e)).cloned().map(|entry|
                             html! {
                                 <EntryItem {entry}
-                                    toggle_onclick={toggle_onclick.clone()}
-                                    remove_onclick={remove_onclick.clone()}
-                                    toggle_edit_onclick={toggle_edit_onclick.clone()}
-                                    edit={edit.clone()}
+                                    ontoggle={ontoggle.clone()}
+                                    onremove={onremove.clone()}
+                                    ontoggle_edit={ontoggle_edit.clone()}
+                                    onedit={onedit.clone()}
                                 />
                         }) }
                     </ul>
@@ -237,12 +235,12 @@ fn app() -> Html {
                             html! {
                                 <FilterItem {filter}
                                     selected={state.filter == filter}
-                                    set_filter_onclick={set_filter_onclick.clone()}
+                                    onset_filter={onset_filter.clone()}
                                 />
                             }
                         }) }
                     </ul>
-                    <button class="clear-completed" onclick={clear_completed_onclick}>
+                    <button class="clear-completed" onclick={onclear_completed}>
                         { format!("Clear completed ({})", completed) }
                     </button>
                 </footer>
