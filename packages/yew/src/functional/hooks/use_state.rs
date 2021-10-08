@@ -34,7 +34,9 @@ struct UseState<T2> {
 ///     }
 /// }
 /// ```
-pub fn use_state<T: 'static, F: FnOnce() -> T>(initial_state_fn: F) -> UseStateHandle<T> {
+pub fn use_state<T: 'static + PartialEq, F: FnOnce() -> T>(
+    initial_state_fn: F,
+) -> UseStateHandle<T> {
     use_hook(
         // Initializer
         move || UseState {
@@ -44,8 +46,12 @@ pub fn use_state<T: 'static, F: FnOnce() -> T>(initial_state_fn: F) -> UseStateH
         move |hook, updater| {
             let setter: Rc<(dyn Fn(T))> = Rc::new(move |new_val: T| {
                 updater.callback(move |st: &mut UseState<T>| {
-                    st.current = Rc::new(new_val);
-                    true
+                    if *st.current != new_val {
+                        st.current = Rc::new(new_val);
+                        true
+                    } else {
+                        false
+                    }
                 })
             });
 
