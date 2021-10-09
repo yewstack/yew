@@ -311,12 +311,12 @@ error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `{integer}`
    ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
     |
     | / impl_short! {
-    | |     onauxclick(MouseEvent)
-    | |     onclick(MouseEvent)
-    | |
+133 | |     onauxclick(MouseEvent)
+134 | |     onclick(MouseEvent)
+135 | |
 ...   |
-    | |     ontransitionstart(TransitionEvent)
-    | | }
+196 | |     ontransitionstart(TransitionEvent)
+197 | | }
     | |_- required by this bound in `yew::html::onclick::Wrapper::__macro_new`
     |
     = help: the trait `Fn<(MouseEvent,)>` is not implemented for `{integer}`
@@ -334,12 +334,12 @@ error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<Strin
    ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
     |
     | / impl_short! {
-    | |     onauxclick(MouseEvent)
-    | |     onclick(MouseEvent)
-    | |
+133 | |     onauxclick(MouseEvent)
+134 | |     onclick(MouseEvent)
+135 | |
 ...   |
-    | |     ontransitionstart(TransitionEvent)
-    | | }
+196 | |     ontransitionstart(TransitionEvent)
+197 | | }
     | |_- required by this bound in `yew::html::onclick::Wrapper::__macro_new`
     |
     = note: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
@@ -354,12 +354,12 @@ error[E0277]: the trait bound `Option<{integer}>: IntoEventCallback<FocusEvent>`
    ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
     |
     | / impl_short! {
-    | |     onauxclick(MouseEvent)
-    | |     onclick(MouseEvent)
-    | |
+133 | |     onauxclick(MouseEvent)
+134 | |     onclick(MouseEvent)
+135 | |
 ...   |
-    | |     ontransitionstart(TransitionEvent)
-    | | }
+196 | |     ontransitionstart(TransitionEvent)
+197 | | }
     | |_- required by this bound in `yew::html::onfocus::Wrapper::__macro_new`
     |
     = help: the following implementations were found:
@@ -398,12 +398,12 @@ error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<Strin
    ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
     |
     | / impl_short! {
-    | |     onauxclick(MouseEvent)
-    | |     onclick(MouseEvent)
-    | |
+133 | |     onauxclick(MouseEvent)
+134 | |     onclick(MouseEvent)
+135 | |
 ...   |
-    | |     ontransitionstart(TransitionEvent)
-    | | }
+196 | |     ontransitionstart(TransitionEvent)
+197 | | }
     | |_- required by this bound in `yew::html::onclick::Wrapper::__macro_new`
     |
     = note: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
