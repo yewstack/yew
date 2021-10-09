@@ -13,7 +13,7 @@ pub fn build_router<R: Routable>() -> Router {
     R::routes().iter().for_each(|path| {
         let route = match base {
             Some(ref base) => Cow::from(format!("{}{}", base, path)),
-            _ => (*path).into(),
+            None => (*path).into(),
         };
 
         let stripped_route = strip_slash_suffix(&route);

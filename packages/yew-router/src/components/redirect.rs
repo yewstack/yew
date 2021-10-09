@@ -2,7 +2,7 @@ use crate::{service, Routable};
 use std::marker::PhantomData;
 use yew::prelude::*;
 
-/// Props for [`Link`]
+/// Props for [`Redirect`]
 #[derive(Properties, Clone, PartialEq)]
 pub struct RedirectProps<R: Routable + Clone + PartialEq> {
     /// Route that will be pushed when the component is rendered.
