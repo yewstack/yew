@@ -3,8 +3,8 @@ use std::rc::Rc;
 use yew::functional::use_hook;
 
 pub struct UseBoolToggleHandle {
-    pub value: bool,
-    pub toggle: Rc<dyn Fn()>,
+    value: bool,
+    toggle: Rc<dyn Fn()>,
 }
 
 impl UseBoolToggleHandle {
@@ -21,8 +21,27 @@ impl Deref for UseBoolToggleHandle {
     }
 }
 
-/// Hook for toggling a boolean value.
-/// This hook does not cause a re-render if the value is not the default value.
+/// This hook can be used to cause a re-render with the non-default value, which is
+/// then reset to the default value after that render.
+///
+/// # Arguments
+///
+/// * `default` - The default value.
+///
+/// # Example
+/// ```
+/// use crate::hooks::use_bool_toggle::use_bool_toggle;
+/// ...
+/// let value = use_bool_toggle(false);
+/// ...
+/// <button onclick={Callback::once(move |_| {
+///     value.toggle();
+///     // This will toggle the value to true.
+///     // Then render.
+///     // Post render it will toggle back to false skipping the render.
+/// })}>
+/// ...
+/// ```
 pub fn use_bool_toggle(default: bool) -> UseBoolToggleHandle {
     use_hook(
         || default,
