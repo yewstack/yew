@@ -75,14 +75,16 @@ impl<T: fmt::Debug> fmt::Debug for UseStateHandle<T> {
 }
 
 impl<T> UseStateHandle<T> {
-    /// Updates the value
+    /// Replaces the value
     ///
     /// *Always causes a rerender*
     pub fn set(&self, value: T) {
         (self.setter)(value)
     }
-    /// Updates the value if it is different from previous value
-    pub fn set_neq(&self, value: T)
+    /// Replaces the value if it is different from previous value
+    ///
+    /// **Only available for value types that implement PartialEq trait**
+    pub fn set_if_neq(&self, value: T)
     where
         T: PartialEq,
     {

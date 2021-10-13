@@ -95,7 +95,7 @@ fn use_state_handle_set_neq_works() {
                 RENDER_COUNT += 1;
             }
             let counter = use_state(|| 0);
-            counter.set_neq(1);
+            counter.set_if_neq(1);
 
             return html! {
                 <div>
