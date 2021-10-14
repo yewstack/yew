@@ -74,7 +74,7 @@ pub mod prelude {
     //!
     //! This module re-exports the frequently used types from the crate.
 
-    pub use crate::components::{Link, Redirect};
+    pub use crate::components::Link;
     #[doc(no_inline)]
     pub use crate::Routable;
     pub use crate::Router;
