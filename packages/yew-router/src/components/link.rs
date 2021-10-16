@@ -9,7 +9,7 @@ pub struct LinkProps<R: Routable + Clone + PartialEq> {
     #[prop_or_default]
     pub classes: Classes,
     /// Route that will be pushed when the anchor is clicked.
-    pub route: R,
+    pub to: R,
     pub children: Children,
 }
 
@@ -33,7 +33,7 @@ impl<R: Routable + Clone + PartialEq + 'static> Component for Link<R> {
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::OnClick => {
-                service::push_route(ctx.props().route.clone());
+                service::push_route(ctx.props().to.clone());
                 false
             }
         }
@@ -42,7 +42,7 @@ impl<R: Routable + Clone + PartialEq + 'static> Component for Link<R> {
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <a class={ctx.props().classes.clone()}
-                href={ctx.props().route.to_path()}
+                href={ctx.props().to.to_path()}
                 onclick={ctx.link().callback(|e: MouseEvent| {
                     e.prevent_default();
                     Msg::OnClick

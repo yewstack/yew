@@ -26,14 +26,6 @@ pub trait Routable: Sized + Clone {
     /// The route to redirect to on 404
     fn not_found_route() -> Option<Self>;
 
-    /// The current route
-    ///
-    /// This is the cached result of [`recognize`]
-    fn current_route() -> Option<Self>;
-
     /// Match a route based on the path
     fn recognize(pathname: &str) -> Option<Self>;
-
-    /// Called when [`Router`](crate::Router) is destroyed.
-    fn cleanup() {}
 }

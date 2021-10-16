@@ -59,13 +59,13 @@ extern crate self as yew_router;
 #[path = "macro_helpers.rs"]
 pub mod __macro;
 pub mod components;
+mod history;
+mod hooks;
 mod routable;
 pub mod router;
-mod service;
 pub(crate) mod utils;
 
-pub use service::*;
-
+pub use history::{BrowserHistory, BrowserLocation, History, Location};
 pub use routable::Routable;
 pub use router::{RenderFn, Router};
 
