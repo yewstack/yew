@@ -17,9 +17,15 @@ pub fn entry(props: &EntryProps) -> Html {
     let id = props.entry.id;
     let mut class = Classes::from("todo");
 
-    // This hook can be used to cause a re-render with the non-default value, which is
-    // then reset to the default value after that render.
-    // more information can be found at ../hooks/use_bool_toggle.rs
+    // We use the `use_bool_toggle` hook and set the default value to `false`
+    // as the default we are not editing the the entry. When we want to edit the
+    // entry we can call the toggle method on the `UseBoolToggleHandle`
+    // which will trigger a re-render with the toggle value being `true` for that
+    // render and after that render the value of toggle will be flipped back to
+    // its default (`false`).
+    // We are relying on the behavior of `onblur` and `onkeypress` to cause
+    // another render so that this component will render again with the
+    // default value of toggle.
     let edit_toggle = use_bool_toggle(false);
     let is_editing = *edit_toggle;
 
