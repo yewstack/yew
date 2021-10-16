@@ -1,6 +1,10 @@
-use crate::{service, Routable};
 use std::marker::PhantomData;
+
+use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
+
+use crate::scope_ext::RouterScopeExt;
+use crate::{AnyHistory, History, Routable};
 
 /// Props for [`Redirect`]
 #[derive(Properties, Clone, PartialEq)]
@@ -26,7 +30,10 @@ where
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        service::push_route(ctx.props().to.clone());
+        ctx.link()
+            .history::<R, AnyHistory<R>>()
+            .expect_throw("failed to read history.")
+            .push(ctx.props().to.clone());
         Html::default()
     }
 }

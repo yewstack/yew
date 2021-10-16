@@ -1,6 +1,10 @@
-use crate::{service, Routable};
 use std::marker::PhantomData;
+
+use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
+
+use crate::scope_ext::RouterScopeExt;
+use crate::{AnyHistory, History, Routable};
 
 /// Props for [`Link`]
 #[derive(Properties, Clone, PartialEq)]
@@ -33,7 +37,10 @@ impl<R: Routable + Clone + PartialEq + 'static> Component for Link<R> {
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::OnClick => {
-                service::push_route(ctx.props().to.clone());
+                ctx.link()
+                    .history::<R, AnyHistory<R>>()
+                    .expect_throw("failed to read history")
+                    .push(ctx.props().to.clone());
                 false
             }
         }

@@ -13,7 +13,7 @@ pub use yew_router_macro::Routable;
 ///
 /// The functions exposed by this trait are **not** supposed to be consumed directly. Instead use
 /// the functions exposed at the [crate's root][crate] to perform operations with the router.
-pub trait Routable: Sized + Clone {
+pub trait Routable: Clone + PartialEq {
     /// Converts path to an instance of the routes enum.
     fn from_path(path: &str, params: &HashMap<&str, &str>) -> Option<Self>;
 

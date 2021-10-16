@@ -22,7 +22,7 @@ pub trait History<R>: Clone
 where
     R: Routable + 'static,
 {
-    type Location: Location<R, History = Self>;
+    type Location: Location<R, History = Self> + 'static;
 
     fn len(&self) -> usize;
 
@@ -113,7 +113,7 @@ where
         let url = Self::route_to_url(&route);
         let query = serde_urlencoded::to_string(query)?;
         self.inner
-            .push_state_with_url(&JsValue::NULL, "", Some(&url))
+            .push_state_with_url(&JsValue::NULL, "", Some(&format!("{}?{}", url, query)))
             .expect("failed to push history.");
 
         Ok(())
@@ -125,7 +125,7 @@ where
         let url = Self::route_to_url(&route);
         let query = serde_urlencoded::to_string(query)?;
         self.inner
-            .replace_state_with_url(&JsValue::NULL, "", Some(&url))
+            .replace_state_with_url(&JsValue::NULL, "", Some(&format!("{}?{}", url, query)))
             .expect("failed to replace history.");
 
         Ok(())
@@ -245,7 +245,7 @@ pub trait Location<R>: Clone
 where
     R: Routable + 'static,
 {
-    type History: History<R, Location = Self>;
+    type History: History<R, Location = Self> + 'static;
 
     fn pathname(&self) -> String;
     fn set_pathname(&self, pathname: &str);
@@ -402,5 +402,144 @@ where
     pub fn reload(&self) {
         self.location.reload().expect_throw("failed to reload.");
         BrowserHistory::<R>::dispatch_event();
+    }
+}
+
+#[derive(Clone)]
+pub enum AnyHistory<R>
+where
+    R: Routable + 'static,
+{
+    Browser(BrowserHistory<R>),
+}
+
+#[derive(Clone)]
+pub enum AnyLocation<R>
+where
+    R: Routable + 'static,
+{
+    Browser(BrowserLocation<R>),
+}
+
+impl<R> History<R> for AnyHistory<R>
+where
+    R: Routable + 'static,
+{
+    type Location = AnyLocation<R>;
+
+    fn len(&self) -> usize {
+        let Self::Browser(self_) = self;
+        self_.len()
+    }
+
+    fn back(&self) {
+        let Self::Browser(self_) = self;
+        self_.back()
+    }
+
+    fn forward(&self) {
+        let Self::Browser(self_) = self;
+        self_.forward()
+    }
+
+    fn go(&self, delta: isize) {
+        let Self::Browser(self_) = self;
+        self_.go(delta)
+    }
+
+    fn push(&self, route: R) {
+        let Self::Browser(self_) = self;
+        self_.push(route)
+    }
+
+    fn replace(&self, route: R) {
+        let Self::Browser(self_) = self;
+        self_.replace(route)
+    }
+
+    fn push_with_query<Q>(&self, route: R, query: Q) -> Result<(), serde_urlencoded::ser::Error>
+    where
+        Q: Serialize,
+    {
+        let Self::Browser(self_) = self;
+        self_.push_with_query(route, query)
+    }
+    fn replace_with_query<Q>(&self, route: R, query: Q) -> Result<(), serde_urlencoded::ser::Error>
+    where
+        Q: Serialize,
+    {
+        let Self::Browser(self_) = self;
+        self_.replace_with_query(route, query)
+    }
+
+    fn listen<CB>(&self, callback: CB) -> HistoryListener
+    where
+        CB: Fn() + 'static,
+    {
+        let Self::Browser(self_) = self;
+        self_.listen(callback)
+    }
+
+    fn location(&self) -> Self::Location {
+        let Self::Browser(self_) = self;
+        AnyLocation::Browser(self_.location())
+    }
+}
+
+impl<R> Location<R> for AnyLocation<R>
+where
+    R: Routable + 'static,
+{
+    type History = AnyHistory<R>;
+
+    fn pathname(&self) -> String {
+        let Self::Browser(self_) = self;
+        self_.pathname()
+    }
+
+    fn set_pathname(&self, pathname: &str) {
+        let Self::Browser(self_) = self;
+        self_.set_pathname(pathname)
+    }
+
+    fn search(&self) -> String {
+        let Self::Browser(self_) = self;
+        self_.search()
+    }
+
+    fn set_search(&self, search: &str) {
+        let Self::Browser(self_) = self;
+        self_.set_search(search)
+    }
+
+    fn query<T>(&self) -> Result<T, serde_urlencoded::de::Error>
+    where
+        T: DeserializeOwned,
+    {
+        let Self::Browser(self_) = self;
+        self_.query()
+    }
+
+    fn set_query<T>(&self, query: T) -> Result<(), serde_urlencoded::ser::Error>
+    where
+        T: Serialize,
+    {
+        let Self::Browser(self_) = self;
+        self_.set_query(query)
+    }
+
+    fn hash(&self) -> String {
+        let Self::Browser(self_) = self;
+        self_.hash()
+    }
+
+    fn set_hash(&self, hash: &str) {
+        let Self::Browser(self_) = self;
+        self_.set_hash(hash)
+    }
+
+    fn route(&self) -> Option<R> {
+        let Self::Browser(self_) = self;
+        self_.route()
     }
 }

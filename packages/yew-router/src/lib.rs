@@ -63,11 +63,13 @@ mod history;
 mod hooks;
 mod routable;
 pub mod router;
-pub(crate) mod utils;
+mod scope_ext;
+pub mod utils;
 
-pub use history::{BrowserHistory, BrowserLocation, History, Location};
+pub use history::*;
 pub use routable::Routable;
 pub use router::{RenderFn, Router};
+pub use scope_ext::RouterScopeExt;
 
 pub mod prelude {
     //! Prelude module to be imported when working with `yew-router`.
@@ -75,6 +77,9 @@ pub mod prelude {
     //! This module re-exports the frequently used types from the crate.
 
     pub use crate::components::{Link, Redirect};
+    pub use crate::history::*;
+    pub use crate::hooks::*;
+    pub use crate::scope_ext::RouterScopeExt;
     #[doc(no_inline)]
     pub use crate::Routable;
     pub use crate::Router;
