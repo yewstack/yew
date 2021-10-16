@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::utils::{base_url, strip_slash_suffix};
 use crate::Routable;
 
@@ -9,16 +11,14 @@ pub fn build_router<R: Routable>() -> Router {
     let base = base_url();
     let mut router = Router::new();
     R::routes().iter().for_each(|path| {
-        match &base {
-            Some(base) => {
-                let route = format!("{}{}", base, path);
-                let route = strip_slash_suffix(&route);
-                router.add(route, path.to_string());
-            }
-            _ => {
-                router.add(path, path.to_string());
-            }
+        let route = match base {
+            Some(ref base) => Cow::from(format!("{}{}", base, path)),
+            None => (*path).into(),
         };
+
+        let stripped_route = strip_slash_suffix(&route);
+
+        router.add(stripped_route, path.to_string());
     });
 
     router
@@ -30,7 +30,8 @@ pub fn recognize_with_router<R: Routable>(router: &Router, pathname: &str) -> Op
     let matched = router.recognize(pathname);
 
     match matched {
-        Ok(matched) => R::from_path(matched.handler(), &matched.params().into_iter().collect()),
+        Ok(matched) => R::from_path(matched.handler(), &matched.params().into_iter().collect())
+            .or_else(R::not_found_route),
         Err(_) => R::not_found_route(),
     }
 }
