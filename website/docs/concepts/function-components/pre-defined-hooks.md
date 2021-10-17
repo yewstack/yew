@@ -7,7 +7,8 @@ description: "The pre-defined Hooks that Yew comes with "
 
 `use_state` is used to manage state in a function component.
 It returns a `UseState` object which `Deref`s to the current value 
-and provides a `set` method to update the value.
+and provides `set` and `set_if_neq` methods to update the value.
+Note that `set_if_neq` is only available if your value implements `PartialEq` trait.
 
 The hook takes a function as input which determines the initial state.
 This value remains up-to-date on subsequent renders.
