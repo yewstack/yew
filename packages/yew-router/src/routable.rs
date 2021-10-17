@@ -29,3 +29,41 @@ pub trait Routable: Clone + PartialEq {
     /// Match a route based on the path
     fn recognize(pathname: &str) -> Option<Self>;
 }
+
+/// A special route that accepts any route.
+///
+/// This can be used with [`History`](crate::History) and [`Location`](crate::Location)
+/// when the type of [`Routable`] is unknown.
+#[derive(Debug, Clone, PartialEq)]
+pub struct AnyRoute {
+    path: String,
+}
+
+impl Routable for AnyRoute {
+    fn from_path(path: &str, params: &HashMap<&str, &str>) -> Option<Self> {
+        // No params allowed.
+        (!params.is_empty()).then(|| Self {
+            path: path.to_string(),
+        })
+    }
+
+    fn to_path(&self) -> String {
+        self.path.to_string()
+    }
+
+    fn routes() -> Vec<&'static str> {
+        vec!["/*path"]
+    }
+
+    fn not_found_route() -> Option<Self> {
+        Some(Self {
+            path: "/404".to_string(),
+        })
+    }
+
+    fn recognize(pathname: &str) -> Option<Self> {
+        Some(Self {
+            path: pathname.to_string(),
+        })
+    }
+}

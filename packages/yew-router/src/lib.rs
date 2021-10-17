@@ -64,12 +64,14 @@ mod hooks;
 mod routable;
 pub mod router;
 mod scope_ext;
+pub mod switch;
 pub mod utils;
 
 pub use history::*;
 pub use routable::Routable;
-pub use router::{RenderFn, Router};
+pub use router::{BrowserRouter, Router};
 pub use scope_ext::RouterScopeExt;
+pub use switch::{RenderFn, Switch};
 
 pub mod prelude {
     //! Prelude module to be imported when working with `yew-router`.
@@ -82,5 +84,7 @@ pub mod prelude {
     pub use crate::scope_ext::RouterScopeExt;
     #[doc(no_inline)]
     pub use crate::Routable;
-    pub use crate::Router;
+    pub use crate::{BrowserRouter, Router};
+
+    pub use crate::Switch;
 }

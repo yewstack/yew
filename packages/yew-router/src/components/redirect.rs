@@ -1,39 +1,30 @@
-use std::marker::PhantomData;
-
 use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
 
-use crate::scope_ext::RouterScopeExt;
-use crate::{AnyHistory, History, Routable};
+use crate::hooks::use_any_history;
+use crate::{History, Routable};
 
 /// Props for [`Redirect`]
 #[derive(Properties, Clone, PartialEq)]
-pub struct RedirectProps<R: Routable + Clone + PartialEq> {
+pub struct RedirectProps<R: Routable> {
     /// Route that will be pushed when the component is rendered.
     pub to: R,
 }
 
 /// A component that will redirect to specified route when rendered.
-pub struct Redirect<R: Routable + Clone + PartialEq + 'static> {
-    _data: PhantomData<R>,
-}
-
-impl<R> Component for Redirect<R>
+#[function_component(Redirect)]
+pub fn redirect<R>(props: &RedirectProps<R>) -> Html
 where
-    R: Routable + Clone + PartialEq + 'static,
+    R: Routable + 'static,
 {
-    type Message = ();
-    type Properties = RedirectProps<R>;
+    let history = use_any_history().expect_throw("failed to read history.");
 
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self { _data: PhantomData }
-    }
+    let target_route = props.to.clone();
+    use_effect(move || {
+        history.push(target_route.clone());
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        ctx.link()
-            .history::<R, AnyHistory<R>>()
-            .expect_throw("failed to read history.")
-            .push(ctx.props().to.clone());
-        Html::default()
-    }
+        || {}
+    });
+
+    Html::default()
 }

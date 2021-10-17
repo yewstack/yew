@@ -1,81 +1,50 @@
 //! Router Component.
 
-use std::marker::PhantomData;
-
-use crate::{AnyHistory, BrowserHistory, History, Location, Routable};
-use gloo::console;
-use std::rc::Rc;
+use crate::prelude::*;
 use yew::prelude::*;
 
-/// Wraps `Rc` around `Fn` so it can be passed as a prop.
-pub struct RenderFn<R>(Rc<dyn Fn(&R) -> Html>);
-
-impl<R> RenderFn<R> {
-    /// Creates a new [`RenderFn`]
-    ///
-    /// It is recommended that you use [`Router::render`] instead
-    pub fn new(value: impl Fn(&R) -> Html + 'static) -> Self {
-        Self(Rc::new(value))
-    }
-    pub fn render(&self, route: &R) -> Html {
-        (self.0)(route)
-    }
-}
-
-impl<T> Clone for RenderFn<T> {
-    fn clone(&self) -> Self {
-        Self(Rc::clone(&self.0))
-    }
-}
-
-impl<T> PartialEq for RenderFn<T> {
-    fn eq(&self, other: &Self) -> bool {
-        // https://github.com/rust-lang/rust-clippy/issues/6524
-        #[allow(clippy::vtable_address_comparisons)]
-        Rc::ptr_eq(&self.0, &other.0)
-    }
-}
-
 /// Props for [`Router`]
-#[derive(Properties)]
-pub struct RouterProps<R> {
-    /// Callback which returns [`Html`] to be rendered for the current route.
-    pub render: RenderFn<R>,
-}
-
-impl<R> Clone for RouterProps<R> {
-    fn clone(&self) -> Self {
-        Self {
-            render: self.render.clone(),
-        }
-    }
-}
-
-impl<R> PartialEq for RouterProps<R> {
-    fn eq(&self, other: &Self) -> bool {
-        self.render.eq(&other.render)
-    }
-}
-
-#[derive(Clone)]
-pub struct HistoryState<R, H>
+#[derive(Properties, PartialEq, Clone)]
+pub struct RouterProps<H>
 where
-    R: Routable + 'static,
-    H: History<R> + 'static,
+    H: History + 'static,
 {
-    pub(crate) history: H,
-    _phantom: PhantomData<R>,
+    pub children: Children,
+    pub history: H,
+}
+
+/// A context for [`History`]
+#[derive(Clone)]
+pub(crate) struct RouterState<H>
+where
+    H: History + 'static,
+{
+    history: H,
+    // Counter to force update.
     ctr: u32,
 }
 
-impl<R, H> PartialEq for HistoryState<R, H>
+impl<H> RouterState<H>
 where
-    R: Routable + 'static,
-    H: History<R> + 'static,
+    H: History + 'static,
+{
+    pub fn history(&self) -> H {
+        self.history.clone()
+    }
+}
+
+impl<H> PartialEq for RouterState<H>
+where
+    H: History + 'static,
 {
     fn eq(&self, rhs: &Self) -> bool {
         self.ctr == rhs.ctr
     }
+}
+
+#[doc(hidden)]
+pub enum Msg {
+    ReRender,
 }
 
 /// The router component.
@@ -85,56 +54,97 @@ where
 /// Otherwise `html! {}` is rendered and a message is logged to console
 /// stating that no route can be matched.
 /// See the [crate level document][crate] for more information.
-#[function_component(Router)]
-pub fn router<R>(props: &RouterProps<R>) -> Html
+pub struct Router<H>
 where
-    R: Routable + 'static,
+    H: History + 'static,
 {
-    let history: UseStateHandle<BrowserHistory<R>> = use_state(BrowserHistory::new);
-    let ctr = use_state(|| 0);
+    _listener: HistoryListener,
+    history: H,
+    ctr: u32,
+}
 
-    use_effect_with_deps(
-        |(ctr, history)| {
-            let ctr = ctr.to_owned();
-            let listener = history.listen(move || {
-                ctr.set(*ctr + 1);
-            });
+impl<H> Component for Router<H>
+where
+    H: History + 'static,
+{
+    type Message = Msg;
+    type Properties = RouterProps<H>;
 
-            || {
-                let _listener = listener;
-            }
-        },
-        (ctr.clone(), history.clone()),
-    );
+    fn create(ctx: &Context<Self>) -> Self {
+        let link = ctx.link().clone();
 
-    let location = history.location();
-    let route = location.route();
+        let listener = ctx
+            .props()
+            .history
+            .listen(move || link.send_message(Msg::ReRender));
 
-    let state = HistoryState {
-        history: (*history).clone(),
-        _phantom: PhantomData,
-        ctr: *ctr,
-    };
-
-    let any_state = HistoryState {
-        history: AnyHistory::Browser((*history).clone()),
-        _phantom: PhantomData,
-        ctr: *ctr,
-    };
-
-    let children = match route.clone() {
-        Some(route) => props.render.render(&route),
-        None => {
-            console::warn!("no route matched");
-            Html::default()
+        Self {
+            _listener: listener,
+            history: ctx.props().history.clone(),
+            ctr: 0,
         }
-    };
+    }
+
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            Msg::ReRender => {
+                self.ctr += 1;
+                true
+            }
+        }
+    }
+
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+        let link = ctx.link().clone();
+
+        if self.history != ctx.props().history {
+            self._listener = ctx
+                .props()
+                .history
+                .listen(move || link.send_message(Msg::ReRender));
+
+            self.history = ctx.props().history.clone();
+
+            true
+        } else {
+            false
+        }
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let typed_state = RouterState {
+            history: self.history.clone(),
+            ctr: self.ctr,
+        };
+
+        let any_state = RouterState {
+            history: self.history.clone().into_any_history(),
+            ctr: self.ctr,
+        };
+
+        html! {
+            <ContextProvider<RouterState<H>> context={typed_state}>
+                <ContextProvider<RouterState<AnyHistory>> context={any_state}>
+                    {ctx.props().children.clone()}
+                </ContextProvider<RouterState<AnyHistory>>>
+            </ContextProvider<RouterState<H>>>
+        }
+    }
+}
+
+#[derive(Properties, PartialEq, Clone)]
+pub struct BrowserRouterProps {
+    pub children: Children,
+}
+
+#[function_component(BrowserRouter)]
+pub fn browser_router(props: &BrowserRouterProps) -> Html {
+    let history = use_state(BrowserHistory::new);
+    let children = props.children.clone();
 
     html! {
-        <ContextProvider<HistoryState<R, BrowserHistory<R>>> context={state}>
-            <ContextProvider<HistoryState<R, AnyHistory<R>>> context={any_state}>
-                {children}
-            </ContextProvider<HistoryState<R, AnyHistory<R>>>>
-        </ContextProvider<HistoryState<R, BrowserHistory<R>>>>
+        <Router<BrowserHistory> history={(*history).clone()}>
+            {children}
+        </Router<BrowserHistory>>
     }
 }

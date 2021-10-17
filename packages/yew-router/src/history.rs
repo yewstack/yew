@@ -1,6 +1,5 @@
 use std::borrow::Cow;
 use std::cell::RefCell;
-use std::marker::PhantomData;
 use std::rc::{Rc, Weak};
 
 use gloo::events::EventListener;
@@ -8,67 +7,99 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 use wasm_bindgen::{JsValue, UnwrapThrowExt};
 use web_sys::Event;
-
-use crate::utils::base_url;
-use crate::Routable;
 use yew::callback::Callback;
 use yew::utils::window;
 
+use crate::utils::base_url;
+use crate::Routable;
+
+/// A History Listener to manage callbacks registered on [`History`].
+///
+/// This Listener has the same behaviour as the [`EventListener`] from [`gloo`]
+/// that the underlying callback will be unregistered when the listener dropped.
 pub struct HistoryListener {
     _listener: Rc<Callback<()>>,
 }
 
-pub trait History<R>: Clone
-where
-    R: Routable + 'static,
-{
-    type Location: Location<R, History = Self> + 'static;
+/// A trait to provide [`History`] access.
+pub trait History: Clone + PartialEq {
+    type Location: Location<History = Self> + 'static;
 
+    /// Returns the number of elements in [`History`].
     fn len(&self) -> usize;
 
+    /// Returns true if the current [`History`] is empty/
     fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
+    /// Moves back 1 page in [`History`].
     fn back(&self);
 
+    /// Moves forward 1 page in [`History`].
     fn forward(&self);
 
+    /// Loads a specific page in [`History`] with a `delta` relative to current page.
+    ///
+    /// See: https://developer.mozilla.org/en-US/docs/Web/API/History/go
     fn go(&self, delta: isize);
 
-    fn push(&self, route: R);
-    fn replace(&self, route: R);
+    /// Pushes a [`Routable`] entry with [`None`] being the state.
+    fn push(&self, route: impl Routable);
 
-    fn push_with_query<Q>(&self, route: R, query: Q) -> Result<(), serde_urlencoded::ser::Error>
+    /// Replaces the current history entry with provided [`Routable`] and [`None`] state.
+    fn replace(&self, route: impl Routable);
+
+    /// Same as [`.push()`] but affix the queries to the end of the route.
+    fn push_with_query<Q>(
+        &self,
+        route: impl Routable,
+        query: Q,
+    ) -> Result<(), serde_urlencoded::ser::Error>
     where
         Q: Serialize;
-    fn replace_with_query<Q>(&self, route: R, query: Q) -> Result<(), serde_urlencoded::ser::Error>
+
+    /// Same as [`.replace()`] but affix the queries to the end of the route.
+    fn replace_with_query<Q>(
+        &self,
+        route: impl Routable,
+        query: Q,
+    ) -> Result<(), serde_urlencoded::ser::Error>
     where
         Q: Serialize;
 
+    /// Creates a Listener that will be notified when current state changes.
+    ///
+    /// This method returns a [`HistoryListener`] that will automatically unregister the callback
+    /// when dropped.
     fn listen<CB>(&self, callback: CB) -> HistoryListener
     where
         CB: Fn() + 'static;
 
+    /// Returns the associated [`Location`] of the current history.
     fn location(&self) -> Self::Location;
+
+    fn into_any_history(self) -> AnyHistory;
 }
 
+/// A [`History`] that is implemented with [`web_sys::History`] that provides native browser
+/// history and state access.
 #[derive(Clone)]
-pub struct BrowserHistory<R>
-where
-    R: Routable + 'static,
-{
+pub struct BrowserHistory {
     _listener: Option<Rc<EventListener>>,
     inner: web_sys::History,
     callbacks: Rc<RefCell<Vec<Weak<Callback<()>>>>>,
-    _phantom: PhantomData<R>,
 }
 
-impl<R> History<R> for BrowserHistory<R>
-where
-    R: Routable + 'static,
-{
-    type Location = BrowserLocation<R>;
+impl PartialEq for BrowserHistory {
+    fn eq(&self, _rhs: &Self) -> bool {
+        // All browser histories are created equal.
+        true
+    }
+}
+
+impl History for BrowserHistory {
+    type Location = BrowserLocation;
 
     fn len(&self) -> usize {
         self.inner.length().expect_throw("failed to get length.") as usize
@@ -88,8 +119,8 @@ where
             .expect_throw("failed to call go.")
     }
 
-    fn push(&self, route: R) {
-        let url = Self::route_to_url(&route);
+    fn push(&self, route: impl Routable) {
+        let url = Self::route_to_url(route);
         self.inner
             .push_state_with_url(&JsValue::NULL, "", Some(&url))
             .expect("failed to push state.");
@@ -97,8 +128,8 @@ where
         Self::dispatch_event();
     }
 
-    fn replace(&self, route: R) {
-        let url = Self::route_to_url(&route);
+    fn replace(&self, route: impl Routable) {
+        let url = Self::route_to_url(route);
         self.inner
             .replace_state_with_url(&JsValue::NULL, "", Some(&url))
             .expect("failed to replace history.");
@@ -106,11 +137,15 @@ where
         Self::dispatch_event();
     }
 
-    fn push_with_query<Q>(&self, route: R, query: Q) -> Result<(), serde_urlencoded::ser::Error>
+    fn push_with_query<Q>(
+        &self,
+        route: impl Routable,
+        query: Q,
+    ) -> Result<(), serde_urlencoded::ser::Error>
     where
         Q: Serialize,
     {
-        let url = Self::route_to_url(&route);
+        let url = Self::route_to_url(route);
         let query = serde_urlencoded::to_string(query)?;
         self.inner
             .push_state_with_url(&JsValue::NULL, "", Some(&format!("{}?{}", url, query)))
@@ -118,11 +153,15 @@ where
 
         Ok(())
     }
-    fn replace_with_query<Q>(&self, route: R, query: Q) -> Result<(), serde_urlencoded::ser::Error>
+    fn replace_with_query<Q>(
+        &self,
+        route: impl Routable,
+        query: Q,
+    ) -> Result<(), serde_urlencoded::ser::Error>
     where
         Q: Serialize,
     {
-        let url = Self::route_to_url(&route);
+        let url = Self::route_to_url(route);
         let query = serde_urlencoded::to_string(query)?;
         self.inner
             .replace_state_with_url(&JsValue::NULL, "", Some(&format!("{}?{}", url, query)))
@@ -135,6 +174,7 @@ where
     where
         CB: Fn() + 'static,
     {
+        // Callbacks do not receive a copy of [`History`] to prevent reference cycle.
         let cb = Rc::new(Callback::from(move |_| callback()));
 
         self.callbacks.borrow_mut().push(Rc::downgrade(&cb));
@@ -143,51 +183,67 @@ where
     }
 
     fn location(&self) -> Self::Location {
-        BrowserLocation::new()
+        BrowserLocation::new(self.clone())
+    }
+
+    fn into_any_history(self) -> AnyHistory {
+        AnyHistory::Browser(self)
     }
 }
 
-impl<R> Default for BrowserHistory<R>
-where
-    R: Routable + 'static,
-{
+impl Default for BrowserHistory {
     fn default() -> Self {
-        let window = window();
+        // We create browser history only once.
+        thread_local! {
+            static BROWSER_HISTORY: RefCell<Option<BrowserHistory>> = RefCell::default();
+        }
 
-        let inner = window.history().expect_throw("failed to get history.");
-        let callbacks = Rc::default();
+        BROWSER_HISTORY.with(|m| {
+            let mut m = m.borrow_mut();
 
-        let mut self_ = Self {
-            _listener: None,
-            inner,
-            callbacks,
-            _phantom: PhantomData,
-        };
+            let history = match *m {
+                Some(ref m) => m.clone(),
+                None => {
+                    let window = window();
 
-        let callbacks = Rc::downgrade(&self_.callbacks);
+                    let inner = window.history().expect_throw("failed to get history.");
+                    let callbacks = Rc::default();
 
-        self_._listener = Some(Rc::new(EventListener::new(
-            &window,
-            "popstate",
-            move |_| {
-                if let Some(m) = callbacks.upgrade() {
-                    Self::notify_callbacks(m)
+                    let mut self_ = Self {
+                        _listener: None,
+                        inner,
+                        callbacks,
+                    };
+
+                    let callbacks = Rc::downgrade(&self_.callbacks);
+
+                    self_._listener = Some(Rc::new(EventListener::new(
+                        &window,
+                        "popstate",
+                        move |_| {
+                            if let Some(m) = callbacks.upgrade() {
+                                Self::notify_callbacks(m)
+                            }
+                        },
+                    )));
+                    self_
                 }
-            },
-        )));
+            };
 
-        self_
+            *m = Some(history.clone());
+
+            history
+        })
     }
 }
 
-impl<R> BrowserHistory<R>
-where
-    R: Routable + 'static,
-{
+impl BrowserHistory {
+    /// Creates a new [`BrowserHistory`]
     pub fn new() -> Self {
         Self::default()
     }
 
+    // Callbacks are dispatched as events so all browser history can acknowledge a state change.
     fn dispatch_event() {
         let event = Event::new("popstate").unwrap();
         yew::utils::window()
@@ -195,7 +251,7 @@ where
             .expect("dispatch");
     }
 
-    fn route_to_url(route: &R) -> Cow<'_, str> {
+    fn route_to_url(route: impl Routable) -> Cow<'static, str> {
         let base = base_url();
         let url = route.to_path();
 
@@ -218,6 +274,7 @@ where
         let callables = {
             let mut callbacks_ref = callbacks.borrow_mut();
 
+            // Any gone weak references are removed when called.
             let (callbacks, callbacks_weak) = callbacks_ref.iter().cloned().fold(
                 (Vec::new(), Vec::new()),
                 |(mut callbacks, mut callbacks_weak), m| {
@@ -241,43 +298,62 @@ where
     }
 }
 
-pub trait Location<R>: Clone
-where
-    R: Routable + 'static,
-{
-    type History: History<R, Location = Self> + 'static;
+/// A trait to to provide [`Location`] information.
+pub trait Location: Clone + PartialEq {
+    type History: History<Location = Self> + 'static;
 
+    /// Returns the `pathname` on the [`Location`] struct.
     fn pathname(&self) -> String;
-    fn set_pathname(&self, pathname: &str);
+    // /// Sets the `pathname` on the [`Location`] struct.
+    // fn set_pathname(&self, pathname: &str);
+
+    /// Returns the queries of current URL in [`String`]
     fn search(&self) -> String;
-    fn set_search(&self, search: &str);
+    // /// Sets the `search` string in [`String`].
+    // fn set_search(&self, search: &str);
+
+    /// Returns the queries of current URL parsed as `T`.
     fn query<T>(&self) -> Result<T, serde_urlencoded::de::Error>
     where
         T: DeserializeOwned;
-    fn set_query<T>(&self, query: T) -> Result<(), serde_urlencoded::ser::Error>
-    where
-        T: Serialize;
+    // /// Sets the queries of current URL to serialized value of `T`.
+    // fn set_query<T>(&self, query: T) -> Result<(), serde_urlencoded::ser::Error>
+    // where
+    //     T: Serialize;
+
+    /// Returns the hash fragment of current URL.
     fn hash(&self) -> String;
+    // /// Sets the hash fragment of current URL.
+    // fn set_hash(&self, hash: &str);
 
-    fn set_hash(&self, hash: &str);
-
-    fn route(&self) -> Option<R>;
+    /// Returns current route or `None` if none matched.
+    fn route<R>(&self) -> Option<R>
+    where
+        R: Routable;
 }
 
+/// The [`Location`] type for [`BrowserHistory`].
+///
+/// Most functionality of this type is provided by [`web_sys::Location`].
+///
+/// This type also provides additional methods that are unique in Browsers and are not available in [`Location`].
+// ///
+// /// Note: most setters(`set_*`) that is unique to [`BrowserLocation`] will cause the page to reload.
 #[derive(Clone)]
-pub struct BrowserLocation<R>
-where
-    R: Routable + 'static,
-{
+pub struct BrowserLocation {
     location: web_sys::Location,
-    _phantom: PhantomData<R>,
+    _history: BrowserHistory,
 }
 
-impl<R> Location<R> for BrowserLocation<R>
-where
-    R: Routable + 'static,
-{
-    type History = BrowserHistory<R>;
+impl PartialEq for BrowserLocation {
+    fn eq(&self, _rhs: &Self) -> bool {
+        // All browser locations are created equal.
+        true
+    }
+}
+
+impl Location for BrowserLocation {
+    type History = BrowserHistory;
 
     fn pathname(&self) -> String {
         self.location
@@ -285,23 +361,23 @@ where
             .expect_throw("failed to get pathname.")
     }
 
-    fn set_pathname(&self, pathname: &str) {
-        self.location
-            .set_pathname(pathname)
-            .expect_throw("failed to set pathname.");
-        BrowserHistory::<R>::dispatch_event();
-    }
+    // fn set_pathname(&self, pathname: &str) {
+    //     self.location
+    //         .set_pathname(pathname)
+    //         .expect_throw("failed to set pathname.");
+    //     BrowserHistory::<R>::dispatch_event();
+    // }
 
     fn search(&self) -> String {
         self.location.search().expect_throw("failed to get search.")
     }
 
-    fn set_search(&self, search: &str) {
-        self.location
-            .set_search(search)
-            .expect_throw("failed to set search.");
-        BrowserHistory::<R>::dispatch_event();
-    }
+    // fn set_search(&self, search: &str) {
+    //     self.location
+    //         .set_search(search)
+    //         .expect_throw("failed to set search.");
+    //     BrowserHistory::<R>::dispatch_event();
+    // }
 
     fn query<T>(&self) -> Result<T, serde_urlencoded::de::Error>
     where
@@ -311,121 +387,124 @@ where
         serde_urlencoded::from_str(query.strip_prefix('?').unwrap_or(""))
     }
 
-    fn set_query<T>(&self, query: T) -> Result<(), serde_urlencoded::ser::Error>
-    where
-        T: Serialize,
-    {
-        let query = serde_urlencoded::to_string(query)?;
-        self.set_search(&query);
-        Ok(())
-    }
+    // fn set_query<T>(&self, query: T) -> Result<(), serde_urlencoded::ser::Error>
+    // where
+    //     T: Serialize,
+    // {
+    //     let query = serde_urlencoded::to_string(query)?;
+    //     self.set_search(&query);
+    //     Ok(())
+    // }
 
     fn hash(&self) -> String {
         self.location.hash().expect_throw("failed to get hash.")
     }
 
-    fn set_hash(&self, hash: &str) {
-        self.location
-            .set_hash(hash)
-            .expect_throw("failed to set hash.");
-        BrowserHistory::<R>::dispatch_event();
-    }
+    // fn set_hash(&self, hash: &str) {
+    //     self.location
+    //         .set_hash(hash)
+    //         .expect_throw("failed to set hash.");
+    //     BrowserHistory::<R>::dispatch_event();
+    // }
 
-    fn route(&self) -> Option<R> {
+    fn route<R>(&self) -> Option<R>
+    where
+        R: Routable,
+    {
         R::recognize(&self.pathname())
     }
 }
 
-impl<R> BrowserLocation<R>
-where
-    R: Routable + 'static,
-{
-    fn new() -> Self {
+impl BrowserLocation {
+    fn new(history: BrowserHistory) -> Self {
         Self {
             location: window().location(),
-            _phantom: PhantomData,
+            _history: history,
         }
     }
 
+    /// Returns the [`href`] of current [`Location`].
     pub fn href(&self) -> String {
         self.location.href().expect_throw("failed to get href.")
     }
 
-    pub fn set_href(&self, value: &str) {
-        self.location
-            .set_href(value)
-            .expect_throw("failed to set href.");
-        BrowserHistory::<R>::dispatch_event();
-    }
+    // /// Sets the [`href`] property of current [`Location`].
+    // pub fn set_href(&self, value: &str) {
+    //     self.location
+    //         .set_href(value)
+    //         .expect_throw("failed to set href.");
+    //     BrowserHistory::<R>::dispatch_event();
+    // }
 
+    /// Returns the [`origin`] of current [`Location`].
     pub fn origin(&self) -> String {
         self.location.origin().expect_throw("failed to get origin.")
     }
 
+    /// Returns the [`protocol`] property of current [`Location`].
     pub fn protocol(&self) -> String {
         self.location
             .protocol()
             .expect_throw("failed to get protocol.")
     }
 
-    pub fn set_protocol(&self, value: &str) {
-        self.location
-            .set_protocol(value)
-            .expect_throw("failed to set protocol.");
-        BrowserHistory::<R>::dispatch_event();
-    }
+    // /// Sets the [`protocol`] property of current [`Location`].
+    // pub fn set_protocol(&self, value: &str) {
+    //     self.location
+    //         .set_protocol(value)
+    //         .expect_throw("failed to set protocol.");
+    //     BrowserHistory::<R>::dispatch_event();
+    // }
 
+    /// Returns the [`host`] of current [`Location`].
     pub fn host(&self) -> String {
         self.location.host().expect_throw("failed to get host.")
     }
 
-    pub fn set_host(&self, value: &str) {
-        self.location
-            .set_host(value)
-            .expect_throw("failed to set host.");
-        BrowserHistory::<R>::dispatch_event();
-    }
+    // /// Sets the [`host`] property of current [`Location`].
+    // pub fn set_host(&self, value: &str) {
+    //     self.location
+    //         .set_host(value)
+    //         .expect_throw("failed to set host.");
+    //     BrowserHistory::<R>::dispatch_event();
+    // }
 
+    /// Returns the [`hostname`] of current [`Location`].
     pub fn hostname(&self) -> String {
         self.location
             .hostname()
             .expect_throw("failed to get hostname.")
     }
 
-    pub fn set_hostname(&self, value: &str) {
-        self.location
-            .set_hostname(value)
-            .expect_throw("failed to set hostname.");
-        BrowserHistory::<R>::dispatch_event();
-    }
+    // /// Sets the [`hostname`] property of current [`Location`].
+    // pub fn set_hostname(&self, value: &str) {
+    //     self.location
+    //         .set_hostname(value)
+    //         .expect_throw("failed to set hostname.");
+    //     BrowserHistory::<R>::dispatch_event();
+    // }
 
-    pub fn reload(&self) {
-        self.location.reload().expect_throw("failed to reload.");
-        BrowserHistory::<R>::dispatch_event();
-    }
+    // /// Reloads the page.
+    // pub fn reload(&self) {
+    //     self.location.reload().expect_throw("failed to reload.");
+    //     BrowserHistory::<R>::dispatch_event();
+    // }
 }
 
-#[derive(Clone)]
-pub enum AnyHistory<R>
-where
-    R: Routable + 'static,
-{
-    Browser(BrowserHistory<R>),
+/// A [`History`] that is always available under a [`Router`](crate::Router).
+#[derive(Clone, PartialEq)]
+pub enum AnyHistory {
+    Browser(BrowserHistory),
 }
 
-#[derive(Clone)]
-pub enum AnyLocation<R>
-where
-    R: Routable + 'static,
-{
-    Browser(BrowserLocation<R>),
+/// The [`Location`] for [`AnyHistory`]
+#[derive(Clone, PartialEq)]
+pub enum AnyLocation {
+    Browser(BrowserLocation),
 }
 
-impl<R> History<R> for AnyHistory<R>
-where
-    R: Routable + 'static,
-{
-    type Location = AnyLocation<R>;
+impl History for AnyHistory {
+    type Location = AnyLocation;
 
     fn len(&self) -> usize {
         let Self::Browser(self_) = self;
@@ -447,24 +526,32 @@ where
         self_.go(delta)
     }
 
-    fn push(&self, route: R) {
+    fn push(&self, route: impl Routable) {
         let Self::Browser(self_) = self;
         self_.push(route)
     }
 
-    fn replace(&self, route: R) {
+    fn replace(&self, route: impl Routable) {
         let Self::Browser(self_) = self;
         self_.replace(route)
     }
 
-    fn push_with_query<Q>(&self, route: R, query: Q) -> Result<(), serde_urlencoded::ser::Error>
+    fn push_with_query<Q>(
+        &self,
+        route: impl Routable,
+        query: Q,
+    ) -> Result<(), serde_urlencoded::ser::Error>
     where
         Q: Serialize,
     {
         let Self::Browser(self_) = self;
         self_.push_with_query(route, query)
     }
-    fn replace_with_query<Q>(&self, route: R, query: Q) -> Result<(), serde_urlencoded::ser::Error>
+    fn replace_with_query<Q>(
+        &self,
+        route: impl Routable,
+        query: Q,
+    ) -> Result<(), serde_urlencoded::ser::Error>
     where
         Q: Serialize,
     {
@@ -484,33 +571,34 @@ where
         let Self::Browser(self_) = self;
         AnyLocation::Browser(self_.location())
     }
+
+    fn into_any_history(self) -> AnyHistory {
+        self
+    }
 }
 
-impl<R> Location<R> for AnyLocation<R>
-where
-    R: Routable + 'static,
-{
-    type History = AnyHistory<R>;
+impl Location for AnyLocation {
+    type History = AnyHistory;
 
     fn pathname(&self) -> String {
         let Self::Browser(self_) = self;
         self_.pathname()
     }
 
-    fn set_pathname(&self, pathname: &str) {
-        let Self::Browser(self_) = self;
-        self_.set_pathname(pathname)
-    }
+    // fn set_pathname(&self, pathname: &str) {
+    //     let Self::Browser(self_) = self;
+    //     self_.set_pathname(pathname)
+    // }
 
     fn search(&self) -> String {
         let Self::Browser(self_) = self;
         self_.search()
     }
 
-    fn set_search(&self, search: &str) {
-        let Self::Browser(self_) = self;
-        self_.set_search(search)
-    }
+    // fn set_search(&self, search: &str) {
+    //     let Self::Browser(self_) = self;
+    //     self_.set_search(search)
+    // }
 
     fn query<T>(&self) -> Result<T, serde_urlencoded::de::Error>
     where
@@ -520,25 +608,28 @@ where
         self_.query()
     }
 
-    fn set_query<T>(&self, query: T) -> Result<(), serde_urlencoded::ser::Error>
-    where
-        T: Serialize,
-    {
-        let Self::Browser(self_) = self;
-        self_.set_query(query)
-    }
+    // fn set_query<T>(&self, query: T) -> Result<(), serde_urlencoded::ser::Error>
+    // where
+    //     T: Serialize,
+    // {
+    //     let Self::Browser(self_) = self;
+    //     self_.set_query(query)
+    // }
 
     fn hash(&self) -> String {
         let Self::Browser(self_) = self;
         self_.hash()
     }
 
-    fn set_hash(&self, hash: &str) {
-        let Self::Browser(self_) = self;
-        self_.set_hash(hash)
-    }
+    // fn set_hash(&self, hash: &str) {
+    //     let Self::Browser(self_) = self;
+    //     self_.set_hash(hash)
+    // }
 
-    fn route(&self) -> Option<R> {
+    fn route<R>(&self) -> Option<R>
+    where
+        R: Routable,
+    {
         let Self::Browser(self_) = self;
         self_.route()
     }

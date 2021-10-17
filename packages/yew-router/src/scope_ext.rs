@@ -1,56 +1,85 @@
 use crate::history::*;
 use crate::routable::Routable;
-use crate::router::HistoryState;
+use crate::router::RouterState;
 
 use yew::context::ContextHandle;
 use yew::prelude::*;
 
+pub struct HistoryHandle<H>
+where
+    H: History + 'static,
+{
+    _inner: ContextHandle<RouterState<H>>,
+}
+
+pub struct RouteHandle<R>
+where
+    R: Routable + 'static,
+{
+    _inner: ContextHandle<Option<R>>,
+}
+
 pub trait RouterScopeExt {
-    fn history<R, H>(&self) -> Option<H>
+    fn history<H>(&self) -> Option<H>
     where
-        R: Routable + 'static,
-        H: History<R> + 'static;
+        H: History + 'static;
 
-    fn location<R, L>(&self) -> Option<L>
+    fn location<L>(&self) -> Option<L>
     where
-        R: Routable + 'static,
-        L: Location<R> + 'static;
+        L: Location + 'static;
 
-    fn add_route_listener<R, H>(
-        &self,
-        cb: Callback<H>,
-    ) -> Option<ContextHandle<HistoryState<R, H>>>
+    fn route<R>(&self) -> Option<R>
     where
-        R: Routable + 'static,
-        H: History<R> + 'static;
+        R: Routable + 'static;
+
+    fn add_history_listener<H>(&self, cb: Callback<H>) -> Option<HistoryHandle<H>>
+    where
+        H: History + 'static;
+
+    fn add_route_listener<R>(&self, cb: Callback<Option<R>>) -> Option<RouteHandle<R>>
+    where
+        R: Routable + 'static;
 }
 
 impl<COMP: Component> RouterScopeExt for yew::html::Scope<COMP> {
-    fn history<R, H>(&self) -> Option<H>
+    fn history<H>(&self) -> Option<H>
     where
-        R: Routable + 'static,
-        H: History<R> + 'static,
+        H: History + 'static,
     {
-        self.context::<HistoryState<R, H>>(Callback::from(|_| {}))
-            .map(|(m, _)| m.history)
+        self.context::<RouterState<H>>(Callback::from(|_| {}))
+            .map(|(m, _)| m.history())
     }
 
-    fn location<R, L>(&self) -> Option<L>
+    fn location<L>(&self) -> Option<L>
     where
-        R: Routable + 'static,
-        L: Location<R> + 'static,
+        L: Location + 'static,
     {
-        self.history::<R, L::History>().map(|m| m.location())
+        self.history::<L::History>().map(|m| m.location())
     }
 
-    fn add_route_listener<R, H>(&self, cb: Callback<H>) -> Option<ContextHandle<HistoryState<R, H>>>
+    fn route<R>(&self) -> Option<R>
     where
         R: Routable + 'static,
-        H: History<R> + 'static,
     {
-        self.context::<HistoryState<R, H>>(Callback::from(move |m: HistoryState<R, H>| {
-            cb.emit(m.history)
+        self.context::<Option<R>>(Callback::from(|_| {}))
+            .and_then(|(m, _)| m)
+    }
+
+    fn add_history_listener<H>(&self, cb: Callback<H>) -> Option<HistoryHandle<H>>
+    where
+        H: History + 'static,
+    {
+        self.context::<RouterState<H>>(Callback::from(move |m: RouterState<H>| {
+            cb.emit(m.history())
         }))
-        .map(|(_, m)| m)
+        .map(|(_, m)| HistoryHandle { _inner: m })
+    }
+
+    fn add_route_listener<R>(&self, cb: Callback<Option<R>>) -> Option<RouteHandle<R>>
+    where
+        R: Routable + 'static,
+    {
+        self.context::<Option<R>>(Callback::from(move |m: Option<R>| cb.emit(m)))
+            .map(|(_, m)| RouteHandle { _inner: m })
     }
 }

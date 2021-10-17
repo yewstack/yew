@@ -8,7 +8,7 @@ use crate::{AnyHistory, History, Routable};
 
 /// Props for [`Link`]
 #[derive(Properties, Clone, PartialEq)]
-pub struct LinkProps<R: Routable + Clone + PartialEq> {
+pub struct LinkProps<R: Routable> {
     /// CSS classes to add to the anchor element (optional).
     #[prop_or_default]
     pub classes: Classes,
@@ -18,7 +18,7 @@ pub struct LinkProps<R: Routable + Clone + PartialEq> {
 }
 
 /// A wrapper around `<a>` tag to be used with [`Router`](crate::Router)
-pub struct Link<R: Routable + Clone + PartialEq + 'static> {
+pub struct Link<R: Routable + 'static> {
     _data: PhantomData<R>,
 }
 
@@ -26,7 +26,7 @@ pub enum Msg {
     OnClick,
 }
 
-impl<R: Routable + Clone + PartialEq + 'static> Component for Link<R> {
+impl<R: Routable + 'static> Component for Link<R> {
     type Message = Msg;
     type Properties = LinkProps<R>;
 
@@ -38,7 +38,7 @@ impl<R: Routable + Clone + PartialEq + 'static> Component for Link<R> {
         match msg {
             Msg::OnClick => {
                 ctx.link()
-                    .history::<R, AnyHistory<R>>()
+                    .history::<AnyHistory>()
                     .expect_throw("failed to read history")
                     .push(ctx.props().to.clone());
                 false
