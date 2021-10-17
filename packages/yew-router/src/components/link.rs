@@ -3,8 +3,9 @@ use std::marker::PhantomData;
 use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
 
+use crate::history::{AnyHistory, History};
 use crate::scope_ext::RouterScopeExt;
-use crate::{AnyHistory, History, Routable};
+use crate::Routable;
 
 /// Props for [`Link`]
 #[derive(Properties, Clone, PartialEq)]

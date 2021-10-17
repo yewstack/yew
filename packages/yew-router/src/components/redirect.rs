@@ -1,8 +1,9 @@
 use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
 
+use crate::history::History;
 use crate::hooks::use_any_history;
-use crate::{History, Routable};
+use crate::Routable;
 
 /// Props for [`Redirect`]
 #[derive(Properties, Clone, PartialEq)]

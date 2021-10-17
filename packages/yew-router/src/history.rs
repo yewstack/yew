@@ -236,6 +236,8 @@ impl History for BrowserHistory {
         self.inner
             .push_state_with_url(&state, "", Some(&url))
             .expect("failed to push state.");
+
+        Self::dispatch_event();
         Ok(())
     }
 
@@ -252,6 +254,8 @@ impl History for BrowserHistory {
         self.inner
             .replace_state_with_url(&state, "", Some(&url))
             .expect("failed to replace state.");
+
+        Self::dispatch_event();
         Ok(())
     }
 
@@ -269,6 +273,7 @@ impl History for BrowserHistory {
             .push_state_with_url(&JsValue::NULL, "", Some(&format!("{}?{}", url, query)))
             .expect("failed to push history.");
 
+        Self::dispatch_event();
         Ok(())
     }
     fn replace_with_query<Q>(
@@ -285,6 +290,7 @@ impl History for BrowserHistory {
             .replace_state_with_url(&JsValue::NULL, "", Some(&format!("{}?{}", url, query)))
             .expect("failed to replace history.");
 
+        Self::dispatch_event();
         Ok(())
     }
 
@@ -305,6 +311,7 @@ impl History for BrowserHistory {
             .push_state_with_url(&state, "", Some(&format!("{}?{}", url, query)))
             .expect("failed to push history.");
 
+        Self::dispatch_event();
         Ok(())
     }
 
@@ -325,6 +332,7 @@ impl History for BrowserHistory {
             .replace_state_with_url(&state, "", Some(&format!("{}?{}", url, query)))
             .expect("failed to replace history.");
 
+        Self::dispatch_event();
         Ok(())
     }
 
