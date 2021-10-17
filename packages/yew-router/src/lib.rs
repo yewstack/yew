@@ -19,22 +19,33 @@
 //!     NotFound,
 //! }
 //!
+//! #[function_component(Secure)]
+//! fn secure() -> Html {
+//!     let history = use_any_history().unwrap();
+//!
+//!     let onclick_callback = Callback::from(move |_| history.push(Route::Home));
+//!     html! {
+//!         <div>
+//!             <h1>{ "Secure" }</h1>
+//!             <button onclick={onclick_callback}>{ "Go Home" }</button>
+//!         </div>
+//!     }
+//! }
+//!
 //! # #[function_component(Main)]
 //! # fn app() -> Html {
 //! html! {
-//!     <Router<Route> render={Router::render(switch)} />
+//!     <BrowserRouter>
+//!         <Switch<Route> render={Switch::render(switch)} />
+//!     </BrowserRouter>
 //! }
 //! # }
 //!
 //! fn switch(routes: &Route) -> Html {
-//!     let onclick_callback = Callback::from(|_| yew_router::push_route(Route::Home));
 //!     match routes {
 //!         Route::Home => html! { <h1>{ "Home" }</h1> },
 //!         Route::Secure => html! {
-//!             <div>
-//!                 <h1>{ "Secure" }</h1>
-//!                 <button onclick={onclick_callback}>{ "Go Home" }</button>
-//!             </div>
+//!             <Secure />
 //!         },
 //!         Route::NotFound => html! { <h1>{ "404" }</h1> },
 //!     }
