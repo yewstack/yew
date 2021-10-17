@@ -42,9 +42,13 @@ pub struct AnyRoute {
 impl Routable for AnyRoute {
     fn from_path(path: &str, params: &HashMap<&str, &str>) -> Option<Self> {
         // No params allowed.
-        (!params.is_empty()).then(|| Self {
-            path: path.to_string(),
-        })
+        if params.is_empty() {
+            Some(Self {
+                path: path.to_string(),
+            })
+        } else {
+            None
+        }
     }
 
     fn to_path(&self) -> String {
