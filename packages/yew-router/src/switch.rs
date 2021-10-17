@@ -16,7 +16,7 @@ pub struct RenderFn<R>(Rc<dyn Fn(&R) -> Html>);
 impl<R> RenderFn<R> {
     /// Creates a new [`RenderFn`]
     ///
-    /// It is recommended that you use [`Router::render`] instead
+    /// It is recommended that you use [`Switch::render`] instead
     pub fn new(value: impl Fn(&R) -> Html + 'static) -> Self {
         Self(Rc::new(value))
     }
@@ -54,6 +54,13 @@ pub enum Msg {
     ReRender,
 }
 
+/// A Switch that dispatches route among variants of a [`Routable`].
+///
+/// When a route can't be matched, it looks for the route with `not_found` attribute.
+/// If such a route is provided, it redirects to the specified route.
+/// Otherwise `html! {}` is rendered and a message is logged to console
+/// stating that no route can be matched.
+/// See the [crate level document][crate] for more information.
 pub struct Switch<R: Routable + 'static> {
     _listener: HistoryHandle<AnyHistory>,
     _phantom: PhantomData<R>,
@@ -110,6 +117,7 @@ impl<R> Switch<R>
 where
     R: Routable + Clone + 'static,
 {
+    /// Creates a [`RenderFn`].
     pub fn render<F>(func: F) -> RenderFn<R>
     where
         F: Fn(&R) -> Html + 'static,

@@ -4,9 +4,9 @@
 //! # Usage
 //!
 //! ```rust
-//! # use yew::prelude::*;
-//! # use yew::functional::*;
-//! # use yew_router::prelude::*;
+//! use yew::prelude::*;
+//! use yew::functional::*;
+//! use yew_router::prelude::*;
 //!
 //! #[derive(Debug, Clone, Copy, PartialEq, Routable)]
 //! enum Route {
@@ -32,14 +32,14 @@
 //!     }
 //! }
 //!
-//! # #[function_component(Main)]
-//! # fn app() -> Html {
-//! html! {
-//!     <BrowserRouter>
-//!         <Switch<Route> render={Switch::render(switch)} />
-//!     </BrowserRouter>
+//! #[function_component(Main)]
+//! fn app() -> Html {
+//!     html! {
+//!         <BrowserRouter>
+//!             <Switch<Route> render={Switch::render(switch)} />
+//!         </BrowserRouter>
+//!     }
 //! }
-//! # }
 //!
 //! fn switch(routes: &Route) -> Html {
 //!     match routes {
@@ -54,15 +54,13 @@
 //!
 //! # Internals
 //!
-//! The router keeps its own internal state which is used to store the current route and its associated data.
-//! This allows the [Router] to be operated using the [service] with an API that
-//! isn't cumbersome to use.
+//! The router registers itself as a context provider and makes session history and location information
+//! available via [`hooks`] or [`RouterScopeExt`](scope_ext::RouterScopeExt).
 //!
 //! # State
 //!
-//! The browser history API allows users to state associated with the route. This crate does
-//! not expose or make use of it. It is instead recommended that a state management library like
-//! [yewdux](https://github.com/intendednull/yewdux) be used.
+//! The [`history`] API has a way access / store state associated with session history. Please
+//! consule [`history.state()`](history::History::state) for detailed usage.
 
 extern crate self as yew_router;
 

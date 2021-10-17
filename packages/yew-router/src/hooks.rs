@@ -1,3 +1,5 @@
+//! Hooks to access router state and navigate between pages.
+
 use crate::history::*;
 use crate::routable::Routable;
 use crate::router::RouterState;

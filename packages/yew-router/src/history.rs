@@ -1,3 +1,5 @@
+//! A module that provides universal session history and location information.
+
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::error::Error;
@@ -15,10 +17,10 @@ use yew::utils::window;
 use crate::utils::base_url;
 use crate::Routable;
 
-/// A History Listener to manage callbacks registered on [`History`].
+/// A History Listener to manage callbacks registered on a [`History`].
 ///
 /// This Listener has the same behaviour as the [`EventListener`] from [`gloo`]
-/// that the underlying callback will be unregistered when the listener dropped.
+/// that the underlying callback will be unregistered when the listener is dropped.
 pub struct HistoryListener {
     _listener: Rc<Callback<()>>,
 }
@@ -67,7 +69,7 @@ pub trait History: Clone + PartialEq {
 
     /// Loads a specific page in [`History`] with a `delta` relative to current page.
     ///
-    /// See: https://developer.mozilla.org/en-US/docs/Web/API/History/go
+    /// See: <https://developer.mozilla.org/en-US/docs/Web/API/History/go>
     fn go(&self, delta: isize);
 
     /// Pushes a [`Routable`] entry with [`None`] being the state.
@@ -104,7 +106,7 @@ pub trait History: Clone + PartialEq {
     where
         T: Serialize + 'static;
 
-    /// Same as [`.push()`] but affix the queries to the end of the route.
+    /// Same as `.push()` but affix the queries to the end of the route.
     fn push_with_query<Q>(
         &self,
         route: impl Routable,
@@ -113,7 +115,7 @@ pub trait History: Clone + PartialEq {
     where
         Q: Serialize;
 
-    /// Same as [`.replace()`] but affix the queries to the end of the route.
+    /// Same as `.replace()` but affix the queries to the end of the route.
     fn replace_with_query<Q>(
         &self,
         route: impl Routable,
@@ -122,7 +124,7 @@ pub trait History: Clone + PartialEq {
     where
         Q: Serialize;
 
-    /// Same as [`.push_with_state()`] but affix the queries to the end of the route.
+    /// Same as `.push_with_state()` but affix the queries to the end of the route.
     fn push_with_query_and_state<Q, T>(
         &self,
         route: impl Routable,
@@ -133,7 +135,7 @@ pub trait History: Clone + PartialEq {
         Q: Serialize,
         T: Serialize + 'static;
 
-    /// Same as [`.replace_with_state()`] but affix the queries to the end of the route.
+    /// Same as `.replace_with_state()` but affix the queries to the end of the route.
     fn replace_with_query_and_state<Q, T>(
         &self,
         route: impl Routable,
@@ -162,7 +164,7 @@ pub trait History: Clone + PartialEq {
     /// The implementation differs between [`History`] type.
     ///
     /// For [`BrowserHistory`], it uses [`serde_wasm_bindgen`] where as other types uses
-    /// [`downcast_ref()`](std::any::Any::downcast_ref).
+    /// [`downcast_ref()`](std::any::Any.downcast_ref).
     fn state<T>(&self) -> Option<T>
     where
         T: DeserializeOwned + 'static;
@@ -510,7 +512,7 @@ pub trait Location: Clone + PartialEq {
 ///
 /// Most functionality of this type is provided by [`web_sys::Location`].
 ///
-/// This type also provides additional methods that are unique in Browsers and are not available in [`Location`].
+/// This type also provides additional methods that are unique to Browsers and are not available in [`Location`].
 // ///
 // /// Note: most setters(`set_*`) that is unique to [`BrowserLocation`] will cause the page to reload.
 #[derive(Clone)]
@@ -597,7 +599,7 @@ impl BrowserLocation {
         }
     }
 
-    /// Returns the [`href`] of current [`Location`].
+    /// Returns the `href` of current [`Location`].
     pub fn href(&self) -> String {
         self.location.href().expect_throw("failed to get href.")
     }
@@ -610,12 +612,12 @@ impl BrowserLocation {
     //     BrowserHistory::<R>::dispatch_event();
     // }
 
-    /// Returns the [`origin`] of current [`Location`].
+    /// Returns the `origin` of current [`Location`].
     pub fn origin(&self) -> String {
         self.location.origin().expect_throw("failed to get origin.")
     }
 
-    /// Returns the [`protocol`] property of current [`Location`].
+    /// Returns the `protocol` property of current [`Location`].
     pub fn protocol(&self) -> String {
         self.location
             .protocol()
@@ -630,7 +632,7 @@ impl BrowserLocation {
     //     BrowserHistory::<R>::dispatch_event();
     // }
 
-    /// Returns the [`host`] of current [`Location`].
+    /// Returns the `host` of current [`Location`].
     pub fn host(&self) -> String {
         self.location.host().expect_throw("failed to get host.")
     }
@@ -643,7 +645,7 @@ impl BrowserLocation {
     //     BrowserHistory::<R>::dispatch_event();
     // }
 
-    /// Returns the [`hostname`] of current [`Location`].
+    /// Returns the `hostname` of current [`Location`].
     pub fn hostname(&self) -> String {
         self.location
             .hostname()

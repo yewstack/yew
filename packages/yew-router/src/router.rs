@@ -3,7 +3,7 @@
 use crate::prelude::*;
 use yew::prelude::*;
 
-/// Props for [`Router`]
+/// Props for [`Router`].
 #[derive(Properties, PartialEq, Clone)]
 pub struct RouterProps<H>
 where
@@ -47,13 +47,11 @@ pub enum Msg {
     ReRender,
 }
 
-/// The router component.
+/// The Router component.
 ///
-/// When a route can't be matched, it looks for the route with `not_found` attribute.
-/// If such a route is provided, it redirects to the specified route.
-/// Otherwise `html! {}` is rendered and a message is logged to console
-/// stating that no route can be matched.
-/// See the [crate level document][crate] for more information.
+/// This provides [`History`] context to its children and switches.
+///
+/// You only need one `<Router />` for each application.
 pub struct Router<H>
 where
     H: History + 'static,
@@ -137,6 +135,10 @@ pub struct BrowserRouterProps {
     pub children: Children,
 }
 
+/// A [`Router`] thats provides history via [`BrowserHistory`].
+///
+/// This Router uses browser's native history to manipulate session history
+/// and uses regular URL as route.
 #[function_component(BrowserRouter)]
 pub fn browser_router(props: &BrowserRouterProps) -> Html {
     let history = use_state(BrowserHistory::new);
