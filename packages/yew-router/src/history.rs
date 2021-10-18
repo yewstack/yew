@@ -548,16 +548,6 @@ impl History for AnyHistory {
         self_.len()
     }
 
-    fn back(&self) {
-        let Self::Browser(self_) = self;
-        self_.back()
-    }
-
-    fn forward(&self) {
-        let Self::Browser(self_) = self;
-        self_.forward()
-    }
-
     fn go(&self, delta: isize) {
         let Self::Browser(self_) = self;
         self_.go(delta)
