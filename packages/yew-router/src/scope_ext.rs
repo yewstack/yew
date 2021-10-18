@@ -6,11 +6,8 @@ use yew::context::ContextHandle;
 use yew::prelude::*;
 
 /// A [`ContextHandle`] for [`add_history_listener`](RouterScopeExt::add_history_listener).
-pub struct HistoryHandle<H>
-where
-    H: History + 'static,
-{
-    _inner: ContextHandle<RouterState<H>>,
+pub struct HistoryHandle {
+    _inner: ContextHandle<RouterState>,
 }
 
 /// A [`ContextHandle`] for [`add_route_listener`](RouterScopeExt::add_route_listener).
@@ -52,7 +49,7 @@ where
 ///         match msg {
 ///             Msg::OnClick => {
 ///                 ctx.link()
-///                     .history::<AnyHistory>()
+///                     .history()
 ///                     .expect_throw("failed to read history")
 ///                     .push(ctx.props().to.clone());
 ///                 false
@@ -77,14 +74,10 @@ where
 /// ```
 pub trait RouterScopeExt {
     /// Returns current [`History`].
-    fn history<H>(&self) -> Option<H>
-    where
-        H: History + 'static;
+    fn history(&self) -> Option<AnyHistory>;
 
     /// Returns current [`Location`].
-    fn location<L>(&self) -> Option<L>
-    where
-        L: Location + 'static;
+    fn location(&self) -> Option<AnyLocation>;
 
     /// Returns current route.
     fn route<R>(&self) -> Option<R>
@@ -98,9 +91,7 @@ pub trait RouterScopeExt {
     /// [`HistoryHandle`] works like a normal [`ContextHandle`] and it unregisters the callback
     /// when the handle is dropped. You need to keep the handle for as long as you need the
     /// callback.
-    fn add_history_listener<H>(&self, cb: Callback<H>) -> Option<HistoryHandle<H>>
-    where
-        H: History + 'static;
+    fn add_history_listener(&self, cb: Callback<AnyHistory>) -> Option<HistoryHandle>;
 
     /// Adds a listener that gets notified when route changes.
     ///
@@ -115,19 +106,13 @@ pub trait RouterScopeExt {
 }
 
 impl<COMP: Component> RouterScopeExt for yew::html::Scope<COMP> {
-    fn history<H>(&self) -> Option<H>
-    where
-        H: History + 'static,
-    {
-        self.context::<RouterState<H>>(Callback::from(|_| {}))
+    fn history(&self) -> Option<AnyHistory> {
+        self.context::<RouterState>(Callback::from(|_| {}))
             .map(|(m, _)| m.history())
     }
 
-    fn location<L>(&self) -> Option<L>
-    where
-        L: Location + 'static,
-    {
-        self.history::<L::History>().map(|m| m.location())
+    fn location(&self) -> Option<AnyLocation> {
+        self.history().map(|m| m.location())
     }
 
     fn route<R>(&self) -> Option<R>
@@ -138,14 +123,9 @@ impl<COMP: Component> RouterScopeExt for yew::html::Scope<COMP> {
             .and_then(|(m, _)| m)
     }
 
-    fn add_history_listener<H>(&self, cb: Callback<H>) -> Option<HistoryHandle<H>>
-    where
-        H: History + 'static,
-    {
-        self.context::<RouterState<H>>(Callback::from(move |m: RouterState<H>| {
-            cb.emit(m.history())
-        }))
-        .map(|(_, m)| HistoryHandle { _inner: m })
+    fn add_history_listener(&self, cb: Callback<AnyHistory>) -> Option<HistoryHandle> {
+        self.context::<RouterState>(Callback::from(move |m: RouterState| cb.emit(m.history())))
+            .map(|(_, m)| HistoryHandle { _inner: m })
     }
 
     fn add_route_listener<R>(&self, cb: Callback<Option<R>>) -> Option<RouteHandle<R>>

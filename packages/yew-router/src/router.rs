@@ -5,38 +5,26 @@ use yew::prelude::*;
 
 /// Props for [`Router`].
 #[derive(Properties, PartialEq, Clone)]
-pub struct RouterProps<H>
-where
-    H: History + 'static,
-{
+pub struct RouterProps {
     pub children: Children,
-    pub history: H,
+    pub history: AnyHistory,
 }
 
-/// A context for [`History`]
+/// A context for [`Router`]
 #[derive(Clone)]
-pub(crate) struct RouterState<H>
-where
-    H: History + 'static,
-{
-    history: H,
+pub(crate) struct RouterState {
+    history: AnyHistory,
     // Counter to force update.
     ctr: u32,
 }
 
-impl<H> RouterState<H>
-where
-    H: History + 'static,
-{
-    pub fn history(&self) -> H {
+impl RouterState {
+    pub fn history(&self) -> AnyHistory {
         self.history.clone()
     }
 }
 
-impl<H> PartialEq for RouterState<H>
-where
-    H: History + 'static,
-{
+impl PartialEq for RouterState {
     fn eq(&self, rhs: &Self) -> bool {
         self.ctr == rhs.ctr
     }
@@ -52,21 +40,15 @@ pub enum Msg {
 /// This provides [`History`] context to its children and switches.
 ///
 /// You only need one `<Router />` for each application.
-pub struct Router<H>
-where
-    H: History + 'static,
-{
+pub struct Router {
     _listener: HistoryListener,
-    history: H,
+    history: AnyHistory,
     ctr: u32,
 }
 
-impl<H> Component for Router<H>
-where
-    H: History + 'static,
-{
+impl Component for Router {
     type Message = Msg;
-    type Properties = RouterProps<H>;
+    type Properties = RouterProps;
 
     fn create(ctx: &Context<Self>) -> Self {
         let link = ctx.link().clone();
@@ -110,22 +92,15 @@ where
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let typed_state = RouterState {
-            history: self.history.clone(),
-            ctr: self.ctr,
-        };
-
-        let any_state = RouterState {
+        let state = RouterState {
             history: self.history.clone().into_any_history(),
             ctr: self.ctr,
         };
 
         html! {
-            <ContextProvider<RouterState<H>> context={typed_state}>
-                <ContextProvider<RouterState<AnyHistory>> context={any_state}>
-                    {ctx.props().children.clone()}
-                </ContextProvider<RouterState<AnyHistory>>>
-            </ContextProvider<RouterState<H>>>
+            <ContextProvider<RouterState> context={state}>
+                {ctx.props().children.clone()}
+            </ContextProvider<RouterState>>
         }
     }
 }
@@ -145,8 +120,8 @@ pub fn browser_router(props: &BrowserRouterProps) -> Html {
     let children = props.children.clone();
 
     html! {
-        <Router<BrowserHistory> history={(*history).clone()}>
+        <Router history={(*history).clone().into_any_history()}>
             {children}
-        </Router<BrowserHistory>>
+        </Router>
     }
 }

@@ -41,7 +41,7 @@ nothing is rendered, and a message is logged to console stating that no route wa
 
 ```rust
 use yew_router::{Routable, Switch, BrowserRouter};
-use yew_router::hooks::use_any_history;
+use yew_router::hooks::use_history;
 use yew_router::history::History;
 use yew::{Callback, function_component, html, Html};
 
@@ -58,7 +58,7 @@ enum Route {
 
 #[function_component(Secure)]
 fn secure() -> Html {
-    let history = use_any_history().unwrap();
+    let history = use_history().unwrap();
 
     let onclick_callback = Callback::from(move |_| history.push(Route::Home));
     html! {
@@ -97,26 +97,21 @@ hooks or convenient functions on `ctx.link()`.
 
 They have a couple flavours:
 
-#### **`AnyHistory` and `AnyLocation`
+#### `AnyHistory` and `AnyLocation`
 
 These types are available with all routers and should be used whenever possible.
 They implement a subset of `window.history` and `window.location`.
 
 You can access them using the following hooks:
 
-- `use_any_history`
-- `use_any_location`
+- `use_history`
+- `use_location`
 
 #### `BrowserHistory` and `BrowserLocation`
 
 These are only available when `<BrowserRouter />` is used. They provide
 additional functionality that is not available in `AnyHistory` and
 `AnyLocation` (such as: `location.host`).
-
-You can access them using the following hooks:
-
-- `use_browser_history`
-- `use_browser_location`
 
 ### Navigation
 

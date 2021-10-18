@@ -62,7 +62,7 @@ pub enum Msg {
 /// stating that no route can be matched.
 /// See the [crate level document][crate] for more information.
 pub struct Switch<R: Routable + 'static> {
-    _listener: HistoryHandle<AnyHistory>,
+    _listener: HistoryHandle,
     _phantom: PhantomData<R>,
 }
 
@@ -92,10 +92,7 @@ where
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let route = ctx
-            .link()
-            .location::<AnyLocation>()
-            .and_then(|m| m.route::<R>());
+        let route = ctx.link().location().and_then(|m| m.route::<R>());
 
         let children = match &route {
             Some(ref route) => (ctx.props().render.0)(route),

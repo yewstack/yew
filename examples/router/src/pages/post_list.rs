@@ -30,7 +30,7 @@ impl Component for PostList {
         match msg {
             Msg::ShowPage(page) => {
                 ctx.link()
-                    .history::<AnyHistory>()
+                    .history()
                     .unwrap()
                     .push_with_query(Route::Posts, PageQuery { page })
                     .unwrap();
@@ -83,7 +83,7 @@ impl PostList {
     }
 
     fn current_page(&self, ctx: &Context<Self>) -> u64 {
-        let location = ctx.link().location::<AnyLocation>().unwrap();
+        let location = ctx.link().location().unwrap();
 
         location.query::<PageQuery>().map(|it| it.page).unwrap_or(1)
     }

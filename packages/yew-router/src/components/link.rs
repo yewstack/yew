@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
 
-use crate::history::{AnyHistory, History};
+use crate::history::History;
 use crate::scope_ext::RouterScopeExt;
 use crate::Routable;
 
@@ -39,7 +39,7 @@ impl<R: Routable + 'static> Component for Link<R> {
         match msg {
             Msg::OnClick => {
                 ctx.link()
-                    .history::<AnyHistory>()
+                    .history()
                     .expect_throw("failed to read history")
                     .push(ctx.props().to.clone());
                 false

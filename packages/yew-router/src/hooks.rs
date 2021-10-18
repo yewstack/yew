@@ -6,42 +6,16 @@ use crate::router::RouterState;
 
 use yew::prelude::*;
 
-/// A hook to access the [`History`] type.
-pub fn use_history<H>() -> Option<H>
-where
-    H: History + 'static,
-{
-    let history_state = use_context::<RouterState<H>>()?;
+/// A hook to access the [`AnyHistory`] type.
+pub fn use_history() -> Option<AnyHistory> {
+    let history_state = use_context::<RouterState>()?;
 
     Some(history_state.history())
 }
 
-/// A hook to access the [`Location`] type.
-pub fn use_location<L>() -> Option<L>
-where
-    L: Location + 'static,
-{
-    Some(use_history::<L::History>()?.location())
-}
-
-/// A hook to access [`BrowserHistory`].
-pub fn use_browser_history() -> Option<BrowserHistory> {
-    use_history::<BrowserHistory>()
-}
-
-/// A hook to access [`BrowserLocation`].
-pub fn use_browser_location() -> Option<BrowserLocation> {
-    Some(use_browser_history()?.location())
-}
-
-/// A hook to access [`AnyHistory`].
-pub fn use_any_history() -> Option<AnyHistory> {
-    use_history::<AnyHistory>()
-}
-
-/// A hook to access [`AnyLocation`].
-pub fn use_any_location() -> Option<AnyLocation> {
-    use_location::<AnyLocation>()
+/// A hook to access the [`AnyLocation`] type.
+pub fn use_location() -> Option<AnyLocation> {
+    Some(use_history()?.location())
 }
 
 /// A hook to access the current route.

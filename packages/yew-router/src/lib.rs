@@ -21,7 +21,7 @@
 //!
 //! #[function_component(Secure)]
 //! fn secure() -> Html {
-//!     let history = use_any_history().unwrap();
+//!     let history = use_history().unwrap();
 //!
 //!     let onclick_callback = Callback::from(move |_| history.push(Route::Home));
 //!     html! {

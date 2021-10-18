@@ -24,6 +24,7 @@ route-recognizer = "0.3"
 serde = "1"
 serde_urlencoded = "0.7"
 serde-wasm-bindgen = "0.3.1"
+thiserror = "1.0.30"
 
 [dependencies.web-sys]
 version = "0.3"

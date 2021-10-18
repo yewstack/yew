@@ -33,7 +33,7 @@ struct NoProps {
 fn no(props: &NoProps) -> Html {
     let route = props.id.to_string();
 
-    let location = use_any_location().unwrap();
+    let location = use_location().unwrap();
 
     html! {
         <>
@@ -45,7 +45,7 @@ fn no(props: &NoProps) -> Html {
 
 #[function_component(Comp)]
 fn component() -> Html {
-    let history = use_any_history().unwrap();
+    let history = use_history().unwrap();
 
     let switch = Switch::render(move |routes| {
         let history_clone = history.clone();
