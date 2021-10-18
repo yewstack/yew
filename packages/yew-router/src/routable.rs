@@ -71,3 +71,11 @@ impl Routable for AnyRoute {
         })
     }
 }
+
+impl AnyRoute {
+    pub fn new<S: Into<String>>(pathname: S) -> Self {
+        Self {
+            path: pathname.into(),
+        }
+    }
+}

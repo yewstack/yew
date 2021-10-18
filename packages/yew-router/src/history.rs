@@ -48,10 +48,14 @@ pub trait History: Clone + PartialEq {
     }
 
     /// Moves back 1 page in [`History`].
-    fn back(&self);
+    fn back(&self) {
+        self.go(-1);
+    }
 
     /// Moves forward 1 page in [`History`].
-    fn forward(&self);
+    fn forward(&self) {
+        self.go(1);
+    }
 
     /// Loads a specific page in [`History`] with a `delta` relative to current page.
     ///
@@ -160,14 +164,6 @@ impl History for BrowserHistory {
 
     fn len(&self) -> usize {
         self.inner.length().expect_throw("failed to get length.") as usize
-    }
-
-    fn back(&self) {
-        self.inner.back().expect_throw("failed to go back.")
-    }
-
-    fn forward(&self) {
-        self.inner.forward().expect_throw("failed to go forward.")
     }
 
     fn go(&self, delta: isize) {
@@ -341,7 +337,20 @@ impl Default for BrowserHistory {
                         .expect_throw("Failed to create browser history. Are you using a browser?");
                     let callbacks = Rc::default();
 
-                    Self { inner, callbacks }
+                    let history = Self { inner, callbacks };
+
+                    let history_clone = history.clone();
+
+                    // Listens to popstate.
+                    LISTENER.with(move |m| {
+                        let mut listener = m.borrow_mut();
+
+                        *listener = Some(EventListener::new(&window, "popstate", move |_| {
+                            history_clone.notify_callbacks();
+                        }));
+                    });
+
+                    history
                 }
             };
 
@@ -438,7 +447,7 @@ pub trait Location: Clone + PartialEq {
 /// This types is read-only as most setters on `window.location` would cause a reload.
 #[derive(Clone)]
 pub struct BrowserLocation {
-    location: web_sys::Location,
+    inner: web_sys::Location,
     _history: BrowserHistory,
 }
 
@@ -452,13 +461,13 @@ impl Location for BrowserLocation {
     type History = BrowserHistory;
 
     fn pathname(&self) -> String {
-        self.location
+        self.inner
             .pathname()
             .expect_throw("failed to get pathname.")
     }
 
     fn search(&self) -> String {
-        self.location.search().expect_throw("failed to get search.")
+        self.inner.search().expect_throw("failed to get search.")
     }
 
     fn query<T>(&self) -> HistoryResult<T>
@@ -470,7 +479,7 @@ impl Location for BrowserLocation {
     }
 
     fn hash(&self) -> String {
-        self.location.hash().expect_throw("failed to get hash.")
+        self.inner.hash().expect_throw("failed to get hash.")
     }
 
     fn route<R>(&self) -> Option<R>
@@ -484,36 +493,36 @@ impl Location for BrowserLocation {
 impl BrowserLocation {
     fn new(history: BrowserHistory) -> Self {
         Self {
-            location: window().location(),
+            inner: window().location(),
             _history: history,
         }
     }
 
     /// Returns the `href` of current [`Location`].
     pub fn href(&self) -> String {
-        self.location.href().expect_throw("failed to get href.")
+        self.inner.href().expect_throw("failed to get href.")
     }
 
     /// Returns the `origin` of current [`Location`].
     pub fn origin(&self) -> String {
-        self.location.origin().expect_throw("failed to get origin.")
+        self.inner.origin().expect_throw("failed to get origin.")
     }
 
     /// Returns the `protocol` property of current [`Location`].
     pub fn protocol(&self) -> String {
-        self.location
+        self.inner
             .protocol()
             .expect_throw("failed to get protocol.")
     }
 
     /// Returns the `host` of current [`Location`].
     pub fn host(&self) -> String {
-        self.location.host().expect_throw("failed to get host.")
+        self.inner.host().expect_throw("failed to get host.")
     }
 
     /// Returns the `hostname` of current [`Location`].
     pub fn hostname(&self) -> String {
-        self.location
+        self.inner
             .hostname()
             .expect_throw("failed to get hostname.")
     }

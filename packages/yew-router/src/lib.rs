@@ -76,7 +76,7 @@ pub mod scope_ext;
 pub mod switch;
 pub mod utils;
 
-pub use routable::Routable;
+pub use routable::{AnyRoute, Routable};
 pub use router::{BrowserRouter, Router};
 pub use switch::{RenderFn, Switch};
 
