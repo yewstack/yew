@@ -28,5 +28,5 @@ pub fn use_route<R>() -> Option<R>
 where
     R: Routable + 'static,
 {
-    use_context::<Option<R>>().and_then(|m| m)
+    use_location()?.route::<R>()
 }

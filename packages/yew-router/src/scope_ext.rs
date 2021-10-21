@@ -10,14 +10,6 @@ pub struct HistoryHandle {
     _inner: ContextHandle<RouterState>,
 }
 
-/// A [`ContextHandle`] for [`add_route_listener`](RouterScopeExt::add_route_listener).
-pub struct RouteHandle<R>
-where
-    R: Routable + 'static,
-{
-    _inner: ContextHandle<Option<R>>,
-}
-
 /// An extension to [`Scope`](yew::html::Scope) that provides session history information.
 ///
 /// You can access on `ctx.link()`
@@ -92,17 +84,6 @@ pub trait RouterScopeExt {
     /// when the handle is dropped. You need to keep the handle for as long as you need the
     /// callback.
     fn add_history_listener(&self, cb: Callback<AnyHistory>) -> Option<HistoryHandle>;
-
-    /// Adds a listener that gets notified when route changes.
-    ///
-    /// # Note
-    ///
-    /// [`RouteHandle`] works like a normal [`ContextHandle`] and it unregisters the callback
-    /// when the handle is dropped. You need to keep the handle for as long as you need the
-    /// callback.
-    fn add_route_listener<R>(&self, cb: Callback<Option<R>>) -> Option<RouteHandle<R>>
-    where
-        R: Routable + 'static;
 }
 
 impl<COMP: Component> RouterScopeExt for yew::html::Scope<COMP> {
@@ -119,20 +100,11 @@ impl<COMP: Component> RouterScopeExt for yew::html::Scope<COMP> {
     where
         R: Routable + 'static,
     {
-        self.context::<Option<R>>(Callback::from(|_| {}))
-            .and_then(|(m, _)| m)
+        self.location()?.route()
     }
 
     fn add_history_listener(&self, cb: Callback<AnyHistory>) -> Option<HistoryHandle> {
         self.context::<RouterState>(Callback::from(move |m: RouterState| cb.emit(m.history())))
             .map(|(_, m)| HistoryHandle { _inner: m })
-    }
-
-    fn add_route_listener<R>(&self, cb: Callback<Option<R>>) -> Option<RouteHandle<R>>
-    where
-        R: Routable + 'static,
-    {
-        self.context::<Option<R>>(Callback::from(move |m: Option<R>| cb.emit(m)))
-            .map(|(_, m)| RouteHandle { _inner: m })
     }
 }

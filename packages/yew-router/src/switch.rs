@@ -102,11 +102,7 @@ where
             }
         };
 
-        html! {
-            <ContextProvider<Option<R>> context={route}>
-                {children}
-            </ContextProvider<Option<R>>>
-        }
+        html! {<>{children}</>}
     }
 }
 
