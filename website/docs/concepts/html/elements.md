@@ -13,9 +13,8 @@ used as a `Html` value using `VRef`:
 
 ```rust
 use web_sys::{Element, Node};
-use yew::{
-    Component, Context, html, Html, utils::document,
-};
+use yew::{Component, Context, html, Html};
+use gloo_utils::document;
 
 struct Comp;
 

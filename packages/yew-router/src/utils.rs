@@ -43,10 +43,10 @@ pub fn fetch_base_url() -> Option<String> {
 
 #[cfg(test)]
 mod tests {
+    use gloo_utils::document;
     use serde::Serialize;
     use std::collections::HashMap;
     use wasm_bindgen_test::wasm_bindgen_test as test;
-    use yew::utils::*;
     use yew_router::parse_query;
     use yew_router::prelude::*;
     use yew_router::utils::*;
