@@ -71,7 +71,7 @@ where
 }
 
 fn worker_new(name_of_resource: &str, is_module: bool) -> Worker {
-    let origin = yew::utils::origin().unwrap();
+    let origin = gloo_utils::document().location().unwrap().origin().unwrap();
     let script_url = format!("{}/{}", origin, name_of_resource);
     let wasm_url = format!("{}/{}", origin, name_of_resource.replace(".js", "_bg.wasm"));
     let array = Array::new();

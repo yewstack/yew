@@ -286,7 +286,7 @@ impl Apply for Attributes {
                     }
                     macro_rules! set {
                         ($new:expr) => {
-                            Self::set_attribute(el, key!(), $new);
+                            Self::set_attribute(el, key!(), $new)
                         };
                     }
 
@@ -417,7 +417,7 @@ mod layout_tests {
     }
 
     pub(crate) fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
-        let document = crate::utils::document();
+        let document = gloo_utils::document();
         let parent_scope: AnyScope = Scope::<Comp>::new(None).into();
         let parent_element = document.create_element("div").unwrap();
         let parent_node: Node = parent_element.clone().into();
@@ -542,7 +542,7 @@ mod benchmarks {
                     {
                         let mut old = $old.clone();
                         let new = $new.clone();
-                        let el = crate::utils::document().create_element("div").unwrap();
+                        let el = gloo_utils::document().create_element("div").unwrap();
                         old.apply(&el);
                         (
                             format!("{} -> {}", attr_variant(&old), attr_variant(&new)),

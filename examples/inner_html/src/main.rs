@@ -16,7 +16,7 @@ impl Component for Model {
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
-        let div = yew::utils::document().create_element("div").unwrap();
+        let div = gloo_utils::document().create_element("div").unwrap();
         div.set_inner_html(HTML);
         // See <https://github.com/yewstack/yew/issues/1546>
         console::log_1(&div);

@@ -32,7 +32,7 @@ fn use_ref_works() {
     }
     type UseRefComponent = FunctionComponent<UseRefFunction>;
     yew::start_app_in_element::<UseRefComponent>(
-        yew::utils::document().get_element_by_id("output").unwrap(),
+        gloo_utils::document().get_element_by_id("output").unwrap(),
     );
 
     let result = obtain_result();

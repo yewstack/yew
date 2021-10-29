@@ -64,7 +64,7 @@ where
 }
 
 fn update_route_impl(url: String, push: bool) {
-    let history = yew::utils::window().history().expect("no history");
+    let history = gloo_utils::window().history().expect("no history");
     let base = base_url();
     let path = match base {
         Some(base) => {
@@ -88,7 +88,7 @@ fn update_route_impl(url: String, push: bool) {
             .expect("replace history");
     }
     let event = Event::new("popstate").unwrap();
-    yew::utils::window()
+    gloo_utils::window()
         .dispatch_event(&event)
         .expect("dispatch");
 }
@@ -97,7 +97,7 @@ pub fn parse_query<T>() -> Result<T, serde_urlencoded::de::Error>
 where
     T: for<'de> Deserialize<'de>,
 {
-    let query = yew::utils::document().location().unwrap().search().unwrap();
+    let query = gloo_utils::document().location().unwrap().search().unwrap();
     serde_urlencoded::from_str(query.strip_prefix('?').unwrap_or(""))
 }
 
@@ -119,7 +119,7 @@ pub fn attach_route_listener<R>(callback: Callback<Option<R>>) -> RouteListener
 where
     R: Routable + 'static,
 {
-    let listener = EventListener::new(&yew::utils::window(), "popstate", move |_| {
+    let listener = EventListener::new(&gloo_utils::window(), "popstate", move |_| {
         callback.emit(current_route())
     });
 

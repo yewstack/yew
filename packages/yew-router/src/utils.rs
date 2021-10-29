@@ -22,7 +22,7 @@ pub fn base_url() -> Option<String> {
 }
 
 pub fn fetch_base_url() -> Option<String> {
-    match yew::utils::document().query_selector("base[href]") {
+    match gloo_utils::document().query_selector("base[href]") {
         Ok(Some(base)) => {
             let base = base.unchecked_into::<web_sys::HtmlBaseElement>().href();
 

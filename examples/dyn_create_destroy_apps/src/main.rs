@@ -1,7 +1,7 @@
+use gloo_utils::document;
 use slab::Slab;
 use web_sys::Element;
 use yew::prelude::*;
-use yew::utils::document;
 
 mod counter;
 

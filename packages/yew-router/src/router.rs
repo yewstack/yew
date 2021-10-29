@@ -80,7 +80,7 @@ where
 
     fn create(ctx: &Context<Self>) -> Self {
         let link = ctx.link().clone();
-        let route_listener = EventListener::new(&yew::utils::window(), "popstate", move |_| {
+        let route_listener = EventListener::new(&gloo_utils::window(), "popstate", move |_| {
             link.send_message(Msg::ReRender)
         });
 
@@ -97,7 +97,7 @@ where
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let pathname = yew::utils::window().location().pathname().unwrap();
+        let pathname = gloo_utils::window().location().pathname().unwrap();
         let route = R::recognize(&pathname);
 
         match route {
