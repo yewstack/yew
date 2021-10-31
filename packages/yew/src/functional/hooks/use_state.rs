@@ -2,7 +2,7 @@ use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use super::{use_reducer, use_reducer_eq, Reducible, UseReducerHandle};
+use super::{use_reducer, use_reducer_eq, Reducible, UseReducerDispatcher, UseReducerHandle};
 
 struct UseStateReducer<T> {
     value: Rc<T>,
@@ -98,6 +98,13 @@ impl<T> UseStateHandle<T> {
     pub fn set(&self, value: T) {
         self.inner.dispatch(value)
     }
+
+    /// Returns the setter of current state.
+    pub fn setter(&self) -> UseStateSetter<T> {
+        UseStateSetter {
+            inner: self.inner.dispatcher(),
+        }
+    }
 }
 
 impl<T> Deref for UseStateHandle<T> {
@@ -122,5 +129,40 @@ where
 {
     fn eq(&self, rhs: &Self) -> bool {
         *self.inner == *rhs.inner
+    }
+}
+
+/// Setter handle for [`use_state`] and [`use_state_eq`] hook
+pub struct UseStateSetter<T> {
+    inner: UseReducerDispatcher<UseStateReducer<T>>,
+}
+
+impl<T> Clone for UseStateSetter<T> {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
+}
+
+impl<T> fmt::Debug for UseStateSetter<T>
+where
+    T: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("UseStateSetter").finish()
+    }
+}
+
+impl<T> PartialEq for UseStateSetter<T> {
+    fn eq(&self, rhs: &Self) -> bool {
+        self.inner == rhs.inner
+    }
+}
+
+impl<T> UseStateSetter<T> {
+    /// Replaces the value
+    pub fn set(&self, value: T) {
+        self.inner.dispatch(value)
     }
 }

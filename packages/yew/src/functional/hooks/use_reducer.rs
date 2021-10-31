@@ -43,6 +43,13 @@ where
     pub fn dispatch(&self, value: T::Action) {
         (self.dispatch)(value)
     }
+
+    /// Returns the dispatcher of the current state.
+    pub fn dispatcher(&self) -> UseReducerDispatcher<T> {
+        UseReducerDispatcher {
+            dispatch: self.dispatch.clone(),
+        }
+    }
 }
 
 impl<T> Deref for UseReducerHandle<T>
@@ -85,6 +92,54 @@ where
 {
     fn eq(&self, rhs: &Self) -> bool {
         self.value == rhs.value
+    }
+}
+
+/// Dispatcher handle for [`use_reducer`] and [`use_reducer_eq`] hook
+pub struct UseReducerDispatcher<T>
+where
+    T: Reducible,
+{
+    dispatch: DispatchFn<T>,
+}
+
+impl<T> Clone for UseReducerDispatcher<T>
+where
+    T: Reducible,
+{
+    fn clone(&self) -> Self {
+        Self {
+            dispatch: Rc::clone(&self.dispatch),
+        }
+    }
+}
+
+impl<T> fmt::Debug for UseReducerDispatcher<T>
+where
+    T: Reducible + fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("UseReducerDispatcher").finish()
+    }
+}
+
+impl<T> PartialEq for UseReducerDispatcher<T>
+where
+    T: Reducible,
+{
+    fn eq(&self, rhs: &Self) -> bool {
+        #[allow(clippy::vtable_address_comparisons)]
+        Rc::ptr_eq(&self.dispatch, &rhs.dispatch)
+    }
+}
+
+impl<T> UseReducerDispatcher<T>
+where
+    T: Reducible,
+{
+    /// Dispatch the given action to the reducer.
+    pub fn dispatch(&self, value: T::Action) {
+        (self.dispatch)(value)
     }
 }
 
