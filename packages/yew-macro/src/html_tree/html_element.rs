@@ -355,7 +355,7 @@ impl ToTokens for HtmlElement {
                     //
                     // check void element
                     if !#vtag.children.is_empty() {
-                        match #vtag.tag {
+                        match #vtag.tag.as_ref() {
                             "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input"
                                 | "link" | "meta" | "param" | "source" | "track" | "wbr"
                             => {
