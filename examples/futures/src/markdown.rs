@@ -54,14 +54,14 @@ pub fn render_markdown(src: &str) -> Html {
                     top = pre;
                 } else if let Tag::Table(aligns) = tag {
                     for r in top
-                        .children_mut()
+                        .children
                         .iter_mut()
                         .map(|ch| ch.iter_mut())
                         .flatten()
                     {
                         if let VNode::VTag(ref mut vtag) = r {
                             for (i, c) in vtag
-                                .children_mut()
+                                .children
                                 .iter_mut()
                                 .map(|ch| ch.iter_mut())
                                 .flatten()
@@ -80,7 +80,7 @@ pub fn render_markdown(src: &str) -> Html {
                     }
                 } else if let Tag::TableHead = tag {
                     for c in top
-                        .children_mut()
+                        .children
                         .iter_mut()
                         .map(|ch| ch.iter_mut())
                         .flatten()

@@ -131,17 +131,6 @@ impl ToTokens for HtmlElement {
                 }
             })
             .unwrap_or(quote! { ::std::option::Option::None });
-        let value = value
-            .as_ref()
-            .map(wrap_attr_prop)
-            .unwrap_or(quote! { ::std::option::Option::None });
-        let checked = checked
-            .as_ref()
-            .map(|attr| {
-                let value = &attr.value;
-                quote_spanned! {value.span()=> #value}
-            })
-            .unwrap_or(quote! { false });
 
         // other attributes
 
@@ -298,51 +287,18 @@ impl ToTokens for HtmlElement {
             TagName::Lit(name) => {
                 let name_span = name.span();
                 let name = name.to_ascii_lowercase_string();
-                match &*name {
-                    "input" => {
-                        quote_spanned! {name_span=>
-                            #[allow(clippy::redundant_clone, unused_braces)]
-                            ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
-                                ::yew::virtual_dom::VTag::__new_input(
-                                    #value,
-                                    #checked,
-                                    #node_ref,
-                                    #key,
-                                    #attributes,
-                                    #listeners,
-                                ),
-                            )
-                        }
-                    }
-                    "textarea" => {
-                        quote_spanned! {name_span=>
-                            #[allow(clippy::redundant_clone, unused_braces)]
-                            ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
-                                ::yew::virtual_dom::VTag::__new_textarea(
-                                    #value,
-                                    #node_ref,
-                                    #key,
-                                    #attributes,
-                                    #listeners,
-                                ),
-                            )
-                        }
-                    }
-                    _ => {
-                        quote_spanned! {name_span=>
-                            #[allow(clippy::redundant_clone, unused_braces)]
-                            ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
-                                ::yew::virtual_dom::VTag::__new_other(
-                                    ::std::borrow::Cow::<'static, ::std::primitive::str>::Borrowed(#name),
-                                    #node_ref,
-                                    #key,
-                                    #attributes,
-                                    #listeners,
-                                    #child_list,
-                                ),
-                            )
-                        }
-                    }
+                quote_spanned! {name_span=>
+                    #[allow(clippy::redundant_clone, unused_braces)]
+                    ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
+                        ::yew::virtual_dom::VTag::new_base(
+                            ::std::borrow::Cow::<'static, str>::Borrowed(#name),
+                            #node_ref,
+                            #key,
+                            #attributes,
+                            #listeners,
+                            #child_list,
+                        ),
+                    )
                 }
             }
             TagName::Expr(name) => {
@@ -375,39 +331,19 @@ impl ToTokens for HtmlElement {
                     #vtag_name.to_mut().make_ascii_lowercase();
 
                     #[allow(clippy::redundant_clone, unused_braces, clippy::let_and_return)]
-                    let mut #vtag = match ::std::convert::AsRef::<::std::primitive::str>::as_ref(&#vtag_name) {
-                        "input" => {
-                            ::yew::virtual_dom::VTag::__new_textarea(
-                                #value,
-                                #node_ref,
-                                #key,
-                                #attributes,
-                                #listeners,
-                            )
-                        }
-                        "textarea" => {
-                            ::yew::virtual_dom::VTag::__new_textarea(
-                                #value,
-                                #node_ref,
-                                #key,
-                                #attributes,
-                                #listeners,
-                            )
-                        }
-                        _ => {
-                            let mut __yew_vtag = ::yew::virtual_dom::VTag::__new_other(
-                                #vtag_name,
-                                #node_ref,
-                                #key,
-                                #attributes,
-                                #listeners,
-                                #child_list,
-                            );
+                    let mut #vtag = {
+                        let mut __yew_vtag = ::yew::virtual_dom::VTag::new_base(
+                            #vtag_name,
+                            #node_ref,
+                            #key,
+                            #attributes,
+                            #listeners,
+                            #child_list,
+                        );
 
-                            #handle_value_attr
+                        #handle_value_attr
 
-                            __yew_vtag
-                        }
+                        __yew_vtag
                     };
 
                     // These are the runtime-checks exclusive to dynamic tags.
@@ -418,14 +354,14 @@ impl ToTokens for HtmlElement {
                     // location of the dynamic tag.
                     //
                     // check void element
-                    if !#vtag.children().is_empty() {
-                        match #vtag.tag() {
+                    if !#vtag.children.is_empty() {
+                        match #vtag.tag {
                             "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input"
                                 | "link" | "meta" | "param" | "source" | "track" | "wbr"
                             => {
                                 ::std::panic!(
                                     "a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.",
-                                    #vtag.tag(),
+                                    #vtag.tag,
                                 );
                             }
                             _ => {}

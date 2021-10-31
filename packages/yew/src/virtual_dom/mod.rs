@@ -222,7 +222,12 @@ impl Attributes {
     }
 
     fn set_property(el: &Element, key: &str, value: &str) {
-        js_sys::Reflect::set(el.as_ref(), &JsValue::from_str(key), &JsValue::from_str(value)).expect("failed to set property");
+        js_sys::Reflect::set(
+            el.as_ref(),
+            &JsValue::from_str(key),
+            &JsValue::from_str(value),
+        )
+        .expect("failed to set property");
     }
 
     fn set_attribute(el: &Element, key: &str, value: &str) {
@@ -253,7 +258,6 @@ impl Attributes {
         } else {
             Self::remove_attribute(el, key)
         }
-
     }
 }
 
