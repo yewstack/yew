@@ -241,6 +241,25 @@ let videos = videos.iter().map(|video| html! {
 }).collect::<Html>();
 ```
 
+And finally we need to replace the hardcoded list of videos with the `Html` we created from data:
+
+```rust ,ignore {6-10}
+html! {
+    <>
+        <h1>{ "RustConf Explorer" }</h1>
+        <div>
+            <h3>{"Videos to watch"}</h3>
+-           <p>{ "John Doe: Building and breaking things" }</p>
+-           <p>{ "Jane Smith: The development process" }</p>
+-           <p>{ "Matt Miller: The Web 7.0" }</p>
+-           <p>{ "Tom Jerry: Mouseless development" }</p>
++           { videos }
+        </div>
+        // ...
+    </>
+}
+```
+
 ## Components
 
 Components are the building blocks of Yew applications. By combining components, which can be made of other components,
@@ -302,7 +321,7 @@ struct Video {
 
 Now, we can update our `App` component to make use of `VideosList` component.
 
-```rust ,ignore {4-10,16-17,19-20}
+```rust ,ignore {4-7,13-14}
 #[function_component(App)]
 fn app() -> Html {
     // ...
