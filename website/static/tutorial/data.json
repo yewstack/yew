@@ -7,19 +7,19 @@
     },
     {
         "id": 2,
-        "title": "Building and breaking things",
+        "title": "The development process",
         "speaker": "Jane Smith",
         "url": "https://youtu.be/PsaFVLr8t4E"
     },
     {
         "id": 3,
-        "title": "The development process",
+        "title": "The Web 7.0",
         "speaker": "Matt Miller",
         "url": "https://youtu.be/PsaFVLr8t4E"
     },
     {
         "id": 4,
-        "title": "The Web 7.0",
+        "title": "Mouseless development",
         "speaker": "Tom Jerry",
         "url": "https://youtu.be/PsaFVLr8t4E"
     }
