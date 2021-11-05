@@ -225,7 +225,7 @@ let videos = vec![
     },
     Video {
         id: 4,
-        title: "Mousless development".to_string(),
+        title: "Mouseless development".to_string(),
         speaker: "Tom Jerry".to_string(),
         url: "https://youtu.be/PsaFVLr8t4E".to_string(),
     },
