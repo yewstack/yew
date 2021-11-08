@@ -1,6 +1,5 @@
 use crate::{content, generator::Generated, Route};
 use content::PostPart;
-use std::borrow::Cow;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
@@ -39,7 +38,7 @@ impl Component for Post {
         html! {
             <>
                 <section class="hero is-medium is-light has-background">
-                    <img class="hero-background is-transparent" src={Cow::Owned(post.meta.image_url.clone())} />
+                    <img class="hero-background is-transparent" src={post.meta.image_url.clone()} />
                     <div class="hero-body">
                         <div class="container">
                             <h1 class="title">
@@ -70,7 +69,7 @@ impl Post {
             <article class="media block box my-6">
                 <figure class="media-left">
                     <p class="image is-64x64">
-                        <img src={Cow::Owned(quote.author.image_url.clone())} loading="lazy" />
+                        <img src={quote.author.image_url.clone()} loading="lazy" />
                     </p>
                 </figure>
                 <div class="media-content">
@@ -90,7 +89,7 @@ impl Post {
     fn render_section_hero(&self, section: &content::Section) -> Html {
         html! {
             <section class="hero is-dark has-background mt-6 mb-3">
-                <img class="hero-background is-transparent" src={Cow::Owned(section.image_url.clone())} loading="lazy" />
+                <img class="hero-background is-transparent" src={section.image_url.clone()} loading="lazy" />
                 <div class="hero-body">
                     <div class="container">
                         <h2 class="subtitle">{ &section.title }</h2>
