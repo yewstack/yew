@@ -71,7 +71,7 @@ impl IntoPropValue<AttrValue> for Classes {
     fn into_prop_value(mut self) -> AttrValue {
         if self.set.len() == 1 {
             match self.set.pop() {
-                Some(attr) => AttrValue::ReferenceCounted(Rc::from(attr)),
+                Some(attr) => AttrValue::Rc(Rc::from(attr)),
                 // SAFETY: the collection is checked to be non-empty above
                 None => unsafe { unreachable_unchecked() },
             }

@@ -46,7 +46,7 @@ pub enum AttrValue {
     /// Owned string
     Owned(String),
     /// Reference counted string
-    ReferenceCounted(Rc<str>),
+    Rc(Rc<str>),
 }
 
 impl Deref for AttrValue {
@@ -56,7 +56,7 @@ impl Deref for AttrValue {
         match self {
             AttrValue::Static(s) => *s,
             AttrValue::Owned(s) => s.as_str(),
-            AttrValue::ReferenceCounted(s) => &*s,
+            AttrValue::Rc(s) => &*s,
         }
     }
 }
@@ -75,7 +75,7 @@ impl From<String> for AttrValue {
 
 impl From<Rc<str>> for AttrValue {
     fn from(s: Rc<str>) -> Self {
-        AttrValue::ReferenceCounted(s)
+        AttrValue::Rc(s)
     }
 }
 
@@ -84,7 +84,7 @@ impl Clone for AttrValue {
         match self {
             AttrValue::Static(s) => AttrValue::Static(s),
             AttrValue::Owned(s) => AttrValue::Owned(s.clone()),
-            AttrValue::ReferenceCounted(s) => AttrValue::ReferenceCounted(Rc::clone(s)),
+            AttrValue::Rc(s) => AttrValue::Rc(Rc::clone(s)),
         }
     }
 }
