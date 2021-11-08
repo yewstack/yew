@@ -44,7 +44,7 @@ impl<T: AccessValue> Apply for Value<T> {
         match (&self.0, &ancestor.0) {
             (Some(new), Some(_)) => {
                 // Refresh value from the DOM. It might have changed.
-                if new != &el.value() {
+                if new.as_ref() != el.value() {
                     el.set_value(new);
                 }
             }

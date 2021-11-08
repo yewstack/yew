@@ -89,12 +89,6 @@ impl Clone for AttrValue {
     }
 }
 
-impl PartialEq<String> for AttrValue {
-    fn eq(&self, other: &String) -> bool {
-        self.as_ref() == other.as_str()
-    }
-}
-
 impl AsRef<str> for AttrValue {
     fn as_ref(&self) -> &str {
         &*self
