@@ -6,17 +6,17 @@ use syn::{Expr, Lit, LitStr};
 /// Stringify a value at runtime.
 fn stringify_at_runtime(src: impl ToTokens) -> TokenStream {
     quote_spanned! {src.span()=>
-        ::std::convert::Into::<::std::borrow::Cow::<'static, ::std::primitive::str>>::into(#src)
+        ::std::convert::Into::<::yew::virtual_dom::AttrValue>::into(#src)
     }
 }
 
-/// Create `Cow<'static, str>` construction calls.
+/// Create `AttrValue` construction calls.
 ///
 /// This is deliberately not implemented for strings to preserve spans.
 pub trait Stringify {
     /// Try to turn the value into a string literal.
     fn try_into_lit(&self) -> Option<LitStr>;
-    /// Create `Cow<'static, str>` however possible.
+    /// Create `AttrValue` however possible.
     fn stringify(&self) -> TokenStream;
 
     /// Optimize literals to `&'static str`, otherwise keep the value as is.
@@ -71,7 +71,7 @@ impl Stringify for LitStr {
 
     fn stringify(&self) -> TokenStream {
         quote_spanned! {self.span()=>
-            ::std::borrow::Cow::<'static, ::std::primitive::str>::Borrowed(#self)
+            ::yew::virtual_dom::AttrValue::Static(#self)
         }
     }
 }

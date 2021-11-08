@@ -44,7 +44,7 @@ impl<T: AccessValue> Apply for Value<T> {
         match (&self.0, &ancestor.0) {
             (Some(new), Some(_)) => {
                 // Refresh value from the DOM. It might have changed.
-                if new != &el.value() {
+                if new.as_ref() != el.value() {
                     el.set_value(new);
                 }
             }
@@ -1075,7 +1075,7 @@ mod tests {
             <@{"input"} value="World"/>
         };
         let input_vtag = assert_vtag_mut(&mut input_el);
-        assert_eq!(input_vtag.value(), Some(&Cow::Borrowed("World")));
+        assert_eq!(input_vtag.value(), Some(&AttrValue::Static("World")));
         assert!(!input_vtag.attributes.iter().any(|(k, _)| k == "value"));
     }
 
