@@ -265,8 +265,6 @@ pub mod scheduler;
 pub mod utils;
 pub mod virtual_dom;
 
-pub use web_sys;
-
 /// The module that contains all events available in the framework.
 pub mod events {
     pub use crate::html::TargetCast;

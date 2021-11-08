@@ -6,7 +6,7 @@ use syn::{
     parse::{Parse, ParseStream},
     spanned::Spanned,
     token::Dot2,
-    Expr, ExprLit, Lit,
+    Expr,
 };
 
 struct BaseExpr {
@@ -110,15 +110,8 @@ impl ComponentProps {
             Some(expr) => {
                 let ident = Ident::new("__yew_props", props_ty.span());
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
-                    if is_string_literal(value) {
-                        // String literals should be implicitly converted into `String`
-                        quote_spanned! {value.span()=>
-                            #ident.#label = ::std::convert::Into::into(#value);
-                        }
-                    } else {
-                        quote_spanned! {value.span()=>
-                            #ident.#label = #value;
-                        }
+                    quote_spanned! {value.span()=>
+                        #ident.#label = ::yew::html::IntoPropValue::into_prop_value(#value);
                     }
                 });
                 let set_children = children_renderer.map(|children| {
@@ -143,16 +136,6 @@ impl ComponentProps {
             }
         }
     }
-}
-
-fn is_string_literal(expr: &Expr) -> bool {
-    matches!(
-        expr,
-        Expr::Lit(ExprLit {
-            lit: Lit::Str(_),
-            ..
-        })
-    )
 }
 
 impl Parse for ComponentProps {

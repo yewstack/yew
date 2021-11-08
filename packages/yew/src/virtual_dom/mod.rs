@@ -349,7 +349,7 @@ impl Apply for Attributes {
                     }
                     macro_rules! set {
                         ($new:expr) => {
-                            Self::set_attribute(el, key!(), $new);
+                            Self::set_attribute(el, key!(), $new)
                         };
                     }
 

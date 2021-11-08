@@ -11,3 +11,9 @@ serde_derive = "1"
 yew = { path = "../../packages/yew" }
 gloo = "0.3"
 
+[dependencies.web-sys]
+version = "0.3"
+features = [
+	"HtmlInputElement",
+	"HtmlTextAreaElement",
+]

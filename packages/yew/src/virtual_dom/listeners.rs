@@ -357,9 +357,9 @@ impl GlobalHandlers {
                         cl.as_ref().unchecked_ref(),
                         &{
                             let mut opts = web_sys::AddEventListenerOptions::new();
-                            if desc.passive {
-                                opts.passive(true);
-                            }
+                            opts.capture(true);
+                            // We need to explicitly set passive to override any browser defaults
+                            opts.passive(desc.passive);
                             opts
                         },
                     )
@@ -523,6 +523,7 @@ mod tests {
     use std::marker::PhantomData;
 
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use web_sys::{Event, EventInit};
     wasm_bindgen_test_configure!(run_in_browser);
 
     use crate::{html, html::TargetCast, utils::document, AppHandle, Component, Context, Html};
@@ -531,7 +532,7 @@ mod tests {
 
     #[derive(Clone)]
     enum Message {
-        Click,
+        Action,
         StopListening,
         SetText(String),
     }
@@ -539,7 +540,7 @@ mod tests {
     #[derive(Default)]
     struct State {
         stop_listening: bool,
-        clicked: u32,
+        action: u32,
         text: String,
     }
 
@@ -554,15 +555,15 @@ mod tests {
         {
             if state.stop_listening {
                 html! {
-                    <a>{state.clicked}</a>
+                    <a>{state.action}</a>
                 }
             } else {
                 html! {
                     <a onclick={ctx.link().callback_with_passive(
                         Self::passive(),
-                        |_| Message::Click,
+                        |_| Message::Action,
                     )}>
-                        {state.clicked}
+                        {state.action}
                     </a>
                 }
             }
@@ -593,8 +594,8 @@ mod tests {
 
         fn update(&mut self, _: &Context<Self>, msg: Self::Message) -> bool {
             match msg {
-                Message::Click => {
-                    self.state.clicked += 1;
+                Message::Action => {
+                    self.state.action += 1;
                 }
                 Message::StopListening => {
                     self.state.stop_listening = true;
@@ -707,6 +708,47 @@ mod tests {
     }
 
     #[test]
+    async fn non_bubbling_event() {
+        struct NonBubbling;
+
+        impl Mixin for NonBubbling {
+            fn view<C>(ctx: &Context<C>, state: &State) -> Html
+            where
+                C: Component<Message = Message>,
+            {
+                let onblur = ctx.link().callback(|_| Message::Action);
+                html! {
+                    <div>
+                        <a>
+                            <input id="input" {onblur} type="text" />
+                            {state.action}
+                        </a>
+                    </div>
+                }
+            }
+        }
+
+        let (_, el) = init::<NonBubbling>("a");
+
+        assert_count(&el, 0);
+
+        let input = document().get_element_by_id("input").unwrap();
+
+        input
+            .dispatch_event(
+                &Event::new_with_event_init_dict("blur", &{
+                    let mut dict = EventInit::new();
+                    dict.bubbles(false);
+                    dict
+                })
+                .unwrap(),
+            )
+            .unwrap();
+
+        assert_count(&el, 1);
+    }
+
+    #[test]
     fn bubbling() {
         struct Bubbling;
 
@@ -719,16 +761,16 @@ mod tests {
                     html! {
                         <div>
                             <a>
-                                {state.clicked}
+                                {state.action}
                             </a>
                         </div>
                     }
                 } else {
-                    let cb = ctx.link().callback(|_| Message::Click);
+                    let cb = ctx.link().callback(|_| Message::Action);
                     html! {
                         <div onclick={cb.clone()}>
                             <a onclick={cb}>
-                                {state.clicked}
+                                {state.action}
                             </a>
                         </div>
                     }

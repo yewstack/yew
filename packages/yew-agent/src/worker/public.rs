@@ -1,6 +1,6 @@
 use super::WorkerExt;
 use super::*;
-use anymap::{self, AnyMap};
+use anymap2::{self, AnyMap};
 use queue::Queue;
 use slab::Slab;
 use std::any::TypeId;
@@ -35,8 +35,8 @@ where
         let bridge = REMOTE_AGENTS_POOL.with(|pool| {
             let mut pool = pool.borrow_mut();
             match pool.entry::<RemoteAgent<AGN>>() {
-                anymap::Entry::Occupied(mut entry) => entry.get_mut().create_bridge(callback),
-                anymap::Entry::Vacant(entry) => {
+                anymap2::Entry::Occupied(mut entry) => entry.get_mut().create_bridge(callback),
+                anymap2::Entry::Vacant(entry) => {
                     let slab: Shared<Slab<Option<Callback<AGN::Output>>>> =
                         Rc::new(RefCell::new(Slab::new()));
                     let handler = {

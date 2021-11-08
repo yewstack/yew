@@ -131,7 +131,7 @@ The function passed to `callback` must always take a parameter. For example, the
 If you need a callback that might not need to cause an update, use `batch_callback`.
 
 ```rust
-use yew::{html, Component, Context, Html, KeyboardEvent};
+use yew::{events::KeyboardEvent, html, Component, Context, Html};
 
 enum Msg {
     Submit,

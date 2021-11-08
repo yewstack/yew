@@ -6,9 +6,15 @@ edition = "2018"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-strum = "0.21"
-strum_macros = "0.21"
+strum = "0.22"
+strum_macros = "0.22"
 serde = "1"
 serde_derive = "1"
 yew = { path = "../../packages/yew" }
 gloo = "0.3"
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+	"HtmlInputElement",
+]

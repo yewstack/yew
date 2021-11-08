@@ -1,5 +1,5 @@
+use web_sys::HtmlInputElement;
 use yew::prelude::*;
-use yew::web_sys::HtmlInputElement;
 
 pub enum Msg {
     Submit(String),

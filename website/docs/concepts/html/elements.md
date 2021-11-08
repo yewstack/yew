@@ -12,9 +12,9 @@ Using `web-sys`, you can create DOM elements and convert them into a `Node` - wh
 used as a `Html` value using `VRef`:
 
 ```rust
+use web_sys::{Element, Node};
 use yew::{
-    Component, Context, html, Html, utils::document, 
-    web_sys::{Element, Node}
+    Component, Context, html, Html, utils::document,
 };
 
 struct Comp;

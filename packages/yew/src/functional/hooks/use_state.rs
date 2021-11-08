@@ -75,9 +75,23 @@ impl<T: fmt::Debug> fmt::Debug for UseStateHandle<T> {
 }
 
 impl<T> UseStateHandle<T> {
-    /// Updates the value
+    /// Replaces the value
+    ///
+    /// *Always causes a rerender*
     pub fn set(&self, value: T) {
         (self.setter)(value)
+    }
+    /// Replaces the value if it is different from previous value
+    ///
+    /// **Only available for value types that implement PartialEq trait**
+    pub fn set_if_neq(&self, value: T)
+    where
+        T: PartialEq,
+    {
+        if *self.value == value {
+            return;
+        }
+        self.set(value)
     }
 }
 
@@ -95,5 +109,13 @@ impl<T> Clone for UseStateHandle<T> {
             value: Rc::clone(&self.value),
             setter: Rc::clone(&self.setter),
         }
+    }
+}
+
+impl<T> PartialEq for UseStateHandle<T> {
+    fn eq(&self, other: &Self) -> bool {
+        // if the value is the same pointer
+        // then we can assume that that setter is also the same thing
+        Rc::ptr_eq(&self.value, &other.value)
     }
 }

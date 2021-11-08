@@ -102,9 +102,9 @@ is also a parameter called `first_render` which can be used to determine whether
 being called on the first render, or instead a subsequent one.
 
 ```rust
+use web_sys::HtmlInputElement;
 use yew::{
-    Component, Context, html, Html, NodeRef, 
-    web_sys::HtmlInputElement
+    Component, Context, html, Html, NodeRef,
 };
 
 pub struct MyComponent {

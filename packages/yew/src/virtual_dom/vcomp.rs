@@ -9,6 +9,34 @@ use std::ops::Deref;
 use std::rc::Rc;
 use web_sys::Element;
 
+thread_local! {
+    #[cfg(debug_assertions)]
+     static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<u64, Vec<String>>>
+        = Default::default();
+}
+
+/// Push [VComp] event to lifecycle debugging registry
+#[cfg(debug_assertions)]
+pub(crate) fn log_event(vcomp_id: u64, event: impl ToString) {
+    EVENT_HISTORY.with(|h| {
+        h.borrow_mut()
+            .entry(vcomp_id)
+            .or_default()
+            .push(event.to_string())
+    });
+}
+
+/// Get [VComp] event log from lifecycle debugging registry
+#[cfg(debug_assertions)]
+pub(crate) fn get_event_log(vcomp_id: u64) -> Vec<String> {
+    EVENT_HISTORY.with(|h| {
+        h.borrow()
+            .get(&vcomp_id)
+            .map(|l| (*l).clone())
+            .unwrap_or_default()
+    })
+}
+
 /// A virtual component.
 pub struct VComp {
     type_id: TypeId,
@@ -16,6 +44,10 @@ pub struct VComp {
     props: Option<Box<dyn Mountable>>,
     pub(crate) node_ref: NodeRef,
     pub(crate) key: Option<Key>,
+
+    /// Used for debug logging
+    #[cfg(debug_assertions)]
+    pub(crate) id: u64,
 }
 
 impl Clone for VComp {
@@ -24,12 +56,18 @@ impl Clone for VComp {
             panic!("Mounted components are not allowed to be cloned!");
         }
 
+        #[cfg(debug_assertions)]
+        log_event(self.id, "clone");
+
         Self {
             type_id: self.type_id,
             scope: None,
             props: self.props.as_ref().map(|m| m.copy()),
             node_ref: self.node_ref.clone(),
             key: self.key.clone(),
+
+            #[cfg(debug_assertions)]
+            id: self.id,
         }
     }
 }
@@ -97,11 +135,39 @@ impl VComp {
             props: Some(Box::new(PropsWrapper::<COMP>::new(props))),
             scope: None,
             key,
+
+            #[cfg(debug_assertions)]
+            id: {
+                thread_local! {
+                    static ID_COUNTER: std::cell::RefCell<u64> = Default::default();
+                }
+
+                ID_COUNTER.with(|c| {
+                    let c = &mut *c.borrow_mut();
+                    *c += 1;
+                    *c
+                })
+            },
         }
     }
 
     pub(crate) fn root_vnode(&self) -> Option<impl Deref<Target = VNode> + '_> {
         self.scope.as_ref().and_then(|scope| scope.root_vnode())
+    }
+
+    /// Take ownership of [Box<dyn Scoped>] or panic with error message, if component is not mounted
+    #[inline]
+    fn take_scope(&mut self) -> Box<dyn Scoped> {
+        self.scope.take().unwrap_or_else(|| {
+            #[cfg(not(debug_assertions))]
+            panic!("no scope; VComp should be mounted");
+
+            #[cfg(debug_assertions)]
+            panic!(
+                "no scope; VComp should be mounted after: {:?}",
+                get_event_log(self.id)
+            );
+        })
     }
 }
 
@@ -156,7 +222,7 @@ impl<COMP: Component> Mountable for PropsWrapper<COMP> {
 
 impl VDiff for VComp {
     fn detach(&mut self, _parent: &Element) {
-        self.scope.take().expect("VComp is not mounted").destroy();
+        self.take_scope().destroy();
     }
 
     fn apply(
@@ -173,7 +239,7 @@ impl VDiff for VComp {
                 // If the ancestor is the same type, reuse it and update its properties
                 if self.type_id == vcomp.type_id && self.key == vcomp.key {
                     self.node_ref.reuse(vcomp.node_ref.clone());
-                    let scope = vcomp.scope.take().expect("VComp is not mounted");
+                    let scope = vcomp.take_scope();
                     mountable.reuse(self.node_ref.clone(), scope.borrow(), next_sibling);
                     self.scope = Some(scope);
                     return vcomp.node_ref.clone();
@@ -325,7 +391,7 @@ mod tests {
         let test_node: Node = document().create_text_node("test").into();
         let test_node_ref = NodeRef::new(test_node);
         let check_node_ref = |vnode: VNode| {
-            assert_eq!(vnode.first_node(), test_node_ref.get().unwrap());
+            assert_eq!(vnode.unchecked_first_node(), test_node_ref.get().unwrap());
         };
 
         let props = Props {

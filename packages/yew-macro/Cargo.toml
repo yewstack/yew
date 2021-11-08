@@ -15,16 +15,16 @@ description = "A framework for making client-side single-page apps"
 proc-macro = true
 
 [dependencies]
-boolinator = "2.4.0"
-lazy_static = "1.3.0"
-proc-macro2 = "1.0"
-quote = "1.0"
-syn = { version = "1.0", features = ["full", "extra-traits"] }
+boolinator = "2"
+lazy_static = "1"
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "1", features = ["full", "extra-traits"] }
 
 # testing
 [dev-dependencies]
-rustversion = "1.0"
-trybuild = "1.0"
+rustversion = "1"
+trybuild = "1"
 yew = { path = "../yew" }
 
 [build-dependencies]
