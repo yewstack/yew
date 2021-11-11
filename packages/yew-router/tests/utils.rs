@@ -1,14 +1,14 @@
 use wasm_bindgen::JsCast;
 
 pub fn obtain_result_by_id(id: &str) -> String {
-    yew::utils::document()
+    gloo_utils::document()
         .get_element_by_id(id)
         .expect("No result found. Most likely, the application crashed and burned")
         .inner_html()
 }
 
 pub fn click(selector: &str) {
-    yew::utils::document()
+    gloo_utils::document()
         .query_selector(selector)
         .unwrap()
         .unwrap()
@@ -18,7 +18,7 @@ pub fn click(selector: &str) {
 }
 
 pub fn history_length() -> u32 {
-    yew::utils::window()
+    gloo_utils::window()
         .history()
         .expect("No history found")
         .length()

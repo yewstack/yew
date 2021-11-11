@@ -513,7 +513,7 @@ mod layout_tests_keys {
     fn diff() {
         let mut layouts = vec![];
 
-        let vref_node: Node = crate::utils::document().create_element("i").unwrap().into();
+        let vref_node: Node = gloo_utils::document().create_element("i").unwrap().into();
         layouts.push(TestLayout {
             name: "All VNode types as children",
             node: html! {

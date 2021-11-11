@@ -31,7 +31,7 @@ fn use_state_works() {
     }
     type UseComponent = FunctionComponent<UseStateFunction>;
     yew::start_app_in_element::<UseComponent>(
-        yew::utils::document().get_element_by_id("output").unwrap(),
+        gloo_utils::document().get_element_by_id("output").unwrap(),
     );
     let result = obtain_result();
     assert_eq!(result.as_str(), "5");
@@ -76,7 +76,7 @@ fn multiple_use_state_setters() {
     }
     type UseComponent = FunctionComponent<UseStateFunction>;
     yew::start_app_in_element::<UseComponent>(
-        yew::utils::document().get_element_by_id("output").unwrap(),
+        gloo_utils::document().get_element_by_id("output").unwrap(),
     );
     let result = obtain_result();
     assert_eq!(result.as_str(), "11");
@@ -110,7 +110,7 @@ fn use_state_eq_works() {
     }
     type UseComponent = FunctionComponent<UseStateFunction>;
     yew::start_app_in_element::<UseComponent>(
-        yew::utils::document().get_element_by_id("output").unwrap(),
+        gloo_utils::document().get_element_by_id("output").unwrap(),
     );
     let result = obtain_result();
     assert_eq!(result.as_str(), "1");

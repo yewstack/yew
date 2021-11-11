@@ -19,10 +19,10 @@ struct UseEffect<Destructor> {
 ///     let counter_one = counter.clone();
 ///     use_effect(move || {
 ///         // Make a call to DOM API after component is rendered
-///         yew::utils::document().set_title(&format!("You clicked {} times", *counter_one));
+///         gloo_utils::document().set_title(&format!("You clicked {} times", *counter_one));
 ///
 ///         // Perform the cleanup
-///         || yew::utils::document().set_title(&format!("You clicked 0 times"))
+///         || gloo_utils::document().set_title(&format!("You clicked 0 times"))
 ///     });
 ///
 ///     let onclick = {

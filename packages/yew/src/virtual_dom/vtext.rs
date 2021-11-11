@@ -2,8 +2,8 @@
 
 use super::{AttrValue, VDiff, VNode};
 use crate::html::{AnyScope, NodeRef};
-use crate::utils::document;
 use gloo::console;
+use gloo_utils::document;
 use std::cmp::PartialEq;
 use web_sys::{Element, Text as TextNode};
 
