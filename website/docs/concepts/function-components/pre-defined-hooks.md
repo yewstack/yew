@@ -135,7 +135,7 @@ implement a `Reducible` trait which provides an `Action` type and a
 reducer function.
 
 This hook will always trigger a re-render upon receiving an action. See
-[`use_reducer_eq`](#use_reducer_eq) if you the component to only
+[`use_reducer_eq`](#use_reducer_eq) if you want the component to only
 re-render when the state changes.
 
 ### Example
