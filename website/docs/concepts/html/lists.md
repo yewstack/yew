@@ -5,7 +5,7 @@ title: "Lists"
 ## Fragments
 
 The `html!` macro always requires a single root node. In order to get around this restriction, you
-can use an "empty tag" (these are also called "fragments" in the React world).
+can use an "empty tag" (these are also called "fragments").
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Valid-->

@@ -26,9 +26,9 @@ fn hello_world() -> Html {
 
 ### Under the hood
 
-There are two parts to how Yew implements functional components.
+There are two parts to how Yew implements function components.
 
-The first part is the `FunctionProvider` trait which is analagous to the `Component` trait, except
+The first part is the `FunctionProvider` trait which is analogous to the `Component` trait, except
 that it only has a single method (called `run`). The second part is the `FunctionComponent` struct
 which wraps types implementing `FunctionProvider` and implements `Component`.
 
@@ -37,7 +37,7 @@ The `#[function_component]` attribute is a procedural macro which automatically 
 
 ### Hooks
 
-Hooks are simply functions that let you "hook into" components' state and/or lifecycle and perform
+Hooks are functions that let you "hook into" components' state and/or lifecycle and perform
 actions. Yew comes with a few pre-defined Hooks. You can also create your own.
 
 #### Pre-defined Hooks

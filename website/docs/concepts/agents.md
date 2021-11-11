@@ -4,7 +4,7 @@ description: "Yew's Actor System"
 ---
 
 Agents are similar to Angular's [Services](https://angular.io/guide/architecture-services)
-\(but without dependency injection\), and provide a Yew with an
+\(but without dependency injection\), and provide Yew with an
 [Actor Model](https://en.wikipedia.org/wiki/Actor_model). Agents can be used to route messages
 between components independently of where they sit in the component hierarchy, or they can be used
 to create shared state between different components. Agents can also be used to offload
