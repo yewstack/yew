@@ -1,13 +1,32 @@
-use crate::functional::use_hook;
 use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 
-struct UseState<T2> {
-    current: Rc<T2>,
+use super::{use_reducer, use_reducer_eq, Reducible, UseReducerDispatcher, UseReducerHandle};
+
+struct UseStateReducer<T> {
+    value: Rc<T>,
 }
 
-/// This hook is used to mange state in a function component.
+impl<T> Reducible for UseStateReducer<T> {
+    type Action = T;
+    fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
+        Rc::new(Self {
+            value: action.into(),
+        })
+    }
+}
+
+impl<T> PartialEq for UseStateReducer<T>
+where
+    T: PartialEq,
+{
+    fn eq(&self, rhs: &Self) -> bool {
+        self.value == rhs.value
+    }
+}
+
+/// This hook is used to manage state in a function component.
 ///
 /// # Example
 /// ```rust
@@ -34,64 +53,57 @@ struct UseState<T2> {
 ///     }
 /// }
 /// ```
-pub fn use_state<T: 'static, F: FnOnce() -> T>(initial_state_fn: F) -> UseStateHandle<T> {
-    use_hook(
-        // Initializer
-        move || UseState {
-            current: Rc::new(initial_state_fn()),
-        },
-        // Runner
-        move |hook, updater| {
-            let setter: Rc<(dyn Fn(T))> = Rc::new(move |new_val: T| {
-                updater.callback(move |st: &mut UseState<T>| {
-                    st.current = Rc::new(new_val);
-                    true
-                })
-            });
+pub fn use_state<T, F>(init_fn: F) -> UseStateHandle<T>
+where
+    T: 'static,
+    F: FnOnce() -> T,
+{
+    let handle = use_reducer(move || UseStateReducer {
+        value: Rc::new(init_fn()),
+    });
 
-            let current = hook.current.clone();
-            UseStateHandle {
-                value: current,
-                setter,
-            }
-        },
-        // Destructor
-        |_| {},
-    )
+    UseStateHandle { inner: handle }
+}
+
+/// [`use_state`] but only re-renders when `prev_state != next_state`.
+///
+/// This hook requires the state to implement [`PartialEq`].
+pub fn use_state_eq<T, F>(init_fn: F) -> UseStateHandle<T>
+where
+    T: PartialEq + 'static,
+    F: FnOnce() -> T,
+{
+    let handle = use_reducer_eq(move || UseStateReducer {
+        value: Rc::new(init_fn()),
+    });
+
+    UseStateHandle { inner: handle }
 }
 
 /// State handle for the [`use_state`] hook.
 pub struct UseStateHandle<T> {
-    value: Rc<T>,
-    setter: Rc<dyn Fn(T)>,
+    inner: UseReducerHandle<UseStateReducer<T>>,
 }
 
 impl<T: fmt::Debug> fmt::Debug for UseStateHandle<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("UseStateHandle")
-            .field("value", &format!("{:?}", self.value))
+            .field("value", &format!("{:?}", self.inner.value))
             .finish()
     }
 }
 
 impl<T> UseStateHandle<T> {
     /// Replaces the value
-    ///
-    /// *Always causes a rerender*
     pub fn set(&self, value: T) {
-        (self.setter)(value)
+        self.inner.dispatch(value)
     }
-    /// Replaces the value if it is different from previous value
-    ///
-    /// **Only available for value types that implement PartialEq trait**
-    pub fn set_if_neq(&self, value: T)
-    where
-        T: PartialEq,
-    {
-        if *self.value == value {
-            return;
+
+    /// Returns the setter of current state.
+    pub fn setter(&self) -> UseStateSetter<T> {
+        UseStateSetter {
+            inner: self.inner.dispatcher(),
         }
-        self.set(value)
     }
 }
 
@@ -99,23 +111,58 @@ impl<T> Deref for UseStateHandle<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        &(*self.value)
+        &(*self.inner).value
     }
 }
 
 impl<T> Clone for UseStateHandle<T> {
     fn clone(&self) -> Self {
         Self {
-            value: Rc::clone(&self.value),
-            setter: Rc::clone(&self.setter),
+            inner: self.inner.clone(),
         }
     }
 }
 
-impl<T> PartialEq for UseStateHandle<T> {
-    fn eq(&self, other: &Self) -> bool {
-        // if the value is the same pointer
-        // then we can assume that that setter is also the same thing
-        Rc::ptr_eq(&self.value, &other.value)
+impl<T> PartialEq for UseStateHandle<T>
+where
+    T: PartialEq,
+{
+    fn eq(&self, rhs: &Self) -> bool {
+        *self.inner == *rhs.inner
+    }
+}
+
+/// Setter handle for [`use_state`] and [`use_state_eq`] hook
+pub struct UseStateSetter<T> {
+    inner: UseReducerDispatcher<UseStateReducer<T>>,
+}
+
+impl<T> Clone for UseStateSetter<T> {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
+}
+
+impl<T> fmt::Debug for UseStateSetter<T>
+where
+    T: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("UseStateSetter").finish()
+    }
+}
+
+impl<T> PartialEq for UseStateSetter<T> {
+    fn eq(&self, rhs: &Self) -> bool {
+        self.inner == rhs.inner
+    }
+}
+
+impl<T> UseStateSetter<T> {
+    /// Replaces the value
+    pub fn set(&self, value: T) {
+        self.inner.dispatch(value)
     }
 }
