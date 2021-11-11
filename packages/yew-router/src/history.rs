@@ -5,12 +5,12 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 use gloo::events::EventListener;
+use gloo_utils::window;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use thiserror::Error;
 use wasm_bindgen::{JsValue, UnwrapThrowExt};
 use yew::callback::Callback;
-use yew::utils::window;
 
 use crate::utils::base_url;
 use crate::Routable;

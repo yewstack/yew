@@ -2,8 +2,8 @@
 
 use super::{Apply, AttrValue, Attributes, Key, Listener, Listeners, VDiff, VList, VNode};
 use crate::html::{AnyScope, IntoPropValue, NodeRef};
-use crate::utils::document;
 use gloo::console;
+use gloo_utils::document;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::hint::unreachable_unchecked;

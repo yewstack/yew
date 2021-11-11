@@ -70,7 +70,7 @@ impl Component for Model {
 }
 
 fn mount_app(selector: &'static str) -> AppHandle<Model> {
-    let document = yew::utils::document();
+    let document = gloo_utils::document();
     let element = document.query_selector(selector).unwrap().unwrap();
     yew::start_app_in_element(element)
 }

@@ -87,7 +87,7 @@ fn ref_hook() -> Html {
     let message_count = use_ref(|| 0);
 
     let onclick = Callback::from(move |_| {
-        let window = yew::utils::window();
+        let window = gloo_utils::window();
 
         if *message_count.borrow_mut() > 3 {
             window.alert_with_message("Message limit reached").unwrap();
@@ -241,10 +241,10 @@ fn effect() -> Html {
         let counter = counter.clone();
         use_effect(move || {
             // Make a call to DOM API after component is rendered
-            yew::utils::document().set_title(&format!("You clicked {} times", *counter));
+            gloo_utils::document().set_title(&format!("You clicked {} times", *counter));
 
             // Perform the cleanup
-            || yew::utils::document().set_title("You clicked 0 times")
+            || gloo_utils::document().set_title("You clicked 0 times")
         });
     }
     let onclick = {

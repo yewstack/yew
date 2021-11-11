@@ -352,7 +352,7 @@ where
     COMP: Component,
 {
     start_app_with_props_in_element(
-        crate::utils::document()
+        gloo_utils::document()
             .body()
             .expect("no body node found")
             .into(),

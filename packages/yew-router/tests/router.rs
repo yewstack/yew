@@ -113,7 +113,7 @@ fn root() -> Html {
 // - 404 redirects
 #[test]
 fn router_works() {
-    yew::start_app_in_element::<Root>(yew::utils::document().get_element_by_id("output").unwrap());
+    yew::start_app_in_element::<Root>(gloo_utils::document().get_element_by_id("output").unwrap());
 
     assert_eq!("Home", obtain_result_by_id("result"));
 
