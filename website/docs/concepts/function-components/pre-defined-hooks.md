@@ -49,7 +49,7 @@ fn state() -> Html {
 
 :::caution
 
-The value held in the handle will reflect the value of at the time the
+The value held in the handle will reflect the value at the time the
 handle is returned by the `use_state`. It is possible that the handle
 does not dereference to an up to date value if you are moving it into a
 `use_effect_with_deps` hook. You can register the
