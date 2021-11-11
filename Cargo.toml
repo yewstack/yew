@@ -10,6 +10,7 @@ members = [
   "packages/yew-router-macro",
 
   # Examples
+  "examples/animation",
   "examples/boids",
   "examples/counter",
   "examples/crm",

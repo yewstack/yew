@@ -1,0 +1,12 @@
+[package]
+name = "animation"
+version = "0.1.0"
+authors = ["Romain Kelifa <romain.kelifa@gmail.com>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+console_error_panic_hook = "0.1.6"
+wasm-bindgen = "=0.2.74"
+wee_alloc = "0.4.5"
+yew = "0.18"
