@@ -18,7 +18,7 @@ dependents of `use_effect_with_deps` if you only intend to set
 values from within the hook.
 
 This hook will always trigger a re-render upon receiving a new state. See
-[`use_state_eq`](#use_state_eq) if you the component to only
+[`use_state_eq`](#use_state_eq) if you want the component to only
 re-render when the state changes.
 
 ### Example
