@@ -8,7 +8,7 @@ pub use public::Public;
 use super::*;
 use js_sys::{Array, Reflect, Uint8Array};
 use serde::{Deserialize, Serialize};
-use wasm_bindgen::{closure::Closure, JsCast, JsValue};
+use wasm_bindgen::{closure::Closure, JsCast, JsValue, UnwrapThrowExt};
 use web_sys::{
     Blob, BlobPropertyBag, DedicatedWorkerGlobalScope, MessageEvent, Url, Worker, WorkerOptions,
 };
@@ -71,7 +71,11 @@ where
 }
 
 fn worker_new(name_of_resource: &str, is_module: bool) -> Worker {
-    let origin = gloo_utils::document().location().unwrap().origin().unwrap();
+    let origin = gloo_utils::document()
+        .location()
+        .unwrap_throw()
+        .origin()
+        .unwrap_throw();
     let script_url = format!("{}/{}", origin, name_of_resource);
     let wasm_url = format!("{}/{}", origin, name_of_resource.replace(".js", "_bg.wasm"));
     let array = Array::new();

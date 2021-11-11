@@ -45,7 +45,6 @@ pub fn fetch_base_url() -> Option<String> {
 mod tests {
     use gloo_utils::document;
     use wasm_bindgen_test::wasm_bindgen_test as test;
-    use yew::utils::*;
     use yew_router::prelude::*;
     use yew_router::utils::*;
 

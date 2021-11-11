@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::rc::Rc;
 
+use gloo_utils::document;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_test::*;
 use web_sys::HtmlElement;
@@ -116,13 +117,13 @@ fn use_reducer_eq_works() {
     }
     type UseReducerComponent = FunctionComponent<UseReducerFunction>;
     yew::start_app_in_element::<UseReducerComponent>(
-        yew::utils::document().get_element_by_id("output").unwrap(),
+        document().get_element_by_id("output").unwrap(),
     );
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "1");
 
-    yew::utils::document()
+    document()
         .get_element_by_id("add-a")
         .unwrap()
         .unchecked_into::<HtmlElement>()
@@ -131,7 +132,7 @@ fn use_reducer_eq_works() {
     let result = obtain_result();
     assert_eq!(result.as_str(), "2");
 
-    yew::utils::document()
+    document()
         .get_element_by_id("add-a")
         .unwrap()
         .unchecked_into::<HtmlElement>()
@@ -140,7 +141,7 @@ fn use_reducer_eq_works() {
     let result = obtain_result();
     assert_eq!(result.as_str(), "2");
 
-    yew::utils::document()
+    document()
         .get_element_by_id("add-b")
         .unwrap()
         .unchecked_into::<HtmlElement>()
@@ -149,7 +150,7 @@ fn use_reducer_eq_works() {
     let result = obtain_result();
     assert_eq!(result.as_str(), "3");
 
-    yew::utils::document()
+    document()
         .get_element_by_id("add-b")
         .unwrap()
         .unchecked_into::<HtmlElement>()
