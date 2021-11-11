@@ -46,7 +46,7 @@ impl Component for AuthorCard {
                     </div>
                 </div>
                 <footer class="card-footer">
-                    <Link<Route> classes={classes!("card-footer-item")} route={Route::Author { id: author.seed }}>
+                    <Link<Route> classes={classes!("card-footer-item")} to={Route::Author { id: author.seed }}>
                         { "Profile" }
                     </Link<Route>>
                 </footer>
