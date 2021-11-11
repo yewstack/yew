@@ -92,6 +92,12 @@ impl IntoPropValue<Option<AttrValue>> for Classes {
     }
 }
 
+impl IntoPropValue<Classes> for &'static str {
+    fn into_prop_value(self) -> Classes {
+        self.into()
+    }
+}
+
 impl<T: Into<Classes>> Extend<T> for Classes {
     fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
         let classes = iter
