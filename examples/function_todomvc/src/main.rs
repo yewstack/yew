@@ -23,7 +23,7 @@ fn app() -> Html {
 
     // Effect
     use_effect_with_deps(
-        move |state| {
+        move |state, _| {
             LocalStorage::set(KEY, &state.clone().entries).expect("failed to set");
             || ()
         },

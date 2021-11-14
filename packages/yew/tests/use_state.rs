@@ -47,7 +47,7 @@ fn multiple_use_state_setters() {
             let counter = use_state(|| 0);
             let counter_clone = counter.clone();
             use_effect_with_deps(
-                move |_| {
+                move |_, _| {
                     // 1st location
                     counter_clone.set(*counter_clone + 1);
                     || {}

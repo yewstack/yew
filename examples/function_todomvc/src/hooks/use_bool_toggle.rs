@@ -46,11 +46,10 @@ pub fn use_bool_toggle(default: bool) -> UseBoolToggleHandle {
     use_hook(
         || default,
         move |hook, updater| {
-            updater.post_render(move |state: &mut bool| {
+            updater.post_render(move |state: &mut bool, _| {
                 if *state != default {
                     *state = default;
                 }
-                false
             });
 
             let toggle = Rc::new(move || {

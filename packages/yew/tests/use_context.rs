@@ -242,7 +242,7 @@ fn use_context_update_works() {
             let magic: usize = *magic_rc;
             {
                 let ctx = ctx.clone();
-                use_effect(move || {
+                use_effect(move |_| {
                     let count = *rendered.borrow();
                     match count {
                         0 => {

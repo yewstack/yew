@@ -55,12 +55,15 @@ pub use yew_macro::function_component;
 scoped_thread_local!(static mut CURRENT_HOOK: HookState);
 
 type Msg = Box<dyn FnOnce() -> bool>;
-type ProcessMessage = Rc<dyn Fn(Msg, bool)>;
+type PostRenderMsg = Box<dyn FnOnce(bool)>;
+type ProcessMessage = Rc<dyn Fn(Msg)>;
+type ProcessPostRenderMessage = Rc<dyn Fn(PostRenderMsg)>;
 
 struct HookState {
     counter: usize,
     scope: AnyScope,
     process_message: ProcessMessage,
+    process_post_render_message: ProcessPostRenderMessage,
     hooks: Vec<Rc<RefCell<dyn std::any::Any>>>,
     destroy_listeners: Vec<Box<dyn FnOnce()>>,
 }
@@ -119,12 +122,13 @@ where
                 scope,
                 process_message: {
                     let scope = ctx.link().clone();
-                    Rc::new(move |msg, post_render| {
-                        if post_render {
-                            message_queue.push(msg);
-                        } else {
-                            scope.send_message(msg);
-                        }
+                    Rc::new(move |msg| {
+                        scope.send_message(msg);
+                    })
+                },
+                process_post_render_message: {
+                    Rc::new(move |msg| {
+                        message_queue.push(msg);
                     })
                 },
                 hooks: vec![],
@@ -141,9 +145,9 @@ where
         self.with_hook_state(|| T::run(&*ctx.props()))
     }
 
-    fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
-        for msg in self.message_queue.drain() {
-            ctx.link().send_message(msg);
+    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
+        for post_render_msg in self.message_queue.drain() {
+            post_render_msg(first_render);
         }
     }
 
@@ -164,14 +168,14 @@ pub(crate) fn get_current_scope() -> Option<AnyScope> {
 }
 
 #[derive(Clone, Default)]
-struct MsgQueue(Rc<RefCell<Vec<Msg>>>);
+struct MsgQueue(Rc<RefCell<Vec<PostRenderMsg>>>);
 
 impl MsgQueue {
-    fn push(&self, msg: Msg) {
+    fn push(&self, msg: PostRenderMsg) {
         self.0.borrow_mut().push(msg);
     }
 
-    fn drain(&self) -> Vec<Msg> {
+    fn drain(&self) -> Vec<PostRenderMsg> {
         self.0.borrow_mut().drain(..).collect()
     }
 }
@@ -191,6 +195,7 @@ impl MsgQueue {
 pub struct HookUpdater {
     hook: Rc<RefCell<dyn std::any::Any>>,
     process_message: ProcessMessage,
+    process_post_render_message: ProcessPostRenderMessage,
 }
 impl HookUpdater {
     /// Callback which runs the hook.
@@ -203,39 +208,31 @@ impl HookUpdater {
 
         // Update the component
         // We're calling "link.send_message", so we're not calling it post-render
-        let post_render = false;
-        process_message(
-            Box::new(move || {
-                let mut r = internal_hook_state.borrow_mut();
-                let hook: &mut T = r
-                    .downcast_mut()
-                    .expect("internal error: hook downcasted to wrong type");
-                cb(hook)
-            }),
-            post_render,
-        );
+        process_message(Box::new(move || {
+            let mut r = internal_hook_state.borrow_mut();
+            let hook: &mut T = r
+                .downcast_mut()
+                .expect("internal error: hook downcasted to wrong type");
+            cb(hook)
+        }));
     }
 
     /// Callback called after the render
     pub fn post_render<T: 'static, F>(&self, cb: F)
     where
-        F: FnOnce(&mut T) -> bool + 'static,
+        F: FnOnce(&mut T, bool) + 'static,
     {
         let internal_hook_state = self.hook.clone();
-        let process_message = self.process_message.clone();
+        let process_post_render_message = self.process_post_render_message.clone();
 
         // Update the component
         // We're calling "message_queue.push", so not calling it post-render
-        let post_render = true;
-        process_message(
-            Box::new(move || {
-                let mut hook = internal_hook_state.borrow_mut();
-                let hook: &mut T = hook
-                    .downcast_mut()
-                    .expect("internal error: hook downcasted to wrong type");
-                cb(hook)
-            }),
-            post_render,
-        );
+        process_post_render_message(Box::new(move |first_render| {
+            let mut hook = internal_hook_state.borrow_mut();
+            let hook: &mut T = hook
+                .downcast_mut()
+                .expect("internal error: hook downcasted to wrong type");
+            cb(hook, first_render)
+        }));
     }
 }

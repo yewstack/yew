@@ -17,7 +17,7 @@ struct UseEffect<Destructor> {
 ///     let counter = use_state(|| 0);
 ///
 ///     let counter_one = counter.clone();
-///     use_effect(move || {
+///     use_effect(move |_| {
 ///         // Make a call to DOM API after component is rendered
 ///         gloo_utils::document().set_title(&format!("You clicked {} times", *counter_one));
 ///
@@ -35,7 +35,7 @@ struct UseEffect<Destructor> {
 ///     }
 /// }
 /// ```
-pub fn use_effect<Destructor>(callback: impl FnOnce() -> Destructor + 'static)
+pub fn use_effect<Destructor>(callback: impl FnOnce(bool) -> Destructor + 'static)
 where
     Destructor: FnOnce() + 'static,
 {
@@ -47,14 +47,15 @@ where
         },
         |_, updater| {
             // Run on every render
-            updater.post_render(move |state: &mut UseEffect<Destructor>| {
-                if let Some(de) = state.destructor.take() {
-                    de();
-                }
-                let new_destructor = callback();
-                state.destructor.replace(Box::new(new_destructor));
-                false
-            });
+            updater.post_render(
+                move |state: &mut UseEffect<Destructor>, first_render: bool| {
+                    if let Some(de) = state.destructor.take() {
+                        de();
+                    }
+                    let new_destructor = callback(first_render);
+                    state.destructor.replace(Box::new(new_destructor));
+                },
+            );
         },
         |hook| {
             if let Some(destructor) = hook.destructor.take() {
@@ -76,7 +77,7 @@ struct UseEffectDeps<Destructor, Dependents> {
 /// Note that the destructor also runs when dependencies change.
 pub fn use_effect_with_deps<Callback, Destructor, Dependents>(callback: Callback, deps: Dependents)
 where
-    Callback: FnOnce(&Dependents) -> Destructor + 'static,
+    Callback: FnOnce(&Dependents, bool) -> Destructor + 'static,
     Destructor: FnOnce() + 'static,
     Dependents: PartialEq + 'static,
 {
@@ -92,21 +93,22 @@ where
             }
         },
         move |_, updater| {
-            updater.post_render(move |state: &mut UseEffectDeps<Destructor, Dependents>| {
-                if state.deps != deps {
-                    if let Some(de) = state.destructor.take() {
-                        de();
+            updater.post_render(
+                move |state: &mut UseEffectDeps<Destructor, Dependents>, first_render: bool| {
+                    if state.deps != deps {
+                        if let Some(de) = state.destructor.take() {
+                            de();
+                        }
+                        let new_destructor = callback(deps.borrow(), first_render);
+                        state.deps = deps;
+                        state.destructor.replace(Box::new(new_destructor));
+                    } else if state.destructor.is_none() {
+                        state
+                            .destructor
+                            .replace(Box::new(callback(state.deps.borrow(), first_render)));
                     }
-                    let new_destructor = callback(deps.borrow());
-                    state.deps = deps;
-                    state.destructor.replace(Box::new(new_destructor));
-                } else if state.destructor.is_none() {
-                    state
-                        .destructor
-                        .replace(Box::new(callback(state.deps.borrow())));
-                }
-                false
-            });
+                },
+            );
         },
         |hook| {
             if let Some(destructor) = hook.destructor.take() {

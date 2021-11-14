@@ -43,7 +43,7 @@ fn use_effect_destroys_on_component_drop() {
             let effect_called = props.effect_called.clone();
             let destroy_called = props.destroy_called.clone();
             use_effect_with_deps(
-                move |_| {
+                move |_, _| {
                     effect_called();
                     move || destroy_called()
                 },
@@ -91,7 +91,7 @@ fn use_effect_works_many_times() {
             let counter_clone = counter.clone();
 
             use_effect_with_deps(
-                move |_| {
+                move |_, _| {
                     if *counter_clone < 4 {
                         counter_clone.set(*counter_clone + 1);
                     }
@@ -129,7 +129,7 @@ fn use_effect_works_once() {
             let counter_clone = counter.clone();
 
             use_effect_with_deps(
-                move |_| {
+                move |_, _| {
                     counter_clone.set(*counter_clone + 1);
                     || panic!("Destructor should not have been called")
                 },
@@ -167,7 +167,7 @@ fn use_effect_refires_on_dependency_change() {
             let arg = *number_ref.borrow_mut().deref_mut();
             let counter = use_state(|| 0);
             use_effect_with_deps(
-                move |dep| {
+                move |dep, _| {
                     let mut ref_mut = number_ref_c.borrow_mut();
                     let inner_ref_mut = ref_mut.deref_mut();
                     if *inner_ref_mut < 1 {

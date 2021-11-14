@@ -61,6 +61,7 @@ pub fn use_hook<InternalHook: 'static, Output, Tear: FnOnce(&mut InternalHook) +
         HookUpdater {
             hook,
             process_message: hook_state.process_message.clone(),
+            process_post_render_message: hook_state.process_post_render_message.clone(),
         }
     });
 

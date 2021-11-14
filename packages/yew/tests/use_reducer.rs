@@ -39,7 +39,7 @@ fn use_reducer_works() {
 
             let counter_clone = counter.clone();
             use_effect_with_deps(
-                move |_| {
+                move |_, _| {
                     counter_clone.dispatch(1);
                     || {}
                 },
