@@ -62,7 +62,7 @@ impl VNode {
             VNode::VComp(vcomp) => vcomp.node_ref.get(),
             VNode::VList(vlist) => vlist.get(0).and_then(VNode::first_node),
             VNode::VRef(node) => Some(node.clone()),
-            VNode::VPortal(vportal) => vportal.sibling_ref.get(),
+            VNode::VPortal(vportal) => vportal.next_sibling(),
         }
     }
 

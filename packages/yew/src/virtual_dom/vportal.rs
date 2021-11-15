@@ -2,7 +2,7 @@
 
 use super::{VDiff, VNode};
 use crate::html::{AnyScope, NodeRef};
-use web_sys::Element;
+use web_sys::{Element, Node};
 
 #[derive(Debug, Clone)]
 pub struct VPortal {
@@ -13,7 +13,7 @@ pub struct VPortal {
     /// The inserted node
     pub node: Box<VNode>,
     /// The next sibling after the portal. Set when rendered
-    pub sibling_ref: NodeRef,
+    sibling_ref: NodeRef,
 }
 
 impl VDiff for VPortal {
@@ -68,13 +68,34 @@ impl VDiff for VPortal {
 }
 
 impl VPortal {
-    pub fn create(host: Element, content: VNode) -> Self {
+    /// Creates a [VPortal] rendering `content` in the DOM hierarchy under `host`.
+    pub fn new(content: VNode, host: Element) -> Self {
         Self {
             host,
             next_sibling: NodeRef::default(),
             node: Box::new(content),
             sibling_ref: NodeRef::default(),
         }
+    }
+    /// Creates a [VPortal] rendering `content` in the DOM hierarchy under `host`.
+    /// If `next_sibling` is given, the content is inserted before that [Node].
+    /// The parent of `next_sibling`, if given, must be `host`.
+    pub fn new_before(content: VNode, host: Element, next_sibling: Option<Node>) -> Self {
+        Self {
+            host,
+            next_sibling: {
+                let sib_ref = NodeRef::default();
+                sib_ref.set(next_sibling);
+                sib_ref
+            },
+            node: Box::new(content),
+            sibling_ref: NodeRef::default(),
+        }
+    }
+    /// Returns the [Node] following this [VPortal], if this [VPortal]
+    /// has already been mounted in the DOM.
+    pub fn next_sibling(&self) -> Option<Node> {
+        self.sibling_ref.get()
     }
 }
 
@@ -98,6 +119,9 @@ mod layout_tests {
         let mut layouts = vec![];
         let first_target = gloo_utils::document().create_element("i").unwrap();
         let second_target = gloo_utils::document().create_element("o").unwrap();
+        let target_with_child = gloo_utils::document().create_element("i").unwrap();
+        let target_child = gloo_utils::document().create_element("s").unwrap();
+        target_with_child.append_child(&target_child).unwrap();
 
         layouts.push(TestLayout {
             name: "Portal - first target",
@@ -105,9 +129,9 @@ mod layout_tests {
                 <div>
                     {VNode::VRef(first_target.clone().into())}
                     {VNode::VRef(second_target.clone().into())}
-                    {VNode::VPortal(VPortal::create(
+                    {VNode::VPortal(VPortal::new(
+                        html! { {"PORTAL"} },
                         first_target.clone(),
-                        html! { {"PORTAL"} }
                     ))}
                     {"AFTER"}
                 </div>
@@ -120,9 +144,9 @@ mod layout_tests {
                 <div>
                     {VNode::VRef(first_target.clone().into())}
                     {VNode::VRef(second_target.clone().into())}
-                    {VNode::VPortal(VPortal::create(
+                    {VNode::VPortal(VPortal::new(
+                        html! { {"PORTAL"} },
                         second_target.clone(),
-                        html! { {"PORTAL"} }
                     ))}
                     {"AFTER"}
                 </div>
@@ -130,7 +154,7 @@ mod layout_tests {
             expected: "<div><i></i><o>PORTAL</o>AFTER</div>",
         });
         layouts.push(TestLayout {
-            name: "Portal replaced by text",
+            name: "Portal - replaced by text",
             node: html! {
                 <div>
                     {VNode::VRef(first_target.clone().into())}
@@ -140,6 +164,20 @@ mod layout_tests {
                 </div>
             },
             expected: "<div><i></i><o></o>FOOAFTER</div>",
+        });
+        layouts.push(TestLayout {
+            name: "Portal - next sibling",
+            node: html! {
+                <div>
+                    {VNode::VRef(target_with_child.clone().into())}
+                    {VNode::VPortal(VPortal::new_before(
+                        html! { {"PORTAL"} },
+                        target_with_child.clone(),
+                        Some(target_child.clone().into()),
+                    ))}
+                </div>
+            },
+            expected: "<div><i>PORTAL<s></s></i></div>",
         });
 
         diff_layouts(layouts)
