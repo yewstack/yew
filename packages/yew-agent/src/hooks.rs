@@ -54,3 +54,11 @@ where
 
     UseBridgeHandle { inner: bridge }
 }
+
+impl<T: Agent> Clone for UseBridgeHandle<T> {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
+}
