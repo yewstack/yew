@@ -97,7 +97,11 @@ impl AsRef<str> for AttrValue {
 
 impl fmt::Display for AttrValue {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        match self {
+            AttrValue::Static(s) => write!(f, "{}", s),
+            AttrValue::Owned(s) => write!(f, "{}", s),
+            AttrValue::Rc(s) => write!(f, "{}", s),
+        }
     }
 }
 
