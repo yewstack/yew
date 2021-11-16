@@ -10,11 +10,11 @@ pub use component::*;
 pub use conversion::*;
 pub use listener::*;
 
-use crate::virtual_dom::VNode;
+use crate::virtual_dom::{VNode, VPortal};
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::JsValue;
-use web_sys::Node;
+use web_sys::{Element, Node};
 
 /// A type which expected as a result of `view` function implementation.
 pub type Html = VNode;
@@ -134,6 +134,14 @@ impl NodeRef {
         this.node = existing.node.clone();
         this.link = existing.link.clone();
     }
+}
+
+/// Render children into a DOM node that exists outside the hierarchy of the parent
+/// component.
+/// ## Relevant examples
+/// - [Portals](https://github.com/yewstack/yew/tree/master/examples/portals)
+pub fn create_portal(child: Html, host: Element) -> Html {
+    VNode::VPortal(VPortal::new(child, host))
 }
 
 #[cfg(test)]

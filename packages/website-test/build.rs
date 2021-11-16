@@ -16,12 +16,17 @@ fn main() {
     let pattern = format!("{}/../../website/docs/**/*.md", home);
     let base = format!("{}/../../website", home);
     let base = Path::new(&base).canonicalize().unwrap();
+    let dir_pattern = format!("{}/../../website/docs/**", home);
+    for dir in glob(&dir_pattern).unwrap() {
+        println!("cargo:rerun-if-changed={}", dir.unwrap().display());
+    }
 
     let mut level = Level::default();
 
     for entry in glob(&pattern).unwrap() {
         let path = entry.unwrap();
         let path = Path::new(&path).canonicalize().unwrap();
+        println!("cargo:rerun-if-changed={}", path.display());
         let rel = path.strip_prefix(&base).unwrap();
 
         let mut parts = vec![];

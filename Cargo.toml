@@ -25,6 +25,7 @@ members = [
   "examples/multi_thread",
   "examples/nested_list",
   "examples/node_refs",
+  "examples/portals",
   "examples/pub_sub",
   "examples/router",
   "examples/store",

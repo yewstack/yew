@@ -11,6 +11,8 @@ pub mod vlist;
 #[doc(hidden)]
 pub mod vnode;
 #[doc(hidden)]
+pub mod vportal;
+#[doc(hidden)]
 pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
@@ -30,6 +32,8 @@ pub use self::vcomp::{VChild, VComp};
 pub use self::vlist::VList;
 #[doc(inline)]
 pub use self::vnode::VNode;
+#[doc(inline)]
+pub use self::vportal::VPortal;
 #[doc(inline)]
 pub use self::vtag::VTag;
 #[doc(inline)]

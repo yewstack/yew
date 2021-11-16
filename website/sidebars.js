@@ -91,6 +91,7 @@ module.exports = {
             items: [
                 "advanced-topics/how-it-works",
                 "advanced-topics/optimizations",
+                "advanced-topics/portals",
             ]
         },
         {
