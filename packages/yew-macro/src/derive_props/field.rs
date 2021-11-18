@@ -5,7 +5,7 @@ use std::cmp::{Ord, Ordering, PartialEq, PartialOrd};
 use std::convert::TryFrom;
 use syn::parse::Result;
 use syn::spanned::Spanned;
-use syn::{Error, Expr, Field, Path, Type, TypePath, Visibility};
+use syn::{Attribute, Error, Expr, Field, Path, Type, TypePath, Visibility};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(PartialEq, Eq)]
@@ -22,6 +22,7 @@ pub struct PropField {
     ty: Type,
     name: Ident,
     attr: PropAttr,
+    extra_attrs: Vec<Attribute>,
 }
 
 impl PropField {
@@ -49,7 +50,7 @@ impl PropField {
     /// Used to transform the `PropWrapper` struct into `Properties`
     pub fn to_field_setter(&self) -> proc_macro2::TokenStream {
         let name = &self.name;
-        match &self.attr {
+        let setter = match &self.attr {
             PropAttr::Required { wrapped_name } => {
                 quote! {
                     #name: ::std::option::Option::unwrap(self.wrapped.#wrapped_name),
@@ -75,21 +76,29 @@ impl PropField {
                     #name: ::std::option::Option::unwrap_or_default(self.wrapped.#name),
                 }
             }
+        };
+        let extra_attrs = &self.extra_attrs;
+        quote! {
+            #( #extra_attrs )*
+            #setter
         }
     }
 
     /// Wrap all required props in `Option`
     pub fn to_field_def(&self) -> proc_macro2::TokenStream {
         let ty = &self.ty;
+        let extra_attrs = &self.extra_attrs;
         let wrapped_name = self.wrapped_name();
         match &self.attr {
             PropAttr::Option => {
                 quote! {
+                    #( #extra_attrs )*
                     #wrapped_name: #ty,
                 }
             }
             _ => {
                 quote! {
+                    #( #extra_attrs )*
                     #wrapped_name: ::std::option::Option<#ty>,
                 }
             }
@@ -99,7 +108,9 @@ impl PropField {
     /// All optional props must implement the `Default` trait
     pub fn to_default_setter(&self) -> proc_macro2::TokenStream {
         let wrapped_name = self.wrapped_name();
+        let extra_attrs = &self.extra_attrs;
         quote! {
+            #( #extra_attrs )*
             #wrapped_name: ::std::option::Option::None,
         }
     }
@@ -111,8 +122,8 @@ impl PropField {
         generic_arguments: &GenericArguments,
         vis: &Visibility,
     ) -> proc_macro2::TokenStream {
-        let Self { name, ty, attr } = self;
-        match attr {
+        let Self { name, ty, attr, .. } = self;
+        let build_fn = match attr {
             PropAttr::Required { wrapped_name } => {
                 quote! {
                     #[doc(hidden)]
@@ -143,6 +154,11 @@ impl PropField {
                     }
                 }
             }
+        };
+        let extra_attrs = &self.extra_attrs;
+        quote! {
+            #( #extra_attrs )*
+            #build_fn
         }
     }
 
@@ -175,6 +191,20 @@ impl PropField {
             let wrapped_name = Ident::new(&format!("{}_wrapper", ident), Span::call_site());
             Ok(PropAttr::Required { wrapped_name })
         }
+    }
+
+    /// Some attributes on the original struct should be preserved and added to the builder struct,
+    /// in order to avoid warnings (sometimes reported as errors) in the output.
+    fn preserved_attrs(named_field: &Field) -> Vec<Attribute> {
+        // #[cfg(...)]: does not usually appear in macro inputs, but rust-analyzer seems to generate it sometimes.
+        //              If not preserved, results in "no-such-field" errors generating the field setter for `build`
+        // #[allow(...)]: silences warnings from clippy, such as dead_code etc.
+        named_field
+            .attrs
+            .iter()
+            .filter(|a| a.path.is_ident("allow") || a.path.is_ident("cfg"))
+            .cloned()
+            .collect()
     }
 }
 
@@ -214,6 +244,7 @@ impl TryFrom<Field> for PropField {
     fn try_from(field: Field) -> Result<Self> {
         Ok(PropField {
             attr: Self::attribute(&field)?,
+            extra_attrs: Self::preserved_attrs(&field),
             ty: field.ty,
             name: field.ident.unwrap(),
         })
