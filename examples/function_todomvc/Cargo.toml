@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 strum = "0.21"
-strum_macros = "0.21"
+strum_macros = "0.23"
 gloo = "0.4"
 yew = { path = "../../packages/yew" }
 
