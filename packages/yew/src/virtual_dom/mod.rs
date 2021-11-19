@@ -661,7 +661,7 @@ mod benchmarks {
         let static_ = Attributes::Static(&[]);
         let dynamic = Attributes::Dynamic {
             keys: &[],
-            values: vec![],
+            values: Box::new([]),
         };
         let map = Attributes::IndexMap(Default::default());
 
