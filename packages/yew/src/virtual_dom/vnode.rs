@@ -1,6 +1,6 @@
 //! This module contains the implementation of abstract virtual node.
 
-use super::{Key, VChild, VComp, VDiff, VList, VTag, VText};
+use super::{Key, VChild, VComp, VDiff, VList, VPortal, VTag, VText};
 use crate::html::{AnyScope, Component, NodeRef};
 use gloo::console;
 use std::cmp::PartialEq;
@@ -21,6 +21,8 @@ pub enum VNode {
     VComp(VComp),
     /// A holder for a list of other nodes.
     VList(VList),
+    /// A portal to another part of the document
+    VPortal(VPortal),
     /// A holder for any `Node` (necessary for replacing node).
     VRef(Node),
 }
@@ -33,6 +35,7 @@ impl VNode {
             VNode::VRef(_) => None,
             VNode::VTag(vtag) => vtag.key.clone(),
             VNode::VText(_) => None,
+            VNode::VPortal(vportal) => vportal.node.key(),
         }
     }
 
@@ -43,6 +46,7 @@ impl VNode {
             VNode::VList(vlist) => vlist.key.is_some(),
             VNode::VRef(_) | VNode::VText(_) => false,
             VNode::VTag(vtag) => vtag.key.is_some(),
+            VNode::VPortal(vportal) => vportal.node.has_key(),
         }
     }
 
@@ -58,6 +62,7 @@ impl VNode {
             VNode::VComp(vcomp) => vcomp.node_ref.get(),
             VNode::VList(vlist) => vlist.get(0).and_then(VNode::first_node),
             VNode::VRef(node) => Some(node.clone()),
+            VNode::VPortal(vportal) => vportal.next_sibling(),
         }
     }
 
@@ -88,6 +93,7 @@ impl VNode {
                 .expect("VList is not mounted")
                 .unchecked_first_node(),
             VNode::VRef(node) => node.clone(),
+            VNode::VPortal(_) => panic!("portals have no first node, they are empty inside"),
         }
     }
 
@@ -104,6 +110,7 @@ impl VNode {
                     .expect("VComp has no root vnode")
                     .move_before(parent, next_sibling);
             }
+            VNode::VPortal(_) => {} // no need to move portals
             _ => super::insert_node(&self.unchecked_first_node(), parent, next_sibling.as_ref()),
         };
     }
@@ -122,6 +129,7 @@ impl VDiff for VNode {
                     console::warn!("Node not found to remove VRef");
                 }
             }
+            VNode::VPortal(ref mut vportal) => vportal.detach(parent),
         }
     }
 
@@ -154,6 +162,9 @@ impl VDiff for VNode {
                 }
                 super::insert_node(node, parent, next_sibling.get().as_ref());
                 NodeRef::new(node.clone())
+            }
+            VNode::VPortal(ref mut vportal) => {
+                vportal.apply(parent_scope, parent, next_sibling, ancestor)
             }
         }
     }
@@ -225,6 +236,7 @@ impl fmt::Debug for VNode {
             VNode::VComp(ref vcomp) => vcomp.fmt(f),
             VNode::VList(ref vlist) => vlist.fmt(f),
             VNode::VRef(ref vref) => write!(f, "VRef ( \"{}\" )", crate::utils::print_node(vref)),
+            VNode::VPortal(ref vportal) => vportal.fmt(f),
         }
     }
 }
@@ -256,7 +268,7 @@ mod layout_tests {
 
     #[test]
     fn diff() {
-        let document = crate::utils::document();
+        let document = gloo_utils::document();
         let vref_node_1 = VNode::VRef(document.create_element("i").unwrap().into());
         let vref_node_2 = VNode::VRef(document.create_element("b").unwrap().into());
 

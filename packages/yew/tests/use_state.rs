@@ -2,7 +2,9 @@ mod common;
 
 use common::obtain_result;
 use wasm_bindgen_test::*;
-use yew::functional::{use_effect_with_deps, use_state, FunctionComponent, FunctionProvider};
+use yew::functional::{
+    use_effect_with_deps, use_state, use_state_eq, FunctionComponent, FunctionProvider,
+};
 use yew::{html, Html};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
@@ -29,7 +31,7 @@ fn use_state_works() {
     }
     type UseComponent = FunctionComponent<UseStateFunction>;
     yew::start_app_in_element::<UseComponent>(
-        yew::utils::document().get_element_by_id("output").unwrap(),
+        gloo_utils::document().get_element_by_id("output").unwrap(),
     );
     let result = obtain_result();
     assert_eq!(result.as_str(), "5");
@@ -74,14 +76,14 @@ fn multiple_use_state_setters() {
     }
     type UseComponent = FunctionComponent<UseStateFunction>;
     yew::start_app_in_element::<UseComponent>(
-        yew::utils::document().get_element_by_id("output").unwrap(),
+        gloo_utils::document().get_element_by_id("output").unwrap(),
     );
     let result = obtain_result();
     assert_eq!(result.as_str(), "11");
 }
 
 #[wasm_bindgen_test]
-fn use_state_handle_set_neq_works() {
+fn use_state_eq_works() {
     static mut RENDER_COUNT: usize = 0;
 
     struct UseStateFunction {}
@@ -94,8 +96,8 @@ fn use_state_handle_set_neq_works() {
             unsafe {
                 RENDER_COUNT += 1;
             }
-            let counter = use_state(|| 0);
-            counter.set_if_neq(1);
+            let counter = use_state_eq(|| 0);
+            counter.set(1);
 
             return html! {
                 <div>
@@ -108,7 +110,7 @@ fn use_state_handle_set_neq_works() {
     }
     type UseComponent = FunctionComponent<UseStateFunction>;
     yew::start_app_in_element::<UseComponent>(
-        yew::utils::document().get_element_by_id("output").unwrap(),
+        gloo_utils::document().get_element_by_id("output").unwrap(),
     );
     let result = obtain_result();
     assert_eq!(result.as_str(), "1");
