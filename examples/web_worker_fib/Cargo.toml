@@ -2,6 +2,7 @@
 name = "yew-worker-demo"
 version = "0.1.0"
 edition = "2018"
+author = "Shrey Somaiya"
 
 [lib]
 crate-type = ["cdylib"]

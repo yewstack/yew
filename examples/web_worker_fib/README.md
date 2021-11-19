@@ -9,7 +9,7 @@ You can access a live version here:
 This example is NOT built with [trunk](https://github.com/thedodd/trunk). 
 Multi-threading in yew does not currently build with Trunk, due to issues described in the [multi_thread](/examples/multi_thread/README.md) example.
 
-Instead, the example is built with `wasm_bindgen`.
+Instead the example is built with [`wasm-pack`](https://rustwasm.github.io/wasm-pack/) directly.
 
 To build, run `./build.sh`.
 You can then serve the build, with `./serve.sh`.

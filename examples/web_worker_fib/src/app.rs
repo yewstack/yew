@@ -1,16 +1,19 @@
-use serde::{Deserialize, Serialize};
+use crate::agent::{
+    Worker, WorkerInput, WorkerOutput
+};
+
 use yew::prelude::*;
 use yew::web_sys::HtmlInputElement;
-use yew_agent::{Agent, AgentLink, Bridge, Bridged, HandlerId, Public};
+use yew_agent::{Bridge, Bridged};
 
-pub(crate) struct Model {
+pub struct Model {
     clicker_value: u32,
-    n_ref: NodeRef,
+    input_ref: NodeRef,
     worker: Box<dyn Bridge<Worker>>,
     fibonacci_output: String,
 }
 
-pub(crate) enum Message {
+pub enum Message {
     Click,
     RunWorker,
     WorkerMsg(WorkerOutput),
@@ -25,7 +28,7 @@ impl Component for Model {
 
         Self {
             clicker_value: 0,
-            n_ref: NodeRef::default(),
+            input_ref: NodeRef::default(),
             worker,
             fibonacci_output: String::from("Try out some fibonacci calculations!"),
         }
@@ -37,7 +40,7 @@ impl Component for Model {
                 self.clicker_value += 1;
             }
             Self::Message::RunWorker => {
-                if let Some(input) = self.n_ref.cast::<HtmlInputElement>() {
+                if let Some(input) = self.input_ref.cast::<HtmlInputElement>() {
                     if let Ok(value) = input.value().parse::<u32>() {
                         // start the worker off!
                         self.worker.send(WorkerInput { n: value });
@@ -56,68 +59,18 @@ impl Component for Model {
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <>
-                <h1> { "Web worker demo" } </h1>
-                <h3> { "Output: " } { &self.fibonacci_output } </h3>
+                <h1>{ "Web worker demo" }</h1>
+                <p>{ "Submit a value to calculate, then increase the counter on the main thread!"} </p>
+                <p>{ "Large numbers will take some time!" }</p>
+                <h3>{ "Output: " } { &self.fibonacci_output }</h3>
                 <br />
-                <input ref={self.n_ref.clone()} type="number" />
-                <button onclick={ctx.link().callback(|_| Message::RunWorker)}> { "submit" } </button>
+                <input ref={self.input_ref.clone()} type="number" value="44" max="50"/>
+                <button onclick={ctx.link().callback(|_| Message::RunWorker)}>{ "submit" }</button>
                 <br /> <br />
-                <h3> { "Main thread value: " } { self.clicker_value } </h3>
-                <button onclick={ctx.link().callback(|_| Message::Click)}> { "click!" } </button>
+                <h3>{ "Main thread value: " } { self.clicker_value }</h3>
+                <button onclick={ctx.link().callback(|_| Message::Click)}>{ "click!" }</button>
             </>
         }
     }
 }
 
-pub(crate) struct Worker {
-    link: AgentLink<Self>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub(crate) struct WorkerInput {
-    n: u32,
-}
-
-#[derive(Serialize, Deserialize)]
-pub(crate) struct WorkerOutput {
-    value: u32,
-}
-
-impl Agent for Worker {
-    type Reach = Public<Self>;
-    type Message = ();
-    type Input = WorkerInput;
-    type Output = WorkerOutput;
-
-    fn create(link: AgentLink<Self>) -> Self {
-        Self { link }
-    }
-
-    fn update(&mut self, _msg: Self::Message) {
-        // no messaging
-    }
-
-    fn handle_input(&mut self, msg: Self::Input, id: HandlerId) {
-        // this runs in a web worker
-        // and does not block the main
-        // browser thread!
-
-        let n = msg.n;
-
-        fn fib(n: u32) -> u32 {
-            if n <= 1 {
-                1
-            } else {
-                fib(n - 1) + fib(n - 2)
-            }
-        }
-
-        let output = Self::Output { value: fib(n) };
-
-        self.link.respond(id, output);
-    }
-
-    fn name_of_resource() -> &'static str {
-        "wasm.js"
-    }
-}
