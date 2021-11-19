@@ -2,7 +2,7 @@
 #![allow(clippy::large_enum_variant)]
 
 pub mod app;
-
+pub mod agent;
 use app::Model;
 use wasm_bindgen::prelude::*;
 use yew_agent::Threaded;
@@ -14,6 +14,6 @@ pub fn start() {
     if Reflect::has(&global(), &JsValue::from_str("window")).unwrap() {
         yew::start_app::<Model>();
     } else {
-        app::Worker::register();
+        agent::Worker::register();
     }
 }

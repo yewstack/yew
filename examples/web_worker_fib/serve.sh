@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if ! command -v python3 2>&1 >/dev/null;
 then
 	echo 'error: you must install python3'
