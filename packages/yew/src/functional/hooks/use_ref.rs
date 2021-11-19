@@ -9,7 +9,8 @@ use std::{cell::RefCell, rc::Rc};
 ///
 /// # Example
 /// ```rust
-/// # use yew::{prelude::*, web_sys::{Event, HtmlInputElement}};
+/// # use yew::prelude::*;
+/// # use web_sys::HtmlInputElement;
 /// # use std::rc::Rc;
 /// # use std::cell::RefCell;
 /// # use std::ops::{Deref, DerefMut};
@@ -20,7 +21,7 @@ use std::{cell::RefCell, rc::Rc};
 ///     let message_count = use_ref(|| 0);
 ///
 ///     let onclick = Callback::from(move |e| {
-///         let window = yew::utils::window();
+///         let window = gloo_utils::window();
 ///
 ///         if *message_count.borrow_mut() > 3 {
 ///             window.alert_with_message("Message limit reached");

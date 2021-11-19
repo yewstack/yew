@@ -1,50 +1,7 @@
 //! This module contains useful utilities to get information about the current document.
 
 use std::marker::PhantomData;
-
-use anyhow::{anyhow, Error};
-use web_sys::{Document, Window};
-
 use yew::html::ChildrenRenderer;
-
-/// Returns the current window. This function will panic if there is no available window.
-pub fn window() -> Window {
-    web_sys::window().expect("no window available")
-}
-
-/// Returns the current document.
-pub fn document() -> Document {
-    window().document().unwrap()
-}
-
-/// Returns the `host` for the current document. Useful for connecting to the server which serves
-/// the app.
-pub fn host() -> Result<String, Error> {
-    let location = document()
-        .location()
-        .ok_or_else(|| anyhow!("can't get location"))?;
-
-    let host = location.host().map_err(|e| {
-        anyhow!(e
-            .as_string()
-            .unwrap_or_else(|| String::from("error not recoverable")),)
-    })?;
-
-    Ok(host)
-}
-
-/// Returns the `origin` of the current window.
-pub fn origin() -> Result<String, Error> {
-    let location = window().location();
-
-    let origin = location.origin().map_err(|e| {
-        anyhow!(e
-            .as_string()
-            .unwrap_or_else(|| String::from("error not recoverable")),)
-    })?;
-
-    Ok(origin)
-}
 
 /// Map IntoIterator<Item=Into<T>> to Iterator<Item=T>
 pub fn into_node_iter<IT, T, R>(it: IT) -> impl Iterator<Item = R>

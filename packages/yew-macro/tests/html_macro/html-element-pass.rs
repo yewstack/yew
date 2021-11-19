@@ -37,16 +37,16 @@ pub struct u8;
 pub struct usize;
 
 fn compile_pass() {
-    let onclick = <::yew::Callback<::yew::MouseEvent> as ::std::convert::From<_>>::from(
-        |_: ::yew::MouseEvent| (),
+    let onclick = <::yew::Callback<::yew::events::MouseEvent> as ::std::convert::From<_>>::from(
+        |_: ::yew::events::MouseEvent| (),
     );
     let parent_ref = <::yew::NodeRef as ::std::default::Default>::default();
 
-    let dyn_tag = || <::std::string::String as ::std::convert::From<&::std::primitive::str>>::from("test");
+    let dyn_tag =
+        || <::std::string::String as ::std::convert::From<&::std::primitive::str>>::from("test");
     let mut extra_tags_iter = ::std::iter::IntoIterator::into_iter(::std::vec!["a", "b"]);
 
-    let cow_none: ::std::option::Option<::std::borrow::Cow<'static, ::std::primitive::str>> =
-        ::std::option::Option::None;
+    let attr_val_none: ::std::option::Option<::yew::virtual_dom::AttrValue> = ::std::option::Option::None;
 
     ::yew::html! {
         <div>
@@ -99,10 +99,10 @@ fn compile_pass() {
                 }
             }/>
 
-            <a href={::std::option::Option::Some(::std::borrow::Cow::Borrowed("http://google.com"))} media={::std::clone::Clone::clone(&cow_none)} />
-            <track kind={::std::option::Option::Some(::std::borrow::Cow::Borrowed("subtitles"))} src={::std::clone::Clone::clone(&cow_none)} />
-            <track kind={::std::option::Option::Some(::std::borrow::Cow::Borrowed("5"))} mixed="works" />
-            <input value={::std::option::Option::Some(::std::borrow::Cow::Borrowed("value"))}
+            <a href={::std::option::Option::Some(::yew::virtual_dom::AttrValue::Static("http://google.com"))} media={::std::clone::Clone::clone(&attr_val_none)} />
+            <track kind={::std::option::Option::Some(::yew::virtual_dom::AttrValue::Static("subtitles"))} src={::std::clone::Clone::clone(&attr_val_none)} />
+            <track kind={::std::option::Option::Some(::yew::virtual_dom::AttrValue::Static("5"))} mixed="works" />
+            <input value={::std::option::Option::Some(::yew::virtual_dom::AttrValue::Static("value"))}
                 onblur={::std::option::Option::Some(<::yew::Callback<::yew::FocusEvent> as ::std::convert::From<_>>::from(|_| ()))}
             />
         </div>

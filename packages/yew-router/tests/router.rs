@@ -33,35 +33,43 @@ struct NoProps {
 fn no(props: &NoProps) -> Html {
     let route = props.id.to_string();
 
+    let location = use_location().unwrap();
+
     html! {
         <>
             <div id="result-params">{ route }</div>
-            <div id="result-query">{ yew_router::parse_query::<Query>().unwrap().foo }</div>
+            <div id="result-query">{ location.query::<Query>().unwrap().foo }</div>
         </>
     }
 }
 
 #[function_component(Comp)]
 fn component() -> Html {
-    let switch = Router::render(|routes| {
-        let replace_route = Callback::from(|_| {
-            yew_router::replace_route_with_query(
-                Routes::No { id: 2 },
-                Query {
-                    foo: "bar".to_string(),
-                },
-            )
-            .unwrap();
+    let history = use_history().unwrap();
+
+    let switch = Switch::render(move |routes| {
+        let history_clone = history.clone();
+        let replace_route = Callback::from(move |_| {
+            history_clone
+                .replace_with_query(
+                    Routes::No { id: 2 },
+                    Query {
+                        foo: "bar".to_string(),
+                    },
+                )
+                .unwrap();
         });
 
-        let push_route = Callback::from(|_| {
-            yew_router::push_route_with_query(
-                Routes::No { id: 3 },
-                Query {
-                    foo: "baz".to_string(),
-                },
-            )
-            .unwrap();
+        let history_clone = history.clone();
+        let push_route = Callback::from(move |_| {
+            history_clone
+                .push_with_query(
+                    Routes::No { id: 3 },
+                    Query {
+                        foo: "baz".to_string(),
+                    },
+                )
+                .unwrap();
         });
 
         match routes {
@@ -82,8 +90,16 @@ fn component() -> Html {
     });
 
     html! {
-        <Router<Routes> render={switch}>
-        </Router<Routes>>
+        <Switch<Routes> render={switch} />
+    }
+}
+
+#[function_component(Root)]
+fn root() -> Html {
+    html! {
+        <BrowserRouter>
+            <Comp />
+        </BrowserRouter>
     }
 }
 
@@ -97,7 +113,7 @@ fn component() -> Html {
 // - 404 redirects
 #[test]
 fn router_works() {
-    yew::start_app_in_element::<Comp>(yew::utils::document().get_element_by_id("output").unwrap());
+    yew::start_app_in_element::<Root>(gloo_utils::document().get_element_by_id("output").unwrap());
 
     assert_eq!("Home", obtain_result_by_id("result"));
 

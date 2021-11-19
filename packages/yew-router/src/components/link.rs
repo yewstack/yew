@@ -1,20 +1,25 @@
-use crate::{service, Routable};
 use std::marker::PhantomData;
+
+use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
+
+use crate::history::History;
+use crate::scope_ext::RouterScopeExt;
+use crate::Routable;
 
 /// Props for [`Link`]
 #[derive(Properties, Clone, PartialEq)]
-pub struct LinkProps<R: Routable + Clone + PartialEq> {
+pub struct LinkProps<R: Routable> {
     /// CSS classes to add to the anchor element (optional).
     #[prop_or_default]
     pub classes: Classes,
     /// Route that will be pushed when the anchor is clicked.
-    pub route: R,
+    pub to: R,
     pub children: Children,
 }
 
 /// A wrapper around `<a>` tag to be used with [`Router`](crate::Router)
-pub struct Link<R: Routable + Clone + PartialEq + 'static> {
+pub struct Link<R: Routable + 'static> {
     _data: PhantomData<R>,
 }
 
@@ -22,7 +27,7 @@ pub enum Msg {
     OnClick,
 }
 
-impl<R: Routable + Clone + PartialEq + 'static> Component for Link<R> {
+impl<R: Routable + 'static> Component for Link<R> {
     type Message = Msg;
     type Properties = LinkProps<R>;
 
@@ -33,7 +38,10 @@ impl<R: Routable + Clone + PartialEq + 'static> Component for Link<R> {
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::OnClick => {
-                service::push_route(ctx.props().route.clone());
+                ctx.link()
+                    .history()
+                    .expect_throw("failed to read history")
+                    .push(ctx.props().to.clone());
                 false
             }
         }
@@ -42,7 +50,7 @@ impl<R: Routable + Clone + PartialEq + 'static> Component for Link<R> {
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <a class={ctx.props().classes.clone()}
-                href={ctx.props().route.to_path()}
+                href={ctx.props().to.to_path()}
                 onclick={ctx.link().callback(|e: MouseEvent| {
                     e.prevent_default();
                     Msg::OnClick

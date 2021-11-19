@@ -265,8 +265,6 @@ pub mod scheduler;
 pub mod utils;
 pub mod virtual_dom;
 
-pub use web_sys;
-
 /// The module that contains all events available in the framework.
 pub mod events {
     pub use crate::html::TargetCast;
@@ -354,7 +352,7 @@ where
     COMP: Component,
 {
     start_app_with_props_in_element(
-        crate::utils::document()
+        gloo_utils::document()
             .body()
             .expect("no body node found")
             .into(),
@@ -389,7 +387,8 @@ pub mod prelude {
     pub use crate::context::ContextProvider;
     pub use crate::events::*;
     pub use crate::html::{
-        Children, ChildrenWithProps, Classes, Component, Context, Html, NodeRef, Properties,
+        create_portal, Children, ChildrenWithProps, Classes, Component, Context, Html, NodeRef,
+        Properties,
     };
     pub use crate::macros::{classes, html, html_nested};
 

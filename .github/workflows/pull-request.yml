@@ -41,6 +41,35 @@ jobs:
           command: clippy
           args: --all-targets -- -D warnings
 
+  lint-release:
+    name: Clippy on release profile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: clippy
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ github.job }}-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-${{ github.job }}-
+
+      - name: Run clippy
+        if: always()
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets --release -- -D warnings
+
   check_examples:
     name: Check Examples
     runs-on: ubuntu-latest
@@ -105,7 +134,7 @@ jobs:
         run: |
           cd packages/yew
           cargo test --doc --features "doc_test wasm_test"
-      
+
       - name: Run website code snippet tests
         run: |
           cd packages/website-test
