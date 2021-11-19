@@ -109,6 +109,42 @@ impl fmt::Display for AttrValue {
     }
 }
 
+impl AttrValue {
+    /// Consumes the AttrValue and returns the owned String from the AttrValue whenever possible.
+    /// For AttrValue::Rc the <str> is cloned to String in case there are other Rc or Weak pointers to the
+    /// same allocation.
+    pub fn into_string(self) -> String {
+        match self {
+            AttrValue::Static(s) => (*s).to_owned(),
+            AttrValue::Owned(s) => s,
+            AttrValue::Rc(mut rc) => {
+                if let Some(s) = Rc::get_mut(&mut rc) {
+                    (*s).to_owned()
+                } else {
+                    rc.to_string()
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests_attr_value {
+    use super::*;
+
+    #[test]
+    fn test_into_string() {
+        let av = AttrValue::Static("str");
+        assert_eq!(av.into_string(), "str");
+
+        let av = AttrValue::Owned("String".to_string());
+        assert_eq!(av.into_string(), "String");
+
+        let av = AttrValue::Rc("Rc<str>".into());
+        assert_eq!(av.into_string(), "Rc<str>");
+    }
+}
+
 /// Applies contained changes to DOM [Element]
 trait Apply {
     /// [Element] type to apply the changes to
