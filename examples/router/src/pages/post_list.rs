@@ -7,9 +7,6 @@ use yew_router::prelude::*;
 const ITEMS_PER_PAGE: u64 = 10;
 const TOTAL_PAGES: u64 = u64::MAX / ITEMS_PER_PAGE;
 
-#[derive(Clone, PartialEq, Properties)]
-pub struct Props {}
-
 pub enum Msg {
     PageUpdated,
 }
