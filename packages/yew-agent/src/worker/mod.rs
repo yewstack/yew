@@ -69,15 +69,29 @@ where
     let msg = msg.pack();
     worker.post_message_vec(msg);
 }
-
-fn worker_new(name_of_resource: &str, is_module: bool) -> Worker {
+fn worker_new(name_of_resource: &str, resource_is_relative: bool, is_module: bool) -> Worker {
     let origin = gloo_utils::document()
         .location()
         .unwrap_throw()
         .origin()
         .unwrap_throw();
-    let script_url = format!("{}/{}", origin, name_of_resource);
-    let wasm_url = format!("{}/{}", origin, name_of_resource.replace(".js", "_bg.wasm"));
+    let pathname = gloo_utils::window().location().pathname().unwrap_throw();
+
+    let prefix = if resource_is_relative {
+        pathname
+            .rfind(|c| c == '/')
+            .map(|i| &pathname[..i])
+            .unwrap_or_default()
+    } else {
+        ""
+    };
+    let script_url = format!("{}{}/{}", origin, prefix, name_of_resource);
+    let wasm_url = format!(
+        "{}{}/{}",
+        origin,
+        prefix,
+        name_of_resource.replace(".js", "_bg.wasm")
+    );
     let array = Array::new();
     array.push(
         &format!(
