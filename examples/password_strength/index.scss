@@ -8,7 +8,7 @@ body {
   align-items: center;
   display: flex;
   justify-content: center;
-  color: rgba(0,0,0, 0.7);
+  color: rgba(0, 0, 0, 0.7);
 
   background: linear-gradient(to bottom right, #00d034, #c0c0c0);
   font-size: 1.5rem;
@@ -19,17 +19,18 @@ main {
   width: 30em;
 }
 
-.entry, .readout {
+.entry,
+.readout {
   margin: 0 auto;
   padding: 8px;
   border: 1px solid black;
-  background-color: rgba(0,0,0, .25);
+  background-color: rgba(0, 0, 0, 0.25);
 }
 
 .entry input {
   font-size: 1.5rem;
   background: transparent;
-  border: 1px solid rgba(0,0,0, .6);
+  border: 1px solid rgba(0, 0, 0, 0.6);
   width: 100%;
   display: block;
   box-sizing: border-box;
@@ -46,6 +47,6 @@ input:focus {
 }
 
 .footnote {
-  font-size: .9rem;
+  font-size: 0.9rem;
   margin-top: 16px;
 }
