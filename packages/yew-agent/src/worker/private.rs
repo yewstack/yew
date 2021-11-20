@@ -54,7 +54,7 @@ where
         };
 
         let name_of_resource = AGN::name_of_resource();
-        let is_relative = AGN::name_of_resource_is_relative();
+        let is_relative = AGN::resource_path_is_relative();
         let handler_cell = Rc::new(RefCell::new(Some(handler)));
 
         let worker = {

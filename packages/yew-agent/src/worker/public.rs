@@ -64,7 +64,7 @@ where
                         }
                     };
                     let name_of_resource = AGN::name_of_resource();
-                    let is_relative = AGN::name_of_resource_is_relative();
+                    let is_relative = AGN::resource_path_is_relative();
                     let worker = {
                         let worker = worker_new(name_of_resource, is_relative, AGN::is_module());
                         let worker_clone = worker.clone();

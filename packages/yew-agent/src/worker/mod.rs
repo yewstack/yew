@@ -70,11 +70,11 @@ where
     worker.post_message_vec(msg);
 }
 
-fn worker_new(name_of_resource: &str, name_is_relative: bool, is_module: bool) -> Worker {
+fn worker_new(name_of_resource: &str, resource_is_relative: bool, is_module: bool) -> Worker {
     let origin = yew::utils::origin().unwrap();
     let pathname = yew::utils::window().location().pathname().unwrap();
 
-    let prefix = if name_is_relative {
+    let prefix = if resource_is_relative {
         // Location pathname always contains initial '/', so unwrap will never fail.
         pathname.revsplit_once('/').unwrap().0
     } else {

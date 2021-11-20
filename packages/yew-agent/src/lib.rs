@@ -54,7 +54,7 @@ pub trait Agent: Sized + 'static {
     }
 
     /// Indicates whether the name of the resource is relative.
-    fn name_of_resource_is_relative() -> bool {
+    fn resource_path_is_relative() -> bool {
         false
     }
 
