@@ -54,11 +54,12 @@ where
         };
 
         let name_of_resource = AGN::name_of_resource();
+        let is_relative = AGN::resource_path_is_relative();
         let handler_cell = Rc::new(RefCell::new(Some(handler)));
 
         let worker = {
             let handler_cell = handler_cell.clone();
-            let worker = worker_new(name_of_resource, AGN::is_module());
+            let worker = worker_new(name_of_resource, is_relative, AGN::is_module());
             let worker_clone = worker.clone();
             worker.set_onmessage_closure(move |data: Vec<u8>| {
                 if let Some(handler) = handler_cell.borrow().as_ref() {

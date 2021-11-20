@@ -55,6 +55,15 @@ pub trait Agent: Sized + 'static {
         "main.js"
     }
 
+    /// Indicates whether the name of the resource is relative.
+    ///
+    /// The default implementation returns `false`, which will cause the result
+    /// returned by [`Self::name_of_resource`] to be interpreted as an absolute
+    /// URL. If `true` is returned, it will be interpreted as a relative URL.
+    fn resource_path_is_relative() -> bool {
+        false
+    }
+
     /// Signifies if resource is a module.
     /// This has pending browser support.
     fn is_module() -> bool {
