@@ -13,7 +13,6 @@ members = [
   "examples/boids",
   "examples/counter",
   "examples/dyn_create_destroy_apps",
-  "examples/dashboard",
   "examples/file_upload",
   "examples/function_todomvc",
   "examples/futures",
