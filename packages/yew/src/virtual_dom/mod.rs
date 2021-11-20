@@ -43,7 +43,7 @@ use std::ops::Deref;
 use std::rc::Rc;
 
 /// Attribute value
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Debug)]
 pub enum AttrValue {
     /// String living for `'static`
     Static(&'static str),
@@ -109,6 +109,14 @@ impl fmt::Display for AttrValue {
     }
 }
 
+impl PartialEq for AttrValue {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_ref() == other.as_ref()
+    }
+}
+
+impl Eq for AttrValue {}
+
 impl AttrValue {
     /// Consumes the AttrValue and returns the owned String from the AttrValue whenever possible.
     /// For AttrValue::Rc the <str> is cloned to String in case there are other Rc or Weak pointers to the
@@ -142,6 +150,22 @@ mod tests_attr_value {
 
         let av = AttrValue::Rc("Rc<str>".into());
         assert_eq!(av.into_string(), "Rc<str>");
+    }
+
+    #[test]
+    fn test_equality() {
+        // construct 3 AttrValue with same embedded value; expectation is that all are equal
+        let a = AttrValue::Owned("same".to_string());
+        let b = AttrValue::Static("same");
+        let c = AttrValue::Rc("same".into());
+
+        assert_eq!(a, b);
+        assert_eq!(b, c);
+        assert_eq!(a, c);
+
+        assert!(a == b);
+        assert!(b == c);
+        assert!(a == c);
     }
 }
 
