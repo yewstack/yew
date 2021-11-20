@@ -6,11 +6,20 @@ description: "The pre-defined Hooks that Yew comes with "
 ## `use_state`
 
 `use_state` is used to manage state in a function component.
-It returns a `UseState` object which `Deref`s to the current value 
+It returns a `UseStateHandle` object which `Deref`s to the current value
 and provides a `set` method to update the value.
 
 The hook takes a function as input which determines the initial state.
 This value remains up-to-date on subsequent renders.
+
+The setter function is guaranteed to be the same across the entire
+component lifecycle. You can safely omit the `UseStateHandle` from the
+dependents of `use_effect_with_deps` if you only intend to set
+values from within the hook.
+
+This hook will always trigger a re-render upon receiving a new state. See
+[`use_state_eq`](#use_state_eq) if you want the component to only
+re-render when the state changes.
 
 ### Example
 
@@ -38,6 +47,23 @@ fn state() -> Html {
 }
 ```
 
+:::caution
+
+The value held in the handle will reflect the value at the time the
+handle is returned by the `use_state`. It is possible that the handle
+does not dereference to an up to date value if you are moving it into a
+`use_effect_with_deps` hook. You can register the
+state to the dependents so the hook can be updated when the value changes.
+
+:::
+
+## `use_state_eq`
+
+This hook has the same effect as `use_state` but will only trigger a
+re-render when the setter receives a value that `prev_state != next_state`.
+
+This hook requires the state object to implement `PartialEq`.
+
 ## `use_ref`
 `use_ref` is used for obtaining a mutable reference to a value.
 Its state persists across renders.
@@ -48,9 +74,10 @@ If you need the component to be re-rendered on state change, consider using [`us
 ### Example
 
 ```rust
+use web_sys::HtmlInputElement;
 use yew::{
+    events::Event,
     function_component, html, use_ref, use_state,
-    web_sys::{Event, HtmlInputElement},
     Callback, TargetCast,
 };
 
@@ -60,7 +87,7 @@ fn ref_hook() -> Html {
     let message_count = use_ref(|| 0);
 
     let onclick = Callback::from(move |_| {
-        let window = yew::utils::window();
+        let window = gloo_utils::window();
 
         if *message_count.borrow_mut() > 3 {
             window.alert_with_message("Message limit reached").unwrap();
@@ -92,51 +119,75 @@ fn ref_hook() -> Html {
 `use_reducer` is an alternative to [`use_state`](#use_state). It is used to handle component's state and is used
 when complex actions needs to be performed on said state.
 
-It accepts a reducer function and initial state and returns `Rc` pointing to the state, and a dispatch function.
+It accepts an initial state function and returns a `UseReducerHandle` that dereferences to the state,
+and a dispatch function.
 The dispatch function takes one argument of type `Action`. When called, the action and current value
 are passed to the reducer function which computes a new state which is returned,
 and the component is re-rendered.
 
-For lazy initialization, consider using [`use_reducer_with_init`](#use_reducer_with_init) instead.
+The dispatch function is guaranteed to be the same across the entire
+component lifecycle. You can safely omit the `UseReducerHandle` from the
+dependents of `use_effect_with_deps` if you only intend to dispatch
+values from within the hooks.
+
+The state object returned by the initial state function is required to
+implement a `Reducible` trait which provides an `Action` type and a
+reducer function.
+
+This hook will always trigger a re-render upon receiving an action. See
+[`use_reducer_eq`](#use_reducer_eq) if you want the component to only
+re-render when the state changes.
 
 ### Example
 
 ```rust
+use yew::prelude::*;
 use std::rc::Rc;
-use yew::{function_component, html, use_reducer, Callback};
+
+/// reducer's Action
+enum CounterAction {
+    Double,
+    Square,
+}
+
+/// reducer's State
+struct CounterState {
+    counter: i32,
+}
+
+impl Default for CounterState {
+    fn default() -> Self {
+        Self { counter: 1 }
+    }
+}
+
+impl Reducible for CounterState {
+    /// Reducer Action Type
+    type Action = CounterAction;
+
+    /// Reducer Function
+    fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
+        let next_ctr = match action {
+            CounterAction::Double => self.counter * 2,
+            CounterAction::Square => self.counter.pow(2)
+        };
+
+        Self { counter: next_ctr }.into()
+    }
+}
 
 #[function_component(UseReducer)]
 fn reducer() -> Html {
-    /// reducer's Action
-    enum Action {
-        Double,
-        Square,
-    }
+    // The use_reducer hook takes an initialization function which will be called only once.
+    let counter = use_reducer(CounterState::default);
 
-    /// reducer's State
-    struct CounterState {
-        counter: i32,
-    }
-
-    let counter = use_reducer(
-        // the reducer function
-        |prev: Rc<CounterState>, action: Action| CounterState {
-            counter: match action {
-                Action::Double => prev.counter * 2,
-                Action::Square => prev.counter * prev.counter,
-            },
-        },
-        // initial state
-        CounterState { counter: 1 },
-    );
-
-    let double_onclick = {
+   let double_onclick = {
         let counter = counter.clone();
-        Callback::from(move |_| counter.dispatch(Action::Double))
+        Callback::from(move |_| counter.dispatch(CounterAction::Double))
     };
     let square_onclick = {
         let counter = counter.clone();
-        Callback::from(move |_| counter.dispatch(Action::Square))
+        Callback::from(move |_| counter.dispatch(CounterAction::Square))
     };
 
     html! {
@@ -150,49 +201,28 @@ fn reducer() -> Html {
 }
 ```
 
-### `use_reducer_with_init`
-`use_reducer` but with init argument. The Hook is passed the initial state
-which is then passed down to `init` function which initializes the state and returns it.
-The hook then returns this state.
+:::caution
 
-This is useful for lazy initialization where it is beneficial not to perform expensive
-computation up-front.
+The value held in the handle will reflect the value of at the time the
+handle is returned by the `use_reducer`. It is possible that the handle does
+not dereference to an up to date value if you are moving it into a
+`use_effect_with_deps` hook. You can register the
+state to the dependents so the hook can be updated when the value changes.
 
-```rust
-use std::rc::Rc;
-use yew::{function_component, use_reducer_with_init, html};
+:::
 
-#[function_component(ReducerWithInit)]
-fn reducer_with_init() -> Html {
+## `use_reducer_eq`
 
-    /// reducer's State
-    struct CounterState {
-        counter: i32,
-    }
+This hook has the same effect as `use_reducer` but will only trigger a
+re-render when the reducer function produces a value that `prev_state != next_state`.
 
-    let counter = use_reducer_with_init(
-        // reducer function
-        |prev: Rc<CounterState>, action: i32| CounterState {
-            counter: prev.counter + action,
-        },
-        0, // initial value
-        |initial: i32| CounterState { // init method
-            counter: initial + 10,
-        },
-    );
-
-    html! {
-        <>
-            <div id="result">{ counter.counter }</div>
-        </>
-    }
-}
-```
+This hook requires the state object to implement `PartialEq` in addition
+to the `Reducible` trait required by `use_reducer`.
 
 ## `use_effect`
 
-`use_effect` is used for hooking into the component's lifecycle. 
-Similar to `rendered` from the `Component` trait, 
+`use_effect` is used for hooking into the component's lifecycle.
+Similar to `rendered` from the `Component` trait,
 `use_effect` takes a function which is called after the render finishes.
 
 The input function has to return a closure, the destructor, which is called when the component is destroyed.
@@ -211,12 +241,12 @@ fn effect() -> Html {
         let counter = counter.clone();
         use_effect(move || {
             // Make a call to DOM API after component is rendered
-            yew::utils::document().set_title(&format!("You clicked {} times", *counter));
-    
+            gloo_utils::document().set_title(&format!("You clicked {} times", *counter));
+
             // Perform the cleanup
-            || yew::utils::document().set_title("You clicked 0 times")
+            || gloo_utils::document().set_title("You clicked 0 times")
         });
-    }    
+    }
     let onclick = {
         let counter = counter.clone();
         Callback::from(move |_| counter.set(*counter + 1))
@@ -247,7 +277,7 @@ use_effect_with_deps(
 
 ## `use_context`
 
-`use_context` is used for consuming [contexts](../contexts.md) in function components. 
+`use_context` is used for consuming [contexts](../contexts.md) in function components.
 
 
 ### Example
@@ -263,7 +293,7 @@ struct Theme {
     background: String,
 }
 
-/// Main component 
+/// Main component
 #[function_component(App)]
 pub fn app() -> Html {
     let ctx = use_state(|| Theme {

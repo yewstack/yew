@@ -33,6 +33,7 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [crm](crm)                                          | Shallow customer relationship management tool                                                                                      |
 | [dyn_create_destroy_apps](dyn_create_destroy_apps)  | Uses the function `start_app_in_element` and the `AppHandle` struct to dynamically create and delete Yew apps                      |
 | [file_upload](file_upload)                          | Uses the `gloo::file` to read the content of user uploaded files                                                               |
+| [function_todomvc](function_todomvc)                | Implementation of [TodoMVC](http://todomvc.com/) using function components and hooks.                                              |
 | [futures](futures)                                  | Demonstrates how you can use futures and async code with Yew. Features a Markdown renderer.                                        |
 | [game_of_life](game_of_life)                        | Implementation of [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)                                   |
 | [inner_html](inner_html)                            | Embeds an external document as raw HTML by manually managing the element                                                           |

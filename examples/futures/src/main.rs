@@ -50,7 +50,7 @@ async fn fetch_markdown(url: &'static str) -> Result<String, FetchError> {
 
     let request = Request::new_with_str_and_init(url, &opts)?;
 
-    let window = yew::utils::window();
+    let window = gloo_utils::window();
     let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
     let resp: Response = resp_value.dyn_into().unwrap();
 

@@ -68,13 +68,16 @@ impl Component for Model {
             Msg::AddClient(client) => {
                 self.clients.push(client);
                 LocalStorage::set(KEY, &self.clients).expect("failed to set");
-                // we only need to re-render if we're currently displaying the clients
-                matches!(self.scene, Scene::ClientsList)
+                // redirect to client_list after save
+                self.scene = Scene::ClientsList;
+                true
             }
             Msg::ClearClients => {
                 if gloo::dialogs::confirm("Do you really want to clear the data?") {
                     self.clients.clear();
                     LocalStorage::delete(KEY);
+                    // redirect to client_list after clear
+                    self.scene = Scene::ClientsList;
                     true
                 } else {
                     false

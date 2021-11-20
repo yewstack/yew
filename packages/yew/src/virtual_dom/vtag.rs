@@ -2,8 +2,8 @@
 
 use super::{Apply, AttrValue, Attributes, Key, Listener, Listeners, VDiff, VList, VNode};
 use crate::html::{AnyScope, IntoPropValue, NodeRef};
-use crate::utils::document;
 use gloo::console;
+use gloo_utils::document;
 use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::hint::unreachable_unchecked;
@@ -44,7 +44,7 @@ impl<T: AccessValue> Apply for Value<T> {
         match (&self.0, &ancestor.0) {
             (Some(new), Some(_)) => {
                 // Refresh value from the DOM. It might have changed.
-                if new != &el.value() {
+                if new.as_ref() != el.value() {
                     el.set_value(new);
                 }
             }
@@ -521,7 +521,7 @@ impl VDiff for VTag {
                     }
                 } else {
                     let el = self.create_element(parent);
-                    super::insert_node(&el, parent, Some(&ancestor.first_node()));
+                    super::insert_node(&el, parent, ancestor.first_node().as_ref());
                     ancestor.detach(parent);
                     (None, el)
                 }
@@ -1075,7 +1075,7 @@ mod tests {
             <@{"input"} value="World"/>
         };
         let input_vtag = assert_vtag_mut(&mut input_el);
-        assert_eq!(input_vtag.value(), Some(&Cow::Borrowed("World")));
+        assert_eq!(input_vtag.value(), Some(&AttrValue::Static("World")));
         assert!(!input_vtag.attributes.iter().any(|(k, _)| k == "value"));
     }
 

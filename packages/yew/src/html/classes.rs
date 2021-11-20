@@ -1,6 +1,7 @@
 use super::IntoPropValue;
 use crate::virtual_dom::AttrValue;
 use indexmap::IndexSet;
+use std::rc::Rc;
 use std::{
     borrow::{Borrow, Cow},
     hint::unreachable_unchecked,
@@ -70,12 +71,12 @@ impl IntoPropValue<AttrValue> for Classes {
     fn into_prop_value(mut self) -> AttrValue {
         if self.set.len() == 1 {
             match self.set.pop() {
-                Some(attr) => attr,
+                Some(attr) => AttrValue::Rc(Rc::from(attr)),
                 // SAFETY: the collection is checked to be non-empty above
                 None => unsafe { unreachable_unchecked() },
             }
         } else {
-            Cow::Owned(self.to_string())
+            AttrValue::Owned(self.to_string())
         }
     }
 }
@@ -88,6 +89,12 @@ impl IntoPropValue<Option<AttrValue>> for Classes {
         } else {
             Some(self.into_prop_value())
         }
+    }
+}
+
+impl IntoPropValue<Classes> for &'static str {
+    fn into_prop_value(self) -> Classes {
+        self.into()
     }
 }
 

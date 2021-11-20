@@ -15,7 +15,7 @@ thread_local! {
     static LISTENER_ID_PROP: wasm_bindgen::JsValue = "__yew_listener_id".into();
 
     /// Cached reference to the document body
-    static BODY: web_sys::HtmlElement = crate::utils::document().body().unwrap();
+    static BODY: web_sys::HtmlElement = gloo_utils::document().body().unwrap();
 }
 
 /// Bubble events during delegation
@@ -358,9 +358,8 @@ impl GlobalHandlers {
                         &{
                             let mut opts = web_sys::AddEventListenerOptions::new();
                             opts.capture(true);
-                            if desc.passive {
-                                opts.passive(true);
-                            }
+                            // We need to explicitly set passive to override any browser defaults
+                            opts.passive(desc.passive);
                             opts
                         },
                     )
@@ -527,7 +526,8 @@ mod tests {
     use web_sys::{Event, EventInit};
     wasm_bindgen_test_configure!(run_in_browser);
 
-    use crate::{html, html::TargetCast, utils::document, AppHandle, Component, Context, Html};
+    use crate::{html, html::TargetCast, AppHandle, Component, Context, Html};
+    use gloo_utils::document;
     use wasm_bindgen::JsCast;
     use wasm_bindgen_futures::JsFuture;
 
@@ -666,7 +666,7 @@ mod tests {
 
     async fn await_animation_frame() {
         JsFuture::from(js_sys::Promise::new(&mut |resolve, _| {
-            crate::utils::window()
+            gloo_utils::window()
                 .request_animation_frame(&resolve)
                 .unwrap();
         }))

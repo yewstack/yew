@@ -3,10 +3,11 @@ title: "Literals and Expressions"
 ---
 ## Literals
 
-If expressions resolve to types that implement `Display`, they will be converted to strings and inserted into the DOM as a [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) node.
+If expressions resolve to types that implement `Display`, they will be converted to strings and
+inserted into the DOM as a [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) node.
 
-All display text must be enclosed by `{}` blocks because text is handled as an expression. This is 
-the largest deviation from normal HTML syntax that Yew makes.
+All display text must be enclosed by `{}` blocks because the `html!` macro parses text as a Rust
+expression. This is the greatest deviation from the HTML specification that the `html!` macro makes.
 
 ```rust
 use yew::html;
@@ -43,7 +44,9 @@ html! {
 }
 ```
 
-It often makes sense to extract these expressions into functions or closures to optimize for readability:
+It often makes sense to extract these expressions into separate functions or closures to make your
+code more readable. This can also help to reduce code duplication by moving common elements of your
+UI into composable functions.
 
 ```rust
 use yew::{html, Html};

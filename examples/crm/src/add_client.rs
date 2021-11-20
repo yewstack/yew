@@ -1,6 +1,8 @@
 use crate::Client;
-use yew::web_sys::{Event, HtmlInputElement, HtmlTextAreaElement};
-use yew::{classes, html, Callback, Component, Context, Html, Properties, TargetCast};
+use web_sys::{HtmlInputElement, HtmlTextAreaElement};
+use yew::{
+    classes, events::Event, html, Callback, Component, Context, Html, Properties, TargetCast,
+};
 
 #[derive(Debug)]
 pub enum Msg {

@@ -60,7 +60,7 @@ fn create_canvas(document: &Document) -> HtmlCanvasElement {
 }
 
 fn main() {
-    let document = yew::utils::document();
+    let document = gloo_utils::document();
     let body = document.query_selector("body").unwrap().unwrap();
 
     let canvas = create_canvas(&document);

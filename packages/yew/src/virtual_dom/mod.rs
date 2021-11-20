@@ -11,13 +11,15 @@ pub mod vlist;
 #[doc(hidden)]
 pub mod vnode;
 #[doc(hidden)]
+pub mod vportal;
+#[doc(hidden)]
 pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
 
 use crate::html::{AnyScope, NodeRef};
 use indexmap::IndexMap;
-use std::{borrow::Cow, collections::HashMap, hint::unreachable_unchecked, iter};
+use std::{collections::HashMap, fmt, hint::unreachable_unchecked, iter};
 use web_sys::{Element, Node};
 
 #[doc(inline)]
@@ -31,12 +33,117 @@ pub use self::vlist::VList;
 #[doc(inline)]
 pub use self::vnode::VNode;
 #[doc(inline)]
+pub use self::vportal::VPortal;
+#[doc(inline)]
 pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
+use std::fmt::Formatter;
+use std::ops::Deref;
+use std::rc::Rc;
 
 /// Attribute value
-pub type AttrValue = Cow<'static, str>;
+#[derive(Eq, PartialEq, Debug)]
+pub enum AttrValue {
+    /// String living for `'static`
+    Static(&'static str),
+    /// Owned string
+    Owned(String),
+    /// Reference counted string
+    Rc(Rc<str>),
+}
+
+impl Deref for AttrValue {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        match self {
+            AttrValue::Static(s) => *s,
+            AttrValue::Owned(s) => s.as_str(),
+            AttrValue::Rc(s) => &*s,
+        }
+    }
+}
+
+impl From<&'static str> for AttrValue {
+    fn from(s: &'static str) -> Self {
+        AttrValue::Static(s)
+    }
+}
+
+impl From<String> for AttrValue {
+    fn from(s: String) -> Self {
+        AttrValue::Owned(s)
+    }
+}
+
+impl From<Rc<str>> for AttrValue {
+    fn from(s: Rc<str>) -> Self {
+        AttrValue::Rc(s)
+    }
+}
+
+impl Clone for AttrValue {
+    fn clone(&self) -> Self {
+        match self {
+            AttrValue::Static(s) => AttrValue::Static(s),
+            AttrValue::Owned(s) => AttrValue::Owned(s.clone()),
+            AttrValue::Rc(s) => AttrValue::Rc(Rc::clone(s)),
+        }
+    }
+}
+
+impl AsRef<str> for AttrValue {
+    fn as_ref(&self) -> &str {
+        &*self
+    }
+}
+
+impl fmt::Display for AttrValue {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            AttrValue::Static(s) => write!(f, "{}", s),
+            AttrValue::Owned(s) => write!(f, "{}", s),
+            AttrValue::Rc(s) => write!(f, "{}", s),
+        }
+    }
+}
+
+impl AttrValue {
+    /// Consumes the AttrValue and returns the owned String from the AttrValue whenever possible.
+    /// For AttrValue::Rc the <str> is cloned to String in case there are other Rc or Weak pointers to the
+    /// same allocation.
+    pub fn into_string(self) -> String {
+        match self {
+            AttrValue::Static(s) => (*s).to_owned(),
+            AttrValue::Owned(s) => s,
+            AttrValue::Rc(mut rc) => {
+                if let Some(s) = Rc::get_mut(&mut rc) {
+                    (*s).to_owned()
+                } else {
+                    rc.to_string()
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests_attr_value {
+    use super::*;
+
+    #[test]
+    fn test_into_string() {
+        let av = AttrValue::Static("str");
+        assert_eq!(av.into_string(), "str");
+
+        let av = AttrValue::Owned("String".to_string());
+        assert_eq!(av.into_string(), "String");
+
+        let av = AttrValue::Rc("Rc<str>".into());
+        assert_eq!(av.into_string(), "Rc<str>");
+    }
+}
 
 /// Applies contained changes to DOM [Element]
 trait Apply {
@@ -286,7 +393,7 @@ impl Apply for Attributes {
                     }
                     macro_rules! set {
                         ($new:expr) => {
-                            Self::set_attribute(el, key!(), $new);
+                            Self::set_attribute(el, key!(), $new)
                         };
                     }
 
@@ -417,7 +524,7 @@ mod layout_tests {
     }
 
     pub(crate) fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
-        let document = crate::utils::document();
+        let document = gloo_utils::document();
         let parent_scope: AnyScope = Scope::<Comp>::new(None).into();
         let parent_element = document.create_element("div").unwrap();
         let parent_node: Node = parent_element.clone().into();
@@ -542,7 +649,7 @@ mod benchmarks {
                     {
                         let mut old = $old.clone();
                         let new = $new.clone();
-                        let el = crate::utils::document().create_element("div").unwrap();
+                        let el = gloo_utils::document().create_element("div").unwrap();
                         old.apply(&el);
                         (
                             format!("{} -> {}", attr_variant(&old), attr_variant(&new)),
@@ -628,7 +735,7 @@ mod benchmarks {
     fn bench_diff_change_first() {
         let old = sample_values();
         let mut new = old.clone();
-        new[0] = AttrValue::Borrowed("changed");
+        new[0] = AttrValue::Static("changed");
 
         let dynamic = (make_dynamic(old.clone()), make_dynamic(new.clone()));
         let map = (make_indexed_map(old), make_indexed_map(new));
@@ -670,7 +777,7 @@ mod benchmarks {
             "danny", "the", "the", "calling", "glen", "glen", "down", "mountain", "",
         ]
         .iter()
-        .map(|v| AttrValue::Borrowed(*v))
+        .map(|v| AttrValue::Static(*v))
         .collect()
     }
 

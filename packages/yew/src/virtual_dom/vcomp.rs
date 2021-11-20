@@ -281,7 +281,8 @@ impl<COMP: Component> fmt::Debug for VChild<COMP> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{html, utils::document, Children, Component, Context, Html, NodeRef, Properties};
+    use crate::{html, Children, Component, Context, Html, NodeRef, Properties};
+    use gloo_utils::document;
     use web_sys::Node;
 
     #[cfg(feature = "wasm_test")]
@@ -319,7 +320,7 @@ mod tests {
 
     #[test]
     fn update_loop() {
-        let document = crate::utils::document();
+        let document = gloo_utils::document();
         let parent_scope: AnyScope = crate::html::Scope::<Comp>::new(None).into();
         let parent_element = document.create_element("div").unwrap();
 
@@ -391,7 +392,7 @@ mod tests {
         let test_node: Node = document().create_text_node("test").into();
         let test_node_ref = NodeRef::new(test_node);
         let check_node_ref = |vnode: VNode| {
-            assert_eq!(vnode.first_node(), test_node_ref.get().unwrap());
+            assert_eq!(vnode.unchecked_first_node(), test_node_ref.get().unwrap());
         };
 
         let props = Props {
