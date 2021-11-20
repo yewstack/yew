@@ -75,8 +75,7 @@ fn worker_new(name_of_resource: &str, resource_is_relative: bool, is_module: boo
     let pathname = yew::utils::window().location().pathname().unwrap();
 
     let prefix = if resource_is_relative {
-        // Location pathname always contains initial '/', so unwrap will never fail.
-        pathname.revsplit_once('/').unwrap().0
+        pathname.rfind(|c| c == '/').map(|i| &s[..i]).unwrap_or_default();
     } else {
         ""
     };
