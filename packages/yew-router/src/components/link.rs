@@ -65,7 +65,6 @@ where
                 let history = ctx.link().history().expect_throw("failed to read history");
                 match query {
                     None => {
-                        web_sys::console::log_1(&"🚀 pushing no".into());
                         history.push(to.clone());
                     }
                     Some(data) => {
