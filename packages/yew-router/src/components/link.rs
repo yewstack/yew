@@ -1,5 +1,6 @@
 use std::marker::PhantomData;
 
+use serde::Serialize;
 use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
 
@@ -9,54 +10,94 @@ use crate::Routable;
 
 /// Props for [`Link`]
 #[derive(Properties, Clone, PartialEq)]
-pub struct LinkProps<R: Routable> {
+pub struct LinkProps<R, Q = ()>
+where
+    R: Routable,
+    Q: Clone + PartialEq + Serialize,
+{
     /// CSS classes to add to the anchor element (optional).
     #[prop_or_default]
     pub classes: Classes,
     /// Route that will be pushed when the anchor is clicked.
     pub to: R,
+    /// Route query data
+    #[prop_or_default]
+    pub query: Option<Q>,
+    #[prop_or_default]
+    pub disabled: bool,
+    #[prop_or_default]
     pub children: Children,
 }
 
 /// A wrapper around `<a>` tag to be used with [`Router`](crate::Router)
-pub struct Link<R: Routable + 'static> {
-    _data: PhantomData<R>,
+pub struct Link<R, Q = ()>
+where
+    R: Routable + 'static,
+    Q: Clone + PartialEq + Serialize + 'static,
+{
+    _route: PhantomData<R>,
+    _query: PhantomData<Q>,
 }
 
 pub enum Msg {
     OnClick,
 }
 
-impl<R: Routable + 'static> Component for Link<R> {
+impl<R, Q> Component for Link<R, Q>
+where
+    R: Routable + 'static,
+    Q: Clone + PartialEq + Serialize + 'static,
+{
     type Message = Msg;
-    type Properties = LinkProps<R>;
+    type Properties = LinkProps<R, Q>;
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Self { _data: PhantomData }
+        Self {
+            _route: PhantomData,
+            _query: PhantomData,
+        }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::OnClick => {
-                ctx.link()
-                    .history()
-                    .expect_throw("failed to read history")
-                    .push(ctx.props().to.clone());
+                let LinkProps { to, query, .. } = ctx.props();
+                let history = ctx.link().history().expect_throw("failed to read history");
+                match query {
+                    None => {
+                        web_sys::console::log_1(&"🚀 pushing no".into());
+                        history.push(to.clone());
+                    }
+                    Some(data) => {
+                        history
+                            .push_with_query(to.clone(), data.clone())
+                            .expect_throw("failed push history with query");
+                    }
+                };
                 false
             }
         }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let LinkProps {
+            classes,
+            to,
+            children,
+            disabled,
+            ..
+        } = ctx.props().clone();
+        let onclick = ctx.link().callback(|e: MouseEvent| {
+            e.prevent_default();
+            Msg::OnClick
+        });
         html! {
-            <a class={ctx.props().classes.clone()}
-                href={ctx.props().to.to_path()}
-                onclick={ctx.link().callback(|e: MouseEvent| {
-                    e.prevent_default();
-                    Msg::OnClick
-                })}
+            <a class={classes}
+                href={to.to_path()}
+                {onclick}
+                {disabled}
             >
-                { ctx.props().children.clone() }
+                { children }
             </a>
         }
     }

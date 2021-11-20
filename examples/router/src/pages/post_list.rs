@@ -1,46 +1,55 @@
+use crate::components::pagination::PageQuery;
 use crate::components::{pagination::Pagination, post_card::PostCard};
 use crate::Route;
-use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 use yew_router::prelude::*;
 
 const ITEMS_PER_PAGE: u64 = 10;
 const TOTAL_PAGES: u64 = u64::MAX / ITEMS_PER_PAGE;
 
+#[derive(Clone, PartialEq, Properties)]
+pub struct Props {}
+
 pub enum Msg {
-    ShowPage(u64),
+    PageUpdated,
 }
 
-#[derive(Serialize, Deserialize)]
-struct PageQuery {
+pub struct PostList {
     page: u64,
+    _listener: HistoryListener,
 }
 
-pub struct PostList;
+fn current_page(ctx: &Context<PostList>) -> u64 {
+    let location = ctx.link().location().unwrap();
+
+    location.query::<PageQuery>().map(|it| it.page).unwrap_or(1)
+}
 
 impl Component for PostList {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
+    fn create(ctx: &Context<Self>) -> Self {
+        let link = ctx.link().clone();
+        let listener = ctx.link().history().unwrap().listen(move || {
+            link.send_message(Msg::PageUpdated);
+        });
+
+        Self {
+            page: current_page(ctx),
+            _listener: listener,
+        }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::ShowPage(page) => {
-                ctx.link()
-                    .history()
-                    .unwrap()
-                    .push_with_query(Route::Posts, PageQuery { page })
-                    .unwrap();
-                true
-            }
+            Msg::PageUpdated => self.page = current_page(ctx),
         }
+        true
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let page = self.current_page(ctx);
+        let page = self.page;
 
         html! {
             <div class="section container">
@@ -50,15 +59,15 @@ impl Component for PostList {
                 <Pagination
                     {page}
                     total_pages={TOTAL_PAGES}
-                    on_switch_page={ctx.link().callback(Msg::ShowPage)}
+                    route_to_page={Route::Posts}
                 />
             </div>
         }
     }
 }
 impl PostList {
-    fn view_posts(&self, ctx: &Context<Self>) -> Html {
-        let start_seed = (self.current_page(ctx) - 1) * ITEMS_PER_PAGE;
+    fn view_posts(&self, _ctx: &Context<Self>) -> Html {
+        let start_seed = (self.page - 1) * ITEMS_PER_PAGE;
         let mut cards = (0..ITEMS_PER_PAGE).map(|seed_offset| {
             html! {
                 <li class="list-item mb-5">
@@ -80,11 +89,5 @@ impl PostList {
                 </div>
             </div>
         }
-    }
-
-    fn current_page(&self, ctx: &Context<Self>) -> u64 {
-        let location = ctx.link().location().unwrap();
-
-        location.query::<PageQuery>().map(|it| it.page).unwrap_or(1)
     }
 }

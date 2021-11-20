@@ -111,7 +111,7 @@ impl Model {
                                 { "More" }
                             </a>
                             <div class="navbar-dropdown">
-                                <Link<Route> classes={classes!("navbar-item")} route={Route::Authors}>
+                                <Link<Route> classes={classes!("navbar-item")} to={Route::Authors}>
                                     { "Meet the authors" }
                                 </Link<Route>>
                             </div>
@@ -124,15 +124,15 @@ impl Model {
 }
 
 fn switch(routes: &Route) -> Html {
-    match routes {
+    match routes.clone() {
         Route::Post { id } => {
-            html! { <Post seed={*id} /> }
+            html! { <Post seed={id} /> }
         }
         Route::Posts => {
             html! { <PostList /> }
         }
         Route::Author { id } => {
-            html! { <Author seed={*id} /> }
+            html! { <Author seed={id} /> }
         }
         Route::Authors => {
             html! { <AuthorList /> }

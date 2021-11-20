@@ -38,7 +38,7 @@ impl Component for Post {
         html! {
             <>
                 <section class="hero is-medium is-light has-background">
-                    <img alt="The hero's background" class="hero-background is-transparent" src={Cow::Owned(post.meta.image_url.clone())} />
+                    <img alt="The hero's background" class="hero-background is-transparent" src={post.meta.image_url.clone()} />
                     <div class="hero-body">
                         <div class="container">
                             <h1 class="title">

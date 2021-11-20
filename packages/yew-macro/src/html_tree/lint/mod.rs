@@ -29,10 +29,10 @@ where
     match tree {
         HtmlTree::List(list) => {
             for child in &list.children.0 {
-                lint::<L>(&child)
+                lint::<L>(child)
             }
         }
-        HtmlTree::Element(el) => L::lint(&el),
+        HtmlTree::Element(el) => L::lint(el),
         _ => {}
     }
 }
