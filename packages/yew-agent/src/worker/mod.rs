@@ -75,7 +75,10 @@ fn worker_new(name_of_resource: &str, resource_is_relative: bool, is_module: boo
     let pathname = yew::utils::window().location().pathname().unwrap();
 
     let prefix = if resource_is_relative {
-        pathname.rfind(|c| c == '/').map(|i| &s[..i]).unwrap_or_default();
+        pathname
+            .rfind(|c| c == '/')
+            .map(|i| &pathname[..i])
+            .unwrap_or_default()
     } else {
         ""
     };
@@ -117,35 +120,6 @@ fn worker_new(name_of_resource: &str, resource_is_relative: bool, is_module: boo
 
 fn worker_self() -> DedicatedWorkerGlobalScope {
     JsValue::from(js_sys::global()).into()
-}
-
-trait RevSplitOnce {
-    /// Splits the string on the last occurrence of the specified delimiter and
-    /// returns prefix before delimiter and suffix after delimiter.
-    ///
-    /// Behaves identically to `rsplit_once` introduced with rust 1.52 but is
-    /// available prior to 1.52.
-    fn revsplit_once(&self, delimiter: char) -> Option<(&str, &str)>;
-}
-
-impl RevSplitOnce for str {
-    fn revsplit_once<'a>(&'a self, delimiter: char) -> Option<(&'a str, &'a str)> {
-        let components: Vec<&'_ str> = self.rsplitn(2, delimiter).collect();
-        assert!(components.len() < 3);
-        if components.len() == 2 {
-            Some((components[1], components[0]))
-        } else {
-            None
-        }
-    }
-}
-
-#[test]
-fn test_rsplit_once() {
-    // These from the docstrings in rsplit_once.
-    assert_eq!("cfg".revsplit_once('='), None);
-    assert_eq!("cfg=foo".revsplit_once('='), Some(("cfg", "foo")));
-    assert_eq!("cfg=foo=bar".revsplit_once('='), Some(("cfg=foo", "bar")));
 }
 
 trait WorkerExt {
