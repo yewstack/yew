@@ -135,7 +135,7 @@ fn app() -> Html {
 }
 ```
 
-### Add Parameters
+### Path Segments
 
 It is also possible to extract information from a route.
 
