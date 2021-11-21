@@ -152,7 +152,7 @@ html! {
     if some_condition {
         <p>{ "True case" }</p>
     }
-}
+};
 ```
 
 There may also be an `else` case:
@@ -167,7 +167,7 @@ html! {
     } else {
         <p>{ "False case" }</p>
     }
-}
+};
 ```
 
 :::note
