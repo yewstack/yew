@@ -140,6 +140,7 @@ fn app() -> Html {
 It is also possible to extract information from a route.
 
 ```rust
+# use yew_router::prelude::*;
 #[derive(Clone, Routable, PartialEq)]
 enum Route {
     #[at("/")]
@@ -152,7 +153,7 @@ enum Route {
 
 You can then access the post's id inside `<Switch />` and forward it to the appropriate component via properties.
 
-```rust
+```rust,ignore
 fn switch(routes: &Route) -> Html {
     match routes {
         Route::Home => html! { <h1>{ "Home" }</h1> },
@@ -164,7 +165,7 @@ fn switch(routes: &Route) -> Html {
 
 Linking to a specific post is as easy as passing the variant to `Link`:
 
-```rust
+```rust,ignore
 <Link<Route> to={Route::Post { id: "new-yew-release".to_string() }}>{ "Yew v0.19 out now!" }</Link</Route>>
 ```
 
@@ -205,13 +206,13 @@ In order react on route changes, you can pass a callback closure to the `listen(
 > **Note:** The history listener will get unregistered once it is dropped. Make sure to store the handle inside your component.
 
 ```rust
+# use yew::prelude::*;
+# use yew_router::prelude::*;
 #[function_component(Navigation)]
 fn navigation() -> Html {
     let history = use_history().unwrap();
     let handle = history.listen(|| {
-        log::info!("route changed");
-
-        // more event handling...
+        // handle event ...
     });
 
     // save listener handle to avoid drop
