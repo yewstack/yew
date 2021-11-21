@@ -119,10 +119,8 @@ impl ToTokens for HtmlComponent {
         };
 
         tokens.extend(quote_spanned! {ty.span()=>
-            {
-                #[allow(clippy::unit_arg)]
-                ::yew::virtual_dom::VChild::<#ty>::new(#build_props, #node_ref, #key)
-            }
+            #[allow(clippy::unit_arg)]
+            ::yew::virtual_dom::VChild::<#ty>::new(#build_props, #node_ref, #key)
         });
     }
 }
