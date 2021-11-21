@@ -80,22 +80,21 @@ impl Model {
     fn view_nav(&self, link: &Scope<Self>) -> Html {
         let Self { navbar_active, .. } = *self;
 
-        let active_class = if navbar_active { "is-active" } else { "" };
+        let active_class = if !navbar_active { "is-active" } else { "" };
 
         html! {
             <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
                 <div class="navbar-brand">
                     <h1 class="navbar-item is-size-3">{ "Yew Blog" }</h1>
 
-                    <a href="javascript:void(0)" role="button"
-                        class={classes!("navbar-burger", "burger", active_class)}
+                    <button class={classes!("navbar-burger", "burger", active_class)}
                         aria-label="menu" aria-expanded="false"
                         onclick={link.callback(|_| Msg::ToggleNavbar)}
                     >
                         <span aria-hidden="true"></span>
                         <span aria-hidden="true"></span>
                         <span aria-hidden="true"></span>
-                    </a>
+                    </button>
                 </div>
                 <div class={classes!("navbar-menu", active_class)}>
                     <div class="navbar-start">
@@ -107,9 +106,9 @@ impl Model {
                         </Link<Route>>
 
                         <div class="navbar-item has-dropdown is-hoverable">
-                            <a href="javascript:void(0)" class="navbar-link">
+                            <div class="navbar-link">
                                 { "More" }
-                            </a>
+                            </div>
                             <div class="navbar-dropdown">
                                 <Link<Route> classes={classes!("navbar-item")} to={Route::Authors}>
                                     { "Meet the authors" }
