@@ -8,7 +8,7 @@ pub use public::Public;
 use super::*;
 use js_sys::{Array, Reflect, Uint8Array};
 use serde::{Deserialize, Serialize};
-use wasm_bindgen::{closure::Closure, JsCast, JsValue};
+use wasm_bindgen::{closure::Closure, JsCast, JsValue, UnwrapThrowExt};
 use web_sys::{
     Blob, BlobPropertyBag, DedicatedWorkerGlobalScope, MessageEvent, Url, Worker, WorkerOptions,
 };
@@ -69,11 +69,29 @@ where
     let msg = msg.pack();
     worker.post_message_vec(msg);
 }
+fn worker_new(name_of_resource: &str, resource_is_relative: bool, is_module: bool) -> Worker {
+    let origin = gloo_utils::document()
+        .location()
+        .unwrap_throw()
+        .origin()
+        .unwrap_throw();
+    let pathname = gloo_utils::window().location().pathname().unwrap_throw();
 
-fn worker_new(name_of_resource: &str, is_module: bool) -> Worker {
-    let origin = yew::utils::origin().unwrap();
-    let script_url = format!("{}/{}", origin, name_of_resource);
-    let wasm_url = format!("{}/{}", origin, name_of_resource.replace(".js", "_bg.wasm"));
+    let prefix = if resource_is_relative {
+        pathname
+            .rfind(|c| c == '/')
+            .map(|i| &pathname[..i])
+            .unwrap_or_default()
+    } else {
+        ""
+    };
+    let script_url = format!("{}{}/{}", origin, prefix, name_of_resource);
+    let wasm_url = format!(
+        "{}{}/{}",
+        origin,
+        prefix,
+        name_of_resource.replace(".js", "_bg.wasm")
+    );
     let array = Array::new();
     array.push(
         &format!(

@@ -1,11 +1,13 @@
 //! This module contains types to support multi-threading and state management.
 
+mod hooks;
 mod link;
 mod local;
 mod pool;
 pub mod utils;
 mod worker;
 
+pub use hooks::{use_bridge, UseBridgeHandle};
 pub use link::AgentLink;
 pub(crate) use link::*;
 pub use local::{Context, Job};
@@ -51,6 +53,15 @@ pub trait Agent: Sized + 'static {
     /// have to live in a separate files.
     fn name_of_resource() -> &'static str {
         "main.js"
+    }
+
+    /// Indicates whether the name of the resource is relative.
+    ///
+    /// The default implementation returns `false`, which will cause the result
+    /// returned by [`Self::name_of_resource`] to be interpreted as an absolute
+    /// URL. If `true` is returned, it will be interpreted as a relative URL.
+    fn resource_path_is_relative() -> bool {
+        false
     }
 
     /// Signifies if resource is a module.

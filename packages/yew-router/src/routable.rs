@@ -13,7 +13,7 @@ pub use yew_router_macro::Routable;
 ///
 /// The functions exposed by this trait are **not** supposed to be consumed directly. Instead use
 /// the functions exposed at the [crate's root][crate] to perform operations with the router.
-pub trait Routable: Sized + Clone {
+pub trait Routable: Clone + PartialEq {
     /// Converts path to an instance of the routes enum.
     fn from_path(path: &str, params: &HashMap<&str, &str>) -> Option<Self>;
 
@@ -26,14 +26,56 @@ pub trait Routable: Sized + Clone {
     /// The route to redirect to on 404
     fn not_found_route() -> Option<Self>;
 
-    /// The current route
-    ///
-    /// This is the cached result of [`recognize`]
-    fn current_route() -> Option<Self>;
-
     /// Match a route based on the path
     fn recognize(pathname: &str) -> Option<Self>;
+}
 
-    /// Called when [`Router`](crate::Router) is destroyed.
-    fn cleanup() {}
+/// A special route that accepts any route.
+///
+/// This can be used with [`History`](crate::History) and [`Location`](crate::Location)
+/// when the type of [`Routable`] is unknown.
+#[derive(Debug, Clone, PartialEq)]
+pub struct AnyRoute {
+    path: String,
+}
+
+impl Routable for AnyRoute {
+    fn from_path(path: &str, params: &HashMap<&str, &str>) -> Option<Self> {
+        // No params allowed.
+        if params.is_empty() {
+            Some(Self {
+                path: path.to_string(),
+            })
+        } else {
+            None
+        }
+    }
+
+    fn to_path(&self) -> String {
+        self.path.to_string()
+    }
+
+    fn routes() -> Vec<&'static str> {
+        vec!["/*path"]
+    }
+
+    fn not_found_route() -> Option<Self> {
+        Some(Self {
+            path: "/404".to_string(),
+        })
+    }
+
+    fn recognize(pathname: &str) -> Option<Self> {
+        Some(Self {
+            path: pathname.to_string(),
+        })
+    }
+}
+
+impl AnyRoute {
+    pub fn new<S: Into<String>>(pathname: S) -> Self {
+        Self {
+            path: pathname.into(),
+        }
+    }
 }

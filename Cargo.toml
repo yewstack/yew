@@ -12,7 +12,6 @@ members = [
   # Examples
   "examples/boids",
   "examples/counter",
-  "examples/crm",
   "examples/dyn_create_destroy_apps",
   "examples/file_upload",
   "examples/function_todomvc",
@@ -25,6 +24,8 @@ members = [
   "examples/multi_thread",
   "examples/nested_list",
   "examples/node_refs",
+  "examples/password_strength",
+  "examples/portals",
   "examples/pub_sub",
   "examples/router",
   "examples/store",

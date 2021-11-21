@@ -16,9 +16,9 @@ categories = ["gui", "wasm", "web-programming"]
 description = "A framework for making client-side single-page apps"
 
 [dependencies]
-anyhow = "1"
 console_error_panic_hook = "0.1"
-gloo = "0.3"
+gloo = "0.4"
+gloo-utils = "0.1.0"
 indexmap = { version = "1", features = ["std"] }
 js-sys = "0.3"
 slab = "0.4"

@@ -1,6 +1,5 @@
 use gloo::storage::{LocalStorage, Storage};
-use state::{Entry, Filter, State};
-use std::rc::Rc;
+use state::{Action, Filter, State};
 use strum::IntoEnumIterator;
 use yew::{classes, function_component, html, use_effect_with_deps, use_reducer, Callback};
 
@@ -13,100 +12,14 @@ use components::{
     info_footer::InfoFooter,
 };
 
-pub enum Action {
-    Add(String),
-    Edit((usize, String)),
-    Remove(usize),
-    SetFilter(Filter),
-    ToggleAll,
-    Toggle(usize),
-    ClearCompleted,
-}
-
 const KEY: &str = "yew.functiontodomvc.self";
 
 #[function_component(App)]
 fn app() -> Html {
-    let state = use_reducer(
-        |prev: Rc<State>, action: Action| match action {
-            Action::Add(description) => {
-                let mut entries = prev.entries.clone();
-                entries.push(Entry {
-                    id: entries.last().map(|entry| entry.id + 1).unwrap_or(1),
-                    description,
-                    completed: false,
-                });
-                State {
-                    entries,
-                    filter: prev.filter,
-                }
-            }
-            Action::Remove(id) => {
-                let mut entries = prev.entries.clone();
-                entries.retain(|entry| entry.id != id);
-                State {
-                    entries,
-                    filter: prev.filter,
-                }
-            }
-            Action::Toggle(id) => {
-                let mut entries = prev.entries.clone();
-                let entry = entries.iter_mut().find(|entry| entry.id == id);
-                if let Some(entry) = entry {
-                    entry.completed = !entry.completed;
-                }
-                State {
-                    entries,
-                    filter: prev.filter,
-                }
-            }
-            Action::Edit((id, description)) => {
-                let mut entries = prev.entries.clone();
-
-                if description.is_empty() {
-                    entries.retain(|entry| entry.id != id)
-                }
-
-                let entry = entries.iter_mut().find(|entry| entry.id == id);
-                if let Some(entry) = entry {
-                    entry.description = description;
-                }
-                State {
-                    entries,
-                    filter: prev.filter,
-                }
-            }
-            Action::ToggleAll => {
-                let mut entries = prev.entries.clone();
-                for entry in &mut entries {
-                    if prev.filter.fits(entry) {
-                        entry.completed = !entry.completed;
-                    }
-                }
-                State {
-                    entries,
-                    filter: prev.filter,
-                }
-            }
-            Action::ClearCompleted => {
-                let mut entries = prev.entries.clone();
-                entries.retain(|e| Filter::Active.fits(e));
-                State {
-                    entries,
-                    filter: prev.filter,
-                }
-            }
-            Action::SetFilter(filter) => State {
-                filter,
-                entries: prev.entries.clone(),
-            },
-        },
-        // Initial state
-        State {
-            entries: LocalStorage::get(KEY).unwrap_or_else(|_| vec![]),
-            filter: Filter::All, // TODO: get from uri
-        },
-    );
+    let state = use_reducer(|| State {
+        entries: LocalStorage::get(KEY).unwrap_or_else(|_| vec![]),
+        filter: Filter::All, // TODO: get from uri
+    });
 
     // Effect
     use_effect_with_deps(

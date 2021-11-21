@@ -157,7 +157,7 @@ impl ToTokens for HtmlElement {
                         expr => Value::Dynamic(quote_spanned! {expr.span()=>
                             if #expr {
                                 ::std::option::Option::Some(
-                                    ::std::borrow::Cow::<'static, ::std::primitive::str>::Borrowed(#key)
+                                    ::yew::virtual_dom::AttrValue::Static(#key)
                                 )
                             } else {
                                 ::std::option::Option::None
