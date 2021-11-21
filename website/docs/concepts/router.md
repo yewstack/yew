@@ -135,7 +135,7 @@ fn app() -> Html {
 }
 ```
 
-### Declare Parameters
+### Add Parameters
 
 It is also possible to extract information from a route.
 
@@ -162,7 +162,7 @@ fn switch(routes: &Route) -> Html {
 }
 ```
 
-Linking to a specific post is as easy as passing the filled route variant to `Link`:
+Linking to a specific post is as easy as passing the variant to `Link`:
 
 ```rust
 <Link<Route> to={Route::Post { id: "new-yew-release".to_string() }}>{ "Yew v0.19 out now!" }</Link</Route>>
