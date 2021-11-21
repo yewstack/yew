@@ -162,6 +162,12 @@ fn switch(routes: &Route) -> Html {
 }
 ```
 
+Linking to a specific post is as easy as passing the filled route variant to `Link`:
+
+```rust
+<Link<Route> to={Route::Post { id: "new-yew-release".to_string() }}>{ "Yew v0.19 out now!" }</Link</Route>>
+```
+
 For more information about the route syntax and how to bind parameters, check out [route-recognizer](https://docs.rs/route-recognizer/0.3.1/route_recognizer/#routing-params).
 
 ### History and Location
