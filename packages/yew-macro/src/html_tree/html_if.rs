@@ -42,7 +42,7 @@ impl Parse for HtmlIf {
                 if input.is_empty() {
                     return Err(syn::Error::new(
                         else_token.span(),
-                        "expected block or `if` token after this token",
+                        "expected block or `if` after `else`",
                     ));
                 }
 
