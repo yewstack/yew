@@ -346,7 +346,6 @@ impl ToTokens for HtmlElement {
                 }
             }
             TagName::Expr(name) => {
-                #[allow(unused_braces)]
                 let vtag = Ident::new("__yew_vtag", name.span());
                 let expr = &name.expr;
                 let vtag_name = Ident::new("__yew_vtag_name", expr.span());
@@ -362,6 +361,10 @@ impl ToTokens for HtmlElement {
                 // this way we get a nice error message (with the correct span) when the expression
                 // doesn't return a valid value
                 quote_spanned! {expr.span()=> {
+                    #[allow(unused_braces)]
+                    // e.g. html!{<@{"div"}/>} will set `#expr` to `{"div"}`
+                    // (note the extra braces). Hence the need for the `allow`.
+                    // Anyways to remove the braces?
                     let mut #vtag_name = ::std::convert::Into::<
                         ::std::borrow::Cow::<'static, ::std::primitive::str>
                     >::into(#expr);
