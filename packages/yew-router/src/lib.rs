@@ -56,11 +56,6 @@
 //!
 //! The router registers itself as a context provider and makes session history and location information
 //! available via [`hooks`] or [`RouterScopeExt`](scope_ext::RouterScopeExt).
-//!
-//! # State
-//!
-//! The [`history`] API has a way access / store state associated with session history. Please
-//! consule [`history.state()`](history::History::state) for detailed usage.
 
 extern crate self as yew_router;
 

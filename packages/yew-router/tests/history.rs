@@ -13,12 +13,6 @@ struct Query {
     b: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-struct State {
-    i: String,
-    ii: u64,
-}
-
 #[test]
 async fn history_works() {
     let history = BrowserHistory::new();
@@ -55,25 +49,6 @@ async fn history_works() {
         Query {
             a: "something".to_string(),
             b: 123,
-        }
-    );
-
-    history
-        .push_with_state(
-            AnyRoute::new("/path-c"),
-            State {
-                i: "something".to_string(),
-                ii: 123,
-            },
-        )
-        .unwrap();
-
-    assert_eq!(history.location().pathname(), "/path-c");
-    assert_eq!(
-        history.state::<State>().unwrap(),
-        State {
-            i: "something".to_string(),
-            ii: 123,
         }
     );
 }

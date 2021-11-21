@@ -25,8 +25,6 @@ pub struct HistoryListener {
 
 #[derive(Error, Debug)]
 pub enum HistoryError {
-    #[error("failed to serialize / deserialize state.")]
-    State(#[from] serde_wasm_bindgen::Error),
     #[error("failed to serialize query.")]
     QuerySer(#[from] serde_urlencoded::ser::Error),
     #[error("failed to deserialize query.")]
@@ -62,31 +60,11 @@ pub trait History: Clone + PartialEq {
     /// See: <https://developer.mozilla.org/en-US/docs/Web/API/History/go>
     fn go(&self, delta: isize);
 
-    /// Pushes a [`Routable`] entry with [`None`] being the state.
+    /// Pushes a [`Routable`] entry.
     fn push(&self, route: impl Routable);
 
-    /// Replaces the current history entry with provided [`Routable`] and [`None`] state.
+    /// Replaces the current history entry with provided [`Routable`].
     fn replace(&self, route: impl Routable);
-
-    /// Pushes a [`Routable`] entry with state.
-    ///
-    /// The implementation of state serialization differs between [`History`] types.
-    ///
-    /// For [`BrowserHistory`], it uses [`serde_wasm_bindgen`] where as other types uses
-    /// [`Any`](std::any::Any).
-    fn push_with_state<T>(&self, route: impl Routable, state: T) -> HistoryResult<()>
-    where
-        T: Serialize + 'static;
-
-    /// Replaces the current history entry with provided [`Routable`] and state.
-    ///
-    /// The implementation of state serialization differs between [`History`] types.
-    ///
-    /// For [`BrowserHistory`], it uses [`serde_wasm_bindgen`] where as other types uses
-    /// [`Any`](std::any::Any).
-    fn replace_with_state<T>(&self, route: impl Routable, state: T) -> HistoryResult<()>
-    where
-        T: Serialize + 'static;
 
     /// Same as `.push()` but affix the queries to the end of the route.
     fn push_with_query<Q>(&self, route: impl Routable, query: Q) -> HistoryResult<()>
@@ -98,29 +76,7 @@ pub trait History: Clone + PartialEq {
     where
         Q: Serialize;
 
-    /// Same as `.push_with_state()` but affix the queries to the end of the route.
-    fn push_with_query_and_state<Q, T>(
-        &self,
-        route: impl Routable,
-        query: Q,
-        state: T,
-    ) -> HistoryResult<()>
-    where
-        Q: Serialize,
-        T: Serialize + 'static;
-
-    /// Same as `.replace_with_state()` but affix the queries to the end of the route.
-    fn replace_with_query_and_state<Q, T>(
-        &self,
-        route: impl Routable,
-        query: Q,
-        state: T,
-    ) -> HistoryResult<()>
-    where
-        Q: Serialize,
-        T: Serialize + 'static;
-
-    /// Creates a Listener that will be notified when current state changes.
+    /// Creates a Listener that will be notified when history changes.
     ///
     /// This method returns a [`HistoryListener`] that will automatically unregister the callback
     /// when dropped.
@@ -132,20 +88,10 @@ pub trait History: Clone + PartialEq {
     fn location(&self) -> Self::Location;
 
     fn into_any_history(self) -> AnyHistory;
-
-    /// Returns the State.
-    ///
-    /// The implementation differs between [`History`] type.
-    ///
-    /// For [`BrowserHistory`], it uses [`serde_wasm_bindgen`] where as other types uses
-    /// `downcast_ref()` on [`Any`](std::any::Any).
-    fn state<T>(&self) -> HistoryResult<T>
-    where
-        T: DeserializeOwned + 'static;
 }
 
 /// A [`History`] that is implemented with [`web_sys::History`] that provides native browser
-/// history and state access.
+/// history access.
 #[derive(Clone)]
 pub struct BrowserHistory {
     inner: web_sys::History,
@@ -176,7 +122,7 @@ impl History for BrowserHistory {
         let url = Self::route_to_url(route);
         self.inner
             .push_state_with_url(&JsValue::NULL, "", Some(&url))
-            .expect("failed to push state.");
+            .expect("failed to push history.");
 
         self.notify_callbacks();
     }
@@ -188,34 +134,6 @@ impl History for BrowserHistory {
             .expect("failed to replace history.");
 
         self.notify_callbacks();
-    }
-
-    fn push_with_state<T>(&self, route: impl Routable, state: T) -> HistoryResult<()>
-    where
-        T: Serialize + 'static,
-    {
-        let url = Self::route_to_url(route);
-        let state = serde_wasm_bindgen::to_value(&state)?;
-        self.inner
-            .push_state_with_url(&state, "", Some(&url))
-            .expect("failed to push state.");
-
-        self.notify_callbacks();
-        Ok(())
-    }
-
-    fn replace_with_state<T>(&self, route: impl Routable, state: T) -> HistoryResult<()>
-    where
-        T: Serialize + 'static,
-    {
-        let url = Self::route_to_url(route);
-        let state = serde_wasm_bindgen::to_value(&state)?;
-        self.inner
-            .replace_state_with_url(&state, "", Some(&url))
-            .expect("failed to replace state.");
-
-        self.notify_callbacks();
-        Ok(())
     }
 
     fn push_with_query<Q>(&self, route: impl Routable, query: Q) -> HistoryResult<()>
@@ -245,48 +163,6 @@ impl History for BrowserHistory {
         Ok(())
     }
 
-    fn push_with_query_and_state<Q, T>(
-        &self,
-        route: impl Routable,
-        query: Q,
-        state: T,
-    ) -> HistoryResult<()>
-    where
-        Q: Serialize,
-        T: Serialize + 'static,
-    {
-        let url = Self::route_to_url(route);
-        let query = serde_urlencoded::to_string(query)?;
-        let state = serde_wasm_bindgen::to_value(&state)?;
-        self.inner
-            .push_state_with_url(&state, "", Some(&format!("{}?{}", url, query)))
-            .expect("failed to push history.");
-
-        self.notify_callbacks();
-        Ok(())
-    }
-
-    fn replace_with_query_and_state<Q, T>(
-        &self,
-        route: impl Routable,
-        query: Q,
-        state: T,
-    ) -> HistoryResult<()>
-    where
-        Q: Serialize,
-        T: Serialize + 'static,
-    {
-        let url = Self::route_to_url(route);
-        let query = serde_urlencoded::to_string(query)?;
-        let state = serde_wasm_bindgen::to_value(&state)?;
-        self.inner
-            .replace_state_with_url(&state, "", Some(&format!("{}?{}", url, query)))
-            .expect("failed to replace history.");
-
-        self.notify_callbacks();
-        Ok(())
-    }
-
     fn listen<CB>(&self, callback: CB) -> HistoryListener
     where
         CB: Fn() + 'static,
@@ -305,14 +181,6 @@ impl History for BrowserHistory {
 
     fn into_any_history(self) -> AnyHistory {
         AnyHistory::Browser(self)
-    }
-
-    fn state<T>(&self) -> HistoryResult<T>
-    where
-        T: DeserializeOwned + 'static,
-    {
-        serde_wasm_bindgen::from_value(self.inner.state().expect_throw("failed to read state."))
-            .map_err(|e| e.into())
     }
 }
 
@@ -563,22 +431,6 @@ impl History for AnyHistory {
         self_.replace(route)
     }
 
-    fn push_with_state<T>(&self, route: impl Routable, state: T) -> HistoryResult<()>
-    where
-        T: Serialize + 'static,
-    {
-        let Self::Browser(self_) = self;
-        self_.push_with_state(route, state)
-    }
-
-    fn replace_with_state<T>(&self, route: impl Routable, state: T) -> HistoryResult<()>
-    where
-        T: Serialize + 'static,
-    {
-        let Self::Browser(self_) = self;
-        self_.replace_with_state(route, state)
-    }
-
     fn push_with_query<Q>(&self, route: impl Routable, query: Q) -> HistoryResult<()>
     where
         Q: Serialize,
@@ -592,34 +444,6 @@ impl History for AnyHistory {
     {
         let Self::Browser(self_) = self;
         self_.replace_with_query(route, query)
-    }
-
-    fn push_with_query_and_state<Q, T>(
-        &self,
-        route: impl Routable,
-        query: Q,
-        state: T,
-    ) -> HistoryResult<()>
-    where
-        Q: Serialize,
-        T: Serialize + 'static,
-    {
-        let Self::Browser(self_) = self;
-        self_.push_with_query_and_state(route, query, state)
-    }
-
-    fn replace_with_query_and_state<Q, T>(
-        &self,
-        route: impl Routable,
-        query: Q,
-        state: T,
-    ) -> HistoryResult<()>
-    where
-        Q: Serialize,
-        T: Serialize + 'static,
-    {
-        let Self::Browser(self_) = self;
-        self_.replace_with_query_and_state(route, query, state)
     }
 
     fn listen<CB>(&self, callback: CB) -> HistoryListener
@@ -637,14 +461,6 @@ impl History for AnyHistory {
 
     fn into_any_history(self) -> AnyHistory {
         self
-    }
-
-    fn state<T>(&self) -> HistoryResult<T>
-    where
-        T: DeserializeOwned + 'static,
-    {
-        let Self::Browser(self_) = self;
-        self_.state()
     }
 }
 
