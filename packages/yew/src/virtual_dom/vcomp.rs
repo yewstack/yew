@@ -819,34 +819,25 @@ mod layout_tests {
 
     #[test]
     fn component_with_children() {
-        #[derive(Properties, Clone)]
+        #[derive(Properties, PartialEq)]
         struct Props {
             children: Children,
         }
 
-        struct ComponentWithChildren {
-            props: Props,
-        }
+        struct ComponentWithChildren;
 
         impl Component for ComponentWithChildren {
             type Message = ();
             type Properties = Props;
 
-            fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-                Self {
-                    props,
-                }
+            fn create(_ctx: &Context<Self>) -> Self {
+                Self
             }
-            fn update(&mut self, _: Self::Message) -> ShouldRender {
-                true
-            }
-            fn change(&mut self, _: Self::Properties) -> ShouldRender {
-                true
-            }
-            fn view(&self) -> Html {
+
+            fn view(&self, ctx: &Context<Self>) -> Html {
                 html! {
                   <ul>
-                    { for self.props.children.iter().map(|child| html! { <li>{ child }</li> }) }
+                    { for ctx.props().children.iter().map(|child| html! { <li>{ child }</li> }) }
                   </ul>
                 }
             }

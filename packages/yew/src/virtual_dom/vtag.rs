@@ -1317,7 +1317,7 @@ mod tests_without_browser {
         assert_eq!(
             html! {
                 if let Some(class) = option_foo {
-                    <div class=class />
+                    <div class={class} />
                 }
             },
             html! { <div class="foo" /> },
@@ -1325,7 +1325,7 @@ mod tests_without_browser {
         assert_eq!(
             html! {
                 if let Some(class) = none {
-                    <div class=class />
+                    <div class={class} />
                 } else {
                     <div class="bar" />
                 }
@@ -1335,7 +1335,7 @@ mod tests_without_browser {
         assert_eq!(
             html! {
                 if let Some(class) = none {
-                    <div class=class />
+                    <div class={class} />
                 }
             },
             html! {},
@@ -1346,7 +1346,7 @@ mod tests_without_browser {
             html! {
                 <div>
                     if let Some(class) = option_foo {
-                        <div class=class />
+                        <div class={class} />
                     }
                 </div>
             },
@@ -1356,7 +1356,7 @@ mod tests_without_browser {
             html! {
                 <div>
                     if let Some(class) = none {
-                        <div class=class />
+                        <div class={class} />
                     } else {
                         <div class="bar" />
                     }
@@ -1368,7 +1368,7 @@ mod tests_without_browser {
             html! {
                 <div>
                     if let Some(class) = none {
-                        <div class=class />
+                        <div class={class} />
                     }
                 </div>
             },
