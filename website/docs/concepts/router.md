@@ -153,7 +153,7 @@ enum Route {
 
 You can then access the post's id inside `<Switch />` and forward it to the appropriate component via properties.
 
-```rust,ignore
+```rust ,ignore
 fn switch(routes: &Route) -> Html {
     match routes {
         Route::Home => html! { <h1>{ "Home" }</h1> },
