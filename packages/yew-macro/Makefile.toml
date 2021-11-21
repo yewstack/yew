@@ -2,7 +2,8 @@
 clear = true
 toolchain = "1.51"
 command = "cargo"
-args = ["test"]
+# test target can be optionally specified like `cargo make test html_macro`,
+args = ["test", "${@}"]
 
 [tasks.test-overwrite]
 extend = "test"
