@@ -111,8 +111,11 @@ impl ToTokens for HtmlComponent {
         let key = if let Some(key) = &special_props.key {
             let value = &key.value;
             quote_spanned! {value.span()=>
-                #[allow(clippy::useless_conversion)]
-                Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#value))
+                #[allow(unused_braces)]
+                {
+                    #[allow(clippy::useless_conversion)]
+                    Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#value))
+                }
             }
         } else {
             quote! { ::std::option::Option::None }
