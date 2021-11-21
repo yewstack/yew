@@ -721,7 +721,7 @@ mod benchmarks {
         let static_ = Attributes::Static(&[]);
         let dynamic = Attributes::Dynamic {
             keys: &[],
-            values: vec![],
+            values: Box::new([]),
         };
         let map = Attributes::IndexMap(Default::default());
 
@@ -776,7 +776,7 @@ mod benchmarks {
     fn make_dynamic(values: Vec<AttrValue>) -> Attributes {
         Attributes::Dynamic {
             keys: sample_keys(),
-            values: values.into_iter().map(|v| Some(v)).collect(),
+            values: values.into_iter().map(Some).collect(),
         }
     }
 
