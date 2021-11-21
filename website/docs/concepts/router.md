@@ -15,6 +15,7 @@ The router then detects this change and then decides what to render.
 You start by defining a `Route`.
 
 Routes are defined as an `enum` which derives `Routable`. This enum must be `Clone + PartialEq`.
+
 ```rust
 use yew_router::prelude::*;
 
@@ -200,11 +201,13 @@ additional functionality that is not available in `AnyHistory` and
 To navigate between pages, use either a `Link` component (which renders a `<a>` element), the `history.push` function, or the `history.replace` function, which replaces the current page in the user's browser history instead of pushing a new one onto the stack.
 
 ### Listening to Changes
-## Functional components
+
+#### Functional components
+
 Simply use available hooks `use_history`, `use_location` and `use_route`.
 Your components will re-render when provided values change.
 
-## Struct components
+#### Struct components
 
 In order to react on route changes, you can pass a callback closure to the `listen()` method of `AnyHistory`.
 
@@ -224,6 +227,8 @@ fn create(ctx: &Context<Self>) -> Self {
         _listener
     }
 }
+```
+
 ### Query Parameters
 
 #### Specifying query parameters when navigating
@@ -238,4 +243,5 @@ In its simplest form this is just a `HashMap` containing string pairs.
 It uses `serde` to deserialize the parameters from query string in the URL.
 
 ## Relevant examples
+
 - [Router](https://github.com/yewstack/yew/tree/master/examples/router)
