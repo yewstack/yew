@@ -165,7 +165,7 @@ fn switch(routes: &Route) -> Html {
 
 Linking to a specific post is as easy as passing the variant to `Link`:
 
-```rust,ignore
+```rust ,ignore
 <Link<Route> to={Route::Post { id: "new-yew-release".to_string() }}>{ "Yew v0.19 out now!" }</Link</Route>>
 ```
 
