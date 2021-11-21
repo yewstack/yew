@@ -135,6 +135,42 @@ fn app() -> Html {
 }
 ```
 
+### Path Segments
+
+It is also possible to extract information from a route.
+
+```rust
+# use yew_router::prelude::*;
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/")]
+    Home,
+    #[at("/post/:id")]
+    Post { id: String },
+    // ...
+}
+```
+
+You can then access the post's id inside `<Switch />` and forward it to the appropriate component via properties.
+
+```rust ,ignore
+fn switch(routes: &Route) -> Html {
+    match routes {
+        Route::Home => html! { <h1>{ "Home" }</h1> },
+        Route::Post { id } => <Post {id} />,
+        // ...
+    }
+}
+```
+
+Linking to a specific post is as easy as passing the variant to `Link`:
+
+```rust ,ignore
+<Link<Route> to={Route::Post { id: "new-yew-release".to_string() }}>{ "Yew v0.19 out now!" }</Link</Route>>
+```
+
+For more information about the route syntax and how to bind parameters, check out [route-recognizer](https://docs.rs/route-recognizer/0.3.1/route_recognizer/#routing-params).
+
 ### History and Location
 
 The router provides a universal `History` and `Location` struct which
@@ -163,6 +199,31 @@ additional functionality that is not available in `AnyHistory` and
 
 To navigate between pages, use either a `Link` component (which renders a `<a>` element), the `history.push` function, or the `history.replace` function, which replaces the current page in the user's browser history instead of pushing a new one onto the stack.
 
+### Listening to Changes
+## Functional components
+Simply use available hooks `use_history`, `use_location` and `use_route`.
+Your components will re-render when provided values change.
+
+## Struct components
+
+In order to react on route changes, you can pass a callback closure to the `listen()` method of `AnyHistory`.
+
+:::note
+The history listener will get unregistered once it is dropped. Make sure to store the handle inside your component state.
+:::
+
+```rust ,ignore
+fn create(ctx: &Context<Self>) -> Self {
+    let _listener = ctx.link()
+        .history()
+        .unwrap()
+        .listen(ctx.link().callback(
+            // handle event
+        ));
+    MyComponent {
+        _listener
+    }
+}
 ### Query Parameters
 
 #### Specifying query parameters when navigating
