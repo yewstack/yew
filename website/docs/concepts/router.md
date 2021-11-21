@@ -215,8 +215,8 @@ fn navigation() -> Html {
         // handle event ...
     });
 
-    // save listener handle to avoid drop
-    let _listener = use_state(|| handle);
+    // use_ref will keep the listener across life cycle to avoid dropping of the listener
+    use_ref(|| handle);
 
     html! {}
 }
