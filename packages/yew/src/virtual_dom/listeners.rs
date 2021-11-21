@@ -817,7 +817,7 @@ mod tests {
             }
         }
 
-        let (_, el) = init::<CencelBubbling>("a");
+        let (_, el) = init::<CancelBubbling>("a");
 
         assert_count(&el, 0);
 
