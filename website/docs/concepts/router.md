@@ -200,31 +200,30 @@ additional functionality that is not available in `AnyHistory` and
 To navigate between pages, use either a `Link` component (which renders a `<a>` element), the `history.push` function, or the `history.replace` function, which replaces the current page in the user's browser history instead of pushing a new one onto the stack.
 
 ### Listening to Changes
+## Functional components
+Simply use available hooks `use_history`, `use_location` and `use_route`.
+Your components will re-render when provided values change.
+
+## Classic components
 
 In order react on route changes, you can pass a callback closure to the `listen()` method of `AnyHistory`.
 
 :::note
-The history listener will get unregistered once it is dropped. Make sure to store the handle inside your component.
+The history listener will get unregistered once it is dropped. Make sure to store the handle inside your component state.
 :::
 
-```rust
-# use yew::prelude::*;
-use yew_router::prelude::*;
-
-#[function_component(Navigation)]
-fn navigation() -> Html {
-    let history = use_history().unwrap();
-    let handle = history.listen(|| {
-        // handle event ...
-    });
-
-    // use_ref will keep the listener across life cycle to avoid dropping of the listener
-    use_ref(|| handle);
-
-    html! {}
+```rust ,ignore
+fn create(ctx: &Context<Self>) -> Self {
+    let _listener = ctx.link()
+        .history()
+        .unwrap()
+        .listen(ctx.link().callback(
+            // handle event
+        ));
+    MyComponent {
+        _listener
+    }
 }
-```
-
 ### Query Parameters
 
 #### Specifying query parameters when navigating
