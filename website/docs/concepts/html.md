@@ -145,11 +145,11 @@ For now, use keys when you have a list where the order of elements changes. This
 To conditionally render some markup, we wrap it in an `if` block:
 
 ```rust
-# use yew::html;
-# let condition = true;
+use yew::html;
+let some_condition = true;
 
 html! {
-    if condition {
+    if some_condition {
         <p>{ "True case" }</p>
     }
 }
@@ -158,11 +158,11 @@ html! {
 There may also be an `else` case:
 
 ```rust
-# use yew::html;
-# let condition = true;
+use yew::html;
+let some_condition = true;
 
 html! {
-    if condition {
+    if some_condition {
         <p>{ "True case" }</p>
     } else {
         <p>{ "False case" }</p>
