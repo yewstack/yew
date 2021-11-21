@@ -157,7 +157,7 @@ You can then access the post's id inside `<Switch />` and forward it to the appr
 fn switch(routes: &Route) -> Html {
     match routes {
         Route::Home => html! { <h1>{ "Home" }</h1> },
-        Route::Post { id } => <Post id={id} />,
+        Route::Post { id } => <Post {id} />,
         // ...
     }
 }
