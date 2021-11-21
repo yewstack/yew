@@ -204,9 +204,9 @@ To navigate between pages, use either a `Link` component (which renders a `<a>` 
 Simply use available hooks `use_history`, `use_location` and `use_route`.
 Your components will re-render when provided values change.
 
-## Classic components
+## Struct components
 
-In order react on route changes, you can pass a callback closure to the `listen()` method of `AnyHistory`.
+In order to react on route changes, you can pass a callback closure to the `listen()` method of `AnyHistory`.
 
 :::note
 The history listener will get unregistered once it is dropped. Make sure to store the handle inside your component state.
