@@ -2,6 +2,7 @@ personal_ws-1.1 en 0 utf-8
 alloc
 ALLOC
 allocator
+analagous
 Angular's
 asmjs
 binaryen
@@ -13,6 +14,7 @@ cdylib
 charset
 codebase
 codegen
+Component
 composable
 Config
 declaratively
@@ -39,6 +41,7 @@ impl
 init
 INIT
 interop
+interoperate
 json
 lifecycle
 Lifecycle
@@ -78,5 +81,6 @@ Webpack
 WeeAlloc
 workspaces
 xmlns
+Javascript
 yewtil
 Yewtil

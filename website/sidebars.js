@@ -40,6 +40,14 @@ module.exports = {
             items: [
                 {
                     type: "category",
+                    label: "wasm-bindgen",
+                    items: [
+                        "concepts/wasm-bindgen",
+                        "concepts/wasm-bindgen/web-sys",
+                    ]
+                },
+                {
+                    type: "category",
                     label: "Components",
                     items: [
                         "concepts/components",
@@ -83,6 +91,7 @@ module.exports = {
             items: [
                 "advanced-topics/how-it-works",
                 "advanced-topics/optimizations",
+                "advanced-topics/portals",
             ]
         },
         {

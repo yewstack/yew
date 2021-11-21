@@ -9,7 +9,8 @@ edition = "2018"
 [dependencies]
 anymap2 = "0.13"
 bincode = "1"
-gloo-console = "0.1"
+gloo-console = "0.2"
+gloo-utils = "0.1"
 js-sys = "0.3"
 serde = { version = "1", features = ["derive"] }
 slab = "0.4"

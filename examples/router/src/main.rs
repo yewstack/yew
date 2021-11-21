@@ -56,11 +56,11 @@ impl Component for Model {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
-            <>
+            <BrowserRouter>
                 { self.view_nav(ctx.link()) }
 
                 <main>
-                    <Router<Route> render={Router::render(switch)} />
+                    <Switch<Route> render={Switch::render(switch)} />
                 </main>
                 <footer class="footer">
                     <div class="content has-text-centered">
@@ -72,7 +72,7 @@ impl Component for Model {
                         <a href="https://unsplash.com">{ "Unsplash" }</a>
                     </div>
                 </footer>
-            </>
+            </BrowserRouter>
         }
     }
 }
@@ -99,10 +99,10 @@ impl Model {
                 </div>
                 <div class={classes!("navbar-menu", active_class)}>
                     <div class="navbar-start">
-                        <Link<Route> classes={classes!("navbar-item")} route={Route::Home}>
+                        <Link<Route> classes={classes!("navbar-item")} to={Route::Home}>
                             { "Home" }
                         </Link<Route>>
-                        <Link<Route> classes={classes!("navbar-item")} route={Route::Posts}>
+                        <Link<Route> classes={classes!("navbar-item")} to={Route::Posts}>
                             { "Posts" }
                         </Link<Route>>
 
@@ -112,7 +112,7 @@ impl Model {
                             </a>
                             <div class="navbar-dropdown">
                                 <a class="navbar-item">
-                                    <Link<Route> classes={classes!("navbar-item")} route={Route::Authors}>
+                                    <Link<Route> classes={classes!("navbar-item")} to={Route::Authors}>
                                         { "Meet the authors" }
                                     </Link<Route>>
                                 </a>

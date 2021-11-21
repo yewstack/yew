@@ -2,6 +2,7 @@ use crate::components::{pagination::Pagination, post_card::PostCard};
 use crate::Route;
 use serde::{Deserialize, Serialize};
 use yew::prelude::*;
+use yew_router::prelude::*;
 
 const ITEMS_PER_PAGE: u64 = 10;
 const TOTAL_PAGES: u64 = u64::MAX / ITEMS_PER_PAGE;
@@ -25,23 +26,27 @@ impl Component for PostList {
         Self
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::ShowPage(page) => {
-                yew_router::push_route_with_query(Route::Posts, PageQuery { page }).unwrap();
+                ctx.link()
+                    .history()
+                    .unwrap()
+                    .push_with_query(Route::Posts, PageQuery { page })
+                    .unwrap();
                 true
             }
         }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let page = self.current_page();
+        let page = self.current_page(ctx);
 
         html! {
             <div class="section container">
                 <h1 class="title">{ "Posts" }</h1>
                 <h2 class="subtitle">{ "All of our quality writing in one place" }</h2>
-                { self.view_posts() }
+                { self.view_posts(ctx) }
                 <Pagination
                     {page}
                     total_pages={TOTAL_PAGES}
@@ -52,8 +57,8 @@ impl Component for PostList {
     }
 }
 impl PostList {
-    fn view_posts(&self) -> Html {
-        let start_seed = (self.current_page() - 1) * ITEMS_PER_PAGE;
+    fn view_posts(&self, ctx: &Context<Self>) -> Html {
+        let start_seed = (self.current_page(ctx) - 1) * ITEMS_PER_PAGE;
         let mut cards = (0..ITEMS_PER_PAGE).map(|seed_offset| {
             html! {
                 <li class="list-item mb-5">
@@ -77,9 +82,9 @@ impl PostList {
         }
     }
 
-    fn current_page(&self) -> u64 {
-        yew_router::parse_query::<PageQuery>()
-            .map(|it| it.page)
-            .unwrap_or(1)
+    fn current_page(&self, ctx: &Context<Self>) -> u64 {
+        let location = ctx.link().location().unwrap();
+
+        location.query::<PageQuery>().map(|it| it.page).unwrap_or(1)
     }
 }

@@ -1,19 +1,19 @@
 [package]
-name = "crm"
+name = "function_todomvc"
 version = "0.1.0"
-authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
+authors = ["Drew Hutton <drew.hutton@pm.me>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-serde = "1"
-serde_derive = "1"
+serde = { version = "1.0", features = ["derive"] }
+strum = "0.23"
+strum_macros = "0.23"
+gloo = "0.4"
 yew = { path = "../../packages/yew" }
-gloo = "0.3"
 
 [dependencies.web-sys]
 version = "0.3"
 features = [
 	"HtmlInputElement",
-	"HtmlTextAreaElement",
 ]
