@@ -512,24 +512,6 @@ mod tests {
     }
 
     #[test]
-    fn it_compares_values() {
-        let a = html! {
-            <input value="test"/>
-        };
-
-        let b = html! {
-            <input value="test"/>
-        };
-
-        let c = html! {
-            <input value="fail"/>
-        };
-
-        assert_eq!(a, b);
-        assert_ne!(a, c);
-    }
-
-    #[test]
     fn it_compares_kinds() {
         let a = html! {
             <input type="text"/>
@@ -541,24 +523,6 @@ mod tests {
 
         let c = html! {
             <input type="hidden"/>
-        };
-
-        assert_eq!(a, b);
-        assert_ne!(a, c);
-    }
-
-    #[test]
-    fn it_compares_checked() {
-        let a = html! {
-            <input type="checkbox" checked=false />
-        };
-
-        let b = html! {
-            <input type="checkbox" checked=false />
-        };
-
-        let c = html! {
-            <input type="checkbox" checked=true />
         };
 
         assert_eq!(a, b);
