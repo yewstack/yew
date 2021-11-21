@@ -224,7 +224,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly-2021-02-17
+          toolchain: nightly
           override: true
           profile: minimal
 
@@ -241,4 +241,4 @@ jobs:
       - name: Run tests
         run: |
           cd packages/yew-macro
-          cargo +nightly-2021-02-17 test test_html_lints --features lints
+          cargo +nightly test test_html_lints --features lints

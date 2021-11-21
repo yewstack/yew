@@ -6,6 +6,7 @@ use syn::spanned::Spanned;
 
 use crate::props::{ElementProps, Prop};
 
+use super::html_element::TagName;
 use super::{html_element::HtmlElement, HtmlTree};
 
 /// Lints HTML elements to check if they are well formed. If the element is not well-formed, then
@@ -53,20 +54,24 @@ pub struct AHrefLint;
 
 impl Lint for AHrefLint {
     fn lint(element: &HtmlElement) {
-        if let super::html_element::TagName::Lit(ref tag_name) = element.name {
+        if let TagName::Lit(ref tag_name) = element.name {
             if !tag_name.eq_ignore_ascii_case("a") {
                 return;
             };
             if let Some(prop) = get_attribute(&element.props, "href") {
                 if let syn::Expr::Lit(lit) = &prop.value {
                     if let syn::Lit::Str(href) = &lit.lit {
-                        if href.value() == "#" {
-                            emit_warning!(
+                        let href_value = href.value();
+                        match href_value.as_ref() {
+                            "#" | "javascript:void(0)" => emit_warning!(
                                 lit.span(),
-                                "'#' is not a suitable value for the `href` attribute. \
+                                format!("'{}' is not a suitable value for the `href` attribute. \
                                         Without a meaningful attribute assistive technologies \
-                                        will struggle to understand your webpage."
-                            )
+                                        will struggle to understand your webpage. \
+                                        https://developer.mozilla.org/en-US/docs/Learn/Accessibility/HTML#onclick_events"
+                            ,href_value)),
+                            _ => {}
+
                         }
                     }
                 };
@@ -74,7 +79,8 @@ impl Lint for AHrefLint {
                 emit_warning!(
                     quote::quote! {#tag_name}.span(),
                     "All `<a>` elements should have a `href` attribute. This makes it possible \
-                        for assistive technologies to correctly interpret what your links point to."
+                        for assistive technologies to correctly interpret what your links point to. \
+                        https://developer.mozilla.org/en-US/docs/Learn/Accessibility/HTML#more_on_links"
                 )
             }
         }
