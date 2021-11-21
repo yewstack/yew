@@ -346,7 +346,6 @@ impl ToTokens for HtmlElement {
                 }
             }
             TagName::Expr(name) => {
-                #[allow(unused_braces)]
                 let vtag = Ident::new("__yew_vtag", name.span());
                 let expr = &name.expr;
                 let vtag_name = Ident::new("__yew_vtag_name", expr.span());
