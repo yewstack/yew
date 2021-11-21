@@ -88,7 +88,7 @@ fn use_reducer_eq_works() {
                 content: HashSet::default(),
             });
 
-            let render_count = use_ref(|| 0);
+            let render_count = use_mut_ref(|| 0);
 
             let render_count = {
                 let mut render_count = render_count.borrow_mut();
