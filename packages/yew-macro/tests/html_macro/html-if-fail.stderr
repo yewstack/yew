@@ -4,7 +4,7 @@ error: expected block after this condition
 4 |     html! { if {} };
   |                ^^
 
-error: expected block or `if` token after this token
+error: expected block or `if` after `else`
  --> tests/html_macro/html-if-fail.rs:6:24
   |
 6 |     html! { if true {} else };
@@ -16,13 +16,13 @@ error: expected block after this condition
 7 |     html! { if true {} else if {} };
   |                                ^^
 
-error: expected block or `if` token after this token
+error: expected block or `if` after `else`
  --> tests/html_macro/html-if-fail.rs:8:40
   |
 8 |     html! { if true {} else if true {} else };
   |                                        ^^^^
 
-error: expected block or `if` token after this token
+error: expected block or `if` after `else`
  --> tests/html_macro/html-if-fail.rs:9:40
   |
 9 |     html! { if true {} else if true {} else };
