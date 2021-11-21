@@ -209,7 +209,8 @@ The history listener will get unregistered once it is dropped. Make sure to stor
 
 ```rust
 # use yew::prelude::*;
-# use yew_router::prelude::*;
+use yew_router::prelude::*;
+
 #[function_component(Navigation)]
 fn navigation() -> Html {
     let history = use_history().unwrap();
