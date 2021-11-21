@@ -1,9 +1,6 @@
-use crate::{
-    content::Author,
-    generator::Generated,
-    switch::{AppAnchor, AppRoute},
-};
+use crate::{content::Author, generator::Generated, Route};
 use yew::prelude::*;
+use yew_router::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct Props {
@@ -17,26 +14,18 @@ impl Component for AuthorCard {
     type Message = ();
     type Properties = Props;
 
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
         Self {
-            author: Author::generate_from_seed(props.seed),
+            author: Author::generate_from_seed(ctx.props().seed),
         }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        unimplemented!()
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+        self.author = Author::generate_from_seed(ctx.props().seed);
+        true
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.author.seed == props.seed {
-            false
-        } else {
-            self.author = Author::generate_from_seed(props.seed);
-            true
-        }
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         let Self { author } = self;
         html! {
             <div class="card">
@@ -44,7 +33,7 @@ impl Component for AuthorCard {
                     <div class="media">
                         <div class="media-left">
                             <figure class="image is-128x128">
-                                <img src=author.image_url />
+                                <img src={author.image_url.clone()} />
                             </figure>
                         </div>
                         <div class="media-content">
@@ -57,9 +46,9 @@ impl Component for AuthorCard {
                     </div>
                 </div>
                 <footer class="card-footer">
-                    <AppAnchor classes="card-footer-item" route=AppRoute::Author(author.seed)>
+                    <Link<Route> classes={classes!("card-footer-item")} to={Route::Author { id: author.seed }}>
                         { "Profile" }
-                    </AppAnchor>
+                    </Link<Route>>
                 </footer>
             </div>
         }

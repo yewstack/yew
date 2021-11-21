@@ -1,11 +1,10 @@
 use serde_derive::{Deserialize, Serialize};
-use strum_macros::{EnumIter, ToString};
+use strum_macros::{Display, EnumIter};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct State {
     pub entries: Vec<Entry>,
     pub filter: Filter,
-    pub value: String,
     pub edit_value: String,
 }
 
@@ -118,7 +117,7 @@ pub struct Entry {
     pub editing: bool,
 }
 
-#[derive(Clone, Copy, Debug, EnumIter, ToString, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, EnumIter, Display, PartialEq, Serialize, Deserialize)]
 pub enum Filter {
     All,
     Active,

@@ -1,12 +1,41 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
-use super::{Key, Transformer, VDiff, VNode};
+use super::{Key, VDiff, VNode};
 use crate::html::{AnyScope, Component, NodeRef, Scope, Scoped};
 use std::any::TypeId;
 use std::borrow::Borrow;
 use std::fmt;
 use std::ops::Deref;
+use std::rc::Rc;
 use web_sys::Element;
+
+thread_local! {
+    #[cfg(debug_assertions)]
+     static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<u64, Vec<String>>>
+        = Default::default();
+}
+
+/// Push [VComp] event to lifecycle debugging registry
+#[cfg(debug_assertions)]
+pub(crate) fn log_event(vcomp_id: u64, event: impl ToString) {
+    EVENT_HISTORY.with(|h| {
+        h.borrow_mut()
+            .entry(vcomp_id)
+            .or_default()
+            .push(event.to_string())
+    });
+}
+
+/// Get [VComp] event log from lifecycle debugging registry
+#[cfg(debug_assertions)]
+pub(crate) fn get_event_log(vcomp_id: u64) -> Vec<String> {
+    EVENT_HISTORY.with(|h| {
+        h.borrow()
+            .get(&vcomp_id)
+            .map(|l| (*l).clone())
+            .unwrap_or_default()
+    })
+}
 
 /// A virtual component.
 pub struct VComp {
@@ -15,6 +44,10 @@ pub struct VComp {
     props: Option<Box<dyn Mountable>>,
     pub(crate) node_ref: NodeRef,
     pub(crate) key: Option<Key>,
+
+    /// Used for debug logging
+    #[cfg(debug_assertions)]
+    pub(crate) id: u64,
 }
 
 impl Clone for VComp {
@@ -23,12 +56,18 @@ impl Clone for VComp {
             panic!("Mounted components are not allowed to be cloned!");
         }
 
+        #[cfg(debug_assertions)]
+        log_event(self.id, "clone");
+
         Self {
             type_id: self.type_id,
             scope: None,
             props: self.props.as_ref().map(|m| m.copy()),
             node_ref: self.node_ref.clone(),
             key: self.key.clone(),
+
+            #[cfg(debug_assertions)]
+            id: self.id,
         }
     }
 }
@@ -36,7 +75,7 @@ impl Clone for VComp {
 /// A virtual child component.
 pub struct VChild<COMP: Component> {
     /// The component properties
-    pub props: COMP::Properties,
+    pub props: Rc<COMP::Properties>,
     /// Reference to the mounted node
     node_ref: NodeRef,
     key: Option<Key>,
@@ -45,7 +84,7 @@ pub struct VChild<COMP: Component> {
 impl<COMP: Component> Clone for VChild<COMP> {
     fn clone(&self) -> Self {
         VChild {
-            props: self.props.clone(),
+            props: Rc::clone(&self.props),
             node_ref: self.node_ref.clone(),
             key: self.key.clone(),
         }
@@ -68,7 +107,7 @@ where
     /// Creates a child component that can be accessed and modified by its parent.
     pub fn new(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self {
         Self {
-            props,
+            props: Rc::new(props),
             node_ref,
             key,
         }
@@ -86,7 +125,7 @@ where
 
 impl VComp {
     /// Creates a new `VComp` instance.
-    pub fn new<COMP>(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self
+    pub fn new<COMP>(props: Rc<COMP::Properties>, node_ref: NodeRef, key: Option<Key>) -> Self
     where
         COMP: Component,
     {
@@ -96,12 +135,39 @@ impl VComp {
             props: Some(Box::new(PropsWrapper::<COMP>::new(props))),
             scope: None,
             key,
+
+            #[cfg(debug_assertions)]
+            id: {
+                thread_local! {
+                    static ID_COUNTER: std::cell::RefCell<u64> = Default::default();
+                }
+
+                ID_COUNTER.with(|c| {
+                    let c = &mut *c.borrow_mut();
+                    *c += 1;
+                    *c
+                })
+            },
         }
     }
 
-    #[allow(unused)]
     pub(crate) fn root_vnode(&self) -> Option<impl Deref<Target = VNode> + '_> {
         self.scope.as_ref().and_then(|scope| scope.root_vnode())
+    }
+
+    /// Take ownership of [Box<dyn Scoped>] or panic with error message, if component is not mounted
+    #[inline]
+    fn take_scope(&mut self) -> Box<dyn Scoped> {
+        self.scope.take().unwrap_or_else(|| {
+            #[cfg(not(debug_assertions))]
+            panic!("no scope; VComp should be mounted");
+
+            #[cfg(debug_assertions)]
+            panic!(
+                "no scope; VComp should be mounted after: {:?}",
+                get_event_log(self.id)
+            );
+        })
     }
 }
 
@@ -118,11 +184,11 @@ trait Mountable {
 }
 
 struct PropsWrapper<COMP: Component> {
-    props: COMP::Properties,
+    props: Rc<COMP::Properties>,
 }
 
 impl<COMP: Component> PropsWrapper<COMP> {
-    pub fn new(props: COMP::Properties) -> Self {
+    pub fn new(props: Rc<COMP::Properties>) -> Self {
         Self { props }
     }
 }
@@ -130,7 +196,7 @@ impl<COMP: Component> PropsWrapper<COMP> {
 impl<COMP: Component> Mountable for PropsWrapper<COMP> {
     fn copy(&self) -> Box<dyn Mountable> {
         let wrapper: PropsWrapper<COMP> = PropsWrapper {
-            props: self.props.clone(),
+            props: Rc::clone(&self.props),
         };
         Box::new(wrapper)
     }
@@ -143,7 +209,7 @@ impl<COMP: Component> Mountable for PropsWrapper<COMP> {
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        let scope = scope.mount_in_place(parent, next_sibling, node_ref, self.props);
+        scope.mount_in_place(parent, next_sibling, node_ref, self.props);
 
         Box::new(scope)
     }
@@ -156,7 +222,7 @@ impl<COMP: Component> Mountable for PropsWrapper<COMP> {
 
 impl VDiff for VComp {
     fn detach(&mut self, _parent: &Element) {
-        self.scope.take().expect("VComp is not mounted").destroy();
+        self.take_scope().destroy();
     }
 
     fn apply(
@@ -173,7 +239,7 @@ impl VDiff for VComp {
                 // If the ancestor is the same type, reuse it and update its properties
                 if self.type_id == vcomp.type_id && self.key == vcomp.key {
                     self.node_ref.reuse(vcomp.node_ref.clone());
-                    let scope = vcomp.scope.take().expect("VComp is not mounted");
+                    let scope = vcomp.take_scope();
                     mountable.reuse(self.node_ref.clone(), scope.borrow(), next_sibling);
                     self.scope = Some(scope);
                     return vcomp.node_ref.clone();
@@ -194,54 +260,6 @@ impl VDiff for VComp {
     }
 }
 
-impl<T> Transformer<T, T> for VComp {
-    fn transform(from: T) -> T {
-        from
-    }
-}
-
-impl<'a, T> Transformer<&'a T, T> for VComp
-where
-    T: Clone,
-{
-    fn transform(from: &'a T) -> T {
-        from.clone()
-    }
-}
-
-impl<'a> Transformer<&'a str, String> for VComp {
-    fn transform(from: &'a str) -> String {
-        from.to_owned()
-    }
-}
-
-impl<T> Transformer<T, Option<T>> for VComp {
-    fn transform(from: T) -> Option<T> {
-        Some(from)
-    }
-}
-
-impl<'a, T> Transformer<&'a T, Option<T>> for VComp
-where
-    T: Clone,
-{
-    fn transform(from: &T) -> Option<T> {
-        Some(from.clone())
-    }
-}
-
-impl<'a> Transformer<&'a str, Option<String>> for VComp {
-    fn transform(from: &'a str) -> Option<String> {
-        Some(from.to_owned())
-    }
-}
-
-impl<'a> Transformer<Option<&'a str>, Option<String>> for VComp {
-    fn transform(from: Option<&'a str>) -> Option<String> {
-        from.map(|s| s.to_owned())
-    }
-}
-
 impl PartialEq for VComp {
     fn eq(&self, other: &VComp) -> bool {
         self.type_id == other.type_id
@@ -250,7 +268,7 @@ impl PartialEq for VComp {
 
 impl fmt::Debug for VComp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("VComp")
+        write!(f, "VComp {{ root: {:?} }}", self.root_vnode().as_deref())
     }
 }
 
@@ -263,10 +281,8 @@ impl<COMP: Component> fmt::Debug for VChild<COMP> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        html, utils::document, Children, Component, ComponentLink, Html, NodeRef, Properties,
-        ShouldRender,
-    };
+    use crate::{html, Children, Component, Context, Html, NodeRef, Properties};
+    use gloo_utils::document;
     use web_sys::Node;
 
     #[cfg(feature = "wasm_test")]
@@ -289,26 +305,22 @@ mod tests {
         type Message = ();
         type Properties = Props;
 
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        fn create(_: &Context<Self>) -> Self {
             Comp
         }
 
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
 
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
-            true
-        }
-
-        fn view(&self) -> Html {
+        fn view(&self, _ctx: &Context<Self>) -> Html {
             html! { <div/> }
         }
     }
 
     #[test]
     fn update_loop() {
-        let document = crate::utils::document();
+        let document = gloo_utils::document();
         let parent_scope: AnyScope = crate::html::Scope::<Comp>::new(None).into();
         let parent_element = document.create_element("div").unwrap();
 
@@ -351,7 +363,7 @@ mod tests {
         };
 
         html! {
-            <Comp with props />
+            <Comp ..props />
         };
     }
 
@@ -368,11 +380,11 @@ mod tests {
         };
         let props_2 = props.clone();
 
-        check_key(html! { <Comp key=test_key.clone() /> });
-        check_key(html! { <Comp key=test_key.clone() field_1=1 /> });
-        check_key(html! { <Comp field_1=1 key=test_key.clone() /> });
-        check_key(html! { <Comp with props key=test_key.clone() /> });
-        check_key(html! { <Comp key=test_key.clone() with props_2 /> });
+        check_key(html! { <Comp key={test_key.clone()} /> });
+        check_key(html! { <Comp key={test_key.clone()} field_1=1 /> });
+        check_key(html! { <Comp field_1=1 key={test_key.clone()} /> });
+        check_key(html! { <Comp key={test_key.clone()} ..props /> });
+        check_key(html! { <Comp key={test_key.clone()} ..props_2 /> });
     }
 
     #[test]
@@ -380,7 +392,7 @@ mod tests {
         let test_node: Node = document().create_text_node("test").into();
         let test_node_ref = NodeRef::new(test_node);
         let check_node_ref = |vnode: VNode| {
-            assert_eq!(vnode.first_node(), test_node_ref.get().unwrap());
+            assert_eq!(vnode.unchecked_first_node(), test_node_ref.get().unwrap());
         };
 
         let props = Props {
@@ -389,11 +401,11 @@ mod tests {
         };
         let props_2 = props.clone();
 
-        check_node_ref(html! { <Comp ref=test_node_ref.clone() /> });
-        check_node_ref(html! { <Comp ref=test_node_ref.clone() field_1=1 /> });
-        check_node_ref(html! { <Comp field_1=1 ref=test_node_ref.clone() /> });
-        check_node_ref(html! { <Comp with props ref=test_node_ref.clone() /> });
-        check_node_ref(html! { <Comp ref=test_node_ref.clone() with props_2 /> });
+        check_node_ref(html! { <Comp ref={test_node_ref.clone()} /> });
+        check_node_ref(html! { <Comp ref={test_node_ref.clone()} field_1=1 /> });
+        check_node_ref(html! { <Comp field_1=1 ref={test_node_ref.clone()} /> });
+        check_node_ref(html! { <Comp ref={test_node_ref.clone()} ..props /> });
+        check_node_ref(html! { <Comp ref={test_node_ref.clone()} ..props_2 /> });
     }
 
     #[test]
@@ -430,26 +442,30 @@ mod tests {
         assert_ne!(vchild2, vchild3);
     }
 
-    #[derive(Clone, Properties)]
+    #[derive(Clone, Properties, PartialEq)]
     pub struct ListProps {
         pub children: Children,
     }
-    pub struct List(ListProps);
+    pub struct List;
     impl Component for List {
         type Message = ();
         type Properties = ListProps;
 
-        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-            Self(props)
+        fn create(_: &Context<Self>) -> Self {
+            Self
         }
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>) -> bool {
             unimplemented!();
         }
-        fn view(&self) -> Html {
-            let item_iter = self.0.children.iter().map(|item| html! {<li>{ item }</li>});
+        fn view(&self, ctx: &Context<Self>) -> Html {
+            let item_iter = ctx
+                .props()
+                .children
+                .iter()
+                .map(|item| html! {<li>{ item }</li>});
             html! {
                 <ul>{ for item_iter }</ul>
             }
@@ -459,11 +475,7 @@ mod tests {
     use super::{AnyScope, Element};
 
     fn setup_parent() -> (AnyScope, Element) {
-        let scope = AnyScope {
-            type_id: std::any::TypeId::of::<()>(),
-            parent: None,
-            state: std::rc::Rc::new(()),
-        };
+        let scope = AnyScope::test();
         let parent = document().create_element("div").unwrap();
 
         document().body().unwrap().append_child(&parent).unwrap();
@@ -475,7 +487,7 @@ mod tests {
         // clear parent
         parent.set_inner_html("");
 
-        node.apply(&scope, &parent, NodeRef::default(), None);
+        node.apply(scope, parent, NodeRef::default(), None);
         parent.inner_html()
     }
 
@@ -496,7 +508,7 @@ mod tests {
         </ul>";
 
         let prop_method = html! {
-            <List children=children_renderer.clone()/>
+            <List children={children_renderer.clone()} />
         };
         assert_eq!(get_html(prop_method, &scope, &parent), expected_html);
 
@@ -527,17 +539,13 @@ mod tests {
 
     #[test]
     fn reset_node_ref() {
-        let scope = AnyScope {
-            type_id: std::any::TypeId::of::<()>(),
-            parent: None,
-            state: std::rc::Rc::new(()),
-        };
+        let scope = AnyScope::test();
         let parent = document().create_element("div").unwrap();
 
         document().body().unwrap().append_child(&parent).unwrap();
 
         let node_ref = NodeRef::default();
-        let mut elem: VNode = html! { <Comp ref=node_ref.clone()></Comp> };
+        let mut elem: VNode = html! { <Comp ref={node_ref.clone()}></Comp> };
         elem.apply(&scope, &parent, NodeRef::default(), None);
         let parent_node = parent.deref();
         assert_eq!(node_ref.get(), parent_node.first_child());
@@ -552,7 +560,7 @@ mod layout_tests {
 
     use crate::html;
     use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
-    use crate::{Children, Component, ComponentLink, Html, Properties, ShouldRender};
+    use crate::{Children, Component, Context, Html, Properties};
     use std::marker::PhantomData;
 
     #[cfg(feature = "wasm_test")]
@@ -563,10 +571,9 @@ mod layout_tests {
 
     struct Comp<T> {
         _marker: PhantomData<T>,
-        props: CompProps,
     }
 
-    #[derive(Properties, Clone)]
+    #[derive(Properties, Clone, PartialEq)]
     struct CompProps {
         #[prop_or_default]
         children: Children,
@@ -576,25 +583,19 @@ mod layout_tests {
         type Message = ();
         type Properties = CompProps;
 
-        fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+        fn create(_: &Context<Self>) -> Self {
             Comp {
                 _marker: PhantomData::default(),
-                props,
             }
         }
 
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
 
-        fn change(&mut self, props: Self::Properties) -> ShouldRender {
-            self.props = props;
-            true
-        }
-
-        fn view(&self) -> Html {
+        fn view(&self, ctx: &Context<Self>) -> Html {
             html! {
-                <>{ self.props.children.clone() }</>
+                <>{ ctx.props().children.clone() }</>
             }
         }
     }

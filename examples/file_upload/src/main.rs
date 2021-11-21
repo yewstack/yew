@@ -1,96 +1,111 @@
-use yew::{html, ChangeData, Component, ComponentLink, Html, ShouldRender};
-use yew_services::reader::{File, FileChunk, FileData, ReaderService, ReaderTask};
+use std::collections::HashMap;
+
+use web_sys::{Event, HtmlInputElement};
+use yew::{html, html::TargetCast, Component, Context, Html};
+
+use gloo_file::callbacks::FileReader;
+use gloo_file::File;
 
 type Chunks = bool;
 
 pub enum Msg {
-    Loaded(FileData),
-    Chunk(Option<FileChunk>),
+    Loaded(String, String),
+    LoadedBytes(String, Vec<u8>),
     Files(Vec<File>, Chunks),
-    ToggleByChunks,
+    ToggleReadBytes,
 }
 
 pub struct Model {
-    link: ComponentLink<Model>,
-    tasks: Vec<ReaderTask>,
+    readers: HashMap<String, FileReader>,
     files: Vec<String>,
-    by_chunks: bool,
+    read_bytes: bool,
 }
 
 impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            link,
-            tasks: vec![],
+            readers: HashMap::default(),
             files: vec![],
-            by_chunks: false,
+            read_bytes: false,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::Loaded(file) => {
-                let info = format!("file: {:?}", file);
+            Msg::Loaded(file_name, data) => {
+                let info = format!("file_name: {}, data: {:?}", file_name, data);
                 self.files.push(info);
+                self.readers.remove(&file_name);
                 true
             }
-            Msg::Chunk(Some(chunk)) => {
-                let info = format!("chunk: {:?}", chunk);
+            Msg::LoadedBytes(file_name, data) => {
+                let info = format!("file_name: {}, data: {:?}", file_name, data);
                 self.files.push(info);
+                self.readers.remove(&file_name);
                 true
             }
-            Msg::Files(files, chunks) => {
+            Msg::Files(files, bytes) => {
                 for file in files.into_iter() {
+                    let file_name = file.name();
                     let task = {
-                        if chunks {
-                            let callback = self.link.callback(Msg::Chunk);
-                            ReaderService::read_file_by_chunks(file, callback, 10).unwrap()
+                        let file_name = file_name.clone();
+                        let link = ctx.link().clone();
+
+                        if bytes {
+                            gloo_file::callbacks::read_as_bytes(&file, move |res| {
+                                link.send_message(Msg::LoadedBytes(
+                                    file_name,
+                                    res.expect("failed to read file"),
+                                ))
+                            })
                         } else {
-                            let callback = self.link.callback(Msg::Loaded);
-                            ReaderService::read_file(file, callback).unwrap()
+                            gloo_file::callbacks::read_as_text(&file, move |res| {
+                                link.send_message(Msg::Loaded(
+                                    file_name,
+                                    res.unwrap_or_else(|e| e.to_string()),
+                                ))
+                            })
                         }
                     };
-                    self.tasks.push(task);
+                    self.readers.insert(file_name, task);
                 }
                 true
             }
-            Msg::ToggleByChunks => {
-                self.by_chunks = !self.by_chunks;
+            Msg::ToggleReadBytes => {
+                self.read_bytes = !self.read_bytes;
                 true
             }
-            _ => false,
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
-        let flag = self.by_chunks;
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let flag = self.read_bytes;
         html! {
             <div>
                 <div>
                     <p>{ "Choose a file to upload to see the uploaded bytes" }</p>
-                    <input type="file" multiple=true onchange=self.link.callback(move |value| {
+                    <input type="file" multiple=true onchange={ctx.link().callback(move |e: Event| {
                             let mut result = Vec::new();
-                            if let ChangeData::Files(files) = value {
+                            let input: HtmlInputElement = e.target_unchecked_into();
+
+                            if let Some(files) = input.files() {
                                 let files = js_sys::try_iter(&files)
                                     .unwrap()
                                     .unwrap()
-                                    .map(|v| File::from(v.unwrap()));
+                                    .map(|v| web_sys::File::from(v.unwrap()))
+                                    .map(File::from);
                                 result.extend(files);
                             }
                             Msg::Files(result, flag)
-                        })
+                        })}
                     />
                 </div>
                 <div>
-                    <label>{ "By chunks" }</label>
-                    <input type="checkbox" checked=flag onclick=self.link.callback(|_| Msg::ToggleByChunks) />
+                    <label>{ "Read bytes" }</label>
+                    <input type="checkbox" checked={flag} onclick={ctx.link().callback(|_| Msg::ToggleReadBytes)} />
                 </div>
                 <ul>
                     { for self.files.iter().map(|f| Self::view_file(f)) }

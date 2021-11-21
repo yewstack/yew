@@ -1,9 +1,8 @@
 use crate::boid::Boid;
 use crate::math::Vector2D;
 use crate::settings::Settings;
-use std::time::Duration;
-use yew::{html, Component, ComponentLink, Html, Properties, ShouldRender};
-use yew_services::interval::{IntervalService, IntervalTask};
+use gloo::timers::callback::Interval;
+use yew::{html, Component, Context, Html, Properties};
 
 pub const SIZE: Vector2D = Vector2D::new(1600.0, 1000.0);
 
@@ -23,42 +22,37 @@ pub struct Props {
 
 #[derive(Debug)]
 pub struct Simulation {
-    props: Props,
-    link: ComponentLink<Self>,
     boids: Vec<Boid>,
-    interval_task: IntervalTask,
+    interval: Interval,
 }
 impl Component for Simulation {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let settings = &props.settings;
+    fn create(ctx: &Context<Self>) -> Self {
+        let settings = &ctx.props().settings;
         let boids = (0..settings.boids)
             .map(|_| Boid::new_random(settings))
             .collect();
 
-        let interval_task = IntervalService::spawn(
-            Duration::from_millis(settings.tick_interval_ms),
-            link.callback(|_| Msg::Tick),
-        );
+        let interval = {
+            let link = ctx.link().clone();
+            Interval::new(settings.tick_interval_ms as u32, move || {
+                link.send_message(Msg::Tick)
+            })
+        };
 
-        Self {
-            props,
-            link,
-            boids,
-            interval_task,
-        }
+        Self { boids, interval }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Tick => {
                 let Props {
                     ref settings,
                     paused,
                     ..
-                } = self.props;
+                } = *ctx.props();
 
                 if paused {
                     false
@@ -70,38 +64,30 @@ impl Component for Simulation {
         }
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if props == self.props {
-            false
-        } else {
-            if props.generation != self.props.generation {
-                // generation changed; restart from scratch.
-                self.boids.clear();
-            }
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+        self.boids.clear();
 
-            let settings = &props.settings;
-            self.boids
-                .resize_with(settings.boids, || Boid::new_random(settings));
+        let settings = &ctx.props().settings;
+        self.boids
+            .resize_with(settings.boids, || Boid::new_random(settings));
 
-            if settings.tick_interval_ms != self.props.settings.tick_interval_ms {
-                // as soon as the previous task is dropped it is cancelled.
-                // We don't need to worry about manually stopping it.
-                self.interval_task = IntervalService::spawn(
-                    Duration::from_millis(settings.tick_interval_ms),
-                    self.link.callback(|_| Msg::Tick),
-                );
-            }
+        // as soon as the previous task is dropped it is cancelled.
+        // We don't need to worry about manually stopping it.
+        self.interval = {
+            let link = ctx.link().clone();
+            Interval::new(settings.tick_interval_ms as u32, move || {
+                link.send_message(Msg::Tick)
+            })
+        };
 
-            self.props = props;
-            true
-        }
+        true
     }
 
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         let view_box = format!("0 0 {} {}", SIZE.x, SIZE.y);
 
         html! {
-            <svg class="simulation-window" viewBox=view_box>
+            <svg class="simulation-window" viewBox={view_box}>
                 { for self.boids.iter().map(Boid::render) }
             </svg>
         }

@@ -1,65 +1,69 @@
+use super::CHILDREN_LABEL;
 use crate::html_tree::HtmlDashedName;
-use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use proc_macro2::{Spacing, TokenTree};
 use std::{
     cmp::Ordering,
     convert::TryFrom,
     ops::{Deref, DerefMut},
 };
 use syn::{
-    parse::{Parse, ParseStream},
-    Expr, Token,
+    braced,
+    parse::{Parse, ParseBuffer, ParseStream},
+    token::Brace,
+    Block, Expr, ExprBlock, ExprPath, ExprRange, Stmt, Token,
 };
-
-pub enum PropPunct {
-    Eq(Token![=]),
-    Colon(Token![:]),
-}
-impl ToTokens for PropPunct {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        match self {
-            Self::Eq(p) => p.to_tokens(tokens),
-            Self::Colon(p) => p.to_tokens(tokens),
-        }
-    }
-}
 
 pub struct Prop {
     pub label: HtmlDashedName,
-    pub question_mark: Option<Token![?]>,
     /// Punctuation between `label` and `value`.
-    pub punct: Option<PropPunct>,
     pub value: Expr,
-}
-impl Prop {
-    /// Checks if the prop uses the optional attribute syntax.
-    /// If it does, an error is returned.
-    pub fn ensure_not_optional(&self) -> syn::Result<()> {
-        let Self {
-            label,
-            question_mark,
-            punct,
-            ..
-        } = self;
-        if question_mark.is_some() {
-            let msg = format!(
-                "`{}` does not support being used as an optional attribute",
-                label
-            );
-            // include `?=` in the span
-            Err(syn::Error::new_spanned(
-                quote! { #label#question_mark#punct },
-                msg,
-            ))
-        } else {
-            Ok(())
-        }
-    }
 }
 impl Parse for Prop {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        if input.peek(Brace) {
+            Self::parse_shorthand_prop_assignment(input)
+        } else {
+            Self::parse_prop_assignment(input)
+        }
+    }
+}
+
+/// Helpers for parsing props
+impl Prop {
+    /// Parse a prop using the shorthand syntax `{value}`, short for `value={value}`
+    /// This only allows for labels with no hyphens, as it would otherwise create
+    /// an ambiguity in the syntax
+    fn parse_shorthand_prop_assignment(input: ParseStream) -> syn::Result<Self> {
+        let value;
+        let _brace = braced!(value in input);
+        let expr = value.parse::<Expr>()?;
+        let label = if let Expr::Path(ExprPath {
+            ref attrs,
+            qself: None,
+            ref path,
+        }) = expr
+        {
+            if let (Some(ident), true) = (path.get_ident(), attrs.is_empty()) {
+                syn::Result::Ok(HtmlDashedName::from(ident.clone()))
+            } else {
+                Err(syn::Error::new_spanned(
+                    path,
+                    "only simple identifiers are allowed in the shorthand property syntax",
+                ))
+            }
+        } else {
+            return Err(syn::Error::new_spanned(
+                expr,
+                "missing label for property value. If trying to use the shorthand property syntax, only identifiers may be used",
+            ));
+        }?;
+
+        Ok(Self { label, value: expr })
+    }
+
+    /// Parse a prop of the form `label={value}`
+    fn parse_prop_assignment(input: ParseStream) -> syn::Result<Self> {
         let label = input.parse::<HtmlDashedName>()?;
-        let question_mark = input.parse::<Token![?]>().ok();
         let equals = input.parse::<Token![=]>().map_err(|_| {
             syn::Error::new_spanned(
                 &label,
@@ -72,14 +76,97 @@ impl Parse for Prop {
                 "expected an expression following this equals sign",
             ));
         }
-        let value = input.parse::<Expr>()?;
-        Ok(Self {
-            label,
-            question_mark,
-            punct: Some(PropPunct::Eq(equals)),
-            value,
-        })
+
+        let value = parse_prop_value(input)?;
+        Ok(Self { label, value })
     }
+}
+
+fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
+    if input.peek(Brace) {
+        strip_braces(input.parse()?)
+    } else {
+        let expr = if let Some(ExprRange {
+            from: Some(from), ..
+        }) = range_expression_peek(input)
+        {
+            // If a range expression is seen, treat the left-side expression as the value
+            // and leave the right-side expression to be parsed as a base expression
+            advance_until_next_dot2(input)?;
+            *from
+        } else {
+            input.parse()?
+        };
+
+        match &expr {
+            Expr::Lit(_) => Ok(expr),
+            _ => {
+                Err(syn::Error::new_spanned(
+                    &expr,
+                    "the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.",
+                ))
+            }
+        }
+    }
+}
+
+fn strip_braces(block: ExprBlock) -> syn::Result<Expr> {
+    match block {
+        ExprBlock {
+            block: Block { mut stmts, .. },
+            ..
+        } if stmts.len() == 1 => {
+            let stmt = stmts.remove(0);
+            match stmt {
+                Stmt::Expr(expr) => Ok(expr),
+                Stmt::Semi(_expr, semi) => Err(syn::Error::new_spanned(
+                        semi,
+                        "only an expression may be assigned as a property. Consider removing this semicolon",
+                )),
+                _ =>             Err(syn::Error::new_spanned(
+                        stmt,
+                        "only an expression may be assigned as a property",
+                ))
+            }
+        }
+        block => Ok(Expr::Block(block)),
+    }
+}
+
+// Without advancing cursor, returns the range expression at the current cursor position if any
+fn range_expression_peek(input: &ParseBuffer) -> Option<ExprRange> {
+    match input.fork().parse::<Expr>().ok()? {
+        Expr::Range(range) => Some(range),
+        _ => None,
+    }
+}
+
+fn advance_until_next_dot2(input: &ParseBuffer) -> syn::Result<()> {
+    input.step(|cursor| {
+        let mut rest = *cursor;
+        let mut first_dot = None;
+        while let Some((tt, next)) = rest.token_tree() {
+            match &tt {
+                TokenTree::Punct(punct) if punct.as_char() == '.' => {
+                    if let Some(first_dot) = first_dot {
+                        return Ok(((), first_dot));
+                    } else {
+                        // Only consider dot as potential first if there is no spacing after it
+                        first_dot = if punct.spacing() == Spacing::Joint {
+                            Some(rest)
+                        } else {
+                            None
+                        };
+                    }
+                }
+                _ => {
+                    first_dot = None;
+                }
+            }
+            rest = next;
+        }
+        Err(cursor.error("no `..` found in expression"))
+    })
 }
 
 /// List of props sorted in alphabetical order*.
@@ -90,8 +177,6 @@ impl Parse for Prop {
 /// Use `check_no_duplicates` to ensure that there are no duplicates.
 pub struct SortedPropList(Vec<Prop>);
 impl SortedPropList {
-    const CHILDREN_LABEL: &'static str = "children";
-
     /// Create a new `SortedPropList` from a vector of props.
     /// The given `props` doesn't need to be sorted.
     pub fn new(mut props: Vec<Prop>) -> Self {
@@ -102,9 +187,9 @@ impl SortedPropList {
     fn cmp_label(a: &str, b: &str) -> Ordering {
         if a == b {
             Ordering::Equal
-        } else if a == Self::CHILDREN_LABEL {
+        } else if a == CHILDREN_LABEL {
             Ordering::Greater
-        } else if b == Self::CHILDREN_LABEL {
+        } else if b == CHILDREN_LABEL {
             Ordering::Less
         } else {
             a.cmp(b)
@@ -140,16 +225,6 @@ impl SortedPropList {
         }
 
         Ok(prop)
-    }
-    /// Pop the prop with the given key and error if it uses the optional attribute syntax.
-    pub fn pop_nonoptional(&mut self, key: &str) -> syn::Result<Option<Prop>> {
-        match self.pop_unique(key) {
-            Ok(Some(prop)) => {
-                prop.ensure_not_optional()?;
-                Ok(Some(prop))
-            }
-            res => res,
-        }
     }
 
     /// Turn the props into a vector of `Prop`.
@@ -199,7 +274,8 @@ impl SortedPropList {
 impl Parse for SortedPropList {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut props: Vec<Prop> = Vec::new();
-        while !input.is_empty() {
+        // Stop parsing props if a base expression preceded by `..` is reached
+        while !input.is_empty() && !input.peek(Token![..]) {
             props.push(input.parse()?);
         }
 
@@ -224,17 +300,9 @@ impl SpecialProps {
     const KEY_LABEL: &'static str = "key";
 
     fn pop_from(props: &mut SortedPropList) -> syn::Result<Self> {
-        let node_ref = props.pop_nonoptional(Self::REF_LABEL)?;
-        let key = props.pop_nonoptional(Self::KEY_LABEL)?;
+        let node_ref = props.pop_unique(Self::REF_LABEL)?;
+        let key = props.pop_unique(Self::KEY_LABEL)?;
         Ok(Self { node_ref, key })
-    }
-
-    pub fn get_slot_mut(&mut self, key: &str) -> Option<&mut Option<Prop>> {
-        match key {
-            Self::REF_LABEL => Some(&mut self.node_ref),
-            Self::KEY_LABEL => Some(&mut self.key),
-            _ => None,
-        }
     }
 
     fn iter(&self) -> impl Iterator<Item = &Prop> {

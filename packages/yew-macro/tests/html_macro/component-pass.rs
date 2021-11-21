@@ -1,134 +1,154 @@
-use yew::html::ChildrenRenderer;
-use yew::prelude::*;
-use yew::virtual_dom::{VChild, VNode};
+#![no_implicit_prelude]
 
-#[derive(Clone, Properties, Default)]
+// Shadow primitives
+#[allow(non_camel_case_types)]
+pub struct bool;
+#[allow(non_camel_case_types)]
+pub struct char;
+#[allow(non_camel_case_types)]
+pub struct f32;
+#[allow(non_camel_case_types)]
+pub struct f64;
+#[allow(non_camel_case_types)]
+pub struct i128;
+#[allow(non_camel_case_types)]
+pub struct i16;
+#[allow(non_camel_case_types)]
+pub struct i32;
+#[allow(non_camel_case_types)]
+pub struct i64;
+#[allow(non_camel_case_types)]
+pub struct i8;
+#[allow(non_camel_case_types)]
+pub struct isize;
+#[allow(non_camel_case_types)]
+pub struct str;
+#[allow(non_camel_case_types)]
+pub struct u128;
+#[allow(non_camel_case_types)]
+pub struct u16;
+#[allow(non_camel_case_types)]
+pub struct u32;
+#[allow(non_camel_case_types)]
+pub struct u64;
+#[allow(non_camel_case_types)]
+pub struct u8;
+#[allow(non_camel_case_types)]
+pub struct usize;
+
+#[derive(
+    ::std::clone::Clone, ::yew::Properties, ::std::default::Default, ::std::cmp::PartialEq,
+)]
 pub struct ContainerProperties {
-    pub int: i32,
+    pub int: ::std::primitive::i32,
     #[prop_or_default]
-    pub children: Children,
+    pub children: ::yew::Children,
 }
 
 pub struct Container;
-impl Component for Container {
+impl ::yew::Component for Container {
     type Message = ();
     type Properties = ContainerProperties;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        unimplemented!()
+    fn create(_ctx: &::yew::Context<Self>) -> Self {
+        ::std::unimplemented!()
     }
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        unimplemented!()
-    }
-    fn view(&self) -> Html {
-        unimplemented!()
+    fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
+        ::std::unimplemented!()
     }
 }
 
-#[derive(Clone)]
+#[derive(::std::clone::Clone, ::std::cmp::PartialEq)]
 pub enum ChildrenVariants {
-    Child(VChild<Child>),
-    AltChild(VChild<AltChild>),
+    Child(::yew::virtual_dom::VChild<Child>),
+    AltChild(::yew::virtual_dom::VChild<AltChild>),
 }
 
-impl From<VChild<Child>> for ChildrenVariants {
-    fn from(comp: VChild<Child>) -> Self {
+impl ::std::convert::From<::yew::virtual_dom::VChild<Child>> for ChildrenVariants {
+    fn from(comp: ::yew::virtual_dom::VChild<Child>) -> Self {
         ChildrenVariants::Child(comp)
     }
 }
 
-impl From<VChild<AltChild>> for ChildrenVariants {
-    fn from(comp: VChild<AltChild>) -> Self {
+impl ::std::convert::From<::yew::virtual_dom::VChild<AltChild>> for ChildrenVariants {
+    fn from(comp: ::yew::virtual_dom::VChild<AltChild>) -> Self {
         ChildrenVariants::AltChild(comp)
     }
 }
 
-impl Into<VNode> for ChildrenVariants {
-    fn into(self) -> VNode {
+impl ::std::convert::Into<::yew::virtual_dom::VNode> for ChildrenVariants {
+    fn into(self) -> ::yew::virtual_dom::VNode {
         match self {
-            Self::Child(comp) => VNode::VComp(comp.into()),
-            Self::AltChild(comp) => VNode::VComp(comp.into()),
+            Self::Child(comp) => ::yew::virtual_dom::VNode::VComp(::std::convert::Into::<
+                ::yew::virtual_dom::VComp,
+            >::into(comp)),
+            Self::AltChild(comp) => ::yew::virtual_dom::VNode::VComp(::std::convert::Into::<
+                ::yew::virtual_dom::VComp,
+            >::into(comp)),
         }
     }
 }
 
-#[derive(Clone, Properties, Default, PartialEq)]
+#[derive(
+    ::std::clone::Clone, ::yew::Properties, ::std::default::Default, ::std::cmp::PartialEq,
+)]
 pub struct ChildProperties {
     #[prop_or_default]
-    pub string: String,
-    pub int: i32,
+    pub string: ::std::string::String,
+    pub int: ::std::primitive::i32,
     #[prop_or_default]
-    pub opt_str: Option<String>,
+    pub opt_str: ::std::option::Option<::std::string::String>,
     #[prop_or_default]
-    pub vec: Vec<i32>,
+    pub vec: ::std::vec::Vec<::std::primitive::i32>,
     #[prop_or_default]
-    pub optional_callback: Option<Callback<()>>,
+    pub optional_callback: ::std::option::Option<::yew::Callback<()>>,
 }
 
 pub struct Child;
-impl Component for Child {
+impl ::yew::Component for Child {
     type Message = ();
     type Properties = ChildProperties;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        unimplemented!()
+    fn create(_ctx: &::yew::Context<Self>) -> Self {
+        ::std::unimplemented!()
     }
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        unimplemented!()
-    }
-    fn view(&self) -> Html {
-        unimplemented!()
+    fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
+        ::std::unimplemented!()
     }
 }
 
 pub struct AltChild;
-impl Component for AltChild {
+impl ::yew::Component for AltChild {
     type Message = ();
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        unimplemented!()
+    fn create(_ctx: &::yew::Context<Self>) -> Self {
+        ::std::unimplemented!()
     }
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        unimplemented!()
-    }
-    fn view(&self) -> Html {
-        unimplemented!()
+    fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
+        ::std::unimplemented!()
     }
 }
 
-#[derive(Clone, Properties, Default)]
+#[derive(
+    ::std::clone::Clone, ::yew::Properties, ::std::default::Default, ::std::cmp::PartialEq,
+)]
 pub struct ChildContainerProperties {
-    pub int: i32,
+    pub int: ::std::primitive::i32,
     #[prop_or_default]
-    pub children: ChildrenRenderer<ChildrenVariants>,
+    pub children: ::yew::html::ChildrenRenderer<ChildrenVariants>,
 }
 
 pub struct ChildContainer;
-impl Component for ChildContainer {
+impl ::yew::Component for ChildContainer {
     type Message = ();
     type Properties = ChildContainerProperties;
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        unimplemented!()
+    fn create(_ctx: &::yew::Context<Self>) -> Self {
+        ::std::unimplemented!()
     }
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-    fn change(&mut self, _: Self::Properties) -> ShouldRender {
-        unimplemented!()
-    }
-    fn view(&self) -> Html {
-        unimplemented!()
+    fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
+        ::std::unimplemented!()
     }
 }
 
@@ -138,69 +158,105 @@ mod scoped {
 }
 
 fn compile_pass() {
-    html! { <Child int=1 /> };
+    ::yew::html! { <Child int=1 /> };
 
-    html! {
+    ::yew::html! {
         <>
             <Child int=1 />
             <scoped::Child int=1 />
         </>
     };
 
-    let props = <Child as Component>::Properties::default();
-    let node_ref = NodeRef::default();
-    html! {
+    let props = <<Child as ::yew::Component>::Properties as ::std::default::Default>::default();
+    let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
+    ::yew::html! {
         <>
-            <Child with props />
-            <Child ref=node_ref.clone() with yew::props!(Child::Properties { int: 5 }) />
-            <Child with <Child as Component>::Properties::default() ref=node_ref />
+            <Child ..::std::clone::Clone::clone(&props) />
+            <Child int={1} ..props />
+            <Child ref={::std::clone::Clone::clone(&node_ref)} int={2} ..::yew::props!(Child::Properties { int: 5 }) />
+            <Child int=3 ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
+            <Child ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
+            <Child ref={node_ref} ..<<Child as ::yew::Component>::Properties as ::std::default::Default>::default() />
         </>
     };
 
-    html! {
+    ::yew::html! {
         <>
             <Child int=1 string="child" />
             <Child int=1 />
             <Child int={1+1} />
-            <Child int=1 vec={vec![1]} />
-            <Child string={String::from("child")} int=1 />
+            <Child int=1 vec={::std::vec![1]} />
+            <Child string={<::std::string::String as ::std::convert::From<&'static ::std::primitive::str>>::from("child")} int=1 />
 
             <Child opt_str="child" int=1 />
-            <Child opt_str=String::from("child") int=1 />
-            <Child opt_str=Some("child") int=1 />
-            <Child opt_str=Some(String::from("child")) int=1 />
+            <Child opt_str={<::std::string::String as ::std::convert::From<&'static ::std::primitive::str>>::from("child")} int=1 />
+            <Child opt_str={::std::option::Option::Some("child")} int=1 />
+            <Child opt_str={::std::option::Option::Some(<::std::string::String as ::std::convert::From<&'static ::std::primitive::str>>::from("child"))} int=1 />
         </>
     };
 
     let name_expr = "child";
-    html! {
-        <Child int=1 string=name_expr />
+    ::yew::html! {
+        <Child int=1 string={name_expr} />
     };
 
-    html! {
+    let string = "child";
+    let int = 1;
+    ::yew::html! {
+        <Child {int} {string} />
+    };
+
+    ::yew::html! {
         <>
             <Child int=1 />
-            <Child int=1 optional_callback=Some(Callback::from(|_| ())) />
-            <Child int=1 optional_callback=Callback::from(|_| ()) />
-            <Child int=1 optional_callback=None />
+            <Child int=1 optional_callback={::std::option::Option::Some(<::yew::Callback<()> as ::std::convert::From<_>>::from(|_| ()))} />
+            <Child int=1 optional_callback={<::yew::Callback<()> as ::std::convert::From<_>>::from(|_| ())} />
+            <Child int=1 optional_callback={::std::option::Option::None::<::yew::Callback<_>>} />
         </>
     };
 
-    let node_ref = NodeRef::default();
-    html! {
+    let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
+    ::yew::html! {
         <>
-            <Child int=1 ref=node_ref />
+            <Child int=1 ref={node_ref} />
         </>
     };
 
-    let props = <Container as Component>::Properties::default();
-    html! {
+    let int = 1;
+    let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
+    ::yew::html! {
+        <>
+            <Child {int} ref={node_ref} />
+        </>
+    };
+
+    let props = <<Container as ::yew::Component>::Properties as ::std::default::Default>::default();
+    let child_props =
+        <<Child as ::yew::Component>::Properties as ::std::default::Default>::default();
+    ::yew::html! {
         <>
             <Container int=1 />
             <Container int=1></Container>
 
-            <Container with props>
+            <Container ..::std::clone::Clone::clone(&props)>
                 <div>{ "hello world" }</div>
+            </Container>
+
+            <Container int=1 ..::std::clone::Clone::clone(&props)>
+                <div>{ "hello world" }</div>
+            </Container>
+
+            <Container int=1 ..::std::clone::Clone::clone(&props)>
+                <Child int=2 opt_str="hello" ..::std::clone::Clone::clone(&child_props) />
+            </Container>
+
+            <Container int=1 ..::std::clone::Clone::clone(&props)>
+                <Child int=2 vec={::std::vec![0]} ..::std::clone::Clone::clone(&child_props) />
+            </Container>
+
+
+            <Container int=1 ..props>
+                <Child int=2 string="hello" ..child_props />
             </Container>
 
             <Container int=1>
@@ -211,13 +267,13 @@ fn compile_pass() {
                 <scoped::Container int=2/>
             </scoped::Container>
 
-            <Container int=1 children=ChildrenRenderer::new(
-                vec![html!{ "String" }]
-            ) />
+            <Container int=1 children={::yew::html::ChildrenRenderer::new(
+                ::std::vec![::yew::html!{ "::std::string::String" }]
+            )} />
         </>
     };
 
-    html! {
+    ::yew::html! {
         <>
             <ChildContainer int=1 />
             <ChildContainer int=1></ChildContainer>
@@ -226,76 +282,85 @@ fn compile_pass() {
         </>
     };
 
-    html! {
+    ::yew::html! {
         <ChildContainer int=1>
             <AltChild />
             <Child int=1 />
             {
-                html_nested! {
+                ::yew::html_nested! {
                     <Child int=1 />
                 }
             }
             {
-                (0..2)
-                    .map(|i| { html_nested! { <Child int=i /> } })
-                    .collect::<Vec<_>>()
+                ::std::iter::Iterator::collect::<::std::vec::Vec<_>>(
+                    ::std::iter::Iterator::map(0..2,
+                        |i| { ::yew::html_nested! { <Child int={i} /> } })
+                )
             }
         </ChildContainer>
     };
 
-    let children = vec![
-        html_nested! { <Child int=1 /> },
-        html_nested! { <Child int=2 /> },
+    let children = ::std::vec![
+        ::yew::html_nested! { <Child int=1 /> },
+        ::yew::html_nested! { <Child int=2 /> },
     ];
-    html! {
+    ::yew::html! {
         <ChildContainer int=1>
-            { children.clone() }
+            { ::std::clone::Clone::clone(&children) }
         </ChildContainer>
     };
     // https://github.com/yewstack/yew/issues/1527
-    html! {
+    ::yew::html! {
         <ChildContainer int=1>
             { for children }
         </ChildContainer>
     };
 
-    let variants = || -> Vec<ChildrenVariants> {
-        vec![
-            ChildrenVariants::Child(VChild::new(
-                ChildProperties::default(),
-                NodeRef::default(),
-                None,
+    let variants = || -> ::std::vec::Vec<ChildrenVariants> {
+        ::std::vec![
+            ChildrenVariants::Child(::yew::virtual_dom::VChild::new(
+                <ChildProperties as ::std::default::Default>::default(),
+                <::yew::NodeRef as ::std::default::Default>::default(),
+                ::std::option::Option::None,
             )),
-            ChildrenVariants::AltChild(VChild::new((), NodeRef::default(), None)),
+            ChildrenVariants::AltChild(::yew::virtual_dom::VChild::new(
+                (),
+                <::yew::NodeRef as ::std::default::Default>::default(),
+                ::std::option::Option::None
+            )),
         ]
     };
 
-    html! {
+    ::yew::html! {
         <>
             {
-                variants()
-                    .into_iter()
-                    .filter(|c| match c {
-                        ChildrenVariants::Child(_) => true,
-                        _ => false,
-                    })
-                    .collect::<VNode>()
+                ::std::iter::Iterator::collect::<::yew::virtual_dom::VNode>(
+                    ::std::iter::Iterator::filter(
+                        ::std::iter::IntoIterator::into_iter(variants()),
+                        |c| match c {
+                            ChildrenVariants::Child(_) => true,
+                            _ => false,
+                        }
+                    )
+                )
             }
             <div>
                 {
-                    variants()
-                        .into_iter()
-                        .filter(|c| match c {
-                            ChildrenVariants::AltChild(_) => true,
-                            _ => false,
-                        })
-                        .collect::<VNode>()
+                    ::std::iter::Iterator::collect::<::yew::virtual_dom::VNode>(
+                        ::std::iter::Iterator::filter(
+                            ::std::iter::IntoIterator::into_iter(variants()),
+                            |c| match c {
+                                ChildrenVariants::AltChild(_) => true,
+                                _ => false,
+                            }
+                        )
+                    )
                 }
             </div>
         </>
     };
 
-    html_nested! { 1 };
+    ::yew::html_nested! { 1 };
 }
 
 fn main() {}

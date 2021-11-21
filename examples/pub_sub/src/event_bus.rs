@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-use yew::worker::*;
+use yew_agent::{Agent, AgentLink, Context, HandlerId};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Request {

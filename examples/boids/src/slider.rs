@@ -1,5 +1,6 @@
 use std::cell::Cell;
-use yew::{html, Callback, Component, ComponentLink, Html, InputData, Properties, ShouldRender};
+use web_sys::HtmlInputElement;
+use yew::{events::InputEvent, html, Callback, Component, Context, Html, Properties, TargetCast};
 
 thread_local! {
     static SLIDER_ID: Cell<usize> = Cell::default();
@@ -25,34 +26,23 @@ pub struct Props {
 }
 
 pub struct Slider {
-    props: Props,
     id: usize,
 }
 impl Component for Slider {
     type Message = ();
     type Properties = Props;
 
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            props,
             id: next_slider_id(),
         }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
         unimplemented!()
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.props != props {
-            self.props = props;
-            true
-        } else {
-            false
-        }
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let Props {
             label,
             value,
@@ -62,7 +52,7 @@ impl Component for Slider {
             min,
             max,
             step,
-        } = self.props;
+        } = *ctx.props();
 
         let precision = precision.unwrap_or_else(|| if percentage { 1 } else { 0 });
 
@@ -78,15 +68,19 @@ impl Component for Slider {
             10f64.powi(-(p as i32))
         });
 
+        let oninput = onchange.reform(|e: InputEvent| {
+            let input: HtmlInputElement = e.target_unchecked_into();
+            input.value_as_number()
+        });
+
         html! {
             <div class="slider">
-                <label for=id class="slider__label">{ label }</label>
+                <label for={id.clone()} class="slider__label">{ label }</label>
                 <input type="range"
-                    id=id
+                    {id}
                     class="slider__input"
-                    min=min max=max step=step
-                    oninput=onchange.reform(|data: InputData| data.value.parse().unwrap())
-                    value=value
+                    min={min.to_string()} max={max.to_string()} step={step.to_string()}
+                    {oninput}
                 />
                 <span class="slider__value">{ display_value }</span>
             </div>

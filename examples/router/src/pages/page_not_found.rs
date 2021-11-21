@@ -1,31 +1,16 @@
 use yew::prelude::*;
-use yewtil::NeqAssign;
 
-#[derive(Clone, Debug, Eq, PartialEq, Properties)]
-pub struct Props {
-    pub route: Option<String>,
-}
+pub struct PageNotFound;
 
-pub struct PageNotFound {
-    props: Props,
-}
 impl Component for PageNotFound {
     type Message = ();
-    type Properties = Props;
+    type Properties = ();
 
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        Self { props }
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        unimplemented!()
-    }
-
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props.neq_assign(props)
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <section class="hero is-danger is-bold is-large">
                 <div class="hero-body">
@@ -34,7 +19,7 @@ impl Component for PageNotFound {
                             { "Page not found" }
                         </h1>
                         <h2 class="subtitle">
-                            { "This page does not seem to exist" }
+                            { "Page page does not seem to exist" }
                         </h2>
                     </div>
                 </div>

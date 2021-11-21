@@ -1,8 +1,8 @@
+use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 pub enum Msg {
-    SetText(String),
-    Submit,
+    Submit(String),
 }
 
 #[derive(Properties, Clone, PartialEq)]
@@ -12,57 +12,51 @@ pub struct Props {
 }
 
 pub struct TextInput {
-    link: ComponentLink<Self>,
     text: String,
-    props: Props,
 }
 
 impl Component for TextInput {
     type Message = Msg;
     type Properties = Props;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
         Self {
-            link,
-            text: props.value.clone(),
-            props,
+            text: ctx.props().value.clone(),
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::SetText(text) => {
-                self.text = text;
-                true
-            }
-            Msg::Submit => {
-                let text = std::mem::replace(&mut self.text, self.props.value.clone());
-                self.props.onsubmit.emit(text);
+            Msg::Submit(text) => {
+                ctx.props().onsubmit.emit(text);
                 true
             }
         }
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.props != props {
-            self.props = props;
-            self.text = self.props.value.clone();
-            true
-        } else {
-            false
-        }
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+        self.text = ctx.props().value.clone();
+        true
     }
 
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let onkeydown = ctx.link().batch_callback(|e: KeyboardEvent| {
+            e.stop_propagation();
+            if e.key() == "Enter" {
+                let input: HtmlInputElement = e.target_unchecked_into();
+                let value = input.value();
+                input.set_value("");
+                Some(Msg::Submit(value))
+            } else {
+                None
+            }
+        });
+
         html! {
             <input
+                placeholder={ctx.props().value.clone()}
                 type="text"
-                value=&self.text
-                oninput=self.link.callback(|e: InputData| Msg::SetText(e.value))
-                onkeydown=self.link.batch_callback(move |e: KeyboardEvent| {
-                    e.stop_propagation();
-                    if e.key() == "Enter" { Some(Msg::Submit) } else { None }
-                })
+                {onkeydown}
             />
         }
     }

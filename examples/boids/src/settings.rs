@@ -1,6 +1,5 @@
+use gloo::storage::{LocalStorage, Storage};
 use serde::{Deserialize, Serialize};
-use yew::format::Json;
-use yew_services::storage::{Area, StorageService};
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Settings {
@@ -31,27 +30,15 @@ impl Settings {
     const KEY: &'static str = "yew.boids.settings";
 
     pub fn load() -> Self {
-        StorageService::new(Area::Local)
-            .ok()
-            .and_then(|storage| {
-                storage
-                    .restore::<Json<anyhow::Result<Settings>>>(Self::KEY)
-                    .0
-                    .ok()
-            })
-            .unwrap_or_default()
+        LocalStorage::get(Self::KEY).unwrap_or_default()
     }
 
     pub fn remove() {
-        if let Ok(mut storage) = StorageService::new(Area::Local) {
-            storage.remove(Self::KEY);
-        }
+        LocalStorage::delete(Self::KEY);
     }
 
     pub fn store(&self) {
-        if let Ok(mut storage) = StorageService::new(Area::Local) {
-            storage.store(Self::KEY, Json(self))
-        }
+        let _ = LocalStorage::set(Self::KEY, self);
     }
 }
 impl Default for Settings {

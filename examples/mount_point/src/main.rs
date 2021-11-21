@@ -1,13 +1,14 @@
 use wasm_bindgen::JsValue;
-use web_sys::{CanvasRenderingContext2d, Document, HtmlCanvasElement};
-use yew::{html, Component, ComponentLink, Html, InputData, ShouldRender};
+use web_sys::{
+    CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlInputElement, InputEvent,
+};
+use yew::{html, Component, Context, Html, TargetCast};
 
 pub enum Msg {
     UpdateName(String),
 }
 
 pub struct Model {
-    link: ComponentLink<Self>,
     name: String,
 }
 
@@ -15,14 +16,13 @@ impl Component for Model {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            link,
             name: "Reversed".to_owned(),
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::UpdateName(new_name) => {
                 self.name = new_name;
@@ -31,16 +31,15 @@ impl Component for Model {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div>
                 <input
-                    value=&self.name
-                    oninput=self.link.callback(|e: InputData| Msg::UpdateName(e.value))
+                    value={self.name.clone()}
+                    oninput={ctx.link().callback(|e: InputEvent| {
+                        let input = e.target_unchecked_into::<HtmlInputElement>();
+                        Msg::UpdateName(input.value())
+                    })}
                 />
                 <p>{ self.name.chars().rev().collect::<String>() }</p>
             </div>
@@ -61,7 +60,7 @@ fn create_canvas(document: &Document) -> HtmlCanvasElement {
 }
 
 fn main() {
-    let document = yew::utils::document();
+    let document = gloo_utils::document();
     let body = document.query_selector("body").unwrap().unwrap();
 
     let canvas = create_canvas(&document);
@@ -74,5 +73,5 @@ fn main() {
 
     body.append_child(&mount_point).unwrap();
 
-    yew::App::<Model>::new().mount(mount_point);
+    yew::start_app_in_element::<Model>(mount_point);
 }

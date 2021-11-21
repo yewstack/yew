@@ -1,13 +1,12 @@
 use crate::event_bus::{EventBus, Request};
-use yew::agent::{Dispatched, Dispatcher};
 use yew::prelude::*;
+use yew_agent::{Dispatched, Dispatcher};
 
 pub enum Msg {
     Clicked,
 }
 
 pub struct Producer {
-    link: ComponentLink<Producer>,
     event_bus: Dispatcher<EventBus>,
 }
 
@@ -15,18 +14,13 @@ impl Component for Producer {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            link,
             event_bus: EventBus::dispatcher(),
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Clicked => {
                 self.event_bus
@@ -36,9 +30,9 @@ impl Component for Producer {
         }
     }
 
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
-            <button onclick=self.link.callback(|_| Msg::Clicked)>
+            <button onclick={ctx.link().callback(|_| Msg::Clicked)}>
                 { "PRESS ME" }
             </button>
         }

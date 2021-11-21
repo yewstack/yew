@@ -1,0 +1,5 @@
+error: extern functions can't be function components
+ --> $DIR/extern-fail.rs:9:1
+  |
+9 | extern "C" fn comp(props: &Props) -> Html {
+  | ^^^^^^^^^^

@@ -17,9 +17,8 @@ impl Parse for HtmlNode {
     fn parse(input: ParseStream) -> Result<Self> {
         let node = if HtmlNode::peek(input.cursor()).is_some() {
             let lit: Lit = input.parse()?;
-            match lit {
-                Lit::Str(_) | Lit::Char(_) | Lit::Int(_) | Lit::Float(_) | Lit::Bool(_) => {}
-                _ => return Err(syn::Error::new(lit.span(), "unsupported type")),
+            if matches!(lit, Lit::ByteStr(_) | Lit::Byte(_) | Lit::Verbatim(_)) {
+                return Err(syn::Error::new(lit.span(), "unsupported type"));
             }
             HtmlNode::Literal(Box::new(lit))
         } else {

@@ -2,17 +2,19 @@
 
 mod classes;
 mod component;
+mod conversion;
 mod listener;
 
 pub use classes::*;
 pub use component::*;
+pub use conversion::*;
 pub use listener::*;
 
-use crate::virtual_dom::VNode;
+use crate::virtual_dom::{VNode, VPortal};
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::JsValue;
-use web_sys::Node;
+use web_sys::{Element, Node};
 
 /// A type which expected as a result of `view` function implementation.
 pub type Html = VNode;
@@ -33,13 +35,13 @@ pub type Html = VNode;
 ///     type Message = ();
 ///     type Properties = ();
 ///
-///     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+///     fn create(_ctx: &Context<Self>) -> Self {
 ///         Input {
 ///             node_ref: NodeRef::default(),
 ///         }
 ///     }
 ///
-///     fn rendered(&mut self, first_render: bool) {
+///     fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
 ///         if first_render {
 ///             if let Some(input) = self.node_ref.cast::<HtmlInputElement>() {
 ///                 input.focus();
@@ -47,29 +49,31 @@ pub type Html = VNode;
 ///         }
 ///     }
 ///
-///     fn change(&mut self, _: Self::Properties) -> ShouldRender {
-///         false
-///     }
-///
-///     fn update(&mut self, _: Self::Message) -> ShouldRender {
-///         false
-///     }
-///
-///     fn view(&self) -> Html {
+///     fn view(&self, _ctx: &Context<Self>) -> Html {
 ///         html! {
-///             <input ref=self.node_ref.clone() type="text" />
+///             <input ref={self.node_ref.clone()} type="text" />
 ///         }
 ///     }
 /// }
 /// ```
 /// ## Relevant examples
 /// - [Node Refs](https://github.com/yewstack/yew/tree/master/examples/node_refs)
-#[derive(Debug, Default, Clone)]
+#[derive(Default, Clone)]
 pub struct NodeRef(Rc<RefCell<NodeRefInner>>);
 
 impl PartialEq for NodeRef {
     fn eq(&self, other: &Self) -> bool {
         self.0.as_ptr() == other.0.as_ptr() || Some(self) == other.0.borrow().link.as_ref()
+    }
+}
+
+impl std::fmt::Debug for NodeRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "NodeRef {{ references: {:?} }}",
+            self.get().map(|n| crate::utils::print_node(&n))
+        )
     }
 }
 
@@ -132,10 +136,18 @@ impl NodeRef {
     }
 }
 
+/// Render children into a DOM node that exists outside the hierarchy of the parent
+/// component.
+/// ## Relevant examples
+/// - [Portals](https://github.com/yewstack/yew/tree/master/examples/portals)
+pub fn create_portal(child: Html, host: Element) -> Html {
+    VNode::VPortal(VPortal::new(child, host))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::utils::document;
+    use gloo_utils::document;
 
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};

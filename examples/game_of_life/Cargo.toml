@@ -7,6 +7,7 @@ authors = [
     "Junjie Huang <huangjj.27@qq.com>"
 ]
 edition = "2018"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 getrandom = { version = "0.2", features = ["js"] }
@@ -14,4 +15,4 @@ log = "0.4"
 rand = "0.8"
 wasm-logger = "0.2"
 yew = { path = "../../packages/yew" }
-yew-services = { path = "../../packages/yew-services" }
+gloo-timers = "0.2"

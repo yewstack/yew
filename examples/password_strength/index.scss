@@ -1,0 +1,52 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.7);
+
+  background: linear-gradient(to bottom right, #00d034, #c0c0c0);
+  font-size: 1.5rem;
+  font-family: sans-serif;
+}
+
+main {
+  width: 30em;
+}
+
+.entry,
+.readout {
+  margin: 0 auto;
+  padding: 8px;
+  border: 1px solid black;
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+.entry input {
+  font-size: 1.5rem;
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  width: 100%;
+  display: block;
+  box-sizing: border-box;
+  margin-top: 16px;
+}
+
+.readout {
+  margin-top: 16px;
+}
+
+input:focus {
+  outline: 0;
+  border-color: #550096;
+}
+
+.footnote {
+  font-size: 0.9rem;
+  margin-top: 16px;
+}

@@ -1,6 +1,6 @@
 use super::event_bus::EventBus;
-use yew::agent::Bridged;
-use yew::{html, Bridge, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, Component, Context, Html};
+use yew_agent::{Bridge, Bridged};
 
 pub enum Msg {
     NewMessage(String),
@@ -15,18 +15,14 @@ impl Component for Subscriber {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
         Self {
             message: "No message yet.".to_owned(),
-            _producer: EventBus::bridge(link.callback(Msg::NewMessage)),
+            _producer: EventBus::bridge(ctx.link().callback(Msg::NewMessage)),
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::NewMessage(s) => {
                 self.message = s;
@@ -35,7 +31,7 @@ impl Component for Subscriber {
         }
     }
 
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <h1>{ &self.message }</h1>
         }

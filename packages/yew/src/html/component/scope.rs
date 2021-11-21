@@ -2,28 +2,36 @@
 
 use super::{
     lifecycle::{
-        ComponentLifecycleEvent, ComponentRunnable, ComponentState, CreateEvent, UpdateEvent,
+        ComponentState, CreateRunner, DestroyRunner, RenderRunner, RenderedRunner, UpdateEvent,
+        UpdateRunner,
     },
     Component,
 };
 use crate::callback::Callback;
+use crate::context::{ContextHandle, ContextProvider};
 use crate::html::NodeRef;
-use crate::scheduler::{scheduler, Shared};
-use crate::utils::document;
+use crate::scheduler::{self, Shared};
 use crate::virtual_dom::{insert_node, VNode};
+use gloo_utils::document;
 use std::any::{Any, TypeId};
 use std::cell::{Ref, RefCell};
-use std::fmt;
+use std::future::Future;
 use std::ops::Deref;
 use std::rc::Rc;
+use std::{fmt, iter};
+use wasm_bindgen_futures::spawn_local;
 use web_sys::{Element, Node};
 
 /// Untyped scope used for accessing parent scope
 #[derive(Debug, Clone)]
 pub struct AnyScope {
-    pub(crate) type_id: TypeId,
-    pub(crate) parent: Option<Rc<AnyScope>>,
-    pub(crate) state: Rc<dyn Any>,
+    type_id: TypeId,
+    parent: Option<Rc<AnyScope>>,
+    state: Rc<dyn Any>,
+
+    // Used for debug logging
+    #[cfg(debug_assertions)]
+    pub(crate) vcomp_id: u64,
 }
 
 impl<COMP: Component> From<Scope<COMP>> for AnyScope {
@@ -31,12 +39,27 @@ impl<COMP: Component> From<Scope<COMP>> for AnyScope {
         AnyScope {
             type_id: TypeId::of::<COMP>(),
             parent: scope.parent,
-            state: Rc::new(scope.state),
+            state: scope.state,
+
+            #[cfg(debug_assertions)]
+            vcomp_id: scope.vcomp_id,
         }
     }
 }
 
 impl AnyScope {
+    #[cfg(test)]
+    pub(crate) fn test() -> Self {
+        Self {
+            type_id: TypeId::of::<()>(),
+            parent: None,
+            state: Rc::new(()),
+
+            #[cfg(debug_assertions)]
+            vcomp_id: 0,
+        }
+    }
+
     /// Returns the parent scope
     pub fn get_parent(&self) -> Option<&AnyScope> {
         self.parent.as_deref()
@@ -49,14 +72,46 @@ impl AnyScope {
 
     /// Attempts to downcast into a typed scope
     pub fn downcast<COMP: Component>(self) -> Scope<COMP> {
+        let state = self
+            .state
+            .downcast::<RefCell<Option<ComponentState<COMP>>>>()
+            .expect("unexpected component type");
+
+        #[cfg(debug_assertions)]
+        let vcomp_id = state
+            .borrow()
+            .as_ref()
+            .map(|s| s.vcomp_id)
+            .unwrap_or_default();
+
         Scope {
             parent: self.parent,
-            state: self
-                .state
-                .downcast_ref::<Shared<Option<ComponentState<COMP>>>>()
-                .expect("unexpected component type")
-                .clone(),
+            state,
+
+            #[cfg(debug_assertions)]
+            vcomp_id,
         }
+    }
+
+    fn find_parent_scope<C: Component>(&self) -> Option<Scope<C>> {
+        let expected_type_id = TypeId::of::<C>();
+        iter::successors(Some(self), |scope| scope.get_parent())
+            .filter(|scope| scope.get_type_id() == &expected_type_id)
+            .cloned()
+            .map(AnyScope::downcast::<C>)
+            .next()
+    }
+
+    /// Accesses a value provided by a parent `ContextProvider` component of the
+    /// same type.
+    pub fn context<T: Clone + PartialEq + 'static>(
+        &self,
+        callback: Callback<T>,
+    ) -> Option<(T, ContextHandle<T>)> {
+        let scope = self.find_parent_scope::<ContextProvider<T>>()?;
+        let scope_clone = scope.clone();
+        let component = scope.get_component()?;
+        Some(component.subscribe_consumer(callback, scope_clone))
     }
 }
 
@@ -84,14 +139,22 @@ impl<COMP: Component> Scoped for Scope<COMP> {
 
     /// Process an event to destroy a component
     fn destroy(&mut self) {
-        self.process(ComponentLifecycleEvent::Destroy);
+        scheduler::push_component_destroy(DestroyRunner {
+            state: self.state.clone(),
+        });
+        // Not guaranteed to already have the scheduler started
+        scheduler::start();
     }
 }
 
 /// A context which allows sending messages to a component.
 pub struct Scope<COMP: Component> {
     parent: Option<Rc<AnyScope>>,
-    state: Shared<Option<ComponentState<COMP>>>,
+    pub(crate) state: Shared<Option<ComponentState<COMP>>>,
+
+    // Used for debug logging
+    #[cfg(debug_assertions)]
+    pub(crate) vcomp_id: u64,
 }
 
 impl<COMP: Component> fmt::Debug for Scope<COMP> {
@@ -105,6 +168,9 @@ impl<COMP: Component> Clone for Scope<COMP> {
         Scope {
             parent: self.parent.clone(),
             state: self.state.clone(),
+
+            #[cfg(debug_assertions)]
+            vcomp_id: self.vcomp_id,
         }
     }
 }
@@ -128,62 +194,75 @@ impl<COMP: Component> Scope<COMP> {
     pub(crate) fn new(parent: Option<AnyScope>) -> Self {
         let parent = parent.map(Rc::new);
         let state = Rc::new(RefCell::new(None));
-        Scope { parent, state }
+
+        #[cfg(debug_assertions)]
+        let vcomp_id = parent.as_ref().map(|p| p.vcomp_id).unwrap_or_default();
+
+        Scope {
+            state,
+            parent,
+
+            #[cfg(debug_assertions)]
+            vcomp_id,
+        }
     }
 
     /// Mounts a component with `props` to the specified `element` in the DOM.
     pub(crate) fn mount_in_place(
-        self,
+        &self,
         parent: Element,
         next_sibling: NodeRef,
         node_ref: NodeRef,
-        props: COMP::Properties,
-    ) -> Scope<COMP> {
+        props: Rc<COMP::Properties>,
+    ) {
+        #[cfg(debug_assertions)]
+        crate::virtual_dom::vcomp::log_event(self.vcomp_id, "create placeholder");
         let placeholder = {
             let placeholder: Node = document().create_text_node("").into();
-            insert_node(&placeholder, &parent, next_sibling.get());
+            insert_node(&placeholder, &parent, next_sibling.get().as_ref());
             node_ref.set(Some(placeholder.clone()));
             VNode::VRef(placeholder)
         };
 
-        self.schedule(UpdateEvent::First.into());
-        self.process(ComponentLifecycleEvent::Create(CreateEvent {
-            parent,
-            next_sibling,
-            placeholder,
-            node_ref,
-            props,
-            scope: self.clone(),
-        }));
-
-        self
-    }
-
-    pub(crate) fn reuse(&self, props: COMP::Properties, node_ref: NodeRef, next_sibling: NodeRef) {
-        self.process(UpdateEvent::Properties(props, node_ref, next_sibling).into());
-    }
-
-    pub(crate) fn process(&self, event: ComponentLifecycleEvent<COMP>) {
-        let scheduler = scheduler();
-        scheduler.component.push(
-            event.as_runnable_type(),
-            Box::new(ComponentRunnable {
+        scheduler::push_component_create(
+            CreateRunner {
+                parent,
+                next_sibling,
+                placeholder,
+                node_ref,
+                props,
+                scope: self.clone(),
+            },
+            RenderRunner {
                 state: self.state.clone(),
-                event,
-            }),
+            },
+            RenderedRunner {
+                state: self.state.clone(),
+            },
         );
-        scheduler.start();
+        // Not guaranteed to already have the scheduler started
+        scheduler::start();
     }
 
-    fn schedule(&self, event: ComponentLifecycleEvent<COMP>) {
-        let scheduler = &scheduler().component;
-        scheduler.push(
-            event.as_runnable_type(),
-            Box::new(ComponentRunnable {
-                state: self.state.clone(),
-                event,
-            }),
-        );
+    pub(crate) fn reuse(
+        &self,
+        props: Rc<COMP::Properties>,
+        node_ref: NodeRef,
+        next_sibling: NodeRef,
+    ) {
+        #[cfg(debug_assertions)]
+        crate::virtual_dom::vcomp::log_event(self.vcomp_id, "reuse");
+
+        self.push_update(UpdateEvent::Properties(props, node_ref, next_sibling));
+    }
+
+    fn push_update(&self, event: UpdateEvent<COMP>) {
+        scheduler::push_component_update(UpdateRunner {
+            state: self.state.clone(),
+            event,
+        });
+        // Not guaranteed to already have the scheduler started
+        scheduler::start();
     }
 
     /// Send a message to the component.
@@ -194,7 +273,7 @@ impl<COMP: Component> Scope<COMP> {
     where
         T: Into<COMP::Message>,
     {
-        self.process(UpdateEvent::Message(msg.into()).into());
+        self.push_update(UpdateEvent::Message(msg.into()));
     }
 
     /// Send a batch of messages to the component.
@@ -212,7 +291,7 @@ impl<COMP: Component> Scope<COMP> {
             return;
         }
 
-        self.process(UpdateEvent::MessageBatch(messages).into());
+        self.push_update(UpdateEvent::MessageBatch(messages));
     }
 
     /// Creates a `Callback` which will send a message to the linked
@@ -226,12 +305,38 @@ impl<COMP: Component> Scope<COMP> {
         M: Into<COMP::Message>,
         F: Fn(IN) -> M + 'static,
     {
+        self.callback_with_passive(None, function)
+    }
+
+    /// Creates a `Callback` which will send a message to the linked
+    /// component's update method when invoked.
+    ///
+    /// Setting `passive` to [Some] explicitly makes the event listener passive or not.
+    /// Yew sets sane defaults depending on the type of the listener.
+    /// See
+    /// [addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).
+    ///
+    /// Please be aware that currently the result of this callback
+    /// synchronously schedules a call to the [Component](Component)
+    /// interface.
+    pub fn callback_with_passive<F, IN, M>(
+        &self,
+        passive: impl Into<Option<bool>>,
+        function: F,
+    ) -> Callback<IN>
+    where
+        M: Into<COMP::Message>,
+        F: Fn(IN) -> M + 'static,
+    {
         let scope = self.clone();
         let closure = move |input| {
             let output = function(input);
             scope.send_message(output);
         };
-        closure.into()
+        Callback::Callback {
+            passive: passive.into(),
+            cb: Rc::new(closure),
+        }
     }
 
     /// Creates a `Callback` from an `FnOnce` which will send a message
@@ -307,6 +412,94 @@ impl<COMP: Component> Scope<COMP> {
             messages.send(&scope);
         };
         Callback::once(closure)
+    }
+
+    /// This method creates a [`Callback`] which returns a Future which
+    /// returns a message to be sent back to the component's event
+    /// loop.
+    ///
+    /// # Panics
+    /// If the future panics, then the promise will not resolve, and
+    /// will leak.
+    pub fn callback_future<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
+    where
+        M: Into<COMP::Message>,
+        FU: Future<Output = M> + 'static,
+        FN: Fn(IN) -> FU + 'static,
+    {
+        let link = self.clone();
+
+        let closure = move |input: IN| {
+            let future: FU = function(input);
+            link.send_future(future);
+        };
+
+        closure.into()
+    }
+
+    /// This method creates a [`Callback`] from [`FnOnce`] which returns a Future
+    /// which returns a message to be sent back to the component's event
+    /// loop.
+    ///
+    /// # Panics
+    /// If the future panics, then the promise will not resolve, and
+    /// will leak.
+    pub fn callback_future_once<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
+    where
+        M: Into<COMP::Message>,
+        FU: Future<Output = M> + 'static,
+        FN: FnOnce(IN) -> FU + 'static,
+    {
+        let link = self.clone();
+
+        let closure = move |input: IN| {
+            let future: FU = function(input);
+            link.send_future(future);
+        };
+
+        Callback::once(closure)
+    }
+
+    /// This method processes a Future that returns a message and sends it back to the component's
+    /// loop.
+    ///
+    /// # Panics
+    /// If the future panics, then the promise will not resolve, and will leak.
+    pub fn send_future<F, M>(&self, future: F)
+    where
+        M: Into<COMP::Message>,
+        F: Future<Output = M> + 'static,
+    {
+        let link = self.clone();
+        let js_future = async move {
+            let message: COMP::Message = future.await.into();
+            link.send_message(message);
+        };
+        spawn_local(js_future);
+    }
+
+    /// Registers a Future that resolves to multiple messages.
+    /// # Panics
+    /// If the future panics, then the promise will not resolve, and will leak.
+    pub fn send_future_batch<F>(&self, future: F)
+    where
+        F: Future<Output = Vec<COMP::Message>> + 'static,
+    {
+        let link = self.clone();
+        let js_future = async move {
+            let messages: Vec<COMP::Message> = future.await;
+            link.send_message_batch(messages);
+        };
+        spawn_local(js_future);
+    }
+
+    /// Accesses a value provided by a parent `ContextProvider` component of the
+    /// same type.
+    pub fn context<T: Clone + PartialEq + 'static>(
+        &self,
+        callback: Callback<T>,
+    ) -> Option<(T, ContextHandle<T>)> {
+        self.to_any().context(callback)
     }
 }
 

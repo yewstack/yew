@@ -90,3 +90,12 @@ impl Stringify for HtmlDashedName {
         self.to_lit_str().stringify()
     }
 }
+
+impl From<Ident> for HtmlDashedName {
+    fn from(name: Ident) -> Self {
+        HtmlDashedName {
+            name,
+            extended: vec![],
+        }
+    }
+}

@@ -3,24 +3,29 @@
 #[doc(hidden)]
 pub mod key;
 #[doc(hidden)]
+pub mod listeners;
+#[doc(hidden)]
 pub mod vcomp;
 #[doc(hidden)]
 pub mod vlist;
 #[doc(hidden)]
 pub mod vnode;
 #[doc(hidden)]
+pub mod vportal;
+#[doc(hidden)]
 pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
 
 use crate::html::{AnyScope, NodeRef};
-use gloo::events::EventListener;
 use indexmap::IndexMap;
-use std::{borrow::Cow, collections::HashMap, fmt, hint::unreachable_unchecked, iter, mem, rc::Rc};
+use std::{collections::HashMap, fmt, hint::unreachable_unchecked, iter};
 use web_sys::{Element, Node};
 
 #[doc(inline)]
 pub use self::key::Key;
+#[doc(inline)]
+pub use self::listeners::*;
 #[doc(inline)]
 pub use self::vcomp::{VChild, VComp};
 #[doc(inline)]
@@ -28,76 +33,196 @@ pub use self::vlist::VList;
 #[doc(inline)]
 pub use self::vnode::VNode;
 #[doc(inline)]
+pub use self::vportal::VPortal;
+#[doc(inline)]
 pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
+use std::fmt::Formatter;
+use std::ops::Deref;
+use std::rc::Rc;
 
-/// The `Listener` trait is an universal implementation of an event listener
-/// which is used to bind Rust-listener to JS-listener (DOM).
-pub trait Listener {
-    /// Returns the name of the event
-    fn kind(&self) -> &'static str;
-    /// Attaches a listener to the element.
-    fn attach(&self, element: &Element) -> EventListener;
+/// Attribute value
+#[derive(Debug)]
+pub enum AttrValue {
+    /// String living for `'static`
+    Static(&'static str),
+    /// Owned string
+    Owned(String),
+    /// Reference counted string
+    Rc(Rc<str>),
 }
 
-impl fmt::Debug for dyn Listener {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Listener {{ kind: {} }}", self.kind())
+impl Deref for AttrValue {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        match self {
+            AttrValue::Static(s) => *s,
+            AttrValue::Owned(s) => s.as_str(),
+            AttrValue::Rc(s) => &*s,
+        }
     }
 }
 
-/// A list of event listeners.
-type Listeners = Vec<Rc<dyn Listener>>;
+impl From<&'static str> for AttrValue {
+    fn from(s: &'static str) -> Self {
+        AttrValue::Static(s)
+    }
+}
 
-/// Key-value tuple which makes up an item of the [`Attributes::Vec`] variant.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PositionalAttr(pub &'static str, pub Option<Cow<'static, str>>);
-impl PositionalAttr {
-    /// Create a positional attribute
-    pub fn new(key: &'static str, value: impl Into<Cow<'static, str>>) -> Self {
-        Self(key, Some(value.into()))
+impl From<String> for AttrValue {
+    fn from(s: String) -> Self {
+        AttrValue::Owned(s)
     }
-    /// Create a placeholder for removed attributes
-    pub fn new_placeholder(key: &'static str) -> Self {
-        Self(key, None)
+}
+
+impl From<Rc<str>> for AttrValue {
+    fn from(s: Rc<str>) -> Self {
+        AttrValue::Rc(s)
+    }
+}
+
+impl Clone for AttrValue {
+    fn clone(&self) -> Self {
+        match self {
+            AttrValue::Static(s) => AttrValue::Static(s),
+            AttrValue::Owned(s) => AttrValue::Owned(s.clone()),
+            AttrValue::Rc(s) => AttrValue::Rc(Rc::clone(s)),
+        }
+    }
+}
+
+impl AsRef<str> for AttrValue {
+    fn as_ref(&self) -> &str {
+        &*self
+    }
+}
+
+impl fmt::Display for AttrValue {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            AttrValue::Static(s) => write!(f, "{}", s),
+            AttrValue::Owned(s) => write!(f, "{}", s),
+            AttrValue::Rc(s) => write!(f, "{}", s),
+        }
+    }
+}
+
+impl PartialEq for AttrValue {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_ref() == other.as_ref()
+    }
+}
+
+impl Eq for AttrValue {}
+
+impl AttrValue {
+    /// Consumes the AttrValue and returns the owned String from the AttrValue whenever possible.
+    /// For AttrValue::Rc the <str> is cloned to String in case there are other Rc or Weak pointers to the
+    /// same allocation.
+    pub fn into_string(self) -> String {
+        match self {
+            AttrValue::Static(s) => (*s).to_owned(),
+            AttrValue::Owned(s) => s,
+            AttrValue::Rc(mut rc) => {
+                if let Some(s) = Rc::get_mut(&mut rc) {
+                    (*s).to_owned()
+                } else {
+                    rc.to_string()
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests_attr_value {
+    use super::*;
+
+    #[test]
+    fn test_into_string() {
+        let av = AttrValue::Static("str");
+        assert_eq!(av.into_string(), "str");
+
+        let av = AttrValue::Owned("String".to_string());
+        assert_eq!(av.into_string(), "String");
+
+        let av = AttrValue::Rc("Rc<str>".into());
+        assert_eq!(av.into_string(), "Rc<str>");
     }
 
-    fn transpose(self) -> Option<(&'static str, Cow<'static, str>)> {
-        let Self(key, value) = self;
-        value.map(|v| (key, v))
-    }
+    #[test]
+    fn test_equality() {
+        // construct 3 AttrValue with same embedded value; expectation is that all are equal
+        let a = AttrValue::Owned("same".to_string());
+        let b = AttrValue::Static("same");
+        let c = AttrValue::Rc("same".into());
 
-    fn transposed<'a>(&'a self) -> Option<(&'static str, &'a Cow<'static, str>)> {
-        let Self(key, value) = self;
-        value.as_ref().map(|v| (*key, v))
+        assert_eq!(a, b);
+        assert_eq!(b, c);
+        assert_eq!(a, c);
+
+        assert!(a == b);
+        assert!(b == c);
+        assert!(a == c);
     }
+}
+
+/// Applies contained changes to DOM [Element]
+trait Apply {
+    /// [Element] type to apply the changes to
+    type Element;
+
+    /// Apply contained values to [Element] with no ancestor
+    fn apply(&mut self, el: &Self::Element);
+
+    /// Apply diff between [self] and `ancestor` to [Element].
+    fn apply_diff(&mut self, el: &Self::Element, ancestor: Self);
 }
 
 /// A collection of attributes for an element
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Attributes {
-    /// A vector is ideal because most of the time the list will neither change
-    /// length nor key order.
-    Vec(Vec<PositionalAttr>),
+    /// Static list of attributes.
+    ///
+    /// Allows optimizing comparison to a simple pointer equality check and reducing allocations,
+    /// if the attributes do not change on a node.
+    Static(&'static [[&'static str; 2]]),
+
+    /// Static list of attribute keys with possibility to exclude attributes and dynamic attribute
+    /// values.
+    ///
+    /// Allows optimizing comparison to a simple pointer equality check and reducing allocations,
+    /// if the attributes keys do not change on a node.
+    Dynamic {
+        /// Attribute keys. Includes both always set and optional attribute keys.
+        keys: &'static [&'static str],
+
+        /// Attribute values. Matches [keys]. Optional attributes are designated by setting [None].
+        values: Box<[Option<AttrValue>]>,
+    },
 
     /// IndexMap is used to provide runtime attribute deduplication in cases where the html! macro
     /// was not used to guarantee it.
-    IndexMap(IndexMap<&'static str, Cow<'static, str>>),
+    IndexMap(IndexMap<&'static str, AttrValue>),
 }
+
 impl Attributes {
     /// Construct a default Attributes instance
     pub fn new() -> Self {
-        Default::default()
+        Self::default()
     }
 
-    /// Return iterator over attribute key-value pairs
+    /// Return iterator over attribute key-value pairs.
+    /// This function is suboptimal and does not inline well. Avoid on hot paths.
     pub fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'static str, &'a str)> + 'a> {
         match self {
-            Self::Vec(v) => Box::new(
-                v.iter()
-                    .filter_map(PositionalAttr::transposed)
-                    .map(|(k, v)| (k, v.as_ref())),
+            Self::Static(arr) => Box::new(arr.iter().map(|kv| (kv[0], kv[1] as &'a str))),
+            Self::Dynamic { keys, values } => Box::new(
+                keys.iter()
+                    .zip(values.iter())
+                    .filter_map(|(k, v)| v.as_ref().map(|v| (*k, v.as_ref()))),
             ),
             Self::IndexMap(m) => Box::new(m.iter().map(|(k, v)| (*k, v.as_ref()))),
         }
@@ -105,115 +230,47 @@ impl Attributes {
 
     /// Get a mutable reference to the underlying `IndexMap`.
     /// If the attributes are stored in the `Vec` variant, it will be converted.
-    pub fn get_mut_index_map(&mut self) -> &mut IndexMap<&'static str, Cow<'static, str>> {
-        match self {
-            Self::IndexMap(m) => m,
-            Self::Vec(v) => {
-                *self = Self::IndexMap(
-                    mem::take(v)
-                        .into_iter()
-                        .filter_map(PositionalAttr::transpose)
-                        .collect(),
-                );
+    pub fn get_mut_index_map(&mut self) -> &mut IndexMap<&'static str, AttrValue> {
+        macro_rules! unpack {
+            () => {
                 match self {
                     Self::IndexMap(m) => m,
-                    // SAFETY: unreachable because we set the value to the `IndexMap` variant above.
+                    // SAFETY: unreachable because we set self to the `IndexMap` variant above.
                     _ => unsafe { unreachable_unchecked() },
                 }
+            };
+        }
+
+        match self {
+            Self::IndexMap(m) => m,
+            Self::Static(arr) => {
+                *self = Self::IndexMap(arr.iter().map(|kv| (kv[0], kv[1].into())).collect());
+                unpack!()
+            }
+            Self::Dynamic { keys, values } => {
+                *self = Self::IndexMap(
+                    std::mem::take(values)
+                        .iter_mut()
+                        .zip(keys.iter())
+                        .filter_map(|(v, k)| v.take().map(|v| (*k, v)))
+                        .collect(),
+                );
+                unpack!()
             }
         }
     }
 
-    fn diff_vec<'a>(
-        new: &'a [PositionalAttr],
-        old: &[PositionalAttr],
-    ) -> Vec<Patch<&'static str, &'a str>> {
-        let mut out = Vec::new();
-        let mut new_iter = new.iter();
-        let mut old_iter = old.iter();
-
-        loop {
-            match (new_iter.next(), old_iter.next()) {
-                (
-                    Some(PositionalAttr(key, new_value)),
-                    Some(PositionalAttr(old_key, old_value)),
-                ) if key == old_key => match (new_value, old_value) {
-                    (Some(new), Some(old)) => {
-                        if new != old {
-                            out.push(Patch::Replace(*key, new.as_ref()));
-                        }
-                    }
-                    (Some(value), None) => out.push(Patch::Add(*key, value.as_ref())),
-                    (None, Some(_)) => out.push(Patch::Remove(*key)),
-                    (None, None) => {}
-                },
-                // keys don't match, we can no longer compare linearly from here on out
-                (Some(new_attr), Some(old_attr)) => {
-                    // assume that every attribute is new.
-                    let mut added = iter::once(new_attr)
-                        .chain(new_iter)
-                        .filter_map(PositionalAttr::transposed)
-                        .map(|(key, value)| (key, value.as_ref()))
-                        .collect::<HashMap<_, _>>();
-
-                    // now filter out all the attributes that aren't new
-                    for (key, old_value) in iter::once(old_attr)
-                        .chain(old_iter)
-                        .filter_map(PositionalAttr::transposed)
-                    {
-                        if let Some(new_value) = added.remove(key) {
-                            // attribute still exists but changed value
-                            if new_value != old_value.as_ref() {
-                                out.push(Patch::Replace(key, new_value));
-                            }
-                        } else {
-                            // attribute no longer exists
-                            out.push(Patch::Remove(key));
-                        }
-                    }
-
-                    // finally, we're left with the attributes that are actually new.
-                    out.extend(added.into_iter().map(|(k, v)| Patch::Add(k, v)));
-                    break;
-                }
-                // added attributes
-                (Some(attr), None) => {
-                    for PositionalAttr(key, value) in iter::once(attr).chain(new_iter) {
-                        // only add value if it has a value
-                        if let Some(value) = value {
-                            out.push(Patch::Add(*key, value));
-                        }
-                    }
-                    break;
-                }
-                // removed attributes
-                (None, Some(attr)) => {
-                    for PositionalAttr(key, value) in iter::once(attr).chain(old_iter) {
-                        // only remove the attribute if it had a value before
-                        if value.is_some() {
-                            out.push(Patch::Remove(*key));
-                        }
-                    }
-                    break;
-                }
-                (None, None) => break,
-            }
-        }
-
-        out
-    }
-
-    fn diff_index_map<'a, A, B>(
+    #[cold]
+    fn apply_diff_index_maps<'a, A, B>(
+        el: &Element,
         // this makes it possible to diff `&'a IndexMap<_, A>` and `IndexMap<_, &'a A>`.
         mut new_iter: impl Iterator<Item = (&'static str, &'a str)>,
         new: &IndexMap<&'static str, A>,
         old: &IndexMap<&'static str, B>,
-    ) -> Vec<Patch<&'static str, &'a str>>
-    where
+    ) where
         A: AsRef<str>,
         B: AsRef<str>,
     {
-        let mut out = Vec::new();
         let mut old_iter = old.iter();
         loop {
             match (new_iter.next(), old_iter.next()) {
@@ -222,7 +279,7 @@ impl Attributes {
                         break;
                     }
                     if new_value != old_value.as_ref() {
-                        out.push(Patch::Replace(new_key, new_value));
+                        Self::set_attribute(el, new_key, new_value);
                     }
                 }
                 // new attributes
@@ -231,10 +288,12 @@ impl Attributes {
                         match old.get(key) {
                             Some(old_value) => {
                                 if value != old_value.as_ref() {
-                                    out.push(Patch::Replace(key, value));
+                                    Self::set_attribute(el, key, value);
                                 }
                             }
-                            None => out.push(Patch::Add(key, value)),
+                            None => {
+                                Self::set_attribute(el, key, value);
+                            }
                         }
                     }
                     break;
@@ -243,7 +302,7 @@ impl Attributes {
                 (None, Some(attr)) => {
                     for (key, _) in iter::once(attr).chain(old_iter) {
                         if !new.contains_key(key) {
-                            out.push(Patch::Remove(*key));
+                            Self::remove_attribute(el, key);
                         }
                     }
                     break;
@@ -251,63 +310,155 @@ impl Attributes {
                 (None, None) => break,
             }
         }
-
-        out
     }
 
-    fn diff<'a>(new: &'a Self, old: &'a Self) -> Vec<Patch<&'static str, &'a str>> {
-        match (new, old) {
-            (Self::Vec(new), Self::Vec(old)) => Self::diff_vec(new, old),
-            (Self::Vec(new), Self::IndexMap(old)) => {
-                // this case is somewhat tricky because we need to return references to the values in `new`
-                // but we also want to turn `new` into a hash map for performance reasons
-                let new_iter = new
+    /// Convert [Attributes] pair to [HashMap]s and patch changes to `el`.
+    /// Works with any [Attributes] variants.
+    #[cold]
+    fn apply_diff_as_maps<'a>(el: &Element, new: &'a Self, old: &'a Self) {
+        fn collect<'a>(src: &'a Attributes) -> HashMap<&'static str, &'a str> {
+            use Attributes::*;
+
+            match src {
+                Static(arr) => (*arr).iter().map(|[k, v]| (*k, *v)).collect(),
+                Dynamic { keys, values } => keys
                     .iter()
-                    .filter_map(PositionalAttr::transposed)
-                    .map(|(k, v)| (k, v.as_ref()));
-                // create a "view" over references to the actual data in `new`.
-                let new = new.iter().filter_map(PositionalAttr::transposed).collect();
-                Self::diff_index_map(new_iter, &new, old)
+                    .zip(values.iter())
+                    .filter_map(|(k, v)| v.as_ref().map(|v| (*k, v.as_ref())))
+                    .collect(),
+                IndexMap(m) => m.iter().map(|(k, v)| (*k, v.as_ref())).collect(),
             }
-            (Self::IndexMap(new), Self::Vec(old)) => {
-                let new_iter = new.iter().map(|(k, v)| (*k, v.as_ref()));
-                Self::diff_index_map(
-                    new_iter,
-                    new,
-                    &old.iter().filter_map(PositionalAttr::transposed).collect(),
-                )
+        }
+
+        let new = collect(new);
+        let old = collect(old);
+
+        // Update existing or set new
+        for (k, new) in new.iter() {
+            if match old.get(k) {
+                Some(old) => old != new,
+                None => true,
+            } {
+                el.set_attribute(k, new).unwrap();
             }
+        }
+
+        // Remove missing
+        for k in old.keys() {
+            if !new.contains_key(k) {
+                Self::remove_attribute(el, k);
+            }
+        }
+    }
+
+    fn set_attribute(el: &Element, key: &str, value: &str) {
+        el.set_attribute(key, value).expect("invalid attribute key")
+    }
+
+    fn remove_attribute(el: &Element, key: &str) {
+        el.remove_attribute(key)
+            .expect("could not remove attribute")
+    }
+}
+
+impl Apply for Attributes {
+    type Element = Element;
+
+    fn apply(&mut self, el: &Element) {
+        match self {
+            Self::Static(arr) => {
+                for kv in arr.iter() {
+                    Self::set_attribute(el, kv[0], kv[1]);
+                }
+            }
+            Self::Dynamic { keys, values } => {
+                for (k, v) in keys.iter().zip(values.iter()) {
+                    if let Some(v) = v {
+                        Self::set_attribute(el, k, v)
+                    }
+                }
+            }
+            Self::IndexMap(m) => {
+                for (k, v) in m.iter() {
+                    Self::set_attribute(el, k, v)
+                }
+            }
+        }
+    }
+
+    fn apply_diff(&mut self, el: &Element, ancestor: Self) {
+        #[inline]
+        fn ptr_eq<T>(a: &[T], b: &[T]) -> bool {
+            a.as_ptr() == b.as_ptr()
+        }
+
+        match (self, ancestor) {
+            // Hot path
+            (Self::Static(new), Self::Static(old)) if ptr_eq(new, old) => (),
+            // Hot path
+            (
+                Self::Dynamic {
+                    keys: new_k,
+                    values: new_v,
+                },
+                Self::Dynamic {
+                    keys: old_k,
+                    values: old_v,
+                },
+            ) if ptr_eq(new_k, old_k) => {
+                // Double zipping does not optimize well, so use asserts and unsafe instead
+                assert!(new_k.len() == new_v.len());
+                assert!(new_k.len() == old_v.len());
+                for i in 0..new_k.len() {
+                    macro_rules! key {
+                        () => {
+                            unsafe { new_k.get_unchecked(i) }
+                        };
+                    }
+                    macro_rules! set {
+                        ($new:expr) => {
+                            Self::set_attribute(el, key!(), $new)
+                        };
+                    }
+
+                    match unsafe { (new_v.get_unchecked(i), old_v.get_unchecked(i)) } {
+                        (Some(new), Some(old)) => {
+                            if new != old {
+                                set!(new);
+                            }
+                        }
+                        (Some(new), None) => set!(new),
+                        (None, Some(_)) => {
+                            Self::remove_attribute(el, key!());
+                        }
+                        (None, None) => (),
+                    }
+                }
+            }
+            // For VTag's constructed outside the html! macro
             (Self::IndexMap(new), Self::IndexMap(old)) => {
                 let new_iter = new.iter().map(|(k, v)| (*k, v.as_ref()));
-                Self::diff_index_map(new_iter, new, old)
+                Self::apply_diff_index_maps(el, new_iter, new, &old);
+            }
+            // Cold path. Happens only with conditional swapping and reordering of `VTag`s with the
+            // same tag and no keys.
+            (new, ancestor) => {
+                Self::apply_diff_as_maps(el, new, &ancestor);
             }
         }
     }
 }
 
-impl From<Vec<PositionalAttr>> for Attributes {
-    fn from(v: Vec<PositionalAttr>) -> Self {
-        Self::Vec(v)
-    }
-}
-impl From<IndexMap<&'static str, Cow<'static, str>>> for Attributes {
-    fn from(v: IndexMap<&'static str, Cow<'static, str>>) -> Self {
+impl From<IndexMap<&'static str, AttrValue>> for Attributes {
+    fn from(v: IndexMap<&'static str, AttrValue>) -> Self {
         Self::IndexMap(v)
     }
 }
 
 impl Default for Attributes {
     fn default() -> Self {
-        Self::Vec(Default::default())
+        Self::Static(&[])
     }
-}
-
-/// Patch for DOM node modification.
-#[derive(Debug, PartialEq)]
-enum Patch<ID, T> {
-    Add(ID, T),
-    Replace(ID, T),
-    Remove(ID),
 }
 
 // TODO(#938): What about implementing `VDiff` for `Element`?
@@ -353,45 +504,39 @@ pub(crate) trait VDiff {
     ) -> NodeRef;
 }
 
-pub(crate) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<Node>) {
+pub(crate) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&Node>) {
     match next_sibling {
         Some(next_sibling) => parent
-            .insert_before(&node, Some(&next_sibling))
+            .insert_before(node, Some(next_sibling))
             .expect("failed to insert tag before next sibling"),
         None => parent.append_child(node).expect("failed to append child"),
     };
-}
-
-/// Transform properties to the expected type.
-pub trait Transformer<FROM, TO> {
-    /// Transforms one type to another.
-    fn transform(from: FROM) -> TO;
 }
 
 #[cfg(test)]
 mod layout_tests {
     use super::*;
     use crate::html::{AnyScope, Scope};
-    use crate::{Component, ComponentLink, Html, ShouldRender};
+    use crate::{Component, Context, Html};
 
     struct Comp;
     impl Component for Comp {
         type Message = ();
         type Properties = ();
 
-        fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        fn create(_: &Context<Self>) -> Self {
             unimplemented!()
         }
 
-        fn update(&mut self, _: Self::Message) -> ShouldRender {
+        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
 
-        fn change(&mut self, _: Self::Properties) -> ShouldRender {
+        fn changed(&mut self, _ctx: &Context<Self>) -> bool {
             unimplemented!()
         }
 
-        fn view(&self) -> Html {
+        fn view(&self, _ctx: &Context<Self>) -> Html {
             unimplemented!()
         }
     }
@@ -403,7 +548,7 @@ mod layout_tests {
     }
 
     pub(crate) fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
-        let document = crate::utils::document();
+        let document = gloo_utils::document();
         let parent_scope: AnyScope = Scope::<Comp>::new(None).into();
         let parent_element = document.create_element("div").unwrap();
         let parent_node: Node = parent_element.clone().into();
@@ -511,120 +656,187 @@ mod layout_tests {
 
 #[cfg(all(test, feature = "wasm_bench"))]
 mod benchmarks {
-    use super::{Attributes, PositionalAttr};
-    use std::borrow::Cow;
+    use super::*;
     use wasm_bindgen_test::{wasm_bindgen_test, wasm_bindgen_test_configure};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
-    fn create_pos_attrs() -> Vec<PositionalAttr> {
-        vec![
-            PositionalAttr::new("oh", Cow::Borrowed("danny")),
-            PositionalAttr::new("boy", Cow::Borrowed("the")),
-            PositionalAttr::new("pipes", Cow::Borrowed("the")),
-            PositionalAttr::new("are", Cow::Borrowed("calling")),
-            PositionalAttr::new("from", Cow::Borrowed("glen")),
-            PositionalAttr::new("to", Cow::Borrowed("glen")),
-            PositionalAttr::new("and", Cow::Borrowed("down")),
-            PositionalAttr::new("the", Cow::Borrowed("mountain")),
-            PositionalAttr::new("side", Cow::Borrowed("")),
+    macro_rules! run {
+        ($name:ident => {
+            $( $old:expr => $new:expr )+
+        }) => {
+            // NB: these benchmarks only compare diffing. They do not take into account aspects like
+            // allocation impact, which is lower for both `Static` and `Dynamic`.
+
+            let results = vec![
+                $(
+                    {
+                        let mut old = $old.clone();
+                        let new = $new.clone();
+                        let el = gloo_utils::document().create_element("div").unwrap();
+                        old.apply(&el);
+                        (
+                            format!("{} -> {}", attr_variant(&old), attr_variant(&new)),
+                            easybench_wasm::bench_env_limit(
+                                2.0,
+                                (NodeCloner(el), new, old),
+                                |(el, mut new, old)| new.apply_diff(&el.0, old),
+                            ),
+                        )
+                    },
+                )+
+            ];
+
+            let max_name_len = results.iter().map(|(name, _)| name.len()).max().unwrap_or_default();
+            wasm_bindgen_test::console_log!(
+                "{}:{}",
+                stringify!($name),
+                results.into_iter().fold(String::new(), |mut acc, (name, res)| {
+                    use std::fmt::Write;
+
+                    write!(&mut acc, "\n\t\t{:<width$}: ", name, width=max_name_len).unwrap();
+
+                    if res.ns_per_iter.is_nan() {
+                        acc += "benchmark too slow to produce meaningful results";
+                    } else {
+                        write!(
+                            &mut acc,
+                            "{:>7.4} ns (R²={:.3}, {:>7} iterations in {:>3} samples)",
+                            res.ns_per_iter,
+                            res.goodness_of_fit,
+                            res.iterations,
+                            res.samples,
+                        )
+                        .unwrap();
+                    }
+
+                    acc
+                })
+            );
+        };
+    }
+
+    #[wasm_bindgen_test]
+    fn bench_diff_empty() {
+        let static_ = Attributes::Static(&[]);
+        let dynamic = Attributes::Dynamic {
+            keys: &[],
+            values: vec![],
+        };
+        let map = Attributes::IndexMap(Default::default());
+
+        run! {
+            empty => {
+                static_ => static_
+                dynamic => dynamic
+                map => map
+                static_ => dynamic
+                static_ => map
+                dynamic => map
+            }
+        }
+    }
+
+    #[wasm_bindgen_test]
+    fn bench_diff_equal() {
+        let static_ = Attributes::Static(sample_attrs());
+        let dynamic = make_dynamic(sample_values());
+        let map = make_indexed_map(sample_values());
+
+        run! {
+            equal => {
+                static_ => static_
+                dynamic => dynamic
+                map => map
+                static_ => dynamic
+                static_ => map
+                dynamic => map
+            }
+        }
+    }
+
+    #[wasm_bindgen_test]
+    fn bench_diff_change_first() {
+        let old = sample_values();
+        let mut new = old.clone();
+        new[0] = AttrValue::Static("changed");
+
+        let dynamic = (make_dynamic(old.clone()), make_dynamic(new.clone()));
+        let map = (make_indexed_map(old), make_indexed_map(new));
+
+        run! {
+            changed_first => {
+                dynamic.0 => dynamic.1
+                map.0 => map.1
+                dynamic.0 => map.1
+            }
+        }
+    }
+
+    fn make_dynamic(values: Vec<AttrValue>) -> Attributes {
+        Attributes::Dynamic {
+            keys: sample_keys(),
+            values: values.into_iter().map(|v| Some(v)).collect(),
+        }
+    }
+
+    fn make_indexed_map(values: Vec<AttrValue>) -> Attributes {
+        Attributes::IndexMap(
+            sample_keys()
+                .iter()
+                .copied()
+                .zip(values.into_iter())
+                .collect(),
+        )
+    }
+
+    fn sample_keys() -> &'static [&'static str] {
+        &[
+            "oh", "boy", "pipes", "are", "from", "to", "and", "the", "side",
         ]
     }
 
-    fn run_benchmarks(name: &str, new: Vec<PositionalAttr>, old: Vec<PositionalAttr>) {
-        let new_vec = Attributes::from(new);
-        let old_vec = Attributes::from(old);
-
-        let mut new_map = new_vec.clone();
-        let _ = new_map.get_mut_index_map();
-        let mut old_map = old_vec.clone();
-        let _ = old_map.get_mut_index_map();
-
-        const TIME_LIMIT: f64 = 2.0;
-
-        let vv = easybench_wasm::bench_env_limit(TIME_LIMIT, (&new_vec, &old_vec), |(new, old)| {
-            format!("{:?}", Attributes::diff(&new, &old))
-        });
-        let mm = easybench_wasm::bench_env_limit(TIME_LIMIT, (&new_map, &old_map), |(new, old)| {
-            format!("{:?}", Attributes::diff(&new, &old))
-        });
-
-        let vm = easybench_wasm::bench_env_limit(TIME_LIMIT, (&new_vec, &old_map), |(new, old)| {
-            format!("{:?}", Attributes::diff(&new, &old))
-        });
-        let mv = easybench_wasm::bench_env_limit(TIME_LIMIT, (&new_map, &old_vec), |(new, old)| {
-            format!("{:?}", Attributes::diff(&new, &old))
-        });
-
-        wasm_bindgen_test::console_log!(
-            "{}:\n\tvec-vec: {}\n\tmap-map: {}\n\tvec-map: {}\n\tmap-vec: {}",
-            name,
-            vv,
-            mm,
-            vm,
-            mv
-        );
+    fn sample_values() -> Vec<AttrValue> {
+        [
+            "danny", "the", "the", "calling", "glen", "glen", "down", "mountain", "",
+        ]
+        .iter()
+        .map(|v| AttrValue::Static(*v))
+        .collect()
     }
 
-    #[wasm_bindgen_test]
-    fn bench_diff_attributes_equal() {
-        let old = create_pos_attrs();
-        let new = old.clone();
-
-        run_benchmarks("equal", new, old);
+    fn sample_attrs() -> &'static [[&'static str; 2]] {
+        &[
+            ["oh", "danny"],
+            ["boy", "the"],
+            ["pipes", "the"],
+            ["are", "calling"],
+            ["from", "glen"],
+            ["to", "glen"],
+            ["and", "down"],
+            ["the", "mountain"],
+            ["side", ""],
+        ]
     }
 
-    #[wasm_bindgen_test]
-    fn bench_diff_attributes_length_end() {
-        let old = create_pos_attrs();
-        let mut new = old.clone();
-        new.push(PositionalAttr::new("hidden", Cow::Borrowed("hidden")));
+    fn attr_variant(attrs: &Attributes) -> &'static str {
+        use Attributes::*;
 
-        run_benchmarks("added to end", new.clone(), old.clone());
-        run_benchmarks("removed from end", old, new);
-    }
-    #[wasm_bindgen_test]
-    fn bench_diff_attributes_length_start() {
-        let old = create_pos_attrs();
-        let mut new = old.clone();
-        new.insert(0, PositionalAttr::new("hidden", Cow::Borrowed("hidden")));
-
-        run_benchmarks("added to start", new.clone(), old.clone());
-        run_benchmarks("removed from start", old, new);
+        match attrs {
+            Static(_) => "static",
+            Dynamic { .. } => "dynamic",
+            IndexMap(_) => "indexed_map",
+        }
     }
 
-    #[wasm_bindgen_test]
-    fn bench_diff_attributes_reorder() {
-        let old = create_pos_attrs();
-        let new = old.clone().into_iter().rev().collect();
+    /// Clones the node on [Clone] call
+    struct NodeCloner(Element);
 
-        run_benchmarks("reordered", new, old);
-    }
+    impl Clone for NodeCloner {
+        fn clone(&self) -> Self {
+            use wasm_bindgen::JsCast;
 
-    #[wasm_bindgen_test]
-    fn bench_diff_attributes_change_first() {
-        let old = create_pos_attrs();
-        let mut new = old.clone();
-        new[0].1 = Some(Cow::Borrowed("changed"));
-
-        run_benchmarks("changed first", new, old);
-    }
-
-    #[wasm_bindgen_test]
-    fn bench_diff_attributes_change_middle() {
-        let old = create_pos_attrs();
-        let mut new = old.clone();
-        new[old.len() / 2].1 = Some(Cow::Borrowed("changed"));
-
-        run_benchmarks("changed middle", new, old);
-    }
-
-    #[wasm_bindgen_test]
-    fn bench_diff_attributes_change_last() {
-        let old = create_pos_attrs();
-        let mut new = old.clone();
-        new[old.len() - 1].1 = Some(Cow::Borrowed("changed"));
-
-        run_benchmarks("changed last", new, old);
+            Self(self.0.clone_node().unwrap().dyn_into().unwrap())
+        }
     }
 }

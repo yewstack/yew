@@ -1,9 +1,9 @@
 [package]
 name = "yew-router-macro"
-version = "0.14.0"
-authors = ["Henry Zimmerman <zimhen7@gmail.com>"]
+version = "0.15.0"
+authors = ["Hamza <muhammadhamza1311@gmail.com>"]
 edition = "2018"
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 description = "Contains macros used with yew-router"
 repository = "https://github.com/yewstack/yew"
 
@@ -11,10 +11,11 @@ repository = "https://github.com/yewstack/yew"
 proc-macro = true
 
 [dependencies]
-syn = "1.0.2"
-quote = "1.0.1"
-yew-router-route-parser = { version = "0.14.0", path = "../yew-router-route-parser"}
-proc-macro2 = "1.0.1"
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "1", features = ["full","extra-traits"] }
 
 [dev-dependencies]
-yew-router = { version = "0.14.0", path = "../yew-router" } # This should probably be removed, it makes the deploy process much more annoying.
+rustversion = "1"
+trybuild = "1"
+yew-router = { path = "../yew-router" }

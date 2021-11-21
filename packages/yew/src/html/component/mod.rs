@@ -1,4 +1,4 @@
-//! Component trait and related types
+//! Components wrapped with context including properties, state, and link
 
 mod children;
 mod lifecycle;
@@ -10,12 +10,29 @@ pub use children::*;
 pub use properties::*;
 pub(crate) use scope::Scoped;
 pub use scope::{AnyScope, Scope, SendAsMessage};
+use std::rc::Rc;
 
-/// This type indicates that component should be rendered again.
-pub type ShouldRender = bool;
+/// The [`Component`]'s context. This contains component's [`Scope`] and and props and
+/// is passed to every lifecycle method.
+#[derive(Debug)]
+pub struct Context<COMP: Component> {
+    pub(crate) scope: Scope<COMP>,
+    pub(crate) props: Rc<COMP::Properties>,
+}
 
-/// Link to component's scope for creating callbacks.
-pub type ComponentLink<COMP> = Scope<COMP>;
+impl<COMP: Component> Context<COMP> {
+    /// The component scope
+    #[inline]
+    pub fn link(&self) -> &Scope<COMP> {
+        &self.scope
+    }
+
+    /// The component's props
+    #[inline]
+    pub fn props(&self) -> &COMP::Properties {
+        &*self.props
+    }
+}
 
 /// Components are the basic building blocks of the UI in a Yew app. Each Component
 /// chooses how to display itself using received props and self-managed state.
@@ -28,89 +45,53 @@ pub trait Component: Sized + 'static {
     /// commonly use an enum to declare multiple Message types.
     type Message: 'static;
 
-    /// Properties are the inputs to a Component and should not mutated within a
-    /// Component. They are passed to a Component using a JSX-style syntax.
-    /// ```
-    ///# use yew::{Html, Component, Properties, ComponentLink, html};
-    ///# struct Model;
-    ///# #[derive(Clone, Properties)]
-    ///# struct Props {
-    ///#     prop: String,
-    ///# }
-    ///# impl Component for Model {
-    ///#     type Message = ();type Properties = Props;
-    ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
-    ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
-    ///#     fn change(&mut self, _: Self::Properties) -> bool {unimplemented!()}
-    ///#     fn view(&self) -> Html {
-    /// html! {
-    ///     <Model prop="value" />
-    /// }
-    ///# }}
-    /// ```
+    /// The Component's properties.
+    ///
+    /// When the parent of a Component is re-rendered, it will either be re-created or
+    /// receive new properties in the context passed to the `changed` lifecycle method.
     type Properties: Properties;
 
-    /// Components are created with their properties as well as a `ComponentLink` which
-    /// can be used to send messages and create callbacks for triggering updates.
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self;
+    /// Called when component is created.
+    fn create(ctx: &Context<Self>) -> Self;
 
+    /// Called when a new message is sent to the component via it's scope.
+    ///
     /// Components handle messages in their `update` method and commonly use this method
     /// to update their state and (optionally) re-render themselves.
-    fn update(&mut self, msg: Self::Message) -> ShouldRender;
+    ///
+    /// Returned bool indicates whether to render this Component after update.
+    #[allow(unused_variables)]
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        false
+    }
 
-    /// When the parent of a Component is re-rendered, it will either be re-created or
-    /// receive new properties in the `change` lifecycle method. Component's can choose
-    /// to re-render if the new properties are different than the previously
-    /// received properties. Most Component's will use props with a `PartialEq`
-    /// impl and will be implemented like this:
-    /// ```
-    ///# use yew::{Html, Component, ComponentLink, html, ShouldRender};
-    ///# struct Model{props: ()};
-    ///# impl Component for Model {
-    ///#     type Message = ();type Properties = ();
-    ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
-    ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
-    ///#     fn view(&self) -> Html {unimplemented!()}
-    /// fn change(&mut self, props: Self::Properties) -> ShouldRender {
-    ///     if self.props != props {
-    ///         self.props = props;
-    ///         true
-    ///     } else {
-    ///         false
-    ///     }
-    /// }
-    ///# }
-    /// ```
-    /// Components which don't have properties should always return false.
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender;
+    /// Called when properties passed to the component change
+    ///
+    /// Returned bool indicates whether to render this Component after changed.
+    #[allow(unused_variables)]
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+        true
+    }
 
     /// Components define their visual layout using a JSX-style syntax through the use of the
     /// `html!` procedural macro. The full guide to using the macro can be found in [Yew's
-    /// documentation](https://yew.rs/docs/concepts/html).
-    fn view(&self) -> Html;
+    /// documentation](https://yew.rs/concepts/html).
+    ///
+    /// Note that `view()` calls do not always follow a render request from `update()` or
+    /// `changed()`. Yew may optimize some calls out to reduce virtual DOM tree generation overhead.
+    /// The `create()` call is always followed by a call to `view()`.
+    fn view(&self, ctx: &Context<Self>) -> Html;
 
     /// The `rendered` method is called after each time a Component is rendered but
     /// before the browser updates the page.
-    /// ## Examples
-    /// ```rust
-    ///# use yew::{Html, Component, ComponentLink, html, ShouldRender};
-    ///# struct Model{props: ()};
-    ///# impl Model { fn setup_element(&self) { } }
-    ///# impl Component for Model {
-    ///#     type Message = ();type Properties = ();
-    ///#     fn create(props: Self::Properties,link: ComponentLink<Self>) -> Self {unimplemented!()}
-    ///#     fn update(&mut self,msg: Self::Message) -> bool {unimplemented!()}
-    ///#     fn view(&self) -> Html {unimplemented!()}
-    ///#     fn change(&mut self, _props: Self::Properties) -> ShouldRender { unimplemented!() }
-    /// fn rendered(&mut self, first_render: bool) {
-    ///    if first_render {
-    ///      self.setup_element(); // Similar to 'mounted' in other frameworks
-    ///    }
-    /// }
-    ///# }
-    /// ```
-    fn rendered(&mut self, _first_render: bool) {}
+    ///
+    /// Note that `rendered()` calls do not always follow a render request from `update()` or
+    /// `changed()`. Yew may optimize some calls out to reduce virtual DOM tree generation overhead.
+    /// The `create()` call is always followed by a call to `view()` and later `rendered()`.
+    #[allow(unused_variables)]
+    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {}
 
-    /// The `destroy` method is called right before a Component is unmounted.
-    fn destroy(&mut self) {}
+    /// Called right before a Component is unmounted.
+    #[allow(unused_variables)]
+    fn destroy(&mut self, ctx: &Context<Self>) {}
 }

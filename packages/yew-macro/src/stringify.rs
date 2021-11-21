@@ -1,36 +1,43 @@
 use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote_spanned, ToTokens};
 use syn::spanned::Spanned;
-use syn::{Expr, Ident, Lit, LitStr};
+use syn::{Expr, Lit, LitStr};
 
 /// Stringify a value at runtime.
-pub fn stringify_at_runtime(src: impl ToTokens) -> TokenStream {
+fn stringify_at_runtime(src: impl ToTokens) -> TokenStream {
     quote_spanned! {src.span()=>
-        ::std::borrow::Cow::<'static, str>::Owned(
-            ::std::string::ToString::to_string(&(#src)),
-        )
+        ::std::convert::Into::<::yew::virtual_dom::AttrValue>::into(#src)
     }
 }
 
-/// Map an `Option` type such that it turns into `Cow<'static, str>`.
-pub fn stringify_option_at_runtime(src: impl ToTokens) -> TokenStream {
-    let ident = Ident::new("__yew_str", src.span());
-    let sr = stringify_at_runtime(&ident);
-    quote! {
-        ::std::option::Option::map(#src, |#ident| {
-            #sr
-        })
-    }
-}
-
-/// Create `Cow<'static, str>` construction calls.
+/// Create `AttrValue` construction calls.
 ///
 /// This is deliberately not implemented for strings to preserve spans.
 pub trait Stringify {
     /// Try to turn the value into a string literal.
     fn try_into_lit(&self) -> Option<LitStr>;
-    /// Create `Cow<'static, str>` however possible.
+    /// Create `AttrValue` however possible.
     fn stringify(&self) -> TokenStream;
+
+    /// Optimize literals to `&'static str`, otherwise keep the value as is.
+    fn optimize_literals(&self) -> TokenStream
+    where
+        Self: ToTokens,
+    {
+        self.optimize_literals_tagged().to_token_stream()
+    }
+
+    /// Like `optimize_literals` but tags static or dynamic strings with [Value]
+    fn optimize_literals_tagged(&self) -> Value
+    where
+        Self: ToTokens,
+    {
+        if let Some(lit) = self.try_into_lit() {
+            Value::Static(lit.to_token_stream())
+        } else {
+            Value::Dynamic(self.to_token_stream())
+        }
+    }
 }
 impl<T: Stringify + ?Sized> Stringify for &T {
     fn try_into_lit(&self) -> Option<LitStr> {
@@ -42,6 +49,21 @@ impl<T: Stringify + ?Sized> Stringify for &T {
     }
 }
 
+/// A stringified value that can be either static (known at compile time) or dynamic (known only at
+/// runtime)
+pub enum Value {
+    Static(TokenStream),
+    Dynamic(TokenStream),
+}
+
+impl ToTokens for Value {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        tokens.extend(match self {
+            Value::Static(tt) | Value::Dynamic(tt) => tt.clone(),
+        });
+    }
+}
+
 impl Stringify for LitStr {
     fn try_into_lit(&self) -> Option<LitStr> {
         Some(self.clone())
@@ -49,19 +71,18 @@ impl Stringify for LitStr {
 
     fn stringify(&self) -> TokenStream {
         quote_spanned! {self.span()=>
-            ::std::borrow::Cow::<'static, str>::Borrowed(#self)
+            ::yew::virtual_dom::AttrValue::Static(#self)
         }
     }
 }
 impl Stringify for Lit {
     fn try_into_lit(&self) -> Option<LitStr> {
         let s = match self {
-            Lit::Str(v) => v.value(),
+            Lit::Str(v) => return v.try_into_lit(),
             Lit::Char(v) => v.value().to_string(),
             Lit::Int(v) => v.base10_digits().to_string(),
             Lit::Float(v) => v.base10_digits().to_string(),
-            Lit::Bool(v) => v.value.to_string(),
-            _ => return None,
+            Lit::Bool(_) | Lit::ByteStr(_) | Lit::Byte(_) | Lit::Verbatim(_) => return None,
         };
         Some(LitStr::new(&s, self.span()))
     }

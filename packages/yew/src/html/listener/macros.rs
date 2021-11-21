@@ -1,4 +1,3 @@
-#[macro_use]
 macro_rules! impl_action {
     ($($action:ident(name: $name:literal, event: $type:ident) -> $ret:ty => $convert:expr)*) => {$(
         /// An abstract implementation of a listener.
@@ -6,11 +5,12 @@ macro_rules! impl_action {
         pub mod $action {
             use crate::callback::Callback;
             #[allow(unused_imports)]
-            use crate::html::listener::*;
+            use crate::html::{listener::*, IntoPropValue};
             use crate::virtual_dom::Listener;
             use gloo::events::{EventListener, EventListenerOptions};
             use wasm_bindgen::JsValue;
             use web_sys::{$type as WebSysType, Element, EventTarget};
+            use std::rc::Rc;
 
             /// A wrapper for a callback which attaches event listeners to elements.
             #[derive(Clone, Debug)]
@@ -22,6 +22,13 @@ macro_rules! impl_action {
                 /// Create a wrapper for an event-typed callback
                 pub fn new(callback: Callback<Event>) -> Self {
                     Wrapper { callback }
+                }
+
+                #[doc(hidden)]
+                #[inline]
+                pub fn __macro_new(callback: impl IntoEventCallback<Event>) -> Option<Rc<dyn Listener>> {
+                    let callback = callback.into_event_callback()?;
+                    Some(Rc::new(Self::new(callback)))
                 }
             }
 

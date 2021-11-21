@@ -1,6 +1,3 @@
-[env]
-CARGO_MAKE_CLIPPY_ARGS = "--features cbor,msgpack,toml,yaml -- --deny=warnings"
-
 [tasks.test]
 extend = "core::wasm-pack-base"
 command = "wasm-pack"
@@ -22,7 +19,7 @@ args = [
     "test",
     "--doc",
     "--features",
-    "doc_test,wasm_test,yaml,msgpack,cbor,toml",
+    "doc_test,wasm_test",
 ]
 
 [tasks.bench]

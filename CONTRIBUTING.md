@@ -60,9 +60,10 @@ Alternatively, you can set the `ECHO_SERVER_URL` environment variable to the URL
 
 When adding or updating tests, please make sure to update the appropriate `stderr` file, which you can find [here](https://github.com/yewstack/yew/tree/master/packages/yew-macro/tests/macro) for the `html!` macro.
 These files ensure that macro compilation errors are correct and easy to understand.
-These errors can change with each release of the compiler so they should be generated with the MSRV (currently 1.45).
+These errors can change with each release of the compiler so they should be generated with the Rust version 1.51
+(because some tests make use of const generics which were stabilized in that version).
 
-To update or generate a new `stderr` file you can run `TRYBUILD=overwrite cargo +1.45.2 test` in the `yew-macro` directory.
+To update or generate a new `stderr` file you can run `cargo make test-overwrite` in the `yew-macro` directory.
 
 ## Linting
 
@@ -84,11 +85,9 @@ Some components of Yew have dedicated benchmarks which can be run with the follo
 cargo make benchmarks
 ```
 
-There's also a benchmark for the framework as a whole. Running it is a bit more involved:
-
-1. Fork and clone [yewstack/js-framework-benchmark](https://github.com/yewstack/js-framework-benchmark)
-2. Update `frameworks/yew/Cargo.toml` with your fork of Yew and the branch for your changes
-3. Open a new PR with your `Cargo.toml` changes
+There's also a benchmark for the framework as a whole.
+Simply clone [bakape/js-framework-benchmark](https://github.com/bakape/js-framework-benchmark)
+and follow the repository's README.
 
 Feel free to add new benchmark tests if the current benchmark coverage is insufficient!
 

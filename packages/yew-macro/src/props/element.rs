@@ -23,7 +23,6 @@ pub struct ElementProps {
     pub classes: Option<ClassesForm>,
     pub booleans: Vec<Prop>,
     pub value: Option<Prop>,
-    pub kind: Option<Prop>,
     pub checked: Option<Prop>,
     pub node_ref: Option<Prop>,
     pub key: Option<Prop>,
@@ -41,23 +40,12 @@ impl Parse for ElementProps {
 
         let booleans =
             props.drain_filter(|prop| BOOLEAN_SET.contains(prop.label.to_string().as_str()));
-        booleans.check_all(|prop| {
-            if prop.question_mark.is_some() {
-                Err(syn::Error::new_spanned(
-                    &prop.label,
-                    "boolean attributes don't support being used as an optional attribute (hint: a value of false results in the attribute not being set)"
-                ))
-            } else {
-                Ok(())
-            }
-        })?;
 
         let classes = props
-            .pop_nonoptional("class")?
+            .pop("class")
             .map(|prop| ClassesForm::from_expr(prop.value));
         let value = props.pop("value");
-        let kind = props.pop("type");
-        let checked = props.pop_nonoptional("checked")?;
+        let checked = props.pop("checked");
 
         let SpecialProps { node_ref, key } = props.special;
 
@@ -68,7 +56,6 @@ impl Parse for ElementProps {
             checked,
             booleans: booleans.into_vec(),
             value,
-            kind,
             node_ref,
             key,
         })
@@ -78,22 +65,34 @@ impl Parse for ElementProps {
 lazy_static! {
     static ref BOOLEAN_SET: HashSet<&'static str> = {
         vec![
+            // Living Standard
+            // From: https://html.spec.whatwg.org/#attributes-3
+            // where `Value` = Boolean attribute
+            // Note: `checked` is uniquely handled in the html! macro.
+            "allowfullscreen",
             "async",
             "autofocus",
+            "autoplay",
             "controls",
             "default",
             "defer",
             "disabled",
+            "formnovalidate",
             "hidden",
             "ismap",
+            "itemscope",
             "loop",
             "multiple",
             "muted",
+            "nomodule",
             "novalidate",
             "open",
+            "playsinline",
             "readonly",
             "required",
+            "reversed",
             "selected",
+            "truespeed",
         ]
         .into_iter()
         .collect()
@@ -130,6 +129,10 @@ lazy_static! {
             "onended",
             "onerror",
             "onfocus",
+            // onfocusin + onfocusout not in standard but added due to browser support
+            // see issue 1896: https://github.com/yewstack/yew/issues/1896
+            "onfocusin",
+            "onfocusout",
             "onformdata",
             "oninput",
             "oninvalid",

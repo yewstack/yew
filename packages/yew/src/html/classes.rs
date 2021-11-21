@@ -1,6 +1,10 @@
+use super::IntoPropValue;
+use crate::virtual_dom::AttrValue;
 use indexmap::IndexSet;
+use std::rc::Rc;
 use std::{
     borrow::{Borrow, Cow},
+    hint::unreachable_unchecked,
     iter::FromIterator,
 };
 
@@ -59,6 +63,38 @@ impl Classes {
     /// Check the set is empty.
     pub fn is_empty(&self) -> bool {
         self.set.is_empty()
+    }
+}
+
+impl IntoPropValue<AttrValue> for Classes {
+    #[inline]
+    fn into_prop_value(mut self) -> AttrValue {
+        if self.set.len() == 1 {
+            match self.set.pop() {
+                Some(attr) => AttrValue::Rc(Rc::from(attr)),
+                // SAFETY: the collection is checked to be non-empty above
+                None => unsafe { unreachable_unchecked() },
+            }
+        } else {
+            AttrValue::Owned(self.to_string())
+        }
+    }
+}
+
+impl IntoPropValue<Option<AttrValue>> for Classes {
+    #[inline]
+    fn into_prop_value(self) -> Option<AttrValue> {
+        if self.is_empty() {
+            None
+        } else {
+            Some(self.into_prop_value())
+        }
+    }
+}
+
+impl IntoPropValue<Classes> for &'static str {
+    fn into_prop_value(self) -> Classes {
+        self.into()
     }
 }
 
@@ -152,7 +188,7 @@ impl<T: Into<Classes>> From<Vec<T>> for Classes {
 
 impl<T: Into<Classes> + Clone> From<&[T]> for Classes {
     fn from(t: &[T]) -> Self {
-        Self::from_iter(t.iter().cloned())
+        t.iter().cloned().collect()
     }
 }
 
