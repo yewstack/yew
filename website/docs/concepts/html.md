@@ -125,6 +125,17 @@ html! {
 
 <!--END_DOCUSAURUS_CODE_TABS-->
 
+## Lints
+
+If you compile Yew using a nightly version of the Rust compiler, the macro will warn you about some
+common pitfalls that you might run into. Of course, you may need to use the stable compiler (e.g.
+your organization might have a policy mandating it) for release builds, but even if you're using a
+stable toolchain, running `cargo +nightly check` might flag some ways that you could improve your
+HTML code.
+
+At the moment the lints are mostly accessibility-related. If you have ideas for lints, please feel
+free to [chime in on this issue](https://github.com/yewstack/yew/issues/1334).
+
 ## Special properties
 
 There are special properties which don't directly influence the DOM but instead act as instructions to Yew's virtual DOM.

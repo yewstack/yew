@@ -1,12 +1,22 @@
+use serde::Deserialize;
+use serde::Serialize;
 use yew::prelude::*;
+use yew_router::prelude::*;
+
+use crate::Route;
 
 const ELLIPSIS: &str = "\u{02026}";
+
+#[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
+pub struct PageQuery {
+    pub page: u64,
+}
 
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct Props {
     pub page: u64,
     pub total_pages: u64,
-    pub on_switch_page: Callback<u64>,
+    pub route_to_page: Route,
 }
 
 pub struct Pagination;
@@ -34,18 +44,21 @@ impl Pagination {
     fn render_link(&self, to_page: u64, props: &Props) -> Html {
         let Props {
             page,
-            ref on_switch_page,
+            route_to_page,
             ..
-        } = *props;
+        } = props.clone();
 
-        let onclick = on_switch_page.reform(move |_| to_page);
         let is_current_class = if to_page == page { "is-current" } else { "" };
 
         html! {
             <li>
-                <a class={classes!("pagination-link", is_current_class)} aria-label={format!("Goto page {}", to_page)} {onclick}>
+                <Link<Route, PageQuery>
+                    classes={classes!("pagination-link", is_current_class)}
+                    to={route_to_page}
+                    query={Some(PageQuery{page: to_page})}
+                >
                     { to_page }
-                </a>
+                </Link<Route, PageQuery>>
             </li>
         }
     }
@@ -100,23 +113,27 @@ impl Pagination {
         let Props {
             page,
             total_pages,
-            ref on_switch_page,
-        } = *props;
+            route_to_page: to,
+        } = props.clone();
 
         html! {
             <>
-                <a class="pagination-previous"
+                <Link<Route, PageQuery>
+                    classes={classes!("pagination-previous")}
                     disabled={page==1}
-                    onclick={on_switch_page.reform(move |_| page - 1)}
+                    query={Some(PageQuery{page: page - 1})}
+                    to={to.clone()}
                 >
                     { "Previous" }
-                </a>
-                <a class="pagination-next"
+                </Link<Route, PageQuery>>
+                <Link<Route, PageQuery>
+                    classes={classes!("pagination-next")}
                     disabled={page==total_pages}
-                    onclick={on_switch_page.reform(move |_| page + 1)}
+                    query={Some(PageQuery{page: page + 1})}
+                    {to}
                 >
                     { "Next page" }
-                </a>
+                </Link<Route, PageQuery>>
             </>
         }
     }
