@@ -215,3 +215,30 @@ jobs:
         with:
           command: test
           args: --all-targets --workspace --exclude yew
+
+  test-lints:
+    name: Test lints on nightly
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          profile: minimal
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
+
+      - name: Run tests
+        run: |
+          cd packages/yew-macro
+          cargo +nightly test test_html_lints --features lints

@@ -11,9 +11,9 @@ use syn::spanned::Spanned;
 use syn::{Block, Expr, Ident, Lit, LitStr, Token};
 
 pub struct HtmlElement {
-    name: TagName,
-    props: ElementProps,
-    children: HtmlChildrenTree,
+    pub name: TagName,
+    pub props: ElementProps,
+    pub children: HtmlChildrenTree,
 }
 
 impl PeekValue<()> for HtmlElement {
@@ -451,7 +451,7 @@ fn wrap_attr_prop(prop: &Prop) -> TokenStream {
     }
 }
 
-struct DynamicName {
+pub struct DynamicName {
     at: Token![@],
     expr: Option<Block>,
 }
@@ -498,7 +498,7 @@ enum TagKey {
     Expr,
 }
 
-enum TagName {
+pub enum TagName {
     Lit(HtmlDashedName),
     Expr(DynamicName),
 }

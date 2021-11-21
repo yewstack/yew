@@ -9,7 +9,7 @@ use syn::Expr;
 
 pub struct HtmlList {
     open: HtmlListOpen,
-    children: HtmlChildrenTree,
+    pub children: HtmlChildrenTree,
     close: HtmlListClose,
 }
 

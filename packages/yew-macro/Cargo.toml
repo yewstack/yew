@@ -17,6 +17,7 @@ proc-macro = true
 [dependencies]
 boolinator = "2"
 lazy_static = "1"
+proc-macro-error = "1"
 proc-macro2 = "1"
 quote = "1"
 syn = { version = "1", features = ["full", "extra-traits"] }
@@ -31,3 +32,4 @@ yew = { path = "../yew" }
 
 [features]
 doc_test = []
+lints = []

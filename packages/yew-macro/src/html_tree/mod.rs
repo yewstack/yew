@@ -13,6 +13,7 @@ mod html_element;
 mod html_iterable;
 mod html_list;
 mod html_node;
+mod lint;
 mod tag;
 
 use html_block::HtmlBlock;
@@ -107,6 +108,7 @@ impl HtmlTree {
 
 impl ToTokens for HtmlTree {
     fn to_tokens(&self, tokens: &mut TokenStream) {
+        lint::lint_all(self);
         match self {
             HtmlTree::Empty => tokens.extend(quote! {
                 ::yew::virtual_dom::VNode::VList(::yew::virtual_dom::VList::new())
@@ -164,6 +166,7 @@ impl Parse for HtmlRootVNode {
         input.parse().map(Self)
     }
 }
+
 impl ToTokens for HtmlRootVNode {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let new_tokens = self.0.to_token_stream();
@@ -192,7 +195,7 @@ impl ToNodeIterator for HtmlTree {
     }
 }
 
-struct HtmlChildrenTree(Vec<HtmlTree>);
+pub struct HtmlChildrenTree(pub Vec<HtmlTree>);
 
 impl HtmlChildrenTree {
     pub fn new() -> Self {

@@ -46,7 +46,7 @@ impl Component for Author {
                         </div>
                         <div class="tile is-parent">
                             <figure class="tile is-child image is-square">
-                                <img src={author.image_url.clone()} />
+                                <img alt="The author's profile picture." src={author.image_url.clone()} />
                             </figure>
                         </div>
                         <div class="tile is-parent">
