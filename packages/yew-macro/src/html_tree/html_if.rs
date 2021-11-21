@@ -25,7 +25,7 @@ impl PeekValue<()> for HtmlIf {
 impl Parse for HtmlIf {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let if_token = input.parse()?;
-        let cond: Box<Expr> = input.parse()?;
+        let cond = Box::new(input.call(Expr::parse_without_eager_brace)?);
 
         if input.is_empty() {
             return Err(syn::Error::new(

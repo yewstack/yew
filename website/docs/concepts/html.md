@@ -146,10 +146,9 @@ To conditionally render some markup, we wrap it in an `if` block:
 
 ```rust
 use yew::html;
-let some_condition = true;
 
 html! {
-    if some_condition {
+    if true {
         <p>{ "True case" }</p>
     }
 };
@@ -162,7 +161,7 @@ use yew::html;
 let some_condition = true;
 
 html! {
-    if some_condition {
+    if false {
         <p>{ "True case" }</p>
     } else {
         <p>{ "False case" }</p>
