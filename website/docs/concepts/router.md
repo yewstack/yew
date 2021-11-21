@@ -192,6 +192,29 @@ additional functionality that is not available in `AnyHistory` and
 
 To navigate between pages, use either a `Link` component (which renders a `<a>` element), the `history.push` function, or the `history.replace` function, which replaces the current page in the user's browser history instead of pushing a new one onto the stack.
 
+### Listening to Changes
+
+In order react on route changes, you can pass a callback closure to the `listen()` method of `AnyHistory`.
+
+> **Note:** The history listener will get unregistered once it is dropped. Make sure to store the handle inside your component.
+
+```rust
+#[function_component(Navigation)]
+fn navigation() -> Html {
+    let history = use_history().unwrap();
+    let handle = history.listen(|| {
+        log::info!("route changed");
+
+        // more event handling...
+    });
+
+    // save listener handle to avoid drop
+    let _listener = use_state(|| handle);
+
+    html! {}
+}
+```
+
 ### Query Parameters
 
 #### Specifying query parameters when navigating
