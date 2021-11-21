@@ -5,7 +5,7 @@ use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use wasm_bindgen_test::*;
 use yew::functional::{
-    use_effect_with_deps, use_ref, use_state, FunctionComponent, FunctionProvider,
+    use_effect_with_deps, use_mut_ref, use_state, FunctionComponent, FunctionProvider,
 };
 use yew::{html, Html, Properties};
 
@@ -160,9 +160,9 @@ fn use_effect_refires_on_dependency_change() {
         type TProps = ();
 
         fn run(_: &Self::TProps) -> Html {
-            let number_ref = use_ref(|| 0);
+            let number_ref = use_mut_ref(|| 0);
             let number_ref_c = number_ref.clone();
-            let number_ref2 = use_ref(|| 0);
+            let number_ref2 = use_mut_ref(|| 0);
             let number_ref2_c = number_ref2.clone();
             let arg = *number_ref.borrow_mut().deref_mut();
             let counter = use_state(|| 0);

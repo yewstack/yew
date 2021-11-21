@@ -65,7 +65,42 @@ re-render when the setter receives a value that `prev_state != next_state`.
 This hook requires the state object to implement `PartialEq`.
 
 ## `use_ref`
-`use_ref` is used for obtaining a mutable reference to a value.
+`use_ref` is used for obtaining an immutable reference to a value.
+Its state persists across renders.
+
+`use_ref` can be useful for keeping things in scope for the lifetime of the component, so long as 
+you don't store a clone of the resulting `Rc` anywhere that outlives the component.
+
+If you need a mutable reference, consider using [`use_mut_ref`](#use_mut_ref).
+If you need the component to be re-rendered on state change, consider using [`use_state`](#use_state).
+
+```rust
+// EventBus is an implementation of yew_agent::Agent
+use website_test::agents::EventBus;
+use yew::{function_component, html, use_ref, use_state, Callback};
+use yew_agent::Bridged;
+
+#[function_component(UseRef)]
+fn ref_hook() -> Html { 
+    let greeting = use_state(|| "No one has greeted me yet!".to_owned());
+
+    {
+        let greeting = greeting.clone();
+        use_ref(|| EventBus::bridge(Callback::from(move |msg| {
+            greeting.set(msg);
+        })));
+    }
+
+    html! {
+        <div>
+            <span>{ (*greeting).clone() }</span>
+        </div>
+    }
+}
+``` 
+
+## `use_mut_ref`
+`use_mut_ref` is used for obtaining a mutable reference to a value.
 Its state persists across renders.
 
 It is important to note that you do not get notified of state changes.
@@ -77,14 +112,14 @@ If you need the component to be re-rendered on state change, consider using [`us
 use web_sys::HtmlInputElement;
 use yew::{
     events::Event,
-    function_component, html, use_ref, use_state,
+    function_component, html, use_mut_ref, use_state,
     Callback, TargetCast,
 };
 
-#[function_component(UseRef)]
-fn ref_hook() -> Html {
+#[function_component(UseMutRef)]
+fn mut_ref_hook() -> Html {
     let message = use_state(|| "".to_string());
-    let message_count = use_ref(|| 0);
+    let message_count = use_mut_ref(|| 0);
 
     let onclick = Callback::from(move |_| {
         let window = gloo_utils::window();
@@ -109,6 +144,46 @@ fn ref_hook() -> Html {
         <div>
             <input {onchange} value={(*message).clone()} />
             <button {onclick}>{ "Send" }</button>
+        </div>
+    }
+}
+```
+
+## `use_node_ref`
+`use_node_ref` is used for obtaining a `NodeRef` that persists across renders.
+
+When conditionally rendering elements you can use `NodeRef` in conjunction with `use_effect_with_deps`
+to perform actions each time an element is rendered and just before its going to be removed from the
+DOM.
+
+### Example
+
+```rust
+use web_sys::HtmlInputElement;
+use yew::{
+    function_component, functional::*, html,
+    NodeRef
+};
+
+#[function_component(UseRef)]
+pub fn ref_hook() -> Html {
+    let input_ref = use_node_ref();
+    let value = use_state(|| 25f64);
+
+    let onclick = {
+        let input_ref = input_ref.clone();
+        let value = value.clone();
+        move |_| {
+            if let Some(input) = input_ref.cast::<HtmlInputElement>() {
+                value.set(*value + input.value_as_number());
+            }
+        }
+    };
+
+    html! {
+        <div>
+            <input ref={input_ref} type="number" />
+            <button {onclick}>{ format!("Add input to {}", *value) }</button>
         </div>
     }
 }

@@ -37,7 +37,7 @@ where
     let on_output = Rc::new(on_output);
 
     let on_output_clone = on_output.clone();
-    let on_output_ref = use_ref(move || on_output_clone);
+    let on_output_ref = use_mut_ref(move || on_output_clone);
 
     // Refresh the callback on every render.
     {
@@ -45,7 +45,7 @@ where
         *on_output_ref = on_output;
     }
 
-    let bridge = use_ref(move || {
+    let bridge = use_mut_ref(move || {
         T::bridge(Callback::from(move |output| {
             let on_output = on_output_ref.borrow().clone();
             on_output(output);
