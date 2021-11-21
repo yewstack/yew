@@ -243,8 +243,12 @@ impl Attributes {
     }
 
     fn remove_property(el: &Element, key: &str) {
-        js_sys::Reflect::delete_property(el.as_ref(), &JsValue::from_str(key))
-            .expect("could not remove attribute");
+        js_sys::Reflect::set(
+            el.as_ref(),
+            &JsValue::from_str(key),
+            &JsValue::NULL,
+        )
+            .expect("failed to set property");
     }
 
     fn remove_attribute(el: &Element, key: &str) {
