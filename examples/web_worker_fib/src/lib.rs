@@ -1,8 +1,8 @@
 #![recursion_limit = "1024"]
 #![allow(clippy::large_enum_variant)]
 
-pub mod app;
 pub mod agent;
+pub mod app;
 use app::Model;
 use wasm_bindgen::prelude::*;
 use yew_agent::Threaded;

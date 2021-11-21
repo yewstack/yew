@@ -1,5 +1,5 @@
-use yew_agent::{Agent, AgentLink, HandlerId, Public};
 use serde::{Deserialize, Serialize};
+use yew_agent::{Agent, AgentLink, HandlerId, Public};
 
 pub struct Worker {
     link: AgentLink<Self>,
