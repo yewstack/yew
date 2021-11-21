@@ -798,7 +798,7 @@ mod tests {
     fn cancel_bubbling() {
         struct CancelBubbling;
 
-        impl Mixin for CencelBubbling {
+        impl Mixin for CancelBubbling {
             fn view<C>(ctx: &Context<C>, state: &State) -> Html
             where
                 C: Component<Message = Message>,
