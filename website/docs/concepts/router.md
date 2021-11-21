@@ -203,7 +203,9 @@ To navigate between pages, use either a `Link` component (which renders a `<a>` 
 
 In order react on route changes, you can pass a callback closure to the `listen()` method of `AnyHistory`.
 
-> **Note:** The history listener will get unregistered once it is dropped. Make sure to store the handle inside your component.
+:::note
+The history listener will get unregistered once it is dropped. Make sure to store the handle inside your component.
+:::
 
 ```rust
 # use yew::prelude::*;
