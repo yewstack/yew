@@ -168,7 +168,7 @@ impl ToTokens for HtmlRootVNode {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let new_tokens = self.0.to_token_stream();
         tokens.extend(quote! {{
-            #[allow(clippy::useless_conversion, unused_braces)]
+            #[allow(clippy::useless_conversion)]
             <::yew::virtual_dom::VNode as ::std::convert::From<_>>::from(#new_tokens)
         }});
     }

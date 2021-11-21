@@ -362,6 +362,7 @@ impl ToTokens for HtmlElement {
                 // this way we get a nice error message (with the correct span) when the expression
                 // doesn't return a valid value
                 quote_spanned! {expr.span()=> {
+                    #[allow(unused_braces)]
                     let mut #vtag_name = ::std::convert::Into::<
                         ::std::borrow::Cow::<'static, ::std::primitive::str>
                     >::into(#expr);

@@ -52,4 +52,8 @@ fn make_my_component()-> ::yew::virtual_dom::VChild<MyComponent>{
     ::yew::html_nested!{<MyComponent/>}
 }
 
+fn make_my_component_html()-> ::yew::Html{
+    ::yew::html!{<MyComponent/>}
+}
+
 fn main(){}
