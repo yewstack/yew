@@ -1,9 +1,7 @@
-use crate::agent::{
-    Worker, WorkerInput, WorkerOutput
-};
+use crate::agent::{Worker, WorkerInput, WorkerOutput};
 
+use web_sys::HtmlInputElement;
 use yew::prelude::*;
-use yew::web_sys::HtmlInputElement;
 use yew_agent::{Bridge, Bridged};
 
 pub struct Model {
@@ -73,4 +71,3 @@ impl Component for Model {
         }
     }
 }
-
