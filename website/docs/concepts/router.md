@@ -135,6 +135,35 @@ fn app() -> Html {
 }
 ```
 
+### Declare Parameters
+
+It is also possible to extract information from a route.
+
+```rust
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/")]
+    Home,
+    #[at("/post/:id")]
+    Post { id: String },
+    // ...
+}
+```
+
+You can then access the post's id inside `<Switch />` and forward it to the appropriate component via properties.
+
+```rust
+fn switch(routes: &Route) -> Html {
+    match routes {
+        Route::Home => html! { <h1>{ "Home" }</h1> },
+        Route::Post { id } => <Post id={id} />,
+        // ...
+    }
+}
+```
+
+For more information about the route syntax and how to bind parameters, check out [route-recognizer](https://docs.rs/route-recognizer/0.3.1/route_recognizer/#routing-params).
+
 ### History and Location
 
 The router provides a universal `History` and `Location` struct which
