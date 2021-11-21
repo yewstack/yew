@@ -120,8 +120,8 @@ impl ToTokens for HtmlComponent {
 
         tokens.extend(quote_spanned! {ty.span()=>
             {
-                #[allow(clippy::unit_arg)]
-                ::yew::virtual_dom::VChild::<#ty>::new(#build_props, #node_ref, #key)
+                let __yew_props = #build_props;
+                ::yew::virtual_dom::VChild::<#ty>::new(__yew_props, #node_ref, #key)
             }
         });
     }
