@@ -45,21 +45,21 @@ html! {
 
 ## Keyed lists
 
-A keyed list is a very optimized list that has keys on all tags.
+A keyed list is a optimized list that has keys on all tags.
 A `key` gives an html element a unique identifier which Yew can use for optimization purposes.
 
 :::warn
 
-Key has to to be unique and has to not dependent on the order of the list.
+Key has to be unique and must not depend on the order of the list.
 
 :::
 
-Generally it is recommended to always add keys to the lists.
+It is always recommended to add keys to lists.
 
 Most of the time, to add keys, you will need to write something like this:
 
 ```rust , ignore
-use yew::{html};
+use yew::html;
 
 let names = vec!["Sam","Bob","Ray"]
 
@@ -67,7 +67,7 @@ html! {
     <div id="introductions">
         {
             names.into_iter().map(|name| {
-                html!{<div key={name}>{format!("Hello, I'am {}!",name)}</div>}
+                html!{<div key={name}>{ format!("Hello, I'am {}!",name) }</div>}
             }).collect::<Html>()
         }
     </div>
@@ -106,7 +106,6 @@ yew would delete from previous html element with id="rob" and update id="sam" to
 
 Now if you had added a key to each element, html would stay the same, but in case where it changed to `["bob","rob"]`, yew would just delete the second html element since it knows which one it is.
 
-In fact, this is why [react](https://reactjs.org/) forces users to add keys to all lists.
 
 Keys also help for weird cases where yew reuses html elements.
 
