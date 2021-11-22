@@ -2,38 +2,6 @@
 title: "Lists"
 ---
 
-## Fragments
-
-The `html!` macro always requires a single root node. In order to get around this restriction, you
-can use an "empty tag" (these are also called "fragments").
-
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Valid-->
-```rust
-use yew::html;
-
-html! {
-    <>
-        <div></div>
-        <p></p>
-    </>
-};
-```
-
-<!--Invalid-->
-```rust ,compile_fail
-use yew::html;
-
-/* error: only one root html element allowed */
-
-html! {
-    <div></div>
-    <p></p>
-};
-```
-<!--END_DOCUSAURUS_CODE_TABS-->
-
-
 ## Iterators
 
 Yew supports two different syntaxes for building HTML from an iterator.
@@ -43,6 +11,7 @@ list that Yew can display.
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Syntax Type 1-->
+
 ```rust
 use yew::{html, Html};
 
@@ -59,6 +28,7 @@ The alternative is to use the `for` keyword, which is not native Rust syntax and
 the HTML macro to output the needed code to display the iterator.
 
 <!--Syntax Type 2-->
+
 ```rust
 use yew::{html};
 
@@ -70,9 +40,82 @@ html! {
     </ul>
 };
 ```
+
 <!--END_DOCUSAURUS_CODE_TABS-->
 
+## Keyed lists
+
+A keyed list is a very optimized list that has keys on all tags.
+A `key` gives an html element a unique identifier which Yew can use for optimization purposes.
+
+:::warn
+
+Key has to to be unique and has to not dependent on the order of the list.
+
+:::
+
+Generally it is recommended to always add keys to the lists.
+
+Most of the time, to add keys, you will need to write something like this:
+
+```rust , ignore
+use yew::{html};
+
+let names = vec!["Sam","Bob","Ray"]
+
+html! {
+    <div id="introductions">
+        {
+            names.into_iter().map(|name| {
+                html!{<div key={name}>{format!("Hello, I'am {}!",name)}</div>}
+            }).collect::<Html>()
+        }
+    </div>
+};
+
+```
+
+### Performance increases
+
+We have [Keyed list](https://github.com/yewstack/yew/tree/master/examples/keyed_list) example that lets you test the performance improvements, but here is rough example of testing:
+
+1. Go to [Keyed list](https://github.com/yewstack/yew/tree/master/examples/keyed_list) hosted demo
+2. Add 500 elements.
+3. Disable keys.
+4. Reverse the list.
+5. Look at "The last rendering took Xms" (At the time of writing this it was ~60ms)
+6. Enable keys.
+7. Reverse the list.
+8. Look at "The last rendering took Xms" (At the time of writing this it was ~30ms)
+
+So just at the time of writing this, for 500 components its a x2 increase of speed.
+
+### Detailed explanation
+
+Usually you just need a key on every list item when you iterate and the order of data can change.
+So lets say you iterate through `["bob","sam","rob"]` ended up with html:
+
+```html
+<div id="bob">My name is Bob</div>
+<div id="sam">My name is Sam</div>
+<div id="rob">My name is rob</div>
+```
+
+Then if your list changed to `["bob","rob"]`,
+yew would delete from previous html element with id="rob" and update id="sam" to be id="rob"
+
+Now if you had added a key to each element, html would stay the same, but in case where it changed to `["bob","rob"]`, yew would just delete the second html element since it knows which one it is.
+
+In fact, this is why [react](https://reactjs.org/) forces users to add keys to all lists.
+
+Keys also help for weird cases where yew reuses html elements.
+
+If you ever encounter a bug/"feature" where you switch from one component to another but both have a div as the highest rendered element.
+Yew reuses the rendered html div in those cases as an optimization.
+If you need that div to be recreated instead of reused, then you can add different keys and they wont be reused
+
 ## Further reading
+
 - [TodoMVC](https://github.com/yewstack/yew/tree/master/examples/todomvc)
 - [Keyed list](https://github.com/yewstack/yew/tree/master/examples/keyed_list)
 - [Router](https://github.com/yewstack/yew/tree/master/examples/router)
