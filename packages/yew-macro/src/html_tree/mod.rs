@@ -1,15 +1,18 @@
 use crate::PeekValue;
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::{Delimiter, Ident, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
+use syn::buffer::Cursor;
 use syn::ext::IdentExt;
-use syn::parse::{Parse, ParseStream, Result};
+use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::Token;
+use syn::{braced, token};
 
 mod html_block;
 mod html_component;
 mod html_dashed_name;
 mod html_element;
+mod html_if;
 mod html_iterable;
 mod html_list;
 mod html_node;
@@ -20,6 +23,7 @@ use html_block::HtmlBlock;
 use html_component::HtmlComponent;
 pub use html_dashed_name::HtmlDashedName;
 use html_element::HtmlElement;
+use html_if::HtmlIf;
 use html_iterable::HtmlIterable;
 use html_list::HtmlList;
 use html_node::HtmlNode;
@@ -30,6 +34,7 @@ pub enum HtmlType {
     Component,
     List,
     Element,
+    If,
     Empty,
 }
 
@@ -38,11 +43,12 @@ pub enum HtmlTree {
     Component(Box<HtmlComponent>),
     List(Box<HtmlList>),
     Element(Box<HtmlElement>),
+    If(Box<HtmlIf>),
     Empty,
 }
 
 impl Parse for HtmlTree {
-    fn parse(input: ParseStream) -> Result<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let html_type = Self::peek_html_type(input)
             .ok_or_else(|| input.error("expected a valid html element"))?;
         let html_tree = match html_type {
@@ -51,6 +57,7 @@ impl Parse for HtmlTree {
             HtmlType::Element => HtmlTree::Element(Box::new(input.parse()?)),
             HtmlType::Block => HtmlTree::Block(Box::new(input.parse()?)),
             HtmlType::List => HtmlTree::List(Box::new(input.parse()?)),
+            HtmlType::If => HtmlTree::If(Box::new(input.parse()?)),
         };
         Ok(html_tree)
     }
@@ -72,6 +79,8 @@ impl HtmlTree {
             .is_some()
         {
             Some(HtmlType::Block)
+        } else if HtmlIf::peek(input.cursor()).is_some() {
+            Some(HtmlType::If)
         } else if input.peek(Token![<]) {
             let _lt: Token![<] = input.parse().ok()?;
 
@@ -117,6 +126,7 @@ impl ToTokens for HtmlTree {
             HtmlTree::Element(tag) => tag.to_tokens(tokens),
             HtmlTree::List(list) => list.to_tokens(tokens),
             HtmlTree::Block(block) => block.to_tokens(tokens),
+            HtmlTree::If(block) => block.to_tokens(tokens),
         }
     }
 }
@@ -128,7 +138,7 @@ pub enum HtmlRoot {
 }
 
 impl Parse for HtmlRoot {
-    fn parse(input: ParseStream) -> Result<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let html_root = if HtmlTree::peek_html_type(input).is_some() {
             Self::Tree(input.parse()?)
         } else if HtmlIterable::peek(input.cursor()).is_some() {
@@ -162,7 +172,7 @@ impl ToTokens for HtmlRoot {
 /// Same as HtmlRoot but always returns a VNode.
 pub struct HtmlRootVNode(HtmlRoot);
 impl Parse for HtmlRootVNode {
-    fn parse(input: ParseStream) -> Result<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         input.parse().map(Self)
     }
 }
@@ -202,7 +212,7 @@ impl HtmlChildrenTree {
         Self(Vec::new())
     }
 
-    pub fn parse_child(&mut self, input: ParseStream) -> Result<()> {
+    pub fn parse_child(&mut self, input: ParseStream) -> syn::Result<()> {
         self.0.push(input.parse()?);
         Ok(())
     }
@@ -254,10 +264,55 @@ impl HtmlChildrenTree {
             }
         }
     }
+
+    fn parse_delimited(input: ParseStream) -> syn::Result<Self> {
+        let mut children = HtmlChildrenTree::new();
+
+        while !input.is_empty() {
+            children.parse_child(input)?;
+        }
+
+        Ok(children)
+    }
 }
 
 impl ToTokens for HtmlChildrenTree {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.extend(self.to_build_vec_token_stream());
+    }
+}
+
+pub struct HtmlRootBraced {
+    brace: token::Brace,
+    children: HtmlChildrenTree,
+}
+
+impl PeekValue<()> for HtmlRootBraced {
+    fn peek(cursor: Cursor) -> Option<()> {
+        cursor.group(Delimiter::Brace).map(|_| ())
+    }
+}
+
+impl Parse for HtmlRootBraced {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let content;
+        let brace = braced!(content in input);
+        let children = HtmlChildrenTree::parse_delimited(&content)?;
+
+        Ok(HtmlRootBraced { brace, children })
+    }
+}
+
+impl ToTokens for HtmlRootBraced {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let Self { brace, children } = self;
+
+        tokens.extend(quote_spanned! {brace.span.span()=>
+            {
+                ::yew::virtual_dom::VNode::VList(
+                    ::yew::virtual_dom::VList::with_children(#children, ::std::option::Option::None)
+                )
+            }
+        });
     }
 }
