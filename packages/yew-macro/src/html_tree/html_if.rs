@@ -27,14 +27,12 @@ impl Parse for HtmlIf {
         let if_token = input.parse()?;
         let cond = Box::new(input.call(Expr::parse_without_eager_brace)?);
         match &*cond {
-            Expr::Block(syn::ExprBlock { block, .. }) if block.stmts.len() == 0 => {
-                return Err(
-                    syn::Error::new(
-                        cond.span(),
-                        "missing condition for `if` expression",
-                    )
-                )
-            },
+            Expr::Block(syn::ExprBlock { block, .. }) if block.stmts.is_empty() => {
+                return Err(syn::Error::new(
+                    cond.span(),
+                    "missing condition for `if` expression",
+                ))
+            }
             _ => {}
         }
         if input.is_empty() {
