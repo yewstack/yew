@@ -5,7 +5,7 @@ without blocking the main thread.
 
 You can access a live version here:
 
-# Running this exmaple
+# Running this example
 
 do `./build.sh && ./serve.sh`
 

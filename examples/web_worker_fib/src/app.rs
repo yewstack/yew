@@ -39,10 +39,8 @@ impl Component for Model {
             }
             Self::Message::RunWorker => {
                 if let Some(input) = self.input_ref.cast::<HtmlInputElement>() {
-                    if let Ok(value) = input.value().parse::<u32>() {
-                        // start the worker off!
-                        self.worker.send(WorkerInput { n: value });
-                    }
+                    // start the worker off!
+                    self.worker.send(WorkerInput { n: input.value_as_number() as u32 });
                 }
             }
             Self::Message::WorkerMsg(output) => {
