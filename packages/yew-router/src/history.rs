@@ -367,7 +367,7 @@ impl BrowserHistory {
         Self::default()
     }
 
-    fn route_to_url(route: impl Routable) -> Cow<'static, str> {
+    pub(crate) fn route_to_url(route: impl Routable) -> Cow<'static, str> {
         let base = base_url();
         let url = route.to_path();
 
