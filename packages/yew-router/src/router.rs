@@ -40,19 +40,16 @@ impl Reducible for RouterState {
     type Action = RouterStateAction;
 
     fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
-        match action {
-            RouterStateAction::Navigate => Self {
-                history: self.history(),
-                ctr: self.ctr + 1,
-            }
-            .into(),
+        let history = match action {
+            RouterStateAction::Navigate => self.history(),
+            RouterStateAction::ReplaceHistory(m) => m,
+        };
 
-            RouterStateAction::ReplaceHistory(history) => Self {
-                history,
-                ctr: self.ctr + 1,
-            }
-            .into(),
+        Self {
+            history,
+            ctr: self.ctr + 1,
         }
+        .into()
     }
 }
 
@@ -63,8 +60,10 @@ impl Reducible for RouterState {
 /// You only need one `<Router />` for each application.
 #[function_component(Router)]
 pub fn router(props: &RouterProps) -> Html {
+    let RouterProps { history, children } = props.clone();
+
     let state = use_reducer(|| RouterState {
-        history: props.history.clone(),
+        history: history.clone(),
         ctr: 0,
     });
 
@@ -83,13 +82,13 @@ pub fn router(props: &RouterProps) -> Html {
                     let _listener = listener;
                 }
             },
-            props.history.clone(),
+            history,
         );
     }
 
     html! {
         <ContextProvider<RouterState> context={(*state).clone()}>
-            {props.children.clone()}
+            {children}
         </ContextProvider<RouterState>>
     }
 }
