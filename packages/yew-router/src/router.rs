@@ -1,4 +1,5 @@
 //! Router Component.
+use std::rc::Rc;
 
 use crate::prelude::*;
 use yew::prelude::*;
@@ -30,9 +31,29 @@ impl PartialEq for RouterState {
     }
 }
 
-#[doc(hidden)]
-pub enum Msg {
-    ReRender,
+pub(crate) enum RouterStateAction {
+    Navigate,
+    ReplaceHistory(AnyHistory),
+}
+
+impl Reducible for RouterState {
+    type Action = RouterStateAction;
+
+    fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
+        match action {
+            RouterStateAction::Navigate => Self {
+                history: self.history(),
+                ctr: self.ctr + 1,
+            }
+            .into(),
+
+            RouterStateAction::ReplaceHistory(history) => Self {
+                history,
+                ctr: self.ctr + 1,
+            }
+            .into(),
+        }
+    }
 }
 
 /// The Router component.
@@ -40,68 +61,36 @@ pub enum Msg {
 /// This provides [`History`] context to its children and switches.
 ///
 /// You only need one `<Router />` for each application.
-pub struct Router {
-    _listener: HistoryListener,
-    history: AnyHistory,
-    ctr: u32,
-}
+#[function_component(Router)]
+pub fn router(props: &RouterProps) -> Html {
+    let state = use_reducer(|| RouterState {
+        history: props.history.clone(),
+        ctr: 0,
+    });
 
-impl Component for Router {
-    type Message = Msg;
-    type Properties = RouterProps;
+    {
+        let state_dispatcher = state.dispatcher();
 
-    fn create(ctx: &Context<Self>) -> Self {
-        let link = ctx.link().clone();
+        use_effect_with_deps(
+            move |history| {
+                state_dispatcher.dispatch(RouterStateAction::ReplaceHistory(history.clone()));
 
-        let listener = ctx
-            .props()
-            .history
-            .listen(move || link.send_message(Msg::ReRender));
+                let listener =
+                    history.listen(move || state_dispatcher.dispatch(RouterStateAction::Navigate));
 
-        Self {
-            _listener: listener,
-            history: ctx.props().history.clone(),
-            ctr: 0,
-        }
+                // We hold the listener in the destructor.
+                move || {
+                    let _listener = listener;
+                }
+            },
+            props.history.clone(),
+        );
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            Msg::ReRender => {
-                self.ctr += 1;
-                true
-            }
-        }
-    }
-
-    fn changed(&mut self, ctx: &Context<Self>) -> bool {
-        let link = ctx.link().clone();
-
-        if self.history != ctx.props().history {
-            self._listener = ctx
-                .props()
-                .history
-                .listen(move || link.send_message(Msg::ReRender));
-
-            self.history = ctx.props().history.clone();
-
-            true
-        } else {
-            false
-        }
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let state = RouterState {
-            history: self.history.clone().into_any_history(),
-            ctr: self.ctr,
-        };
-
-        html! {
-            <ContextProvider<RouterState> context={state}>
-                {ctx.props().children.clone()}
-            </ContextProvider<RouterState>>
-        }
+    html! {
+        <ContextProvider<RouterState> context={(*state).clone()}>
+            {props.children.clone()}
+        </ContextProvider<RouterState>>
     }
 }
 
