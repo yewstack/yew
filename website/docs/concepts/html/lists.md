@@ -46,7 +46,7 @@ html! {
 ## Keyed lists
 
 A keyed list is a optimized list that has keys on all tags.
-A `key` gives an html element a unique identifier which Yew can use for optimization purposes.
+`key` is a special prop provided by Yew which gives an html element a unique identifier which can be used for optimization purposes.
 
 :::warn
 
@@ -56,7 +56,7 @@ Key has to be unique and must not depend on the order of the list.
 
 It is always recommended to add keys to lists.
 
-Most of the time, to add keys, you will need to write something like this:
+Keys can be added by passing a unique value to the special `key` prop:
 
 ```rust , ignore
 use yew::html;
