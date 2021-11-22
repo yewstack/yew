@@ -79,7 +79,7 @@ pub fn router(props: &RouterProps) -> Html {
 
                 // We hold the listener in the destructor.
                 move || {
-                    let _listener = listener;
+                    std::mem::drop(listener);
                 }
             },
             history,
