@@ -150,3 +150,36 @@ The documentation for keys is yet to be written. See [#1263](https://github.com/
 
 For now, use keys when you have a list where the order of elements changes. This includes inserting or removing elements from anywhere but the end of the list.
 :::
+
+## If blocks
+
+To conditionally render some markup, we wrap it in an `if` block:
+
+```rust
+use yew::html;
+
+html! {
+    if true {
+        <p>{ "True case" }</p>
+    }
+};
+```
+
+There may also be an `else` case:
+
+```rust
+use yew::html;
+let some_condition = true;
+
+html! {
+    if false {
+        <p>{ "True case" }</p>
+    } else {
+        <p>{ "False case" }</p>
+    }
+};
+```
+
+:::note
+`if let` statements can also be used in the same way.
+:::
