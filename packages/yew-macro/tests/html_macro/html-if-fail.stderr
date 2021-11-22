@@ -1,4 +1,4 @@
-error: expected block after this condition
+error: missing condition for `if` expression
  --> tests/html_macro/html-if-fail.rs:4:16
   |
 4 |     html! { if {} };
@@ -10,7 +10,7 @@ error: expected block or `if` after `else`
 6 |     html! { if true {} else };
   |                        ^^^^
 
-error: expected block after this condition
+error: missing condition for `if` expression
  --> tests/html_macro/html-if-fail.rs:7:32
   |
 7 |     html! { if true {} else if {} };
