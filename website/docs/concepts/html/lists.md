@@ -9,9 +9,6 @@ Yew supports two different syntaxes for building HTML from an iterator.
 The first is to call `collect::<Html>()` on the final transform in your iterator, which returns a
 list that Yew can display.
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Syntax Type 1-->
-
 ```rust
 use yew::{html, Html};
 
@@ -27,8 +24,6 @@ html! {
 The alternative is to use the `for` keyword, which is not native Rust syntax and instead is used by
 the HTML macro to output the needed code to display the iterator.
 
-<!--Syntax Type 2-->
-
 ```rust
 use yew::{html};
 
@@ -40,8 +35,6 @@ html! {
     </ul>
 };
 ```
-
-<!--END_DOCUSAURUS_CODE_TABS-->
 
 ## Keyed lists
 
@@ -105,7 +98,6 @@ Then if your list changed to `["bob","rob"]`,
 yew would delete from previous html element with id="rob" and update id="sam" to be id="rob"
 
 Now if you had added a key to each element, html would stay the same, but in case where it changed to `["bob","rob"]`, yew would just delete the second html element since it knows which one it is.
-
 
 Keys also help for weird cases where yew reuses html elements.
 
