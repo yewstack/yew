@@ -1,10 +1,12 @@
+use std::borrow::Cow;
 use std::marker::PhantomData;
 
 use serde::Serialize;
 use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
+use yew::virtual_dom::AttrValue;
 
-use crate::history::History;
+use crate::history::{BrowserHistory, History};
 use crate::scope_ext::RouterScopeExt;
 use crate::Routable;
 
@@ -90,9 +92,13 @@ where
             e.prevent_default();
             Msg::OnClick
         });
+        let href: AttrValue = match BrowserHistory::route_to_url(to) {
+            Cow::Owned(href) => href.into(),
+            Cow::Borrowed(href) => href.into(),
+        };
         html! {
             <a class={classes}
-                href={to.to_path()}
+                {href}
                 {onclick}
                 {disabled}
             >
