@@ -63,11 +63,11 @@ enum Route {
 fn secure() -> Html {
     let history = use_history().unwrap();
 
-    let onclick_callback = Callback::once(move |_| history.push(Route::Home));
+    let onclick = Callback::once(move |_| history.push(Route::Home));
     html! {
         <div>
             <h1>{ "Secure" }</h1>
-            <button onclick={onclick_callback}>{ "Go Home" }</button>
+            <button {onclick}>{ "Go Home" }</button>
         </div>
     }
 }
@@ -115,11 +115,11 @@ enum Route {
 fn secure() -> Html {
     let history = use_history().unwrap();
 
-    let onclick_callback = Callback::from(move |_| history.push(Route::Home));
+    let onclick_callback = Callback::once(move |_| history.push(Route::Home));
     html! {
         <div>
             <h1>{ "Secure" }</h1>
-            <button onclick={onclick_callback}>{ "Go Home" }</button>
+            <button {onclick}>{ "Go Home" }</button>
         </div>
     }
 }
@@ -241,7 +241,7 @@ the route.
 For functional components, the `use_history` hook re-renders the component and returns the current route whenever the
 history changes. Here's how to implement a button that navigates to the `Home` route when clicked.
 
-```rust
+```rust ,ignore
 #[function_component(MyComponent)]
 pub fn my_component() -> Html {
 
@@ -273,7 +273,7 @@ instead of `history.push()`.
 You may notice `history` has to move into the callback, so it can't be used again for other callbacks. Luckily `history` 
 implements `Clone`, here's for example how to have multiple buttons to different routes:
 
-```rust
+```rust ,ignore
 #[function_component(NavItems)]
 pub fn nav_items() -> Html {
 
@@ -332,7 +332,7 @@ It can be used to achieve similar effects as the history API. The element accept
 When a `<Redirect/>` element is rendered, it internally calls `history.push()` and changes the route.
 Here is an example:
 
-```rust
+```rust ,ignore
 #[function_component(SomePage)]
 fn some_page() -> Html {
     // made-up hook `use_user`
@@ -424,7 +424,7 @@ graph {
 
 It can be implemented with the following code:
 
-```rust
+```rust ,ignore
 #[derive(Clone, Routable, PartialEq)]
 enum MainRoute {
     #[at("/")]
