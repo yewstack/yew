@@ -209,7 +209,7 @@ Your components will re-render when provided values change.
 
 #### Struct components
 
-In order to react on route changes, you can pass a callback closure to the `listen()` method of `AnyHistory`.
+In order to react on route changes, you can pass a callback closure to the `add_history_listener()` method of `ctx.link()`.
 
 :::note
 The history listener will get unregistered once it is dropped. Make sure to store the handle inside your component state.
@@ -217,14 +217,13 @@ The history listener will get unregistered once it is dropped. Make sure to stor
 
 ```rust ,ignore
 fn create(ctx: &Context<Self>) -> Self {
-    let _listener = ctx.link()
-        .history()
-        .unwrap()
-        .listen(ctx.link().callback(
+    let listener = ctx.link()
+        .add_history_listener(ctx.link().callback(
             // handle event
-        ));
+        ))
+        .unwrap();
     MyComponent {
-        _listener
+        _listener: listener
     }
 }
 ```
