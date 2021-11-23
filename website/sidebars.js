@@ -66,6 +66,7 @@ module.exports = {
                         "concepts/html/elements",
                         "concepts/html/events",
                         "concepts/html/classes",
+                        "concepts/html/fragments",
                         "concepts/html/lists",
                         "concepts/html/literals-and-expressions"
                     ]
