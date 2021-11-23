@@ -33,6 +33,7 @@ members = [
   "examples/todomvc",
   "examples/two_apps",
   "examples/webgl",
+  "examples/web_worker_fib",
 
   # Release tools
   "packages/changelog",
