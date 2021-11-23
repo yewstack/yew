@@ -56,6 +56,11 @@ jobs:
               continue
             fi
 
+            # web_worker_fib does not compile with trunk. See <https://github.com/thedodd/trunk/issues/46>.
+            if [[ "$example" == "web_worker_fib" ]]; then
+              continue
+            fi
+
             echo "building: $example"
             (
               cd "$path"
