@@ -502,16 +502,13 @@ impl Registry {
 
         run_handler(&target);
 
-        if unsafe { BUBBLE_EVENTS } && !event.cancel_bubble() {
+        if unsafe { BUBBLE_EVENTS } {
             let mut el = target;
-            loop {
+            while !event.cancel_bubble() {
                 el = match el.parent_element() {
                     Some(el) => el,
                     None => break,
                 };
-                // XXX: we have no way to detect, if the callback called `Event.stopPropagation()`
-                // or `Event.stopImmediatePropagation()` without breaking the callback API.
-                // It's arguably not worth the cost.
                 run_handler(&el);
             }
         }
@@ -812,6 +809,44 @@ mod tests {
                         })}>
                             {state.action}
                         </a>
+                    </div>
+                }
+            }
+        }
+
+        let (_, el) = init::<CancelBubbling>("a");
+
+        assert_count(&el, 0);
+
+        el.click();
+        assert_count(&el, 1);
+
+        el.click();
+        assert_count(&el, 2);
+    }
+
+    #[test]
+    fn cancel_bubbling_nested() {
+        // Here an event is being delivered to a DOM node which does
+        // _not_ have a listener but which is contained within an
+        // element that does and which cancels the bubble.
+        struct CancelBubbling;
+
+        impl Mixin for CancelBubbling {
+            fn view<C>(ctx: &Context<C>, state: &State) -> Html
+            where
+                C: Component<Message = Message>,
+            {
+                html! {
+                    <div onclick={ctx.link().callback(|_| Message::Action)}>
+                        <div onclick={ctx.link().callback(|event: MouseEvent|  {
+                                event.stop_propagation();
+                                Message::Action
+                            })}>
+                            <a>
+                                {state.action}
+                            </a>
+                        </div>
                     </div>
                 }
             }
