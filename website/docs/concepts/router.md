@@ -115,7 +115,7 @@ enum Route {
 fn secure() -> Html {
     let history = use_history().unwrap();
 
-    let onclick_callback = Callback::once(move |_| history.push(Route::Home));
+    let onclick = Callback::once(move |_| history.push(Route::Home));
     html! {
         <div>
             <h1>{ "Secure" }</h1>
