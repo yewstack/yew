@@ -278,7 +278,7 @@ pub fn nav_items() -> Html {
 
     let go_to_secure_button = {
         let onclick = Callback::once(move |_| history.push(Route::Secure));
-        html!{<button {onclick}>{"click to go to the last post"}</button>}
+        html!{<button {onclick}>{"click to go to secure"}</button>}
     };
 
     html! {
