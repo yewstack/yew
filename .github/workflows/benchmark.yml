@@ -20,8 +20,7 @@ jobs:
 
       - name: Configure benchmark
         run: |
-          search="{path = \"PATH\"}"
-          echo $PATH
+          search="yew = .*"
           echo "$search"
           replace="{ git = \"${{ github.event.pull_request.head.repo.html_url }}\", branch = \"${{ github.event.pull_request.head.ref }}\" }"
           input=$(cat frameworks/keyed/yew/Cargo.toml)
