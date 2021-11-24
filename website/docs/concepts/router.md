@@ -142,7 +142,7 @@ This can be surprising.
 
 Consider this example:
 
-```rust
+```rust ,ignore
 #[derive(Clone, Routable, PartialEq)]
 enum Route {
     #[at("/news/:id")]
