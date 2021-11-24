@@ -211,7 +211,7 @@ Struct variants work as expected too:
 
 #### History API
 
-History API is provided for both functional components and normal components.
+History API is provided for both functional components and struct components.
 They can enable callbacks to change the route. An `AnyHistory` instance can be obtained in either cases to manipulate
 the route.
 
@@ -293,7 +293,7 @@ pub fn nav_items() -> Html {
 
 ##### Struct Components
 
-For normal components, the `AnyHistory` instance can be obtained through the `ctx.link().history()` API. The 
+For struct components, the `AnyHistory` instance can be obtained through the `ctx.link().history()` API. The 
 rest is identical with the functional component case. Here's an example of a view function that renders a single button.
 
 ```rust ,ignore
