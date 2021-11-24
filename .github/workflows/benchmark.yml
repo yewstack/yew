@@ -24,9 +24,7 @@ jobs:
           replace="yew = { git = \"${{ github.event.pull_request.head.repo.html_url }}\", branch = \"${{ github.event.pull_request.head.ref }}\" }"
           echo $replace
           input=$(cat frameworks/keyed/yew/Cargo.toml)
-          search=$(echo $input | grep "yew =")
-          echo $search
-          output=${input//"$search"/"$replace"}
+          output=$(echo $input | sed -e "s@yew = .*}@'$replace'@g")
           echo "$output"
           if [[ "$input" == "$output" ]]; then
             echo "ERROR: failed to configure Cargo.toml"
