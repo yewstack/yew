@@ -44,52 +44,6 @@ browser's current URL and passes it to the `render` callback. The callback then 
 In case no path is matched, the router navigates to the path with `not_found` attribute. If no route is specified,
 nothing is rendered, and a message is logged to console stating that no route was matched.
 
-```rust
-use yew_router::prelude::*;
-use yew::prelude::*;
-
-#[derive(Clone, Routable, PartialEq)]
-enum Route {
-    #[at("/")]
-    Home,
-    #[at("/secure")]
-    Secure,
-    #[not_found]
-    #[at("/404")]
-    NotFound,
-}
-
-#[function_component(Secure)]
-fn secure() -> Html {
-    let history = use_history().unwrap();
-
-    let onclick = Callback::once(move |_| history.push(Route::Home));
-    html! {
-        <div>
-            <h1>{ "Secure" }</h1>
-            <button {onclick}>{ "Go Home" }</button>
-        </div>
-    }
-}
-
-fn switch(routes: &Route) -> Html {
-    match routes {
-        Route::Home => html! { <h1>{ "Home" }</h1> },
-        Route::Secure => html! {
-            <Secure />
-        },
-        Route::NotFound => html! { <h1>{ "404" }</h1> },
-    }
-}
-
-#[function_component(Main)]
-fn app() -> Html {
-    html! {
-        <Switch<Route> render={Switch::render(switch)} />
-    }
-}
-```
-
 Finally, you need to register the `<Router />` component as a context.
 `<Router />` provides session history information to its children.
 
@@ -160,7 +114,6 @@ enum Route {
 }
 ```
 
-
 You can then access the post's id inside `<Switch />` and forward it to the appropriate component via properties.
 
 ```rust ,ignore
@@ -173,11 +126,38 @@ fn switch(routes: &Route) -> Html {
 }
 ```
 
-:::note
-You can have a normal `Post` variant instead of `Post {id: String}` too. For example when `Post` is rendered with 
-another router, the field can then be redundant as the other router is able to match and handle the path. See the
+:::note 
+You can have a normal `Post` variant instead of `Post {id: String}` too. For example when `Post` is rendered
+with another router, the field can then be redundant as the other router is able to match and handle the path. See the
 [Nested Router](#nested-router) section below for details
 :::
+
+Note the fields must implement `Clone + PartialEq` as part of the `Route` enum. They must also implement
+`std::fmt::Display` and `std::str::FromStr` for serialization and deserialization. Primitive types like integer, float,
+and String already satisfy the requirements.
+
+In case when the form of the path matches, but the deserialization fails (as per `FromStr`). The router will consider
+the route as unmatched and try to render the not found route (or a blank page if the not found route is unspecified).
+This can be surprising.
+
+Consider this example:
+
+```rust
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/news/:id")]
+    News { id: u8 },
+    #[not_found]
+    #[at("/404")]
+    NotFound,
+}
+// switch function renders News and id as is. Omitted here.
+```
+
+When the segment goes over 255, `u8::from_str()` fails with `ParseIntError`, the router will then consider the route
+unmatched.
+
+![router deserialization failure behavior](/img/router-deserialization-failure-behavior.gif)
 
 For more information about the route syntax and how to bind parameters, check out [route-recognizer](https://docs.rs/route-recognizer/0.3.1/route_recognizer/#routing-params).
 
