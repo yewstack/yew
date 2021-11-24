@@ -236,7 +236,7 @@ They can enable callbacks to change the route. An `AnyHistory` instance can be o
 the route.
 
 
-##### functional components
+##### Functional Components
 
 For functional components, the `use_history` hook re-renders the component and returns the current route whenever the
 history changes. Here's how to implement a button that navigates to the `Home` route when clicked.
@@ -311,7 +311,7 @@ pub fn nav_items() -> Html {
 }
 ```
 
-##### normal components
+##### Struct Components
 
 For normal components, the `AnyHistory` instance can be obtained through the `ctx.link().history()` API. The 
 rest is identical with the functional component case. Here's an example of a view function that renders a single button.
@@ -348,7 +348,7 @@ fn some_page() -> Html {
 ```
 :::tip `Redirect` vs `history`, which to use 
 The history API is the only way to manipulate route in callbacks. 
-While `<Redirect/>` can be used for early returns in a component.
+While `<Redirect/>` can be used as return values in a component.
 You might also want to use `<Redirect/>` in other
 non-component context, for example in the switch function of a [Nested Router](#nested-router).
 :::
@@ -356,12 +356,12 @@ non-component context, for example in the switch function of a [Nested Router](#
 
 ### Listening to Changes
 
-#### Functional components
+#### Functional Components
 
-Alongside the `use_history` hook, there's also `use_location` and `use_route`.
+Alongside the `use_history` hook, there are also `use_location` and `use_route`.
 Your components will re-render when provided values change.
 
-#### Normal components
+#### Struct Components
 
 In order to react on route changes, you can pass a callback closure to the `listen()` method of `AnyHistory`.
 
@@ -408,23 +408,29 @@ The graph is produced with the following code, with graphviz.
 To reproduce. Save the code in a file, say `input.dot`,
 And run `$ dot -Tgif input.dot  -o nested-router.gif`
 
-graph {
+digraph {
     node [shape=box style=rounded]
-    Home; News; Contact; "Not Found"; Profile; Friends; Theme; "Settings Not Found";
+    Home; News; Contact; "Not Found"; Profile; Friends; Theme; SettingsNotFound [label="Not Found"];
 
     node [fillcolor=lightblue style="filled, rounded"]
     "Main Router"; "Settings Router";
 
-    "Main Router" -- {Home News Contact "Not Found" "Settings Router"}
-    "Settings Router" -- {Profile Friends Theme "Settings Not Found"}
+    "Main Router" -> {Home News Contact "Not Found" "Settings Router"} [arrowhead=none]
+    "Settings Router" -> {SettingsNotFound Profile Friends Theme } [arrowhead=none]
+    SettingsNotFound -> "Not Found" [constraint=false]
 }
 -->
 
 ![nested router diagram](/img/nested-router.gif)
 
+The nested `SettingsRouter` handles all urls that start with `/settings`. Additionally, it redirects urls that are not
+matched to the main `NotFound` route. So `/settings/gibberish` will redirect to `/404`.
+
 It can be implemented with the following code:
 
-```rust ,ignore
+```rust
+use yew::prelude::*;
+use yew_router::prelude::*;
 #[derive(Clone, Routable, PartialEq)]
 enum MainRoute {
     #[at("/")]
@@ -470,7 +476,7 @@ fn switch_settings(route: &SettingsRoute) -> Html{
         SettingsRoute::Profile => html!{<h1>{"Profile"}</h1>},
         SettingsRoute::Friends => html!{<h1>{"Friends"}</h1>},
         SettingsRoute::Theme => html!{<h1>{"Theme"}</h1>},
-        SettingsRoute::NotFound => html!{<h1>{"Settings Not Found"}</h1>}
+        SettingsRoute::NotFound => html!{<Redirect<MainRoute> to={MainRoute::NotFound}/>}
     }
 }
 
