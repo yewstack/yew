@@ -138,7 +138,6 @@ and String already satisfy the requirements.
 
 In case when the form of the path matches, but the deserialization fails (as per `FromStr`). The router will consider
 the route as unmatched and try to render the not found route (or a blank page if the not found route is unspecified).
-This can be surprising.
 
 Consider this example:
 
@@ -192,7 +191,7 @@ in `AnyHistory` and
 #### Link
 
 A `<Link/>` renders as an `<a>` element, the `onclick` event handler will call
-[preventDefault](https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault) push the targeted page to the
+[preventDefault](https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault), and push the targeted page to the
 history and render the desired page, which is what should be expected from a Single Page App. The default onclick of a
 normal anchor element would reload the page.
 
@@ -322,7 +321,7 @@ fn some_page() -> Html {
         // technicality: `Redirect` actually renders an empty html. But since it also pushes history, the target page
         // shows up immediately. Consider it a "side-effect" component.
         None => return html! { 
-            <Redirect to={Route::Login}/> 
+            <Redirect<Route> to={Route::Login}/> 
         },
     };
     // ... actual page content.
