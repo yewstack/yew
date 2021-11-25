@@ -49,21 +49,41 @@ impl DerefMut for VList {
 /// Set RUSTFLAGS="--cfg verbose_tests" environment variable to activate.
 macro_rules! test_log {
     ($fmt:literal, $($arg:expr),* $(,)?) => {
-        #[cfg(all(feature = "wasm_test", verbose_tests))]
+        #[cfg(all(test, feature = "wasm_test", verbose_tests))]
         ::wasm_bindgen_test::console_log!(concat!("\t  ", $fmt), $($arg),*);
     };
 }
 
-/// Advance the next sibling reference (from right to left) and log it for testing purposes
-/// Set RUSTFLAGS="--cfg verbose_tests" environment variable to activate.
-macro_rules! advance_next_sibling {
-    ($current:expr, $advance:expr) => {{
-        #[cfg(all(feature = "wasm_test", verbose_tests))]
-        let current = format!("{:?}", $current);
-        let next = $advance();
-        test_log!("advance next_sibling: {} -> {:?}", current, next);
-        next
-    }};
+struct ElementWriter<'s> {
+    parent_scope: &'s AnyScope,
+    parent: &'s Element,
+    next_sibling: NodeRef,
+}
+
+impl<'s> ElementWriter<'s> {
+    fn add(self, node: &mut VNode) -> Self {
+        test_log!("adding: {:?}", node);
+        self.write(node, None)
+    }
+
+    fn patch(self, node: &mut VNode, ancestor: VNode) -> Self {
+        test_log!("patching: {:?} -> {:?}", ancestor, node);
+        self.write(node, Some(ancestor))
+    }
+
+    fn write(self, node: &mut VNode, ancestor: Option<VNode>) -> Self {
+        test_log!("parent={:?}", self.parent.outer_html());
+        // Advance the next sibling reference (from right to left) and log it for testing purposes
+        // Set RUSTFLAGS="--cfg verbose_tests" environment variable to activate.
+        #[cfg(all(test, feature = "wasm_test", verbose_tests))]
+        let current = format!("{:?}", self.next_sibling);
+        let next = node.apply(self.parent_scope, self.parent, self.next_sibling, ancestor);
+        test_log!("advance next_sibling: {:?} -> {:?}", current, next);
+        Self {
+            next_sibling: next,
+            ..self
+        }
+    }
 }
 
 impl VList {
@@ -111,31 +131,23 @@ impl VList {
     fn apply_unkeyed(
         parent_scope: &AnyScope,
         parent: &Element,
-        mut next_sibling: NodeRef,
+        next_sibling: NodeRef,
         lefts: &mut [VNode],
         rights: Vec<VNode>,
     ) -> NodeRef {
         let mut diff = lefts.len() as isize - rights.len() as isize;
         let mut lefts_it = lefts.iter_mut().rev();
         let mut rights_it = rights.into_iter().rev();
-
-        macro_rules! apply {
-            ($l:expr, $r:expr) => {
-                test_log!("parent={:?}", parent.outer_html());
-                next_sibling = advance_next_sibling!(next_sibling, || $l.apply(
-                    parent_scope,
-                    parent,
-                    next_sibling,
-                    $r
-                ));
-            };
-        }
+        let mut writer = ElementWriter {
+            parent_scope,
+            parent,
+            next_sibling,
+        };
 
         // Add missing nodes
         while diff > 0 {
             let l = lefts_it.next().unwrap();
-            test_log!("adding: {:?}", l);
-            apply!(l, None);
+            writer = writer.add(l);
             diff -= 1;
         }
         // Remove extra nodes
@@ -147,11 +159,10 @@ impl VList {
         }
 
         for (l, r) in lefts_it.zip(rights_it) {
-            test_log!("patching: {:?} -> {:?}", r, l);
-            apply!(l, r.into());
+            writer = writer.patch(l, r);
         }
 
-        next_sibling
+        writer.next_sibling
     }
 
     /// Diff and patch fully keyed child lists.
@@ -161,12 +172,10 @@ impl VList {
     fn apply_keyed(
         parent_scope: &AnyScope,
         parent: &Element,
-        mut next_sibling: NodeRef,
+        next_sibling: NodeRef,
         lefts: &mut [VNode],
         rights: Vec<VNode>,
     ) -> NodeRef {
-        use std::mem::{transmute, MaybeUninit};
-
         macro_rules! map_keys {
             ($src:expr) => {
                 $src.iter()
@@ -178,7 +187,7 @@ impl VList {
         let rights_keys = map_keys!(rights);
 
         /// Find the first differing key in 2 iterators
-        fn diff_i<'a, 'b>(
+        fn matching_len<'a, 'b>(
             a: impl Iterator<Item = &'a Key>,
             b: impl Iterator<Item = &'b Key>,
         ) -> usize {
@@ -186,105 +195,74 @@ impl VList {
         }
 
         // Find first key mismatch from the front
-        let from_start = diff_i(lefts_keys.iter(), rights_keys.iter());
+        let from_start = matching_len(lefts_keys.iter(), rights_keys.iter());
 
         if from_start == std::cmp::min(lefts.len(), rights.len()) {
             // No key changes
             return Self::apply_unkeyed(parent_scope, parent, next_sibling, lefts, rights);
         }
 
+        let mut writer = ElementWriter {
+            parent_scope,
+            parent,
+            next_sibling,
+        };
         // Find first key mismatch from the back
-        let from_end = diff_i(
+        let from_end = matching_len(
             lefts_keys[from_start..].iter().rev(),
             rights_keys[from_start..].iter().rev(),
         );
-
-        macro_rules! apply {
-            ($l:expr, $r:expr) => {
-                test_log!("patching: {:?} -> {:?}", $r, $l);
-                apply!(Some($r) => $l);
-            };
-            ($l:expr) => {
-                test_log!("adding: {:?}", $l);
-                apply!(None => $l);
-            };
-            ($ancestor:expr => $l:expr) => {
-                test_log!("parent={:?}", parent.outer_html());
-                next_sibling = advance_next_sibling!(
-                    next_sibling,
-                    || $l.apply(parent_scope, parent, next_sibling, $ancestor)
-                );
-            };
-        }
-
         // We partially deconstruct the rights vector in several steps.
-        // This can not be done without default swapping or 2 big vector reallocation overhead in
-        // safe Rust.
-        let mut rights: Vec<MaybeUninit<VNode>> = unsafe { transmute(rights) };
-
-        // Takes a value from the rights vector.
-        //
-        // We guarantee this is only done once because the consumer routine ranges don't overlap.
-        // We guarantee this is done for all nodes because all ranges are processed. There are no
-        // early returns (except panics) possible before full vector depletion.
-        macro_rules! take {
-            ($src:expr) => {
-                unsafe {
-                    let mut dst = MaybeUninit::<VNode>::uninit();
-                    std::ptr::copy_nonoverlapping($src.as_mut_ptr(), dst.as_mut_ptr(), 1);
-                    dst.assume_init()
-                }
-            };
-        }
+        let mut rights = rights;
 
         // Diff matching children at the end
         let lefts_to = lefts_keys.len() - from_end;
         let rights_to = rights_keys.len() - from_end;
         for (l, r) in lefts[lefts_to..]
             .iter_mut()
-            .zip(rights[rights_to..].iter_mut())
+            .zip(rights.drain(rights_to..))
             .rev()
         {
-            apply!(l, take!(r));
+            writer = writer.patch(l, r);
         }
 
         // Diff mismatched children in the middle
-        let mut next: Option<&Key> = None;
+        let mut next_right_key: Option<&Key> = None;
         let mut rights_diff: HashMap<&Key, (VNode, Option<&Key>)> =
             HashMap::with_capacity(rights_to - from_start);
         for (k, v) in rights_keys[from_start..rights_to]
             .iter()
-            .zip(rights[from_start..rights_to].iter_mut())
+            .zip(rights.drain(from_start..)) // rights_to.. has been drained already
             .rev()
         {
-            rights_diff.insert(k, (take!(v), next.take()));
-            next = Some(k);
+            let next_r_key = std::mem::replace(&mut next_right_key, Some(k));
+            rights_diff.insert(k, (v, next_r_key));
         }
-        next = None;
-        for (l_k, l) in lefts_keys[from_start..lefts_to]
+        let mut next_left_key: Option<&Key> = None;
+        for (l_key, l) in lefts_keys[from_start..lefts_to]
             .iter()
             .zip(lefts[from_start..lefts_to].iter_mut())
             .rev()
         {
-            match rights_diff.remove(l_k) {
+            match rights_diff.remove(l_key) {
                 // Reorder and diff any existing children
-                Some((r, r_next)) => {
-                    match (r_next, next) {
+                Some((r, next_r_key)) => {
+                    match (next_r_key, next_left_key) {
                         // If the next sibling was already the same, we don't need to move the node
                         (Some(r_next), Some(l_next)) if r_next == l_next => (),
                         _ => {
                             test_log!("moving as next: {:?}", r);
-                            r.move_before(parent, &next_sibling.get());
+                            r.move_before(parent, &writer.next_sibling.get());
                         }
                     }
-                    apply!(l, r);
+                    writer = writer.patch(l, r);
                 }
                 // Add new children
                 None => {
-                    apply!(l);
+                    writer = writer.add(l);
                 }
             }
-            next = Some(l_k);
+            next_left_key = Some(l_key);
         }
 
         // Remove any extra rights
@@ -296,13 +274,13 @@ impl VList {
         // Diff matching children at the start
         for (l, r) in lefts[..from_start]
             .iter_mut()
-            .zip(rights[..from_start].iter_mut())
+            .zip(rights.into_iter()) // from_start.. has been drained already
             .rev()
         {
-            apply!(l, take!(r));
+            writer = writer.patch(l, r);
         }
 
-        next_sibling
+        writer.next_sibling
     }
 }
 
