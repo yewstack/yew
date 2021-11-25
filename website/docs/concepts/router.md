@@ -219,10 +219,7 @@ route. An `AnyHistory` instance can be obtained in either cases to manipulate th
 For function components, the `use_history` hook re-renders the component and returns the current route whenever the
 history changes. Here's how to implement a button that navigates to the `Home` route when clicked.
 
-```rust
-use yew::prelude::*;
-use yew_router::prelude::*;
-
+```rust ,ignore
 #[function_component(MyComponent)]
 pub fn my_component() -> Html {
     let history = use_history().unwrap();
@@ -252,7 +249,7 @@ instead of `history.push()`.
 You may notice `history` has to move into the callback, so it can't be used again for other callbacks. Luckily `history`
 implements `Clone`, here's for example how to have multiple buttons to different routes:
 
-```rust
+```rust ,ignore
 use yew::prelude::*;
 use yew_router::prelude::*;
 
