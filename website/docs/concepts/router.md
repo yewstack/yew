@@ -3,20 +3,20 @@ title: "Router"
 description: "Yew's official router"
 ---
 
-Routers in Single Page Applications (SPA) handle displaying different pages depending on what the URL is.
-Instead of the default behavior of requesting a different remote resource when a link is clicked,
-the router instead sets the URL locally to point to a valid route in your application.
-The router then detects this change and then decides what to render.
+Routers in Single Page Applications (SPA) handle displaying different pages depending on what the URL is. Instead of the
+default behavior of requesting a different remote resource when a link is clicked, the router instead sets the URL
+locally to point to a valid route in your application. The router then detects this change and then decides what to
+render.
 
 Yew provides router support in the `yew-router` crate. To start using it, add the dependency to your `Cargo.toml`
 
 <!-- Reminder: fix this when we release a new version of yew -->
+
 ```toml
-yew-router = {git = "https://github.com/yewstack/yew.git"}
+yew-router = { git = "https://github.com/yewstack/yew.git" }
 ```
 
-The utilities needed are provided under `yew_router::prelude`,  
-
+The utilities needed are provided under `yew_router::prelude`,
 
 ## Usage
 
@@ -39,16 +39,15 @@ enum Route {
 }
 ```
 
-A `Route` is paired with a `<Switch />` component, which finds the first variant whose path matches the
-browser's current URL and passes it to the `render` callback. The callback then decides what to render.
-In case no path is matched, the router navigates to the path with `not_found` attribute. If no route is specified,
-nothing is rendered, and a message is logged to console stating that no route was matched.
+A `Route` is paired with a `<Switch />` component, which finds the first variant whose path matches the browser's
+current URL and passes it to the `render` callback. The callback then decides what to render. In case no path is
+matched, the router navigates to the path with `not_found` attribute. If no route is specified, nothing is rendered, and
+a message is logged to console stating that no route was matched.
 
 Finally, you need to register the `<Router />` component as a context.
 `<Router />` provides session history information to its children.
 
-When using `yew-router` in browser environment, `<BrowserRouter />` is
-recommended.
+When using `yew-router` in browser environment, `<BrowserRouter />` is recommended.
 
 ```rust
 use yew_router::prelude::*;
@@ -104,6 +103,7 @@ It is also possible to extract information from a route.
 
 ```rust
 use yew_router::prelude::*;
+
 #[derive(Clone, Routable, PartialEq)]
 enum Route {
     #[at("/")]
@@ -126,7 +126,7 @@ fn switch(routes: &Route) -> Html {
 }
 ```
 
-:::note 
+:::note
 You can have a normal `Post` variant instead of `Post {id: String}` too. For example when `Post` is rendered
 with another router, the field can then be redundant as the other router is able to match and handle the path. See the
 [Nested Router](#nested-router) section below for details
@@ -159,20 +159,20 @@ unmatched.
 
 ![router deserialization failure behavior](/img/router-deserialization-failure-behavior.gif)
 
-For more information about the route syntax and how to bind parameters, check out [route-recognizer](https://docs.rs/route-recognizer/0.3.1/route_recognizer/#routing-params).
+For more information about the route syntax and how to bind parameters, check
+out [route-recognizer](https://docs.rs/route-recognizer/0.3.1/route_recognizer/#routing-params).
 
 ### History and Location
 
-The router provides a universal `History` and `Location` struct which
-can be used to access routing information. They can be retrieved by
-hooks or convenient functions on `ctx.link()`.
+The router provides a universal `History` and `Location` struct which can be used to access routing information. They
+can be retrieved by hooks or convenient functions on `ctx.link()`.
 
 They have a couple flavours:
 
 #### `AnyHistory` and `AnyLocation`
 
-These types are available with all routers and should be used whenever possible.
-They implement a subset of `window.history` and `window.location`.
+These types are available with all routers and should be used whenever possible. They implement a subset
+of `window.history` and `window.location`.
 
 You can access them using the following hooks:
 
@@ -181,8 +181,8 @@ You can access them using the following hooks:
 
 #### `BrowserHistory` and `BrowserLocation`
 
-These are only available when `<BrowserRouter />` is used. They provide
-additional functionality that is not available in `AnyHistory` and
+These are only available when `<BrowserRouter />` is used. They provide additional functionality that is not available
+in `AnyHistory` and
 `AnyLocation` (such as: `location.host`).
 
 ### Navigation
@@ -192,9 +192,9 @@ additional functionality that is not available in `AnyHistory` and
 #### Link
 
 A `<Link/>` renders as an `<a>` element, the `onclick` event handler will call
-[preventDefault](https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault) push the targeted page
-to the history and render the desired page, which is what should be expected from a Single Page App. The default onclick
-of a normal anchor element would reload the page.
+[preventDefault](https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault) push the targeted page to the
+history and render the desired page, which is what should be expected from a Single Page App. The default onclick of a
+normal anchor element would reload the page.
 
 The `<Link/>` element also passes its children to the `<a>` element. Consider it a replacement of `<a/>` for in-app
 routes. Except you supply a `to` attribute instead of a `href`. An example usage:
@@ -211,22 +211,21 @@ Struct variants work as expected too:
 
 #### History API
 
-History API is provided for both functional components and struct components.
-They can enable callbacks to change the route. An `AnyHistory` instance can be obtained in either cases to manipulate
-the route.
+History API is provided for both function components and struct components. They can enable callbacks to change the
+route. An `AnyHistory` instance can be obtained in either cases to manipulate the route.
 
+##### Function Components
 
-##### Functional Components
-
-For functional components, the `use_history` hook re-renders the component and returns the current route whenever the
+For function components, the `use_history` hook re-renders the component and returns the current route whenever the
 history changes. Here's how to implement a button that navigates to the `Home` route when clicked.
 
-```rust ,ignore
+```rust
+use yew::prelude::*;
+use yew_router::prelude::*;
+
 #[function_component(MyComponent)]
 pub fn my_component() -> Html {
-
     let history = use_history().unwrap();
-
     let onclick = Callback::once(move |_| history.push(Route::Home));
 
     html! {
@@ -236,49 +235,52 @@ pub fn my_component() -> Html {
     }
 }
 ```
+
 :::tip
 The example here uses `Callback::once`. Use a normal callback if the target route can be the same with the route
 the component is in. For example when you have a logo button on every page the that goes back to home when clicked,
 clicking that button twice on home page causes the code to panic because the second click pushes an identical Home route
 and won't trigger a re-render of the element.
 
-In other words, only use `Callback::once` when you are sure the target route is different. Or use normal callbacks only 
+In other words, only use `Callback::once` when you are sure the target route is different. Or use normal callbacks only
 to be safe.
 :::
 
-
-If you want to replace the current history instead of pushing a new history onto the stack, use `history.replace()` 
+If you want to replace the current history instead of pushing a new history onto the stack, use `history.replace()`
 instead of `history.push()`.
 
-You may notice `history` has to move into the callback, so it can't be used again for other callbacks. Luckily `history` 
+You may notice `history` has to move into the callback, so it can't be used again for other callbacks. Luckily `history`
 implements `Clone`, here's for example how to have multiple buttons to different routes:
 
-```rust ,ignore
+```rust
+use yew::prelude::*;
+use yew_router::prelude::*;
+
 #[function_component(NavItems)]
 pub fn nav_items() -> Html {
-
     let history = use_history().unwrap();
 
     let go_home_button = {
-        let onclick = Callback::once({
-            let history = history.clone();
-            move |_| history.push(Route::Home)
-        });
-        html!{<button {onclick}>{"click to go home"}</button>}
+        let history = history.clone();
+        let onclick = Callback::once(move |_| history.push(Route::Home));
+        html! {
+            <button {onclick}>{"click to go home"}</button>
+        }
     };
 
     let go_to_first_post_button = {
-        let onclick = Callback::once({
-            let history = history.clone();
-            let onclick = Callback::once(move |_| history.push(Route::Post{id: "first-post".to_string()}));
-        });
-        
-        html!{<button {onclick}>{"click to go the first post"}</button>}
+        let history = history.clone();
+        let onclick = Callback::once(move |_| history.push(Route::Post { id: "first-post".to_string() }));
+        html! {
+            <button {onclick}>{"click to go the first post"}</button>
+        }
     };
 
     let go_to_secure_button = {
         let onclick = Callback::once(move |_| history.push(Route::Secure));
-        html!{<button {onclick}>{"click to go to secure"}</button>}
+        html! {
+            <button {onclick}>{"click to go to secure"}</button>
+        }
     };
 
     html! {
@@ -293,24 +295,25 @@ pub fn nav_items() -> Html {
 
 ##### Struct Components
 
-For struct components, the `AnyHistory` instance can be obtained through the `ctx.link().history()` API. The 
-rest is identical with the functional component case. Here's an example of a view function that renders a single button.
+For struct components, the `AnyHistory` instance can be obtained through the `ctx.link().history()` API. The rest is
+identical with the function component case. Here's an example of a view function that renders a single button.
 
 ```rust ,ignore
 fn view(&self, ctx: &Context<Self>) -> Html {
     let history = ctx.link().history().unwrap();
     let onclick = Callback::once(move |_| history.push(MainRoute::Home));
-    html!{<button {onclick}>{"Go Home"}</button>}
+    html!{
+        <button {onclick}>{"Go Home"}</button>
+    }
 }
 ```
 
 #### Redirect
 
-`yew-router` also provides a `<Redirect/>` element in the prelude. 
-It can be used to achieve similar effects as the history API. The element accepts a
-`to` attribute as the target route.
-When a `<Redirect/>` element is rendered, it internally calls `history.push()` and changes the route.
-Here is an example:
+`yew-router` also provides a `<Redirect/>` element in the prelude. It can be used to achieve similar effects as the
+history API. The element accepts a
+`to` attribute as the target route. When a `<Redirect/>` element is rendered, it internally calls `history.push()` and
+changes the route. Here is an example:
 
 ```rust ,ignore
 #[function_component(SomePage)]
@@ -321,32 +324,34 @@ fn some_page() -> Html {
         // an early return that redirects to the login page
         // technicality: `Redirect` actually renders an empty html. But since it also pushes history, the target page
         // shows up immediately. Consider it a "side-effect" component.
-        None => return html! { <Redirect to={Route::Login}/> },
+        None => return html! { 
+            <Redirect to={Route::Login}/> 
+        },
     };
     // ... actual page content.
 }
 ```
-:::tip `Redirect` vs `history`, which to use 
-The history API is the only way to manipulate route in callbacks. 
-While `<Redirect/>` can be used as return values in a component.
-You might also want to use `<Redirect/>` in other
+
+:::tip `Redirect` vs `history`, which to use
+The history API is the only way to manipulate route in callbacks.
+While `<Redirect/>` can be used as return values in a component. You might also want to use `<Redirect/>` in other
 non-component context, for example in the switch function of a [Nested Router](#nested-router).
 :::
 
-
 ### Listening to Changes
 
-#### Functional Components
+#### Function Components
 
-Alongside the `use_history` hook, there are also `use_location` and `use_route`.
-Your components will re-render when provided values change.
+Alongside the `use_history` hook, there are also `use_location` and `use_route`. Your components will re-render when
+provided values change.
 
 #### Struct Components
 
 In order to react on route changes, you can pass a callback closure to the `listen()` method of `AnyHistory`.
 
 :::note
-The history listener will get unregistered once it is dropped. Make sure to store the handle inside your component state.
+The history listener will get unregistered once it is dropped. Make sure to store the handle inside your
+component state.
 :::
 
 ```rust ,ignore
@@ -369,19 +374,19 @@ fn create(ctx: &Context<Self>) -> Self {
 
 #### Specifying query parameters when navigating
 
-In order to specify query parameters when navigating to a new route, use either `history.push_with_query` or the `history.replace_with_query` functions.
-It uses `serde` to serialize the parameters into query string for the URL so any type that implements `Serialize` can be passed.
-In its simplest form this is just a `HashMap` containing string pairs.
+In order to specify query parameters when navigating to a new route, use either `history.push_with_query` or
+the `history.replace_with_query` functions. It uses `serde` to serialize the parameters into query string for the URL so
+any type that implements `Serialize` can be passed. In its simplest form this is just a `HashMap` containing string
+pairs.
 
 #### Obtaining query parameters for current route
 
-`location.query` is used to obtain the query parameters.
-It uses `serde` to deserialize the parameters from query string in the URL.
+`location.query` is used to obtain the query parameters. It uses `serde` to deserialize the parameters from query string
+in the URL.
 
 ## Nested Router
 
-Nested router can be useful when the app grows larger. 
-Consider the following router structure:
+Nested router can be useful when the app grows larger. Consider the following router structure:
 
 <!-- 
 The graph is produced with the following code, with graphviz.
@@ -411,6 +416,7 @@ It can be implemented with the following code:
 ```rust
 use yew::prelude::*;
 use yew_router::prelude::*;
+
 #[derive(Clone, Routable, PartialEq)]
 enum MainRoute {
     #[at("/")]
@@ -439,24 +445,26 @@ enum SettingsRoute {
     NotFound,
 }
 
-fn switch_main(route: &MainRoute)-> Html{
-    match route{
-        MainRoute::Home => html!{<h1>{"Home"}</h1>},
-        MainRoute::News => html!{<h1>{"News"}</h1>},
-        MainRoute::Contact => html!{<h1>{"Contact"}</h1>},
-        MainRoute::Settings => html!{
+fn switch_main(route: &MainRoute) -> Html {
+    match route {
+        MainRoute::Home => html! {<h1>{"Home"}</h1>},
+        MainRoute::News => html! {<h1>{"News"}</h1>},
+        MainRoute::Contact => html! {<h1>{"Contact"}</h1>},
+        MainRoute::Settings => html! {
             <Switch<SettingsRoute> render={Switch::render(switch_settings)} />
         },
-        MainRoute::NotFound => html!{<h1>{"Not Found"}</h1>},
+        MainRoute::NotFound => html! {<h1>{"Not Found"}</h1>},
     }
 }
 
-fn switch_settings(route: &SettingsRoute) -> Html{
-    match route{
-        SettingsRoute::Profile => html!{<h1>{"Profile"}</h1>},
-        SettingsRoute::Friends => html!{<h1>{"Friends"}</h1>},
-        SettingsRoute::Theme => html!{<h1>{"Theme"}</h1>},
-        SettingsRoute::NotFound => html!{<Redirect<MainRoute> to={MainRoute::NotFound}/>}
+fn switch_settings(route: &SettingsRoute) -> Html {
+    match route {
+        SettingsRoute::Profile => html! {<h1>{"Profile"}</h1>},
+        SettingsRoute::Friends => html! {<h1>{"Friends"}</h1>},
+        SettingsRoute::Theme => html! {<h1>{"Theme"}</h1>},
+        SettingsRoute::NotFound => html! {
+            <Redirect<MainRoute> to={MainRoute::NotFound}/>
+        }
     }
 }
 
