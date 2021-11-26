@@ -19,6 +19,7 @@ pub mod vtext;
 
 use crate::html::{AnyScope, NodeRef};
 use indexmap::IndexMap;
+use std::borrow::Cow;
 use std::{collections::HashMap, fmt, hint::unreachable_unchecked, iter};
 use web_sys::{Element, Node};
 
@@ -80,6 +81,15 @@ impl From<String> for AttrValue {
 impl From<Rc<str>> for AttrValue {
     fn from(s: Rc<str>) -> Self {
         AttrValue::Rc(s)
+    }
+}
+
+impl From<Cow<'static, str>> for AttrValue {
+    fn from(s: Cow<'static, str>) -> Self {
+        match s {
+            Cow::Borrowed(s) => s.into(),
+            Cow::Owned(s) => s.into(),
+        }
     }
 }
 
@@ -150,6 +160,21 @@ mod tests_attr_value {
 
         let av = AttrValue::Rc("Rc<str>".into());
         assert_eq!(av.into_string(), "Rc<str>");
+    }
+
+    #[test]
+    fn test_from_string() {
+        let av = AttrValue::from("str");
+        assert_eq!(av.into_string(), "str");
+
+        let av = AttrValue::from("String".to_string());
+        assert_eq!(av.into_string(), "String");
+
+        let av = AttrValue::from(Cow::from("BorrowedCow"));
+        assert_eq!(av.into_string(), "BorrowedCow");
+
+        let av = AttrValue::from(Cow::from("OwnedCow".to_string()));
+        assert_eq!(av.into_string(), "OwnedCow");
     }
 
     #[test]
