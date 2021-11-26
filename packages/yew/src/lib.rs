@@ -387,8 +387,8 @@ pub mod prelude {
     pub use crate::context::ContextProvider;
     pub use crate::events::*;
     pub use crate::html::{
-        create_portal, Children, ChildrenWithProps, Classes, Component, Context, Html, NodeRef,
-        Properties,
+        create_portal, Children, ChildrenWithProps, Classes, Component, Context, Html, HtmlDefault,
+        NodeRef, Properties,
     };
     pub use crate::macros::{classes, html, html_nested};
 

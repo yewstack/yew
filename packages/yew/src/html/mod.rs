@@ -3,11 +3,13 @@
 mod classes;
 mod component;
 mod conversion;
+mod error;
 mod listener;
 
 pub use classes::*;
 pub use component::*;
 pub use conversion::*;
+pub use error::*;
 pub use listener::*;
 
 use crate::virtual_dom::{VNode, VPortal};
@@ -17,7 +19,20 @@ use wasm_bindgen::JsValue;
 use web_sys::{Element, Node};
 
 /// A type which expected as a result of `view` function implementation.
-pub type Html = VNode;
+pub type Html = RenderResult<VNode>;
+
+/// A trait to provide a default value for [`Html`].
+pub trait HtmlDefault {
+    /// Returns the “default value” for a type.
+    /// Default values are often some kind of initial value, identity value, or anything else that may make sense as a default.
+    fn default() -> Self;
+}
+
+impl HtmlDefault for Html {
+    fn default() -> Self {
+        Ok(VNode::default())
+    }
+}
 
 /// Wrapped Node reference for later use in Component lifecycle methods.
 ///
@@ -141,7 +156,7 @@ impl NodeRef {
 /// ## Relevant examples
 /// - [Portals](https://github.com/yewstack/yew/tree/master/examples/portals)
 pub fn create_portal(child: Html, host: Element) -> Html {
-    VNode::VPortal(VPortal::new(child, host))
+    Ok(VNode::VPortal(VPortal::new(child?, host)))
 }
 
 #[cfg(test)]

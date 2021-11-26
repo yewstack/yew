@@ -2,50 +2,125 @@
 
 use std::marker::PhantomData;
 use yew::html::ChildrenRenderer;
+use yew::html::RenderResult;
 
-/// Map IntoIterator<Item=Into<T>> to Iterator<Item=T>
-pub fn into_node_iter<IT, T, R>(it: IT) -> impl Iterator<Item = R>
+/// A special type necessary for flattening components returned from nested html macros.
+#[derive(Debug)]
+pub struct RenderNode<I, O>(O, PhantomData<I>);
+
+impl<I, O> RenderNode<I, O> {
+    /// Returns the wrapped value.
+    pub fn into_value(self) -> O {
+        self.0
+    }
+}
+
+/// A special trait to convert to a `RenderResult`.
+pub trait TryIntoRenderNode<I, O> {
+    /// Performs the conversion.
+    fn try_into_render_node(self) -> RenderResult<RenderNode<I, O>>;
+}
+
+impl<I, O> TryIntoRenderNode<I, O> for I
 where
-    IT: IntoIterator<Item = T>,
-    T: Into<R>,
+    I: Into<O>,
 {
-    it.into_iter().map(|n| n.into())
+    fn try_into_render_node(self) -> RenderResult<RenderNode<I, O>> {
+        Ok(RenderNode(self.into(), PhantomData::default()))
+    }
+}
+
+impl<I, O> TryIntoRenderNode<I, O> for RenderResult<I>
+where
+    I: Into<O>,
+{
+    fn try_into_render_node(self) -> RenderResult<RenderNode<I, O>> {
+        Ok(RenderNode(self?.into(), PhantomData::default()))
+    }
 }
 
 /// A special type necessary for flattening components returned from nested html macros.
 #[derive(Debug)]
-pub struct NodeSeq<IN, OUT>(Vec<OUT>, PhantomData<IN>);
+pub struct NodeSeq<I, O>(Vec<O>, PhantomData<I>);
 
-impl<IN: Into<OUT>, OUT> From<IN> for NodeSeq<IN, OUT> {
-    fn from(val: IN) -> Self {
-        Self(vec![val.into()], PhantomData::default())
-    }
-}
-
-impl<IN: Into<OUT>, OUT> From<Vec<IN>> for NodeSeq<IN, OUT> {
-    fn from(val: Vec<IN>) -> Self {
-        Self(
-            val.into_iter().map(|x| x.into()).collect(),
-            PhantomData::default(),
-        )
-    }
-}
-
-impl<IN: Into<OUT>, OUT> From<ChildrenRenderer<IN>> for NodeSeq<IN, OUT> {
-    fn from(val: ChildrenRenderer<IN>) -> Self {
-        Self(
-            val.into_iter().map(|x| x.into()).collect(),
-            PhantomData::default(),
-        )
-    }
-}
-
-impl<IN, OUT> IntoIterator for NodeSeq<IN, OUT> {
-    type Item = OUT;
+impl<I, O> IntoIterator for NodeSeq<I, O> {
+    type Item = O;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
+    }
+}
+
+/// A special trait to convert to a `NodeSeq`.
+pub trait TryIntoNodeSeq<I, O> {
+    /// Performs the conversion.
+    fn try_into_node_seq(self) -> RenderResult<NodeSeq<I, O>>;
+}
+
+impl<I, O> TryIntoNodeSeq<I, O> for I
+where
+    I: Into<O>,
+{
+    fn try_into_node_seq(self) -> RenderResult<NodeSeq<I, O>> {
+        Ok(NodeSeq(vec![self.into()], PhantomData::default()))
+    }
+}
+
+impl<I, O> TryIntoNodeSeq<I, O> for Vec<I>
+where
+    I: Into<O>,
+{
+    fn try_into_node_seq(self) -> RenderResult<NodeSeq<I, O>> {
+        Ok(NodeSeq(
+            self.into_iter().map(|x| x.into()).collect(),
+            PhantomData::default(),
+        ))
+    }
+}
+
+impl<I, O> TryIntoNodeSeq<I, O> for ChildrenRenderer<I>
+where
+    I: Into<O>,
+{
+    fn try_into_node_seq(self) -> RenderResult<NodeSeq<I, O>> {
+        Ok(NodeSeq(
+            self.into_iter().map(|x| x.into()).collect(),
+            PhantomData::default(),
+        ))
+    }
+}
+
+impl<I, O> TryIntoNodeSeq<I, O> for RenderResult<I>
+where
+    I: Into<O>,
+{
+    fn try_into_node_seq(self) -> RenderResult<NodeSeq<I, O>> {
+        Ok(NodeSeq(vec![self?.into()], PhantomData::default()))
+    }
+}
+
+impl<I, O> TryIntoNodeSeq<I, O> for RenderResult<Vec<I>>
+where
+    I: Into<O>,
+{
+    fn try_into_node_seq(self) -> RenderResult<NodeSeq<I, O>> {
+        Ok(NodeSeq(
+            self?.into_iter().map(|x| x.into()).collect(),
+            PhantomData::default(),
+        ))
+    }
+}
+
+impl<I, O> TryIntoNodeSeq<I, O> for RenderResult<ChildrenRenderer<I>>
+where
+    I: Into<O>,
+{
+    fn try_into_node_seq(self) -> RenderResult<NodeSeq<I, O>> {
+        Ok(NodeSeq(
+            self?.into_iter().map(|x| x.into()).collect(),
+            PhantomData::default(),
+        ))
     }
 }
 

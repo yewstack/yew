@@ -171,7 +171,8 @@ impl<COMP: Component> Runnable for RenderRunner<COMP> {
             #[cfg(debug_assertions)]
             crate::virtual_dom::vcomp::log_event(state.vcomp_id, "render");
 
-            let mut new_root = state.component.view(&state.context);
+            // TODO: Error?
+            let mut new_root = state.component.view(&state.context).unwrap();
             std::mem::swap(&mut new_root, &mut state.root_node);
             let ancestor = Some(new_root);
             let new_root = &mut state.root_node;

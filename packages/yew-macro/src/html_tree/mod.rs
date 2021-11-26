@@ -182,7 +182,7 @@ impl ToTokens for HtmlRootVNode {
         let new_tokens = self.0.to_token_stream();
         tokens.extend(quote! {{
             #[allow(clippy::useless_conversion)]
-            <::yew::virtual_dom::VNode as ::std::convert::From<_>>::from(#new_tokens)
+            (|| Ok(::yew::utils::TryIntoRenderNode::<_, ::yew::virtual_dom::VNode>::try_into_render_node(#new_tokens)?.into_value()))()
         }});
     }
 }
