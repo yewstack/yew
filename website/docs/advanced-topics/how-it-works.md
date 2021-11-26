@@ -32,7 +32,7 @@ to prevent issues, `proc_macro` "hygiene" is adhered to. Some examples include:
 1. Instead of using `yew::<module>` the macro generates `::yew::<module>` to make sure that the
 Yew package is referenced correctly. This is also why `::alloc::vec::Vec::new()` is called instead
 of just `Vec::new()`.
-2. Due to potential trait method name collisions, `<Type as Trait>` is used to make sure that we're using items from the
+2. Due to potential trait method name collisions, `<Type as Trait>` is used to make sure that we're using items from the right trait.
 
 ## What is a virtual DOM?
 
