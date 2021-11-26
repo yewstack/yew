@@ -39,7 +39,7 @@ enum Route {
 }
 ```
 
-A `Route` is paired with a `<Switch />` component, which finds the first variant whose path matches the browser's
+A `Route` is paired with a `<Switch />` component, which finds the variant whose path matches the browser's
 current URL and passes it to the `render` callback. The callback then decides what to render. In case no path is
 matched, the router navigates to the path with `not_found` attribute. If no route is specified, nothing is rendered, and
 a message is logged to console stating that no route was matched.
