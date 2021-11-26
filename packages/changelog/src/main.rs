@@ -1,6 +1,8 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{anyhow, bail, Context, Result};
 use serde::Deserialize;
 use std::collections::HashMap;
+use std::convert::TryFrom;
+use std::convert::TryInto;
 use std::fs;
 use std::io;
 use std::io::Write;
@@ -12,6 +14,9 @@ fn main() -> Result<()> {
 
 #[derive(StructOpt)]
 pub struct Cli {
+    /// package to generate changelog for
+    package: String,
+
     /// From commit.
     from: String,
 
@@ -24,6 +29,9 @@ pub struct Cli {
 
     #[structopt(skip)]
     github_users: GitHubUsers,
+
+    #[structopt(skip)]
+    github_issue_labels: GitHubIssueLabels,
 
     #[structopt(skip = regex::Regex::new(r"\s*\(#(\d+)\)").unwrap())]
     re_issue: regex::Regex,
@@ -41,6 +49,8 @@ impl Cli {
     }
 
     fn run(&mut self) -> Result<()> {
+        let package: Package = self.package.as_str().try_into()?;
+
         let mut old_changelog =
             fs::File::open("CHANGELOG.md").context("could not open CHANGELOG.md for reading")?;
         let mut f = fs::OpenOptions::new()
@@ -49,6 +59,7 @@ impl Cli {
             .truncate(true)
             .open("CHANGELOG.md.new")
             .context("could not open CHANGELOG.md.new for writing")?;
+            
 
         let mut revwalk = self.repo.revwalk()?;
         revwalk.set_sorting(git2::Sort::TOPOLOGICAL)?;
@@ -99,16 +110,26 @@ impl Cli {
                 .find_user_by_commit_author(email, oid.to_string())
                 .with_context(|| format!("Could not find GitHub user for commit: {}", oid))?;
 
+            let is_issue_for_this_package = self
+                .github_issue_labels
+                .is_issue_for_this_package(issue.clone(), package.clone())
+                .with_context(|| format!("Could not find GitHub issue: {}", issue))?;
+
+            if !is_issue_for_this_package {
+                continue;
+            }
+
             logs.push((first_line.to_string(), user.to_owned(), issue.to_owned()));
         }
 
-        let (features, fixes): (Vec<_>, Vec<_>) = logs
+        let (fixes, features): (Vec<_>, Vec<_>) = logs
             .into_iter()
             .partition(|(msg, _, _)| msg.to_lowercase().contains("fix"));
 
         writeln!(
             f,
-            "## ✨ **x.y.z** *({})*",
+            "## ✨ {} **x.y.z** *({})*",
+            self.package,
             chrono::Utc::now().format("%Y-%m-%d")
         )?;
         writeln!(f)?;
@@ -186,6 +207,10 @@ impl GitHubUsers {
             ))
             .header("user-agent", "reqwest")
             .header("accept", "application/vnd.github.v3+json")
+            .header(
+                "Authorization",
+                &format!("token {}", "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"),
+            )
             .send()?;
         let status = resp.status();
         if !status.is_success() {
@@ -202,6 +227,61 @@ impl GitHubUsers {
     }
 }
 
+#[derive(Debug, Default)]
+pub struct GitHubIssueLabels {
+    cache: HashMap<String, Option<Vec<String>>>,
+}
+
+impl GitHubIssueLabels {
+    pub fn is_issue_for_this_package(&mut self, issue: String, package: Package) -> Option<bool> {
+        let labels = self
+            .cache
+            .entry(issue.clone())
+            .or_insert_with(|| match Self::query_issue_labels(&issue) {
+                Ok(value) => value,
+                Err(err) => {
+                    eprintln!("Error: {}", err);
+                    None
+                }
+            })
+            .as_deref()?;
+        let package_labels = package.as_labels();
+
+        Some(labels.iter().any(|label| package_labels.contains(label)))
+    }
+
+    fn query_issue_labels(q: &str) -> Result<Option<Vec<String>>> {
+        std::thread::sleep(std::time::Duration::from_secs(1));
+        let issue_labels = reqwest::blocking::Client::new();
+        let resp = issue_labels
+            .get(format!(
+                "https://api.github.com/repos/yewstack/yew/issues/{}/labels",
+                q,
+            ))
+            .header("user-agent", "reqwest")
+            .header("accept", "application/vnd.github.v3+json")
+            .header(
+                "Authorization",
+                &format!("token {}", "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"),
+            )
+            .send()?;
+        let status = resp.status();
+        if !status.is_success() {
+            if let Some(remaining) = resp.headers().get("x-ratelimit-remaining") {
+                if remaining == "0" {
+                    bail!("GitHub API limit reached.");
+                }
+            }
+            bail!("GitHub API request error: {}", status);
+        }
+        let body = resp.json::<Vec<GitHubIssueLabelApi>>()?;
+
+        let label_names: Vec<String> = body.into_iter().map(|label| label.name).collect();
+
+        Ok(Some(label_names))
+    }
+}
+
 #[derive(Deserialize, Debug)]
 pub struct GitHubCommitApi {
     author: GitHubCommitAuthorApi,
@@ -210,4 +290,45 @@ pub struct GitHubCommitApi {
 #[derive(Deserialize, Debug)]
 pub struct GitHubCommitAuthorApi {
     login: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct GitHubIssueLabelApi {
+    name: String,
+}
+
+#[derive(Debug, Clone)]
+pub enum Package {
+    Yew,
+    YewAgent,
+    YewRouter,
+}
+
+impl Package {
+    fn as_labels(&self) -> Vec<String> {
+        match self {
+            Package::Yew => vec![
+                "A-yew".to_string(),
+                "A-yew-macro".to_string(),
+                "macro".to_string(),
+            ],
+            Package::YewAgent => vec!["A-yew-agent".to_string()],
+            Package::YewRouter => {
+                vec!["A-yew-router".to_string(), "A-yew-router-macro".to_string()]
+            }
+        }
+    }
+}
+
+impl TryFrom<&str> for Package {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "yew" => Ok(Package::Yew),
+            "yew-agent" => Ok(Package::YewAgent),
+            "yew-router" => Ok(Package::YewRouter),
+            _ => Err(anyhow!("{} package is not supported for this cli", value)),
+        }
+    }
 }
