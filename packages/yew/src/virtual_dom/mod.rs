@@ -19,8 +19,8 @@ pub mod vtext;
 
 use crate::html::{AnyScope, NodeRef};
 use indexmap::IndexMap;
-use std::{collections::HashMap, fmt, hint::unreachable_unchecked, iter};
 use std::borrow::Cow;
+use std::{collections::HashMap, fmt, hint::unreachable_unchecked, iter};
 use web_sys::{Element, Node};
 
 #[doc(inline)]
@@ -87,12 +87,8 @@ impl From<Rc<str>> for AttrValue {
 impl From<Cow<'static, str>> for AttrValue {
     fn from(s: Cow<'static, str>) -> Self {
         match s {
-            Cow::Borrowed(s) => {
-                s.into()
-            }
-            Cow::Owned(s) => {
-                s.into()
-            }
+            Cow::Borrowed(s) => s.into(),
+            Cow::Owned(s) => s.into(),
         }
     }
 }
