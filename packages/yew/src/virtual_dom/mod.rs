@@ -170,11 +170,11 @@ mod tests_attr_value {
         let av = AttrValue::from("String".to_string());
         assert_eq!(av.into_string(), "String");
 
-        let av = AttrValue::from(Cow::from("Rc<str>"));
-        assert_eq!(av.into_string(), "Rc<str>");
+        let av = AttrValue::from(Cow::from("BorrowedCow"));
+        assert_eq!(av.into_string(), "BorrowedCow");
 
-        let av = AttrValue::from(Cow::from("Rc<str>".to_string()));
-        assert_eq!(av.into_string(), "Rc<str>");
+        let av = AttrValue::from(Cow::from("OwnedCow".to_string()));
+        assert_eq!(av.into_string(), "OwnedCow");
     }
 
     #[test]
