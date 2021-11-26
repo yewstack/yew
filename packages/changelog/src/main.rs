@@ -59,7 +59,6 @@ impl Cli {
             .truncate(true)
             .open("CHANGELOG.md.new")
             .context("could not open CHANGELOG.md.new for writing")?;
-            
 
         let mut revwalk = self.repo.revwalk()?;
         revwalk.set_sorting(git2::Sort::TOPOLOGICAL)?;
@@ -207,10 +206,6 @@ impl GitHubUsers {
             ))
             .header("user-agent", "reqwest")
             .header("accept", "application/vnd.github.v3+json")
-            .header(
-                "Authorization",
-                &format!("token {}", "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"),
-            )
             .send()?;
         let status = resp.status();
         if !status.is_success() {
@@ -260,10 +255,6 @@ impl GitHubIssueLabels {
             ))
             .header("user-agent", "reqwest")
             .header("accept", "application/vnd.github.v3+json")
-            .header(
-                "Authorization",
-                &format!("token {}", "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"),
-            )
             .send()?;
         let status = resp.status();
         if !status.is_success() {
