@@ -84,7 +84,7 @@ impl Model {
 
         html! {
             <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
-                <div class="navbar-brand">
+                <div class="navbar-brand is-align-items-center" >
                     <h1 class="navbar-item is-size-3">{ "Yew Blog" }</h1>
 
                     <button class={classes!("navbar-burger", "burger", active_class)}
