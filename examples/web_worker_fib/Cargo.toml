@@ -2,7 +2,7 @@
 name = "yew-worker-fib"
 version = "0.1.0"
 edition = "2018"
-author = "Shrey Somaiya"
+authors = ["Shrey Somaiya"]
 
 [lib]
 crate-type = ["cdylib"]
