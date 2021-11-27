@@ -261,6 +261,7 @@ pub mod context;
 pub mod functional;
 pub mod html;
 pub mod scheduler;
+pub mod suspense;
 pub mod utils;
 pub mod virtual_dom;
 

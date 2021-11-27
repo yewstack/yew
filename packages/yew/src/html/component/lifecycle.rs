@@ -1,7 +1,9 @@
 //! Component lifecycle module
 
-use super::{Component, Scope};
+use super::{AnyScope, Component, Scope};
+use crate::html::RenderError;
 use crate::scheduler::{self, Runnable, Shared};
+use crate::suspense::{Suspense, Suspension};
 use crate::virtual_dom::{VDiff, VNode};
 use crate::{Context, NodeRef};
 use std::rc::Rc;
@@ -16,6 +18,8 @@ pub(crate) struct ComponentState<COMP: Component> {
     next_sibling: NodeRef,
     node_ref: NodeRef,
     has_rendered: bool,
+
+    suspension: Option<Suspension>,
 
     // Used for debug logging
     #[cfg(debug_assertions)]
@@ -47,6 +51,7 @@ impl<COMP: Component> ComponentState<COMP> {
             parent,
             next_sibling,
             node_ref,
+            suspension: None,
             has_rendered: false,
 
             #[cfg(debug_assertions)]
@@ -171,10 +176,38 @@ impl<COMP: Component> Runnable for RenderRunner<COMP> {
             #[cfg(debug_assertions)]
             crate::virtual_dom::vcomp::log_event(state.vcomp_id, "render");
 
-            // TODO: Error?
-            let mut new_root = state.component.view(&state.context).unwrap();
-            std::mem::swap(&mut new_root, &mut state.root_node);
-            let ancestor = Some(new_root);
+            let old_root = match state.component.view(&state.context) {
+                Ok(m) => {
+                    // Currently not suspended, we cancel any previous suspension and update
+                    // normally.
+                    let mut root = m;
+                    std::mem::swap(&mut root, &mut state.root_node);
+
+                    if let Some(ref m) = state.suspension {
+                        m.resume_by_ref();
+                        state.suspension = None;
+                    }
+
+                    root
+                }
+
+                Err(RenderError::Suspended(m)) => {
+                    // Currently suspended, we re-use previous root node and send
+                    // suspension to parent element.
+                    let comp_scope = AnyScope::from(state.context.scope.clone());
+
+                    let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
+                    let suspense = suspense_scope.get_component().unwrap();
+
+                    state.suspension = Some(m.clone());
+
+                    suspense.suspend(m);
+
+                    state.root_node.clone()
+                }
+            };
+
+            let ancestor = Some(old_root);
             let new_root = &mut state.root_node;
             let scope = state.context.scope.clone().into();
             let next_sibling = state.next_sibling.clone();

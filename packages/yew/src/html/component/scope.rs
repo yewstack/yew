@@ -93,7 +93,7 @@ impl AnyScope {
         }
     }
 
-    fn find_parent_scope<C: Component>(&self) -> Option<Scope<C>> {
+    pub(crate) fn find_parent_scope<C: Component>(&self) -> Option<Scope<C>> {
         let expected_type_id = TypeId::of::<C>();
         iter::successors(Some(self), |scope| scope.get_parent())
             .filter(|scope| scope.get_type_id() == &expected_type_id)

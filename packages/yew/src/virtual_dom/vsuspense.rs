@@ -1,0 +1,125 @@
+use super::{Key, VDiff, VNode};
+use crate::html::{AnyScope, NodeRef};
+use web_sys::{Element, Node};
+
+/// This struct represents a suspendable DOM fragment.
+#[derive(Clone, Debug, PartialEq)]
+pub struct VSuspense {
+    /// Child nodes.
+    children: Box<VNode>,
+
+    /// Fallback nodes when suspended.
+    fallback: Box<VNode>,
+
+    /// The element to attach to when children is not attached to DOM
+    detached_parent: Element,
+
+    /// Whether the current status is suspended.
+    suspended: bool,
+
+    /// The Key.
+    pub(crate) key: Option<Key>,
+}
+
+impl VSuspense {
+    pub(crate) fn new(
+        children: VNode,
+        fallback: VNode,
+        detached_parent: Element,
+        suspended: bool,
+        key: Option<Key>,
+    ) -> Self {
+        Self {
+            children: children.into(),
+            fallback: fallback.into(),
+            detached_parent,
+            suspended,
+            key,
+        }
+    }
+
+    pub(crate) fn first_node(&self) -> Option<Node> {
+        if self.suspended {
+            self.fallback.first_node()
+        } else {
+            self.children.first_node()
+        }
+    }
+}
+
+impl VDiff for VSuspense {
+    fn detach(&mut self, parent: &Element) {
+        if self.suspended {
+            self.fallback.detach(parent);
+            self.children.detach(&self.detached_parent);
+        } else {
+            self.children.detach(parent);
+        }
+    }
+
+    fn apply(
+        &mut self,
+        parent_scope: &AnyScope,
+        parent: &Element,
+        next_sibling: NodeRef,
+        ancestor: Option<VNode>,
+    ) -> NodeRef {
+        let (already_suspended, children_ancestor, fallback_ancestor) = match ancestor {
+            Some(VNode::VSuspense(mut m)) => {
+                if m.key != self.key {
+                    m.detach(parent);
+                } else if self.detached_parent != m.detached_parent {
+                    // we delete everything from the outdated parent.
+                    m.detached_parent.set_inner_html("");
+                }
+
+                (
+                    m.suspended,
+                    Some((*m.children).clone()),
+                    Some((*m.fallback).clone()),
+                )
+            }
+            Some(mut m) => {
+                m.detach(parent);
+                (false, None, None)
+            }
+            None => (false, None, None),
+        };
+
+        match (self.suspended, already_suspended) {
+            (true, true) => {
+                self.children.apply(
+                    parent_scope,
+                    &self.detached_parent,
+                    NodeRef::default(),
+                    children_ancestor,
+                );
+
+                self.fallback
+                    .apply(parent_scope, parent, next_sibling, fallback_ancestor)
+            }
+
+            (false, false) => {
+                self.children
+                    .apply(parent_scope, parent, next_sibling, children_ancestor)
+            }
+
+            (true, false) => {
+                self.children.apply(
+                    parent_scope,
+                    &self.detached_parent,
+                    NodeRef::default(),
+                    children_ancestor,
+                );
+                self.fallback
+                    .apply(parent_scope, parent, next_sibling, fallback_ancestor)
+            }
+
+            (false, true) => {
+                self.fallback.detach(parent);
+                self.children
+                    .apply(parent_scope, parent, next_sibling, children_ancestor)
+            }
+        }
+    }
+}
