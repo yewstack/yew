@@ -19,6 +19,7 @@
   - Fix case warning on derived properties. [[@nitnelave](https://github.com/nitnelave), [#1929](https://github.com/yewstack/yew/pull/1929)]
   - yew-macro: fix inability to set the autoplay atribute. [[@bakape](https://github.com/bakape), [#1866](https://github.com/yewstack/yew/pull/1866)]
   - Fix duplicate `with props` error messages.. [[@teymour-aldridge](https://github.com/teymour-aldridge), [#1730](https://github.com/yewstack/yew/pull/1730)]
+
 - #### ⚡️ Features
 
   - Check event bubbling cancellation at each step of propagation. [[@rjmac](https://github.com/rjmac), [#2191](https://github.com/yewstack/yew/pull/2191)]
@@ -89,6 +90,7 @@
   - Fix clippy lints from 1.54.0. [[@Xavientois](https://github.com/Xavientois), [#1976](https://github.com/yewstack/yew/pull/1976)]
   - Fix router. [[@hamza1311](https://github.com/hamza1311), [#1856](https://github.com/yewstack/yew/pull/1856)]
   - update nom 6.1.2 and fix compile errors.. [[@higumachan](https://github.com/higumachan), [#1806](https://github.com/yewstack/yew/pull/1806)]
+
 - #### ⚡️ Features
 
   - Add missing router docs: Redirect, Nested Router, and Path Segament capturing. [[@Madoshakalaka](https://github.com/Madoshakalaka), [#2192](https://github.com/yewstack/yew/pull/2192)]
@@ -117,6 +119,7 @@
   - Fix unmaintained anymap dependency. [[@mc1098](https://github.com/mc1098), [#2071](https://github.com/yewstack/yew/pull/2071)]
   - Fix clippy lints from 1.54.0. [[@Xavientois](https://github.com/Xavientois), [#1976](https://github.com/yewstack/yew/pull/1976)]
   - Fix crash in link to destroyed agents. [[@kristoff3r](https://github.com/kristoff3r), [#1827](https://github.com/yewstack/yew/pull/1827)]
+
 - #### ⚡️ Features
 
   - allow web worker resource to be relative. [[@astraw](https://github.com/astraw), [#2086](https://github.com/yewstack/yew/pull/2086)]

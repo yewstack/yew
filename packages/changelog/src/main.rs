@@ -146,6 +146,7 @@ impl Cli {
                 issue = issue
             )?;
         }
+        writeln!(f)?;
 
         writeln!(f, "- #### ⚡️ Features")?;
         writeln!(f)?;
