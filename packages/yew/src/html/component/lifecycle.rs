@@ -5,6 +5,7 @@ use crate::html::RenderError;
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{Suspense, Suspension};
 use crate::virtual_dom::{VDiff, VNode};
+use crate::Callback;
 use crate::{Context, NodeRef};
 use std::rc::Rc;
 use web_sys::Element;
@@ -194,14 +195,43 @@ impl<COMP: Component> Runnable for RenderRunner<COMP> {
                 Err(RenderError::Suspended(m)) => {
                     // Currently suspended, we re-use previous root node and send
                     // suspension to parent element.
-                    let comp_scope = AnyScope::from(state.context.scope.clone());
+                    let shared_state = self.state.clone();
 
-                    let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
-                    let suspense = suspense_scope.get_component().unwrap();
+                    if m.resumed() {
+                        // schedule a render immediately if suspension is resumed.
 
-                    state.suspension = Some(m.clone());
+                        scheduler::push_component_render(
+                            shared_state.as_ptr() as usize,
+                            RenderRunner {
+                                state: shared_state.clone(),
+                            },
+                            RenderedRunner {
+                                state: shared_state,
+                            },
+                        );
+                    } else {
+                        // We schedule a render after current suspension is resumed.
 
-                    suspense.suspend(m);
+                        let comp_scope = AnyScope::from(state.context.scope.clone());
+
+                        let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
+                        let suspense = suspense_scope.get_component().unwrap();
+                        m.listen(Callback::once(move |_| {
+                            scheduler::push_component_render(
+                                shared_state.as_ptr() as usize,
+                                RenderRunner {
+                                    state: shared_state.clone(),
+                                },
+                                RenderedRunner {
+                                    state: shared_state,
+                                },
+                            );
+                        }));
+
+                        state.suspension = Some(m.clone());
+
+                        suspense.suspend(m);
+                    }
 
                     state.root_node.clone()
                 }

@@ -86,6 +86,8 @@ impl VDiff for VSuspense {
             None => (false, None, None),
         };
 
+        // When it's suspended, we render children into an element that is detached from the dom
+        // tree while rendering fallback UI into the original place where children resides in.
         match (self.suspended, already_suspended) {
             (true, true) => {
                 self.children.apply(
