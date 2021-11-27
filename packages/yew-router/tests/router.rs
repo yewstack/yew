@@ -76,13 +76,13 @@ fn component() -> Html {
             Routes::Home => html! {
                 <>
                     <div id="result">{"Home"}</div>
-                    <a onclick={replace_route}>{"replace a route"}</a>
+                    <a href="silence-lint" onclick={replace_route}>{"replace a route"}</a>
                 </>
             },
             Routes::No { id } => html! {
                 <>
                     <No id={*id} />
-                    <a onclick={push_route}>{"push a route"}</a>
+                    <a href="silence-lint" onclick={push_route}>{"push a route"}</a>
                 </>
             },
             Routes::NotFound => html! { <div id="result">{"404"}</div> },
