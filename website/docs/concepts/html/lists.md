@@ -11,12 +11,13 @@ list that Yew can display.
 
 ```rust
 use yew::{html, Html};
+use yew::virtual_dom::VNode;
 
 let items = (1..=10).collect::<Vec<_>>();
 
 html! {
     <ul class="item-list">
-        { items.iter().collect::<Html>() }
+        { items.iter().collect::<VNode>() }
     </ul>
 };
 ```

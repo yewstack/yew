@@ -126,7 +126,7 @@ pub use yew_macro::html;
 /// ```
 /// # use yew::prelude::*;
 /// use yew::html::ChildrenRenderer;
-/// use yew::virtual_dom::VChild;
+/// use yew::virtual_dom::{VChild, VNode};
 ///
 /// #[derive(Clone, Properties, PartialEq)]
 /// struct ListProps {
@@ -157,10 +157,9 @@ pub use yew_macro::html;
 ///   fn from(child: VChild<ListItem>) -> Self { Self }
 /// }
 ///
-/// impl Into<Html> for ListItem {
-///   fn into(self) -> Html { html! { <self /> } }
+/// impl Into<VNode> for ListItem {
+///   fn into(self) -> VNode { (html! { <self /> }).unwrap() }
 /// }
-///
 /// // You can use `List` with nested `ListItem` components.
 /// // Using any other kind of element would result in a compile error.
 /// # fn test() -> Html {

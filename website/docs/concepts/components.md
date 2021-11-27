@@ -19,8 +19,8 @@ in the lifecycle of a component.
 
 ### Create
 
-When a component is created, it receives properties from its parent component and is stored within 
-the `Context<Self>` thats passed down to the `create` method. The properties can be used to 
+When a component is created, it receives properties from its parent component and is stored within
+the `Context<Self>` thats passed down to the `create` method. The properties can be used to
 initialize the component's state and the "link" can be used to register callbacks or send messages to the component.
 
 ```rust
@@ -195,7 +195,7 @@ impl Component for MyComponent {
         html! {
             // impl
         }
-    } 
+    }
 
 }
 ```
@@ -221,7 +221,7 @@ the same component after every render when that update also requests the compone
 A simple example can be seen below:
 
 ```rust
-use yew::{Context, Component, Html};
+use yew::{Context, Component, Html, HtmlDefault};
 
 struct Comp;
 
@@ -302,4 +302,3 @@ enum Msg {
 
 All component lifecycle methods take a context object. This object provides a reference to component's scope, which
 allows sending messages to a component and the props passed to the component.
-

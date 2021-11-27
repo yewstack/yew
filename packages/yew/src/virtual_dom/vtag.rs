@@ -797,9 +797,9 @@ mod tests {
         let namespace = Some(namespace);
         let svg_el = document.create_element_ns(namespace, "svg").unwrap();
 
-        let mut g_node = html! { <g class="segment"></g> };
+        let mut g_node = html! { <g class="segment"></g> }.unwrap();
         let path_node = html! { <path></path> };
-        let mut svg_node = html! { <svg>{path_node}</svg> };
+        let mut svg_node = html! { <svg>{path_node}</svg> }.unwrap();
 
         let svg_tag = assert_vtag_mut(&mut svg_node);
         svg_tag.apply(&scope, &div_el, NodeRef::default(), None);
@@ -892,7 +892,8 @@ mod tests {
                 </button>
                 <div own-attribute-with-multiple-parts="works" />
             </p>
-        };
+        }
+        .unwrap();
         if let VNode::VTag(vtag) = a {
             assert_eq!(
                 vtag.attributes
@@ -913,7 +914,7 @@ mod tests {
 
         document().body().unwrap().append_child(&parent).unwrap();
 
-        let mut elem = html! { <div></div> };
+        let mut elem = html! { <div></div> }.unwrap();
         VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag_mut(&mut elem);
         // test if the className has not been set
@@ -926,7 +927,7 @@ mod tests {
 
         document().body().unwrap().append_child(&parent).unwrap();
 
-        let mut elem = gen_html();
+        let mut elem = gen_html().unwrap();
         VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag_mut(&mut elem);
         // test if the className has been set
@@ -953,7 +954,7 @@ mod tests {
         let expected = "not_changed_value";
 
         // Initial state
-        let mut elem = html! { <input value={expected} /> };
+        let mut elem = html! { <input value={expected} /> }.unwrap();
         VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -967,7 +968,7 @@ mod tests {
         input.unwrap().set_value("User input");
 
         let ancestor = vtag;
-        let mut elem = html! { <input value={expected} /> };
+        let mut elem = html! { <input value={expected} /> }.unwrap();
         let vtag = assert_vtag_mut(&mut elem);
 
         // Sync happens here
@@ -996,7 +997,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         // Initial state
-        let mut elem = html! { <input /> };
+        let mut elem = html! { <input /> }.unwrap();
         VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -1010,7 +1011,7 @@ mod tests {
         input.unwrap().set_value("User input");
 
         let ancestor = vtag;
-        let mut elem = html! { <input /> };
+        let mut elem = html! { <input /> }.unwrap();
         let vtag = assert_vtag_mut(&mut elem);
 
         // Value should not be refreshed
@@ -1046,7 +1047,8 @@ mod tests {
             let mut builder = String::new();
             builder.push('a');
             builder
-        }/> };
+        }/> }
+        .unwrap();
 
         VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag_mut(&mut elem);
@@ -1061,7 +1063,8 @@ mod tests {
     fn dynamic_tags_handle_value_attribute() {
         let mut div_el = html! {
             <@{"div"} value="Hello"/>
-        };
+        }
+        .unwrap();
         let div_vtag = assert_vtag_mut(&mut div_el);
         assert!(div_vtag.value().is_none());
         let v: Option<&str> = div_vtag
@@ -1073,7 +1076,8 @@ mod tests {
 
         let mut input_el = html! {
             <@{"input"} value="World"/>
-        };
+        }
+        .unwrap();
         let input_vtag = assert_vtag_mut(&mut input_el);
         assert_eq!(input_vtag.value(), Some(&AttrValue::Static("World")));
         assert!(!input_vtag.attributes.iter().any(|(k, _)| k == "value"));
@@ -1083,7 +1087,8 @@ mod tests {
     fn dynamic_tags_handle_weird_capitalization() {
         let mut el = html! {
             <@{"tExTAREa"}/>
-        };
+        }
+        .unwrap();
         let vtag = assert_vtag_mut(&mut el);
         assert_eq!(vtag.tag(), "textarea");
     }
@@ -1096,7 +1101,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let node_ref = NodeRef::default();
-        let mut elem: VNode = html! { <div ref={node_ref.clone()}></div> };
+        let mut elem: VNode = html! { <div ref={node_ref.clone()}></div> }.unwrap();
         assert_vtag_mut(&mut elem);
         elem.apply(&scope, &parent, NodeRef::default(), None);
         let parent_node = parent.deref();
@@ -1112,14 +1117,14 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let node_ref_a = NodeRef::default();
-        let mut elem_a = html! { <div id="a" ref={node_ref_a.clone()} /> };
+        let mut elem_a = html! { <div id="a" ref={node_ref_a.clone()} /> }.unwrap();
         elem_a.apply(&scope, &parent, NodeRef::default(), None);
 
         // save the Node to check later that it has been reused.
         let node_a = node_ref_a.get().unwrap();
 
         let node_ref_b = NodeRef::default();
-        let mut elem_b = html! { <div id="b" ref={node_ref_b.clone()} /> };
+        let mut elem_b = html! { <div id="b" ref={node_ref_b.clone()} /> }.unwrap();
         elem_b.apply(&scope, &parent, NodeRef::default(), Some(elem_a));
 
         let node_b = node_ref_b.get().unwrap();
@@ -1158,7 +1163,8 @@ mod layout_tests {
                         {"b"}
                     </li>
                 </ul>
-            },
+            }
+            .unwrap(),
             expected: "<ul><li>a</li><li>b</li></ul>",
         };
 
@@ -1176,7 +1182,8 @@ mod layout_tests {
                         {"d"}
                     </li>
                 </ul>
-            },
+            }
+            .unwrap(),
             expected: "<ul><li>a</li><li>b</li><li>d</li></ul>",
         };
 
@@ -1197,7 +1204,8 @@ mod layout_tests {
                         {"d"}
                     </li>
                 </ul>
-            },
+            }
+            .unwrap(),
             expected: "<ul><li>a</li><li>b</li><li>c</li><li>d</li></ul>",
         };
 
@@ -1220,7 +1228,8 @@ mod layout_tests {
                         </li>
                     </li>
                 </ul>
-            },
+            }
+            .unwrap(),
             expected: "<ul><li>a</li><li>b<li>c</li><li>d</li></li></ul>",
         };
 

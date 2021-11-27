@@ -25,44 +25,47 @@ error[E0277]: `()` is not an iterator
   = note: required by `into_iter`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-    --> $DIR/iterable-fail.rs:7:17
-     |
-7    |     html! { for Vec::<()>::new().into_iter() };
-     |                 ^^^ `()` cannot be formatted with the default formatter
-     |
-     = help: the trait `std::fmt::Display` is not implemented for `()`
-     = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-     = note: required because of the requirements on the impl of `ToString` for `()`
-     = note: required because of the requirements on the impl of `From<()>` for `VNode`
-     = note: required because of the requirements on the impl of `Into<VNode>` for `()`
-     = note: required because of the requirements on the impl of `FromIterator<()>` for `VNode`
+ --> $DIR/iterable-fail.rs:7:17
+  |
+7 |     html! { for Vec::<()>::new().into_iter() };
+  |                 ^^^ `()` cannot be formatted with the default formatter
+  |
+  = help: the trait `std::fmt::Display` is not implemented for `()`
+  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+  = note: required because of the requirements on the impl of `ToString` for `()`
+  = note: required because of the requirements on the impl of `From<()>` for `VNode`
+  = note: required because of the requirements on the impl of `Into<VNode>` for `()`
+  = note: required because of the requirements on the impl of `TryIntoNode<(), VNode>` for `()`
+  = note: required by `try_into_node`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-    --> $DIR/iterable-fail.rs:10:17
-     |
-10   |     html! { for empty };
-     |                 ^^^^^ `()` cannot be formatted with the default formatter
-     |
-     = help: the trait `std::fmt::Display` is not implemented for `()`
-     = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-     = note: required because of the requirements on the impl of `ToString` for `()`
-     = note: required because of the requirements on the impl of `From<()>` for `VNode`
-     = note: required because of the requirements on the impl of `Into<VNode>` for `()`
-     = note: required because of the requirements on the impl of `FromIterator<()>` for `VNode`
+  --> $DIR/iterable-fail.rs:10:17
+   |
+10 |     html! { for empty };
+   |                 ^^^^^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `ToString` for `()`
+   = note: required because of the requirements on the impl of `From<()>` for `VNode`
+   = note: required because of the requirements on the impl of `Into<VNode>` for `()`
+   = note: required because of the requirements on the impl of `TryIntoNode<(), VNode>` for `()`
+   = note: required by `try_into_node`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-    --> $DIR/iterable-fail.rs:13:17
-     |
-13   |     html! { for empty.iter() };
-     |                 ^^^^^ `()` cannot be formatted with the default formatter
-     |
-     = help: the trait `std::fmt::Display` is not implemented for `()`
-     = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-     = note: required because of the requirements on the impl of `std::fmt::Display` for `&()`
-     = note: required because of the requirements on the impl of `ToString` for `&()`
-     = note: required because of the requirements on the impl of `From<&()>` for `VNode`
-     = note: required because of the requirements on the impl of `Into<VNode>` for `&()`
-     = note: required because of the requirements on the impl of `FromIterator<&()>` for `VNode`
+  --> $DIR/iterable-fail.rs:13:17
+   |
+13 |     html! { for empty.iter() };
+   |                 ^^^^^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `std::fmt::Display` for `&()`
+   = note: required because of the requirements on the impl of `ToString` for `&()`
+   = note: required because of the requirements on the impl of `From<&()>` for `VNode`
+   = note: required because of the requirements on the impl of `Into<VNode>` for `&()`
+   = note: required because of the requirements on the impl of `TryIntoNode<&(), VNode>` for `&()`
+   = note: required by `try_into_node`
 
 error[E0277]: `()` is not an iterator
   --> $DIR/iterable-fail.rs:18:19
@@ -70,10 +73,6 @@ error[E0277]: `()` is not an iterator
 18 |             { for () }
    |                   ^^ `()` is not an iterator
    |
-  ::: $WORKSPACE/packages/yew/src/utils/mod.rs
-   |
-   |     IT: IntoIterator<Item = T>,
-   |         ---------------------- required by this bound in `into_node_iter`
-   |
    = help: the trait `Iterator` is not implemented for `()`
    = note: required because of the requirements on the impl of `IntoIterator` for `()`
+   = note: required by `into_iter`

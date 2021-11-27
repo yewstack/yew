@@ -37,29 +37,31 @@ pub struct u8;
 pub struct usize;
 
 fn main() {
-    ::yew::html! { <>{ "Hi" }</> };
-    ::yew::html! { <>{ ::std::format!("Hello") }</> };
-    ::yew::html! { <>{ ::std::string::ToString::to_string("Hello") }</> };
+    (::yew::html! { <>{ "Hi" }</> }).unwrap();
+    (::yew::html! { <>{ ::std::format!("Hello") }</> }).unwrap();
+    (::yew::html! { <>{ ::std::string::ToString::to_string("Hello") }</> }).unwrap();
 
     let msg = "Hello";
-    ::yew::html! { <div>{ msg }</div> };
+    (::yew::html! { <div>{ msg }</div> }).unwrap();
 
     let subview = ::yew::html! { "subview!" };
-    ::yew::html! { <div>{ subview }</div> };
+    (::yew::html! { <div>{ subview }</div> }).unwrap();
 
     let subview = || ::yew::html! { "subview!" };
-    ::yew::html! { <div>{ subview() }</div> };
+    (::yew::html! { <div>{ subview() }</div> }).unwrap();
 
-    ::yew::html! {
+    (::yew::html! {
         <ul>
             { for ::std::iter::Iterator::map(0..3, |num| { ::yew::html! { <span>{ num }</span> }}) }
         </ul>
-    };
+    })
+    .unwrap();
 
     let item = |num| ::yew::html! { <li>{ ::std::format!("item {}!", num) }</li> };
-    ::yew::html! {
+    (::yew::html! {
         <ul>
             { for ::std::iter::Iterator::map(0..3, item) }
         </ul>
-    };
+    })
+    .unwrap();
 }

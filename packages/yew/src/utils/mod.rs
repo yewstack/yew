@@ -6,9 +6,9 @@ use yew::html::RenderResult;
 
 /// A special type necessary for flattening components returned from nested html macros.
 #[derive(Debug)]
-pub struct RenderNode<I, O>(O, PhantomData<I>);
+pub struct Node<I, O>(O, PhantomData<I>);
 
-impl<I, O> RenderNode<I, O> {
+impl<I, O> Node<I, O> {
     /// Returns the wrapped value.
     pub fn into_value(self) -> O {
         self.0
@@ -16,26 +16,26 @@ impl<I, O> RenderNode<I, O> {
 }
 
 /// A special trait to convert to a `RenderResult`.
-pub trait TryIntoRenderNode<I, O> {
+pub trait TryIntoNode<I, O> {
     /// Performs the conversion.
-    fn try_into_render_node(self) -> RenderResult<RenderNode<I, O>>;
+    fn try_into_node(self) -> RenderResult<Node<I, O>>;
 }
 
-impl<I, O> TryIntoRenderNode<I, O> for I
+impl<I, O> TryIntoNode<I, O> for I
 where
     I: Into<O>,
 {
-    fn try_into_render_node(self) -> RenderResult<RenderNode<I, O>> {
-        Ok(RenderNode(self.into(), PhantomData::default()))
+    fn try_into_node(self) -> RenderResult<Node<I, O>> {
+        Ok(Node(self.into(), PhantomData::default()))
     }
 }
 
-impl<I, O> TryIntoRenderNode<I, O> for RenderResult<I>
+impl<I, O> TryIntoNode<I, O> for RenderResult<I>
 where
     I: Into<O>,
 {
-    fn try_into_render_node(self) -> RenderResult<RenderNode<I, O>> {
-        Ok(RenderNode(self?.into(), PhantomData::default()))
+    fn try_into_node(self) -> RenderResult<Node<I, O>> {
+        Ok(Node(self?.into(), PhantomData::default()))
     }
 }
 
@@ -112,6 +112,21 @@ where
     }
 }
 
+impl<I, O> TryIntoNodeSeq<I, O> for Vec<RenderResult<I>>
+where
+    I: Into<O>,
+{
+    fn try_into_node_seq(self) -> RenderResult<NodeSeq<I, O>> {
+        let mut nodes = Vec::new();
+
+        for node in self {
+            nodes.push(node?.into());
+        }
+
+        Ok(NodeSeq(nodes, PhantomData::default()))
+    }
+}
+
 impl<I, O> TryIntoNodeSeq<I, O> for RenderResult<ChildrenRenderer<I>>
 where
     I: Into<O>,
@@ -121,6 +136,36 @@ where
             self?.into_iter().map(|x| x.into()).collect(),
             PhantomData::default(),
         ))
+    }
+}
+
+impl<I, O> TryIntoNodeSeq<I, O> for ChildrenRenderer<RenderResult<I>>
+where
+    I: Into<O>,
+{
+    fn try_into_node_seq(self) -> RenderResult<NodeSeq<I, O>> {
+        let mut nodes = Vec::new();
+
+        for node in self {
+            nodes.push(node?.into());
+        }
+
+        Ok(NodeSeq(nodes, PhantomData::default()))
+    }
+}
+
+impl<I, O> TryIntoNodeSeq<I, O> for RenderResult<ChildrenRenderer<RenderResult<I>>>
+where
+    I: Into<O>,
+{
+    fn try_into_node_seq(self) -> RenderResult<NodeSeq<I, O>> {
+        let mut nodes = Vec::new();
+
+        for node in self? {
+            nodes.push(node?.into());
+        }
+
+        Ok(NodeSeq(nodes, PhantomData::default()))
     }
 }
 

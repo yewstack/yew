@@ -392,7 +392,8 @@ mod layout_tests {
                     </>
                     {"e"}
                 </>
-            },
+            }
+            .unwrap(),
             expected: "abcde",
         };
 
@@ -406,7 +407,8 @@ mod layout_tests {
                     {"e"}
                     {"f"}
                 </>
-            },
+            }
+            .unwrap(),
             expected: "abef",
         };
 
@@ -419,7 +421,8 @@ mod layout_tests {
                     {"b"}
                     {"e"}
                 </>
-            },
+            }
+            .unwrap(),
             expected: "abe",
         };
 
@@ -435,7 +438,8 @@ mod layout_tests {
                     {"b"}
                     {"e"}
                 </>
-            },
+            }
+            .unwrap(),
             expected: "acdbe",
         };
 
@@ -529,7 +533,8 @@ mod layout_tests_keys {
                     </>
                     {VNode::VRef(vref_node)}
                 </>
-            },
+            }
+            .unwrap(),
             expected: "a<span></span>cd<p>0</p>foobar<i></i>",
         });
 
@@ -543,7 +548,8 @@ mod layout_tests_keys {
                         </>
                         <p key="p"></p>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><p></p>",
             },
             TestLayout {
@@ -556,7 +562,8 @@ mod layout_tests_keys {
                         </>
                         <p key="p"></p>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p>",
             },
         ]);
@@ -569,7 +576,8 @@ mod layout_tests_keys {
                         <i key="i"></i>
                         <e key="e"></e>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e>",
             },
             TestLayout {
@@ -579,7 +587,8 @@ mod layout_tests_keys {
                         <a key="a"></a>
                         <p key="p"></p>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<a></a><p></p>",
             },
         ]);
@@ -592,7 +601,8 @@ mod layout_tests_keys {
                         <i key="i"></i>
                         <e key="e"></e>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e>",
             },
             TestLayout {
@@ -603,7 +613,8 @@ mod layout_tests_keys {
                         <e key="e"></e>
                         <p key="p"></p>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p>",
             },
         ]);
@@ -616,7 +627,8 @@ mod layout_tests_keys {
                         <i key="i"></i>
                         <e key="e"></e>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e>",
             },
             TestLayout {
@@ -627,7 +639,8 @@ mod layout_tests_keys {
                         <i key="i"></i>
                         <e key="e"></e>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<p></p><i></i><e></e>",
             },
         ]);
@@ -641,7 +654,8 @@ mod layout_tests_keys {
                         <e key="e"></e>
                         <p key="p"></p>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p>",
             },
             TestLayout {
@@ -651,7 +665,8 @@ mod layout_tests_keys {
                         <e key="e"></e>
                         <p key="p"></p>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<e></e><p></p>",
             },
         ]);
@@ -665,7 +680,8 @@ mod layout_tests_keys {
                         <e key="e"></e>
                         <p key="p"></p>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p>",
             },
             TestLayout {
@@ -675,7 +691,8 @@ mod layout_tests_keys {
                         <i key="i"></i>
                         <e key="e"></e>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e>",
             },
         ]);
@@ -689,7 +706,8 @@ mod layout_tests_keys {
                         <e key="e"></e>
                         <p key="p"></p>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p>",
             },
             TestLayout {
@@ -700,7 +718,8 @@ mod layout_tests_keys {
                         <List key="e"><e/></List>
                         <List key="a"><a/></List>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><a></a>",
             },
         ]);
@@ -715,7 +734,8 @@ mod layout_tests_keys {
                         <p key="p"></p>
                         <a key="a"></a>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p><a></a>",
             },
             TestLayout {
@@ -727,7 +747,8 @@ mod layout_tests_keys {
                         <p key="p2"></p>
                         <a key="a"></a>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p><a></a>",
             },
         ]);
@@ -742,7 +763,8 @@ mod layout_tests_keys {
                         <p key="p"></p>
                         <a key="a"></a>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p><a></a>",
             },
             TestLayout {
@@ -754,7 +776,8 @@ mod layout_tests_keys {
                         <List key="p"><p/></List>
                         <List key="a2"><a/></List>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p><a></a>",
             },
         ]);
@@ -769,7 +792,8 @@ mod layout_tests_keys {
                         <p key="p"></p>
                         <u key="u"></u>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p><u></u>",
             },
             TestLayout {
@@ -781,7 +805,8 @@ mod layout_tests_keys {
                         <e key="e"></e>
                         <i key="i"></i>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<u></u><p></p><e></e><i></i>",
             },
         ]);
@@ -801,7 +826,8 @@ mod layout_tests_keys {
                         </>
                         <u key="u"></u>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p><u></u>",
             },
             TestLayout {
@@ -813,7 +839,8 @@ mod layout_tests_keys {
                         <List key="e"><e/></List>
                         <List key="i"><i/></List>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<u></u><p></p><e></e><i></i>",
             },
         ]);
@@ -829,7 +856,8 @@ mod layout_tests_keys {
                         <a key="4"></a>
                         <u key="5"></u>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p><a></a><u></u>",
             },
             TestLayout {
@@ -842,7 +870,8 @@ mod layout_tests_keys {
                         <a key="4"></a>
                         <u key="5"></u>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<e></e><i></i><p></p><a></a><u></u>",
             },
         ]);
@@ -858,7 +887,8 @@ mod layout_tests_keys {
                         <a key="4"></a>
                         <u key="5"></u>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p><a></a><u></u>",
             },
             TestLayout {
@@ -871,7 +901,8 @@ mod layout_tests_keys {
                         <List key="4"><a/></List>
                         <List key="5"><u/></List>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<e></e><i></i><p></p><a></a><u></u>",
             },
         ]);
@@ -894,7 +925,8 @@ mod layout_tests_keys {
                             <u key="u"></u>
                         </>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<e></e><p></p><a></a><u></u><e></e><p></p><a></a><u></u>",
             },
             TestLayout {
@@ -907,7 +939,8 @@ mod layout_tests_keys {
                             <i key="i"></i>
                         </>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<e></e><p></p><i></i>",
             },
         ]);
@@ -923,7 +956,8 @@ mod layout_tests_keys {
                         <a key="4"></a>
                         <u key="5"></u>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p><a></a><u></u>",
             },
             TestLayout {
@@ -936,7 +970,8 @@ mod layout_tests_keys {
                         <u key="5"></u>
                         <a key="4"></a>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p><u></u><a></a>",
             },
         ]);
@@ -952,7 +987,8 @@ mod layout_tests_keys {
                         <a key="4"></a>
                         <u key="5"></u>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p><a></a><u></u>",
             },
             TestLayout {
@@ -965,7 +1001,8 @@ mod layout_tests_keys {
                         <a key="4"></a>
                         <i key="1"></i>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<u></u><e></e><p></p><a></a><i></i>",
             },
         ]);
@@ -981,7 +1018,8 @@ mod layout_tests_keys {
                         <a key="4"></a>
                         <u key="5"></u>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p><a></a><u></u>",
             },
             TestLayout {
@@ -994,7 +1032,8 @@ mod layout_tests_keys {
                         <e key="2"></e>
                         <u key="5"></u>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><p></p><a></a><e></e><u></u>",
             },
         ]);
@@ -1013,7 +1052,8 @@ mod layout_tests_keys {
                             <u></u>
                         </>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><a></a><u></u>",
             },
             TestLayout {
@@ -1029,7 +1069,8 @@ mod layout_tests_keys {
                             <e></e>
                         </>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<a></a><u></u><i></i><e></e>",
             },
         ]);
@@ -1049,7 +1090,8 @@ mod layout_tests_keys {
                             <u></u>
                         </>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<i></i><e></e><p></p><a></a><u></u>",
             },
             TestLayout {
@@ -1066,7 +1108,8 @@ mod layout_tests_keys {
                             <e></e>
                         </>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<a></a><u></u><p></p><i></i><e></e>",
             },
         ]);
@@ -1079,7 +1122,8 @@ mod layout_tests_keys {
                         <u key=1></u>
                         <a key=2></a>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<u></u><a></a>",
             },
             TestLayout {
@@ -1090,7 +1134,8 @@ mod layout_tests_keys {
                         <u key=1></u>
                         <a key=2></a>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<p>0</p><u></u><a></a>",
             },
         ]);
@@ -1103,7 +1148,8 @@ mod layout_tests_keys {
                         <u key=1></u>
                         <a key=2></a>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<u></u><a></a>",
             },
             TestLayout {
@@ -1114,7 +1160,8 @@ mod layout_tests_keys {
                         <Comp id=0 key="comp"/>
                         <a key=2></a>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<u></u><p>0</p><a></a>",
             },
         ]);
@@ -1127,7 +1174,8 @@ mod layout_tests_keys {
                         <u key=1></u>
                         <a key=2></a>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<u></u><a></a>",
             },
             TestLayout {
@@ -1138,7 +1186,8 @@ mod layout_tests_keys {
                         <a key=2></a>
                         <Comp id=0 key="comp"/>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<u></u><a></a><p>0</p>",
             },
         ]);
@@ -1152,7 +1201,8 @@ mod layout_tests_keys {
                         <Comp id=2 key="comp-2"/>
                         <Comp id=3 key="comp-3"/>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<p>1</p><p>2</p><p>3</p>",
             },
             TestLayout {
@@ -1163,7 +1213,8 @@ mod layout_tests_keys {
                         <Comp id=2 key="comp-2"/>
                         <Comp id=1 key="comp-1"/>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<p>3</p><p>2</p><p>1</p>",
             },
         ]);
@@ -1177,7 +1228,8 @@ mod layout_tests_keys {
                         <List key="comp-2"><p>{"21"}</p><p>{"22"}</p></List>
                         <List key="comp-3"><p>{"31"}</p><p>{"32"}</p></List>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<p>11</p><p>12</p><p>21</p><p>22</p><p>31</p><p>32</p>",
             },
             TestLayout {
@@ -1188,7 +1240,8 @@ mod layout_tests_keys {
                         <List key="comp-2"><p>{"21"}</p><p>{"22"}</p></List>
                         <List key="comp-1"><p>{"11"}</p><p>{"12"}</p></List>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<p>31</p><p>32</p><p>21</p><p>22</p><p>11</p><p>12</p>",
             },
         ]);
@@ -1201,7 +1254,8 @@ mod layout_tests_keys {
                         <Comp id=1 key="comp-1"/>
                         <Comp id=2 key="comp-2"/>
                     </List>
-                },
+                }
+                .unwrap(),
                 expected: "<p>1</p><p>2</p>",
             },
             TestLayout {
@@ -1215,7 +1269,8 @@ mod layout_tests_keys {
                             <p>{"2"}</p>
                         </List>
                     </List>
-                },
+                }
+                .unwrap(),
                 expected: "<p>1</p><p>2</p>",
             },
         ]);
@@ -1232,7 +1287,8 @@ mod layout_tests_keys {
                         <List key="comp-4"><p>{"4"}</p></List>
                         <List key="comp-6"><p>{"6"}</p></List>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<p>1</p><p>3</p><p>5</p><p>2</p><p>4</p><p>6</p>",
             },
             TestLayout {
@@ -1246,7 +1302,8 @@ mod layout_tests_keys {
                         <Comp id=2 key="comp-2"/>
                         <Comp id=1 key="comp-1"/>
                     </>
-                },
+                }
+                .unwrap(),
                 expected: "<p>6</p><p>5</p><p>4</p><p>3</p><p>2</p><p>1</p>",
             },
         ]);
@@ -1260,7 +1317,8 @@ mod layout_tests_keys {
                         <List key="comp-2"><p>{"2"}</p></List>
                         <List key="comp-3"><p>{"3"}</p></List>
                     </List>
-                },
+                }
+                .unwrap(),
                 expected: "<p>1</p><p>2</p><p>3</p>",
             },
             TestLayout {
@@ -1271,7 +1329,8 @@ mod layout_tests_keys {
                         <Comp id=2 key="comp-2" />
                         <Comp id=1 key="comp-1" />
                     </List>
-                },
+                }
+                .unwrap(),
                 expected: "<p>3</p><p>2</p><p>1</p>",
             },
         ]);

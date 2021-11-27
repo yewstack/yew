@@ -44,8 +44,8 @@ impl ToTokens for HtmlIterable {
             #[allow(unused_braces)]
             {
                 let mut nodes: ::std::vec::Vec<::yew::virtual_dom::VNode> = ::std::vec::Vec::new();
-                for __render_node in #expr {
-                    nodes.push(::yew::utils::TryIntoRenderNode::try_into_render_node(__render_node)?.into_value());
+                for __node in #expr {
+                    nodes.push(::yew::utils::TryIntoNode::try_into_node(__node)?.into_value());
                 }
 
                 ::std::iter::Iterator::collect::<::yew::virtual_dom::VNode>(::std::iter::IntoIterator::into_iter(nodes))
@@ -63,12 +63,12 @@ impl ToNodeIterator for HtmlIterable {
         // We use a util method to avoid clippy warnings and reduce generated code size
         Some(quote_spanned! {expr.span()=>
             {
-                let mut nodes = Vec::new();
-                for __render_node in #expr {
-                    nodes.push(::yew::utils::TryIntoRenderNode::try_into_render_node(__render_node)?.into_value());
+                let mut nodes = ::std::vec::Vec::new();
+                for __node in #expr {
+                    nodes.push(::yew::utils::TryIntoNode::try_into_node(__node)?.into_value());
                 }
 
-                nodes.into_iter()
+                ::std::iter::IntoIterator::into_iter(nodes)
             }
         })
     }

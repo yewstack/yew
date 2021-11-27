@@ -8,12 +8,13 @@ description: "Both HTML and SVG elements are supported"
 There are many reasons why you might want to create or manage DOM nodes manually in Yew, such as
 when integrating with JS libraries that can cause conflicts with managed components.
 
-Using `web-sys`, you can create DOM elements and convert them into a `Node` - which can then be 
+Using `web-sys`, you can create DOM elements and convert them into a `Node` - which can then be
 used as a `Html` value using `VRef`:
 
 ```rust
 use web_sys::{Element, Node};
 use yew::{Component, Context, html, Html};
+use yew::virtual_dom::VNode;
 use gloo_utils::document;
 
 struct Comp;
@@ -34,7 +35,7 @@ impl Component for Comp {
         // Convert Element into a Node
         let node: Node = div.into();
         // Return that Node as a Html value
-        Html::VRef(node)
+        Ok(VNode::VRef(node))
     }
 }
 ```
@@ -57,9 +58,9 @@ html! {
 };
 ```
 
-## Boolean Attributes 
+## Boolean Attributes
 
-Some content attributes (e.g checked, hidden, required) are called boolean attributes. In Yew, 
+Some content attributes (e.g checked, hidden, required) are called boolean attributes. In Yew,
 boolean attributes need to be set to a bool value:
 
 ```rust
@@ -77,7 +78,7 @@ This will result in **HTML** that's functionally equivalent to this:
 <div hidden>This div is hidden.</div>
 ```
 
-Setting a boolean attribute to false is equivalent to not using the attribute at all; values from 
+Setting a boolean attribute to false is equivalent to not using the attribute at all; values from
 boolean expressions can be used:
 
 ```rust

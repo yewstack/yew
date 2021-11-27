@@ -14,17 +14,19 @@ fn html_macro() {
     expected = "a dynamic tag tried to create a `<br>` tag with children. `<br>` is a void element which can't have any children."
 )]
 fn dynamic_tags_catch_void_elements() {
-    html! {
+    (html! {
         <@{"br"}>
             <span>{ "No children allowed" }</span>
         </@>
-    };
+    })
+    .unwrap();
 }
 
 #[test]
 #[should_panic(expected = "a dynamic tag returned a tag name containing non ASCII characters: `❤`")]
 fn dynamic_tags_catch_non_ascii() {
-    html! {
+    (html! {
         <@{"❤"}/>
-    };
+    })
+    .unwrap();
 }

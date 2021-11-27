@@ -106,13 +106,15 @@ mod test {
 
     #[test]
     fn text_as_root() {
-        html! {
+        (html! {
             "Text Node As Root"
-        };
+        })
+        .unwrap();
 
-        html! {
+        (html! {
             { "Text Node As Root" }
-        };
+        })
+        .unwrap();
     }
 }
 
@@ -133,13 +135,13 @@ mod layout_tests {
     fn diff() {
         let layout1 = TestLayout {
             name: "1",
-            node: html! { "a" },
+            node: html! { "a" }.unwrap(),
             expected: "a",
         };
 
         let layout2 = TestLayout {
             name: "2",
-            node: html! { "b" },
+            node: html! { "b" }.unwrap(),
             expected: "b",
         };
 
@@ -150,7 +152,8 @@ mod layout_tests {
                     {"a"}
                     {"b"}
                 </>
-            },
+            }
+            .unwrap(),
             expected: "ab",
         };
 
@@ -161,7 +164,8 @@ mod layout_tests {
                     {"b"}
                     {"a"}
                 </>
-            },
+            }
+            .unwrap(),
             expected: "ba",
         };
 

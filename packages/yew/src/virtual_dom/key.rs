@@ -80,7 +80,7 @@ mod test {
 
     #[test]
     fn all_key_conversions() {
-        html! {
+        (html! {
             <key="string literal">
                 <img key={"String".to_owned()} />
                 <p key={Rc::<str>::from("rc")}></p>
@@ -98,6 +98,7 @@ mod test {
                     <p key=25_i128></p>
                 </>
             </>
-        };
+        })
+        .unwrap();
     }
 }
