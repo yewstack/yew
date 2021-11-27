@@ -64,10 +64,6 @@ Feel free to drop into our [Discord chatroom](https://discord.gg/VQck8X4) or ope
 
 After reviewing the [Contribution Guide](CONTRIBUTING.md), check out the ["Good First Issues"](https://github.com/yewstack/yew/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) (they are eager for attention!). Once you find one that interests you, feel free to assign yourself to an issue and don't hesitate to reach out for guidance, the issues vary in complexity.
 
-#### 🤑 Let's help each other!
-
-Come help us on the [issues that matter that the most](https://github.com/yewstack/yew/labels/%3Adollar%3A%20Funded%20on%20Issuehunt) and receive a small cash reward for your troubles. We use [Issuehunt](https://issuehunt.io/r/yewstack/yew/) to fund issues from our Open Collective funds. If you really care about an issue, you can choose to add funds yourself!
-
 #### 😱 Found a bug?
 
 Please [report all bugs!](https://github.com/yewstack/yew/issues/new/choose) We are happy to help support developers fix the bugs they find if they are interested and have the time.
