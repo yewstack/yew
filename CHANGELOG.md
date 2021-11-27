@@ -1,6 +1,6 @@
 # Changelog
 
-## ✨ yew **x.y.z** *(2021-11-26)*
+## ✨ yew **0.19.0** *(2021-11-26)*
 
 #### Changelog
 
@@ -78,7 +78,7 @@
   - Add support for the unit struct in Properties derive. [[@Xavientois](https://github.com/Xavientois), [#1752](https://github.com/yewstack/yew/pull/1752)]
   - Rip out stdweb. [[@philip-peterson](https://github.com/philip-peterson), [#1697](https://github.com/yewstack/yew/pull/1697)]
 
-## ✨ yew-router **x.y.z** *(2021-11-26)*
+## ✨ yew-router **0.16.0** *(2021-11-26)*
 
 #### Changelog
 
@@ -108,7 +108,7 @@
   - Add support for the unit struct in Properties derive. [[@Xavientois](https://github.com/Xavientois), [#1752](https://github.com/yewstack/yew/pull/1752)]
   - Replace `#[to="..."]` attribute with `#[at="..."]` attribute.. [[@teymour-aldridge](https://github.com/teymour-aldridge), [#1717](https://github.com/yewstack/yew/pull/1717)]
 
-## ✨ yew-agent **x.y.z** *(2021-11-26)*
+## ✨ yew-agent **0.1.0** *(2021-11-26)*
 
 #### Changelog
 
