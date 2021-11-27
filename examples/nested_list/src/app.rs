@@ -50,7 +50,7 @@ impl Component for App {
             .map(|letter| html_nested! { <ListItem name={letter.to_string()} {on_hover} /> });
 
         html! {
-            <div id="main" class="main" {onmouseover}>
+            <div class="main" {onmouseover}>
                 <h1>{ "Nested List Demo" }</h1>
                 <List {on_hover} weak_link={list_link}>
                     <ListHeader text="Calling all Rusties!" {on_hover} {list_link} />
