@@ -37,7 +37,11 @@ impl Component for App {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let on_hover = &ctx.link().callback(Msg::Hover);
-        let onmouseenter = &ctx.link().callback(|_| Msg::Hover(Hovered::None));
+        let onmouseover = &ctx.link().callback(|_| Msg::Hover(Hovered::None));
+        let onmouseoversublist = &ctx.link().callback(|e: MouseEvent| {
+            e.stop_propagation();
+            Msg::Hover(Hovered::List)
+        });
         let list_link = &self.list_link;
         let sub_list_link = &self.sub_list_link;
 
@@ -46,14 +50,14 @@ impl Component for App {
             .map(|letter| html_nested! { <ListItem name={letter.to_string()} {on_hover} /> });
 
         html! {
-            <div class="main" {onmouseenter}>
+            <div class="main" {onmouseover}>
                 <h1>{ "Nested List Demo" }</h1>
                 <List {on_hover} weak_link={list_link}>
                     <ListHeader text="Calling all Rusties!" {on_hover} {list_link} />
                     <ListItem name="Rustin" {on_hover} />
                     <ListItem hide=true name="Rustaroo" {on_hover} />
                     <ListItem name="Rustifer" {on_hover}>
-                        <div class="sublist">{ "Sublist!" }</div>
+                        <div class="sublist" onmouseover={onmouseoversublist}>{ "Sublist!" }</div>
                         <List {on_hover} weak_link={sub_list_link}>
                             <ListHeader text="Sub Rusties!" {on_hover} list_link={sub_list_link}/>
                             <ListItem hide=true name="Hidden Sub" {on_hover} />
