@@ -1,5 +1,5 @@
 ---
-title: "0.18.0 to 0.19.0"
+title: "From 0.18.0 to 0.19.0"
 ---
 
 `Yew 0.19.0` has changed a lot, thus this migration will not cover ALL of the changes.
@@ -140,7 +140,7 @@ html! {
 
 ## New crate - yew-agent
 
-Yew agents were removed to their separate crate, see [yew agents migration guide](./../yew-agent/0.0.0-to-0.1.0)
+Yew agents were removed to their separate crate, see [yew agents migration guide](./../yew-agent/from-0.0.0-to-0.1.0)
 
 ## Ending note
 

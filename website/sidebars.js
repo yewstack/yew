@@ -112,17 +112,17 @@ module.exports = {
         {
           type: "category",
           label: "yew",
-          items: ["migration-guides/yew/0.18.0-to-0.19.0"],
+          items: ["migration-guides/yew/from-0.18.0-to-0.19.0"],
         },
         {
           type: "category",
           label: "yew-agent",
-          items: ["migration-guides/yew-agent/0.0.0-to-0.1.0"],
+          items: ["migration-guides/yew-agent/from-0.0.0-to-0.1.0"],
         },
         {
           type: "category",
           label: "yew-router",
-          items: ["migration-guides/yew-router/0.15.0-to-0.16.0"],
+          items: ["migration-guides/yew-router/from-0.15.0-to-0.16.0"],
         },
       ],
     },

@@ -1,5 +1,5 @@
 ---
-title: "0.0.0 to 0.1.0"
+title: "From 0.0.0 to 0.1.0"
 ---
 
 This is the first release of `yew-agents` being separated from `yew`
