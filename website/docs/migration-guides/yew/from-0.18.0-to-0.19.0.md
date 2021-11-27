@@ -41,6 +41,8 @@ html!{
 
 There is a community provided regex to help with this change, though we cant promise it will work all the time.
 
+It for sure breaks when it encounters closures, specifically `|_|` syntax.
+
 find with `=(?![{">=\s])([^\s></]*(\s!{0,1}[=|&]{2}\s[^\s></]*)*)`
 
 replace with `={$1}`
@@ -63,40 +65,11 @@ While this change does not force you to change your codebase, this migration tim
 
 Struct components no longer own props and link, instead they receive `ctx: &Context<Self>` argument in lifetime methods that can later give you access to `ctx.props() -> &Properties` and `ctx.link() -> &Scope<Self>`.
 
-You will need to remove `link` and `props` from your component struct fields.
-
-as such all lifetime methods got updated
+You will need to remove `link` and `props` from your component struct fields as such all lifetime methods got updated.
 
 ### Lifetime methods in Component trait
 
-The API looks like this now:
-
-```rust ,ignore
-pub trait Component: Sized + 'static {
-    type Message: 'static;
-    type Properties: Properties;
-
-    fn create(ctx: &Context<Self>) -> Self;
-
-    #[allow(unused_variables)]
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        false
-    }
-
-    #[allow(unused_variables)]
-    fn changed(&mut self, ctx: &Context<Self>) -> bool {
-        true
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html;
-
-    #[allow(unused_variables)]
-    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {}
-
-    #[allow(unused_variables)]
-    fn destroy(&mut self, ctx: &Context<Self>) {}
-}
-```
+For new API look in the [Component trait](https://github.com/yewstack/yew/blob/9b6bc96826d53ec38aa3ecc02e3a1e132692c411/packages/yew/src/html/component/mod.rs#L37-L97)
 
 ## `web-sys` is no longer re-exported
 
@@ -118,12 +91,12 @@ Remove this entirely. `yew-services` adds a layer a abstraction which makes it e
   `on*` event handlers in yew already handle it. Using this service is even more cumbersome because it requires use of `NodeRef` in order to call any functions provided by it.
 
 ```rust ,ignore
-let callback = Callback::from(|e| {
+let onkeydown = Callback::from(|e| {
     e.prevent_default();
     todo!("use `e`, just like in service methods.");
 });
 html! {
-    <input onkeydown=callback />
+    <input {onkeydown} />
 }
 ```
 
