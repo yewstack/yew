@@ -76,13 +76,13 @@ fn component() -> Html {
             Routes::Home => html! {
                 <>
                     <div id="result">{"Home"}</div>
-                    <a onclick={replace_route}>{"replace a route"}</a>
+                    <button onclick={replace_route}>{"replace a route"}</button>
                 </>
             },
             Routes::No { id } => html! {
                 <>
                     <No id={*id} />
-                    <a onclick={push_route}>{"push a route"}</a>
+                    <button onclick={push_route}>{"push a route"}</button>
                 </>
             },
             Routes::NotFound => html! { <div id="result">{"404"}</div> },
@@ -119,12 +119,12 @@ fn router_works() {
 
     let initial_length = history_length();
 
-    click("a"); // replacing the current route
+    click("button"); // replacing the current route
     assert_eq!("2", obtain_result_by_id("result-params"));
     assert_eq!("bar", obtain_result_by_id("result-query"));
     assert_eq!(initial_length, history_length());
 
-    click("a"); // pushing a new route
+    click("button"); // pushing a new route
     assert_eq!("3", obtain_result_by_id("result-params"));
     assert_eq!("baz", obtain_result_by_id("result-query"));
     assert_eq!(initial_length + 1, history_length());
