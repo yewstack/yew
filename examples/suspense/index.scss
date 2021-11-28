@@ -32,7 +32,7 @@ html, body {
 
 .content-area {
   width: 350px;
-  height: 400px;
+  height: 500px;
 
   display: flex;
   flex-direction: column;
@@ -47,8 +47,7 @@ textarea {
 }
 
 .action-area {
-  padding-top: 20px;
-  padding-bottom: 20px;
+  padding-top: 40px;
 }
 
 button {
@@ -59,4 +58,14 @@ button {
   background-color: rgb(88, 164, 255);
   border-radius: 5px;
   border: none;
+}
+
+.hint {
+  padding-top: 20px;
+
+  font-size: 12px;
+
+  text-align: center;
+
+  color: rgb(100, 100, 100);
 }

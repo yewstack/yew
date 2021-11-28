@@ -16,9 +16,7 @@ fn please_wait() -> Html {
 fn app_content() -> Html {
     let resleep = use_sleep()?;
 
-    let value = use_state(|| {
-        "I am writing a long story...\n\nYou can take a break at anytime \nand your work will be preserved.".to_string()
-    });
+    let value = use_state(|| "I am writing a long story...".to_string());
 
     let on_text_input = {
         let value = value.clone();
@@ -37,6 +35,7 @@ fn app_content() -> Html {
             <textarea value={value.to_string()} oninput={on_text_input}></textarea>
             <div class="action-area">
                 <button onclick={on_take_a_break}>{"Take a break!"}</button>
+                <div class="hint">{"You can take a break at anytime"}<br />{"and your work will be preserved."}</div>
             </div>
         </div>
     }
