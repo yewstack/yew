@@ -91,7 +91,7 @@ where
             e.prevent_default();
             Msg::OnClick
         });
-        let href = BrowserHistory::route_to_url(to);
+        let href: AttrValue = BrowserHistory::route_to_url(to).into();
         html! {
             <a class={classes}
                 {href}
