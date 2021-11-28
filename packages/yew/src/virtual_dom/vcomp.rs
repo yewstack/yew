@@ -225,6 +225,11 @@ impl VDiff for VComp {
         self.take_scope().destroy();
     }
 
+    fn shift(&self, _previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef) {
+        let scope = self.scope.as_ref().unwrap();
+        scope.shift_node(next_parent.clone(), next_sibling);
+    }
+
     fn apply(
         &mut self,
         parent_scope: &AnyScope,

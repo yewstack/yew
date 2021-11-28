@@ -142,6 +142,27 @@ impl VDiff for VNode {
         }
     }
 
+    fn shift(&self, previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef) {
+        match *self {
+            VNode::VTag(ref vtag) => vtag.shift(previous_parent, next_parent, next_sibling),
+            VNode::VText(ref vtext) => vtext.shift(previous_parent, next_parent, next_sibling),
+            VNode::VComp(ref vcomp) => vcomp.shift(previous_parent, next_parent, next_sibling),
+            VNode::VList(ref vlist) => vlist.shift(previous_parent, next_parent, next_sibling),
+            VNode::VRef(ref node) => {
+                previous_parent.remove_child(node).unwrap();
+                next_parent
+                    .insert_before(node, next_sibling.get().as_ref())
+                    .unwrap();
+            }
+            VNode::VPortal(ref vportal) => {
+                vportal.shift(previous_parent, next_parent, next_sibling)
+            }
+            VNode::VSuspense(ref vsuspense) => {
+                vsuspense.shift(previous_parent, next_parent, next_sibling)
+            }
+        }
+    }
+
     fn apply(
         &mut self,
         parent_scope: &AnyScope,

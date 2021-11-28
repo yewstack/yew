@@ -9,13 +9,13 @@ use super::Suspension;
 #[derive(Properties, PartialEq, Debug)]
 pub struct SuspenseProps {
     #[prop_or_default]
-    children: Children,
+    pub children: Children,
 
     #[prop_or_default]
-    fallback: Children,
+    pub fallback: Children,
 
     #[prop_or_default]
-    key: Option<Key>,
+    pub key: Option<Key>,
 }
 
 #[derive(Debug)]
@@ -52,13 +52,18 @@ impl Component for Suspense {
                 }
 
                 m.listen(self.link.callback(Self::Message::Resume));
+
+                self.suspensions.push(m);
+
+                true
             }
             Self::Message::Resume(ref m) => {
+                let suspensions_len = self.suspensions.len();
                 self.suspensions.retain(|n| m != n);
+
+                suspensions_len != self.suspensions.len()
             }
         }
-
-        true
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
@@ -86,5 +91,9 @@ impl Component for Suspense {
 impl Suspense {
     pub(crate) fn suspend(&self, s: Suspension) {
         self.link.send_message(SuspenseMsg::Suspend(s));
+    }
+
+    pub(crate) fn resume(&self, s: Suspension) {
+        self.link.send_message(SuspenseMsg::Resume(s));
     }
 }

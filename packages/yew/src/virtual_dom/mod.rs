@@ -499,6 +499,12 @@ pub(crate) trait VDiff {
     /// Remove self from parent.
     fn detach(&mut self, parent: &Element);
 
+    /// Move elements from one parent to another parent.
+    /// This is currently only used by `VSuspense` to preserve component state without detaching
+    /// (which destroys component state).
+    /// Prefer `detach` then apply if possible.
+    fn shift(&self, previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef);
+
     /// Scoped diff apply to other tree.
     ///
     /// Virtual rendering for the node. It uses parent node and existing

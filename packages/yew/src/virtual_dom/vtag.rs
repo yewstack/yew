@@ -479,6 +479,18 @@ impl VDiff for VTag {
         self.node_ref.set(None);
     }
 
+    fn shift(&self, previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef) {
+        let node = self
+            .reference
+            .as_ref()
+            .expect("tried to shift not rendered VTag from DOM");
+
+        previous_parent.remove_child(node).unwrap();
+        next_parent
+            .insert_before(node, next_sibling.get().as_ref())
+            .unwrap();
+    }
+
     /// Renders virtual tag over DOM [Element], but it also compares this with an ancestor [VTag]
     /// to compute what to patch in the actual DOM nodes.
     fn apply(

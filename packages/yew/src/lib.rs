@@ -391,6 +391,7 @@ pub mod prelude {
         NodeRef, Properties,
     };
     pub use crate::macros::{classes, html, html_nested};
+    pub use crate::suspense::Suspense;
 
     pub use crate::functional::*;
 }

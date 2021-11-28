@@ -96,6 +96,8 @@ pub(crate) enum UpdateEvent<COMP: Component> {
     MessageBatch(Vec<COMP::Message>),
     /// Wraps properties, node ref, and next sibling for a component.
     Properties(Rc<COMP::Properties>, NodeRef, NodeRef),
+    /// Shift Scope.
+    Shift(Element, NodeRef),
 }
 
 pub(crate) struct UpdateRunner<COMP: Component> {
@@ -125,6 +127,16 @@ impl<COMP: Component> Runnable for UpdateRunner<COMP> {
                     } else {
                         false
                     }
+                }
+                UpdateEvent::Shift(parent, next_sibling) => {
+                    state
+                        .root_node
+                        .shift(&state.parent, &parent, next_sibling.clone());
+
+                    state.parent = parent;
+                    state.next_sibling = next_sibling;
+
+                    false
                 }
             };
 
@@ -177,19 +189,29 @@ impl<COMP: Component> Runnable for RenderRunner<COMP> {
             #[cfg(debug_assertions)]
             crate::virtual_dom::vcomp::log_event(state.vcomp_id, "render");
 
-            let old_root = match state.component.view(&state.context) {
+            match state.component.view(&state.context) {
                 Ok(m) => {
-                    // Currently not suspended, we cancel any previous suspension and update
+                    // Currently not suspended, we remove any previous suspension and update
                     // normally.
                     let mut root = m;
                     std::mem::swap(&mut root, &mut state.root_node);
 
                     if let Some(ref m) = state.suspension {
-                        m.resume_by_ref();
-                        state.suspension = None;
+                        let comp_scope = AnyScope::from(state.context.scope.clone());
+
+                        let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
+                        let suspense = suspense_scope.get_component().unwrap();
+
+                        suspense.resume(m.clone());
                     }
 
-                    root
+                    let ancestor = Some(root);
+                    let new_root = &mut state.root_node;
+                    let scope = state.context.scope.clone().into();
+                    let next_sibling = state.next_sibling.clone();
+
+                    let node = new_root.apply(&scope, &state.parent, next_sibling, ancestor);
+                    state.node_ref.link(node);
                 }
 
                 Err(RenderError::Suspended(m)) => {
@@ -216,6 +238,7 @@ impl<COMP: Component> Runnable for RenderRunner<COMP> {
 
                         let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
                         let suspense = suspense_scope.get_component().unwrap();
+
                         m.listen(Callback::once(move |_| {
                             scheduler::push_component_render(
                                 shared_state.as_ptr() as usize,
@@ -228,21 +251,18 @@ impl<COMP: Component> Runnable for RenderRunner<COMP> {
                             );
                         }));
 
+                        if let Some(ref last_m) = state.suspension {
+                            if &m != last_m {
+                                // We remove previous suspension from the suspense.
+                                suspense.resume(last_m.clone());
+                            }
+                        }
                         state.suspension = Some(m.clone());
 
                         suspense.suspend(m);
                     }
-
-                    state.root_node.clone()
                 }
             };
-
-            let ancestor = Some(old_root);
-            let new_root = &mut state.root_node;
-            let scope = state.context.scope.clone().into();
-            let next_sibling = state.next_sibling.clone();
-            let node = new_root.apply(&scope, &state.parent, next_sibling, ancestor);
-            state.node_ref.link(node);
         }
     }
 }

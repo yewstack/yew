@@ -119,6 +119,7 @@ pub(crate) trait Scoped {
     fn to_any(&self) -> AnyScope;
     fn root_vnode(&self) -> Option<Ref<'_, VNode>>;
     fn destroy(&mut self);
+    fn shift_node(&self, parent: Element, next_sibling: NodeRef);
 }
 
 impl<COMP: Component> Scoped for Scope<COMP> {
@@ -144,6 +145,13 @@ impl<COMP: Component> Scoped for Scope<COMP> {
         });
         // Not guaranteed to already have the scheduler started
         scheduler::start();
+    }
+
+    fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
+        scheduler::push_component_update(UpdateRunner {
+            state: self.state.clone(),
+            event: UpdateEvent::Shift(parent, next_sibling),
+        });
     }
 }
 

@@ -54,6 +54,18 @@ impl VDiff for VText {
         }
     }
 
+    fn shift(&self, previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef) {
+        let node = self
+            .reference
+            .as_ref()
+            .expect("tried to shift not rendered VTag from DOM");
+
+        previous_parent.remove_child(node).unwrap();
+        next_parent
+            .insert_before(node, next_sibling.get().as_ref())
+            .unwrap();
+    }
+
     /// Renders virtual node over existing `TextNode`, but only if value of text has changed.
     fn apply(
         &mut self,

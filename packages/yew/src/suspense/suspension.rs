@@ -48,7 +48,8 @@ impl Suspension {
         (self_.clone(), SuspensionHandle { inner: self_ })
     }
 
-    pub(crate) fn resumed(&self) -> bool {
+    /// Returns `true` if the current suspension is already resumed.
+    pub fn resumed(&self) -> bool {
         self.resumed.load(Ordering::Relaxed)
     }
 
@@ -63,7 +64,7 @@ impl Suspension {
         listeners.push(cb);
     }
 
-    pub(crate) fn resume_by_ref(&self) {
+    fn resume_by_ref(&self) {
         // The component can resume rendering by returning a non-suspended result after a state is
         // updated, so we always need to check here.
         if !self.resumed.load(Ordering::Relaxed) {
@@ -76,6 +77,9 @@ impl Suspension {
         }
     }
 }
+
+/// A Suspension Result.
+pub type SuspensionResult<T> = std::result::Result<T, Suspension>;
 
 /// A Suspension Handle.
 ///

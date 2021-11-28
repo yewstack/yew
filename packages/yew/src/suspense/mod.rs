@@ -4,4 +4,4 @@ mod component;
 mod suspension;
 
 pub use component::Suspense;
-pub use suspension::{Suspension, SuspensionHandle};
+pub use suspension::{Suspension, SuspensionHandle, SuspensionResult};
