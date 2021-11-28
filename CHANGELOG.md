@@ -19,13 +19,14 @@
   - Fix case warning on derived properties. [[@nitnelave](https://github.com/nitnelave), [#1929](https://github.com/yewstack/yew/pull/1929)]
   - yew-macro: fix inability to set the autoplay atribute. [[@bakape](https://github.com/bakape), [#1866](https://github.com/yewstack/yew/pull/1866)]
   - Fix duplicate `with props` error messages.. [[@teymour-aldridge](https://github.com/teymour-aldridge), [#1730](https://github.com/yewstack/yew/pull/1730)]
+  - Remove extra braces in html_nested macro. [[@Madoshakalaka](https://github.com/Madoshakalaka), [#2169](https://github.com/yewstack/yew/pull/2169)]
+  - Remove unused punct field from props. [[@Xavientois](https://github.com/Xavientois), [#1969](https://github.com/yewstack/yew/pull/1969)]
 
 - #### ⚡️ Features
 
   - Check event bubbling cancellation at each step of propagation. [[@rjmac](https://github.com/rjmac), [#2191](https://github.com/yewstack/yew/pull/2191)]
   - Add possibility to cancel bubbling. [[@voidpumpkin](https://github.com/voidpumpkin), [#2172](https://github.com/yewstack/yew/pull/2172)]
   - Add the ability to add child nodes conditionally in `html!`. [[@cecton](https://github.com/cecton), [#1609](https://github.com/yewstack/yew/pull/1609)]
-  - Remove extra braces in html_nested macro. [[@Madoshakalaka](https://github.com/Madoshakalaka), [#2169](https://github.com/yewstack/yew/pull/2169)]
   - Add basic lints to the HTML macro.. [[@teymour-aldridge](https://github.com/teymour-aldridge), [#1748](https://github.com/yewstack/yew/pull/1748)]
   - Refactor use ref hooks. [[@mc1098](https://github.com/mc1098), [#2093](https://github.com/yewstack/yew/pull/2093)]
   - Implementation of portals. [[@WorldSEnder](https://github.com/WorldSEnder), [#2147](https://github.com/yewstack/yew/pull/2147)]
@@ -53,7 +54,6 @@
   - Support const generics in `#[derive(Properties)]`. [[@maciejhirsz](https://github.com/maciejhirsz), [#1978](https://github.com/yewstack/yew/pull/1978)]
   - Add shorthand syntax for props. [[@Xavientois](https://github.com/Xavientois), [#1970](https://github.com/yewstack/yew/pull/1970)]
   - Static attribute lists. [[@bakape](https://github.com/bakape), [#1962](https://github.com/yewstack/yew/pull/1962)]
-  - Remove unused punct field from props. [[@Xavientois](https://github.com/Xavientois), [#1969](https://github.com/yewstack/yew/pull/1969)]
   - yew/vlist: optimize diffing and patching. [[@bakape](https://github.com/bakape), [#1555](https://github.com/yewstack/yew/pull/1555)]
   - Add requirement for braces around most props. [[@Xavientois](https://github.com/Xavientois), [#1939](https://github.com/yewstack/yew/pull/1939)]
   - Optimize VTag construction, memory footprint and patching. [[@bakape](https://github.com/bakape), [#1947](https://github.com/yewstack/yew/pull/1947)]
@@ -64,7 +64,6 @@
   - Change match statement to if. [[@Xavientois](https://github.com/Xavientois), [#1884](https://github.com/yewstack/yew/pull/1884)]
   - Optimize vtag construction. [[@bakape](https://github.com/bakape), [#1867](https://github.com/yewstack/yew/pull/1867)]
   - Apply Clippy lints.. [[@teymour-aldridge](https://github.com/teymour-aldridge), [#1863](https://github.com/yewstack/yew/pull/1863)]
-  - Rewrite router. [[@hamza1311](https://github.com/hamza1311), [#1791](https://github.com/yewstack/yew/pull/1791)]
   - Change the app struct to be a real handle to an Yew app instance and make it possible to destroy a running app. [[@nicklaswj](https://github.com/nicklaswj), [#1825](https://github.com/yewstack/yew/pull/1825)]
   - Bring context to standard components. [[@Diggsey](https://github.com/Diggsey), [#1835](https://github.com/yewstack/yew/pull/1835)]
   - Upgraded Hook API (2). [[@hamza1311](https://github.com/hamza1311), [#1780](https://github.com/yewstack/yew/pull/1780)]
@@ -75,7 +74,6 @@
   - Allow the use of Rust keywords for element names. [[@siku2](https://github.com/siku2), [#1772](https://github.com/yewstack/yew/pull/1772)]
   - Refactor html tag peeking. [[@lukechu10](https://github.com/lukechu10), [#1738](https://github.com/yewstack/yew/pull/1738)]
   - Generic functional components. [[@lukechu10](https://github.com/lukechu10), [#1756](https://github.com/yewstack/yew/pull/1756)]
-  - yewtil: functional_component: Enable empty params. [[@matobet](https://github.com/matobet), [#1755](https://github.com/yewstack/yew/pull/1755)]
   - Add support for the unit struct in Properties derive. [[@Xavientois](https://github.com/Xavientois), [#1752](https://github.com/yewstack/yew/pull/1752)]
   - Rip out stdweb. [[@philip-peterson](https://github.com/philip-peterson), [#1697](https://github.com/yewstack/yew/pull/1697)]
 
@@ -106,9 +104,7 @@
   - Rewrite router. [[@hamza1311](https://github.com/hamza1311), [#1791](https://github.com/yewstack/yew/pull/1791)]
   - Added missing licenses to Cargo.toml files and updated to use SPDX syntax. [[@jbg](https://github.com/jbg), [#1822](https://github.com/yewstack/yew/pull/1822)]
   - Update Rust version for macro tests to 1.51 & enable const generics tests. [[@hamza1311](https://github.com/hamza1311), [#1801](https://github.com/yewstack/yew/pull/1801)]
-  - Refactor html tag peeking. [[@lukechu10](https://github.com/lukechu10), [#1738](https://github.com/yewstack/yew/pull/1738)]
   - Add support for the unit struct in Properties derive. [[@Xavientois](https://github.com/Xavientois), [#1752](https://github.com/yewstack/yew/pull/1752)]
-  - Replace `#[to="..."]` attribute with `#[at="..."]` attribute.. [[@teymour-aldridge](https://github.com/teymour-aldridge), [#1717](https://github.com/yewstack/yew/pull/1717)]
 
 ## ✨ yew-agent **0.1.0** *(2021-11-26)*
 
