@@ -17,7 +17,7 @@ fn app_content() -> Html {
     let resleep = use_sleep()?;
 
     let value = use_state(|| {
-        "I am writing a long story...\n\nYou can take a break at anytime!".to_string()
+        "I am writing a long story...\n\nYou can take a break at anytime \nand your work will be preserved.".to_string()
     });
 
     let on_text_input = {
