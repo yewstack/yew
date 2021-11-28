@@ -13,7 +13,7 @@ implement the `Component` trait.
 
 ## Creating function components
 
-The easiest way to create a function component is to add the [`#[function_component]`](function-components/attribute.md) attribute to a function.
+The easiest way to create a function component is to add the [`#[function_component]`](./../function-components/attribute.md) attribute to a function.
 
 ```rust
 use yew::{function_component, html};
@@ -43,17 +43,17 @@ actions. Yew comes with a few pre-defined Hooks. You can also create your own.
 #### Pre-defined Hooks
 
 Yew comes with the following predefined Hooks:
-- [`use_state`](function-components/pre-defined-hooks.md#use_state)
-- [`use_ref`](function-components/pre-defined-hooks.md#use_ref)
-- [`use_reducer`](function-components/pre-defined-hooks.md#use_reducer)
-- [`use_reducer_with_init`](function-components/pre-defined-hooks.md#use_reducer_with_init)
-- [`use_effect`](function-components/pre-defined-hooks.md#use_effect)
-- [`use_effect_with_deps`](function-components/pre-defined-hooks.md#use_effect_with_deps)
+- [`use_state`](./../function-components/pre-defined-hooks.md#use_state)
+- [`use_ref`](./../function-components/pre-defined-hooks.md#use_ref)
+- [`use_reducer`](./../function-components/pre-defined-hooks.md#use_reducer)
+- [`use_reducer_with_init`](./../function-components/pre-defined-hooks.md#use_reducer_with_init)
+- [`use_effect`](./../function-components/pre-defined-hooks.md#use_effect)
+- [`use_effect_with_deps`](./../function-components/pre-defined-hooks.md#use_effect_with_deps)
 
 #### Custom Hooks
 
 There are cases where you want to define your own Hooks for reasons. Yew allows you to define your own Hooks which lets you extract your potentially stateful logic from the component into reusable functions. 
-See the [Defining custom hooks](function-components/custom-hooks.md#defining-custom-hooks) section for more information.
+See the [Defining custom hooks](./../function-components/custom-hooks.md#defining-custom-hooks) section for more information.
 
 ## Further reading
 
