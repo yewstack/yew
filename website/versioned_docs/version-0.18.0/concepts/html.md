@@ -4,6 +4,9 @@ sidebar_label: Introduction
 description: "The procedural macro for generating HTML and SVG"
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 The `html!` macro allows you to write HTML and SVG code declaratively. It is similar to JSX
 \(an extension to JavaScript which allows you to write HTML-like code inside of JavaScript\).
 
@@ -13,8 +16,8 @@ The `html!` macro allows you to write HTML and SVG code declaratively. It is sim
    [using fragments or iterators](html/lists.md)\)
 2. An empty `html! {}` invocation is valid and will not render anything
 3. Literals must always be wrapped in quotes as well as braces (i.e.
-`html! { <p>{"Hello, World"}</p> }` is valid, but not `html! { <p>Hello, World</p> }` or
-`html! { <p>"Hello, World"</p> }`).
+   `html! { <p>{"Hello, World"}</p> }` is valid, but not `html! { <p>Hello, World</p> }` or
+   `html! { <p>"Hello, World"</p> }`).
 
 :::note
 The requirement to need braces and quotes was not a deliberate design choice (just in case you're
@@ -36,48 +39,55 @@ all use the tag syntax.
 Every tag must either either close itself (e.g. `<br/>`) or there must be a corresponding closing
 tag for each opening tag (e.g. `<div></div>`).
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Open - Close-->
+<Tabs>
+  <TabItem value="Open - Close" label="Open - Close" default>
 
 ```rust
 use yew::html;
 
 html! {
   <div id="my_div"></div>
-}
+};
 ```
 
-<!--Invalid-->
+  </TabItem>
+  <TabItem value="Invalid" label="Invalid">
 
-```rust
+```rust ,compile_fail
 use yew::html;
 
 html! {
-  <div id="my_div"> // <- Missing closing tag
-}
+  <div id="my_div"> // <- MISSING CLOSE TAG
+};
 ```
 
-<!--Self-closing-->
+  </TabItem>
+</Tabs>
+
+<Tabs>
+  <TabItem value="Self-closing" label="Self-closing">
 
 ```rust
 use yew::html;
 
 html! {
   <input id="my_input" />
-}
+};
 ```
 
-<!--Invalid-->
+  </TabItem>
+  <TabItem value="Invalid" label="Invalid">
 
-```rust
+```rust ,compile_fail
 use yew::html;
 
 html! {
-  <input id="my_input"> // <- Missing forward slash to close the tag
-}
+  <input id="my_input"> // <- MISSING SELF-CLOSE
+};
 ```
 
-<!--END_DOCUSAURUS_CODE_TABS-->
+  </TabItem>
+</Tabs>
 
 :::tip
 For convenience, elements which _usually_ require a closing tag can be declared using the
@@ -89,8 +99,8 @@ self-closing syntax (e.g. `html! { <div class="placeholder" /> }` is valid).
 Tags become much more powerful once we start to nest them. Tags may have children (which can be
 other standard HTML tags or other Yew components).
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--HTML-->
+<Tabs>
+  <TabItem value="HTML" label="HTML">
 
 ```rust
 use yew::html;
@@ -110,10 +120,11 @@ html! {
             </select>
         </div>
     </div>
-}
+};
 ```
 
-<!--SVG-->
+  </TabItem>
+  <TabItem value="SVG" label="SVG">
 
 ```rust
 use yew::html;
@@ -134,10 +145,11 @@ html! {
             </filter>
         </defs>
     </svg>
-}
+};
 ```
 
-<!--END_DOCUSAURUS_CODE_TABS-->
+  </TabItem>
+</Tabs>
 
 ## Special properties
 
@@ -162,5 +174,6 @@ inserting or removing elements from anywhere but the end of the list.
 :::
 
 ## Relevant examples
-* The [NodeRef example](https://github.com/yewstack/yew/tree/master/examples/node_refs)
-* An example of [using NodeRefs to integrate a code editor into an application](https://github.com/siku2/rust-monaco/blob/master/src/yew/mod.rs)
+
+- The [NodeRef example](https://github.com/yewstack/yew/tree/master/examples/node_refs)
+- An example of [using NodeRefs to integrate a code editor into an application](https://github.com/siku2/rust-monaco/blob/master/src/yew/mod.rs)
