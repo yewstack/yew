@@ -9,14 +9,16 @@ use use_sleep::use_sleep;
 
 #[function_component(PleaseWait)]
 fn please_wait() -> Html {
-    html! {<div>{"Please wait..."}</div>}
+    html! {<div class="content-area">{"Please wait 5 Seconds..."}</div>}
 }
 
 #[function_component(AppContent)]
 fn app_content() -> Html {
     let resleep = use_sleep()?;
 
-    let value = use_state(|| "".to_string());
+    let value = use_state(|| {
+        "I am writing a long story...\n\nYou can take a break at anytime!".to_string()
+    });
 
     let on_text_input = {
         let value = value.clone();
@@ -31,10 +33,12 @@ fn app_content() -> Html {
     let on_take_a_break = Callback::from(move |_| (resleep.clone())());
 
     html! {
-        <>
+        <div class="content-area">
             <textarea value={value.to_string()} oninput={on_text_input}></textarea>
-            <button onclick={on_take_a_break}>{"Take a break!"}</button>
-        </>
+            <div class="action-area">
+                <button onclick={on_take_a_break}>{"Take a break!"}</button>
+            </div>
+        </div>
     }
 }
 
@@ -43,9 +47,14 @@ fn app() -> Html {
     let fallback = html! {<PleaseWait />};
 
     html! {
-        <Suspense fallback={fallback}>
-            <AppContent />
-        </Suspense>
+        <div class="layout">
+            <div class="content">
+                <h1>{"Yew Suspense Demo"}</h1>
+                <Suspense fallback={fallback}>
+                    <AppContent />
+                </Suspense>
+            </div>
+        </div>
     }
 }
 
