@@ -9,7 +9,8 @@ The `html!` macro always requires a single root node. In order to get around thi
 can use an "empty tag" (these are also called "fragments").
 
 <Tabs>
-    <TabItem value="Valid" label="Valid">
+<TabItem value="Valid" label="Valid">
+
 ```rust
 use yew::html;
 
@@ -21,19 +22,22 @@ html! {
 };
 
 ```
-    </TabItem>
 
-    <TabItem value="Invalid" label="Invalid">
-```rust ,compile_fail
+</TabItem>
+
+<TabItem value="Invalid" label="Invalid">
+
+```rust, compile_fail
 use yew::html;
 
-/* error: only one root html element allowed */
+// error: only one root html element allowed
 
 html! {
     <div></div>
     <p></p>
 };
+
 ```
 
-    </TabItem>
+</TabItem>
 </Tabs>
