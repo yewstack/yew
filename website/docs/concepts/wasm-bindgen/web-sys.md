@@ -1,3 +1,5 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 The [`web-sys` crate](https://crates.io/crates/web-sys) provides bindings for Web APIs. This is
 procedurally generated from browser WebIDL which is why some of the names are so long and why
@@ -86,6 +88,9 @@ The two code blocks below do essentially the same thing, the first is using `Nod
 the second is using [`JsCast::dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
 on the `web_sys::Node` returned from `NodeRef::get`.
 
+<Tabs>
+  <TabItem value="Using NodeRef::cast" label="Using NodeRef::cast">
+
 ```rust
 use web_sys::HtmlInputElement;
 use yew::NodeRef;
@@ -96,6 +101,9 @@ fn with_node_ref_cast(node_ref: NodeRef) {
     }
 }
 ```
+
+  </TabItem>
+  <TabItem value="Using NodeRef::get" label="Using NodeRef::get">
 
 ```rust
 use wasm_bindgen::JsCast;
@@ -110,6 +118,10 @@ fn with_jscast(node_ref: NodeRef) {
     }
 }
 ```
+
+  </TabItem>
+</Tabs>
+
 
 ## JavaScript example to Rust
 

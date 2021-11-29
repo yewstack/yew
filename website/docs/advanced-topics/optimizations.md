@@ -107,7 +107,7 @@ It is possible to configure release builds to be smaller using the available set
 `[profile.release]` section of your `Cargo.toml`.
 
 
-```text
+```toml, title=Cargo.toml
 [profile.release]
 # less code to include into binary
 panic = 'abort' 

@@ -40,7 +40,7 @@ edition = "2018"
 
 [dependencies]
 # you can check the latest version here: https://crates.io/crates/yew
-yew = "0.17"
+yew = "0.19"
 ```
 
 ### Update main.rs
@@ -53,7 +53,7 @@ The line `yew::start_app::<Model>()` inside `main()` starts your application and
 If you would like to start your application with any dynamic properties, you can instead use `yew::start_app_with_props::<Model>(..)`.
 :::
 
-```rust ,no_run
+```rust ,no_run, title=main.rs
 use yew::prelude::*;
 
 enum Msg {
@@ -106,7 +106,7 @@ fn main() {
 
 Finally, add an `index.html` file in the root directory of your app.
 
-```html
+```html, title=index.html
 <!DOCTYPE html>
 <html>
   <head>

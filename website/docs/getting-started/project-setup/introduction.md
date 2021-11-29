@@ -10,7 +10,7 @@ Your local development environment will need a couple of tools to compile, build
 
 ## Installing Rust
 
-To install Rust follow the [official instructions](https://www.rust-lang.org/tools/install).
+To install Rust, follow the [official instructions](https://www.rust-lang.org/tools/install).
 
 :::important
 The minimum supported Rust version (MSRV) for Yew is `1.49.0`. Older versions can cause unexpected issues accompanied by incomprehensible error messages.

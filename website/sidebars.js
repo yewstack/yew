@@ -51,6 +51,7 @@ module.exports = {
                     items: [
                         "concepts/components/introduction",
                         "concepts/components/callbacks",
+                        "concepts/components/scope",
                         "concepts/components/properties",
                         "concepts/components/children",
                         "concepts/components/refs"

@@ -1,13 +1,14 @@
 ---
-title: "Project Setup"
-sidebar_label: Introduction
+title: "`wasm-bindgen`"
+sidebar_label: wasm-bindgen
+slug: /concepts/wasm-bindgen
 ---
 
 [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) is a library and tool to facilitate
 high-level interactions between Wasm modules and JavaScript; it is built with Rust by
 [The Rust and WebAssembly Working Group](https://rustwasm.github.io/).
 
-Yew builds off wasm-bindgen and specifically uses the following of its crates:
+Yew builds off `wasm-bindgen` and specifically uses the following of its crates:
 
 - [`js-sys`](https://crates.io/crates/js-sys)
 - [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
@@ -28,14 +29,14 @@ over using `wasm-bindgen`.
 ## [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
 
 This crate provides many of the building blocks for the rest of the crates above. In this section we
-are only going to cover two main areas of the `wasm-bindgen` crate and that is the macro and some of
-the types / traits you will see pop up again and again.
+are only going to cover two main areas of the `wasm-bindgen` crate and that is the macro and some
+types / traits you will see pop up again and again.
 
 ### `#[wasm_bindgen]` macro
 
 The `#[wasm_bindgen]` macro, in a high level view, is your translator between Rust and JavaScript, it
 allows you to describe imported JavaScript types in terms of Rust and vice versa. Using this macro
-is more advanced and you shouldn't need to reach for it unless you are trying to interop with an
+is more advanced, and you shouldn't need to reach for it unless you are trying to interop with an
 external JavaScript library. The `js-sys` and `web-sys` crates are essentially imported types using
 this macro for JavaScript types and the browser API respectively.
 
@@ -80,7 +81,7 @@ _This example was adapted from [1.2 Using console.log of The `wasm-bindgen` Guid
 
 Inheritance between JavaScript classes is a big part of the language and is a major part of how the
 Document Object Model (DOM). When types are imported using `wasm-bindgen` you can
-also add attributes that describe it's inheritance.
+also add attributes that describe its inheritance.
 
 In Rust this inheritance is simulated using the [`Deref`](https://doc.rust-lang.org/std/ops/trait.Deref.html)
 and [`AsRef`](https://doc.rust-lang.org/std/convert/trait.AsRef.html) traits. An example of this
@@ -122,7 +123,7 @@ _[`JsValue` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bind
 
 Rust has a strong type system and JavaScript...doesn't 😞 So in order for Rust to maintain these
 strong types but still be convenient the web assembly group came up with a pretty neat trait `JsCast`.
-Its job is to help you move from one JavaScript "type" to another, which sounds vague but it means
+Its job is to help you move from one JavaScript "type" to another, which sounds vague, but it means
 that if you have one type which you know is really another then you can use the functions of `JsCast`
 to jump from one type to the other. It's a nice trait to get to know when working with `web-sys`,
 `wasm_bindgen`, `js-sys` - you'll notice lots of types will implement `JsCast` from those crates.
@@ -132,10 +133,10 @@ unsure what type a certain object is you can try to cast it which returns possib
 [`Option`](https://doc.rust-lang.org/std/option/enum.Option.html) and
 [`Result`](https://doc.rust-lang.org/std/result/enum.Result.html).
 
-A common example of this in [`web-sys`](wasm-bindgen/web-sys) is when you are trying to get the
+A common example of this in [`web-sys`](web-sys) is when you are trying to get the
 target of an event, you might know what the target element is but the
 [`web_sys::Event`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html) API will always return an [`Option<web_sys::EventTarget>`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target)
-so you will need to cast it to the element type so you can call it's methods.
+so you will need to cast it to the element type. so you can call its methods.
 
 ```rust
 // need to import the trait.
