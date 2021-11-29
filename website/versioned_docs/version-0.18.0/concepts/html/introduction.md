@@ -13,7 +13,7 @@ The `html!` macro allows you to write HTML and SVG code declaratively. It is sim
 **Important notes**
 
 1. The `html!` macro only accepts a single root HTML node \(this obstacle is easily overcome by
-   [using fragments or iterators](html/lists.md)\)
+   [using fragments or iterators](../html/lists.md)\)
 2. An empty `html! {}` invocation is valid and will not render anything
 3. Literals must always be wrapped in quotes as well as braces (i.e.
    `html! { <p>{"Hello, World"}</p> }` is valid, but not `html! { <p>Hello, World</p> }` or

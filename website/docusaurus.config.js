@@ -110,7 +110,7 @@ module.exports = {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl: 'https://github.com/yewstack/yew/blob/master/website/',
-          routeBasePath: '/',
+          routeBasePath: '/docs',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -126,8 +126,8 @@ module.exports = {
           // this handles the redirect from `/next` -> to the (current) first item in the docs sidebar
           // note: if the first item is changed, it should be reflected here
           {
-            to: '/next/getting-started/project-setup/introduction', // string
-            from: ['/next'], // string | string[]
+            to: '/docs/next/getting-started/project-setup/introduction', // string
+            from: ['/docs/next'], // string | string[]
           },
         ],
       },

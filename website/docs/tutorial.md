@@ -451,10 +451,10 @@ element returned by the `Iterator` with the `{ for ... }` syntax.
 
 Remember the `use_state` used earlier? That is a special function, called a "hook". Hooks are used to "hook" into
 lifecycle of a function component and perform actions. You can learn more about this hook, and others
-[here](/next/concepts/function-components/pre-defined-hooks#use_state)
+[here](concepts/function-components/pre-defined-hooks#use_state)
 
 :::note
-Struct components act differently. See [the documentation](/concepts/components) to learn about those.
+Struct components act differently. See [the documentation](concepts/components) to learn about those.
 :::
 
 ## Fetching data (using external REST API)
@@ -576,9 +576,9 @@ to learn how to add style sheets.
 ### More libraries
 
 Our app made use of only a few external dependencies. There are lots of crates out there that can be used.
-See [external libraries](/next/more/external-libs) for more details.
+See [external libraries](more/external-libs) for more details.
 
 ### Learning more about Yew
 
-Read our [official documentation](/next). It explains a lot of concepts in much more details.
+Read our [official documentation](/docs). It explains a lot of concepts in much more details.
 To learn more about our the Yew API, see our [API docs](https://docs.rs/yew).
