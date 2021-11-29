@@ -118,4 +118,19 @@ module.exports = {
       },
     ],
   ],
+  plugins: [
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        redirects: [
+          // this handles the redirect from `/next` -> to the (current) first item in the docs sidebar
+          // note: if the first item is changed, it should be reflected here
+          {
+            to: '/next/getting-started/project-setup/introduction', // string
+            from: ['/next'], // string | string[]
+          },
+        ],
+      },
+    ],
+  ],
 };
