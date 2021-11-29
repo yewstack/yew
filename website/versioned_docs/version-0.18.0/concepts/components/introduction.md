@@ -67,7 +67,7 @@ impl Component for MyComponent {
 }
 ```
 
-For usage details, check out [the `html!` guide](html.md).
+For usage details, check out [the `html!` guide](../html/introduction.md).
 
 ### Rendered
 

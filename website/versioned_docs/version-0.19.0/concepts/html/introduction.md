@@ -12,32 +12,20 @@ The `html!` macro allows you to write HTML and SVG code declaratively. It is sim
 
 **Important notes**
 
-1. The `html!` macro only accepts a single root HTML node \(this obstacle is easily overcome by
-   [using fragments or iterators](html/lists.md)\)
+1. The `html!` macro only accepts one root html node \(you can counteract this by
+   [using fragments or iterators](./../html/lists.md)\)
 2. An empty `html! {}` invocation is valid and will not render anything
-3. Literals must always be wrapped in quotes as well as braces (i.e.
-   `html! { <p>{"Hello, World"}</p> }` is valid, but not `html! { <p>Hello, World</p> }` or
-   `html! { <p>"Hello, World"</p> }`).
+3. Literals must always be quoted and wrapped in braces: `html! { "Hello, World" }`
 
 :::note
-The requirement to need braces and quotes was not a deliberate design choice (just in case you're
-wondering)! It's needed in order to make parsing the tokens fed into the `html!` macro possible.
-:::
-
-:::note
-The `html!` macro can cause problems because it makes a lot of recursive calls. This means that it
-can exceed the default recursion limit of the compiler. If you encounter a compilation error
-(which might say something about "overflow" or "recursion limit reached") adding an attribute like
-`#![recursion_limit="1024"]` to your crate root should fix the problem.
+The `html!` macro can reach the default recursion limit of the compiler. If you encounter compilation errors, add an attribute like `#![recursion_limit="1024"]` in the crate root to overcome the problem.
 :::
 
 ## Tag Structure
 
-Tags inside the `html!` macros are heavily inspired by HTML tags. Components, elements, and lists
-all use the tag syntax.
+Tags are based on HTML tags. Components, Elements, and Lists are all based on this tag syntax.
 
-Every tag must either either close itself (e.g. `<br/>`) or there must be a corresponding closing
-tag for each opening tag (e.g. `<div></div>`).
+Tags must either self-close `<... />` or have a corresponding end tag for each start tag.
 
 <Tabs>
   <TabItem value="Open - Close" label="Open - Close" default>
@@ -90,14 +78,12 @@ html! {
 </Tabs>
 
 :::tip
-For convenience, elements which _usually_ require a closing tag can be declared using the
-self-closing syntax (e.g. `html! { <div class="placeholder" /> }` is valid).
+For convenience, elements which _usually_ require a closing tag are **allowed** to self-close. For example, writing `html! { <div class="placeholder" /> }` is valid.
 :::
 
 ## Children
 
-Tags become much more powerful once we start to nest them. Tags may have children (which can be
-other standard HTML tags or other Yew components).
+Create complex nested HTML and SVG layouts with ease:
 
 <Tabs>
   <TabItem value="HTML" label="HTML">
@@ -151,29 +137,94 @@ html! {
   </TabItem>
 </Tabs>
 
+## Lints
+
+If you compile Yew using a nightly version of the Rust compiler, the macro will warn you about some
+common pitfalls that you might run into. Of course, you may need to use the stable compiler (e.g.
+your organization might have a policy mandating it) for release builds, but even if you're using a
+stable toolchain, running `cargo +nightly check` might flag some ways that you could improve your
+HTML code.
+
+At the moment the lints are mostly accessibility-related. If you have ideas for lints, please feel
+free to [chime in on this issue](https://github.com/yewstack/yew/issues/1334).
+
 ## Special properties
 
-Some properties aren't handed directly to the browser; instead Yew uses them when working out how to
-display your components.
-
+There are special properties which don't directly influence the DOM but instead act as instructions to Yew's virtual DOM.
 Currently, there are two such special props: `ref` and `key`.
 
-`ref` allows you to access and manipulate the underlying DOM node directly. See
-[Refs](components/refs) for more details. This can be very useful if you want to interoperate with
-Javascript libraries (for example, to add a map or code editor written in Javascript that would not
-be feasible to rewrite in Rust).
+`ref` allows you to access and manipulate the underlying DOM node directly. See [Refs](components/refs) for more details.
 
-`key` on the other hand gives an element in a list a unique identifier which Yew can use for
-to render lists more efficiently.
+`key` on the other hand gives an element a unique identifier which Yew can use for optimization purposes.
 
 :::important
 The documentation for keys is yet to be written. See [#1263](https://github.com/yewstack/yew/issues/1263).
 
-For now, use keys when you have a list where the order of elements might change. This includes
-inserting or removing elements from anywhere but the end of the list.
+For now, use keys when you have a list where the order of elements changes. This includes inserting or removing elements from anywhere but the end of the list.
 :::
 
-## Relevant examples
+## If blocks
 
-- The [NodeRef example](https://github.com/yewstack/yew/tree/master/examples/node_refs)
-- An example of [using NodeRefs to integrate a code editor into an application](https://github.com/siku2/rust-monaco/blob/master/src/yew/mod.rs)
+To conditionally render some markup, we wrap it in an `if` block:
+
+<Tabs>
+  <TabItem value="if" label="if">
+
+```rust
+use yew::html;
+
+html! {
+    if true {
+        <p>{ "True case" }</p>
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="if - else" label="if - else">
+
+```rust
+use yew::html;
+let some_condition = true;
+
+html! {
+    if false {
+        <p>{ "True case" }</p>
+    } else {
+        <p>{ "False case" }</p>
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="if let" label="if let">
+
+```rust
+use yew::html;
+let some_text = Some("text");
+
+html! {
+    if let Some(text) = some_text {
+        <p>{ text }</p>
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="if let else" label="if let else">
+
+```rust
+use yew::html;
+let some_text = Some("text");
+
+html! {
+    if let Some(text) = some_text {
+        <p>{ text }</p>
+    } else {
+        <p>{ "False case" }</p>
+    }
+};
+```
+
+  </TabItem>
+</Tabs>
