@@ -1,5 +1,6 @@
 ---
-title: Introduction
+title: "Project Setup"
+sidebar_label: Introduction
 ---
 
 [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) is a library and tool to facilitate
@@ -7,6 +8,7 @@ high-level interactions between Wasm modules and JavaScript; it is built with Ru
 [The Rust and WebAssembly Working Group](https://rustwasm.github.io/).
 
 Yew builds off wasm-bindgen and specifically uses the following of its crates:
+
 - [`js-sys`](https://crates.io/crates/js-sys)
 - [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
 - [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
@@ -71,6 +73,7 @@ log("Hello from Rust!");
 log_u32(42);
 log_many("Logging", "many values!");
 ```
+
 _This example was adapted from [1.2 Using console.log of The `wasm-bindgen` Guide](https://rustwasm.github.io/docs/wasm-bindgen/examples/console-log.html)_.
 
 ### Simulating inheritance
@@ -143,7 +146,7 @@ fn handle_event(event: Event) {
     let target: EventTarget = event
         .target()
         .expect("I'm sure this event has a target!");
-	
+
     // maybe the target is a select element?
     if let Some(select_element) = target.dyn_ref::<HtmlSelectElement>() {
         // do something amazing here
@@ -199,18 +202,18 @@ and provides the ability to interoperate with JavaScript events and JavaScript I
 There are three main interfaces in this crate currently:
 
 1. [`JsFuture`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/struct.JsFuture.html) -
-A type that is constructed with a [`Promise`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Promise.html)
-and can then be used as a `Future<Output=Result<JsValue, JsValue>>`. This Rust future will resolve
-or reject with the value coming out of the `Promise`.
+   A type that is constructed with a [`Promise`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Promise.html)
+   and can then be used as a `Future<Output=Result<JsValue, JsValue>>`. This Rust future will resolve
+   or reject with the value coming out of the `Promise`.
 
 2. [`future_to_promise`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.future_to_promise.html) -
-Converts a Rust `Future<Output=Result<JsValue, JsValue>>` into a
-JavaScript `Promise`. The future’s result will translate to either a resolved or rejected
-`Promise` in JavaScript.
+   Converts a Rust `Future<Output=Result<JsValue, JsValue>>` into a
+   JavaScript `Promise`. The future’s result will translate to either a resolved or rejected
+   `Promise` in JavaScript.
 
 3. [`spawn_local`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html) -
-Spawns a `Future<Output = ()>` on the current thread. This is the best way
-to run a Future in Rust without sending it to JavaScript.
+   Spawns a `Future<Output = ()>` on the current thread. This is the best way
+   to run a Future in Rust without sending it to JavaScript.
 
 _[`wasm-bindgen-futures` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/index.html)._
 
@@ -233,7 +236,7 @@ spawn_local(async {
 });
 ```
 
-Yew has also added support for futures in certain APIs, most notably you can create a 
+Yew has also added support for futures in certain APIs, most notably you can create a
 `callback_future` which accepts an `async` block - this uses `spawn_local` internally.
 
 _[`spawn_local` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html)._

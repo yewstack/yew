@@ -29,7 +29,7 @@ questions
 Click the link below to learn how to build your first Yew app and learn from community-built example 
 projects
 
-[Getting started](getting-started/project-setup.md)
+[Getting started](./../getting-started/project-setup.md)
 
 ### Still not convinced?
 

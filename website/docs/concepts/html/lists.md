@@ -2,9 +2,15 @@
 title: "Lists"
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 ## Iterators
 
 Yew supports two different syntaxes for building HTML from an iterator.
+
+<Tabs>
+  <TabItem value="Syntax type 1" label="Syntax type 1">
 
 The first is to call `collect::<Html>()` on the final transform in your iterator, which returns a
 list that Yew can display.
@@ -21,6 +27,9 @@ html! {
 };
 ```
 
+  </TabItem>
+  <TabItem value="Syntax type 2" label="Syntax type 2">
+
 The alternative is to use the `for` keyword, which is not native Rust syntax and instead is used by
 the HTML macro to output the needed code to display the iterator.
 
@@ -36,12 +45,15 @@ html! {
 };
 ```
 
+  </TabItem>
+</Tabs>
+
 ## Keyed lists
 
 A keyed list is a optimized list that has keys on all tags.
 `key` is a special prop provided by Yew which gives an html element a unique identifier which can be used for optimization purposes.
 
-:::warn
+:::caution
 
 Key has to be unique and must not depend on the order of the list.
 
