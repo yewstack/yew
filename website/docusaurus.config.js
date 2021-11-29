@@ -26,8 +26,10 @@ module.exports = {
           position: 'left',
         },
         {
-          to: '/',
-          label: 'Docs'
+          type: 'doc',
+          position: 'left',
+          docId: 'getting-started/project-setup',
+          label: 'Docs',
         },
         {
           href: 'https://docs.rs/yew',
