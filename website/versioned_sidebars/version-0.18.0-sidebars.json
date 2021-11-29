@@ -1,14 +1,33 @@
 {
   "version-0.18.0/sidebar": [
     {
-      "type": "doc",
-      "id": "version-0.18.0/intro"
-    },
-    {
       "collapsed": true,
       "type": "category",
       "label": "Getting Started",
       "items": [
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Project Setup",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-0.18.0/getting-started/project-setup/introduction"
+            },
+            {
+              "type": "doc",
+              "id": "version-0.18.0/getting-started/project-setup/using-trunk"
+            },
+            {
+              "type": "doc",
+              "id": "version-0.18.0/getting-started/project-setup/using-wasm-pack"
+            },
+            {
+              "type": "doc",
+              "id": "version-0.18.0/getting-started/project-setup/using-cargo-web"
+            }
+          ]
+        },
         {
           "type": "doc",
           "id": "version-0.18.0/getting-started/build-a-sample-app"
@@ -24,29 +43,6 @@
         {
           "type": "doc",
           "id": "version-0.18.0/getting-started/starter-templates"
-        },
-        {
-          "collapsed": true,
-          "type": "category",
-          "label": "Project Setup",
-          "items": [
-            {
-              "type": "doc",
-              "id": "version-0.18.0/getting-started/project-setup"
-            },
-            {
-              "type": "doc",
-              "id": "version-0.18.0/getting-started/project-setup/using-trunk"
-            },
-            {
-              "type": "doc",
-              "id": "version-0.18.0/getting-started/project-setup/using-wasm-pack"
-            },
-            {
-              "type": "doc",
-              "id": "version-0.18.0/getting-started/project-setup/using-cargo-web"
-            }
-          ]
         }
       ]
     },
@@ -62,7 +58,7 @@
           "items": [
             {
               "type": "doc",
-              "id": "version-0.18.0/concepts/components"
+              "id": "version-0.18.0/concepts/components/introduction"
             },
             {
               "type": "doc",
@@ -89,7 +85,7 @@
           "items": [
             {
               "type": "doc",
-              "id": "version-0.18.0/concepts/wasm-bindgen"
+              "id": "version-0.18.0/concepts/wasm-bindgen/wasm-bindgen"
             },
             {
               "type": "doc",
@@ -104,7 +100,7 @@
           "items": [
             {
               "type": "doc",
-              "id": "version-0.18.0/concepts/html"
+              "id": "version-0.18.0/concepts/html/introduction"
             },
             {
               "type": "doc",
@@ -139,7 +135,7 @@
           "items": [
             {
               "type": "doc",
-              "id": "version-0.18.0/concepts/services"
+              "id": "version-0.18.0/concepts/services/introduction"
             },
             {
               "type": "doc",

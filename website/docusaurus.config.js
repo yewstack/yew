@@ -26,8 +26,10 @@ module.exports = {
           position: 'left',
         },
         {
-          to: '/',
-          label: 'Docs'
+          type: 'doc',
+          position: 'left',
+          docId: 'getting-started/project-setup/introduction',
+          label: 'Docs',
         },
         {
           href: 'https://docs.rs/yew',
@@ -108,11 +110,26 @@ module.exports = {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl: 'https://github.com/yewstack/yew/blob/master/website/',
-          routeBasePath: '/',
+          routeBasePath: '/docs',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
+      },
+    ],
+  ],
+  plugins: [
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        redirects: [
+          // this handles the redirect from `/next` -> to the (current) first item in the docs sidebar
+          // note: if the first item is changed, it should be reflected here
+          {
+            to: '/docs/next/getting-started/project-setup/introduction', // string
+            from: ['/docs/next'], // string | string[]
+          },
+        ],
       },
     ],
   ],
