@@ -288,8 +288,8 @@ pub fn nav_items() -> Html {
 
 :::tip 
 If your component only needs to set the route without listening to the changes, instead of the `use_history`
-hook, `BrowserHistory::default()` can be used to acquire the global history instance. The latter also works in agent
-environments.
+hook, `BrowserHistory::default()` can be used to acquire the global history instance. The latter also works in non-threaded agent
+environments (`Context` and `Job`). This is a hack and a more idiomatic hook version will come later.
 :::
 
 ##### Struct Components
