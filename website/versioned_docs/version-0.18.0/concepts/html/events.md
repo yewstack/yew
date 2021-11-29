@@ -131,7 +131,7 @@ listens for `click` events.
 | `ontransitioncancel`        | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) | Unsupported                                                                                                   |
 | `ontransitionend`           | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) | Unsupported                                                                                                   |
 | `ontransitionrun`           | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) | Unsupported                                                                                                   |
-| `ontransitionstart`         | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) | Unsupported |
+| `ontransitionstart`         | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) | Unsupported                                                                                                   |
 
 ## `oninput` and `onchange`
 
@@ -143,7 +143,7 @@ Yew will be removing `InputData` and `ChangeData` as they were too restrictive a
 in certain circumstances.
 :::
 
-:::warning
+:::caution
 You **must** apply the `Callback` to the target element even though the `InputEvent`/`Event`
 bubbles up, the `InputData`/`ChangeData` is expecting the "target" to also be the "currentTarget"
 (see the caution in [Typed event target](#typed-event-target) section for more).
@@ -168,7 +168,7 @@ fn view(&self) -> Html {
     });
 
     html! {
-        <div 
+        <div
             // The `InputEvent` can bubble and then will read the text content
             // of the div as the value in `InputData` which is not what you'd
             // expect!
@@ -185,6 +185,7 @@ fn view(&self) -> Html {
     }
 }
 ```
+
 :::
 
 ### `oninput` using InputData
@@ -226,10 +227,10 @@ method on the target.
 The `ChangeData` type is an enum which has a variant for the three supported element types:
 
 | Variant name | Variant data type            | Element type                                          |
-|--------------|------------------------------|-------------------------------------------------------|
+| ------------ | ---------------------------- | ----------------------------------------------------- |
 | `Files`      | `web_sys::FileList`          | `input` with type of `file`                           |
 | `Select`     | `web_sys::HtmlSelectElement` | `select` element                                      |
-| `Value`      | `String`                     | `textarea` or `input` with any type other than `file` | 
+| `Value`      | `String`                     | `textarea` or `input` with any type other than `file` |
 
 If `onchange` is used on any other element then the application **will panic** when Yew tries to
 convert the `Event` into `ChangeData`.
@@ -258,6 +259,7 @@ fn view(&self) -> Html {
     }
 }
 ```
+
 :::tip
 Use `batch_callback` when you want to conditionally return a value from a `Callback`.
 :::
@@ -318,6 +320,7 @@ fn view(&self) -> Html {
     }
 }
 ```
+
 _see [crm](https://github.com/yewstack/yew/tree/v0.18/examples/crm) for a
 full example._
 
@@ -326,7 +329,6 @@ full example._
 :::caution
 In this section **target ([Event.target](https://developer.mozilla.org/en-US/docs/Web/API/Event/target))**
 is always referring to the element at which the event was dispatched from.
-
 
 This will **not** always be the element at which the `Callback` is placed, that is the
 [Event.currentTarget](https://developer.mozilla.org/en-US/docs/Web/API/Event/currentTarget)
@@ -463,6 +465,7 @@ impl Component for Comp {
     }
 }
 ```
+
 :::tip
 Use `batch_callback` when you want to conditionally return a value from a `Callback`.
 :::
@@ -479,7 +482,6 @@ is a catch-all type and is essentially giving you back the object to try again.
 At this point you might be thinking... when is the dangerous version ok to use? In the case above it
 is safe<sup>1</sup> as we've set the `Callback` on to an element with no children so the target can
 only be that same element.
-
 
 _<sup>1</sup> As safe as anything can be when JS land is involved._
 
@@ -549,6 +551,7 @@ impl Component for Comp {
     }
 }
 ```
+
 Using `NodeRef`, you can ignore the event and use the `NodeRef::cast` method to get an
 `Option<HtmlInputElement>` - this is optional as calling `cast` before the `NodeRef` has been
 set, or when the type doesn't match will return `None`.

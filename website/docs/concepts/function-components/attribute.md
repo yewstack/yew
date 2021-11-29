@@ -3,6 +3,9 @@ title: "#[function_component]"
 description: "The #[function_component] attribute"
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 `#[function_component(_)]` turns a normal Rust function into a function component.
 Functions with the attribute have to return `Html` and may take a single parameter for the type of props the component should accept.
 The parameter type needs to be a reference to a `Properties` type (ex. `props: &MyProps`).
@@ -28,8 +31,8 @@ html! {
 
 ## Example
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--With props-->
+<Tabs>
+  <TabItem value="With props" label="With props">
 
 ```rust
 use yew::{function_component, html, Properties};
@@ -50,7 +53,8 @@ pub fn rendered_at(props: &RenderedAtProps) -> Html {
 }
 ```
 
-<!--Without props-->
+  </TabItem>
+  <TabItem value="Without props" label="Without props">
 
 ```rust
 use yew::{function_component, html, use_state, Callback};
@@ -76,13 +80,14 @@ fn app() -> Html {
 }
 ```
 
-<!--END_DOCUSAURUS_CODE_TABS-->
+  </TabItem>
+</Tabs>
 
 ## Generic function components
 
 The `#[function_component(_)]` attribute also works with generic functions for creating generic components.
 
-```rust
+```rust title=my_generic_component.rs
 use std::fmt::Display;
 use yew::{function_component, html, Properties};
 
@@ -106,24 +111,13 @@ where
     }
 }
 
-#[derive(PartialEq)]
-struct Foo;
-
-impl Display for Foo {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("foo")
-    }
-}
-
 // used like this
 html! {
     <MyGenericComponent<i32> data=123 />
 };
 
 // or
-let foo = Foo;
-
 html! {
-    <MyGenericComponent<Foo> data={foo} />
+    <MyGenericComponent<String> data={"foo".to_string()} />
 };
 ```

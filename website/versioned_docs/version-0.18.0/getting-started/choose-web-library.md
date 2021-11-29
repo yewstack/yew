@@ -18,7 +18,7 @@ yew = { version = "0.17", package = "yew-stdweb" }
 
 We recommend using `web-sys` due to its support from the [Rust / Wasm Working Group](https://rustwasm.github.io/).
 
-:::warning
+:::caution
 Yew will freeze support for `stdweb` at v0.18.
 It will still receive patch fixes, but no new features will be added.
 See [#1569](https://github.com/yewstack/yew/issues/1569)

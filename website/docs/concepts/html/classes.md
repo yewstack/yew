@@ -3,6 +3,9 @@ title: "Classes"
 description: "A handy macro to handle classes"
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 ## Classes
 
 The struct `Classes` can be used to deal with HTML classes.
@@ -19,8 +22,8 @@ The macro `classes!` is a convenient macro that creates one single `Classes`.
 Its input accepts a comma separated list of expressions. The only requirement
 is that every expression implements `Into<Classes>`.
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Literal-->
+<Tabs>
+  <TabItem value="Literal" label="Literal">
 
 ```rust
 use yew::{classes, html};
@@ -30,7 +33,8 @@ html! {
 };
 ```
 
-<!--Multiple-->
+  </TabItem>
+  <TabItem value="Multiple" label="Multiple">
 
 ```rust
 use yew::{classes, html};
@@ -40,7 +44,8 @@ html! {
 };
 ```
 
-<!--String-->
+  </TabItem>
+  <TabItem value="String" label="String">
 
 ```rust
 use yew::{classes, html};
@@ -52,7 +57,8 @@ html! {
 };
 ```
 
-<!--Optional-->
+  </TabItem>
+  <TabItem value="Optional" label="Optional">
 
 ```rust
 use yew::{classes, html};
@@ -62,7 +68,8 @@ html! {
 };
 ```
 
-<!--Vector-->
+  </TabItem>
+  <TabItem value="Vector" label="Vector">
 
 ```rust
 use yew::{classes, html};
@@ -72,7 +79,8 @@ html! {
 };
 ```
 
-<!--Array-->
+  </TabItem>
+  <TabItem value="Array" label="Array">
 
 ```rust
 use yew::{classes, html};
@@ -84,7 +92,8 @@ html! {
 };
 ```
 
-<!--END_DOCUSAURUS_CODE_TABS-->
+  </TabItem>
+</Tabs>
 
 ## Components that accept classes
 
@@ -93,7 +102,6 @@ use yew::{
     classes, html, Children, Classes, Component,
     Context, Html, Properties
 };
-use boolinator::Boolinator;
 
 #[derive(PartialEq, Properties)]
 struct Props {
@@ -123,7 +131,7 @@ impl Component for MyComponent {
             <div
                 class={classes!(
                     "my-container-class",
-                    fill.as_some("my-fill-class"),
+                    fill.then(|| Some("my-fill-class")),
                     class.clone(),
                 )}
             >
@@ -133,7 +141,3 @@ impl Component for MyComponent {
     }
 }
 ```
-
-The example makes use of the [boolinator](https://crates.io/crates/boolinator)
-crate to conditionally add the "my-fill-class" class based on the `fill`
-boolean attribute.

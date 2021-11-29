@@ -2,12 +2,16 @@
 title: "Lists"
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 ## Fragments
 
 The `html!` macro always requires a single root node. In order to get around this restriction, it's valid to wrap content in empty tags:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Valid-->
+<Tabs>
+  <TabItem value="Valid" label="Valid">
+
 ```rust
 use yew::html;
 
@@ -19,7 +23,9 @@ html! {
 }
 ```
 
-<!--Invalid-->
+  </TabItem>
+  <TabItem value="Invalid" label="Invalid">
+
 ```rust
 use yew::html;
 
@@ -29,15 +35,17 @@ html! {
     <p></p>
 }
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
 
+  </TabItem>
+</Tabs>
 
 ## Iterators
 
 Yew supports two different syntaxes for building html from an iterator:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Syntax Type 1-->
+<Tabs>
+  <TabItem value="Syntax type 1" label="Syntax type 1">
+
 ```rust
 use yew::{html, Html};
 
@@ -48,7 +56,9 @@ html! {
 }
 ```
 
-<!--Syntax Type 2-->
+  </TabItem>
+  <TabItem value="Syntax type 2" label="Syntax type 2">
+
 ```rust
 use yew::html;
 
@@ -58,9 +68,12 @@ html! {
     </ul>
 }
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
+
+  </TabItem>
+</Tabs>
 
 ## Relevant examples
+
 - [TodoMVC](https://github.com/yewstack/yew/tree/v0.18/examples/todomvc)
 - [Keyed List](https://github.com/yewstack/yew/tree/v0.18/examples/keyed_list)
 - [Router](https://github.com/yewstack/yew/tree/v0.18/examples/router)
