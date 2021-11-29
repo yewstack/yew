@@ -199,13 +199,13 @@ The `<Link/>` element also passes its children to the `<a>` element. Consider it
 routes. Except you supply a `to` attribute instead of a `href`. An example usage:
 
 ```rust ,ignore
-<Link<Route> to={Route::Home}>{ "click here to go home" }</Link</Route>>
+<Link<Route> to={Route::Home}>{ "click here to go home" }</Link<Route>>
 ```
 
 Struct variants work as expected too:
 
 ```rust ,ignore
-<Link<Route> to={Route::Post { id: "new-yew-release".to_string() }}>{ "Yew v0.19 out now!" }</Link</Route>>
+<Link<Route> to={Route::Post { id: "new-yew-release".to_string() }}>{ "Yew v0.19 out now!" }</Link<Route>>
 ```
 
 #### History API
