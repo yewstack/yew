@@ -111,3 +111,9 @@ dependencies = ["bench"]
 private = true
 command = "cargo"
 args = ["bench"]
+
+[tasks.generate-change-log]
+category = "Maintainer processes"
+toolchain = "stable"
+command = "cargo"
+args = ["run","-p","changelog", "--release", "${@}"]
