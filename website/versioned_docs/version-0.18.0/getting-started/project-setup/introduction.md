@@ -32,7 +32,7 @@ It can bundle assets for your app and even ships with a Sass compiler.
 
 All of our examples are built with Trunk.
 
-[Getting started with `trunk`](project-setup/using-trunk.md)
+[Getting started with `trunk`](../project-setup/using-trunk.md)
 
 ### [**`wasm-pack`**](https://rustwasm.github.io/docs/wasm-pack/)
 
@@ -41,20 +41,20 @@ together with the [`wasm-pack-plugin`](https://github.com/wasm-tool/wasm-pack-pl
 The primary purpose of `wasm-pack` is building Wasm libraries for use in JavaScript.
 Because of this, it can only build libraries and doesn't provide useful tools like a development server or automatic rebuilds.
 
-[Get started with `wasm-pack`](project-setup/using-wasm-pack.md)
+[Get started with `wasm-pack`](../project-setup/using-wasm-pack.md)
 
 ### [**`cargo-web`**](https://github.com/koute/cargo-web)
 
 This was the best preferred tool to use before the creation of `wasm-bindgen`.
 
-[Getting started with `cargo web`](project-setup/using-cargo-web.md)
+[Getting started with `cargo web`](../project-setup/using-cargo-web.md)
 
 ### Comparison
 
 |                               | `trunk`                                                          | `wasm-pack`                                                                                          | `cargo-web`                                                                                                                                            |
 | ----------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Project Status                | Actively maintained                                              | Actively maintained by the [Rust / Wasm Working Group](https://rustwasm.github.io)                   | No Github activity for over 6 months                                                                                                                   |
-| Dev Experience                | Just works! Batteries included, no external dependencies needed. | Bare-bones. You'll need to write some scripts to streamline the experience or use the webpack plugin. | Works great for code but needs separate asset pipeline.                                                                                                |
+| Dev Experience                | Just works! Batteries included, no external dependencies needed. | Bare-bones. You'll need to write some scripts to streamline the experience or use the webpack plugin. | Works great for code but needs separate asset pipeline.                                                                                               |
 | Local Server                  | Supported                                                        | Only with webpack plugin                                                                             | Supported                                                                                                                                              |
 | Auto rebuild on local changes | Supported                                                        | Only with webpack plugin                                                                             | Supported                                                                                                                                              |
 | Asset handling                | Supported                                                        | Only with webpack plugin                                                                             | Static assets only                                                                                                                                     |
@@ -62,4 +62,4 @@ This was the best preferred tool to use before the creation of `wasm-bindgen`.
 | Supported Targets             | <ul><li><code>wasm32-unknown-unknown</code></li></ul>            | <ul><li><code>wasm32-unknown-unknown</code></li></ul>                                                | <ul> <li><code>wasm32-unknown-unknown</code></li> <li><code>wasm32-unknown-emscripten</code></li> <li><code>asmjs-unknown-emscripten</code></li> </ul> |
 | `web-sys`                     | Compatible                                                       | Compatible                                                                                           | Incompatible                                                                                                                                           |
 | `stdweb`                      | Incompatible                                                     | Compatible                                                                                           | Compatible                                                                                                                                             |
-| Example Usage                 | [Sample app](./build-a-sample-app.md)                            | [Starter template](https://github.com/yewstack/yew-wasm-pack-minimal)                                | [Build script](https://www.github.com/yewstack/yew/tree/master/packages/yew-stdweb/examples) for `yew-stdweb` examples                                          |
+| Example Usage                 | [Sample app](../build-a-sample-app.md)                           | [Starter template](https://github.com/yewstack/yew-wasm-pack-minimal)                                | [Build script](https://www.github.com/yewstack/yew/tree/master/packages/yew-stdweb/examples) for `yew-stdweb` examples                                 |

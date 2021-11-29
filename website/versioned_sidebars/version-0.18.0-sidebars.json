@@ -6,29 +6,13 @@
       "label": "Getting Started",
       "items": [
         {
-          "type": "doc",
-          "id": "version-0.18.0/getting-started/build-a-sample-app"
-        },
-        {
-          "type": "doc",
-          "id": "version-0.18.0/getting-started/choose-web-library"
-        },
-        {
-          "type": "doc",
-          "id": "version-0.18.0/getting-started/examples"
-        },
-        {
-          "type": "doc",
-          "id": "version-0.18.0/getting-started/starter-templates"
-        },
-        {
           "collapsed": true,
           "type": "category",
           "label": "Project Setup",
           "items": [
             {
               "type": "doc",
-              "id": "version-0.18.0/getting-started/project-setup"
+              "id": "version-0.18.0/getting-started/project-setup/introduction"
             },
             {
               "type": "doc",
@@ -43,6 +27,22 @@
               "id": "version-0.18.0/getting-started/project-setup/using-cargo-web"
             }
           ]
+        },
+        {
+          "type": "doc",
+          "id": "version-0.18.0/getting-started/build-a-sample-app"
+        },
+        {
+          "type": "doc",
+          "id": "version-0.18.0/getting-started/choose-web-library"
+        },
+        {
+          "type": "doc",
+          "id": "version-0.18.0/getting-started/examples"
+        },
+        {
+          "type": "doc",
+          "id": "version-0.18.0/getting-started/starter-templates"
         }
       ]
     },
@@ -58,7 +58,7 @@
           "items": [
             {
               "type": "doc",
-              "id": "version-0.18.0/concepts/components"
+              "id": "version-0.18.0/concepts/components/introduction"
             },
             {
               "type": "doc",
@@ -85,7 +85,7 @@
           "items": [
             {
               "type": "doc",
-              "id": "version-0.18.0/concepts/wasm-bindgen"
+              "id": "version-0.18.0/concepts/wasm-bindgen/wasm-bindgen"
             },
             {
               "type": "doc",
@@ -100,7 +100,7 @@
           "items": [
             {
               "type": "doc",
-              "id": "version-0.18.0/concepts/html"
+              "id": "version-0.18.0/concepts/html/introduction"
             },
             {
               "type": "doc",
@@ -135,7 +135,7 @@
           "items": [
             {
               "type": "doc",
-              "id": "version-0.18.0/concepts/services"
+              "id": "version-0.18.0/concepts/services/introduction"
             },
             {
               "type": "doc",
