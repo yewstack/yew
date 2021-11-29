@@ -27,7 +27,7 @@ module.exports = {
           type: "category",
           label: "Project Setup",
           items: [
-            "getting-started/project-setup",
+            "getting-started/project-setup/introduction",
             "getting-started/project-setup/using-trunk",
             "getting-started/project-setup/using-wasm-pack",
           ],
@@ -41,13 +41,16 @@ module.exports = {
         {
           type: "category",
           label: "wasm-bindgen",
-          items: ["concepts/wasm-bindgen", "concepts/wasm-bindgen/web-sys"],
+          items: [
+            "concepts/wasm-bindgen/introduction",
+            "concepts/wasm-bindgen/web-sys"
+          ],
         },
         {
           type: "category",
           label: "Components",
           items: [
-            "concepts/components",
+            "concepts/components/introduction",
             "concepts/components/callbacks",
             "concepts/components/properties",
             "concepts/components/children",
@@ -58,7 +61,7 @@ module.exports = {
           type: "category",
           label: "HTML",
           items: [
-            "concepts/html",
+            "concepts/html/introduction",
             "concepts/html/components",
             "concepts/html/elements",
             "concepts/html/events",
@@ -72,7 +75,7 @@ module.exports = {
           type: "category",
           label: "Function Components",
           items: [
-            "concepts/function-components",
+            "concepts/function-components/introduction",
             "concepts/function-components/attribute",
             "concepts/function-components/pre-defined-hooks",
             "concepts/function-components/custom-hooks",

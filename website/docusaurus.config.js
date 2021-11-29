@@ -86,7 +86,7 @@ module.exports = {
       ],
     },
     prism: {
-      additionalLanguages: ['rust'],
+      additionalLanguages: ['rust', 'toml'],
     },
     algolia: {
       apiKey: "bbaacf676920f3836ccab85fb87dd37c",

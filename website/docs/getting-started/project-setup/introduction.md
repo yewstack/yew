@@ -19,7 +19,7 @@ You can check your toolchain version using `rustup show` (under "active toolchai
 
 ## Install WebAssembly target
 
-Rust can compile source codes for different "targets" (e.g. different processors). The compilation target for browser-based WebAssembly is called "wasm32-unknown-unknown".  The following command will add this target to your development environment.
+Rust can compile source codes for different "targets" (e.g. different processors). The compilation target for browser-based WebAssembly is called "wasm32-unknown-unknown". The following command will add this target to your development environment.
 
 ```shell
 rustup target add wasm32-unknown-unknown
@@ -28,7 +28,7 @@ rustup target add wasm32-unknown-unknown
 ## Install Trunk
 
 Trunk is the recommended tool for managing deployment and packaging, and will be used throughout the documentation and examples.
-See [Wasm Build Tools](./../more/wasm-build-tools.md) for more information on packaging and alternatives.
+See [Wasm Build Tools](./../../more/wasm-build-tools.md) for more information on packaging and alternatives.
 
 ```shell
 # note that this might take a while to install, because it compiles everything from scratch
@@ -39,4 +39,4 @@ cargo install trunk
 
 ## Summary
 
-Now that you have all the tools needed, we can [build a sample application](./build-a-sample-app.md).
+Now that you have all the tools needed, we can [build a sample application](./../build-a-sample-app.md).

@@ -18,8 +18,7 @@ cd yew-app
 
 ## Run a hello world example
 
-To verify the Rust environment is setup, run the initial project using the cargo build tool.  After output about the build process, you should see the expected "Hello World" message.
-
+To verify the Rust environment is setup, run the initial project using the cargo build tool. After output about the build process, you should see the expected "Hello World" message.
 
 ```bash
 cargo run
@@ -31,9 +30,9 @@ To convert this simple command line application to a basic Yew web application, 
 
 ### Update Cargo.toml
 
-Add `yew` to the list of dependencies in the `Cargo.toml` file.
+Add `yew` to the list of dependencies.
 
-```toml
+```toml title=Cargo.toml
 [package]
 name = "yew-app"
 version = "0.1.0"
@@ -53,7 +52,6 @@ Replace the contents of `src/main.rs` with the following code.
 The line `yew::start_app::<Model>()` inside `main()` starts your application and mounts it to the page's `<body>` tag.  
 If you would like to start your application with any dynamic properties, you can instead use `yew::start_app_with_props::<Model>(..)`.
 :::
-
 
 ```rust ,no_run
 use yew::prelude::*;
@@ -88,7 +86,7 @@ impl Component for Model {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        // This gives us a component's "`Scope`" which allows us to send messages, etc to the component. 
+        // This gives us a component's "`Scope`" which allows us to send messages, etc to the component.
         let link = ctx.link();
         html! {
             <div>
