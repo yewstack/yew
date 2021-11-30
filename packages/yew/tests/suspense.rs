@@ -192,7 +192,7 @@ async fn suspense_not_suspended_at_start() {
         if s.resumed() {
             Ok(Rc::new(move || sleep_state.dispatch(())))
         } else {
-            Err(s.clone())
+            Err(s)
         }
     }
 
