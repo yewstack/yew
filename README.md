@@ -42,7 +42,7 @@
 * Achieves high performance by minimizing DOM API calls for each page render and by making it easy to offload processing to background web workers.
 * Supports JavaScript interoperability, allowing developers to leverage NPM packages and integrate with existing JavaScript applications.
 
-*Note: Yew is not (yet) production ready but is great for side projects and internal tools.*
+*Note: Yew is not 1.0 yet. Be prepared to do major refactoring due to breaking API changes.*
 
 ## Contributing
 
