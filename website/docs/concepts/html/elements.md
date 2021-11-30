@@ -3,6 +3,9 @@ title: "Elements"
 description: "Both HTML and SVG elements are supported"
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 ## DOM nodes
 
 There are many reasons why you might want to create or manage DOM nodes manually in Yew, such as
@@ -74,6 +77,7 @@ html! {
 ```
 
 This will result in **HTML** that's functionally equivalent to this:
+
 ```html
 <div hidden>This div is hidden.</div>
 ```
@@ -119,8 +123,8 @@ If the attribute is set to `None`, the attribute won't be set in the DOM.
 
 Listener attributes need to be passed a `Callback` which is a wrapper around a closure. How you create your callback depends on how you wish your app to react to a listener event:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Component handler-->
+<Tabs>
+  <TabItem value="Component handler" label="Component handler">
 
 ```rust
 use yew::{Component, Context, html, Html};
@@ -160,7 +164,8 @@ impl Component for MyComponent {
 }
 ```
 
-<!--Agent Handler-->
+  </TabItem>
+  <TabItem value="Agent Handler" label="Agent Handler">
 
 ```rust
 use yew::{html, Component, Context, Html};
@@ -198,7 +203,8 @@ impl Component for MyComponent {
 }
 ```
 
-<!--Other Cases-->
+  </TabItem>
+  <TabItem value="Other Cases" label="Other Cases">
 
 ```rust
 use yew::{Callback, Context, Component, html, Html};
@@ -229,7 +235,9 @@ impl Component for MyComponent {
 }
 ```
 
-<!--END_DOCUSAURUS_CODE_TABS-->
+  </TabItem>
+</Tabs>
 
 ## Relevant examples
+
 - [Inner HTML](https://github.com/yewstack/yew/tree/master/examples/inner_html)

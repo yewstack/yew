@@ -3,12 +3,15 @@ title: "Elements"
 description: "Both HTML and SVG elements are supported"
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 ## DOM nodes
 
 There are many reasons why you might want to create or manage DOM nodes manually in Yew, such as
 when integrating with JS libraries that can cause conflicts with managed components.
 
-Using `web-sys`, you can create DOM elements and convert them into a `Node` - which can then be 
+Using `web-sys`, you can create DOM elements and convert them into a `Node` - which can then be
 used as a `Html` value using `VRef`:
 
 ```rust
@@ -44,9 +47,9 @@ html! {
 }
 ```
 
-## Boolean Attributes 
+## Boolean Attributes
 
-Some content attributes (e.g checked, hidden, required) are called boolean attributes. In Yew, 
+Some content attributes (e.g checked, hidden, required) are called boolean attributes. In Yew,
 boolean attributes need to be set to a bool value:
 
 ```rust
@@ -60,11 +63,12 @@ html! {
 ```
 
 This will result in **HTML** that's functionally equivalent to this:
+
 ```html
 <div hidden>This div is hidden.</div>
 ```
 
-Setting a boolean attribute to false is equivalent to not using the attribute at all; values from 
+Setting a boolean attribute to false is equivalent to not using the attribute at all; values from
 boolean expressions can be used:
 
 ```rust
@@ -119,18 +123,13 @@ html! {
 
 Listener attributes need to be passed a `Callback` which is a wrapper around a closure. How you create your callback depends on how you wish your app to react to a listener event:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Component handler-->
+<Tabs>
+  <TabItem value="Component handler" label="Component handler">
 
 ```rust
-use yew::{
-    events::MouseEvent, html, Component,
-    ComponentLink, Html, ShouldRender
-};
+use yew::{Component, Context, html, Html};
 
-struct MyComponent {
-    link: ComponentLink<Self>,
-}
+struct MyComponent;
 
 enum Msg {
     Click,
@@ -140,23 +139,24 @@ impl Component for MyComponent {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        MyComponent { link }
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Click => {
                 // Handle Click
             }
-        }
+        };
+        true
     }
 
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         // Create a callback from a component link to handle it in a component
-        let click_callback = self.link.callback(|_: MouseEvent| Msg::Click);
+        let click_callback = ctx.link().callback(|_| Msg::Click);
         html! {
-            <button onclick=click_callback>
+            <button onclick={click_callback}>
                 { "Click me!" }
             </button>
         }
@@ -164,37 +164,38 @@ impl Component for MyComponent {
 }
 ```
 
-<!--Agent Handler-->
+  </TabItem>
+  <TabItem value="Agent Handler" label="Agent Handler">
 
 ```rust
-use yew::{
-    agent::Dispatcher, events::MouseEvent, html, Component,
-    ComponentLink, Html, ShouldRender,
-};
+use yew::{html, Component, Context, Html};
+use yew_agent::{Dispatcher, Dispatched};
+use website_test::agents::{MyWorker, WorkerMsg};
 
 struct MyComponent {
     worker: Dispatcher<MyWorker>,
 }
 
 impl Component for MyComponent {
-    type Message = ();
+    type Message = WorkerMsg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         MyComponent {
-            worker: MyWorker::dispatcher()
+            worker: MyWorker::dispatcher(),
         }
     }
 
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        self.worker.send(msg);
         false
     }
 
-    fn view(&self) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         // Create a callback from a worker to handle it in another context
-        let click_callback = self.worker.callback(|_: MouseEvent| WorkerMsg::Process);
+        let click_callback = ctx.link().callback(|_| WorkerMsg::Process);
         html! {
-            <button onclick=click_callback>
+            <button onclick={click_callback}>
                 { "Click me!" }
             </button>
         }
@@ -202,13 +203,12 @@ impl Component for MyComponent {
 }
 ```
 
-<!--Other Cases-->
+  </TabItem>
+  <TabItem value="Other Cases" label="Other Cases">
 
 ```rust
-use yew::{
-    html, services::ConsoleService, Callback, Component,
-    ComponentLink, Html, ShouldRender,
-};
+use yew::{Callback, Context, Component, html, Html};
+use weblog::console_log;
 
 struct MyComponent;
 
@@ -216,22 +216,18 @@ impl Component for MyComponent {
     type Message = ();
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         MyComponent
     }
 
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         // Create an ephemeral callback
         let click_callback = Callback::from(|_| {
-            ConsoleService::log("clicked!");
+            console_log!("clicked!");
         });
 
         html! {
-            <button onclick=click_callback>
+            <button onclick={click_callback}>
                 { "Click me!" }
             </button>
         }
@@ -239,7 +235,9 @@ impl Component for MyComponent {
 }
 ```
 
-<!--END_DOCUSAURUS_CODE_TABS-->
+  </TabItem>
+</Tabs>
 
 ## Relevant examples
+
 - [Inner HTML](https://github.com/yewstack/yew/tree/v0.18/examples/inner_html)

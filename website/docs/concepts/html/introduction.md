@@ -4,13 +4,16 @@ sidebar_label: Introduction
 description: "The procedural macro for generating HTML and SVG"
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 The `html!` macro allows you to write HTML and SVG code declaratively. It is similar to JSX
 \(an extension to JavaScript which allows you to write HTML-like code inside of JavaScript\).
 
 **Important notes**
 
 1. The `html!` macro only accepts one root html node \(you can counteract this by
-   [using fragments or iterators](html/lists.md)\)
+   [using fragments or iterators](./../html/lists.md)\)
 2. An empty `html! {}` invocation is valid and will not render anything
 3. Literals must always be quoted and wrapped in braces: `html! { "Hello, World" }`
 
@@ -24,8 +27,8 @@ Tags are based on HTML tags. Components, Elements, and Lists are all based on th
 
 Tags must either self-close `<... />` or have a corresponding end tag for each start tag.
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Open - Close-->
+<Tabs>
+  <TabItem value="Open - Close" label="Open - Close" default>
 
 ```rust
 use yew::html;
@@ -35,7 +38,8 @@ html! {
 };
 ```
 
-<!--Invalid-->
+  </TabItem>
+  <TabItem value="Invalid" label="Invalid">
 
 ```rust ,compile_fail
 use yew::html;
@@ -45,7 +49,11 @@ html! {
 };
 ```
 
-<!--Self-closing-->
+  </TabItem>
+</Tabs>
+
+<Tabs>
+  <TabItem value="Self-closing" label="Self-closing">
 
 ```rust
 use yew::html;
@@ -55,7 +63,8 @@ html! {
 };
 ```
 
-<!--Invalid-->
+  </TabItem>
+  <TabItem value="Invalid" label="Invalid">
 
 ```rust ,compile_fail
 use yew::html;
@@ -65,7 +74,8 @@ html! {
 };
 ```
 
-<!--END_DOCUSAURUS_CODE_TABS-->
+  </TabItem>
+</Tabs>
 
 :::tip
 For convenience, elements which _usually_ require a closing tag are **allowed** to self-close. For example, writing `html! { <div class="placeholder" /> }` is valid.
@@ -75,8 +85,8 @@ For convenience, elements which _usually_ require a closing tag are **allowed** 
 
 Create complex nested HTML and SVG layouts with ease:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--HTML-->
+<Tabs>
+  <TabItem value="HTML" label="HTML">
 
 ```rust
 use yew::html;
@@ -99,7 +109,8 @@ html! {
 };
 ```
 
-<!--SVG-->
+  </TabItem>
+  <TabItem value="SVG" label="SVG">
 
 ```rust
 use yew::html;
@@ -123,7 +134,8 @@ html! {
 };
 ```
 
-<!--END_DOCUSAURUS_CODE_TABS-->
+  </TabItem>
+</Tabs>
 
 ## Lints
 
@@ -155,6 +167,9 @@ For now, use keys when you have a list where the order of elements changes. This
 
 To conditionally render some markup, we wrap it in an `if` block:
 
+<Tabs>
+  <TabItem value="if" label="if">
+
 ```rust
 use yew::html;
 
@@ -165,7 +180,8 @@ html! {
 };
 ```
 
-There may also be an `else` case:
+  </TabItem>
+  <TabItem value="if - else" label="if - else">
 
 ```rust
 use yew::html;
@@ -180,6 +196,35 @@ html! {
 };
 ```
 
-:::note
-`if let` statements can also be used in the same way.
-:::
+  </TabItem>
+  <TabItem value="if let" label="if let">
+
+```rust
+use yew::html;
+let some_text = Some("text");
+
+html! {
+    if let Some(text) = some_text {
+        <p>{ text }</p>
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="if let else" label="if let else">
+
+```rust
+use yew::html;
+let some_text = Some("text");
+
+html! {
+    if let Some(text) = some_text {
+        <p>{ text }</p>
+    } else {
+        <p>{ "False case" }</p>
+    }
+};
+```
+
+  </TabItem>
+</Tabs>

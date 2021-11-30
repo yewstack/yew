@@ -3,6 +3,9 @@ title: "Classes"
 description: "A handy macro to handle classes"
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 ## Classes
 
 The struct `Classes` can be used to deal with HTML classes.
@@ -19,28 +22,30 @@ The macro `classes!` is a convenient macro that creates one single `Classes`.
 Its input accepts a comma separated list of expressions. The only requirement
 is that every expression implements `Into<Classes>`.
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Literal-->
+<Tabs>
+  <TabItem value="Literal" label="Literal">
 
 ```rust
 use yew::{classes, html};
 
 html! {
-  <div class=classes!("container")></div>
-}
+    <div class={classes!("container")}></div>
+};
 ```
 
-<!--Multiple-->
+  </TabItem>
+  <TabItem value="Multiple" label="Multiple">
 
 ```rust
 use yew::{classes, html};
 
 html! {
-  <div class=classes!("class-1", "class-2")></div>
-}
+  <div class={classes!("class-1", "class-2")}></div>
+};
 ```
 
-<!--String-->
+  </TabItem>
+  <TabItem value="String" label="String">
 
 ```rust
 use yew::{classes, html};
@@ -48,31 +53,34 @@ use yew::{classes, html};
 let my_classes = String::from("class-1 class-2");
 
 html! {
-  <div class=classes!(my_classes)></div>
-}
+  <div class={classes!(my_classes)}></div>
+};
 ```
 
-<!--Optional-->
+  </TabItem>
+  <TabItem value="Optional" label="Optional">
 
 ```rust
 use yew::{classes, html};
 
 html! {
-  <div class=classes!(Some("class")) />
-}
+  <div class={classes!(Some("class"))} />
+};
 ```
 
-<!--Vector-->
+  </TabItem>
+  <TabItem value="Vector" label="Vector">
 
 ```rust
 use yew::{classes, html};
 
 html! {
-  <div class=classes!(vec!["class-1", "class-2"])></div>
-}
+  <div class={classes!(vec!["class-1", "class-2"])}></div>
+};
 ```
 
-<!--Array-->
+  </TabItem>
+  <TabItem value="Array" label="Array">
 
 ```rust
 use yew::{classes, html};
@@ -80,11 +88,12 @@ use yew::{classes, html};
 let my_classes = ["class-1", "class-2"];
 
 html! {
-  <div class=classes!(&my_classes)></div>
-}
+  <div class={classes!(my_classes.as_ref())}></div>
+};
 ```
 
-<!--END_DOCUSAURUS_CODE_TABS-->
+  </TabItem>
+</Tabs>
 
 ## Components that accept classes
 

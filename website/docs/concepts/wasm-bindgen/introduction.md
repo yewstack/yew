@@ -1,12 +1,15 @@
 ---
-title: Introduction
+title: "`wasm-bindgen`"
+sidebar_label: wasm-bindgen
+slug: /concepts/wasm-bindgen
 ---
 
 [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) is a library and tool to facilitate
 high-level interactions between Wasm modules and JavaScript; it is built with Rust by
 [The Rust and WebAssembly Working Group](https://rustwasm.github.io/).
 
-Yew builds off wasm-bindgen and specifically uses the following of its crates:
+Yew builds off `wasm-bindgen` and specifically uses the following of its crates:
+
 - [`js-sys`](https://crates.io/crates/js-sys)
 - [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
 - [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
@@ -26,14 +29,14 @@ over using `wasm-bindgen`.
 ## [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
 
 This crate provides many of the building blocks for the rest of the crates above. In this section we
-are only going to cover two main areas of the `wasm-bindgen` crate and that is the macro and some of
-the types / traits you will see pop up again and again.
+are only going to cover two main areas of the `wasm-bindgen` crate and that is the macro and some
+types / traits you will see pop up again and again.
 
 ### `#[wasm_bindgen]` macro
 
 The `#[wasm_bindgen]` macro, in a high level view, is your translator between Rust and JavaScript, it
 allows you to describe imported JavaScript types in terms of Rust and vice versa. Using this macro
-is more advanced and you shouldn't need to reach for it unless you are trying to interop with an
+is more advanced, and you shouldn't need to reach for it unless you are trying to interop with an
 external JavaScript library. The `js-sys` and `web-sys` crates are essentially imported types using
 this macro for JavaScript types and the browser API respectively.
 
@@ -71,13 +74,14 @@ log("Hello from Rust!");
 log_u32(42);
 log_many("Logging", "many values!");
 ```
+
 _This example was adapted from [1.2 Using console.log of The `wasm-bindgen` Guide](https://rustwasm.github.io/docs/wasm-bindgen/examples/console-log.html)_.
 
 ### Simulating inheritance
 
 Inheritance between JavaScript classes is a big part of the language and is a major part of how the
 Document Object Model (DOM). When types are imported using `wasm-bindgen` you can
-also add attributes that describe it's inheritance.
+also add attributes that describe its inheritance.
 
 In Rust this inheritance is simulated using the [`Deref`](https://doc.rust-lang.org/std/ops/trait.Deref.html)
 and [`AsRef`](https://doc.rust-lang.org/std/convert/trait.AsRef.html) traits. An example of this
@@ -119,7 +123,7 @@ _[`JsValue` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bind
 
 Rust has a strong type system and JavaScript...doesn't 😞 So in order for Rust to maintain these
 strong types but still be convenient the web assembly group came up with a pretty neat trait `JsCast`.
-Its job is to help you move from one JavaScript "type" to another, which sounds vague but it means
+Its job is to help you move from one JavaScript "type" to another, which sounds vague, but it means
 that if you have one type which you know is really another then you can use the functions of `JsCast`
 to jump from one type to the other. It's a nice trait to get to know when working with `web-sys`,
 `wasm_bindgen`, `js-sys` - you'll notice lots of types will implement `JsCast` from those crates.
@@ -129,10 +133,10 @@ unsure what type a certain object is you can try to cast it which returns possib
 [`Option`](https://doc.rust-lang.org/std/option/enum.Option.html) and
 [`Result`](https://doc.rust-lang.org/std/result/enum.Result.html).
 
-A common example of this in [`web-sys`](wasm-bindgen/web-sys) is when you are trying to get the
+A common example of this in [`web-sys`](web-sys) is when you are trying to get the
 target of an event, you might know what the target element is but the
 [`web_sys::Event`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html) API will always return an [`Option<web_sys::EventTarget>`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target)
-so you will need to cast it to the element type so you can call it's methods.
+so you will need to cast it to the element type. so you can call its methods.
 
 ```rust
 // need to import the trait.
@@ -143,7 +147,7 @@ fn handle_event(event: Event) {
     let target: EventTarget = event
         .target()
         .expect("I'm sure this event has a target!");
-	
+
     // maybe the target is a select element?
     if let Some(select_element) = target.dyn_ref::<HtmlSelectElement>() {
         // do something amazing here
@@ -199,18 +203,18 @@ and provides the ability to interoperate with JavaScript events and JavaScript I
 There are three main interfaces in this crate currently:
 
 1. [`JsFuture`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/struct.JsFuture.html) -
-A type that is constructed with a [`Promise`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Promise.html)
-and can then be used as a `Future<Output=Result<JsValue, JsValue>>`. This Rust future will resolve
-or reject with the value coming out of the `Promise`.
+   A type that is constructed with a [`Promise`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Promise.html)
+   and can then be used as a `Future<Output=Result<JsValue, JsValue>>`. This Rust future will resolve
+   or reject with the value coming out of the `Promise`.
 
 2. [`future_to_promise`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.future_to_promise.html) -
-Converts a Rust `Future<Output=Result<JsValue, JsValue>>` into a
-JavaScript `Promise`. The future’s result will translate to either a resolved or rejected
-`Promise` in JavaScript.
+   Converts a Rust `Future<Output=Result<JsValue, JsValue>>` into a
+   JavaScript `Promise`. The future’s result will translate to either a resolved or rejected
+   `Promise` in JavaScript.
 
 3. [`spawn_local`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html) -
-Spawns a `Future<Output = ()>` on the current thread. This is the best way
-to run a Future in Rust without sending it to JavaScript.
+   Spawns a `Future<Output = ()>` on the current thread. This is the best way
+   to run a Future in Rust without sending it to JavaScript.
 
 _[`wasm-bindgen-futures` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/index.html)._
 
@@ -233,7 +237,7 @@ spawn_local(async {
 });
 ```
 
-Yew has also added support for futures in certain APIs, most notably you can create a 
+Yew has also added support for futures in certain APIs, most notably you can create a
 `callback_future` which accepts an `async` block - this uses `spawn_local` internally.
 
 _[`spawn_local` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html)._
