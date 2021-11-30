@@ -63,6 +63,7 @@ features = [
 [dev-dependencies]
 easybench-wasm = "0.2"
 wasm-bindgen-test = "0.3"
+gloo = { version = "0.4", features = ["futures"] }
 
 [features]
 doc_test = []
