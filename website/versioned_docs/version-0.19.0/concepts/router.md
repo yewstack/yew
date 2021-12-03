@@ -10,10 +10,8 @@ render.
 
 Yew provides router support in the `yew-router` crate. To start using it, add the dependency to your `Cargo.toml`
 
-<!-- Reminder: fix this when we release a new version of yew -->
-
 ```toml
-yew-router = { git = "https://github.com/yewstack/yew.git" }
+yew-router = "0.19"
 ```
 
 The utilities needed are provided under `yew_router::prelude`,

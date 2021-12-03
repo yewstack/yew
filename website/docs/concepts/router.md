@@ -10,10 +10,8 @@ render.
 
 Yew provides router support in the `yew-router` crate. To start using it, add the dependency to your `Cargo.toml`
 
-<!-- Reminder: fix this when we release a new version of yew -->
-
 ```toml
-yew-router = { git = "https://github.com/yewstack/yew.git" }
+yew-router = "0.19"
 ```
 
 The utilities needed are provided under `yew_router::prelude`,
@@ -26,7 +24,7 @@ Routes are defined as an `enum` which derives `Routable`. This enum must be `Clo
 
 ```rust
 use yew_router::prelude::*;
-
+`
 #[derive(Clone, Routable, PartialEq)]
 enum Route {
     #[at("/")]
