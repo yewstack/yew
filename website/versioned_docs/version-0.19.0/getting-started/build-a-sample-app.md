@@ -40,7 +40,7 @@ edition = "2018"
 
 [dependencies]
 # you can check the latest version here: https://crates.io/crates/yew
-yew = "0.18"
+yew = "0.18.0"
 ```
 
 ### Update main.rs
