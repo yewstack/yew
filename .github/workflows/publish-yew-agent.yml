@@ -1,0 +1,56 @@
+name: Publish yew-agent
+
+on:
+  workflow_dispatch:
+    inputs:
+      level:
+        description: 'Version Level major|minor|patch'
+        required: true
+      version:
+        description: 'Release version (e.g. 0.1.0)'
+        required: true
+jobs:
+  publish:
+    name: Publish yew-router
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+
+      - name: Install cargo binary dependencies
+        uses: baptiste0928/cargo-install@v1
+        with:
+          crate: cargo-release
+
+      - name: Release yew-agent
+        run: |
+          cd packages/yew-agent
+          cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute
+        env:
+          PUBLISH_LEVEL: ${{ github.event.inputs.level }}
+          CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+
+      - name: Create Tag
+        uses: EndBug/latest-tag@latest
+        with:
+          tag-name: yew-agent@${{ github.event.inputs.version }}
+          description: UPDATE CHANGELOG
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Create a version branch
+        uses: peterjgrainger/action-create-branch@v2.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          branch: yew-agent@${{ github.event.inputs.version }}
