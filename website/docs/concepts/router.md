@@ -24,7 +24,6 @@ Routes are defined as an `enum` which derives `Routable`. This enum must be `Clo
 
 ```rust
 use yew_router::prelude::*;
-`
 #[derive(Clone, Routable, PartialEq)]
 enum Route {
     #[at("/")]
