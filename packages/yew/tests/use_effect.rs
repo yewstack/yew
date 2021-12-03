@@ -45,6 +45,7 @@ fn use_effect_destroys_on_component_drop() {
             use_effect_with_deps(
                 move |_| {
                     effect_called();
+                    #[allow(clippy::redundant_closure)] // Otherwise there is a build error
                     move || destroy_called()
                 },
                 (),
