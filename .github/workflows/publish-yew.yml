@@ -32,7 +32,7 @@ jobs:
       - name: Release yew-macro
         run: |
           cd packages/yew-macro
-          cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute
+          cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm
         env:
           PUBLISH_LEVEL: ${{ github.event.inputs.level }}
           CRATES_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
@@ -40,7 +40,7 @@ jobs:
       - name: Release yew
         run: |
           cd packages/yew
-          cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute
+          cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm
         env:
           PUBLISH_LEVEL: ${{ github.event.inputs.level }}
           CRATES_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
