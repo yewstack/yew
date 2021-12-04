@@ -32,7 +32,7 @@ jobs:
       - name: Release yew-agent
         run: |
           cd packages/yew-agent
-          echo y | cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute
+          cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm
         env:
           PUBLISH_LEVEL: ${{ github.event.inputs.level }}
           CRATES_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
