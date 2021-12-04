@@ -35,7 +35,7 @@ jobs:
           cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute
         env:
           PUBLISH_LEVEL: ${{ github.event.inputs.level }}
-          CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+          CRATES_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
 
       - name: Release yew-router
         run: |
@@ -43,7 +43,7 @@ jobs:
           cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute
         env:
           PUBLISH_LEVEL: ${{ github.event.inputs.level }}
-          CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+          CRATES_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
 
       - name: Create Tag
         uses: EndBug/latest-tag@latest
