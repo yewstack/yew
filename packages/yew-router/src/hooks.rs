@@ -31,12 +31,7 @@ where
 {
     let navigator = use_navigator()?;
     let location = use_location()?;
-    let path = navigator.basename().map(|m| {
-        location
-            .path()
-            .strip_prefix(m)
-            .unwrap_or_else(|| location.path())
-    });
+    let path = navigator.strip_basename(location.path().into());
 
-    path.and_then(|m| R::recognize(m))
+    R::recognize(&path)
 }

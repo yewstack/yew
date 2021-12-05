@@ -120,14 +120,9 @@ impl<COMP: Component> RouterScopeExt for yew::html::Scope<COMP> {
         let navigator = self.navigator()?;
         let location = self.location()?;
 
-        let path = navigator.basename().map(|m| {
-            location
-                .path()
-                .strip_prefix(m)
-                .unwrap_or_else(|| location.path())
-        });
+        let path = navigator.strip_basename(location.path().into());
 
-        path.and_then(|m| R::recognize(m))
+        R::recognize(&path)
     }
 
     fn add_location_listener(&self, cb: Callback<Location>) -> Option<LocationHandle> {

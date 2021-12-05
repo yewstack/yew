@@ -78,7 +78,7 @@ pub mod switch;
 pub mod utils;
 
 pub use routable::{AnyRoute, Routable};
-pub use router::{BrowserRouter, Router};
+pub use router::{BrowserRouter, HashRouter, Router};
 pub use switch::{RenderFn, Switch};
 
 pub mod prelude {
@@ -93,7 +93,7 @@ pub mod prelude {
     pub use crate::scope_ext::{LocationHandle, NavigatorHandle, RouterScopeExt};
     #[doc(no_inline)]
     pub use crate::Routable;
-    pub use crate::{BrowserRouter, Router};
+    pub use crate::{BrowserRouter, HashRouter, Router};
 
     pub use crate::Switch;
 }

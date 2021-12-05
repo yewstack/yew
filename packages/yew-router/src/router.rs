@@ -3,8 +3,9 @@ use std::rc::Rc;
 
 use crate::history::{AnyHistory, BrowserHistory, HashHistory, History, Location};
 use crate::navigator::Navigator;
-use crate::utils::base_url;
+use crate::utils::{base_url, strip_slash_suffix};
 use yew::prelude::*;
+use yew::virtual_dom::AttrValue;
 
 /// Props for [`Router`].
 #[derive(Properties, PartialEq, Clone)]
@@ -12,7 +13,7 @@ pub struct RouterProps {
     pub children: Children,
     pub history: AnyHistory,
     #[prop_or_default]
-    pub basename: Option<Rc<String>>,
+    pub basename: Option<AttrValue>,
 }
 
 /// A context for [`Router`]
@@ -66,11 +67,6 @@ impl NavigatorContext {
 /// [`HashRouter`] instead.
 ///
 /// You only need one `<Router />` for each application.
-///
-/// # Note
-///
-/// The router will by default use the value declared in `<base href="..." />` as its basename.
-/// You may also specify a different basename with props.
 #[function_component(Router)]
 pub fn router(props: &RouterProps) -> Html {
     let RouterProps {
@@ -79,13 +75,12 @@ pub fn router(props: &RouterProps) -> Html {
         basename,
     } = props.clone();
 
-    let basename = basename.map(|m| m.to_string()).or_else(base_url);
-
     let loc_ctx = use_reducer(|| LocationContext {
         location: history.location(),
         ctr: 0,
     });
 
+    let basename = basename.map(|m| strip_slash_suffix(&m).to_string());
     let navi_ctx = NavigatorContext {
         navigator: Navigator::new(history.clone(), basename),
     };
@@ -128,20 +123,28 @@ pub fn router(props: &RouterProps) -> Html {
 pub struct ConcreteRouterProps {
     pub children: Children,
     #[prop_or_default]
-    pub basename: Option<Rc<String>>,
+    pub basename: Option<AttrValue>,
 }
 
 /// A [`Router`] thats provides history via [`BrowserHistory`].
 ///
 /// This Router uses browser's native history to manipulate session history
 /// and uses regular URL as route.
+///
+/// # Note
+///
+/// The router will by default use the value declared in `<base href="..." />` as its basename.
+/// You may also specify a different basename with props.
 #[function_component(BrowserRouter)]
 pub fn browser_router(props: &ConcreteRouterProps) -> Html {
+    let ConcreteRouterProps { children, basename } = props.clone();
     let history = use_state(|| AnyHistory::from(BrowserHistory::new()));
-    let children = props.children.clone();
+
+    // We acknowledge based in `<base href="..." />`
+    let basename = basename.map(|m| m.to_string()).or_else(base_url);
 
     html! {
-        <Router history={(*history).clone()} basename={props.basename.clone()}>
+        <Router history={(*history).clone()} {basename}>
             {children}
         </Router>
     }
@@ -151,13 +154,17 @@ pub fn browser_router(props: &ConcreteRouterProps) -> Html {
 ///
 /// This Router uses browser's native history to manipulate session history
 /// and stores url in hash fragment.
+///
+/// # Warning
+///
+/// Prefer [`BrowserRouter`] whenever possible and use this as a last resort.
 #[function_component(HashRouter)]
 pub fn hash_router(props: &ConcreteRouterProps) -> Html {
+    let ConcreteRouterProps { children, basename } = props.clone();
     let history = use_state(|| AnyHistory::from(HashHistory::new()));
-    let children = props.children.clone();
 
     html! {
-        <Router history={(*history).clone()} basename={props.basename.clone()}>
+        <Router history={(*history).clone()} {basename}>
             {children}
         </Router>
     }

@@ -135,4 +135,22 @@ impl Navigator {
 
         path
     }
+
+    pub(crate) fn strip_basename<'a>(&self, path: Cow<'a, str>) -> Cow<'a, str> {
+        match self.basename() {
+            Some(m) => {
+                let mut path = path
+                    .strip_prefix(m)
+                    .map(|m| Cow::from(m.to_owned()))
+                    .unwrap_or(path);
+
+                if !path.starts_with('/') {
+                    path = format!("/{}", m).into();
+                }
+
+                path
+            }
+            None => path,
+        }
+    }
 }
