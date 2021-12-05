@@ -10,8 +10,10 @@ render.
 
 Yew provides router support in the `yew-router` crate. To start using it, add the dependency to your `Cargo.toml`
 
+<!-- Reminder: fix this when we release a new version of yew -->
+
 ```toml
-yew-router = "0.19"
+yew-router = { git = "https://github.com/yewstack/yew.git" }
 ```
 
 The utilities needed are provided under `yew_router::prelude`,
@@ -318,8 +320,8 @@ fn some_page() -> Html {
         // an early return that redirects to the login page
         // technicality: `Redirect` actually renders an empty html. But since it also pushes history, the target page
         // shows up immediately. Consider it a "side-effect" component.
-        None => return html! { 
-            <Redirect<Route> to={Route::Login}/> 
+        None => return html! {
+            <Redirect<Route> to={Route::Login}/>
         },
     };
     // ... actual page content.
@@ -381,7 +383,7 @@ in the URL.
 
 Nested router can be useful when the app grows larger. Consider the following router structure:
 
-<!-- 
+<!--
 The graph is produced with the following code, with graphviz.
 To reproduce. Save the code in a file, say `input.dot`,
 And run `$ dot -Tgif input.dot  -o nested-router.gif`
