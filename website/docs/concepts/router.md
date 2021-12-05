@@ -234,7 +234,7 @@ pub fn my_component() -> Html {
 
 :::caution
 The example here uses `Callback::once`. Use a normal callback if the target route can be the same with the route
-the component is in, or just to play safe. For example, when you have a logo button on every page the that goes back to
+the component is in, or just to play safe. For example, when you have a logo button on every page, that goes back to
 home when clicked, clicking that button twice on home page causes the code to panic because the second click pushes an
 identical Home route and the `use_history` hook won't trigger a re-render.
 :::
