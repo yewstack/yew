@@ -6,9 +6,11 @@ on:
       level:
         description: 'Version Level major|minor|patch'
         required: true
-      version:
-        description: 'Release version (e.g. 0.1.0)'
-        required: true
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
 jobs:
   publish:
     name: Publish yew
@@ -16,6 +18,11 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
+
+      - name: Config Git
+        uses: oleksiyrudenko/gha-git-credentials@v2-latest
+        with:
+          token: '${{ secrets.GITHUB_TOKEN }}'
 
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
@@ -28,37 +35,27 @@ jobs:
         uses: baptiste0928/cargo-install@v1
         with:
           crate: cargo-release
+          version: 0.18.5
       
       - name: Release yew-macro
-        run: |
-          cd packages/yew-macro
-          cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm
+        run: cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm --package yew-macro
         env:
           PUBLISH_LEVEL: ${{ github.event.inputs.level }}
           CRATES_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
 
       - name: Release yew
-        run: |
-          cd packages/yew
-          cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm
+        run: cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm --package yew
         env:
           PUBLISH_LEVEL: ${{ github.event.inputs.level }}
           CRATES_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
-
-      - name: Create Tag
-        uses: EndBug/latest-tag@latest
-        with:
-          tag-name: yew@${{ github.event.inputs.version }}
-          description: UPDATE CHANGELOG
-
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
       
+      - name: Get tag
+        id: gettag
+        uses: WyriHaximus/github-action-get-previous-tag@v1
+
       - name: Create a version branch
         uses: peterjgrainger/action-create-branch@v2.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          branch: yew@${{ github.event.inputs.version }}
+          branch: ${{ steps.gettag.outputs.tag }}
