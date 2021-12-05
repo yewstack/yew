@@ -1,18 +1,25 @@
-use crate::history::*;
+use crate::history::{Location, LocationExt};
+use crate::navigator::Navigator;
 use crate::routable::Routable;
-use crate::router::RouterState;
+use crate::router::{LocationContext, NavigatorContext};
 
 use yew::context::ContextHandle;
 use yew::prelude::*;
 
-/// A [`ContextHandle`] for [`add_history_listener`](RouterScopeExt::add_history_listener).
-pub struct HistoryHandle {
-    _inner: ContextHandle<RouterState>,
+/// A [`ContextHandle`] for [`add_location_listener`](RouterScopeExt::add_location_listener).
+pub struct LocationHandle {
+    _inner: ContextHandle<LocationContext>,
 }
 
-/// An extension to [`Scope`](yew::html::Scope) that provides session history information.
+/// A [`ContextHandle`] for [`add_navigator_listener`](RouterScopeExt::add_navigator_listener).
+pub struct NavigatorHandle {
+    _inner: ContextHandle<NavigatorContext>,
+}
+
+/// An extension to [`Scope`](yew::html::Scope) that provides location information and navigator
+/// access.
 ///
-/// You can access on `ctx.link()`
+/// You can access them on `ctx.link()`
 ///
 /// # Example
 ///
@@ -41,7 +48,7 @@ pub struct HistoryHandle {
 ///         match msg {
 ///             Msg::OnClick => {
 ///                 ctx.link()
-///                     .history()
+///                     .navigator()
 ///                     .expect_throw("failed to read history")
 ///                     .push(ctx.props().to.clone());
 ///                 false
@@ -65,35 +72,45 @@ pub struct HistoryHandle {
 /// }
 /// ```
 pub trait RouterScopeExt {
-    /// Returns current [`History`].
-    fn history(&self) -> Option<AnyHistory>;
+    /// Returns current [`Navigator`].
+    fn navigator(&self) -> Option<Navigator>;
 
     /// Returns current [`Location`].
-    fn location(&self) -> Option<AnyLocation>;
+    fn location(&self) -> Option<Location>;
 
     /// Returns current route.
     fn route<R>(&self) -> Option<R>
     where
         R: Routable + 'static;
 
-    /// Adds a listener that gets notified when history changes.
+    /// Adds a listener that gets notified when location changes.
     ///
     /// # Note
     ///
-    /// [`HistoryHandle`] works like a normal [`ContextHandle`] and it unregisters the callback
+    /// [`LocationHandle`] works like a normal [`ContextHandle`] and it unregisters the callback
     /// when the handle is dropped. You need to keep the handle for as long as you need the
     /// callback.
-    fn add_history_listener(&self, cb: Callback<AnyHistory>) -> Option<HistoryHandle>;
+    fn add_location_listener(&self, cb: Callback<Location>) -> Option<LocationHandle>;
+
+    /// Adds a listener that gets notified when navigator changes.
+    ///
+    /// # Note
+    ///
+    /// [`NavigatorHandle`] works like a normal [`ContextHandle`] and it unregisters the callback
+    /// when the handle is dropped. You need to keep the handle for as long as you need the
+    /// callback.
+    fn add_navigator_listener(&self, cb: Callback<Navigator>) -> Option<NavigatorHandle>;
 }
 
 impl<COMP: Component> RouterScopeExt for yew::html::Scope<COMP> {
-    fn history(&self) -> Option<AnyHistory> {
-        self.context::<RouterState>(Callback::from(|_| {}))
-            .map(|(m, _)| m.history())
+    fn navigator(&self) -> Option<Navigator> {
+        self.context::<NavigatorContext>(Callback::from(|_| {}))
+            .map(|(m, _)| m.navigator())
     }
 
-    fn location(&self) -> Option<AnyLocation> {
-        self.history().map(|m| m.location())
+    fn location(&self) -> Option<Location> {
+        self.context::<LocationContext>(Callback::from(|_| {}))
+            .map(|(m, _)| m.location())
     }
 
     fn route<R>(&self) -> Option<R>
@@ -103,8 +120,17 @@ impl<COMP: Component> RouterScopeExt for yew::html::Scope<COMP> {
         self.location()?.route()
     }
 
-    fn add_history_listener(&self, cb: Callback<AnyHistory>) -> Option<HistoryHandle> {
-        self.context::<RouterState>(Callback::from(move |m: RouterState| cb.emit(m.history())))
-            .map(|(_, m)| HistoryHandle { _inner: m })
+    fn add_location_listener(&self, cb: Callback<Location>) -> Option<LocationHandle> {
+        self.context::<LocationContext>(Callback::from(move |m: LocationContext| {
+            cb.emit(m.location())
+        }))
+        .map(|(_, m)| LocationHandle { _inner: m })
+    }
+
+    fn add_navigator_listener(&self, cb: Callback<Navigator>) -> Option<NavigatorHandle> {
+        self.context::<NavigatorContext>(Callback::from(move |m: NavigatorContext| {
+            cb.emit(m.navigator())
+        }))
+        .map(|(_, m)| NavigatorHandle { _inner: m })
     }
 }

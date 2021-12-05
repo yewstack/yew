@@ -21,9 +21,9 @@
 //!
 //! #[function_component(Secure)]
 //! fn secure() -> Html {
-//!     let history = use_history().unwrap();
+//!     let navigator = use_navigator().unwrap();
 //!
-//!     let onclick_callback = Callback::from(move |_| history.push(Route::Home));
+//!     let onclick_callback = Callback::from(move |_| navigator.push(Route::Home));
 //!     html! {
 //!         <div>
 //!             <h1>{ "Secure" }</h1>
@@ -54,13 +54,13 @@
 //!
 //! # Internals
 //!
-//! The router registers itself as a context provider and makes session history and location information
+//! The router registers itself as a context provider and makes location information and navigator
 //! available via [`hooks`] or [`RouterScopeExt`](scope_ext::RouterScopeExt).
 //!
 //! # State
 //!
-//! The [`history`] API has a way access / store state associated with session history. Please
-//! consule [`history.state()`](history::History::state) for detailed usage.
+//! The [`Location`] API has a way access / store state associated with session history. Please
+//! consult [`location.state()`](crate::history::Lcation::state) for detailed usage.
 
 extern crate self as yew_router;
 
@@ -70,6 +70,7 @@ pub mod __macro;
 pub mod components;
 pub mod history;
 pub mod hooks;
+pub mod navigator;
 mod routable;
 pub mod router;
 pub mod scope_ext;
@@ -86,9 +87,10 @@ pub mod prelude {
     //! This module re-exports the frequently used types from the crate.
 
     pub use crate::components::{Link, Redirect};
-    pub use crate::history::*;
+    pub use crate::history::{Location, LocationExt};
     pub use crate::hooks::*;
-    pub use crate::scope_ext::RouterScopeExt;
+    pub use crate::navigator::{NavigationError, NavigationResult, Navigator};
+    pub use crate::scope_ext::{LocationHandle, NavigatorHandle, RouterScopeExt};
     #[doc(no_inline)]
     pub use crate::Routable;
     pub use crate::{BrowserRouter, Router};

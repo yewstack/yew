@@ -45,12 +45,12 @@ fn no(props: &NoProps) -> Html {
 
 #[function_component(Comp)]
 fn component() -> Html {
-    let history = use_history().unwrap();
+    let navigator = use_navigator().unwrap();
 
     let switch = Switch::render(move |routes| {
-        let history_clone = history.clone();
+        let navigator_clone = navigator.clone();
         let replace_route = Callback::from(move |_| {
-            history_clone
+            navigator_clone
                 .replace_with_query(
                     Routes::No { id: 2 },
                     Query {
@@ -60,9 +60,9 @@ fn component() -> Html {
                 .unwrap();
         });
 
-        let history_clone = history.clone();
+        let navigator_clone = navigator.clone();
         let push_route = Callback::from(move |_| {
-            history_clone
+            navigator_clone
                 .push_with_query(
                     Routes::No { id: 3 },
                     Query {

@@ -1,12 +1,11 @@
-use std::borrow::Cow;
+// use std::borrow::Cow;
 use std::marker::PhantomData;
 
 use serde::Serialize;
 use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
-use yew::virtual_dom::AttrValue;
+// use yew::virtual_dom::AttrValue;
 
-use crate::history::{BrowserHistory, History};
 use crate::scope_ext::RouterScopeExt;
 use crate::Routable;
 
@@ -64,13 +63,16 @@ where
         match msg {
             Msg::OnClick => {
                 let LinkProps { to, query, .. } = ctx.props();
-                let history = ctx.link().history().expect_throw("failed to read history");
+                let navigator = ctx
+                    .link()
+                    .navigator()
+                    .expect_throw("failed to read history");
                 match query {
                     None => {
-                        history.push(to.clone());
+                        navigator.push(to.clone());
                     }
                     Some(data) => {
-                        history
+                        navigator
                             .push_with_query(to.clone(), data.clone())
                             .expect_throw("failed push history with query");
                     }
@@ -92,10 +94,11 @@ where
             e.prevent_default();
             Msg::OnClick
         });
-        let href: AttrValue = match BrowserHistory::route_to_url(to) {
-            Cow::Owned(href) => href.into(),
-            Cow::Borrowed(href) => href.into(),
-        };
+        // let href: AttrValue = match BrowserHistory::route_to_url(to) {
+        //     Cow::Owned(href) => href.into(),
+        //     Cow::Borrowed(href) => href.into(),
+        // };
+        let href = to.to_path();
         html! {
             <a class={classes}
                 {href}

@@ -45,7 +45,7 @@ matched, the router navigates to the path with `not_found` attribute. If no rout
 a message is logged to console stating that no route was matched.
 
 Finally, you need to register the `<Router />` component as a context.
-`<Router />` provides session history information to its children.
+`<Router />` provides location information and navigator to its children.
 
 When using `yew-router` in browser environment, `<BrowserRouter />` is recommended.
 
@@ -66,9 +66,9 @@ enum Route {
 
 #[function_component(Secure)]
 fn secure() -> Html {
-    let history = use_history().unwrap();
+    let navigator = use_navigator().unwrap();
 
-    let onclick = Callback::once(move |_| history.push(Route::Home));
+    let onclick = Callback::once(move |_| navigator.push(Route::Home));
     html! {
         <div>
             <h1>{ "Secure" }</h1>
@@ -161,28 +161,10 @@ unmatched.
 For more information about the route syntax and how to bind parameters, check
 out [route-recognizer](https://docs.rs/route-recognizer/0.3.1/route_recognizer/#routing-params).
 
-### History and Location
+### Location
 
-The router provides a universal `History` and `Location` struct which can be used to access routing information. They
-can be retrieved by hooks or convenient functions on `ctx.link()`.
-
-They have a couple flavours:
-
-#### `AnyHistory` and `AnyLocation`
-
-These types are available with all routers and should be used whenever possible. They implement a subset
-of `window.history` and `window.location`.
-
-You can access them using the following hooks:
-
-- `use_history`
-- `use_location`
-
-#### `BrowserHistory` and `BrowserLocation`
-
-These are only available when `<BrowserRouter />` is used. They provide additional functionality that is not available
-in `AnyHistory` and
-`AnyLocation` (such as: `location.host`).
+The router provides a universal `Location` struct via `yew` which can be used to access routing information.
+They can be retrieved by hooks or convenient functions on `ctx.link()`.
 
 ### Navigation
 
@@ -208,21 +190,21 @@ Struct variants work as expected too:
 <Link<Route> to={Route::Post { id: "new-yew-release".to_string() }}>{ "Yew v0.19 out now!" }</Link<Route>>
 ```
 
-#### History API
+#### Navigator API
 
-History API is provided for both function components and struct components. They can enable callbacks to change the
-route. An `AnyHistory` instance can be obtained in either cases to manipulate the route.
+Navigator API is provided for both function components and struct components. They enable callbacks to change the
+route. An `Navigator` instance can be obtained in either cases to manipulate the route.
 
 ##### Function Components
 
-For function components, the `use_history` hook re-renders the component and returns the current route whenever the
-history changes. Here's how to implement a button that navigates to the `Home` route when clicked.
+For function components, the `use_navigator` hook re-renders the component when the underlying navigator provider changes.
+Here's how to implement a button that navigates to the `Home` route when clicked.
 
 ```rust ,ignore
 #[function_component(MyComponent)]
 pub fn my_component() -> Html {
-    let history = use_history().unwrap();
-    let onclick = Callback::once(move |_| history.push(Route::Home));
+    let navigator = use_navigator().unwrap();
+    let onclick = Callback::once(move |_| navigator.push(Route::Home));
 
     html! {
         <>
@@ -242,10 +224,10 @@ In other words, only use `Callback::once` when you are sure the target route is 
 to be safe.
 :::
 
-If you want to replace the current history instead of pushing a new history onto the stack, use `history.replace()`
-instead of `history.push()`.
+If you want to replace the current location instead of pushing a new location onto the stack, use `navigator.replace()`
+instead of `navigator.push()`.
 
-You may notice `history` has to move into the callback, so it can't be used again for other callbacks. Luckily `history`
+You may notice `navigator` has to move into the callback, so it can't be used again for other callbacks. Luckily `navigator`
 implements `Clone`, here's for example how to have multiple buttons to different routes:
 
 ```rust ,ignore
@@ -254,26 +236,26 @@ use yew_router::prelude::*;
 
 #[function_component(NavItems)]
 pub fn nav_items() -> Html {
-    let history = use_history().unwrap();
+    let navigator = use_navigator().unwrap();
 
     let go_home_button = {
-        let history = history.clone();
-        let onclick = Callback::once(move |_| history.push(Route::Home));
+        let navigator = navigator.clone();
+        let onclick = Callback::once(move |_| navigator.push(Route::Home));
         html! {
             <button {onclick}>{"click to go home"}</button>
         }
     };
 
     let go_to_first_post_button = {
-        let history = history.clone();
-        let onclick = Callback::once(move |_| history.push(Route::Post { id: "first-post".to_string() }));
+        let navigator = navigator.clone();
+        let onclick = Callback::once(move |_| navigator.push(Route::Post { id: "first-post".to_string() }));
         html! {
             <button {onclick}>{"click to go the first post"}</button>
         }
     };
 
     let go_to_secure_button = {
-        let onclick = Callback::once(move |_| history.push(Route::Secure));
+        let onclick = Callback::once(move |_| navigator.push(Route::Secure));
         html! {
             <button {onclick}>{"click to go to secure"}</button>
         }
@@ -291,13 +273,13 @@ pub fn nav_items() -> Html {
 
 ##### Struct Components
 
-For struct components, the `AnyHistory` instance can be obtained through the `ctx.link().history()` API. The rest is
+For struct components, the `Navigator` instance can be obtained through the `ctx.link().navigator()` API. The rest is
 identical with the function component case. Here's an example of a view function that renders a single button.
 
 ```rust ,ignore
 fn view(&self, ctx: &Context<Self>) -> Html {
-    let history = ctx.link().history().unwrap();
-    let onclick = Callback::once(move |_| history.push(MainRoute::Home));
+    let navigator = ctx.link().navigator().unwrap();
+    let onclick = Callback::once(move |_| navigator.push(MainRoute::Home));
     html!{
         <button {onclick}>{"Go Home"}</button>
     }
@@ -307,8 +289,8 @@ fn view(&self, ctx: &Context<Self>) -> Html {
 #### Redirect
 
 `yew-router` also provides a `<Redirect/>` element in the prelude. It can be used to achieve similar effects as the
-history API. The element accepts a
-`to` attribute as the target route. When a `<Redirect/>` element is rendered, it internally calls `history.push()` and
+navigator API. The element accepts a
+`to` attribute as the target route. When a `<Redirect/>` element is rendered, it internally calls `navigator.push()` and
 changes the route. Here is an example:
 
 ```rust ,ignore
@@ -317,20 +299,18 @@ fn some_page() -> Html {
     // made-up hook `use_user`
     let user = match use_user() {
         Some(user) => user,
-        // an early return that redirects to the login page
-        // technicality: `Redirect` actually renders an empty html. But since it also pushes history, the target page
-        // shows up immediately. Consider it a "side-effect" component.
-        None => return html! { 
-            <Redirect<Route> to={Route::Login}/> 
+        // Redirects to the login page when user is `None`.
+        None => return html! {
+            <Redirect<Route> to={Route::Login}/>
         },
     };
     // ... actual page content.
 }
 ```
 
-:::tip `Redirect` vs `history`, which to use
-The history API is the only way to manipulate route in callbacks.
-While `<Redirect/>` can be used as return values in a component. You might also want to use `<Redirect/>` in other
+:::tip `Redirect` vs `Navigator`, which to use
+The navigator API is the only way to manipulate route in callbacks.
+While `<Redirect />` can be used as return values in a component. You might also want to use `<Redirect />` in other
 non-component context, for example in the switch function of a [Nested Router](#nested-router).
 :::
 
@@ -338,22 +318,22 @@ non-component context, for example in the switch function of a [Nested Router](#
 
 #### Function Components
 
-Alongside the `use_history` hook, there are also `use_location` and `use_route`. Your components will re-render when
+You can use `use_location` and `use_route` hook. Your components will re-render when
 provided values change.
 
 #### Struct Components
 
-In order to react on route changes, you can pass a callback closure to the `add_history_listener()` method of `ctx.link()`.
+In order to react on route changes, you can pass a callback closure to the `add_location_listener()` method of `ctx.link()`.
 
 :::note
-The history listener will get unregistered once it is dropped. Make sure to store the handle inside your
+The location listener will get unregistered once it is dropped. Make sure to store the handle inside your
 component state.
 :::
 
 ```rust ,ignore
 fn create(ctx: &Context<Self>) -> Self {
     let listener = ctx.link()
-        .add_history_listener(ctx.link().callback(
+        .add_location_listener(ctx.link().callback(
             // handle event
         ))
         .unwrap();
@@ -369,8 +349,8 @@ fn create(ctx: &Context<Self>) -> Self {
 
 #### Specifying query parameters when navigating
 
-In order to specify query parameters when navigating to a new route, use either `history.push_with_query` or
-the `history.replace_with_query` functions. It uses `serde` to serialize the parameters into query string for the URL so
+In order to specify query parameters when navigating to a new route, use either `location.push_with_query` or
+the `location.replace_with_query` functions. It uses `serde` to serialize the parameters into query string for the URL so
 any type that implements `Serialize` can be passed. In its simplest form this is just a `HashMap` containing string
 pairs.
 
@@ -383,7 +363,7 @@ in the URL.
 
 Nested router can be useful when the app grows larger. Consider the following router structure:
 
-<!-- 
+<!--
 The graph is produced with the following code, with graphviz.
 To reproduce. Save the code in a file, say `input.dot`,
 And run `$ dot -Tgif input.dot  -o nested-router.gif`
