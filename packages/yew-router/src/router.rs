@@ -60,9 +60,17 @@ impl NavigatorContext {
 
 /// The Router component.
 ///
-/// This provides [`History`] context to its children and switches.
+/// This provides location and navigator context to its children and switches.
+///
+/// If you are building a web application, you may want to consider [`BrowserRouter`] or
+/// [`HashRouter`] instead.
 ///
 /// You only need one `<Router />` for each application.
+///
+/// # Note
+///
+/// The router will by default use the value declared in `<base href="..." />` as its basename.
+/// You may also specify a different basename with props.
 #[function_component(Router)]
 pub fn router(props: &RouterProps) -> Html {
     let RouterProps {

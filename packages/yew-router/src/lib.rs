@@ -87,7 +87,7 @@ pub mod prelude {
     //! This module re-exports the frequently used types from the crate.
 
     pub use crate::components::{Link, Redirect};
-    pub use crate::history::{Location, LocationExt};
+    pub use crate::history::Location;
     pub use crate::hooks::*;
     pub use crate::navigator::{NavigationError, NavigationResult, Navigator};
     pub use crate::scope_ext::{LocationHandle, NavigatorHandle, RouterScopeExt};

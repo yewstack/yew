@@ -29,5 +29,14 @@ pub fn use_route<R>() -> Option<R>
 where
     R: Routable + 'static,
 {
-    use_location()?.route::<R>()
+    let navigator = use_navigator()?;
+    let location = use_location()?;
+    let path = navigator.basename().map(|m| {
+        location
+            .path()
+            .strip_prefix(m)
+            .unwrap_or_else(|| location.path())
+    });
+
+    path.and_then(|m| R::recognize(m))
 }

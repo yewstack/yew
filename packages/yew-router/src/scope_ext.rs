@@ -1,4 +1,4 @@
-use crate::history::{Location, LocationExt};
+use crate::history::Location;
 use crate::navigator::Navigator;
 use crate::routable::Routable;
 use crate::router::{LocationContext, NavigatorContext};
@@ -117,7 +117,17 @@ impl<COMP: Component> RouterScopeExt for yew::html::Scope<COMP> {
     where
         R: Routable + 'static,
     {
-        self.location()?.route()
+        let navigator = self.navigator()?;
+        let location = self.location()?;
+
+        let path = navigator.basename().map(|m| {
+            location
+                .path()
+                .strip_prefix(m)
+                .unwrap_or_else(|| location.path())
+        });
+
+        path.and_then(|m| R::recognize(m))
     }
 
     fn add_location_listener(&self, cb: Callback<Location>) -> Option<LocationHandle> {

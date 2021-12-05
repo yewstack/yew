@@ -93,7 +93,7 @@ where
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let route = ctx.link().location().and_then(|m| m.route::<R>());
+        let route = ctx.link().route::<R>();
 
         let children = match &route {
             Some(ref route) => (ctx.props().render.0)(route),
