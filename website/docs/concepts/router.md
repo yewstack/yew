@@ -172,12 +172,12 @@ They can be retrieved by hooks or convenient functions on `ctx.link()`.
 
 #### Link
 
-A `<Link/>` renders as an `<a>` element, the `onclick` event handler will call
+A `<Link />` renders as an `<a>` element, the `onclick` event handler will call
 [preventDefault](https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault), and push the targeted page to the
 history and render the desired page, which is what should be expected from a Single Page App. The default onclick of a
 normal anchor element would reload the page.
 
-The `<Link/>` element also passes its children to the `<a>` element. Consider it a replacement of `<a/>` for in-app
+The `<Link />` element also passes its children to the `<a>` element. Consider it a replacement of `<a/>` for in-app
 routes. Except you supply a `to` attribute instead of a `href`. An example usage:
 
 ```rust ,ignore
@@ -218,7 +218,7 @@ pub fn my_component() -> Html {
 The example here uses `Callback::once`. Use a normal callback if the target route can be the same with the route
 the component is in, or just to play safe. For example, when you have a logo button on every page, that goes back to
 home when clicked, clicking that button twice on home page causes the code to panic because the second click pushes an
-identical Home route and the `use_history` hook won't trigger a re-render.
+identical Home route and the `use_navigator` hook won't trigger a re-render.
 :::
 
 If you want to replace the current location instead of pushing a new location onto the stack, use `navigator.replace()`
@@ -267,13 +267,6 @@ pub fn nav_items() -> Html {
     }
 }
 ```
-
-:::tip 
-This is a hack and a more idiomatic hook version will come in the future!
-But if your component only needs to set the route without listening to the changes, instead of the `use_history`
-hook, `BrowserHistory::default()` can be used to acquire the global history instance. The latter also works in non-threaded agent
-environments (`Context` and `Job`).
-:::
 
 ##### Struct Components
 
