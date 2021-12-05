@@ -163,7 +163,7 @@ out [route-recognizer](https://docs.rs/route-recognizer/0.3.1/route_recognizer/#
 
 ### Location
 
-The router provides a universal `Location` struct via `yew` which can be used to access routing information.
+The router provides a universal `Location` struct via context which can be used to access routing information.
 They can be retrieved by hooks or convenient functions on `ctx.link()`.
 
 ### Navigation
@@ -177,7 +177,7 @@ A `<Link />` renders as an `<a>` element, the `onclick` event handler will call
 history and render the desired page, which is what should be expected from a Single Page App. The default onclick of a
 normal anchor element would reload the page.
 
-The `<Link />` element also passes its children to the `<a>` element. Consider it a replacement of `<a/>` for in-app
+The `<Link />` component also passes its children to the `<a>` element. Consider it a replacement of `<a/>` for in-app
 routes. Except you supply a `to` attribute instead of a `href`. An example usage:
 
 ```rust ,ignore
@@ -285,10 +285,10 @@ fn view(&self, ctx: &Context<Self>) -> Html {
 
 #### Redirect
 
-`yew-router` also provides a `<Redirect/>` element in the prelude. It can be used to achieve similar effects as the
-navigator API. The element accepts a
-`to` attribute as the target route. When a `<Redirect/>` element is rendered, it internally calls `navigator.push()` and
-changes the route. Here is an example:
+`yew-router` also provides a `<Redirect />` component in the prelude. It can be used to achieve similar effects as the
+navigator API. The component accepts a
+`to` attribute as the target route. When a `<Redirect/>` is rendered users will be redirect to the route specified in props.
+Here is an example:
 
 ```rust ,ignore
 #[function_component(SomePage)]
@@ -306,7 +306,7 @@ fn some_page() -> Html {
 ```
 
 :::tip `Redirect` vs `Navigator`, which to use
-The navigator API is the only way to manipulate route in callbacks.
+The Navigator API is the only way to manipulate route in callbacks.
 While `<Redirect />` can be used as return values in a component. You might also want to use `<Redirect />` in other
 non-component context, for example in the switch function of a [Nested Router](#nested-router).
 :::

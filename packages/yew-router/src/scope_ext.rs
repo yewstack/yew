@@ -49,7 +49,7 @@ pub struct NavigatorHandle {
 ///             Msg::OnClick => {
 ///                 ctx.link()
 ///                     .navigator()
-///                     .expect_throw("failed to read history")
+///                     .expect_throw("failed to get navigator.")
 ///                     .push(ctx.props().to.clone());
 ///                 false
 ///             }

@@ -16,7 +16,6 @@ pub struct RouterProps {
     pub basename: Option<AttrValue>,
 }
 
-/// A context for [`Router`]
 #[derive(Clone)]
 pub(crate) struct LocationContext {
     location: Location,
@@ -63,8 +62,7 @@ impl NavigatorContext {
 ///
 /// This provides location and navigator context to its children and switches.
 ///
-/// If you are building a web application, you may want to consider [`BrowserRouter`] or
-/// [`HashRouter`] instead.
+/// If you are building a web application, you may want to consider using [`BrowserRouter`] instead.
 ///
 /// You only need one `<Router />` for each application.
 #[function_component(Router)]
@@ -126,7 +124,7 @@ pub struct ConcreteRouterProps {
     pub basename: Option<AttrValue>,
 }
 
-/// A [`Router`] thats provides history via [`BrowserHistory`].
+/// A [`Router`] that provides location information and navigator via [`BrowserHistory`].
 ///
 /// This Router uses browser's native history to manipulate session history
 /// and uses regular URL as route.
@@ -150,10 +148,10 @@ pub fn browser_router(props: &ConcreteRouterProps) -> Html {
     }
 }
 
-/// A [`Router`] thats provides history via [`HashHistory`].
+/// A [`Router`] that provides location information and navigator via [`HashHistory`].
 ///
 /// This Router uses browser's native history to manipulate session history
-/// and stores url in hash fragment.
+/// and stores route in hash fragment.
 ///
 /// # Warning
 ///
