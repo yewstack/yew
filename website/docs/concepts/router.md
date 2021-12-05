@@ -214,14 +214,11 @@ pub fn my_component() -> Html {
 }
 ```
 
-:::tip
+:::caution
 The example here uses `Callback::once`. Use a normal callback if the target route can be the same with the route
-the component is in. For example when you have a logo button on every page the that goes back to home when clicked,
-clicking that button twice on home page causes the code to panic because the second click pushes an identical Home route
-and won't trigger a re-render of the element.
-
-In other words, only use `Callback::once` when you are sure the target route is different. Or use normal callbacks only
-to be safe.
+the component is in, or just to play safe. For example, when you have a logo button on every page, that goes back to
+home when clicked, clicking that button twice on home page causes the code to panic because the second click pushes an
+identical Home route and the `use_history` hook won't trigger a re-render.
 :::
 
 If you want to replace the current location instead of pushing a new location onto the stack, use `navigator.replace()`
@@ -270,6 +267,13 @@ pub fn nav_items() -> Html {
     }
 }
 ```
+
+:::tip 
+This is a hack and a more idiomatic hook version will come in the future!
+But if your component only needs to set the route without listening to the changes, instead of the `use_history`
+hook, `BrowserHistory::default()` can be used to acquire the global history instance. The latter also works in non-threaded agent
+environments (`Context` and `Job`).
+:::
 
 ##### Struct Components
 

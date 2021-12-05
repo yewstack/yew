@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::marker::PhantomData;
 
 use serde::Serialize;
@@ -99,10 +98,7 @@ where
             .link()
             .navigator()
             .expect_throw("failed to get navigator");
-        let href: AttrValue = match navigator.route_to_url(to) {
-            Cow::Owned(href) => href.into(),
-            Cow::Borrowed(href) => href.into(),
-        };
+        let href: AttrValue = navigator.route_to_url(to).into();
         html! {
             <a class={classes}
                 {href}
