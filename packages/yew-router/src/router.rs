@@ -2,7 +2,6 @@
 use std::rc::Rc;
 
 use crate::history::{AnyHistory, BrowserHistory, HashHistory, History, Location};
-// use crate::prelude::*;
 use crate::navigator::Navigator;
 use yew::prelude::*;
 
@@ -132,7 +131,7 @@ pub fn browser_router(props: &ConcreteRouterProps) -> Html {
 /// A [`Router`] thats provides history via [`HashHistory`].
 ///
 /// This Router uses browser's native history to manipulate session history
-/// and uses regular URL as route.
+/// and stores url in hash fragment.
 #[function_component(HashRouter)]
 pub fn hash_router(props: &ConcreteRouterProps) -> Html {
     let history = use_state(|| AnyHistory::from(HashHistory::new()));
