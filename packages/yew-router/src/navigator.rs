@@ -32,12 +32,12 @@ impl Navigator {
         self.go(-1);
     }
 
-    /// Navigate forward 1 page in.
+    /// Navigate forward 1 page.
     pub fn forward(&self) {
         self.go(1);
     }
 
-    /// Navigate to a specific page in with a `delta` relative to current page.
+    /// Navigate to a specific page with a `delta` relative to current page.
     ///
     /// See: <https://developer.mozilla.org/en-US/docs/Web/API/History/go>
     pub fn go(&self, delta: isize) {
