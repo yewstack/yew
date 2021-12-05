@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 use crate::history::{AnyHistory, BrowserHistory, HashHistory, History, Location};
 use crate::navigator::Navigator;
+use crate::utils::base_url;
 use yew::prelude::*;
 
 /// Props for [`Router`].
@@ -10,6 +11,8 @@ use yew::prelude::*;
 pub struct RouterProps {
     pub children: Children,
     pub history: AnyHistory,
+    #[prop_or_default]
+    pub basename: Option<Rc<String>>,
 }
 
 /// A context for [`Router`]
@@ -62,7 +65,13 @@ impl NavigatorContext {
 /// You only need one `<Router />` for each application.
 #[function_component(Router)]
 pub fn router(props: &RouterProps) -> Html {
-    let RouterProps { history, children } = props.clone();
+    let RouterProps {
+        history,
+        children,
+        basename,
+    } = props.clone();
+
+    let basename = basename.map(|m| m.to_string()).or_else(base_url);
 
     let loc_ctx = use_reducer(|| LocationContext {
         location: history.location(),
@@ -70,7 +79,7 @@ pub fn router(props: &RouterProps) -> Html {
     });
 
     let navi_ctx = NavigatorContext {
-        navigator: Navigator::new(history.clone()),
+        navigator: Navigator::new(history.clone(), basename),
     };
 
     {
@@ -110,6 +119,8 @@ pub fn router(props: &RouterProps) -> Html {
 #[derive(Properties, PartialEq, Clone)]
 pub struct ConcreteRouterProps {
     pub children: Children,
+    #[prop_or_default]
+    pub basename: Option<Rc<String>>,
 }
 
 /// A [`Router`] thats provides history via [`BrowserHistory`].
@@ -122,7 +133,7 @@ pub fn browser_router(props: &ConcreteRouterProps) -> Html {
     let children = props.children.clone();
 
     html! {
-        <Router history={(*history).clone()}>
+        <Router history={(*history).clone()} basename={props.basename.clone()}>
             {children}
         </Router>
     }
@@ -138,7 +149,7 @@ pub fn hash_router(props: &ConcreteRouterProps) -> Html {
     let children = props.children.clone();
 
     html! {
-        <Router history={(*history).clone()}>
+        <Router history={(*history).clone()} basename={props.basename.clone()}>
             {children}
         </Router>
     }

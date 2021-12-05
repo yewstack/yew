@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use serde::Serialize;
 
 use crate::history::{AnyHistory, History, HistoryError, HistoryResult};
@@ -9,11 +11,20 @@ pub type NavigationResult<T> = HistoryResult<T>;
 #[derive(Debug, PartialEq, Clone)]
 pub struct Navigator {
     inner: AnyHistory,
+    basename: Option<String>,
 }
 
 impl Navigator {
-    pub(crate) fn new(history: AnyHistory) -> Self {
-        Self { inner: history }
+    pub(crate) fn new(history: AnyHistory, basename: Option<String>) -> Self {
+        Self {
+            inner: history,
+            basename,
+        }
+    }
+
+    /// Returns basename of current navigator.
+    pub fn basename(&self) -> Option<&str> {
+        self.basename.as_deref()
     }
 
     /// Navigate back 1 page.
@@ -35,12 +46,12 @@ impl Navigator {
 
     /// Pushes a [`Routable`] entry.
     pub fn push(&self, route: impl Routable) {
-        self.inner.push(route.to_path());
+        self.inner.push(self.route_to_url(route));
     }
 
     /// Replaces the current history entry with provided [`Routable`] and [`None`] state.
     pub fn replace(&self, route: impl Routable) {
-        self.inner.replace(route.to_path());
+        self.inner.replace(self.route_to_url(route));
     }
 
     /// Pushes a [`Routable`] entry with state.
@@ -48,7 +59,7 @@ impl Navigator {
     where
         T: 'static,
     {
-        self.inner.push_with_state(route.to_path(), state);
+        self.inner.push_with_state(self.route_to_url(route), state);
     }
 
     /// Replaces the current history entry with provided [`Routable`] and state.
@@ -56,7 +67,8 @@ impl Navigator {
     where
         T: 'static,
     {
-        self.inner.replace_with_state(route.to_path(), state);
+        self.inner
+            .replace_with_state(self.route_to_url(route), state);
     }
 
     /// Same as `.push()` but affix the queries to the end of the route.
@@ -64,7 +76,7 @@ impl Navigator {
     where
         Q: Serialize,
     {
-        self.inner.push_with_query(route.to_path(), query)
+        self.inner.push_with_query(self.route_to_url(route), query)
     }
 
     /// Same as `.replace()` but affix the queries to the end of the route.
@@ -72,7 +84,8 @@ impl Navigator {
     where
         Q: Serialize,
     {
-        self.inner.replace_with_query(route.to_path(), query)
+        self.inner
+            .replace_with_query(self.route_to_url(route), query)
     }
 
     /// Same as `.push_with_state()` but affix the queries to the end of the route.
@@ -87,7 +100,7 @@ impl Navigator {
         T: 'static,
     {
         self.inner
-            .push_with_query_and_state(route.to_path(), query, state)
+            .push_with_query_and_state(self.route_to_url(route), query, state)
     }
 
     /// Same as `.replace_with_state()` but affix the queries to the end of the route.
@@ -102,6 +115,24 @@ impl Navigator {
         T: 'static,
     {
         self.inner
-            .replace_with_query_and_state(route.to_path(), query, state)
+            .replace_with_query_and_state(self.route_to_url(route), query, state)
+    }
+
+    pub(crate) fn route_to_url(&self, route: impl Routable) -> Cow<'static, str> {
+        let url = route.to_path();
+
+        let path = match self.basename() {
+            Some(base) => {
+                let path = format!("{}{}", base, url);
+                if path.is_empty() {
+                    Cow::from("/")
+                } else {
+                    path.into()
+                }
+            }
+            None => url.into(),
+        };
+
+        path
     }
 }
