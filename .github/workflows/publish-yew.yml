@@ -1,4 +1,6 @@
 name: Publish yew & yew-macro
+permissions:
+  contents: write
 
 on:
   workflow_dispatch:
