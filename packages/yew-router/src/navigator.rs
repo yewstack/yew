@@ -8,6 +8,17 @@ use crate::routable::Routable;
 pub type NavigationError = HistoryError;
 pub type NavigationResult<T> = HistoryResult<T>;
 
+/// The kind of Navigator Provider.
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum NavigatorKind {
+    /// Browser History.
+    Browser,
+    /// Hash History.
+    Hash,
+    /// Memory History.
+    Memory,
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct Navigator {
     inner: AnyHistory,
@@ -116,6 +127,15 @@ impl Navigator {
     {
         self.inner
             .replace_with_query_and_state(self.route_to_url(route), query, state)
+    }
+
+    /// Returns the Navigator kind.
+    pub fn kind(&self) -> NavigatorKind {
+        match &self.inner {
+            AnyHistory::Browser(_) => NavigatorKind::Browser,
+            AnyHistory::Hash(_) => NavigatorKind::Hash,
+            AnyHistory::Memory(_) => NavigatorKind::Memory,
+        }
     }
 
     pub(crate) fn route_to_url(&self, route: impl Routable) -> Cow<'static, str> {

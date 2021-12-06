@@ -5,6 +5,7 @@ use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
 use yew::virtual_dom::AttrValue;
 
+use crate::navigator::NavigatorKind;
 use crate::scope_ext::RouterScopeExt;
 use crate::Routable;
 
@@ -98,7 +99,15 @@ where
             .link()
             .navigator()
             .expect_throw("failed to get navigator");
-        let href: AttrValue = navigator.route_to_url(to).into();
+        let href: AttrValue = {
+            let href = navigator.route_to_url(to);
+
+            match navigator.kind() {
+                NavigatorKind::Hash => format!("#{}", href).into(),
+                _ => href,
+            }
+            .into()
+        };
         html! {
             <a class={classes}
                 {href}
