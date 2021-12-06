@@ -14,7 +14,7 @@ repository = "https://github.com/yewstack/yew"
 wasm_test = []
 
 [dependencies]
-yew = { path = "../yew", default-features= false }
+yew = { version = "0.18.0", default-features= false }
 yew-router-macro = { path = "../yew-router-macro" }
 gloo-utils = "0.1"
 
