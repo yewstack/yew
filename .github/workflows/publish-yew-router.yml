@@ -1,4 +1,6 @@
 name: Publish yew-router & yew-router-macro
+permissions:
+  contents: write
 
 on:
   workflow_dispatch:
