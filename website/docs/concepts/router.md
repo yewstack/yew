@@ -324,8 +324,8 @@ fn some_page() -> Html {
         // an early return that redirects to the login page
         // technicality: `Redirect` actually renders an empty html. But since it also pushes history, the target page
         // shows up immediately. Consider it a "side-effect" component.
-        None => return html! { 
-            <Redirect<Route> to={Route::Login}/> 
+        None => return html! {
+            <Redirect<Route> to={Route::Login}/>
         },
     };
     // ... actual page content.
@@ -387,7 +387,7 @@ in the URL.
 
 Nested router can be useful when the app grows larger. Consider the following router structure:
 
-<!-- 
+<!--
 The graph is produced with the following code, with graphviz.
 To reproduce. Save the code in a file, say `input.dot`,
 And run `$ dot -Tgif input.dot  -o nested-router.gif`
