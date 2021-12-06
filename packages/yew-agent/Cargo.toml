@@ -15,7 +15,7 @@ js-sys = "0.3"
 serde = { version = "1", features = ["derive"] }
 slab = "0.4"
 wasm-bindgen = "0.2"
-yew = { path = "../yew" }
+yew = { version = "0.18.0" }
 wasm-bindgen-futures = "0.4"
 
 [dependencies.web-sys]
