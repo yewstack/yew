@@ -28,7 +28,7 @@ For example, our demo is hosted at [/router](https://examples.yew.rs/router).
 
 This is achieved by adding `<base data-trunk-public-url />` to the [index.html](index.html) file.
 Trunk rewrites this tag to contain the value passed to `--public-url` which can then be retrieved at runtime.
-Take a look at [`PublicUrlSwitch`](src/switch.rs) for the implementation.
+Take a look at [`Route`](src/main.rs) for the implementation.
 
 ## Improvements
 

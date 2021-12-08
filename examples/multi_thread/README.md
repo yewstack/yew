@@ -14,5 +14,5 @@ There is an alternate multi-thread example [here](https://github.com/yewstack/ye
 
 Uses an [Agent] that runs in a [Web Worker].
 
-[agent]: https://yew.rs/concepts/agents/
+[agent]: https://yew.rs/docs/concepts/agents/
 [web worker]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers
