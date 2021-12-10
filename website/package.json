@@ -19,6 +19,7 @@
     "@docusaurus/plugin-google-analytics": "*",
     "@docusaurus/preset-classic": "^2.0.0-beta.9",
     "@docusaurus/theme-search-algolia": "*",
+    "@easyops-cn/docusaurus-search-local": "^0.21.1",
     "@mdx-js/react": "^1.6.21",
     "@svgr/webpack": "^5.5.0",
     "clsx": "^1.1.1",
