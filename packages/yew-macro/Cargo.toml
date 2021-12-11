@@ -1,6 +1,6 @@
 [package]
 name = "yew-macro"
-version = "0.19.2"
+version = "0.19.3"
 edition = "2018"
 authors = ["Justin Starry <justin@yew.rs>"]
 repository = "https://github.com/yewstack/yew"
