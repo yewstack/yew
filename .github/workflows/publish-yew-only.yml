@@ -25,7 +25,7 @@ jobs:
       - name: Config Git
         uses: oleksiyrudenko/gha-git-credentials@v2-latest
         with:
-          token: '${{ secrets.GITHUB_TOKEN }}'
+          token: '${{ secrets.YEWTEMPBOT_TOKEN }}'
 
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
