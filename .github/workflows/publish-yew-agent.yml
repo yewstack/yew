@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
+        with:
+          token: '${{ secrets.YEWTEMPBOT_TOKEN }}'
 
       - name: Config Git
         uses: oleksiyrudenko/gha-git-credentials@v2-latest
