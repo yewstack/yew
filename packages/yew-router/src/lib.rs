@@ -68,7 +68,6 @@ extern crate self as yew_router;
 #[path = "macro_helpers.rs"]
 pub mod __macro;
 pub mod components;
-pub mod history;
 pub mod hooks;
 pub mod navigator;
 mod routable;
@@ -80,6 +79,15 @@ pub mod utils;
 pub use routable::{AnyRoute, Routable};
 pub use router::{BrowserRouter, HashRouter, Router};
 pub use switch::{RenderFn, Switch};
+
+pub mod history {
+    //! A module that provides universal session history and location information.
+
+    pub use gloo::history::{
+        AnyHistory, BrowserHistory, HashHistory, History, HistoryError, HistoryResult, Location,
+        MemoryHistory,
+    };
+}
 
 pub mod prelude {
     //! Prelude module to be imported when working with `yew-router`.
