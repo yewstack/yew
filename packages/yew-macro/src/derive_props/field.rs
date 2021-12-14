@@ -193,16 +193,19 @@ impl PropField {
         }
     }
 
-    /// Some attributes on the original struct should be preserved and added to the builder struct,
+    /// Some attributes on the original struct are to be preserved and added to the builder struct,
     /// in order to avoid warnings (sometimes reported as errors) in the output.
     fn preserved_attrs(named_field: &Field) -> Vec<Attribute> {
         // #[cfg(...)]: does not usually appear in macro inputs, but rust-analyzer seems to generate it sometimes.
         //              If not preserved, results in "no-such-field" errors generating the field setter for `build`
         // #[allow(...)]: silences warnings from clippy, such as dead_code etc.
+        // #[deny(...)]: enable additional warnings from clippy
         named_field
             .attrs
             .iter()
-            .filter(|a| a.path.is_ident("allow") || a.path.is_ident("cfg"))
+            .filter(|a| {
+                a.path.is_ident("allow") || a.path.is_ident("deny") || a.path.is_ident("cfg")
+            })
             .cloned()
             .collect()
     }
