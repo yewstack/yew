@@ -1,0 +1,2 @@
+pre-release-commit-message = "(cargo-release) version {{crate_name}}-v{{version}}"
+post-release-commit-message = "(cargo-release) start next development iteration {{crate_name}}-v{{next_version}}"

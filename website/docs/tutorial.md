@@ -454,7 +454,7 @@ lifecycle of a function component and perform actions. You can learn more about 
 [here](concepts/function-components/pre-defined-hooks#use_state)
 
 :::note
-Struct components act differently. See [the documentation](concepts/components) to learn about those.
+Struct components act differently. See [the documentation](concepts/components/introduction) to learn about those.
 :::
 
 ## Fetching data (using external REST API)

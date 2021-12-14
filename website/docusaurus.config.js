@@ -90,10 +90,6 @@ module.exports = {
     prism: {
       additionalLanguages: ['rust', 'toml'],
     },
-    algolia: {
-      apiKey: "bbaacf676920f3836ccab85fb87dd37c",
-      indexName: "yew",
-    },
     googleAnalytics: {
       trackingID: 'UA-175524777-1',
       anonymizeIP: true, // Should IPs be anonymized?
@@ -130,6 +126,12 @@ module.exports = {
             from: ['/docs/next'], // string | string[]
           },
         ],
+      },
+    ],
+    [
+      require.resolve("@easyops-cn/docusaurus-search-local"),
+      {
+        hashed: true,
       },
     ],
   ],

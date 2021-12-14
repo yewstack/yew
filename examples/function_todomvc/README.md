@@ -6,7 +6,7 @@ This is an implementation of [TodoMVC](http://todomvc.com/) for Yew using functi
 
 ## Concepts
 
-- Uses [`function_components`](https://yew.rs/docs/next/concepts/function-components)
+- Uses [`function_components`](https://yew.rs/docs/next/concepts/function-components/introduction)
 - Uses [`gloo_storage`](https://gloo-rs.web.app/docs/storage) to persist the state
 
 ## Improvements

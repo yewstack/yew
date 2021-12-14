@@ -1,4 +1,4 @@
-name: Publish yew & yew-macro
+name: Publish yew-router ONLY (WITHOUT MACRO)
 permissions:
   contents: write
 
@@ -15,7 +15,7 @@ on:
         - major
 jobs:
   publish:
-    name: Publish yew
+    name: Publish yew-router
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -40,15 +40,9 @@ jobs:
         with:
           crate: cargo-release
           version: 0.18.5
-      
-      - name: Release yew-macro
-        run: cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm --package yew-macro
-        env:
-          PUBLISH_LEVEL: ${{ github.event.inputs.level }}
-          CRATES_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
 
-      - name: Release yew
-        run: cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm --package yew
+      - name: Release yew-router
+        run: cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm --package yew-router
         env:
           PUBLISH_LEVEL: ${{ github.event.inputs.level }}
           CRATES_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}

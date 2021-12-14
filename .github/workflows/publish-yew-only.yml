@@ -1,4 +1,5 @@
-name: Publish yew & yew-macro
+name: Publish yew ONLY (WITHOUT MACRO)
+
 permissions:
   contents: write
 
@@ -40,12 +41,6 @@ jobs:
         with:
           crate: cargo-release
           version: 0.18.5
-      
-      - name: Release yew-macro
-        run: cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm --package yew-macro
-        env:
-          PUBLISH_LEVEL: ${{ github.event.inputs.level }}
-          CRATES_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
 
       - name: Release yew
         run: cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm --package yew
