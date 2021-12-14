@@ -117,6 +117,7 @@ pub fn router(props: &RouterProps) -> Html {
     }
 }
 
+/// Props for [`BrowserRouter`] and [`HashRouter`].
 #[derive(Properties, PartialEq, Clone)]
 pub struct ConcreteRouterProps {
     pub children: Children,

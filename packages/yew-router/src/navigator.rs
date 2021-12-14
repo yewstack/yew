@@ -19,6 +19,7 @@ pub enum NavigatorKind {
     Memory,
 }
 
+/// A struct to navigate between locations.
 #[derive(Debug, PartialEq, Clone)]
 pub struct Navigator {
     inner: AnyHistory,
