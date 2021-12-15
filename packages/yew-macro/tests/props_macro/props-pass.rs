@@ -43,10 +43,20 @@ struct Props {
     b: ::std::primitive::usize,
 }
 
+#[derive(::yew::Properties, ::std::cmp::PartialEq)]
+pub struct RawIdentProps {
+    r#true: ::std::primitive::usize,
+    #[prop_or_default]
+    r#pointless_raw_name: ::std::primitive::usize,
+}
+
 fn compile_pass() {
     ::yew::props!(Props { a: 5 });
     let (a, b) = (3, 5);
     ::yew::props!(Props { a, b });
+    ::yew::props!(RawIdentProps { r#true: 5 });
+    let (r#true, r#pointless_raw_name) = (3, 5);
+    ::yew::props!(RawIdentProps { r#true, r#pointless_raw_name });
 }
 
 fn main() {}

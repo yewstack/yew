@@ -251,4 +251,12 @@ mod t12 {
     }
 }
 
+mod raw_field_names {
+    #[derive(::yew::Properties, ::std::cmp::PartialEq)]
+    pub struct Props {
+        r#true: u32,
+        r#pointless_raw_name: u32,
+    }
+}
+
 fn main() {}
