@@ -9,7 +9,7 @@ use proc_macro2::{Ident, Span};
 use quote::{quote, ToTokens};
 use std::convert::TryInto;
 use syn::parse::{Parse, ParseStream, Result};
-use syn::{DeriveInput, Generics, Visibility};
+use syn::{Attribute, DeriveInput, Generics, Visibility};
 use wrapper::PropsWrapper;
 
 pub struct DerivePropsInput {
@@ -17,6 +17,18 @@ pub struct DerivePropsInput {
     generics: Generics,
     props_name: Ident,
     prop_fields: Vec<PropField>,
+    preserved_attrs: Vec<Attribute>,
+}
+
+/// Some attributes on the original struct are to be preserved and added to the builder struct,
+/// in order to avoid warnings (sometimes reported as errors) in the output.
+fn should_preserve_attr(attr: &Attribute) -> bool {
+    // #[cfg(...)]: does not usually appear in macro inputs, but rust-analyzer seems to generate it sometimes.
+    //              If not preserved, results in "no-such-field" errors generating the field setter for `build`
+    // #[allow(...)]: silences warnings from clippy, such as dead_code etc.
+    // #[deny(...)]: enable additional warnings from clippy
+    let path = &attr.path;
+    path.is_ident("allow") || path.is_ident("deny") || path.is_ident("cfg")
 }
 
 impl Parse for DerivePropsInput {
@@ -42,11 +54,19 @@ impl Parse for DerivePropsInput {
             _ => unimplemented!("only structs are supported"),
         };
 
+        let preserved_attrs = input
+            .attrs
+            .iter()
+            .filter(|a| should_preserve_attr(a))
+            .cloned()
+            .collect();
+
         Ok(Self {
             vis: input.vis,
             props_name: input.ident,
             generics: input.generics,
             prop_fields,
+            preserved_attrs,
         })
     }
 }
@@ -61,13 +81,24 @@ impl ToTokens for DerivePropsInput {
 
         // The wrapper is a new struct which wraps required props in `Option`
         let wrapper_name = Ident::new(&format!("{}Wrapper", props_name), Span::call_site());
-        let wrapper = PropsWrapper::new(&wrapper_name, generics, &self.prop_fields);
+        let wrapper = PropsWrapper::new(
+            &wrapper_name,
+            generics,
+            &self.prop_fields,
+            &self.preserved_attrs,
+        );
         tokens.extend(wrapper.into_token_stream());
 
         // The builder will only build if all required props have been set
         let builder_name = Ident::new(&format!("{}Builder", props_name), Span::call_site());
         let builder_step = Ident::new(&format!("{}BuilderStep", props_name), Span::call_site());
-        let builder = PropsBuilder::new(&builder_name, &builder_step, self, &wrapper_name);
+        let builder = PropsBuilder::new(
+            &builder_name,
+            &builder_step,
+            self,
+            &wrapper_name,
+            &self.preserved_attrs,
+        );
         let builder_generic_args = builder.first_step_generic_args();
         tokens.extend(builder.into_token_stream());
 

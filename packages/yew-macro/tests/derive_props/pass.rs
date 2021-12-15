@@ -251,4 +251,15 @@ mod t12 {
     }
 }
 
+mod t13 {
+    #[derive(::std::cmp::PartialEq, ::yew::Properties)]
+    #[allow(non_snake_case)] // putting this on fields directly does not work, even in normal rust
+    struct Props {
+        #[allow(dead_code)]
+        create_message: ::std::option::Option<bool>,
+        NonSnakeCase: u32,
+    }
+
+}
+
 fn main() {}

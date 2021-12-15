@@ -1,4 +1,5 @@
 use super::generics::GenericArguments;
+use super::should_preserve_attr;
 use proc_macro2::{Ident, Span};
 use quote::{quote, quote_spanned};
 use std::cmp::{Ord, Ordering, PartialEq, PartialOrd};
@@ -127,8 +128,8 @@ impl PropField {
             PropAttr::Required { wrapped_name } => {
                 quote! {
                     #[doc(hidden)]
-                    #vis fn #name(mut self, #name: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
-                        self.wrapped.#wrapped_name = ::std::option::Option::Some(#name.into_prop_value());
+                    #vis fn #name(mut self, value: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
+                        self.wrapped.#wrapped_name = ::std::option::Option::Some(value.into_prop_value());
                         #builder_name {
                             wrapped: self.wrapped,
                             _marker: ::std::marker::PhantomData,
@@ -139,8 +140,8 @@ impl PropField {
             PropAttr::Option => {
                 quote! {
                     #[doc(hidden)]
-                    #vis fn #name(mut self, #name: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
-                        self.wrapped.#name = #name.into_prop_value();
+                    #vis fn #name(mut self, value: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
+                        self.wrapped.#name = value.into_prop_value();
                         self
                     }
                 }
@@ -148,8 +149,8 @@ impl PropField {
             _ => {
                 quote! {
                     #[doc(hidden)]
-                    #vis fn #name(mut self, #name: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
-                        self.wrapped.#name = ::std::option::Option::Some(#name.into_prop_value());
+                    #vis fn #name(mut self, value: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
+                        self.wrapped.#name = ::std::option::Option::Some(value.into_prop_value());
                         self
                     }
                 }
@@ -192,23 +193,6 @@ impl PropField {
             Ok(PropAttr::Required { wrapped_name })
         }
     }
-
-    /// Some attributes on the original struct are to be preserved and added to the builder struct,
-    /// in order to avoid warnings (sometimes reported as errors) in the output.
-    fn preserved_attrs(named_field: &Field) -> Vec<Attribute> {
-        // #[cfg(...)]: does not usually appear in macro inputs, but rust-analyzer seems to generate it sometimes.
-        //              If not preserved, results in "no-such-field" errors generating the field setter for `build`
-        // #[allow(...)]: silences warnings from clippy, such as dead_code etc.
-        // #[deny(...)]: enable additional warnings from clippy
-        named_field
-            .attrs
-            .iter()
-            .filter(|a| {
-                a.path.is_ident("allow") || a.path.is_ident("deny") || a.path.is_ident("cfg")
-            })
-            .cloned()
-            .collect()
-    }
 }
 
 fn is_path_segments_an_option(path_segments: impl Iterator<Item = String>) -> bool {
@@ -245,9 +229,16 @@ impl TryFrom<Field> for PropField {
     type Error = Error;
 
     fn try_from(field: Field) -> Result<Self> {
+        let extra_attrs = field
+            .attrs
+            .iter()
+            .filter(|a| should_preserve_attr(a))
+            .cloned()
+            .collect();
+
         Ok(PropField {
             attr: Self::attribute(&field)?,
-            extra_attrs: Self::preserved_attrs(&field),
+            extra_attrs,
             ty: field.ty,
             name: field.ident.unwrap(),
         })

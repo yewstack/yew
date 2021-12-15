@@ -9,6 +9,7 @@ use super::generics::{to_arguments, with_param_bounds, GenericArguments};
 use super::{DerivePropsInput, PropField};
 use proc_macro2::{Ident, Span};
 use quote::{quote, ToTokens};
+use syn::Attribute;
 
 pub struct PropsBuilder<'a> {
     builder_name: &'a Ident,
@@ -16,6 +17,7 @@ pub struct PropsBuilder<'a> {
     step_names: Vec<Ident>,
     props: &'a DerivePropsInput,
     wrapper_name: &'a Ident,
+    extra_attrs: &'a [Attribute],
 }
 
 impl ToTokens for PropsBuilder<'_> {
@@ -26,6 +28,7 @@ impl ToTokens for PropsBuilder<'_> {
             step_names,
             props,
             wrapper_name,
+            ..
         } = self;
 
         let DerivePropsInput {
@@ -91,6 +94,7 @@ impl<'a> PropsBuilder<'_> {
         step_trait: &'a Ident,
         props: &'a DerivePropsInput,
         wrapper_name: &'a Ident,
+        extra_attrs: &'a [Attribute],
     ) -> PropsBuilder<'a> {
         PropsBuilder {
             builder_name: name,
@@ -98,6 +102,7 @@ impl<'a> PropsBuilder<'_> {
             step_names: Self::build_step_names(step_trait, &props.prop_fields),
             props,
             wrapper_name,
+            extra_attrs,
         }
     }
 }
@@ -137,6 +142,7 @@ impl PropsBuilder<'_> {
             builder_name,
             props,
             step_names,
+            extra_attrs,
             ..
         } = self;
         let DerivePropsInput {
@@ -182,6 +188,7 @@ impl PropsBuilder<'_> {
             });
 
             token_stream.extend(quote! {
+                #( #extra_attrs )*
                 impl#impl_generics #builder_name<#current_step_arguments> #where_clause {
                     #(#optional_prop_fn)*
                     #(#required_prop_fn)*
