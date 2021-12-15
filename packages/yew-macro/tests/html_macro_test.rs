@@ -1,4 +1,4 @@
-use yew::html;
+use yew::{html,html_nested};
 
 #[allow(dead_code)]
 #[rustversion::attr(stable(1.51), test)]
@@ -26,5 +26,17 @@ fn dynamic_tags_catch_void_elements() {
 fn dynamic_tags_catch_non_ascii() {
     html! {
         <@{"❤"}/>
+    };
+}
+
+/// test that compilation on html elements pass
+/// fixes: https://github.com/yewstack/yew/issues/2268
+#[test]
+fn html_nested_macro_on_html_element() {
+    let _node = html_nested! {
+        <div/>
+    };
+    let _node = html_nested! {
+        <input/>
     };
 }
