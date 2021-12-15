@@ -6,7 +6,7 @@ mod wrapper;
 use builder::PropsBuilder;
 use field::PropField;
 use proc_macro2::{Ident, Span};
-use quote::{quote, ToTokens};
+use quote::{format_ident, quote, ToTokens};
 use std::convert::TryInto;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::{DeriveInput, Generics, Visibility};
@@ -60,13 +60,13 @@ impl ToTokens for DerivePropsInput {
         } = self;
 
         // The wrapper is a new struct which wraps required props in `Option`
-        let wrapper_name = Ident::new(&format!("{}Wrapper", props_name), Span::call_site());
+        let wrapper_name = format_ident!("{}Wrapper", props_name, span = Span::call_site());
         let wrapper = PropsWrapper::new(&wrapper_name, generics, &self.prop_fields);
         tokens.extend(wrapper.into_token_stream());
 
         // The builder will only build if all required props have been set
-        let builder_name = Ident::new(&format!("{}Builder", props_name), Span::call_site());
-        let builder_step = Ident::new(&format!("{}BuilderStep", props_name), Span::call_site());
+        let builder_name = format_ident!("{}Builder", props_name, span = Span::call_site());
+        let builder_step = format_ident!("{}BuilderStep", props_name, span = Span::call_site());
         let builder = PropsBuilder::new(&builder_name, &builder_step, self, &wrapper_name);
         let builder_generic_args = builder.first_step_generic_args();
         tokens.extend(builder.into_token_stream());
