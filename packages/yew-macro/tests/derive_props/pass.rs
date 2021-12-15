@@ -260,6 +260,14 @@ mod t13 {
         create_message: ::std::option::Option<bool>,
         NonSnakeCase: u32,
     }
+}
+
+mod raw_field_names {
+    #[derive(::yew::Properties, ::std::cmp::PartialEq)]
+    pub struct Props {
+        r#true: u32,
+        r#pointless_raw_name: u32,
+    }
 
 }
 

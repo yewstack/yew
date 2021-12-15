@@ -1,7 +1,7 @@
 use super::generics::GenericArguments;
 use super::should_preserve_attr;
 use proc_macro2::{Ident, Span};
-use quote::{quote, quote_spanned};
+use quote::{format_ident, quote, quote_spanned};
 use std::cmp::{Ord, Ordering, PartialEq, PartialOrd};
 use std::convert::TryFrom;
 use syn::parse::Result;
@@ -34,9 +34,11 @@ impl PropField {
 
     /// This step name is descriptive to help a developer realize they missed a required prop
     pub fn to_step_name(&self, props_name: &Ident) -> Ident {
-        Ident::new(
-            &format!("{}_missing_required_prop_{}", props_name, self.name),
-            Span::call_site(),
+        format_ident!(
+            "{}_missing_required_prop_{}",
+            props_name,
+            self.name,
+            span = Span::call_site(),
         )
     }
 
@@ -189,7 +191,7 @@ impl PropField {
             Ok(PropAttr::Option)
         } else {
             let ident = named_field.ident.as_ref().unwrap();
-            let wrapped_name = Ident::new(&format!("{}_wrapper", ident), Span::call_site());
+            let wrapped_name = format_ident!("{}_wrapper", ident, span = Span::call_site());
             Ok(PropAttr::Required { wrapped_name })
         }
     }
