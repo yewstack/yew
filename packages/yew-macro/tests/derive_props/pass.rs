@@ -251,6 +251,7 @@ mod t12 {
     }
 }
 
+#[deny(non_snake_case, dead_code)]
 mod t13 {
     #[derive(::std::cmp::PartialEq, ::yew::Properties)]
     #[allow(non_snake_case)] // putting this on fields directly does not work, even in normal rust
