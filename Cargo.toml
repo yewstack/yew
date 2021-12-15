@@ -1,10 +1,9 @@
 [workspace]
 members = [
+  # Packages
   "packages/yew",
   "packages/yew-macro",
   "packages/yew-agent",
-
-  # Router
   "packages/yew-router",
   "packages/yew-router-macro",
 
@@ -36,5 +35,8 @@ members = [
 
   # Tools
   "tools/changelog",
+]
+exclude = [
+  # Tools
   "tools/website-test",
 ]
