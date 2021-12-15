@@ -137,7 +137,7 @@ jobs:
 
       - name: Run website code snippet tests
         run: |
-          cd packages/website-test
+          cd tools/website-test
           cargo test
 
   integration_tests:

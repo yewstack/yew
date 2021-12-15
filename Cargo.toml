@@ -1,11 +1,9 @@
 [workspace]
 members = [
+  # Packages
   "packages/yew",
   "packages/yew-macro",
-  "packages/yew-validation",
   "packages/yew-agent",
-
-  # Router
   "packages/yew-router",
   "packages/yew-router-macro",
 
@@ -35,9 +33,10 @@ members = [
   "examples/webgl",
   "examples/web_worker_fib",
 
-  # Release tools
-  "packages/changelog",
+  # Tools
+  "tools/changelog",
 ]
 exclude = [
-  "packages/website-test",
+  # Tools
+  "tools/website-test",
 ]
