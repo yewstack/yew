@@ -8,7 +8,7 @@
 use super::generics::{to_arguments, with_param_bounds, GenericArguments};
 use super::{DerivePropsInput, PropField};
 use proc_macro2::{Ident, Span};
-use quote::{quote, ToTokens};
+use quote::{format_ident, quote, ToTokens};
 
 pub struct PropsBuilder<'a> {
     builder_name: &'a Ident,
@@ -121,9 +121,10 @@ impl PropsBuilder<'_> {
             .filter(|pf| pf.is_required())
             .map(|pf| pf.to_step_name(prefix))
             .collect();
-        step_names.push(Ident::new(
-            &format!("{}PropsBuilder", prefix),
-            prefix.span(),
+        step_names.push(format_ident!(
+            "{}PropsBuilder",
+            prefix,
+            span = prefix.span(),
         ));
         step_names
     }
