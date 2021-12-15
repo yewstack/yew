@@ -2,7 +2,6 @@
 members = [
   "packages/yew",
   "packages/yew-macro",
-  "packages/yew-validation",
   "packages/yew-agent",
 
   # Router
@@ -35,9 +34,7 @@ members = [
   "examples/webgl",
   "examples/web_worker_fib",
 
-  # Release tools
-  "packages/changelog",
-]
-exclude = [
-  "packages/website-test",
+  # Tools
+  "tools/changelog",
+  "tools/website-test",
 ]
