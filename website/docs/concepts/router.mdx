@@ -117,10 +117,10 @@ enum Route {
 You can then access the post's id inside `<Switch />` and forward it to the appropriate component via properties.
 
 ```rust ,ignore
-fn switch(routes: &Route) -> Html {
-    match routes {
+fn switch(route: &Route) -> Html {
+    match route {
         Route::Home => html! { <h1>{ "Home" }</h1> },
-        Route::Post { id } => <Post {id} />,
+        Route::Post { id } => <Post id = { id.clone() } />,
         // ...
     }
 }
