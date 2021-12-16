@@ -98,8 +98,10 @@ fn app() -> Html {
 ### Path Segments
 
 It is also possible to extract information from a route.
+You can then access the post's id inside `<Switch />` and forward it to the appropriate component via properties.
 
 ```rust
+use yew::prelude::*;
 use yew_router::prelude::*;
 
 #[derive(Clone, Routable, PartialEq)]
@@ -108,21 +110,16 @@ enum Route {
     Home,
     #[at("/post/:id")]
     Post { id: String },
-    // ...
 }
-```
 
-You can then access the post's id inside `<Switch />` and forward it to the appropriate component via properties.
-
-```rust ,ignore
 fn switch(route: &Route) -> Html {
     match route {
         Route::Home => html! { <h1>{ "Home" }</h1> },
-        Route::Post { id } => <Post id={ id.clone() } />,
-        // ...
+        Route::Post { id } => html! {<p>{format!("You are looking at Post {}", id)}</p>},
     }
 }
 ```
+
 
 :::note
 You can have a normal `Post` variant instead of `Post {id: String}` too. For example when `Post` is rendered
