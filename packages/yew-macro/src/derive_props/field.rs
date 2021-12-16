@@ -1,11 +1,12 @@
 use super::generics::GenericArguments;
+use super::should_preserve_attr;
 use proc_macro2::{Ident, Span};
 use quote::{format_ident, quote, quote_spanned};
 use std::cmp::{Ord, Ordering, PartialEq, PartialOrd};
 use std::convert::TryFrom;
 use syn::parse::Result;
 use syn::spanned::Spanned;
-use syn::{Error, Expr, Field, Path, Type, TypePath, Visibility};
+use syn::{Attribute, Error, Expr, Field, Path, Type, TypePath, Visibility};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(PartialEq, Eq)]
@@ -22,6 +23,7 @@ pub struct PropField {
     ty: Type,
     name: Ident,
     attr: PropAttr,
+    extra_attrs: Vec<Attribute>,
 }
 
 impl PropField {
@@ -51,7 +53,7 @@ impl PropField {
     /// Used to transform the `PropWrapper` struct into `Properties`
     pub fn to_field_setter(&self) -> proc_macro2::TokenStream {
         let name = &self.name;
-        match &self.attr {
+        let setter = match &self.attr {
             PropAttr::Required { wrapped_name } => {
                 quote! {
                     #name: ::std::option::Option::unwrap(self.wrapped.#wrapped_name),
@@ -77,21 +79,29 @@ impl PropField {
                     #name: ::std::option::Option::unwrap_or_default(self.wrapped.#name),
                 }
             }
+        };
+        let extra_attrs = &self.extra_attrs;
+        quote! {
+            #( #extra_attrs )*
+            #setter
         }
     }
 
     /// Wrap all required props in `Option`
     pub fn to_field_def(&self) -> proc_macro2::TokenStream {
         let ty = &self.ty;
+        let extra_attrs = &self.extra_attrs;
         let wrapped_name = self.wrapped_name();
         match &self.attr {
             PropAttr::Option => {
                 quote! {
+                    #( #extra_attrs )*
                     #wrapped_name: #ty,
                 }
             }
             _ => {
                 quote! {
+                    #( #extra_attrs )*
                     #wrapped_name: ::std::option::Option<#ty>,
                 }
             }
@@ -101,7 +111,9 @@ impl PropField {
     /// All optional props must implement the `Default` trait
     pub fn to_default_setter(&self) -> proc_macro2::TokenStream {
         let wrapped_name = self.wrapped_name();
+        let extra_attrs = &self.extra_attrs;
         quote! {
+            #( #extra_attrs )*
             #wrapped_name: ::std::option::Option::None,
         }
     }
@@ -113,13 +125,13 @@ impl PropField {
         generic_arguments: &GenericArguments,
         vis: &Visibility,
     ) -> proc_macro2::TokenStream {
-        let Self { name, ty, attr } = self;
-        match attr {
+        let Self { name, ty, attr, .. } = self;
+        let build_fn = match attr {
             PropAttr::Required { wrapped_name } => {
                 quote! {
                     #[doc(hidden)]
-                    #vis fn #name(mut self, #name: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
-                        self.wrapped.#wrapped_name = ::std::option::Option::Some(#name.into_prop_value());
+                    #vis fn #name(mut self, value: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
+                        self.wrapped.#wrapped_name = ::std::option::Option::Some(value.into_prop_value());
                         #builder_name {
                             wrapped: self.wrapped,
                             _marker: ::std::marker::PhantomData,
@@ -130,8 +142,8 @@ impl PropField {
             PropAttr::Option => {
                 quote! {
                     #[doc(hidden)]
-                    #vis fn #name(mut self, #name: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
-                        self.wrapped.#name = #name.into_prop_value();
+                    #vis fn #name(mut self, value: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
+                        self.wrapped.#name = value.into_prop_value();
                         self
                     }
                 }
@@ -139,12 +151,17 @@ impl PropField {
             _ => {
                 quote! {
                     #[doc(hidden)]
-                    #vis fn #name(mut self, #name: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
-                        self.wrapped.#name = ::std::option::Option::Some(#name.into_prop_value());
+                    #vis fn #name(mut self, value: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
+                        self.wrapped.#name = ::std::option::Option::Some(value.into_prop_value());
                         self
                     }
                 }
             }
+        };
+        let extra_attrs = &self.extra_attrs;
+        quote! {
+            #( #extra_attrs )*
+            #build_fn
         }
     }
 
@@ -214,8 +231,16 @@ impl TryFrom<Field> for PropField {
     type Error = Error;
 
     fn try_from(field: Field) -> Result<Self> {
+        let extra_attrs = field
+            .attrs
+            .iter()
+            .filter(|a| should_preserve_attr(a))
+            .cloned()
+            .collect();
+
         Ok(PropField {
             attr: Self::attribute(&field)?,
+            extra_attrs,
             ty: field.ty,
             name: field.ident.unwrap(),
         })
