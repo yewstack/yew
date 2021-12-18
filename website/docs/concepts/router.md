@@ -44,10 +44,13 @@ current URL and passes it to the `render` callback. The callback then decides wh
 matched, the router navigates to the path with `not_found` attribute. If no route is specified, nothing is rendered, and
 a message is logged to console stating that no route was matched.
 
-Finally, you need to register the `<Router />` component as a context.
-`<Router />` provides location information and navigator to its children.
+Finally, you need to register one of the Router context provider components like `<BrowserRouter />`.
+It provides location information and navigator to its children.
 
-When using `yew-router` in browser environment, `<BrowserRouter />` is recommended.
+:::caution
+When using `yew-router` in browser environment, `<BrowserRouter />` is highly recommended.
+You can find other router flavours in the [API Reference](https://docs.rs/yew-router/).
+:::
 
 ```rust
 use yew_router::prelude::*;
