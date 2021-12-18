@@ -349,8 +349,8 @@ fn create(ctx: &Context<Self>) -> Self {
 
 #### Specifying query parameters when navigating
 
-In order to specify query parameters when navigating to a new route, use either `location.push_with_query` or
-the `location.replace_with_query` functions. It uses `serde` to serialize the parameters into query string for the URL so
+In order to specify query parameters when navigating to a new route, use either `navigator.push_with_query` or
+the `navigator.replace_with_query` functions. It uses `serde` to serialize the parameters into query string for the URL so
 any type that implements `Serialize` can be passed. In its simplest form this is just a `HashMap` containing string
 pairs.
 
