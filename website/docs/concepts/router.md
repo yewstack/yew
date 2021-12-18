@@ -450,6 +450,22 @@ pub fn app() -> Html {
 }
 ```
 
+### Basename
+
+It's possible to define a basename with `yew-router`.
+A basename is a common prefix of all routes. Both the Navigator API and
+`<Switch />` component respect basename setting. All pushed routes will be
+prefixed with the basename and all switches will strip the basename before
+trying to parse the path into a `Routable`.
+
+If a basename prop is not supplied to the Router component, it will use
+the href attribute of the `<base />` element in your html file and
+fallback to `/` if no `<base />` presents in the html file.
+
 ## Relevant examples
 
 - [Router](https://github.com/yewstack/yew/tree/master/examples/router)
+
+## API Reference
+
+- [yew-router](https://docs.rs/yew-router/)
