@@ -315,7 +315,7 @@ non-component context, for example in the switch function of a [Nested Router](#
 
 #### Function Components
 
-You can use `use_location` and `use_route` hook. Your components will re-render when
+You can use `use_location` and `use_route` hooks. Your components will re-render when
 provided values change.
 
 #### Struct Components
