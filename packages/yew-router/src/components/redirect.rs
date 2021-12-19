@@ -1,8 +1,7 @@
 use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
 
-use crate::history::History;
-use crate::hooks::use_history;
+use crate::hooks::use_navigator;
 use crate::Routable;
 
 /// Props for [`Redirect`]
@@ -18,7 +17,7 @@ pub fn redirect<R>(props: &RedirectProps<R>) -> Html
 where
     R: Routable + 'static,
 {
-    let history = use_history().expect_throw("failed to read history.");
+    let history = use_navigator().expect_throw("failed to read history.");
 
     let target_route = props.to.clone();
     use_effect(move || {

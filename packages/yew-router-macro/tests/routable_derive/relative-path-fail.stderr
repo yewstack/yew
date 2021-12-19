@@ -1,0 +1,5 @@
+error: relative paths are not supported at this moment.
+ --> tests/routable_derive/relative-path-fail.rs:3:10
+  |
+3 |     #[at("one")]
+  |          ^^^^^
