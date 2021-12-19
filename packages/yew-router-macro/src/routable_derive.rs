@@ -88,6 +88,22 @@ fn parse_variants_attributes(
         };
 
         let lit = attr.parse_args::<LitStr>()?;
+        let val = lit.value();
+
+        if val.find('#').is_some() {
+            return Err(syn::Error::new_spanned(
+                lit,
+                "You cannot use `#` in your routes. Please consider `HashRouter` instead.",
+            ));
+        }
+
+        if !val.starts_with('/') {
+            return Err(syn::Error::new_spanned(
+                lit,
+                "relative paths are not supported at this moment.",
+            ));
+        }
+
         ats.push(lit);
 
         for attr in attrs.iter() {

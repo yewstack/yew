@@ -5,7 +5,7 @@ use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
 use yew::virtual_dom::AttrValue;
 
-use crate::history::{BrowserHistory, History};
+use crate::navigator::NavigatorKind;
 use crate::scope_ext::RouterScopeExt;
 use crate::Routable;
 
@@ -63,13 +63,16 @@ where
         match msg {
             Msg::OnClick => {
                 let LinkProps { to, query, .. } = ctx.props();
-                let history = ctx.link().history().expect_throw("failed to read history");
+                let navigator = ctx
+                    .link()
+                    .navigator()
+                    .expect_throw("failed to get navigator");
                 match query {
                     None => {
-                        history.push(to.clone());
+                        navigator.push(to.clone());
                     }
                     Some(data) => {
-                        history
+                        navigator
                             .push_with_query(to.clone(), data.clone())
                             .expect_throw("failed push history with query");
                     }
@@ -91,7 +94,20 @@ where
             e.prevent_default();
             Msg::OnClick
         });
-        let href: AttrValue = BrowserHistory::route_to_url(to).into();
+
+        let navigator = ctx
+            .link()
+            .navigator()
+            .expect_throw("failed to get navigator");
+        let href: AttrValue = {
+            let href = navigator.route_to_url(to);
+
+            match navigator.kind() {
+                NavigatorKind::Hash => format!("#{}", href).into(),
+                _ => href,
+            }
+            .into()
+        };
         html! {
             <a class={classes}
                 {href}
