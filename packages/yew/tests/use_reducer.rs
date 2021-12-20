@@ -45,13 +45,13 @@ fn use_reducer_works() {
                 },
                 (),
             );
-            return Ok(html! {
+            Ok(html! {
                 <div>
                     {"The test result is"}
                     <div id="result">{counter.counter}</div>
                     {"\n"}
                 </div>
-            });
+            })
         }
     }
     type UseReducerComponent = FunctionComponent<UseReducerFunction>;
@@ -104,7 +104,7 @@ fn use_reducer_eq_works() {
 
             let add_content_b = Callback::from(move |_| content.dispatch("B".to_string()));
 
-            return Ok(html! {
+            Ok(html! {
                 <>
                     <div>
                         {"This component has been rendered: "}<span id="result">{render_count}</span>{" Time(s)."}
@@ -112,7 +112,7 @@ fn use_reducer_eq_works() {
                     <button onclick={add_content_a} id="add-a">{"Add A to Content"}</button>
                     <button onclick={add_content_b} id="add-b">{"Add B to Content"}</button>
                 </>
-            });
+            })
         }
     }
     type UseReducerComponent = FunctionComponent<UseReducerFunction>;

@@ -16,7 +16,7 @@ Typical uses of portals can include modal dialogs and hovercards, as well as mor
 Note that `yew::create_portal` is a rather low-level building block, on which other components should be built that provide the interface for your specific use case. As an example, here is a simple modal dialogue that renders its `children` into an element outside `yew`'s control, identified by the `id="modal_host"`.
 
 ```rust
-use yew::{html, create_portal, function_component, Children, Properties};
+use yew::{html, create_portal, function_component, Children, Properties, Html};
 
 #[derive(Properties, PartialEq)]
 pub struct ModalProps {

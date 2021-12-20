@@ -64,14 +64,14 @@ fn multiple_use_state_setters() {
                 }
             };
             another_scope();
-            return Ok(html! {
+            Ok(html! {
                 <div>
                     { "Test Output: " }
                     // expected output
                     <div id="result">{ *counter }</div>
                     { "\n" }
                 </div>
-            });
+            })
         }
     }
     type UseComponent = FunctionComponent<UseStateFunction>;
@@ -99,13 +99,13 @@ fn use_state_eq_works() {
             let counter = use_state_eq(|| 0);
             counter.set(1);
 
-            return Ok(html! {
+            Ok(html! {
                 <div>
                     {"Test Output: "}
                     <div id="result">{*counter}</div>
                     {"\n"}
                 </div>
-            });
+            })
         }
     }
     type UseComponent = FunctionComponent<UseStateFunction>;

@@ -50,7 +50,7 @@ fn use_effect_destroys_on_component_drop() {
                 },
                 (),
             );
-            return Ok(html! {});
+            Ok(html! {})
         }
     }
     impl FunctionProvider for UseEffectWrapper {
@@ -101,13 +101,13 @@ fn use_effect_works_many_times() {
                 *counter,
             );
 
-            return Ok(html! {
+            Ok(html! {
                 <div>
                     { "The test result is" }
                     <div id="result">{ *counter }</div>
                     { "\n" }
                 </div>
-            });
+            })
         }
     }
 
@@ -137,13 +137,13 @@ fn use_effect_works_once() {
                 (),
             );
 
-            return Ok(html! {
+            Ok(html! {
                 <div>
                     { "The test result is" }
                     <div id="result">{ *counter }</div>
                     { "\n" }
                 </div>
-            });
+            })
         }
     }
     type UseEffectComponent = FunctionComponent<UseEffectFunction>;
@@ -185,13 +185,13 @@ fn use_effect_refires_on_dependency_change() {
                 },
                 arg,
             );
-            return Ok(html! {
+            Ok(html! {
                 <div>
                     {"The test result is"}
                     <div id="result">{*number_ref.borrow_mut().deref_mut()}{*number_ref2.borrow_mut().deref_mut()}</div>
                     {"\n"}
                 </div>
-            });
+            })
         }
     }
     type UseEffectComponent = FunctionComponent<UseEffectFunction>;
