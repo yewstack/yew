@@ -52,17 +52,15 @@ pub fn create_log_line(
         }
     };
 
-    let match_to_be_stripped = captures.get(0).ok_or(anyhow!(
-        "Failed to capture first group - issue part of the message like \" (#2263)\""
-    ))?;
+    let match_to_be_stripped = captures.get(0).ok_or_else(|| {
+        anyhow!("Failed to capture first group - issue part of the message like \" (#2263)\"")
+    })?;
     let mut message = commit_first_line.clone();
     message.replace_range(match_to_be_stripped.range(), "");
 
     let issue_id = captures
         .get(1)
-        .ok_or(anyhow!(
-            "Failed to capture second group - issue id like \"2263\""
-        ))?
+        .ok_or_else(|| anyhow!("Failed to capture second group - issue id like \"2263\""))?
         .as_str()
         .to_string();
 

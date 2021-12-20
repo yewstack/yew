@@ -6,7 +6,9 @@ use crate::write_changelog_file::write_changelog;
 use crate::write_log_lines::write_log_lines;
 use crate::write_version_changelog::write_changelog_file;
 use crate::yew_package::YewPackage;
+use anyhow::bail;
 use anyhow::Result;
+use semver::Version;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
@@ -31,6 +33,10 @@ pub struct Cli {
     /// Skip writing changelog file
     #[structopt(short, long)]
     pub skip_file_write: bool,
+
+    /// Skip getting the next version
+    #[structopt(short = "b", long)]
+    pub skip_get_bump_version: bool,
 }
 
 impl Cli {
@@ -42,17 +48,28 @@ impl Cli {
             changelog_path,
             skip_file_write,
             new_version_level,
+            skip_get_bump_version,
         } = self;
         let package_labels = package.as_labels();
 
         // set up versions and from ref
-        let latest_version = get_latest_version(&package)?;
+        let (from_ref, next_version) = if skip_get_bump_version {
+            let from_ref = match from {
+                Some(some) => some,
+                None => bail!("from required when skip_get_bump_version is true"),
+            };
+            let version = Version::parse("0.0.0")?;
+            (from_ref, version)
+        } else {
+            let latest_version = get_latest_version(&package)?;
 
-        let next_version = new_version_level.bump(latest_version.clone());
+            let next_version = new_version_level.bump(latest_version.clone());
 
-        let from_ref = match from {
-            Some(some) => some,
-            None => format!("refs/tags/{}-v{}", package, latest_version),
+            let from_ref = match from {
+                Some(some) => some,
+                None => format!("refs/tags/{}-v{}", package, latest_version),
+            };
+            (from_ref, next_version)
         };
 
         // walk over each commit find text, user, issue

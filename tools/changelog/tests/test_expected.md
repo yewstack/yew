@@ -1,6 +1,6 @@
 # Changelog
 
-## ✨ yew **0.20.3** *(2021-12-19)* Changelog
+## ✨ yew **0.0.0** *(date_goes_here)* Changelog
 
 ### 🛠 Fixes
 
