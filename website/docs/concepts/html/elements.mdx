@@ -17,7 +17,6 @@ used as a `Html` value using `VRef`:
 ```rust
 use web_sys::{Element, Node};
 use yew::{Component, Context, html, Html};
-use yew::virtual_dom::VNode;
 use gloo_utils::document;
 
 struct Comp;
@@ -38,7 +37,7 @@ impl Component for Comp {
         // Convert Element into a Node
         let node: Node = div.into();
         // Return that Node as a Html value
-        Ok(VNode::VRef(node))
+        Html::VRef(node)
     }
 }
 ```

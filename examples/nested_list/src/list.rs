@@ -4,7 +4,7 @@ use crate::{Hovered, WeakComponentLink};
 use std::rc::Rc;
 use yew::html::{ChildrenRenderer, NodeRef};
 use yew::prelude::*;
-use yew::virtual_dom::{VChild, VComp, VNode};
+use yew::virtual_dom::{VChild, VComp};
 
 #[derive(Clone, PartialEq)]
 pub enum Variants {
@@ -41,8 +41,8 @@ where
     }
 }
 
-impl From<ListVariant> for VNode {
-    fn from(variant: ListVariant) -> VNode {
+impl From<ListVariant> for Html {
+    fn from(variant: ListVariant) -> Html {
         match variant.props {
             Variants::Header(props) => {
                 VComp::new::<ListHeader>(props, NodeRef::default(), None).into()
@@ -113,7 +113,7 @@ impl List {
     }
 
     fn view_items(children: &ChildrenRenderer<ListVariant>) -> Html {
-        let children = children
+        children
             .iter()
             .filter(|c| matches!(&c.props, Variants::Item(props) if !props.hide))
             .enumerate()
@@ -125,8 +125,6 @@ impl List {
                 }
                 c
             })
-            .collect::<VNode>();
-
-        html! {<>{children}</>}
+            .collect::<Html>()
     }
 }

@@ -4,7 +4,7 @@ title: "Children"
 
 ## General usage
 
-_Most of the time,_ when allowing a component to have children, you don't care
+_Most of the time,_ when allowing a component to have children, you don't care 
 what type of children the component has. In such cases, the below example will
 suffice.
 
@@ -99,8 +99,8 @@ for better ergonomics. If you don't want to use it, you can manually implement
 
 ```rust
 use yew::{
-    html, html::ChildrenRenderer, virtual_dom::VChild, Component,
-    Context, Html, Properties, virtual_dom::VNode
+    html, html::ChildrenRenderer, virtual_dom::VChild, Component, 
+    Context, Html, Properties,
 };
 
 pub struct Primary;
@@ -145,8 +145,8 @@ pub enum Item {
 
 // Now, we implement `Into<Html>` so that yew knows how to render `Item`.
 #[allow(clippy::from_over_into)]
-impl Into<VNode> for Item {
-    fn into(self) -> VNode {
+impl Into<Html> for Item {
+    fn into(self) -> Html {
         match self {
             Self::Primary(child) => child.into(),
             Self::Secondary(child) => child.into(),
@@ -181,12 +181,12 @@ impl Component for List {
 ```
 
 ### Optional typed child
-You can also have a single optional child component of a specific type too:
+You can also have a single optional child component of a specific type too: 
 
 ```rust
 use yew::{
-    html, html_nested, virtual_dom::VChild, Component,
-    Context, Html, Properties, virtual_dom::VNode
+    html, html_nested, virtual_dom::VChild, Component, 
+    Context, Html, Properties
 };
 
 pub struct PageSideBar;
@@ -225,14 +225,14 @@ impl Component for Page {
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div class="page">
-                { Html::Ok(ctx.props().sidebar.clone().map(VNode::from).unwrap_or_default()) }
+                { ctx.props().sidebar.clone().map(Html::from).unwrap_or_default() }
                 // ... page content
             </div>
         }
     }
 }
 
-// The page component can be called either with the sidebar or without:
+// The page component can be called either with the sidebar or without: 
 
 pub fn render_page(with_sidebar: bool) -> Html {
     if with_sidebar {

@@ -354,6 +354,84 @@ impl VDiff for VList {
 }
 
 #[cfg(test)]
+mod layout_tests {
+    extern crate self as yew;
+
+    use crate::html;
+    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    #[cfg(feature = "wasm_test")]
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn diff() {
+        let layout1 = TestLayout {
+            name: "1",
+            node: html! {
+                <>
+                    {"a"}
+                    {"b"}
+                    <>
+                        {"c"}
+                        {"d"}
+                    </>
+                    {"e"}
+                </>
+            },
+            expected: "abcde",
+        };
+
+        let layout2 = TestLayout {
+            name: "2",
+            node: html! {
+                <>
+                    {"a"}
+                    {"b"}
+                    <></>
+                    {"e"}
+                    {"f"}
+                </>
+            },
+            expected: "abef",
+        };
+
+        let layout3 = TestLayout {
+            name: "3",
+            node: html! {
+                <>
+                    {"a"}
+                    <></>
+                    {"b"}
+                    {"e"}
+                </>
+            },
+            expected: "abe",
+        };
+
+        let layout4 = TestLayout {
+            name: "4",
+            node: html! {
+                <>
+                    {"a"}
+                    <>
+                        {"c"}
+                        {"d"}
+                    </>
+                    {"b"}
+                    {"e"}
+                </>
+            },
+            expected: "acdbe",
+        };
+
+        diff_layouts(vec![layout1, layout2, layout3, layout4]);
+    }
+}
+
+#[cfg(test)]
 mod layout_tests_keys {
     extern crate self as yew;
 
