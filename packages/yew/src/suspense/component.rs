@@ -6,13 +6,13 @@ use web_sys::Element;
 
 use super::Suspension;
 
-#[derive(Properties, PartialEq, Debug)]
+#[derive(Properties, PartialEq, Debug, Clone)]
 pub struct SuspenseProps {
     #[prop_or_default]
     pub children: Children,
 
     #[prop_or_default]
-    pub fallback: Children,
+    pub fallback: Html,
 
     #[prop_or_default]
     pub key: Option<Key>,
@@ -67,21 +67,21 @@ impl Component for Suspense {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let children_vnode = VNode::from(VList::with_children(
-            ctx.props().children.clone().into_iter().collect(),
-            None,
-        ));
-        let fallback_vnode = VNode::from(VList::with_children(
-            ctx.props().fallback.clone().into_iter().collect(),
-            None,
-        ));
+        let SuspenseProps {
+            children,
+            fallback: fallback_vnode,
+            key,
+        } = (*ctx.props()).clone();
+
+        let children_vnode =
+            VNode::from(VList::with_children(children.into_iter().collect(), None));
 
         let vsuspense = VSuspense::new(
             children_vnode,
             fallback_vnode,
             self.detached_parent.clone(),
             !self.suspensions.is_empty(),
-            ctx.props().key.clone(),
+            key,
         );
 
         VNode::from(vsuspense)

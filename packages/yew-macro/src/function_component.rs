@@ -1,20 +1,23 @@
-use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned, ToTokens};
+use proc_macro2::{Span, TokenStream};
+use quote::{quote, ToTokens}; // , quote_spanned
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
-use syn::spanned::Spanned;
+// use syn::spanned::Spanned;
 use syn::token::Comma;
-use syn::{Attribute, Block, FnArg, Generics, Ident, Item, ItemFn, ReturnType, Type, Visibility};
+use syn::{Attribute, FnArg, Generics, Ident, Item, ItemFn, ReturnType, Type, Visibility}; // Block
 
 pub struct FunctionComponent {
-    block: Box<Block>,
+    // block: Box<Block>,
     props_type: Box<Type>,
-    arg: FnArg,
+    // arg: FnArg,
     generics: Generics,
     vis: Visibility,
     attrs: Vec<Attribute>,
     name: Ident,
-    return_type: Box<Type>,
+    // return_type: Box<Type>,
+    func: ItemFn,
+
+    has_arg: bool,
 }
 
 impl Parse for FunctionComponent {
@@ -27,8 +30,9 @@ impl Parse for FunctionComponent {
                     attrs,
                     vis,
                     sig,
-                    block,
-                } = func;
+                    // block,
+                    ..
+                } = func.clone();
 
                 if sig.generics.lifetimes().next().is_some() {
                     return Err(syn::Error::new_spanned(
@@ -58,20 +62,21 @@ impl Parse for FunctionComponent {
                     ));
                 }
 
-                let return_type = match sig.output {
+                let _return_type = match sig.output {
                     ReturnType::Default => {
                         return Err(syn::Error::new_spanned(
                             sig,
-                            "function components must return `yew::Html`",
+                            "function components must return `yew::Html` or `yew::HtmlResult`",
                         ))
                     }
                     ReturnType::Type(_, ty) => ty,
                 };
 
                 let mut inputs = sig.inputs.into_iter();
-                let arg: FnArg = inputs
+                let (arg, has_arg) = inputs
                     .next()
-                    .unwrap_or_else(|| syn::parse_quote! { _: &() });
+                    .map(|m| (m, true))
+                    .unwrap_or_else(|| (syn::parse_quote! { _: &() }, false));
 
                 let ty = match &arg {
                     FnArg::Typed(arg) => match &*arg.ty {
@@ -122,13 +127,15 @@ impl Parse for FunctionComponent {
 
                 Ok(Self {
                     props_type: ty,
-                    block,
-                    arg,
+                    // block,
+                    // arg,
                     generics: sig.generics,
                     vis,
                     attrs,
                     name: sig.ident,
-                    return_type,
+                    // return_type,
+                    func,
+                    has_arg,
                 })
             }
             item => Err(syn::Error::new_spanned(
@@ -162,14 +169,16 @@ pub fn function_component_impl(
     let FunctionComponentName { component_name } = name;
 
     let FunctionComponent {
-        block,
+        // block,
         props_type,
-        arg,
+        // arg,
         generics,
         vis,
         attrs,
         name: function_name,
-        return_type,
+        // return_type,
+        func,
+        has_arg,
     } = component;
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
@@ -181,32 +190,65 @@ pub fn function_component_impl(
         ));
     }
 
-    let ret_type = quote_spanned!(return_type.span()=> ::yew::html::Html);
+    let mut provider_name_str = component_name.to_string();
+
+    if provider_name_str.ends_with("Internal") {
+        // When a component ends with Internal, it will become possessive.
+        // InternalsInternal instead of InternalInternal
+        provider_name_str.push_str("sInternal");
+    } else {
+        provider_name_str.push_str("Internal");
+    }
+
+    let provider_name = Ident::new(&provider_name_str, Span::mixed_site());
+
+    // let ret_type = quote_spanned!(return_type.span()=> ::yew::html::Html);
 
     let phantom_generics = generics
         .type_params()
         .map(|ty_param| ty_param.ident.clone()) // create a new Punctuated sequence without any type bounds
         .collect::<Punctuated<_, Comma>>();
 
+    let run_impl = if has_arg {
+        let provider_props = Ident::new("props", Span::mixed_site());
+
+        quote! {
+            fn run(#provider_props: &Self::TProps) -> ::yew::html::HtmlResult {
+                #func
+
+                #function_name(#provider_props).into()
+            }
+        }
+    } else {
+        let provider_props = Ident::new("_props", Span::mixed_site());
+
+        quote! {
+            fn run(#provider_props: &Self::TProps) -> ::yew::html::HtmlResult {
+                #func
+
+                #function_name().into()
+            }
+        }
+    };
+
     let quoted = quote! {
         #[doc(hidden)]
         #[allow(non_camel_case_types)]
         #[allow(unused_parens)]
-        #vis struct #function_name #impl_generics {
+        #vis struct #provider_name #impl_generics {
             _marker: ::std::marker::PhantomData<(#phantom_generics)>,
         }
 
-        impl #impl_generics ::yew::functional::FunctionProvider for #function_name #ty_generics #where_clause {
+        #[automatically_derived]
+        impl #impl_generics ::yew::functional::FunctionProvider for #provider_name #ty_generics #where_clause {
             type TProps = #props_type;
 
-            fn run(#arg) -> #ret_type {
-                #block
-            }
+            #run_impl
         }
 
         #(#attrs)*
         #[allow(type_alias_bounds)]
-        #vis type #component_name #impl_generics = ::yew::functional::FunctionComponent<#function_name #ty_generics>;
+        #vis type #component_name #impl_generics = ::yew::functional::FunctionComponent<#provider_name #ty_generics>;
     };
 
     Ok(quoted)

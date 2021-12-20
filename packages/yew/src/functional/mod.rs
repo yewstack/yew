@@ -14,7 +14,7 @@
 //! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/next/concepts/function-components/introduction)
 
 use crate::html::{AnyScope, BaseComponent, HtmlResult};
-use crate::{Html, Properties};
+use crate::Properties;
 use scoped_tls_hkt::scoped_thread_local;
 use std::cell::RefCell;
 use std::fmt;
@@ -73,7 +73,7 @@ pub trait FunctionProvider {
     /// Render the component. This function returns the [`Html`] to be rendered for the component.
     ///
     /// Equivalent of [`Component::view`].
-    fn run(props: &Self::TProps) -> Html;
+    fn run(props: &Self::TProps) -> HtmlResult;
 }
 
 /// Wrapper that allows a struct implementing [`FunctionProvider`] to be consumed as a component.
@@ -142,7 +142,7 @@ where
     }
 
     fn view(&self, ctx: &Context<Self>) -> HtmlResult {
-        self.with_hook_state(|| T::run(&*ctx.props())).into()
+        self.with_hook_state(|| T::run(&*ctx.props()))
     }
 
     fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {

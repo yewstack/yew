@@ -13,7 +13,7 @@ fn please_wait() -> Html {
 }
 
 #[function_component(AppContent)]
-fn app_content() -> Html {
+fn app_content() -> HtmlResult {
     let resleep = use_sleep()?;
 
     let value = use_state(|| "I am writing a long story...".to_string());
@@ -30,7 +30,7 @@ fn app_content() -> Html {
 
     let on_take_a_break = Callback::from(move |_| (resleep.clone())());
 
-    html! {
+    Ok(html! {
         <div class="content-area">
             <textarea value={value.to_string()} oninput={on_text_input}></textarea>
             <div class="action-area">
@@ -38,7 +38,7 @@ fn app_content() -> Html {
                 <div class="hint">{"You can take a break at anytime"}<br />{"and your work will be preserved."}</div>
             </div>
         </div>
-    }
+    })
 }
 
 #[function_component(App)]

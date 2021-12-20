@@ -1,5 +1,6 @@
 //! Component children module
 
+use crate::html::Html;
 use crate::virtual_dom::{VChild, VNode};
 use std::fmt;
 
@@ -57,7 +58,7 @@ use std::fmt;
 ///     }
 /// }
 /// ```
-pub type Children = ChildrenRenderer<VNode>;
+pub type Children = ChildrenRenderer<Html>;
 
 /// A type used for accepting children elements in Component::Properties and accessing their props.
 ///
