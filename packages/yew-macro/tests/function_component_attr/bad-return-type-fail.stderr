@@ -4,13 +4,11 @@ error: function components must return `yew::Html` or `yew::HtmlResult`
 9 | fn comp_1(_props: &Props) {}
   | ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error[E0277]: the trait bound `std::result::Result<VNode, RenderError>: From<u32>` is not satisfied
+error[E0277]: the trait bound `u32: IntoHtmlResult` is not satisfied
   --> tests/function_component_attr/bad-return-type-fail.rs:11:1
    |
 11 | #[function_component(Comp)]
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `From<u32>` is not implemented for `std::result::Result<VNode, RenderError>`
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IntoHtmlResult` is not implemented for `u32`
    |
-   = help: the following implementations were found:
-             <std::result::Result<VNode, RenderError> as From<VNode>>
-   = note: required by `from`
+   = note: required by `into_html_result`
    = note: this error originates in an attribute macro (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -5,7 +5,7 @@ mod lifecycle;
 mod properties;
 mod scope;
 
-use super::{Html, HtmlResult};
+use super::{Html, HtmlResult, IntoHtmlResult};
 pub use children::*;
 pub use properties::*;
 pub(crate) use scope::Scoped;
@@ -146,7 +146,7 @@ where
     }
 
     fn view(&self, ctx: &Context<Self>) -> HtmlResult {
-        Component::view(self, ctx).into()
+        Component::view(self, ctx).into_html_result()
     }
 
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {

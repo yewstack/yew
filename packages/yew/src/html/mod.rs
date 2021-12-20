@@ -12,6 +12,7 @@ pub use conversion::*;
 pub use error::*;
 pub use listener::*;
 
+use crate::sealed::Sealed;
 use crate::virtual_dom::{VNode, VPortal};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -24,10 +25,25 @@ pub type Html = VNode;
 /// An enhanced type of `Html` returned in suspendible function components.
 pub type HtmlResult = RenderResult<Html>;
 
-impl From<Html> for HtmlResult {
+impl Sealed for HtmlResult {}
+impl Sealed for Html {}
+
+/// A trait to translate into a [`HtmlResult`].
+pub trait IntoHtmlResult: Sealed {
+    /// Performs the conversion.
+    fn into_html_result(self) -> HtmlResult;
+}
+
+impl IntoHtmlResult for HtmlResult {
     #[inline(always)]
-    fn from(m: Html) -> Self {
-        Ok(m)
+    fn into_html_result(self) -> HtmlResult {
+        self
+    }
+}
+impl IntoHtmlResult for Html {
+    #[inline(always)]
+    fn into_html_result(self) -> HtmlResult {
+        Ok(self)
     }
 }
 
