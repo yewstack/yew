@@ -235,7 +235,7 @@ pub fn function_component_impl(
         #[doc(hidden)]
         #[allow(non_camel_case_types)]
         #[allow(unused_parens)]
-        #vis struct #provider_name #impl_generics {
+        #vis struct #provider_name #generics {
             _marker: ::std::marker::PhantomData<(#phantom_generics)>,
         }
 
@@ -248,7 +248,7 @@ pub fn function_component_impl(
 
         #(#attrs)*
         #[allow(type_alias_bounds)]
-        #vis type #component_name #impl_generics = ::yew::functional::FunctionComponent<#provider_name #ty_generics>;
+        #vis type #component_name #generics = ::yew::functional::FunctionComponent<#provider_name #ty_generics>;
     };
 
     Ok(quoted)

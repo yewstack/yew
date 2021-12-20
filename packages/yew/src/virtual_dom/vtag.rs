@@ -476,7 +476,11 @@ impl VDiff for VTag {
         if parent.remove_child(&node).is_err() {
             console::warn!("Node not found to remove VTag");
         }
-        self.node_ref.set(None);
+        // It could be that the ref was already reused when rendering another element.
+        // Only unset the ref it still belongs to our node
+        if self.node_ref.get().as_ref() == Some(&node) {
+            self.node_ref.set(None);
+        }
     }
 
     fn shift(&self, previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef) {
@@ -526,7 +530,9 @@ impl VDiff for VTag {
                         VNode::VTag(mut a) => {
                             // Preserve the reference that already exists
                             let el = a.reference.take().unwrap();
-                            a.node_ref.set(None);
+                            if self.node_ref.get().as_ref() == self.reference.as_deref() {
+                                a.node_ref.set(None);
+                            }
                             (Some(a), el)
                         }
                         _ => unsafe { unreachable_unchecked() },
@@ -1140,6 +1146,41 @@ mod tests {
         assert!(
             node_ref_a.get().is_none(),
             "node_ref_a should have been reset when the element was reused."
+        );
+    }
+
+    #[test]
+    fn vtag_should_not_touch_newly_bound_refs() {
+        let scope = test_scope();
+        let parent = document().create_element("div").unwrap();
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let test_ref = NodeRef::default();
+        let mut before = html! {
+            <>
+                <div ref={&test_ref} id="before" />
+            </>
+        };
+        let mut after = html! {
+            <>
+                <h6 />
+                <div ref={&test_ref} id="after" />
+            </>
+        };
+        // The point of this diff is to first render the "after" div and then detach the "before" div,
+        // while both should be bound to the same node ref
+
+        before.apply(&scope, &parent, NodeRef::default(), None);
+        after.apply(&scope, &parent, NodeRef::default(), Some(before));
+
+        assert_eq!(
+            test_ref
+                .get()
+                .unwrap()
+                .dyn_ref::<web_sys::Element>()
+                .unwrap()
+                .outer_html(),
+            "<div id=\"after\"></div>"
         );
     }
 }
