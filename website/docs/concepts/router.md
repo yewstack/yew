@@ -232,14 +232,11 @@ pub fn my_component() -> Html {
 }
 ```
 
-:::tip
+:::caution
 The example here uses `Callback::once`. Use a normal callback if the target route can be the same with the route
-the component is in. For example when you have a logo button on every page the that goes back to home when clicked,
-clicking that button twice on home page causes the code to panic because the second click pushes an identical Home route
-and won't trigger a re-render of the element.
-
-In other words, only use `Callback::once` when you are sure the target route is different. Or use normal callbacks only
-to be safe.
+the component is in, or just to play safe. For example, when you have a logo button on every page, that goes back to
+home when clicked, clicking that button twice on home page causes the code to panic because the second click pushes an
+identical Home route and the `use_history` hook won't trigger a re-render.
 :::
 
 If you want to replace the current history instead of pushing a new history onto the stack, use `history.replace()`
@@ -289,6 +286,13 @@ pub fn nav_items() -> Html {
 }
 ```
 
+:::tip 
+This is a hack and a more idiomatic hook version will come in the future!
+But if your component only needs to set the route without listening to the changes, instead of the `use_history`
+hook, `BrowserHistory::default()` can be used to acquire the global history instance. The latter also works in non-threaded agent
+environments (`Context` and `Job`).
+:::
+
 ##### Struct Components
 
 For struct components, the `AnyHistory` instance can be obtained through the `ctx.link().history()` API. The rest is
@@ -320,8 +324,8 @@ fn some_page() -> Html {
         // an early return that redirects to the login page
         // technicality: `Redirect` actually renders an empty html. But since it also pushes history, the target page
         // shows up immediately. Consider it a "side-effect" component.
-        None => return html! { 
-            <Redirect<Route> to={Route::Login}/> 
+        None => return html! {
+            <Redirect<Route> to={Route::Login}/>
         },
     };
     // ... actual page content.
@@ -383,7 +387,7 @@ in the URL.
 
 Nested router can be useful when the app grows larger. Consider the following router structure:
 
-<!-- 
+<!--
 The graph is produced with the following code, with graphviz.
 To reproduce. Save the code in a file, say `input.dot`,
 And run `$ dot -Tgif input.dot  -o nested-router.gif`

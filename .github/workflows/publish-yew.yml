@@ -1,0 +1,65 @@
+name: Publish yew & yew-macro
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      level:
+        description: 'Version Level major|minor|patch'
+        required: true
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+jobs:
+  publish:
+    name: Publish yew
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+        with:
+          token: '${{ secrets.YEWTEMPBOT_TOKEN }}'
+
+      - name: Config Git
+        uses: oleksiyrudenko/gha-git-credentials@v2-latest
+        with:
+          token: '${{ secrets.YEWTEMPBOT_TOKEN }}'
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+
+      - name: Install cargo binary dependencies
+        uses: baptiste0928/cargo-install@v1
+        with:
+          crate: cargo-release
+          version: 0.18.5
+      
+      - name: Release yew-macro
+        run: cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm --package yew-macro
+        env:
+          PUBLISH_LEVEL: ${{ github.event.inputs.level }}
+          CRATES_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+
+      - name: Release yew
+        run: cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm --package yew
+        env:
+          PUBLISH_LEVEL: ${{ github.event.inputs.level }}
+          CRATES_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+      
+      - name: Get tag
+        id: gettag
+        uses: WyriHaximus/github-action-get-previous-tag@v1
+
+      - name: Create a version branch
+        uses: peterjgrainger/action-create-branch@v2.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          branch: ${{ steps.gettag.outputs.tag }}

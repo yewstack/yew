@@ -44,15 +44,19 @@ actions. Yew comes with a few pre-defined Hooks. You can also create your own.
 
 Yew comes with the following predefined Hooks:
 - [`use_state`](./../function-components/pre-defined-hooks.md#use_state)
+- [`use_state_eq`](./../function-components/pre-defined-hooks.md#use_state_eq)
 - [`use_ref`](./../function-components/pre-defined-hooks.md#use_ref)
+- [`use_mut_ref`](./../function-components/pre-defined-hooks.md#use_mut_ref)
+- [`use_node_ref`](./../function-components/pre-defined-hooks.md#use_node_ref)
 - [`use_reducer`](./../function-components/pre-defined-hooks.md#use_reducer)
-- [`use_reducer_with_init`](./../function-components/pre-defined-hooks.md#use_reducer_with_init)
+- [`use_reducer_eq`](./../function-components/pre-defined-hooks.md#use_reducer_eq)
 - [`use_effect`](./../function-components/pre-defined-hooks.md#use_effect)
 - [`use_effect_with_deps`](./../function-components/pre-defined-hooks.md#use_effect_with_deps)
+- [`use_context`](./../function-components/pre-defined-hooks.md#use_context)
 
 #### Custom Hooks
 
-There are cases where you want to define your own Hooks for reasons. Yew allows you to define your own Hooks which lets you extract your potentially stateful logic from the component into reusable functions. 
+There are cases where you want to define your own Hooks for reasons. Yew allows you to define your own Hooks which lets you extract your potentially stateful logic from the component into reusable functions.
 See the [Defining custom hooks](./../function-components/custom-hooks.md#defining-custom-hooks) section for more information.
 
 ## Further reading

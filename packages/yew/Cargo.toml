@@ -1,6 +1,6 @@
 [package]
 name = "yew"
-version = "0.18.0"
+version = "0.19.3"
 edition = "2018"
 authors = [
   "Denis Kolodin <deniskolodin@gmail.com>",
@@ -10,10 +10,10 @@ repository = "https://github.com/yewstack/yew"
 homepage = "https://github.com/yewstack/yew"
 documentation = "https://docs.rs/yew/"
 license = "MIT OR Apache-2.0"
-readme = "../README.md"
 keywords = ["web", "webasm", "javascript"]
 categories = ["gui", "wasm", "web-programming"]
 description = "A framework for making client-side single-page apps"
+readme = "../../README.md"
 
 [dependencies]
 console_error_panic_hook = "0.1"
@@ -24,7 +24,7 @@ js-sys = "0.3"
 slab = "0.4"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
-yew-macro = { version = "^0.18.0", path = "../yew-macro" }
+yew-macro = { version = "^0.19.0", path = "../yew-macro" }
 thiserror = "1.0"
 
 scoped-tls-hkt = "0.1"
