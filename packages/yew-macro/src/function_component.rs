@@ -245,7 +245,7 @@ pub fn function_component_impl(
             fn run(#provider_props: &Self::TProps) -> ::yew::html::HtmlResult {
                 #func
 
-                ::std::convert::Into::<::yew::html::HtmlResult>::into(#function_name #fn_generics (#provider_props))
+                <::yew::html::HtmlResult as ::std::convert::From<_>>::from(#function_name #fn_generics (#provider_props))
             }
         }
 

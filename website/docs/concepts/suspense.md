@@ -79,6 +79,43 @@ fn use_user() -> SuspensionResult<User> {
 
 ### Use Suspense in Struct Components
 
-Whilst it's possible to suspend a struct component, it's behaviour is
-not well-defined and not recommended. You should consider using function
-components instead when using `<Suspense />`.
+It's not possible to suspend a struct component directly. However, you
+can use a function component as a Higher-Order-Component to
+achieve suspense-based data fetching.
+
+```rust, ignore
+use yew::prelude::*;
+
+#[function_component(WithUser)]
+fn with_user<T>() -> HtmlResult
+where T: BaseComponent
+{
+    let user = use_user()?;
+
+    Ok(html! {<T {user} />})
+}
+
+#[derive(Debug, PartialEq, Properties)]
+pub struct UserContentProps {
+    pub user: User,
+}
+
+pub struct BaseUserContent;
+
+impl Component for BaseUserContent {
+    type Properties = UserContentProps;
+    type Message = ();
+
+    fn create(ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let name = ctx.props().user.name;
+
+        html! {<div>{"Hello, "}{name}{"!"}</div>}
+    }
+}
+
+pub type UserContent = WithUser<BaseUserContent>;
+```
