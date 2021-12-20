@@ -29,7 +29,7 @@ fn generate_yew_changelog_file() -> Result<()> {
     let cli_args = Cli {
         package: YewPackage::from_str("yew").unwrap(),
         new_version_level: NewVersionLevel::Minor,
-        from: Some("refs/tags/yew-v0.19.3".to_string()),
+        from: Some("abeb8bc3f1ffabc8a58bd9ba4430cd091a06335a".to_string()),
         to: "d8ec50150ed27e2835bb1def26d2371a8c2ab750".to_string(),
         changelog_path: "tests/test_changelog.md".to_string(),
         skip_file_write: false,
