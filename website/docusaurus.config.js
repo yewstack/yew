@@ -10,6 +10,7 @@ module.exports = {
   organizationName: 'yewstack', // Usually your GitHub org/user name.
   projectName: 'yew', // Usually your repo name.
   themeConfig: {
+    hideableSidebar: true,
     navbar: {
       title: 'Yew',
       logo: {
@@ -90,33 +91,35 @@ module.exports = {
     prism: {
       additionalLanguages: ['rust', 'toml'],
     },
-    googleAnalytics: {
-      trackingID: 'UA-175524777-1',
-      anonymizeIP: true, // Should IPs be anonymized?
-    },
   },
   i18n: {
     defaultLocale: 'en',
     locales: ['en', 'ja', 'zh-CN', 'zh-TW'],
   },
-  presets: [
+  plugins: [
+      'ideal-image',
+      'content-pages',
     [
-      '@docusaurus/preset-classic',
+      '@docusaurus/plugin-google-analytics',
       {
-        docs: {
-          sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: 'https://github.com/yewstack/yew/blob/master/website/',
-          routeBasePath: '/docs',
-        },
-        theme: {
-          customCss: require.resolve('./src/css/custom.css'),
-        },
+        trackingID: 'UA-141789564-1',
+        anonymizeIP: true,
       },
     ],
-  ],
-  plugins: [
+    ['@docusaurus/theme-classic',
+      {
+        customCss: require.resolve('./src/css/custom.css'),
+      }
+    ],
+    ['content-docs',
+      {
+        sidebarPath: require.resolve('./sidebars.js'),
+        editUrl: 'https://github.com/yewstack/yew/blob/master/website/',
+        routeBasePath: '/docs',
+      }
+    ],
     [
-      '@docusaurus/plugin-client-redirects',
+      'client-redirects',
       {
         redirects: [
           // this handles the redirect from `/next` -> to the (current) first item in the docs sidebar
@@ -129,9 +132,10 @@ module.exports = {
       },
     ],
     [
-      require.resolve("@easyops-cn/docusaurus-search-local"),
+      "@easyops-cn/docusaurus-search-local",
       {
         hashed: true,
+        indexBlog: false
       },
     ],
   ],
