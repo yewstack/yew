@@ -5,7 +5,7 @@ use wasm_bindgen_test::*;
 use yew::functional::{
     use_effect_with_deps, use_state, use_state_eq, FunctionComponent, FunctionProvider,
 };
-use yew::{html, Html};
+use yew::{html, HtmlResult};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -15,18 +15,18 @@ fn use_state_works() {
     impl FunctionProvider for UseStateFunction {
         type TProps = ();
 
-        fn run(_: &Self::TProps) -> Html {
+        fn run(_: &Self::TProps) -> HtmlResult {
             let counter = use_state(|| 0);
             if *counter < 5 {
                 counter.set(*counter + 1)
             }
-            return html! {
+            return Ok(html! {
                 <div>
                     {"Test Output: "}
                     <div id="result">{*counter}</div>
                     {"\n"}
                 </div>
-            };
+            });
         }
     }
     type UseComponent = FunctionComponent<UseStateFunction>;
@@ -43,7 +43,7 @@ fn multiple_use_state_setters() {
     impl FunctionProvider for UseStateFunction {
         type TProps = ();
 
-        fn run(_: &Self::TProps) -> Html {
+        fn run(_: &Self::TProps) -> HtmlResult {
             let counter = use_state(|| 0);
             let counter_clone = counter.clone();
             use_effect_with_deps(
@@ -64,14 +64,14 @@ fn multiple_use_state_setters() {
                 }
             };
             another_scope();
-            return html! {
+            return Ok(html! {
                 <div>
                     { "Test Output: " }
                     // expected output
                     <div id="result">{ *counter }</div>
                     { "\n" }
                 </div>
-            };
+            });
         }
     }
     type UseComponent = FunctionComponent<UseStateFunction>;
@@ -91,7 +91,7 @@ fn use_state_eq_works() {
     impl FunctionProvider for UseStateFunction {
         type TProps = ();
 
-        fn run(_: &Self::TProps) -> Html {
+        fn run(_: &Self::TProps) -> HtmlResult {
             // No race conditions will be caused since its only used in one place
             unsafe {
                 RENDER_COUNT += 1;
@@ -99,13 +99,13 @@ fn use_state_eq_works() {
             let counter = use_state_eq(|| 0);
             counter.set(1);
 
-            return html! {
+            return Ok(html! {
                 <div>
                     {"Test Output: "}
                     <div id="result">{*counter}</div>
                     {"\n"}
                 </div>
-            };
+            });
         }
     }
     type UseComponent = FunctionComponent<UseStateFunction>;

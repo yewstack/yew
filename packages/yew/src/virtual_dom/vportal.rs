@@ -134,13 +134,12 @@ mod layout_tests {
                     {VNode::VRef(first_target.clone().into())}
                     {VNode::VRef(second_target.clone().into())}
                     {VNode::VPortal(VPortal::new(
-                        html! { {"PORTAL"} }.unwrap(),
+                        html! { {"PORTAL"} },
                         first_target.clone(),
                     ))}
                     {"AFTER"}
                 </div>
-            }
-            .unwrap(),
+            },
             expected: "<div><i>PORTAL</i><o></o>AFTER</div>",
         });
         layouts.push(TestLayout {
@@ -150,13 +149,12 @@ mod layout_tests {
                     {VNode::VRef(first_target.clone().into())}
                     {VNode::VRef(second_target.clone().into())}
                     {VNode::VPortal(VPortal::new(
-                        html! { {"PORTAL"} }.unwrap(),
+                        html! { {"PORTAL"} },
                         second_target.clone(),
                     ))}
                     {"AFTER"}
                 </div>
-            }
-            .unwrap(),
+            },
             expected: "<div><i></i><o>PORTAL</o>AFTER</div>",
         });
         layouts.push(TestLayout {
@@ -168,8 +166,7 @@ mod layout_tests {
                     {"FOO"}
                     {"AFTER"}
                 </div>
-            }
-            .unwrap(),
+            },
             expected: "<div><i></i><o></o>FOOAFTER</div>",
         });
         layouts.push(TestLayout {
@@ -178,13 +175,12 @@ mod layout_tests {
                 <div>
                     {VNode::VRef(target_with_child.clone().into())}
                     {VNode::VPortal(VPortal::new_before(
-                        html! { {"PORTAL"} }.unwrap(),
+                        html! { {"PORTAL"} },
                         target_with_child.clone(),
                         Some(target_child.clone().into()),
                     ))}
                 </div>
-            }
-            .unwrap(),
+            },
             expected: "<div><i>PORTAL<s></s></i></div>",
         });
 

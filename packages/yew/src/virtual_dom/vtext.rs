@@ -105,32 +105,6 @@ impl PartialEq for VText {
 }
 
 #[cfg(test)]
-mod test {
-    extern crate self as yew;
-
-    use crate::html;
-
-    #[cfg(feature = "wasm_test")]
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
-    #[cfg(feature = "wasm_test")]
-    wasm_bindgen_test_configure!(run_in_browser);
-
-    #[test]
-    fn text_as_root() {
-        (html! {
-            "Text Node As Root"
-        })
-        .unwrap();
-
-        (html! {
-            { "Text Node As Root" }
-        })
-        .unwrap();
-    }
-}
-
-#[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
@@ -147,13 +121,13 @@ mod layout_tests {
     fn diff() {
         let layout1 = TestLayout {
             name: "1",
-            node: html! { "a" }.unwrap(),
+            node: html! { "a" },
             expected: "a",
         };
 
         let layout2 = TestLayout {
             name: "2",
-            node: html! { "b" }.unwrap(),
+            node: html! { "b" },
             expected: "b",
         };
 
@@ -164,8 +138,7 @@ mod layout_tests {
                     {"a"}
                     {"b"}
                 </>
-            }
-            .unwrap(),
+            },
             expected: "ab",
         };
 
@@ -176,8 +149,7 @@ mod layout_tests {
                     {"b"}
                     {"a"}
                 </>
-            }
-            .unwrap(),
+            },
             expected: "ba",
         };
 

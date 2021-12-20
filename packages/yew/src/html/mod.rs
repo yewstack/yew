@@ -24,10 +24,10 @@ pub type Html = VNode;
 /// An enhanced type of `Html` returned in suspendible function components.
 pub type HtmlResult = RenderResult<Html>;
 
-impl Into<HtmlResult> for Html {
+impl From<Html> for HtmlResult {
     #[inline(always)]
-    fn into(self) -> HtmlResult {
-        Ok(self)
+    fn from(m: Html) -> Self {
+        Ok(m)
     }
 }
 

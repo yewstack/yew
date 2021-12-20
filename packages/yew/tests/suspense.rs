@@ -54,7 +54,7 @@ async fn suspense_works() {
     }
 
     #[function_component(Content)]
-    fn content() -> Html {
+    fn content() -> HtmlResult {
         let resleep = use_sleep()?;
 
         let value = use_state(|| 0);
@@ -69,7 +69,7 @@ async fn suspense_works() {
 
         let on_take_a_break = Callback::from(move |_: MouseEvent| (resleep.clone())());
 
-        html! {
+        Ok(html! {
             <div class="content-area">
                 <div class="actual-result">{*value}</div>
                 <button class="increase" onclick={on_increment}>{"increase"}</button>
@@ -77,7 +77,7 @@ async fn suspense_works() {
                     <button class="take-a-break" onclick={on_take_a_break}>{"Take a break!"}</button>
                 </div>
             </div>
-        }
+        })
     }
 
     #[function_component(App)]
@@ -197,7 +197,7 @@ async fn suspense_not_suspended_at_start() {
     }
 
     #[function_component(Content)]
-    fn content() -> Html {
+    fn content() -> HtmlResult {
         let resleep = use_sleep()?;
 
         let value = use_state(|| "I am writing a long story...".to_string());
@@ -214,14 +214,14 @@ async fn suspense_not_suspended_at_start() {
 
         let on_take_a_break = Callback::from(move |_| (resleep.clone())());
 
-        html! {
+        Ok(html! {
             <div class="content-area">
                 <textarea value={value.to_string()} oninput={on_text_input}></textarea>
                 <div class="action-area">
                     <button class="take-a-break" onclick={on_take_a_break}>{"Take a break!"}</button>
                 </div>
             </div>
-        }
+        })
     }
 
     #[function_component(App)]
@@ -307,29 +307,29 @@ async fn suspense_nested_suspense_works() {
     }
 
     #[function_component(InnerContent)]
-    fn inner_content() -> Html {
+    fn inner_content() -> HtmlResult {
         let resleep = use_sleep()?;
 
         let on_take_a_break = Callback::from(move |_: MouseEvent| (resleep.clone())());
 
-        html! {
+        Ok(html! {
             <div class="content-area">
                 <div class="action-area">
                     <button class="take-a-break2" onclick={on_take_a_break}>{"Take a break!"}</button>
                 </div>
             </div>
-        }
+        })
     }
 
     #[function_component(Content)]
-    fn content() -> Html {
+    fn content() -> HtmlResult {
         let resleep = use_sleep()?;
 
         let fallback = html! {<div>{"wait...(inner)"}</div>};
 
         let on_take_a_break = Callback::from(move |_: MouseEvent| (resleep.clone())());
 
-        html! {
+        Ok(html! {
             <div class="content-area">
                 <div class="action-area">
                     <button class="take-a-break" onclick={on_take_a_break}>{"Take a break!"}</button>
@@ -338,7 +338,7 @@ async fn suspense_nested_suspense_works() {
                     <InnerContent />
                 </Suspense>
             </div>
-        }
+        })
     }
 
     #[function_component(App)]

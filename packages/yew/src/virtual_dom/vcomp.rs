@@ -329,11 +329,11 @@ mod tests {
         let parent_scope: AnyScope = crate::html::Scope::<Comp>::new(None).into();
         let parent_element = document.create_element("div").unwrap();
 
-        let mut ancestor = html! { <Comp></Comp> }.unwrap();
+        let mut ancestor = html! { <Comp></Comp> };
         ancestor.apply(&parent_scope, &parent_element, NodeRef::default(), None);
 
         for _ in 0..10000 {
-            let mut node = html! { <Comp></Comp> }.unwrap();
+            let mut node = html! { <Comp></Comp> };
             node.apply(
                 &parent_scope,
                 &parent_element,
@@ -346,42 +346,37 @@ mod tests {
 
     #[test]
     fn set_properties_to_component() {
-        (html! {
+        html! {
             <Comp />
-        })
-        .unwrap();
+        };
 
-        (html! {
+        html! {
             <Comp field_1=1 />
-        })
-        .unwrap();
+        };
 
-        (html! {
+        html! {
             <Comp field_2=2 />
-        })
-        .unwrap();
+        };
 
-        (html! {
+        html! {
             <Comp field_1=1 field_2=2 />
-        })
-        .unwrap();
+        };
 
         let props = Props {
             field_1: 1,
             field_2: 1,
         };
 
-        (html! {
+        html! {
             <Comp ..props />
-        })
-        .unwrap();
+        };
     }
 
     #[test]
     fn set_component_key() {
         let test_key: Key = "test".to_string().into();
-        let check_key = |vnode: Html| {
-            assert_eq!(vnode.unwrap().key().as_ref(), Some(&test_key));
+        let check_key = |vnode: VNode| {
+            assert_eq!(vnode.key().as_ref(), Some(&test_key));
         };
 
         let props = Props {
@@ -401,11 +396,8 @@ mod tests {
     fn set_component_node_ref() {
         let test_node: Node = document().create_text_node("test").into();
         let test_node_ref = NodeRef::new(test_node);
-        let check_node_ref = |vnode: Html| {
-            assert_eq!(
-                vnode.unwrap().unchecked_first_node(),
-                test_node_ref.get().unwrap()
-            );
+        let check_node_ref = |vnode: VNode| {
+            assert_eq!(vnode.unchecked_first_node(), test_node_ref.get().unwrap());
         };
 
         let props = Props {
@@ -496,11 +488,11 @@ mod tests {
         (scope, parent)
     }
 
-    fn get_html(node: Html, scope: &AnyScope, parent: &Element) -> String {
+    fn get_html(mut node: Html, scope: &AnyScope, parent: &Element) -> String {
         // clear parent
         parent.set_inner_html("");
 
-        node.unwrap().apply(scope, parent, NodeRef::default(), None);
+        node.apply(scope, parent, NodeRef::default(), None);
         parent.inner_html()
     }
 
@@ -510,7 +502,7 @@ mod tests {
 
         let children: Vec<_> = vec!["a", "b", "c"]
             .drain(..)
-            .map(|text| html! {<span>{ text }</span>}.unwrap())
+            .map(|text| html! {<span>{ text }</span>})
             .collect();
         let children_renderer = Children::new(children.clone());
         let expected_html = "\
@@ -558,7 +550,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let node_ref = NodeRef::default();
-        let mut elem: VNode = html! { <Comp ref={node_ref.clone()}></Comp> }.unwrap();
+        let mut elem: VNode = html! { <Comp ref={node_ref.clone()}></Comp> };
         elem.apply(&scope, &parent, NodeRef::default(), None);
         let parent_node = parent.deref();
         assert_eq!(node_ref.get(), parent_node.first_child());
@@ -625,8 +617,7 @@ mod layout_tests {
                     <Comp<B>></Comp<B>>
                     {"C"}
                 </Comp<A>>
-            }
-            .unwrap(),
+            },
             expected: "C",
         };
 
@@ -636,8 +627,7 @@ mod layout_tests {
                 <Comp<A>>
                     {"A"}
                 </Comp<A>>
-            }
-            .unwrap(),
+            },
             expected: "A",
         };
 
@@ -648,8 +638,7 @@ mod layout_tests {
                     <Comp<A>></Comp<A>>
                     {"B"}
                 </Comp<B>>
-            }
-            .unwrap(),
+            },
             expected: "B",
         };
 
@@ -660,8 +649,7 @@ mod layout_tests {
                     <Comp<A>>{"A"}</Comp<A>>
                     {"B"}
                 </Comp<B>>
-            }
-            .unwrap(),
+            },
             expected: "AB",
         };
 
@@ -676,8 +664,7 @@ mod layout_tests {
                     </>
                     {"B"}
                 </Comp<B>>
-            }
-            .unwrap(),
+            },
             expected: "AB",
         };
 
@@ -693,8 +680,7 @@ mod layout_tests {
                     </>
                     {"C"}
                 </Comp<B>>
-            }
-            .unwrap(),
+            },
             expected: "ABC",
         };
 
@@ -712,8 +698,7 @@ mod layout_tests {
                     </>
                     {"C"}
                 </Comp<B>>
-            }
-            .unwrap(),
+            },
             expected: "ABC",
         };
 
@@ -733,8 +718,7 @@ mod layout_tests {
                     </>
                     {"C"}
                 </Comp<B>>
-            }
-            .unwrap(),
+            },
             expected: "ABC",
         };
 
@@ -754,8 +738,7 @@ mod layout_tests {
                     </>
                     {"C"}
                 </Comp<B>>
-            }
-            .unwrap(),
+            },
             expected: "ABC",
         };
 
@@ -775,8 +758,7 @@ mod layout_tests {
                     </>
                     {"C"}
                 </Comp<B>>
-            }
-            .unwrap(),
+            },
             expected: "ABC",
         };
 
@@ -796,8 +778,7 @@ mod layout_tests {
                     </>
                     {"C"}
                 </Comp<B>>
-            }
-            .unwrap(),
+            },
             expected: "ABC",
         };
 
@@ -831,8 +812,7 @@ mod layout_tests {
                     <Comp<A>></Comp<A>>
                     <></>
                 </Comp<B>>
-            }
-            .unwrap(),
+            },
             expected: "ABC",
         };
 
@@ -880,8 +860,7 @@ mod layout_tests {
                         <span>{ "world" }</span>
                     }
                 </ComponentWithChildren>
-            }
-            .unwrap(),
+            },
             expected: "<ul><li><span>hello</span><span>world</span></li></ul>",
         };
 

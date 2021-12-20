@@ -25,10 +25,10 @@ The recommended way to use suspense is with hooks.
 use yew::prelude::*;
 
 #[function_component(Content)]
-fn content() -> Html {
+fn content() -> HtmlResult {
     let user = use_user()?;
 
-    html! {<div>{"Hello, "}{&user.name}</div>}
+    Ok(html! {<div>{"Hello, "}{&user.name}</div>})
 }
 
 #[function_component(App)]
