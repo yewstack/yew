@@ -1,6 +1,6 @@
 //! Component lifecycle module
 
-use super::{AnyScope, Component, Scope};
+use super::{AnyScope, BaseComponent, Scope};
 use crate::html::RenderError;
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{Suspense, Suspension};
@@ -10,7 +10,7 @@ use crate::{Context, NodeRef};
 use std::rc::Rc;
 use web_sys::Element;
 
-pub(crate) struct ComponentState<COMP: Component> {
+pub(crate) struct ComponentState<COMP: BaseComponent> {
     pub(crate) component: Box<COMP>,
     pub(crate) root_node: VNode,
 
@@ -27,7 +27,7 @@ pub(crate) struct ComponentState<COMP: Component> {
     pub(crate) vcomp_id: u64,
 }
 
-impl<COMP: Component> ComponentState<COMP> {
+impl<COMP: BaseComponent> ComponentState<COMP> {
     pub(crate) fn new(
         parent: Element,
         next_sibling: NodeRef,
@@ -61,7 +61,7 @@ impl<COMP: Component> ComponentState<COMP> {
     }
 }
 
-pub(crate) struct CreateRunner<COMP: Component> {
+pub(crate) struct CreateRunner<COMP: BaseComponent> {
     pub(crate) parent: Element,
     pub(crate) next_sibling: NodeRef,
     pub(crate) placeholder: VNode,
@@ -70,7 +70,7 @@ pub(crate) struct CreateRunner<COMP: Component> {
     pub(crate) scope: Scope<COMP>,
 }
 
-impl<COMP: Component> Runnable for CreateRunner<COMP> {
+impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
     fn run(self: Box<Self>) {
         let mut current_state = self.scope.state.borrow_mut();
         if current_state.is_none() {
@@ -89,7 +89,7 @@ impl<COMP: Component> Runnable for CreateRunner<COMP> {
     }
 }
 
-pub(crate) enum UpdateEvent<COMP: Component> {
+pub(crate) enum UpdateEvent<COMP: BaseComponent> {
     /// Wraps messages for a component.
     Message(COMP::Message),
     /// Wraps batch of messages for a component.
@@ -100,12 +100,12 @@ pub(crate) enum UpdateEvent<COMP: Component> {
     Shift(Element, NodeRef),
 }
 
-pub(crate) struct UpdateRunner<COMP: Component> {
+pub(crate) struct UpdateRunner<COMP: BaseComponent> {
     pub(crate) state: Shared<Option<ComponentState<COMP>>>,
     pub(crate) event: UpdateEvent<COMP>,
 }
 
-impl<COMP: Component> Runnable for UpdateRunner<COMP> {
+impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().as_mut() {
             let schedule_render = match self.event {
@@ -162,11 +162,11 @@ impl<COMP: Component> Runnable for UpdateRunner<COMP> {
     }
 }
 
-pub(crate) struct DestroyRunner<COMP: Component> {
+pub(crate) struct DestroyRunner<COMP: BaseComponent> {
     pub(crate) state: Shared<Option<ComponentState<COMP>>>,
 }
 
-impl<COMP: Component> Runnable for DestroyRunner<COMP> {
+impl<COMP: BaseComponent> Runnable for DestroyRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().take() {
             #[cfg(debug_assertions)]
@@ -179,11 +179,11 @@ impl<COMP: Component> Runnable for DestroyRunner<COMP> {
     }
 }
 
-pub(crate) struct RenderRunner<COMP: Component> {
+pub(crate) struct RenderRunner<COMP: BaseComponent> {
     pub(crate) state: Shared<Option<ComponentState<COMP>>>,
 }
 
-impl<COMP: Component> Runnable for RenderRunner<COMP> {
+impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             #[cfg(debug_assertions)]
@@ -267,11 +267,11 @@ impl<COMP: Component> Runnable for RenderRunner<COMP> {
     }
 }
 
-pub(crate) struct RenderedRunner<COMP: Component> {
+pub(crate) struct RenderedRunner<COMP: BaseComponent> {
     pub(crate) state: Shared<Option<ComponentState<COMP>>>,
 }
 
-impl<COMP: Component> Runnable for RenderedRunner<COMP> {
+impl<COMP: BaseComponent> Runnable for RenderedRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             #[cfg(debug_assertions)]

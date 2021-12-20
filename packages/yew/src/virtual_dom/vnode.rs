@@ -1,7 +1,7 @@
 //! This module contains the implementation of abstract virtual node.
 
 use super::{Key, VChild, VComp, VDiff, VList, VPortal, VSuspense, VTag, VText};
-use crate::html::{AnyScope, Component, NodeRef};
+use crate::html::{AnyScope, BaseComponent, NodeRef};
 use gloo::console;
 use std::cmp::PartialEq;
 use std::fmt;
@@ -246,7 +246,7 @@ impl From<VSuspense> for VNode {
 
 impl<COMP> From<VChild<COMP>> for VNode
 where
-    COMP: Component,
+    COMP: BaseComponent,
 {
     fn from(vchild: VChild<COMP>) -> Self {
         VNode::VComp(VComp::from(vchild))

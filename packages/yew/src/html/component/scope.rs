@@ -5,7 +5,7 @@ use super::{
         ComponentState, CreateRunner, DestroyRunner, RenderRunner, RenderedRunner, UpdateEvent,
         UpdateRunner,
     },
-    Component,
+    BaseComponent,
 };
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
@@ -34,7 +34,7 @@ pub struct AnyScope {
     pub(crate) vcomp_id: u64,
 }
 
-impl<COMP: Component> From<Scope<COMP>> for AnyScope {
+impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
     fn from(scope: Scope<COMP>) -> Self {
         AnyScope {
             type_id: TypeId::of::<COMP>(),
@@ -71,7 +71,7 @@ impl AnyScope {
     }
 
     /// Attempts to downcast into a typed scope
-    pub fn downcast<COMP: Component>(self) -> Scope<COMP> {
+    pub fn downcast<COMP: BaseComponent>(self) -> Scope<COMP> {
         let state = self
             .state
             .downcast::<RefCell<Option<ComponentState<COMP>>>>()
@@ -93,7 +93,7 @@ impl AnyScope {
         }
     }
 
-    pub(crate) fn find_parent_scope<C: Component>(&self) -> Option<Scope<C>> {
+    pub(crate) fn find_parent_scope<C: BaseComponent>(&self) -> Option<Scope<C>> {
         let expected_type_id = TypeId::of::<C>();
         iter::successors(Some(self), |scope| scope.get_parent())
             .filter(|scope| scope.get_type_id() == &expected_type_id)
@@ -122,7 +122,7 @@ pub(crate) trait Scoped {
     fn shift_node(&self, parent: Element, next_sibling: NodeRef);
 }
 
-impl<COMP: Component> Scoped for Scope<COMP> {
+impl<COMP: BaseComponent> Scoped for Scope<COMP> {
     fn to_any(&self) -> AnyScope {
         self.clone().into()
     }
@@ -156,7 +156,7 @@ impl<COMP: Component> Scoped for Scope<COMP> {
 }
 
 /// A context which allows sending messages to a component.
-pub struct Scope<COMP: Component> {
+pub struct Scope<COMP: BaseComponent> {
     parent: Option<Rc<AnyScope>>,
     pub(crate) state: Shared<Option<ComponentState<COMP>>>,
 
@@ -165,13 +165,13 @@ pub struct Scope<COMP: Component> {
     pub(crate) vcomp_id: u64,
 }
 
-impl<COMP: Component> fmt::Debug for Scope<COMP> {
+impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("Scope<_>")
     }
 }
 
-impl<COMP: Component> Clone for Scope<COMP> {
+impl<COMP: BaseComponent> Clone for Scope<COMP> {
     fn clone(&self) -> Self {
         Scope {
             parent: self.parent.clone(),
@@ -183,7 +183,7 @@ impl<COMP: Component> Clone for Scope<COMP> {
     }
 }
 
-impl<COMP: Component> Scope<COMP> {
+impl<COMP: BaseComponent> Scope<COMP> {
     /// Returns the parent scope
     pub fn get_parent(&self) -> Option<&AnyScope> {
         self.parent.as_deref()
@@ -513,7 +513,7 @@ impl<COMP: Component> Scope<COMP> {
 
 /// Defines a message type that can be sent to a component.
 /// Used for the return value of closure given to [Scope::batch_callback](struct.Scope.html#method.batch_callback).
-pub trait SendAsMessage<COMP: Component> {
+pub trait SendAsMessage<COMP: BaseComponent> {
     /// Sends the message to the given component's scope.
     /// See [Scope::batch_callback](struct.Scope.html#method.batch_callback).
     fn send(self, scope: &Scope<COMP>);
@@ -521,7 +521,7 @@ pub trait SendAsMessage<COMP: Component> {
 
 impl<COMP> SendAsMessage<COMP> for Option<COMP::Message>
 where
-    COMP: Component,
+    COMP: BaseComponent,
 {
     fn send(self, scope: &Scope<COMP>) {
         if let Some(msg) = self {
@@ -532,7 +532,7 @@ where
 
 impl<COMP> SendAsMessage<COMP> for Vec<COMP::Message>
 where
-    COMP: Component,
+    COMP: BaseComponent,
 {
     fn send(self, scope: &Scope<COMP>) {
         scope.send_message_batch(self);

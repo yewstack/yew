@@ -13,8 +13,8 @@
 //!
 //! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/next/concepts/function-components/introduction)
 
-use crate::html::AnyScope;
-use crate::{Component, Html, Properties};
+use crate::html::{AnyScope, BaseComponent};
+use crate::{Html, Properties};
 use scoped_tls_hkt::scoped_thread_local;
 use std::cell::RefCell;
 use std::fmt;
@@ -100,7 +100,7 @@ where
     }
 }
 
-impl<T: 'static> Component for FunctionComponent<T>
+impl<T: 'static> BaseComponent for FunctionComponent<T>
 where
     T: FunctionProvider,
 {
@@ -135,6 +135,10 @@ where
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         msg()
+    }
+
+    fn changed(&mut self, _ctx: &Context<Self>) -> bool {
+        true
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
@@ -192,6 +196,7 @@ pub struct HookUpdater {
     hook: Rc<RefCell<dyn std::any::Any>>,
     process_message: ProcessMessage,
 }
+
 impl HookUpdater {
     /// Callback which runs the hook.
     pub fn callback<T: 'static, F>(&self, cb: F)
