@@ -60,7 +60,7 @@ impl ToNodeIterator for HtmlNode {
             HtmlNode::Expression(expr) => {
                 // NodeSeq turns both Into<T> and Vec<Into<T>> into IntoIterator<Item = T>
                 Some(
-                    quote_spanned! {expr.span()=> ::yew::utils::TryIntoNodeSeq::try_into_node_seq(#expr)?},
+                    quote_spanned! {expr.span()=> ::std::convert::Into::<::yew::utils::NodeSeq<_, _>>::into(#expr)},
                 )
             }
         }

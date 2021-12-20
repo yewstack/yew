@@ -50,9 +50,7 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
   = note: required because of the requirements on the impl of `ToString` for `()`
   = note: required because of the requirements on the impl of `From<()>` for `VNode`
-  = note: required because of the requirements on the impl of `Into<VNode>` for `()`
-  = note: required because of the requirements on the impl of `TryIntoNode<(), VNode>` for `()`
-  = note: required by `try_into_node`
+  = note: required by `from`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/node-fail.rs:17:9
@@ -64,6 +62,4 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = note: required because of the requirements on the impl of `ToString` for `()`
    = note: required because of the requirements on the impl of `From<()>` for `VNode`
-   = note: required because of the requirements on the impl of `Into<VNode>` for `()`
-   = note: required because of the requirements on the impl of `TryIntoNode<(), VNode>` for `()`
-   = note: required by `try_into_node`
+   = note: required by `from`

@@ -19,18 +19,15 @@ use wasm_bindgen::JsValue;
 use web_sys::{Element, Node};
 
 /// A type which expected as a result of `view` function implementation.
-pub type Html = RenderResult<VNode>;
+pub type Html = VNode;
 
-/// A trait to provide a default value for [`Html`].
-pub trait HtmlDefault {
-    /// Returns the “default value” for a type.
-    /// Default values are often some kind of initial value, identity value, or anything else that may make sense as a default.
-    fn default() -> Self;
-}
+/// An enhanced type of `Html` returned in suspendible function components.
+pub type HtmlResult = RenderResult<Html>;
 
-impl HtmlDefault for Html {
-    fn default() -> Self {
-        Ok(VNode::default())
+impl Into<HtmlResult> for Html {
+    #[inline(always)]
+    fn into(self) -> HtmlResult {
+        Ok(self)
     }
 }
 
@@ -156,7 +153,7 @@ impl NodeRef {
 /// ## Relevant examples
 /// - [Portals](https://github.com/yewstack/yew/tree/master/examples/portals)
 pub fn create_portal(child: Html, host: Element) -> Html {
-    Ok(VNode::VPortal(VPortal::new(child?, host)))
+    VNode::VPortal(VPortal::new(child, host))
 }
 
 #[cfg(test)]

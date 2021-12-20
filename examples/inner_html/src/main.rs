@@ -1,5 +1,4 @@
 use web_sys::console;
-use yew::virtual_dom::VNode;
 use yew::{Component, Context, Html};
 
 const HTML: &str = include_str!("document.html");
@@ -22,7 +21,7 @@ impl Component for Model {
         // See <https://github.com/yewstack/yew/issues/1546>
         console::log_1(&div);
 
-        Ok(VNode::VRef(div.into()))
+        Html::VRef(div.into())
     }
 }
 

@@ -42,14 +42,7 @@ impl ToTokens for HtmlIterable {
         let expr = &self.0;
         let new_tokens = quote_spanned! {expr.span()=>
             #[allow(unused_braces)]
-            {
-                let mut nodes: ::std::vec::Vec<::yew::virtual_dom::VNode> = ::std::vec::Vec::new();
-                for __node in #expr {
-                    nodes.push(::yew::utils::TryIntoNode::try_into_node(__node)?.into_value());
-                }
-
-                ::std::iter::Iterator::collect::<::yew::virtual_dom::VNode>(::std::iter::IntoIterator::into_iter(nodes))
-            }
+            ::std::iter::Iterator::collect::<::yew::virtual_dom::VNode>(::std::iter::IntoIterator::into_iter(#expr))
         };
 
         tokens.extend(new_tokens);
@@ -62,14 +55,7 @@ impl ToNodeIterator for HtmlIterable {
         // #expr can return anything that implements IntoIterator<Item=Into<T>>
         // We use a util method to avoid clippy warnings and reduce generated code size
         Some(quote_spanned! {expr.span()=>
-            {
-                let mut nodes = ::std::vec::Vec::new();
-                for __node in #expr {
-                    nodes.push(::yew::utils::TryIntoNode::try_into_node(__node)?.into_value());
-                }
-
-                ::std::iter::IntoIterator::into_iter(nodes)
-            }
+            ::yew::utils::into_node_iter(#expr)
         })
     }
 }

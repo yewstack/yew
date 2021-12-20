@@ -9,8 +9,9 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   = note: required because of the requirements on the impl of `ToString` for `()`
   = note: required because of the requirements on the impl of `From<()>` for `VNode`
   = note: required because of the requirements on the impl of `Into<VNode>` for `()`
-  = note: required because of the requirements on the impl of `TryIntoNodeSeq<(), VNode>` for `()`
-  = note: required by `try_into_node_seq`
+  = note: 2 redundant requirements hidden
+  = note: required because of the requirements on the impl of `Into<NodeSeq<(), VNode>>` for `()`
+  = note: required by `into`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/block-fail.rs:12:16
@@ -23,8 +24,9 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    = note: required because of the requirements on the impl of `ToString` for `()`
    = note: required because of the requirements on the impl of `From<()>` for `VNode`
    = note: required because of the requirements on the impl of `Into<VNode>` for `()`
-   = note: required because of the requirements on the impl of `TryIntoNodeSeq<(), VNode>` for `()`
-   = note: required by `try_into_node_seq`
+   = note: 2 redundant requirements hidden
+   = note: required because of the requirements on the impl of `Into<NodeSeq<(), VNode>>` for `()`
+   = note: required by `into`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> $DIR/block-fail.rs:15:17
@@ -32,10 +34,13 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
 15 |         <>{ for (0..3).map(|_| not_tree()) }</>
    |                 ^^^^^^ `()` cannot be formatted with the default formatter
    |
+  ::: $WORKSPACE/packages/yew/src/utils/mod.rs
+   |
+   |     T: Into<R>,
+   |        ------- required by this bound in `into_node_iter`
+   |
    = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = note: required because of the requirements on the impl of `ToString` for `()`
    = note: required because of the requirements on the impl of `From<()>` for `VNode`
    = note: required because of the requirements on the impl of `Into<VNode>` for `()`
-   = note: required because of the requirements on the impl of `TryIntoNode<(), VNode>` for `()`
-   = note: required by `try_into_node`

@@ -46,10 +46,9 @@ fn compile_pass() {
         || <::std::string::String as ::std::convert::From<&::std::primitive::str>>::from("test");
     let mut extra_tags_iter = ::std::iter::IntoIterator::into_iter(::std::vec!["a", "b"]);
 
-    let attr_val_none: ::std::option::Option<::yew::virtual_dom::AttrValue> =
-        ::std::option::Option::None;
+    let attr_val_none: ::std::option::Option<::yew::virtual_dom::AttrValue> = ::std::option::Option::None;
 
-    (::yew::html! {
+    ::yew::html! {
         <div>
             <div data-key="abc"></div>
             <div ref={parent_ref} class="parent">
@@ -107,17 +106,17 @@ fn compile_pass() {
                 onblur={::std::option::Option::Some(<::yew::Callback<::yew::FocusEvent> as ::std::convert::From<_>>::from(|_| ()))}
             />
         </div>
-    }).unwrap();
+    };
 
     let children = ::std::vec![
         ::yew::html! { <span>{ "Hello" }</span> },
         ::yew::html! { <span>{ "World" }</span> },
     ];
-    (::yew::html! { <div>{children}</div> }).unwrap();
+    ::yew::html! { <div>{children}</div> };
 
     // handle misleading angle brackets
-    (::yew::html! { <div data-val={<::std::string::String as ::std::default::Default>::default()}></div> }).unwrap();
-    (::yew::html! { <div><a data-val={<::std::string::String as ::std::default::Default>::default()} /></div> }).unwrap();
+    ::yew::html! { <div data-val={<::std::string::String as ::std::default::Default>::default()}></div> };
+    ::yew::html! { <div><a data-val={<::std::string::String as ::std::default::Default>::default()} /></div> };
 }
 
 fn main() {}

@@ -13,7 +13,7 @@
 //!
 //! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/next/concepts/function-components/introduction)
 
-use crate::html::{AnyScope, BaseComponent};
+use crate::html::{AnyScope, BaseComponent, HtmlResult};
 use crate::{Html, Properties};
 use scoped_tls_hkt::scoped_thread_local;
 use std::cell::RefCell;
@@ -141,8 +141,8 @@ where
         true
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        self.with_hook_state(|| T::run(&*ctx.props()))
+    fn view(&self, ctx: &Context<Self>) -> HtmlResult {
+        self.with_hook_state(|| T::run(&*ctx.props())).into()
     }
 
     fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {

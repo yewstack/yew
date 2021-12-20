@@ -37,23 +37,23 @@ pub struct u8;
 pub struct usize;
 
 fn compile_pass() {
-    (::yew::html! { "" }).unwrap();
-    (::yew::html! { 'a' }).unwrap();
-    (::yew::html! { "hello" }).unwrap();
-    (::yew::html! { 42 }).unwrap();
-    (::yew::html! { 1.234 }).unwrap();
+    ::yew::html! { "" };
+    ::yew::html! { 'a' };
+    ::yew::html! { "hello" };
+    ::yew::html! { 42 };
+    ::yew::html! { 1.234 };
 
-    (::yew::html! { <span>{ "" }</span> }).unwrap();
-    (::yew::html! { <span>{ 'a' }</span> }).unwrap();
-    (::yew::html! { <span>{ "hello" }</span> }).unwrap();
-    (::yew::html! { <span>{ 42 }</span> }).unwrap();
-    (::yew::html! { <span>{ 1.234 }</span> }).unwrap();
+    ::yew::html! { <span>{ "" }</span> };
+    ::yew::html! { <span>{ 'a' }</span> };
+    ::yew::html! { <span>{ "hello" }</span> };
+    ::yew::html! { <span>{ 42 }</span> };
+    ::yew::html! { <span>{ 1.234 }</span> };
 
-    (::yew::html! { ::std::format!("Hello") }).unwrap();
-    (::yew::html! { {<::std::string::String as ::std::convert::From<&::std::primitive::str>>::from("Hello") } }).unwrap();
+    ::yew::html! { ::std::format!("Hello") };
+    ::yew::html! { {<::std::string::String as ::std::convert::From<&::std::primitive::str>>::from("Hello") } };
 
     let msg = "Hello";
-    (::yew::html! { msg }).unwrap();
+    ::yew::html! { msg };
 }
 
 fn main() {}

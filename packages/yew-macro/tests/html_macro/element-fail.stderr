@@ -202,7 +202,7 @@ error: the property value must be either a literal or enclosed in braces. Consid
 92 |     html! { <input string=NotToString /> };
    |                           ^^^^^^^^^^^
 
-warning: use of deprecated function `compile_fail::{closure#20}::deprecated_use_of_class`: the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead.
+warning: use of deprecated function `compile_fail::deprecated_use_of_class`: the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead.
   --> tests/html_macro/element-fail.rs:80:25
    |
 80 |     html! { <div class={("deprecated", "warning")} /> };

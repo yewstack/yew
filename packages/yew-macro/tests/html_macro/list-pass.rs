@@ -37,24 +37,22 @@ pub struct u8;
 pub struct usize;
 
 fn main() {
-    (::yew::html! {}).unwrap();
-    (::yew::html! { <></> }).unwrap();
-    (::yew::html! {
+    ::yew::html! {};
+    ::yew::html! { <></> };
+    ::yew::html! {
         <>
             <></>
             <></>
         </>
-    })
-    .unwrap();
-    (::yew::html! {
+    };
+    ::yew::html! {
         <key={::std::string::ToString::to_string("key")}>
         </>
-    })
-    .unwrap();
+    };
 
     let children = ::std::vec![
         ::yew::html! { <span>{ "Hello" }</span> },
         ::yew::html! { <span>{ "World" }</span> },
     ];
-    (::yew::html! { <>{ children }</> }).unwrap();
+    ::yew::html! { <>{ children }</> };
 }

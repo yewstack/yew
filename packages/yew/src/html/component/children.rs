@@ -1,6 +1,5 @@
 //! Component children module
 
-use crate::html::{Html, IntoPropValue};
 use crate::virtual_dom::{VChild, VNode};
 use std::fmt;
 
@@ -59,12 +58,6 @@ use std::fmt;
 /// }
 /// ```
 pub type Children = ChildrenRenderer<VNode>;
-
-impl IntoPropValue<Children> for Html {
-    fn into_prop_value(self) -> Children {
-        Children::new(vec![self.expect("Children must not be an RenderError.")])
-    }
-}
 
 /// A type used for accepting children elements in Component::Properties and accessing their props.
 ///

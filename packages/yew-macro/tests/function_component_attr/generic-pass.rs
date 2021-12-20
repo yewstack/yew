@@ -68,10 +68,10 @@ fn const_generics<const N: ::std::primitive::i32>() -> ::yew::Html {
 }
 
 fn compile_pass() {
-    (::yew::html! { <Comp<Props> a=10 /> }).unwrap();
-    (::yew::html! { <Comp1<::std::primitive::usize, ::std::primitive::usize> /> }).unwrap();
+    ::yew::html! { <Comp<Props> a=10 /> };
+    ::yew::html! { <Comp1<::std::primitive::usize, ::std::primitive::usize> /> };
 
-    (::yew::html! { <ConstGenerics<10> /> }).unwrap();
+    ::yew::html! { <ConstGenerics<10> /> };
 }
 
 fn main() {}

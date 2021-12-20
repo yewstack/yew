@@ -5,7 +5,7 @@ mod lifecycle;
 mod properties;
 mod scope;
 
-use super::Html;
+use super::{Html, HtmlResult};
 pub use children::*;
 pub use properties::*;
 pub(crate) use scope::Scoped;
@@ -54,7 +54,7 @@ pub trait BaseComponent: Sized + 'static {
     fn changed(&mut self, ctx: &Context<Self>) -> bool;
 
     /// Returns a component layout to be rendered.
-    fn view(&self, ctx: &Context<Self>) -> Html;
+    fn view(&self, ctx: &Context<Self>) -> HtmlResult;
 
     /// Notified after a layout is rendered.
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool);
@@ -145,8 +145,8 @@ where
         Component::changed(self, ctx)
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        Component::view(self, ctx)
+    fn view(&self, ctx: &Context<Self>) -> HtmlResult {
+        Component::view(self, ctx).into()
     }
 
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {

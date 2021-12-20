@@ -389,7 +389,7 @@ pub mod prelude {
     pub use crate::context::ContextProvider;
     pub use crate::events::*;
     pub use crate::html::{
-        create_portal, Children, ChildrenWithProps, Classes, Component, Context, Html, HtmlDefault,
+        create_portal, Children, ChildrenWithProps, Classes, Component, Context, Html, HtmlResult,
         NodeRef, Properties,
     };
     pub use crate::macros::{classes, html, html_nested};

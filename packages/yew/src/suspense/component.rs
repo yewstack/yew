@@ -84,7 +84,7 @@ impl Component for Suspense {
             ctx.props().key.clone(),
         );
 
-        Ok(VNode::from(vsuspense))
+        VNode::from(vsuspense)
     }
 }
 
