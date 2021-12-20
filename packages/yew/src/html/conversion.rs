@@ -98,5 +98,6 @@ mod test {
         let _: Option<String> = "foo".into_prop_value();
         let _: AttrValue = "foo".into_prop_value();
         let _: Option<AttrValue> = "foo".into_prop_value();
+        let _: Option<AttrValue> = Rc::<str>::from("foo").into_prop_value();
     }
 }
