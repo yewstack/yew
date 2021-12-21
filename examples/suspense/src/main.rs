@@ -1,8 +1,6 @@
 use web_sys::HtmlTextAreaElement;
 use yew::prelude::*;
 
-use log::Level;
-
 mod use_sleep;
 
 use use_sleep::use_sleep;
@@ -58,6 +56,5 @@ fn app() -> Html {
 }
 
 fn main() {
-    console_log::init_with_level(Level::Trace).expect("Failed to initialise Log!");
     yew::start_app::<App>();
 }
