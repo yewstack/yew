@@ -36,7 +36,10 @@ impl<COMP: BaseComponent> Context<COMP> {
 
 /// The common base of both function components and struct components.
 ///
-/// If you are taken here by doc links, you might be looking for: [`Component`]
+/// If you are taken here by doc links, you might be looking for [`Component`] or
+/// [`#[function_component]`](crate::functional::function_component).
+///
+/// We provide a blanket implementation of this trait for every member that implements [`Component`].
 pub trait BaseComponent: Sized + 'static {
     /// The Component's Message.
     type Message: 'static;

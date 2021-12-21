@@ -1,7 +1,7 @@
 use std::rc::Rc;
+use std::time::Duration;
 
-use gloo_timers::future::TimeoutFuture;
-use wasm_bindgen_futures::spawn_local;
+use gloo_timers::future::sleep;
 use yew::prelude::*;
 use yew::suspense::{Suspension, SuspensionResult};
 
@@ -12,12 +12,8 @@ pub struct SleepState {
 
 impl SleepState {
     fn new() -> Self {
-        let (s, handle) = Suspension::new();
-
-        spawn_local(async move {
-            TimeoutFuture::new(5_000).await;
-
-            handle.resume();
+        let s = Suspension::from_future(async {
+            sleep(Duration::from_secs(5)).await;
         });
 
         Self { s }

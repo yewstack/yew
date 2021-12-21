@@ -1,6 +1,6 @@
 //! Function components are a simplified version of normal components.
 //! They consist of a single function annotated with the attribute `#[function_component(_)]`
-//! that receives props and determines what should be rendered by returning [`Html`].
+//! that receives props and determines what should be rendered by returning [`Html`](crate::Html).
 //!
 //! ```rust
 //! # use yew::prelude::*;
@@ -70,9 +70,9 @@ pub trait FunctionProvider {
     /// Properties for the Function Component.
     type TProps: Properties + PartialEq;
 
-    /// Render the component. This function returns the [`Html`] to be rendered for the component.
+    /// Render the component. This function returns the [`Html`](crate::Html) to be rendered for the component.
     ///
-    /// Equivalent of [`Component::view`].
+    /// Equivalent of [`Component::view`](crate::html::Component::view).
     fn run(props: &Self::TProps) -> HtmlResult;
 }
 

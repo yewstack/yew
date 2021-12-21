@@ -77,13 +77,68 @@ fn use_user() -> SuspensionResult<User> {
 }
 ```
 
+# Complete Example
+
+```rust
+use yew::prelude::*;
+use yew::suspense::{Suspension, SuspensionResult};
+
+#[derive(Debug)]
+struct User {
+    name: String,
+}
+
+fn load_user() -> Option<User> {
+    todo!()  // implementation omitted.
+}
+
+fn on_load_user_complete<F: Fn()>(_fn: F) {
+    todo!()  // implementation omitted.
+}
+
+fn use_user() -> SuspensionResult<User> {
+    match load_user() {
+        // If a user is loaded, then we return it as Ok(user).
+        Some(m) => Ok(m),
+        None => {
+            // When user is still loading, then we create a `Suspension`
+            // and call `SuspensionHandle::resume` when data loading
+            // completes, the component will be re-rendered
+            // automatically.
+            let (s, handle) = Suspension::new();
+            on_load_user_complete(move || {handle.resume();});
+            Err(s)
+        },
+    }
+}
+
+#[function_component(Content)]
+fn content() -> HtmlResult {
+    let user = use_user()?;
+
+    Ok(html! {<div>{"Hello, "}{&user.name}</div>})
+}
+
+#[function_component(App)]
+fn app() -> Html {
+    let fallback = html! {<div>{"Loading..."}</div>};
+
+    html! {
+        <Suspense {fallback}>
+            <Content />
+        </Suspense>
+    }
+}
+```
+
+
 ### Use Suspense in Struct Components
 
 It's not possible to suspend a struct component directly. However, you
 can use a function component as a Higher-Order-Component to
 achieve suspense-based data fetching.
 
-```rust, ignore
+```rust ,ignore
 use yew::prelude::*;
 
 #[function_component(WithUser)]
@@ -119,3 +174,7 @@ impl Component for BaseUserContent {
 
 pub type UserContent = WithUser<BaseUserContent>;
 ```
+
+## Relevant examples
+
+- [Suspense](https://github.com/yewstack/yew/tree/master/examples/suspense)
