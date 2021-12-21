@@ -3,8 +3,8 @@ title: "Agents"
 description: "Yew's Actor System"
 ---
 
-import Image from '@theme/IdealImage';
-import agentLifeCycle from '/img/agent-life-cycle.png'
+import useBaseUrl from "@docusaurus/useBaseUrl";
+import ThemedImage from '@theme/ThemedImage';
 
 Agents are similar to Angular's [Services](https://angular.io/guide/architecture-services)
 \(but without dependency injection\), and provide Yew with an
@@ -19,7 +19,19 @@ In order for agents to run concurrently, Yew uses
 
 ## Lifecycle
 
-<Image img={agentLifeCycle}/>
+<!--
+The diagram is produced with nomnoml (nomnoml.com),
+The code can be found in the <desc> tag of the svgs.
+-->
+
+
+<ThemedImage
+    alt="agent lifecycle diagram"
+    sources={{
+        light: useBaseUrl('/img/agent-lifecycle-light.svg'),
+        dark: useBaseUrl('/img/agent-lifecycle-dark.svg'),
+    }}
+/>
 
 ## Types of Agents
 

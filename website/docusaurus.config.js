@@ -97,7 +97,6 @@ module.exports = {
     locales: ['en', 'ja', 'zh-CN', 'zh-TW'],
   },
   plugins: [
-      'ideal-image',
       'content-pages',
     [
       '@docusaurus/plugin-google-analytics',
