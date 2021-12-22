@@ -336,7 +336,9 @@ impl VTag {
         match &self.inner {
             VTagInner::Other { children, .. } => children,
             _ => {
+                // This is mutable because the VList is not Sync
                 static mut EMPTY: VList = VList::new();
+
                 // SAFETY: The EMPTY value is always read-only
                 unsafe { &EMPTY }
             }
