@@ -13,13 +13,13 @@ implement the `Component` trait.
 
 ## Creating function components
 
-The easiest way to create a function component is to add the [`#[function_component]`](./../function-components/attribute.mdx) attribute to a function.
+The easiest way to create a function component is to add the [`#[function_component]`](./../function-components/attribute.mdx) attribute (also aliased as `#[fc]`) to a function.
 
 ```rust
-use yew::{function_component, html};
+use yew::{fc, html};
 
-#[function_component(HelloWorld)]
-fn hello_world() -> Html {
+#[fc]
+fn HelloWorld() -> Html {
     html! { "Hello world" }
 }
 ```
