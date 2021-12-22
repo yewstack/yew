@@ -14,12 +14,12 @@
     "write-heading-ids": "docusaurus write-heading-ids"
   },
   "dependencies": {
-    "@docusaurus/core": "^2.0.0-beta.13",
-    "@docusaurus/plugin-client-redirects": "^2.0.0-beta.13",
-    "@docusaurus/plugin-content-docs": "^2.0.0-beta.13",
-    "@docusaurus/plugin-content-pages": "^2.0.0-beta.13",
-    "@docusaurus/plugin-google-analytics": "^2.0.0-beta.13",
-    "@docusaurus/theme-classic": "^2.0.0-beta.13",
+    "@docusaurus/core": "^2.0.0-beta.14",
+    "@docusaurus/plugin-client-redirects": "^2.0.0-beta.14",
+    "@docusaurus/plugin-content-docs": "^2.0.0-beta.14",
+    "@docusaurus/plugin-content-pages": "^2.0.0-beta.14",
+    "@docusaurus/plugin-google-analytics": "^2.0.0-beta.14",
+    "@docusaurus/theme-classic": "^2.0.0-beta.14",
     "@easyops-cn/docusaurus-search-local": "^0.21.1",
     "@mdx-js/react": "^1.6.21",
     "@svgr/webpack": "^5.5.0",
@@ -42,7 +42,7 @@
     ]
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "*",
+    "@docusaurus/module-type-aliases": "^2.0.0-beta.14",
     "@tsconfig/docusaurus": "^1.0.2",
     "@types/react": "^17.0.8",
     "@types/react-helmet": "^6.1.1",
