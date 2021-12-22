@@ -2,12 +2,15 @@
 
 mod hooks;
 mod link;
+mod local;
 mod pool;
+pub mod utils;
 mod worker;
 
 pub use hooks::{use_bridge, UseBridgeHandle};
 pub use link::AgentLink;
 pub(crate) use link::*;
+pub use local::{Context, Job};
 pub(crate) use pool::*;
 pub use pool::{Dispatched, Dispatcher};
 pub use worker::{Private, Public, Threaded};
