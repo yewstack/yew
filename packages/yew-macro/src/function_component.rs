@@ -176,7 +176,11 @@ pub fn function_component_impl(
         return_type,
     } = component;
     let component_name = component_name.unwrap_or_else(|| function_name.clone());
-    let function_name = format_ident!("{}FunctionProvider", function_name, span = function_name.span());
+    let function_name = format_ident!(
+        "{}FunctionProvider",
+        function_name,
+        span = function_name.span()
+    );
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
     if function_name == component_name {
