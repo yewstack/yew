@@ -1,0 +1,22 @@
+{
+  "name": "js-framework-benchmark-wasm-bindgen",
+  "version": "1.0.0",
+  "description": "Benchmark for wasm-bindgen",
+  "license": "ISC",
+  "js-framework-benchmark": {
+    "frameworkVersion": "0.2.47"
+  },
+  "scripts": {
+    "build-prod": "rimraf bundled-dist pkg && webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krausest/js-framework-benchmark.git"
+  },
+  "devDependencies": {
+    "@wasm-tool/wasm-pack-plugin": "^0.4.2",
+    "webpack": "^4.33.0",
+    "webpack-cli": "^3.3.3",
+    "rimraf": "^2.6.3"
+  }
+}

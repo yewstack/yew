@@ -1,0 +1,132 @@
+body {
+    font-size: 10px;
+    font-family: Helvetica Neue,Helvetica,Arial,sans-serif;
+    line-height: 1.42857143;
+    color: #333;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-size: auto;
+}
+
+a {
+    color: #337ab7;
+    text-decoration: none;
+}
+
+table {
+    table-layout: fixed;
+}
+
+td,
+th {
+    min-width: 60px;
+    max-width: 60px;
+    height: 45px;
+    text-align: center;
+    padding: 3px;
+    border: 1px solid #ddd;
+    word-wrap: break-word;
+}
+
+h1 {
+    font-size: 32px;
+    margin-top: 32px;
+    background: #ddd;
+}
+
+h4 {
+    background: #ddd;
+    padding: 3px 7px;
+}
+
+input {
+    margin-right: 5px;
+}
+
+label {
+    display: block;
+}
+
+label > * {
+    vertical-align: middle;
+}
+
+.value,
+.stddev {
+    display: inline-block;
+}
+
+.stddev {
+    font-size: 8px;
+}
+
+.toggle_all {
+    float: right;
+}
+
+.stddev::before {
+    content: "\B1 ";
+    font-size: 8px;
+    padding-right: 2px;
+    padding-left: 2px;
+}
+
+.factor {
+    font-size: 8px;
+}
+
+.factor::before {
+    content: "(";
+}
+
+.factor::after {
+    content: ")";
+}
+
+.group {
+    display: inline-block;
+    vertical-align: top;
+    padding: 5px;
+}
+
+#frameworks,
+#benchmarks {
+    display: inline-block;
+    vertical-align: top;
+}
+
+#frameworks label {
+    display: inline-block;
+    width: 200px;
+}
+
+#frameworks .group {
+    width: 650px;
+}
+
+.benchname {
+    min-width: 100px;
+}
+
+caption {
+    font-size: 32px;
+    caption-side: top;
+}
+
+.c00 {background: #63BF7C}
+.c01 {background: #76C47D}
+.c02 {background: #8ACA7E}
+.c03 {background: #9DCF7F}
+.c04 {background: #B1D580}
+.c05 {background: #C4DA81}
+.c06 {background: #D8E082}
+.c07 {background: #EBE583}
+.c08 {background: #FFEB84}
+.c09 {background: #FED880}
+.c10 {background: #FDC57D}
+.c11 {background: #FCB379}
+.c12 {background: #FBA076}
+.c13 {background: #FA8E72}
+.c14 {background: #F97B6F}
+.c15 {background: #F9696C}

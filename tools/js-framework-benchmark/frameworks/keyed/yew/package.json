@@ -1,0 +1,21 @@
+{
+  "name": "js-framework-benchmark-yew",
+  "version": "1.0.0",
+  "description": "Benchmark for Yew",
+  "license": "ISC",
+  "js-framework-benchmark": {
+    "frameworkVersion": "local"
+  },
+  "scripts": {
+    "build-dev": "rimraf bundled-dist && wasm-pack build --dev --target web --no-typescript --out-name js-framework-benchmark-yew --out-dir bundled-dist && cpr index.html bundled-dist/index.html && (cd bundled-dist && rimraf .gitignore README.md package.json)",
+    "build-prod": "rimraf bundled-dist && wasm-pack build --release --target web --no-typescript --out-name js-framework-benchmark-yew --out-dir bundled-dist && cpr index.html bundled-dist/index.html && (cd bundled-dist && rimraf .gitignore README.md package.json)"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krausest/js-framework-benchmark.git"
+  },
+  "devDependencies": {
+    "cpr": "^3.0.1",
+    "rimraf": "^2.6.3"
+  }
+}

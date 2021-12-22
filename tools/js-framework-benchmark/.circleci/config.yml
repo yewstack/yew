@@ -1,0 +1,22 @@
+version: 2
+jobs:
+  build:
+    machine: true
+
+    steps:
+      - checkout
+
+      - run: |
+          curl -L -o google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo dpkg -i google-chrome.deb
+          sudo sed -i 's|HERE/chrome\"|HERE/chrome\" --disable-setuid-sandbox|g' /opt/google/chrome/google-chrome
+          rm google-chrome.deb
+
+      - run: |
+          source $NVM_DIR/nvm.sh
+          nvm install v10.16.0
+
+          npm install
+          npm run install-webdriver-ts
+          npm start &
+          npm run build -- --check

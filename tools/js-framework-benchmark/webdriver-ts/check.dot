@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<head>
+    <title>Table Report</title>
+    <link rel="stylesheet" href="../css/github-markdown.css">
+    <style>
+    body {
+      overflow:scroll;
+    }
+    table.results {
+        font-size: 10px;
+        table-layout: fixed;
+        width: 1px;
+        overflow:visible;
+        display: table;
+    }
+    table.results th {
+        width: 60px;
+    }
+    table.results th.benchname {
+        width: 100px;
+    }
+	table.results td {
+	    padding: 3px;
+	}
+	table.results th {
+	    padding: 3px;
+	}
+	.top1 {
+		background-color: #63BF7C;
+	}
+	.top2 {
+		background-color: #D1D580;
+	}
+	.top3 {
+		background-color: #FFEC84;
+	}
+	.top4 {
+		background-color: #FCAA78;
+	}
+	.top5 {
+		background-color: #F9696C;
+	}
+	td {
+		text-align: center;
+	}
+	.rowCount {
+		font-size: 8px;
+	}
+	.deviation {
+		font-size: 8px;
+		padding-left: 5px;
+	}
+	.deviation:before {
+		content: '± ';
+	}
+	.factor {
+		font-size: 8px;
+	}
+	</style>
+</head>
+<body class="markdown-body">
+<h3>Results Check</h3>
+<table class="results">
+<thead>
+<tr>
+	<th class='benchname'></th>
+	{{~it.frameworks :value}}
+		<th>{{=value}}</th>
+	{{~}}
+</tr>
+</thead>
+<tbody>
+{{~it.resultRow :bench}}
+	<tr>
+		<th class='benchname'>{{=bench.name}}
+		<div class="rowCount">{{=bench.description}}</div>
+		</th>
+		{{~bench.tests :test}}
+			<td style="background-color:{{=test.styleClass}}"><span class="mean">{{=test.result}}</span><span class="deviation">{{=test.origTime}}</span><span class="deviation">{{=test.checkTime}}</span></td>
+		{{~}}
+	</tr>
+{{~}}
+</table>
+</body>
+</html>

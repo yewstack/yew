@@ -1,0 +1,24 @@
+[package]
+authors = ["Isamu Mogi <isamu@leafytree.jp>"]
+edition = "2018"
+name = "js-framework-benchmark-yew"
+version = "1.0.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+rand = {version = "0.7.3", features = ["wasm-bindgen", "small_rng"]}
+wasm-bindgen = "0.2.62"
+
+# UPDATE TO USE YOUR BRANCH
+yew = {path = "/home/janis/src/yew/packages/yew"}
+# UPDATE TO USE YOUR BRANCH
+
+[profile.release]
+codegen-units = 1
+lto = true
+panic = "abort"
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-O4']

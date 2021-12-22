@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JS-Frameworks Benchmark</title>
+    <meta charset="UTF-8">
+    <link href="css/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="css/main.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Choose a framework:</h3>
+        </div>
+        <div class="panel-body">
+            <ul class="nav nav-pills nav-stacked">
+				{{~it.frameworks :framework}}
+                <li><a href="/{{=framework.uri}}/index.html"><span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> {{=framework.fullNameWithKeyedAndVersion}}</a></li>
+				{{~}}
+            </ul>
+        </div>
+    </div>
+</div>
+</body>
+</html>

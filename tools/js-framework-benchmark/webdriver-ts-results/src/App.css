@@ -1,0 +1,195 @@
+:root {
+    box-sizing: border-box;
+}
+*,
+*::before,
+*::after {
+    box-sizing: inherit;
+}
+body {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    margin: 10px;
+}
+a, a:active, a:hover {
+    text-decoration: none;
+}
+button, select {
+    font-size: 14px;
+}
+.selectBar {
+    background-color: #fafafa;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+}
+select {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    height: 29px;
+    background: #fff;
+}
+.header-row {
+    margin: 20px 0;
+}
+.dropdown-container {
+    display: inline-block;
+}
+.dropdown-container > .shutter, .dropdown-container > .dropdown-menu {
+    display: none;
+}
+.open>.shutter,.open>.dropdown-menu {
+    display:block;
+}
+.dropdown-menu > .section {
+    position: relative;
+}
+.open>.dropdown-menu {
+    z-index: 1000;
+    position: absolute;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 4px 4px 5px 5px rgba(0, 0, 0, 0.2);
+    padding: 10px;
+}
+.dropdown, .dropdown:focus {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px 10px;
+    outline: none;
+    box-shadow: 0px 0px 2px 2px rgba(0, 0, 0, 0.0);
+    transition: all 0.5s;
+}
+.dropdown.open {
+    box-shadow: 0px 0px 2px 2px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown > .caret {
+    width: 10px;
+    height: 5px;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #ccc;
+    display: inline-block;
+}
+
+.shutter {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 999;
+    display:none;
+}
+
+input + label {
+    margin-left: 5px;
+}
+
+.float-rt {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.grid {
+    display: flex;
+    flex-wrap: wrap;
+}
+.col-3 {
+    width: 33%;
+}
+
+.hspan {
+  display: inline-block;
+  width: 10px;
+}
+
+.panel-body .checkbox {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+table.results {
+    font-size: 11px;
+    table-layout: fixed;
+    width: 1px;
+    overflow:visible;
+    display: table;
+    border-spacing: 0 0;
+    border-collapse: collapse;
+}
+table.results th {
+    width: 60px;
+    font-weight: normal;
+    font-size: 11px;
+    text-align: center;
+    word-break:keep-all;
+    word-wrap:break-word;
+}
+table.results th.benchname {
+width: 100px;
+}
+table.results td {
+padding: 3px;
+border: 1px solid #ddd;
+}
+table.results th {
+padding: 3px;
+border: 1px solid #ddd;
+}
+.top1 {
+background-color: #63BF7C;
+}
+.top2 {
+background-color: #D1D580;
+}
+.top3 {
+background-color: #FFEC84;
+}
+.top4 {
+background-color: #FCAA78;
+}
+.top5 {
+background-color: #F9696C;
+}
+td {
+text-align: center;
+}
+.rowCount {
+font-size: 10px;
+}
+.deviation {
+font-size: 8px;
+padding-left: 5px;
+}
+.deviation:before {
+content: '± ';
+}
+.factor {
+font-size: 8px;
+}
+.sortKey {
+  text-decoration: underline;
+}
+
+dl {
+    width: 100%;
+    overflow: hidden;
+    padding: 0;
+    margin-bottom: 16px;
+}
+dt {
+    float: left;
+    width: 50px;
+    padding: 0;
+    margin: 0
+}
+dd {
+    padding: 0;
+    margin: 0;
+}
+.with-issues {
+    background-color: #faa;
+}

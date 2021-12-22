@@ -1,0 +1,56 @@
+{
+  "name": "js-framework-benchmark",
+  "version": "1.0.0",
+  "description": "Simple Benchmark for Javascript client side rendering",
+  "scripts": {
+    "clean": "node cleanup.js",
+    "build": "node build.js",
+    "build-prod": "node build.js",
+    "compile": "node build.js",
+    "start": "http-server -c-1 .",
+    "bench": "cd webdriver-ts && cross-env LANG=\"en_US.UTF-8\" node dist/benchmarkRunner.js",
+    "results": "cd webdriver-ts && npm run results",
+    "bench-all": "cd webdriver-ts && npm run bench && npm run results",
+    "selenium": "cd webdriver-ts && npm run bench && npm run results",
+    "install-webdriver-ts": "cd webdriver-ts && npm install && npm run build-prod",
+    "install-webdriver-ts-results": "cd webdriver-ts-results && npm install",
+    "install-local": "npm run install-webdriver-ts && npm run install-webdriver-ts-results",
+    "docker-build-image": "docker build -t js-framework-benchmark-ubuntu -f Dockerfile .",
+    "docker-start": "cross-env-shell docker run --rm -d -p 8080:8080 --name js-framework-benchmark --volume ${INIT_CWD}:/src --volume js-framework-benchmark:/build js-framework-benchmark-ubuntu",
+    "docker-stop": "docker stop js-framework-benchmark",
+    "docker-sync": "docker exec -it js-framework-benchmark rsync -avC --exclude /index.html --exclude /framework/**/dist --exclude /webdriver-ts*/dist --exclude package-lock.json --exclude node_modules --exclude /webdriver-ts/results*/ /src/ /build/",
+    "docker-build-frameworks": "npm run docker-sync && docker exec -it js-framework-benchmark npm install && docker exec -it js-framework-benchmark node build.js",
+    "docker-install-webdriver": "npm run docker-sync && docker exec -it js-framework-benchmark npm run install-local",
+    "docker-create-index": "docker exec -it -w /build/webdriver-ts js-framework-benchmark npm run index",
+    "docker-rebuild": "docker exec -it js-framework-benchmark cp /src/docker-rebuild.js /build/ && docker exec -it js-framework-benchmark node docker-rebuild.js",
+    "docker-bench": "docker exec -it -w /build/webdriver-ts js-framework-benchmark node dist/benchmarkRunner.js --headless",
+    "docker-results": "docker exec -it -w /build/webdriver-ts js-framework-benchmark npm run results",
+    "docker-shell": "docker exec -it js-framework-benchmark /bin/bash",
+    "docker-dev-webdriver": "npm run docker-sync && docker exec -it -w /build/webdriver-ts js-framework-benchmark npm run compile && docker exec -it -w /build/webdriver-ts js-framework-benchmark node dist/benchmarkRunner.js --headless"
+  },
+  "keywords": [
+    "benchmark",
+    "javascript",
+    "frontend",
+    "client",
+    "react",
+    "angular",
+    "mithril"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krausest/js-framework-benchmark.git"
+  },
+  "author": "Stefan Krause",
+  "license": "ISC",
+  "homepage": "https://github.com/krausest/js-framework-benchmark",
+  "dependencies": {
+    "command-exists": "^1.2.8",
+    "cross-env": "^5.2.0",
+    "fs-extra": "0.30.0",
+    "http-server": "0.10.0",
+    "lodash": "^4.15.0",
+    "rimraf": "^2.6.2",
+    "yargs": "^12.0.1"
+  }
+}
