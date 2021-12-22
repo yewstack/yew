@@ -24,6 +24,7 @@ members = [
   "examples/node_refs",
   "examples/password_strength",
   "examples/portals",
+  "examples/pub_sub",
   "examples/router",
   "examples/timer",
   "examples/todomvc",
