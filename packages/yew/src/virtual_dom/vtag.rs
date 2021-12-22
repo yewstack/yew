@@ -8,10 +8,8 @@ use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::hint::unreachable_unchecked;
 use std::marker::PhantomData;
-use std::mem::MaybeUninit;
 use std::ops::Deref;
 use std::rc::Rc;
-use std::sync::Once;
 use wasm_bindgen::JsCast;
 use web_sys::{Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
 
@@ -338,14 +336,9 @@ impl VTag {
         match &self.inner {
             VTagInner::Other { children, .. } => children,
             _ => {
-                static mut EMPTY: MaybeUninit<VList> = MaybeUninit::uninit();
-                static ONCE: Once = Once::new();
-                unsafe {
-                    ONCE.call_once(|| {
-                        EMPTY = MaybeUninit::new(VList::default());
-                    });
-                    &*EMPTY.as_ptr()
-                }
+                static mut EMPTY: VList = VList::new();
+                // SAFETY: The EMPTY value is always read-only
+                unsafe { &EMPTY }
             }
         }
     }
