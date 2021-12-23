@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
@@ -140,18 +140,22 @@ impl Parse for FunctionComponent {
 }
 
 pub struct FunctionComponentName {
-    component_name: Ident,
+    component_name: Option<Ident>,
 }
 
 impl Parse for FunctionComponentName {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         if input.is_empty() {
-            return Err(input.error("expected identifier for the component"));
+            return Ok(Self {
+                component_name: None,
+            });
         }
 
         let component_name = input.parse()?;
 
-        Ok(Self { component_name })
+        Ok(Self {
+            component_name: Some(component_name),
+        })
     }
 }
 
@@ -171,7 +175,12 @@ pub fn function_component_impl(
         name: function_name,
         return_type,
     } = component;
-
+    let component_name = component_name.unwrap_or_else(|| function_name.clone());
+    let function_name = format_ident!(
+        "{}FunctionProvider",
+        function_name,
+        span = function_name.span()
+    );
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
     if function_name == component_name {
