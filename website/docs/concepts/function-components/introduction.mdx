@@ -18,8 +18,8 @@ The easiest way to create a function component is to add the [`#[function_compon
 ```rust
 use yew::{function_component, html};
 
-#[function_component(HelloWorld)]
-fn hello_world() -> Html {
+#[function_component]
+fn HelloWorld() -> Html {
     html! { "Hello world" }
 }
 ```

@@ -8,8 +8,8 @@ pub struct FilterProps {
     pub onset_filter: Callback<FilterEnum>,
 }
 
-#[function_component(Filter)]
-pub fn filter(props: &FilterProps) -> Html {
+#[function_component]
+pub fn Filter(props: &FilterProps) -> Html {
     let filter = props.filter;
 
     let cls = if props.selected {
