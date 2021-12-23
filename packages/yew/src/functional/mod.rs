@@ -23,7 +23,6 @@ use std::rc::Rc;
 mod hooks;
 pub use hooks::*;
 
-pub use self::function_component as fc;
 use crate::html::Context;
 /// This attribute creates a function component from a normal Rust function.
 ///
