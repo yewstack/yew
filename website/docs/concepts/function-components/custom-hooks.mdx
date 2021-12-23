@@ -24,7 +24,7 @@ pub fn show_storage_changed() -> Html {
     {
         let state_storage_changed = state_storage_changed.clone();
         use_effect(|| {
-            let listener = EventListener::new(&window(), "storage", move || state_storage_changed.set(true));
+            let listener = EventListener::new(&window(), "storage", move |_| state_storage_changed.set(true));
 
             move || { drop(listener); }
         });
