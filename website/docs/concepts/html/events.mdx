@@ -611,7 +611,7 @@ For more information on `Closures`, see
 
 ### Using `gloo` (concise)
 
-The easier way is with `gloo`, more specifically [`gloo_events`](https://docs.rs/gloo-events/0.1.1/gloo_events/index.html)
+The easier way is with `gloo`, more specifically [`gloo::events`](https://docs.rs/gloo-events/0.1.1/gloo_events/index.html)
 which is an abstraction for `web-sys`, `wasm-bindgen`.
 
 `gloo_events` has the `EventListener` type which can be used to create and store the
@@ -630,7 +630,7 @@ use yew::{
     Component, Context, Html, NodeRef,
 };
 
-use gloo_events::EventListener;
+use gloo::events::EventListener;
 
 pub struct Comp {
     my_div: NodeRef,
