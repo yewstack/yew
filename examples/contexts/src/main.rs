@@ -8,8 +8,8 @@ use yew::prelude::*;
 
 use msg_ctx::MessageProvider;
 
-#[function_component(Model)]
-pub fn model() -> Html {
+#[function_component]
+pub fn Model() -> Html {
     html! {
         <MessageProvider>
             <Producer />
