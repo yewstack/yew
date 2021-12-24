@@ -22,13 +22,13 @@ error[E0277]: the trait bound `MissingTypeBounds: yew::Properties` is not satisf
 27 |     html! { <Comp<MissingTypeBounds> /> };
    |              ^^^^ the trait `yew::Properties` is not implemented for `MissingTypeBounds`
    |
-   = note: required because of the requirements on the impl of `FunctionProvider` for `comp<MissingTypeBounds>`
+   = note: required because of the requirements on the impl of `FunctionProvider` for `compFunctionProvider<MissingTypeBounds>`
 
-error[E0599]: the function or associated item `new` exists for struct `VChild<FunctionComponent<comp<MissingTypeBounds>>>`, but its trait bounds were not satisfied
+error[E0599]: the function or associated item `new` exists for struct `VChild<FunctionComponent<compFunctionProvider<MissingTypeBounds>>>`, but its trait bounds were not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:27:14
    |
 27 |     html! { <Comp<MissingTypeBounds> /> };
-   |              ^^^^ function or associated item cannot be called on `VChild<FunctionComponent<comp<MissingTypeBounds>>>` due to unsatisfied trait bounds
+   |              ^^^^ function or associated item cannot be called on `VChild<FunctionComponent<compFunctionProvider<MissingTypeBounds>>>` due to unsatisfied trait bounds
    |
   ::: $WORKSPACE/packages/yew/src/functional/mod.rs
    |
@@ -36,7 +36,7 @@ error[E0599]: the function or associated item `new` exists for struct `VChild<Fu
    | ----------------------------------------------------------- doesn't satisfy `_: yew::Component`
    |
    = note: the following trait bounds were not satisfied:
-           `FunctionComponent<comp<MissingTypeBounds>>: yew::Component`
+           `FunctionComponent<compFunctionProvider<MissingTypeBounds>>: yew::Component`
 
 error[E0107]: missing generics for type alias `Comp`
   --> tests/function_component_attr/generic-props-fail.rs:30:14
