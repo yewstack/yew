@@ -6,19 +6,15 @@ use producer::Producer;
 use subscriber::Subscriber;
 use yew::prelude::*;
 
-use msg_ctx::{Message, MessageContext};
+use msg_ctx::MessageProvider;
 
 #[function_component(Model)]
 pub fn model() -> Html {
-    let msg = use_reducer(|| Message {
-        inner: "No message yet.".to_string(),
-    });
-
     html! {
-        <ContextProvider<MessageContext> context={msg}>
+        <MessageProvider>
             <Producer />
             <Subscriber />
-        </ContextProvider<MessageContext>>
+        </MessageProvider>
     }
 }
 

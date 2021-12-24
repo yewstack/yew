@@ -1,6 +1,6 @@
-# Pub Sub Example
+# Context Example
 
-[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fpub_sub)](https://examples.yew.rs/pub_sub)
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fcontexts)](https://examples.yew.rs/contexts)
 
 This is currently a technical demonstration of Context API.
 
