@@ -1,5 +1,5 @@
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, ToTokens};
+use quote::{format_ident, quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::token::{Comma, Fn};
@@ -145,22 +145,26 @@ impl Parse for FunctionComponent {
 }
 
 pub struct FunctionComponentName {
-    component_name: Ident,
+    component_name: Option<Ident>,
 }
 
 impl Parse for FunctionComponentName {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         if input.is_empty() {
-            return Err(input.error("expected identifier for the component"));
+            return Ok(Self {
+                component_name: None,
+            });
         }
 
         let component_name = input.parse()?;
 
-        Ok(Self { component_name })
+        Ok(Self {
+            component_name: Some(component_name),
+        })
     }
 }
 
-fn print_fn(func_comp: FunctionComponent) -> TokenStream {
+fn print_fn(func_comp: FunctionComponent, use_fn_name: bool) -> TokenStream {
     let FunctionComponent {
         fn_token,
         name,
@@ -173,6 +177,12 @@ fn print_fn(func_comp: FunctionComponent) -> TokenStream {
     } = func_comp;
 
     let (_impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
+    let name = if use_fn_name {
+        name
+    } else {
+        Ident::new("inner", Span::mixed_site())
+    };
 
     quote! {
         #(#attrs)*
@@ -190,7 +200,9 @@ pub fn function_component_impl(
 ) -> syn::Result<TokenStream> {
     let FunctionComponentName { component_name } = name;
 
-    let func = print_fn(component.clone());
+    let has_separate_name = component_name.is_some();
+
+    let func = print_fn(component.clone(), has_separate_name);
 
     let FunctionComponent {
         props_type,
@@ -199,27 +211,20 @@ pub fn function_component_impl(
         name: function_name,
         ..
     } = component;
-
+    let component_name = component_name.unwrap_or_else(|| function_name.clone());
+    let provider_name = format_ident!(
+        "{}FunctionProvider",
+        component_name,
+        span = Span::mixed_site()
+    );
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
-    if function_name == component_name {
+    if has_separate_name && function_name == component_name {
         return Err(syn::Error::new_spanned(
             component_name,
             "the component must not have the same name as the function",
         ));
     }
-
-    let mut provider_name_str = component_name.to_string();
-
-    if provider_name_str.ends_with("Internal") {
-        // When a component ends with Internal, it will become possessive.
-        // InternalsInternal instead of InternalInternal
-        provider_name_str.push_str("sInternal");
-    } else {
-        provider_name_str.push_str("Internal");
-    }
-
-    let provider_name = Ident::new(&provider_name_str, Span::mixed_site());
 
     let phantom_generics = generics
         .type_params()
@@ -229,6 +234,12 @@ pub fn function_component_impl(
     let provider_props = Ident::new("props", Span::mixed_site());
 
     let fn_generics = ty_generics.as_turbofish();
+
+    let fn_name = if has_separate_name {
+        function_name
+    } else {
+        Ident::new("inner", Span::mixed_site())
+    };
 
     let quoted = quote! {
         #[doc(hidden)]
@@ -245,7 +256,7 @@ pub fn function_component_impl(
             fn run(#provider_props: &Self::TProps) -> ::yew::html::HtmlResult {
                 #func
 
-                ::yew::html::IntoHtmlResult::into_html_result(#function_name #fn_generics (#provider_props))
+                ::yew::html::IntoHtmlResult::into_html_result(#fn_name #fn_generics (#provider_props))
             }
         }
 

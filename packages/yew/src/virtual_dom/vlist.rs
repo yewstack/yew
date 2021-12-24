@@ -19,11 +19,7 @@ pub struct VList {
 
 impl Default for VList {
     fn default() -> Self {
-        Self {
-            children: Default::default(),
-            key: None,
-            fully_keyed: true,
-        }
+        Self::new()
     }
 }
 
@@ -88,8 +84,12 @@ impl<'s> ElementWriter<'s> {
 
 impl VList {
     /// Creates a new empty [VList] instance.
-    pub fn new() -> Self {
-        Self::default()
+    pub const fn new() -> Self {
+        Self {
+            children: Vec::new(),
+            key: None,
+            fully_keyed: true,
+        }
     }
 
     /// Creates a new [VList] instance with children.

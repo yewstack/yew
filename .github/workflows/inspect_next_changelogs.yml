@@ -1,0 +1,36 @@
+name: Inspect next changelogs
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate:
+    name: Generate changelogs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+
+      - name: Build changelog generator
+        run: cargo build --release -p changelog
+
+      - name: Read yew changelog in this step
+        run: ./target/release/changelog yew minor
+
+      - name: Read yew-router changelog in this step
+        run: ./target/release/changelog yew-router minor
+
+      - name: Read yew-agent changelog in this step
+        run: ./target/release/changelog yew-agent minor

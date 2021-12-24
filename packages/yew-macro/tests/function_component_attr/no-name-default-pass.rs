@@ -5,8 +5,8 @@ struct Props {
     a: usize,
 }
 
-#[function_component()]
-fn comp(props: &Props) -> Html {
+#[function_component]
+fn Comp(props: &Props) -> Html {
     html! {
         <p>
             { props.a }
@@ -14,4 +14,8 @@ fn comp(props: &Props) -> Html {
     }
 }
 
-fn main() {}
+fn main() {
+    let _ = html! {
+        <Comp a={0} />
+    };
+}

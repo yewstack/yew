@@ -1,5 +1,5 @@
 #![allow(clippy::needless_doctest_main)]
-#![doc(html_logo_url = "https://static.yew.rs/logo.svg")]
+#![doc(html_logo_url = "https://yew.rs/img/logo.png")]
 
 //! # Yew Framework - API Documentation
 //!
