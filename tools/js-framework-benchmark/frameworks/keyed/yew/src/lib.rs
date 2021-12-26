@@ -3,8 +3,9 @@
 use rand::prelude::*;
 use std::cmp::min;
 use wasm_bindgen::prelude::wasm_bindgen;
+use web_sys::window;
+use yew::html::Scope;
 use yew::prelude::*;
-use yew::{html::Scope, web_sys::window};
 
 static ADJECTIVES: &[&str] = &[
     "pretty",
@@ -92,8 +93,8 @@ impl Component for Model {
             next_id: 1,
             selected_id: None,
             rng: SmallRng::from_entropy(),
-            on_select: ctx.link().callback(|id| Msg::Select(id)),
-            on_remove: ctx.link().callback(|id| Msg::Remove(id)),
+            on_select: ctx.link().callback(Msg::Select),
+            on_remove: ctx.link().callback(Msg::Remove),
         }
     }
 

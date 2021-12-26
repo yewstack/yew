@@ -75,10 +75,9 @@ fn get_parent_id(el: Element) -> Option<usize> {
     let mut current = Some(el);
     while let Some(e) = current {
         if e.tag_name() == "TR" {
-            return match e.get_attribute("data-id") {
-                Some(id) => Some(id.parse::<usize>().unwrap()),
-                None => None,
-            };
+            return e
+                .get_attribute("data-id")
+                .map(|id| id.parse::<usize>().unwrap());
         }
         current = e.parent_element();
     }
@@ -152,8 +151,8 @@ impl Main {
         let b = a.next_sibling().unwrap();
         let c = &row998.el;
         let d = c.next_sibling().unwrap();
-        self.tbody.insert_before(&c, Some(&b))?;
-        self.tbody.insert_before(&a, Some(&d))?;
+        self.tbody.insert_before(c, Some(&b))?;
+        self.tbody.insert_before(a, Some(&d))?;
         self.data.swap(1, 998);
         Ok(())
     }
@@ -197,7 +196,6 @@ impl Main {
         self.last_id += count;
         Ok(())
     }
-
 }
 
 #[wasm_bindgen(start)]

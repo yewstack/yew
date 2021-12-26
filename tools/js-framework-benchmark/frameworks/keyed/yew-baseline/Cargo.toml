@@ -1,5 +1,5 @@
 [package]
-name = "js-framework-benchmark-yew"
+name = "js-framework-benchmark-yew-baseline"
 version = "1.0.0"
 authors = ["Isamu Mogi <isamu@leafytree.jp>"]
 edition = "2018"
@@ -14,6 +14,12 @@ wasm-bindgen = "0.2.62"
 # DO NOT MODIFY
 yew = { git = "https://github.com/yewstack/yew", branch = "master" }
 # DO NOT MODIFY
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+	"Window",
+]
 
 [profile.release]
 lto = true

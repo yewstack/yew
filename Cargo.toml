@@ -35,6 +35,9 @@ members = [
 
   # Tools
   "tools/changelog",
+  "tools/js-framework-benchmark/frameworks/keyed/wasm-bindgen",
+  "tools/js-framework-benchmark/frameworks/keyed/yew",
+  "tools/js-framework-benchmark/frameworks/keyed/yew-baseline",
 ]
 exclude = [
   # Tools
