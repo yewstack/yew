@@ -35,12 +35,16 @@ impl Deref for UseBoolToggleHandle {
 /// ...
 /// let value = use_bool_toggle(false);
 /// ...
-/// <button onclick={Callback::once(move |_| {
-///     value.toggle();
-///     // This will toggle the value to true.
-///     // Then render.
-///     // Post render it will toggle back to false skipping the render.
-/// })}>
+/// let onclick = {
+///     let value = value.clone();
+///     move |_| {
+///         value.toggle();
+///         // This will toggle the value to true.
+///         // Then render.
+///         // Post render it will toggle back to false skipping the render.
+///     }
+/// }
+/// <button {onclick}>{ "Click me" }</button>
 /// ...
 /// ```
 pub fn use_bool_toggle(default: bool) -> UseBoolToggleHandle {

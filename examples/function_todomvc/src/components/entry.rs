@@ -1,4 +1,4 @@
-use crate::hooks::use_bool_toggle::{use_bool_toggle, UseBoolToggleHandle};
+use crate::hooks::use_bool_toggle::use_bool_toggle;
 use crate::state::Entry as Item;
 use web_sys::{HtmlInputElement, MouseEvent};
 use yew::events::{Event, FocusEvent, KeyboardEvent};
@@ -48,7 +48,7 @@ pub fn entry(props: &EntryProps) -> Html {
     };
 
     let ondblclick = {
-        let edit_toggle = UseBoolToggleHandle::clone(&edit_toggle);
+        let edit_toggle = edit_toggle.clone();
         move |_| {
             edit_toggle.clone().toggle();
         }
