@@ -47,10 +47,8 @@ macro_rules! impl_action {
                 }
 
                 fn passive(&self) -> bool {
-                    match &self.callback {
-                        Callback::Callback{passive, ..} => (*passive).unwrap_or($passive),
-                        _ => $passive,
-                    }
+                    let Callback { passive, .. } =  &self.callback;
+                    (*passive).unwrap_or($passive)
                 }
             }
         }
