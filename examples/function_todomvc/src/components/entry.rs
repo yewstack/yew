@@ -47,13 +47,6 @@ pub fn entry(props: &EntryProps) -> Html {
         move |_| onremove.emit(id)
     };
 
-    let ondblclick = {
-        let edit_toggle = edit_toggle.clone();
-        move |_| {
-            edit_toggle.clone().toggle();
-        }
-    };
-
     html! {
         <li {class}>
             <div class="view">
@@ -63,7 +56,7 @@ pub fn entry(props: &EntryProps) -> Html {
                     checked={props.entry.completed}
                     onclick={ontoggle}
                 />
-                <label {ondblclick}>
+                <label ondblclick={move |_| edit_toggle.clone().toggle()}>
                     { &props.entry.description }
                 </label>
                 <button class="destroy" onclick={onremove} />
