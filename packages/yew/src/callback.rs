@@ -44,11 +44,7 @@ impl<IN, OUT> PartialEq for Callback<IN, OUT> {
 
 impl<IN, OUT> fmt::Debug for Callback<IN, OUT> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let data = match self {
-            Callback { .. } => "Callback<_>",
-        };
-
-        f.write_str(data)
+        write!(f, "Callback<_>")
     }
 }
 

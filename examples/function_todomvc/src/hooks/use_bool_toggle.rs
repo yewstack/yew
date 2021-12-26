@@ -52,7 +52,7 @@ pub fn use_bool_toggle(default: bool) -> UseBoolToggleHandle {
     };
 
     UseBoolToggleHandle {
-        value: state.clone(),
+        value: state,
         toggle,
     }
 }
