@@ -1,4 +1,4 @@
-use crate::hooks::use_bool_toggle::use_bool_toggle;
+use crate::hooks::use_bool_toggle::{use_bool_toggle, UseBoolToggleHandle};
 use crate::state::Entry as Item;
 use web_sys::{HtmlInputElement, MouseEvent};
 use yew::events::{Event, FocusEvent, KeyboardEvent};
@@ -37,6 +37,23 @@ pub fn entry(props: &EntryProps) -> Html {
         class.push("completed");
     }
 
+    let ontoggle = {
+        let ontoggle = props.ontoggle.clone();
+        move |_| ontoggle.emit(id)
+    };
+
+    let onremove = {
+        let onremove = props.onremove.clone();
+        move |_| onremove.emit(id)
+    };
+
+    let ondblclick = {
+        let edit_toggle = UseBoolToggleHandle::clone(&edit_toggle);
+        move |_| {
+            edit_toggle.clone().toggle();
+        }
+    };
+
     html! {
         <li {class}>
             <div class="view">
@@ -44,14 +61,12 @@ pub fn entry(props: &EntryProps) -> Html {
                     type="checkbox"
                     class="toggle"
                     checked={props.entry.completed}
-                    onclick={props.ontoggle.reform(move |_| id)}
+                    onclick={ontoggle}
                 />
-                <label ondblclick={Callback::once(move |_| {
-                    edit_toggle.toggle();
-                })}>
+                <label {ondblclick}>
                     { &props.entry.description }
                 </label>
-                <button class="destroy" onclick={props.onremove.reform(move |_| id)} />
+                <button class="destroy" onclick={onremove} />
             </div>
             <EntryEdit entry={props.entry.clone()} onedit={props.onedit.clone()} editing={is_editing} />
         </li>

@@ -21,10 +21,13 @@ impl Component for ListHeader {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let list_link = ctx.props().list_link.borrow().clone().unwrap();
-        let onmouseover = ctx.props().on_hover.reform(|e: MouseEvent| {
-            e.stop_propagation();
-            Hovered::Header
-        });
+        let onmouseover = {
+            let on_hover = ctx.props().on_hover.clone();
+            move |e: MouseEvent| {
+                e.stop_propagation();
+                on_hover.emit(Hovered::Header)
+            }
+        };
 
         html! {
             <div

@@ -68,10 +68,14 @@ impl Component for Slider {
             10f64.powi(-(p as i32))
         });
 
-        let oninput = onchange.reform(|e: InputEvent| {
-            let input: HtmlInputElement = e.target_unchecked_into();
-            input.value_as_number()
-        });
+        let oninput = {
+            let onchange = onchange.clone();
+            Callback::from(move |e: InputEvent| {
+                let input: HtmlInputElement = e.target_unchecked_into();
+                let output = input.value_as_number();
+                onchange.emit(output);
+            })
+        };
 
         html! {
             <div class="slider">

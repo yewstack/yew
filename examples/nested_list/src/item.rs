@@ -24,10 +24,11 @@ impl Component for ListItem {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let onmouseover = {
             let name = ctx.props().name.clone();
-            ctx.props().on_hover.reform(move |e: MouseEvent| {
+            let on_hover = ctx.props().on_hover.clone();
+            move |e: MouseEvent| {
                 e.stop_propagation();
-                Hovered::Item(name.clone())
-            })
+                on_hover.emit(Hovered::Item(name.clone()))
+            }
         };
         html! {
             <div class="list-item" {onmouseover}>
