@@ -50,18 +50,18 @@ function extractRelevantEvents(entries: logging.Entry[]) {
         } else if (e.params.name==='Paint') {
             if (config.LOG_TIMELINE) console.log("PAINT ",JSON.stringify(e));
             filteredEvents.push({type:'paint', ts: +e.params.ts, dur: +e.params.dur, end: +e.params.ts+e.params.dur, evt: JSON.stringify(e)});
-        // } else if (e.params.name==='Rasterize') {
-        //     console.log("RASTERIZE ",JSON.stringify(e));
-        //     filteredEvents.push({type:'paint', ts: +e.params.ts, dur: +e.params.dur, end: +e.params.ts+e.params.dur, evt: JSON.stringify(e)});
-        // } else if (e.params.name==='CompositeLayers') {
-        //     console.log("COMPOSITE ",JSON.stringify(e));
-        //     filteredEvents.push({type:'paint', ts: +e.params.ts, dur: +e.params.dur, end: +e.params.ts, evt: JSON.stringify(e)});
-        // } else if (e.params.name==='Layout') {
-        //     console.log("LAYOUT ",JSON.stringify(e));
-        //     filteredEvents.push({type:'paint', ts: +e.params.ts, dur: +e.params.dur, end: e.params.ts, evt: JSON.stringify(e)});
-        // } else if (e.params.name==='UpdateLayerTree') {
-        //     console.log("UPDATELAYER ",JSON.stringify(e));
-        //     filteredEvents.push({type:'paint', ts: +e.params.ts, dur: +e.params.dur, end: +e.params.ts+e.params.dur, evt: JSON.stringify(e)});
+        } else if (e.params.name==='Rasterize') {
+            if (config.LOG_TIMELINE) console.log("RASTERIZE ",JSON.stringify(e));
+            filteredEvents.push({type:'paint', ts: +e.params.ts, dur: +e.params.dur, end: +e.params.ts+e.params.dur, evt: JSON.stringify(e)});
+        } else if (e.params.name==='CompositeLayers') {
+            if (config.LOG_TIMELINE) console.log("COMPOSITE ",JSON.stringify(e));
+            filteredEvents.push({type:'paint', ts: +e.params.ts, dur: +e.params.dur, end: +e.params.ts, evt: JSON.stringify(e)});
+        } else if (e.params.name==='Layout') {
+            if (config.LOG_TIMELINE) console.log("LAYOUT ",JSON.stringify(e));
+            filteredEvents.push({type:'paint', ts: +e.params.ts, dur: +e.params.dur, end: e.params.ts, evt: JSON.stringify(e)});
+        } else if (e.params.name==='UpdateLayerTree') {
+            if (config.LOG_TIMELINE) console.log("UPDATELAYER ",JSON.stringify(e));
+            filteredEvents.push({type:'paint', ts: +e.params.ts, dur: +e.params.dur, end: +e.params.ts+e.params.dur, evt: JSON.stringify(e)});
         } else if (e.params.name==='MajorGC' && e.params.args.usedHeapSizeAfter) {
             filteredEvents.push({type:'gc', ts: +e.params.ts, end:+e.params.ts, mem: Number(e.params.args.usedHeapSizeAfter)/1024/1024});
             if (config.LOG_TIMELINE) console.log("GC ",JSON.stringify(e));
