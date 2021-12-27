@@ -35,7 +35,6 @@ members = [
 
   # Tools
   "tools/changelog",
-  "tools/js-framework-benchmark/results_diff",
   "tools/js-framework-benchmark/frameworks/keyed/wasm-bindgen",
   "tools/js-framework-benchmark/frameworks/keyed/yew",
   "tools/js-framework-benchmark/frameworks/keyed/yew-baseline",
@@ -43,4 +42,5 @@ members = [
 exclude = [
   # Tools
   "tools/website-test",
+  "tools/js-framework-benchmark/results_diff",
 ]
