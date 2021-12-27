@@ -431,8 +431,8 @@ impl VTag {
             .insert(key, value.into_prop_value());
     }
 
-    /// Add pending event listener on the [VTag]'s  [Element]
-    pub fn add_pending_listener(&mut self, listener: Rc<dyn Listener>) -> bool {
+    /// Add event listener on the [VTag]'s  [Element]
+    pub fn add_listener(&mut self, listener: Rc<dyn Listener>) -> bool {
         if let Listeners::Pending(listeners) = &mut self.listeners {
             let mut listeners = mem::take(listeners).into_vec();
             listeners.push(Some(listener));
@@ -442,13 +442,6 @@ impl VTag {
         } else {
             false
         }
-    }
-
-    #[deprecated(
-        note = "The `set_listener` method is deprecated and will be removed in the future. Use the `set_listeners` method instead."
-    )]
-    pub fn set_listener(&mut self, listeners: Box<[Option<Rc<dyn Listener>>]>) {
-        self.set_listeners(listeners)
     }
 
     /// Set event listeners on the [VTag]'s  [Element]
