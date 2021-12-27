@@ -431,7 +431,8 @@ impl VTag {
             .insert(key, value.into_prop_value());
     }
 
-    /// Add event listener on the [VTag]'s  [Element]
+    /// Add event listener on the [VTag]'s  [Element].
+    /// Returns `true` if the listener has been added, `false` otherwise.
     pub fn add_listener(&mut self, listener: Rc<dyn Listener>) -> bool {
         if let Listeners::Pending(listeners) = &mut self.listeners {
             let mut listeners = mem::take(listeners).into_vec();
