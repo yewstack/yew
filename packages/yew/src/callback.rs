@@ -70,8 +70,8 @@ impl<IN> Default for Callback<IN> {
 }
 
 impl<IN: 'static, OUT: 'static> Callback<IN, OUT> {
-    /// Changes the input type of the callback to another.
-    /// Works like the `map` method but in the opposite direction.
+    /// Creates a new callback from another callback and a function
+    /// That when emited will call that function and will emit the original callback
     pub fn reform<F, T>(&self, func: F) -> Callback<T>
     where
         F: Fn(T) -> IN + 'static,
