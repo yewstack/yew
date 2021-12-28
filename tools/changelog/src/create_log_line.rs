@@ -23,6 +23,7 @@ pub fn create_log_line(
     repo: &Repository,
     package_labels: &'static [&'static str],
     oid: Result<Oid, Error>,
+    token: Option<String>,
 ) -> Result<Option<LogLine>> {
     let oid = oid?;
     let commit = repo.find_commit(oid)?;
@@ -67,14 +68,14 @@ pub fn create_log_line(
     let user = GITHUB_USERS_FETCHER
         .lock()
         .map_err(|err| anyhow!("Failed to lock GITHUB_USERS_FETCHER: {}", err))?
-        .fetch_user_by_commit_author(email, oid.to_string())
+        .fetch_user_by_commit_author(email, oid.to_string(), token.clone())
         .with_context(|| format!("Could not find GitHub user for commit: {}", oid))?
         .to_string();
 
     let issue_labels = GITHUB_ISSUE_LABELS_FETCHER
         .lock()
         .map_err(|err| anyhow!("Failed to lock GITHUB_ISSUE_LABELS_FETCHER: {}", err))?
-        .fetch_issue_labels(issue_id.clone())
+        .fetch_issue_labels(issue_id.clone(), token)
         .with_context(|| format!("Could not find GitHub labels for issue: {}", issue_id))?;
 
     let is_issue_for_this_package = issue_labels

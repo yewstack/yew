@@ -10,6 +10,7 @@ pub fn create_log_lines(
     from: String,
     to: String,
     package_labels: &'static [&'static str],
+    token: Option<String>,
 ) -> Result<Vec<LogLine>> {
     let repo = Repository::open_from_env()?;
 
@@ -30,6 +31,6 @@ pub fn create_log_lines(
 
     revwalk
         .into_iter()
-        .filter_map(|oid| create_log_line(&repo, package_labels, oid).transpose())
+        .filter_map(|oid| create_log_line(&repo, package_labels, oid, token.clone()).transpose())
         .collect()
 }
