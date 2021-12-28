@@ -20,4 +20,4 @@ jobs:
         uses: hmarr/auto-approve-action@v2
         if: ${{ steps.is_organization_member.outputs.result == 'true' }}
         with:
-          github-token: ${{ secrets.YEWTEMPBOT_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
