@@ -34,6 +34,7 @@ fn generate_yew_changelog_file() -> Result<()> {
         changelog_path: "tests/test_changelog.md".to_string(),
         skip_file_write: false,
         skip_get_bump_version: true,
+        token: None,
     };
 
     cli_args.run().unwrap();
