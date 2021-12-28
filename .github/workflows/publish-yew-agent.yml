@@ -49,7 +49,7 @@ jobs:
         uses: mathiasvr/command-output@v1
         id: changelog
         with:
-          run: ./target/release/changelog yew-agent ${{ github.event.inputs.level }}
+          run: ./target/release/changelog yew-agent ${{ github.event.inputs.level }} -t ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit changelog
         run: |
