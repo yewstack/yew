@@ -9,6 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: hmarr/auto-approve-action@v2
-        if: github.actor == @yewstack/maintainers
+        if: github.actor == '@yewstack/maintainers'
         with:
           github-token: "${{ secrets.YEWTEMPBOT_TOKEN }}"
