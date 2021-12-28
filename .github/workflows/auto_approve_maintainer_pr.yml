@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Check if organization member
         id: is_organization_member
-        uses: jamessingleton/is-organization-member@v1
+        uses: JamesSingleton/is-organization-member@1.0.0
         with:
           organization: yewstack
           username: ${{ github.actor }}
