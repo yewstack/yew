@@ -5,7 +5,6 @@
 //! - [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)
 
 use crate::html::ImplicitClone;
-use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
@@ -16,104 +15,51 @@ use std::rc::Rc;
 /// Callbacks should be used from JS callbacks or `setTimeout` calls.
 /// </aside>
 /// An `Rc` wrapper is used to make it cloneable.
-pub enum Callback<IN> {
-    /// A callback which can be called multiple times with optional modifier flags
-    Callback {
-        /// A callback which can be called multiple times
-        cb: Rc<dyn Fn(IN)>,
-
-        /// Setting `passive` to [Some] explicitly makes the event listener passive or not.
-        /// Yew sets sane defaults depending on the type of the listener.
-        /// See
-        /// [addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).
-        passive: Option<bool>,
-    },
-
-    /// A callback which can only be called once. The callback will panic if it is
-    /// called more than once.
-    CallbackOnce(Rc<CallbackOnce<IN>>),
+pub struct Callback<IN, OUT = ()> {
+    /// A callback which can be called multiple times
+    pub(crate) cb: Rc<dyn Fn(IN) -> OUT>,
 }
 
-type CallbackOnce<IN> = RefCell<Option<Box<dyn FnOnce(IN)>>>;
-
-impl<IN, F: Fn(IN) + 'static> From<F> for Callback<IN> {
+impl<IN, OUT, F: Fn(IN) -> OUT + 'static> From<F> for Callback<IN, OUT> {
     fn from(func: F) -> Self {
-        Callback::Callback {
-            cb: Rc::new(func),
-            passive: None,
-        }
+        Callback { cb: Rc::new(func) }
     }
 }
 
-impl<IN> Clone for Callback<IN> {
+impl<IN, OUT> Clone for Callback<IN, OUT> {
     fn clone(&self) -> Self {
-        match self {
-            Callback::Callback { cb, passive } => Callback::Callback {
-                cb: cb.clone(),
-                passive: *passive,
-            },
-            Callback::CallbackOnce(cb) => Callback::CallbackOnce(cb.clone()),
+        Self {
+            cb: self.cb.clone(),
         }
     }
 }
 
 #[allow(clippy::vtable_address_comparisons)]
-impl<IN> PartialEq for Callback<IN> {
-    fn eq(&self, other: &Callback<IN>) -> bool {
-        match (&self, &other) {
-            (Callback::CallbackOnce(cb), Callback::CallbackOnce(other_cb)) => {
-                Rc::ptr_eq(cb, other_cb)
-            }
-            (
-                Callback::Callback { cb, passive },
-                Callback::Callback {
-                    cb: rhs_cb,
-                    passive: rhs_passive,
-                },
-            ) => Rc::ptr_eq(cb, rhs_cb) && passive == rhs_passive,
-            _ => false,
-        }
+impl<IN, OUT> PartialEq for Callback<IN, OUT> {
+    fn eq(&self, other: &Callback<IN, OUT>) -> bool {
+        let (Callback { cb }, Callback { cb: rhs_cb }) = (self, other);
+        Rc::ptr_eq(cb, rhs_cb)
     }
 }
 
-impl<IN> fmt::Debug for Callback<IN> {
+impl<IN, OUT> fmt::Debug for Callback<IN, OUT> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let data = match self {
-            Callback::Callback { .. } => "Callback<_>",
-            Callback::CallbackOnce(_) => "CallbackOnce<_>",
-        };
+        write!(f, "Callback<_>")
+    }
+}
 
-        f.write_str(data)
+impl<IN, OUT> Callback<IN, OUT> {
+    /// This method calls the callback's function.
+    pub fn emit(&self, value: IN) -> OUT {
+        (*self.cb)(value)
     }
 }
 
 impl<IN> Callback<IN> {
-    /// This method calls the callback's function.
-    pub fn emit(&self, value: IN) {
-        match self {
-            Callback::Callback { cb, .. } => cb(value),
-            Callback::CallbackOnce(rc) => {
-                let cb = rc.replace(None);
-                let f = cb.expect("callback contains `FnOnce` which has already been used");
-                f(value)
-            }
-        };
-    }
-
-    /// Creates a callback from an `FnOnce`. The programmer is responsible for ensuring
-    /// that the callback is only called once. If it is called more than once, the callback
-    /// will panic.
-    pub fn once<F>(func: F) -> Self
-    where
-        F: FnOnce(IN) + 'static,
-    {
-        Callback::CallbackOnce(Rc::new(RefCell::new(Some(Box::new(func)))))
-    }
-
     /// Creates a "no-op" callback which can be used when it is not suitable to use an
     /// `Option<Callback>`.
     pub fn noop() -> Self {
-        Self::from(|_| {})
+        Self::from(|_| ())
     }
 }
 
@@ -123,9 +69,9 @@ impl<IN> Default for Callback<IN> {
     }
 }
 
-impl<IN: 'static> Callback<IN> {
-    /// Changes the input type of the callback to another.
-    /// Works like the `map` method but in the opposite direction.
+impl<IN: 'static, OUT: 'static> Callback<IN, OUT> {
+    /// Creates a new callback from another callback and a function
+    /// That when emited will call that function and will emit the original callback
     pub fn reform<F, T>(&self, func: F) -> Callback<T>
     where
         F: Fn(T) -> IN + 'static,
@@ -139,4 +85,4 @@ impl<IN: 'static> Callback<IN> {
     }
 }
 
-impl<T> ImplicitClone for Callback<T> {}
+impl<IN, OUT> ImplicitClone for Callback<IN, OUT> {}

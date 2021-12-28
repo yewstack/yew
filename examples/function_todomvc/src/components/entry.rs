@@ -37,6 +37,16 @@ pub fn entry(props: &EntryProps) -> Html {
         class.push("completed");
     }
 
+    let ontoggle = {
+        let ontoggle = props.ontoggle.clone();
+        move |_| ontoggle.emit(id)
+    };
+
+    let onremove = {
+        let onremove = props.onremove.clone();
+        move |_| onremove.emit(id)
+    };
+
     html! {
         <li {class}>
             <div class="view">
@@ -44,14 +54,12 @@ pub fn entry(props: &EntryProps) -> Html {
                     type="checkbox"
                     class="toggle"
                     checked={props.entry.completed}
-                    onclick={props.ontoggle.reform(move |_| id)}
+                    onclick={ontoggle}
                 />
-                <label ondblclick={Callback::once(move |_| {
-                    edit_toggle.toggle();
-                })}>
+                <label ondblclick={move |_| edit_toggle.clone().toggle()}>
                     { &props.entry.description }
                 </label>
-                <button class="destroy" onclick={props.onremove.reform(move |_| id)} />
+                <button class="destroy" onclick={onremove} />
             </div>
             <EntryEdit entry={props.entry.clone()} onedit={props.onedit.clone()} editing={is_editing} />
         </li>
