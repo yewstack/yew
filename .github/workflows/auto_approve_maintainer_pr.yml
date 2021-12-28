@@ -8,7 +8,15 @@ jobs:
   auto-approve:
     runs-on: ubuntu-latest
     steps:
+      - name: Check if organization member
+        id: is_organization_member
+        uses: jamessingleton/is-organization-member@v1
+        with:
+          organization: yewstack
+          username: ${{ github.actor }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: hmarr/auto-approve-action@v2
-        if: github.actor == '@yewstack/maintainers'
+        if: steps.is_organization_member.outputs.result == true
         with:
           github-token: "${{ secrets.YEWTEMPBOT_TOKEN }}"
