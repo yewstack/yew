@@ -1,18 +1,16 @@
 use gloo::timers::callback::{Interval, Timeout};
 use std::{cell::RefCell, rc::Rc};
-use yew::{
-    function_component, html, use_effect_with_deps, use_mut_ref, use_reducer, use_state, Callback,
-};
+use yew::prelude::*;
 
 mod components;
-mod constant;
+mod constants;
 mod helper;
 mod state;
 
 use crate::components::{
     chessboard::Chessboard, game_status_board::GameStatusBoard, score_board::ScoreBoard,
 };
-use crate::constant::Status;
+use crate::constants::Status;
 use crate::state::{Action, State};
 
 #[function_component(App)]

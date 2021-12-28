@@ -1,24 +1,17 @@
 use web_sys::MouseEvent;
 use yew::prelude::*;
-use yew::{function_component, html, Properties};
 
-use crate::constant::CardName;
+use crate::constants::CardName;
 use crate::state::{Card, RawCard};
 
-#[derive(Properties, Clone)]
+#[derive(Properties, Clone, PartialEq)]
 pub struct Props {
     pub card: Card,
     pub on_flip: Callback<RawCard>,
 }
 
-impl PartialEq for Props {
-    fn eq(&self, other: &Props) -> bool {
-        self.card.eq(&other.card)
-    }
-}
-
-#[function_component(ChessboardCard)]
-pub fn chessboard_card(props: &Props) -> Html {
+#[function_component]
+pub fn ChessboardCard(props: &Props) -> Html {
     let Card { flipped, name, id } = props.card.clone();
 
     let get_link_by_cardname = {

@@ -3,19 +3,13 @@ use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 use yew::prelude::*;
 
-use crate::constant::{CardName, Status, KEY_BEST_SCORE};
+use crate::constants::{CardName, Status, KEY_BEST_SCORE};
 use crate::helper::shuffle_cards;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct RawCard {
     pub id: String,
     pub name: CardName,
-}
-
-impl PartialEq for RawCard {
-    fn eq(&self, other: &RawCard) -> bool {
-        self.id == other.id && self.name == other.name
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]

@@ -2,7 +2,7 @@ use nanoid::nanoid;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
-use crate::constant::RAW_CARDS;
+use crate::constants::RAW_CARDS;
 use crate::state::Card;
 
 pub fn shuffle_cards() -> Vec<Card> {

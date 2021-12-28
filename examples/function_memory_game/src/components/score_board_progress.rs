@@ -1,12 +1,12 @@
-use yew::{function_component, html, Properties};
+use yew::prelude::*;
 
 #[derive(PartialEq, Properties, Clone)]
 pub struct Props {
     pub unresolved_card_pairs: u8,
 }
 
-#[function_component(GameProgress)]
-pub fn score_board_progress(props: &Props) -> Html {
+#[function_component]
+pub fn ScoreBoardGameProgress(props: &Props) -> Html {
     html! {
         <div class="game-progress">
             <span>{"Cards not Matched"}</span>
