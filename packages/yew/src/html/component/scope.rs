@@ -305,57 +305,12 @@ impl<COMP: Component> Scope<COMP> {
         M: Into<COMP::Message>,
         F: Fn(IN) -> M + 'static,
     {
-        self.callback_with_passive(None, function)
-    }
-
-    /// Creates a `Callback` which will send a message to the linked
-    /// component's update method when invoked.
-    ///
-    /// Setting `passive` to [Some] explicitly makes the event listener passive or not.
-    /// Yew sets sane defaults depending on the type of the listener.
-    /// See
-    /// [addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).
-    ///
-    /// Please be aware that currently the result of this callback
-    /// synchronously schedules a call to the [Component](Component)
-    /// interface.
-    pub fn callback_with_passive<F, IN, M>(
-        &self,
-        passive: impl Into<Option<bool>>,
-        function: F,
-    ) -> Callback<IN>
-    where
-        M: Into<COMP::Message>,
-        F: Fn(IN) -> M + 'static,
-    {
         let scope = self.clone();
         let closure = move |input| {
             let output = function(input);
             scope.send_message(output);
         };
-        Callback::Callback {
-            passive: passive.into(),
-            cb: Rc::new(closure),
-        }
-    }
-
-    /// Creates a `Callback` from an `FnOnce` which will send a message
-    /// to the linked component's update method when invoked.
-    ///
-    /// Please be aware that currently the result of this callback
-    /// will synchronously schedule calls to the
-    /// [Component](Component) interface.
-    pub fn callback_once<F, IN, M>(&self, function: F) -> Callback<IN>
-    where
-        M: Into<COMP::Message>,
-        F: FnOnce(IN) -> M + 'static,
-    {
-        let scope = self.clone();
-        let closure = move |input| {
-            let output = function(input);
-            scope.send_message(output);
-        };
-        Callback::once(closure)
+        Callback::from(closure)
     }
 
     /// Creates a `Callback` which will send a batch of messages back
@@ -386,34 +341,6 @@ impl<COMP: Component> Scope<COMP> {
         closure.into()
     }
 
-    /// Creates a `Callback` from an `FnOnce` which will send a batch of messages back
-    /// to the linked component's update method when invoked.
-    ///
-    /// The callback function's return type is generic to allow for dealing with both
-    /// `Option` and `Vec` nicely. `Option` can be used when dealing with a callback that
-    /// might not need to send an update.
-    ///
-    /// ```ignore
-    /// link.batch_callback_once(|_| vec![Msg::A, Msg::B]);
-    /// link.batch_callback_once(|_| Some(Msg::A));
-    /// ```
-    ///
-    /// Please be aware that currently the results of these callbacks
-    /// will synchronously schedule calls to the
-    /// [Component](Component) interface.
-    pub fn batch_callback_once<F, IN, OUT>(&self, function: F) -> Callback<IN>
-    where
-        F: FnOnce(IN) -> OUT + 'static,
-        OUT: SendAsMessage<COMP>,
-    {
-        let scope = self.clone();
-        let closure = move |input| {
-            let messages = function(input);
-            messages.send(&scope);
-        };
-        Callback::once(closure)
-    }
-
     /// This method creates a [`Callback`] which returns a Future which
     /// returns a message to be sent back to the component's event
     /// loop.
@@ -435,29 +362,6 @@ impl<COMP: Component> Scope<COMP> {
         };
 
         closure.into()
-    }
-
-    /// This method creates a [`Callback`] from [`FnOnce`] which returns a Future
-    /// which returns a message to be sent back to the component's event
-    /// loop.
-    ///
-    /// # Panics
-    /// If the future panics, then the promise will not resolve, and
-    /// will leak.
-    pub fn callback_future_once<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
-    where
-        M: Into<COMP::Message>,
-        FU: Future<Output = M> + 'static,
-        FN: FnOnce(IN) -> FU + 'static,
-    {
-        let link = self.clone();
-
-        let closure = move |input: IN| {
-            let future: FU = function(input);
-            link.send_future(future);
-        };
-
-        Callback::once(closure)
     }
 
     /// This method processes a Future that returns a message and sends it back to the component's

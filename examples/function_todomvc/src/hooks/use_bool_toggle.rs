@@ -1,9 +1,10 @@
 use std::ops::Deref;
 use std::rc::Rc;
-use yew::functional::use_hook;
+use yew::{use_state_eq, UseStateHandle};
 
+#[derive(Clone)]
 pub struct UseBoolToggleHandle {
-    value: bool,
+    value: UseStateHandle<bool>,
     toggle: Rc<dyn Fn()>,
 }
 
@@ -34,37 +35,28 @@ impl Deref for UseBoolToggleHandle {
 /// ...
 /// let value = use_bool_toggle(false);
 /// ...
-/// <button onclick={Callback::once(move |_| {
-///     value.toggle();
-///     // This will toggle the value to true.
-///     // Then render.
-///     // Post render it will toggle back to false skipping the render.
-/// })}>
+/// let onclick = {
+///     let value = value.clone();
+///     move |_| {
+///         value.toggle();
+///         // This will toggle the value to true.
+///         // Then render.
+///         // Post render it will toggle back to false skipping the render.
+///     }
+/// }
+/// <button {onclick}>{ "Click me" }</button>
 /// ...
 /// ```
 pub fn use_bool_toggle(default: bool) -> UseBoolToggleHandle {
-    use_hook(
-        || default,
-        move |hook, updater| {
-            updater.post_render(move |state: &mut bool| {
-                if *state != default {
-                    *state = default;
-                }
-                false
-            });
+    let state = use_state_eq(|| default);
 
-            let toggle = Rc::new(move || {
-                updater.callback(move |st: &mut bool| {
-                    *st = !*st;
-                    true
-                })
-            });
+    let toggle = {
+        let state = state.clone();
+        Rc::new(move || state.set(!*state))
+    };
 
-            UseBoolToggleHandle {
-                value: *hook,
-                toggle,
-            }
-        },
-        |_| {},
-    )
+    UseBoolToggleHandle {
+        value: state,
+        toggle,
+    }
 }
