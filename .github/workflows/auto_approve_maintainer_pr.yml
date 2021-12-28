@@ -15,8 +15,10 @@ jobs:
           organization: 'yewstack'
           username: ${{ github.actor }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - run: echo steps.is_organization_member.outputs.result
 
       - uses: hmarr/auto-approve-action@v2
-        if: steps.is_organization_member.outputs.result == true
+        if: steps.is_organization_member.outputs.result == 'true'
         with:
           github-token: "${{ secrets.YEWTEMPBOT_TOKEN }}"
