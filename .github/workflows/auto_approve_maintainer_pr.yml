@@ -1,8 +1,6 @@
 name: Auto approve
 
-on:
-  pull_request:
-    branches: [master]
+on: pull_request_target
 
 jobs:
   auto-approve:
