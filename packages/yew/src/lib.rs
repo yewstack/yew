@@ -262,6 +262,8 @@ pub mod context;
 pub mod functional;
 pub mod html;
 pub mod scheduler;
+#[cfg(test)]
+pub mod tests;
 pub mod utils;
 pub mod virtual_dom;
 

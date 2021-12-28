@@ -258,7 +258,7 @@ impl PartialEq for VNode {
 #[cfg(test)]
 mod layout_tests {
     use super::*;
-    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
