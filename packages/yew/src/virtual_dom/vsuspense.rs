@@ -1,5 +1,8 @@
-use super::{Key, VDiff, VNode};
-use crate::html::{AnyScope, NodeRef};
+use super::{Key, VNode};
+use crate::{
+    dom_bundle::VDiff,
+    html::{AnyScope, NodeRef},
+};
 use web_sys::{Element, Node};
 
 /// This struct represents a suspendable DOM fragment.
@@ -48,7 +51,7 @@ impl VSuspense {
 }
 
 impl VDiff for VSuspense {
-    fn detach(&mut self, parent: &Element) {
+    fn detach(self, parent: &Element) {
         if self.suspended {
             self.fallback.detach(parent);
             self.children.detach(&self.detached_parent);
@@ -75,7 +78,7 @@ impl VDiff for VSuspense {
         ancestor: Option<VNode>,
     ) -> NodeRef {
         let (already_suspended, children_ancestor, fallback_ancestor) = match ancestor {
-            Some(VNode::VSuspense(mut m)) => {
+            Some(VNode::VSuspense(m)) => {
                 // We only preserve the child state if they are the same suspense.
                 if m.key != self.key || self.detached_parent != m.detached_parent {
                     m.detach(parent);
@@ -85,7 +88,7 @@ impl VDiff for VSuspense {
                     (m.suspended, Some(*m.children), Some(*m.fallback))
                 }
             }
-            Some(mut m) => {
+            Some(m) => {
                 m.detach(parent);
                 (false, None, None)
             }

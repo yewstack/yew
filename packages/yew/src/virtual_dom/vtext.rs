@@ -1,6 +1,7 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
-use super::{AttrValue, VDiff, VNode};
+use super::{AttrValue, VNode};
+use crate::dom_bundle::VDiff;
 use crate::html::{AnyScope, NodeRef};
 use gloo::console;
 use gloo_utils::document;
@@ -44,7 +45,7 @@ impl std::fmt::Debug for VText {
 
 impl VDiff for VText {
     /// Remove VText from parent.
-    fn detach(&mut self, parent: &Element) {
+    fn detach(mut self, parent: &Element) {
         let node = self
             .reference
             .take()
@@ -74,7 +75,7 @@ impl VDiff for VText {
         next_sibling: NodeRef,
         ancestor: Option<VNode>,
     ) -> NodeRef {
-        if let Some(mut ancestor) = ancestor {
+        if let Some(ancestor) = ancestor {
             if let VNode::VText(mut vtext) = ancestor {
                 self.reference = vtext.reference.take();
                 let text_node = self

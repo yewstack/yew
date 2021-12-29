@@ -1,6 +1,7 @@
 //! This module contains the implementation of a portal `VPortal`.
 
-use super::{VDiff, VNode};
+use super::VNode;
+use crate::dom_bundle::VDiff;
 use crate::html::{AnyScope, NodeRef};
 use web_sys::{Element, Node};
 
@@ -17,7 +18,7 @@ pub struct VPortal {
 }
 
 impl VDiff for VPortal {
-    fn detach(&mut self, _: &Element) {
+    fn detach(self, _: &Element) {
         self.node.detach(&self.host);
         self.sibling_ref.set(None);
     }
@@ -38,7 +39,7 @@ impl VDiff for VPortal {
                 let VPortal {
                     host: old_host,
                     next_sibling: old_sibling,
-                    mut node,
+                    node,
                     ..
                 } = old_portal;
                 if old_host != self.host {
@@ -53,7 +54,7 @@ impl VDiff for VPortal {
                     Some(*node)
                 }
             }
-            Some(mut node) => {
+            Some(node) => {
                 node.detach(parent);
                 None
             }

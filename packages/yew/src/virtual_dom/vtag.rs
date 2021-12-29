@@ -1,6 +1,7 @@
 //! This module contains the implementation of a virtual element node [VTag].
 
-use super::{Apply, AttrValue, Attributes, Key, Listener, Listeners, VDiff, VList, VNode};
+use super::{Apply, AttrValue, Attributes, Key, Listener, Listeners, VList, VNode};
+use crate::dom_bundle::VDiff;
 use crate::html::{AnyScope, IntoPropValue, NodeRef};
 use gloo::console;
 use gloo_utils::document;
@@ -471,7 +472,7 @@ impl VTag {
 
 impl VDiff for VTag {
     /// Remove VTag from parent.
-    fn detach(&mut self, parent: &Element) {
+    fn detach(mut self, parent: &Element) {
         let node = self
             .reference
             .take()
@@ -480,7 +481,7 @@ impl VDiff for VTag {
         self.listeners.unregister();
 
         // recursively remove its children
-        if let VTagInner::Other { children, .. } = &mut self.inner {
+        if let VTagInner::Other { children, .. } = self.inner {
             children.detach(&node);
         }
         if parent.remove_child(&node).is_err() {
@@ -518,7 +519,7 @@ impl VDiff for VTag {
         // unpack the enums (including `Option`s) all the time, resulting in a more streamlined
         // patching flow
         let (ancestor_tag, el) = match ancestor {
-            Some(mut ancestor) => {
+            Some(ancestor) => {
                 // If the ancestor is a tag of the same type, don't recreate, keep the
                 // old tag and update its attributes and children.
                 if match &ancestor {
@@ -593,9 +594,7 @@ impl VDiff for VTag {
                     }
                     (
                         VTagInner::Other { children: new, .. },
-                        VTagInner::Other {
-                            children: mut old, ..
-                        },
+                        VTagInner::Other { children: old, .. },
                     ) => {
                         if !new.is_empty() {
                             new.apply(parent_scope, &el, NodeRef::default(), Some(old.into()));

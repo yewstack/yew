@@ -1,6 +1,7 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
-use super::{Key, VDiff, VNode};
+use super::{Key, VNode};
+use crate::dom_bundle::VDiff;
 use crate::html::{AnyScope, BaseComponent, NodeRef, Scope, Scoped};
 use std::any::TypeId;
 use std::borrow::Borrow;
@@ -221,7 +222,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
 }
 
 impl VDiff for VComp {
-    fn detach(&mut self, _parent: &Element) {
+    fn detach(mut self, _parent: &Element) {
         self.take_scope().destroy();
     }
 

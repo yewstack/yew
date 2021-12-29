@@ -1,6 +1,7 @@
 //! This module contains the implementation of abstract virtual node.
 
-use super::{Key, VChild, VComp, VDiff, VList, VPortal, VSuspense, VTag, VText};
+use super::{Key, VChild, VComp, VList, VPortal, VSuspense, VTag, VText};
+use crate::dom_bundle::VDiff;
 use crate::html::{AnyScope, BaseComponent, NodeRef};
 use gloo::console;
 use std::cmp::PartialEq;
@@ -126,19 +127,19 @@ impl VNode {
 
 impl VDiff for VNode {
     /// Remove VNode from parent.
-    fn detach(&mut self, parent: &Element) {
-        match *self {
-            VNode::VTag(ref mut vtag) => vtag.detach(parent),
-            VNode::VText(ref mut vtext) => vtext.detach(parent),
-            VNode::VComp(ref mut vcomp) => vcomp.detach(parent),
-            VNode::VList(ref mut vlist) => vlist.detach(parent),
+    fn detach(self, parent: &Element) {
+        match self {
+            VNode::VTag(vtag) => vtag.detach(parent),
+            VNode::VText(vtext) => vtext.detach(parent),
+            VNode::VComp(vcomp) => vcomp.detach(parent),
+            VNode::VList(vlist) => vlist.detach(parent),
             VNode::VRef(ref node) => {
                 if parent.remove_child(node).is_err() {
                     console::warn!("Node not found to remove VRef");
                 }
             }
-            VNode::VPortal(ref mut vportal) => vportal.detach(parent),
-            VNode::VSuspense(ref mut vsuspense) => vsuspense.detach(parent),
+            VNode::VPortal(vportal) => vportal.detach(parent),
+            VNode::VSuspense(vsuspense) => vsuspense.detach(parent),
         }
     }
 
@@ -182,7 +183,7 @@ impl VDiff for VNode {
                 vlist.apply(parent_scope, parent, next_sibling, ancestor)
             }
             VNode::VRef(ref mut node) => {
-                if let Some(mut ancestor) = ancestor {
+                if let Some(ancestor) = ancestor {
                     if let VNode::VRef(n) = &ancestor {
                         if node == n {
                             return NodeRef::new(node.clone());

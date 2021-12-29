@@ -1,5 +1,6 @@
+use crate::dom_bundle::VDiff;
 use crate::html::{AnyScope, Scope};
-use crate::virtual_dom::{VDiff, VNode, VText};
+use crate::virtual_dom::{VNode, VText};
 use crate::{Component, Context, Html};
 use gloo::console::log;
 use web_sys::Node;

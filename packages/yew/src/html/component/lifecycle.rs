@@ -1,10 +1,11 @@
 //! Component lifecycle module
 
 use super::{AnyScope, BaseComponent, Scope};
+use crate::dom_bundle::VDiff;
 use crate::html::RenderError;
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{Suspense, Suspension};
-use crate::virtual_dom::{VDiff, VNode};
+use crate::virtual_dom::VNode;
 use crate::Callback;
 use crate::{Context, NodeRef};
 use std::rc::Rc;

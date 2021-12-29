@@ -258,6 +258,7 @@ pub mod macros {
 mod app_handle;
 pub mod callback;
 pub mod context;
+pub mod dom_bundle;
 pub mod functional;
 pub mod html;
 pub mod scheduler;

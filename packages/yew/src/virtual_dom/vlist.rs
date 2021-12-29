@@ -1,5 +1,6 @@
 //! This module contains fragments implementation.
-use super::{Key, VDiff, VNode, VText};
+use super::{Key, VNode, VText};
+use crate::dom_bundle::VDiff;
 use crate::html::{AnyScope, NodeRef};
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
@@ -152,7 +153,7 @@ impl VList {
         }
         // Remove extra nodes
         while diff < 0 {
-            let mut r = rights_it.next().unwrap();
+            let r = rights_it.next().unwrap();
             test_log!("removing: {:?}", r);
             r.detach(parent);
             diff += 1;
@@ -266,7 +267,7 @@ impl VList {
         }
 
         // Remove any extra rights
-        for (_, (mut r, _)) in rights_diff.drain() {
+        for (_, (r, _)) in rights_diff.drain() {
             test_log!("removing: {:?}", r);
             r.detach(parent);
         }
@@ -285,8 +286,8 @@ impl VList {
 }
 
 impl VDiff for VList {
-    fn detach(&mut self, parent: &Element) {
-        for mut child in self.children.drain(..) {
+    fn detach(mut self, parent: &Element) {
+        for child in self.children.drain(..) {
             child.detach(parent);
         }
     }
