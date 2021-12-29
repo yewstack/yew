@@ -1,4 +1,4 @@
-use multi_thread::native_worker::Worker;
+use agents::native_worker::Worker;
 use yew_agent::Threaded;
 
 fn main() {

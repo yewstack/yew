@@ -17,7 +17,7 @@ used as a `Html` value using `VRef`:
 ```rust
 use web_sys::{Element, Node};
 use yew::{Component, Context, html, Html};
-use gloo_utils::document;
+use gloo::utils::document;
 
 struct Comp;
 
@@ -154,45 +154,6 @@ impl Component for MyComponent {
     fn view(&self, ctx: &Context<Self>) -> Html {
         // Create a callback from a component link to handle it in a component
         let click_callback = ctx.link().callback(|_| Msg::Click);
-        html! {
-            <button onclick={click_callback}>
-                { "Click me!" }
-            </button>
-        }
-    }
-}
-```
-
-  </TabItem>
-  <TabItem value="Agent Handler" label="Agent Handler">
-
-```rust
-use yew::{html, Component, Context, Html};
-use yew_agent::{Dispatcher, Dispatched};
-use website_test::agents::{MyWorker, WorkerMsg};
-
-struct MyComponent {
-    worker: Dispatcher<MyWorker>,
-}
-
-impl Component for MyComponent {
-    type Message = WorkerMsg;
-    type Properties = ();
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        MyComponent {
-            worker: MyWorker::dispatcher(),
-        }
-    }
-
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        self.worker.send(msg);
-        false
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        // Create a callback from a worker to handle it in another context
-        let click_callback = ctx.link().callback(|_| WorkerMsg::Process);
         html! {
             <button onclick={click_callback}>
                 { "Click me!" }
