@@ -5,16 +5,10 @@ use yew::{function_component, html, Properties};
 use crate::constant::CardName;
 use crate::state::{Card, RawCard};
 
-#[derive(Properties, Clone)]
+#[derive(Properties, Clone, PartialEq)]
 pub struct Props {
     pub card: Card,
     pub on_flip: Callback<RawCard>,
-}
-
-impl PartialEq for Props {
-    fn eq(&self, other: &Props) -> bool {
-        self.card.eq(&other.card)
-    }
 }
 
 #[function_component(ChessboardCard)]

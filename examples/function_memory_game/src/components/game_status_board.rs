@@ -2,17 +2,11 @@ use crate::constant::Status;
 use yew::prelude::*;
 use yew::{function_component, html, Properties};
 
-#[derive(Properties, Clone)]
+#[derive(Properties, Clone, PartialEq)]
 pub struct Props {
     pub status: Status,
     pub sec_past: u32,
     pub on_reset: Callback<()>,
-}
-
-impl PartialEq for Props {
-    fn eq(&self, other: &Props) -> bool {
-        self.status == other.status && self.sec_past == other.sec_past
-    }
 }
 
 #[function_component(GameStatusBoard)]
