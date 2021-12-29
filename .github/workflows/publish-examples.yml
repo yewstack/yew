@@ -33,7 +33,7 @@ jobs:
         with:
           # Optional version of trunk to install(eg. 'v0.8.1', 'latest')
           version: 'latest'
-          
+
       - uses: jetli/wasm-bindgen-action@v0.1.0
         with:
           # Optional version of wasm-bindgen to install(eg. '0.2.68', 'latest')
@@ -52,7 +52,7 @@ jobs:
             example=$(basename "$path")
 
             # multi_thread doesn't work yet. See <https://github.com/thedodd/trunk/issues/40>.
-            if [[ "$example" == "multi_thread" ]]; then
+            if [[ "$example" == "agents" ]]; then
               continue
             fi
 
