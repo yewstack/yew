@@ -7,9 +7,3 @@ A port version of [react-memory-game](https://github.com/leftstick/react-memory-
 
 - Uses [`function_components`](https://yew.rs/docs/next/concepts/function-components)
 - Uses [`gloo_storage`](https://gloo-rs.web.app/docs/storage) to persist the state
-
-
-
-## LICENSE
-
-[MIT License](https://raw.githubusercontent.com/yewstack/yew/examples/function_memory_game/master/LICENSE)
