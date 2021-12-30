@@ -1,7 +1,9 @@
 use std::cell::RefCell;
 use std::future::Future;
+use std::pin::Pin;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::task::{Context, Poll};
 
 use thiserror::Error;
 use wasm_bindgen_futures::spawn_local;
@@ -67,11 +69,12 @@ impl Suspension {
         self.resumed.load(Ordering::Relaxed)
     }
 
+    /// Listens to a suspension and get notified when it resumes.
     pub(crate) fn listen(&self, cb: Callback<Self>) {
-        assert!(
-            !self.resumed.load(Ordering::Relaxed),
-            "You are attempting to add a callback after it's resumed."
-        );
+        if self.resumed() {
+            cb.emit(self.clone());
+            return;
+        }
 
         let mut listeners = self.listeners.borrow_mut();
 
@@ -81,7 +84,7 @@ impl Suspension {
     fn resume_by_ref(&self) {
         // The component can resume rendering by returning a non-suspended result after a state is
         // updated, so we always need to check here.
-        if !self.resumed.load(Ordering::Relaxed) {
+        if !self.resumed() {
             self.resumed.store(true, Ordering::Relaxed);
             let listeners = self.listeners.borrow();
 
@@ -89,6 +92,23 @@ impl Suspension {
                 listener.emit(self.clone());
             }
         }
+    }
+}
+
+impl Future for Suspension {
+    type Output = ();
+
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        if self.resumed() {
+            return Poll::Ready(());
+        }
+
+        let waker = cx.waker().clone();
+        self.listen(Callback::from(move |_| {
+            waker.clone().wake();
+        }));
+
+        Poll::Pending
     }
 }
 

@@ -239,14 +239,14 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
                         let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
                         let suspense = suspense_scope.get_component().unwrap();
 
-                        m.listen(Callback::once(move |_| {
+                        m.listen(Callback::from(move |_| {
                             scheduler::push_component_render(
                                 shared_state.as_ptr() as usize,
                                 RenderRunner {
                                     state: shared_state.clone(),
                                 },
                                 RenderedRunner {
-                                    state: shared_state,
+                                    state: shared_state.clone(),
                                 },
                             );
                         }));
