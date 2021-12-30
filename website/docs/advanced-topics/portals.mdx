@@ -26,7 +26,7 @@ pub struct ModalProps {
 
 #[function_component(Modal)]
 fn modal(props: &ModalProps) -> Html {
-    let modal_host = gloo_utils::document()
+    let modal_host = gloo::utils::document()
         .get_element_by_id("modal_host")
         .expect("a #modal_host element");
 

@@ -23,7 +23,7 @@ pub struct Cli {
     pub from: Option<String>,
 
     /// To commit. (ex. commit hash or for tags "refs/tags/yew-v0.19.3")
-    #[structopt(short, long, default_value = "HEAD")]
+    #[structopt(short = "r", long, default_value = "HEAD")]
     pub to: String,
 
     /// Path to changelog file
@@ -37,6 +37,10 @@ pub struct Cli {
     /// Skip getting the next version
     #[structopt(short = "b", long)]
     pub skip_get_bump_version: bool,
+
+    /// Github token
+    #[structopt(short = "t", long)]
+    pub token: Option<String>,
 }
 
 impl Cli {
@@ -49,6 +53,7 @@ impl Cli {
             skip_file_write,
             new_version_level,
             skip_get_bump_version,
+            token,
         } = self;
         let package_labels = package.as_labels();
 
@@ -73,7 +78,7 @@ impl Cli {
         };
 
         // walk over each commit find text, user, issue
-        let log_lines = create_log_lines(from_ref, to, package_labels)?;
+        let log_lines = create_log_lines(from_ref, to, package_labels, token)?;
 
         // categorize logs
         let (fixes, features): (Vec<_>, Vec<_>) = log_lines

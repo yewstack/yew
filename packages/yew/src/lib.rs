@@ -263,6 +263,8 @@ pub mod html;
 pub mod scheduler;
 mod sealed;
 pub mod suspense;
+#[cfg(test)]
+pub mod tests;
 pub mod utils;
 pub mod virtual_dom;
 

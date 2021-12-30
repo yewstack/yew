@@ -91,28 +91,6 @@ impl<AGN: Agent> AgentLink<AGN> {
         closure.into()
     }
 
-    /// This method creates a [`Callback`] from [`FnOnce`] which returns a Future
-    /// which returns a message to be sent back to the agent.
-    ///
-    /// # Panics
-    /// If the future panics, then the promise will not resolve, and
-    /// will leak.
-    pub fn callback_future_once<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
-    where
-        M: Into<AGN::Message>,
-        FU: Future<Output = M> + 'static,
-        FN: FnOnce(IN) -> FU + 'static,
-    {
-        let link = self.clone();
-
-        let closure = move |input: IN| {
-            let future: FU = function(input);
-            link.send_future(future);
-        };
-
-        Callback::once(closure)
-    }
-
     /// This method processes a Future that returns a message and sends it back to the agent.
     ///
     /// # Panics

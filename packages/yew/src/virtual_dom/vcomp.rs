@@ -564,7 +564,7 @@ mod layout_tests {
     extern crate self as yew;
 
     use crate::html;
-    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{diff_layouts, TestLayout};
     use crate::{Children, Component, Context, Html, Properties};
     use std::marker::PhantomData;
 

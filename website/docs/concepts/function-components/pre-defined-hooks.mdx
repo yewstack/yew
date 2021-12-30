@@ -75,25 +75,15 @@ If you need a mutable reference, consider using [`use_mut_ref`](#use_mut_ref).
 If you need the component to be re-rendered on state change, consider using [`use_state`](#use_state).
 
 ```rust
-// EventBus is an implementation of yew_agent::Agent
-use website_test::agents::EventBus;
 use yew::{function_component, html, use_ref, use_state, Callback, Html};
-use yew_agent::Bridged;
 
 #[function_component(UseRef)]
 fn ref_hook() -> Html {
-    let greeting = use_state(|| "No one has greeted me yet!".to_owned());
-
-    {
-        let greeting = greeting.clone();
-        use_ref(|| EventBus::bridge(Callback::from(move |msg| {
-            greeting.set(msg);
-        })));
-    }
+    let message = use_ref(|| "Some Expensive State.".to_string());
 
     html! {
         <div>
-            <span>{ (*greeting).clone() }</span>
+            <span>{ (*message).clone() }</span>
         </div>
     }
 }
@@ -123,7 +113,7 @@ fn mut_ref_hook() -> Html {
     let message_count = use_mut_ref(|| 0);
 
     let onclick = Callback::from(move |_| {
-        let window = gloo_utils::window();
+        let window = gloo::utils::window();
 
         if *message_count.borrow_mut() > 3 {
             window.alert_with_message("Message limit reached").unwrap();
@@ -317,10 +307,10 @@ fn effect() -> Html {
         let counter = counter.clone();
         use_effect(move || {
             // Make a call to DOM API after component is rendered
-            gloo_utils::document().set_title(&format!("You clicked {} times", *counter));
+            gloo::utils::document().set_title(&format!("You clicked {} times", *counter));
 
             // Perform the cleanup
-            || gloo_utils::document().set_title("You clicked 0 times")
+            || gloo::utils::document().set_title("You clicked 0 times")
         });
     }
     let onclick = {

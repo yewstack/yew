@@ -543,10 +543,6 @@ mod tests {
     }
 
     trait Mixin {
-        fn passive() -> Option<bool> {
-            None
-        }
-
         fn view<C>(ctx: &Context<C>, state: &State) -> Html
         where
             C: Component<Message = Message>,
@@ -557,8 +553,7 @@ mod tests {
                 }
             } else {
                 html! {
-                    <a onclick={ctx.link().callback_with_passive(
-                        Self::passive(),
+                    <a onclick={ctx.link().callback(
                         |_| Message::Action,
                     )}>
                         {state.action}
@@ -669,19 +664,6 @@ mod tests {
         }))
         .await
         .unwrap();
-    }
-
-    #[test]
-    async fn passive() {
-        struct Passive;
-
-        impl Mixin for Passive {
-            fn passive() -> Option<bool> {
-                Some(true)
-            }
-        }
-
-        assert_async::<Passive>().await;
     }
 
     async fn assert_async<M: Mixin + 'static>() {

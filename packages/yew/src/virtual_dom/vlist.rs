@@ -358,7 +358,7 @@ mod layout_tests {
     extern crate self as yew;
 
     use crate::html;
-    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
@@ -436,7 +436,7 @@ mod layout_tests_keys {
     extern crate self as yew;
 
     use crate::html;
-    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
     use crate::{Children, Component, Context, Html, Properties};
     use web_sys::Node;

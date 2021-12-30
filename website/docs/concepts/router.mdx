@@ -71,7 +71,7 @@ enum Route {
 fn secure() -> Html {
     let navigator = use_navigator().unwrap();
 
-    let onclick = Callback::once(move |_| navigator.push(Route::Home));
+    let onclick = Callback::from(move |_| navigator.push(Route::Home));
     html! {
         <div>
             <h1>{ "Secure" }</h1>
@@ -203,7 +203,7 @@ Here's how to implement a button that navigates to the `Home` route when clicked
 #[function_component(MyComponent)]
 pub fn my_component() -> Html {
     let navigator = use_navigator().unwrap();
-    let onclick = Callback::once(move |_| navigator.push(Route::Home));
+    let onclick = Callback::from(move |_| navigator.push(Route::Home));
 
     html! {
         <>
@@ -214,7 +214,7 @@ pub fn my_component() -> Html {
 ```
 
 :::caution
-The example here uses `Callback::once`. Use a normal callback if the target route can be the same with the route
+The example here uses `Callback::from`. Use a normal callback if the target route can be the same with the route
 the component is in, or just to play safe. For example, when you have a logo button on every page, that goes back to
 home when clicked, clicking that button twice on home page causes the code to panic because the second click pushes an
 identical Home route and the `use_navigator` hook won't trigger a re-render.
@@ -236,7 +236,7 @@ pub fn nav_items() -> Html {
 
     let go_home_button = {
         let navigator = navigator.clone();
-        let onclick = Callback::once(move |_| navigator.push(Route::Home));
+        let onclick = Callback::from(move |_| navigator.push(Route::Home));
         html! {
             <button {onclick}>{"click to go home"}</button>
         }
@@ -244,14 +244,14 @@ pub fn nav_items() -> Html {
 
     let go_to_first_post_button = {
         let navigator = navigator.clone();
-        let onclick = Callback::once(move |_| navigator.push(Route::Post { id: "first-post".to_string() }));
+        let onclick = Callback::from(move |_| navigator.push(Route::Post { id: "first-post".to_string() }));
         html! {
             <button {onclick}>{"click to go the first post"}</button>
         }
     };
 
     let go_to_secure_button = {
-        let onclick = Callback::once(move |_| navigator.push(Route::Secure));
+        let onclick = Callback::from(move |_| navigator.push(Route::Secure));
         html! {
             <button {onclick}>{"click to go to secure"}</button>
         }
@@ -275,7 +275,7 @@ identical with the function component case. Here's an example of a view function
 ```rust ,ignore
 fn view(&self, ctx: &Context<Self>) -> Html {
     let navigator = ctx.link().navigator().unwrap();
-    let onclick = Callback::once(move |_| navigator.push(MainRoute::Home));
+    let onclick = Callback::from(move |_| navigator.push(MainRoute::Home));
     html!{
         <button {onclick}>{"Go Home"}</button>
     }
