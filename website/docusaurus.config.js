@@ -29,7 +29,7 @@ module.exports = {
         {
           type: 'doc',
           position: 'left',
-          docId: 'getting-started/project-setup/introduction',
+          docId: 'getting-started/introduction',
           label: 'Docs',
         },
         {
@@ -124,7 +124,7 @@ module.exports = {
           // this handles the redirect from `/next` -> to the (current) first item in the docs sidebar
           // note: if the first item is changed, it should be reflected here
           {
-            to: '/docs/next/getting-started/project-setup/introduction', // string
+            to: '/docs/next/getting-started/introduction', // string
             from: ['/docs/next'], // string | string[]
           },
         ],
