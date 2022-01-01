@@ -73,8 +73,11 @@ use yew::prelude::*;
 fn App() -> Html {
     let counter = use_state(|| 0);
     let onclick = {
-        let couner = counter.clone();
-        move |_| couner.set(*counter + 1)
+        let counter = counter.clone();
+        move |_| {
+            let value = *counter + 1;
+            counter.set(value);
+        }
     };
 
     html! {
