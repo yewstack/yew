@@ -94,6 +94,11 @@ module.exports = {
         {
             type: 'category',
             label: 'Advanced topics',
+            link: {
+                type: 'generated-index',
+                title: 'Advanced topics',
+                description: 'Learn about the advanced topics and inner workings of Yew!',
+            },
             items: [
                 "advanced-topics/how-it-works",
                 "advanced-topics/optimizations",
@@ -103,13 +108,16 @@ module.exports = {
         {
             type: 'category',
             label: 'More',
+            link: {
+                type: 'generated-index',
+                title: 'Miscellaneous',
+            },
             items: [
                 "more/debugging",
                 "more/external-libs",
                 "more/css",
                 "more/testing",
                 "more/roadmap",
-                "more/wasm-build-tools"
             ]
         },
         {
