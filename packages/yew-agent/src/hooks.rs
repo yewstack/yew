@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::*;
 use yew::prelude::*;
+use crate::*;
 
 /// State handle for [`use_bridge`] hook
 pub struct UseBridgeHandle<T>
@@ -46,10 +46,12 @@ where
     }
 
     let bridge = use_mut_ref(move || {
-        T::bridge(Callback::from(move |output| {
-            let on_output = on_output_ref.borrow().clone();
-            on_output(output);
-        }))
+        T::bridge({
+            Rc::new(move |output| {
+                let on_output = on_output_ref.borrow().clone();
+                on_output(output);
+            })
+        })
     });
 
     UseBridgeHandle { inner: bridge }

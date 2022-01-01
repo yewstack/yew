@@ -7,28 +7,6 @@ readme = "../../README.md"
 description = "Agents for Yew"
 license = "MIT OR Apache-2.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-anymap2 = "0.13"
-bincode = "1"
-gloo-console = "0.2"
-gloo-utils = "0.1"
-js-sys = "0.3"
-serde = { version = "1", features = ["derive"] }
-slab = "0.4"
-wasm-bindgen = "0.2"
 yew = { version = "0.19.3", path = "../yew" }
-wasm-bindgen-futures = "0.4"
-
-[dependencies.web-sys]
-version = "0.3"
-features = [
-    "Blob",
-    "BlobPropertyBag",
-    "DedicatedWorkerGlobalScope",
-    "MessageEvent",
-    "Url",
-    "Worker",
-    "WorkerOptions",
-]
+gloo-worker = { path = "../../../gloo/crates/worker" }
