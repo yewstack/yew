@@ -71,7 +71,7 @@ use yew::prelude::*;
 
 #[function_component]
 fn App() -> Html {
-    let counter = use_state(|| 0)
+    let counter = use_state(|| 0);
     let onclick = {
         let couner = counter.clone();
         move |_| couner.set(*counter + 1)
