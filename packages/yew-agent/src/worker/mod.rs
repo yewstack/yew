@@ -2,8 +2,8 @@ mod private;
 mod public;
 mod queue;
 
-pub use private::Private;
-pub use public::Public;
+pub use private::{Private, PrivateAgent};
+pub use public::{Public, PublicAgent};
 
 use super::*;
 use js_sys::{Array, Reflect, Uint8Array};
@@ -13,11 +13,19 @@ use web_sys::{
     Blob, BlobPropertyBag, DedicatedWorkerGlobalScope, MessageEvent, Url, Worker, WorkerOptions,
 };
 
-/// Implements rules to register a worker in a separate thread.
-pub trait Threaded {
-    /// Executes an agent in the current environment.
-    /// Uses in `main` function of a worker.
-    fn register();
+pub(crate) struct WorkerResponder {}
+
+impl<AGN> Responder<AGN> for WorkerResponder
+where
+    AGN: Agent,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+{
+    fn respond(&self, id: HandlerId, output: AGN::Output) {
+        let msg = FromWorker::ProcessOutput(id, output);
+        let data = msg.pack();
+        worker_self().post_message_vec(data);
+    }
 }
 
 /// Message packager, based on serde::Serialize/Deserialize
