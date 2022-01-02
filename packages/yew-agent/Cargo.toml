@@ -9,4 +9,4 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 yew = { version = "0.19.3", path = "../yew" }
-gloo-worker = { path = "../../../gloo/crates/worker" }
+gloo-worker = { git = "https://github.com/hamza1311/gloo", branch = "gloo-worker" }

@@ -13,7 +13,7 @@ impl<T> ImplicitClone for Rc<T> {}
 
 impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
-// TODO there are still a few missing like AgentScope
+// TODO there are still a few missing
 
 /// A trait similar to `Into<T>` which allows conversion to a value of a `Properties` struct.
 pub trait IntoPropValue<T> {

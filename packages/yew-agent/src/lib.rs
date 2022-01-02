@@ -2,6 +2,6 @@
 
 mod hooks;
 
-pub use hooks::{use_bridge, UseBridgeHandle};
 #[doc(inline)]
 pub use gloo_worker::*;
+pub use hooks::{use_bridge, UseBridgeHandle};

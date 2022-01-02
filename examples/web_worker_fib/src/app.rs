@@ -1,5 +1,5 @@
-use std::rc::Rc;
 use crate::agent::{Worker, WorkerInput, WorkerOutput};
+use std::rc::Rc;
 
 use web_sys::HtmlInputElement;
 use yew::prelude::*;

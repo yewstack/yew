@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use yew::prelude::*;
 use crate::*;
+use yew::prelude::*;
 
 /// State handle for [`use_bridge`] hook
 pub struct UseBridgeHandle<T>
