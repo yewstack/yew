@@ -84,7 +84,8 @@ fn multiple_use_state_setters() {
 
 #[wasm_bindgen_test]
 fn use_state_eq_works() {
-    static mut RENDER_COUNT: usize = 0;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    static RENDER_COUNT: AtomicUsize = AtomicUsize::new(0);
 
     struct UseStateFunction {}
 
@@ -92,10 +93,7 @@ fn use_state_eq_works() {
         type TProps = ();
 
         fn run(_: &Self::TProps) -> HtmlResult {
-            // No race conditions will be caused since its only used in one place
-            unsafe {
-                RENDER_COUNT += 1;
-            }
+            RENDER_COUNT.fetch_add(1, Ordering::Relaxed);
             let counter = use_state_eq(|| 0);
             counter.set(1);
 
@@ -114,7 +112,5 @@ fn use_state_eq_works() {
     );
     let result = obtain_result();
     assert_eq!(result.as_str(), "1");
-    unsafe {
-        assert_eq!(RENDER_COUNT, 2);
-    }
+    assert_eq!(RENDER_COUNT.load(Ordering::Relaxed), 2);
 }

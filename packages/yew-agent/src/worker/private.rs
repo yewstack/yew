@@ -21,6 +21,56 @@ pub struct Private<AGN> {
     _agent: PhantomData<AGN>,
 }
 
+/// A trait to enable private agents being registered in a web worker.
+pub trait PrivateAgent {
+    /// Executes an agent in the current environment.
+    /// Uses in `main` function of a worker.
+    fn register();
+}
+
+impl<AGN> PrivateAgent for AGN
+where
+    AGN: Agent<Reach = Private<AGN>>,
+    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
+    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
+{
+    fn register() {
+        let scope = AgentScope::<AGN>::new();
+        let responder = WorkerResponder {};
+        let link = AgentLink::connect(&scope, responder);
+        let upd = AgentLifecycleEvent::Create(link);
+        scope.send(upd);
+        let handler = move |data: Vec<u8>| {
+            let msg = ToWorker::<AGN::Input>::unpack(&data);
+            match msg {
+                ToWorker::Connected(_id) => {
+                    let upd = AgentLifecycleEvent::Connected(SINGLETON_ID);
+                    scope.send(upd);
+                }
+                ToWorker::ProcessInput(_id, value) => {
+                    let upd = AgentLifecycleEvent::Input(value, SINGLETON_ID);
+                    scope.send(upd);
+                }
+                ToWorker::Disconnected(_id) => {
+                    let upd = AgentLifecycleEvent::Disconnected(SINGLETON_ID);
+                    scope.send(upd);
+                }
+                ToWorker::Destroy => {
+                    let upd = AgentLifecycleEvent::Destroy;
+                    scope.send(upd);
+                    // Terminates web worker
+                    worker_self().close();
+                }
+            }
+        };
+        let loaded: FromWorker<AGN::Output> = FromWorker::WorkerLoaded;
+        let loaded = loaded.pack();
+        let worker = worker_self();
+        worker.set_onmessage_closure(handler);
+        worker.post_message_vec(loaded);
+    }
+}
+
 impl<AGN> Discoverer for Private<AGN>
 where
     AGN: Agent,
