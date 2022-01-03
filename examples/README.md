@@ -50,7 +50,7 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [timer](timer)                                     | Demonstrates the use of the interval and timeout services                                                                          |
 | [todomvc](todomvc)                                 | Implementation of [TodoMVC](http://todomvc.com/)                                                                                   |
 | [two_apps](two_apps)                               | Runs two separate Yew apps which can communicate with each other                                                                   |
-| [web_worker_fib](web_worker_fib)                   | Calculate fibbonnaci value of a number in a web worker thread                                                                      |
+| [web_worker_fib](web_worker_fib)                   | Calculate fibonacci value of a number in a web worker thread                                                                      |
 | [webgl](webgl)                                     | Controls a [WebGL canvas](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Getting_started_with_WebGL) from Yew |
 
 ## Next steps
