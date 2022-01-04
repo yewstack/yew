@@ -990,6 +990,35 @@ mod layout_tests_keys {
 
         layouts.extend(vec![
             TestLayout {
+                name: "Swap 1,2 <-> 3,4 - before",
+                node: html! {
+                    <>
+                        <i key="1"></i>
+                        <e key="2"></e>
+                        <p key="3"></p>
+                        <a key="4"></a>
+                        <u key="5"></u>
+                    </>
+                },
+                expected: "<i></i><e></e><p></p><a></a><u></u>",
+            },
+            TestLayout {
+                name: "Swap 1,2 <-> 3,4 - after",
+                node: html! {
+                    <>
+                        <p key="3"></p>
+                        <a key="4"></a>
+                        <i key="1"></i>
+                        <e key="2"></e>
+                        <u key="5"></u>
+                    </>
+                },
+                expected: "<p></p><a></a><i></i><e></e><u></u>",
+            },
+        ]);
+
+        layouts.extend(vec![
+            TestLayout {
                 name: "Swap lists - before",
                 node: html! {
                     <>
