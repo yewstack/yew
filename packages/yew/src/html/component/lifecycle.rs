@@ -1,11 +1,10 @@
 //! Component lifecycle module
 
 use super::{AnyScope, BaseComponent, Scope};
-use crate::dom_bundle::{DomBundle, VDiff};
+use crate::dom_bundle::{BNode, DomBundle, VDiff};
 use crate::html::RenderError;
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{Suspense, Suspension};
-use crate::virtual_dom::VNode;
 use crate::Callback;
 use crate::{Context, NodeRef};
 use std::rc::Rc;
@@ -13,7 +12,7 @@ use web_sys::Element;
 
 pub(crate) struct ComponentState<COMP: BaseComponent> {
     pub(crate) component: Box<COMP>,
-    pub(crate) root_node: VNode,
+    pub(crate) root_node: BNode,
 
     context: Context<COMP>,
     parent: Element,
@@ -32,7 +31,7 @@ impl<COMP: BaseComponent> ComponentState<COMP> {
     pub(crate) fn new(
         parent: Element,
         next_sibling: NodeRef,
-        root_node: VNode,
+        root_node: BNode,
         node_ref: NodeRef,
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
@@ -65,7 +64,7 @@ impl<COMP: BaseComponent> ComponentState<COMP> {
 pub(crate) struct CreateRunner<COMP: BaseComponent> {
     pub(crate) parent: Element,
     pub(crate) next_sibling: NodeRef,
-    pub(crate) placeholder: VNode,
+    pub(crate) placeholder: BNode,
     pub(crate) node_ref: NodeRef,
     pub(crate) props: Rc<COMP::Properties>,
     pub(crate) scope: Scope<COMP>,
@@ -76,7 +75,7 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
         let mut current_state = self.scope.state.borrow_mut();
         if current_state.is_none() {
             #[cfg(debug_assertions)]
-            crate::virtual_dom::vcomp::log_event(self.scope.vcomp_id, "create");
+            crate::dom_bundle::log_event(self.scope.vcomp_id, "create");
 
             *current_state = Some(ComponentState::new(
                 self.parent,
@@ -140,7 +139,7 @@ impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
             };
 
             #[cfg(debug_assertions)]
-            crate::virtual_dom::vcomp::log_event(
+            crate::dom_bundle::log_event(
                 state.vcomp_id,
                 format!("update(schedule_render={})", schedule_render),
             );
@@ -169,7 +168,7 @@ impl<COMP: BaseComponent> Runnable for DestroyRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().take() {
             #[cfg(debug_assertions)]
-            crate::virtual_dom::vcomp::log_event(state.vcomp_id, "destroy");
+            crate::dom_bundle::log_event(state.vcomp_id, "destroy");
 
             state.component.destroy(&state.context);
             state.root_node.detach(&state.parent);
@@ -186,7 +185,7 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             #[cfg(debug_assertions)]
-            crate::virtual_dom::vcomp::log_event(state.vcomp_id, "render");
+            crate::dom_bundle::log_event(state.vcomp_id, "render");
 
             match state.component.view(&state.context) {
                 Ok(root) => {
@@ -270,7 +269,7 @@ impl<COMP: BaseComponent> Runnable for RenderedRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             #[cfg(debug_assertions)]
-            crate::virtual_dom::vcomp::log_event(state.vcomp_id, "rendered");
+            crate::dom_bundle::log_event(state.vcomp_id, "rendered");
 
             let first_render = !state.has_rendered;
             state.component.rendered(&state.context, first_render);
@@ -402,7 +401,11 @@ mod tests {
 
     fn test_lifecycle(props: Props, expected: &[&str]) {
         let document = gloo_utils::document();
-        let scope = Scope::<Comp>::new(None);
+        let scope = Scope::<Comp>::new(
+            None,
+            #[cfg(debug_assertions)]
+            0,
+        );
         let el = document.create_element("div").unwrap();
         let lifecycle = props.lifecycle.clone();
 

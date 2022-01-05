@@ -273,7 +273,7 @@ pub mod virtual_dom;
 pub mod events {
     pub use crate::html::TargetCast;
 
-    pub use crate::virtual_dom::listeners::set_event_bubbling;
+    pub use crate::dom_bundle::set_event_bubbling;
 
     #[doc(no_inline)]
     pub use web_sys::{

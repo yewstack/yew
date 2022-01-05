@@ -3,15 +3,34 @@
 //! A bundle, borrowed from the mathematical meaning, is any structure over some base space.
 //! In our case, the base space is the virtual dom we're trying to render.
 //! In order to efficiently implement updates, and diffing, additional information has to be
-//! kept around.
+//! kept around. This information is carried in the bundle.
 
-use web_sys::Element;
+mod attributes;
+mod bcomp;
+mod blist;
+mod bnode;
+mod bportal;
+mod bsuspense;
+mod btag;
+mod listeners;
 
-use crate::{html::AnyScope, virtual_dom::VNode, NodeRef};
+#[cfg(debug_assertions)]
+pub(crate) use self::bcomp::log_event;
 
-// TODO(#938): What about implementing `VDiff` for `Element`?
-// It would make it possible to include ANY element into the tree.
-// `Ace` editor embedding for example?
+pub use self::bcomp::BComp;
+pub use self::blist::BList;
+pub use self::bnode::BNode;
+pub use self::bportal::BPortal;
+pub use self::bsuspense::BSuspense;
+pub use self::btag::BTag;
+
+pub(crate) use self::attributes::{Apply, InputFields, Value};
+pub(crate) use self::bcomp::{Mountable, PropsWrapper};
+#[doc(hidden)]
+pub use self::listeners::set_event_bubbling;
+
+use crate::{html::AnyScope, NodeRef};
+use web_sys::{Element, Node};
 
 pub(crate) trait DomBundle {
     /// Remove self from parent.
@@ -22,6 +41,10 @@ pub(crate) trait DomBundle {
     /// (which destroys component state).
     fn shift(&self, next_parent: &Element, next_sibling: NodeRef);
 }
+
+// TODO(#938): What about implementing `VDiff` for `Element`?
+// It would make it possible to include ANY element into the tree.
+// `Ace` editor embedding for example?
 
 /// This trait provides features to update a tree by calculating a difference against another tree.
 pub(crate) trait VDiff {
@@ -64,6 +87,31 @@ pub(crate) trait VDiff {
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
-        ancestor: &mut VNode,
+        ancestor: &mut BNode,
     ) -> NodeRef;
 }
+
+pub(crate) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&Node>) {
+    match next_sibling {
+        Some(next_sibling) => parent
+            .insert_before(node, Some(next_sibling))
+            .expect("failed to insert tag before next sibling"),
+        None => parent.append_child(node).expect("failed to append child"),
+    };
+}
+
+/// Log an operation during tests for debugging purposes
+/// Set RUSTFLAGS="--cfg verbose_tests" environment variable to activate.
+#[cfg(all(test, feature = "wasm_test", verbose_tests))]
+macro_rules! test_log {
+    ($fmt:literal, $($arg:expr),* $(,)?) => {
+        ::wasm_bindgen_test::console_log!(concat!("\t  ", $fmt), $($arg),*);
+    };
+}
+#[cfg(not(all(test, feature = "wasm_test", verbose_tests)))]
+macro_rules! test_log {
+    ($fmt:literal, $($arg:expr),* $(,)?) => {
+        let _ = std::format_args!(concat!("\t  ", $fmt), $($arg),*);
+    };
+}
+pub(self) use test_log;

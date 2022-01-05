@@ -1,7 +1,7 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
-use super::{AttrValue, VNode};
-use crate::dom_bundle::{DomBundle, VDiff};
+use super::AttrValue;
+use crate::dom_bundle::{insert_node, BNode, DomBundle, VDiff};
 use crate::html::{AnyScope, NodeRef};
 use gloo::console;
 use gloo_utils::document;
@@ -77,7 +77,7 @@ impl VDiff for VText {
         next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
         let text_node = document().create_text_node(&self.text);
-        super::insert_node(&text_node, parent, next_sibling.get().as_ref());
+        insert_node(&text_node, parent, next_sibling.get().as_ref());
         self.reference = Some(text_node.clone());
         let node_ref = NodeRef::new(text_node.into());
         (node_ref, self)
@@ -89,9 +89,9 @@ impl VDiff for VText {
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
-        ancestor: &mut VNode,
+        ancestor: &mut BNode,
     ) -> NodeRef {
-        if let VNode::VText(ref mut vtext) = ancestor {
+        if let BNode::BText(ref mut vtext) = ancestor {
             let ancestor = std::mem::replace(vtext, self);
             vtext.reference = ancestor.reference;
             let text_node = vtext

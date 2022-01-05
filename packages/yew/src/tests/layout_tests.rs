@@ -1,5 +1,5 @@
-use crate::dom_bundle::VDiff;
-use crate::html::{AnyScope, Scope};
+use crate::dom_bundle::{BNode, VDiff};
+use crate::html::AnyScope;
 use crate::virtual_dom::{VNode, VText};
 use crate::{Component, Context, Html};
 use gloo::console::log;
@@ -37,7 +37,7 @@ pub struct TestLayout<'a> {
 
 pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     let document = gloo_utils::document();
-    let parent_scope: AnyScope = Scope::<Comp>::new(None).into();
+    let parent_scope: AnyScope = AnyScope::test();
     let parent_element = document.create_element("div").unwrap();
     let parent_node: Node = parent_element.clone().into();
     let end_node = document.create_text_node("END");
@@ -93,7 +93,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     }
 
     // Sequentially apply each layout
-    let mut ancestor: Option<VNode> = None;
+    let mut ancestor: Option<BNode> = None;
     for layout in layouts.iter() {
         let next_vnode = layout.node.clone();
 

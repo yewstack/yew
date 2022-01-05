@@ -7,11 +7,11 @@ use super::{
     },
     BaseComponent,
 };
-use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
+use crate::dom_bundle::insert_node;
 use crate::html::NodeRef;
 use crate::scheduler::{self, Shared};
-use crate::virtual_dom::{insert_node, VNode};
+use crate::{callback::Callback, dom_bundle::BNode};
 use gloo_utils::document;
 use std::any::{Any, TypeId};
 use std::cell::{Ref, RefCell};
@@ -117,7 +117,7 @@ impl AnyScope {
 
 pub(crate) trait Scoped {
     fn to_any(&self) -> AnyScope;
-    fn root_vnode(&self) -> Option<Ref<'_, VNode>>;
+    fn root_bnode(&self) -> Option<Ref<'_, BNode>>;
     fn destroy(&mut self);
     fn shift_node(&self, parent: Element, next_sibling: NodeRef);
 }
@@ -127,7 +127,7 @@ impl<COMP: BaseComponent> Scoped for Scope<COMP> {
         self.clone().into()
     }
 
-    fn root_vnode(&self) -> Option<Ref<'_, VNode>> {
+    fn root_bnode(&self) -> Option<Ref<'_, BNode>> {
         let state_ref = self.state.borrow();
 
         // check that component hasn't been destroyed
@@ -199,19 +199,16 @@ impl<COMP: BaseComponent> Scope<COMP> {
         })
     }
 
-    pub(crate) fn new(parent: Option<AnyScope>) -> Self {
+    pub(crate) fn new(parent: Option<AnyScope>, #[cfg(debug_assertions)] id: u64) -> Self {
         let parent = parent.map(Rc::new);
         let state = Rc::new(RefCell::new(None));
-
-        #[cfg(debug_assertions)]
-        let vcomp_id = parent.as_ref().map(|p| p.vcomp_id).unwrap_or_default();
 
         Scope {
             state,
             parent,
 
             #[cfg(debug_assertions)]
-            vcomp_id,
+            vcomp_id: id,
         }
     }
 
@@ -224,12 +221,12 @@ impl<COMP: BaseComponent> Scope<COMP> {
         props: Rc<COMP::Properties>,
     ) {
         #[cfg(debug_assertions)]
-        crate::virtual_dom::vcomp::log_event(self.vcomp_id, "create placeholder");
+        crate::dom_bundle::log_event(self.vcomp_id, "create placeholder");
         let placeholder = {
             let placeholder: Node = document().create_text_node("").into();
             insert_node(&placeholder, &parent, next_sibling.get().as_ref());
             node_ref.set(Some(placeholder.clone()));
-            VNode::VRef(placeholder)
+            BNode::BRef(placeholder)
         };
 
         scheduler::push_component_create(
@@ -259,7 +256,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
         next_sibling: NodeRef,
     ) {
         #[cfg(debug_assertions)]
-        crate::virtual_dom::vcomp::log_event(self.vcomp_id, "reuse");
+        crate::dom_bundle::log_event(self.vcomp_id, "reuse");
 
         self.push_update(UpdateEvent::Properties(props, node_ref, next_sibling));
     }
