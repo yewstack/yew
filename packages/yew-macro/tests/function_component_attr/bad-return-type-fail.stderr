@@ -1,13 +1,14 @@
-error: function components must return `yew::Html`
- --> $DIR/bad-return-type-fail.rs:9:1
+error: function components must return `yew::Html` or `yew::HtmlResult`
+ --> tests/function_component_attr/bad-return-type-fail.rs:9:1
   |
 9 | fn comp_1(_props: &Props) {}
   | ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error[E0308]: mismatched types
-  --> $DIR/bad-return-type-fail.rs:13:5
+error[E0277]: the trait bound `u32: IntoHtmlResult` is not satisfied
+  --> tests/function_component_attr/bad-return-type-fail.rs:11:1
    |
-12 | fn comp(_props: &Props) -> u32 {
-   |                            --- expected `VNode` because of return type
-13 |     1
-   |     ^ expected enum `VNode`, found integer
+11 | #[function_component(Comp)]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IntoHtmlResult` is not implemented for `u32`
+   |
+   = note: required by `into_html_result`
+   = note: this error originates in an attribute macro (in Nightly builds, run with -Z macro-backtrace for more info)

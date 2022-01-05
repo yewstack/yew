@@ -181,22 +181,14 @@ where
     }
 }
 
-struct WorkerResponder {}
-
-impl<AGN> Responder<AGN> for WorkerResponder
-where
-    AGN: Agent,
-    <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,
-    <AGN as Agent>::Output: Serialize + for<'de> Deserialize<'de>,
-{
-    fn respond(&self, id: HandlerId, output: AGN::Output) {
-        let msg = FromWorker::ProcessOutput(id, output);
-        let data = msg.pack();
-        worker_self().post_message_vec(data);
-    }
+/// A trait to enable public agents being registered in a web worker.
+pub trait PublicAgent {
+    /// Executes an agent in the current environment.
+    /// Uses in `main` function of a worker.
+    fn register();
 }
 
-impl<AGN> Threaded for AGN
+impl<AGN> PublicAgent for AGN
 where
     AGN: Agent<Reach = Public<AGN>>,
     <AGN as Agent>::Input: Serialize + for<'de> Deserialize<'de>,

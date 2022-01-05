@@ -28,7 +28,9 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 
 | Example                                            | Description                                                                                                                        |
 | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| [agents](agents)                                   | Cross-component communication using [Agents](https://yew.rs/docs/concepts/agents)                                                  |
 | [boids](boids)                                     | Yew port of [Boids](https://en.wikipedia.org/wiki/Boids)                                                                           |
+| [contexts](contexts)                               | A technical demonstration of Context API.                                                                                          |
 | [counter](counter)                                 | Simple counter which can be incremented and decremented                                                                            |
 | [dyn_create_destroy_apps](dyn_create_destroy_apps) | Uses the function `start_app_in_element` and the `AppHandle` struct to dynamically create and delete Yew apps                      |
 | [file_upload](file_upload)                         | Uses the `gloo::file` to read the content of user uploaded files                                                                   |
@@ -39,16 +41,16 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [js_callback](js_callback)                         | Interacts with JavaScript code                                                                                                     |
 | [keyed_list](keyed_list)                           | Demonstrates how to use keys to improve the performance of lists                                                                   |
 | [mount_point](mount_point)                         | Shows how to mount the root component to a custom element                                                                          |
-| [multi_thread](multi_thread)                       | Demonstrates the use of Web Workers to offload computation to the background                                                       |
 | [nested_list](nested_list)                         | Renders a styled list which tracks hover events                                                                                    |
-| [node_refs](node_refs)                             | Uses a [`NodeRef`](https://yew.rs/docs/concepts/components/refs) to focus the input element under the cursor                            |
+| [node_refs](node_refs)                             | Uses a [`NodeRef`](https://yew.rs/docs/concepts/components/refs) to focus the input element under the cursor                       |
 | [password_strength](password_strength)             | A password strength estimator implemented in Yew                                                                                   |
-| [pub_sub](pub_sub)                                 | Cross-component communication using [Agents](https://yew.rs/docs/concepts/agents)                                                       |
+| [portals](portals)                                 | Renders elements into out-of-tree nodes with the help of portals                                                                   |
 | [router](router)                                   | The best yew blog built with `yew-router`                                                                                          |
 | [store](store)                                     | Showcases the `yewtil::store` API                                                                                                  |
 | [timer](timer)                                     | Demonstrates the use of the interval and timeout services                                                                          |
 | [todomvc](todomvc)                                 | Implementation of [TodoMVC](http://todomvc.com/)                                                                                   |
 | [two_apps](two_apps)                               | Runs two separate Yew apps which can communicate with each other                                                                   |
+| [web_worker_fib](web_worker_fib)                   | Calculate fibonacci value of a number in a web worker thread                                                                      |
 | [webgl](webgl)                                     | Controls a [WebGL canvas](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Getting_started_with_WebGL) from Yew |
 
 ## Next steps

@@ -1,7 +1,7 @@
 use gloo::storage::{LocalStorage, Storage};
 use state::{Action, Filter, State};
 use strum::IntoEnumIterator;
-use yew::{classes, function_component, html, use_effect_with_deps, use_reducer, Callback};
+use yew::prelude::*;
 
 mod components;
 mod hooks;
