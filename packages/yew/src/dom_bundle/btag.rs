@@ -230,10 +230,6 @@ impl BTag {
         self.key.as_ref()
     }
 
-    pub(crate) fn reference(&self) -> &Element {
-        &self.reference
-    }
-
     #[cfg(test)]
     fn children(&self) -> &[BNode] {
         match &self.inner {

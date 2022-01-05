@@ -50,41 +50,6 @@ impl BNode {
             Self::BSuspense(bsusp) => bsusp.key().is_some(),
         }
     }
-
-    /// Returns the first DOM node that is used to designate the position of the virtual DOM node.
-    fn unchecked_first_node(&self) -> Node {
-        match self {
-            Self::BTag(btag) => btag.reference().clone().into(),
-            Self::BText(vtext) => {
-                let text_node = vtext.reference.as_ref().expect("VText is not mounted");
-                text_node.clone().into()
-            }
-            Self::BRef(node) => node.clone(),
-            Self::BList(_) => unreachable!("no need to get first node of blist"),
-            Self::BComp(_) => unreachable!("no need to get first node of bcomp"),
-            Self::BSuspense(_) => unreachable!("no need to get first node of bsuspense"),
-            Self::BPortal(_) => unreachable!("portals have no first node, they are empty inside"),
-        }
-    }
-
-    pub(crate) fn move_before(&self, parent: &Element, next_sibling: &Option<Node>) {
-        match self {
-            Self::BList(blist) => {
-                for node in blist.iter().rev() {
-                    node.move_before(parent, next_sibling);
-                }
-            }
-            Self::BComp(bcomp) => {
-                bcomp
-                    .root_bnode()
-                    .expect("VComp has no root vnode")
-                    .move_before(parent, next_sibling);
-            }
-            Self::BPortal(_) => {} // no need to move portals
-            Self::BSuspense(bsusp) => bsusp.active_node().move_before(parent, next_sibling),
-            _ => super::insert_node(&self.unchecked_first_node(), parent, next_sibling.as_ref()),
-        };
-    }
 }
 
 impl DomBundle for BNode {

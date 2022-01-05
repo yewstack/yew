@@ -71,7 +71,7 @@ impl Reconcilable for VPortal {
             if old_host != portal.host || old_sibling != portal.next_sibling {
                 // Remount the inner node somewhere else instead of diffing
                 // Move the node, but keep the state
-                node.move_before(&portal.host, &portal.next_sibling.get());
+                node.shift(&portal.host, portal.next_sibling.clone());
             }
             let inner_ancestor = node.borrow_mut();
             self.node

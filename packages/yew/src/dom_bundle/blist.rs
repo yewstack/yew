@@ -61,7 +61,7 @@ impl<'s> ElementWriter<'s> {
             self.next_sibling
         );
         // Advance the next sibling reference (from right to left)
-        ancestor.move_before(self.parent, &self.next_sibling.get());
+        ancestor.shift(self.parent, self.next_sibling.clone());
         let next = node.reconcile(self.parent_scope, self.parent, self.next_sibling, ancestor);
         test_log!("  next_position: {:?}", next);
         Self {
