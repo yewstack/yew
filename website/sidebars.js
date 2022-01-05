@@ -89,6 +89,7 @@ module.exports = {
                 "concepts/agents",
                 "concepts/contexts",
                 "concepts/router",
+                "concepts/suspense",
             ]
         },
         {
