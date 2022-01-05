@@ -1,7 +1,7 @@
 //! This module contains fragments bundles.
 use super::test_log;
 use super::BNode;
-use crate::dom_bundle::{DomBundle, VDiff};
+use crate::dom_bundle::{DomBundle, Reconcilable};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{Key, VList, VNode, VText};
 use std::borrow::Borrow;
@@ -37,7 +37,11 @@ struct ElementWriter<'s> {
 impl<'s> ElementWriter<'s> {
     fn add(self, node: VNode) -> (Self, BNode) {
         test_log!("adding: {:?}", node);
-        test_log!("  parent={:?}, next_sibling={:?}", self.parent.outer_html(), self.next_sibling);
+        test_log!(
+            "  parent={:?}, next_sibling={:?}",
+            self.parent.outer_html(),
+            self.next_sibling
+        );
         let (next, bundle) = node.attach(self.parent_scope, self.parent, self.next_sibling);
         test_log!("  next_position: {:?}", next);
         (
@@ -51,10 +55,14 @@ impl<'s> ElementWriter<'s> {
 
     fn patch(self, node: VNode, ancestor: &mut BNode) -> Self {
         test_log!("patching: {:?} -> {:?}", ancestor, node);
-        test_log!("  parent={:?}, next_sibling={:?}", self.parent.outer_html(), self.next_sibling);
+        test_log!(
+            "  parent={:?}, next_sibling={:?}",
+            self.parent.outer_html(),
+            self.next_sibling
+        );
         // Advance the next sibling reference (from right to left)
         ancestor.move_before(self.parent, &self.next_sibling.get());
-        let next = node.apply(self.parent_scope, self.parent, self.next_sibling, ancestor);
+        let next = node.reconcile(self.parent_scope, self.parent, self.next_sibling, ancestor);
         test_log!("  next_position: {:?}", next);
         Self {
             next_sibling: next,
@@ -275,7 +283,7 @@ impl DomBundle for BList {
     }
 }
 
-impl VDiff for VList {
+impl Reconcilable for VList {
     type Bundle = BList;
 
     fn attach(
@@ -285,7 +293,7 @@ impl VDiff for VList {
         next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
         let mut self_ = BNode::BList(BList::new());
-        let node_ref = self.apply(parent_scope, parent, next_sibling, &mut self_);
+        let node_ref = self.reconcile(parent_scope, parent, next_sibling, &mut self_);
         let self_ = match self_ {
             BNode::BList(self_) => self_,
             _ => unreachable!("applying list should leave a VList in bundle ref"),
@@ -293,7 +301,7 @@ impl VDiff for VList {
         (node_ref, self_)
     }
 
-    fn apply(
+    fn reconcile(
         mut self,
         parent_scope: &AnyScope,
         parent: &Element,

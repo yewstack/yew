@@ -47,7 +47,7 @@ pub(crate) trait DomBundle {
 // `Ace` editor embedding for example?
 
 /// This trait provides features to update a tree by calculating a difference against another tree.
-pub(crate) trait VDiff {
+pub(crate) trait Reconcilable {
     type Bundle: DomBundle;
 
     fn attach(
@@ -69,25 +69,17 @@ pub(crate) trait VDiff {
     /// - `parent`: the parent node in the DOM.
     /// - `next_sibling`: the next sibling, used to efficiently find where to
     ///   put the node.
-    /// - `ancestor`: the node that this node will be replacing in the DOM. This
-    ///   method will _always_ remove the `ancestor` from the `parent`.
+    /// - `bundle`: the node that this node will be replacing in the DOM. This
+    ///   method will remove the `bundle` from the `parent` if it is of the wrong
+    ///   kind, and otherwise reuse it.
     ///
     /// Returns a reference to the newly inserted element.
-    ///
-    /// ### Internal Behavior Notice:
-    ///
-    /// Note that these modify the DOM by modifying the reference that _already_
-    /// exists on the `ancestor`. If `self.reference` exists (which it
-    /// _shouldn't_) this method will panic.
-    ///
-    /// The exception to this is obviously `VRef` which simply uses the inner
-    /// `Node` directly (always removes the `Node` that exists).
-    fn apply(
+    fn reconcile(
         self,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
-        ancestor: &mut BNode,
+        bundle: &mut BNode,
     ) -> NodeRef;
 }
 

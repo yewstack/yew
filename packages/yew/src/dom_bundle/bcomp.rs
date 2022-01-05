@@ -1,6 +1,6 @@
 //! This module contains the bundle implementation of a virtual component `BComp`.
 
-use super::{BNode, DomBundle, VDiff};
+use super::{BNode, DomBundle, Reconcilable};
 use crate::{
     html::{AnyScope, BaseComponent, Scope, Scoped},
     virtual_dom::{Key, VComp},
@@ -127,7 +127,7 @@ impl DomBundle for BComp {
     }
 }
 
-impl VDiff for VComp {
+impl Reconcilable for VComp {
     type Bundle = BComp;
 
     fn attach(
@@ -173,7 +173,7 @@ impl VDiff for VComp {
         )
     }
 
-    fn apply(
+    fn reconcile(
         self,
         parent_scope: &AnyScope,
         parent: &Element,
@@ -262,7 +262,7 @@ mod tests {
 
         for _ in 0..10000 {
             let node = html! { <Comp></Comp> };
-            node.apply(
+            node.reconcile(
                 &parent_scope,
                 &parent_element,
                 NodeRef::default(),

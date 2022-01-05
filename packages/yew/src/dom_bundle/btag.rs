@@ -1,7 +1,7 @@
 //! This module contains the bundle implementation of a tag `BTag`.
 
 use super::listeners::ListenerRegistration;
-use super::{BNode, DomBundle, InputFields, VDiff, Value};
+use super::{BNode, DomBundle, InputFields, Reconcilable, Value};
 use crate::dom_bundle::attributes::Apply;
 use crate::html::AnyScope;
 use crate::virtual_dom::{vtag::VTagInner, vtag::SVG_NAMESPACE, Attributes, Key, VTag};
@@ -77,7 +77,7 @@ impl DomBundle for BTag {
     }
 }
 
-impl VDiff for VTag {
+impl Reconcilable for VTag {
     type Bundle = BTag;
 
     fn attach(
@@ -131,7 +131,7 @@ impl VDiff for VTag {
     }
     /// Renders virtual tag over DOM [Element], but it also compares this with an ancestor [VTag]
     /// to compute what to patch in the actual DOM nodes.
-    fn apply(
+    fn reconcile(
         self,
         parent_scope: &AnyScope,
         parent: &Element,
@@ -185,7 +185,7 @@ impl VDiff for VTag {
                     child_bundle: old, ..
                 },
             ) => {
-                new.apply(parent_scope, el, NodeRef::default(), old);
+                new.reconcile(parent_scope, el, NodeRef::default(), old);
             }
             // Can not happen, because we checked for tag equability above
             _ => unsafe { unreachable_unchecked() },
@@ -577,7 +577,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let elem = html! { <div></div> };
-        let (_, mut elem) = VDiff::attach(elem, &scope, &parent, NodeRef::default());
+        let (_, mut elem) = Reconcilable::attach(elem, &scope, &parent, NodeRef::default());
         let vtag = assert_btag_mut(&mut elem);
         // test if the className has not been set
         assert!(!vtag.reference.has_attribute("class"));
@@ -590,7 +590,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let elem = gen_html();
-        let (_, mut elem) = VDiff::attach(elem, &scope, &parent, NodeRef::default());
+        let (_, mut elem) = Reconcilable::attach(elem, &scope, &parent, NodeRef::default());
         let vtag = assert_btag_mut(&mut elem);
         // test if the className has been set
         assert!(vtag.reference.has_attribute("class"));
@@ -617,7 +617,7 @@ mod tests {
 
         // Initial state
         let elem = html! { <input value={expected} /> };
-        let (_, mut elem) = VDiff::attach(elem, &scope, &parent, NodeRef::default());
+        let (_, mut elem) = Reconcilable::attach(elem, &scope, &parent, NodeRef::default());
         let vtag = assert_btag_ref(&elem);
 
         // User input
@@ -629,7 +629,7 @@ mod tests {
         let elem_vtag = assert_vtag(next_elem);
 
         // Sync happens here
-        elem_vtag.apply(&scope, &parent, NodeRef::default(), &mut elem);
+        elem_vtag.reconcile(&scope, &parent, NodeRef::default(), &mut elem);
         let vtag = assert_btag_ref(&elem);
 
         // Get new current value of the input element
@@ -651,7 +651,7 @@ mod tests {
 
         // Initial state
         let elem = html! { <input /> };
-        let (_, mut elem) = VDiff::attach(elem, &scope, &parent, NodeRef::default());
+        let (_, mut elem) = Reconcilable::attach(elem, &scope, &parent, NodeRef::default());
         let vtag = assert_btag_ref(&elem);
 
         // User input
@@ -663,7 +663,7 @@ mod tests {
         let elem_vtag = assert_vtag(next_elem);
 
         // Value should not be refreshed
-        elem_vtag.apply(&scope, &parent, NodeRef::default(), &mut elem);
+        elem_vtag.reconcile(&scope, &parent, NodeRef::default(), &mut elem);
         let vtag = assert_btag_ref(&elem);
 
         // Get user value of the input element
@@ -693,7 +693,7 @@ mod tests {
             builder
         }/> };
 
-        let (_, mut elem) = VDiff::attach(elem, &scope, &parent, NodeRef::default());
+        let (_, mut elem) = Reconcilable::attach(elem, &scope, &parent, NodeRef::default());
         let vtag = assert_btag_mut(&mut elem);
         // make sure the new tag name is used internally
         assert_eq!(vtag.tag(), "a");
@@ -764,7 +764,7 @@ mod tests {
 
         let node_ref_b = NodeRef::default();
         let elem_b = html! { <div id="b" ref={node_ref_b.clone()} /> };
-        elem_b.apply(&scope, &parent, NodeRef::default(), &mut elem);
+        elem_b.reconcile(&scope, &parent, NodeRef::default(), &mut elem);
 
         let node_b = node_ref_b.get().unwrap();
 
@@ -797,7 +797,7 @@ mod tests {
         // while both should be bound to the same node ref
 
         let (_, mut elem) = before.attach(&scope, &parent, NodeRef::default());
-        after.apply(&scope, &parent, NodeRef::default(), &mut elem);
+        after.reconcile(&scope, &parent, NodeRef::default(), &mut elem);
 
         assert_eq!(
             test_ref

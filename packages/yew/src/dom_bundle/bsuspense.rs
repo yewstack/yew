@@ -1,4 +1,4 @@
-use super::{BNode, DomBundle, VDiff};
+use super::{BNode, DomBundle, Reconcilable};
 use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VSuspense};
 use crate::NodeRef;
@@ -39,7 +39,7 @@ impl DomBundle for BSuspense {
     }
 }
 
-impl VDiff for VSuspense {
+impl Reconcilable for VSuspense {
     type Bundle = BSuspense;
 
     fn attach(
@@ -85,7 +85,7 @@ impl VDiff for VSuspense {
         }
     }
 
-    fn apply(
+    fn reconcile(
         self,
         parent_scope: &AnyScope,
         parent: &Element,
@@ -112,7 +112,7 @@ impl VDiff for VSuspense {
         // tree while rendering fallback UI into the original place where children resides in.
         match (self.suspended, &mut suspense.fallback) {
             (true, Some(fallback_ancestor)) => {
-                self.children.apply(
+                self.children.reconcile(
                     parent_scope,
                     &self.detached_parent,
                     NodeRef::default(),
@@ -120,18 +120,18 @@ impl VDiff for VSuspense {
                 );
 
                 self.fallback
-                    .apply(parent_scope, parent, next_sibling, fallback_ancestor)
+                    .reconcile(parent_scope, parent, next_sibling, fallback_ancestor)
             }
 
             (false, None) => {
                 self.children
-                    .apply(parent_scope, parent, next_sibling, children_ancestor)
+                    .reconcile(parent_scope, parent, next_sibling, children_ancestor)
             }
 
             (true, None) => {
                 children_ancestor.shift(&self.detached_parent, NodeRef::default());
 
-                self.children.apply(
+                self.children.reconcile(
                     parent_scope,
                     &self.detached_parent,
                     NodeRef::default(),
@@ -149,7 +149,7 @@ impl VDiff for VSuspense {
 
                 children_ancestor.shift(parent, next_sibling.clone());
                 self.children
-                    .apply(parent_scope, parent, next_sibling, children_ancestor)
+                    .reconcile(parent_scope, parent, next_sibling, children_ancestor)
             }
         }
     }

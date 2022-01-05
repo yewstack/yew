@@ -1,7 +1,7 @@
 //! Component lifecycle module
 
 use super::{AnyScope, BaseComponent, Scope};
-use crate::dom_bundle::{BNode, DomBundle, VDiff};
+use crate::dom_bundle::{BNode, DomBundle, Reconcilable};
 use crate::html::RenderError;
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{Suspense, Suspension};
@@ -204,7 +204,7 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
                     let next_sibling = state.next_sibling.clone();
 
                     let node =
-                        root.apply(&scope, &state.parent, next_sibling, &mut state.root_node);
+                        root.reconcile(&scope, &state.parent, next_sibling, &mut state.root_node);
                     state.node_ref.link(node);
                 }
 

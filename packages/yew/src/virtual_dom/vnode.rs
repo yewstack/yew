@@ -54,12 +54,12 @@ impl VNode {
 
 #[cfg(test)]
 mod test {
-    use crate::dom_bundle::VDiff;
+    use crate::dom_bundle::Reconcilable;
     use crate::{dom_bundle::BNode, html::AnyScope, NodeRef};
     use web_sys::Element;
 
     impl super::VNode {
-        pub(crate) fn apply_sequentially(
+        pub(crate) fn reconcile_sequentially(
             self,
             parent_scope: &AnyScope,
             parent: &Element,
@@ -72,7 +72,9 @@ mod test {
                     *ancestor = Some(node);
                     node_ref
                 }
-                Some(ref mut ancestor) => self.apply(parent_scope, parent, next_sibling, ancestor),
+                Some(ref mut ancestor) => {
+                    self.reconcile(parent_scope, parent, next_sibling, ancestor)
+                }
             }
         }
     }

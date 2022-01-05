@@ -1,4 +1,4 @@
-use crate::dom_bundle::{BNode, VDiff};
+use crate::dom_bundle::{BNode, Reconcilable};
 use crate::html::AnyScope;
 use crate::virtual_dom::{VNode, VText};
 use crate::{Component, Context, Html};
@@ -64,7 +64,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
 
         log!("Independently reapply layout '{}'", layout.name);
 
-        vnode.apply(
+        vnode.reconcile(
             &parent_scope,
             &parent_element,
             next_sibling.clone(),
@@ -78,7 +78,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         );
 
         // Detach
-        empty_node.clone().apply(
+        empty_node.clone().reconcile(
             &parent_scope,
             &parent_element,
             next_sibling.clone(),
@@ -98,7 +98,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         let next_vnode = layout.node.clone();
 
         log!("Sequentially apply layout '{}'", layout.name);
-        next_vnode.apply_sequentially(
+        next_vnode.reconcile_sequentially(
             &parent_scope,
             &parent_element,
             next_sibling.clone(),
@@ -117,7 +117,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         let next_vnode = layout.node.clone();
 
         log!("Sequentially detach layout '{}'", layout.name);
-        next_vnode.apply_sequentially(
+        next_vnode.reconcile_sequentially(
             &parent_scope,
             &parent_element,
             next_sibling.clone(),
@@ -132,7 +132,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     }
 
     // Detach last layout
-    empty_node.apply_sequentially(&parent_scope, &parent_element, next_sibling, &mut ancestor);
+    empty_node.reconcile_sequentially(&parent_scope, &parent_element, next_sibling, &mut ancestor);
     assert_eq!(
         parent_element.inner_html(),
         "END",

@@ -1,7 +1,7 @@
 //! This module contains the bundle version of an abstract node.
 
 use super::{BComp, BList, BPortal, BSuspense, BTag};
-use crate::dom_bundle::{DomBundle, VDiff};
+use crate::dom_bundle::{DomBundle, Reconcilable};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{Key, VNode, VText};
 use gloo::console;
@@ -122,7 +122,7 @@ impl DomBundle for BNode {
     }
 }
 
-impl VDiff for VNode {
+impl Reconcilable for VNode {
     type Bundle = BNode;
 
     fn attach(
@@ -163,7 +163,7 @@ impl VDiff for VNode {
         }
     }
 
-    fn apply(
+    fn reconcile(
         self,
         parent_scope: &AnyScope,
         parent: &Element,
@@ -171,10 +171,10 @@ impl VDiff for VNode {
         ancestor: &mut BNode,
     ) -> NodeRef {
         match self {
-            VNode::VTag(vtag) => vtag.apply(parent_scope, parent, next_sibling, ancestor),
-            VNode::VText(vtext) => vtext.apply(parent_scope, parent, next_sibling, ancestor),
-            VNode::VComp(vcomp) => vcomp.apply(parent_scope, parent, next_sibling, ancestor),
-            VNode::VList(vlist) => vlist.apply(parent_scope, parent, next_sibling, ancestor),
+            VNode::VTag(vtag) => vtag.reconcile(parent_scope, parent, next_sibling, ancestor),
+            VNode::VText(vtext) => vtext.reconcile(parent_scope, parent, next_sibling, ancestor),
+            VNode::VComp(vcomp) => vcomp.reconcile(parent_scope, parent, next_sibling, ancestor),
+            VNode::VList(vlist) => vlist.reconcile(parent_scope, parent, next_sibling, ancestor),
             VNode::VRef(node) => {
                 if let BNode::BRef(ref n) = ancestor {
                     if &node == n {
@@ -186,9 +186,11 @@ impl VDiff for VNode {
                 ancestor.replace(parent, self_);
                 node_ref
             }
-            VNode::VPortal(vportal) => vportal.apply(parent_scope, parent, next_sibling, ancestor),
+            VNode::VPortal(vportal) => {
+                vportal.reconcile(parent_scope, parent, next_sibling, ancestor)
+            }
             VNode::VSuspense(vsuspsense) => {
-                vsuspsense.apply(parent_scope, parent, next_sibling, ancestor)
+                vsuspsense.reconcile(parent_scope, parent, next_sibling, ancestor)
             }
         }
     }

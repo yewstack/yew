@@ -1,7 +1,7 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
 use super::AttrValue;
-use crate::dom_bundle::{insert_node, BNode, DomBundle, VDiff};
+use crate::dom_bundle::{insert_node, BNode, DomBundle, Reconcilable};
 use crate::html::{AnyScope, NodeRef};
 use gloo::console;
 use gloo_utils::document;
@@ -67,7 +67,7 @@ impl DomBundle for VText {
     }
 }
 
-impl VDiff for VText {
+impl Reconcilable for VText {
     type Bundle = VText;
 
     fn attach(
@@ -84,7 +84,7 @@ impl VDiff for VText {
     }
 
     /// Renders virtual node over existing `TextNode`, but only if value of text has changed.
-    fn apply(
+    fn reconcile(
         self,
         parent_scope: &AnyScope,
         parent: &Element,

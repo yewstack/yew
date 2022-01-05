@@ -2,7 +2,7 @@
 
 use super::test_log;
 use super::BNode;
-use crate::dom_bundle::{DomBundle, VDiff};
+use crate::dom_bundle::{DomBundle, Reconcilable};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::Key;
 use crate::virtual_dom::VPortal;
@@ -32,7 +32,7 @@ impl DomBundle for BPortal {
     }
 }
 
-impl VDiff for VPortal {
+impl Reconcilable for VPortal {
     type Bundle = BPortal;
 
     fn attach(
@@ -57,7 +57,7 @@ impl VDiff for VPortal {
         )
     }
 
-    fn apply(
+    fn reconcile(
         self,
         parent_scope: &AnyScope,
         parent: &Element,
@@ -75,7 +75,7 @@ impl VDiff for VPortal {
             }
             let inner_ancestor = node.borrow_mut();
             self.node
-                .apply(parent_scope, parent, next_sibling.clone(), inner_ancestor);
+                .reconcile(parent_scope, parent, next_sibling.clone(), inner_ancestor);
             return next_sibling;
         }
 
