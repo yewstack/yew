@@ -1,9 +1,9 @@
 //! This module contains the bundle version of an abstract node.
 
-use super::{BComp, BList, BPortal, BSuspense, BTag};
+use super::{BComp, BList, BPortal, BSuspense, BTag, BText};
 use crate::dom_bundle::{DomBundle, Reconcilable};
 use crate::html::{AnyScope, NodeRef};
-use crate::virtual_dom::{Key, VNode, VText};
+use crate::virtual_dom::{Key, VNode};
 use gloo::console;
 use std::fmt;
 use web_sys::{Element, Node};
@@ -13,7 +13,7 @@ pub enum BNode {
     /// A bind between `VTag` and `Element`.
     BTag(Box<BTag>),
     /// A bind between `VText` and `TextNode`.
-    BText(VText),
+    BText(BText),
     /// A bind between `VComp` and `Element`.
     BComp(BComp),
     /// A holder for a list of other nodes.
@@ -57,7 +57,7 @@ impl DomBundle for BNode {
     fn detach(self, parent: &Element) {
         match self {
             Self::BTag(vtag) => vtag.detach(parent),
-            Self::BText(vtext) => vtext.detach(parent),
+            Self::BText(btext) => btext.detach(parent),
             Self::BComp(bsusp) => bsusp.detach(parent),
             Self::BList(blist) => blist.detach(parent),
             Self::BRef(ref node) => {
@@ -73,7 +73,7 @@ impl DomBundle for BNode {
     fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
         match self {
             Self::BTag(ref vtag) => vtag.shift(next_parent, next_sibling),
-            Self::BText(ref vtext) => vtext.shift(next_parent, next_sibling),
+            Self::BText(ref btext) => btext.shift(next_parent, next_sibling),
             Self::BComp(ref bsusp) => bsusp.shift(next_parent, next_sibling),
             Self::BList(ref vlist) => vlist.shift(next_parent, next_sibling),
             Self::BRef(ref node) => {
@@ -161,10 +161,10 @@ impl Reconcilable for VNode {
     }
 }
 
-impl From<VText> for BNode {
+impl From<BText> for BNode {
     #[inline]
-    fn from(vtext: VText) -> Self {
-        Self::BText(vtext)
+    fn from(btext: BText) -> Self {
+        Self::BText(btext)
     }
 }
 
@@ -207,7 +207,7 @@ impl fmt::Debug for BNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Self::BTag(ref vtag) => vtag.fmt(f),
-            Self::BText(ref vtext) => vtext.fmt(f),
+            Self::BText(ref btext) => btext.fmt(f),
             Self::BComp(ref bsusp) => bsusp.fmt(f),
             Self::BList(ref vlist) => vlist.fmt(f),
             Self::BRef(ref vref) => write!(f, "VRef ( \"{}\" )", crate::utils::print_node(vref)),

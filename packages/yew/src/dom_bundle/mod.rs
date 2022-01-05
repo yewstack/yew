@@ -12,6 +12,7 @@ mod bnode;
 mod bportal;
 mod bsuspense;
 mod btag;
+mod btext;
 mod listeners;
 
 #[cfg(debug_assertions)]
@@ -23,6 +24,7 @@ pub use self::bnode::BNode;
 pub use self::bportal::BPortal;
 pub use self::bsuspense::BSuspense;
 pub use self::btag::BTag;
+pub use self::btext::BText;
 
 pub(crate) use self::attributes::{Apply, InputFields, Value};
 pub(crate) use self::bcomp::{Mountable, PropsWrapper};
