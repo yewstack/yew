@@ -2,7 +2,20 @@
 title: "Build a sample app"
 ---
 
-## Create Project
+## Using a starter template
+
+Once you have the environment ready, you can use the starter template to create the boilerplate needed for a basic Yew app.
+
+Install [`cargo-generate`](https://github.com/cargo-generate/cargo-generate) by following their installation instructions
+then run the following command:
+
+```shell
+cargo generate --git https://github.com/yewstack/yew-trunk-minimal-template
+```
+
+## Setting up the application manually
+
+### Create Project
 
 To get started, create a new cargo project.
 
@@ -16,7 +29,7 @@ Open the newly created directory.
 cd yew-app
 ```
 
-## Run a hello world example
+### Run a hello world example
 
 To verify the Rust environment is setup, run the initial project using the cargo build tool. After output about the build process, you should see the expected "Hello World" message.
 
@@ -24,11 +37,11 @@ To verify the Rust environment is setup, run the initial project using the cargo
 cargo run
 ```
 
-## Converting the project into a Yew web application
+### Converting the project into a Yew web application
 
 To convert this simple command line application to a basic Yew web application, a few changes are needed.
 
-### Update Cargo.toml
+#### Update Cargo.toml
 
 Add `yew` to the list of dependencies.
 
@@ -43,70 +56,48 @@ edition = "2018"
 yew = "0.19"
 ```
 
-### Update main.rs
+#### Update main.rs
 
 We need to generate a template which sets up a root Component called `Model` which renders a button that updates its value when clicked.
 Replace the contents of `src/main.rs` with the following code.
 
 :::note
-The line `yew::start_app::<Model>()` inside `main()` starts your application and mounts it to the page's `<body>` tag.  
+The line `yew::start_app::<Model>()` inside `main()` starts your application and mounts it to the page's `<body>` tag.
 If you would like to start your application with any dynamic properties, you can instead use `yew::start_app_with_props::<Model>(..)`.
 :::
 
 ```rust ,no_run, title=main.rs
 use yew::prelude::*;
 
-enum Msg {
-    AddOne,
-}
-
-struct Model {
-    value: i64,
-}
-
-impl Component for Model {
-    type Message = Msg;
-    type Properties = ();
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self {
-            value: 0,
+#[function_component]
+fn App() -> Html {
+    let counter = use_state(|| 0);
+    let onclick = {
+        let counter = counter.clone();
+        move |_| {
+            let value = *counter + 1;
+            counter.set(value);
         }
-    }
+    };
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            Msg::AddOne => {
-                self.value += 1;
-                // the value has changed so we need to
-                // re-render for it to appear on the page
-                true
-            }
-        }
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        // This gives us a component's "`Scope`" which allows us to send messages, etc to the component.
-        let link = ctx.link();
-        html! {
-            <div>
-                <button onclick={link.callback(|_| Msg::AddOne)}>{ "+1" }</button>
-                <p>{ self.value }</p>
-            </div>
-        }
+    html! {
+        <div>
+            <button {onclick}>{ "+1" }</button>
+            <p>{ *counter }</p>
+        </div>
     }
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }
 ```
 
-### Create index.html
+#### Create index.html
 
 Finally, add an `index.html` file in the root directory of your app.
 
-```html, title=index.html
+```html , title=index.html
 <!DOCTYPE html>
 <html>
   <head>
