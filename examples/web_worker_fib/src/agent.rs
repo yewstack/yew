@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
-use yew_agent::{Agent, AgentLink, HandlerId, Public};
+use yew_agent::{HandlerId, Public, WorkerLink};
 
 pub struct Worker {
-    link: AgentLink<Self>,
+    link: WorkerLink<Self>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -15,13 +15,13 @@ pub struct WorkerOutput {
     pub value: u32,
 }
 
-impl Agent for Worker {
+impl yew_agent::Worker for Worker {
     type Reach = Public<Self>;
     type Message = ();
     type Input = WorkerInput;
     type Output = WorkerOutput;
 
-    fn create(link: AgentLink<Self>) -> Self {
+    fn create(link: WorkerLink<Self>) -> Self {
         Self { link }
     }
 
