@@ -118,8 +118,9 @@ impl AnyScope {
 pub(crate) trait Scoped {
     fn to_any(&self) -> AnyScope;
     fn root_bnode(&self) -> Option<Ref<'_, BNode>>;
-    fn destroy(&mut self);
     fn shift_node(&self, parent: Element, next_sibling: NodeRef);
+    fn destroy(self);
+    fn destroy_boxed(self: Box<Self>);
 }
 
 impl<COMP: BaseComponent> Scoped for Scope<COMP> {
@@ -139,12 +140,14 @@ impl<COMP: BaseComponent> Scoped for Scope<COMP> {
     }
 
     /// Process an event to destroy a component
-    fn destroy(&mut self) {
-        scheduler::push_component_destroy(DestroyRunner {
-            state: self.state.clone(),
-        });
+    fn destroy(self) {
+        scheduler::push_component_destroy(DestroyRunner { state: self.state });
         // Not guaranteed to already have the scheduler started
         scheduler::start();
+    }
+
+    fn destroy_boxed(self: Box<Self>) {
+        self.destroy()
     }
 
     fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
@@ -199,7 +202,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
         })
     }
 
-    pub(crate) fn new(parent: Option<AnyScope>, #[cfg(debug_assertions)] id: u64) -> Self {
+    pub(crate) fn new(parent: Option<AnyScope>) -> Self {
         let parent = parent.map(Rc::new);
         let state = Rc::new(RefCell::new(None));
 
@@ -208,7 +211,17 @@ impl<COMP: BaseComponent> Scope<COMP> {
             parent,
 
             #[cfg(debug_assertions)]
-            vcomp_id: id,
+            vcomp_id: {
+                thread_local! {
+                    static ID_COUNTER: std::cell::RefCell<u64> = Default::default();
+                }
+
+                ID_COUNTER.with(|c| {
+                    let c = &mut *c.borrow_mut();
+                    *c += 1;
+                    *c
+                })
+            },
         }
     }
 

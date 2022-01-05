@@ -401,11 +401,7 @@ mod tests {
 
     fn test_lifecycle(props: Props, expected: &[&str]) {
         let document = gloo_utils::document();
-        let scope = Scope::<Comp>::new(
-            None,
-            #[cfg(debug_assertions)]
-            0,
-        );
+        let scope = Scope::<Comp>::new(None);
         let el = document.create_element("div").unwrap();
         let lifecycle = props.lifecycle.clone();
 

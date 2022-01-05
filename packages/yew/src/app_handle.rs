@@ -25,11 +25,7 @@ where
     pub(crate) fn mount_with_props(element: Element, props: Rc<COMP::Properties>) -> Self {
         clear_element(&element);
         let app = Self {
-            scope: Scope::new(
-                None,
-                #[cfg(debug_assertions)]
-                u64::MAX,
-            ),
+            scope: Scope::new(None),
         };
         app.scope
             .mount_in_place(element, NodeRef::default(), NodeRef::default(), props);
@@ -38,7 +34,7 @@ where
     }
 
     /// Schedule the app for destruction
-    pub fn destroy(mut self) {
+    pub fn destroy(self) {
         self.scope.destroy()
     }
 }

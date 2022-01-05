@@ -70,7 +70,6 @@ pub(crate) trait Mountable {
         parent_scope: &AnyScope,
         parent: Element,
         next_sibling: NodeRef,
-        #[cfg(debug_assertions)] id: u64,
     ) -> Box<dyn Scoped>;
     fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef);
 }
@@ -99,13 +98,8 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         parent_scope: &AnyScope,
         parent: Element,
         next_sibling: NodeRef,
-        #[cfg(debug_assertions)] id: u64,
     ) -> Box<dyn Scoped> {
-        let scope: Scope<COMP> = Scope::new(
-            Some(parent_scope.clone()),
-            #[cfg(debug_assertions)]
-            id,
-        );
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
         scope.mount_in_place(parent, next_sibling, node_ref, self.props);
 
         Box::new(scope)
@@ -118,8 +112,8 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
 }
 
 impl DomBundle for BComp {
-    fn detach(mut self, _parent: &Element) {
-        self.scope.destroy();
+    fn detach(self, _parent: &Element) {
+        self.scope.destroy_boxed();
     }
 
     fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
@@ -148,18 +142,6 @@ impl Reconcilable for VComp {
             parent_scope,
             parent.to_owned(),
             next_sibling,
-            #[cfg(debug_assertions)]
-            {
-                thread_local! {
-                    static ID_COUNTER: std::cell::RefCell<u64> = Default::default();
-                }
-
-                ID_COUNTER.with(|c| {
-                    let c = &mut *c.borrow_mut();
-                    *c += 1;
-                    *c
-                })
-            },
         );
 
         (
