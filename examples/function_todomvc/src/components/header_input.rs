@@ -1,6 +1,6 @@
 use web_sys::HtmlInputElement;
 use yew::events::KeyboardEvent;
-use yew::{function_component, html, Callback, Properties, TargetCast};
+use yew::prelude::*;
 
 #[derive(PartialEq, Properties, Clone)]
 pub struct HeaderInputProps {
