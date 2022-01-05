@@ -5,7 +5,7 @@ mod lifecycle;
 mod properties;
 mod scope;
 
-use super::Html;
+use super::{Html, HtmlResult, IntoHtmlResult};
 pub use children::*;
 pub use properties::*;
 pub(crate) use scope::Scoped;
@@ -15,12 +15,12 @@ use std::rc::Rc;
 /// The [`Component`]'s context. This contains component's [`Scope`] and and props and
 /// is passed to every lifecycle method.
 #[derive(Debug)]
-pub struct Context<COMP: Component> {
+pub struct Context<COMP: BaseComponent> {
     pub(crate) scope: Scope<COMP>,
     pub(crate) props: Rc<COMP::Properties>,
 }
 
-impl<COMP: Component> Context<COMP> {
+impl<COMP: BaseComponent> Context<COMP> {
     /// The component scope
     #[inline]
     pub fn link(&self) -> &Scope<COMP> {
@@ -32,6 +32,38 @@ impl<COMP: Component> Context<COMP> {
     pub fn props(&self) -> &COMP::Properties {
         &*self.props
     }
+}
+
+/// The common base of both function components and struct components.
+///
+/// If you are taken here by doc links, you might be looking for [`Component`] or
+/// [`#[function_component]`](crate::functional::function_component).
+///
+/// We provide a blanket implementation of this trait for every member that implements [`Component`].
+pub trait BaseComponent: Sized + 'static {
+    /// The Component's Message.
+    type Message: 'static;
+
+    /// The Component's properties.
+    type Properties: Properties;
+
+    /// Creates a component.
+    fn create(ctx: &Context<Self>) -> Self;
+
+    /// Updates component's internal state.
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool;
+
+    /// React to changes of component properties.
+    fn changed(&mut self, ctx: &Context<Self>) -> bool;
+
+    /// Returns a component layout to be rendered.
+    fn view(&self, ctx: &Context<Self>) -> HtmlResult;
+
+    /// Notified after a layout is rendered.
+    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool);
+
+    /// Notified before a component is destroyed.
+    fn destroy(&mut self, ctx: &Context<Self>);
 }
 
 /// Components are the basic building blocks of the UI in a Yew app. Each Component
@@ -94,4 +126,37 @@ pub trait Component: Sized + 'static {
     /// Called right before a Component is unmounted.
     #[allow(unused_variables)]
     fn destroy(&mut self, ctx: &Context<Self>) {}
+}
+
+impl<T> BaseComponent for T
+where
+    T: Sized + Component + 'static,
+{
+    type Message = <T as Component>::Message;
+
+    type Properties = <T as Component>::Properties;
+
+    fn create(ctx: &Context<Self>) -> Self {
+        Component::create(ctx)
+    }
+
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        Component::update(self, ctx, msg)
+    }
+
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+        Component::changed(self, ctx)
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> HtmlResult {
+        Component::view(self, ctx).into_html_result()
+    }
+
+    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
+        Component::rendered(self, ctx, first_render)
+    }
+
+    fn destroy(&mut self, ctx: &Context<Self>) {
+        Component::destroy(self, ctx)
+    }
 }

@@ -1,6 +1,6 @@
 //! Function components are a simplified version of normal components.
 //! They consist of a single function annotated with the attribute `#[function_component(_)]`
-//! that receives props and determines what should be rendered by returning [`Html`].
+//! that receives props and determines what should be rendered by returning [`Html`](crate::Html).
 //!
 //! ```rust
 //! # use yew::prelude::*;
@@ -13,8 +13,8 @@
 //!
 //! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/next/concepts/function-components/introduction)
 
-use crate::html::AnyScope;
-use crate::{Component, Html, Properties};
+use crate::html::{AnyScope, BaseComponent, HtmlResult};
+use crate::Properties;
 use scoped_tls_hkt::scoped_thread_local;
 use std::cell::RefCell;
 use std::fmt;
@@ -70,10 +70,10 @@ pub trait FunctionProvider {
     /// Properties for the Function Component.
     type TProps: Properties + PartialEq;
 
-    /// Render the component. This function returns the [`Html`] to be rendered for the component.
+    /// Render the component. This function returns the [`Html`](crate::Html) to be rendered for the component.
     ///
-    /// Equivalent of [`Component::view`].
-    fn run(props: &Self::TProps) -> Html;
+    /// Equivalent of [`Component::view`](crate::html::Component::view).
+    fn run(props: &Self::TProps) -> HtmlResult;
 }
 
 /// Wrapper that allows a struct implementing [`FunctionProvider`] to be consumed as a component.
@@ -100,7 +100,7 @@ where
     }
 }
 
-impl<T: 'static> Component for FunctionComponent<T>
+impl<T: 'static> BaseComponent for FunctionComponent<T>
 where
     T: FunctionProvider,
 {
@@ -137,7 +137,11 @@ where
         msg()
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
+    fn changed(&mut self, _ctx: &Context<Self>) -> bool {
+        true
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> HtmlResult {
         self.with_hook_state(|| T::run(&*ctx.props()))
     }
 
@@ -192,6 +196,7 @@ pub struct HookUpdater {
     hook: Rc<RefCell<dyn std::any::Any>>,
     process_message: ProcessMessage,
 }
+
 impl HookUpdater {
     /// Callback which runs the hook.
     pub fn callback<T: 'static, F>(&self, cb: F)

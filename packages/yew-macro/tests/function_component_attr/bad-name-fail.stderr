@@ -16,10 +16,8 @@ error: expected identifier
 26 | #[function_component(124)]
    |                      ^^^
 
-warning: type `component` should have an upper camel case name
+error: the component must not have the same name as the function
   --> tests/function_component_attr/bad-name-fail.rs:35:22
    |
 35 | #[function_component(component)]
-   |                      ^^^^^^^^^ help: convert the identifier to upper camel case (notice the capitalization): `Component`
-   |
-   = note: `#[warn(non_camel_case_types)]` on by default
+   |                      ^^^^^^^^^

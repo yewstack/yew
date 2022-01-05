@@ -1,7 +1,7 @@
 //! This module contains the implementation of abstract virtual node.
 
-use super::{Key, VChild, VComp, VDiff, VList, VPortal, VTag, VText};
-use crate::html::{AnyScope, Component, NodeRef};
+use super::{Key, VChild, VComp, VDiff, VList, VPortal, VSuspense, VTag, VText};
+use crate::html::{AnyScope, BaseComponent, NodeRef};
 use gloo::console;
 use std::cmp::PartialEq;
 use std::fmt;
@@ -25,6 +25,8 @@ pub enum VNode {
     VPortal(VPortal),
     /// A holder for any `Node` (necessary for replacing node).
     VRef(Node),
+    /// A suspendible document fragment.
+    VSuspense(VSuspense),
 }
 
 impl VNode {
@@ -36,6 +38,7 @@ impl VNode {
             VNode::VTag(vtag) => vtag.key.clone(),
             VNode::VText(_) => None,
             VNode::VPortal(vportal) => vportal.node.key(),
+            VNode::VSuspense(vsuspense) => vsuspense.key.clone(),
         }
     }
 
@@ -47,6 +50,7 @@ impl VNode {
             VNode::VRef(_) | VNode::VText(_) => false,
             VNode::VTag(vtag) => vtag.key.is_some(),
             VNode::VPortal(vportal) => vportal.node.has_key(),
+            VNode::VSuspense(vsuspense) => vsuspense.key.is_some(),
         }
     }
 
@@ -63,6 +67,7 @@ impl VNode {
             VNode::VList(vlist) => vlist.get(0).and_then(VNode::first_node),
             VNode::VRef(node) => Some(node.clone()),
             VNode::VPortal(vportal) => vportal.next_sibling(),
+            VNode::VSuspense(vsuspense) => vsuspense.first_node(),
         }
     }
 
@@ -94,6 +99,9 @@ impl VNode {
                 .unchecked_first_node(),
             VNode::VRef(node) => node.clone(),
             VNode::VPortal(_) => panic!("portals have no first node, they are empty inside"),
+            VNode::VSuspense(vsuspense) => {
+                vsuspense.first_node().expect("VSuspense is not mounted")
+            }
         }
     }
 
@@ -130,6 +138,28 @@ impl VDiff for VNode {
                 }
             }
             VNode::VPortal(ref mut vportal) => vportal.detach(parent),
+            VNode::VSuspense(ref mut vsuspense) => vsuspense.detach(parent),
+        }
+    }
+
+    fn shift(&self, previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef) {
+        match *self {
+            VNode::VTag(ref vtag) => vtag.shift(previous_parent, next_parent, next_sibling),
+            VNode::VText(ref vtext) => vtext.shift(previous_parent, next_parent, next_sibling),
+            VNode::VComp(ref vcomp) => vcomp.shift(previous_parent, next_parent, next_sibling),
+            VNode::VList(ref vlist) => vlist.shift(previous_parent, next_parent, next_sibling),
+            VNode::VRef(ref node) => {
+                previous_parent.remove_child(node).unwrap();
+                next_parent
+                    .insert_before(node, next_sibling.get().as_ref())
+                    .unwrap();
+            }
+            VNode::VPortal(ref vportal) => {
+                vportal.shift(previous_parent, next_parent, next_sibling)
+            }
+            VNode::VSuspense(ref vsuspense) => {
+                vsuspense.shift(previous_parent, next_parent, next_sibling)
+            }
         }
     }
 
@@ -165,6 +195,9 @@ impl VDiff for VNode {
             }
             VNode::VPortal(ref mut vportal) => {
                 vportal.apply(parent_scope, parent, next_sibling, ancestor)
+            }
+            VNode::VSuspense(ref mut vsuspense) => {
+                vsuspense.apply(parent_scope, parent, next_sibling, ancestor)
             }
         }
     }
@@ -204,9 +237,16 @@ impl From<VComp> for VNode {
     }
 }
 
+impl From<VSuspense> for VNode {
+    #[inline]
+    fn from(vsuspense: VSuspense) -> Self {
+        VNode::VSuspense(vsuspense)
+    }
+}
+
 impl<COMP> From<VChild<COMP>> for VNode
 where
-    COMP: Component,
+    COMP: BaseComponent,
 {
     fn from(vchild: VChild<COMP>) -> Self {
         VNode::VComp(VComp::from(vchild))
@@ -237,6 +277,7 @@ impl fmt::Debug for VNode {
             VNode::VList(ref vlist) => vlist.fmt(f),
             VNode::VRef(ref vref) => write!(f, "VRef ( \"{}\" )", crate::utils::print_node(vref)),
             VNode::VPortal(ref vportal) => vportal.fmt(f),
+            VNode::VSuspense(ref vsuspense) => vsuspense.fmt(f),
         }
     }
 }

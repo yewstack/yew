@@ -1,7 +1,7 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
 use super::{Key, VDiff, VNode};
-use crate::html::{AnyScope, Component, NodeRef, Scope, Scoped};
+use crate::html::{AnyScope, BaseComponent, NodeRef, Scope, Scoped};
 use std::any::TypeId;
 use std::borrow::Borrow;
 use std::fmt;
@@ -73,7 +73,7 @@ impl Clone for VComp {
 }
 
 /// A virtual child component.
-pub struct VChild<COMP: Component> {
+pub struct VChild<COMP: BaseComponent> {
     /// The component properties
     pub props: Rc<COMP::Properties>,
     /// Reference to the mounted node
@@ -81,7 +81,7 @@ pub struct VChild<COMP: Component> {
     key: Option<Key>,
 }
 
-impl<COMP: Component> Clone for VChild<COMP> {
+impl<COMP: BaseComponent> Clone for VChild<COMP> {
     fn clone(&self) -> Self {
         VChild {
             props: Rc::clone(&self.props),
@@ -91,7 +91,7 @@ impl<COMP: Component> Clone for VChild<COMP> {
     }
 }
 
-impl<COMP: Component> PartialEq for VChild<COMP>
+impl<COMP: BaseComponent> PartialEq for VChild<COMP>
 where
     COMP::Properties: PartialEq,
 {
@@ -102,7 +102,7 @@ where
 
 impl<COMP> VChild<COMP>
 where
-    COMP: Component,
+    COMP: BaseComponent,
 {
     /// Creates a child component that can be accessed and modified by its parent.
     pub fn new(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self {
@@ -116,7 +116,7 @@ where
 
 impl<COMP> From<VChild<COMP>> for VComp
 where
-    COMP: Component,
+    COMP: BaseComponent,
 {
     fn from(vchild: VChild<COMP>) -> Self {
         VComp::new::<COMP>(vchild.props, vchild.node_ref, vchild.key)
@@ -127,7 +127,7 @@ impl VComp {
     /// Creates a new `VComp` instance.
     pub fn new<COMP>(props: Rc<COMP::Properties>, node_ref: NodeRef, key: Option<Key>) -> Self
     where
-        COMP: Component,
+        COMP: BaseComponent,
     {
         VComp {
             type_id: TypeId::of::<COMP>(),
@@ -183,17 +183,17 @@ trait Mountable {
     fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef);
 }
 
-struct PropsWrapper<COMP: Component> {
+struct PropsWrapper<COMP: BaseComponent> {
     props: Rc<COMP::Properties>,
 }
 
-impl<COMP: Component> PropsWrapper<COMP> {
+impl<COMP: BaseComponent> PropsWrapper<COMP> {
     pub fn new(props: Rc<COMP::Properties>) -> Self {
         Self { props }
     }
 }
 
-impl<COMP: Component> Mountable for PropsWrapper<COMP> {
+impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     fn copy(&self) -> Box<dyn Mountable> {
         let wrapper: PropsWrapper<COMP> = PropsWrapper {
             props: Rc::clone(&self.props),
@@ -223,6 +223,11 @@ impl<COMP: Component> Mountable for PropsWrapper<COMP> {
 impl VDiff for VComp {
     fn detach(&mut self, _parent: &Element) {
         self.take_scope().destroy();
+    }
+
+    fn shift(&self, _previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef) {
+        let scope = self.scope.as_ref().unwrap();
+        scope.shift_node(next_parent.clone(), next_sibling);
     }
 
     fn apply(
@@ -272,7 +277,7 @@ impl fmt::Debug for VComp {
     }
 }
 
-impl<COMP: Component> fmt::Debug for VChild<COMP> {
+impl<COMP: BaseComponent> fmt::Debug for VChild<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("VChild<_>")
     }
