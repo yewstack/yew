@@ -2,23 +2,25 @@
 title: "HTML"
 sidebar_label: Introduction
 description: "The procedural macro for generating HTML and SVG"
+slug: /concepts/html
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 The `html!` macro allows you to write HTML and SVG code declaratively. It is similar to JSX
-\(an extension to JavaScript which allows you to write HTML-like code inside of JavaScript\).
+(an extension to JavaScript which allows you to write HTML-like code inside of JavaScript).
 
 **Important notes**
 
-1. The `html!` macro only accepts one root html node \(you can counteract this by
-   [using fragments or iterators](./../html/lists.mdx)\)
+1. The `html!` macro only accepts one root html node (you can counteract this by using
+    [fragments](./fragments.mdx) or [iterators](./../html/lists.mdx))
 2. An empty `html! {}` invocation is valid and will not render anything
-3. Literals must always be quoted and wrapped in braces: `html! { "Hello, World" }`
+3. Literals must always be quoted and wrapped in braces: `html! { <p>{ "Hello, World" }</p> }`
 
 :::note
-The `html!` macro can reach the default recursion limit of the compiler. If you encounter compilation errors, add an attribute like `#![recursion_limit="1024"]` in the crate root to overcome the problem.
+The `html!` macro can reach the default recursion limit of the compiler. If you encounter compilation errors,
+add an attribute like `#![recursion_limit="1024"]` in the crate root to overcome the problem.
 :::
 
 ## Tag Structure
@@ -157,74 +159,25 @@ Currently, there are two such special props: `ref` and `key`.
 
 `key` on the other hand gives an element a unique identifier which Yew can use for optimization purposes.
 
-:::important
-The documentation for keys is yet to be written. See [#1263](https://github.com/yewstack/yew/issues/1263).
-
-For now, use keys when you have a list where the order of elements changes. This includes inserting or removing elements from anywhere but the end of the list.
+:::info
+Read more at [Lists](./html/lists)
 :::
 
-## If blocks
+## Condtional Rendering
 
-To conditionally render some markup, we wrap it in an `if` block:
-
-<Tabs>
-  <TabItem value="if" label="if">
+Markup can be rendered conditonally by using Rust's conditional structures. ' +
+    'Currently only `if` and `if let` are supported.
 
 ```rust
 use yew::html;
 
 html! {
-    if true {
-        <p>{ "True case" }</p>
-    }
+  if true {
+      <p>{ "True case" }</p>
+  }
 };
 ```
 
-  </TabItem>
-  <TabItem value="if - else" label="if - else">
-
-```rust
-use yew::html;
-let some_condition = true;
-
-html! {
-    if false {
-        <p>{ "True case" }</p>
-    } else {
-        <p>{ "False case" }</p>
-    }
-};
-```
-
-  </TabItem>
-  <TabItem value="if let" label="if let">
-
-```rust
-use yew::html;
-let some_text = Some("text");
-
-html! {
-    if let Some(text) = some_text {
-        <p>{ text }</p>
-    }
-};
-```
-
-  </TabItem>
-  <TabItem value="if let else" label="if let else">
-
-```rust
-use yew::html;
-let some_text = Some("text");
-
-html! {
-    if let Some(text) = some_text {
-        <p>{ text }</p>
-    } else {
-        <p>{ "False case" }</p>
-    }
-};
-```
-
-  </TabItem>
-</Tabs>
+:::info
+Read more at [Conditonal Rendering](./html/conditional-rendering)
+:::
