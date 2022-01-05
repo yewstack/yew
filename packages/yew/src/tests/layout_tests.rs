@@ -1,6 +1,6 @@
-use crate::dom_bundle::{BNode, Reconcilable};
+use crate::dom_bundle::{BNode, DomBundle, Reconcilable};
 use crate::html::AnyScope;
-use crate::virtual_dom::{VNode, VText};
+use crate::virtual_dom::VNode;
 use crate::{Component, Context, Html};
 use gloo::console::log;
 use web_sys::Node;
@@ -42,7 +42,6 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     let parent_node: Node = parent_element.clone().into();
     let end_node = document.create_text_node("END");
     parent_node.append_child(&end_node).unwrap();
-    let empty_node: VNode = VText::new("").into();
 
     // Tests each layout independently
     let next_sibling = NodeRef::new(end_node.into());
@@ -51,7 +50,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         let vnode = layout.node.clone();
         log!("Independently apply layout '{}'", layout.name);
 
-        let (_, mut node) = vnode.attach(&parent_scope, &parent_element, next_sibling.clone());
+        let (_, mut bundle) = vnode.attach(&parent_scope, &parent_element, next_sibling.clone());
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -68,7 +67,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             &parent_scope,
             &parent_element,
             next_sibling.clone(),
-            &mut node,
+            &mut bundle,
         );
         assert_eq!(
             parent_element.inner_html(),
@@ -78,12 +77,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         );
 
         // Detach
-        empty_node.clone().reconcile(
-            &parent_scope,
-            &parent_element,
-            next_sibling.clone(),
-            &mut node,
-        );
+        bundle.detach(&parent_element);
         assert_eq!(
             parent_element.inner_html(),
             "END",
@@ -93,7 +87,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     }
 
     // Sequentially apply each layout
-    let mut ancestor: Option<BNode> = None;
+    let mut bundle: Option<BNode> = None;
     for layout in layouts.iter() {
         let next_vnode = layout.node.clone();
 
@@ -102,7 +96,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             &parent_scope,
             &parent_element,
             next_sibling.clone(),
-            &mut ancestor,
+            &mut bundle,
         );
         assert_eq!(
             parent_element.inner_html(),
@@ -121,7 +115,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             &parent_scope,
             &parent_element,
             next_sibling.clone(),
-            &mut ancestor,
+            &mut bundle,
         );
         assert_eq!(
             parent_element.inner_html(),
@@ -132,7 +126,9 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     }
 
     // Detach last layout
-    empty_node.reconcile_sequentially(&parent_scope, &parent_element, next_sibling, &mut ancestor);
+    if let Some(bundle) = bundle {
+        bundle.detach(&parent_element);
+    }
     assert_eq!(
         parent_element.inner_html(),
         "END",

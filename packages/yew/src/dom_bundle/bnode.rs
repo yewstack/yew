@@ -133,29 +133,30 @@ impl Reconcilable for VNode {
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
-        ancestor: &mut BNode,
+        bundle: &mut BNode,
     ) -> NodeRef {
         match self {
-            VNode::VTag(vtag) => vtag.reconcile(parent_scope, parent, next_sibling, ancestor),
-            VNode::VText(vtext) => vtext.reconcile(parent_scope, parent, next_sibling, ancestor),
-            VNode::VComp(vcomp) => vcomp.reconcile(parent_scope, parent, next_sibling, ancestor),
-            VNode::VList(vlist) => vlist.reconcile(parent_scope, parent, next_sibling, ancestor),
+            VNode::VTag(vtag) => vtag.reconcile(parent_scope, parent, next_sibling, bundle),
+            VNode::VText(vtext) => vtext.reconcile(parent_scope, parent, next_sibling, bundle),
+            VNode::VComp(vcomp) => vcomp.reconcile(parent_scope, parent, next_sibling, bundle),
+            VNode::VList(vlist) => vlist.reconcile(parent_scope, parent, next_sibling, bundle),
             VNode::VRef(node) => {
-                if let BNode::BRef(ref n) = ancestor {
-                    if &node == n {
-                        return NodeRef::new(node);
+                let _existing = match bundle {
+                    BNode::BRef(ref n) if &node == n => n,
+                    _ => {
+                        let (node_ref, self_) =
+                            VNode::VRef(node).attach(parent_scope, parent, next_sibling);
+                        bundle.replace(parent, self_);
+                        return node_ref;
                     }
-                }
-                let (node_ref, self_) =
-                    VNode::VRef(node).attach(parent_scope, parent, next_sibling);
-                ancestor.replace(parent, self_);
-                node_ref
+                };
+                NodeRef::new(node)
             }
             VNode::VPortal(vportal) => {
-                vportal.reconcile(parent_scope, parent, next_sibling, ancestor)
+                vportal.reconcile(parent_scope, parent, next_sibling, bundle)
             }
             VNode::VSuspense(vsuspsense) => {
-                vsuspsense.reconcile(parent_scope, parent, next_sibling, ancestor)
+                vsuspsense.reconcile(parent_scope, parent, next_sibling, bundle)
             }
         }
     }

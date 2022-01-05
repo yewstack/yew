@@ -6,7 +6,6 @@ use crate::dom_bundle::{DomBundle, Reconcilable};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::Key;
 use crate::virtual_dom::VPortal;
-use std::borrow::BorrowMut;
 use web_sys::Element;
 
 /// The bundle implementation to [VPortal].
@@ -15,7 +14,7 @@ pub struct BPortal {
     /// The element under which the content is inserted.
     host: Element,
     /// The next sibling after the inserted content
-    next_sibling: NodeRef,
+    inner_sibling: NodeRef,
     /// The inserted node
     node: Box<BNode>,
 }
@@ -41,18 +40,18 @@ impl Reconcilable for VPortal {
         _parent: &Element,
         host_next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
-        let VPortal {
+        let Self {
             host,
-            next_sibling,
+            inner_sibling,
             node,
         } = self;
-        let (_, inner) = node.attach(parent_scope, &host, next_sibling.clone());
+        let (_, inner) = node.attach(parent_scope, &host, inner_sibling.clone());
         (
             host_next_sibling,
             BPortal {
                 host,
                 node: Box::new(inner),
-                next_sibling,
+                inner_sibling,
             },
         )
     }
@@ -62,25 +61,33 @@ impl Reconcilable for VPortal {
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
-        ancestor: &mut BNode,
+        bundle: &mut BNode,
     ) -> NodeRef {
-        if let BNode::BPortal(portal) = ancestor {
-            let old_host = std::mem::replace(&mut portal.host, self.host);
-            let old_sibling = std::mem::replace(&mut portal.next_sibling, self.next_sibling);
-            let node = &mut portal.node;
-            if old_host != portal.host || old_sibling != portal.next_sibling {
-                // Remount the inner node somewhere else instead of diffing
-                // Move the node, but keep the state
-                node.shift(&portal.host, portal.next_sibling.clone());
+        let portal = match bundle {
+            BNode::BPortal(portal) => portal,
+            _ => {
+                let (self_ref, self_) = self.attach(parent_scope, parent, next_sibling);
+                bundle.replace(parent, self_.into());
+                return self_ref;
             }
-            let inner_ancestor = node.borrow_mut();
-            self.node
-                .reconcile(parent_scope, parent, next_sibling.clone(), inner_ancestor);
-            return next_sibling;
-        }
+        };
+        let Self {
+            host,
+            inner_sibling,
+            node,
+        } = self;
 
-        let (_, self_) = self.attach(parent_scope, parent, next_sibling.clone());
-        ancestor.replace(parent, self_.into());
+        let old_host = std::mem::replace(&mut portal.host, host);
+        let old_inner_sibling = std::mem::replace(&mut portal.inner_sibling, inner_sibling);
+
+        if old_host != portal.host || old_inner_sibling != portal.inner_sibling {
+            // Remount the inner node somewhere else instead of diffing
+            // Move the node, but keep the state
+            portal
+                .node
+                .shift(&portal.host, portal.inner_sibling.clone());
+        }
+        node.reconcile(parent_scope, parent, next_sibling.clone(), &mut portal.node);
         next_sibling
     }
 }

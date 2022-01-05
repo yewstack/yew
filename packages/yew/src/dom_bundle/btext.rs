@@ -55,14 +55,14 @@ impl Reconcilable for VText {
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
-        ancestor: &mut BNode,
+        bundle: &mut BNode,
     ) -> NodeRef {
-        let btext = match ancestor {
+        let btext = match bundle {
             BNode::BText(btext) => btext,
             _ => {
-                let (node_ref, self_) = self.attach(parent_scope, parent, next_sibling);
-                ancestor.replace(parent, self_.into());
-                return node_ref;
+                let (self_ref, self_) = self.attach(parent_scope, parent, next_sibling);
+                bundle.replace(parent, self_.into());
+                return self_ref;
             }
         };
         let Self { text } = self;

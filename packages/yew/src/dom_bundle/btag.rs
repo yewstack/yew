@@ -136,12 +136,12 @@ impl Reconcilable for VTag {
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
-        node_bundle: &mut BNode,
+        bundle: &mut BNode,
     ) -> NodeRef {
         // This kind of branching patching routine reduces branch predictor misses and the need to
         // unpack the enums (including `Option`s) all the time, resulting in a more streamlined
         // patching flow
-        let is_matching_tag = match node_bundle {
+        let is_matching_tag = match bundle {
             BNode::BTag(ex) if self.key == ex.key => match (&self.inner, &ex.inner) {
                 (VTagInner::Input(_), BTagInner::Input(_)) => true,
                 (VTagInner::Textarea { .. }, BTagInner::Textarea { .. }) => true,
@@ -155,7 +155,7 @@ impl Reconcilable for VTag {
         // If the ancestor is a tag of the same type, don't recreate, keep the
         // old tag and update its attributes and children.
         let tag = if is_matching_tag {
-            match node_bundle {
+            match bundle {
                 BNode::BTag(a) => {
                     // Preserve the reference that already exists
                     a.deref_mut()
@@ -164,7 +164,7 @@ impl Reconcilable for VTag {
             }
         } else {
             let (self_ref, self_) = self.attach(parent_scope, parent, next_sibling);
-            node_bundle.replace(parent, self_.into());
+            bundle.replace(parent, self_.into());
             return self_ref;
         };
 

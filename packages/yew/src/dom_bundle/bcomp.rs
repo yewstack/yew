@@ -160,10 +160,10 @@ impl Reconcilable for VComp {
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
-        ancestor: &mut BNode,
+        bundle: &mut BNode,
     ) -> NodeRef {
-        let bcomp = match ancestor {
-            // If the ancestor is the same type, reuse it and update its properties
+        let bcomp = match bundle {
+            // If the existing bundle is the same type, reuse it and update its properties
             BNode::BComp(ref mut bcomp)
                 if self.type_id == bcomp.type_id && self.key == bcomp.key =>
             {
@@ -171,7 +171,7 @@ impl Reconcilable for VComp {
             }
             _ => {
                 let (node_ref, self_) = self.attach(parent_scope, parent, next_sibling);
-                ancestor.replace(parent, self_.into());
+                bundle.replace(parent, self_.into());
                 return node_ref;
             }
         };
@@ -239,8 +239,8 @@ mod tests {
         let parent_scope: AnyScope = AnyScope::test();
         let parent_element = document.create_element("div").unwrap();
 
-        let ancestor = html! { <Comp></Comp> };
-        let (_, mut comp) = ancestor.attach(&parent_scope, &parent_element, NodeRef::default());
+        let comp = html! { <Comp></Comp> };
+        let (_, mut bundle) = comp.attach(&parent_scope, &parent_element, NodeRef::default());
 
         for _ in 0..10000 {
             let node = html! { <Comp></Comp> };
@@ -248,7 +248,7 @@ mod tests {
                 &parent_scope,
                 &parent_element,
                 NodeRef::default(),
-                &mut comp,
+                &mut bundle,
             );
         }
     }

@@ -47,8 +47,8 @@ impl<T: AccessValue> Apply for Value<T> {
         self
     }
 
-    fn apply_diff(self, el: &Self::Element, ancestor: &mut Self) {
-        match (&self.0, &ancestor.0) {
+    fn apply_diff(self, el: &Self::Element, bundle: &mut Self) {
+        match (&self.0, &bundle.0) {
             (Some(new), Some(_)) => {
                 // Refresh value from the DOM. It might have changed.
                 if new.as_ref() != el.value() {
@@ -96,8 +96,8 @@ pub(crate) trait Apply {
     /// Apply contained values to [Element] with no ancestor
     fn apply(self, el: &Self::Element) -> Self::Bundle;
 
-    /// Apply diff between [self] and `ancestor` to [Element].
-    fn apply_diff(self, el: &Self::Element, ancestor: &mut Self::Bundle);
+    /// Apply diff between [self] and `bundle` to [Element].
+    fn apply_diff(self, el: &Self::Element, bundle: &mut Self::Bundle);
 }
 
 /// Fields specific to
@@ -159,12 +159,12 @@ impl Apply for InputFields {
         self
     }
 
-    fn apply_diff(self, el: &Self::Element, ancestor: &mut Self) {
+    fn apply_diff(self, el: &Self::Element, bundle: &mut Self) {
         // IMPORTANT! This parameter has to be set every time
         // to prevent strange behaviour in the browser when the DOM changes
         el.set_checked(self.checked);
 
-        self.value.apply_diff(el, &mut ancestor.value);
+        self.value.apply_diff(el, &mut bundle.value);
     }
 }
 

@@ -8,8 +8,8 @@ use web_sys::{Element, Node};
 pub struct VPortal {
     /// The element under which the content is inserted.
     pub host: Element,
-    /// The next sibling after the inserted content
-    pub next_sibling: NodeRef,
+    /// The next sibling after the inserted content. Most be a child of `host`.
+    pub inner_sibling: NodeRef,
     /// The inserted node
     pub node: Box<VNode>,
 }
@@ -19,19 +19,19 @@ impl VPortal {
     pub fn new(content: VNode, host: Element) -> Self {
         Self {
             host,
-            next_sibling: NodeRef::default(),
+            inner_sibling: NodeRef::default(),
             node: Box::new(content),
         }
     }
     /// Creates a [VPortal] rendering `content` in the DOM hierarchy under `host`.
     /// If `next_sibling` is given, the content is inserted before that [Node].
     /// The parent of `next_sibling`, if given, must be `host`.
-    pub fn new_before(content: VNode, host: Element, next_sibling: Option<Node>) -> Self {
+    pub fn new_before(content: VNode, host: Element, inner_sibling: Option<Node>) -> Self {
         Self {
             host,
-            next_sibling: {
+            inner_sibling: {
                 let sib_ref = NodeRef::default();
-                sib_ref.set(next_sibling);
+                sib_ref.set(inner_sibling);
                 sib_ref
             },
             node: Box::new(content),

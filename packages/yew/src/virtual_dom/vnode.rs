@@ -64,17 +64,15 @@ mod test {
             parent_scope: &AnyScope,
             parent: &Element,
             next_sibling: NodeRef,
-            ancestor: &mut Option<BNode>,
+            bundle: &mut Option<BNode>,
         ) -> NodeRef {
-            match ancestor {
+            match bundle {
                 None => {
-                    let (node_ref, node) = self.attach(parent_scope, parent, next_sibling);
-                    *ancestor = Some(node);
-                    node_ref
+                    let (self_ref, node) = self.attach(parent_scope, parent, next_sibling);
+                    *bundle = Some(node);
+                    self_ref
                 }
-                Some(ref mut ancestor) => {
-                    self.reconcile(parent_scope, parent, next_sibling, ancestor)
-                }
+                Some(bundle) => self.reconcile(parent_scope, parent, next_sibling, bundle),
             }
         }
     }
