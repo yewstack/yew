@@ -1,5 +1,6 @@
 pub mod native_worker;
 
+use std::rc::Rc;
 use yew::{html, Component, Context, Html};
 use yew_agent::{Bridge, Bridged};
 
@@ -17,9 +18,9 @@ impl Component for Model {
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
-        let link = ctx.link();
-        let callback = link.callback(|_| Msg::DataReceived);
-        let worker = native_worker::Worker::bridge(callback);
+        let link = ctx.link().clone();
+        let callback = move |_| link.send_message(Msg::DataReceived);
+        let worker = native_worker::Worker::bridge(Rc::new(callback));
 
         Self { worker }
     }

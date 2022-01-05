@@ -5,7 +5,7 @@ pub mod agent;
 pub mod app;
 use app::Model;
 use wasm_bindgen::prelude::*;
-use yew_agent::PublicAgent;
+use yew_agent::PublicWorker;
 
 #[wasm_bindgen(start)]
 pub fn start() {

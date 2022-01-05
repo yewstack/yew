@@ -1,4 +1,5 @@
 use crate::agent::{Worker, WorkerInput, WorkerOutput};
+use std::rc::Rc;
 
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
@@ -22,7 +23,11 @@ impl Component for Model {
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
-        let worker = Worker::bridge(ctx.link().callback(Self::Message::WorkerMsg));
+        let cb = {
+            let link = ctx.link().clone();
+            move |e| link.send_message(Self::Message::WorkerMsg(e))
+        };
+        let worker = Worker::bridge(Rc::new(cb));
 
         Self {
             clicker_value: 0,
