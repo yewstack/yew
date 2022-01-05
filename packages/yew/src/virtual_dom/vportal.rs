@@ -1,9 +1,20 @@
 //! This module contains the implementation of a portal `VPortal`.
 
+use std::borrow::BorrowMut;
+
 use super::VNode;
-use crate::dom_bundle::VDiff;
+use crate::dom_bundle::{DomBundle, VDiff};
 use crate::html::{AnyScope, NodeRef};
 use web_sys::{Element, Node};
+
+/// Log an operation during tests for debugging purposes
+/// Set RUSTFLAGS="--cfg verbose_tests" environment variable to activate.
+macro_rules! test_log {
+    ($fmt:literal, $($arg:expr),* $(,)?) => {
+        #[cfg(all(test, feature = "wasm_test", verbose_tests))]
+        ::wasm_bindgen_test::console_log!(concat!("\t  ", $fmt), $($arg),*);
+    };
+}
 
 #[derive(Debug, Clone)]
 pub struct VPortal {
@@ -17,57 +28,60 @@ pub struct VPortal {
     sibling_ref: NodeRef,
 }
 
-impl VDiff for VPortal {
+impl DomBundle for VPortal {
     fn detach(self, _: &Element) {
+        test_log!("Detaching portal from host{:?}", self.host.outer_html());
         self.node.detach(&self.host);
+        test_log!("Detached portal from host{:?}", self.host.outer_html());
         self.sibling_ref.set(None);
     }
 
-    fn shift(&self, _previous_parent: &Element, _next_parent: &Element, _next_sibling: NodeRef) {
+    fn shift(&self, _next_parent: &Element, _next_sibling: NodeRef) {
         // portals have nothing in it's original place of DOM, we also do nothing.
+    }
+}
+
+impl VDiff for VPortal {
+    type Bundle = VPortal;
+
+    fn attach(
+        mut self,
+        parent_scope: &AnyScope,
+        _: &Element,
+        next_sibling: NodeRef,
+    ) -> (NodeRef, Self::Bundle) {
+        let (_, inner) = self
+            .node
+            .attach(parent_scope, &self.host, self.next_sibling.clone());
+        self.node = Box::new(inner);
+        self.sibling_ref = next_sibling.clone();
+        (next_sibling, self)
     }
 
     fn apply(
-        &mut self,
+        self,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
-        ancestor: Option<VNode>,
+        ancestor: &mut VNode,
     ) -> NodeRef {
-        let inner_ancestor = match ancestor {
-            Some(VNode::VPortal(old_portal)) => {
-                let VPortal {
-                    host: old_host,
-                    next_sibling: old_sibling,
-                    node,
-                    ..
-                } = old_portal;
-                if old_host != self.host {
-                    // Remount the inner node somewhere else instead of diffing
-                    node.detach(&old_host);
-                    None
-                } else if old_sibling != self.next_sibling {
-                    // Move the node, but keep the state
-                    node.move_before(&self.host, &self.next_sibling.get());
-                    Some(*node)
-                } else {
-                    Some(*node)
-                }
+        if let VNode::VPortal(portal) = ancestor {
+            let old_host = std::mem::replace(&mut portal.host, self.host);
+            let old_sibling = std::mem::replace(&mut portal.next_sibling, self.next_sibling);
+            let node = &mut portal.node;
+            if old_host != portal.host || old_sibling != portal.next_sibling {
+                // Remount the inner node somewhere else instead of diffing
+                // Move the node, but keep the state
+                node.move_before(&portal.host, &portal.next_sibling.get());
             }
-            Some(node) => {
-                node.detach(parent);
-                None
-            }
-            None => None,
-        };
+            let inner_ancestor = node.borrow_mut();
+            self.node
+                .apply(parent_scope, parent, next_sibling.clone(), inner_ancestor);
+            return next_sibling;
+        }
 
-        self.node.apply(
-            parent_scope,
-            &self.host,
-            self.next_sibling.clone(),
-            inner_ancestor,
-        );
-        self.sibling_ref = next_sibling.clone();
+        let (_, self_) = self.attach(parent_scope, parent, next_sibling.clone());
+        ancestor.replace(parent, self_.into());
         next_sibling
     }
 }

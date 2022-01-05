@@ -206,7 +206,7 @@ trait Apply {
     fn apply(&mut self, el: &Self::Element);
 
     /// Apply diff between [self] and `ancestor` to [Element].
-    fn apply_diff(&mut self, el: &Self::Element, ancestor: Self);
+    fn apply_diff(self, el: &Self::Element, ancestor: &mut Self);
 }
 
 /// A collection of attributes for an element
@@ -414,13 +414,14 @@ impl Apply for Attributes {
         }
     }
 
-    fn apply_diff(&mut self, el: &Element, ancestor: Self) {
+    fn apply_diff(self, el: &Element, bundle: &mut Self) {
         #[inline]
         fn ptr_eq<T>(a: &[T], b: &[T]) -> bool {
             a.as_ptr() == b.as_ptr()
         }
 
-        match (self, ancestor) {
+        let ancestor = std::mem::replace(bundle, self);
+        match (bundle, ancestor) {
             // Hot path
             (Self::Static(new), Self::Static(old)) if ptr_eq(new, old) => (),
             // Hot path

@@ -1,7 +1,7 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
 use super::{AttrValue, VNode};
-use crate::dom_bundle::VDiff;
+use crate::dom_bundle::{DomBundle, VDiff};
 use crate::html::{AnyScope, NodeRef};
 use gloo::console;
 use gloo_utils::document;
@@ -43,7 +43,7 @@ impl std::fmt::Debug for VText {
     }
 }
 
-impl VDiff for VText {
+impl DomBundle for VText {
     /// Remove VText from parent.
     fn detach(mut self, parent: &Element) {
         let node = self
@@ -55,47 +55,58 @@ impl VDiff for VText {
         }
     }
 
-    fn shift(&self, previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
         let node = self
             .reference
             .as_ref()
             .expect("tried to shift not rendered VTag from DOM");
 
-        previous_parent.remove_child(node).unwrap();
         next_parent
             .insert_before(node, next_sibling.get().as_ref())
             .unwrap();
     }
+}
 
-    /// Renders virtual node over existing `TextNode`, but only if value of text has changed.
-    fn apply(
-        &mut self,
+impl VDiff for VText {
+    type Bundle = VText;
+
+    fn attach(
+        mut self,
         _parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
-        ancestor: Option<VNode>,
-    ) -> NodeRef {
-        if let Some(ancestor) = ancestor {
-            if let VNode::VText(mut vtext) = ancestor {
-                self.reference = vtext.reference.take();
-                let text_node = self
-                    .reference
-                    .clone()
-                    .expect("Rendered VText nodes should have a ref");
-                if self.text != vtext.text {
-                    text_node.set_node_value(Some(&self.text));
-                }
-
-                return NodeRef::new(text_node.into());
-            }
-
-            ancestor.detach(parent);
-        }
-
+    ) -> (NodeRef, Self::Bundle) {
         let text_node = document().create_text_node(&self.text);
         super::insert_node(&text_node, parent, next_sibling.get().as_ref());
         self.reference = Some(text_node.clone());
-        NodeRef::new(text_node.into())
+        let node_ref = NodeRef::new(text_node.into());
+        (node_ref, self)
+    }
+
+    /// Renders virtual node over existing `TextNode`, but only if value of text has changed.
+    fn apply(
+        self,
+        parent_scope: &AnyScope,
+        parent: &Element,
+        next_sibling: NodeRef,
+        ancestor: &mut VNode,
+    ) -> NodeRef {
+        if let VNode::VText(ref mut vtext) = ancestor {
+            let ancestor = std::mem::replace(vtext, self);
+            vtext.reference = ancestor.reference;
+            let text_node = vtext
+                .reference
+                .clone()
+                .expect("Rendered VText nodes should have a ref");
+            if vtext.text != ancestor.text {
+                text_node.set_node_value(Some(&vtext.text));
+            }
+
+            return NodeRef::new(text_node.into());
+        }
+        let (node_ref, self_) = self.attach(parent_scope, parent, next_sibling);
+        ancestor.replace(parent, self_.into());
+        node_ref
     }
 }
 

@@ -1,7 +1,7 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
 use super::{Key, VNode};
-use crate::dom_bundle::VDiff;
+use crate::dom_bundle::{DomBundle, VDiff};
 use crate::html::{AnyScope, BaseComponent, NodeRef, Scope, Scoped};
 use std::any::TypeId;
 use std::borrow::Borrow;
@@ -221,39 +221,27 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     }
 }
 
-impl VDiff for VComp {
+impl DomBundle for VComp {
     fn detach(mut self, _parent: &Element) {
         self.take_scope().destroy();
     }
 
-    fn shift(&self, _previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
         let scope = self.scope.as_ref().unwrap();
         scope.shift_node(next_parent.clone(), next_sibling);
     }
+}
 
-    fn apply(
-        &mut self,
+impl VDiff for VComp {
+    type Bundle = VComp;
+
+    fn attach(
+        mut self,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
-        ancestor: Option<VNode>,
-    ) -> NodeRef {
+    ) -> (NodeRef, Self::Bundle) {
         let mountable = self.props.take().expect("VComp has already been mounted");
-
-        if let Some(mut ancestor) = ancestor {
-            if let VNode::VComp(ref mut vcomp) = &mut ancestor {
-                // If the ancestor is the same type, reuse it and update its properties
-                if self.type_id == vcomp.type_id && self.key == vcomp.key {
-                    self.node_ref.reuse(vcomp.node_ref.clone());
-                    let scope = vcomp.take_scope();
-                    mountable.reuse(self.node_ref.clone(), scope.borrow(), next_sibling);
-                    self.scope = Some(scope);
-                    return vcomp.node_ref.clone();
-                }
-            }
-
-            ancestor.detach(parent);
-        }
 
         self.scope = Some(mountable.mount(
             self.node_ref.clone(),
@@ -262,7 +250,32 @@ impl VDiff for VComp {
             next_sibling,
         ));
 
-        self.node_ref.clone()
+        (self.node_ref.clone(), self)
+    }
+
+    fn apply(
+        mut self,
+        parent_scope: &AnyScope,
+        parent: &Element,
+        next_sibling: NodeRef,
+        ancestor: &mut VNode,
+    ) -> NodeRef {
+        if let VNode::VComp(ref mut vcomp) = ancestor {
+            // If the ancestor is the same type, reuse it and update its properties
+            if self.type_id == vcomp.type_id && self.key == vcomp.key {
+                let mountable = self.props.take().expect("VComp has already been mounted");
+                let mut ancestor = std::mem::replace(vcomp, self);
+
+                vcomp.node_ref.reuse(ancestor.node_ref.clone());
+                let scope = ancestor.take_scope();
+                mountable.reuse(vcomp.node_ref.clone(), scope.borrow(), next_sibling);
+                vcomp.scope = Some(scope);
+                return vcomp.node_ref.clone();
+            }
+        }
+        let (node_ref, self_) = self.attach(parent_scope, parent, next_sibling);
+        ancestor.replace(parent, self_.into());
+        node_ref
     }
 }
 
@@ -330,18 +343,17 @@ mod tests {
         let parent_scope: AnyScope = crate::html::Scope::<Comp>::new(None).into();
         let parent_element = document.create_element("div").unwrap();
 
-        let mut ancestor = html! { <Comp></Comp> };
-        ancestor.apply(&parent_scope, &parent_element, NodeRef::default(), None);
+        let ancestor = html! { <Comp></Comp> };
+        let (_, mut comp) = ancestor.attach(&parent_scope, &parent_element, NodeRef::default());
 
         for _ in 0..10000 {
-            let mut node = html! { <Comp></Comp> };
+            let node = html! { <Comp></Comp> };
             node.apply(
                 &parent_scope,
                 &parent_element,
                 NodeRef::default(),
-                Some(ancestor),
+                &mut comp,
             );
-            ancestor = node;
         }
     }
 
@@ -377,7 +389,7 @@ mod tests {
     fn set_component_key() {
         let test_key: Key = "test".to_string().into();
         let check_key = |vnode: VNode| {
-            assert_eq!(vnode.key().as_ref(), Some(&test_key));
+            assert_eq!(vnode.key(), Some(&test_key));
         };
 
         let props = Props {
@@ -489,11 +501,11 @@ mod tests {
         (scope, parent)
     }
 
-    fn get_html(mut node: Html, scope: &AnyScope, parent: &Element) -> String {
+    fn get_html(node: Html, scope: &AnyScope, parent: &Element) -> String {
         // clear parent
         parent.set_inner_html("");
 
-        node.apply(scope, parent, NodeRef::default(), None);
+        node.attach(scope, parent, NodeRef::default());
         parent.inner_html()
     }
 
@@ -551,8 +563,8 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let node_ref = NodeRef::default();
-        let mut elem: VNode = html! { <Comp ref={node_ref.clone()}></Comp> };
-        elem.apply(&scope, &parent, NodeRef::default(), None);
+        let elem: VNode = html! { <Comp ref={node_ref.clone()}></Comp> };
+        let (_, elem) = elem.attach(&scope, &parent, NodeRef::default());
         let parent_node = parent.deref();
         assert_eq!(node_ref.get(), parent_node.first_child());
         elem.detach(&parent);

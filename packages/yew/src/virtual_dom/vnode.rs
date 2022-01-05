@@ -1,13 +1,12 @@
 //! This module contains the implementation of abstract virtual node.
 
 use super::{Key, VChild, VComp, VList, VPortal, VSuspense, VTag, VText};
-use crate::dom_bundle::VDiff;
+use crate::dom_bundle::{DomBundle, VDiff};
 use crate::html::{AnyScope, BaseComponent, NodeRef};
 use gloo::console;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::iter::FromIterator;
-use wasm_bindgen::JsCast;
 
 use web_sys::{Element, Node};
 
@@ -31,15 +30,15 @@ pub enum VNode {
 }
 
 impl VNode {
-    pub fn key(&self) -> Option<Key> {
+    pub fn key(&self) -> Option<&Key> {
         match self {
-            VNode::VComp(vcomp) => vcomp.key.clone(),
-            VNode::VList(vlist) => vlist.key.clone(),
+            VNode::VComp(vcomp) => vcomp.key.as_ref(),
+            VNode::VList(vlist) => vlist.key.as_ref(),
             VNode::VRef(_) => None,
-            VNode::VTag(vtag) => vtag.key.clone(),
+            VNode::VTag(vtag) => vtag.key.as_ref(),
             VNode::VText(_) => None,
             VNode::VPortal(vportal) => vportal.node.key(),
-            VNode::VSuspense(vsuspense) => vsuspense.key.clone(),
+            VNode::VSuspense(vsuspense) => vsuspense.key.as_ref(),
         }
     }
 
@@ -52,23 +51,6 @@ impl VNode {
             VNode::VTag(vtag) => vtag.key.is_some(),
             VNode::VPortal(vportal) => vportal.node.has_key(),
             VNode::VSuspense(vsuspense) => vsuspense.key.is_some(),
-        }
-    }
-
-    /// Returns the first DOM node if available
-    pub(crate) fn first_node(&self) -> Option<Node> {
-        match self {
-            VNode::VTag(vtag) => vtag.reference().cloned().map(JsCast::unchecked_into),
-            VNode::VText(vtext) => vtext
-                .reference
-                .as_ref()
-                .cloned()
-                .map(JsCast::unchecked_into),
-            VNode::VComp(vcomp) => vcomp.node_ref.get(),
-            VNode::VList(vlist) => vlist.get(0).and_then(VNode::first_node),
-            VNode::VRef(node) => Some(node.clone()),
-            VNode::VPortal(vportal) => vportal.next_sibling(),
-            VNode::VSuspense(vsuspense) => vsuspense.first_node(),
         }
     }
 
@@ -100,16 +82,14 @@ impl VNode {
                 .unchecked_first_node(),
             VNode::VRef(node) => node.clone(),
             VNode::VPortal(_) => panic!("portals have no first node, they are empty inside"),
-            VNode::VSuspense(vsuspense) => {
-                vsuspense.first_node().expect("VSuspense is not mounted")
-            }
+            VNode::VSuspense(_) => unreachable!("no need to get the first node of a suspense"),
         }
     }
 
     pub(crate) fn move_before(&self, parent: &Element, next_sibling: &Option<Node>) {
         match self {
             VNode::VList(vlist) => {
-                for node in vlist.iter() {
+                for node in vlist.iter().rev() {
                     node.move_before(parent, next_sibling);
                 }
             }
@@ -119,13 +99,16 @@ impl VNode {
                     .expect("VComp has no root vnode")
                     .move_before(parent, next_sibling);
             }
+            VNode::VSuspense(vsuspense) => {
+                vsuspense.active_node().move_before(parent, next_sibling)
+            }
             VNode::VPortal(_) => {} // no need to move portals
             _ => super::insert_node(&self.unchecked_first_node(), parent, next_sibling.as_ref()),
         };
     }
 }
 
-impl VDiff for VNode {
+impl DomBundle for VNode {
     /// Remove VNode from parent.
     fn detach(self, parent: &Element) {
         match self {
@@ -143,63 +126,91 @@ impl VDiff for VNode {
         }
     }
 
-    fn shift(&self, previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
         match *self {
-            VNode::VTag(ref vtag) => vtag.shift(previous_parent, next_parent, next_sibling),
-            VNode::VText(ref vtext) => vtext.shift(previous_parent, next_parent, next_sibling),
-            VNode::VComp(ref vcomp) => vcomp.shift(previous_parent, next_parent, next_sibling),
-            VNode::VList(ref vlist) => vlist.shift(previous_parent, next_parent, next_sibling),
+            VNode::VTag(ref vtag) => vtag.shift(next_parent, next_sibling),
+            VNode::VText(ref vtext) => vtext.shift(next_parent, next_sibling),
+            VNode::VComp(ref vcomp) => vcomp.shift(next_parent, next_sibling),
+            VNode::VList(ref vlist) => vlist.shift(next_parent, next_sibling),
             VNode::VRef(ref node) => {
-                previous_parent.remove_child(node).unwrap();
                 next_parent
                     .insert_before(node, next_sibling.get().as_ref())
                     .unwrap();
             }
-            VNode::VPortal(ref vportal) => {
-                vportal.shift(previous_parent, next_parent, next_sibling)
+            VNode::VPortal(ref vportal) => vportal.shift(next_parent, next_sibling),
+            VNode::VSuspense(ref vsuspense) => vsuspense.shift(next_parent, next_sibling),
+        }
+    }
+}
+
+impl VDiff for VNode {
+    type Bundle = VNode;
+
+    fn attach(
+        self,
+        parent_scope: &AnyScope,
+        parent: &Element,
+        next_sibling: NodeRef,
+    ) -> (NodeRef, Self::Bundle) {
+        match self {
+            VNode::VTag(vtag) => {
+                let (node_ref, tag) = vtag.attach(parent_scope, parent, next_sibling);
+                (node_ref, tag.into())
             }
-            VNode::VSuspense(ref vsuspense) => {
-                vsuspense.shift(previous_parent, next_parent, next_sibling)
+            VNode::VText(vtext) => {
+                let (node_ref, text) = vtext.attach(parent_scope, parent, next_sibling);
+                (node_ref, text.into())
+            }
+            VNode::VComp(vcomp) => {
+                let (node_ref, comp) = vcomp.attach(parent_scope, parent, next_sibling);
+                (node_ref, comp.into())
+            }
+            VNode::VList(vlist) => {
+                let (node_ref, list) = vlist.attach(parent_scope, parent, next_sibling);
+                (node_ref, list.into())
+            }
+            VNode::VRef(node) => {
+                super::insert_node(&node, parent, next_sibling.get().as_ref());
+                (NodeRef::new(node.clone()), VNode::VRef(node))
+            }
+            VNode::VPortal(vportal) => {
+                let (node_ref, portal) = vportal.attach(parent_scope, parent, next_sibling);
+                (node_ref, portal.into())
+            }
+            VNode::VSuspense(vsuspense) => {
+                let (node_ref, suspense) = vsuspense.attach(parent_scope, parent, next_sibling);
+                (node_ref, suspense.into())
             }
         }
     }
 
     fn apply(
-        &mut self,
+        self,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
-        ancestor: Option<VNode>,
+        ancestor: &mut VNode,
     ) -> NodeRef {
-        match *self {
-            VNode::VTag(ref mut vtag) => vtag.apply(parent_scope, parent, next_sibling, ancestor),
-            VNode::VText(ref mut vtext) => {
-                vtext.apply(parent_scope, parent, next_sibling, ancestor)
-            }
-            VNode::VComp(ref mut vcomp) => {
-                vcomp.apply(parent_scope, parent, next_sibling, ancestor)
-            }
-            VNode::VList(ref mut vlist) => {
-                vlist.apply(parent_scope, parent, next_sibling, ancestor)
-            }
-            VNode::VRef(ref mut node) => {
-                if let Some(ancestor) = ancestor {
-                    if let VNode::VRef(n) = &ancestor {
-                        if node == n {
-                            return NodeRef::new(node.clone());
-                        }
+        match self {
+            VNode::VTag(vtag) => vtag.apply(parent_scope, parent, next_sibling, ancestor),
+            VNode::VText(vtext) => vtext.apply(parent_scope, parent, next_sibling, ancestor),
+            VNode::VComp(vcomp) => vcomp.apply(parent_scope, parent, next_sibling, ancestor),
+            VNode::VList(vlist) => vlist.apply(parent_scope, parent, next_sibling, ancestor),
+            VNode::VRef(node) => {
+                if let VNode::VRef(ref n) = ancestor {
+                    if &node == n {
+                        return NodeRef::new(node);
                     }
-                    ancestor.detach(parent);
                 }
-                super::insert_node(node, parent, next_sibling.get().as_ref());
-                NodeRef::new(node.clone())
+                let (node_ref, self_) =
+                    VNode::VRef(node).attach(parent_scope, parent, next_sibling);
+                ancestor.replace(parent, self_);
+                node_ref
             }
-            VNode::VPortal(ref mut vportal) => {
-                vportal.apply(parent_scope, parent, next_sibling, ancestor)
-            }
-            VNode::VSuspense(ref mut vsuspense) => {
+            VNode::VSuspense(vsuspense) => {
                 vsuspense.apply(parent_scope, parent, next_sibling, ancestor)
             }
+            VNode::VPortal(vportal) => vportal.apply(parent_scope, parent, next_sibling, ancestor),
         }
     }
 }
@@ -242,6 +253,13 @@ impl From<VSuspense> for VNode {
     #[inline]
     fn from(vsuspense: VSuspense) -> Self {
         VNode::VSuspense(vsuspense)
+    }
+}
+
+impl From<VPortal> for VNode {
+    #[inline]
+    fn from(vportal: VPortal) -> Self {
+        VNode::VPortal(vportal)
     }
 }
 
@@ -293,6 +311,31 @@ impl PartialEq for VNode {
             // TODO: Need to improve PartialEq for VComp before enabling.
             (VNode::VComp(_), VNode::VComp(_)) => false,
             _ => false,
+        }
+    }
+}
+
+impl VNode {
+    pub(crate) fn replace(&mut self, parent: &Element, next_node: VNode) {
+        let ancestor = std::mem::replace(self, next_node);
+        ancestor.detach(parent);
+    }
+
+    #[cfg(test)]
+    pub(crate) fn apply_sequentially(
+        self,
+        parent_scope: &AnyScope,
+        parent: &Element,
+        next_sibling: NodeRef,
+        ancestor: &mut Option<VNode>,
+    ) -> NodeRef {
+        match ancestor {
+            None => {
+                let (node_ref, node) = self.attach(parent_scope, parent, next_sibling);
+                *ancestor = Some(node);
+                node_ref
+            }
+            Some(ref mut ancestor) => self.apply(parent_scope, parent, next_sibling, ancestor),
         }
     }
 }

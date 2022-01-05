@@ -8,6 +8,15 @@ use std::{
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::{Element, Event};
 
+/// Log an operation during tests for debugging purposes
+/// Set RUSTFLAGS="--cfg verbose_tests" environment variable to activate.
+macro_rules! test_log {
+    ($fmt:literal, $($arg:expr),* $(,)?) => {
+        #[cfg(all(test, feature = "wasm_test", verbose_tests))]
+        ::wasm_bindgen_test::console_log!(concat!("\t  ", $fmt), $($arg),*)
+    };
+}
+
 thread_local! {
     /// Global event listener registry
     static REGISTRY: RefCell<Registry> = Default::default();
@@ -223,22 +232,38 @@ impl super::Apply for Listeners {
         }
     }
 
-    fn apply_diff(&mut self, el: &Self::Element, ancestor: Self) {
+    fn apply_diff(self, el: &Self::Element, bundle: &mut Self) {
         use Listeners::*;
 
-        match (std::mem::take(self), ancestor) {
-            (Pending(pending), Registered(id)) => {
+        match (self, bundle) {
+            (Pending(pending), Registered(ref id)) => {
                 // Reuse the ID
-                Registry::with(|reg| reg.patch(&id, &*pending));
-                *self = Registered(id);
+                test_log!("reusing listeners for {}", id);
+                Registry::with(|reg| reg.patch(id, &*pending));
             }
-            (Pending(pending), None) => {
-                *self = Self::register(el, &pending);
+            (Pending(pending), bundle @ None) => {
+                *bundle = Self::register(el, &pending);
+                test_log!(
+                    "registering listeners for {}",
+                    match bundle {
+                        Self::Registered(id) => id,
+                        _ => unreachable!(),
+                    }
+                );
             }
-            (None, Registered(id)) => {
-                Registry::with(|reg| reg.unregister(&id));
+            (None, bundle @ Registered(_)) => {
+                let id = match bundle {
+                    Self::Registered(ref id) => id,
+                    _ => unreachable!(),
+                };
+                test_log!("unregistering listeners for {}", id);
+                Registry::with(|reg| reg.unregister(id));
+                *bundle = None;
             }
-            _ => (),
+            (None, None) => {
+                test_log!("{}", &"unchanged empty listeners");
+            }
+            (self_, bundle) => unreachable!("{:?} -> {:?}", bundle, &self_),
         };
     }
 }
@@ -525,7 +550,6 @@ mod tests {
     use crate::{html, html::TargetCast, AppHandle, Component, Context, Html};
     use gloo_utils::document;
     use wasm_bindgen::JsCast;
-    use wasm_bindgen_futures::JsFuture;
 
     #[derive(Clone)]
     enum Message {
@@ -653,37 +677,6 @@ mod tests {
         link.send_message(Message::StopListening);
         el.click();
         assert_count(&el, 2);
-    }
-
-    async fn await_animation_frame() {
-        JsFuture::from(js_sys::Promise::new(&mut |resolve, _| {
-            gloo_utils::window()
-                .request_animation_frame(&resolve)
-                .unwrap();
-        }))
-        .await
-        .unwrap();
-    }
-
-    async fn assert_async<M: Mixin + 'static>() {
-        let (link, el) = init::<M>("a");
-
-        macro_rules! assert_after_click {
-            ($c:expr) => {
-                el.click();
-                await_animation_frame().await;
-                assert_count(&el, $c);
-            };
-        }
-
-        assert_count(&el, 0);
-
-        assert_after_click!(1);
-
-        assert_after_click!(2);
-
-        link.send_message(Message::StopListening);
-        assert_after_click!(2);
     }
 
     #[test]

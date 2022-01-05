@@ -1,7 +1,7 @@
 //! This module contains the implementation of a virtual element node [VTag].
 
 use super::{Apply, AttrValue, Attributes, Key, Listener, Listeners, VList, VNode};
-use crate::dom_bundle::VDiff;
+use crate::dom_bundle::{DomBundle, VDiff};
 use crate::html::{AnyScope, IntoPropValue, NodeRef};
 use gloo::console;
 use gloo_utils::document;
@@ -10,7 +10,7 @@ use std::cmp::PartialEq;
 use std::hint::unreachable_unchecked;
 use std::marker::PhantomData;
 use std::mem;
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
 use web_sys::{Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
@@ -40,7 +40,7 @@ impl<T: AccessValue> Apply for Value<T> {
         }
     }
 
-    fn apply_diff(&mut self, el: &Self::Element, ancestor: Self) {
+    fn apply_diff(self, el: &Self::Element, ancestor: &mut Self) {
         match (&self.0, &ancestor.0) {
             (Some(new), Some(_)) => {
                 // Refresh value from the DOM. It might have changed.
@@ -107,12 +107,12 @@ impl Apply for InputFields {
         self.value.apply(el);
     }
 
-    fn apply_diff(&mut self, el: &Self::Element, ancestor: Self) {
+    fn apply_diff(self, el: &Self::Element, ancestor: &mut Self) {
         // IMPORTANT! This parameter has to be set every time
         // to prevent strange behaviour in the browser when the DOM changes
         el.set_checked(self.checked);
 
-        self.value.apply_diff(el, ancestor.value);
+        self.value.apply_diff(el, &mut ancestor.value);
     }
 }
 
@@ -140,7 +140,7 @@ enum VTagInner {
         tag: Cow<'static, str>,
 
         /// List of child nodes
-        children: VList,
+        children: VNode,
     },
 }
 
@@ -281,6 +281,7 @@ impl VTag {
         listeners: Listeners,
         children: VList,
     ) -> Self {
+        let children = children.into();
         VTag::new_base(
             VTagInner::Other { tag, children },
             node_ref,
@@ -322,21 +323,30 @@ impl VTag {
     /// Add [VNode] child.
     pub fn add_child(&mut self, child: VNode) {
         if let VTagInner::Other { children, .. } = &mut self.inner {
-            children.add_child(child);
+            match children {
+                VNode::VList(children) => children.add_child(child),
+                _ => unreachable!(),
+            }
         }
     }
 
     /// Add multiple [VNode] children.
     pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode>) {
         if let VTagInner::Other { children: dst, .. } = &mut self.inner {
-            dst.add_children(children)
+            match dst {
+                VNode::VList(dst) => dst.add_children(children),
+                _ => unreachable!(),
+            }
         }
     }
 
     /// Returns a reference to the children of this [VTag]
     pub fn children(&self) -> &VList {
         match &self.inner {
-            VTagInner::Other { children, .. } => children,
+            VTagInner::Other { children, .. } => match children {
+                VNode::VList(children) => children,
+                _ => unreachable!(),
+            },
             _ => {
                 // This is mutable because the VList is not Sync
                 static mut EMPTY: VList = VList::new();
@@ -351,7 +361,10 @@ impl VTag {
     // children
     pub fn children_mut(&mut self) -> Option<&mut VList> {
         match &mut self.inner {
-            VTagInner::Other { children, .. } => Some(children),
+            VTagInner::Other { children, .. } => match children {
+                VNode::VList(children) => Some(children),
+                _ => unreachable!(),
+            },
             _ => None,
         }
     }
@@ -470,7 +483,7 @@ impl VTag {
     }
 }
 
-impl VDiff for VTag {
+impl DomBundle for VTag {
     /// Remove VTag from parent.
     fn detach(mut self, parent: &Element) {
         let node = self
@@ -494,123 +507,121 @@ impl VDiff for VTag {
         }
     }
 
-    fn shift(&self, previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
         let node = self
             .reference
             .as_ref()
             .expect("tried to shift not rendered VTag from DOM");
 
-        previous_parent.remove_child(node).unwrap();
         next_parent
             .insert_before(node, next_sibling.get().as_ref())
             .unwrap();
     }
+}
 
-    /// Renders virtual tag over DOM [Element], but it also compares this with an ancestor [VTag]
-    /// to compute what to patch in the actual DOM nodes.
-    fn apply(
-        &mut self,
+impl VDiff for VTag {
+    type Bundle = VTag;
+
+    fn attach(
+        mut self,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
-        ancestor: Option<VNode>,
+    ) -> (NodeRef, Self::Bundle) {
+        let el = self.create_element(parent);
+        super::insert_node(&el, parent, next_sibling.get().as_ref());
+
+        self.attributes.apply(&el);
+        self.listeners.apply(&el);
+
+        self.inner = match self.inner {
+            VTagInner::Input(mut f) => {
+                f.apply(el.unchecked_ref());
+                VTagInner::Input(f)
+            }
+            VTagInner::Textarea { mut value } => {
+                value.apply(el.unchecked_ref());
+                VTagInner::Textarea { value }
+            }
+            VTagInner::Other { children, tag } => {
+                let (_, child_bundle) = children.attach(parent_scope, &el, NodeRef::default());
+                VTagInner::Other {
+                    children: child_bundle,
+                    tag,
+                }
+            }
+        };
+        self.node_ref.set(Some(el.deref().clone()));
+        self.reference = el.into();
+        (self.node_ref.clone(), self)
+    }
+    /// Renders virtual tag over DOM [Element], but it also compares this with an ancestor [VTag]
+    /// to compute what to patch in the actual DOM nodes.
+    fn apply(
+        self,
+        parent_scope: &AnyScope,
+        parent: &Element,
+        next_sibling: NodeRef,
+        node_bundle: &mut VNode,
     ) -> NodeRef {
         // This kind of branching patching routine reduces branch predictor misses and the need to
         // unpack the enums (including `Option`s) all the time, resulting in a more streamlined
         // patching flow
-        let (ancestor_tag, el) = match ancestor {
-            Some(ancestor) => {
-                // If the ancestor is a tag of the same type, don't recreate, keep the
-                // old tag and update its attributes and children.
-                if match &ancestor {
-                    VNode::VTag(a) => {
-                        self.key == a.key
-                            && match (&self.inner, &a.inner) {
-                                (VTagInner::Input(_), VTagInner::Input(_))
-                                | (VTagInner::Textarea { .. }, VTagInner::Textarea { .. }) => true,
-                                (
-                                    VTagInner::Other { tag: l, .. },
-                                    VTagInner::Other { tag: r, .. },
-                                ) => l == r,
-                                _ => false,
-                            }
-                    }
-                    _ => false,
-                } {
-                    match ancestor {
-                        VNode::VTag(mut a) => {
-                            // Preserve the reference that already exists
-                            let el = a.reference.take().unwrap();
-                            if self.node_ref.get().as_ref() == self.reference.as_deref() {
-                                a.node_ref.set(None);
-                            }
-                            (Some(a), el)
-                        }
-                        _ => unsafe { unreachable_unchecked() },
-                    }
-                } else {
-                    let el = self.create_element(parent);
-                    super::insert_node(&el, parent, ancestor.first_node().as_ref());
-                    ancestor.detach(parent);
-                    (None, el)
+        let is_matching_tag = match node_bundle {
+            VNode::VTag(ex) if self.key == ex.key => match (&self.inner, &ex.inner) {
+                (VTagInner::Input(_), VTagInner::Input(_)) => true,
+                (VTagInner::Textarea { .. }, VTagInner::Textarea { .. }) => true,
+                (VTagInner::Other { tag: l, .. }, VTagInner::Other { tag: r, .. }) if l == r => {
+                    true
                 }
-            }
-            None => (None, {
-                let el = self.create_element(parent);
-                super::insert_node(&el, parent, next_sibling.get().as_ref());
-                el
-            }),
+                _ => false,
+            },
+            _ => false,
         };
-
-        match ancestor_tag {
-            None => {
-                self.attributes.apply(&el);
-                self.listeners.apply(&el);
-
-                match &mut self.inner {
-                    VTagInner::Input(f) => {
-                        f.apply(el.unchecked_ref());
-                    }
-                    VTagInner::Textarea { value } => {
-                        value.apply(el.unchecked_ref());
-                    }
-                    VTagInner::Other { children, .. } => {
-                        if !children.is_empty() {
-                            children.apply(parent_scope, &el, NodeRef::default(), None);
-                        }
-                    }
+        // If the ancestor is a tag of the same type, don't recreate, keep the
+        // old tag and update its attributes and children.
+        let tag = if is_matching_tag {
+            match node_bundle {
+                VNode::VTag(a) => {
+                    // Preserve the reference that already exists
+                    a.deref_mut()
                 }
+                _ => unsafe { unreachable_unchecked() },
             }
-            Some(ancestor) => {
-                self.attributes.apply_diff(&el, ancestor.attributes);
-                self.listeners.apply_diff(&el, ancestor.listeners);
-
-                match (&mut self.inner, ancestor.inner) {
-                    (VTagInner::Input(new), VTagInner::Input(old)) => {
-                        new.apply_diff(el.unchecked_ref(), old);
-                    }
-                    (VTagInner::Textarea { value: new }, VTagInner::Textarea { value: old }) => {
-                        new.apply_diff(el.unchecked_ref(), old);
-                    }
-                    (
-                        VTagInner::Other { children: new, .. },
-                        VTagInner::Other { children: old, .. },
-                    ) => {
-                        if !new.is_empty() {
-                            new.apply(parent_scope, &el, NodeRef::default(), Some(old.into()));
-                        } else if !old.is_empty() {
-                            old.detach(&el);
-                        }
-                    }
-                    // Can not happen, because we checked for tag equability above
-                    _ => unsafe { unreachable_unchecked() },
-                }
-            }
+        } else {
+            let (self_ref, self_) = self.attach(parent_scope, parent, next_sibling);
+            node_bundle.replace(parent, self_.into());
+            return self_ref;
         };
+        let el = tag.reference.take().unwrap();
 
-        self.node_ref.set(Some(el.deref().clone()));
-        self.reference = el.into();
-        self.node_ref.clone()
+        self.attributes.apply_diff(&el, &mut tag.attributes);
+        self.listeners.apply_diff(&el, &mut tag.listeners);
+
+        match (self.inner, &mut tag.inner) {
+            (VTagInner::Input(new), VTagInner::Input(old)) => {
+                new.apply_diff(el.unchecked_ref(), old);
+            }
+            (VTagInner::Textarea { value: new }, VTagInner::Textarea { value: old }) => {
+                new.apply_diff(el.unchecked_ref(), old);
+            }
+            (VTagInner::Other { children: new, .. }, VTagInner::Other { children: old, .. }) => {
+                new.apply(parent_scope, &el, NodeRef::default(), old);
+            }
+            // Can not happen, because we checked for tag equability above
+            _ => unsafe { unreachable_unchecked() },
+        }
+
+        tag.key = self.key;
+
+        if self.node_ref != tag.node_ref && tag.node_ref.get().as_ref() == Some(&el) {
+            tag.node_ref.set(None);
+        }
+        tag.node_ref = self.node_ref;
+        tag.node_ref.set(Some(el.deref().clone()));
+
+        tag.reference = el.into();
+        tag.node_ref.clone()
     }
 }
 
@@ -619,10 +630,7 @@ impl PartialEq for VTag {
         use VTagInner::*;
 
         (match (&self.inner, &other.inner) {
-            (
-                 Input(l),
-                Input (r),
-            ) => l == r,
+            (Input(l), Input(r)) => l == r,
             (Textarea { value: value_l }, Textarea { value: value_r }) => value_l == value_r,
             (Other { tag: tag_l, .. }, Other { tag: tag_r, .. }) => tag_l == tag_r,
             _ => false,
@@ -793,7 +801,14 @@ mod tests {
         assert_ne!(a, d);
     }
 
-    fn assert_vtag(node: &VNode) -> &VTag {
+    fn assert_vtag(node: VNode) -> VTag {
+        if let VNode::VTag(vtag) = node {
+            return *vtag;
+        }
+        panic!("should be vtag");
+    }
+
+    fn assert_vtag_ref(node: &VNode) -> &VTag {
         if let VNode::VTag(vtag) = node {
             return vtag;
         }
@@ -824,23 +839,23 @@ mod tests {
         let namespace = Some(namespace);
         let svg_el = document.create_element_ns(namespace, "svg").unwrap();
 
-        let mut g_node = html! { <g class="segment"></g> };
+        let g_node = html! { <g class="segment"></g> };
         let path_node = html! { <path></path> };
-        let mut svg_node = html! { <svg>{path_node}</svg> };
+        let svg_node = html! { <svg>{path_node}</svg> };
 
-        let svg_tag = assert_vtag_mut(&mut svg_node);
-        svg_tag.apply(&scope, &div_el, NodeRef::default(), None);
-        assert_namespace(svg_tag, SVG_NAMESPACE);
-        let path_tag = assert_vtag(svg_tag.children().get(0).unwrap());
+        let svg_tag = assert_vtag(svg_node);
+        let (_, svg_tag) = svg_tag.attach(&scope, &div_el, NodeRef::default());
+        assert_namespace(&svg_tag, SVG_NAMESPACE);
+        let path_tag = assert_vtag_ref(svg_tag.children().get(0).unwrap());
         assert_namespace(path_tag, SVG_NAMESPACE);
 
-        let g_tag = assert_vtag_mut(&mut g_node);
-        g_tag.apply(&scope, &div_el, NodeRef::default(), None);
-        assert_namespace(g_tag, HTML_NAMESPACE);
+        let g_tag = assert_vtag(g_node);
+        let (_, mut g_tag) = g_tag.attach(&scope, &div_el, NodeRef::default());
+        assert_namespace(&g_tag, HTML_NAMESPACE);
         g_tag.reference = None;
 
-        g_tag.apply(&scope, &svg_el, NodeRef::default(), None);
-        assert_namespace(g_tag, SVG_NAMESPACE);
+        let (_, g_tag) = g_tag.attach(&scope, &svg_el, NodeRef::default());
+        assert_namespace(&g_tag, SVG_NAMESPACE);
     }
 
     #[test]
@@ -940,8 +955,8 @@ mod tests {
 
         document().body().unwrap().append_child(&parent).unwrap();
 
-        let mut elem = html! { <div></div> };
-        VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
+        let elem = html! { <div></div> };
+        let (_, mut elem) = VDiff::attach(elem, &scope, &parent, NodeRef::default());
         let vtag = assert_vtag_mut(&mut elem);
         // test if the className has not been set
         assert!(!vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -953,8 +968,8 @@ mod tests {
 
         document().body().unwrap().append_child(&parent).unwrap();
 
-        let mut elem = gen_html();
-        VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
+        let elem = gen_html();
+        let (_, mut elem) = VDiff::attach(elem, &scope, &parent, NodeRef::default());
         let vtag = assert_vtag_mut(&mut elem);
         // test if the className has been set
         assert!(vtag.reference.as_ref().unwrap().has_attribute("class"));
@@ -980,30 +995,21 @@ mod tests {
         let expected = "not_changed_value";
 
         // Initial state
-        let mut elem = html! { <input value={expected} /> };
-        VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
-        let vtag = if let VNode::VTag(vtag) = elem {
-            vtag
-        } else {
-            panic!("should be vtag")
-        };
+        let elem = html! { <input value={expected} /> };
+        let (_, mut elem) = VDiff::attach(elem, &scope, &parent, NodeRef::default());
+        let vtag = assert_vtag_ref(&elem);
 
         // User input
         let input_ref = vtag.reference.as_ref().unwrap();
         let input = input_ref.dyn_ref::<InputElement>();
         input.unwrap().set_value("User input");
 
-        let ancestor = vtag;
-        let mut elem = html! { <input value={expected} /> };
-        let vtag = assert_vtag_mut(&mut elem);
+        let next_elem = html! { <input value={expected} /> };
+        let elem_vtag = assert_vtag(next_elem);
 
         // Sync happens here
-        vtag.apply(
-            &scope,
-            &parent,
-            NodeRef::default(),
-            Some(VNode::VTag(ancestor)),
-        );
+        elem_vtag.apply(&scope, &parent, NodeRef::default(), &mut elem);
+        let vtag = assert_vtag_ref(&elem);
 
         // Get new current value of the input element
         let input_ref = vtag.reference.as_ref().unwrap();
@@ -1023,30 +1029,21 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         // Initial state
-        let mut elem = html! { <input /> };
-        VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
-        let vtag = if let VNode::VTag(vtag) = elem {
-            vtag
-        } else {
-            panic!("should be vtag")
-        };
+        let elem = html! { <input /> };
+        let (_, mut elem) = VDiff::attach(elem, &scope, &parent, NodeRef::default());
+        let vtag = assert_vtag_ref(&elem);
 
         // User input
         let input_ref = vtag.reference.as_ref().unwrap();
         let input = input_ref.dyn_ref::<InputElement>();
         input.unwrap().set_value("User input");
 
-        let ancestor = vtag;
-        let mut elem = html! { <input /> };
-        let vtag = assert_vtag_mut(&mut elem);
+        let next_elem = html! { <input /> };
+        let elem_vtag = assert_vtag(next_elem);
 
         // Value should not be refreshed
-        vtag.apply(
-            &scope,
-            &parent,
-            NodeRef::default(),
-            Some(VNode::VTag(ancestor)),
-        );
+        elem_vtag.apply(&scope, &parent, NodeRef::default(), &mut elem);
+        let vtag = assert_vtag_ref(&elem);
 
         // Get user value of the input element
         let input_ref = vtag.reference.as_ref().unwrap();
@@ -1069,13 +1066,13 @@ mod tests {
 
         document().body().unwrap().append_child(&parent).unwrap();
 
-        let mut elem = html! { <@{
+        let elem = html! { <@{
             let mut builder = String::new();
             builder.push('a');
             builder
         }/> };
 
-        VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
+        let (_, mut elem) = VDiff::attach(elem, &scope, &parent, NodeRef::default());
         let vtag = assert_vtag_mut(&mut elem);
         // make sure the new tag name is used internally
         assert_eq!(vtag.tag(), "a");
@@ -1125,7 +1122,7 @@ mod tests {
         let node_ref = NodeRef::default();
         let mut elem: VNode = html! { <div ref={node_ref.clone()}></div> };
         assert_vtag_mut(&mut elem);
-        elem.apply(&scope, &parent, NodeRef::default(), None);
+        let (_, elem) = elem.attach(&scope, &parent, NodeRef::default());
         let parent_node = parent.deref();
         assert_eq!(node_ref.get(), parent_node.first_child());
         elem.detach(&parent);
@@ -1139,15 +1136,15 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let node_ref_a = NodeRef::default();
-        let mut elem_a = html! { <div id="a" ref={node_ref_a.clone()} /> };
-        elem_a.apply(&scope, &parent, NodeRef::default(), None);
+        let elem_a = html! { <div id="a" ref={node_ref_a.clone()} /> };
+        let (_, mut elem) = elem_a.attach(&scope, &parent, NodeRef::default());
 
         // save the Node to check later that it has been reused.
         let node_a = node_ref_a.get().unwrap();
 
         let node_ref_b = NodeRef::default();
-        let mut elem_b = html! { <div id="b" ref={node_ref_b.clone()} /> };
-        elem_b.apply(&scope, &parent, NodeRef::default(), Some(elem_a));
+        let elem_b = html! { <div id="b" ref={node_ref_b.clone()} /> };
+        elem_b.apply(&scope, &parent, NodeRef::default(), &mut elem);
 
         let node_b = node_ref_b.get().unwrap();
 
@@ -1165,12 +1162,12 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let test_ref = NodeRef::default();
-        let mut before = html! {
+        let before = html! {
             <>
                 <div ref={&test_ref} id="before" />
             </>
         };
-        let mut after = html! {
+        let after = html! {
             <>
                 <h6 />
                 <div ref={&test_ref} id="after" />
@@ -1179,8 +1176,8 @@ mod tests {
         // The point of this diff is to first render the "after" div and then detach the "before" div,
         // while both should be bound to the same node ref
 
-        before.apply(&scope, &parent, NodeRef::default(), None);
-        after.apply(&scope, &parent, NodeRef::default(), Some(before));
+        let (_, mut elem) = before.attach(&scope, &parent, NodeRef::default());
+        after.apply(&scope, &parent, NodeRef::default(), &mut elem);
 
         assert_eq!(
             test_ref

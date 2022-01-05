@@ -13,16 +13,26 @@ use crate::{html::AnyScope, virtual_dom::VNode, NodeRef};
 // It would make it possible to include ANY element into the tree.
 // `Ace` editor embedding for example?
 
-/// This trait provides features to update a tree by calculating a difference against another tree.
-pub(crate) trait VDiff {
+pub(crate) trait DomBundle {
     /// Remove self from parent.
     fn detach(self, parent: &Element);
 
     /// Move elements from one parent to another parent.
-    /// This is currently only used by `VSuspense` to preserve component state without detaching
+    /// This is for example used by `VSuspense` to preserve component state without detaching
     /// (which destroys component state).
-    /// Prefer `detach` then apply if possible.
-    fn shift(&self, previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef);
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef);
+}
+
+/// This trait provides features to update a tree by calculating a difference against another tree.
+pub(crate) trait VDiff {
+    type Bundle: DomBundle;
+
+    fn attach(
+        self,
+        parent_scope: &AnyScope,
+        parent: &Element,
+        next_sibling: NodeRef,
+    ) -> (NodeRef, Self::Bundle);
 
     /// Scoped diff apply to other tree.
     ///
@@ -50,10 +60,10 @@ pub(crate) trait VDiff {
     /// The exception to this is obviously `VRef` which simply uses the inner
     /// `Node` directly (always removes the `Node` that exists).
     fn apply(
-        &mut self,
+        self,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
-        ancestor: Option<VNode>,
+        ancestor: &mut VNode,
     ) -> NodeRef;
 }

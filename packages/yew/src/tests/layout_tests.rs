@@ -42,16 +42,16 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     let parent_node: Node = parent_element.clone().into();
     let end_node = document.create_text_node("END");
     parent_node.append_child(&end_node).unwrap();
-    let mut empty_node: VNode = VText::new("").into();
+    let empty_node: VNode = VText::new("").into();
 
     // Tests each layout independently
     let next_sibling = NodeRef::new(end_node.into());
     for layout in layouts.iter() {
         // Apply the layout
-        let mut node = layout.node.clone();
+        let vnode = layout.node.clone();
         log!("Independently apply layout '{}'", layout.name);
 
-        node.apply(&parent_scope, &parent_element, next_sibling.clone(), None);
+        let (_, mut node) = vnode.attach(&parent_scope, &parent_element, next_sibling.clone());
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -60,15 +60,15 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         );
 
         // Diff with no changes
-        let mut node_clone = layout.node.clone();
+        let vnode = layout.node.clone();
 
         log!("Independently reapply layout '{}'", layout.name);
 
-        node_clone.apply(
+        vnode.apply(
             &parent_scope,
             &parent_element,
             next_sibling.clone(),
-            Some(node),
+            &mut node,
         );
         assert_eq!(
             parent_element.inner_html(),
@@ -82,7 +82,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             &parent_scope,
             &parent_element,
             next_sibling.clone(),
-            Some(node_clone),
+            &mut node,
         );
         assert_eq!(
             parent_element.inner_html(),
@@ -95,14 +95,14 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     // Sequentially apply each layout
     let mut ancestor: Option<VNode> = None;
     for layout in layouts.iter() {
-        let mut next_node = layout.node.clone();
+        let next_vnode = layout.node.clone();
 
         log!("Sequentially apply layout '{}'", layout.name);
-        next_node.apply(
+        next_vnode.apply_sequentially(
             &parent_scope,
             &parent_element,
             next_sibling.clone(),
-            ancestor,
+            &mut ancestor,
         );
         assert_eq!(
             parent_element.inner_html(),
@@ -110,19 +110,18 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             "Sequential apply failed for layout '{}'",
             layout.name,
         );
-        ancestor = Some(next_node);
     }
 
     // Sequentially detach each layout
     for layout in layouts.into_iter().rev() {
-        let mut next_node = layout.node.clone();
+        let next_vnode = layout.node.clone();
 
         log!("Sequentially detach layout '{}'", layout.name);
-        next_node.apply(
+        next_vnode.apply_sequentially(
             &parent_scope,
             &parent_element,
             next_sibling.clone(),
-            ancestor,
+            &mut ancestor,
         );
         assert_eq!(
             parent_element.inner_html(),
@@ -130,11 +129,10 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             "Sequential detach failed for layout '{}'",
             layout.name,
         );
-        ancestor = Some(next_node);
     }
 
     // Detach last layout
-    empty_node.apply(&parent_scope, &parent_element, next_sibling, ancestor);
+    empty_node.apply_sequentially(&parent_scope, &parent_element, next_sibling, &mut ancestor);
     assert_eq!(
         parent_element.inner_html(),
         "END",

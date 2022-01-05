@@ -1,7 +1,7 @@
 //! Component lifecycle module
 
 use super::{AnyScope, BaseComponent, Scope};
-use crate::dom_bundle::VDiff;
+use crate::dom_bundle::{DomBundle, VDiff};
 use crate::html::RenderError;
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{Suspense, Suspension};
@@ -130,9 +130,7 @@ impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
                     }
                 }
                 UpdateEvent::Shift(parent, next_sibling) => {
-                    state
-                        .root_node
-                        .shift(&state.parent, &parent, next_sibling.clone());
+                    state.root_node.shift(&parent, next_sibling.clone());
 
                     state.parent = parent;
                     state.next_sibling = next_sibling;
@@ -191,12 +189,9 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
             crate::virtual_dom::vcomp::log_event(state.vcomp_id, "render");
 
             match state.component.view(&state.context) {
-                Ok(m) => {
+                Ok(root) => {
                     // Currently not suspended, we remove any previous suspension and update
                     // normally.
-                    let mut root = m;
-                    std::mem::swap(&mut root, &mut state.root_node);
-
                     if let Some(ref m) = state.suspension {
                         let comp_scope = AnyScope::from(state.context.scope.clone());
 
@@ -206,12 +201,11 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
                         suspense.resume(m.clone());
                     }
 
-                    let ancestor = Some(root);
-                    let new_root = &mut state.root_node;
                     let scope = state.context.scope.clone().into();
                     let next_sibling = state.next_sibling.clone();
 
-                    let node = new_root.apply(&scope, &state.parent, next_sibling, ancestor);
+                    let node =
+                        root.apply(&scope, &state.parent, next_sibling, &mut state.root_node);
                     state.node_ref.link(node);
                 }
 
