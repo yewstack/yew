@@ -24,6 +24,13 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: "14.x"
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-website-${{ hashFiles('website/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-website-
+            ${{ runner.os }}
 
       - name: Build
         run: |
