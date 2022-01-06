@@ -1,31 +1,31 @@
 error: expected an expression after the keyword `for`
- --> $DIR/iterable-fail.rs:4:13
+ --> tests/html_macro/iterable-fail.rs:4:13
   |
 4 |     html! { for };
   |             ^^^
 
 error[E0277]: `()` is not an iterator
- --> $DIR/iterable-fail.rs:5:17
-  |
-5 |     html! { for () };
-  |                 ^^ `()` is not an iterator
-  |
-  = help: the trait `Iterator` is not implemented for `()`
-  = note: required because of the requirements on the impl of `IntoIterator` for `()`
-  = note: required by `into_iter`
+   --> tests/html_macro/iterable-fail.rs:5:17
+    |
+5   |     html! { for () };
+    |                 ^^ `()` is not an iterator
+    |
+    = help: the trait `Iterator` is not implemented for `()`
+    = note: required because of the requirements on the impl of `IntoIterator` for `()`
+note: required by `into_iter`
 
 error[E0277]: `()` is not an iterator
- --> $DIR/iterable-fail.rs:6:17
-  |
-6 |     html! { for {()} };
-  |                 ^^^^ `()` is not an iterator
-  |
-  = help: the trait `Iterator` is not implemented for `()`
-  = note: required because of the requirements on the impl of `IntoIterator` for `()`
-  = note: required by `into_iter`
+   --> tests/html_macro/iterable-fail.rs:6:17
+    |
+6   |     html! { for {()} };
+    |                 ^^^^ `()` is not an iterator
+    |
+    = help: the trait `Iterator` is not implemented for `()`
+    = note: required because of the requirements on the impl of `IntoIterator` for `()`
+note: required by `into_iter`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-    --> $DIR/iterable-fail.rs:7:17
+    --> tests/html_macro/iterable-fail.rs:7:17
      |
 7    |     html! { for Vec::<()>::new().into_iter() };
      |                 ^^^ `()` cannot be formatted with the default formatter
@@ -36,9 +36,10 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
      = note: required because of the requirements on the impl of `From<()>` for `VNode`
      = note: required because of the requirements on the impl of `Into<VNode>` for `()`
      = note: required because of the requirements on the impl of `FromIterator<()>` for `VNode`
+note: required by a bound in `collect`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-    --> $DIR/iterable-fail.rs:10:17
+    --> tests/html_macro/iterable-fail.rs:10:17
      |
 10   |     html! { for empty };
      |                 ^^^^^ `()` cannot be formatted with the default formatter
@@ -49,9 +50,10 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
      = note: required because of the requirements on the impl of `From<()>` for `VNode`
      = note: required because of the requirements on the impl of `Into<VNode>` for `()`
      = note: required because of the requirements on the impl of `FromIterator<()>` for `VNode`
+note: required by a bound in `collect`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-    --> $DIR/iterable-fail.rs:13:17
+    --> tests/html_macro/iterable-fail.rs:13:17
      |
 13   |     html! { for empty.iter() };
      |                 ^^^^^ `()` cannot be formatted with the default formatter
@@ -63,17 +65,18 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
      = note: required because of the requirements on the impl of `From<&()>` for `VNode`
      = note: required because of the requirements on the impl of `Into<VNode>` for `&()`
      = note: required because of the requirements on the impl of `FromIterator<&()>` for `VNode`
+note: required by a bound in `collect`
 
 error[E0277]: `()` is not an iterator
-  --> $DIR/iterable-fail.rs:18:19
+  --> tests/html_macro/iterable-fail.rs:18:19
    |
 18 |             { for () }
    |                   ^^ `()` is not an iterator
    |
-  ::: $WORKSPACE/packages/yew/src/utils/mod.rs
-   |
-   |     IT: IntoIterator<Item = T>,
-   |         ---------------------- required by this bound in `into_node_iter`
-   |
    = help: the trait `Iterator` is not implemented for `()`
    = note: required because of the requirements on the impl of `IntoIterator` for `()`
+note: required by a bound in `into_node_iter`
+  --> $WORKSPACE/packages/yew/src/utils/mod.rs
+   |
+   |     IT: IntoIterator<Item = T>,
+   |         ^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `into_node_iter`

@@ -147,7 +147,7 @@ jobs:
     strategy:
       matrix:
         toolchain:
-          - 1.49.0 # MSRV
+          - 1.56.0 # MSRV
           - stable
 
     steps:
@@ -188,7 +188,7 @@ jobs:
     strategy:
       matrix:
         toolchain:
-          - 1.51.0 # min version with const generics
+          - 1.56.0 # MSRV
           - stable
           - nightly
 
