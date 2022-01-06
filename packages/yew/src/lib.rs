@@ -304,66 +304,6 @@ fn set_default_panic_hook() {
     }
 }
 
-// /// A Yew Renderer.
-// #[derive(Debug)]
-// pub struct YewRenderer<COMP>
-// where
-//     COMP: BaseComponent,
-// {
-//     root: Element,
-//     props: COMP::Properties,
-// }
-
-// impl<COMP> YewRenderer<COMP>
-// where
-//     COMP: BaseComponent,
-// {
-//     /// Creates a [`YewRenderer`] with a custom root and properties.
-//     pub fn with_root_and_props(root: Element, props: COMP::Properties) -> Self {
-//         Self { root, props }
-//     }
-
-//     /// Creates a [`YewRenderer`] with document body as root and custom properties.
-//     pub fn with_props(props: COMP::Properties) -> Self {
-//         Self::with_root_and_props(
-//             gloo_utils::document()
-//                 .body()
-//                 .expect("no body node found")
-//                 .into(),
-//             props,
-//         )
-//     }
-
-//     /// Renders a Yew application.
-//     pub fn render(self) -> AppHandle<COMP> {
-//         set_default_panic_hook();
-
-//         AppHandle::<COMP>::mount_with_props(self.root, Rc::new(self.props))
-//     }
-
-//     /// Hydrates a Yew application.
-//     pub fn hydrate(self) -> AppHandle<COMP> {
-//         set_default_panic_hook();
-//         todo!()
-//     }
-// }
-
-// impl<COMP> YewRenderer<COMP>
-// where
-//     COMP: BaseComponent,
-//     COMP::Properties: Default,
-// {
-//     /// Creates a [`YewRenderer`] with a custom root.
-//     pub fn with_root(root: Element) -> Self {
-//         Self::with_root_and_props(root, COMP::Properties::default())
-//     }
-
-//     /// Creates a [`YewRenderer`] with document body as root.
-//     pub fn body() -> Self {
-//         Self::with_props(COMP::Properties::default())
-//     }
-// }
-
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
