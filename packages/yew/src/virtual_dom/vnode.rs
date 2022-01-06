@@ -296,6 +296,42 @@ impl PartialEq for VNode {
     }
 }
 
+mod feat_ssr {
+    use futures::future::{FutureExt, LocalBoxFuture};
+
+    use super::*;
+    use crate::html_writer::HtmlWriter;
+
+    impl VNode {
+        pub(crate) fn render_to_html<'a>(
+            &'a self,
+            w: &'a HtmlWriter,
+            parent_scope: &'a AnyScope, // we box here due to: https://rust-lang.github.io/async-book/07_workarounds/04_recursion.html
+        ) -> LocalBoxFuture<'a, ()> {
+            async move {
+                match self {
+                    VNode::VTag(vtag) => vtag.render_to_html(w, parent_scope).await,
+                    VNode::VText(vtext) => vtext.render_to_html(w).await,
+                    VNode::VComp(vcomp) => vcomp.render_to_html(w, parent_scope).await,
+                    VNode::VList(vlist) => vlist.render_to_html(w, parent_scope).await,
+                    // We are pretty safe here as it's not possible to get a web_sys::Node without DOM
+                    // support in the first place.
+                    //
+                    // The only exception would be to use `YewServerRenderer` in a browser or wasm32 with
+                    // jsdom present environment, in which case, it's uncharted territory.
+                    VNode::VRef(_) => {
+                        panic!("VRef is not possible to be rendered in to a html writer.")
+                    }
+                    // Portals are not rendered.
+                    VNode::VPortal(_) => {}
+                    VNode::VSuspense(vsuspense) => vsuspense.render_to_html(w, parent_scope).await,
+                }
+            }
+            .boxed_local()
+        }
+    }
+}
+
 #[cfg(test)]
 mod layout_tests {
     use super::*;

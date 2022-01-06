@@ -12,6 +12,7 @@ use crate::context::{ContextHandle, ContextProvider};
 use crate::html::NodeRef;
 use crate::scheduler::{self, Shared};
 use crate::virtual_dom::{insert_node, VNode};
+use futures::channel::oneshot;
 use gloo_utils::document;
 use std::any::{Any, TypeId};
 use std::cell::{Ref, RefCell};
@@ -234,12 +235,13 @@ impl<COMP: BaseComponent> Scope<COMP> {
 
         scheduler::push_component_create(
             CreateRunner {
-                parent,
+                parent: Some(parent),
                 next_sibling,
                 placeholder,
                 node_ref,
                 props,
                 scope: self.clone(),
+                html_sender: None,
             },
             RenderRunner {
                 state: self.state.clone(),
@@ -411,6 +413,47 @@ impl<COMP: BaseComponent> Scope<COMP> {
         callback: Callback<T>,
     ) -> Option<(T, ContextHandle<T>)> {
         self.to_any().context(callback)
+    }
+}
+
+mod feat_ssr {
+    use super::*;
+    use crate::html_writer::HtmlWriter;
+
+    impl<COMP: BaseComponent> Scope<COMP> {
+        /// Renders Into a [`HtmlWrite`].
+        pub(crate) async fn render_to_html(&self, w: &HtmlWriter, props: Rc<COMP::Properties>) {
+            let (tx, rx) = oneshot::channel();
+
+            scheduler::push_component_create(
+                CreateRunner {
+                    parent: None,
+                    next_sibling: NodeRef::default(),
+                    placeholder: VNode::default(),
+                    node_ref: NodeRef::default(),
+                    props,
+                    scope: self.clone(),
+                    html_sender: Some(tx),
+                },
+                RenderRunner {
+                    state: self.state.clone(),
+                },
+                RenderedRunner {
+                    state: self.state.clone(),
+                },
+            );
+            scheduler::start();
+
+            let html = rx.await.unwrap();
+
+            let self_any_scope = self.to_any();
+            html.render_to_html(w, &self_any_scope).await;
+
+            scheduler::push_component_destroy(DestroyRunner {
+                state: self.state.clone(),
+            });
+            scheduler::start();
+        }
     }
 }
 

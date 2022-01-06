@@ -145,3 +145,15 @@ impl VDiff for VSuspense {
         }
     }
 }
+
+mod feat_ssr {
+    use super::*;
+    use crate::html_writer::HtmlWriter;
+
+    impl VSuspense {
+        pub(crate) async fn render_to_html(&self, w: &HtmlWriter, parent_scope: &AnyScope) {
+            // always render children on the server side.
+            self.children.render_to_html(w, parent_scope).await;
+        }
+    }
+}

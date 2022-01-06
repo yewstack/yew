@@ -637,6 +637,44 @@ impl PartialEq for VTag {
     }
 }
 
+mod feat_ssr {
+    use super::*;
+    use crate::html_writer::HtmlWriter;
+
+    impl<T: AccessValue> Value<T> {
+        fn as_str(&self) -> Option<&str> {
+            self.0.as_ref().map(|m| m.as_ref())
+        }
+    }
+
+    impl VTagInner {
+        fn value(&self) -> Option<&str> {
+            match self {
+                Self::Input(ref m) => m.value.as_str(),
+                Self::Textarea { ref value } => value.as_str(),
+                _ => None,
+            }
+        }
+
+        fn checked(&self) -> bool {
+            match self {
+                Self::Input(ref m) => m.checked,
+                _ => false,
+            }
+        }
+    }
+
+    impl VTag {
+        pub(crate) async fn render_to_html(&self, w: &HtmlWriter, parent_scope: &AnyScope) {
+            w.push_str("<");
+            w.push_str(self.tag());
+            // w.push_str()
+
+            w.push_str(">");
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

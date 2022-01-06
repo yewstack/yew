@@ -28,6 +28,18 @@ impl VText {
     }
 }
 
+mod feat_ssr {
+    use super::*;
+
+    use crate::html_writer::HtmlWriter;
+
+    impl VText {
+        pub(crate) async fn render_to_html(&self, w: &HtmlWriter) {
+            w.push_str(&self.text);
+        }
+    }
+}
+
 impl std::fmt::Debug for VText {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
