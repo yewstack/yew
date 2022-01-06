@@ -196,10 +196,10 @@ error: `int` can only be specified once but is given here again
    |                                ^^^
 
 error: `ref` can only be specified once
-  --> tests/html_macro/component-fail.rs:81:26
+  --> tests/html_macro/component-fail.rs:81:35
    |
 81 |     html! { <Child int=1 ref={()} ref={()} /> };
-   |                          ^^^
+   |                                   ^^^
 
 error: this closing tag has no corresponding opening tag
   --> tests/html_macro/component-fail.rs:84:13
@@ -303,7 +303,7 @@ error[E0609]: no field `r#type` on type `ChildProperties`
    |
    = note: available fields are: `string`, `int`
 
-error[E0599]: no method named `r#type` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
+error[E0599]: no method named `r#type` found for struct `ChildPropertiesBuilder` in the current scope
   --> tests/html_macro/component-fail.rs:71:20
    |
 4  | #[derive(Clone, Properties, PartialEq)]
@@ -320,7 +320,7 @@ error[E0609]: no field `unknown` on type `ChildProperties`
    |
    = note: available fields are: `string`, `int`
 
-error[E0599]: no method named `unknown` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
+error[E0599]: no method named `unknown` found for struct `ChildPropertiesBuilder` in the current scope
   --> tests/html_macro/component-fail.rs:74:20
    |
 4  | #[derive(Clone, Properties, PartialEq)]
@@ -381,6 +381,9 @@ error[E0599]: no method named `string` found for struct `ChildPropertiesBuilder<
 ...
 83 |     html! { <Child string="abc" /> };
    |                    ^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
+   |
+   = note: the method was found for
+           - `ChildPropertiesBuilder<ChildPropertiesBuilderStepPropsBuilder>`
 
 error[E0609]: no field `children` on type `ChildProperties`
   --> tests/html_macro/component-fail.rs:87:14
@@ -390,7 +393,7 @@ error[E0609]: no field `children` on type `ChildProperties`
    |
    = note: available fields are: `string`, `int`
 
-error[E0599]: no method named `children` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
+error[E0599]: no method named `children` found for struct `ChildPropertiesBuilder` in the current scope
   --> tests/html_macro/component-fail.rs:87:14
    |
 4  | #[derive(Clone, Properties, PartialEq)]
@@ -415,6 +418,9 @@ error[E0599]: no method named `build` found for struct `ChildContainerProperties
 ...
 99 |     html! { <ChildContainer /> };
    |              ^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
+   |
+   = note: the method was found for
+           - `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStepPropsBuilder>`
 
 error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
    --> tests/html_macro/component-fail.rs:100:14
@@ -424,6 +430,9 @@ error[E0599]: no method named `build` found for struct `ChildContainerProperties
 ...
 100 |     html! { <ChildContainer></ChildContainer> };
     |              ^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
+    |
+    = note: the method was found for
+            - `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStepPropsBuilder>`
 
 error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VText>` is not satisfied
    --> tests/html_macro/component-fail.rs:101:31

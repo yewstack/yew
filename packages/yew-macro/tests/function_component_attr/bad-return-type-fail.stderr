@@ -11,4 +11,4 @@ error[E0277]: the trait bound `u32: IntoHtmlResult` is not satisfied
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IntoHtmlResult` is not implemented for `u32`
    |
    = note: required by `into_html_result`
-   = note: this error originates in an attribute macro (in Nightly builds, run with -Z macro-backtrace for more info)
+   = note: this error originates in the attribute macro `function_component` (in Nightly builds, run with -Z macro-backtrace for more info)
