@@ -639,7 +639,7 @@ impl PartialEq for VTag {
 
 mod feat_ssr {
     use super::*;
-    use crate::html_writer::HtmlWriter;
+    use std::fmt::Write;
 
     impl<T: AccessValue> Value<T> {
         fn as_str(&self) -> Option<&str> {
@@ -665,12 +665,47 @@ mod feat_ssr {
     }
 
     impl VTag {
-        pub(crate) async fn render_to_html(&self, w: &HtmlWriter, parent_scope: &AnyScope) {
-            w.push_str("<");
-            w.push_str(self.tag());
-            // w.push_str()
+        pub(crate) async fn render_to_html(&self, w: &mut String, parent_scope: &AnyScope) {
+            write!(w, "<{}", self.tag()).unwrap();
 
-            w.push_str(">");
+            let write_attr = |w: &mut String, name: &str, val: Option<&str>| {
+                write!(w, " {}", name).unwrap();
+
+                if let Some(m) = val {
+                    // TODO: Escape.
+                    write!(w, "=\"{}\"", m).unwrap();
+                }
+            };
+
+            if let Some(m) = self.inner.value() {
+                write_attr(w, "value", Some(m));
+            }
+
+            if self.inner.checked() {
+                write_attr(w, "checked", None);
+            }
+
+            for (k, v) in self.attributes.iter() {
+                write_attr(w, k, Some(v));
+            }
+
+            write!(w, ">").unwrap();
+
+            match self.inner {
+                VTagInner::Input(_) => {}
+                VTagInner::Textarea { .. } => write!(w, "</textarea>").unwrap(),
+                VTagInner::Other {
+                    ref tag,
+                    ref children,
+                    ..
+                } => {
+                    for child in children.iter() {
+                        child.render_to_html(w, parent_scope).await;
+
+                        write!(w, "</{}>", tag).unwrap();
+                    }
+                }
+            }
         }
     }
 }

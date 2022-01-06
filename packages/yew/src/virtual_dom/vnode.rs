@@ -300,12 +300,11 @@ mod feat_ssr {
     use futures::future::{FutureExt, LocalBoxFuture};
 
     use super::*;
-    use crate::html_writer::HtmlWriter;
 
     impl VNode {
         pub(crate) fn render_to_html<'a>(
             &'a self,
-            w: &'a HtmlWriter,
+            w: &'a mut String,
             parent_scope: &'a AnyScope, // we box here due to: https://rust-lang.github.io/async-book/07_workarounds/04_recursion.html
         ) -> LocalBoxFuture<'a, ()> {
             async move {

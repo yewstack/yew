@@ -418,11 +418,9 @@ impl<COMP: BaseComponent> Scope<COMP> {
 
 mod feat_ssr {
     use super::*;
-    use crate::html_writer::HtmlWriter;
 
     impl<COMP: BaseComponent> Scope<COMP> {
-        /// Renders Into a [`HtmlWrite`].
-        pub(crate) async fn render_to_html(&self, w: &HtmlWriter, props: Rc<COMP::Properties>) {
+        pub(crate) async fn render_to_html(&self, w: &mut String, props: Rc<COMP::Properties>) {
             let (tx, rx) = oneshot::channel();
 
             scheduler::push_component_create(

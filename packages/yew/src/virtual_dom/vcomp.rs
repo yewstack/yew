@@ -2,7 +2,6 @@
 
 use super::{Key, VDiff, VNode};
 use crate::html::{AnyScope, BaseComponent, NodeRef, Scope, Scoped};
-use crate::html_writer::HtmlWriter;
 use futures::future::{FutureExt, LocalBoxFuture};
 use std::any::TypeId;
 use std::borrow::Borrow;
@@ -185,7 +184,7 @@ trait Mountable {
     fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef);
     fn render_to_html<'a>(
         &'a self,
-        w: &'a HtmlWriter,
+        w: &'a mut String,
         parent_scope: &'a AnyScope,
     ) -> LocalBoxFuture<'a, ()>;
 }
@@ -228,7 +227,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
 
     fn render_to_html<'a>(
         &'a self,
-        w: &'a HtmlWriter,
+        w: &'a mut String,
         parent_scope: &'a AnyScope,
     ) -> LocalBoxFuture<'a, ()> {
         async move {
@@ -307,10 +306,9 @@ impl<COMP: BaseComponent> fmt::Debug for VChild<COMP> {
 
 mod feat_ssr {
     use super::*;
-    use crate::html_writer::HtmlWriter;
 
     impl VComp {
-        pub(crate) async fn render_to_html(&self, w: &HtmlWriter, parent_scope: &AnyScope) {
+        pub(crate) async fn render_to_html(&self, w: &mut String, parent_scope: &AnyScope) {
             self.mountable
                 .as_ref()
                 .map(|m| m.copy())

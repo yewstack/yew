@@ -260,7 +260,6 @@ pub mod callback;
 pub mod context;
 pub mod functional;
 pub mod html;
-mod html_writer;
 pub mod scheduler;
 mod sealed;
 pub mod suspense;
@@ -369,7 +368,6 @@ mod feat_ssr {
     use super::*;
 
     use crate::html::Scope;
-    use crate::html_writer::HtmlWriter;
 
     /// A Yew Server-side Renderer.
     #[derive(Debug)]
@@ -412,12 +410,12 @@ mod feat_ssr {
 
         /// Renders Yew Application into a string.
         pub async fn render_to_string(self) -> String {
-            let s = HtmlWriter::default();
+            let mut s = String::new();
 
             let scope = Scope::<COMP>::new(None);
-            scope.render_to_html(&s, self.props.into()).await;
+            scope.render_to_html(&mut s, self.props.into()).await;
 
-            s.into_inner()
+            s
         }
     }
 }

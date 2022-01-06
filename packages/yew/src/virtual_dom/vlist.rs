@@ -286,10 +286,9 @@ impl VList {
 
 mod feat_ssr {
     use super::*;
-    use crate::html_writer::HtmlWriter;
 
     impl VList {
-        pub(crate) async fn render_to_html(&self, w: &HtmlWriter, parent_scope: &AnyScope) {
+        pub(crate) async fn render_to_html(&self, w: &mut String, parent_scope: &AnyScope) {
             for node in self.children.iter() {
                 node.render_to_html(w, parent_scope).await;
             }
