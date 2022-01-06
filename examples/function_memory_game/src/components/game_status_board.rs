@@ -9,8 +9,8 @@ pub struct Props {
     pub on_reset: Callback<()>,
 }
 
-#[function_component(GameStatusBoard)]
-pub fn game_status_board(props: &Props) -> Html {
+#[function_component]
+pub fn GameStatusBoard(props: &Props) -> Html {
     let get_content = {
         let onclick = props.on_reset.reform(move |e: MouseEvent| {
             e.stop_propagation();
@@ -25,7 +25,7 @@ pub fn game_status_board(props: &Props) -> Html {
                 <span >{"Playing"}</span>
             },
             Status::Passed => html! {
-                <a onclick={onclick}>{"Play again"}</a>
+                <button class="play-again-btn" {onclick}>{"Play again"}</button>
             },
         }
     };

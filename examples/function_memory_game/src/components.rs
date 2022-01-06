@@ -1,3 +1,4 @@
+pub mod app;
 pub mod chessboard;
 pub mod chessboard_card;
 pub mod game_status_board;

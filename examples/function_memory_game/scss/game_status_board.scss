@@ -7,10 +7,13 @@
   text-align: center;
   font-size: 18px;
   font-weight: bold;
-  a {
-    text-decoration: none;
+  button {
+    border: none;
     cursor: pointer;
-    color: #5979ab;
+    background: transparent;
+    color: #5979ac;
+    font-size: 17px;
+    font-weight: bold;
   }
   .sec-past {
     position: absolute;

@@ -9,9 +9,8 @@ pub struct Props {
     pub cards: Vec<Card>,
     pub on_flip: Callback<RawCard>,
 }
-
-#[function_component(Chessboard)]
-pub fn chessboard(props: &Props) -> Html {
+#[function_component]
+pub fn Chessboard(props: &Props) -> Html {
     html! {
         <div class="chess-board">
         { for props.cards.iter().map(|card|

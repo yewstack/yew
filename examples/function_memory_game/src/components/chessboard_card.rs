@@ -1,6 +1,6 @@
 use web_sys::MouseEvent;
 use yew::prelude::*;
-use yew::{function_component, html, Properties};
+use yew::{function_component, html, Html, Properties};
 
 use crate::constant::CardName;
 use crate::state::{Card, RawCard};
@@ -11,9 +11,10 @@ pub struct Props {
     pub on_flip: Callback<RawCard>,
 }
 
-#[function_component(ChessboardCard)]
-pub fn chessboard_card(props: &Props) -> Html {
-    let Card { flipped, name, id } = props.card.clone();
+#[function_component]
+pub fn ChessboardCard(props: &Props) -> Html {
+    let Props { card, on_flip } = props.clone();
+    let Card { flipped, name, id } = card;
 
     let get_link_by_cardname = {
         match name {
@@ -29,19 +30,14 @@ pub fn chessboard_card(props: &Props) -> Html {
         .to_string()
     };
 
-    let onclick = {
-        let on_flip = props.on_flip.clone();
-
-        move |e: MouseEvent| {
-            e.stop_propagation();
-
-            (!flipped).then(|| {
-                on_flip.emit(RawCard {
-                    id: id.clone(),
-                    name,
-                })
-            });
-        }
+    let onclick = move |e: MouseEvent| {
+        e.stop_propagation();
+        (!flipped).then(|| {
+            on_flip.emit(RawCard {
+                id: id.clone(),
+                name,
+            })
+        });
     };
 
     html! {
