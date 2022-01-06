@@ -903,3 +903,44 @@ mod layout_tests {
         diff_layouts(vec![layout]);
     }
 }
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod ssr_tests {
+    use tokio::test;
+
+    use crate::prelude::*;
+    use crate::YewServerRenderer;
+
+    #[test]
+    async fn test_props() {
+        #[derive(PartialEq, Properties, Debug)]
+        struct ChildProps {
+            name: String,
+        }
+
+        #[function_component]
+        fn Child(props: &ChildProps) -> Html {
+            html! { <div>{"Hello, "}{&props.name}{"!"}</div> }
+        }
+
+        #[function_component]
+        fn Comp() -> Html {
+            html! {
+                <div>
+                    <Child name="Jane" />
+                    <Child name="John" />
+                    <Child name="Josh" />
+                </div>
+            }
+        }
+
+        let renderer = YewServerRenderer::<Comp>::new();
+
+        let s = renderer.render_to_string().await;
+
+        assert_eq!(
+            s,
+            "<div><div>Hello, Jane!</div><div>Hello, John!</div><div>Hello, Josh!</div></div>"
+        );
+    }
+}

@@ -639,6 +639,7 @@ impl PartialEq for VTag {
 
 mod feat_ssr {
     use super::*;
+    use crate::virtual_dom::VText;
     use std::fmt::Write;
 
     impl VTag {
@@ -653,12 +654,14 @@ mod feat_ssr {
                 }
             };
 
-            if let Some(m) = self.value() {
-                write_attr(w, "value", Some(m));
-            }
+            if let VTagInner::Input(_) = self.inner {
+                if let Some(m) = self.value() {
+                    write_attr(w, "value", Some(m));
+                }
 
-            if self.checked() {
-                write_attr(w, "checked", None);
+                if self.checked() {
+                    write_attr(w, "checked", None);
+                }
             }
 
             for (k, v) in self.attributes.iter() {
@@ -669,7 +672,13 @@ mod feat_ssr {
 
             match self.inner {
                 VTagInner::Input(_) => {}
-                VTagInner::Textarea { .. } => w.push_str("</textarea>"),
+                VTagInner::Textarea { .. } => {
+                    if let Some(m) = self.value() {
+                        VText::new(m.to_owned()).render_to_html(w).await;
+                    }
+
+                    w.push_str("</textarea>");
+                }
                 VTagInner::Other {
                     ref tag,
                     ref children,
@@ -677,9 +686,9 @@ mod feat_ssr {
                 } => {
                     for child in children.iter() {
                         child.render_to_html(w, parent_scope).await;
-
-                        write!(w, "</{}>", tag).unwrap();
                     }
+
+                    write!(w, "</{}>", tag).unwrap();
                 }
             }
         }
@@ -1486,5 +1495,83 @@ mod tests_without_browser {
             },
             html! { <div><></></div> },
         );
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod ssr_tests {
+    use tokio::test;
+
+    use crate::prelude::*;
+    use crate::YewServerRenderer;
+
+    #[test]
+    async fn test_simple_tag() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! { <div></div> }
+        }
+
+        let renderer = YewServerRenderer::<Comp>::new();
+
+        let s = renderer.render_to_string().await;
+
+        assert_eq!(s, "<div></div>");
+    }
+
+    #[test]
+    async fn test_simple_tag_with_attr() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! { <div class="abc"></div> }
+        }
+
+        let renderer = YewServerRenderer::<Comp>::new();
+
+        let s = renderer.render_to_string().await;
+
+        assert_eq!(s, r#"<div class="abc"></div>"#);
+    }
+
+    #[test]
+    async fn test_simple_tag_with_content() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! { <div>{"Hello!"}</div> }
+        }
+
+        let renderer = YewServerRenderer::<Comp>::new();
+
+        let s = renderer.render_to_string().await;
+
+        assert_eq!(s, r#"<div>Hello!</div>"#);
+    }
+
+    #[test]
+    async fn test_simple_tag_with_nested_tag_and_input() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! { <div>{"Hello!"}<input value="abc" type="text" /></div> }
+        }
+
+        let renderer = YewServerRenderer::<Comp>::new();
+
+        let s = renderer.render_to_string().await;
+
+        assert_eq!(s, r#"<div>Hello!<input value="abc" type="text"></div>"#);
+    }
+
+    #[test]
+    async fn test_textarea() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! { <textarea value="teststring" /> }
+        }
+
+        let renderer = YewServerRenderer::<Comp>::new();
+
+        let s = renderer.render_to_string().await;
+
+        assert_eq!(s, r#"<textarea>teststring</textarea>"#);
     }
 }

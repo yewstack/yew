@@ -190,3 +190,21 @@ mod layout_tests {
         diff_layouts(vec![layout1, layout2, layout3, layout4]);
     }
 }
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod ssr_tests {
+    use tokio::test;
+
+    use super::*;
+
+    #[test]
+    async fn test_simple_str() {
+        let vtext = VText::new("abc");
+
+        let mut s = String::new();
+
+        vtext.render_to_html(&mut s).await;
+
+        assert_eq!("abc", s.as_str());
+    }
+}

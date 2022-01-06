@@ -1279,3 +1279,27 @@ mod layout_tests_keys {
         diff_layouts(layouts);
     }
 }
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod ssr_tests {
+    use tokio::test;
+
+    use crate::prelude::*;
+    use crate::YewServerRenderer;
+
+    #[test]
+    async fn test_text_back_to_back() {
+        #[function_component]
+        fn Comp() -> Html {
+            let s = "world";
+
+            html! { <div>{"Hello "}{s}{"!"}</div> }
+        }
+
+        let renderer = YewServerRenderer::<Comp>::new();
+
+        let s = renderer.render_to_string().await;
+
+        assert_eq!(s, "<div>Hello world!</div>");
+    }
+}
