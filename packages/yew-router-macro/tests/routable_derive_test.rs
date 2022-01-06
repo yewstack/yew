@@ -1,5 +1,5 @@
 #[allow(dead_code)]
-#[rustversion::attr(stable(1.51), test)]
+#[rustversion::attr(stable(1.54), test)]
 fn tests() {
     let t = trybuild::TestCases::new();
     t.pass("tests/routable_derive/*-pass.rs");
