@@ -16,7 +16,7 @@ pub enum Msg {
     Tick,
 }
 
-pub struct Model {
+pub struct App {
     active: bool,
     cellules: Vec<Cellule>,
     cellules_width: usize,
@@ -24,7 +24,7 @@ pub struct Model {
     _interval: Interval,
 }
 
-impl Model {
+impl App {
     pub fn random_mutate(&mut self) {
         for cellule in self.cellules.iter_mut() {
             if rand::thread_rng().gen() {
@@ -101,7 +101,7 @@ impl Model {
         }
     }
 }
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -226,5 +226,5 @@ fn wrap(coord: isize, range: isize) -> usize {
 fn main() {
     wasm_logger::init(wasm_logger::Config::default());
     log::trace!("Initializing yew...");
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }

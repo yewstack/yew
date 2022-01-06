@@ -5,7 +5,7 @@ use web_sys::HtmlInputElement;
 use yew::prelude::*;
 use yew_agent::{Bridge, Bridged};
 
-pub struct Model {
+pub struct App {
     clicker_value: u32,
     input_ref: NodeRef,
     worker: Box<dyn Bridge<Worker>>,
@@ -18,7 +18,7 @@ pub enum Message {
     WorkerMsg(WorkerOutput),
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = Message;
     type Properties = ();
 

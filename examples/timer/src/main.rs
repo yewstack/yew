@@ -13,7 +13,7 @@ pub enum Msg {
     UpdateTime,
 }
 
-pub struct Model {
+pub struct App {
     time: String,
     messages: Vec<&'static str>,
     _standalone: (Interval, Interval),
@@ -22,7 +22,7 @@ pub struct Model {
     console_timer: Option<Timer<'static>>,
 }
 
-impl Model {
+impl App {
     fn get_current_time() -> String {
         let date = js_sys::Date::new_0();
         String::from(date.to_locale_time_string("en-US"))
@@ -34,7 +34,7 @@ impl Model {
     }
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -48,7 +48,7 @@ impl Component for Model {
         };
 
         Self {
-            time: Model::get_current_time(),
+            time: App::get_current_time(),
             messages: Vec::new(),
             _standalone: (standalone_handle, clock_handle),
             interval: None,
@@ -115,7 +115,7 @@ impl Component for Model {
                 true
             }
             Msg::UpdateTime => {
-                self.time = Model::get_current_time();
+                self.time = App::get_current_time();
                 true
             }
         }
@@ -150,5 +150,5 @@ impl Component for Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }

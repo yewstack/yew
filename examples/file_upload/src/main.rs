@@ -15,13 +15,13 @@ pub enum Msg {
     ToggleReadBytes,
 }
 
-pub struct Model {
+pub struct App {
     readers: HashMap<String, FileReader>,
     files: Vec<String>,
     read_bytes: bool,
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -115,7 +115,7 @@ impl Component for Model {
     }
 }
 
-impl Model {
+impl App {
     fn view_file(data: &str) -> Html {
         html! {
             <li>{ data }</li>
@@ -124,5 +124,5 @@ impl Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }
