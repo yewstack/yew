@@ -246,7 +246,7 @@ mod ssr_tests {
             .run_until(async move {
                 let renderer = YewServerRenderer::<Comp>::new();
 
-                renderer.render_to_string().await
+                renderer.render().await
             })
             .await;
 

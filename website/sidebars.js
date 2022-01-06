@@ -94,6 +94,7 @@ module.exports = {
         "advanced-topics/how-it-works",
         "advanced-topics/optimizations",
         "advanced-topics/portals",
+        "advanced-topics/server-side-rendering",
       ],
     },
     {

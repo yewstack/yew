@@ -1299,7 +1299,7 @@ mod ssr_tests {
 
         let renderer = YewServerRenderer::<Comp>::new();
 
-        let s = renderer.render_to_string().await;
+        let s = renderer.render().await;
 
         assert_eq!(s, "<div>Hello world!</div>");
     }
@@ -1329,7 +1329,7 @@ mod ssr_tests {
 
         let renderer = YewServerRenderer::<Comp>::new();
 
-        let s = renderer.render_to_string().await;
+        let s = renderer.render().await;
 
         assert_eq!(
             s,

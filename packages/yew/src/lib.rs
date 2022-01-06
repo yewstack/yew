@@ -409,14 +409,19 @@ mod feat_ssr {
             Self { props }
         }
 
-        /// Renders Yew Application into a string.
-        pub async fn render_to_string(self) -> String {
+        /// Renders Yew Application.
+        pub async fn render(self) -> String {
             let mut s = String::new();
 
-            let scope = Scope::<COMP>::new(None);
-            scope.render_to_html(&mut s, self.props.into()).await;
+            self.render_to_string(&mut s).await;
 
             s
+        }
+
+        /// Renders Yew Application to a String.
+        pub async fn render_to_string(self, w: &mut String) {
+            let scope = Scope::<COMP>::new(None);
+            scope.render_to_html(w, self.props.into()).await;
         }
     }
 }

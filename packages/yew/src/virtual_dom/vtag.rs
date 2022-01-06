@@ -1515,7 +1515,7 @@ mod ssr_tests {
 
         let renderer = YewServerRenderer::<Comp>::new();
 
-        let s = renderer.render_to_string().await;
+        let s = renderer.render().await;
 
         assert_eq!(s, "<div></div>");
     }
@@ -1529,7 +1529,7 @@ mod ssr_tests {
 
         let renderer = YewServerRenderer::<Comp>::new();
 
-        let s = renderer.render_to_string().await;
+        let s = renderer.render().await;
 
         assert_eq!(s, r#"<div class="abc"></div>"#);
     }
@@ -1557,7 +1557,7 @@ mod ssr_tests {
 
         let renderer = YewServerRenderer::<Comp>::new();
 
-        let s = renderer.render_to_string().await;
+        let s = renderer.render().await;
 
         assert_eq!(s, r#"<div>Hello!<input value="abc" type="text"></div>"#);
     }
@@ -1571,7 +1571,7 @@ mod ssr_tests {
 
         let renderer = YewServerRenderer::<Comp>::new();
 
-        let s = renderer.render_to_string().await;
+        let s = renderer.render().await;
 
         assert_eq!(s, r#"<textarea>teststring</textarea>"#);
     }
