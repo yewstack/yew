@@ -7,6 +7,7 @@ use crate::suspense::{Suspense, Suspension};
 use crate::virtual_dom::{VDiff, VNode};
 use crate::Callback;
 use crate::{Context, NodeRef};
+#[cfg(feature = "ssr")]
 use futures::channel::oneshot;
 use std::rc::Rc;
 use web_sys::Element;
@@ -26,6 +27,7 @@ pub(crate) struct ComponentState<COMP: BaseComponent> {
 
     suspension: Option<Suspension>,
 
+    #[cfg(feature = "ssr")]
     html_sender: Option<oneshot::Sender<VNode>>,
 
     // Used for debug logging
@@ -41,7 +43,7 @@ impl<COMP: BaseComponent> ComponentState<COMP> {
         node_ref: NodeRef,
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
-        html_sender: Option<oneshot::Sender<VNode>>,
+        #[cfg(feature = "ssr")] html_sender: Option<oneshot::Sender<VNode>>,
     ) -> Self {
         #[cfg(debug_assertions)]
         let vcomp_id = {
@@ -62,6 +64,7 @@ impl<COMP: BaseComponent> ComponentState<COMP> {
             suspension: None,
             has_rendered: false,
 
+            #[cfg(feature = "ssr")]
             html_sender,
 
             #[cfg(debug_assertions)]
@@ -77,6 +80,7 @@ pub(crate) struct CreateRunner<COMP: BaseComponent> {
     pub(crate) node_ref: NodeRef,
     pub(crate) props: Rc<COMP::Properties>,
     pub(crate) scope: Scope<COMP>,
+    #[cfg(feature = "ssr")]
     pub(crate) html_sender: Option<oneshot::Sender<VNode>>,
 }
 
@@ -94,6 +98,7 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
                 self.node_ref,
                 self.scope.clone(),
                 self.props,
+                #[cfg(feature = "ssr")]
                 self.html_sender,
             ));
         }
@@ -231,8 +236,11 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
 
                         let node = new_root.apply(&scope, m, next_sibling, ancestor);
                         state.node_ref.link(node);
-                    } else if let Some(tx) = state.html_sender.take() {
-                        tx.send(root).unwrap();
+                    } else {
+                        #[cfg(feature = "ssr")]
+                        if let Some(tx) = state.html_sender.take() {
+                            tx.send(root).unwrap();
+                        }
                     }
                 }
 

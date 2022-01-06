@@ -364,6 +364,7 @@ fn set_default_panic_hook() {
 //     }
 // }
 
+#[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
 
@@ -420,6 +421,7 @@ mod feat_ssr {
     }
 }
 
+#[cfg(feature = "ssr")]
 pub use feat_ssr::*;
 
 /// The main entry point of a Yew application.

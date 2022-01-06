@@ -637,6 +637,7 @@ impl PartialEq for VTag {
     }
 }
 
+#[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
     use crate::virtual_dom::VText;
@@ -1498,7 +1499,7 @@ mod tests_without_browser {
     }
 }
 
-#[cfg(all(test, not(target_arch = "wasm32")))]
+#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
 mod ssr_tests {
     use tokio::test;
 

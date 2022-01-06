@@ -12,7 +12,6 @@ use crate::context::{ContextHandle, ContextProvider};
 use crate::html::NodeRef;
 use crate::scheduler::{self, Shared};
 use crate::virtual_dom::{insert_node, VNode};
-use futures::channel::oneshot;
 use gloo_utils::document;
 use std::any::{Any, TypeId};
 use std::cell::{Ref, RefCell};
@@ -241,6 +240,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
                 node_ref,
                 props,
                 scope: self.clone(),
+                #[cfg(feature = "ssr")]
                 html_sender: None,
             },
             RenderRunner {
@@ -416,8 +416,10 @@ impl<COMP: BaseComponent> Scope<COMP> {
     }
 }
 
+#[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
+    use futures::channel::oneshot;
 
     impl<COMP: BaseComponent> Scope<COMP> {
         pub(crate) async fn render_to_html(&self, w: &mut String, props: Rc<COMP::Properties>) {

@@ -28,6 +28,7 @@ impl VText {
     }
 }
 
+#[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
 
@@ -191,7 +192,7 @@ mod layout_tests {
     }
 }
 
-#[cfg(all(test, not(target_arch = "wasm32")))]
+#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
 mod ssr_tests {
     use tokio::test;
 

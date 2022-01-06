@@ -2,6 +2,7 @@
 
 use super::{Key, VDiff, VNode};
 use crate::html::{AnyScope, BaseComponent, NodeRef, Scope, Scoped};
+#[cfg(feature = "ssr")]
 use futures::future::{FutureExt, LocalBoxFuture};
 use std::any::TypeId;
 use std::borrow::Borrow;
@@ -182,6 +183,8 @@ trait Mountable {
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped>;
     fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef);
+
+    #[cfg(feature = "ssr")]
     fn render_to_html<'a>(
         &'a self,
         w: &'a mut String,
@@ -225,6 +228,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         scope.reuse(self.props, node_ref, next_sibling);
     }
 
+    #[cfg(feature = "ssr")]
     fn render_to_html<'a>(
         &'a self,
         w: &'a mut String,
@@ -304,6 +308,7 @@ impl<COMP: BaseComponent> fmt::Debug for VChild<COMP> {
     }
 }
 
+#[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
 
@@ -904,7 +909,7 @@ mod layout_tests {
     }
 }
 
-#[cfg(all(test, not(target_arch = "wasm32")))]
+#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
 mod ssr_tests {
     use tokio::test;
 

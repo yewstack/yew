@@ -296,6 +296,7 @@ impl PartialEq for VNode {
     }
 }
 
+#[cfg(feature = "ssr")]
 mod feat_ssr {
     use futures::future::{FutureExt, LocalBoxFuture};
 

@@ -150,6 +150,7 @@ impl VDiff for VSuspense {
     }
 }
 
+#[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
 
@@ -161,7 +162,7 @@ mod feat_ssr {
     }
 }
 
-#[cfg(all(test, not(target_arch = "wasm32")))]
+#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
 mod ssr_tests {
     use std::rc::Rc;
     use std::time::Duration;

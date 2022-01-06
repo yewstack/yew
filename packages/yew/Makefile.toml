@@ -38,4 +38,4 @@ args = [
 
 [tasks.ssr-test]
 command = "cargo"
-args = ["test", "ssr_tests"]
+args = ["test", "ssr_tests", "--features", "ssr"]
