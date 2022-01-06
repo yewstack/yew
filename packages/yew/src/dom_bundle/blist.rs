@@ -53,6 +53,10 @@ impl<'s> ElementWriter<'s> {
         )
     }
 
+    fn shift(&self, bundle: &mut BNode) {
+        bundle.shift(self.parent, self.next_sibling.clone());
+    }
+
     fn patch(self, node: VNode, bundle: &mut BNode) -> Self {
         test_log!("patching: {:?} -> {:?}", bundle, node);
         test_log!(
@@ -61,7 +65,6 @@ impl<'s> ElementWriter<'s> {
             self.next_sibling
         );
         // Advance the next sibling reference (from right to left)
-        bundle.shift(self.parent, self.next_sibling.clone());
         let next = node.reconcile(self.parent_scope, self.parent, self.next_sibling, bundle);
         test_log!("  next_position: {:?}", next);
         Self {
@@ -71,23 +74,23 @@ impl<'s> ElementWriter<'s> {
     }
 }
 
-struct NodeEntry(BNode);
-impl Borrow<Key> for NodeEntry {
+struct KeyedEntry(BNode, usize);
+impl Borrow<Key> for KeyedEntry {
     fn borrow(&self) -> &Key {
         self.0.key().expect("unkeyed child in fully keyed list")
     }
 }
-impl Hash for NodeEntry {
+impl Hash for KeyedEntry {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         <Self as Borrow<Key>>::borrow(self).hash(state)
     }
 }
-impl PartialEq for NodeEntry {
+impl PartialEq for KeyedEntry {
     fn eq(&self, other: &Self) -> bool {
         <Self as Borrow<Key>>::borrow(self) == <Self as Borrow<Key>>::borrow(other)
     }
 }
-impl Eq for NodeEntry {}
+impl Eq for KeyedEntry {}
 
 impl BNode {
     fn make_list(&mut self) -> &mut BList {
@@ -165,9 +168,14 @@ impl BList {
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
-        lefts: Vec<VNode>,
-        rights: &mut Vec<BNode>,
+        left_vdoms: Vec<VNode>,
+        rev_bundles: &mut Vec<BNode>,
     ) -> NodeRef {
+        macro_rules! key {
+            ($v:expr) => {
+                $v.key().expect("unkeyed child in fully keyed list")
+            };
+        }
         /// Find the first differing key in 2 iterators
         fn matching_len<'a, 'b>(
             a: impl Iterator<Item = &'a Key>,
@@ -178,62 +186,72 @@ impl BList {
 
         // Find first key mismatch from the back
         let matching_len_end = matching_len(
-            lefts
-                .iter()
-                .map(|v| v.key().expect("unkeyed child in fully keyed list"))
-                .rev(),
-            rights
-                .iter()
-                .map(|v| v.key().expect("unkeyed child in fully keyed list")),
+            left_vdoms.iter().map(|v| key!(v)).rev(),
+            rev_bundles.iter().map(|v| key!(v)),
         );
 
-        if matching_len_end == std::cmp::min(lefts.len(), rights.len()) {
+        // If there is no key mismatch, apply the unkeyed approach
+        // Corresponds to adding or removing items from the back of the list
+        if matching_len_end == std::cmp::min(left_vdoms.len(), rev_bundles.len()) {
             // No key changes
-            return Self::apply_unkeyed(parent_scope, parent, next_sibling, lefts, rights);
+            return Self::apply_unkeyed(
+                parent_scope,
+                parent,
+                next_sibling,
+                left_vdoms,
+                rev_bundles,
+            );
         }
-        // We partially deconstruct the new vector in several steps.
-        let mut lefts = lefts;
+
+        // We partially drain the new vnodes in several steps.
+        let mut lefts = left_vdoms;
         let mut writer = ElementWriter {
             parent_scope,
             parent,
             next_sibling,
         };
-        // Diff matching children at the end
+        // Step 1. Diff matching children at the end
         let lefts_to = lefts.len() - matching_len_end;
         for (l, r) in lefts
             .drain(lefts_to..)
             .rev()
-            .zip(rights[..matching_len_end].iter_mut())
+            .zip(rev_bundles[..matching_len_end].iter_mut())
         {
             writer = writer.patch(l, r);
         }
+
+        // Step 2. Diff matching children in the middle, that is between the first and last key mismatch
         // Find first key mismatch from the front
         let matching_len_start = matching_len(
-            lefts
-                .iter()
-                .map(|v| v.key().expect("unkeyed child in fully keyed list")),
-            rights
-                .iter()
-                .map(|v| v.key().expect("unkeyed child in fully keyed list"))
-                .rev(),
+            lefts.iter().map(|v| key!(v)),
+            rev_bundles.iter().map(|v| key!(v)).rev(),
         );
 
-        // Diff mismatched children in the middle
-        let rights_to = rights.len() - matching_len_start;
-        let mut spliced_middle = rights.splice(matching_len_end..rights_to, std::iter::empty());
-        let mut rights_diff: HashSet<NodeEntry> =
+        // Step 2.1. Splice out the existing middle part and build a lookup by key
+        let rights_to = rev_bundles.len() - matching_len_start;
+        let mut spliced_middle =
+            rev_bundles.splice(matching_len_end..rights_to, std::iter::empty());
+        let mut spare_bundles: HashSet<KeyedEntry> =
             HashSet::with_capacity((matching_len_end..rights_to).len());
-        for r in &mut spliced_middle {
-            rights_diff.insert(NodeEntry(r));
+        for (idx, r) in (&mut spliced_middle).enumerate() {
+            spare_bundles.insert(KeyedEntry(r, idx));
         }
+
+        // Step 2.2. Put the middle part back together in the new key order
         let mut replacements: Vec<BNode> = Vec::with_capacity((matching_len_start..lefts_to).len());
+        // Roughly keep track of the order in which elements appear. If one appears out-of-order
+        // we (over approximately) have to shift the element, otherwise it is guaranteed to be in place.
+        let mut max_seen_idx = 0;
         for l in lefts
             .drain(matching_len_start..) // lefts_to.. has been drained
             .rev()
         {
-            let l_key = l.key().expect("unkeyed child in fully keyed list");
-            let bundle = match rights_diff.take(l_key) {
-                Some(NodeEntry(mut r_bundle)) => {
+            let bundle = match spare_bundles.take(key!(l)) {
+                Some(KeyedEntry(mut r_bundle, idx)) => {
+                    if idx < max_seen_idx {
+                        writer.shift(&mut r_bundle);
+                    }
+                    max_seen_idx = usize::max(max_seen_idx, idx);
                     writer = writer.patch(l, &mut r_bundle);
                     r_bundle
                 }
@@ -245,22 +263,22 @@ impl BList {
             };
             replacements.push(bundle);
         }
-        // now drop the splice iterator
+        // drop the splice iterator and immediately replace the range with the reordered elements
         std::mem::drop(spliced_middle);
-        rights.splice(matching_len_end..matching_len_end, replacements);
+        rev_bundles.splice(matching_len_end..matching_len_end, replacements);
 
-        // Remove any extra rights
-        for NodeEntry(r) in rights_diff.drain() {
+        // Step 2.3. Remove any extra rights
+        for KeyedEntry(r, _) in spare_bundles.drain() {
             test_log!("removing: {:?}", r);
             r.detach(parent);
         }
 
-        // Diff matching children at the start
-        let rights_to = rights.len() - matching_len_start;
+        // Step 3. Diff matching children at the start
+        let rights_to = rev_bundles.len() - matching_len_start;
         for (l, r) in lefts
             .drain(..) // matching_len_start.. has been drained already
             .rev()
-            .zip(rights[rights_to..].iter_mut())
+            .zip(rev_bundles[rights_to..].iter_mut())
         {
             writer = writer.patch(l, r);
         }
@@ -335,7 +353,6 @@ impl Reconcilable for VList {
         if let Some(additional) = rights.len().checked_sub(lefts.len()) {
             rights.reserve_exact(additional);
         }
-        #[allow(clippy::let_and_return)]
         let first = if self.fully_keyed && blist.fully_keyed {
             BList::apply_keyed(parent_scope, parent, next_sibling, lefts, rights)
         } else {
