@@ -120,7 +120,6 @@ async fn render() -> String {
 
 #[tokio::main]
 async fn main() {
-    // Match any request and return hello world!
     let routes = warp::any().then(|| async move { warp::reply::html(render().await) });
 
     println!("You can view the website at: http://localhost:8080/");
