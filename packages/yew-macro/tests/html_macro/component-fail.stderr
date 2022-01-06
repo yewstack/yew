@@ -35,10 +35,10 @@ error: expected base props expression after `..`
    |                    ^^
 
 error: unexpected end of input, expected expression
-  --> tests/html_macro/component-fail.rs:47:22
+  --> tests/html_macro/component-fail.rs:47:28
    |
 47 |     html! { <Child ..{ 5 + } /> };
-   |                      ^^^^^^^
+   |                            ^
 
 error: `props` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
   --> tests/html_macro/component-fail.rs:48:20
@@ -163,7 +163,7 @@ error: expected identifier, found keyword `type`
 help: you can escape reserved keywords to use them as identifiers
    |
 71 |     html! { <Child r#type=0 /> };
-   |                    ^^^^^^
+   |                    ~~~~~~
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
   --> tests/html_macro/component-fail.rs:72:24
@@ -441,7 +441,7 @@ error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VText>` is 
     |                               ^^^^^^^^^^^^^ the trait `From<yew::virtual_dom::VText>` is not implemented for `VChild<Child>`
     |
     = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `yew::virtual_dom::VText`
-    = note: required by `into`
+note: required by `into`
 
 error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
    --> tests/html_macro/component-fail.rs:102:29
@@ -450,7 +450,7 @@ error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
     |                             ^ the trait `From<VNode>` is not implemented for `VChild<Child>`
     |
     = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
-    = note: required by `into`
+note: required by `into`
 
 error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
    --> tests/html_macro/component-fail.rs:103:30
@@ -459,4 +459,4 @@ error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
     |                              ^^^^^ the trait `From<VNode>` is not implemented for `VChild<Child>`
     |
     = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
-    = note: required by `into`
+note: required by `into`
