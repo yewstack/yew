@@ -33,7 +33,7 @@ mod feat_ssr {
 
     impl VText {
         pub(crate) async fn render_to_html(&self, w: &mut String) {
-            w.push_str(&self.text);
+            html_escape::encode_text_to_string(&self.text, w);
         }
     }
 }

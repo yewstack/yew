@@ -384,8 +384,8 @@ impl VTag {
     /// Returns `checked` property of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     /// (Not a value of node's attribute).
-    pub fn checked(&mut self) -> bool {
-        match &mut self.inner {
+    pub fn checked(&self) -> bool {
+        match &self.inner {
             VTagInner::Input(f) => f.checked,
             _ => false,
         }
@@ -641,29 +641,6 @@ mod feat_ssr {
     use super::*;
     use std::fmt::Write;
 
-    impl<T: AccessValue> Value<T> {
-        fn as_str(&self) -> Option<&str> {
-            self.0.as_ref().map(|m| m.as_ref())
-        }
-    }
-
-    impl VTagInner {
-        fn value(&self) -> Option<&str> {
-            match self {
-                Self::Input(ref m) => m.value.as_str(),
-                Self::Textarea { ref value } => value.as_str(),
-                _ => None,
-            }
-        }
-
-        fn checked(&self) -> bool {
-            match self {
-                Self::Input(ref m) => m.checked,
-                _ => false,
-            }
-        }
-    }
-
     impl VTag {
         pub(crate) async fn render_to_html(&self, w: &mut String, parent_scope: &AnyScope) {
             write!(w, "<{}", self.tag()).unwrap();
@@ -672,16 +649,15 @@ mod feat_ssr {
                 write!(w, " {}", name).unwrap();
 
                 if let Some(m) = val {
-                    // TODO: Escape.
-                    write!(w, "=\"{}\"", m).unwrap();
+                    write!(w, "=\"{}\"", html_escape::encode_double_quoted_attribute(m)).unwrap();
                 }
             };
 
-            if let Some(m) = self.inner.value() {
+            if let Some(m) = self.value() {
                 write_attr(w, "value", Some(m));
             }
 
-            if self.inner.checked() {
+            if self.checked() {
                 write_attr(w, "checked", None);
             }
 
@@ -693,7 +669,7 @@ mod feat_ssr {
 
             match self.inner {
                 VTagInner::Input(_) => {}
-                VTagInner::Textarea { .. } => write!(w, "</textarea>").unwrap(),
+                VTagInner::Textarea { .. } => w.push_str("</textarea>"),
                 VTagInner::Other {
                     ref tag,
                     ref children,
