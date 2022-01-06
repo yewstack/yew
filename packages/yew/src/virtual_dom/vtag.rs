@@ -1543,7 +1543,7 @@ mod ssr_tests {
 
         let renderer = YewServerRenderer::<Comp>::new();
 
-        let s = renderer.render_to_string().await;
+        let s = renderer.render().await;
 
         assert_eq!(s, r#"<div>Hello!</div>"#);
     }
