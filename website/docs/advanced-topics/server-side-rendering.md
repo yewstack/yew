@@ -77,7 +77,7 @@ that makes use of Web APIs.
 
 :::
 
-# Data Fetching during Server-side Rendering
+## Data Fetching during Server-side Rendering
 
 Data fetching is one of the difficult point with server side rendering
 and hydration. Traditionally, when the application renders, it is
