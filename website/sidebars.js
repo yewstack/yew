@@ -3,9 +3,7 @@
  - create an ordered group of docs
  - render a sidebar for each doc of that group
  - provide next/previous navigation
-
  The sidebars can be generated from the filesystem, or explicitly defined here.
-
  Create as many sidebars as you want.
  */
 
@@ -18,40 +16,30 @@ module.exports = {
     {
       type: "category",
       label: "Getting Started",
+      link: { type: "doc", id: "getting-started/introduction" },
       items: [
-        {
-          type: "category",
-          label: "Project Setup",
-          items: [
-            "getting-started/project-setup/introduction",
-            "getting-started/project-setup/using-trunk",
-            "getting-started/project-setup/using-wasm-pack",
-          ],
-        },
         "getting-started/build-a-sample-app",
         "getting-started/examples",
-        "getting-started/starter-templates",
+        "getting-started/editor-setup",
       ],
     },
     {
       type: "category",
       label: "Concepts",
+      link: {
+        type: "generated-index",
+        title: "Yew concepts",
+        description: "Learn about the important Yew concepts!",
+      },
       items: [
         {
           type: "category",
-          label: "wasm-bindgen",
-          items: [
-            "concepts/wasm-bindgen/introduction",
-            "concepts/wasm-bindgen/web-sys",
-          ],
-        },
-        {
-          type: "category",
           label: "Components",
+          link: { type: "doc", id: "concepts/components/introduction" },
           items: [
-            "concepts/components/introduction",
-            "concepts/components/callbacks",
+            "concepts/components/lifecycle",
             "concepts/components/scope",
+            "concepts/components/callbacks",
             "concepts/components/properties",
             "concepts/components/children",
             "concepts/components/refs",
@@ -60,8 +48,8 @@ module.exports = {
         {
           type: "category",
           label: "HTML",
+          link: { type: "doc", id: "concepts/html/introduction" },
           items: [
-            "concepts/html/introduction",
             "concepts/html/components",
             "concepts/html/elements",
             "concepts/html/events",
@@ -69,6 +57,7 @@ module.exports = {
             "concepts/html/fragments",
             "concepts/html/lists",
             "concepts/html/literals-and-expressions",
+            "concepts/html/conditional-rendering",
           ],
         },
         {
@@ -81,6 +70,20 @@ module.exports = {
             "concepts/function-components/custom-hooks",
           ],
         },
+        {
+          type: "category",
+          label: "wasm-bindgen",
+          link: {
+            type: "generated-index",
+            title: "wasm-bindgen",
+            description: "Learn about wasm-bindgen",
+            slug: "/concepts/wasm-bindgen",
+          },
+          items: [
+            "concepts/wasm-bindgen/introduction",
+            "concepts/wasm-bindgen/web-sys",
+          ],
+        },
         "concepts/agents",
         "concepts/contexts",
         "concepts/router",
@@ -90,6 +93,12 @@ module.exports = {
     {
       type: "category",
       label: "Advanced topics",
+      link: {
+        type: "generated-index",
+        title: "Advanced topics",
+        description:
+          "Learn about the advanced topics and inner workings of Yew!",
+      },
       items: [
         "advanced-topics/how-it-works",
         "advanced-topics/optimizations",
@@ -100,14 +109,16 @@ module.exports = {
     {
       type: "category",
       label: "More",
+      link: {
+        type: "generated-index",
+        title: "Miscellaneous",
+      },
       items: [
         "more/debugging",
-        "more/development-tips",
         "more/external-libs",
         "more/css",
         "more/testing",
         "more/roadmap",
-        "more/wasm-build-tools",
       ],
     },
     {

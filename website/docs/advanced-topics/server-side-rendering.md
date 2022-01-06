@@ -103,6 +103,6 @@ Example: [simple\_ssr](https://github.com/yewstack/yew/tree/master/examples/susp
 ::: warning
 
 Server-side rendering is experiemental and currently has no hydration support.
-However, you can still generate static websites.
+However, you can still use it to generate static websites.
 
 :::
