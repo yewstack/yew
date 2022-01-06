@@ -258,7 +258,9 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
 
                         let comp_scope = AnyScope::from(state.context.scope.clone());
 
-                        let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
+                        let suspense_scope = comp_scope
+                            .find_parent_scope::<Suspense>()
+                            .expect("To suspend rendering, a <Suspense /> component is required.");
                         let suspense = suspense_scope.get_component().unwrap();
 
                         m.listen(Callback::from(move |_| {

@@ -1302,4 +1302,37 @@ mod ssr_tests {
 
         assert_eq!(s, "<div>Hello world!</div>");
     }
+
+    #[test]
+    async fn test_fragment() {
+        #[derive(PartialEq, Properties, Debug)]
+        struct ChildProps {
+            name: String,
+        }
+
+        #[function_component]
+        fn Child(props: &ChildProps) -> Html {
+            html! { <div>{"Hello, "}{&props.name}{"!"}</div> }
+        }
+
+        #[function_component]
+        fn Comp() -> Html {
+            html! {
+                <>
+                    <Child name="Jane" />
+                    <Child name="John" />
+                    <Child name="Josh" />
+                </>
+            }
+        }
+
+        let renderer = YewServerRenderer::<Comp>::new();
+
+        let s = renderer.render_to_string().await;
+
+        assert_eq!(
+            s,
+            "<div>Hello, Jane!</div><div>Hello, John!</div><div>Hello, Josh!</div>"
+        );
+    }
 }
