@@ -644,7 +644,7 @@ mod feat_ssr {
     use std::fmt::Write;
 
     impl VTag {
-        pub(crate) async fn render_to_html(&self, w: &mut String, parent_scope: &AnyScope) {
+        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
             write!(w, "<{}", self.tag()).unwrap();
 
             let write_attr = |w: &mut String, name: &str, val: Option<&str>| {
@@ -675,7 +675,7 @@ mod feat_ssr {
                 VTagInner::Input(_) => {}
                 VTagInner::Textarea { .. } => {
                     if let Some(m) = self.value() {
-                        VText::new(m.to_owned()).render_to_html(w).await;
+                        VText::new(m.to_owned()).render_to_string(w).await;
                     }
 
                     w.push_str("</textarea>");
@@ -686,7 +686,7 @@ mod feat_ssr {
                     ..
                 } => {
                     for child in children.iter() {
-                        child.render_to_html(w, parent_scope).await;
+                        child.render_to_string(w, parent_scope).await;
                     }
 
                     write!(w, "</{}>", tag).unwrap();

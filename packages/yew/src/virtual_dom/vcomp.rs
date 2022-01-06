@@ -185,7 +185,7 @@ trait Mountable {
     fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef);
 
     #[cfg(feature = "ssr")]
-    fn render_to_html<'a>(
+    fn render_to_string<'a>(
         &'a self,
         w: &'a mut String,
         parent_scope: &'a AnyScope,
@@ -229,14 +229,14 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     }
 
     #[cfg(feature = "ssr")]
-    fn render_to_html<'a>(
+    fn render_to_string<'a>(
         &'a self,
         w: &'a mut String,
         parent_scope: &'a AnyScope,
     ) -> LocalBoxFuture<'a, ()> {
         async move {
             let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-            scope.render_to_html(w, self.props.clone()).await;
+            scope.render_to_string(w, self.props.clone()).await;
         }
         .boxed_local()
     }
@@ -313,12 +313,12 @@ mod feat_ssr {
     use super::*;
 
     impl VComp {
-        pub(crate) async fn render_to_html(&self, w: &mut String, parent_scope: &AnyScope) {
+        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
             self.mountable
                 .as_ref()
                 .map(|m| m.copy())
                 .unwrap()
-                .render_to_html(w, parent_scope)
+                .render_to_string(w, parent_scope)
                 .await;
         }
     }

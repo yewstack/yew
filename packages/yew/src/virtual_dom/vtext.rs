@@ -33,7 +33,7 @@ mod feat_ssr {
     use super::*;
 
     impl VText {
-        pub(crate) async fn render_to_html(&self, w: &mut String) {
+        pub(crate) async fn render_to_string(&self, w: &mut String) {
             html_escape::encode_text_to_string(&self.text, w);
         }
     }
@@ -204,7 +204,7 @@ mod ssr_tests {
 
         let mut s = String::new();
 
-        vtext.render_to_html(&mut s).await;
+        vtext.render_to_string(&mut s).await;
 
         assert_eq!("abc", s.as_str());
     }

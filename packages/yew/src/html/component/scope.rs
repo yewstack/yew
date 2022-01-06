@@ -422,7 +422,7 @@ mod feat_ssr {
     use futures::channel::oneshot;
 
     impl<COMP: BaseComponent> Scope<COMP> {
-        pub(crate) async fn render_to_html(&self, w: &mut String, props: Rc<COMP::Properties>) {
+        pub(crate) async fn render_to_string(&self, w: &mut String, props: Rc<COMP::Properties>) {
             let (tx, rx) = oneshot::channel();
 
             scheduler::push_component_create(
@@ -447,7 +447,7 @@ mod feat_ssr {
             let html = rx.await.unwrap();
 
             let self_any_scope = self.to_any();
-            html.render_to_html(w, &self_any_scope).await;
+            html.render_to_string(w, &self_any_scope).await;
 
             scheduler::push_component_destroy(DestroyRunner {
                 state: self.state.clone(),

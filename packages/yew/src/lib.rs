@@ -361,7 +361,7 @@ mod feat_ssr {
         /// Renders Yew Application to a String.
         pub async fn render_to_string(self, w: &mut String) {
             let scope = Scope::<COMP>::new(None);
-            scope.render_to_html(w, self.props.into()).await;
+            scope.render_to_string(w, self.props.into()).await;
         }
     }
 }
