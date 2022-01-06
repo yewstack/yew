@@ -6,6 +6,7 @@ edition = "2018"
 license = "MIT OR Apache-2.0"
 description = "Contains macros used with yew-router"
 repository = "https://github.com/yewstack/yew"
+rust-version = "1.54.0"
 
 [lib]
 proc-macro = true
