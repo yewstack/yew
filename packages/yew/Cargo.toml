@@ -14,7 +14,7 @@ keywords = ["web", "webasm", "javascript"]
 categories = ["gui", "wasm", "web-programming"]
 description = "A framework for making client-side single-page apps"
 readme = "../../README.md"
-rust-version = "1.54.0"
+rust-version = "1.56.0"
 
 [dependencies]
 console_error_panic_hook = "0.1"

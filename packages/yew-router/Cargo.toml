@@ -9,7 +9,7 @@ keywords = ["web", "yew", "router"]
 categories = ["gui", "web-programming"]
 description = "A router implementation for the Yew framework"
 repository = "https://github.com/yewstack/yew"
-rust-version = "1.54.0"
+rust-version = "1.56.0"
 
 [features]
 wasm_test = []

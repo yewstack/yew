@@ -1,5 +1,5 @@
 #[allow(dead_code)]
-#[rustversion::attr(stable(1.54), test)]
+#[rustversion::attr(stable(1.56), test)]
 fn props_macro() {
     let t = trybuild::TestCases::new();
     t.pass("tests/props_macro/*-pass.rs");

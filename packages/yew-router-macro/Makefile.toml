@@ -1,6 +1,6 @@
 [tasks.test]
 clear = true
-toolchain = "1.54"
+toolchain = "1.56"
 command = "cargo"
 args = ["test"]
 
