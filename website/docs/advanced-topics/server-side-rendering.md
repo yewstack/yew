@@ -65,7 +65,7 @@ You should isolate logics that need Web APIs in `use_effect` or
 `use_effect_with_deps` as effects are not executed during server side
 rendering.
 
-::: warning
+:::caution
 
 Whilst it's possible to use Struct Components with server-side rendering,
 There's no clear boundaries between client-side safe logic like the
@@ -100,7 +100,7 @@ buffer.
 
 Example: [simple\_ssr](https://github.com/yewstack/yew/tree/master/examples/suspense)
 
-::: warning
+:::caution
 
 Server-side rendering is experiemental and currently has no hydration support.
 However, you can still use it to generate static websites.
