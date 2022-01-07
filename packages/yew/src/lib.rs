@@ -264,11 +264,15 @@ pub mod html;
 mod io_coop;
 pub mod scheduler;
 mod sealed;
+#[cfg(feature = "ssr")]
+mod server_renderer;
 pub mod suspense;
 #[cfg(test)]
 pub mod tests;
 pub mod utils;
 pub mod virtual_dom;
+#[cfg(feature = "ssr")]
+pub use server_renderer::*;
 
 /// The module that contains all events available in the framework.
 pub mod events {
@@ -305,72 +309,6 @@ fn set_default_panic_hook() {
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
     }
 }
-
-#[cfg(feature = "ssr")]
-mod feat_ssr {
-    use super::*;
-
-    use crate::html::Scope;
-
-    /// A Yew Server-side Renderer.
-    #[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
-    #[derive(Debug)]
-    pub struct YewServerRenderer<COMP>
-    where
-        COMP: BaseComponent,
-    {
-        props: COMP::Properties,
-    }
-
-    impl<COMP> Default for YewServerRenderer<COMP>
-    where
-        COMP: BaseComponent,
-        COMP::Properties: Default,
-    {
-        fn default() -> Self {
-            Self::with_props(COMP::Properties::default())
-        }
-    }
-
-    impl<COMP> YewServerRenderer<COMP>
-    where
-        COMP: BaseComponent,
-        COMP::Properties: Default,
-    {
-        /// Creates a [`YewServerRenderer`] with default properties.
-        pub fn new() -> Self {
-            Self::default()
-        }
-    }
-
-    impl<COMP> YewServerRenderer<COMP>
-    where
-        COMP: BaseComponent,
-    {
-        /// Creates a [`YewServerRenderer`] with custom properties.
-        pub fn with_props(props: COMP::Properties) -> Self {
-            Self { props }
-        }
-
-        /// Renders Yew Application.
-        pub async fn render(self) -> String {
-            let mut s = String::new();
-
-            self.render_to_string(&mut s).await;
-
-            s
-        }
-
-        /// Renders Yew Application to a String.
-        pub async fn render_to_string(self, w: &mut String) {
-            let scope = Scope::<COMP>::new(None);
-            scope.render_to_string(w, self.props.into()).await;
-        }
-    }
-}
-
-#[cfg(feature = "ssr")]
-pub use feat_ssr::*;
 
 /// The main entry point of a Yew application.
 /// If you would like to pass props, use the `start_app_with_props_in_element` method.

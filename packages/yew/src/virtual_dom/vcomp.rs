@@ -914,7 +914,7 @@ mod ssr_tests {
     use tokio::test;
 
     use crate::prelude::*;
-    use crate::YewServerRenderer;
+    use crate::ServerRenderer;
 
     #[test]
     async fn test_props() {
@@ -939,7 +939,7 @@ mod ssr_tests {
             }
         }
 
-        let renderer = YewServerRenderer::<Comp>::new();
+        let renderer = ServerRenderer::<Comp>::new();
 
         let s = renderer.render().await;
 

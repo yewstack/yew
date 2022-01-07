@@ -1504,7 +1504,7 @@ mod ssr_tests {
     use tokio::test;
 
     use crate::prelude::*;
-    use crate::YewServerRenderer;
+    use crate::ServerRenderer;
 
     #[test]
     async fn test_simple_tag() {
@@ -1513,7 +1513,7 @@ mod ssr_tests {
             html! { <div></div> }
         }
 
-        let renderer = YewServerRenderer::<Comp>::new();
+        let renderer = ServerRenderer::<Comp>::new();
 
         let s = renderer.render().await;
 
@@ -1527,7 +1527,7 @@ mod ssr_tests {
             html! { <div class="abc"></div> }
         }
 
-        let renderer = YewServerRenderer::<Comp>::new();
+        let renderer = ServerRenderer::<Comp>::new();
 
         let s = renderer.render().await;
 
@@ -1541,7 +1541,7 @@ mod ssr_tests {
             html! { <div>{"Hello!"}</div> }
         }
 
-        let renderer = YewServerRenderer::<Comp>::new();
+        let renderer = ServerRenderer::<Comp>::new();
 
         let s = renderer.render().await;
 
@@ -1555,7 +1555,7 @@ mod ssr_tests {
             html! { <div>{"Hello!"}<input value="abc" type="text" /></div> }
         }
 
-        let renderer = YewServerRenderer::<Comp>::new();
+        let renderer = ServerRenderer::<Comp>::new();
 
         let s = renderer.render().await;
 
@@ -1569,7 +1569,7 @@ mod ssr_tests {
             html! { <textarea value="teststring" /> }
         }
 
-        let renderer = YewServerRenderer::<Comp>::new();
+        let renderer = ServerRenderer::<Comp>::new();
 
         let s = renderer.render().await;
 

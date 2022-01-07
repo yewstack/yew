@@ -317,7 +317,7 @@ mod feat_ssr {
                     // We are pretty safe here as it's not possible to get a web_sys::Node without DOM
                     // support in the first place.
                     //
-                    // The only exception would be to use `YewServerRenderer` in a browser or wasm32 environment with
+                    // The only exception would be to use `ServerRenderer` in a browser or wasm32 environment with
                     // jsdom present.
                     VNode::VRef(_) => {
                         panic!("VRef is not possible to be rendered in to a string.")

@@ -173,7 +173,7 @@ mod ssr_tests {
 
     use crate::prelude::*;
     use crate::suspense::{Suspension, SuspensionResult};
-    use crate::YewServerRenderer;
+    use crate::ServerRenderer;
 
     #[test(flavor = "multi_thread", worker_threads = 2)]
     async fn test_suspense() {
@@ -244,7 +244,7 @@ mod ssr_tests {
 
         let s = local
             .run_until(async move {
-                let renderer = YewServerRenderer::<Comp>::new();
+                let renderer = ServerRenderer::<Comp>::new();
 
                 renderer.render().await
             })

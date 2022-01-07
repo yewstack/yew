@@ -1286,7 +1286,7 @@ mod ssr_tests {
     use tokio::test;
 
     use crate::prelude::*;
-    use crate::YewServerRenderer;
+    use crate::ServerRenderer;
 
     #[test]
     async fn test_text_back_to_back() {
@@ -1297,7 +1297,7 @@ mod ssr_tests {
             html! { <div>{"Hello "}{s}{"!"}</div> }
         }
 
-        let renderer = YewServerRenderer::<Comp>::new();
+        let renderer = ServerRenderer::<Comp>::new();
 
         let s = renderer.render().await;
 
@@ -1327,7 +1327,7 @@ mod ssr_tests {
             }
         }
 
-        let renderer = YewServerRenderer::<Comp>::new();
+        let renderer = ServerRenderer::<Comp>::new();
 
         let s = renderer.render().await;
 
