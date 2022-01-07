@@ -23,16 +23,16 @@ To solve these problems, we can render our website on the server side.
 
 ## How it Works
 
-Yew provides a `YewServerRenderer` to render pages on the
+Yew provides a `ServerRenderer` to render pages on the
 server-side.
 
 To render Yew components at the server-side, you can create a renderer
-with `YewServerRenderer::<App>::new()` and call `renderer.render().await`
+with `ServerRenderer::<App>::new()` and call `renderer.render().await`
 to render `<App />` into a `String`.
 
 ```rust
 use yew::prelude::*;
-use yew::YewServerRenderer;
+use yew::ServerRenderer;
 
 #[function_component]
 fn App() -> Html {
@@ -41,7 +41,7 @@ fn App() -> Html {
 
 #[tokio::main]
 async fn main() {
-    let renderer = YewServerRenderer::<App>::new();
+    let renderer = ServerRenderer::<App>::new();
 
     let rendered = renderer.render().await;
 
