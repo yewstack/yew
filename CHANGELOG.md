@@ -550,18 +550,18 @@ This is the main painful breaking change. It applies to both element listeners a
 
 Before:
 ```rust
-struct Model;
+struct MyComponent;
 
 enum Msg {
     Click,
 }
 
-impl Component for Model {
+impl Component for MyComponent {
     type Message = Msg;
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Model
+        MyComponent
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -581,7 +581,7 @@ impl Component for Model {
 
 After:
 ```rust
-struct Model {
+struct MyComponent {
   link: ComponentLink<Self>,
 }
 
@@ -589,12 +589,12 @@ enum Msg {
     Click,
 }
 
-impl Component for Model {
+impl Component for MyComponent {
     type Message = Msg;
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Model { link }
+        MyComponent { link }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -653,7 +653,7 @@ was confusing and restrictive and is now a thing of the past!
 
 Before:
 ```rust
-impl Component for Model {
+impl Component for MyComponent {
     // ...
 
     fn view(&self) -> Html<Self> {
@@ -664,7 +664,7 @@ impl Component for Model {
 
 After:
 ```rust
-impl Component for Model {
+impl Component for MyComponent {
     // ...
 
     fn view(&self) -> Html {
@@ -688,7 +688,7 @@ cloned is when a wrapper component re-renders nested children components.
   - The `html!` macro now accepts a `Callback` for element listeners. [[@jstarry], [#777](https://github.com/yewstack/yew/pull/777)]
 
   ```rust
-  struct Model {
+  struct MyComponent {
       onclick: Callback<ClickEvent>,
   }
 
@@ -696,12 +696,12 @@ cloned is when a wrapper component re-renders nested children components.
       Click,
   }
 
-  impl Component for Model {
+  impl Component for MyComponent {
       type Message = Msg;
       type Properties = ();
 
       fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-          Model {
+          MyComponent {
               onclick: link.callback(|_| Msg::Click),
           }
       }
@@ -875,12 +875,12 @@ cloned is when a wrapper component re-renders nested children components.
 
     Before:
     ```rust
-    impl Component for Model {
+    impl Component for MyComponent {
         type Message = Msg;
         type Properties = ();
 
         fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-            Model {}
+            MyComponent {}
         }
 
         fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -888,7 +888,7 @@ cloned is when a wrapper component re-renders nested children components.
         }
     }
 
-    impl Renderable<Model> for Model {
+    impl Renderable<MyComponent> for MyComponent {
         fn view(&self) -> Html<Self> {
             html! { "hello" }
         }
@@ -897,12 +897,12 @@ cloned is when a wrapper component re-renders nested children components.
 
     After:
     ```rust
-    impl Component for Model {
+    impl Component for MyComponent {
         type Message = Msg;
         type Properties = ();
 
         fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-            Model {}
+            MyComponent {}
         }
 
         fn update(&mut self, msg: Self::Message) -> ShouldRender {

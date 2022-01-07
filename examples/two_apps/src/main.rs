@@ -2,23 +2,23 @@ use yew::html::Scope;
 use yew::{html, AppHandle, Component, Context, Html};
 
 pub enum Msg {
-    SetOpposite(Scope<Model>),
+    SetOpposite(Scope<App>),
     SendToOpposite(String),
     SetTitle(String),
 }
 
-pub struct Model {
-    opposite: Option<Scope<Model>>,
+pub struct App {
+    opposite: Option<Scope<App>>,
     selector: &'static str,
     title: String,
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Model {
+        App {
             opposite: None,
             selector: "",
             title: "Nothing".to_owned(),
@@ -69,7 +69,7 @@ impl Component for Model {
     }
 }
 
-fn mount_app(selector: &'static str) -> AppHandle<Model> {
+fn mount_app(selector: &'static str) -> AppHandle<App> {
     let document = gloo_utils::document();
     let element = document.query_selector(selector).unwrap().unwrap();
     yew::start_app_in_element(element)

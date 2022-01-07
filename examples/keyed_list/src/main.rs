@@ -23,7 +23,7 @@ pub enum Msg {
     Rendered(Instant),
 }
 
-pub struct Model {
+pub struct App {
     persons: Vec<PersonType>,
     last_id: usize,
     keyed: bool,
@@ -31,7 +31,7 @@ pub struct Model {
     delta_ref: NodeRef,
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -152,7 +152,7 @@ impl Component for Model {
     }
 }
 
-impl Model {
+impl App {
     fn action_view(&self, link: &Scope<Self>) -> Html {
         html! {
             <>
@@ -279,5 +279,5 @@ impl Model {
 
 fn main() {
     wasm_logger::init(wasm_logger::Config::new(log::Level::Trace));
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }

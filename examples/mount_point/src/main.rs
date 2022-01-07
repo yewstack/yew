@@ -8,11 +8,11 @@ pub enum Msg {
     UpdateName(String),
 }
 
-pub struct Model {
+pub struct App {
     name: String,
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -73,5 +73,5 @@ fn main() {
 
     body.append_child(&mount_point).unwrap();
 
-    yew::start_app_in_element::<Model>(mount_point);
+    yew::start_app_in_element::<App>(mount_point);
 }

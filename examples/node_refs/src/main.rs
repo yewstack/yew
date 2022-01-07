@@ -8,18 +8,18 @@ pub enum Msg {
     HoverIndex(usize),
 }
 
-pub struct Model {
+pub struct App {
     refs: Vec<NodeRef>,
     focus_index: usize,
 }
-impl Model {
+impl App {
     fn apply_focus(&self) {
         if let Some(input) = self.refs[self.focus_index].cast::<HtmlInputElement>() {
             input.focus().unwrap();
         }
     }
 }
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -77,5 +77,5 @@ impl Component for Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }
