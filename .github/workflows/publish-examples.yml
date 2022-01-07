@@ -53,7 +53,7 @@ jobs:
             example=$(basename "$path")
 
             # multi_thread doesn't work yet. See <https://github.com/thedodd/trunk/issues/40>.
-            if [[ "$example" == "multi_thread" ]]; then
+            if [[ "$example" == "agents" ]]; then
               continue
             fi
 
