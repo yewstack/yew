@@ -5,18 +5,17 @@ description: "Render Yew on the server-side."
 
 # Server-side Rendering
 
-By default, Yew applications render at the client side. When the viewer
+By default, Yew components render at the client side. When a viewer
 visits a website, the server sends a skeleton html file without any actual
-content and a WebAssembly bundle is downloaded to the browser.
-Everything is then rendered at the client side by the WebAssembly
+content and a WebAssembly bundle to the browser.
+Everything is rendered at the client side by the WebAssembly
 bundle. This is known as client-side rendering.
 
 This approach works fine for most websites, with some caveats:
 
-1. The user will not be able to see anything until the entire application is
-  downloaded and initial render has completed. This can result in poor user
-  experience if the user is using a slow network and your application is
-  big.
+1. Users will not be able to see anything until the entire WebAssembly
+  bundle is downloaded and initial render has completed.
+  This can result in poor user experience if the user is using a slow network.
 2. Some search engines do not support dynamically rendered web content and
   those who do usually rank dynamic websites lower in the search results.
 
@@ -62,15 +61,16 @@ for the first time.
 
 :::caution Web APIs are not available!
 
-Web APIs such as `web_sys` are not available when using server-side rendering.
-You application will panic if you try to use them.
+Web APIs such as `web_sys` are not available when your component is
+rendering on the server-side.
+Your application will panic if you try to use them.
 You should isolate logics that need Web APIs in `use_effect` or
 `use_effect_with_deps` as effects are not executed during server side
 rendering.
 
 :::
 
-:::danger
+:::danger Struct Components are not supported!
 
 Whilst it's possible to use Struct Components with server-side rendering,
 there's no clear boundaries between client-side safe logic like the
@@ -82,6 +82,9 @@ children are rendered and `destroy` method is called. Developers need to
 make sure no messages possibly passed to components would link to logic
 that makes use of Web APIs.
 
+When designing an application with server-side rendering support,
+prefer function components unless you have a good reason not to.
+
 :::
 
 ## Data Fetching during Server-side Rendering
@@ -90,7 +93,7 @@ Data fetching is one of the difficult point with server side rendering
 and hydration.
 
 Traditionally, when a component renders, it is instantly available
-(outputs a virtual dom to be rendered). This works fine when if the
+(outputs a virtual dom to be rendered). This works fine when the
 component does not want to fetch any data. But what happens if the component
 wants to fetch some data during rendering?
 
@@ -116,7 +119,7 @@ When the application is rendered on the server-side, Yew waits until a
 component is no longer suspended before serializing it into the string
 buffer.
 
-During the hydration process, elements within a `<Suspense /> component
+During the hydration process, elements within a `<Suspense />` component
 remains dehydrated until all of its child components are no longer
 suspended.
 
