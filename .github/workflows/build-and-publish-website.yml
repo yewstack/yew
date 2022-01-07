@@ -42,7 +42,7 @@ jobs:
             cargo-${{ runner.os }}-
 
       - name: Timestamp Cached Target
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
+        run: ./ci/cargo-sweep sweep -s
 
       - name: Run website code snippet tests
         uses: actions-rs/cargo@v1
@@ -51,7 +51,7 @@ jobs:
           args: -p website-test
 
       - name: Remove Untouched Cache
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
+        run: ./ci/cargo-sweep sweep -f
 
   build:
     needs: [website-tests]

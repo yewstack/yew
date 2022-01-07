@@ -38,7 +38,7 @@ jobs:
           version: 'latest'
 
       - name: Timestamp Cached Target
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
+        run: ./ci/cargo-sweep sweep -s
 
       - name: Build examples
         run: |
@@ -72,7 +72,7 @@ jobs:
           done
 
       - name: Remove Untouched Cache
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
+        run: ./ci/cargo-sweep sweep -f
 
       - name: Deploy to Firebase
         uses: siku2/action-hosting-deploy@v0

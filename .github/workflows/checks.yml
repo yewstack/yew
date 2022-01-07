@@ -41,7 +41,7 @@ jobs:
             cargo-${{ runner.os }}-
 
       - name: Timestamp Cached Target
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
+        run: ./ci/cargo-sweep sweep -s
 
       - name: Run clippy
         uses: actions-rs/cargo@v1
@@ -49,7 +49,7 @@ jobs:
           command: clippy
           args: --all-targets --exclude website-test -- -D warnings
       - name: Remove Untouched Cache
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
+        run: ./ci/cargo-sweep sweep -f
 
   clippy-release:
     name: Clippy on release profile
@@ -77,14 +77,14 @@ jobs:
             cargo-${{ runner.os }}-
 
       - name: Timestamp Cached Target
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
+        run: ./ci/cargo-sweep sweep -s
       - name: Run clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --all-targets --release --exclude website-test -- -D warnings
       - name: Remove Untouched Cache
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
+        run: ./ci/cargo-sweep sweep -f
 
   doc_tests:
     name: Documentation Tests
@@ -118,7 +118,7 @@ jobs:
           ci/spellcheck.sh list
 
       - name: Timestamp Cached Target
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
+        run: ./ci/cargo-sweep sweep -s
       - name: Run doctest
         uses: actions-rs/cargo@v1
         with:
@@ -132,7 +132,7 @@ jobs:
           args: --doc --features doc_test --features wasm_test --exclude website-test
 
       - name: Remove Untouched Cache
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
+        run: ./ci/cargo-sweep sweep -f
 
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
@@ -172,7 +172,7 @@ jobs:
             cargo-${{ runner.os }}
 
       - name: Timestamp Cached Target
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
+        run: ./ci/cargo-sweep sweep -s
       - name: Run tests - yew
         run: |
           cd packages/yew
@@ -183,7 +183,7 @@ jobs:
           cd packages/yew-router
           wasm-pack test --chrome --firefox --headless
       - name: Remove Untouched Cache
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
+        run: ./ci/cargo-sweep sweep -f
 
   unit_tests:
     name: Unit Tests on ${{ matrix.toolchain }}
@@ -222,7 +222,7 @@ jobs:
             cargo-${{ runner.os }}
 
       - name: Timestamp Cached Target
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
+        run: ./ci/cargo-sweep sweep -s
 
       - name: Run tests
         uses: actions-rs/cargo@v1
@@ -231,7 +231,7 @@ jobs:
           args: --all-targets --workspace --exclude yew --exclude website-test
 
       - name: Remove Untouched Cache
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
+        run: ./ci/cargo-sweep sweep -f
 
   test-lints:
     name: Test lints on nightly
@@ -259,11 +259,11 @@ jobs:
             cargo-${{ runner.os }}
 
       - name: Timestamp Cached Target
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
+        run: ./ci/cargo-sweep sweep -s
       - name: Run tests
         uses: actions-rs/cargo@v1
         with:
           command: test
           args: -p yew-macro test_html_lints --features lints
       - name: Remove Untouched Cache
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
+        run: ./ci/cargo-sweep sweep -f
