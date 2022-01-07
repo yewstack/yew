@@ -67,11 +67,11 @@ impl Component for ShadowDOMHost {
     }
 }
 
-pub struct Model {
+pub struct App {
     pub style_html: Html,
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = ();
     type Properties = ();
 
@@ -102,5 +102,5 @@ impl Component for Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }

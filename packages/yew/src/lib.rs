@@ -24,11 +24,11 @@
 //!     AddOne,
 //! }
 //!
-//! struct Model {
+//! struct App {
 //!     value: i64,
 //! }
 //!
-//! impl Component for Model {
+//! impl Component for App {
 //!     type Message = Msg;
 //!     type Properties = ();
 //!
@@ -59,7 +59,7 @@
 //!
 //!# fn dont_execute() {
 //! fn main() {
-//!     yew::start_app::<Model>();
+//!     yew::start_app::<App>();
 //! }
 //!# }
 //! ```
@@ -218,8 +218,8 @@ pub use yew_macro::html_nested;
 ///     name: Cow<'static, str>,
 /// }
 ///
-/// struct Model(Props);
-/// impl Component for Model {
+/// struct MyComponent(Props);
+/// impl Component for MyComponent {
 /// #   type Message = ();
 ///     type Properties = Props;
 ///     // ...
@@ -232,12 +232,12 @@ pub use yew_macro::html_nested;
 /// let props = yew::props!(Props { name: Cow::from("Minka") });
 /// # assert_eq!(props.name, "Minka");
 /// // ... or build the associated properties of a component
-/// let props = yew::props!(Model::Properties { id: 2, name: Cow::from("Lemmy") });
+/// let props = yew::props!(MyComponent::Properties { id: 2, name: Cow::from("Lemmy") });
 /// # assert_eq!(props.id, 2);
 ///
 /// // Use the Rust-like struct update syntax to create a component with the props.
 /// html! {
-///     <Model key=1 ..props />
+///     <MyComponent key=1 ..props />
 /// }
 /// # }
 /// ```

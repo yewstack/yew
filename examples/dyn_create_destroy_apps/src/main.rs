@@ -15,12 +15,12 @@ pub enum Msg {
     DestroyCounterApp(usize),
 }
 
-pub struct Model {
+pub struct App {
     apps: Slab<(Element, AppHandle<CounterModel>)>, // Contains the spawned apps and their parent div elements
     apps_container_ref: NodeRef,
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -107,5 +107,5 @@ impl Component for Model {
 
 fn main() {
     // Start main app
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }

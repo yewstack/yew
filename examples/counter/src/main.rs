@@ -8,11 +8,11 @@ pub enum Msg {
     Decrement,
 }
 
-pub struct Model {
+pub struct App {
     value: i64, // This will store the counter value
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -72,5 +72,5 @@ impl Component for Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }

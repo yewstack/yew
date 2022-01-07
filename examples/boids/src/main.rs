@@ -17,12 +17,12 @@ pub enum Msg {
     TogglePause,
 }
 
-pub struct Model {
+pub struct App {
     settings: Settings,
     generation: usize,
     paused: bool,
 }
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -74,7 +74,7 @@ impl Component for Model {
         }
     }
 }
-impl Model {
+impl App {
     fn view_panel(&self, link: &Scope<Self>) -> Html {
         let pause_text = if self.paused { "Resume" } else { "Pause" };
         html! {
@@ -162,5 +162,5 @@ impl Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }
