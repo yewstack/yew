@@ -22,22 +22,23 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
             target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
+          key: cargo-${{ runner.os }}-publish-examples-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
+            cargo-${{ runner.os }}-publish-examples
             cargo-${{ runner.os }}-
 
       - uses: jetli/trunk-action@v0.1.0
         with:
           # Optional version of trunk to install(eg. 'v0.8.1', 'latest')
           version: 'latest'
-          
-      - uses: jetli/wasm-bindgen-action@v0.1.0
-        with:
-          # Optional version of wasm-bindgen to install(eg. '0.2.68', 'latest')
-          version: 'latest'
+
+      - name: Timestamp Cached Target
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
 
       - name: Build examples
         run: |
@@ -69,6 +70,9 @@ jobs:
               trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL_PREFIX/$example"
             )
           done
+
+      - name: Remove Untouched Cache
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
 
       - name: Deploy to Firebase
         uses: siku2/action-hosting-deploy@v0

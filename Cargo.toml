@@ -35,8 +35,5 @@ members = [
 
   # Tools
   "tools/changelog",
-]
-exclude = [
-  # Tools
   "tools/website-test",
 ]

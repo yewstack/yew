@@ -89,7 +89,8 @@ impl Level {
                 .replace("-", "_");
 
             self.write_space(dst, level);
-            writeln!(dst, "#[doc = include_str!(\"{}\")]", file.display())?;
+
+            writeln!(dst, "#[doc = include_str!(r\"{}\")]", file.display())?;
             self.write_space(dst, level);
             writeln!(dst, "pub fn {}_md() {{}}", stem)?;
         }

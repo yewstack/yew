@@ -2,12 +2,18 @@ name: Pull Request
 
 on:
   pull_request:
+    paths-ignore:
+      - 'website/**'
+      - '**/*.md'
   push:
     branches: [master]
+    paths-ignore:
+      - 'website/**'
+      - '**/*.md'
 
 jobs:
-  lint:
-    name: Format & Clippy
+  format:
+    name: cargo fmt
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -16,32 +22,50 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
-          components: rustfmt, clippy
-
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
-          restore-keys: |
-            cargo-${{ runner.os }}-
+          components: rustfmt
 
       - name: Run fmt
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: clippy
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target
+          key: cargo-${{ runner.os }}-clippy-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-clippy
+            cargo-${{ runner.os }}-
+
+      - name: Timestamp Cached Target
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
 
       - name: Run clippy
-        if: always()
         uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --all-targets -- -D warnings
+      - name: Remove Untouched Cache
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
 
-  lint-release:
+  clippy-release:
     name: Clippy on release profile
     runs-on: ubuntu-latest
     steps:
@@ -56,19 +80,25 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
             target
-          key: cargo-${{ runner.os }}-${{ github.job }}-${{ hashFiles('**/Cargo.toml') }}
+          key: cargo-${{ runner.os }}-clippy-release-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
-            cargo-${{ runner.os }}-${{ github.job }}-
+            cargo-${{ runner.os }}-clippy-release
+            cargo-${{ runner.os }}-
 
+      - name: Timestamp Cached Target
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
       - name: Run clippy
-        if: always()
         uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --all-targets --release -- -D warnings
+      - name: Remove Untouched Cache
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
 
   check_examples:
     name: Check Examples
@@ -84,21 +114,28 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
             target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
+          key: cargo-${{ runner.os }}-check-examples-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
+            cargo-${{ runner.os }}-check-examples
             cargo-${{ runner.os }}-
 
+      - name: Timestamp Cached Target
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
       - name: Run check
         run: |
           cd examples
           cargo check --all-targets
+      - name: Remove Untouched Cache
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
 
   doc_tests:
     name: Documentation Tests
-    # Using 20.04 because 18.04 (latest) only has aspell 0.60.7 and we need 0.60.8
+    # Using 20.04 because 18.04 (latest) only has aspell 0.60.7, and we need 0.60.8
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -112,11 +149,14 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
             target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
+          key: cargo-${{ runner.os }}-doc-tests-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
+            cargo-${{ runner.os }}-doc-tests
             cargo-${{ runner.os }}-
 
       - name: Check spelling
@@ -124,6 +164,8 @@ jobs:
           sudo apt-get install aspell
           ci/spellcheck.sh list
 
+      - name: Timestamp Cached Target
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
       - name: Run doctest
         uses: actions-rs/cargo@v1
         with:
@@ -131,14 +173,19 @@ jobs:
           args: --doc
 
       - name: Run doctest - yew with features
-        run: |
-          cd packages/yew
-          cargo test --doc --features "doc_test wasm_test"
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --doc --features doc_test --features wasm_test
 
       - name: Run website code snippet tests
-        run: |
-          cd tools/website-test
-          cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p website-test
+
+      - name: Remove Untouched Cache
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
 
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
@@ -147,7 +194,8 @@ jobs:
     strategy:
       matrix:
         toolchain:
-          - 1.49.0 # MSRV
+          # anyway to dynamically grep the MSRV from Cargo.toml?
+          - 1.56.0 # MSRV
           - stable
 
     steps:
@@ -165,13 +213,19 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
             target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
+          key: cargo-${{ runner.os }}-integration-tests-${{ matrix.toolchain }}-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
-            cargo-${{ runner.os }}-
+            cargo-${{ runner.os }}-integration-tests-${{ matrix.toolchain }}
+            cargo-${{ runner.os }}-integration-tests
+            cargo-${{ runner.os }}
 
+      - name: Timestamp Cached Target
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
       - name: Run tests - yew
         run: |
           cd packages/yew
@@ -181,6 +235,8 @@ jobs:
         run: |
           cd packages/yew-router
           wasm-pack test --chrome --firefox --headless
+      - name: Remove Untouched Cache
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
 
   unit_tests:
     name: Unit Tests on ${{ matrix.toolchain }}
@@ -188,7 +244,8 @@ jobs:
     strategy:
       matrix:
         toolchain:
-          - 1.51.0 # min version with const generics
+          # anyway to dynamically grep the MSRV from Cargo.toml?
+          - 1.56.0 # MSRV
           - stable
           - nightly
 
@@ -206,18 +263,28 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
             target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
+          key: cargo-${{ runner.os }}-unit-tests-${{ matrix.toolchain }}-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
-            cargo-${{ runner.os }}-
+            cargo-${{ runner.os }}-unit-tests-${{ matrix.toolchain }}
+            cargo-${{ runner.os }}-unit-tests
+            cargo-${{ runner.os }}
+
+      - name: Timestamp Cached Target
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
 
       - name: Run tests
         uses: actions-rs/cargo@v1
         with:
           command: test
           args: --all-targets --workspace --exclude yew
+
+      - name: Remove Untouched Cache
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
 
   test-lints:
     name: Test lints on nightly
@@ -234,14 +301,21 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
             target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.toml') }}
+          key: cargo-${{ runner.os }}-nightly-lints-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
-            cargo-${{ runner.os }}-
+            cargo-${{ runner.os }}-nightly-lints
+            cargo-${{ runner.os }}
 
+      - name: Timestamp Cached Target
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
       - name: Run tests
         run: |
           cd packages/yew-macro
           cargo +nightly test test_html_lints --features lints
+      - name: Remove Untouched Cache
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
