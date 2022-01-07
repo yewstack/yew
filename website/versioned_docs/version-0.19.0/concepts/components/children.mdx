@@ -250,3 +250,8 @@ pub fn render_page(with_sidebar: bool) -> Html {
     }
 }
 ```
+
+:::note Extra Braces Required
+`sidebar = {{html_nested!{...}}}` appears to require one extra set of braces.
+This is unintuitive, and we will fix the behavior in a later release.
+:::

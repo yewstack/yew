@@ -1,47 +1,45 @@
-name: Publish website
+name: Build and Publish Website
 on:
-  workflow_run:
-    workflows: ["Build website"]
-    types:
-      - completed
+  pull_request:
+    branches: [master]
+    paths:
+      - "website/**"
+      - "firebase.json"
+      - ".github/workflows/*-website.yml"
+  push:
+    branches: [master]
+    paths:
+      - "website/**"
+      - "firebase.json"
+      - ".github/workflows/*-website.yml"
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
-    env:
-      PR_INFO_FILE: ".PR_INFO"
     steps:
-      - if: github.event.workflow_run.conclusion != 'success'
-        name: Abort if build failed
-        run: |
-          echo "build failed"
-          exit 1
-
-      # need to checkout to get "firebase.json", ".firebaserc"
       - uses: actions/checkout@v2
-
-      - name: Download build artifact
-        uses: dawidd6/action-download-artifact@v2
+      - name: Setup node
+        uses: actions/setup-node@v1
         with:
-          github_token: "${{ secrets.GITHUB_TOKEN }}"
-          workflow: build-website.yml
-          run_id: ${{ github.event.workflow_run.id }}
-          name: website
-          path: website/build
-
-      - if: github.event.workflow_run.event == 'pull_request'
-        name: Download pr info
-        uses: dawidd6/action-download-artifact@v2
+          node-version: "14.x"
+      - uses: actions/cache@v2
         with:
-          github_token: "${{ secrets.GITHUB_TOKEN }}"
-          workflow: build-website.yml
-          run_id: ${{ github.event.workflow_run.id }}
-          name: pr-info
+          path: ~/.npm
+          key: ${{ runner.os }}-build-website-${{ hashFiles('website/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-website-
+            ${{ runner.os }}
+
+      - name: Build
+        run: |
+          cd website
+          npm install
+          npm run build
 
       - if: github.event.workflow_run.event == 'pull_request'
         name: Apply pull request environment
         run: |
-          pr_number=$(cat "$PR_INFO_FILE")
+          pr_number=${{ github.event.number }}
           if ! [[ "$pr_number" =~ ^[0-9]+$ ]]; then
             echo "pr number invalid"
             exit 1
