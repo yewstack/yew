@@ -6,7 +6,7 @@ use wasm_bindgen_test::*;
 use yew::functional::{
     use_context, use_effect, use_mut_ref, use_state, FunctionComponent, FunctionProvider,
 };
-use yew::{html, Children, ContextProvider, Html, Properties};
+use yew::{html, Children, ContextProvider, HtmlResult, Properties};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -23,24 +23,24 @@ fn use_context_scoping_works() {
     impl FunctionProvider for ExpectNoContextFunction {
         type TProps = ();
 
-        fn run(_props: &Self::TProps) -> Html {
+        fn run(_props: &Self::TProps) -> HtmlResult {
             if use_context::<ExampleContext>().is_some() {
                 console_log!(
                     "Context should be None here, but was {:?}!",
                     use_context::<ExampleContext>().unwrap()
                 );
             };
-            return html! {
+            Ok(html! {
                 <div></div>
-            };
+            })
         }
     }
     impl FunctionProvider for UseContextFunctionOuter {
         type TProps = ();
 
-        fn run(_props: &Self::TProps) -> Html {
+        fn run(_props: &Self::TProps) -> HtmlResult {
             type ExampleContextProvider = ContextProvider<ExampleContext>;
-            return html! {
+            Ok(html! {
                 <div>
                     <ExampleContextProvider context={ExampleContext("wrong1".into())}>
                         <div>{"ignored"}</div>
@@ -58,17 +58,17 @@ fn use_context_scoping_works() {
                     </ExampleContextProvider>
                     <ExpectNoContextComponent />
                 </div>
-            };
+            })
         }
     }
     impl FunctionProvider for UseContextFunctionInner {
         type TProps = ();
 
-        fn run(_props: &Self::TProps) -> Html {
+        fn run(_props: &Self::TProps) -> HtmlResult {
             let context = use_context::<ExampleContext>();
-            return html! {
+            Ok(html! {
                 <div id="result">{ &context.unwrap().0 }</div>
-            };
+            })
         }
     }
 
@@ -90,11 +90,11 @@ fn use_context_works_with_multiple_types() {
     impl FunctionProvider for Test1Function {
         type TProps = ();
 
-        fn run(_props: &Self::TProps) -> Html {
+        fn run(_props: &Self::TProps) -> HtmlResult {
             assert_eq!(use_context::<ContextA>(), Some(ContextA(2)));
             assert_eq!(use_context::<ContextB>(), Some(ContextB(1)));
 
-            return html! {};
+            Ok(html! {})
         }
     }
     type Test1 = FunctionComponent<Test1Function>;
@@ -103,11 +103,11 @@ fn use_context_works_with_multiple_types() {
     impl FunctionProvider for Test2Function {
         type TProps = ();
 
-        fn run(_props: &Self::TProps) -> Html {
+        fn run(_props: &Self::TProps) -> HtmlResult {
             assert_eq!(use_context::<ContextA>(), Some(ContextA(0)));
             assert_eq!(use_context::<ContextB>(), Some(ContextB(1)));
 
-            return html! {};
+            Ok(html! {})
         }
     }
     type Test2 = FunctionComponent<Test2Function>;
@@ -116,11 +116,11 @@ fn use_context_works_with_multiple_types() {
     impl FunctionProvider for Test3Function {
         type TProps = ();
 
-        fn run(_props: &Self::TProps) -> Html {
+        fn run(_props: &Self::TProps) -> HtmlResult {
             assert_eq!(use_context::<ContextA>(), Some(ContextA(0)));
             assert_eq!(use_context::<ContextB>(), None);
 
-            return html! {};
+            Ok(html! {})
         }
     }
     type Test3 = FunctionComponent<Test3Function>;
@@ -129,11 +129,11 @@ fn use_context_works_with_multiple_types() {
     impl FunctionProvider for Test4Function {
         type TProps = ();
 
-        fn run(_props: &Self::TProps) -> Html {
+        fn run(_props: &Self::TProps) -> HtmlResult {
             assert_eq!(use_context::<ContextA>(), None);
             assert_eq!(use_context::<ContextB>(), None);
 
-            return html! {};
+            Ok(html! {})
         }
     }
     type Test4 = FunctionComponent<Test4Function>;
@@ -142,11 +142,11 @@ fn use_context_works_with_multiple_types() {
     impl FunctionProvider for TestFunction {
         type TProps = ();
 
-        fn run(_props: &Self::TProps) -> Html {
+        fn run(_props: &Self::TProps) -> HtmlResult {
             type ContextAProvider = ContextProvider<ContextA>;
             type ContextBProvider = ContextProvider<ContextB>;
 
-            return html! {
+            Ok(html! {
                 <div>
                     <ContextAProvider context={ContextA(0)}>
                         <ContextBProvider context={ContextB(1)}>
@@ -159,7 +159,7 @@ fn use_context_works_with_multiple_types() {
                     </ContextAProvider>
                     <Test4 />
                 </div>
-            };
+            })
         }
     }
     type TestComponent = FunctionComponent<TestFunction>;
@@ -184,17 +184,17 @@ fn use_context_update_works() {
     impl FunctionProvider for RenderCounterFunction {
         type TProps = RenderCounterProps;
 
-        fn run(props: &Self::TProps) -> Html {
+        fn run(props: &Self::TProps) -> HtmlResult {
             let counter = use_mut_ref(|| 0);
             *counter.borrow_mut() += 1;
-            return html! {
+            Ok(html! {
                 <>
                     <div id={props.id.clone()}>
                         { format!("total: {}", counter.borrow()) }
                     </div>
                     { props.children.clone() }
                 </>
-            };
+            })
         }
     }
     type RenderCounter = FunctionComponent<RenderCounterFunction>;
@@ -209,20 +209,20 @@ fn use_context_update_works() {
     impl FunctionProvider for ContextOutletFunction {
         type TProps = ContextOutletProps;
 
-        fn run(props: &Self::TProps) -> Html {
+        fn run(props: &Self::TProps) -> HtmlResult {
             let counter = use_mut_ref(|| 0);
             *counter.borrow_mut() += 1;
 
             let ctx = use_context::<Rc<MyContext>>().expect("context not passed down");
 
-            return html! {
+            Ok(html! {
                 <>
                     <div>{ format!("magic: {}\n", props.magic) }</div>
                     <div id={props.id.clone()}>
                         { format!("current: {}, total: {}", ctx.0, counter.borrow()) }
                     </div>
                 </>
-            };
+            })
         }
     }
     type ContextOutlet = FunctionComponent<ContextOutletFunction>;
@@ -231,7 +231,7 @@ fn use_context_update_works() {
     impl FunctionProvider for TestFunction {
         type TProps = ();
 
-        fn run(_props: &Self::TProps) -> Html {
+        fn run(_props: &Self::TProps) -> HtmlResult {
             type MyContextProvider = ContextProvider<Rc<MyContext>>;
 
             let ctx = use_state(|| MyContext("hello".into()));
@@ -263,14 +263,14 @@ fn use_context_update_works() {
                     || {}
                 });
             }
-            return html! {
+            Ok(html! {
                 <MyContextProvider context={Rc::new((*ctx).clone())}>
                     <RenderCounter id="test-0">
                         <ContextOutlet id="test-1"/>
                         <ContextOutlet id="test-2" {magic}/>
                     </RenderCounter>
                 </MyContextProvider>
-            };
+            })
         }
     }
     type TestComponent = FunctionComponent<TestFunction>;

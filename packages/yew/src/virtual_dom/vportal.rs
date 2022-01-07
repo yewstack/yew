@@ -22,6 +22,10 @@ impl VDiff for VPortal {
         self.sibling_ref.set(None);
     }
 
+    fn shift(&self, _previous_parent: &Element, _next_parent: &Element, _next_sibling: NodeRef) {
+        // portals have nothing in it's original place of DOM, we also do nothing.
+    }
+
     fn apply(
         &mut self,
         parent_scope: &AnyScope,
@@ -104,7 +108,7 @@ mod layout_tests {
     extern crate self as yew;
 
     use crate::html;
-    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
     use yew::virtual_dom::VPortal;
 

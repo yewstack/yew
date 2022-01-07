@@ -5,7 +5,7 @@ use wasm_bindgen_test::*;
 use yew::functional::{
     use_effect_with_deps, use_state, use_state_eq, FunctionComponent, FunctionProvider,
 };
-use yew::{html, Html};
+use yew::{html, HtmlResult};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -15,18 +15,18 @@ fn use_state_works() {
     impl FunctionProvider for UseStateFunction {
         type TProps = ();
 
-        fn run(_: &Self::TProps) -> Html {
+        fn run(_: &Self::TProps) -> HtmlResult {
             let counter = use_state(|| 0);
             if *counter < 5 {
                 counter.set(*counter + 1)
             }
-            return html! {
+            return Ok(html! {
                 <div>
                     {"Test Output: "}
                     <div id="result">{*counter}</div>
                     {"\n"}
                 </div>
-            };
+            });
         }
     }
     type UseComponent = FunctionComponent<UseStateFunction>;
@@ -43,7 +43,7 @@ fn multiple_use_state_setters() {
     impl FunctionProvider for UseStateFunction {
         type TProps = ();
 
-        fn run(_: &Self::TProps) -> Html {
+        fn run(_: &Self::TProps) -> HtmlResult {
             let counter = use_state(|| 0);
             let counter_clone = counter.clone();
             use_effect_with_deps(
@@ -64,14 +64,14 @@ fn multiple_use_state_setters() {
                 }
             };
             another_scope();
-            return html! {
+            Ok(html! {
                 <div>
                     { "Test Output: " }
                     // expected output
                     <div id="result">{ *counter }</div>
                     { "\n" }
                 </div>
-            };
+            })
         }
     }
     type UseComponent = FunctionComponent<UseStateFunction>;
@@ -84,28 +84,26 @@ fn multiple_use_state_setters() {
 
 #[wasm_bindgen_test]
 fn use_state_eq_works() {
-    static mut RENDER_COUNT: usize = 0;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    static RENDER_COUNT: AtomicUsize = AtomicUsize::new(0);
 
     struct UseStateFunction {}
 
     impl FunctionProvider for UseStateFunction {
         type TProps = ();
 
-        fn run(_: &Self::TProps) -> Html {
-            // No race conditions will be caused since its only used in one place
-            unsafe {
-                RENDER_COUNT += 1;
-            }
+        fn run(_: &Self::TProps) -> HtmlResult {
+            RENDER_COUNT.fetch_add(1, Ordering::Relaxed);
             let counter = use_state_eq(|| 0);
             counter.set(1);
 
-            return html! {
+            Ok(html! {
                 <div>
                     {"Test Output: "}
                     <div id="result">{*counter}</div>
                     {"\n"}
                 </div>
-            };
+            })
         }
     }
     type UseComponent = FunctionComponent<UseStateFunction>;
@@ -114,7 +112,5 @@ fn use_state_eq_works() {
     );
     let result = obtain_result();
     assert_eq!(result.as_str(), "1");
-    unsafe {
-        assert_eq!(RENDER_COUNT, 2);
-    }
+    assert_eq!(RENDER_COUNT.load(Ordering::Relaxed), 2);
 }

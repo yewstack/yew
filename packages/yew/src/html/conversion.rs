@@ -2,7 +2,7 @@ use super::{Component, NodeRef, Scope};
 use crate::virtual_dom::AttrValue;
 use std::{borrow::Cow, rc::Rc};
 
-/// Marker trait for types that the [`html!`] macro may clone implicitly.
+/// Marker trait for types that the [`html!`](macro@crate::html) macro may clone implicitly.
 pub trait ImplicitClone: Clone {}
 
 // this is only implemented because there's no way to avoid cloning this value
@@ -13,7 +13,7 @@ impl<T> ImplicitClone for Rc<T> {}
 
 impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
-// TODO there are still a few missing like AgentScope
+// TODO there are still a few missing
 
 /// A trait similar to `Into<T>` which allows conversion to a value of a `Properties` struct.
 pub trait IntoPropValue<T> {

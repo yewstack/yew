@@ -24,10 +24,11 @@ impl GitHubUsersFetcher {
         &mut self,
         key: impl Into<String>,
         commit: impl AsRef<str>,
+        token: Option<String>,
     ) -> Option<&str> {
         self.cache
             .entry(key.into())
-            .or_insert_with(|| match Self::inner_fetch(commit) {
+            .or_insert_with(|| match Self::inner_fetch(commit, token) {
                 Ok(value) => value,
                 Err(err) => {
                     eprintln!("fetch_user_by_commit_author Error: {}", err);
@@ -37,12 +38,12 @@ impl GitHubUsersFetcher {
             .as_deref()
     }
 
-    fn inner_fetch(commit: impl AsRef<str>) -> Result<Option<String>> {
+    fn inner_fetch(commit: impl AsRef<str>, token: Option<String>) -> Result<Option<String>> {
         let url = format!(
             "https://api.github.com/repos/yewstack/yew/commits/{}",
             commit.as_ref(),
         );
-        let body: ResponseBody = github_fetch(&url)?;
+        let body: ResponseBody = github_fetch(&url, token)?;
         Ok(Some(body.author.login))
     }
 }

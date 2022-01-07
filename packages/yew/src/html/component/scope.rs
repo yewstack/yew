@@ -5,7 +5,7 @@ use super::{
         ComponentState, CreateRunner, DestroyRunner, RenderRunner, RenderedRunner, UpdateEvent,
         UpdateRunner,
     },
-    Component,
+    BaseComponent,
 };
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
@@ -34,7 +34,7 @@ pub struct AnyScope {
     pub(crate) vcomp_id: u64,
 }
 
-impl<COMP: Component> From<Scope<COMP>> for AnyScope {
+impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
     fn from(scope: Scope<COMP>) -> Self {
         AnyScope {
             type_id: TypeId::of::<COMP>(),
@@ -71,7 +71,7 @@ impl AnyScope {
     }
 
     /// Attempts to downcast into a typed scope
-    pub fn downcast<COMP: Component>(self) -> Scope<COMP> {
+    pub fn downcast<COMP: BaseComponent>(self) -> Scope<COMP> {
         let state = self
             .state
             .downcast::<RefCell<Option<ComponentState<COMP>>>>()
@@ -93,7 +93,7 @@ impl AnyScope {
         }
     }
 
-    fn find_parent_scope<C: Component>(&self) -> Option<Scope<C>> {
+    pub(crate) fn find_parent_scope<C: BaseComponent>(&self) -> Option<Scope<C>> {
         let expected_type_id = TypeId::of::<C>();
         iter::successors(Some(self), |scope| scope.get_parent())
             .filter(|scope| scope.get_type_id() == &expected_type_id)
@@ -119,9 +119,10 @@ pub(crate) trait Scoped {
     fn to_any(&self) -> AnyScope;
     fn root_vnode(&self) -> Option<Ref<'_, VNode>>;
     fn destroy(&mut self);
+    fn shift_node(&self, parent: Element, next_sibling: NodeRef);
 }
 
-impl<COMP: Component> Scoped for Scope<COMP> {
+impl<COMP: BaseComponent> Scoped for Scope<COMP> {
     fn to_any(&self) -> AnyScope {
         self.clone().into()
     }
@@ -145,10 +146,17 @@ impl<COMP: Component> Scoped for Scope<COMP> {
         // Not guaranteed to already have the scheduler started
         scheduler::start();
     }
+
+    fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
+        scheduler::push_component_update(UpdateRunner {
+            state: self.state.clone(),
+            event: UpdateEvent::Shift(parent, next_sibling),
+        });
+    }
 }
 
 /// A context which allows sending messages to a component.
-pub struct Scope<COMP: Component> {
+pub struct Scope<COMP: BaseComponent> {
     parent: Option<Rc<AnyScope>>,
     pub(crate) state: Shared<Option<ComponentState<COMP>>>,
 
@@ -157,13 +165,13 @@ pub struct Scope<COMP: Component> {
     pub(crate) vcomp_id: u64,
 }
 
-impl<COMP: Component> fmt::Debug for Scope<COMP> {
+impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("Scope<_>")
     }
 }
 
-impl<COMP: Component> Clone for Scope<COMP> {
+impl<COMP: BaseComponent> Clone for Scope<COMP> {
     fn clone(&self) -> Self {
         Scope {
             parent: self.parent.clone(),
@@ -175,7 +183,7 @@ impl<COMP: Component> Clone for Scope<COMP> {
     }
 }
 
-impl<COMP: Component> Scope<COMP> {
+impl<COMP: BaseComponent> Scope<COMP> {
     /// Returns the parent scope
     pub fn get_parent(&self) -> Option<&AnyScope> {
         self.parent.as_deref()
@@ -268,7 +276,7 @@ impl<COMP: Component> Scope<COMP> {
     /// Send a message to the component.
     ///
     /// Please be aware that currently this method synchronously
-    /// schedules a call to the [Component](Component) interface.
+    /// schedules a call to the [Component](crate::html::Component) interface.
     pub fn send_message<T>(&self, msg: T)
     where
         T: Into<COMP::Message>,
@@ -283,7 +291,7 @@ impl<COMP: Component> Scope<COMP> {
     /// function is called only once if needed.
     ///
     /// Please be aware that currently this method synchronously
-    /// schedules calls to the [Component](Component) interface.
+    /// schedules calls to the [Component](crate::html::Component) interface.
     pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
         // There is no reason to schedule empty batches.
         // This check is especially handy for the batch_callback method.
@@ -305,57 +313,12 @@ impl<COMP: Component> Scope<COMP> {
         M: Into<COMP::Message>,
         F: Fn(IN) -> M + 'static,
     {
-        self.callback_with_passive(None, function)
-    }
-
-    /// Creates a `Callback` which will send a message to the linked
-    /// component's update method when invoked.
-    ///
-    /// Setting `passive` to [Some] explicitly makes the event listener passive or not.
-    /// Yew sets sane defaults depending on the type of the listener.
-    /// See
-    /// [addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).
-    ///
-    /// Please be aware that currently the result of this callback
-    /// synchronously schedules a call to the [Component](Component)
-    /// interface.
-    pub fn callback_with_passive<F, IN, M>(
-        &self,
-        passive: impl Into<Option<bool>>,
-        function: F,
-    ) -> Callback<IN>
-    where
-        M: Into<COMP::Message>,
-        F: Fn(IN) -> M + 'static,
-    {
         let scope = self.clone();
         let closure = move |input| {
             let output = function(input);
             scope.send_message(output);
         };
-        Callback::Callback {
-            passive: passive.into(),
-            cb: Rc::new(closure),
-        }
-    }
-
-    /// Creates a `Callback` from an `FnOnce` which will send a message
-    /// to the linked component's update method when invoked.
-    ///
-    /// Please be aware that currently the result of this callback
-    /// will synchronously schedule calls to the
-    /// [Component](Component) interface.
-    pub fn callback_once<F, IN, M>(&self, function: F) -> Callback<IN>
-    where
-        M: Into<COMP::Message>,
-        F: FnOnce(IN) -> M + 'static,
-    {
-        let scope = self.clone();
-        let closure = move |input| {
-            let output = function(input);
-            scope.send_message(output);
-        };
-        Callback::once(closure)
+        Callback::from(closure)
     }
 
     /// Creates a `Callback` which will send a batch of messages back
@@ -385,35 +348,6 @@ impl<COMP: Component> Scope<COMP> {
         };
         closure.into()
     }
-
-    /// Creates a `Callback` from an `FnOnce` which will send a batch of messages back
-    /// to the linked component's update method when invoked.
-    ///
-    /// The callback function's return type is generic to allow for dealing with both
-    /// `Option` and `Vec` nicely. `Option` can be used when dealing with a callback that
-    /// might not need to send an update.
-    ///
-    /// ```ignore
-    /// link.batch_callback_once(|_| vec![Msg::A, Msg::B]);
-    /// link.batch_callback_once(|_| Some(Msg::A));
-    /// ```
-    ///
-    /// Please be aware that currently the results of these callbacks
-    /// will synchronously schedule calls to the
-    /// [Component](Component) interface.
-    pub fn batch_callback_once<F, IN, OUT>(&self, function: F) -> Callback<IN>
-    where
-        F: FnOnce(IN) -> OUT + 'static,
-        OUT: SendAsMessage<COMP>,
-    {
-        let scope = self.clone();
-        let closure = move |input| {
-            let messages = function(input);
-            messages.send(&scope);
-        };
-        Callback::once(closure)
-    }
-
     /// This method creates a [`Callback`] which returns a Future which
     /// returns a message to be sent back to the component's event
     /// loop.
@@ -435,29 +369,6 @@ impl<COMP: Component> Scope<COMP> {
         };
 
         closure.into()
-    }
-
-    /// This method creates a [`Callback`] from [`FnOnce`] which returns a Future
-    /// which returns a message to be sent back to the component's event
-    /// loop.
-    ///
-    /// # Panics
-    /// If the future panics, then the promise will not resolve, and
-    /// will leak.
-    pub fn callback_future_once<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
-    where
-        M: Into<COMP::Message>,
-        FU: Future<Output = M> + 'static,
-        FN: FnOnce(IN) -> FU + 'static,
-    {
-        let link = self.clone();
-
-        let closure = move |input: IN| {
-            let future: FU = function(input);
-            link.send_future(future);
-        };
-
-        Callback::once(closure)
     }
 
     /// This method processes a Future that returns a message and sends it back to the component's
@@ -505,7 +416,7 @@ impl<COMP: Component> Scope<COMP> {
 
 /// Defines a message type that can be sent to a component.
 /// Used for the return value of closure given to [Scope::batch_callback](struct.Scope.html#method.batch_callback).
-pub trait SendAsMessage<COMP: Component> {
+pub trait SendAsMessage<COMP: BaseComponent> {
     /// Sends the message to the given component's scope.
     /// See [Scope::batch_callback](struct.Scope.html#method.batch_callback).
     fn send(self, scope: &Scope<COMP>);
@@ -513,7 +424,7 @@ pub trait SendAsMessage<COMP: Component> {
 
 impl<COMP> SendAsMessage<COMP> for Option<COMP::Message>
 where
-    COMP: Component,
+    COMP: BaseComponent,
 {
     fn send(self, scope: &Scope<COMP>) {
         if let Some(msg) = self {
@@ -524,7 +435,7 @@ where
 
 impl<COMP> SendAsMessage<COMP> for Vec<COMP::Message>
 where
-    COMP: Component,
+    COMP: BaseComponent,
 {
     fn send(self, scope: &Scope<COMP>) {
         scope.send_message_batch(self);
