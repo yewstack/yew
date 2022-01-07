@@ -70,11 +70,11 @@ rendering.
 
 :::
 
-:::danger Struct Components are not supported!
+:::danger Struct Components
 
 Whilst it's possible to use Struct Components with server-side rendering,
 there's no clear boundaries between client-side safe logic like the
-`use_effect` hook for struct components and lifecycle events are invoked
+`use_effect` hook for function components and lifecycle events are invoked
 in a different order than client side.
 
 In addition, Struct Components will continue to accept messages until all of its
@@ -98,7 +98,7 @@ component does not want to fetch any data. But what happens if the component
 wants to fetch some data during rendering?
 
 In the past, there's no mechanism for Yew to detect whether a component is still
-fetching data or ready. The data fetching client is responsible to implement
+fetching data. The data fetching client is responsible to implement
 a solution to detect what's being requested during initial render and triggers
 a second render after requests are fulfilled. The server repeats this process until
 no more pending requests are added during a render before returning a response.
@@ -106,7 +106,7 @@ no more pending requests are added during a render before returning a response.
 Not only this wastes CPU resources by repeatedly rendering components,
 but the data client also needs to provide a way to make the data fetched on
 the server-side available during hydration process to make sure that the
-the virtual dom returned by initial render is consistent with the
+virtual dom returned by initial render is consistent with the
 server-side rendered DOM tree which can be hard to implement.
 
 Yew takes a different approach by trying to solve this issue with `<Suspense />`.
