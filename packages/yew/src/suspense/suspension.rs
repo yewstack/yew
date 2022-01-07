@@ -126,6 +126,7 @@ impl Drop for SuspensionHandle {
     }
 }
 
+#[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
 #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
 mod feat_io {
     use super::*;

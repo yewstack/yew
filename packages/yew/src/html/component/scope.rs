@@ -399,7 +399,7 @@ mod feat_ssr {
         }
     }
 }
-
+#[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
 #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
 mod feat_io {
     use std::future::Future;

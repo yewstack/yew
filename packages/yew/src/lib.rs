@@ -1,5 +1,6 @@
 #![allow(clippy::needless_doctest_main)]
 #![doc(html_logo_url = "https://yew.rs/img/logo.png")]
+#![cfg_attr(documenting, feature(doc_cfg))]
 
 //! # Yew Framework - API Documentation
 //!
@@ -312,6 +313,7 @@ mod feat_ssr {
     use crate::html::Scope;
 
     /// A Yew Server-side Renderer.
+    #[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
     #[derive(Debug)]
     pub struct YewServerRenderer<COMP>
     where
