@@ -4,31 +4,17 @@ on:
   pull_request:
     paths-ignore:
       - 'website/**'
+      - 'tools/website-test/**'
       - '**/*.md'
   push:
     branches: [master]
     paths-ignore:
+      - 'tools/website-test/**'
       - 'website/**'
       - '**/*.md'
 
 jobs:
-  format:
-    name: cargo fmt
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-          components: rustfmt
 
-      - name: Run fmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
@@ -61,7 +47,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets -- -D warnings
+          args: --all-targets --exclude website-test -- -D warnings
       - name: Remove Untouched Cache
         run: ./dev-tool/ci-bin/cargo-sweep sweep -f
 
@@ -96,40 +82,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --release -- -D warnings
-      - name: Remove Untouched Cache
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
-
-  check_examples:
-    name: Check Examples
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target
-          key: cargo-${{ runner.os }}-check-examples-${{ hashFiles('**/Cargo.toml') }}
-          restore-keys: |
-            cargo-${{ runner.os }}-check-examples
-            cargo-${{ runner.os }}-
-
-      - name: Timestamp Cached Target
-        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
-      - name: Run check
-        run: |
-          cd examples
-          cargo check --all-targets
+          args: --all-targets --release --exclude website-test -- -D warnings
       - name: Remove Untouched Cache
         run: ./dev-tool/ci-bin/cargo-sweep sweep -f
 
@@ -170,19 +123,13 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --doc
+          args: --doc --exclude website-test
 
       - name: Run doctest - yew with features
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --doc --features doc_test --features wasm_test
-
-      - name: Run website code snippet tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p website-test
+          args: --doc --features doc_test --features wasm_test --exclude website-test
 
       - name: Remove Untouched Cache
         run: ./dev-tool/ci-bin/cargo-sweep sweep -f
@@ -281,7 +228,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-targets --workspace --exclude yew
+          args: --all-targets --workspace --exclude yew --exclude website-test
 
       - name: Remove Untouched Cache
         run: ./dev-tool/ci-bin/cargo-sweep sweep -f
@@ -314,8 +261,9 @@ jobs:
       - name: Timestamp Cached Target
         run: ./dev-tool/ci-bin/cargo-sweep sweep -s
       - name: Run tests
-        run: |
-          cd packages/yew-macro
-          cargo +nightly test test_html_lints --features lints
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p yew-macro test_html_lints --features lints
       - name: Remove Untouched Cache
         run: ./dev-tool/ci-bin/cargo-sweep sweep -f

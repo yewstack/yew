@@ -3,18 +3,58 @@ on:
   pull_request:
     branches: [master]
     paths:
+      - "tools/website-test/**"
       - "website/**"
       - "firebase.json"
       - ".github/workflows/*-website.yml"
   push:
     branches: [master]
     paths:
+      - "tools/website-test/**"
       - "website/**"
       - "firebase.json"
       - ".github/workflows/*-website.yml"
 
 jobs:
+  website-tests:
+    name: Website Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+          profile: minimal
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target
+          key: cargo-${{ runner.os }}-website-tests-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-website-tests
+            cargo-${{ runner.os }}-
+
+      - name: Timestamp Cached Target
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -s
+
+      - name: Run website code snippet tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p website-test
+
+      - name: Remove Untouched Cache
+        run: ./dev-tool/ci-bin/cargo-sweep sweep -f
+
   build:
+    needs: [website-tests]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
