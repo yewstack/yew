@@ -47,7 +47,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --exclude website-test -- -D warnings
+          args: --all-targets --workspace --exclude website-test -- -D warnings
       - name: Remove Untouched Cache
         run: ./ci/cargo-sweep sweep -f
 
@@ -82,7 +82,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --release --exclude website-test -- -D warnings
+          args: --all-targets --release --workspace --exclude website-test -- -D warnings
       - name: Remove Untouched Cache
         run: ./ci/cargo-sweep sweep -f
 
@@ -123,13 +123,13 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --doc --exclude website-test
+          args: --doc --workspace --exclude website-test
 
       - name: Run doctest - yew with features
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --doc --features doc_test --features wasm_test --exclude website-test
+          args: --doc --features doc_test --features wasm_test --workspace --exclude website-test
 
       - name: Remove Untouched Cache
         run: ./ci/cargo-sweep sweep -f
