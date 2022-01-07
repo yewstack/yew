@@ -260,6 +260,7 @@ pub mod callback;
 pub mod context;
 pub mod functional;
 pub mod html;
+mod io_coop;
 pub mod scheduler;
 mod sealed;
 pub mod suspense;

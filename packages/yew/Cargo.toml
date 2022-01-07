@@ -23,7 +23,6 @@ indexmap = { version = "1", features = ["std"] }
 js-sys = "0.3"
 slab = "0.4"
 wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
 yew-macro = { version = "^0.19.0", path = "../yew-macro" }
 thiserror = "1.0"
 
@@ -63,16 +62,28 @@ features = [
   "Window",
 ]
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+# we move it here so no promise-based spawn_local can present for
+# non-wasm32 targets.
+wasm-bindgen-futures = "0.4"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { version = "1.15.0", features = ["rt"], optional = true }
+
 [dev-dependencies]
 easybench-wasm = "0.2"
 wasm-bindgen-test = "0.3"
 gloo = { version = "0.4", features = ["futures"] }
+wasm-bindgen-futures = "0.4"
 
 [features]
 doc_test = []
 wasm_test = []
 wasm_bench = []
 ssr = ["futures", "html-escape"]
+# we enable tokio by default so spawn_local is available on non-wasm targets
+# by default as well.
+default = ["tokio"]
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1.15.0", features = ["full"] }
