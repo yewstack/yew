@@ -81,9 +81,7 @@ doc_test = []
 wasm_test = []
 wasm_bench = []
 ssr = ["futures", "html-escape"]
-# we enable tokio by default so spawn_local is available on non-wasm targets
-# by default as well.
-default = ["tokio"]
+default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1.15.0", features = ["full"] }

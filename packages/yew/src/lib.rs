@@ -10,11 +10,21 @@
 //! - Achieves high performance by minimizing DOM API calls for each page render and by making it easy to offload processing to background web workers.
 //! - Supports JavaScript interoperability, allowing developers to leverage NPM packages and integrate with existing JavaScript applications.
 //!
-//! ### Supported Targets
+//! ### Supported Targets (Client-Side Rendering)
 //! - `wasm32-unknown-unknown`
 //!
+//! ### Note
+//!
+//! Server-Side Rendering should work on all targets when feature `ssr` is enabled.
+//!
 //! ### Important Notes
-//! - Yew is not (yet) production ready but is great for side projects and internal tools
+//! - Note: Yew is not 1.0 yet. Be prepared to do major refactoring due to breaking API changes.
+//!
+//! ### Supported Features:
+//! - `ssr`: Enables Server-side Rendering support and [`ServerRenderer`].
+//! - `tokio`: Enables future-based APIs on non-wasm32 targets with tokio runtime. (You may want to
+//! enable this if your application uses future-based APIs and it does not compile / lint on
+//! non-wasm32 targets.)
 //!
 //! ## Example
 //!
