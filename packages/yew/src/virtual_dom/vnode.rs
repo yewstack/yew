@@ -303,10 +303,11 @@ mod feat_ssr {
     use super::*;
 
     impl VNode {
+        // Boxing is needed here, due to: https://rust-lang.github.io/async-book/07_workarounds/04_recursion.html
         pub(crate) fn render_to_string<'a>(
             &'a self,
             w: &'a mut String,
-            parent_scope: &'a AnyScope, // we box here due to: https://rust-lang.github.io/async-book/07_workarounds/04_recursion.html
+            parent_scope: &'a AnyScope,
         ) -> LocalBoxFuture<'a, ()> {
             async move {
                 match self {
