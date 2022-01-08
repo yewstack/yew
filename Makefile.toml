@@ -82,7 +82,7 @@ dependencies = ["test"]
 [tasks.test]
 private = true
 command = "cargo"
-args = ["test", "--all-targets"]
+args = ["test", "--all-targets", "--workspace", "--exclude", "website-test"]
 
 [tasks.doc-test-flow]
 private = true
@@ -95,12 +95,8 @@ command = "cargo"
 args = ["test", "--doc"]
 
 [tasks.website-test]
-script = [
-    """
-    cd tools/website-test
-    cargo test
-    """
-]
+command = "cargo"
+args = ["test", "-p", "website-test"]
 
 [tasks.bench-flow]
 private = true
