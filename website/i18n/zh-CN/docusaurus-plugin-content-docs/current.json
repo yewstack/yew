@@ -74,9 +74,5 @@
   "sidebar.sidebar.category.yew-agent": {
     "message": "yew-agent",
     "description": "The label for category yew-agent in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.yew-router": {
-    "message": "yew-router",
-    "description": "The label for category yew-router in sidebar sidebar"
   }
 }
