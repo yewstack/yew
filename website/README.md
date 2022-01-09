@@ -41,9 +41,9 @@ When you add to the docs in the `mdx` files,
 Contributors on GitLocalize will translate the added content
 and the translation will get dumped under the [i18n](i18n) folder in a later time.
 
-If you are a native speaker of the translated languages,
+If you are a native speaker of one of the translated languages,
 and you are interested in translating your edits yourself, 
-you are welcome to navigate to the folder and do it yourself!.
+you are welcome to navigate to the folder and do it yourself!
 
 If you want to write displayed content in `html/jsx` instead of vanilla markdown,
 You should wrap your text in `<Translate/>` tags.
