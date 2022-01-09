@@ -10,6 +10,7 @@
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",
+    "check-translations": "node ./check-translations.js",
     "write-translations": "node ./write-translations.js",
     "write-heading-ids": "docusaurus write-heading-ids"
   },
@@ -47,6 +48,7 @@
     "@types/react": "^17.0.8",
     "@types/react-helmet": "^6.1.1",
     "@types/react-router-dom": "^5.1.7",
-    "typescript": "^4.3.2"
+    "typescript": "^4.3.2",
+    "dir-compare": "^4.0.0"
   }
 }
