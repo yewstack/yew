@@ -20,6 +20,8 @@ jobs:
       PR_INFO_FILE: ".PR_INFO"
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
       - name: Setup node
         uses: actions/setup-node@v1
         with:
