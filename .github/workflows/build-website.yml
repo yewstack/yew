@@ -32,6 +32,24 @@ jobs:
           npm install
           npm run build
 
+      # this won't delete existing translation and will only add new ones
+      - name: Generate Stubs for in-code Localization
+        if: github.event_name == 'pull_request'
+        run: |
+          cd website
+          npm run write-translations
+
+      # in case of follow-up commits during the build
+      - run: git pull
+        if: github.event_name == 'pull_request'
+
+      # this will only commit when the generated stubs are different
+      - name: Commit Localization
+        if: github.event_name == 'pull_request'
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "🤖 Append stubs for in-code localization"
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
         with:
