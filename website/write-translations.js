@@ -1,4 +1,4 @@
-const {i18n: {locales}} = require('../website/docusaurus.config.js');
+const {i18n: {locales}} = require('./docusaurus.config.js');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 

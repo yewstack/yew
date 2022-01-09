@@ -47,7 +47,7 @@ you are welcome to navigate to the folder and do it yourself!
 
 If you want to write displayed content in `html/jsx` instead of vanilla markdown,
 You should wrap your text in `<Translate/>` tags.
-It helps docusaurus to extract those texts and compile them in `.json` files to
+It helps docusaurus to extract those texts and compile them to `.json` files to
 get further translated in GitLocalize.
 
 ```jsx
@@ -61,7 +61,5 @@ import Translate from '@docusaurus/Translate';
 ```
 
 If your pull request adds new `<Translation>` tags,
-a workflow in CI will generate the json files and commit to your branch directly.
-If you have followup commits, don't panic and merge the generated json files.
-You can also run `node ../ci/write-translations.js` from the `website` directory and generate stubs yourself,
-and you are also welcome to add localization in your own language!
+make sure you do `npm run write-translations` to generate the new stubs for later localization.
+And you are always welcome to add localization yourself in your native languages!

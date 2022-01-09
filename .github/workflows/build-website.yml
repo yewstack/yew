@@ -20,8 +20,7 @@ jobs:
       PR_INFO_FILE: ".PR_INFO"
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.head_ref }}
+
       - name: Setup node
         uses: actions/setup-node@v1
         with:
@@ -32,24 +31,6 @@ jobs:
           cd website
           npm install
           npm run build
-
-      # this won't delete existing translation and will only add new ones
-      - name: Generate Stubs for in-code Localization
-        if: github.event.workflow_run.event == 'pull_request'
-        run: |
-          cd website
-          node ../ci/write-translations.js
-
-      # in order to commit the stubs in case of follow-up commits
-      - run: git pull
-        if: github.event.workflow_run.event == 'pull_request'
-
-      # this will only commit when the generated stubs are different
-      - name: Commit Localization
-        if: github.event.workflow_run.event == 'pull_request'
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "🤖 Append stubs for in-code localization"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
