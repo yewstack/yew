@@ -290,8 +290,17 @@ mod feat_ssr {
 
     impl VList {
         pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
-            for node in self.children.iter() {
-                node.render_to_string(w, parent_scope).await;
+            // Concurrently render all children.
+            for fragment in futures::future::join_all(self.children.iter().map(|m| async move {
+                let mut w = String::new();
+
+                m.render_to_string(&mut w, parent_scope).await;
+
+                w
+            }))
+            .await
+            {
+                w.push_str(&fragment)
             }
         }
     }

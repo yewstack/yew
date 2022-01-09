@@ -219,13 +219,13 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
                         std::mem::swap(&mut root, &mut state.root_node);
                     }
 
-                    if let Some(ref m) = state.suspension {
+                    if let Some(m) = state.suspension.take() {
                         let comp_scope = AnyScope::from(state.context.scope.clone());
 
                         let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
                         let suspense = suspense_scope.get_component().unwrap();
 
-                        suspense.resume(m.clone());
+                        suspense.resume(m);
                     }
 
                     if let Some(ref m) = state.parent {
@@ -309,7 +309,7 @@ impl<COMP: BaseComponent> Runnable for RenderedRunner<COMP> {
             #[cfg(debug_assertions)]
             crate::virtual_dom::vcomp::log_event(state.vcomp_id, "rendered");
 
-            if state.parent.is_some() {
+            if state.suspension.is_none() && state.parent.is_some() {
                 let first_render = !state.has_rendered;
                 state.component.rendered(&state.context, first_render);
                 state.has_rendered = true;

@@ -685,9 +685,7 @@ mod feat_ssr {
                     ref children,
                     ..
                 } => {
-                    for child in children.iter() {
-                        child.render_to_string(w, parent_scope).await;
-                    }
+                    children.render_to_string(w, parent_scope).await;
 
                     write!(w, "</{}>", tag).unwrap();
                 }
