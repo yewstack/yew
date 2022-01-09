@@ -1,5 +1,0 @@
-error: expected enum, found struct
- --> $DIR/struct-fail.rs:2:1
-  |
-2 | struct Test {}
-  | ^^^^^^

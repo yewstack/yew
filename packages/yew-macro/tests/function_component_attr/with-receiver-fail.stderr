@@ -1,5 +1,0 @@
-error: function components can't accept a receiver
-  --> $DIR/with-receiver-fail.rs:12:13
-   |
-12 |     fn comp(self, props: &Props) -> Html {
-   |             ^^^^

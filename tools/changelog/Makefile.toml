@@ -1,5 +1,0 @@
-# Extends the root Makefile.toml
-
-[tasks.doc-test]
-command = "echo"
-args = ["No doctests run for changelog"]

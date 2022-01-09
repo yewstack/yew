@@ -1,8 +1,0 @@
-blank_issues_enabled: true
-contact_links:
-  - name: Ask question
-    url: https://discord.gg/VQck8X4
-    about: Looking for a quick answer? Ask the community!
-  - name: Feature proposal
-    url: https://github.com/yewstack/yew/discussions/categories/ideas
-    about: Start a discussion for a feature you would like to see
