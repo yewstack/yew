@@ -503,7 +503,7 @@ async fn effects_not_run_when_suspended() {
         }
     }
 
-    let counter = Rc::new(RefCell::new(0 as u64));
+    let counter = Rc::new(RefCell::new(0_u64));
 
     let props = Props {
         counter: counter.clone(),
