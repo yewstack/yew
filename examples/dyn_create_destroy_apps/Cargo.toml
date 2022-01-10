@@ -9,7 +9,7 @@ license = "MIT OR Apache-2.0"
 js-sys = "0.3"
 yew = { path = "../../packages/yew" }
 slab = "0.4.3"
-gloo = "0.4"
+gloo = "0.6"
 wasm-bindgen = "0.2"
 gloo-utils = "0.1"
 
