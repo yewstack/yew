@@ -116,11 +116,9 @@ jobs:
           override: true
           profile: minimal
 
-      - uses: actions-rs/install@v0.1
+      - uses: jetli/wasm-pack-action@v0.3.0
         with:
-          crate: wasm-pack
-          version: latest
-          use-tool-cache: true
+          version: "latest"
 
       - uses: Swatinem/rust-cache@v1
 
