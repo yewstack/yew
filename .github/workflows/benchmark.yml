@@ -35,7 +35,7 @@ jobs:
           # Access token to deploy GitHub Pages branch
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # Push and deploy GitHub pages branch automatically
-          alert-threshold: "150%"
+          alert-threshold: "200%"
           alert-comment-cc-users: "@yewstack/yew"
           comment-always: true
           comment-on-alert: true
