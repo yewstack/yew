@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-  pull_request:
+  pull_request_target:
 
 permissions:
   # deployments permission to deploy GitHub pages website
@@ -37,11 +37,11 @@ jobs:
           # Push and deploy GitHub pages branch automatically
           alert-threshold: "150%"
           alert-comment-cc-users: "@yewstack/yew"
-          comment-always: ${{ github.event_name != 'pull_request' }}
-          comment-on-alert: ${{ github.event_name != 'pull_request' }}
+          comment-always: true
+          comment-on-alert: true
           # Don't push to gh-pages if its a pull request
-          auto-push: ${{ github.event_name != 'pull_request' }}
-          save-data-file: ${{ github.event_name != 'pull_request' }}
+          auto-push: ${{ github.event_name != 'pull_request_target' }}
+          save-data-file: ${{ github.event_name != 'pull_request_target' }}
 
   benchmark:
     runs-on: ubuntu-latest
