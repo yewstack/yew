@@ -18,7 +18,7 @@ rust-version = "1.56.0"
 
 [dependencies]
 console_error_panic_hook = "0.1"
-gloo = "0.4"
+gloo = "0.6"
 gloo-utils = "0.1.0"
 indexmap = { version = "1", features = ["std"] }
 js-sys = "0.3"
@@ -64,7 +64,7 @@ features = [
 [dev-dependencies]
 easybench-wasm = "0.2"
 wasm-bindgen-test = "0.3"
-gloo = { version = "0.4", features = ["futures"] }
+gloo = { version = "0.6", features = ["futures"] }
 
 [features]
 doc_test = []
