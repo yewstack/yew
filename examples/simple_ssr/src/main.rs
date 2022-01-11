@@ -4,32 +4,33 @@ use std::rc::Rc;
 use serde::{Deserialize, Serialize};
 use tokio::task::LocalSet;
 use tokio::task::{spawn_blocking, spawn_local};
+use uuid::Uuid;
 use warp::Filter;
 use yew::prelude::*;
 use yew::suspense::{Suspension, SuspensionResult};
 
 #[derive(Serialize, Deserialize)]
 struct UuidResponse {
-    uuid: String,
+    uuid: Uuid,
 }
 
-async fn fetch_uuid() -> Rc<String> {
+async fn fetch_uuid() -> Uuid {
     // reqwest works for both non-wasm and wasm targets.
     let resp = reqwest::get("https://httpbin.org/uuid").await.unwrap();
     let uuid_resp = resp.json::<UuidResponse>().await.unwrap();
 
-    uuid_resp.uuid.into()
+    uuid_resp.uuid
 }
 
 pub struct UuidState {
     s: Suspension,
-    value: Rc<RefCell<Option<Rc<String>>>>,
+    value: Rc<RefCell<Option<Uuid>>>,
 }
 
 impl UuidState {
     fn new() -> Self {
         let (s, handle) = Suspension::new();
-        let value: Rc<RefCell<Option<Rc<String>>>> = Rc::default();
+        let value: Rc<RefCell<Option<Uuid>>> = Rc::default();
 
         {
             let value = value.clone();
@@ -56,11 +57,11 @@ impl PartialEq for UuidState {
     }
 }
 
-fn use_random_uuid() -> SuspensionResult<Rc<String>> {
+fn use_random_uuid() -> SuspensionResult<Uuid> {
     let s = use_state(UuidState::new);
 
     let result = match *s.value.borrow() {
-        Some(ref m) => Ok(m.clone()),
+        Some(ref m) => Ok(*m),
         None => Err(s.s.clone()),
     };
 

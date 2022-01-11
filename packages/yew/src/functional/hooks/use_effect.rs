@@ -40,7 +40,6 @@ pub fn use_effect<Destructor>(callback: impl FnOnce() -> Destructor + 'static)
 where
     Destructor: FnOnce() + 'static,
 {
-    let callback = Box::new(callback);
     use_hook(
         move || {
             let effect: UseEffect<Destructor> = UseEffect {
@@ -73,11 +72,13 @@ where
     )
 }
 
-type UseEffectDepsRunnerFn<Dependents, Destructor> =
-    Box<dyn FnOnce() -> (Destructor, Rc<Dependents>)>;
+type UseEffectDepsRunnerFn<Dependents, Destructor> = Box<dyn FnOnce(&Dependents) -> Destructor>;
 
 struct UseEffectDeps<Destructor, Dependents> {
-    runner: Option<UseEffectDepsRunnerFn<Dependents, Destructor>>,
+    runner_with_deps: Option<(
+        Rc<Dependents>,
+        UseEffectDepsRunnerFn<Dependents, Destructor>,
+    )>,
     destructor: Option<Box<Destructor>>,
     deps: Option<Rc<Dependents>>,
 }
@@ -99,26 +100,25 @@ where
         move || {
             let destructor: Option<Box<Destructor>> = None;
             UseEffectDeps {
-                runner: None,
+                runner_with_deps: None,
                 destructor,
                 deps: None,
             }
         },
         move |state, updater| {
-            if state.deps.as_ref() != Some(&deps) {
-                let runner = move || (callback(&deps), deps);
-
-                state.runner =
-                    Some(Box::new(runner) as UseEffectDepsRunnerFn<Dependents, Destructor>);
-            }
+            state.runner_with_deps = Some((deps, Box::new(callback)));
 
             updater.post_render(move |state: &mut UseEffectDeps<Destructor, Dependents>| {
-                if let Some(callback) = state.runner.take() {
+                if let Some((deps, callback)) = state.runner_with_deps.take() {
+                    if Some(&deps) == state.deps.as_ref() {
+                        return false;
+                    }
+
                     if let Some(de) = state.destructor.take() {
                         de();
                     }
 
-                    let (new_destructor, deps) = callback();
+                    let new_destructor = callback(&deps);
 
                     state.deps = Some(deps);
                     state.destructor = Some(Box::new(new_destructor));
