@@ -65,6 +65,8 @@ features = [
 easybench-wasm = "0.2"
 wasm-bindgen-test = "0.3"
 gloo = { version = "0.6", features = ["futures"] }
+rustversion = "1"
+trybuild = "1"
 
 [features]
 doc_test = []
