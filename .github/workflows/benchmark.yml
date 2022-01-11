@@ -1,94 +1,234 @@
 name: Benchmark
 
 on:
-  pull_request:
-    if: >-
-      (github.event.action == 'labeled' && github.event.label.name == 'performance') ||
-      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'performance'))
-    branches: [master]
-    types: [labeled, synchronize]
+  push:
+    branches:
+      - master
+  pull_request_target:
 
-  workflow_dispatch:
-    branches: [master]
+permissions:
+  # deployments permission to deploy GitHub pages website
+  deployments: write
+  # contents permission to update benchmark contents in gh-pages branch
+  contents: write
 
 jobs:
-  build:
+  results:
     runs-on: ubuntu-latest
+    needs: benchmark
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: |
+          touch results.json
+          echo '${{ needs.benchmark.outputs.results }}' >> results.json
+
+      # gh-pages branch is updated and pushed automatically with extracted benchmark data
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: "Yew master branch benchmarks (Lower is better)"
+          tool: "customSmallerIsBetter"
+          output-file-path: results.json
+          gh-pages-branch: "gh-pages"
+          # Access token to deploy GitHub Pages branch
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Push and deploy GitHub pages branch automatically
+          alert-threshold: "200%"
+          alert-comment-cc-users: "@yewstack/yew"
+          comment-always: true
+          comment-on-alert: true
+          # Don't push to gh-pages if its a pull request
+          auto-push: ${{ github.event_name != 'pull_request_target' }}
+          save-data-file: ${{ github.event_name != 'pull_request_target' }}
+
+  benchmark:
+    runs-on: ubuntu-latest
+    outputs:
+      results: ${{ steps.results.outputs.stdout }}
 
     steps:
       - uses: actions/checkout@v2
         with:
-          repository: yewstack/js-framework-benchmark
+          path: "./yew"
 
-      - name: Configure benchmark
-        run: |
-          replace="yew = { git = \"${REPO_HTML_URL}\", branch = \"${BRANCH}\" }"
-          input=$(cat frameworks/keyed/yew/Cargo.toml)
-          output=$(echo "$input" | sed -e "s@yew = .*}@$replace@g")
-          if [[ "$input" == "$output" ]]; then
-            echo "ERROR: failed to configure Cargo.toml"
-            exit 1
-          fi
-          echo "$output" > frameworks/keyed/yew/Cargo.toml
-          echo "$output"
-        env:
-          # REPO_HTML_URL: ${{ github.event.pull_request.head.repo.html_url }}
-          REPO_HTML_URL: https://github.com/voidpumpkin/yew.git
-          # HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          BRANCH: master
+      - uses: actions/checkout@v2
+        with:
+          repository: krausest/js-framework-benchmark
+          path: "./js-framework-benchmark"
 
-      - name: Setup ChromeDriver
-        uses: nanasess/setup-chromedriver@master
-
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+          profile: minimal
 
-      - uses: actions-rs/install@v0.1
+      - uses: jetli/wasm-pack-action@v0.3.0
         with:
-          crate: wasm-bindgen-cli
-          version: latest
-          use-tool-cache: true
-
-      - uses: actions-rs/install@v0.1
-        with:
-          crate: wasm-pack
-          version: latest
-          use-tool-cache: true
-
-      - uses: actions-rs/install@v0.1
-        with:
-          crate: https
-          version: latest
-          use-tool-cache: true
-
-      - name: Start Server
-        run: http -p 8080 &
+          version: "latest"
 
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 16
 
-      - name: npm Install
-        run: |
-          npm install
-          (cd webdriver-ts && npm install)
-          (cd webdriver-ts-results && npm install)
+      - uses: Swatinem/rust-cache@v1
+        with:
+          working-directory: yew
 
-      - name: Build
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-benchmark-${{ hashFiles('js-framework-benchmark/package-lock.json') }}-${{ hashFiles('js-framework-benchmark/webdriver-ts/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-benchmark-
+            ${{ runner.os }}
+
+      - name: save yew-struct setup
+        shell: bash
         run: |
+          mkdir yew-struct-setup
+          cp -r js-framework-benchmark/frameworks/keyed/yew/* yew-struct-setup/
+          cd yew-struct-setup/bundled-dist
+          rm -rf ./*
+      # Will be enabled after https://github.com/krausest/js-framework-benchmark/pull/985 gets merged
+      # - name: save yew-hooks setup
+      #   shell: bash
+      #   run: |
+      #     mkdir yew-hooks-setup
+      #     cp -r js-framework-benchmark/frameworks/keyed/yew-hooks/* yew-hooks-setup/
+      #     cd yew-hooks-setup/bundled-dist
+      #     rm -rf ./*
+
+      - name: replace framework version in yew
+        shell: bash
+        run: |
+          replace="  \"frameworkVersion\": \"\""
+          input=$(cat yew-struct-setup/package.json)
+          output=$(echo "$input" | sed -e "s@\"frameworkVersion\": .*\"@$replace@g")
+          if [[ "$input" == "$output" ]]; then
+            echo "ERROR: failed to configure framework version"
+            exit 1
+          fi
+          echo "$output" > yew-struct-setup/package.json
+          echo "$output"
+
+      # Will be enabled after https://github.com/krausest/js-framework-benchmark/pull/985 gets merged
+      # - name: replace framework version in yew-hooks
+      #   shell: bash
+      #   run: |
+      #     replace="  \"frameworkVersion\": \"\""
+      #     input=$(cat yew-hooks-setup/package.json)
+      #     output=$(echo "$input" | sed -e "s@\"frameworkVersion\": .*\"@$replace@g")
+      #     if [[ "$input" == "$output" ]]; then
+      #       echo "ERROR: failed to configure framework version"
+      #       exit 1
+      #     fi
+      #     echo "$output" > yew-hooks-setup/package.json
+      #     echo "$output"
+
+      - name: delete all frameworks
+        shell: bash
+        run: |
+          cd js-framework-benchmark/frameworks/keyed
+          rm -rf ./*
+          cd ../non-keyed
+          rm -rf ./*
+
+      - name: create framework folders
+        shell: bash
+        run: |
+          cd js-framework-benchmark/frameworks/keyed
+          mkdir yew-struct
+        # Will be enabled after https://github.com/krausest/js-framework-benchmark/pull/985 gets merged
+        #  mkdir yew-hooks
+
+      - name: copy necessary framework files
+        shell: bash
+        run: |
+          cp -r yew-struct-setup/* js-framework-benchmark/frameworks/keyed/yew-struct/
+        # Will be enabled after https://github.com/krausest/js-framework-benchmark/pull/985 gets merged
+        #  cp -r yew-hooks-setup/* js-framework-benchmark/frameworks/keyed/yew-hooks/
+
+      - name: build benchmark-struct app
+        shell: bash
+        run: |
+          cd yew/tools/benchmark-struct
+          npm ci
+          npm run build-prod-without-tools-install
+
+      - name: build benchmark-hooks app
+        shell: bash
+        run: |
+          cd yew/tools/benchmark-hooks
+          npm ci
+          npm run build-prod-without-tools-install
+
+      - name: move dist files
+        shell: bash
+        run: |
+          mv yew/tools/benchmark-struct/bundled-dist js-framework-benchmark/frameworks/keyed/yew-struct/
+        # Will be enabled after https://github.com/krausest/js-framework-benchmark/pull/985 gets merged
+        #  mv yew/tools/benchmark-hooks/bundled-dist js-framework-benchmark/frameworks/keyed/yew-hooks/
+
+      - name: js-framework-benchmark npm ci
+        shell: bash
+        run: |
+          cd js-framework-benchmark
+          npm ci
+
+      - name: js-framework-benchmark npm start
+        shell: bash
+        run: |
+          cd js-framework-benchmark
+          npm start &
+
+      - name: js-framework-benchmark/webdriver-ts npm ci
+        shell: bash
+        run: |
+          cd js-framework-benchmark/webdriver-ts
+          npm ci
+          npm install chromedriver --chromedriver-force-download
+
+      - name: js-framework-benchmark/webdriver-ts npm run compile
+        shell: bash
+        run: |
+          cd js-framework-benchmark/webdriver-ts
+          npm run compile
+
+      - name: js-framework-benchmark npm run build-prod
+        shell: bash
+        run: |
+          cd js-framework-benchmark
           npm run build-prod
-          (cd webdriver-ts && npm run build-prod)
 
-      - name: Benchmark
-        run: npm run bench -- --headless
-
-      - name: Results
-        run: npm run results
-
-      - name: Log results
+      - name: js-framework-benchmark/webdriver-ts npm run bench
+        shell: bash
         run: |
-          msg=$(cd results_diff && cargo run)
-          echo "$msg"
+          cd js-framework-benchmark/webdriver-ts
+          npm run bench -- --headless
+
+      - name: transform results into json
+        shell: bash
+        run: |
+          cd js-framework-benchmark/webdriver-ts/results
+          touch temp.txt
+          echo "[" >> temp.txt
+          for filename in *.json; do cat ${filename} >> temp.txt; echo "," >> temp.txt; done
+          sed -i '$ s/.$//' temp.txt #remove trailing comma
+          echo "]" >> temp.txt
+          mv temp.txt results.json
+
+      - name: Build process-benchmark-results
+        shell: bash
+        run: |
+          cd yew
+          cargo build --release -p process-benchmark-results
+
+      - name: transform results to be fit for display benchmark-action/github-action-benchmark@v1
+        uses: mathiasvr/command-output@v1
+        id: results
+        with:
+          run: cat js-framework-benchmark/webdriver-ts/results/results.json | ./yew/target/release/process-benchmark-results

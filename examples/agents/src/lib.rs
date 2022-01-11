@@ -9,11 +9,11 @@ pub enum Msg {
     DataReceived,
 }
 
-pub struct Model {
+pub struct App {
     worker: Box<dyn Bridge<native_worker::Worker>>,
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 

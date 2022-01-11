@@ -252,7 +252,11 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<AttrValue>>` is not sati
 43 |     html! { <input type={()} /> };
    |                          ^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `()`
    |
-   = note: required by `into_prop_value`
+note: required by `into_prop_value`
+  --> $WORKSPACE/packages/yew/src/html/conversion.rs
+   |
+   |     fn into_prop_value(self) -> T;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:44:27
@@ -260,7 +264,11 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<AttrValue>>` is not sati
 44 |     html! { <input value={()} /> };
    |                           ^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `()`
    |
-   = note: required by `into_prop_value`
+note: required by `into_prop_value`
+  --> $WORKSPACE/packages/yew/src/html/conversion.rs
+   |
+   |     fn into_prop_value(self) -> T;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:45:22
@@ -268,7 +276,11 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<AttrValue>>` is not sati
 45 |     html! { <a href={()} /> };
    |                      ^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `()`
    |
-   = note: required by `into_prop_value`
+note: required by `into_prop_value`
+  --> $WORKSPACE/packages/yew/src/html/conversion.rs
+   |
+   |     fn into_prop_value(self) -> T;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `NotToString: IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:46:28
@@ -276,7 +288,11 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<AttrValue>>` is
 46 |     html! { <input string={NotToString} /> };
    |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `NotToString`
    |
-   = note: required by `into_prop_value`
+note: required by `into_prop_value`
+  --> $WORKSPACE/packages/yew/src/html/conversion.rs
+   |
+   |     fn into_prop_value(self) -> T;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:47:23
@@ -289,7 +305,11 @@ error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<AttrVal
              <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<String> as IntoPropValue<Option<AttrValue>>>
              <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
-   = note: required by `into_prop_value`
+note: required by `into_prop_value`
+  --> $WORKSPACE/packages/yew/src/html/conversion.rs
+   |
+   |     fn into_prop_value(self) -> T;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:48:22
@@ -302,15 +322,22 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<AttrValue
              <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<String> as IntoPropValue<Option<AttrValue>>>
              <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
-   = note: required by `into_prop_value`
+note: required by `into_prop_value`
+  --> $WORKSPACE/packages/yew/src/html/conversion.rs
+   |
+   |     fn into_prop_value(self) -> T;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `{integer}`
    --> tests/html_macro/element-fail.rs:51:28
     |
-51  |       html! { <input onclick=1 /> };
-    |                              ^ expected an `Fn<(MouseEvent,)>` closure, found `{integer}`
+51  |     html! { <input onclick=1 /> };
+    |                            ^ expected an `Fn<(MouseEvent,)>` closure, found `{integer}`
     |
-   ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
+    = help: the trait `Fn<(MouseEvent,)>` is not implemented for `{integer}`
+    = note: required because of the requirements on the impl of `IntoEventCallback<MouseEvent>` for `{integer}`
+note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
+   --> $WORKSPACE/packages/yew/src/html/listener/events.rs
     |
     | / impl_short! {
     | |     onauxclick(MouseEvent)
@@ -319,21 +346,22 @@ error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `{integer}`
 ...   |
     | |     ontransitionstart(TransitionEvent)
     | | }
-    | |_- required by this bound in `yew::html::onclick::Wrapper::__macro_new`
-    |
-    = help: the trait `Fn<(MouseEvent,)>` is not implemented for `{integer}`
-    = note: required because of the requirements on the impl of `IntoEventCallback<MouseEvent>` for `{integer}`
+    | |_^ required by this bound in `yew::html::onclick::Wrapper::__macro_new`
+    = note: this error originates in the macro `impl_action` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
    --> tests/html_macro/element-fail.rs:52:29
     |
-52  |       html! { <input onclick={Callback::from(|a: String| ())} /> };
-    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |                               |
-    |                               expected an implementor of trait `IntoEventCallback<MouseEvent>`
-    |                               help: consider borrowing here: `&Callback::from(|a: String| ())`
+52  |     html! { <input onclick={Callback::from(|a: String| ())} /> };
+    |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                             |
+    |                             expected an implementor of trait `IntoEventCallback<MouseEvent>`
+    |                             help: consider borrowing here: `&Callback::from(|a: String| ())`
     |
-   ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
+    = note: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
+    = note: required because of the requirements on the impl of `IntoEventCallback<MouseEvent>` for `yew::Callback<String>`
+note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
+   --> $WORKSPACE/packages/yew/src/html/listener/events.rs
     |
     | / impl_short! {
     | |     onauxclick(MouseEvent)
@@ -342,18 +370,20 @@ error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<Strin
 ...   |
     | |     ontransitionstart(TransitionEvent)
     | | }
-    | |_- required by this bound in `yew::html::onclick::Wrapper::__macro_new`
-    |
-    = note: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
-    = note: required because of the requirements on the impl of `IntoEventCallback<MouseEvent>` for `yew::Callback<String>`
+    | |_^ required by this bound in `yew::html::onclick::Wrapper::__macro_new`
+    = note: this error originates in the macro `impl_action` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `Option<{integer}>: IntoEventCallback<FocusEvent>` is not satisfied
    --> tests/html_macro/element-fail.rs:53:29
     |
-53  |       html! { <input onfocus={Some(5)} /> };
-    |                               ^^^^^^^ the trait `IntoEventCallback<FocusEvent>` is not implemented for `Option<{integer}>`
+53  |     html! { <input onfocus={Some(5)} /> };
+    |                             ^^^^^^^ the trait `IntoEventCallback<FocusEvent>` is not implemented for `Option<{integer}>`
     |
-   ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
+    = help: the following implementations were found:
+              <Option<T> as IntoEventCallback<EVENT>>
+              <Option<yew::Callback<EVENT>> as IntoEventCallback<EVENT>>
+note: required by a bound in `yew::html::onfocus::Wrapper::__macro_new`
+   --> $WORKSPACE/packages/yew/src/html/listener/events.rs
     |
     | / impl_short! {
     | |     onauxclick(MouseEvent)
@@ -362,11 +392,8 @@ error[E0277]: the trait bound `Option<{integer}>: IntoEventCallback<FocusEvent>`
 ...   |
     | |     ontransitionstart(TransitionEvent)
     | | }
-    | |_- required by this bound in `yew::html::onfocus::Wrapper::__macro_new`
-    |
-    = help: the following implementations were found:
-              <Option<T> as IntoEventCallback<EVENT>>
-              <Option<yew::Callback<EVENT>> as IntoEventCallback<EVENT>>
+    | |_^ required by this bound in `yew::html::onfocus::Wrapper::__macro_new`
+    = note: this error originates in the macro `impl_action` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
   --> tests/html_macro/element-fail.rs:56:25
@@ -374,7 +401,11 @@ error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
 56 |     html! { <input ref={()} /> };
    |                         ^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `()`
    |
-   = note: required by `into_prop_value`
+note: required by `into_prop_value`
+  --> $WORKSPACE/packages/yew/src/html/conversion.rs
+   |
+   |     fn into_prop_value(self) -> T;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>` is not satisfied
   --> tests/html_macro/element-fail.rs:57:25
@@ -387,18 +418,25 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
              <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<String> as IntoPropValue<Option<AttrValue>>>
              <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
-   = note: required by `into_prop_value`
+note: required by `into_prop_value`
+  --> $WORKSPACE/packages/yew/src/html/conversion.rs
+   |
+   |     fn into_prop_value(self) -> T;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
    --> tests/html_macro/element-fail.rs:58:29
     |
-58  |       html! { <input onclick={Callback::from(|a: String| ())} /> };
-    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |                               |
-    |                               expected an implementor of trait `IntoEventCallback<MouseEvent>`
-    |                               help: consider borrowing here: `&Callback::from(|a: String| ())`
+58  |     html! { <input onclick={Callback::from(|a: String| ())} /> };
+    |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                             |
+    |                             expected an implementor of trait `IntoEventCallback<MouseEvent>`
+    |                             help: consider borrowing here: `&Callback::from(|a: String| ())`
     |
-   ::: $WORKSPACE/packages/yew/src/html/listener/events.rs
+    = note: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
+    = note: required because of the requirements on the impl of `IntoEventCallback<MouseEvent>` for `yew::Callback<String>`
+note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
+   --> $WORKSPACE/packages/yew/src/html/listener/events.rs
     |
     | / impl_short! {
     | |     onauxclick(MouseEvent)
@@ -407,10 +445,8 @@ error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<Strin
 ...   |
     | |     ontransitionstart(TransitionEvent)
     | | }
-    | |_- required by this bound in `yew::html::onclick::Wrapper::__macro_new`
-    |
-    = note: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
-    = note: required because of the requirements on the impl of `IntoEventCallback<MouseEvent>` for `yew::Callback<String>`
+    | |_^ required by this bound in `yew::html::onclick::Wrapper::__macro_new`
+    = note: this error originates in the macro `impl_action` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `NotToString: IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:60:28
@@ -418,7 +454,11 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<AttrValue>>` is
 60 |     html! { <input string={NotToString} /> };
    |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `NotToString`
    |
-   = note: required by `into_prop_value`
+note: required by `into_prop_value`
+  --> $WORKSPACE/packages/yew/src/html/conversion.rs
+   |
+   |     fn into_prop_value(self) -> T;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
   --> tests/html_macro/element-fail.rs:62:25
@@ -426,19 +466,23 @@ error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
 62 |     html! { <input ref={()} /> };
    |                         ^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `()`
    |
-   = note: required by `into_prop_value`
+note: required by `into_prop_value`
+  --> $WORKSPACE/packages/yew/src/html/conversion.rs
+   |
+   |     fn into_prop_value(self) -> T;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `Cow<'static, str>: From<{integer}>` is not satisfied
-  --> tests/html_macro/element-fail.rs:77:15
-   |
-77 |     html! { <@{55}></@> };
-   |               ^^^^ the trait `From<{integer}>` is not implemented for `Cow<'static, str>`
-   |
-   = help: the following implementations were found:
-             <Cow<'a, CStr> as From<&'a CStr>>
-             <Cow<'a, CStr> as From<&'a CString>>
-             <Cow<'a, CStr> as From<CString>>
-             <Cow<'a, OsStr> as From<&'a OsStr>>
-           and 11 others
-   = note: required because of the requirements on the impl of `Into<Cow<'static, str>>` for `{integer}`
-   = note: required by `into`
+   --> tests/html_macro/element-fail.rs:77:15
+    |
+77  |     html! { <@{55}></@> };
+    |               ^^^^ the trait `From<{integer}>` is not implemented for `Cow<'static, str>`
+    |
+    = help: the following implementations were found:
+              <Cow<'a, CStr> as From<&'a CStr>>
+              <Cow<'a, CStr> as From<&'a CString>>
+              <Cow<'a, CStr> as From<CString>>
+              <Cow<'a, OsStr> as From<&'a OsStr>>
+            and 14 others
+    = note: required because of the requirements on the impl of `Into<Cow<'static, str>>` for `{integer}`
+note: required by `into`
