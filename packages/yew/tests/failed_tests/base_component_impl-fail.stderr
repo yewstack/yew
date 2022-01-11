@@ -1,0 +1,12 @@
+error[E0277]: the trait bound `Comp: yew::Component` is not satisfied
+  --> tests/failed_tests/base_component_impl-fail.rs:6:6
+   |
+6  | impl BaseComponent for Comp {
+   |      ^^^^^^^^^^^^^ the trait `yew::Component` is not implemented for `Comp`
+   |
+   = note: required because of the requirements on the impl of `SealedBaseComponent` for `Comp`
+note: required by a bound in `BaseComponent`
+  --> src/html/component/mod.rs
+   |
+   | pub trait BaseComponent: SealedBaseComponent + Sized + 'static {
+   |                          ^^^^^^^^^^^^^^^^^^^ required by this bound in `BaseComponent`
