@@ -72,7 +72,7 @@ impl ToTokens for HtmlList {
         let spanned = {
             let open = open.to_spanned();
             let close = close.to_spanned();
-            quote! { #open#close }
+            quote! { #open #close }
         };
 
         tokens.extend(quote_spanned! {spanned.span()=>
