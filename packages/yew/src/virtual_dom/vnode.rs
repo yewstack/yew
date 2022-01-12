@@ -39,16 +39,9 @@ impl VNode {
         }
     }
 
-    /// Returns true if the [VNode] has a key without needlessly cloning the key.
+    /// Returns true if the [VNode] has a key.
     pub fn has_key(&self) -> bool {
-        match self {
-            VNode::VComp(vcomp) => vcomp.key.is_some(),
-            VNode::VList(vlist) => vlist.key.is_some(),
-            VNode::VRef(_) | VNode::VText(_) => false,
-            VNode::VTag(vtag) => vtag.key.is_some(),
-            VNode::VPortal(vportal) => vportal.node.has_key(),
-            VNode::VSuspense(vsuspense) => vsuspense.key.is_some(),
-        }
+        self.key().is_some()
     }
 }
 

@@ -38,18 +38,6 @@ impl BNode {
             Self::BSuspense(bsusp) => bsusp.key(),
         }
     }
-
-    /// Returns true if the [VNode] has a key without needlessly cloning the key.
-    pub(crate) fn has_key(&self) -> bool {
-        match self {
-            Self::BComp(bsusp) => bsusp.key().is_some(),
-            Self::BList(blist) => blist.key().is_some(),
-            Self::BRef(_) | Self::BText(_) => false,
-            Self::BTag(vtag) => vtag.key().is_some(),
-            Self::BPortal(bportal) => bportal.key().is_some(),
-            Self::BSuspense(bsusp) => bsusp.key().is_some(),
-        }
-    }
 }
 
 impl DomBundle for BNode {

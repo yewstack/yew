@@ -102,9 +102,10 @@ impl BNode {
                     BNode::BList(blist) => blist,
                     _ => unreachable!("just been set to the variant"),
                 };
-                self_list.fully_keyed = b.has_key();
-                self_list.key = b.key().cloned();
+                let key = b.key().cloned();
                 self_list.rev_children.push(b);
+                self_list.fully_keyed = key.is_some();
+                self_list.key = key;
                 self_list
             }
         }
