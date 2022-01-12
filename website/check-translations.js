@@ -22,9 +22,9 @@ async function main() {
 
     const result = await dircompare.compare(temp, 'i18n', {compareContent: true});
     if (result.same) {
-        console.log("Translation unchanged");
+        console.log("Translations unchanged");
     } else {
-        console.error("Translation changed, please run `npm run write-translations` to generate the stubs");
+        console.error("Translations changed, please run `npm run write-translations` to generate the stubs");
         process.exitCode = 1;
     }
 }
