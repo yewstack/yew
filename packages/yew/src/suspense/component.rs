@@ -1,7 +1,6 @@
 use crate::html::{Children, Component, Context, Html, Properties, Scope};
 use crate::virtual_dom::{Key, VList, VNode, VSuspense};
 
-use gloo_utils::document;
 use web_sys::Element;
 
 use super::Suspension;
@@ -29,7 +28,7 @@ pub enum SuspenseMsg {
 pub struct Suspense {
     link: Scope<Self>,
     suspensions: Vec<Suspension>,
-    detached_parent: Element,
+    detached_parent: Option<Element>,
 }
 
 impl Component for Suspense {
@@ -40,7 +39,14 @@ impl Component for Suspense {
         Self {
             link: ctx.link().clone(),
             suspensions: Vec::new(),
-            detached_parent: document().create_element("div").unwrap(),
+
+            #[cfg(target_arch = "wasm32")]
+            detached_parent: web_sys::window()
+                .and_then(|m| m.document())
+                .and_then(|m| m.create_element("div").ok()),
+
+            #[cfg(not(target_arch = "wasm32"))]
+            detached_parent: None,
         }
     }
 

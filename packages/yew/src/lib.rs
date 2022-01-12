@@ -1,5 +1,6 @@
 #![allow(clippy::needless_doctest_main)]
 #![doc(html_logo_url = "https://yew.rs/img/logo.png")]
+#![cfg_attr(documenting, feature(doc_cfg))]
 
 //! # Yew Framework - API Documentation
 //!
@@ -9,8 +10,18 @@
 //! - Achieves high performance by minimizing DOM API calls for each page render and by making it easy to offload processing to background web workers.
 //! - Supports JavaScript interoperability, allowing developers to leverage NPM packages and integrate with existing JavaScript applications.
 //!
-//! ### Supported Targets
+//! ### Supported Targets (Client-Side Rendering)
 //! - `wasm32-unknown-unknown`
+//!
+//! ### Note
+//!
+//! Server-Side Rendering should work on all targets when feature `ssr` is enabled.
+//!
+//! ### Supported Features:
+//! - `ssr`: Enables Server-side Rendering support and [`ServerRenderer`].
+//! - `tokio`: Enables future-based APIs on non-wasm32 targets with tokio runtime. (You may want to
+//! enable this if your application uses future-based APIs and it does not compile / lint on
+//! non-wasm32 targets.)
 //!
 //! ## Example
 //!
@@ -257,13 +268,18 @@ pub mod callback;
 pub mod context;
 pub mod functional;
 pub mod html;
+mod io_coop;
 pub mod scheduler;
 mod sealed;
+#[cfg(feature = "ssr")]
+mod server_renderer;
 pub mod suspense;
 #[cfg(test)]
 pub mod tests;
 pub mod utils;
 pub mod virtual_dom;
+#[cfg(feature = "ssr")]
+pub use server_renderer::*;
 
 /// The module that contains all events available in the framework.
 pub mod events {

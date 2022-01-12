@@ -27,6 +27,7 @@ members = [
   "examples/password_strength",
   "examples/portals",
   "examples/router",
+  "examples/simple_ssr",
   "examples/timer",
   "examples/todomvc",
   "examples/two_apps",
