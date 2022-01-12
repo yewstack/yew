@@ -59,7 +59,7 @@ impl ComponentProps {
         let check_props: TokenStream = self
             .props
             .iter()
-            .map(|Prop { label, .. }| quote_spanned! ( label.span()=> __yew_props.#label; ))
+            .map(|Prop { label, .. }| quote_spanned! ( label.span()=> let _ = &__yew_props.#label; ))
             .chain(self.base_expr.iter().map(|expr| {
                 quote_spanned! {props_ty.span()=>
                     let _: #props_ty = #expr;
@@ -88,21 +88,23 @@ impl ComponentProps {
             None => {
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
                     quote_spanned! {value.span()=>
-                        .#label(#value)
+                        builder.#label(#value);
                     }
                 });
 
                 let set_children = children_renderer.map(|children| {
                     quote_spanned! {props_ty.span()=>
-                        .children(#children)
+                        builder.children(#children);
                     }
                 });
 
                 quote_spanned! {props_ty.span()=>
-                    <#props_ty as ::yew::html::Properties>::builder()
+                    {
+                        let mut builder = <#props_ty as ::yew::html::Properties>::builder();
                         #(#set_props)*
                         #set_children
-                        .build()
+                        builder.build()
+                    }
                 }
             }
             // Builder pattern is unnecessary in this case, since the base expression guarantees
