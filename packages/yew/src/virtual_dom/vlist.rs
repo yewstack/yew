@@ -284,6 +284,28 @@ impl VList {
     }
 }
 
+#[cfg(feature = "ssr")]
+mod feat_ssr {
+    use super::*;
+
+    impl VList {
+        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+            // Concurrently render all children.
+            for fragment in futures::future::join_all(self.children.iter().map(|m| async move {
+                let mut w = String::new();
+
+                m.render_to_string(&mut w, parent_scope).await;
+
+                w
+            }))
+            .await
+            {
+                w.push_str(&fragment)
+            }
+        }
+    }
+}
+
 impl VDiff for VList {
     fn detach(&mut self, parent: &Element) {
         for mut child in self.children.drain(..) {
@@ -1265,5 +1287,62 @@ mod layout_tests_keys {
         ]);
 
         diff_layouts(layouts);
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
+mod ssr_tests {
+    use tokio::test;
+
+    use crate::prelude::*;
+    use crate::ServerRenderer;
+
+    #[test]
+    async fn test_text_back_to_back() {
+        #[function_component]
+        fn Comp() -> Html {
+            let s = "world";
+
+            html! { <div>{"Hello "}{s}{"!"}</div> }
+        }
+
+        let renderer = ServerRenderer::<Comp>::new();
+
+        let s = renderer.render().await;
+
+        assert_eq!(s, "<div>Hello world!</div>");
+    }
+
+    #[test]
+    async fn test_fragment() {
+        #[derive(PartialEq, Properties, Debug)]
+        struct ChildProps {
+            name: String,
+        }
+
+        #[function_component]
+        fn Child(props: &ChildProps) -> Html {
+            html! { <div>{"Hello, "}{&props.name}{"!"}</div> }
+        }
+
+        #[function_component]
+        fn Comp() -> Html {
+            html! {
+                <>
+                    <Child name="Jane" />
+                    <Child name="John" />
+                    <Child name="Josh" />
+                </>
+            }
+        }
+
+        let renderer = ServerRenderer::<Comp>::new();
+
+        let s = renderer.render().await;
+
+        assert_eq!(
+            s,
+            "<div>Hello, Jane!</div><div>Hello, John!</div><div>Hello, Josh!</div>"
+        );
     }
 }

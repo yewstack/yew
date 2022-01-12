@@ -41,3 +41,7 @@ args = [
     "wasm_bench",
     "bench",
 ]
+
+[tasks.ssr-test]
+command = "cargo"
+args = ["test", "ssr_tests", "--features", "ssr"]
