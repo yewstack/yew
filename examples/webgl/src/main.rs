@@ -8,13 +8,13 @@ pub enum Msg {
     Render(f64),
 }
 
-pub struct Model {
+pub struct App {
     gl: Option<GL>,
     node_ref: NodeRef,
     _render_loop: Option<AnimationFrame>,
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -80,7 +80,7 @@ impl Component for Model {
     }
 }
 
-impl Model {
+impl App {
     fn render_gl(&mut self, timestamp: f64, link: &Scope<Self>) {
         let gl = self.gl.as_ref().expect("GL Context not initialized!");
 
@@ -134,5 +134,5 @@ impl Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }

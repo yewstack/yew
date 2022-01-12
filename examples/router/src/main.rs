@@ -32,10 +32,10 @@ pub enum Msg {
     ToggleNavbar,
 }
 
-pub struct Model {
+pub struct App {
     navbar_active: bool,
 }
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -76,7 +76,7 @@ impl Component for Model {
         }
     }
 }
-impl Model {
+impl App {
     fn view_nav(&self, link: &Scope<Self>) -> Html {
         let Self { navbar_active, .. } = *self;
 
@@ -147,5 +147,5 @@ fn switch(routes: &Route) -> Html {
 
 fn main() {
     wasm_logger::init(wasm_logger::Config::new(log::Level::Trace));
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }

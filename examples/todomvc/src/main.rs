@@ -26,12 +26,12 @@ pub enum Msg {
     Focus,
 }
 
-pub struct Model {
+pub struct App {
     state: State,
     focus_ref: NodeRef,
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -142,7 +142,7 @@ impl Component for Model {
     }
 }
 
-impl Model {
+impl App {
     fn view_filter(&self, filter: Filter, link: &Scope<Self>) -> Html {
         let cls = if self.state.filter == filter {
             "selected"
@@ -245,5 +245,5 @@ impl Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }

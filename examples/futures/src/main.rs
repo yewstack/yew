@@ -63,11 +63,11 @@ enum Msg {
     GetMarkdown,
     GetError,
 }
-struct Model {
+struct App {
     markdown: FetchState<String>,
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -128,5 +128,5 @@ impl Component for Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }

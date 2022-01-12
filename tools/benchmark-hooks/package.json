@@ -1,0 +1,22 @@
+{
+  "name": "js-framework-benchmark-non-keyed-yew-hooks",
+  "version": "1.0.0",
+  "description": "Benchmark for Yew Hooks",
+  "license": "ISC",
+  "js-framework-benchmark": {
+    "frameworkVersion": "latest"
+  },
+  "scripts": {
+    "build-prod": "echo This is a no-op. && echo Due to heavy dependencies, the generated javascript is already provided. && echo If you really want to rebuild from source use: && echo npm run build-prod-force",
+    "build-prod-force": "rustup target add wasm32-unknown-unknown && cargo install wasm-pack && npx build-prod-without-tools-install",
+    "build-prod-without-tools-install": "rimraf bundled-dist && wasm-pack build --release --target web --no-typescript --out-name js-framework-benchmark-yew-hooks --out-dir bundled-dist && cpr index.html bundled-dist/index.html && (cd bundled-dist && rimraf .gitignore README.md package.json)"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krausest/js-framework-benchmark.git"
+  },
+  "devDependencies": {
+    "rimraf": "^2.6.3",
+    "cpr": "^3.0.1"
+  }
+}

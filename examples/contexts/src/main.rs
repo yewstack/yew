@@ -9,7 +9,7 @@ use yew::prelude::*;
 use msg_ctx::MessageProvider;
 
 #[function_component]
-pub fn Model() -> Html {
+pub fn App() -> Html {
     html! {
         <MessageProvider>
             <Producer />
@@ -19,5 +19,5 @@ pub fn Model() -> Html {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }

@@ -35,5 +35,11 @@ members = [
 
   # Tools
   "tools/changelog",
+  "tools/process-benchmark-results",
+  "tools/benchmark-struct",
+  "tools/benchmark-hooks",
+]
+exclude = [
+  # Tools
   "tools/website-test",
 ]

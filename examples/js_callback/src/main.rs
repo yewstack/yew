@@ -9,13 +9,13 @@ pub enum Msg {
     AsyncPayload,
 }
 
-pub struct Model {
+pub struct App {
     payload: String,
     // Pointless field just to have something that's been manipulated
     debugged_payload: String,
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -73,5 +73,5 @@ impl Component for Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }

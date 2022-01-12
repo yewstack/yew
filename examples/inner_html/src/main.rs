@@ -3,11 +3,11 @@ use yew::{Component, Context, Html};
 
 const HTML: &str = include_str!("document.html");
 
-pub struct Model {
+pub struct App {
     pub value: i64,
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = ();
     type Properties = ();
 
@@ -26,5 +26,5 @@ impl Component for Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<App>();
 }
