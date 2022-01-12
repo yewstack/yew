@@ -18,6 +18,7 @@ use crate::Properties;
 use scoped_tls_hkt::scoped_thread_local;
 use std::cell::RefCell;
 use std::fmt;
+use std::ops::DerefMut;
 use std::rc::Rc;
 
 mod hooks;
@@ -55,17 +56,64 @@ use crate::html::SealedBaseComponent;
 /// ```
 pub use yew_macro::function_component;
 
-scoped_thread_local!(static mut CURRENT_HOOK: HookState);
+/// This attribute creates a hook from a normal Rust function.
+pub use yew_macro::hook;
+
+scoped_thread_local!(static mut CURRENT_HOOK: HookStates);
 
 type Msg = Box<dyn FnOnce() -> bool>;
 type ProcessMessage = Rc<dyn Fn(Msg, bool)>;
 
-struct HookState {
+/// A hook state.
+pub struct HookStates {
     counter: usize,
     scope: AnyScope,
     process_message: ProcessMessage,
     hooks: Vec<Rc<RefCell<dyn std::any::Any>>>,
     destroy_listeners: Vec<Box<dyn FnOnce()>>,
+}
+
+impl HookStates {
+    pub(crate) fn next_state<T, INIT, TEAR>(
+        &mut self,
+        initializer: INIT,
+        destructor: TEAR,
+    ) -> HookUpdater
+    where
+        T: 'static,
+        INIT: FnOnce() -> T,
+        TEAR: FnOnce(&mut T) + 'static,
+    {
+        // Determine which hook position we're at and increment for the next hook
+        let hook_pos = self.counter;
+        self.counter += 1;
+
+        // Initialize hook if this is the first call
+        if hook_pos >= self.hooks.len() {
+            let initial_state = Rc::new(RefCell::new(initializer()));
+            self.hooks.push(initial_state.clone());
+            self.destroy_listeners.push(Box::new(move || {
+                destructor(initial_state.borrow_mut().deref_mut());
+            }));
+        }
+
+        let hook = self
+            .hooks
+            .get(hook_pos)
+            .expect("Not the same number of hooks. Hooks must not be called conditionally")
+            .clone();
+
+        HookUpdater {
+            hook,
+            process_message: self.process_message.clone(),
+        }
+    }
+}
+
+impl fmt::Debug for HookStates {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("HookStates<_>")
+    }
 }
 
 /// Trait that allows a struct to act as Function Component.
@@ -82,7 +130,7 @@ pub trait FunctionProvider {
 /// Wrapper that allows a struct implementing [`FunctionProvider`] to be consumed as a component.
 pub struct FunctionComponent<T: FunctionProvider + 'static> {
     _never: std::marker::PhantomData<T>,
-    hook_state: RefCell<HookState>,
+    hook_state: RefCell<HookStates>,
     message_queue: MsgQueue,
 }
 
@@ -117,7 +165,7 @@ where
         Self {
             _never: std::marker::PhantomData::default(),
             message_queue: message_queue.clone(),
-            hook_state: RefCell::new(HookState {
+            hook_state: RefCell::new(HookStates {
                 counter: 0,
                 scope,
                 process_message: {

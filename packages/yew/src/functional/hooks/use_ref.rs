@@ -88,7 +88,7 @@ pub fn use_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<T> {
 ///
 ///     {
 ///         let div_ref = div_ref.clone();
-///         
+///
 ///         use_effect_with_deps(
 ///             |div_ref| {
 ///                 let div = div_ref
@@ -126,5 +126,67 @@ pub fn use_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<T> {
 ///
 /// ```
 pub fn use_node_ref() -> NodeRef {
+    use_hook(NodeRef::default, |state, _| state.clone(), |_| {})
+}
+
+/// This hook is used for obtaining a [`NodeRef`].
+/// It persists across renders.
+///
+/// It is important to note that you do not get notified of state changes.
+///
+/// # Example
+/// ```rust
+/// # use wasm_bindgen::{prelude::Closure, JsCast};
+/// # use yew::{
+/// #    function_component, html, use_effect_with_deps, use_node_ref,
+/// #    Html,
+/// # };
+/// # use web_sys::{Event, HtmlElement};
+///
+/// #[function_component(UseNodeRef)]
+/// pub fn node_ref_hook() -> Html {
+///     let div_ref = use_node_ref();
+///
+///     {
+///         let div_ref = div_ref.clone();
+///
+///         use_effect_with_deps(
+///             |div_ref| {
+///                 let div = div_ref
+///                     .cast::<HtmlElement>()
+///                     .expect("div_ref not attached to div element");
+///
+///                 let listener = Closure::<dyn Fn(Event)>::wrap(Box::new(|_| {
+///                     web_sys::console::log_1(&"Clicked!".into());
+///                 }));
+///
+///                 div.add_event_listener_with_callback(
+///                     "click",
+///                     listener.as_ref().unchecked_ref(),
+///                 )
+///                 .unwrap();
+///
+///                 move || {
+///                     div.remove_event_listener_with_callback(
+///                         "click",
+///                         listener.as_ref().unchecked_ref(),
+///                     )
+///                     .unwrap();
+///                 }
+///             },
+///             div_ref,
+///         );
+///     }
+///
+///     html! {
+///         <div ref={div_ref}>
+///             { "Click me and watch the console log!" }
+///         </div>
+///     }
+/// }
+///
+/// ```
+#[crate::functional::hook]
+pub fn use_node_ref_next() -> NodeRef {
     use_hook(NodeRef::default, |state, _| state.clone(), |_| {})
 }

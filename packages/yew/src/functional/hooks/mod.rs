@@ -10,10 +10,19 @@ pub use use_reducer::*;
 pub use use_ref::*;
 pub use use_state::*;
 
-use crate::functional::{HookUpdater, CURRENT_HOOK};
-use std::cell::RefCell;
-use std::ops::DerefMut;
-use std::rc::Rc;
+use crate::functional::{HookStates, HookUpdater, CURRENT_HOOK};
+
+/// A trait that is implemented on hooks.
+///
+/// A hook is usually defined via `#[hooks]`. Please refer to its documentation on how to implement
+/// hooks.
+pub trait Hook {
+    /// The return type when a hook is run.
+    type Output;
+
+    /// Runs the hook inside current state, returns output upon completion.
+    fn run(self, states: &mut HookStates) -> Self::Output;
+}
 
 /// Low level building block of creating hooks.
 ///
@@ -38,31 +47,8 @@ pub fn use_hook<InternalHook: 'static, Output, Tear: FnOnce(&mut InternalHook) +
     }
 
     // Extract current hook
-    let updater = CURRENT_HOOK.with(|hook_state| {
-        // Determine which hook position we're at and increment for the next hook
-        let hook_pos = hook_state.counter;
-        hook_state.counter += 1;
-
-        // Initialize hook if this is the first call
-        if hook_pos >= hook_state.hooks.len() {
-            let initial_state = Rc::new(RefCell::new(initializer()));
-            hook_state.hooks.push(initial_state.clone());
-            hook_state.destroy_listeners.push(Box::new(move || {
-                destructor(initial_state.borrow_mut().deref_mut());
-            }));
-        }
-
-        let hook = hook_state
-            .hooks
-            .get(hook_pos)
-            .expect("Not the same number of hooks. Hooks must not be called conditionally")
-            .clone();
-
-        HookUpdater {
-            hook,
-            process_message: hook_state.process_message.clone(),
-        }
-    });
+    let updater = CURRENT_HOOK
+        .with(|hook_state| hook_state.next_state::<InternalHook, _, _>(initializer, destructor));
 
     // Execute the actual hook closure we were given. Let it mutate the hook state and let
     // it create a callback that takes the mutable hook state.
@@ -72,4 +58,59 @@ pub fn use_hook<InternalHook: 'static, Output, Tear: FnOnce(&mut InternalHook) +
         .expect("Incompatible hook type. Hooks must always be called in the same order");
 
     runner(hook, updater.clone())
+}
+
+/// Experimental Implementation of `use_hook` based on the [`Hook`] trait.
+///
+/// Not efficient due to excessive boxing, but will be worked around if primitive hooks are re-implemented
+/// without this hook.
+pub(crate) fn use_hook_next<T, INIT, RUN, TEAR, O>(
+    initializer: INIT,
+    runner: RUN,
+    destructor: TEAR,
+) -> impl Hook<Output = O>
+where
+    T: 'static,
+    INIT: 'static + FnOnce() -> T,
+    RUN: 'static + FnOnce(&mut T, HookUpdater) -> O,
+    TEAR: 'static + FnOnce(&mut T),
+{
+    struct HookProvider<T, O> {
+        initializer: Box<dyn FnOnce() -> T>,
+        runner: Box<dyn FnOnce(&mut T, HookUpdater) -> O>,
+        destructor: Box<dyn FnOnce(&mut T)>,
+    }
+
+    impl<T, O> Hook for HookProvider<T, O>
+    where
+        T: 'static,
+    {
+        type Output = O;
+
+        fn run(self, states: &mut HookStates) -> Self::Output {
+            let Self {
+                initializer,
+                runner,
+                destructor,
+            } = self;
+
+            // Extract current hook
+            let updater = states.next_state::<T, _, _>(initializer, destructor);
+
+            // Execute the actual hook closure we were given. Let it mutate the hook state and let
+            // it create a callback that takes the mutable hook state.
+            let mut hook = updater.hook.borrow_mut();
+            let hook: &mut T = hook
+                .downcast_mut()
+                .expect("Incompatible hook type. Hooks must always be called in the same order");
+
+            runner(hook, updater.clone())
+        }
+    }
+
+    HookProvider {
+        initializer: Box::new(initializer),
+        runner: Box::new(runner),
+        destructor: Box::new(destructor),
+    }
 }
