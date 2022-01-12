@@ -51,7 +51,7 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [simple_ssr](simple_ssr)                           | F  | Demonstrates server-side rendering                                                                                                 |
 | [store](store)                                     | S  | Showcases the `yewtil::store` API                                                                                                  |
 | [suspense](suspense)                               | F  | This is an example that demonstrates <Suspense /> support                                                                          |
-| [function_memory_game](function_memory_game)       | F  | Implementation of Memory Game [Memory Game](https://github.com/bradlygreen/Memory-Game)                                            |
+| [function_memory_game](function_memory_game)       | F  | Implementation of [Memory Game](https://github.com/bradlygreen/Memory-Game)                                            |
 | [timer](timer)                                     | S  | Demonstrates the use of the interval and timeout services                                                                          |
 | [todomvc](todomvc)                                 | S  | Implementation of [TodoMVC](http://todomvc.com/)                                                                                   |
 | [two_apps](two_apps)                               | S  | Runs two separate Yew apps which can communicate with each other                                                                   |
