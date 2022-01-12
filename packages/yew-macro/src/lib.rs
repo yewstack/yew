@@ -50,6 +50,7 @@ mod classes;
 mod derive_props;
 mod function_component;
 mod html_tree;
+mod properties_attr;
 mod props;
 mod stringify;
 
@@ -132,5 +133,15 @@ pub fn function_component(
 
     function_component_impl(attr, item)
         .unwrap_or_else(|err| err.to_compile_error())
+        .into()
+}
+
+#[proc_macro_attribute]
+pub fn properties(
+    attrs: proc_macro::TokenStream,
+    item: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    properties_attr::parse_properties(attrs.into(), item.into())
+        .unwrap_or_else(|e| e.to_compile_error())
         .into()
 }

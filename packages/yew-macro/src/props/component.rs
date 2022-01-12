@@ -59,7 +59,9 @@ impl ComponentProps {
         let check_props: TokenStream = self
             .props
             .iter()
-            .map(|Prop { label, .. }| quote_spanned! ( label.span()=> let _ = &__yew_props.#label; ))
+            .map(
+                |Prop { label, .. }| quote_spanned! ( label.span()=> let _ = &__yew_props.#label; ),
+            )
             .chain(self.base_expr.iter().map(|expr| {
                 quote_spanned! {props_ty.span()=>
                     let _: #props_ty = #expr;
