@@ -12,9 +12,6 @@
 //! ### Supported Targets
 //! - `wasm32-unknown-unknown`
 //!
-//! ### Important Notes
-//! - Yew is not (yet) production ready but is great for side projects and internal tools
-//!
 //! ## Example
 //!
 //! ```rust
