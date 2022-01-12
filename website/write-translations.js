@@ -6,6 +6,7 @@ const exec = util.promisify(require('child_process').exec);
  * @param {string} locale
  */
 async function writeTranslation(locale) {
+    // exec rejects when the subprocess exits with non-zero code
     const {stdout, stderr} = await exec(`npm run docusaurus -- write-translations --locale ${locale}`)
     console.log(stdout)
     console.error(stderr)
@@ -13,17 +14,17 @@ async function writeTranslation(locale) {
 
 
 async function writeTranslations() {
-    for (const locale1 of locales
+    for (const locale of locales
         .filter(locale => locale !== 'en')) {
-        await writeTranslation(locale1);
+        await writeTranslation(locale);
     }
 }
 
 module.exports = writeTranslations
 
 if (require.main === module) {
-    writeTranslations().then(() => {
-    })
+    writeTranslations()
+        .catch(e => console.error(e))
 }
 
 
