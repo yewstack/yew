@@ -327,7 +327,7 @@ mod feat_ssr {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{html, Children, Component, Context, Html, NodeRef, Properties};
+    use crate::{html, Children, Component, Context, Html, NodeRef, properties};
     use gloo_utils::document;
     use web_sys::Node;
 
@@ -339,7 +339,8 @@ mod tests {
 
     struct Comp;
 
-    #[derive(Clone, PartialEq, Properties)]
+    #[derive(Clone, PartialEq)]
+    #[properties]
     struct Props {
         #[prop_or_default]
         field_1: u32,
@@ -488,7 +489,8 @@ mod tests {
         assert_ne!(vchild2, vchild3);
     }
 
-    #[derive(Clone, Properties, PartialEq)]
+    #[derive(Clone, PartialEq)]
+    #[properties]
     pub struct ListProps {
         pub children: Children,
     }
@@ -606,7 +608,7 @@ mod layout_tests {
 
     use crate::html;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
-    use crate::{Children, Component, Context, Html, Properties};
+    use crate::{Children, Component, Context, Html, properties};
     use std::marker::PhantomData;
 
     #[cfg(feature = "wasm_test")]
@@ -619,7 +621,8 @@ mod layout_tests {
         _marker: PhantomData<T>,
     }
 
-    #[derive(Properties, Clone, PartialEq)]
+    #[derive(Clone, PartialEq)]
+    #[properties]
     struct CompProps {
         #[prop_or_default]
         children: Children,
@@ -865,7 +868,8 @@ mod layout_tests {
 
     #[test]
     fn component_with_children() {
-        #[derive(Properties, PartialEq)]
+        #[derive(PartialEq)]
+        #[properties]
         struct Props {
             children: Children,
         }
@@ -918,7 +922,8 @@ mod ssr_tests {
 
     #[test]
     async fn test_props() {
-        #[derive(PartialEq, Properties, Debug)]
+        #[derive(PartialEq, Debug)]
+        #[properties]
         struct ChildProps {
             name: String,
         }

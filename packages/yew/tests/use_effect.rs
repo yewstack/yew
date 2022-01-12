@@ -7,7 +7,7 @@ use wasm_bindgen_test::*;
 use yew::functional::{
     use_effect_with_deps, use_mut_ref, use_state, FunctionComponent, FunctionProvider,
 };
-use yew::{html, HtmlResult, Properties};
+use yew::{html, HtmlResult, properties};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -15,7 +15,8 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 fn use_effect_destroys_on_component_drop() {
     struct UseEffectFunction {}
     struct UseEffectWrapper {}
-    #[derive(Properties, Clone)]
+    #[derive(Clone)]
+    #[properties]
     struct WrapperProps {
         destroy_called: Rc<dyn Fn()>,
     }
@@ -24,7 +25,8 @@ fn use_effect_destroys_on_component_drop() {
             false
         }
     }
-    #[derive(Properties, Clone)]
+    #[derive(Clone)]
+    #[properties]
     struct FunctionProps {
         effect_called: Rc<dyn Fn()>,
         destroy_called: Rc<dyn Fn()>,

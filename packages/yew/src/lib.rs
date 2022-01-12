@@ -255,6 +255,8 @@ pub use yew_macro::html_nested;
 /// [Yew Docs]: https://yew.rs/concepts/components/properties
 pub use yew_macro::props;
 
+pub use yew_macro::properties;
+
 /// This module contains macros which implements html! macro and JSX-like templates
 pub mod macros {
     pub use crate::classes;

@@ -6,7 +6,7 @@ use wasm_bindgen_test::*;
 use yew::functional::{
     use_context, use_effect, use_mut_ref, use_state, FunctionComponent, FunctionProvider,
 };
-use yew::{html, Children, ContextProvider, HtmlResult, Properties};
+use yew::{html, Children, ContextProvider, HtmlResult, properties};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -174,7 +174,8 @@ fn use_context_update_works() {
     #[derive(Clone, Debug, PartialEq)]
     struct MyContext(String);
 
-    #[derive(Clone, Debug, PartialEq, Properties)]
+    #[derive(Clone, Debug, PartialEq)]
+    #[properties]
     struct RenderCounterProps {
         id: String,
         children: Children,
@@ -199,7 +200,8 @@ fn use_context_update_works() {
     }
     type RenderCounter = FunctionComponent<RenderCounterFunction>;
 
-    #[derive(Clone, Debug, PartialEq, Properties)]
+    #[derive(Clone, Debug, PartialEq)]
+    #[properties]
     struct ContextOutletProps {
         id: String,
         #[prop_or_default]

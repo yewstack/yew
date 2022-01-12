@@ -1,4 +1,4 @@
-use crate::{build_fields, build_setters, kw};
+use crate::typed_vdom::{build_fields, build_setters, kw};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::parse::{Parse, ParseStream};

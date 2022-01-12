@@ -3,6 +3,7 @@ mod common;
 use common::obtain_result;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
+use yew::properties;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -440,7 +441,8 @@ async fn effects_not_run_when_suspended() {
         }
     }
 
-    #[derive(Properties, Clone)]
+    #[derive(Clone)]
+    #[properties]
     struct Props {
         counter: Rc<RefCell<u64>>,
     }

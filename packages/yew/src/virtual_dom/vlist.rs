@@ -460,7 +460,7 @@ mod layout_tests_keys {
     use crate::html;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
-    use crate::{Children, Component, Context, Html, Properties};
+    use crate::{Children, Component, Context, Html, properties};
     use web_sys::Node;
 
     #[cfg(feature = "wasm_test")]
@@ -471,11 +471,12 @@ mod layout_tests_keys {
 
     struct Comp {}
 
-    #[derive(Properties, Clone, PartialEq)]
+    #[derive(Clone, PartialEq)]
+    #[properties]
     struct CountingCompProps {
         id: usize,
         #[prop_or(false)]
-        can_change: bool,
+        can_change: bool
     }
 
     impl Component for Comp {
@@ -495,7 +496,8 @@ mod layout_tests_keys {
         }
     }
 
-    #[derive(Clone, Properties, PartialEq)]
+    #[derive(Clone, PartialEq)]
+    #[properties]
     pub struct ListProps {
         pub children: Children,
     }
@@ -1315,7 +1317,8 @@ mod ssr_tests {
 
     #[test]
     async fn test_fragment() {
-        #[derive(PartialEq, Properties, Debug)]
+        #[derive(PartialEq, Debug)]
+        #[properties]
         struct ChildProps {
             name: String,
         }

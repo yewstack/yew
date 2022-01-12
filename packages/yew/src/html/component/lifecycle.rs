@@ -324,7 +324,7 @@ mod tests {
 
     use crate::html;
     use crate::html::*;
-    use crate::Properties;
+    use crate::properties;
     use std::ops::Deref;
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
@@ -332,7 +332,8 @@ mod tests {
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
-    #[derive(Clone, Properties, Default, PartialEq)]
+    #[derive(Clone, Default, PartialEq)]
+    #[properties]
     struct ChildProps {
         lifecycle: Rc<RefCell<Vec<String>>>,
     }

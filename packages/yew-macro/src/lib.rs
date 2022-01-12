@@ -53,6 +53,7 @@ mod html_tree;
 mod properties_attr;
 mod props;
 mod stringify;
+pub(crate) mod typed_vdom;
 
 use derive_props::DerivePropsInput;
 use function_component::{function_component_impl, FunctionComponent, FunctionComponentName};
@@ -136,6 +137,7 @@ pub fn function_component(
         .into()
 }
 
+/// Marks a struct as Properties
 #[proc_macro_attribute]
 pub fn properties(
     attrs: proc_macro::TokenStream,
@@ -144,4 +146,23 @@ pub fn properties(
     properties_attr::parse_properties(attrs.into(), item.into())
         .unwrap_or_else(|e| e.to_compile_error())
         .into()
+}
+
+/// Declares HTML element
+///
+/// Every HTML element is a component, which returns a manually constructed `VTag`.
+/// This macro is used to generate this component.
+#[proc_macro]
+pub fn generate_element(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(input as typed_vdom::generate_element::GenerateElement);
+
+    input.to_token_stream().into()
+}
+
+/// Declares all the global elements
+#[proc_macro]
+pub fn global(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(input as typed_vdom::global::GlobalAttributes);
+
+    input.to_token_stream().into()
 }
