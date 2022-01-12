@@ -498,7 +498,7 @@ impl Parse for DynamicName {
 impl ToTokens for DynamicName {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self { at, expr } = self;
-        tokens.extend(quote! {#at#expr});
+        tokens.extend(quote! {#at #expr});
     }
 }
 
