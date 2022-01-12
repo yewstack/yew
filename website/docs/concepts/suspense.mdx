@@ -92,7 +92,7 @@ fn load_user() -> Option<User> {
     todo!()  // implementation omitted.
 }
 
-fn on_load_user_complete<F: Fn()>(_fn: F) {
+fn on_load_user_complete<F: FnOnce()>(_fn: F) {
     todo!()  // implementation omitted.
 }
 
