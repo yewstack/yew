@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1641983496014,
+  "lastUpdate": 1641994169437,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -975,6 +975,115 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 32_startup-bt",
             "value": "33.06399999999999",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "363.7998046875",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "44753941+Madoshakalaka@users.noreply.github.com",
+            "name": "Matt",
+            "username": "Madoshakalaka"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b165037381d0f9659a0e9518b47ac2ec9f8e231b",
+          "message": "Incorporate in-code translation in the workflow (#2349)\n\n* implements #2276\r\n\r\n* add localization and website contributing guides\r\n\r\n* fix typo\r\n\r\n* Update build-website.yml\r\n\r\n* add note for write-translations\r\n\r\n* attempt 2 at making CI build the stubs\r\n\r\n* experiment: delete part of the stubs...\r\nexpecting ci to rebuild it\r\n\r\n* write-translations for dev and check- for ci\r\n\r\n* catch promise errors\r\n\r\n* commit the missing mdx instruction\r\n\r\n* fix English grammar in check report",
+          "timestamp": "2022-01-12T18:23:30+05:00",
+          "tree_id": "ff55bbb871a1ec8c95cacfa2eb72f737a2e9ef48",
+          "url": "https://github.com/yewstack/yew/commit/b165037381d0f9659a0e9518b47ac2ec9f8e231b"
+        },
+        "date": 1641994167971,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "173.20800000000003",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "190.4715",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "433.2515",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "89.718",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "117.714",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "32.706500000000005",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "1955.349",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "406.166",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "197.5735",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "0.9196929931640624",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.4209365844726562",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.4659805297851562",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.4709739685058594",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.1981887817382812",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1785.2154999999998",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "29.847999999999992",
             "unit": ""
           },
           {
