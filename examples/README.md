@@ -10,6 +10,11 @@ You can install it with the following command:
 cargo install trunk wasm-bindgen-cli
 ```
 
+Install the `wasm32-unknown-unknown` toolchain for WebAssembly targets:
+```bash
+rustup target add wasm32-unknown-unknown
+```
+
 Running an example is as easy as running a single command:
 
 ```bash
