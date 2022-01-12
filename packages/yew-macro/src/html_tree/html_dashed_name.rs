@@ -88,8 +88,8 @@ impl ToTokens for HtmlDashedName {
         let HtmlDashedName { name, extended } = self;
         let dashes = extended.iter().map(|(dash, _)| quote! {#dash});
         let idents = extended.iter().map(|(_, ident)| quote! {#ident});
-        let extended = quote! { #(#dashes#idents)* };
-        tokens.extend(quote! { #name#extended });
+        let extended = quote! { #(#dashes #idents)* };
+        tokens.extend(quote! { #name #extended });
     }
 }
 

@@ -28,6 +28,17 @@ impl VText {
     }
 }
 
+#[cfg(feature = "ssr")]
+mod feat_ssr {
+    use super::*;
+
+    impl VText {
+        pub(crate) async fn render_to_string(&self, w: &mut String) {
+            html_escape::encode_text_to_string(&self.text, w);
+        }
+    }
+}
+
 impl std::fmt::Debug for VText {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
@@ -178,5 +189,23 @@ mod layout_tests {
         };
 
         diff_layouts(vec![layout1, layout2, layout3, layout4]);
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
+mod ssr_tests {
+    use tokio::test;
+
+    use super::*;
+
+    #[test]
+    async fn test_simple_str() {
+        let vtext = VText::new("abc");
+
+        let mut s = String::new();
+
+        vtext.render_to_string(&mut s).await;
+
+        assert_eq!("abc", s.as_str());
     }
 }

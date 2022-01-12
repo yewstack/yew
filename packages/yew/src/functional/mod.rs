@@ -24,6 +24,9 @@ mod hooks;
 pub use hooks::*;
 
 use crate::html::Context;
+
+use crate::html::SealedBaseComponent;
+
 /// This attribute creates a function component from a normal Rust function.
 ///
 /// Functions with this attribute **must** return `Html` and can optionally take an argument for props.
@@ -100,9 +103,9 @@ where
     }
 }
 
-impl<T: 'static> BaseComponent for FunctionComponent<T>
+impl<T> BaseComponent for FunctionComponent<T>
 where
-    T: FunctionProvider,
+    T: FunctionProvider + 'static,
 {
     type Message = Box<dyn FnOnce() -> bool>;
     type Properties = T::TProps;
@@ -166,6 +169,8 @@ pub(crate) fn get_current_scope() -> Option<AnyScope> {
         None
     }
 }
+
+impl<T> SealedBaseComponent for FunctionComponent<T> where T: FunctionProvider + 'static {}
 
 #[derive(Clone, Default)]
 struct MsgQueue(Rc<RefCell<Vec<Msg>>>);

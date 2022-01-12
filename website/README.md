@@ -2,6 +2,9 @@
 
 This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
 
+Most of the content sits inside the [docs](docs) folder and the [versioned_docs](versioned_docs) folder in the form of
+markdown.
+
 ## Installation
 
 ```console
@@ -30,7 +33,7 @@ Here's where you can find the settings in JetBrains:
 
 ![mdx association in jetbrains](mdx-jetbrains.jpg)
 
-Since mdx is a superset of md, other markdown files will have the correct syntax highlighting, hotkeys, etc. 
+Since mdx is a superset of md, other markdown files will have the correct syntax highlighting, hotkeys, etc.
 The only downside is there will be no more live preview of other markdown files.
 
 ## Production Build
@@ -41,10 +44,34 @@ npm run build
 
 This command generates static content into the `build` directory and can be served using any static contents hosting service.
 
-## Deployment
+## Localization
 
-```console
-GIT_USER=<Your GitHub username> USE_SSH=true yarn deploy
+Localization is done on [GitLocalize](https://gitlocalize.com/repo/4999/whole_project).
+You can sign in with your GitHub account to start translating.
+
+When you add to the docs in the `mdx` files,
+Contributors on GitLocalize will translate the added content
+and the translation will get dumped under the [i18n](i18n) folder in a later time.
+
+If you are a native speaker of one of the translated languages,
+and you are interested in translating your edits yourself,
+you are welcome to navigate to the folder and do it yourself!
+
+If you want to write displayed content in `html/jsx` instead of vanilla markdown,
+You should wrap your text in `<Translate/>` tags.
+It helps docusaurus to extract those texts and compile them to `.json` files to
+get further translated in GitLocalize.
+
+```jsx
+import Translate from '@docusaurus/Translate';
+
+<h2>
+    <Translate id="header.translation.id" description="the header description">
+        This header will be translated
+    </Translate>
+</h2>;
 ```
 
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+If your pull request adds new `<Translation>` tags,
+make sure you do `npm run write-translations` to generate the new stubs for later localization.
+And you are always welcome to add localization yourself in your native languages!

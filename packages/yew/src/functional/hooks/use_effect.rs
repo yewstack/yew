@@ -1,7 +1,8 @@
 use crate::functional::use_hook;
-use std::{borrow::Borrow, rc::Rc};
+use std::rc::Rc;
 
 struct UseEffect<Destructor> {
+    runner: Option<Box<dyn FnOnce() -> Destructor>>,
     destructor: Option<Box<Destructor>>,
 }
 
@@ -39,20 +40,27 @@ pub fn use_effect<Destructor>(callback: impl FnOnce() -> Destructor + 'static)
 where
     Destructor: FnOnce() + 'static,
 {
-    let callback = Box::new(callback);
     use_hook(
         move || {
-            let effect: UseEffect<Destructor> = UseEffect { destructor: None };
+            let effect: UseEffect<Destructor> = UseEffect {
+                runner: None,
+                destructor: None,
+            };
             effect
         },
-        |_, updater| {
+        |state, updater| {
+            state.runner = Some(Box::new(callback) as Box<dyn FnOnce() -> Destructor>);
+
             // Run on every render
             updater.post_render(move |state: &mut UseEffect<Destructor>| {
-                if let Some(de) = state.destructor.take() {
-                    de();
+                if let Some(callback) = state.runner.take() {
+                    if let Some(de) = state.destructor.take() {
+                        de();
+                    }
+
+                    let new_destructor = callback();
+                    state.destructor.replace(Box::new(new_destructor));
                 }
-                let new_destructor = callback();
-                state.destructor.replace(Box::new(new_destructor));
                 false
             });
         },
@@ -64,9 +72,15 @@ where
     )
 }
 
+type UseEffectDepsRunnerFn<Dependents, Destructor> = Box<dyn FnOnce(&Dependents) -> Destructor>;
+
 struct UseEffectDeps<Destructor, Dependents> {
+    runner_with_deps: Option<(
+        Rc<Dependents>,
+        UseEffectDepsRunnerFn<Dependents, Destructor>,
+    )>,
     destructor: Option<Box<Destructor>>,
-    deps: Rc<Dependents>,
+    deps: Option<Rc<Dependents>>,
 }
 
 /// This hook is similar to [`use_effect`] but it accepts dependencies.
@@ -81,29 +95,33 @@ where
     Dependents: PartialEq + 'static,
 {
     let deps = Rc::new(deps);
-    let deps_c = deps.clone();
 
     use_hook(
         move || {
             let destructor: Option<Box<Destructor>> = None;
             UseEffectDeps {
+                runner_with_deps: None,
                 destructor,
-                deps: deps_c,
+                deps: None,
             }
         },
-        move |_, updater| {
+        move |state, updater| {
+            state.runner_with_deps = Some((deps, Box::new(callback)));
+
             updater.post_render(move |state: &mut UseEffectDeps<Destructor, Dependents>| {
-                if state.deps != deps {
+                if let Some((deps, callback)) = state.runner_with_deps.take() {
+                    if Some(&deps) == state.deps.as_ref() {
+                        return false;
+                    }
+
                     if let Some(de) = state.destructor.take() {
                         de();
                     }
-                    let new_destructor = callback(deps.borrow());
-                    state.deps = deps;
-                    state.destructor.replace(Box::new(new_destructor));
-                } else if state.destructor.is_none() {
-                    state
-                        .destructor
-                        .replace(Box::new(callback(state.deps.borrow())));
+
+                    let new_destructor = callback(&deps);
+
+                    state.deps = Some(deps);
+                    state.destructor = Some(Box::new(new_destructor));
                 }
                 false
             });

@@ -65,19 +65,19 @@ impl ToTokens for PropsBuilder<'_> {
             #(impl #step_trait for #step_names {})*
 
             #[doc(hidden)]
-            #vis struct #builder_name#step_generics
+            #vis struct #builder_name #step_generics
                 #where_clause
             {
-                wrapped: ::std::boxed::Box<#wrapper_name#ty_generics>,
+                wrapped: ::std::boxed::Box<#wrapper_name #ty_generics>,
                 _marker: ::std::marker::PhantomData<#step_generic_param>,
             }
 
             #impl_steps
 
-            impl#impl_generics #builder_name<#generic_args> #where_clause {
+            impl #impl_generics #builder_name<#generic_args> #where_clause {
                 #[doc(hidden)]
-                #vis fn build(self) -> #props_name#ty_generics {
-                    #props_name#turbofish_generics {
+                #vis fn build(self) -> #props_name #ty_generics {
+                    #props_name #turbofish_generics {
                         #(#set_fields)*
                     }
                 }
@@ -190,7 +190,7 @@ impl PropsBuilder<'_> {
 
             token_stream.extend(quote! {
                 #( #extra_attrs )*
-                impl#impl_generics #builder_name<#current_step_arguments> #where_clause {
+                impl #impl_generics #builder_name<#current_step_arguments> #where_clause {
                     #(#optional_prop_fn)*
                     #(#required_prop_fn)*
                 }

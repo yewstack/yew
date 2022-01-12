@@ -12,7 +12,7 @@ pub struct VSuspense {
     fallback: Box<VNode>,
 
     /// The element to attach to when children is not attached to DOM
-    detached_parent: Element,
+    detached_parent: Option<Element>,
 
     /// Whether the current status is suspended.
     suspended: bool,
@@ -25,7 +25,7 @@ impl VSuspense {
     pub(crate) fn new(
         children: VNode,
         fallback: VNode,
-        detached_parent: Element,
+        detached_parent: Option<Element>,
         suspended: bool,
         key: Option<Key>,
     ) -> Self {
@@ -51,7 +51,9 @@ impl VDiff for VSuspense {
     fn detach(&mut self, parent: &Element) {
         if self.suspended {
             self.fallback.detach(parent);
-            self.children.detach(&self.detached_parent);
+            if let Some(ref m) = self.detached_parent {
+                self.children.detach(m);
+            }
         } else {
             self.children.detach(parent);
         }
@@ -74,6 +76,8 @@ impl VDiff for VSuspense {
         next_sibling: NodeRef,
         ancestor: Option<VNode>,
     ) -> NodeRef {
+        let detached_parent = self.detached_parent.as_ref().expect("no detached parent?");
+
         let (already_suspended, children_ancestor, fallback_ancestor) = match ancestor {
             Some(VNode::VSuspense(mut m)) => {
                 // We only preserve the child state if they are the same suspense.
@@ -98,7 +102,7 @@ impl VDiff for VSuspense {
             (true, true) => {
                 self.children.apply(
                     parent_scope,
-                    &self.detached_parent,
+                    detached_parent,
                     NodeRef::default(),
                     children_ancestor,
                 );
@@ -115,13 +119,13 @@ impl VDiff for VSuspense {
             (true, false) => {
                 children_ancestor.as_ref().unwrap().shift(
                     parent,
-                    &self.detached_parent,
+                    detached_parent,
                     NodeRef::default(),
                 );
 
                 self.children.apply(
                     parent_scope,
-                    &self.detached_parent,
+                    detached_parent,
                     NodeRef::default(),
                     children_ancestor,
                 );
@@ -135,7 +139,7 @@ impl VDiff for VSuspense {
                 fallback_ancestor.unwrap().detach(parent);
 
                 children_ancestor.as_ref().unwrap().shift(
-                    &self.detached_parent,
+                    detached_parent,
                     parent,
                     next_sibling.clone(),
                 );
@@ -143,5 +147,112 @@ impl VDiff for VSuspense {
                     .apply(parent_scope, parent, next_sibling, children_ancestor)
             }
         }
+    }
+}
+
+#[cfg(feature = "ssr")]
+mod feat_ssr {
+    use super::*;
+
+    impl VSuspense {
+        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+            // always render children on the server side.
+            self.children.render_to_string(w, parent_scope).await;
+        }
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
+mod ssr_tests {
+    use std::rc::Rc;
+    use std::time::Duration;
+
+    use tokio::task::{spawn_local, LocalSet};
+    use tokio::test;
+    use tokio::time::sleep;
+
+    use crate::prelude::*;
+    use crate::suspense::{Suspension, SuspensionResult};
+    use crate::ServerRenderer;
+
+    #[test(flavor = "multi_thread", worker_threads = 2)]
+    async fn test_suspense() {
+        #[derive(PartialEq)]
+        pub struct SleepState {
+            s: Suspension,
+        }
+
+        impl SleepState {
+            fn new() -> Self {
+                let (s, handle) = Suspension::new();
+
+                // we use tokio spawn local here.
+                spawn_local(async move {
+                    // we use tokio sleep here.
+                    sleep(Duration::from_millis(50)).await;
+
+                    handle.resume();
+                });
+
+                Self { s }
+            }
+        }
+
+        impl Reducible for SleepState {
+            type Action = ();
+
+            fn reduce(self: Rc<Self>, _action: Self::Action) -> Rc<Self> {
+                Self::new().into()
+            }
+        }
+
+        pub fn use_sleep() -> SuspensionResult<Rc<dyn Fn()>> {
+            let sleep_state = use_reducer(SleepState::new);
+
+            if sleep_state.s.resumed() {
+                Ok(Rc::new(move || sleep_state.dispatch(())))
+            } else {
+                Err(sleep_state.s.clone())
+            }
+        }
+
+        #[derive(PartialEq, Properties, Debug)]
+        struct ChildProps {
+            name: String,
+        }
+
+        #[function_component]
+        fn Child(props: &ChildProps) -> HtmlResult {
+            use_sleep()?;
+            Ok(html! { <div>{"Hello, "}{&props.name}{"!"}</div> })
+        }
+
+        #[function_component]
+        fn Comp() -> Html {
+            let fallback = html! {"loading..."};
+
+            html! {
+                <Suspense {fallback}>
+                    <Child name="Jane" />
+                    <Child name="John" />
+                    <Child name="Josh" />
+                </Suspense>
+            }
+        }
+
+        let local = LocalSet::new();
+
+        let s = local
+            .run_until(async move {
+                let renderer = ServerRenderer::<Comp>::new();
+
+                renderer.render().await
+            })
+            .await;
+
+        assert_eq!(
+            s,
+            "<div>Hello, Jane!</div><div>Hello, John!</div><div>Hello, Josh!</div>"
+        );
     }
 }
