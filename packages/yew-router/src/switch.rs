@@ -47,6 +47,8 @@ where
 {
     /// Callback which returns [`Html`] to be rendered for the current route.
     pub render: RenderFn<R>,
+    #[prop_or_default]
+    pub pathname: Option<String>,
 }
 
 #[doc(hidden)]
@@ -93,7 +95,12 @@ where
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let route = ctx.link().route::<R>();
+        let route = ctx
+            .props()
+            .pathname
+            .as_ref()
+            .and_then(|p| R::recognize(p))
+            .or_else(|| ctx.link().route::<R>());
 
         let children = match &route {
             Some(ref route) => (ctx.props().render.0)(route),
