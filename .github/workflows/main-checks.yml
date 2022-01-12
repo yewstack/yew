@@ -2,12 +2,8 @@ name: Main Checks
 
 on:
   pull_request:
-    paths-ignore:
-      - '**/*.md'
   push:
     branches: [master]
-    paths-ignore:
-      - '**/*.md'
 
 jobs:
 
@@ -24,8 +20,6 @@ jobs:
           components: clippy
 
       - uses: Swatinem/rust-cache@v1
-
-
 
       - name: Run clippy
         uses: actions-rs/cargo@v1
