@@ -105,7 +105,7 @@ impl ToTokens for DerivePropsInput {
         // The properties trait has a `builder` method which creates the props builder
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         let properties = quote! {
-            impl#impl_generics ::yew::html::Properties for #props_name#ty_generics #where_clause {
+            impl #impl_generics ::yew::html::Properties for #props_name #ty_generics #where_clause {
                 type Builder = #builder_name<#builder_generic_args>;
 
                 fn builder() -> Self::Builder {

@@ -1,0 +1,42 @@
+{
+  "version.label": {
+    "message": "0.18.0",
+    "description": "The label for version 0.18.0"
+  },
+  "sidebar.sidebar.category.Getting Started": {
+    "message": "Getting Started",
+    "description": "The label for category Getting Started in sidebar sidebar"
+  },
+  "sidebar.sidebar.category.Project Setup": {
+    "message": "Project Setup",
+    "description": "The label for category Project Setup in sidebar sidebar"
+  },
+  "sidebar.sidebar.category.Concepts": {
+    "message": "Concepts",
+    "description": "The label for category Concepts in sidebar sidebar"
+  },
+  "sidebar.sidebar.category.Components": {
+    "message": "Components",
+    "description": "The label for category Components in sidebar sidebar"
+  },
+  "sidebar.sidebar.category.wasm-bindgen": {
+    "message": "wasm-bindgen",
+    "description": "The label for category wasm-bindgen in sidebar sidebar"
+  },
+  "sidebar.sidebar.category.HTML": {
+    "message": "HTML",
+    "description": "The label for category HTML in sidebar sidebar"
+  },
+  "sidebar.sidebar.category.Services": {
+    "message": "Services",
+    "description": "The label for category Services in sidebar sidebar"
+  },
+  "sidebar.sidebar.category.Advanced topics": {
+    "message": "Advanced topics",
+    "description": "The label for category Advanced topics in sidebar sidebar"
+  },
+  "sidebar.sidebar.category.More": {
+    "message": "More",
+    "description": "The label for category More in sidebar sidebar"
+  }
+}

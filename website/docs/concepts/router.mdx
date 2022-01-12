@@ -102,7 +102,7 @@ fn app() -> Html {
 
 ### Path Segments
 
-It is also possible to extract information from a route.
+It is also possible to extract information from a route using dynamic and named wildcard segments.
 You can then access the post's id inside `<Switch />` and forward it to the appropriate component via properties.
 
 ```rust
@@ -115,12 +115,15 @@ enum Route {
     Home,
     #[at("/post/:id")]
     Post { id: String },
+    #[at("/*path")]
+    Misc { path: String },
 }
 
 fn switch(route: &Route) -> Html {
     match route {
         Route::Home => html! { <h1>{ "Home" }</h1> },
         Route::Post { id } => html! {<p>{format!("You are looking at Post {}", id)}</p>},
+        Route::Misc { path } => html! {<p>{format!("Matched some other path: {}", path)}</p>},
     }
 }
 ```

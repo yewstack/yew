@@ -2,6 +2,8 @@
 
 use super::{Key, VDiff, VNode};
 use crate::html::{AnyScope, BaseComponent, NodeRef, Scope, Scoped};
+#[cfg(feature = "ssr")]
+use futures::future::{FutureExt, LocalBoxFuture};
 use std::any::TypeId;
 use std::borrow::Borrow;
 use std::fmt;
@@ -41,7 +43,7 @@ pub(crate) fn get_event_log(vcomp_id: u64) -> Vec<String> {
 pub struct VComp {
     type_id: TypeId,
     scope: Option<Box<dyn Scoped>>,
-    props: Option<Box<dyn Mountable>>,
+    mountable: Option<Box<dyn Mountable>>,
     pub(crate) node_ref: NodeRef,
     pub(crate) key: Option<Key>,
 
@@ -62,7 +64,7 @@ impl Clone for VComp {
         Self {
             type_id: self.type_id,
             scope: None,
-            props: self.props.as_ref().map(|m| m.copy()),
+            mountable: self.mountable.as_ref().map(|m| m.copy()),
             node_ref: self.node_ref.clone(),
             key: self.key.clone(),
 
@@ -132,7 +134,7 @@ impl VComp {
         VComp {
             type_id: TypeId::of::<COMP>(),
             node_ref,
-            props: Some(Box::new(PropsWrapper::<COMP>::new(props))),
+            mountable: Some(Box::new(PropsWrapper::<COMP>::new(props))),
             scope: None,
             key,
 
@@ -181,6 +183,13 @@ trait Mountable {
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped>;
     fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef);
+
+    #[cfg(feature = "ssr")]
+    fn render_to_string<'a>(
+        &'a self,
+        w: &'a mut String,
+        parent_scope: &'a AnyScope,
+    ) -> LocalBoxFuture<'a, ()>;
 }
 
 struct PropsWrapper<COMP: BaseComponent> {
@@ -218,6 +227,19 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         let scope: Scope<COMP> = scope.to_any().downcast();
         scope.reuse(self.props, node_ref, next_sibling);
     }
+
+    #[cfg(feature = "ssr")]
+    fn render_to_string<'a>(
+        &'a self,
+        w: &'a mut String,
+        parent_scope: &'a AnyScope,
+    ) -> LocalBoxFuture<'a, ()> {
+        async move {
+            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+            scope.render_to_string(w, self.props.clone()).await;
+        }
+        .boxed_local()
+    }
 }
 
 impl VDiff for VComp {
@@ -237,7 +259,10 @@ impl VDiff for VComp {
         next_sibling: NodeRef,
         ancestor: Option<VNode>,
     ) -> NodeRef {
-        let mountable = self.props.take().expect("VComp has already been mounted");
+        let mountable = self
+            .mountable
+            .take()
+            .expect("VComp has already been mounted");
 
         if let Some(mut ancestor) = ancestor {
             if let VNode::VComp(ref mut vcomp) = &mut ancestor {
@@ -280,6 +305,22 @@ impl fmt::Debug for VComp {
 impl<COMP: BaseComponent> fmt::Debug for VChild<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("VChild<_>")
+    }
+}
+
+#[cfg(feature = "ssr")]
+mod feat_ssr {
+    use super::*;
+
+    impl VComp {
+        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+            self.mountable
+                .as_ref()
+                .map(|m| m.copy())
+                .unwrap()
+                .render_to_string(w, parent_scope)
+                .await;
+        }
     }
 }
 
@@ -865,5 +906,46 @@ mod layout_tests {
         };
 
         diff_layouts(vec![layout]);
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
+mod ssr_tests {
+    use tokio::test;
+
+    use crate::prelude::*;
+    use crate::ServerRenderer;
+
+    #[test]
+    async fn test_props() {
+        #[derive(PartialEq, Properties, Debug)]
+        struct ChildProps {
+            name: String,
+        }
+
+        #[function_component]
+        fn Child(props: &ChildProps) -> Html {
+            html! { <div>{"Hello, "}{&props.name}{"!"}</div> }
+        }
+
+        #[function_component]
+        fn Comp() -> Html {
+            html! {
+                <div>
+                    <Child name="Jane" />
+                    <Child name="John" />
+                    <Child name="Josh" />
+                </div>
+            }
+        }
+
+        let renderer = ServerRenderer::<Comp>::new();
+
+        let s = renderer.render().await;
+
+        assert_eq!(
+            s,
+            "<div><div>Hello, Jane!</div><div>Hello, John!</div><div>Hello, Josh!</div></div>"
+        );
     }
 }

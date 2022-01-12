@@ -1,7 +1,7 @@
 [package]
 name = "website-test"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 build = "build.rs"
 publish = false
 
@@ -16,8 +16,9 @@ js-sys = "0.3"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 weblog = "0.3.0"
-yew = { path = "../../packages/yew/" }
+yew = { path = "../../packages/yew/", features = ["ssr"] }
 yew-router = { path = "../../packages/yew-router/" }
+tokio = { version = "1.15.0", features = ["full"] }
 
 [dev-dependencies.web-sys]
 version = "0.3"

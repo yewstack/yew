@@ -20,24 +20,23 @@ jobs:
       PR_INFO_FILE: ".PR_INFO"
     steps:
       - uses: actions/checkout@v2
+
       - name: Setup node
         uses: actions/setup-node@v1
         with:
-          node-version: "14.x"
+          node-version: "16"
 
-      - uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-website-${{ hashFiles('website/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-website-
-            ${{ runner.os }}
+      - name: Check Translations
+        run: |
+          cd website
+          npm install
+          npm run check-translations
 
       - name: Build
         run: |
           cd website
-          npm install
           npm run build
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
         with:
@@ -49,6 +48,7 @@ jobs:
         name: Build pr info
         run: |
           echo "${{ github.event.number }}" > $PR_INFO_FILE
+
       - if: github.event_name == 'pull_request'
         name: Upload pr info
         uses: actions/upload-artifact@v2
