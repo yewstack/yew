@@ -19,10 +19,10 @@ pub fn GameStatusBoard(props: &Props) -> Html {
 
         match props.status {
             Status::Ready => html! {
-                <span >{"Ready"}</span>
+                <span>{"Ready"}</span>
             },
             Status::Playing => html! {
-                <span >{"Playing"}</span>
+                <span>{"Playing"}</span>
             },
             Status::Passed => html! {
                 <button class="play-again-btn" {onclick}>{"Play again"}</button>
