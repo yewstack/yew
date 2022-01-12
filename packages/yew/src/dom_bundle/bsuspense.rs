@@ -55,6 +55,7 @@ impl Reconcilable for VSuspense {
             suspended,
             key,
         } = self;
+        let detached_parent = detached_parent.expect("no detached parent?");
 
         // When it's suspended, we render children into an element that is detached from the dom
         // tree while rendering fallback UI into the original place where children resides in.
@@ -95,7 +96,8 @@ impl Reconcilable for VSuspense {
         let suspense = match bundle {
             // We only preserve the child state if they are the same suspense.
             BNode::BSuspense(m)
-                if m.key == self.key && self.detached_parent == m.detached_parent =>
+                if m.key == self.key
+                    && self.detached_parent.as_ref() == Some(&m.detached_parent) =>
             {
                 m
             }
@@ -105,41 +107,47 @@ impl Reconcilable for VSuspense {
                 return self_ref;
             }
         };
+        let VSuspense {
+            children,
+            fallback,
+            detached_parent,
+            suspended,
+            key: _,
+        } = self;
+        let detached_parent = detached_parent.expect("no detached parent?");
+
         let children_bundle = &mut suspense.children;
         // no need to update key & detached_parent
 
         // When it's suspended, we render children into an element that is detached from the dom
         // tree while rendering fallback UI into the original place where children resides in.
-        match (self.suspended, &mut suspense.fallback) {
+        match (suspended, &mut suspense.fallback) {
             (true, Some(fallback_bundle)) => {
-                self.children.reconcile(
+                children.reconcile(
                     parent_scope,
-                    &self.detached_parent,
+                    &detached_parent,
                     NodeRef::default(),
                     children_bundle,
                 );
 
-                self.fallback
-                    .reconcile(parent_scope, parent, next_sibling, fallback_bundle)
+                fallback.reconcile(parent_scope, parent, next_sibling, fallback_bundle)
             }
 
             (false, None) => {
-                self.children
-                    .reconcile(parent_scope, parent, next_sibling, children_bundle)
+                children.reconcile(parent_scope, parent, next_sibling, children_bundle)
             }
 
             (true, None) => {
-                children_bundle.shift(&self.detached_parent, NodeRef::default());
+                children_bundle.shift(&detached_parent, NodeRef::default());
 
-                self.children.reconcile(
+                children.reconcile(
                     parent_scope,
-                    &self.detached_parent,
+                    &detached_parent,
                     NodeRef::default(),
                     children_bundle,
                 );
                 // first render of fallback
-                let (fallback_ref, fallback) =
-                    self.fallback.attach(parent_scope, parent, next_sibling);
+                let (fallback_ref, fallback) = fallback.attach(parent_scope, parent, next_sibling);
                 suspense.fallback = Some(fallback);
                 fallback_ref
             }
@@ -148,8 +156,7 @@ impl Reconcilable for VSuspense {
                 suspense.fallback.take().unwrap().detach(parent);
 
                 children_bundle.shift(parent, next_sibling.clone());
-                self.children
-                    .reconcile(parent_scope, parent, next_sibling, children_bundle)
+                children.reconcile(parent_scope, parent, next_sibling, children_bundle)
             }
         }
     }

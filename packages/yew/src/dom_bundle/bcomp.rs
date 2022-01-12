@@ -6,6 +6,8 @@ use crate::{
     virtual_dom::{Key, VComp},
     NodeRef,
 };
+#[cfg(feature = "ssr")]
+use futures::future::{FutureExt, LocalBoxFuture};
 use std::{any::TypeId, borrow::Borrow, ops::Deref};
 use std::{fmt, rc::Rc};
 use web_sys::Element;
@@ -72,6 +74,13 @@ pub(crate) trait Mountable {
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped>;
     fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef);
+
+    #[cfg(feature = "ssr")]
+    fn render_to_string<'a>(
+        &'a self,
+        w: &'a mut String,
+        parent_scope: &'a AnyScope,
+    ) -> LocalBoxFuture<'a, ()>;
 }
 
 pub(crate) struct PropsWrapper<COMP: BaseComponent> {
@@ -109,6 +118,19 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         let scope: Scope<COMP> = scope.to_any().downcast();
         scope.reuse(self.props, node_ref, next_sibling);
     }
+
+    #[cfg(feature = "ssr")]
+    fn render_to_string<'a>(
+        &'a self,
+        w: &'a mut String,
+        parent_scope: &'a AnyScope,
+    ) -> LocalBoxFuture<'a, ()> {
+        async move {
+            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+            scope.render_to_string(w, self.props.clone()).await;
+        }
+        .boxed_local()
+    }
 }
 
 impl DomBundle for BComp {
@@ -132,12 +154,12 @@ impl Reconcilable for VComp {
     ) -> (NodeRef, Self::Bundle) {
         let VComp {
             type_id,
-            props,
+            mountable,
             node_ref,
             key,
         } = self;
 
-        let scope = props.mount(
+        let scope = mountable.mount(
             node_ref.clone(),
             parent_scope,
             parent.to_owned(),
@@ -176,7 +198,7 @@ impl Reconcilable for VComp {
             }
         };
         let VComp {
-            props,
+            mountable,
             node_ref,
             key,
             type_id: _,
@@ -184,7 +206,7 @@ impl Reconcilable for VComp {
         bcomp.key = key;
         let old_ref = std::mem::replace(&mut bcomp.node_ref, node_ref.clone());
         bcomp.node_ref.reuse(old_ref);
-        props.reuse(node_ref.clone(), bcomp.scope.borrow(), next_sibling);
+        mountable.reuse(node_ref.clone(), bcomp.scope.borrow(), next_sibling);
         node_ref
     }
 }

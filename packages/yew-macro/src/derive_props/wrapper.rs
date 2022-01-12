@@ -27,15 +27,15 @@ impl ToTokens for PropsWrapper<'_> {
 
         let wrapper = quote! {
             #(#extra_attrs)*
-            struct #wrapper_name#generics
+            struct #wrapper_name #generics
                 #where_clause
             {
                 #(#wrapper_field_defs)*
             }
 
-            impl#impl_generics ::std::default::Default for #wrapper_name#ty_generics #where_clause {
+            impl #impl_generics ::std::default::Default for #wrapper_name #ty_generics #where_clause {
                 fn default() -> Self {
-                    #wrapper_name#turbofish_generics {
+                    #wrapper_name #turbofish_generics {
                         #(#wrapper_default_setters)*
                     }
                 }

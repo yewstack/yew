@@ -1,4 +1,10 @@
+[tasks.native-test]
+command = "cargo"
+toolchain = "1.56"
+args = ["test", "native_"]
+
 [tasks.test]
+dependencies = ["native-test"]
 extend = "core::wasm-pack-base"
 command = "wasm-pack"
 args = [
@@ -35,3 +41,7 @@ args = [
     "wasm_bench",
     "bench",
 ]
+
+[tasks.ssr-test]
+command = "cargo"
+args = ["test", "ssr_tests", "--features", "ssr"]

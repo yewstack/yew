@@ -6,3 +6,9 @@ updates:
       interval: "weekly"
       day: "friday"
     open-pull-requests-limit: 5
+
+  - package-ecosystem: "npm"
+    directory: "/website"
+    schedule:
+      interval: "daily"
+    target-branch: "master"

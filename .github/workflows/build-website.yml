@@ -20,15 +20,21 @@ jobs:
       PR_INFO_FILE: ".PR_INFO"
     steps:
       - uses: actions/checkout@v2
+
       - name: Setup node
         uses: actions/setup-node@v1
         with:
-          node-version: "14.x"
+          node-version: "16"
+
+      - name: Check Translations
+        run: |
+          cd website
+          npm install
+          npm run check-translations
 
       - name: Build
         run: |
           cd website
-          npm install
           npm run build
 
       - name: Upload build artifact

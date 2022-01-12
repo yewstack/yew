@@ -15,11 +15,9 @@ use crate::{callback::Callback, dom_bundle::BNode};
 use gloo_utils::document;
 use std::any::{Any, TypeId};
 use std::cell::{Ref, RefCell};
-use std::future::Future;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::{fmt, iter};
-use wasm_bindgen_futures::spawn_local;
 use web_sys::{Element, Node};
 
 /// Untyped scope used for accessing parent scope
@@ -244,12 +242,14 @@ impl<COMP: BaseComponent> Scope<COMP> {
 
         scheduler::push_component_create(
             CreateRunner {
-                parent,
+                parent: Some(parent),
                 next_sibling,
                 placeholder,
                 node_ref,
                 props,
                 scope: self.clone(),
+                #[cfg(feature = "ssr")]
+                html_sender: None,
             },
             RenderRunner {
                 state: self.state.clone(),
@@ -358,61 +358,6 @@ impl<COMP: BaseComponent> Scope<COMP> {
         };
         closure.into()
     }
-    /// This method creates a [`Callback`] which returns a Future which
-    /// returns a message to be sent back to the component's event
-    /// loop.
-    ///
-    /// # Panics
-    /// If the future panics, then the promise will not resolve, and
-    /// will leak.
-    pub fn callback_future<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
-    where
-        M: Into<COMP::Message>,
-        FU: Future<Output = M> + 'static,
-        FN: Fn(IN) -> FU + 'static,
-    {
-        let link = self.clone();
-
-        let closure = move |input: IN| {
-            let future: FU = function(input);
-            link.send_future(future);
-        };
-
-        closure.into()
-    }
-
-    /// This method processes a Future that returns a message and sends it back to the component's
-    /// loop.
-    ///
-    /// # Panics
-    /// If the future panics, then the promise will not resolve, and will leak.
-    pub fn send_future<F, M>(&self, future: F)
-    where
-        M: Into<COMP::Message>,
-        F: Future<Output = M> + 'static,
-    {
-        let link = self.clone();
-        let js_future = async move {
-            let message: COMP::Message = future.await.into();
-            link.send_message(message);
-        };
-        spawn_local(js_future);
-    }
-
-    /// Registers a Future that resolves to multiple messages.
-    /// # Panics
-    /// If the future panics, then the promise will not resolve, and will leak.
-    pub fn send_future_batch<F>(&self, future: F)
-    where
-        F: Future<Output = Vec<COMP::Message>> + 'static,
-    {
-        let link = self.clone();
-        let js_future = async move {
-            let messages: Vec<COMP::Message> = future.await;
-            link.send_message_batch(messages);
-        };
-        spawn_local(js_future);
-    }
 
     /// Accesses a value provided by a parent `ContextProvider` component of the
     /// same type.
@@ -421,6 +366,114 @@ impl<COMP: BaseComponent> Scope<COMP> {
         callback: Callback<T>,
     ) -> Option<(T, ContextHandle<T>)> {
         self.to_any().context(callback)
+    }
+}
+
+#[cfg(feature = "ssr")]
+mod feat_ssr {
+    use super::*;
+    use crate::dom_bundle::BList;
+    use futures::channel::oneshot;
+
+    impl<COMP: BaseComponent> Scope<COMP> {
+        pub(crate) async fn render_to_string(&self, w: &mut String, props: Rc<COMP::Properties>) {
+            let (tx, rx) = oneshot::channel();
+
+            scheduler::push_component_create(
+                CreateRunner {
+                    parent: None,
+                    next_sibling: NodeRef::default(),
+                    placeholder: BNode::BList(BList::new()),
+                    node_ref: NodeRef::default(),
+                    props,
+                    scope: self.clone(),
+                    html_sender: Some(tx),
+                },
+                RenderRunner {
+                    state: self.state.clone(),
+                },
+                RenderedRunner {
+                    state: self.state.clone(),
+                },
+            );
+            scheduler::start();
+
+            let html = rx.await.unwrap();
+
+            let self_any_scope = self.to_any();
+            html.render_to_string(w, &self_any_scope).await;
+
+            scheduler::push_component_destroy(DestroyRunner {
+                state: self.state.clone(),
+            });
+            scheduler::start();
+        }
+    }
+}
+#[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
+#[cfg(any(target_arch = "wasm32", feature = "tokio"))]
+mod feat_io {
+    use std::future::Future;
+
+    use super::*;
+    use crate::io_coop::spawn_local;
+
+    impl<COMP: BaseComponent> Scope<COMP> {
+        /// This method creates a [`Callback`] which returns a Future which
+        /// returns a message to be sent back to the component's event
+        /// loop.
+        ///
+        /// # Panics
+        /// If the future panics, then the promise will not resolve, and
+        /// will leak.
+        pub fn callback_future<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
+        where
+            M: Into<COMP::Message>,
+            FU: Future<Output = M> + 'static,
+            FN: Fn(IN) -> FU + 'static,
+        {
+            let link = self.clone();
+
+            let closure = move |input: IN| {
+                let future: FU = function(input);
+                link.send_future(future);
+            };
+
+            closure.into()
+        }
+
+        /// This method processes a Future that returns a message and sends it back to the component's
+        /// loop.
+        ///
+        /// # Panics
+        /// If the future panics, then the promise will not resolve, and will leak.
+        pub fn send_future<F, M>(&self, future: F)
+        where
+            M: Into<COMP::Message>,
+            F: Future<Output = M> + 'static,
+        {
+            let link = self.clone();
+            let js_future = async move {
+                let message: COMP::Message = future.await.into();
+                link.send_message(message);
+            };
+            spawn_local(js_future);
+        }
+
+        /// Registers a Future that resolves to multiple messages.
+        /// # Panics
+        /// If the future panics, then the promise will not resolve, and will leak.
+        pub fn send_future_batch<F>(&self, future: F)
+        where
+            F: Future<Output = Vec<COMP::Message>> + 'static,
+        {
+            let link = self.clone();
+            let js_future = async move {
+                let messages: Vec<COMP::Message> = future.await;
+                link.send_message_batch(messages);
+            };
+            spawn_local(js_future);
+        }
     }
 }
 

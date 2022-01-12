@@ -1,7 +1,7 @@
 [package]
 name = "yew"
 version = "0.19.3"
-edition = "2018"
+edition = "2021"
 authors = [
   "Denis Kolodin <deniskolodin@gmail.com>",
   "Justin Starry <justin@yew.rs>",
@@ -24,11 +24,13 @@ indexmap = { version = "1", features = ["std"] }
 js-sys = "0.3"
 slab = "0.4"
 wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
 yew-macro = { version = "^0.19.0", path = "../yew-macro" }
 thiserror = "1.0"
 
 scoped-tls-hkt = "0.1"
+
+futures = { version = "0.3", optional = true }
+html-escape = { version = "0.2.9", optional = true }
 
 [dependencies.web-sys]
 version = "0.3"
@@ -61,15 +63,32 @@ features = [
   "Window",
 ]
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+# we move it here so no promise-based spawn_local can present for
+# non-wasm32 targets.
+wasm-bindgen-futures = "0.4"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { version = "1.15.0", features = ["rt"], optional = true }
+
 [dev-dependencies]
 easybench-wasm = "0.2"
 wasm-bindgen-test = "0.3"
 gloo = { version = "0.6", features = ["futures"] }
+wasm-bindgen-futures = "0.4"
+rustversion = "1"
+trybuild = "1"
 
 [features]
 doc_test = []
 wasm_test = []
 wasm_bench = []
+ssr = ["futures", "html-escape"]
+default = []
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+tokio = { version = "1.15.0", features = ["full"] }
 
 [package.metadata.docs.rs]
-features = ["doc_test"]
+features = ["doc_test", "ssr"]
+rustdoc-args = ["--cfg", "documenting"]

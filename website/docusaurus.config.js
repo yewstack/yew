@@ -51,10 +51,6 @@ module.exports = {
           title: 'Support',
           items: [
             {
-              label: 'Fund Issues',
-              href: 'https://issuehunt.io/r/yewstack/yew',
-            },
-            {
               label: 'Sponsor Project',
               href: 'https://opencollective.com/yew',
             },
@@ -97,7 +93,7 @@ module.exports = {
     locales: ['en', 'ja', 'zh-CN', 'zh-TW'],
   },
   plugins: [
-      'content-pages',
+    'content-pages',
     [
       '@docusaurus/plugin-google-analytics',
       {

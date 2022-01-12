@@ -30,3 +30,32 @@ impl PartialEq for VText {
         self.text == other.text
     }
 }
+
+#[cfg(feature = "ssr")]
+mod feat_ssr {
+    use super::*;
+
+    impl VText {
+        pub(crate) async fn render_to_string(&self, w: &mut String) {
+            html_escape::encode_text_to_string(&self.text, w);
+        }
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
+mod ssr_tests {
+    use tokio::test;
+
+    use super::*;
+
+    #[test]
+    async fn test_simple_str() {
+        let vtext = VText::new("abc");
+
+        let mut s = String::new();
+
+        vtext.render_to_string(&mut s).await;
+
+        assert_eq!("abc", s.as_str());
+    }
+}

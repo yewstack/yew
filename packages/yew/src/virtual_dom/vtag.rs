@@ -262,8 +262,8 @@ impl VTag {
     /// Returns `checked` property of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     /// (Not a value of node's attribute).
-    pub fn checked(&mut self) -> bool {
-        match &mut self.inner {
+    pub fn checked(&self) -> bool {
+        match &self.inner {
             VTagInner::Input(f) => f.checked(),
             _ => false,
         }
@@ -339,5 +339,140 @@ impl PartialEq for VTag {
                 (Other { children: ch_l, .. }, Other { children: ch_r, .. }) => ch_l == ch_r,
                 _ => true,
             }
+    }
+}
+
+#[cfg(feature = "ssr")]
+mod feat_ssr {
+    use super::*;
+    use crate::{html::AnyScope, virtual_dom::VText};
+    use std::fmt::Write;
+
+    impl VTag {
+        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+            write!(w, "<{}", self.tag()).unwrap();
+
+            let write_attr = |w: &mut String, name: &str, val: Option<&str>| {
+                write!(w, " {}", name).unwrap();
+
+                if let Some(m) = val {
+                    write!(w, "=\"{}\"", html_escape::encode_double_quoted_attribute(m)).unwrap();
+                }
+            };
+
+            if let VTagInner::Input(_) = self.inner {
+                if let Some(m) = self.value() {
+                    write_attr(w, "value", Some(m));
+                }
+
+                if self.checked() {
+                    write_attr(w, "checked", None);
+                }
+            }
+
+            for (k, v) in self.attributes.iter() {
+                write_attr(w, k, Some(v));
+            }
+
+            write!(w, ">").unwrap();
+
+            match self.inner {
+                VTagInner::Input(_) => {}
+                VTagInner::Textarea { .. } => {
+                    if let Some(m) = self.value() {
+                        VText::new(m.to_owned()).render_to_string(w).await;
+                    }
+
+                    w.push_str("</textarea>");
+                }
+                VTagInner::Other {
+                    ref tag,
+                    ref children,
+                    ..
+                } => {
+                    children.render_to_string(w, parent_scope).await;
+
+                    write!(w, "</{}>", tag).unwrap();
+                }
+            }
+        }
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
+mod ssr_tests {
+    use tokio::test;
+
+    use crate::prelude::*;
+    use crate::ServerRenderer;
+
+    #[test]
+    async fn test_simple_tag() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! { <div></div> }
+        }
+
+        let renderer = ServerRenderer::<Comp>::new();
+
+        let s = renderer.render().await;
+
+        assert_eq!(s, "<div></div>");
+    }
+
+    #[test]
+    async fn test_simple_tag_with_attr() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! { <div class="abc"></div> }
+        }
+
+        let renderer = ServerRenderer::<Comp>::new();
+
+        let s = renderer.render().await;
+
+        assert_eq!(s, r#"<div class="abc"></div>"#);
+    }
+
+    #[test]
+    async fn test_simple_tag_with_content() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! { <div>{"Hello!"}</div> }
+        }
+
+        let renderer = ServerRenderer::<Comp>::new();
+
+        let s = renderer.render().await;
+
+        assert_eq!(s, r#"<div>Hello!</div>"#);
+    }
+
+    #[test]
+    async fn test_simple_tag_with_nested_tag_and_input() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! { <div>{"Hello!"}<input value="abc" type="text" /></div> }
+        }
+
+        let renderer = ServerRenderer::<Comp>::new();
+
+        let s = renderer.render().await;
+
+        assert_eq!(s, r#"<div>Hello!<input value="abc" type="text"></div>"#);
+    }
+
+    #[test]
+    async fn test_textarea() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! { <textarea value="teststring" /> }
+        }
+
+        let renderer = ServerRenderer::<Comp>::new();
+
+        let s = renderer.render().await;
+
+        assert_eq!(s, r#"<textarea>teststring</textarea>"#);
     }
 }

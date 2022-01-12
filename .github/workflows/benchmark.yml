@@ -5,6 +5,7 @@ on:
     branches:
       - master
   pull_request_target:
+      types: [labeled, synchronize, opened, reopened]
 
 permissions:
   # deployments permission to deploy GitHub pages website
@@ -37,7 +38,7 @@ jobs:
           # Push and deploy GitHub pages branch automatically
           alert-threshold: "200%"
           alert-comment-cc-users: "@yewstack/yew"
-          comment-always: true
+          comment-always: ${{ github.event_name != 'pull_request_target' || contains(github.event.pull_request.labels.*.name, 'performance') }}
           comment-on-alert: true
           # Don't push to gh-pages if its a pull request
           auto-push: ${{ github.event_name != 'pull_request_target' }}

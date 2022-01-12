@@ -5,8 +5,12 @@ use crate::dom_bundle::{BNode, DomBundle, Reconcilable};
 use crate::html::RenderError;
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{Suspense, Suspension};
+#[cfg(feature = "ssr")]
+use crate::virtual_dom::VNode;
 use crate::Callback;
 use crate::{Context, NodeRef};
+#[cfg(feature = "ssr")]
+use futures::channel::oneshot;
 use std::rc::Rc;
 use web_sys::Element;
 
@@ -15,12 +19,18 @@ pub(crate) struct ComponentState<COMP: BaseComponent> {
     pub(crate) root_node: BNode,
 
     context: Context<COMP>,
-    parent: Element,
+
+    /// When a component has no parent, it means that it should not be rendered.
+    parent: Option<Element>,
+
     next_sibling: NodeRef,
     node_ref: NodeRef,
     has_rendered: bool,
 
     suspension: Option<Suspension>,
+
+    #[cfg(feature = "ssr")]
+    html_sender: Option<oneshot::Sender<VNode>>,
 
     // Used for debug logging
     #[cfg(debug_assertions)]
@@ -29,12 +39,13 @@ pub(crate) struct ComponentState<COMP: BaseComponent> {
 
 impl<COMP: BaseComponent> ComponentState<COMP> {
     pub(crate) fn new(
-        parent: Element,
+        parent: Option<Element>,
         next_sibling: NodeRef,
         root_node: BNode,
         node_ref: NodeRef,
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
+        #[cfg(feature = "ssr")] html_sender: Option<oneshot::Sender<VNode>>,
     ) -> Self {
         #[cfg(debug_assertions)]
         let vcomp_id = {
@@ -55,6 +66,9 @@ impl<COMP: BaseComponent> ComponentState<COMP> {
             suspension: None,
             has_rendered: false,
 
+            #[cfg(feature = "ssr")]
+            html_sender,
+
             #[cfg(debug_assertions)]
             vcomp_id,
         }
@@ -62,12 +76,14 @@ impl<COMP: BaseComponent> ComponentState<COMP> {
 }
 
 pub(crate) struct CreateRunner<COMP: BaseComponent> {
-    pub(crate) parent: Element,
+    pub(crate) parent: Option<Element>,
     pub(crate) next_sibling: NodeRef,
     pub(crate) placeholder: BNode,
     pub(crate) node_ref: NodeRef,
     pub(crate) props: Rc<COMP::Properties>,
     pub(crate) scope: Scope<COMP>,
+    #[cfg(feature = "ssr")]
+    pub(crate) html_sender: Option<oneshot::Sender<VNode>>,
 }
 
 impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
@@ -84,6 +100,8 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
                 self.node_ref,
                 self.scope.clone(),
                 self.props,
+                #[cfg(feature = "ssr")]
+                self.html_sender,
             ));
         }
     }
@@ -131,7 +149,7 @@ impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
                 UpdateEvent::Shift(parent, next_sibling) => {
                     state.root_node.shift(&parent, next_sibling.clone());
 
-                    state.parent = parent;
+                    state.parent = Some(parent);
                     state.next_sibling = next_sibling;
 
                     false
@@ -171,8 +189,11 @@ impl<COMP: BaseComponent> Runnable for DestroyRunner<COMP> {
             crate::dom_bundle::log_event(state.vcomp_id, "destroy");
 
             state.component.destroy(&state.context);
-            state.root_node.detach(&state.parent);
-            state.node_ref.set(None);
+
+            if let Some(ref m) = state.parent {
+                state.root_node.detach(m);
+                state.node_ref.set(None);
+            }
         }
     }
 }
@@ -191,21 +212,28 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
                 Ok(root) => {
                     // Currently not suspended, we remove any previous suspension and update
                     // normally.
-                    if let Some(ref m) = state.suspension {
+                    if let Some(m) = state.suspension.take() {
                         let comp_scope = AnyScope::from(state.context.scope.clone());
 
                         let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
                         let suspense = suspense_scope.get_component().unwrap();
 
-                        suspense.resume(m.clone());
+                        suspense.resume(m);
                     }
 
-                    let scope = state.context.scope.clone().into();
-                    let next_sibling = state.next_sibling.clone();
+                    if let Some(ref parent) = state.parent {
+                        let scope = state.context.scope.clone().into();
+                        let next_sibling = state.next_sibling.clone();
 
-                    let node =
-                        root.reconcile(&scope, &state.parent, next_sibling, &mut state.root_node);
-                    state.node_ref.link(node);
+                        let node =
+                            root.reconcile(&scope, parent, next_sibling, &mut state.root_node);
+                        state.node_ref.link(node);
+                    } else {
+                        #[cfg(feature = "ssr")]
+                        if let Some(tx) = state.html_sender.take() {
+                            tx.send(root).unwrap();
+                        }
+                    }
                 }
 
                 Err(RenderError::Suspended(m)) => {
@@ -230,7 +258,9 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
 
                         let comp_scope = AnyScope::from(state.context.scope.clone());
 
-                        let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
+                        let suspense_scope = comp_scope
+                            .find_parent_scope::<Suspense>()
+                            .expect("To suspend rendering, a <Suspense /> component is required.");
                         let suspense = suspense_scope.get_component().unwrap();
 
                         m.listen(Callback::from(move |_| {
@@ -271,9 +301,11 @@ impl<COMP: BaseComponent> Runnable for RenderedRunner<COMP> {
             #[cfg(debug_assertions)]
             crate::dom_bundle::log_event(state.vcomp_id, "rendered");
 
-            let first_render = !state.has_rendered;
-            state.component.rendered(&state.context, first_render);
-            state.has_rendered = true;
+            if state.suspension.is_none() && state.parent.is_some() {
+                let first_render = !state.has_rendered;
+                state.component.rendered(&state.context, first_render);
+                state.has_rendered = true;
+            }
         }
     }
 }

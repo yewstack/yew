@@ -10,7 +10,7 @@ use std::rc::Rc;
 /// A virtual component.
 pub struct VComp {
     pub(crate) type_id: TypeId,
-    pub(crate) props: Box<dyn Mountable>,
+    pub(crate) mountable: Box<dyn Mountable>,
     pub(crate) node_ref: NodeRef,
     pub(crate) key: Option<Key>,
 }
@@ -20,7 +20,7 @@ impl fmt::Debug for VComp {
         f.debug_struct("VComp")
             .field("type_id", &self.type_id)
             .field("node_ref", &self.node_ref)
-            .field("props", &"..")
+            .field("mountable", &"..")
             .field("key", &self.key)
             .finish()
     }
@@ -30,7 +30,7 @@ impl Clone for VComp {
     fn clone(&self) -> Self {
         Self {
             type_id: self.type_id,
-            props: self.props.copy(),
+            mountable: self.mountable.copy(),
             node_ref: self.node_ref.clone(),
             key: self.key.clone(),
         }
@@ -97,7 +97,7 @@ impl VComp {
         VComp {
             type_id: TypeId::of::<COMP>(),
             node_ref,
-            props: Box::new(PropsWrapper::<COMP>::new(props)),
+            mountable: Box::new(PropsWrapper::<COMP>::new(props)),
             key,
         }
     }
@@ -112,5 +112,61 @@ impl PartialEq for VComp {
 impl<COMP: BaseComponent> fmt::Debug for VChild<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("VChild<_>")
+    }
+}
+
+#[cfg(feature = "ssr")]
+mod feat_ssr {
+    use super::*;
+    use crate::html::AnyScope;
+
+    impl VComp {
+        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+            self.mountable
+                .as_ref()
+                .render_to_string(w, parent_scope)
+                .await;
+        }
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
+mod ssr_tests {
+    use tokio::test;
+
+    use crate::prelude::*;
+    use crate::ServerRenderer;
+
+    #[test]
+    async fn test_props() {
+        #[derive(PartialEq, Properties, Debug)]
+        struct ChildProps {
+            name: String,
+        }
+
+        #[function_component]
+        fn Child(props: &ChildProps) -> Html {
+            html! { <div>{"Hello, "}{&props.name}{"!"}</div> }
+        }
+
+        #[function_component]
+        fn Comp() -> Html {
+            html! {
+                <div>
+                    <Child name="Jane" />
+                    <Child name="John" />
+                    <Child name="Josh" />
+                </div>
+            }
+        }
+
+        let renderer = ServerRenderer::<Comp>::new();
+
+        let s = renderer.render().await;
+
+        assert_eq!(
+            s,
+            "<div><div>Hello, Jane!</div><div>Hello, John!</div><div>Hello, Josh!</div></div>"
+        );
     }
 }

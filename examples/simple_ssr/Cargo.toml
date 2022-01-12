@@ -1,0 +1,14 @@
+[package]
+name = "simple_ssr"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "1.15.0", features = ["full"] }
+warp = "0.3"
+yew = { path = "../../packages/yew", features = ["ssr"] }
+reqwest = { version = "0.11.8", features = ["json"] }
+serde = { version = "1.0.132", features = ["derive"] }
+uuid = { version = "0.8.2", features = ["serde"] }
