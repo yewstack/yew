@@ -38,7 +38,7 @@ category = "Testing"
 description = "Run all tests"
 dependencies = ["tests-setup"]
 env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["**/examples/*", "**/packages/changelog"] }
-run_task = { name = ["test-flow", "doc-test-flow", "website-test"], fork = true }
+run_task = { name = ["test-flow", "doc-test-flow", "ssr-test", "website-test"], fork = true }
 
 [tasks.benchmarks]
 category = "Testing"
@@ -117,3 +117,8 @@ category = "Maintainer processes"
 toolchain = "stable"
 command = "cargo"
 args = ["run","-p","changelog", "--release", "${@}"]
+
+[tasks.ssr-test]
+env = { CARGO_MAKE_WORKSPACE_INCLUDE_MEMBERS = ["**/packages/yew"] }
+private = true
+workspace = true

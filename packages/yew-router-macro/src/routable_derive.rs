@@ -172,8 +172,10 @@ impl Routable {
 
                     for field in fields.iter() {
                         // :param -> {param}
+                        // *param -> {param}
                         // so we can pass it to `format!("...", param)`
-                        right = right.replace(&format!(":{}", field), &format!("{{{}}}", field))
+                        right = right.replace(&format!(":{}", field), &format!("{{{}}}", field));
+                        right = right.replace(&format!("*{}", field), &format!("{{{}}}", field));
                     }
 
                     quote! {

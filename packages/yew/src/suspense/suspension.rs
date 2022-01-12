@@ -6,7 +6,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::task::{Context, Poll};
 
 use thiserror::Error;
-use wasm_bindgen_futures::spawn_local;
 
 use crate::Callback;
 
@@ -50,18 +49,6 @@ impl Suspension {
         };
 
         (self_.clone(), SuspensionHandle { inner: self_ })
-    }
-
-    /// Creates a Suspension that resumes when the [`Future`] resolves.
-    pub fn from_future(f: impl Future<Output = ()> + 'static) -> Self {
-        let (self_, handle) = Self::new();
-
-        spawn_local(async move {
-            f.await;
-            handle.resume();
-        });
-
-        self_
     }
 
     /// Returns `true` if the current suspension is already resumed.
@@ -136,5 +123,26 @@ impl SuspensionHandle {
 impl Drop for SuspensionHandle {
     fn drop(&mut self) {
         self.inner.resume_by_ref();
+    }
+}
+
+#[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
+#[cfg(any(target_arch = "wasm32", feature = "tokio"))]
+mod feat_io {
+    use super::*;
+    use crate::io_coop::spawn_local;
+
+    impl Suspension {
+        /// Creates a Suspension that resumes when the [`Future`] resolves.
+        pub fn from_future(f: impl Future<Output = ()> + 'static) -> Self {
+            let (self_, handle) = Self::new();
+
+            spawn_local(async move {
+                f.await;
+                handle.resume();
+            });
+
+            self_
+        }
     }
 }

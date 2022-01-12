@@ -101,3 +101,10 @@ Below, you can find some useful guidance and best practices on how to write APIs
 
 - [The Rust API Guidelines](https://rust-lang.github.io/api-guidelines/)
 - [Elegant Library APIs in Rust](https://deterministic.space/elegant-apis-in-rust.html)
+
+## Website
+
+The source code of our website ([https://yew.rs](https://yew.rs)) is in the [website directory](website).
+Most of the times, edits can be done in markdown.
+
+[website/README.md](website/README.md) has more detailed instructions.
