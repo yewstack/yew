@@ -4,37 +4,16 @@ use quote::ToTokens;
 use quote::{quote, quote_spanned};
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{Expr, Ident, ItemFn, LitStr, ReturnType, Signature, Stmt};
+use syn::token;
+use syn::visit_mut;
+use syn::{parse_quote, Ident, ItemFn, Lifetime, LitStr, ReturnType, Signature, WhereClause};
 
+mod body;
 mod lifetime;
 
 #[derive(Clone)]
 pub struct HookFn {
     inner: ItemFn,
-}
-
-/// Creates lints on hooks in invalid position in an expression.
-fn lint_expr(expr: Expr) -> TokenStream {
-    todo!()
-}
-
-/// Rewrite valid hooks and lint invalid hooks in an expression.
-///
-/// returns (branched, TokenStream)
-fn rewrite_expr(expr: Expr) -> (bool, TokenStream) {
-    todo!()
-}
-
-/// Creates lints on hooks in invalid position in a statement.
-fn lint_stmt(stmt: Stmt) -> TokenStream {
-    todo!()
-}
-
-/// Rewrite valid hooks in a statement and lint invalid hooks.
-///
-/// returns (branched, TokenStream)
-fn rewrite_stmt(stmt: Stmt) -> (bool, TokenStream) {
-    todo!()
 }
 
 impl Parse for HookFn {
@@ -67,11 +46,13 @@ impl Parse for HookFn {
     }
 }
 
-fn rewrite_return_type(rt_type: &ReturnType) -> TokenStream {
+fn rewrite_return_type(hook_lifetime: &Lifetime, rt_type: &ReturnType) -> TokenStream {
     match rt_type {
-        ReturnType::Default => quote! { -> impl ::yew::functional::Hook<Ouput = ()> },
+        ReturnType::Default => {
+            quote! { -> impl #hook_lifetime + ::yew::functional::Hook<Ouput = ()> }
+        }
         ReturnType::Type(arrow, ref return_type) => {
-            quote_spanned! { return_type.span() => #arrow impl ::yew::functional::Hook<Output = #return_type> }
+            quote_spanned! { return_type.span() => #arrow impl #hook_lifetime + ::yew::functional::Hook<Output = #return_type> }
         }
     }
 }
@@ -97,47 +78,93 @@ When used in function components and hooks, this hook is equivalent to:
 
     let ItemFn {
         vis,
-        sig,
-        block,
+        mut sig,
+        mut block,
         attrs,
     } = inner;
 
     let Signature {
         fn_token,
         ident,
-        generics,
+        mut generics,
         inputs,
         output: return_type,
         ..
-    } = sig;
+    } = sig.clone();
 
-    let hook_return_type = rewrite_return_type(&return_type);
+    let mut lifetimes = lifetime::CollectLifetimes::new("'arg", ident.span());
+    visit_mut::visit_signature_mut(&mut lifetimes, &mut sig);
+
+    let hook_lifetime = lifetime::find_available_lifetime(&lifetimes);
+
+    generics.params = {
+        let elided_lifetimes = &lifetimes.elided;
+        let params = generics.params;
+
+        parse_quote!(#hook_lifetime, #(#elided_lifetimes,)* #params)
+    };
+
+    if !lifetimes.elided.is_empty() {
+        let mut where_clause = generics
+            .where_clause
+            .clone()
+            .unwrap_or_else(|| WhereClause {
+                where_token: token::Where {
+                    span: Span::mixed_site(),
+                },
+                predicates: Default::default(),
+            });
+
+        for elided in lifetimes.elided.iter() {
+            where_clause
+                .predicates
+                .push(parse_quote!(#elided: #hook_lifetime));
+        }
+
+        generics.where_clause = Some(where_clause);
+    }
+
+    let hook_return_type = rewrite_return_type(&hook_lifetime, &return_type);
     let output_type = match &return_type {
         ReturnType::Default => quote! { () },
         ReturnType::Type(_, ref m) => m.clone().into_token_stream(),
     };
-    let stmts = block.stmts;
 
     let hook_struct_name = Ident::new("HookProvider", Span::mixed_site());
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let states = Ident::new("states", Span::mixed_site());
 
+    let phantom_types = generics
+        .type_params()
+        .map(|ty_param| ty_param.ident.clone())
+        .collect::<Vec<_>>();
+
+    let phantom_lifetimes = generics
+        .lifetimes()
+        .map(|life| quote! { &#life () })
+        .collect::<Vec<_>>();
+
+    let mut body_rewriter = body::BodyRewriter::default();
+    visit_mut::visit_block_mut(&mut body_rewriter, &mut *block);
+
     let output = quote! {
         #(#attrs)*
         #[doc = #doc_text]
         #vis #fn_token #ident #generics (#inputs) #hook_return_type {
-            struct #hook_struct_name #generics {}
+            struct #hook_struct_name #generics {
+                _marker: ::std::marker::PhantomData<( #(#phantom_types,)* #(#phantom_lifetimes,)* )>,
+            }
 
             impl #impl_generics ::yew::functional::Hook for #hook_struct_name #ty_generics #where_clause {
                 type Output = #output_type;
 
-                fn run(mut self, #states: &mut ::yew::functional::HookStates) -> Self::Output {
-                    #(#stmts)*
-                }
+                fn run(mut self, #states: &mut ::yew::functional::HookStates) -> Self::Output #block
             }
 
-            #hook_struct_name {}
+            #hook_struct_name {
+                _marker: ::std::marker::PhantomData,
+            }
         }
     };
 
