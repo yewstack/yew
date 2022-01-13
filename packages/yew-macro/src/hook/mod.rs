@@ -4,7 +4,9 @@ use quote::ToTokens;
 use quote::{quote, quote_spanned};
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{Expr, Ident, ItemFn, ReturnType, Signature, Stmt};
+use syn::{Expr, Ident, ItemFn, LitStr, ReturnType, Signature, Stmt};
+
+mod lifetime;
 
 #[derive(Clone)]
 pub struct HookFn {
@@ -77,6 +79,22 @@ fn rewrite_return_type(rt_type: &ReturnType) -> TokenStream {
 pub fn hook_impl(component: HookFn) -> syn::Result<TokenStream> {
     let HookFn { inner } = component;
 
+    let doc_text = LitStr::new(
+        &format!(
+            r#"
+# Note
+
+When used in function components and hooks, this hook is equivalent to:
+
+```
+{}
+```
+"#,
+            inner.sig.to_token_stream().to_string()
+        ),
+        Span::mixed_site(),
+    );
+
     let ItemFn {
         vis,
         sig,
@@ -107,6 +125,7 @@ pub fn hook_impl(component: HookFn) -> syn::Result<TokenStream> {
 
     let output = quote! {
         #(#attrs)*
+        #[doc = #doc_text]
         #vis #fn_token #ident #generics (#inputs) #hook_return_type {
             struct #hook_struct_name #generics {}
 

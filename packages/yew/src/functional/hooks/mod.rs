@@ -64,24 +64,25 @@ pub fn use_hook<InternalHook: 'static, Output, Tear: FnOnce(&mut InternalHook) +
 ///
 /// Not efficient due to excessive boxing, but will be worked around if primitive hooks are re-implemented
 /// without this hook.
-pub(crate) fn use_hook_next<T, INIT, RUN, TEAR, O>(
+pub(crate) fn use_hook_next<'hook, T, INIT, RUN, TEAR, O>(
     initializer: INIT,
     runner: RUN,
     destructor: TEAR,
-) -> impl Hook<Output = O>
+) -> impl 'hook + Hook<Output = O>
 where
     T: 'static,
-    INIT: 'static + FnOnce() -> T,
-    RUN: 'static + FnOnce(&mut T, HookUpdater) -> O,
+    O: 'hook,
+    INIT: 'hook + FnOnce() -> T,
+    RUN: 'hook + FnOnce(&mut T, HookUpdater) -> O,
     TEAR: 'static + FnOnce(&mut T),
 {
-    struct HookProvider<T, O> {
-        initializer: Box<dyn FnOnce() -> T>,
-        runner: Box<dyn FnOnce(&mut T, HookUpdater) -> O>,
+    struct HookProvider<'a, T, O> {
+        initializer: Box<dyn FnOnce() -> T + 'a>,
+        runner: Box<dyn FnOnce(&mut T, HookUpdater) -> O + 'a>,
         destructor: Box<dyn FnOnce(&mut T)>,
     }
 
-    impl<T, O> Hook for HookProvider<T, O>
+    impl<T, O> Hook for HookProvider<'_, T, O>
     where
         T: 'static,
     {
