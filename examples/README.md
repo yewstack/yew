@@ -7,7 +7,7 @@ You can install it with the following command:
 
 ```bash
 # at some point in the future, trunk will automatically download wasm-bindgen
-cargo install trunk wasm-bindgen-cli
+cargo install trunk
 ```
 
 Install the `wasm32-unknown-unknown` toolchain for WebAssembly targets:
