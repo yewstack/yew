@@ -1,0 +1,55 @@
+name: Build API Docs (Rustdoc)
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - "packages/**"
+      - "firebase.json"
+      - ".github/workflows/*-docs.yml"
+  push:
+    branches: [master]
+    paths:
+      - "packages/**"
+      - "firebase.json"
+      - ".github/workflows/*-docs.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PR_INFO_FILE: ".PR_INFO"
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          profile: minimal
+          components: rustdoc
+
+      - name: Run cargo doc
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: -p yew -p yew-macro -p yew-router -p yew-router-macro -p yew-agent
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: api-docs
+          path: target/doc/
+          retention-days: 1
+
+      - if: github.event_name == 'pull_request'
+        name: Build pr info
+        run: |
+          echo "${{ github.event.number }}" > $PR_INFO_FILE
+
+      - if: github.event_name == 'pull_request'
+        name: Upload pr info
+        uses: actions/upload-artifact@v2
+        with:
+          name: pr-info
+          path: "${{ env.PR_INFO_FILE }}"
+          retention-days: 1
