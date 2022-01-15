@@ -71,12 +71,23 @@ macro_rules! gen_listener_kinds {
         #[allow(missing_docs)]
         pub enum ListenerKind {
             $( $kind, )*
+            other(std::borrow::Cow<'static, str>),
+        }
+
+        impl ListenerKind {
+            pub fn type_name(&self) -> &str {
+                match self {
+                    Self::other(type_name) => type_name.as_ref(),
+                    kind => &kind.as_ref()[2..],
+                }
+            }
         }
 
         impl AsRef<str> for ListenerKind {
             fn as_ref(&self) -> &str {
                 match self {
                     $( Self::$kind => stringify!($kind), )*
+                    Self::other(type_name) => type_name.as_ref(),
                 }
             }
         }
@@ -352,7 +363,7 @@ impl GlobalHandlers {
                 );
                 AsRef::<web_sys::EventTarget>::as_ref(body)
                     .add_event_listener_with_callback_and_add_event_listener_options(
-                        &desc.kind.as_ref()[2..],
+                        desc.kind.type_name(),
                         cl.as_ref().unchecked_ref(),
                         &{
                             let mut opts = web_sys::AddEventListenerOptions::new();
@@ -386,7 +397,7 @@ impl Drop for GlobalHandlers {
             for (kind, cl) in std::mem::take(&mut self.registered) {
                 AsRef::<web_sys::EventTarget>::as_ref(body)
                     .remove_event_listener_with_callback(
-                        &kind.as_ref()[2..],
+                        kind.type_name(),
                         cl.as_ref().unchecked_ref(),
                     )
                     .unwrap();
