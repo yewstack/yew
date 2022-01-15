@@ -37,11 +37,18 @@ macro_rules! gen_listener_kinds {
             $( $kind, )*
         }
 
+        impl ListenerKind {
+            /// Get the case-sensitive string representing the event type
+            pub fn event_type(&self) -> &'static str {
+                match self {
+                    $( ListenerKind::$kind => stringify!($kind), )*
+                }
+            }
+        }
+
         impl AsRef<str> for ListenerKind {
             fn as_ref(&self) -> &str {
-                match self {
-                    $( Self::$kind => stringify!($kind), )*
-                }
+                self.event_type()
             }
         }
     };

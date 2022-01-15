@@ -9,9 +9,9 @@ use web_sys::Element;
 /// The bundle implementation to [VSuspense]
 #[derive(Debug)]
 pub struct BSuspense {
-    children: BNode,
+    children_bundle: BNode,
     /// The supsense is suspended if fallback contains [Some] bundle
-    fallback: Option<BNode>,
+    fallback_bundle: Option<BNode>,
     detached_parent: Element,
     key: Option<Key>,
 }
@@ -23,17 +23,19 @@ impl BSuspense {
     }
     /// Get the bundle node that actually shows up in the dom
     fn active_node(&self) -> &BNode {
-        self.fallback.as_ref().unwrap_or(&self.children)
+        self.fallback_bundle
+            .as_ref()
+            .unwrap_or(&self.children_bundle)
     }
 }
 
 impl DomBundle for BSuspense {
     fn detach(self, parent: &Element) {
-        if let Some(fallback) = self.fallback {
+        if let Some(fallback) = self.fallback_bundle {
             fallback.detach(parent);
-            self.children.detach(&self.detached_parent);
+            self.children_bundle.detach(&self.detached_parent);
         } else {
-            self.children.detach(parent);
+            self.children_bundle.detach(parent);
         }
     }
 
@@ -63,25 +65,25 @@ impl Reconcilable for VSuspense {
         // When it's suspended, we render children into an element that is detached from the dom
         // tree while rendering fallback UI into the original place where children resides in.
         if suspended {
-            let (_child_ref, children) =
+            let (_child_ref, children_bundle) =
                 children.attach(parent_scope, &detached_parent, NodeRef::default());
             let (fallback_ref, fallback) = fallback.attach(parent_scope, parent, next_sibling);
             (
                 fallback_ref,
                 BSuspense {
-                    children,
-                    fallback: Some(fallback),
+                    children_bundle,
+                    fallback_bundle: Some(fallback),
                     detached_parent,
                     key,
                 },
             )
         } else {
-            let (child_ref, children) = children.attach(parent_scope, parent, next_sibling);
+            let (child_ref, children_bundle) = children.attach(parent_scope, parent, next_sibling);
             (
                 child_ref,
                 BSuspense {
-                    children,
-                    fallback: None,
+                    children_bundle,
+                    fallback_bundle: None,
                     detached_parent,
                     key,
                 },
@@ -119,12 +121,13 @@ impl Reconcilable for VSuspense {
         } = self;
         let detached_parent = detached_parent.expect("no detached parent?");
 
-        let children_bundle = &mut suspense.children;
+        let children_bundle = &mut suspense.children_bundle;
         // no need to update key & detached_parent
 
         // When it's suspended, we render children into an element that is detached from the dom
         // tree while rendering fallback UI into the original place where children resides in.
-        match (suspended, &mut suspense.fallback) {
+        match (suspended, &mut suspense.fallback_bundle) {
+            // Both suspended, reconcile children into detached_parent, fallback into the DOM
             (true, Some(fallback_bundle)) => {
                 children.reconcile(
                     parent_scope,
@@ -135,11 +138,11 @@ impl Reconcilable for VSuspense {
 
                 fallback.reconcile(parent_scope, parent, next_sibling, fallback_bundle)
             }
-
+            // Not suspended, just reconcile the children into the DOM
             (false, None) => {
                 children.reconcile(parent_scope, parent, next_sibling, children_bundle)
             }
-
+            // Freshly suspended. Shift children into the detached parent, then add fallback to the DOM
             (true, None) => {
                 children_bundle.shift(&detached_parent, NodeRef::default());
 
@@ -151,12 +154,12 @@ impl Reconcilable for VSuspense {
                 );
                 // first render of fallback
                 let (fallback_ref, fallback) = fallback.attach(parent_scope, parent, next_sibling);
-                suspense.fallback = Some(fallback);
+                suspense.fallback_bundle = Some(fallback);
                 fallback_ref
             }
-
+            // Freshly unsuspended. Detach fallback from the DOM, then shift children into it.
             (false, Some(_)) => {
-                suspense.fallback.take().unwrap().detach(parent);
+                suspense.fallback_bundle.take().unwrap().detach(parent);
 
                 children_bundle.shift(parent, next_sibling.clone());
                 children.reconcile(parent_scope, parent, next_sibling, children_bundle)

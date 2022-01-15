@@ -1,11 +1,12 @@
 use crate::dom_bundle::test_log;
 use crate::virtual_dom::{Listener, ListenerKind, Listeners};
+use gloo::events::{EventListener, EventListenerOptions, EventListenerPhase};
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::ops::Deref;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use wasm_bindgen::{prelude::Closure, JsCast};
+use wasm_bindgen::JsCast;
 use web_sys::{Element, Event};
 
 thread_local! {
@@ -136,8 +137,7 @@ struct GlobalHandlers {
     /// Keep track of all listeners to drop them on registry drop.
     /// The registry is never dropped in production.
     #[cfg(test)]
-    #[allow(clippy::type_complexity)]
-    registered: Vec<(ListenerKind, Closure<dyn Fn(web_sys::Event)>)>,
+    registered: Vec<(ListenerKind, EventListener)>,
 }
 
 impl GlobalHandlers {
@@ -145,24 +145,16 @@ impl GlobalHandlers {
     fn ensure_handled(&mut self, desc: EventDescriptor) {
         if !self.handling.contains(&desc) {
             let cl = BODY.with(|body| {
-                let cl = Closure::wrap(
-                    Box::new(move |e: Event| Registry::handle(desc, e)) as Box<dyn Fn(Event)>
-                );
-                AsRef::<web_sys::EventTarget>::as_ref(body)
-                    .add_event_listener_with_callback_and_add_event_listener_options(
-                        &desc.kind.as_ref()[2..],
-                        cl.as_ref().unchecked_ref(),
-                        &{
-                            let mut opts = web_sys::AddEventListenerOptions::new();
-                            opts.capture(true);
-                            // We need to explicitly set passive to override any browser defaults
-                            opts.passive(desc.passive);
-                            opts
-                        },
-                    )
-                    .map_err(|e| format!("could not register global listener: {:?}", e))
-                    .unwrap();
-                cl
+                let options = EventListenerOptions {
+                    phase: EventListenerPhase::Capture,
+                    passive: desc.passive,
+                };
+                EventListener::new_with_options(
+                    body,
+                    &desc.kind.event_type()[2..],
+                    options,
+                    move |e: &Event| Registry::handle(desc, e.clone()),
+                )
             });
 
             // Never drop the closure as this event handler is static
@@ -173,23 +165,6 @@ impl GlobalHandlers {
 
             self.handling.insert(desc);
         }
-    }
-}
-
-// Enable resetting between tests
-#[cfg(test)]
-impl Drop for GlobalHandlers {
-    fn drop(&mut self) {
-        BODY.with(|body| {
-            for (kind, cl) in std::mem::take(&mut self.registered) {
-                AsRef::<web_sys::EventTarget>::as_ref(body)
-                    .remove_event_listener_with_callback(
-                        &kind.as_ref()[2..],
-                        cl.as_ref().unchecked_ref(),
-                    )
-                    .unwrap();
-            }
-        });
     }
 }
 
