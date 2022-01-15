@@ -32,7 +32,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: -p yew -p yew-macro -p yew-router -p yew-router-macro -p yew-agent
+          args: -p yew -p yew-macro -p yew-router -p yew-router-macro -p yew-agent --no-deps
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
