@@ -30,9 +30,11 @@ jobs:
 
       - name: Run cargo doc
         uses: actions-rs/cargo@v1
+        env:
+          RUSTDOCFLAGS: --cfg documenting
         with:
           command: doc
-          args: -p yew -p yew-macro -p yew-router -p yew-router-macro -p yew-agent --no-deps
+          args: -p yew -p yew-macro -p yew-router -p yew-router-macro -p yew-agent --no-deps --all-features
 
       - name: Move files in correct directory
         run: |
