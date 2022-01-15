@@ -31,7 +31,7 @@ jobs:
       - name: Run cargo doc
         uses: actions-rs/cargo@v1
         env:
-          RUSTDOCFLAGS: --cfg documenting -Z unstable-options --enable-index-page
+          RUSTDOCFLAGS: --cfg documenting --html-before-content ./api-docs/before-content.html --extend-css ./api-docs/styles.css -Z unstable-options --enable-index-page
         with:
           command: doc
           args: -p yew -p yew-macro -p yew-router -p yew-router-macro -p yew-agent --no-deps --all-features
