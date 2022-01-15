@@ -51,6 +51,10 @@ error[E0277]: the trait bound `Value: Default` is not satisfied
      |                     ^^^^^^^^^^ the trait `Default` is not implemented for `Value`
      |
 note: required by `Option::<T>::unwrap_or_default`
+    --> $RUST/core/src/option.rs
+     |
+     |     pub fn unwrap_or_default(self) -> T {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
      = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0369]: binary operation `==` cannot be applied to type `Value`
@@ -99,6 +103,10 @@ error[E0277]: expected a `FnOnce<()>` closure, found `{integer}`
     = help: the trait `FnOnce<()>` is not implemented for `{integer}`
     = note: wrap the `{integer}` in a closure with no arguments: `|| { /* code */ }`
 note: required by a bound in `Option::<T>::unwrap_or_else`
+   --> $RUST/core/src/option.rs
+    |
+    |     pub fn unwrap_or_else<F: FnOnce() -> T>(self, f: F) -> T {
+    |                                          ^ required by this bound in `Option::<T>::unwrap_or_else`
 
 error[E0593]: function is expected to take 0 arguments, but it takes 1 argument
    --> tests/derive_props/fail.rs:97:24
@@ -110,6 +118,10 @@ error[E0593]: function is expected to take 0 arguments, but it takes 1 argument
     |     -------------------------- takes 1 argument
     |
 note: required by a bound in `Option::<T>::unwrap_or_else`
+   --> $RUST/core/src/option.rs
+    |
+    |     pub fn unwrap_or_else<F: FnOnce() -> T>(self, f: F) -> T {
+    |                                          ^ required by this bound in `Option::<T>::unwrap_or_else`
 
 error[E0271]: type mismatch resolving `<fn() -> i32 {t10::foo} as FnOnce<()>>::Output == String`
    --> tests/derive_props/fail.rs:111:24
@@ -118,3 +130,7 @@ error[E0271]: type mismatch resolving `<fn() -> i32 {t10::foo} as FnOnce<()>>::O
     |                        ^^^ expected struct `String`, found `i32`
     |
 note: required by `Option::<T>::unwrap_or_else`
+   --> $RUST/core/src/option.rs
+    |
+    |     pub fn unwrap_or_else<F: FnOnce() -> T>(self, f: F) -> T {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
