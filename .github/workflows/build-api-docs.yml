@@ -30,15 +30,22 @@ jobs:
 
       - name: Run cargo doc
         uses: actions-rs/cargo@v1
+        env:
+          RUSTDOCFLAGS: --cfg documenting --html-before-content ./api-docs/before-content.html --extend-css ./api-docs/styles.css -Z unstable-options --enable-index-page
         with:
           command: doc
-          args: -p yew -p yew-macro -p yew-router -p yew-router-macro -p yew-agent --no-deps
+          args: -p yew -p yew-macro -p yew-router -p yew-router-macro -p yew-agent --no-deps --all-features
+
+      - name: Move files in correct directory
+        run: |
+          mkdir -p api-docs/dist/next
+          cp -r target/doc/* api-docs/dist/next
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
         with:
           name: api-docs
-          path: target/doc/
+          path: api-docs/
           retention-days: 1
 
       - if: github.event_name == 'pull_request'

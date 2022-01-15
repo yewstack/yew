@@ -59,8 +59,9 @@
 //!
 //! # State
 //!
-//! The [`Location`] API has a way access / store state associated with session history. Please
-//! consult [`location.state()`](crate::history::Lcation::state) for detailed usage.
+//! The [`Location`](gloo::history::Location) API has a way to access / store state associated with
+//! session history. Please consult [`location.state()`](crate::history::Location::state) for
+//! detailed usage.
 
 extern crate self as yew_router;
 

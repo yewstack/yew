@@ -8,9 +8,19 @@
     },
     {
       "target": "api",
-      "public": "target/doc/",
-      "cleanUrls": true,
-      "redirects": []
+      "public": "api-docs/dist/",
+      "redirects": [
+        {
+          "source": "/",
+          "destination": "https://docs.rs/yew",
+          "type": 302
+        },
+        {
+          "regex": "/(yew_((agent|router)?_?(macro)?))",
+          "destination": "https://docs.rs/:1",
+          "type": 302
+        }
+      ]
     },
     {
       "target": "examples",

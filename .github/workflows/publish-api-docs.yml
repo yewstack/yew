@@ -27,7 +27,7 @@ jobs:
           workflow: build-api-docs.yml
           run_id: ${{ github.event.workflow_run.id }}
           name: api-docs
-          path: target/doc/
+          path: api-docs/
 
       - if: github.event.workflow_run.event == 'pull_request'
         name: Download pr info
@@ -63,7 +63,7 @@ jobs:
           targets: api
           channelId: "${{ env.CHANNEL_ID }}"
           # link to the next version because that's what we care about
-          commentURLPath: "/yew"
+          commentURLPath: "/next/yew"
           # PR information
           prNumber: "${{ env.PR_NUMBER }}"
           prBranchName: "${{ env.PR_BRANCH }}"
