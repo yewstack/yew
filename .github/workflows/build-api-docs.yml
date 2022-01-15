@@ -38,8 +38,10 @@ jobs:
 
       - name: Move files in correct directory
         run: |
-          mkdir -p api-docs/dist/next
-          cp -r target/doc/* api-docs/dist/next
+          mkdir -p api-docs/dist
+          cp -r target/doc api-docs/dist/
+          cd api-docs/dist
+          mv doc next
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
