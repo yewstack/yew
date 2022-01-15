@@ -11,18 +11,13 @@
       "public": "api-docs/dist/",
       "redirects": [
         {
-          "source": "/next",
-          "destination": "/next/yew",
-          "type": 302
-        },
-        {
           "source": "/",
           "destination": "https://docs.rs/yew",
           "type": 302
         },
         {
-          "source": "/:crate",
-          "destination": "https://docs.rs/:crate",
+          "regex": "/(yew_((agent|router)?_?(macro)?))",
+          "destination": "https://docs.rs/:1",
           "type": 302
         }
       ]
