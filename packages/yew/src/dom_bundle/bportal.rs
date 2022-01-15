@@ -94,7 +94,7 @@ impl Reconcilable for VPortal {
 
 impl BPortal {
     /// Get the key of the underlying portal
-    pub(crate) fn key(&self) -> Option<&Key> {
+    pub(super) fn key(&self) -> Option<&Key> {
         self.node.key()
     }
 }

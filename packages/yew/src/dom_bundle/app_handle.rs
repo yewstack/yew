@@ -1,17 +1,16 @@
-//! This module contains the `App` struct, which is used to bootstrap
-//! a component in an isolated scope.
+//! [AppHandle] contains the state Yew keeps to bootstrap a component in an isolated scope.
 
-use std::ops::Deref;
-
-use crate::html::{BaseComponent, NodeRef, Scope, Scoped};
-use std::rc::Rc;
+use super::Scope;
+use super::Scoped;
+use crate::{html::BaseComponent, NodeRef};
+use std::{ops::Deref, rc::Rc};
 use web_sys::Element;
 
 /// An instance of an application.
 #[derive(Debug)]
 pub struct AppHandle<COMP: BaseComponent> {
     /// `Scope` holder
-    pub(crate) scope: Scope<COMP>,
+    scope: Scope<COMP>,
 }
 
 impl<COMP> AppHandle<COMP>

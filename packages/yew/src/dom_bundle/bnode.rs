@@ -28,7 +28,7 @@ pub enum BNode {
 
 impl BNode {
     /// Get the key of the underlying node
-    pub(crate) fn key(&self) -> Option<&Key> {
+    pub(super) fn key(&self) -> Option<&Key> {
         match self {
             Self::BComp(bsusp) => bsusp.key(),
             Self::BList(blist) => blist.key(),
@@ -38,6 +38,11 @@ impl BNode {
             Self::BPortal(bportal) => bportal.key(),
             Self::BSuspense(bsusp) => bsusp.key(),
         }
+    }
+    /// Replace this node with a new node, making sure to detach the ancestor
+    pub(super) fn replace(&mut self, parent: &Element, next_node: BNode) {
+        let ancestor = std::mem::replace(self, next_node);
+        ancestor.detach(parent);
     }
 }
 
@@ -204,14 +209,6 @@ impl fmt::Debug for BNode {
             Self::BPortal(ref vportal) => vportal.fmt(f),
             Self::BSuspense(ref bsusp) => bsusp.fmt(f),
         }
-    }
-}
-
-impl BNode {
-    /// Replace this node with a new node, making sure to detach the ancestor
-    pub(crate) fn replace(&mut self, parent: &Element, next_node: BNode) {
-        let ancestor = std::mem::replace(self, next_node);
-        ancestor.detach(parent);
     }
 }
 

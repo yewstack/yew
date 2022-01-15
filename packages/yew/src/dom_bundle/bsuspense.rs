@@ -18,7 +18,7 @@ pub struct BSuspense {
 
 impl BSuspense {
     /// Get the key of the underlying suspense
-    pub(crate) fn key(&self) -> Option<&Key> {
+    pub(super) fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
     /// Get the bundle node that actually shows up in the dom

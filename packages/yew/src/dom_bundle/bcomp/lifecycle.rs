@@ -1,8 +1,8 @@
 //! Component lifecycle module
 
-use super::{AnyScope, BaseComponent, Scope};
+use super::scope::{AnyScope, Scope};
 use crate::dom_bundle::{BNode, DomBundle, Reconcilable};
-use crate::html::RenderError;
+use crate::html::{BaseComponent, RenderError};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{Suspense, Suspension};
 #[cfg(feature = "ssr")]
@@ -14,9 +14,9 @@ use futures::channel::oneshot;
 use std::rc::Rc;
 use web_sys::Element;
 
-pub(crate) struct ComponentState<COMP: BaseComponent> {
-    pub(crate) component: Box<COMP>,
-    pub(crate) root_node: BNode,
+pub struct ComponentState<COMP: BaseComponent> {
+    pub(super) component: Box<COMP>,
+    pub(super) root_node: BNode,
 
     context: Context<COMP>,
 
@@ -34,11 +34,11 @@ pub(crate) struct ComponentState<COMP: BaseComponent> {
 
     // Used for debug logging
     #[cfg(debug_assertions)]
-    pub(crate) vcomp_id: u64,
+    pub(super) vcomp_id: u64,
 }
 
 impl<COMP: BaseComponent> ComponentState<COMP> {
-    pub(crate) fn new(
+    fn new(
         parent: Option<Element>,
         next_sibling: NodeRef,
         root_node: BNode,
@@ -49,7 +49,7 @@ impl<COMP: BaseComponent> ComponentState<COMP> {
     ) -> Self {
         #[cfg(debug_assertions)]
         let vcomp_id = {
-            use super::Scoped;
+            use super::scope::Scoped;
 
             scope.to_any().vcomp_id
         };
@@ -75,15 +75,15 @@ impl<COMP: BaseComponent> ComponentState<COMP> {
     }
 }
 
-pub(crate) struct CreateRunner<COMP: BaseComponent> {
-    pub(crate) parent: Option<Element>,
-    pub(crate) next_sibling: NodeRef,
-    pub(crate) placeholder: BNode,
-    pub(crate) node_ref: NodeRef,
-    pub(crate) props: Rc<COMP::Properties>,
-    pub(crate) scope: Scope<COMP>,
+pub struct CreateRunner<COMP: BaseComponent> {
+    pub(super) parent: Option<Element>,
+    pub(super) next_sibling: NodeRef,
+    pub(super) placeholder: BNode,
+    pub(super) node_ref: NodeRef,
+    pub(super) props: Rc<COMP::Properties>,
+    pub(super) scope: Scope<COMP>,
     #[cfg(feature = "ssr")]
-    pub(crate) html_sender: Option<oneshot::Sender<VNode>>,
+    pub(super) html_sender: Option<oneshot::Sender<VNode>>,
 }
 
 impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
@@ -91,7 +91,7 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
         let mut current_state = self.scope.state.borrow_mut();
         if current_state.is_none() {
             #[cfg(debug_assertions)]
-            crate::dom_bundle::log_event(self.scope.vcomp_id, "create");
+            super::log_event(self.scope.vcomp_id, "create");
 
             *current_state = Some(ComponentState::new(
                 self.parent,
@@ -107,7 +107,7 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
     }
 }
 
-pub(crate) enum UpdateEvent<COMP: BaseComponent> {
+pub enum UpdateEvent<COMP: BaseComponent> {
     /// Wraps messages for a component.
     Message(COMP::Message),
     /// Wraps batch of messages for a component.
@@ -118,9 +118,9 @@ pub(crate) enum UpdateEvent<COMP: BaseComponent> {
     Shift(Element, NodeRef),
 }
 
-pub(crate) struct UpdateRunner<COMP: BaseComponent> {
-    pub(crate) state: Shared<Option<ComponentState<COMP>>>,
-    pub(crate) event: UpdateEvent<COMP>,
+pub struct UpdateRunner<COMP: BaseComponent> {
+    pub(super) state: Shared<Option<ComponentState<COMP>>>,
+    pub(super) event: UpdateEvent<COMP>,
 }
 
 impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
@@ -157,7 +157,7 @@ impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
             };
 
             #[cfg(debug_assertions)]
-            crate::dom_bundle::log_event(
+            super::log_event(
                 state.vcomp_id,
                 format!("update(schedule_render={})", schedule_render),
             );
@@ -178,15 +178,15 @@ impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
     }
 }
 
-pub(crate) struct DestroyRunner<COMP: BaseComponent> {
-    pub(crate) state: Shared<Option<ComponentState<COMP>>>,
+pub struct DestroyRunner<COMP: BaseComponent> {
+    pub(super) state: Shared<Option<ComponentState<COMP>>>,
 }
 
 impl<COMP: BaseComponent> Runnable for DestroyRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().take() {
             #[cfg(debug_assertions)]
-            crate::dom_bundle::log_event(state.vcomp_id, "destroy");
+            super::log_event(state.vcomp_id, "destroy");
 
             state.component.destroy(&state.context);
 
@@ -198,15 +198,15 @@ impl<COMP: BaseComponent> Runnable for DestroyRunner<COMP> {
     }
 }
 
-pub(crate) struct RenderRunner<COMP: BaseComponent> {
-    pub(crate) state: Shared<Option<ComponentState<COMP>>>,
+pub struct RenderRunner<COMP: BaseComponent> {
+    pub(super) state: Shared<Option<ComponentState<COMP>>>,
 }
 
 impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             #[cfg(debug_assertions)]
-            crate::dom_bundle::log_event(state.vcomp_id, "render");
+            super::log_event(state.vcomp_id, "render");
 
             match state.component.view(&state.context) {
                 Ok(root) => {
@@ -291,15 +291,15 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
     }
 }
 
-pub(crate) struct RenderedRunner<COMP: BaseComponent> {
-    pub(crate) state: Shared<Option<ComponentState<COMP>>>,
+pub struct RenderedRunner<COMP: BaseComponent> {
+    pub(super) state: Shared<Option<ComponentState<COMP>>>,
 }
 
 impl<COMP: BaseComponent> Runnable for RenderedRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             #[cfg(debug_assertions)]
-            crate::dom_bundle::log_event(state.vcomp_id, "rendered");
+            super::log_event(state.vcomp_id, "rendered");
 
             if state.suspension.is_none() && state.parent.is_some() {
                 let first_render = !state.has_rendered;
@@ -317,7 +317,9 @@ mod tests {
     use crate::html;
     use crate::html::*;
     use crate::Properties;
+    use std::cell::RefCell;
     use std::ops::Deref;
+    use std::rc::Rc;
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 

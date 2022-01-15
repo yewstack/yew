@@ -1,3 +1,4 @@
+use super::Apply;
 use crate::dom_bundle::test_log;
 use crate::virtual_dom::{Listener, ListenerKind, Listeners};
 use gloo::events::{EventListener, EventListenerOptions, EventListenerPhase};
@@ -46,7 +47,7 @@ pub(super) enum ListenerRegistration {
     Registered(u32),
 }
 
-impl super::Apply for Listeners {
+impl Apply for Listeners {
     type Element = Element;
     type Bundle = ListenerRegistration;
 

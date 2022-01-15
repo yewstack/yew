@@ -118,7 +118,7 @@ impl BNode {
 
 impl BList {
     /// Create a new empty [BList]
-    pub(crate) const fn new() -> BList {
+    pub(super) const fn new() -> BList {
         BList {
             rev_children: vec![],
             fully_keyed: true,
@@ -127,7 +127,7 @@ impl BList {
     }
 
     /// Get the key of the underlying fragment
-    pub(crate) fn key(&self) -> Option<&Key> {
+    pub(super) fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
 

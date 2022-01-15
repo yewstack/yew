@@ -1,15 +1,12 @@
 //! Components wrapped with context including properties, state, and link
 
 mod children;
-mod lifecycle;
 mod properties;
-mod scope;
 
 use super::{Html, HtmlResult, IntoHtmlResult};
+pub use crate::dom_bundle::{AnyScope, Scope, SendAsMessage};
 pub use children::*;
 pub use properties::*;
-pub(crate) use scope::Scoped;
-pub use scope::{AnyScope, Scope, SendAsMessage};
 use std::rc::Rc;
 
 /// The [`Component`]'s context. This contains component's [`Scope`] and and props and

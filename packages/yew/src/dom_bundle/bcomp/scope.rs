@@ -1,15 +1,12 @@
 //! Component scope module
 
-use super::{
-    lifecycle::{
-        ComponentState, CreateRunner, DestroyRunner, RenderRunner, RenderedRunner, UpdateEvent,
-        UpdateRunner,
-    },
-    BaseComponent,
+use super::lifecycle::{
+    ComponentState, CreateRunner, DestroyRunner, RenderRunner, RenderedRunner, UpdateEvent,
+    UpdateRunner,
 };
 use crate::context::{ContextHandle, ContextProvider};
 use crate::dom_bundle::insert_node;
-use crate::html::NodeRef;
+use crate::html::{BaseComponent, NodeRef};
 use crate::scheduler::{self, Shared};
 use crate::{callback::Callback, dom_bundle::BNode};
 use gloo_utils::document;
@@ -29,7 +26,7 @@ pub struct AnyScope {
 
     // Used for debug logging
     #[cfg(debug_assertions)]
-    pub(crate) vcomp_id: u64,
+    pub(super) vcomp_id: u64,
 }
 
 impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
@@ -47,7 +44,7 @@ impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
 
 impl AnyScope {
     #[cfg(test)]
-    pub(crate) fn test() -> Self {
+    pub(in crate::dom_bundle) fn test() -> Self {
         Self {
             type_id: TypeId::of::<()>(),
             parent: None,
@@ -91,7 +88,7 @@ impl AnyScope {
         }
     }
 
-    pub(crate) fn find_parent_scope<C: BaseComponent>(&self) -> Option<Scope<C>> {
+    pub(super) fn find_parent_scope<C: BaseComponent>(&self) -> Option<Scope<C>> {
         let expected_type_id = TypeId::of::<C>();
         iter::successors(Some(self), |scope| scope.get_parent())
             .filter(|scope| scope.get_type_id() == &expected_type_id)
@@ -113,7 +110,7 @@ impl AnyScope {
     }
 }
 
-pub(crate) trait Scoped {
+pub trait Scoped {
     fn to_any(&self) -> AnyScope;
     /// Got the root node if it hasn't already been destroyed
     fn root_bnode(&self) -> Option<Ref<'_, BNode>>;
@@ -202,6 +199,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
         })
     }
 
+    /// Crate a scope with an optional parent scope
     pub(crate) fn new(parent: Option<AnyScope>) -> Self {
         let parent = parent.map(Rc::new);
         let state = Rc::new(RefCell::new(None));
@@ -226,7 +224,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     }
 
     /// Mounts a component with `props` to the specified `element` in the DOM.
-    pub(crate) fn mount_in_place(
+    pub(in crate::dom_bundle) fn mount_in_place(
         &self,
         parent: Element,
         next_sibling: NodeRef,
@@ -234,7 +232,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
         props: Rc<COMP::Properties>,
     ) {
         #[cfg(debug_assertions)]
-        crate::dom_bundle::log_event(self.vcomp_id, "create placeholder");
+        super::log_event(self.vcomp_id, "create placeholder");
         let placeholder = {
             let placeholder: Node = document().create_text_node("").into();
             insert_node(&placeholder, &parent, next_sibling.get().as_ref());
@@ -264,14 +262,14 @@ impl<COMP: BaseComponent> Scope<COMP> {
         scheduler::start();
     }
 
-    pub(crate) fn reuse(
+    pub(super) fn reuse(
         &self,
         props: Rc<COMP::Properties>,
         node_ref: NodeRef,
         next_sibling: NodeRef,
     ) {
         #[cfg(debug_assertions)]
-        crate::dom_bundle::log_event(self.vcomp_id, "reuse");
+        super::log_event(self.vcomp_id, "reuse");
 
         self.push_update(UpdateEvent::Properties(props, node_ref, next_sibling));
     }
@@ -318,7 +316,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     /// component's update method when invoked.
     ///
     /// Please be aware that currently the result of this callback
-    /// synchronously schedules a call to the [Component](Component)
+    /// synchronously schedules a call to the [Component](crate::html::Component)
     /// interface.
     pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
     where
@@ -347,7 +345,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     ///
     /// Please be aware that currently the results of these callbacks
     /// will synchronously schedule calls to the
-    /// [Component](Component) interface.
+    /// [Component](crate::html::Component) interface.
     pub fn batch_callback<F, IN, OUT>(&self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> OUT + 'static,

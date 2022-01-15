@@ -187,7 +187,7 @@ impl VTag {
         }
     }
 
-    /// Returns tag of an [Element]. In HTML tags are always uppercase.
+    /// Returns tag of an [Element](web_sys::Element). In HTML tags are always uppercase.
     pub fn tag(&self) -> &str {
         match &self.inner {
             VTagInner::Input { .. } => "input",
@@ -303,7 +303,7 @@ impl VTag {
             .insert(key, value.into_prop_value());
     }
 
-    /// Add event listener on the [VTag]'s  [Element].
+    /// Add event listener on the [VTag]'s  [Element](web_sys::Element).
     /// Returns `true` if the listener has been added, `false` otherwise.
     pub fn add_listener(&mut self, listener: Rc<dyn Listener>) -> bool {
         if let Listeners::Pending(listeners) = &mut self.listeners {
@@ -317,7 +317,7 @@ impl VTag {
         }
     }
 
-    /// Set event listeners on the [VTag]'s  [Element]
+    /// Set event listeners on the [VTag]'s  [Element](web_sys::Element)
     pub fn set_listeners(&mut self, listeners: Box<[Option<Rc<dyn Listener>>]>) {
         self.listeners = Listeners::Pending(listeners);
     }

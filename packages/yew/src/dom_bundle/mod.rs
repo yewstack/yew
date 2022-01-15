@@ -5,7 +5,7 @@
 //! In order to efficiently implement updates, and diffing, additional information has to be
 //! kept around. This information is carried in the bundle.
 
-mod attributes;
+mod app_handle;
 mod bcomp;
 mod blist;
 mod bnode;
@@ -13,29 +13,35 @@ mod bportal;
 mod bsuspense;
 mod btag;
 mod btext;
-mod listeners;
 
-#[cfg(debug_assertions)]
-pub(crate) use self::bcomp::log_event;
+#[cfg(test)]
+mod tests;
 
-pub use self::bcomp::BComp;
-pub use self::blist::BList;
-pub use self::bnode::BNode;
-pub use self::bportal::BPortal;
-pub use self::bsuspense::BSuspense;
-pub use self::btag::BTag;
-pub use self::btext::BText;
+use self::bcomp::{BComp, Scoped};
+use self::blist::BList;
+use self::bnode::BNode;
+use self::bportal::BPortal;
+use self::bsuspense::BSuspense;
+use self::btag::BTag;
+use self::btext::BText;
 
-pub(self) use self::attributes::Apply;
-pub(crate) use self::attributes::{InputFields, Value};
 pub(crate) use self::bcomp::{Mountable, PropsWrapper};
-#[doc(hidden)]
-pub use self::listeners::set_event_bubbling;
+pub(crate) use self::btag::{InputFields, Value};
 
-use crate::{html::AnyScope, NodeRef};
+#[doc(hidden)] // Publically exported from crate::app_handle
+pub use self::app_handle::AppHandle;
+#[doc(hidden)] // Publically exported from crate::html
+pub use self::bcomp::{AnyScope, Scope, SendAsMessage};
+#[doc(hidden)] // Publically exported from crate::events
+pub use self::btag::set_event_bubbling;
+#[cfg(test)]
+#[doc(hidden)] // Publically exported from crate::tests
+pub use self::tests::layout_tests;
+
+use crate::NodeRef;
 use web_sys::{Element, Node};
 
-pub(crate) trait DomBundle {
+trait DomBundle {
     /// Remove self from parent.
     fn detach(self, parent: &Element);
 
@@ -50,7 +56,7 @@ pub(crate) trait DomBundle {
 // `Ace` editor embedding for example?
 
 /// This trait provides features to update a tree by calculating a difference against another tree.
-pub(crate) trait Reconcilable {
+trait Reconcilable {
     type Bundle: DomBundle;
 
     /// Attach a virtual node to the DOM tree.
@@ -96,7 +102,7 @@ pub(crate) trait Reconcilable {
 }
 
 /// Insert a concrete [Node] into the DOM
-pub(crate) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&Node>) {
+fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&Node>) {
     match next_sibling {
         Some(next_sibling) => parent
             .insert_before(node, Some(next_sibling))

@@ -45,32 +45,6 @@ impl VNode {
     }
 }
 
-#[cfg(test)]
-mod test {
-    use crate::dom_bundle::Reconcilable;
-    use crate::{dom_bundle::BNode, html::AnyScope, NodeRef};
-    use web_sys::Element;
-
-    impl super::VNode {
-        pub(crate) fn reconcile_sequentially(
-            self,
-            parent_scope: &AnyScope,
-            parent: &Element,
-            next_sibling: NodeRef,
-            bundle: &mut Option<BNode>,
-        ) -> NodeRef {
-            match bundle {
-                None => {
-                    let (self_ref, node) = self.attach(parent_scope, parent, next_sibling);
-                    *bundle = Some(node);
-                    self_ref
-                }
-                Some(bundle) => self.reconcile(parent_scope, parent, next_sibling, bundle),
-            }
-        }
-    }
-}
-
 impl Default for VNode {
     fn default() -> Self {
         VNode::VList(VList::default())

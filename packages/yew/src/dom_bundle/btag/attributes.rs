@@ -1,3 +1,4 @@
+use super::Apply;
 use crate::virtual_dom::{AttrValue, Attributes};
 use indexmap::IndexMap;
 use std::{
@@ -10,7 +11,7 @@ use web_sys::{Element, HtmlInputElement as InputElement, HtmlTextAreaElement as 
 
 /// Value field corresponding to an [Element]'s `value` property
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct Value<T: AccessValue>(Option<AttrValue>, PhantomData<T>);
+pub struct Value<T: AccessValue>(Option<AttrValue>, PhantomData<T>);
 
 impl<T: AccessValue> Default for Value<T> {
     fn default() -> Self {
@@ -20,11 +21,11 @@ impl<T: AccessValue> Default for Value<T> {
 
 impl<T: AccessValue> Value<T> {
     /// Create a new value. The caller should take care that the value is valid for the element's `value` property
-    pub(crate) fn new(value: Option<AttrValue>) -> Self {
+    pub fn new(value: Option<AttrValue>) -> Self {
         Value(value, PhantomData)
     }
     /// Set a new value. The caller should take care that the value is valid for the element's `value` property
-    pub(crate) fn set(&mut self, value: Option<AttrValue>) {
+    pub fn set(&mut self, value: Option<AttrValue>) {
         self.0 = value;
     }
 }
@@ -82,28 +83,15 @@ macro_rules! impl_access_value {
 impl_access_value! {InputElement TextAreaElement}
 
 /// Able to have its value read or set
-pub(crate) trait AccessValue {
+pub trait AccessValue {
     fn value(&self) -> String;
     fn set_value(&self, v: &str);
 }
 
-/// Applies contained changes to DOM [Element]
-pub(super) trait Apply {
-    /// [Element] type to apply the changes to
-    type Element;
-    type Bundle;
-
-    /// Apply contained values to [Element] with no ancestor
-    fn apply(self, el: &Self::Element) -> Self::Bundle;
-
-    /// Apply diff between [self] and `bundle` to [Element].
-    fn apply_diff(self, el: &Self::Element, bundle: &mut Self::Bundle);
-}
-
 /// Fields specific to
-/// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) [VTag]s
+/// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) [VTag](crate::virtual_dom::VTag)s
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
-pub(crate) struct InputFields {
+pub struct InputFields {
     /// Contains a value of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
     value: Value<InputElement>,
@@ -130,18 +118,19 @@ impl DerefMut for InputFields {
 }
 
 impl InputFields {
-    pub(crate) fn new(value: Option<AttrValue>, checked: bool) -> Self {
+    /// Crate new attributes for an [InputElement] element
+    pub fn new(value: Option<AttrValue>, checked: bool) -> Self {
         Self {
             value: Value::new(value),
             checked,
         }
     }
-
-    pub(crate) fn checked(&self) -> bool {
+    /// Get the 'checked' attribute on the [InputElement]
+    pub fn checked(&self) -> bool {
         self.checked
     }
-
-    pub(crate) fn set_checked(&mut self, checked: bool) {
+    /// Set the 'checked' attribute on the [InputElement]
+    pub fn set_checked(&mut self, checked: bool) {
         self.checked = checked;
     }
 }
