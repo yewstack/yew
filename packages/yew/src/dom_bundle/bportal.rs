@@ -66,9 +66,7 @@ impl Reconcilable for VPortal {
         let portal = match bundle {
             BNode::BPortal(portal) => portal,
             _ => {
-                let (self_ref, self_) = self.attach(parent_scope, parent, next_sibling);
-                bundle.replace(parent, self_.into());
-                return self_ref;
+                return self.replace(parent_scope, parent, next_sibling, bundle);
             }
         };
         let Self {

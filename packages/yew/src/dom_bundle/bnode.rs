@@ -39,11 +39,6 @@ impl BNode {
             Self::BSuspense(bsusp) => bsusp.key(),
         }
     }
-    /// Replace this node with a new node, making sure to detach the ancestor
-    pub(super) fn replace(&mut self, parent: &Element, next_node: BNode) {
-        let ancestor = std::mem::replace(self, next_node);
-        ancestor.detach(parent);
-    }
 }
 
 impl DomBundle for BNode {
@@ -138,10 +133,12 @@ impl Reconcilable for VNode {
                 let _existing = match bundle {
                     BNode::BRef(ref n) if &node == n => n,
                     _ => {
-                        let (node_ref, self_) =
-                            VNode::VRef(node).attach(parent_scope, parent, next_sibling);
-                        bundle.replace(parent, self_);
-                        return node_ref;
+                        return VNode::VRef(node).replace(
+                            parent_scope,
+                            parent,
+                            next_sibling,
+                            bundle,
+                        );
                     }
                 };
                 NodeRef::new(node)

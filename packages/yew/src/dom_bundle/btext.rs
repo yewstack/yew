@@ -58,9 +58,7 @@ impl Reconcilable for VText {
         let btext = match bundle {
             BNode::BText(btext) => btext,
             _ => {
-                let (self_ref, self_) = self.attach(parent_scope, parent, next_sibling);
-                bundle.replace(parent, self_.into());
-                return self_ref;
+                return self.replace(parent_scope, parent, next_sibling, bundle);
             }
         };
         let Self { text } = self;

@@ -99,6 +99,24 @@ trait Reconcilable {
         next_sibling: NodeRef,
         bundle: &mut BNode,
     ) -> NodeRef;
+
+    /// Replace an existing bundle by attaching self and detaching the existing one
+    fn replace(
+        self,
+        parent_scope: &AnyScope,
+        parent: &Element,
+        next_sibling: NodeRef,
+        bundle: &mut BNode,
+    ) -> NodeRef
+    where
+        Self: Sized,
+        Self::Bundle: Into<BNode>,
+    {
+        let (self_ref, self_) = self.attach(parent_scope, parent, next_sibling);
+        let ancestor = std::mem::replace(bundle, self_.into());
+        ancestor.detach(parent);
+        self_ref
+    }
 }
 
 /// Insert a concrete [Node] into the DOM

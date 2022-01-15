@@ -193,9 +193,7 @@ impl Reconcilable for VComp {
                 bcomp
             }
             _ => {
-                let (node_ref, self_) = self.attach(parent_scope, parent, next_sibling);
-                bundle.replace(parent, self_.into());
-                return node_ref;
+                return self.replace(parent_scope, parent, next_sibling, bundle);
             }
         };
         let VComp {
