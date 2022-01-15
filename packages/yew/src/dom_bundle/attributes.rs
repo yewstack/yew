@@ -8,7 +8,7 @@ use std::{
 };
 use web_sys::{Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
 
-// Value field corresponding to an [Element]'s `value` property
+/// Value field corresponding to an [Element]'s `value` property
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Value<T: AccessValue>(Option<AttrValue>, PhantomData<T>);
 
@@ -88,7 +88,7 @@ pub(crate) trait AccessValue {
 }
 
 /// Applies contained changes to DOM [Element]
-pub(crate) trait Apply {
+pub(super) trait Apply {
     /// [Element] type to apply the changes to
     type Element;
     type Bundle;
@@ -300,10 +300,11 @@ impl Apply for Attributes {
     fn apply_diff(self, el: &Element, bundle: &mut Self) {
         #[inline]
         fn ptr_eq<T>(a: &[T], b: &[T]) -> bool {
-            a.as_ptr() == b.as_ptr()
+            std::ptr::eq(a, b)
         }
 
         let ancestor = std::mem::replace(bundle, self);
+        let bundle = &*bundle; // reborrow it immutably from here
         match (bundle, ancestor) {
             // Hot path
             (Self::Static(new), Self::Static(old)) if ptr_eq(new, old) => (),
@@ -348,14 +349,14 @@ impl Apply for Attributes {
                 }
             }
             // For VTag's constructed outside the html! macro
-            (Self::IndexMap(new), Self::IndexMap(old)) => {
+            (Self::IndexMap(new), Self::IndexMap(ref old)) => {
                 let new_iter = new.iter().map(|(k, v)| (*k, v.as_ref()));
-                Self::apply_diff_index_maps(el, new_iter, new, &old);
+                Self::apply_diff_index_maps(el, new_iter, new, old);
             }
             // Cold path. Happens only with conditional swapping and reordering of `VTag`s with the
             // same tag and no keys.
-            (new, ancestor) => {
-                Self::apply_diff_as_maps(el, new, &ancestor);
+            (new, ref ancestor) => {
+                Self::apply_diff_as_maps(el, new, ancestor);
             }
         }
     }

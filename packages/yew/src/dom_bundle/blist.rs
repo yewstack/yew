@@ -1,6 +1,5 @@
-//! This module contains fragments bundles.
-use super::test_log;
-use super::BNode;
+//! This module contains fragments bundles, a [BList]
+use super::{test_log, BNode};
 use crate::dom_bundle::{DomBundle, Reconcilable};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{Key, VList, VNode, VText};
@@ -10,7 +9,7 @@ use std::hash::Hash;
 use std::ops::Deref;
 use web_sys::Element;
 
-/// This struct represents a fragment of the Virtual DOM tree.
+/// This struct represents a mounted [VList]
 #[derive(Debug)]
 pub struct BList {
     /// The reverse (render order) list of child [BNode]s
@@ -28,13 +27,15 @@ impl Deref for BList {
     }
 }
 
-struct ElementWriter<'s> {
+/// Helper struct, that keeps the position where the next element is to be placed at
+struct NodeWriter<'s> {
     parent_scope: &'s AnyScope,
     parent: &'s Element,
     next_sibling: NodeRef,
 }
 
-impl<'s> ElementWriter<'s> {
+impl<'s> NodeWriter<'s> {
+    /// Write a new node that has no ancestor
     fn add(self, node: VNode) -> (Self, BNode) {
         test_log!("adding: {:?}", node);
         test_log!(
@@ -53,10 +54,12 @@ impl<'s> ElementWriter<'s> {
         )
     }
 
+    /// Shift a bundle into place without patching it
     fn shift(&self, bundle: &mut BNode) {
         bundle.shift(self.parent, self.next_sibling.clone());
     }
 
+    /// Patch a bundle with a new node
     fn patch(self, node: VNode, bundle: &mut BNode) -> Self {
         test_log!("patching: {:?} -> {:?}", bundle, node);
         test_log!(
@@ -73,7 +76,7 @@ impl<'s> ElementWriter<'s> {
         }
     }
 }
-
+/// Helper struct implementing [Eq] and [Hash] by only looking at a node's key
 struct KeyedEntry(BNode, usize);
 impl Borrow<Key> for KeyedEntry {
     fn borrow(&self) -> &Key {
@@ -93,6 +96,7 @@ impl PartialEq for KeyedEntry {
 impl Eq for KeyedEntry {}
 
 impl BNode {
+    /// Assert that a bundle node is a list, or convert it to a list with a single child
     fn make_list(&mut self) -> &mut BList {
         match self {
             Self::BList(blist) => blist,
@@ -113,6 +117,7 @@ impl BNode {
 }
 
 impl BList {
+    /// Create a new empty [BList]
     pub(crate) const fn new() -> BList {
         BList {
             rev_children: vec![],
@@ -121,6 +126,7 @@ impl BList {
         }
     }
 
+    /// Get the key of the underlying fragment
     pub(crate) fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
@@ -133,7 +139,7 @@ impl BList {
         lefts: Vec<VNode>,
         rights: &mut Vec<BNode>,
     ) -> NodeRef {
-        let mut writer = ElementWriter {
+        let mut writer = NodeWriter {
             parent_scope,
             parent,
             next_sibling,
@@ -206,7 +212,7 @@ impl BList {
 
         // We partially drain the new vnodes in several steps.
         let mut lefts = left_vdoms;
-        let mut writer = ElementWriter {
+        let mut writer = NodeWriter {
             parent_scope,
             parent,
             next_sibling,
@@ -265,7 +271,7 @@ impl BList {
             replacements.push(bundle);
         }
         // drop the splice iterator and immediately replace the range with the reordered elements
-        std::mem::drop(spliced_middle);
+        drop(spliced_middle);
         rev_bundles.splice(matching_len_end..matching_len_end, replacements);
 
         // Step 2.3. Remove any extra rights

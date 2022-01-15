@@ -1,4 +1,4 @@
-//! This module contains the bundle implementation of a tag `BTag`.
+//! This module contains the bundle implementation of a tag [BTag]
 
 use super::listeners::ListenerRegistration;
 use super::{BNode, DomBundle, InputFields, Reconcilable, Value};
@@ -51,7 +51,6 @@ pub struct BTag {
 }
 
 impl DomBundle for BTag {
-    /// Remove VTag from parent.
     fn detach(self, parent: &Element) {
         self.listeners.unregister();
 
@@ -129,8 +128,7 @@ impl Reconcilable for VTag {
             },
         )
     }
-    /// Renders virtual tag over DOM [Element], but it also compares this with an ancestor [VTag]
-    /// to compute what to patch in the actual DOM nodes.
+
     fn reconcile(
         self,
         parent_scope: &AnyScope,
@@ -226,6 +224,7 @@ impl VTag {
 }
 
 impl BTag {
+    /// Get the key of the underlying tag
     pub(crate) fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }

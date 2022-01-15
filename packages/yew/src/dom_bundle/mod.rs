@@ -26,7 +26,8 @@ pub use self::bsuspense::BSuspense;
 pub use self::btag::BTag;
 pub use self::btext::BText;
 
-pub(crate) use self::attributes::{Apply, InputFields, Value};
+pub(self) use self::attributes::Apply;
+pub(crate) use self::attributes::{InputFields, Value};
 pub(crate) use self::bcomp::{Mountable, PropsWrapper};
 #[doc(hidden)]
 pub use self::listeners::set_event_bubbling;
@@ -52,6 +53,15 @@ pub(crate) trait DomBundle {
 pub(crate) trait Reconcilable {
     type Bundle: DomBundle;
 
+    /// Attach a virtual node to the DOM tree.
+    ///
+    /// Parameters:
+    /// - `parent_scope`: the parent `Scope` used for passing messages to the
+    ///   parent `Component`.
+    /// - `parent`: the parent node in the DOM.
+    /// - `next_sibling`: to find where to put the node.
+    ///
+    /// Returns a reference to the newly inserted element.
     fn attach(
         self,
         parent_scope: &AnyScope,
@@ -85,6 +95,7 @@ pub(crate) trait Reconcilable {
     ) -> NodeRef;
 }
 
+/// Insert a concrete [Node] into the DOM
 pub(crate) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&Node>) {
     match next_sibling {
         Some(next_sibling) => parent
@@ -94,8 +105,6 @@ pub(crate) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&N
     };
 }
 
-/// Log an operation during tests for debugging purposes
-/// Set RUSTFLAGS="--cfg verbose_tests" environment variable to activate.
 #[cfg(all(test, feature = "wasm_test", verbose_tests))]
 macro_rules! test_log {
     ($fmt:literal, $($arg:expr),* $(,)?) => {
@@ -108,4 +117,6 @@ macro_rules! test_log {
         let _ = std::format_args!(concat!("\t  ", $fmt), $($arg),*);
     };
 }
+/// Log an operation during tests for debugging purposes
+/// Set RUSTFLAGS="--cfg verbose_tests" environment variable to activate.
 pub(self) use test_log;

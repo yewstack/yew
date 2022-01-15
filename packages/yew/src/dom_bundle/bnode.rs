@@ -1,4 +1,4 @@
-//! This module contains the bundle version of an abstract node.
+//! This module contains the bundle version of an abstract node [BNode]
 
 use super::{BComp, BList, BPortal, BSuspense, BTag, BText};
 use crate::dom_bundle::{DomBundle, Reconcilable};
@@ -8,7 +8,7 @@ use gloo::console;
 use std::fmt;
 use web_sys::{Element, Node};
 
-/// Bind virtual element to a DOM reference.
+/// The bundle implementation to [VNode].
 pub enum BNode {
     /// A bind between `VTag` and `Element`.
     BTag(Box<BTag>),
@@ -27,6 +27,7 @@ pub enum BNode {
 }
 
 impl BNode {
+    /// Get the key of the underlying node
     pub(crate) fn key(&self) -> Option<&Key> {
         match self {
             Self::BComp(bsusp) => bsusp.key(),
@@ -207,6 +208,7 @@ impl fmt::Debug for BNode {
 }
 
 impl BNode {
+    /// Replace this node with a new node, making sure to detach the ancestor
     pub(crate) fn replace(&mut self, parent: &Element, next_node: BNode) {
         let ancestor = std::mem::replace(self, next_node);
         ancestor.detach(parent);

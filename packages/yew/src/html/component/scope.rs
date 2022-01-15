@@ -115,8 +115,11 @@ impl AnyScope {
 
 pub(crate) trait Scoped {
     fn to_any(&self) -> AnyScope;
+    /// Got the root node if it hasn't already been destroyed
     fn root_bnode(&self) -> Option<Ref<'_, BNode>>;
+    /// Shift the node associated with this scope to a new place
     fn shift_node(&self, parent: Element, next_sibling: NodeRef);
+    /// Process an event to destroy a component
     fn destroy(self);
     fn destroy_boxed(self: Box<Self>);
 }
@@ -137,7 +140,6 @@ impl<COMP: BaseComponent> Scoped for Scope<COMP> {
         }))
     }
 
-    /// Process an event to destroy a component
     fn destroy(self) {
         scheduler::push_component_destroy(DestroyRunner { state: self.state });
         // Not guaranteed to already have the scheduler started
@@ -159,11 +161,11 @@ impl<COMP: BaseComponent> Scoped for Scope<COMP> {
 /// A context which allows sending messages to a component.
 pub struct Scope<COMP: BaseComponent> {
     parent: Option<Rc<AnyScope>>,
-    pub(crate) state: Shared<Option<ComponentState<COMP>>>,
+    pub(super) state: Shared<Option<ComponentState<COMP>>>,
 
     // Used for debug logging
     #[cfg(debug_assertions)]
-    pub(crate) vcomp_id: u64,
+    pub(super) vcomp_id: u64,
 }
 
 impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {

@@ -1,4 +1,4 @@
-//! This module contains the bundle implementation of a portal `BPortal`.
+//! This module contains the bundle implementation of a portal [BPortal].
 
 use super::test_log;
 use super::BNode;
@@ -93,6 +93,7 @@ impl Reconcilable for VPortal {
 }
 
 impl BPortal {
+    /// Get the key of the underlying portal
     pub(crate) fn key(&self) -> Option<&Key> {
         self.node.key()
     }

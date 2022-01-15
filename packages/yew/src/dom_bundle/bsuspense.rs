@@ -1,25 +1,28 @@
+//! This module contains the bundle version of a supsense [BSuspense]
+
 use super::{BNode, DomBundle, Reconcilable};
 use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VSuspense};
 use crate::NodeRef;
 use web_sys::Element;
 
-/// This struct represents a suspendable DOM fragment.
+/// The bundle implementation to [VSuspense]
 #[derive(Debug)]
 pub struct BSuspense {
     children: BNode,
-    // suspended if fallback is Some
+    /// The supsense is suspended if fallback contains [Some] bundle
     fallback: Option<BNode>,
     detached_parent: Element,
     key: Option<Key>,
 }
 
 impl BSuspense {
+    /// Get the key of the underlying suspense
     pub(crate) fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
-
-    pub(crate) fn active_node(&self) -> &BNode {
+    /// Get the bundle node that actually shows up in the dom
+    fn active_node(&self) -> &BNode {
         self.fallback.as_ref().unwrap_or(&self.children)
     }
 }

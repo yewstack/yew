@@ -8,15 +8,13 @@ use gloo::console;
 use gloo_utils::document;
 use web_sys::{Element, Text as TextNode};
 
-/// Bind text to a dom element.
-/// Reuses the virtual dom structure of text.
+/// The bundle implementation to [VText]
 pub struct BText {
     text: AttrValue,
     text_node: TextNode,
 }
 
 impl DomBundle for BText {
-    /// Remove VText from parent.
     fn detach(self, parent: &Element) {
         let node = &self.text_node;
         if parent.remove_child(node).is_err() {

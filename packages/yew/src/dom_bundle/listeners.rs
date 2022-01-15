@@ -36,8 +36,9 @@ pub fn set_event_bubbling(bubble: bool) {
     BUBBLE_EVENTS.store(bubble, Ordering::Relaxed);
 }
 
+/// An active set of listeners on an element
 #[derive(Debug)]
-pub(crate) enum ListenerRegistration {
+pub(super) enum ListenerRegistration {
     /// No listeners registered.
     NoReg,
     /// Added to global registry by ID

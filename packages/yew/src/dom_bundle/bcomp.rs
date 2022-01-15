@@ -1,14 +1,12 @@
-//! This module contains the bundle implementation of a virtual component `BComp`.
+//! This module contains the bundle implementation of a virtual component [BComp].
 
 use super::{BNode, DomBundle, Reconcilable};
-use crate::{
-    html::{AnyScope, BaseComponent, Scope, Scoped},
-    virtual_dom::{Key, VComp},
-    NodeRef,
-};
+use crate::html::{AnyScope, BaseComponent, Scope, Scoped};
+use crate::virtual_dom::{Key, VComp};
+use crate::NodeRef;
 #[cfg(feature = "ssr")]
 use futures::future::{FutureExt, LocalBoxFuture};
-use std::{any::TypeId, borrow::Borrow, ops::Deref};
+use std::{any::TypeId, borrow::Borrow};
 use std::{fmt, rc::Rc};
 use web_sys::Element;
 
@@ -41,7 +39,7 @@ pub(crate) fn get_event_log(vcomp_id: u64) -> Vec<String> {
     })
 }
 
-/// A virtual component.
+/// A virtual component. Compare with [VComp].
 pub struct BComp {
     type_id: TypeId,
     scope: Box<dyn Scoped>,
@@ -50,9 +48,7 @@ pub struct BComp {
 }
 
 impl BComp {
-    pub(crate) fn root_bnode(&self) -> Option<impl Deref<Target = BNode> + '_> {
-        self.scope.root_bnode()
-    }
+    /// Get the key of the underlying component
     pub(crate) fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
@@ -60,7 +56,11 @@ impl BComp {
 
 impl fmt::Debug for BComp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "BComp {{ root: {:?} }}", self.root_bnode().as_deref())
+        write!(
+            f,
+            "BComp {{ root: {:?} }}",
+            self.scope.root_bnode().as_deref()
+        )
     }
 }
 
@@ -220,6 +220,7 @@ mod tests {
         Children, Component, Context, Html, NodeRef, Properties,
     };
     use gloo_utils::document;
+    use std::ops::Deref;
     use web_sys::Node;
 
     #[cfg(feature = "wasm_test")]
