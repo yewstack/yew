@@ -7,6 +7,12 @@
       "redirects": []
     },
     {
+      "target": "api",
+      "public": "target/doc/",
+      "cleanUrls": true,
+      "redirects": []
+    },
+    {
       "target": "examples",
       "public": "dist",
       "rewrites": [
@@ -27,5 +33,13 @@
         }
       ]
     }
-  ]
+  ],
+  "emulators": {
+    "hosting": {
+      "port": 5000
+    },
+    "ui": {
+      "enabled": true
+    }
+  }
 }
