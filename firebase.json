@@ -9,7 +9,6 @@
     {
       "target": "api",
       "public": "api-docs/dist/",
-      "cleanUrls": true,
       "redirects": []
     },
     {
