@@ -10,18 +10,7 @@
       "target": "api",
       "public": "api-docs/dist/",
       "cleanUrls": true,
-      "redirects": [
-        {
-          "source": "/next",
-          "destination": "/next/yew",
-          "type": 302
-        },
-        {
-          "source": "/",
-          "destination": "https://docs.rs/yew",
-          "type": 302
-        }
-      ]
+      "redirects": []
     },
     {
       "target": "examples",
