@@ -27,7 +27,7 @@ jobs:
           workflow: build-api-docs.yml
           run_id: ${{ github.event.workflow_run.id }}
           name: api-docs
-          path: api-docs-public/
+          path: api-docs/
 
       - if: github.event.workflow_run.event == 'pull_request'
         name: Download pr info

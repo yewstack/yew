@@ -47,7 +47,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: api-docs
-          path: api-docs-public/
+          path: api-docs/
           retention-days: 1
 
       - if: github.event_name == 'pull_request'
