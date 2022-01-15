@@ -9,7 +9,23 @@
     {
       "target": "api",
       "public": "api-docs/dist/",
-      "redirects": []
+      "redirects": [
+        {
+          "source": "/next",
+          "destination": "/next/yew",
+          "type": 302
+        },
+        {
+          "source": "/",
+          "destination": "https://docs.rs/yew",
+          "type": 302
+        },
+        {
+          "source": "/:crate",
+          "destination": "https://docs.rs/:crate",
+          "type": 302
+        }
+      ]
     },
     {
       "target": "examples",
