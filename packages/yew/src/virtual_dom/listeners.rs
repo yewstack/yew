@@ -66,7 +66,7 @@ macro_rules! gen_listener_kinds {
         /// Supported kinds of DOM event listeners
         // Using instead of strings to optimise registry collection performance by simplifying
         // hashmap hash calculation.
-        #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+        #[derive(Clone, PartialEq, Eq, Hash, Debug)]
         #[allow(non_camel_case_types)]
         #[allow(missing_docs)]
         pub enum ListenerKind {
@@ -323,7 +323,7 @@ impl Default for Listeners {
     }
 }
 
-#[derive(Clone, Copy, Hash, Eq, PartialEq, Debug)]
+#[derive(Clone, Hash, Eq, PartialEq, Debug)]
 struct EventDescriptor {
     kind: ListenerKind,
     passive: bool,
@@ -359,7 +359,10 @@ impl GlobalHandlers {
         if !self.handling.contains(&desc) {
             let cl = BODY.with(|body| {
                 let cl = Closure::wrap(
-                    Box::new(move |e: Event| Registry::handle(desc, e)) as Box<dyn Fn(Event)>
+                    Box::new({
+                        let desc = desc.clone();
+                        move |e: Event| Registry::handle(desc.clone(), e)
+                    }) as Box<dyn Fn(Event)>
                 );
                 AsRef::<web_sys::EventTarget>::as_ref(body)
                     .add_event_listener_with_callback_and_add_event_listener_options(
@@ -382,7 +385,7 @@ impl GlobalHandlers {
             #[cfg(not(test))]
             cl.forget();
             #[cfg(test)]
-            self.registered.push((desc.kind, cl));
+            self.registered.push((desc.kind.clone(), cl));
 
             self.handling.insert(desc);
         }
@@ -432,7 +435,7 @@ impl Registry {
             HashMap::<EventDescriptor, Vec<Rc<dyn Listener>>>::with_capacity(listeners.len());
         for l in listeners.iter().filter_map(|l| l.as_ref()).cloned() {
             let desc = EventDescriptor::from(l.deref());
-            self.global.ensure_handled(desc);
+            self.global.ensure_handled(desc.clone());
             by_desc.entry(desc).or_default().push(l);
         }
         self.by_id.insert(id, by_desc);
@@ -448,7 +451,7 @@ impl Registry {
 
             for l in listeners.iter().filter_map(|l| l.as_ref()).cloned() {
                 let desc = EventDescriptor::from(l.deref());
-                self.global.ensure_handled(desc);
+                self.global.ensure_handled(desc.clone());
                 by_desc.entry(desc).or_default().push(l);
             }
         }
