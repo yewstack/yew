@@ -32,7 +32,7 @@ pub trait Routable: Clone + PartialEq {
 
 /// A special route that accepts any route.
 ///
-/// This can be used with [`History`](crate::History) and [`Location`](crate::Location)
+/// This can be used with [`History`](gloo::history::History) and [`Location`](gloo::history::Location)
 /// when the type of [`Routable`] is unknown.
 #[derive(Debug, Clone, PartialEq)]
 pub struct AnyRoute {
