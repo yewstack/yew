@@ -1,0 +1,15 @@
+#unreleased-version-header {
+    background-color: rgb(77, 56, 0);
+    z-index: 400;
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    height: 70px;
+    padding-top: 10px;
+    text-align: center;
+}
+
+body {
+    padding-top: 70px !important;
+}

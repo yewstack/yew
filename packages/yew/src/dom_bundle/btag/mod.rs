@@ -2,16 +2,16 @@ mod attributes;
 mod btag_impl;
 mod listeners;
 
-/// Applies contained changes to DOM [Element]
+/// Applies contained changes to DOM [web_sys::Element]
 trait Apply {
-    /// [Element] type to apply the changes to
+    /// [web_sys::Element] subtype to apply the changes to
     type Element;
     type Bundle;
 
-    /// Apply contained values to [Element] with no ancestor
+    /// Apply contained values to [Element](Self::Element) with no ancestor
     fn apply(self, el: &Self::Element) -> Self::Bundle;
 
-    /// Apply diff between [self] and `bundle` to [Element].
+    /// Apply diff between [self] and `bundle` to [Element](Self::Element).
     fn apply_diff(self, el: &Self::Element, bundle: &mut Self::Bundle);
 }
 

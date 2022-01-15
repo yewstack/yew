@@ -286,7 +286,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     /// Send a message to the component.
     ///
     /// Please be aware that currently this method synchronously
-    /// schedules a call to the [Component](crate::html::Component) interface.
+    /// schedules a call to the [Component](crate::Component) interface.
     pub fn send_message<T>(&self, msg: T)
     where
         T: Into<COMP::Message>,
@@ -301,7 +301,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     /// function is called only once if needed.
     ///
     /// Please be aware that currently this method synchronously
-    /// schedules calls to the [Component](crate::html::Component) interface.
+    /// schedules calls to the [Component](crate::Component) interface.
     pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
         // There is no reason to schedule empty batches.
         // This check is especially handy for the batch_callback method.
@@ -316,7 +316,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     /// component's update method when invoked.
     ///
     /// Please be aware that currently the result of this callback
-    /// synchronously schedules a call to the [Component](crate::html::Component)
+    /// synchronously schedules a call to the [Component](crate::Component)
     /// interface.
     pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
     where
@@ -345,7 +345,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     ///
     /// Please be aware that currently the results of these callbacks
     /// will synchronously schedule calls to the
-    /// [Component](crate::html::Component) interface.
+    /// [Component](crate::Component) interface.
     pub fn batch_callback<F, IN, OUT>(&self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> OUT + 'static,
