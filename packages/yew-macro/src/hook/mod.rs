@@ -46,13 +46,15 @@ impl Parse for HookFn {
     }
 }
 
-fn rewrite_return_type(hook_lifetime: &Lifetime, rt_type: &ReturnType) -> TokenStream {
+fn rewrite_return_type(hook_lifetime: Option<&Lifetime>, rt_type: &ReturnType) -> TokenStream {
+    let bound = hook_lifetime.map(|m| quote! { #m + });
+
     match rt_type {
         ReturnType::Default => {
-            quote! { -> impl #hook_lifetime + ::yew::functional::Hook<Ouput = ()> }
+            quote! { -> impl #bound ::yew::functional::Hook<Ouput = ()> }
         }
         ReturnType::Type(arrow, ref return_type) => {
-            quote_spanned! { return_type.span() => #arrow impl #hook_lifetime + ::yew::functional::Hook<Output = #return_type> }
+            quote_spanned! { return_type.span() => #arrow impl #bound ::yew::functional::Hook<Output = #return_type> }
         }
     }
 }
@@ -71,7 +73,7 @@ When used in function components and hooks, this hook is equivalent to:
 {}
 ```
 "#,
-            inner.sig.to_token_stream().to_string()
+            inner.sig.to_token_stream()
         ),
         Span::mixed_site(),
     );
@@ -95,16 +97,15 @@ When used in function components and hooks, this hook is equivalent to:
     let mut lifetimes = lifetime::CollectLifetimes::new("'arg", ident.span());
     visit_mut::visit_signature_mut(&mut lifetimes, &mut sig);
 
-    let hook_lifetime = lifetime::find_available_lifetime(&lifetimes);
+    let hook_lifetime = if !lifetimes.elided.is_empty() {
+        let hook_lifetime = lifetime::find_available_lifetime(&lifetimes);
+        generics.params = {
+            let elided_lifetimes = &lifetimes.elided;
+            let params = generics.params;
 
-    generics.params = {
-        let elided_lifetimes = &lifetimes.elided;
-        let params = generics.params;
+            parse_quote!(#hook_lifetime, #(#elided_lifetimes,)* #params)
+        };
 
-        parse_quote!(#hook_lifetime, #(#elided_lifetimes,)* #params)
-    };
-
-    if !lifetimes.elided.is_empty() {
         let mut where_clause = generics
             .where_clause
             .clone()
@@ -122,9 +123,13 @@ When used in function components and hooks, this hook is equivalent to:
         }
 
         generics.where_clause = Some(where_clause);
-    }
 
-    let hook_return_type = rewrite_return_type(&hook_lifetime, &return_type);
+        Some(hook_lifetime)
+    } else {
+        None
+    };
+
+    let hook_return_type = rewrite_return_type(hook_lifetime.as_ref(), &return_type);
     let output_type = match &return_type {
         ReturnType::Default => quote! { () },
         ReturnType::Type(_, ref m) => m.clone().into_token_stream(),
