@@ -170,9 +170,6 @@ impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
                     RenderRunner {
                         state: self.state.clone(),
                     },
-                    RenderedRunner {
-                        state: self.state.clone(),
-                    },
                 );
                 // Only run from the scheduler, so no need to call `scheduler::start()`
             }
@@ -236,6 +233,14 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
 
                         let node = new_root.apply(&scope, m, next_sibling, ancestor);
                         state.node_ref.link(node);
+
+                        scheduler::push_component_rendered(
+                            self.state.as_ptr() as usize,
+                            RenderedRunner {
+                                state: self.state.clone(),
+                            },
+                            !state.has_rendered,
+                        );
                     } else {
                         #[cfg(feature = "ssr")]
                         if let Some(tx) = state.html_sender.take() {
@@ -257,9 +262,6 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
                             RenderRunner {
                                 state: shared_state.clone(),
                             },
-                            RenderedRunner {
-                                state: shared_state,
-                            },
                         );
                     } else {
                         // We schedule a render after current suspension is resumed.
@@ -275,9 +277,6 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
                             scheduler::push_component_render(
                                 shared_state.as_ptr() as usize,
                                 RenderRunner {
-                                    state: shared_state.clone(),
-                                },
-                                RenderedRunner {
                                     state: shared_state.clone(),
                                 },
                             );
