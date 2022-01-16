@@ -438,14 +438,14 @@ impl VTag {
             Listeners::None => {
                 self.set_listeners([Some(listener)].into());
                 true
-            },
+            }
             Listeners::Pending(listeners) => {
                 let mut listeners = mem::take(listeners).into_vec();
                 listeners.push(Some(listener));
 
                 self.set_listeners(listeners.into());
                 true
-            },
+            }
             Listeners::Registered(_) => false,
         }
     }
