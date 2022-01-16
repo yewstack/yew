@@ -234,12 +234,16 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
                         let node = new_root.apply(&scope, m, next_sibling, ancestor);
                         state.node_ref.link(node);
 
+                        let first_render = !state.has_rendered;
+                        state.has_rendered = true;
+
                         scheduler::push_component_rendered(
                             self.state.as_ptr() as usize,
                             RenderedRunner {
                                 state: self.state.clone(),
+                                first_render,
                             },
-                            !state.has_rendered,
+                            first_render,
                         );
                     } else {
                         #[cfg(feature = "ssr")]
@@ -300,6 +304,7 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
 
 pub(crate) struct RenderedRunner<COMP: BaseComponent> {
     pub(crate) state: Shared<Option<ComponentState<COMP>>>,
+    first_render: bool,
 }
 
 impl<COMP: BaseComponent> Runnable for RenderedRunner<COMP> {
@@ -309,9 +314,7 @@ impl<COMP: BaseComponent> Runnable for RenderedRunner<COMP> {
             crate::virtual_dom::vcomp::log_event(state.vcomp_id, "rendered");
 
             if state.suspension.is_none() && state.parent.is_some() {
-                let first_render = !state.has_rendered;
-                state.component.rendered(&state.context, first_render);
-                state.has_rendered = true;
+                state.component.rendered(&state.context, self.first_render);
             }
         }
     }
