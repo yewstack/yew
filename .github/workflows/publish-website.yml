@@ -16,7 +16,6 @@ jobs:
         run: |
           echo "build failed"
           exit 1
-
       # need to checkout to get "firebase.json", ".firebaserc"
       - uses: actions/checkout@v2
 
@@ -49,12 +48,10 @@ jobs:
           echo "PR_NUMBER=$pr_number" >> $GITHUB_ENV
           echo "PR_BRANCH=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_ENV
           echo "COMMIT_SHA=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_ENV
-
       - if: github.event.workflow_run.event == 'push'
         name: Apply push environment
         run: |
           echo "CHANNEL_ID=live" >> $GITHUB_ENV
-
       - name: Deploy to Firebase
         uses: siku2/action-hosting-deploy@v1
         with:
