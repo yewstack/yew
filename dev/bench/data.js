@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1642273386171,
+  "lastUpdate": 1642499774510,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -2070,6 +2070,115 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 34_startup-totalbytes",
             "value": "366.251953125",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "44753941+Madoshakalaka@users.noreply.github.com",
+            "name": "Matt",
+            "username": "Madoshakalaka"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6669d1873ed891bd7cd4386f2614d3db5b8da2c7",
+          "message": "Optimize CI caching and path filtering  (#2340)\n\n* fix docs.rs logo url\n\n* fix formatting\n\n* bump docusaurus to beta14\n\n* bring back the semicolon\n\n* cache npm for build-website workflow\n\n* Add prebuilt cargo-sweep binary\n\n* Optimize website CI\n\n* per-job caching, stale cache invalidation\n\n* extract fmt job as workflow\nmove website test as a prerequisite for publish\n\n* fix typo in cargo-sweep executable path\n\n* chmod +x\n\n* rename to main-checks.yml\n\n* --exclude has to be used with --workspace\n\n* revert accidental revert\n\n* Switch from cargo-sweep to rust-cache\n\n* link to this related issue of extra brackets\n\n* remove blanks\n\n* exclude website-test in main tests\n\n* rename suffixes from .mdx to .md\n\n* replace actions-rs/install with wasm-pack-action\n\nfixes #2351\n\n* shouldn't ignore .md because website snippet tests depends on .md files and there can be\n#[doc(include(\"../some.md\"))] in the code\n\n* restore accidentally deleted mdx files\n\n* include tools/website-test (for real this time)",
+          "timestamp": "2022-01-18T10:49:11+01:00",
+          "tree_id": "974de7ae1e62cfb6d3c8370754254fa8049e836e",
+          "url": "https://github.com/yewstack/yew/commit/6669d1873ed891bd7cd4386f2614d3db5b8da2c7"
+        },
+        "date": 1642499772999,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "273.51099999999997",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "261.63149999999996",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "426.261",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "82.341",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "99.186",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "34.9805",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "2827.4305000000004",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "570.9155000000001",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "253.9045",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "0.9634513854980468",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.5038375854492188",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.4615478515625",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.510845184326172",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.1291389465332031",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1730.654",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "38.529999999999994",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "365.94921875",
             "unit": ""
           }
         ]
