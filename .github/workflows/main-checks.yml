@@ -1,0 +1,183 @@
+name: Main Checks
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Run clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets -- -D warnings
+
+
+  clippy-release:
+    name: Clippy on release profile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v1
+
+
+      - name: Run clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets --release -- -D warnings
+
+
+  doc_tests:
+    name: Documentation Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+          profile: minimal
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Check spelling
+        run: |
+          sudo apt-get install aspell
+          ci/spellcheck.sh list
+
+
+      - name: Run doctest
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --doc
+
+      - name: Run website code snippet tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p website-test
+
+      - name: Run doctest - yew with features
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --doc --features doc_test --features wasm_test
+
+
+
+  integration_tests:
+    name: Integration Tests on ${{ matrix.toolchain }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        toolchain:
+          # anyway to dynamically grep the MSRV from Cargo.toml?
+          - 1.56.0 # MSRV
+          - stable
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          target: wasm32-unknown-unknown
+          override: true
+          profile: minimal
+
+      - uses: jetli/wasm-pack-action@v0.3.0
+        with:
+          version: "latest"
+
+      - uses: Swatinem/rust-cache@v1
+
+
+      - name: Run tests - yew
+        run: |
+          cd packages/yew
+          wasm-pack test --chrome --firefox --headless -- --features "wasm_test"
+
+      - name: Run tests - yew-router
+        run: |
+          cd packages/yew-router
+          wasm-pack test --chrome --firefox --headless
+
+
+  unit_tests:
+    name: Unit Tests on ${{ matrix.toolchain }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain:
+          # anyway to dynamically grep the MSRV from Cargo.toml?
+          - 1.56.0 # MSRV
+          - stable
+          - nightly
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+          profile: minimal
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-targets --workspace --exclude yew --exclude website-test
+
+
+
+  test-lints:
+    name: Test lints on nightly
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          profile: minimal
+
+      - uses: Swatinem/rust-cache@v1
+
+
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p yew-macro test_html_lints --features lints
+
