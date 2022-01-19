@@ -26,7 +26,6 @@ use self::btag::BTag;
 use self::btext::BText;
 
 pub(crate) use self::bcomp::{ComponentRenderState, Mountable, PropsWrapper, Scoped};
-pub(crate) use self::btag::{InputFields, Value};
 
 #[doc(hidden)] // Publically exported from crate::app_handle
 pub use self::app_handle::AppHandle;
@@ -49,10 +48,6 @@ trait DomBundle {
     /// (which destroys component state).
     fn shift(&self, next_parent: &Element, next_sibling: NodeRef);
 }
-
-// TODO(#938): What about implementing `VDiff` for `Element`?
-// It would make it possible to include ANY element into the tree.
-// `Ace` editor embedding for example?
 
 /// This trait provides features to update a tree by calculating a difference against another tree.
 trait Reconcilable {
@@ -137,6 +132,7 @@ macro_rules! test_log {
 #[cfg(not(all(test, feature = "wasm_test", verbose_tests)))]
 macro_rules! test_log {
     ($fmt:literal, $($arg:expr),* $(,)?) => {
+        // Only type-check the format expression, do not run any side effects
         let _ = std::format_args!(concat!("\t  ", $fmt), $($arg),*);
     };
 }

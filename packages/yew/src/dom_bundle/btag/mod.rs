@@ -15,7 +15,6 @@ trait Apply {
     fn apply_diff(self, el: &Self::Element, bundle: &mut Self::Bundle);
 }
 
-pub use attributes::{InputFields, Value};
 pub use btag_impl::BTag;
 pub use listeners::set_event_bubbling;
 

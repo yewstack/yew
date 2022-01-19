@@ -1,21 +1,87 @@
 //! This module contains the implementation of a virtual element node [VTag].
 
 use super::{AttrValue, Attributes, Key, Listener, Listeners, VList, VNode};
-use crate::{
-    dom_bundle::{InputFields, Value},
-    html::{IntoPropValue, NodeRef},
-};
-use std::borrow::Cow;
+use crate::html::{IntoPropValue, NodeRef};
 use std::cmp::PartialEq;
+use std::marker::PhantomData;
 use std::mem;
+use std::ops::Deref;
 use std::rc::Rc;
-use web_sys::HtmlTextAreaElement as TextAreaElement;
+use std::{borrow::Cow, ops::DerefMut};
+use web_sys::{HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
 
 /// SVG namespace string used for creating svg elements
 pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
 
 /// Default namespace for html elements
 pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
+
+/// Value field corresponding to an [Element]'s `value` property
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct Value<T>(Option<AttrValue>, PhantomData<T>);
+
+impl<T> Default for Value<T> {
+    fn default() -> Self {
+        Self::new(None)
+    }
+}
+
+impl<T> Value<T> {
+    /// Create a new value. The caller should take care that the value is valid for the element's `value` property
+    fn new(value: Option<AttrValue>) -> Self {
+        Value(value, PhantomData)
+    }
+    /// Set a new value. The caller should take care that the value is valid for the element's `value` property
+    fn set(&mut self, value: Option<AttrValue>) {
+        self.0 = value;
+    }
+}
+
+impl<T> Deref for Value<T> {
+    type Target = Option<AttrValue>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+/// Fields specific to
+/// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) [VTag](crate::virtual_dom::VTag)s
+#[derive(Debug, Clone, Default, Eq, PartialEq)]
+pub(crate) struct InputFields {
+    /// Contains a value of an
+    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
+    pub(crate) value: Value<InputElement>,
+    /// Represents `checked` attribute of
+    /// [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-checked).
+    /// It exists to override standard behavior of `checked` attribute, because
+    /// in original HTML it sets `defaultChecked` value of `InputElement`, but for reactive
+    /// frameworks it's more useful to control `checked` value of an `InputElement`.
+    pub(crate) checked: bool,
+}
+
+impl Deref for InputFields {
+    type Target = Value<InputElement>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.value
+    }
+}
+
+impl DerefMut for InputFields {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.value
+    }
+}
+
+impl InputFields {
+    /// Crate new attributes for an [InputElement] element
+    fn new(value: Option<AttrValue>, checked: bool) -> Self {
+        Self {
+            value: Value::new(value),
+            checked,
+        }
+    }
+}
 
 /// [VTag] fields that are specific to different [VTag] kinds.
 /// Decreases the memory footprint of [VTag] by avoiding impossible field and value combinations.
@@ -264,7 +330,7 @@ impl VTag {
     /// (Not a value of node's attribute).
     pub fn checked(&self) -> bool {
         match &self.inner {
-            VTagInner::Input(f) => f.checked(),
+            VTagInner::Input(f) => f.checked,
             _ => false,
         }
     }
@@ -274,7 +340,7 @@ impl VTag {
     /// (Not a value of node's attribute).
     pub fn set_checked(&mut self, value: bool) {
         if let VTagInner::Input(f) = &mut self.inner {
-            f.set_checked(value);
+            f.checked = value;
         }
     }
 

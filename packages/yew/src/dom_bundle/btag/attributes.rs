@@ -1,55 +1,25 @@
 use super::Apply;
-use crate::virtual_dom::{AttrValue, Attributes};
+use crate::virtual_dom::vtag::{InputFields, Value};
+use crate::virtual_dom::Attributes;
 use indexmap::IndexMap;
-use std::{
-    collections::HashMap,
-    iter,
-    marker::PhantomData,
-    ops::{Deref, DerefMut},
-};
+use std::collections::HashMap;
+use std::iter;
+use std::ops::Deref;
 use web_sys::{Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
-
-/// Value field corresponding to an [Element]'s `value` property
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Value<T: AccessValue>(Option<AttrValue>, PhantomData<T>);
-
-impl<T: AccessValue> Default for Value<T> {
-    fn default() -> Self {
-        Value(None, PhantomData)
-    }
-}
-
-impl<T: AccessValue> Value<T> {
-    /// Create a new value. The caller should take care that the value is valid for the element's `value` property
-    pub fn new(value: Option<AttrValue>) -> Self {
-        Value(value, PhantomData)
-    }
-    /// Set a new value. The caller should take care that the value is valid for the element's `value` property
-    pub fn set(&mut self, value: Option<AttrValue>) {
-        self.0 = value;
-    }
-}
-
-impl<T: AccessValue> Deref for Value<T> {
-    type Target = Option<AttrValue>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 
 impl<T: AccessValue> Apply for Value<T> {
     type Element = T;
     type Bundle = Self;
 
     fn apply(self, el: &Self::Element) -> Self {
-        if let Some(v) = &self.0 {
+        if let Some(v) = self.deref() {
             el.set_value(v);
         }
         self
     }
 
     fn apply_diff(self, el: &Self::Element, bundle: &mut Self) {
-        match (&self.0, &bundle.0) {
+        match (self.deref(), (*bundle).deref()) {
             (Some(new), Some(_)) => {
                 // Refresh value from the DOM. It might have changed.
                 if new.as_ref() != el.value() {
@@ -86,53 +56,6 @@ impl_access_value! {InputElement TextAreaElement}
 pub trait AccessValue {
     fn value(&self) -> String;
     fn set_value(&self, v: &str);
-}
-
-/// Fields specific to
-/// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) [VTag](crate::virtual_dom::VTag)s
-#[derive(Debug, Clone, Default, Eq, PartialEq)]
-pub struct InputFields {
-    /// Contains a value of an
-    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
-    value: Value<InputElement>,
-    /// Represents `checked` attribute of
-    /// [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-checked).
-    /// It exists to override standard behavior of `checked` attribute, because
-    /// in original HTML it sets `defaultChecked` value of `InputElement`, but for reactive
-    /// frameworks it's more useful to control `checked` value of an `InputElement`.
-    checked: bool,
-}
-
-impl Deref for InputFields {
-    type Target = Value<InputElement>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.value
-    }
-}
-
-impl DerefMut for InputFields {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.value
-    }
-}
-
-impl InputFields {
-    /// Crate new attributes for an [InputElement] element
-    pub fn new(value: Option<AttrValue>, checked: bool) -> Self {
-        Self {
-            value: Value::new(value),
-            checked,
-        }
-    }
-    /// Get the 'checked' attribute on the [InputElement]
-    pub fn checked(&self) -> bool {
-        self.checked
-    }
-    /// Set the 'checked' attribute on the [InputElement]
-    pub fn set_checked(&mut self, checked: bool) {
-        self.checked = checked;
-    }
 }
 
 impl Apply for InputFields {

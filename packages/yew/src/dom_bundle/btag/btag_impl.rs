@@ -1,11 +1,11 @@
 //! This module contains the bundle implementation of a tag [BTag]
 
-use super::attributes::{InputFields, Value};
 use super::listeners::ListenerRegistration;
 use super::Apply;
 use crate::dom_bundle::{insert_node, BNode, DomBundle, Reconcilable};
 use crate::html::AnyScope;
-use crate::virtual_dom::{vtag::VTagInner, vtag::SVG_NAMESPACE, Attributes, Key, VTag};
+use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, SVG_NAMESPACE};
+use crate::virtual_dom::{Attributes, Key, VTag};
 use crate::NodeRef;
 use gloo::console;
 use gloo_utils::document;
