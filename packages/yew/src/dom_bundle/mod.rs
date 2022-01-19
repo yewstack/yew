@@ -133,7 +133,7 @@ macro_rules! test_log {
 macro_rules! test_log {
     ($fmt:literal, $($arg:expr),* $(,)?) => {
         // Only type-check the format expression, do not run any side effects
-        let _ = std::format_args!(concat!("\t  ", $fmt), $($arg),*);
+        let _ = || { std::format_args!(concat!("\t  ", $fmt), $($arg),*); };
     };
 }
 /// Log an operation during tests for debugging purposes
