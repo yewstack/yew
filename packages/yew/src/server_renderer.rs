@@ -3,8 +3,8 @@ use super::*;
 use crate::html::Scope;
 
 /// A Yew Server-side Renderer.
-#[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
 #[derive(Debug)]
+#[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
 pub struct ServerRenderer<COMP>
 where
     COMP: BaseComponent,

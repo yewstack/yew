@@ -1,12 +1,282 @@
-mod bcomp_impl;
-mod lifecycle;
-mod scope;
+//! This module contains the bundle implementation of a virtual component [BComp].
 
-#[cfg(debug_assertions)]
-pub(self) use bcomp_impl::log_event;
+use super::{insert_node, BNode, DomBundle, Reconcilable};
+use crate::html::{AnyScope, BaseComponent, Scope};
+use crate::virtual_dom::{Key, VComp, VNode};
+use crate::NodeRef;
+#[cfg(feature = "ssr")]
+use futures::channel::oneshot;
+#[cfg(feature = "ssr")]
+use futures::future::{FutureExt, LocalBoxFuture};
+use gloo_utils::document;
+use std::cell::Ref;
+use std::{any::TypeId, borrow::Borrow};
+use std::{fmt, rc::Rc};
+use web_sys::{Element, Node};
 
-pub use bcomp_impl::{BComp, Mountable, PropsWrapper};
-pub use scope::{AnyScope, Scope, Scoped, SendAsMessage};
+/// A virtual component. Compare with [VComp].
+pub struct BComp {
+    type_id: TypeId,
+    scope: Box<dyn Scoped>,
+    node_ref: NodeRef,
+    key: Option<Key>,
+}
+
+impl BComp {
+    /// Get the key of the underlying component
+    pub(super) fn key(&self) -> Option<&Key> {
+        self.key.as_ref()
+    }
+}
+
+impl fmt::Debug for BComp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "BComp {{ root: {:?} }}",
+            self.scope.as_ref().render_state(),
+        )
+    }
+}
+
+impl DomBundle for BComp {
+    fn detach(self, _parent: &Element) {
+        self.scope.destroy_boxed();
+    }
+
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+        self.scope.shift_node(next_parent.clone(), next_sibling);
+    }
+}
+
+impl Reconcilable for VComp {
+    type Bundle = BComp;
+
+    fn attach(
+        self,
+        parent_scope: &AnyScope,
+        parent: &Element,
+        next_sibling: NodeRef,
+    ) -> (NodeRef, Self::Bundle) {
+        let VComp {
+            type_id,
+            mountable,
+            node_ref,
+            key,
+        } = self;
+
+        let scope = mountable.mount(
+            node_ref.clone(),
+            parent_scope,
+            parent.to_owned(),
+            next_sibling,
+        );
+
+        (
+            node_ref.clone(),
+            BComp {
+                type_id,
+                node_ref,
+                key,
+                scope,
+            },
+        )
+    }
+
+    fn reconcile(
+        self,
+        parent_scope: &AnyScope,
+        parent: &Element,
+        next_sibling: NodeRef,
+        bundle: &mut BNode,
+    ) -> NodeRef {
+        let bcomp = match bundle {
+            // If the existing bundle is the same type, reuse it and update its properties
+            BNode::BComp(ref mut bcomp)
+                if self.type_id == bcomp.type_id && self.key == bcomp.key =>
+            {
+                bcomp
+            }
+            _ => {
+                return self.replace(parent_scope, parent, next_sibling, bundle);
+            }
+        };
+        let VComp {
+            mountable,
+            node_ref,
+            key,
+            type_id: _,
+        } = self;
+        bcomp.key = key;
+        let old_ref = std::mem::replace(&mut bcomp.node_ref, node_ref.clone());
+        bcomp.node_ref.reuse(old_ref);
+        mountable.reuse(node_ref.clone(), bcomp.scope.borrow(), next_sibling);
+        node_ref
+    }
+}
+
+pub trait Mountable {
+    fn copy(&self) -> Box<dyn Mountable>;
+    fn mount(
+        self: Box<Self>,
+        node_ref: NodeRef,
+        parent_scope: &AnyScope,
+        parent: Element,
+        next_sibling: NodeRef,
+    ) -> Box<dyn Scoped>;
+    fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef);
+
+    #[cfg(feature = "ssr")]
+    fn render_to_string<'a>(
+        &'a self,
+        w: &'a mut String,
+        parent_scope: &'a AnyScope,
+    ) -> LocalBoxFuture<'a, ()>;
+}
+
+pub struct PropsWrapper<COMP: BaseComponent> {
+    props: Rc<COMP::Properties>,
+}
+
+impl<COMP: BaseComponent> PropsWrapper<COMP> {
+    pub fn new(props: Rc<COMP::Properties>) -> Self {
+        Self { props }
+    }
+}
+
+impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
+    fn copy(&self) -> Box<dyn Mountable> {
+        let wrapper: PropsWrapper<COMP> = PropsWrapper {
+            props: Rc::clone(&self.props),
+        };
+        Box::new(wrapper)
+    }
+
+    fn mount(
+        self: Box<Self>,
+        node_ref: NodeRef,
+        parent_scope: &AnyScope,
+        parent: Element,
+        next_sibling: NodeRef,
+    ) -> Box<dyn Scoped> {
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+        let initial_render_state = ComponentRenderState::new(parent, next_sibling, &node_ref);
+        scope.mount_in_place(initial_render_state, node_ref, self.props);
+
+        Box::new(scope)
+    }
+
+    fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef) {
+        let scope: Scope<COMP> = scope.to_any().downcast();
+        scope.reuse(self.props, node_ref, next_sibling);
+    }
+
+    #[cfg(feature = "ssr")]
+    fn render_to_string<'a>(
+        &'a self,
+        w: &'a mut String,
+        parent_scope: &'a AnyScope,
+    ) -> LocalBoxFuture<'a, ()> {
+        async move {
+            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+            scope.render_to_string(w, self.props.clone()).await;
+        }
+        .boxed_local()
+    }
+}
+
+pub struct ComponentRenderState {
+    root_node: BNode,
+    /// When a component has no parent, it means that it should not be rendered.
+    parent: Option<Element>,
+    next_sibling: NodeRef,
+
+    #[cfg(feature = "ssr")]
+    html_sender: Option<oneshot::Sender<VNode>>,
+}
+
+impl std::fmt::Debug for ComponentRenderState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.root_node.fmt(f)
+    }
+}
+
+impl ComponentRenderState {
+    /// Prepare a place in the DOM to hold the eventual [VNode] from rendering a component
+    pub(crate) fn new(parent: Element, next_sibling: NodeRef, node_ref: &NodeRef) -> Self {
+        let placeholder = {
+            let placeholder: Node = document().create_text_node("").into();
+            insert_node(&placeholder, &parent, next_sibling.get().as_ref());
+            node_ref.set(Some(placeholder.clone()));
+            BNode::BRef(placeholder)
+        };
+        Self {
+            root_node: placeholder,
+            parent: Some(parent),
+            next_sibling,
+            #[cfg(feature = "ssr")]
+            html_sender: None,
+        }
+    }
+    /// Set up server-side rendering of a component
+    #[cfg(feature = "ssr")]
+    pub(crate) fn new_ssr(tx: oneshot::Sender<VNode>) -> Self {
+        use super::blist::BList;
+
+        Self {
+            root_node: BNode::BList(BList::new()),
+            parent: None,
+            next_sibling: NodeRef::default(),
+            html_sender: Some(tx),
+        }
+    }
+    /// Reuse the render state, asserting a new next_sibling
+    pub(crate) fn reuse(&mut self, next_sibling: NodeRef) {
+        self.next_sibling = next_sibling;
+    }
+    /// Shift the rendered content to a new DOM position
+    pub(crate) fn shift(&mut self, new_parent: Element, next_sibling: NodeRef) {
+        self.root_node.shift(&new_parent, next_sibling.clone());
+
+        self.parent = Some(new_parent);
+        self.next_sibling = next_sibling;
+    }
+    /// Reconcile the rendered content with a new [VNode]
+    pub(crate) fn reconcile(&mut self, root: VNode, scope: &AnyScope) -> NodeRef {
+        if let Some(ref parent) = self.parent {
+            let next_sibling = self.next_sibling.clone();
+
+            root.reconcile(scope, parent, next_sibling, &mut self.root_node)
+        } else {
+            #[cfg(feature = "ssr")]
+            if let Some(tx) = self.html_sender.take() {
+                tx.send(root).unwrap();
+            }
+            NodeRef::default()
+        }
+    }
+    /// Detach the rendered content from the DOM
+    pub(crate) fn detach(self) {
+        if let Some(ref m) = self.parent {
+            self.root_node.detach(m);
+        }
+    }
+
+    pub(crate) fn should_trigger_rendered(&self) -> bool {
+        self.parent.is_some()
+    }
+}
+
+pub trait Scoped {
+    fn to_any(&self) -> AnyScope;
+    /// Get the render state if it hasn't already been destroyed
+    fn render_state(&self) -> Option<Ref<'_, ComponentRenderState>>;
+    /// Shift the node associated with this scope to a new place
+    fn shift_node(&self, parent: Element, next_sibling: NodeRef);
+    /// Process an event to destroy a component
+    fn destroy(self);
+    fn destroy_boxed(self: Box<Self>);
+}
 
 #[cfg(test)]
 mod tests {

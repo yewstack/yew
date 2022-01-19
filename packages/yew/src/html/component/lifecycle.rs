@@ -1,73 +1,49 @@
 //! Component lifecycle module
 
 use super::scope::{AnyScope, Scope};
-use crate::dom_bundle::{BNode, DomBundle, Reconcilable};
+use crate::dom_bundle::ComponentRenderState;
 use crate::html::{BaseComponent, RenderError};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{Suspense, Suspension};
-#[cfg(feature = "ssr")]
-use crate::virtual_dom::VNode;
 use crate::Callback;
 use crate::{Context, NodeRef};
-#[cfg(feature = "ssr")]
-use futures::channel::oneshot;
 use std::rc::Rc;
 use web_sys::Element;
 
 pub struct ComponentState<COMP: BaseComponent> {
     pub(super) component: Box<COMP>,
-    pub(super) root_node: BNode,
+    pub(super) render_state: ComponentRenderState,
 
     context: Context<COMP>,
-
-    /// When a component has no parent, it means that it should not be rendered.
-    parent: Option<Element>,
-
-    next_sibling: NodeRef,
     node_ref: NodeRef,
     has_rendered: bool,
 
     suspension: Option<Suspension>,
 
-    #[cfg(feature = "ssr")]
-    html_sender: Option<oneshot::Sender<VNode>>,
-
     // Used for debug logging
     #[cfg(debug_assertions)]
-    pub(super) vcomp_id: u64,
+    vcomp_id: u64,
 }
 
 impl<COMP: BaseComponent> ComponentState<COMP> {
     fn new(
-        parent: Option<Element>,
-        next_sibling: NodeRef,
-        root_node: BNode,
+        initial_render_state: ComponentRenderState,
         node_ref: NodeRef,
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
-        #[cfg(feature = "ssr")] html_sender: Option<oneshot::Sender<VNode>>,
     ) -> Self {
         #[cfg(debug_assertions)]
-        let vcomp_id = {
-            use super::scope::Scoped;
-
-            scope.to_any().vcomp_id
-        };
+        let vcomp_id = { scope.vcomp_id };
         let context = Context { scope, props };
 
         let component = Box::new(COMP::create(&context));
         Self {
             component,
-            root_node,
+            render_state: initial_render_state,
             context,
-            parent,
-            next_sibling,
             node_ref,
             suspension: None,
             has_rendered: false,
-
-            #[cfg(feature = "ssr")]
-            html_sender,
 
             #[cfg(debug_assertions)]
             vcomp_id,
@@ -76,14 +52,10 @@ impl<COMP: BaseComponent> ComponentState<COMP> {
 }
 
 pub struct CreateRunner<COMP: BaseComponent> {
-    pub(super) parent: Option<Element>,
-    pub(super) next_sibling: NodeRef,
-    pub(super) placeholder: BNode,
-    pub(super) node_ref: NodeRef,
-    pub(super) props: Rc<COMP::Properties>,
-    pub(super) scope: Scope<COMP>,
-    #[cfg(feature = "ssr")]
-    pub(super) html_sender: Option<oneshot::Sender<VNode>>,
+    pub initial_render_state: ComponentRenderState,
+    pub node_ref: NodeRef,
+    pub props: Rc<COMP::Properties>,
+    pub scope: Scope<COMP>,
 }
 
 impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
@@ -94,14 +66,10 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
             super::log_event(self.scope.vcomp_id, "create");
 
             *current_state = Some(ComponentState::new(
-                self.parent,
-                self.next_sibling,
-                self.placeholder,
+                self.initial_render_state,
                 self.node_ref,
                 self.scope.clone(),
                 self.props,
-                #[cfg(feature = "ssr")]
-                self.html_sender,
             ));
         }
     }
@@ -119,8 +87,8 @@ pub enum UpdateEvent<COMP: BaseComponent> {
 }
 
 pub struct UpdateRunner<COMP: BaseComponent> {
-    pub(super) state: Shared<Option<ComponentState<COMP>>>,
-    pub(super) event: UpdateEvent<COMP>,
+    pub state: Shared<Option<ComponentState<COMP>>>,
+    pub event: UpdateEvent<COMP>,
 }
 
 impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
@@ -137,7 +105,7 @@ impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
                     // When components are updated, a new node ref could have been passed in
                     state.node_ref = node_ref;
                     // When components are updated, their siblings were likely also updated
-                    state.next_sibling = next_sibling;
+                    state.render_state.reuse(next_sibling);
                     // Only trigger changed if props were changed
                     if state.context.props != props {
                         state.context.props = Rc::clone(&props);
@@ -146,11 +114,8 @@ impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
                         false
                     }
                 }
-                UpdateEvent::Shift(parent, next_sibling) => {
-                    state.root_node.shift(&parent, next_sibling.clone());
-
-                    state.parent = Some(parent);
-                    state.next_sibling = next_sibling;
+                UpdateEvent::Shift(new_parent, next_sibling) => {
+                    state.render_state.shift(new_parent, next_sibling);
 
                     false
                 }
@@ -179,7 +144,7 @@ impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
 }
 
 pub struct DestroyRunner<COMP: BaseComponent> {
-    pub(super) state: Shared<Option<ComponentState<COMP>>>,
+    pub state: Shared<Option<ComponentState<COMP>>>,
 }
 
 impl<COMP: BaseComponent> Runnable for DestroyRunner<COMP> {
@@ -189,17 +154,14 @@ impl<COMP: BaseComponent> Runnable for DestroyRunner<COMP> {
             super::log_event(state.vcomp_id, "destroy");
 
             state.component.destroy(&state.context);
-
-            if let Some(ref m) = state.parent {
-                state.root_node.detach(m);
-                state.node_ref.set(None);
-            }
+            state.render_state.detach();
+            state.node_ref.set(None);
         }
     }
 }
 
 pub struct RenderRunner<COMP: BaseComponent> {
-    pub(super) state: Shared<Option<ComponentState<COMP>>>,
+    pub state: Shared<Option<ComponentState<COMP>>>,
 }
 
 impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
@@ -220,20 +182,9 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
 
                         suspense.resume(m);
                     }
-
-                    if let Some(ref parent) = state.parent {
-                        let scope = state.context.scope.clone().into();
-                        let next_sibling = state.next_sibling.clone();
-
-                        let node =
-                            root.reconcile(&scope, parent, next_sibling, &mut state.root_node);
-                        state.node_ref.link(node);
-                    } else {
-                        #[cfg(feature = "ssr")]
-                        if let Some(tx) = state.html_sender.take() {
-                            tx.send(root).unwrap();
-                        }
-                    }
+                    let scope = state.context.scope.clone().into();
+                    let node = state.render_state.reconcile(root, &scope);
+                    state.node_ref.link(node);
                 }
 
                 Err(RenderError::Suspended(m)) => {
@@ -292,7 +243,7 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
 }
 
 pub struct RenderedRunner<COMP: BaseComponent> {
-    pub(super) state: Shared<Option<ComponentState<COMP>>>,
+    pub state: Shared<Option<ComponentState<COMP>>>,
 }
 
 impl<COMP: BaseComponent> Runnable for RenderedRunner<COMP> {
@@ -301,7 +252,7 @@ impl<COMP: BaseComponent> Runnable for RenderedRunner<COMP> {
             #[cfg(debug_assertions)]
             super::log_event(state.vcomp_id, "rendered");
 
-            if state.suspension.is_none() && state.parent.is_some() {
+            if state.suspension.is_none() && state.render_state.should_trigger_rendered() {
                 let first_render = !state.has_rendered;
                 state.component.rendered(&state.context, first_render);
                 state.has_rendered = true;
@@ -314,6 +265,7 @@ impl<COMP: BaseComponent> Runnable for RenderedRunner<COMP> {
 mod tests {
     extern crate self as yew;
 
+    use crate::dom_bundle::ComponentRenderState;
     use crate::html;
     use crate::html::*;
     use crate::Properties;
@@ -437,10 +389,12 @@ mod tests {
         let document = gloo_utils::document();
         let scope = Scope::<Comp>::new(None);
         let el = document.create_element("div").unwrap();
+        let node_ref = NodeRef::default();
+        let render_state = ComponentRenderState::new(el, NodeRef::default(), &node_ref);
         let lifecycle = props.lifecycle.clone();
 
         lifecycle.borrow_mut().clear();
-        scope.mount_in_place(el, NodeRef::default(), NodeRef::default(), Rc::new(props));
+        scope.mount_in_place(render_state, node_ref, Rc::new(props));
 
         assert_eq!(&lifecycle.borrow_mut().deref()[..], expected);
     }

@@ -1,8 +1,8 @@
 //! [AppHandle] contains the state Yew keeps to bootstrap a component in an isolated scope.
 
-use super::Scope;
-use super::Scoped;
-use crate::{html::BaseComponent, NodeRef};
+use super::{ComponentRenderState, Scoped};
+use crate::html::{BaseComponent, Scope};
+use crate::NodeRef;
 use std::{ops::Deref, rc::Rc};
 use web_sys::Element;
 
@@ -26,8 +26,11 @@ where
         let app = Self {
             scope: Scope::new(None),
         };
+        let node_ref = NodeRef::default();
+        let initial_render_state =
+            ComponentRenderState::new(element, NodeRef::default(), &node_ref);
         app.scope
-            .mount_in_place(element, NodeRef::default(), NodeRef::default(), props);
+            .mount_in_place(initial_render_state, node_ref, props);
 
         app
     }

@@ -4,18 +4,17 @@ use super::lifecycle::{
     ComponentState, CreateRunner, DestroyRunner, RenderRunner, RenderedRunner, UpdateEvent,
     UpdateRunner,
 };
+use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
-use crate::dom_bundle::insert_node;
+use crate::dom_bundle::{ComponentRenderState, Scoped};
 use crate::html::{BaseComponent, NodeRef};
 use crate::scheduler::{self, Shared};
-use crate::{callback::Callback, dom_bundle::BNode};
-use gloo_utils::document;
 use std::any::{Any, TypeId};
 use std::cell::{Ref, RefCell};
 use std::ops::Deref;
 use std::rc::Rc;
 use std::{fmt, iter};
-use web_sys::{Element, Node};
+use web_sys::Element;
 
 /// Untyped scope used for accessing parent scope
 #[derive(Debug, Clone)]
@@ -27,6 +26,20 @@ pub struct AnyScope {
     // Used for debug logging
     #[cfg(debug_assertions)]
     pub(super) vcomp_id: u64,
+}
+
+#[cfg(test)]
+impl AnyScope {
+    pub(crate) fn test() -> Self {
+        Self {
+            type_id: TypeId::of::<()>(),
+            parent: None,
+            state: Rc::new(()),
+
+            #[cfg(debug_assertions)]
+            vcomp_id: 0,
+        }
+    }
 }
 
 impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
@@ -43,18 +56,6 @@ impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
 }
 
 impl AnyScope {
-    #[cfg(test)]
-    pub(in crate::dom_bundle) fn test() -> Self {
-        Self {
-            type_id: TypeId::of::<()>(),
-            parent: None,
-            state: Rc::new(()),
-
-            #[cfg(debug_assertions)]
-            vcomp_id: 0,
-        }
-    }
-
     /// Returns the parent scope
     pub fn get_parent(&self) -> Option<&AnyScope> {
         self.parent.as_deref()
@@ -72,19 +73,12 @@ impl AnyScope {
             .downcast::<RefCell<Option<ComponentState<COMP>>>>()
             .expect("unexpected component type");
 
-        #[cfg(debug_assertions)]
-        let vcomp_id = state
-            .borrow()
-            .as_ref()
-            .map(|s| s.vcomp_id)
-            .unwrap_or_default();
-
         Scope {
             parent: self.parent,
             state,
 
             #[cfg(debug_assertions)]
-            vcomp_id,
+            vcomp_id: self.vcomp_id,
         }
     }
 
@@ -110,15 +104,14 @@ impl AnyScope {
     }
 }
 
-pub trait Scoped {
-    fn to_any(&self) -> AnyScope;
-    /// Got the root node if it hasn't already been destroyed
-    fn root_bnode(&self) -> Option<Ref<'_, BNode>>;
-    /// Shift the node associated with this scope to a new place
-    fn shift_node(&self, parent: Element, next_sibling: NodeRef);
-    /// Process an event to destroy a component
-    fn destroy(self);
-    fn destroy_boxed(self: Box<Self>);
+/// A context which allows sending messages to a component.
+pub struct Scope<COMP: BaseComponent> {
+    parent: Option<Rc<AnyScope>>,
+    pub(super) state: Shared<Option<ComponentState<COMP>>>,
+
+    // Used for debug logging
+    #[cfg(debug_assertions)]
+    pub(super) vcomp_id: u64,
 }
 
 impl<COMP: BaseComponent> Scoped for Scope<COMP> {
@@ -126,14 +119,14 @@ impl<COMP: BaseComponent> Scoped for Scope<COMP> {
         self.clone().into()
     }
 
-    fn root_bnode(&self) -> Option<Ref<'_, BNode>> {
+    fn render_state(&self) -> Option<Ref<'_, ComponentRenderState>> {
         let state_ref = self.state.borrow();
 
         // check that component hasn't been destroyed
         state_ref.as_ref()?;
 
         Some(Ref::map(state_ref, |state_ref| {
-            &state_ref.as_ref().unwrap().root_node
+            &state_ref.as_ref().unwrap().render_state
         }))
     }
 
@@ -153,16 +146,6 @@ impl<COMP: BaseComponent> Scoped for Scope<COMP> {
             event: UpdateEvent::Shift(parent, next_sibling),
         });
     }
-}
-
-/// A context which allows sending messages to a component.
-pub struct Scope<COMP: BaseComponent> {
-    parent: Option<Rc<AnyScope>>,
-    pub(super) state: Shared<Option<ComponentState<COMP>>>,
-
-    // Used for debug logging
-    #[cfg(debug_assertions)]
-    pub(super) vcomp_id: u64,
 }
 
 impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {
@@ -224,32 +207,18 @@ impl<COMP: BaseComponent> Scope<COMP> {
     }
 
     /// Mounts a component with `props` to the specified `element` in the DOM.
-    pub(in crate::dom_bundle) fn mount_in_place(
+    pub(crate) fn mount_in_place(
         &self,
-        parent: Element,
-        next_sibling: NodeRef,
+        initial_render_state: ComponentRenderState,
         node_ref: NodeRef,
         props: Rc<COMP::Properties>,
     ) {
-        #[cfg(debug_assertions)]
-        super::log_event(self.vcomp_id, "create placeholder");
-        let placeholder = {
-            let placeholder: Node = document().create_text_node("").into();
-            insert_node(&placeholder, &parent, next_sibling.get().as_ref());
-            node_ref.set(Some(placeholder.clone()));
-            BNode::BRef(placeholder)
-        };
-
         scheduler::push_component_create(
             CreateRunner {
-                parent: Some(parent),
-                next_sibling,
-                placeholder,
+                initial_render_state,
                 node_ref,
                 props,
                 scope: self.clone(),
-                #[cfg(feature = "ssr")]
-                html_sender: None,
             },
             RenderRunner {
                 state: self.state.clone(),
@@ -262,7 +231,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
         scheduler::start();
     }
 
-    pub(super) fn reuse(
+    pub(crate) fn reuse(
         &self,
         props: Rc<COMP::Properties>,
         node_ref: NodeRef,
@@ -372,44 +341,25 @@ impl<COMP: BaseComponent> Scope<COMP> {
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
-    use crate::dom_bundle::BList;
     use futures::channel::oneshot;
 
     impl<COMP: BaseComponent> Scope<COMP> {
-        pub(crate) async fn render_to_string(&self, w: &mut String, props: Rc<COMP::Properties>) {
+        pub(crate) async fn render_to_string(self, w: &mut String, props: Rc<COMP::Properties>) {
             let (tx, rx) = oneshot::channel();
+            let initial_render_state = ComponentRenderState::new_ssr(tx);
 
-            scheduler::push_component_create(
-                CreateRunner {
-                    parent: None,
-                    next_sibling: NodeRef::default(),
-                    placeholder: BNode::BList(BList::new()),
-                    node_ref: NodeRef::default(),
-                    props,
-                    scope: self.clone(),
-                    html_sender: Some(tx),
-                },
-                RenderRunner {
-                    state: self.state.clone(),
-                },
-                RenderedRunner {
-                    state: self.state.clone(),
-                },
-            );
-            scheduler::start();
+            self.mount_in_place(initial_render_state, NodeRef::default(), props);
 
             let html = rx.await.unwrap();
 
             let self_any_scope = self.to_any();
             html.render_to_string(w, &self_any_scope).await;
 
-            scheduler::push_component_destroy(DestroyRunner {
-                state: self.state.clone(),
-            });
-            scheduler::start();
+            self.destroy();
         }
     }
 }
+
 #[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
 #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
 mod feat_io {

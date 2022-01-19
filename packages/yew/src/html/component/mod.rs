@@ -1,20 +1,51 @@
 //! Components wrapped with context including properties, state, and link
 
 mod children;
+mod lifecycle;
 mod properties;
+mod scope;
 
 use super::{Html, HtmlResult, IntoHtmlResult};
-pub use crate::dom_bundle::{AnyScope, Scope, SendAsMessage};
 pub use children::*;
 pub use properties::*;
+pub use scope::{AnyScope, Scope, SendAsMessage};
 use std::rc::Rc;
+
+thread_local! {
+    #[cfg(debug_assertions)]
+     static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<u64, Vec<String>>>
+        = Default::default();
+}
+
+/// Push [VComp] event to lifecycle debugging registry
+#[cfg(debug_assertions)]
+pub fn log_event(vcomp_id: u64, event: impl ToString) {
+    EVENT_HISTORY.with(|h| {
+        h.borrow_mut()
+            .entry(vcomp_id)
+            .or_default()
+            .push(event.to_string())
+    });
+}
+
+/// Get [VComp] event log from lifecycle debugging registry
+#[cfg(debug_assertions)]
+#[allow(dead_code)]
+pub fn get_event_log(vcomp_id: u64) -> Vec<String> {
+    EVENT_HISTORY.with(|h| {
+        h.borrow()
+            .get(&vcomp_id)
+            .map(|l| (*l).clone())
+            .unwrap_or_default()
+    })
+}
 
 /// The [`Component`]'s context. This contains component's [`Scope`] and and props and
 /// is passed to every lifecycle method.
 #[derive(Debug)]
 pub struct Context<COMP: BaseComponent> {
-    pub(crate) scope: Scope<COMP>,
-    pub(crate) props: Rc<COMP::Properties>,
+    scope: Scope<COMP>,
+    props: Rc<COMP::Properties>,
 }
 
 impl<COMP: BaseComponent> Context<COMP> {
