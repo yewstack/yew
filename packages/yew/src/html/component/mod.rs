@@ -17,9 +17,9 @@ thread_local! {
         = Default::default();
 }
 
-/// Push [VComp] event to lifecycle debugging registry
+/// Push [Component] event to lifecycle debugging registry
 #[cfg(debug_assertions)]
-pub fn log_event(vcomp_id: u64, event: impl ToString) {
+pub(crate) fn log_event(vcomp_id: u64, event: impl ToString) {
     EVENT_HISTORY.with(|h| {
         h.borrow_mut()
             .entry(vcomp_id)
@@ -28,10 +28,10 @@ pub fn log_event(vcomp_id: u64, event: impl ToString) {
     });
 }
 
-/// Get [VComp] event log from lifecycle debugging registry
+/// Get [Component] event log from lifecycle debugging registry
 #[cfg(debug_assertions)]
 #[allow(dead_code)]
-pub fn get_event_log(vcomp_id: u64) -> Vec<String> {
+pub(crate) fn get_event_log(vcomp_id: u64) -> Vec<String> {
     EVENT_HISTORY.with(|h| {
         h.borrow()
             .get(&vcomp_id)
