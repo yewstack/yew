@@ -33,6 +33,13 @@ module.exports = {
           label: 'Docs',
         },
         {
+          docsPluginId: 'community',
+          type: 'doc',
+          position: 'left',
+          docId: 'awesome',
+          label: 'Community',
+        },
+        {
           href: 'https://docs.rs/yew',
           position: 'right',
           label: 'API',
@@ -106,11 +113,22 @@ module.exports = {
         customCss: require.resolve('./src/css/custom.css'),
       }
     ],
-    ['content-docs',
+    [
+      '@docusaurus/plugin-content-docs',
       {
-        sidebarPath: require.resolve('./sidebars.js'),
+        path: 'docs',
+        sidebarPath: require.resolve('./sidebars/docs.js'),
         editUrl: 'https://github.com/yewstack/yew/blob/master/website/',
         routeBasePath: '/docs',
+      }
+    ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'community',
+        path: 'community',
+        sidebarPath: require.resolve('./sidebars/community.js'),
+        routeBasePath: '/community',
       }
     ],
     [
