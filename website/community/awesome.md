@@ -3,18 +3,6 @@ title: "Awesome Yew"
 description: "Community projects built using yew"
 ---
 
-## Official
-
-- [Yew](https://github.com/yewstack/yew) - Rust / WebAssembly framework for building client web apps.
-- [Live demo](https://yew-todomvc.netlify.com) - A todomvc demo.
-- [Examples](https://github.com/yewstack/yew/tree/master/examples) - Smaller examples included in official repo.
-- [API Docs](https://docs.rs/yew) - Docs on docs.rs.
-- [Website](https://yew.rs/) - Official website.
-- [Chatroom](https://discord.gg/VQck8X4) - It is pretty active and is a great place to ask questions.
-- [Reddit](https://www.reddit.com/r/yew_web/) - Dedicated Sub Reddit.
-- [Financial Contribute](https://opencollective.com/yew) - Become a financial contributor and help us sustain our community.
-- [Yewtify](https://github.com/yewstack/yewtify) - Vuetify components for Yew Framework.
-
 ## Projects
 
 - [Realworld example](https://github.com/jetli/rust-yew-realworld-example-app) - Exemplary real world app built with Rust + Yew + WebAssembly.
