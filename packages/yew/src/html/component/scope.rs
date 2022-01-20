@@ -141,10 +141,10 @@ impl<COMP: BaseComponent> Scoped for Scope<COMP> {
     }
 
     fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
-        scheduler::push_component_update(UpdateRunner {
-            state: self.state.clone(),
-            event: UpdateEvent::Shift(parent, next_sibling),
-        });
+        let mut state_ref = self.state.borrow_mut();
+        if let Some(render_state) = state_ref.as_mut() {
+            render_state.render_state.shift(parent, next_sibling)
+        }
     }
 }
 
@@ -174,12 +174,11 @@ impl<COMP: BaseComponent> Scope<COMP> {
 
     /// Returns the linked component if available
     pub fn get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
-        self.state.try_borrow().ok().and_then(|state_ref| {
-            state_ref.as_ref()?;
-            Some(Ref::map(state_ref, |state| {
-                state.as_ref().unwrap().component.as_ref()
-            }))
-        })
+        let state_ref = self.state.try_borrow().ok()?;
+        state_ref.as_ref()?;
+        Some(Ref::map(state_ref, |state| {
+            state.as_ref().unwrap().component.as_ref()
+        }))
     }
 
     /// Crate a scope with an optional parent scope

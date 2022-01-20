@@ -77,10 +77,10 @@ impl<'s> NodeWriter<'s> {
     }
 }
 /// Helper struct implementing [Eq] and [Hash] by only looking at a node's key
-struct KeyedEntry(BNode, usize);
+struct KeyedEntry(usize, BNode);
 impl Borrow<Key> for KeyedEntry {
     fn borrow(&self) -> &Key {
-        self.0.key().expect("unkeyed child in fully keyed list")
+        self.1.key().expect("unkeyed child in fully keyed list")
     }
 }
 impl Hash for KeyedEntry {
@@ -241,7 +241,7 @@ impl BList {
         let mut spare_bundles: HashSet<KeyedEntry> =
             HashSet::with_capacity((matching_len_end..rights_to).len());
         for (idx, r) in (&mut spliced_middle).enumerate() {
-            spare_bundles.insert(KeyedEntry(r, idx));
+            spare_bundles.insert(KeyedEntry(idx, r));
         }
 
         // Step 2.2. Put the middle part back together in the new key order
@@ -254,7 +254,7 @@ impl BList {
             .rev()
         {
             let bundle = match spare_bundles.take(key!(l)) {
-                Some(KeyedEntry(mut r_bundle, idx)) => {
+                Some(KeyedEntry(idx, mut r_bundle)) => {
                     if idx < max_seen_idx {
                         writer.shift(&mut r_bundle);
                     }
@@ -275,7 +275,7 @@ impl BList {
         rev_bundles.splice(matching_len_end..matching_len_end, replacements);
 
         // Step 2.3. Remove any extra rights
-        for KeyedEntry(r, _) in spare_bundles.drain() {
+        for KeyedEntry(_, r) in spare_bundles.drain() {
             test_log!("removing: {:?}", r);
             r.detach(parent);
         }

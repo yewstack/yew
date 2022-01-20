@@ -8,7 +8,6 @@ use crate::suspense::{Suspense, Suspension};
 use crate::Callback;
 use crate::{Context, NodeRef};
 use std::rc::Rc;
-use web_sys::Element;
 
 pub struct ComponentState<COMP: BaseComponent> {
     pub(super) component: Box<COMP>,
@@ -82,8 +81,6 @@ pub enum UpdateEvent<COMP: BaseComponent> {
     MessageBatch(Vec<COMP::Message>),
     /// Wraps properties, node ref, and next sibling for a component.
     Properties(Rc<COMP::Properties>, NodeRef, NodeRef),
-    /// Shift Scope.
-    Shift(Element, NodeRef),
 }
 
 pub struct UpdateRunner<COMP: BaseComponent> {
@@ -113,11 +110,6 @@ impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
                     } else {
                         false
                     }
-                }
-                UpdateEvent::Shift(new_parent, next_sibling) => {
-                    state.render_state.shift(new_parent, next_sibling);
-
-                    false
                 }
             };
 
