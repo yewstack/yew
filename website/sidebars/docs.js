@@ -115,7 +115,6 @@ module.exports = {
       },
       items: [
         "more/debugging",
-        "more/external-libs",
         "more/css",
         "more/testing",
         "more/roadmap",
