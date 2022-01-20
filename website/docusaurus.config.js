@@ -1,3 +1,5 @@
+const { API_BUTTON } = require('website/src/constants');
+
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
   title: 'Yew',
@@ -42,7 +44,7 @@ module.exports = {
         {
           href: 'https://docs.rs/yew',
           position: 'right',
-          label: 'API',
+          label: API_BUTTON,
         },
         {
           href: 'https://github.com/yewstack/yew',
