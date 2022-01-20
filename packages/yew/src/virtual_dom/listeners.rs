@@ -525,7 +525,6 @@ mod tests {
     use crate::{html, html::TargetCast, AppHandle, Component, Context, Html};
     use gloo_utils::document;
     use wasm_bindgen::JsCast;
-    use wasm_bindgen_futures::JsFuture;
 
     #[derive(Clone)]
     enum Message {
@@ -653,37 +652,6 @@ mod tests {
         link.send_message(Message::StopListening);
         el.click();
         assert_count(&el, 2);
-    }
-
-    async fn await_animation_frame() {
-        JsFuture::from(js_sys::Promise::new(&mut |resolve, _| {
-            gloo_utils::window()
-                .request_animation_frame(&resolve)
-                .unwrap();
-        }))
-        .await
-        .unwrap();
-    }
-
-    async fn assert_async<M: Mixin + 'static>() {
-        let (link, el) = init::<M>("a");
-
-        macro_rules! assert_after_click {
-            ($c:expr) => {
-                el.click();
-                await_animation_frame().await;
-                assert_count(&el, $c);
-            };
-        }
-
-        assert_count(&el, 0);
-
-        assert_after_click!(1);
-
-        assert_after_click!(2);
-
-        link.send_message(Message::StopListening);
-        assert_after_click!(2);
     }
 
     #[test]
