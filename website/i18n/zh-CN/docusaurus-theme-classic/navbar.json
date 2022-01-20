@@ -18,5 +18,13 @@
   "item.label.Community": {
     "message": "Community",
     "description": "Navbar item with label Community"
+  },
+  "item.label.Tutorial": {
+    "message": "Tutorial",
+    "description": "Navbar item with label Tutorial"
+  },
+  "item.label.Blog": {
+    "message": "Blog",
+    "description": "Navbar item with label Blog"
   }
 }
