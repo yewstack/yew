@@ -1,3 +1,7 @@
+const { API_BUTTON } = require('./src/constants');
+
+const editUrl = 'https://github.com/yewstack/yew/blob/master/website/';
+
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
   title: 'Yew',
@@ -33,16 +37,27 @@ module.exports = {
           label: 'Docs',
         },
         {
-          docsPluginId: 'community',
           type: 'doc',
           position: 'left',
+          docId: 'tutorial/index',
+          label: 'Tutorial',
+        },
+        {
+          docsPluginId: 'community',
+          type: 'doc',
+          position: 'right',
           docId: 'awesome',
           label: 'Community',
         },
         {
+          position: 'right',
+          to: 'blog',
+          label: 'Blog',
+        },
+        {
           href: 'https://docs.rs/yew',
           position: 'right',
-          label: 'API',
+          label: API_BUTTON,
         },
         {
           href: 'https://github.com/yewstack/yew',
@@ -118,7 +133,7 @@ module.exports = {
       {
         path: 'docs',
         sidebarPath: require.resolve('./sidebars/docs.js'),
-        editUrl: 'https://github.com/yewstack/yew/blob/master/website/',
+        editUrl,
         routeBasePath: '/docs',
       }
     ],
@@ -129,7 +144,16 @@ module.exports = {
         path: 'community',
         sidebarPath: require.resolve('./sidebars/community.js'),
         routeBasePath: '/community',
+        editUrl,
       }
+    ],
+    [
+      '@docusaurus/plugin-content-blog',
+      {
+        path: 'blog',
+        blogTitle: 'Yew Blog',
+        editUrl,
+      },
     ],
     [
       'client-redirects',
