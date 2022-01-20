@@ -1,1 +1,3 @@
-export const API_BUTTON = 'API'
+module.exports = {
+    API_BUTTON: 'API'
+}

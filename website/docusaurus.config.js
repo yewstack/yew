@@ -1,4 +1,4 @@
-const { API_BUTTON } = require('website/src/constants');
+const { API_BUTTON } = require('./src/constants');
 
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
