@@ -9,7 +9,7 @@ const regex = /\/docs\/(0.([0-9]+)(\.[0-9]+)?|next)?/;
 const useVersion = () => {
     const location = useLocation();
     const match = location.pathname.match(regex)
-    return match[1] ?? ''
+    return match ? match[1] ?? '' : ''
 }
 
 export default function DefaultNavbarItem(props) {

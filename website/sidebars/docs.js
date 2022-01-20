@@ -141,6 +141,5 @@ module.exports = {
         },
       ],
     },
-    "tutorial",
   ],
 };

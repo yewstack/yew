@@ -1,3 +1,3 @@
 module.exports = {
-    API_BUTTON: 'API'
+    API_BUTTON: 'API',
 }

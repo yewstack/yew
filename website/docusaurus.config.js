@@ -1,4 +1,4 @@
-const { API_BUTTON } = require('./src/constants');
+const { API_BUTTON, TUTORIAL_LABEL } = require('./src/constants');
 
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
@@ -35,9 +35,15 @@ module.exports = {
           label: 'Docs',
         },
         {
-          docsPluginId: 'community',
           type: 'doc',
           position: 'left',
+          docId: 'tutorial',
+          label: 'Tutorial',
+        },
+        {
+          docsPluginId: 'community',
+          type: 'doc',
+          position: 'right',
           docId: 'awesome',
           label: 'Community',
         },
