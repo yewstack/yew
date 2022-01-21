@@ -372,14 +372,18 @@ impl VTag {
     /// Add event listener on the [VTag]'s  [Element](web_sys::Element).
     /// Returns `true` if the listener has been added, `false` otherwise.
     pub fn add_listener(&mut self, listener: Rc<dyn Listener>) -> bool {
-        if let Listeners::Pending(listeners) = &mut self.listeners {
-            let mut listeners = mem::take(listeners).into_vec();
-            listeners.push(Some(listener));
+        match &mut self.listeners {
+            Listeners::None => {
+                self.set_listeners([Some(listener)].into());
+                true
+            }
+            Listeners::Pending(listeners) => {
+                let mut listeners = mem::take(listeners).into_vec();
+                listeners.push(Some(listener));
 
-            self.set_listeners(listeners.into_boxed_slice());
-            true
-        } else {
-            false
+                self.set_listeners(listeners.into());
+                true
+            }
         }
     }
 
