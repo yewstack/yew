@@ -124,6 +124,7 @@ pub fn classes(input: TokenStream) -> TokenStream {
     TokenStream::from(classes.into_token_stream())
 }
 
+#[proc_macro_error::proc_macro_error]
 #[proc_macro_attribute]
 pub fn function_component(attr: TokenStream, item: TokenStream) -> proc_macro::TokenStream {
     let item = parse_macro_input!(item as FunctionComponent);

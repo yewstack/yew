@@ -1,0 +1,29 @@
+error: hooks cannot be called at this position.
+ --> tests/function_component_attr/hook_location-fail.rs:9:9
+  |
+9 |         use_context::<Ctx>().unwrap();
+  |         ^^^^^^^^^^^
+
+error: hooks cannot be called at this position.
+  --> tests/function_component_attr/hook_location-fail.rs:14:9
+   |
+14 |         use_context::<Ctx>().unwrap();
+   |         ^^^^^^^^^^^
+
+error: hooks cannot be called at this position.
+  --> tests/function_component_attr/hook_location-fail.rs:19:9
+   |
+19 |         use_context::<Ctx>().unwrap();
+   |         ^^^^^^^^^^^
+
+error: hooks cannot be called at this position.
+  --> tests/function_component_attr/hook_location-fail.rs:23:20
+   |
+23 |         Some(_) => use_context::<Ctx>(),
+   |                    ^^^^^^^^^^^
+
+error: hooks cannot be called at this position.
+  --> tests/function_component_attr/hook_location-fail.rs:30:9
+   |
+30 |         use_context::<Ctx>().unwrap();
+   |         ^^^^^^^^^^^

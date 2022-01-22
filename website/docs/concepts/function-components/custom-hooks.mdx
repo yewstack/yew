@@ -39,13 +39,15 @@ If we build another component which keeps track of the an event,
 instead of copying the code we can move the logic into a custom hook.
 
 We'll start by creating a new function called `use_event`.
-The `use_` prefix conventionally denotes that a function is a hook.
+The `use_` prefix denotes that a function is a hook.
 This function will take an event target, a event type and a callback.
+All hooks must be marked by `#[hook]` to function as as hook.
 ```rust
 use web_sys::{Event, EventTarget};
 use std::borrow::Cow;
 use gloo::events::EventListener;
 
+#[hook]
 pub fn use_event<E, F>(target: &EventTarget, event_type: E, callback: F)
 where
     E: Into<Cow<'static, str>>,
@@ -65,6 +67,7 @@ use std::borrow::Cow;
 use std::rc::Rc;
 use gloo::events::EventListener;
 
+#[hook]
 pub fn use_event<E, F>(target: &EventTarget, event_type: E, callback: F)
 where
     E: Into<Cow<'static, str>>,

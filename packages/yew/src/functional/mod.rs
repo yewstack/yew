@@ -185,6 +185,7 @@ where
     fn view(&self, ctx: &Context<Self>) -> HtmlResult {
         let props = ctx.props();
         let mut ctx = self.hook_ctx.borrow_mut();
+        ctx.counter = 0;
         T::run(&mut *ctx, props)
     }
 

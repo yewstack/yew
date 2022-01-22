@@ -40,6 +40,11 @@ The `#[function_component]` attribute is a procedural macro which automatically 
 Hooks are functions that let you "hook into" components' state and/or lifecycle and perform
 actions. Yew comes with a few pre-defined Hooks. You can also create your own.
 
+Hooks can only be used at the following locations:
+- Top level of a function / hook.
+- If condition of a function / hook given it's not branched.
+- Blocks inside a function / hook given it's not branched.
+
 #### Pre-defined Hooks
 
 Yew comes with the following predefined Hooks:

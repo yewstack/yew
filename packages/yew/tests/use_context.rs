@@ -14,9 +14,9 @@ fn use_context_scoping_works() {
 
     #[function_component]
     fn ExpectNoContextComponent() -> Html {
-        let example_context = use_context::<ExampleContext>().unwrap();
+        let example_context = use_context::<ExampleContext>();
 
-        if use_context::<ExampleContext>().is_some() {
+        if example_context.is_some() {
             console_log!(
                 "Context should be None here, but was {:?}!",
                 example_context
