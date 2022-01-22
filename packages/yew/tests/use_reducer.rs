@@ -43,13 +43,13 @@ fn use_reducer_works() {
             },
             (),
         );
-        Ok(html! {
+        html! {
             <div>
                 {"The test result is"}
                 <div id="result">{counter.counter}</div>
                 {"\n"}
             </div>
-        })
+        }
     }
 
     yew::start_app_in_element::<UseReducerComponent>(
@@ -99,7 +99,7 @@ fn use_reducer_eq_works() {
 
         let add_content_b = Callback::from(move |_| content.dispatch("B".to_string()));
 
-        Ok(html! {
+        html! {
             <>
                 <div>
                     {"This component has been rendered: "}<span id="result">{render_count}</span>{" Time(s)."}
@@ -107,7 +107,7 @@ fn use_reducer_eq_works() {
                 <button onclick={add_content_a} id="add-a">{"Add A to Content"}</button>
                 <button onclick={add_content_b} id="add-b">{"Add B to Content"}</button>
             </>
-        })
+        }
     }
 
     yew::start_app_in_element::<UseReducerComponent>(

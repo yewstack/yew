@@ -17,13 +17,13 @@ fn use_ref_works() {
         if *counter < 5 {
             counter.set(*counter + 1)
         }
-        Ok(html! {
+        html! {
             <div>
                 {"The test output is: "}
                 <div id="result">{*ref_example.borrow_mut().deref_mut() > 4}</div>
                 {"\n"}
             </div>
-        })
+        }
     }
 
     yew::start_app_in_element::<UseRefComponent>(

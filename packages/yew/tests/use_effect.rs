@@ -42,7 +42,7 @@ fn use_effect_destroys_on_component_drop() {
             },
             (),
         );
-        Ok(html! {})
+        html! {}
     }
 
     #[function_component(UseEffectWrapperComponent)]
@@ -50,13 +50,13 @@ fn use_effect_destroys_on_component_drop() {
         let show = use_state(|| true);
         if *show {
             let effect_called: Rc<dyn Fn()> = { Rc::new(move || show.set(false)) };
-            Ok(html! {
+            html! {
                 <UseEffectComponent destroy_called={props.destroy_called.clone()} {effect_called} />
-            })
+            }
         } else {
-            Ok(html! {
+            html! {
                 <div>{ "EMPTY" }</div>
-            })
+            }
         }
     }
 
@@ -88,13 +88,13 @@ fn use_effect_works_many_times() {
             *counter,
         );
 
-        Ok(html! {
+        html! {
             <div>
                 { "The test result is" }
                 <div id="result">{ *counter }</div>
                 { "\n" }
             </div>
-        })
+        }
     }
 
     yew::start_app_in_element::<UseEffectComponent>(
@@ -119,13 +119,13 @@ fn use_effect_works_once() {
             (),
         );
 
-        Ok(html! {
+        html! {
             <div>
                 { "The test result is" }
                 <div id="result">{ *counter }</div>
                 { "\n" }
             </div>
-        })
+        }
     }
 
     yew::start_app_in_element::<UseEffectComponent>(
@@ -163,13 +163,13 @@ fn use_effect_refires_on_dependency_change() {
             },
             arg,
         );
-        Ok(html! {
+        html! {
             <div>
                 {"The test result is"}
                 <div id="result">{*number_ref.borrow_mut().deref_mut()}{*number_ref2.borrow_mut().deref_mut()}</div>
                 {"\n"}
             </div>
-        })
+        }
     }
 
     yew::start_app_in_element::<UseEffectComponent>(

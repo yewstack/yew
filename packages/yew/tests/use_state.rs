@@ -8,19 +8,19 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
 fn use_state_works() {
-    #[function_component(UseStateComponent)]
+    #[function_component(UseComponent)]
     fn use_state_comp() -> Html {
         let counter = use_state(|| 0);
         if *counter < 5 {
             counter.set(*counter + 1)
         }
-        return Ok(html! {
+        html! {
             <div>
                 {"Test Output: "}
                 <div id="result">{*counter}</div>
                 {"\n"}
             </div>
-        });
+        }
     }
 
     yew::start_app_in_element::<UseComponent>(
@@ -32,7 +32,7 @@ fn use_state_works() {
 
 #[wasm_bindgen_test]
 fn multiple_use_state_setters() {
-    #[function_component(UseStateComponent)]
+    #[function_component(UseComponent)]
     fn use_state_comp() -> Html {
         let counter = use_state(|| 0);
         let counter_clone = counter.clone();
@@ -54,14 +54,14 @@ fn multiple_use_state_setters() {
             }
         };
         another_scope();
-        Ok(html! {
+        html! {
             <div>
                 { "Test Output: " }
                 // expected output
                 <div id="result">{ *counter }</div>
                 { "\n" }
             </div>
-        })
+        }
     }
 
     yew::start_app_in_element::<UseComponent>(
@@ -76,19 +76,19 @@ fn use_state_eq_works() {
     use std::sync::atomic::{AtomicUsize, Ordering};
     static RENDER_COUNT: AtomicUsize = AtomicUsize::new(0);
 
-    #[function_component(UseStateComponent)]
+    #[function_component(UseComponent)]
     fn use_state_comp() -> Html {
         RENDER_COUNT.fetch_add(1, Ordering::Relaxed);
         let counter = use_state_eq(|| 0);
         counter.set(1);
 
-        Ok(html! {
+        html! {
             <div>
                 {"Test Output: "}
                 <div id="result">{*counter}</div>
                 {"\n"}
             </div>
-        })
+        }
     }
 
     yew::start_app_in_element::<UseComponent>(

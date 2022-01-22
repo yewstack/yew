@@ -20,15 +20,15 @@ fn use_context_scoping_works() {
                 use_context::<ExampleContext>().unwrap()
             );
         };
-        Ok(html! {
+        html! {
             <div></div>
-        })
+        }
     }
 
     #[function_component]
     fn UseContextComponent() -> Html {
         type ExampleContextProvider = ContextProvider<ExampleContext>;
-        Ok(html! {
+        html! {
             <div>
                 <ExampleContextProvider context={ExampleContext("wrong1".into())}>
                     <div>{"ignored"}</div>
@@ -46,15 +46,15 @@ fn use_context_scoping_works() {
                 </ExampleContextProvider>
                 <ExpectNoContextComponent />
             </div>
-        })
+        }
     }
 
     #[function_component]
     fn UseContextComponentInner() -> Html {
         let context = use_context::<ExampleContext>();
-        Ok(html! {
+        html! {
             <div id="result">{ &context.unwrap().0 }</div>
-        })
+        }
     }
 
     yew::start_app_in_element::<UseContextComponent>(
@@ -73,10 +73,10 @@ fn use_context_works_with_multiple_types() {
 
     #[function_component]
     fn Test1() -> Html {
-        assert_eq!(use_context::<ContextA>(), Some(ContextA(0)));
+        assert_eq!(use_context::<ContextA>(), Some(ContextA(2)));
         assert_eq!(use_context::<ContextB>(), Some(ContextB(1)));
 
-        Ok(html! {})
+        html! {}
     }
 
     #[function_component]
@@ -84,7 +84,7 @@ fn use_context_works_with_multiple_types() {
         assert_eq!(use_context::<ContextA>(), Some(ContextA(0)));
         assert_eq!(use_context::<ContextB>(), Some(ContextB(1)));
 
-        Ok(html! {})
+        html! {}
     }
 
     #[function_component]
@@ -92,7 +92,7 @@ fn use_context_works_with_multiple_types() {
         assert_eq!(use_context::<ContextA>(), Some(ContextA(0)));
         assert_eq!(use_context::<ContextB>(), None);
 
-        Ok(html! {})
+        html! {}
     }
 
     #[function_component]
@@ -100,7 +100,7 @@ fn use_context_works_with_multiple_types() {
         assert_eq!(use_context::<ContextA>(), None);
         assert_eq!(use_context::<ContextB>(), None);
 
-        Ok(html! {})
+        html! {}
     }
 
     #[function_component]
@@ -108,7 +108,7 @@ fn use_context_works_with_multiple_types() {
         type ContextAProvider = ContextProvider<ContextA>;
         type ContextBProvider = ContextProvider<ContextB>;
 
-        Ok(html! {
+        html! {
             <div>
                 <ContextAProvider context={ContextA(0)}>
                     <ContextBProvider context={ContextB(1)}>
@@ -121,7 +121,7 @@ fn use_context_works_with_multiple_types() {
                 </ContextAProvider>
                 <Test4 />
             </div>
-        })
+        }
     }
 
     yew::start_app_in_element::<TestComponent>(
@@ -144,14 +144,14 @@ fn use_context_update_works() {
     fn RenderCounter(props: &RenderCounterProps) -> Html {
         let counter = use_mut_ref(|| 0);
         *counter.borrow_mut() += 1;
-        Ok(html! {
+        html! {
             <>
                 <div id={props.id.clone()}>
                     { format!("total: {}", counter.borrow()) }
                 </div>
                 { props.children.clone() }
             </>
-        })
+        }
     }
 
     #[derive(Clone, Debug, PartialEq, Properties)]
@@ -168,14 +168,14 @@ fn use_context_update_works() {
 
         let ctx = use_context::<Rc<MyContext>>().expect("context not passed down");
 
-        Ok(html! {
+        html! {
             <>
                 <div>{ format!("magic: {}\n", props.magic) }</div>
                 <div id={props.id.clone()}>
                     { format!("current: {}, total: {}", ctx.0, counter.borrow()) }
                 </div>
             </>
-        })
+        }
     }
 
     #[function_component]
@@ -211,14 +211,14 @@ fn use_context_update_works() {
                 || {}
             });
         }
-        Ok(html! {
+        html! {
             <MyContextProvider context={Rc::new((*ctx).clone())}>
                 <RenderCounter id="test-0">
                     <ContextOutlet id="test-1"/>
                     <ContextOutlet id="test-2" {magic}/>
                 </RenderCounter>
             </MyContextProvider>
-        })
+        }
     }
 
     yew::start_app_in_element::<TestComponent>(
