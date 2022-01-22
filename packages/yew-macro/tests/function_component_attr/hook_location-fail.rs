@@ -19,6 +19,10 @@ fn Comp() -> Html {
         use_context::<Ctx>().unwrap();
     }
 
+    while let Some(_m) = use_context::<Ctx>() {
+        use_context::<Ctx>().unwrap();
+    }
+
     match use_context::<Ctx>() {
         Some(_) => use_context::<Ctx>(),
         None => {

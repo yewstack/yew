@@ -17,13 +17,25 @@ error: hooks cannot be called at this position.
    |         ^^^^^^^^^^^
 
 error: hooks cannot be called at this position.
-  --> tests/function_component_attr/hook_location-fail.rs:23:20
+  --> tests/function_component_attr/hook_location-fail.rs:22:26
    |
-23 |         Some(_) => use_context::<Ctx>(),
+22 |     while let Some(_m) = use_context::<Ctx>() {
+   |                          ^^^^^^^^^^^
+
+error: hooks cannot be called at this position.
+  --> tests/function_component_attr/hook_location-fail.rs:23:9
+   |
+23 |         use_context::<Ctx>().unwrap();
+   |         ^^^^^^^^^^^
+
+error: hooks cannot be called at this position.
+  --> tests/function_component_attr/hook_location-fail.rs:27:20
+   |
+27 |         Some(_) => use_context::<Ctx>(),
    |                    ^^^^^^^^^^^
 
 error: hooks cannot be called at this position.
-  --> tests/function_component_attr/hook_location-fail.rs:30:9
+  --> tests/function_component_attr/hook_location-fail.rs:34:9
    |
-30 |         use_context::<Ctx>().unwrap();
+34 |         use_context::<Ctx>().unwrap();
    |         ^^^^^^^^^^^
