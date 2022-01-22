@@ -58,12 +58,10 @@ pub fn push(runnable: Box<dyn Runnable>) {
 pub(crate) fn push_component_create(
     create: impl Runnable + 'static,
     first_render: impl Runnable + 'static,
-    first_rendered: impl Runnable + 'static,
 ) {
     with(|s| {
         s.create.push(Box::new(create));
         s.render_first.push_back(Box::new(first_render));
-        s.rendered_first.push(Box::new(first_rendered));
     });
 }
 
@@ -73,14 +71,25 @@ pub(crate) fn push_component_destroy(runnable: impl Runnable + 'static) {
 }
 
 /// Push a component render and rendered [Runnable]s to be executed
-pub(crate) fn push_component_render(
-    component_id: usize,
-    render: impl Runnable + 'static,
-    rendered: impl Runnable + 'static,
-) {
+pub(crate) fn push_component_render(component_id: usize, render: impl Runnable + 'static) {
     with(|s| {
         s.render.schedule(component_id, Box::new(render));
-        s.rendered.schedule(component_id, Box::new(rendered));
+    });
+}
+
+pub(crate) fn push_component_rendered(
+    component_id: usize,
+    rendered: impl Runnable + 'static,
+    first_render: bool,
+) {
+    with(|s| {
+        let rendered = Box::new(rendered);
+
+        if first_render {
+            s.rendered_first.push(rendered);
+        } else {
+            s.rendered.schedule(component_id, rendered);
+        }
     });
 }
 
