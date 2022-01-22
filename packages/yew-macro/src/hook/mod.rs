@@ -4,7 +4,7 @@ use quote::quote;
 use quote::ToTokens;
 use syn::parse::{Parse, ParseStream};
 use syn::visit_mut;
-use syn::{Ident, ItemFn, LitStr, Signature};
+use syn::{Ident, ItemFn, LitStr, ReturnType, Signature};
 
 mod body;
 mod lifetime;
@@ -104,10 +104,18 @@ When used in function components and hooks, this hook is equivalent to:
 
     // let inner_fn_ident = Ident::new("inner_fn", Span::mixed_site());
     // let input_args = hook_sig.input_args();
+    let boxed_fn_type = {
+        let rt = match &sig.output {
+            ReturnType::Default => None,
+            ReturnType::Type(_, _) => Some(quote! { -> #output_type }),
+        };
+
+        quote! { ::std::boxed::Box<dyn #hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) #rt> }
+    };
 
     let output = quote! {
-        #(#attrs)*
         #[doc = #doc_text]
+        #(#attrs)*
         #vis #fn_token #ident #generics (#inputs) #hook_return_type #where_clause {
             // fn #inner_fn_ident #generics (#states: &mut ::yew::functional::HookStates, #inputs) -> #output_type #block
 
@@ -117,11 +125,11 @@ When used in function components and hooks, this hook is equivalent to:
             //     as ::std::boxed::Box<#hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>;
 
             let #inner_ident = ::std::boxed::Box::new(move |#states: &mut ::yew::functional::HookStates| #block )
-                as ::std::boxed::Box<dyn #hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>;
+                as #boxed_fn_type;
 
             struct #hook_struct_name #generics #where_clause {
                 _marker: ::std::marker::PhantomData<( #(#phantom_types,)* #(#phantom_lifetimes,)* )>,
-                #inner_ident: ::std::boxed::Box<dyn #hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>
+                #inner_ident: #boxed_fn_type,
             }
 
             impl #impl_generics ::yew::functional::Hook for #hook_struct_name #ty_generics #where_clause {
@@ -133,7 +141,7 @@ When used in function components and hooks, this hook is equivalent to:
             }
 
             impl #impl_generics #hook_struct_name #ty_generics #where_clause {
-                fn new(#inner_ident: ::std::boxed::Box<dyn #hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>) -> Self {
+                fn new(#inner_ident: #boxed_fn_type) -> Self {
                    #hook_struct_name {
                         _marker: ::std::marker::PhantomData,
                         #inner_ident,

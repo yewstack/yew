@@ -60,10 +60,15 @@ pub fn use_hook<InternalHook: 'static, Output, Tear: FnOnce(&mut InternalHook) +
     runner(hook, updater.clone())
 }
 
-/// Experimental Implementation of `use_hook` based on the [`Hook`] trait.
+/// Low level building block of creating hooks.
 ///
-/// Not efficient due to excessive boxing, but will be worked around if primitive hooks are re-implemented
-/// without this hook.
+/// It is used to created the pre-defined primitive hooks.
+/// Generally, it isn't needed to create hooks and should be avoided as most custom hooks can be
+/// created by combining other hooks as described in [Yew Docs].
+///
+/// The `initializer` callback is called once to create the initial state of the hook.
+/// `runner` callback handles the logic of the hook. It is called when the hook function is called.
+/// `destructor`, as the name implies, is called to cleanup the leftovers of the hook.
 pub(crate) fn use_hook_next<'hook, T, INIT, RUN, TEAR, O>(
     initializer: INIT,
     runner: RUN,
