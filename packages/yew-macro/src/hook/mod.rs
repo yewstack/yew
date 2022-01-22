@@ -84,6 +84,7 @@ When used in function components and hooks, this hook is equivalent to:
         ..
     } = hook_sig.sig;
 
+    let hook_lifetime = hook_sig.hook_lifetime.as_ref();
     let output_type = &hook_sig.output_type;
     let hook_struct_name = Ident::new("HookProvider", Span::mixed_site());
 
@@ -96,22 +97,33 @@ When used in function components and hooks, this hook is equivalent to:
     let mut body_rewriter = body::BodyRewriter::default();
     visit_mut::visit_block_mut(&mut body_rewriter, &mut *block);
 
+    let hook_lifetime_plus = hook_lifetime.map(|m| quote! { #m + });
+
     let output = quote! {
         #(#attrs)*
         #[doc = #doc_text]
         #vis #fn_token #ident #generics (#inputs) #hook_return_type {
+            // always capture inputs with closure for now, we need boxing implementation for `impl Trait`
+            // arguments anyways.
+            let inner = ::std::boxed::Box::new(move |#states: &mut ::yew::functional::HookStates| #block)
+                as ::std::boxed::Box<#hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>;
+
             struct #hook_struct_name #generics {
                 _marker: ::std::marker::PhantomData<( #(#phantom_types,)* #(#phantom_lifetimes,)* )>,
+                inner: ::std::boxed::Box<#hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>
             }
 
             impl #impl_generics ::yew::functional::Hook for #hook_struct_name #ty_generics #where_clause {
                 type Output = #output_type;
 
-                fn run(mut self, #states: &mut ::yew::functional::HookStates) -> Self::Output #block
+                fn run(mut self, #states: &mut ::yew::functional::HookStates) -> Self::Output {
+                    (self.inner)(#states)
+                }
             }
 
             #hook_struct_name {
                 _marker: ::std::marker::PhantomData,
+                inner,
             }
         }
     };

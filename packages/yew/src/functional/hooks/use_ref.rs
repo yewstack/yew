@@ -1,4 +1,4 @@
-use crate::{functional::use_hook, NodeRef};
+use crate::{functional::use_hook, use_hook_next, NodeRef};
 use std::{cell::RefCell, rc::Rc};
 
 /// This hook is used for obtaining a mutable reference to a stateful value.
@@ -188,5 +188,5 @@ pub fn use_node_ref() -> NodeRef {
 /// ```
 #[crate::functional::hook]
 pub fn use_node_ref_next() -> NodeRef {
-    use_hook(NodeRef::default, |state, _| state.clone(), |_| {})
+    use_hook_next(NodeRef::default, |state, _| state.clone(), |_| {})
 }

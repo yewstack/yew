@@ -96,11 +96,6 @@ impl HookSignature {
             .type_params()
             .map(|ty_param| ty_param.ident.clone())
             .collect()
-
-        // let phantom_lifetimes = generics
-        //     .lifetimes()
-        //     .map(|life| quote! { &#life () })
-        //     .collect::<Vec<_>>();
     }
 
     pub fn phantom_lifetimes(&self) -> Vec<TypeReference> {
