@@ -15,7 +15,6 @@
 
 use crate::html::{AnyScope, BaseComponent, HtmlResult};
 use crate::Properties;
-use scoped_tls_hkt::scoped_thread_local;
 use std::cell::RefCell;
 use std::fmt;
 use std::ops::DerefMut;
@@ -59,13 +58,11 @@ pub use yew_macro::function_component;
 /// This attribute creates a hook from a normal Rust function.
 pub use yew_macro::hook;
 
-scoped_thread_local!(static mut CURRENT_HOOK: HookStates);
-
 type Msg = Box<dyn FnOnce() -> bool>;
 type ProcessMessage = Rc<dyn Fn(Msg, bool)>;
 
 /// A hook state.
-pub struct HookStates {
+pub struct HookContext {
     counter: usize,
     scope: AnyScope,
     process_message: ProcessMessage,
@@ -73,7 +70,7 @@ pub struct HookStates {
     destroy_listeners: Vec<Box<dyn FnOnce()>>,
 }
 
-impl HookStates {
+impl HookContext {
     pub(crate) fn next_state<T, INIT, TEAR>(
         &mut self,
         initializer: INIT,
@@ -114,9 +111,9 @@ impl HookStates {
     }
 }
 
-impl fmt::Debug for HookStates {
+impl fmt::Debug for HookContext {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("HookStates<_>")
+        f.write_str("HookContext<_>")
     }
 }
 
@@ -128,30 +125,19 @@ pub trait FunctionProvider {
     /// Render the component. This function returns the [`Html`](crate::Html) to be rendered for the component.
     ///
     /// Equivalent of [`Component::view`](crate::html::Component::view).
-    fn run(props: &Self::TProps) -> HtmlResult;
+    fn run(ctx: &mut HookContext, props: &Self::TProps) -> HtmlResult;
 }
 
 /// Wrapper that allows a struct implementing [`FunctionProvider`] to be consumed as a component.
 pub struct FunctionComponent<T: FunctionProvider + 'static> {
     _never: std::marker::PhantomData<T>,
-    hook_state: RefCell<HookStates>,
+    hook_ctx: RefCell<HookContext>,
     message_queue: MsgQueue,
 }
 
 impl<T: FunctionProvider> fmt::Debug for FunctionComponent<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("FunctionComponent<_>")
-    }
-}
-
-impl<T> FunctionComponent<T>
-where
-    T: FunctionProvider,
-{
-    fn with_hook_state<R>(&self, f: impl FnOnce() -> R) -> R {
-        let mut hook_state = self.hook_state.borrow_mut();
-        hook_state.counter = 0;
-        CURRENT_HOOK.set(&mut *hook_state, f)
     }
 }
 
@@ -169,7 +155,7 @@ where
         Self {
             _never: std::marker::PhantomData::default(),
             message_queue: message_queue.clone(),
-            hook_state: RefCell::new(HookStates {
+            hook_ctx: RefCell::new(HookContext {
                 counter: 0,
                 scope,
                 process_message: {
@@ -197,7 +183,9 @@ where
     }
 
     fn view(&self, ctx: &Context<Self>) -> HtmlResult {
-        self.with_hook_state(|| T::run(&*ctx.props()))
+        let props = ctx.props();
+        let mut ctx = self.hook_ctx.borrow_mut();
+        T::run(&mut *ctx, props)
     }
 
     fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
@@ -207,18 +195,10 @@ where
     }
 
     fn destroy(&mut self, _ctx: &Context<Self>) {
-        let mut hook_state = self.hook_state.borrow_mut();
-        for hook in hook_state.destroy_listeners.drain(..) {
+        let mut hook_ctx = self.hook_ctx.borrow_mut();
+        for hook in hook_ctx.destroy_listeners.drain(..) {
             hook()
         }
-    }
-}
-
-pub(crate) fn get_current_scope() -> Option<AnyScope> {
-    if CURRENT_HOOK.is_set() {
-        Some(CURRENT_HOOK.with(|state| state.scope.clone()))
-    } else {
-        None
     }
 }
 

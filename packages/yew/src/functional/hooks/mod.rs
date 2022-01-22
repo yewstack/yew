@@ -10,7 +10,7 @@ pub use use_reducer::*;
 pub use use_ref::*;
 pub use use_state::*;
 
-use crate::functional::{AnyScope, HookStates, HookUpdater, CURRENT_HOOK};
+use crate::functional::{AnyScope, HookContext, HookUpdater};
 
 /// A trait that is implemented on hooks.
 ///
@@ -21,7 +21,7 @@ pub trait Hook {
     type Output;
 
     /// Runs the hook inside current state, returns output upon completion.
-    fn run(self, states: &mut HookStates) -> Self::Output;
+    fn run(self, ctx: &mut HookContext) -> Self::Output;
 }
 
 /// Low level building block of creating hooks.
@@ -33,43 +33,7 @@ pub trait Hook {
 /// The `initializer` callback is called once to create the initial state of the hook.
 /// `runner` callback handles the logic of the hook. It is called when the hook function is called.
 /// `destructor`, as the name implies, is called to cleanup the leftovers of the hook.
-///
-/// See the pre-defined hooks for examples of how to use this function.
-///
-/// [Yew Docs]: https://yew.rs/next/concepts/function-components/custom-hooks
-pub fn use_hook<InternalHook: 'static, Output, Tear: FnOnce(&mut InternalHook) + 'static>(
-    initializer: impl FnOnce() -> InternalHook,
-    runner: impl FnOnce(&mut InternalHook, HookUpdater) -> Output,
-    destructor: Tear,
-) -> Output {
-    if !CURRENT_HOOK.is_set() {
-        panic!("Hooks can only be used in the scope of a function component");
-    }
-
-    // Extract current hook
-    let updater = CURRENT_HOOK
-        .with(|hook_state| hook_state.next_state::<InternalHook, _, _>(initializer, destructor));
-
-    // Execute the actual hook closure we were given. Let it mutate the hook state and let
-    // it create a callback that takes the mutable hook state.
-    let mut hook = updater.hook.borrow_mut();
-    let hook: &mut InternalHook = hook
-        .downcast_mut()
-        .expect("Incompatible hook type. Hooks must always be called in the same order");
-
-    runner(hook, updater.clone())
-}
-
-/// Low level building block of creating hooks.
-///
-/// It is used to created the pre-defined primitive hooks.
-/// Generally, it isn't needed to create hooks and should be avoided as most custom hooks can be
-/// created by combining other hooks as described in [Yew Docs].
-///
-/// The `initializer` callback is called once to create the initial state of the hook.
-/// `runner` callback handles the logic of the hook. It is called when the hook function is called.
-/// `destructor`, as the name implies, is called to cleanup the leftovers of the hook.
-pub(crate) fn use_hook_next<'hook, T, INIT, RUN, TEAR, O>(
+pub(crate) fn use_hook<'hook, T, INIT, RUN, TEAR, O>(
     initializer: INIT,
     runner: RUN,
     destructor: TEAR,
@@ -93,7 +57,7 @@ where
     {
         type Output = O;
 
-        fn run(self, states: &mut HookStates) -> Self::Output {
+        fn run(self, ctx: &mut HookContext) -> Self::Output {
             let Self {
                 initializer,
                 runner,
@@ -101,7 +65,7 @@ where
             } = self;
 
             // Extract current hook
-            let updater = states.next_state::<T, _, _>(initializer, destructor);
+            let updater = ctx.next_state::<T, _, _>(initializer, destructor);
 
             // Execute the actual hook closure we were given. Let it mutate the hook state and let
             // it create a callback that takes the mutable hook state.
@@ -127,8 +91,8 @@ pub(crate) fn use_component_scope() -> impl Hook<Output = AnyScope> {
     impl Hook for HookProvider {
         type Output = AnyScope;
 
-        fn run(self, states: &mut HookStates) -> Self::Output {
-            states.scope().clone()
+        fn run(self, ctx: &mut HookContext) -> Self::Output {
+            ctx.scope().clone()
         }
     }
 

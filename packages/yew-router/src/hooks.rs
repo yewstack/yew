@@ -8,11 +8,13 @@ use crate::router::{LocationContext, NavigatorContext};
 use yew::prelude::*;
 
 /// A hook to access the [`Navigator`].
+#[hook]
 pub fn use_navigator() -> Option<Navigator> {
     use_context::<NavigatorContext>().map(|m| m.navigator())
 }
 
 /// A hook to access the current [`Location`].
+#[hook]
 pub fn use_location() -> Option<Location> {
     Some(use_context::<LocationContext>()?.location())
 }
@@ -25,6 +27,7 @@ pub fn use_location() -> Option<Location> {
 ///
 /// If your `Routable` has a `#[not_found]` route, you can use `.unwrap_or_default()` instead of
 /// `.unwrap()` to unwrap.
+#[hook]
 pub fn use_route<R>() -> Option<R>
 where
     R: Routable + 'static,

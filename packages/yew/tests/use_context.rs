@@ -14,10 +14,12 @@ fn use_context_scoping_works() {
 
     #[function_component]
     fn ExpectNoContextComponent() -> Html {
+        let example_context = use_context::<ExampleContext>().unwrap();
+
         if use_context::<ExampleContext>().is_some() {
             console_log!(
                 "Context should be None here, but was {:?}!",
-                use_context::<ExampleContext>().unwrap()
+                example_context
             );
         };
         html! {
@@ -73,32 +75,44 @@ fn use_context_works_with_multiple_types() {
 
     #[function_component]
     fn Test1() -> Html {
-        assert_eq!(use_context::<ContextA>(), Some(ContextA(2)));
-        assert_eq!(use_context::<ContextB>(), Some(ContextB(1)));
+        let ctx_a = use_context::<ContextA>();
+        let ctx_b = use_context::<ContextB>();
+
+        assert_eq!(ctx_a, Some(ContextA(2)));
+        assert_eq!(ctx_b, Some(ContextB(1)));
 
         html! {}
     }
 
     #[function_component]
     fn Test2() -> Html {
-        assert_eq!(use_context::<ContextA>(), Some(ContextA(0)));
-        assert_eq!(use_context::<ContextB>(), Some(ContextB(1)));
+        let ctx_a = use_context::<ContextA>();
+        let ctx_b = use_context::<ContextB>();
+
+        assert_eq!(ctx_a, Some(ContextA(0)));
+        assert_eq!(ctx_b, Some(ContextB(1)));
 
         html! {}
     }
 
     #[function_component]
     fn Test3() -> Html {
-        assert_eq!(use_context::<ContextA>(), Some(ContextA(0)));
-        assert_eq!(use_context::<ContextB>(), None);
+        let ctx_a = use_context::<ContextA>();
+        let ctx_b = use_context::<ContextB>();
+
+        assert_eq!(ctx_a, Some(ContextA(0)));
+        assert_eq!(ctx_b, None);
 
         html! {}
     }
 
     #[function_component]
     fn Test4() -> Html {
-        assert_eq!(use_context::<ContextA>(), None);
-        assert_eq!(use_context::<ContextB>(), None);
+        let ctx_a = use_context::<ContextA>();
+        let ctx_b = use_context::<ContextB>();
+
+        assert_eq!(ctx_a, None);
+        assert_eq!(ctx_b, None);
 
         html! {}
     }

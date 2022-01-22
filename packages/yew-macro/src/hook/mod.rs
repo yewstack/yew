@@ -10,6 +10,7 @@ mod body;
 mod lifetime;
 mod signature;
 
+pub use body::BodyRewriter;
 use signature::HookSignature;
 
 #[derive(Clone)]
@@ -91,12 +92,12 @@ When used in function components and hooks, this hook is equivalent to:
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let call_generics = ty_generics.as_turbofish();
 
-    let states = Ident::new("states", Span::mixed_site());
+    let ctx_ident = Ident::new("ctx", Span::mixed_site());
 
     let phantom_types = hook_sig.phantom_types();
     let phantom_lifetimes = hook_sig.phantom_lifetimes();
 
-    let mut body_rewriter = body::BodyRewriter::default();
+    let mut body_rewriter = BodyRewriter::default();
     visit_mut::visit_block_mut(&mut body_rewriter, &mut *block);
 
     let hook_lifetime_plus = hook_lifetime.map(|m| quote! { #m + });
@@ -104,27 +105,25 @@ When used in function components and hooks, this hook is equivalent to:
 
     // let inner_fn_ident = Ident::new("inner_fn", Span::mixed_site());
     // let input_args = hook_sig.input_args();
-    let boxed_fn_type = {
-        let rt = match &sig.output {
-            ReturnType::Default => None,
-            ReturnType::Type(_, _) => Some(quote! { -> #output_type }),
-        };
 
-        quote! { ::std::boxed::Box<dyn #hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) #rt> }
+    let boxed_fn_rt = match &sig.output {
+        ReturnType::Default => None,
+        ReturnType::Type(_, _) => Some(quote! { -> #output_type }),
     };
+    let boxed_fn_type = quote! { ::std::boxed::Box<dyn #hook_lifetime_plus FnOnce(&mut ::yew::functional::HookContext) #boxed_fn_rt> };
 
     let output = quote! {
         #[doc = #doc_text]
         #(#attrs)*
         #vis #fn_token #ident #generics (#inputs) #hook_return_type #where_clause {
-            // fn #inner_fn_ident #generics (#states: &mut ::yew::functional::HookStates, #inputs) -> #output_type #block
+            // fn #inner_fn_ident #generics (#ctx_ident: &mut ::yew::functional::HookContext, #inputs) -> #output_type #block
 
             // always capture inputs with closure for now, we need boxing implementation for `impl Trait`
             // arguments anyways.
-            // let inner = ::std::boxed::Box::new(move |#states: &mut ::yew::functional::HookStates| #inner_fn_ident #call_generics (#states, #(#input_args)*) )
-            //     as ::std::boxed::Box<#hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>;
+            // let inner = ::std::boxed::Box::new(move |#ctx_ident: &mut ::yew::functional::HookContext| #inner_fn_ident #call_generics (#ctx_ident, #(#input_args)*) )
+            //     as ::std::boxed::Box<#hook_lifetime_plus FnOnce(&mut ::yew::functional::HookContext) -> #output_type>;
 
-            let #inner_ident = ::std::boxed::Box::new(move |#states: &mut ::yew::functional::HookStates| #block )
+            let #inner_ident = ::std::boxed::Box::new(move |#ctx_ident: &mut ::yew::functional::HookContext| #boxed_fn_rt #block )
                 as #boxed_fn_type;
 
             struct #hook_struct_name #generics #where_clause {
@@ -135,8 +134,8 @@ When used in function components and hooks, this hook is equivalent to:
             impl #impl_generics ::yew::functional::Hook for #hook_struct_name #ty_generics #where_clause {
                 type Output = #output_type;
 
-                fn run(mut self, #states: &mut ::yew::functional::HookStates) -> Self::Output {
-                    (self.inner)(#states)
+                fn run(mut self, #ctx_ident: &mut ::yew::functional::HookContext) -> Self::Output {
+                    (self.inner)(#ctx_ident)
                 }
             }
 

@@ -29,6 +29,7 @@ where
 ///
 /// Takes a callback as the only argument. The callback will be updated on every render to make
 /// sure captured values (if any) are up to date.
+#[hook]
 pub fn use_bridge<T, F>(on_output: F) -> UseBridgeHandle<T>
 where
     T: Bridged,

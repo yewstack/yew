@@ -30,7 +30,7 @@ impl BodyRewriter {
 
 impl VisitMut for BodyRewriter {
     fn visit_expr_call_mut(&mut self, i: &mut ExprCall) {
-        let states_ident = Ident::new("states", Span::mixed_site());
+        let ctx_ident = Ident::new("ctx", Span::mixed_site());
 
         // Only rewrite hook calls.
         if let Expr::Path(ref m) = &*i.func {
@@ -39,7 +39,7 @@ impl VisitMut for BodyRewriter {
                     if self.is_branched() {
                         emit_error!(m, "hooks cannot be called at this position.");
                     } else {
-                        *i = parse_quote_spanned! { i.span() => ::yew::functional::Hook::run(#i, #states_ident) };
+                        *i = parse_quote_spanned! { i.span() => ::yew::functional::Hook::run(#i, #ctx_ident) };
                     }
 
                     return;
