@@ -39,3 +39,16 @@ pub struct ElementData {
     key: Option<Key>,
     children: Vec<VNode>,
 }
+
+
+#[cfg(test)]
+mod tests {
+    use crate::html;
+    fn _compiles() {
+        use super::button as Btn;
+
+        let _ = html! {
+            <Btn disabled="true" class="fuck" />
+        };
+    }
+}
