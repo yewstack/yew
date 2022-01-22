@@ -68,7 +68,7 @@ impl<'s> NodeWriter<'s> {
             self.next_sibling
         );
         // Advance the next sibling reference (from right to left)
-        let next = node.reconcile(self.parent_scope, self.parent, self.next_sibling, bundle);
+        let next = node.reconcile_node(self.parent_scope, self.parent, self.next_sibling, bundle);
         test_log!("  next_position: {:?}", next);
         Self {
             next_sibling: next,
@@ -317,13 +317,22 @@ impl Reconcilable for VList {
         parent: &Element,
         next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
-        let mut self_ = BNode::BList(BList::new());
+        let mut self_ = BList::new();
         let node_ref = self.reconcile(parent_scope, parent, next_sibling, &mut self_);
-        let self_ = match self_ {
-            BNode::BList(self_) => self_,
-            _ => unreachable!("applying list should leave a VList in bundle ref"),
-        };
         (node_ref, self_)
+    }
+
+    fn reconcile_node(
+        self,
+        parent_scope: &AnyScope,
+        parent: &Element,
+        next_sibling: NodeRef,
+        bundle: &mut BNode,
+    ) -> NodeRef {
+        // 'Forcefully' create a pretend the existing node is a list. Creates a
+        // singleton list if it isn't already.
+        let blist = bundle.make_list();
+        self.reconcile(parent_scope, parent, next_sibling, blist)
     }
 
     fn reconcile(
@@ -331,7 +340,7 @@ impl Reconcilable for VList {
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
-        bundle: &mut BNode,
+        blist: &mut BList,
     ) -> NodeRef {
         // Here, we will try to diff the previous list elements with the new
         // ones we want to insert. For that, we will use two lists:
@@ -350,9 +359,6 @@ impl Reconcilable for VList {
         }
 
         let lefts = self.children;
-        // 'Forcefully' create a pretend the existing node is a list. Creates a
-        // singleton list if it isn't already.
-        let blist = bundle.make_list();
         let rights = &mut blist.rev_children;
         test_log!("lefts: {:?}", lefts);
         test_log!("rights: {:?}", rights);

@@ -20,7 +20,7 @@ impl VNode {
                 *bundle = Some(node);
                 self_ref
             }
-            Some(bundle) => self.reconcile(parent_scope, parent, next_sibling, bundle),
+            Some(bundle) => self.reconcile_node(parent_scope, parent, next_sibling, bundle),
         }
     }
 }

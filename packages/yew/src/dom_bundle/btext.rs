@@ -48,19 +48,25 @@ impl Reconcilable for VText {
     }
 
     /// Renders virtual node over existing `TextNode`, but only if value of text has changed.
-    fn reconcile(
+    fn reconcile_node(
         self,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
     ) -> NodeRef {
-        let btext = match bundle {
-            BNode::BText(btext) => btext,
-            _ => {
-                return self.replace(parent_scope, parent, next_sibling, bundle);
-            }
-        };
+        match bundle {
+            BNode::BText(btext) => self.reconcile(parent_scope, parent, next_sibling, btext),
+            _ => self.replace(parent_scope, parent, next_sibling, bundle),
+        }
+    }
+    fn reconcile(
+        self,
+        _parent_scope: &AnyScope,
+        _parent: &Element,
+        _next_sibling: NodeRef,
+        btext: &mut Self::Bundle,
+    ) -> NodeRef {
         let Self { text } = self;
         let ancestor_text = std::mem::replace(&mut btext.text, text);
         if btext.text != ancestor_text {

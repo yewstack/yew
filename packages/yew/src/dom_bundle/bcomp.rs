@@ -83,30 +83,38 @@ impl Reconcilable for VComp {
         )
     }
 
-    fn reconcile(
+    fn reconcile_node(
         self,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
     ) -> NodeRef {
-        let bcomp = match bundle {
+        match bundle {
             // If the existing bundle is the same type, reuse it and update its properties
             BNode::BComp(ref mut bcomp)
                 if self.type_id == bcomp.type_id && self.key == bcomp.key =>
             {
-                bcomp
+                self.reconcile(parent_scope, parent, next_sibling, bcomp)
             }
-            _ => {
-                return self.replace(parent_scope, parent, next_sibling, bundle);
-            }
-        };
+            _ => self.replace(parent_scope, parent, next_sibling, bundle),
+        }
+    }
+
+    fn reconcile(
+        self,
+        _parent_scope: &AnyScope,
+        _parent: &Element,
+        next_sibling: NodeRef,
+        bcomp: &mut Self::Bundle,
+    ) -> NodeRef {
         let VComp {
             mountable,
             node_ref,
             key,
             type_id: _,
         } = self;
+
         bcomp.key = key;
         let old_ref = std::mem::replace(&mut bcomp.node_ref, node_ref.clone());
         bcomp.node_ref.reuse(old_ref);
@@ -246,7 +254,7 @@ impl ComponentRenderState {
         if let Some(ref parent) = self.parent {
             let next_sibling = self.next_sibling.clone();
 
-            root.reconcile(scope, parent, next_sibling, &mut self.root_node)
+            root.reconcile_node(scope, parent, next_sibling, &mut self.root_node)
         } else {
             #[cfg(feature = "ssr")]
             if let Some(tx) = self.html_sender.take() {
@@ -336,7 +344,7 @@ mod tests {
 
         for _ in 0..10000 {
             let node = html! { <Comp></Comp> };
-            node.reconcile(
+            node.reconcile_node(
                 &parent_scope,
                 &parent_element,
                 NodeRef::default(),

@@ -86,12 +86,20 @@ trait Reconcilable {
     ///   kind, and otherwise reuse it.
     ///
     /// Returns a reference to the newly inserted element.
-    fn reconcile(
+    fn reconcile_node(
         self,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
+    ) -> NodeRef;
+
+    fn reconcile(
+        self,
+        parent_scope: &AnyScope,
+        parent: &Element,
+        next_sibling: NodeRef,
+        bundle: &mut Self::Bundle,
     ) -> NodeRef;
 
     /// Replace an existing bundle by attaching self and detaching the existing one

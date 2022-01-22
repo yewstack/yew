@@ -117,6 +117,16 @@ impl Reconcilable for VNode {
         }
     }
 
+    fn reconcile_node(
+        self,
+        parent_scope: &AnyScope,
+        parent: &Element,
+        next_sibling: NodeRef,
+        bundle: &mut BNode,
+    ) -> NodeRef {
+        self.reconcile(parent_scope, parent, next_sibling, bundle)
+    }
+
     fn reconcile(
         self,
         parent_scope: &AnyScope,
@@ -125,10 +135,10 @@ impl Reconcilable for VNode {
         bundle: &mut BNode,
     ) -> NodeRef {
         match self {
-            VNode::VTag(vtag) => vtag.reconcile(parent_scope, parent, next_sibling, bundle),
-            VNode::VText(vtext) => vtext.reconcile(parent_scope, parent, next_sibling, bundle),
-            VNode::VComp(vcomp) => vcomp.reconcile(parent_scope, parent, next_sibling, bundle),
-            VNode::VList(vlist) => vlist.reconcile(parent_scope, parent, next_sibling, bundle),
+            VNode::VTag(vtag) => vtag.reconcile_node(parent_scope, parent, next_sibling, bundle),
+            VNode::VText(vtext) => vtext.reconcile_node(parent_scope, parent, next_sibling, bundle),
+            VNode::VComp(vcomp) => vcomp.reconcile_node(parent_scope, parent, next_sibling, bundle),
+            VNode::VList(vlist) => vlist.reconcile_node(parent_scope, parent, next_sibling, bundle),
             VNode::VRef(node) => {
                 let _existing = match bundle {
                     BNode::BRef(ref n) if &node == n => n,
@@ -144,10 +154,10 @@ impl Reconcilable for VNode {
                 NodeRef::new(node)
             }
             VNode::VPortal(vportal) => {
-                vportal.reconcile(parent_scope, parent, next_sibling, bundle)
+                vportal.reconcile_node(parent_scope, parent, next_sibling, bundle)
             }
             VNode::VSuspense(vsuspsense) => {
-                vsuspsense.reconcile(parent_scope, parent, next_sibling, bundle)
+                vsuspsense.reconcile_node(parent_scope, parent, next_sibling, bundle)
             }
         }
     }

@@ -5,7 +5,7 @@ mod listeners;
 
 pub use listeners::set_event_bubbling;
 
-use super::{insert_node, BNode, DomBundle, Reconcilable};
+use super::{insert_node, BList, BNode, DomBundle, Reconcilable};
 use crate::html::AnyScope;
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
@@ -50,7 +50,7 @@ enum BTagInner {
         /// A tag of the element.
         tag: Cow<'static, str>,
         /// List of child nodes
-        child_bundle: BNode,
+        child_bundle: BList,
     },
 }
 
@@ -60,11 +60,11 @@ pub struct BTag {
     /// [BTag] fields that are specific to different [BTag] kinds.
     inner: BTagInner,
     listeners: ListenerRegistration,
+    attributes: Attributes,
     /// A reference to the DOM [`Element`].
     reference: Element,
     /// A node reference used for DOM access in Component lifecycle methods
     node_ref: NodeRef,
-    attributes: Attributes,
     key: Option<Key>,
 }
 
@@ -127,10 +127,7 @@ impl Reconcilable for VTag {
             }
             VTagInner::Other { children, tag } => {
                 let (_, child_bundle) = children.attach(parent_scope, &el, NodeRef::default());
-                BTagInner::Other {
-                    child_bundle: child_bundle.into(),
-                    tag,
-                }
+                BTagInner::Other { child_bundle, tag }
             }
         };
         node_ref.set(Some(el.clone().into()));
@@ -147,7 +144,7 @@ impl Reconcilable for VTag {
         )
     }
 
-    fn reconcile(
+    fn reconcile_node(
         self,
         parent_scope: &AnyScope,
         parent: &Element,
@@ -157,31 +154,35 @@ impl Reconcilable for VTag {
         // This kind of branching patching routine reduces branch predictor misses and the need to
         // unpack the enums (including `Option`s) all the time, resulting in a more streamlined
         // patching flow
-        let is_matching_tag = match bundle {
-            BNode::BTag(ex) if self.key == ex.key => match (&self.inner, &ex.inner) {
-                (VTagInner::Input(_), BTagInner::Input(_)) => true,
-                (VTagInner::Textarea { .. }, BTagInner::Textarea { .. }) => true,
-                (VTagInner::Other { tag: l, .. }, BTagInner::Other { tag: r, .. }) if l == r => {
-                    true
+        match bundle {
+            // If the ancestor is a tag of the same type, don't recreate, keep the
+            // old tag and update its attributes and children.
+            BNode::BTag(ex) if self.key == ex.key => {
+                if match (&self.inner, &ex.inner) {
+                    (VTagInner::Input(_), BTagInner::Input(_)) => true,
+                    (VTagInner::Textarea { .. }, BTagInner::Textarea { .. }) => true,
+                    (VTagInner::Other { tag: l, .. }, BTagInner::Other { tag: r, .. })
+                        if l == r =>
+                    {
+                        true
+                    }
+                    _ => false,
+                } {
+                    return self.reconcile(parent_scope, parent, next_sibling, ex.deref_mut());
                 }
-                _ => false,
-            },
-            _ => false,
-        };
-        // If the ancestor is a tag of the same type, don't recreate, keep the
-        // old tag and update its attributes and children.
-        let tag = if is_matching_tag {
-            match bundle {
-                BNode::BTag(a) => {
-                    // Preserve the reference that already exists
-                    a.deref_mut()
-                }
-                _ => unsafe { unreachable_unchecked() },
             }
-        } else {
-            return self.replace(parent_scope, parent, next_sibling, bundle);
+            _ => {}
         };
+        self.replace(parent_scope, parent, next_sibling, bundle)
+    }
 
+    fn reconcile(
+        self,
+        parent_scope: &AnyScope,
+        _parent: &Element,
+        _next_sibling: NodeRef,
+        tag: &mut Self::Bundle,
+    ) -> NodeRef {
         let el = &tag.reference;
         self.attributes.apply_diff(el, &mut tag.attributes);
         self.listeners.apply_diff(el, &mut tag.listeners);
@@ -253,10 +254,7 @@ impl BTag {
     #[cfg(test)]
     fn children(&self) -> &[BNode] {
         match &self.inner {
-            BTagInner::Other { child_bundle, .. } => match child_bundle {
-                BNode::BList(blist) => blist,
-                _ => unreachable!("should be blist"),
-            },
+            BTagInner::Other { child_bundle, .. } => child_bundle,
             _ => &[],
         }
     }
@@ -647,7 +645,7 @@ mod tests {
         let elem_vtag = assert_vtag(next_elem);
 
         // Sync happens here
-        elem_vtag.reconcile(&scope, &parent, NodeRef::default(), &mut elem);
+        elem_vtag.reconcile_node(&scope, &parent, NodeRef::default(), &mut elem);
         let vtag = assert_btag_ref(&elem);
 
         // Get new current value of the input element
@@ -681,7 +679,7 @@ mod tests {
         let elem_vtag = assert_vtag(next_elem);
 
         // Value should not be refreshed
-        elem_vtag.reconcile(&scope, &parent, NodeRef::default(), &mut elem);
+        elem_vtag.reconcile_node(&scope, &parent, NodeRef::default(), &mut elem);
         let vtag = assert_btag_ref(&elem);
 
         // Get user value of the input element
@@ -782,7 +780,7 @@ mod tests {
 
         let node_ref_b = NodeRef::default();
         let elem_b = html! { <div id="b" ref={node_ref_b.clone()} /> };
-        elem_b.reconcile(&scope, &parent, NodeRef::default(), &mut elem);
+        elem_b.reconcile_node(&scope, &parent, NodeRef::default(), &mut elem);
 
         let node_b = node_ref_b.get().unwrap();
 
@@ -815,7 +813,7 @@ mod tests {
         // while both should be bound to the same node ref
 
         let (_, mut elem) = before.attach(&scope, &parent, NodeRef::default());
-        after.reconcile(&scope, &parent, NodeRef::default(), &mut elem);
+        after.reconcile_node(&scope, &parent, NodeRef::default(), &mut elem);
 
         assert_eq!(
             test_ref

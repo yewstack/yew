@@ -63,7 +63,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
 
         log!("Independently reapply layout '{}'", layout.name);
 
-        vnode.reconcile(
+        vnode.reconcile_node(
             &parent_scope,
             &parent_element,
             next_sibling.clone(),

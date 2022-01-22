@@ -56,19 +56,26 @@ impl Reconcilable for VPortal {
         )
     }
 
-    fn reconcile(
+    fn reconcile_node(
         self,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
     ) -> NodeRef {
-        let portal = match bundle {
-            BNode::BPortal(portal) => portal,
-            _ => {
-                return self.replace(parent_scope, parent, next_sibling, bundle);
-            }
-        };
+        match bundle {
+            BNode::BPortal(portal) => self.reconcile(parent_scope, parent, next_sibling, portal),
+            _ => self.replace(parent_scope, parent, next_sibling, bundle),
+        }
+    }
+
+    fn reconcile(
+        self,
+        parent_scope: &AnyScope,
+        parent: &Element,
+        next_sibling: NodeRef,
+        portal: &mut Self::Bundle,
+    ) -> NodeRef {
         let Self {
             host,
             inner_sibling,
@@ -85,7 +92,7 @@ impl Reconcilable for VPortal {
                 .node
                 .shift(&portal.host, portal.inner_sibling.clone());
         }
-        node.reconcile(parent_scope, parent, next_sibling.clone(), &mut portal.node);
+        node.reconcile_node(parent_scope, parent, next_sibling.clone(), &mut portal.node);
         next_sibling
     }
 }
