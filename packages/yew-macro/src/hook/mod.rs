@@ -1,10 +1,9 @@
 use proc_macro2::{Span, TokenStream};
 use proc_macro_error::emit_error;
 use quote::quote;
-use quote::ToTokens;
 use syn::parse::{Parse, ParseStream};
 use syn::visit_mut;
-use syn::{Ident, ItemFn, LitStr, ReturnType, Signature};
+use syn::{parse_file, Ident, ItemFn, LitStr, ReturnType, Signature};
 
 mod body;
 mod lifetime;
@@ -51,6 +50,21 @@ impl Parse for HookFn {
 pub fn hook_impl(component: HookFn) -> syn::Result<TokenStream> {
     let HookFn { inner } = component;
 
+    let ItemFn {
+        vis,
+        sig,
+        mut block,
+        attrs,
+    } = inner;
+
+    let sig_s = quote! { #vis #sig {
+        __yew_macro_dummy_function_body__
+    } }
+    .to_string();
+
+    let sig_file = parse_file(&sig_s).unwrap();
+    let sig_formatted = prettyplease::unparse(&sig_file);
+
     let doc_text = LitStr::new(
         &format!(
             r#"
@@ -62,17 +76,13 @@ When used in function components and hooks, this hook is equivalent to:
 {}
 ```
 "#,
-            inner.sig.to_token_stream()
+            sig_formatted.replace(
+                "__yew_macro_dummy_function_body__",
+                "/* implementation omitted */"
+            )
         ),
         Span::mixed_site(),
     );
-
-    let ItemFn {
-        vis,
-        sig,
-        mut block,
-        attrs,
-    } = inner;
 
     let hook_sig = HookSignature::rewrite(&sig);
 
@@ -85,7 +95,7 @@ When used in function components and hooks, this hook is equivalent to:
         ..
     } = hook_sig.sig;
 
-    let hook_lifetime = hook_sig.hook_lifetime.as_ref();
+    let hook_lifetime = &hook_sig.hook_lifetime;
     let output_type = &hook_sig.output_type;
     let hook_struct_name = Ident::new("HookProvider", Span::mixed_site());
 
@@ -100,7 +110,7 @@ When used in function components and hooks, this hook is equivalent to:
     let mut body_rewriter = BodyRewriter::default();
     visit_mut::visit_block_mut(&mut body_rewriter, &mut *block);
 
-    let hook_lifetime_plus = hook_lifetime.map(|m| quote! { #m + });
+    let hook_lifetime_plus = quote! { #hook_lifetime + };
     let inner_ident = Ident::new("inner", Span::mixed_site());
 
     // let inner_fn_ident = Ident::new("inner_fn", Span::mixed_site());

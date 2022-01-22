@@ -61,7 +61,7 @@ pub use yew_macro::hook;
 type Msg = Box<dyn FnOnce() -> bool>;
 type ProcessMessage = Rc<dyn Fn(Msg, bool)>;
 
-/// A hook state.
+/// A hook context to be passed to hooks.
 pub struct HookContext {
     counter: usize,
     scope: AnyScope,
@@ -229,8 +229,7 @@ impl MsgQueue {
 /// for more details on how to use the hook updater to provide function components
 /// the necessary callbacks to update the underlying state.
 #[derive(Clone)]
-#[allow(missing_debug_implementations)]
-pub struct HookUpdater {
+pub(crate) struct HookUpdater {
     hook: Rc<RefCell<dyn std::any::Any>>,
     process_message: ProcessMessage,
 }

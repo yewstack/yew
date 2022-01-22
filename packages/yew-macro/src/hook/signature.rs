@@ -10,17 +10,14 @@ use syn::{
 use super::lifetime;
 
 pub struct HookSignature {
-    pub hook_lifetime: Option<Lifetime>,
+    pub hook_lifetime: Lifetime,
     pub sig: Signature,
     pub output_type: Type,
 }
 
 impl HookSignature {
-    fn rewrite_return_type(
-        hook_lifetime: Option<&Lifetime>,
-        rt_type: &ReturnType,
-    ) -> (ReturnType, Type) {
-        let bound = hook_lifetime.map(|m| quote! { #m + });
+    fn rewrite_return_type(hook_lifetime: &Lifetime, rt_type: &ReturnType) -> (ReturnType, Type) {
+        let bound = quote! { #hook_lifetime + };
 
         match rt_type {
             ReturnType::Default => (
@@ -54,7 +51,7 @@ impl HookSignature {
             ..
         } = sig;
 
-        let hook_lifetime = if !generics.params.is_empty() {
+        let hook_lifetime = {
             let hook_lifetime = Lifetime::new("'hook", Span::mixed_site());
             generics.params = {
                 let elided_lifetimes = &lifetimes.elided;
@@ -94,12 +91,10 @@ impl HookSignature {
 
             generics.where_clause = Some(where_clause);
 
-            Some(hook_lifetime)
-        } else {
-            None
+            hook_lifetime
         };
 
-        let (output, output_type) = Self::rewrite_return_type(hook_lifetime.as_ref(), return_type);
+        let (output, output_type) = Self::rewrite_return_type(&hook_lifetime, return_type);
         sig.output = output;
 
         Self {
