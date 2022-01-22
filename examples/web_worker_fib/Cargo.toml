@@ -1,7 +1,7 @@
 [package]
 name = "yew-worker-fib"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 authors = ["Shrey Somaiya", "Zac Kologlu"]
 
 [lib]

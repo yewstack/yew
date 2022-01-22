@@ -145,6 +145,6 @@ impl TagTokens {
     /// This is to work around the limitation of being unable to manually join spans on stable.
     pub fn to_spanned(&self) -> impl ToTokens {
         let Self { lt, gt, .. } = self;
-        quote! {#lt#gt}
+        quote! {#lt #gt}
     }
 }

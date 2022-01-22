@@ -30,7 +30,7 @@ impl Parse for BaseExpr {
 impl ToTokens for BaseExpr {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let BaseExpr { dot2, expr } = self;
-        tokens.extend(quote! { #dot2#expr });
+        tokens.extend(quote! { #dot2 #expr });
     }
 }
 

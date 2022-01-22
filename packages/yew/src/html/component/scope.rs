@@ -306,7 +306,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     /// component's update method when invoked.
     ///
     /// Please be aware that currently the result of this callback
-    /// synchronously schedules a call to the [Component](Component)
+    /// synchronously schedules a call to the [Component](crate::Component)
     /// interface.
     pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
     where
@@ -335,7 +335,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     ///
     /// Please be aware that currently the results of these callbacks
     /// will synchronously schedule calls to the
-    /// [Component](Component) interface.
+    /// [Component](crate::Component) interface.
     pub fn batch_callback<F, IN, OUT>(&self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> OUT + 'static,
