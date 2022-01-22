@@ -3,16 +3,36 @@ use quote::quote;
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
-    parse_quote, parse_quote_spanned, token, FnArg, Ident, Lifetime, Pat, ReturnType, Signature,
-    Type, TypeReference, WhereClause,
+    parse_quote, parse_quote_spanned, token, visit_mut, FnArg, Ident, Lifetime, Pat, ReturnType,
+    Signature, Type, TypeImplTrait, TypeReference, WhereClause,
 };
 
 use super::lifetime;
+
+#[derive(Default)]
+pub struct CollectArgs {
+    needs_boxing: bool,
+}
+
+impl CollectArgs {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl VisitMut for CollectArgs {
+    fn visit_type_impl_trait_mut(&mut self, impl_trait: &mut TypeImplTrait) {
+        self.needs_boxing = true;
+
+        visit_mut::visit_type_impl_trait_mut(self, impl_trait);
+    }
+}
 
 pub struct HookSignature {
     pub hook_lifetime: Lifetime,
     pub sig: Signature,
     pub output_type: Type,
+    pub needs_boxing: bool,
 }
 
 impl HookSignature {
@@ -36,6 +56,9 @@ impl HookSignature {
     /// Rewrites a Hook Signature and extracts information.
     pub fn rewrite(sig: &Signature) -> Self {
         let mut sig = sig.clone();
+
+        let mut arg_info = CollectArgs::new();
+        arg_info.visit_signature_mut(&mut sig);
 
         let mut lifetimes = lifetime::CollectLifetimes::new("'arg", sig.ident.span());
         for arg in sig.inputs.iter_mut() {
@@ -101,6 +124,7 @@ impl HookSignature {
             hook_lifetime,
             sig,
             output_type,
+            needs_boxing: arg_info.needs_boxing,
         }
     }
 
