@@ -59,20 +59,6 @@ pub fn use_mut_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<RefCell<
     )
 }
 
-/// This hook is used for obtaining a immutable reference to a stateful value.
-/// Its state persists across renders.
-///
-/// If you need a mutable reference, consider using [`use_mut_ref`](super::use_mut_ref).
-/// If you need the component to be re-rendered on state change, consider using [`use_state`](super::use_state()).
-#[hook]
-pub fn use_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<T> {
-    use_hook(
-        || Rc::new(initial_value()),
-        |state, _| Rc::clone(state),
-        |_| {},
-    )
-}
-
 /// This hook is used for obtaining a [`NodeRef`].
 /// It persists across renders.
 ///
