@@ -17,6 +17,7 @@ proc-macro = true
 
 [dependencies]
 boolinator = "2"
+convert_case = "0.5"
 lazy_static = "1"
 proc-macro-error = "1"
 proc-macro2 = "1"

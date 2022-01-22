@@ -52,6 +52,7 @@ mod function_component;
 mod html_tree;
 mod props;
 mod stringify;
+mod typed_vdom;
 
 use derive_props::DerivePropsInput;
 use function_component::{function_component_impl, FunctionComponent, FunctionComponentName};
@@ -133,4 +134,15 @@ pub fn function_component(
     function_component_impl(attr, item)
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
+}
+
+/// Declares HTML element
+///
+/// Every HTML element is a component, which returns a manually constructed `VTag`.
+/// This macro is used to generate this component.
+#[proc_macro]
+pub fn generate_element(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(input as typed_vdom::generate_element::GenerateElement);
+
+    input.to_token_stream().into()
 }

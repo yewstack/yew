@@ -4,6 +4,7 @@
 pub mod key;
 #[doc(hidden)]
 pub mod listeners;
+mod typings;
 #[doc(hidden)]
 pub mod vcomp;
 #[doc(hidden)]
