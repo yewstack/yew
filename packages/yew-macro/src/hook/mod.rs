@@ -1,15 +1,16 @@
 use proc_macro2::{Span, TokenStream};
 use proc_macro_error::emit_error;
+use quote::quote;
 use quote::ToTokens;
-use quote::{quote, quote_spanned};
 use syn::parse::{Parse, ParseStream};
-use syn::spanned::Spanned;
-use syn::token;
 use syn::visit_mut;
-use syn::{parse_quote, Ident, ItemFn, Lifetime, LitStr, ReturnType, Signature, WhereClause};
+use syn::{Ident, ItemFn, LitStr, Signature};
 
 mod body;
 mod lifetime;
+mod signature;
+
+use signature::HookSignature;
 
 #[derive(Clone)]
 pub struct HookFn {
@@ -46,19 +47,6 @@ impl Parse for HookFn {
     }
 }
 
-fn rewrite_return_type(hook_lifetime: Option<&Lifetime>, rt_type: &ReturnType) -> TokenStream {
-    let bound = hook_lifetime.map(|m| quote! { #m + });
-
-    match rt_type {
-        ReturnType::Default => {
-            quote! { -> impl #bound ::yew::functional::Hook<Ouput = ()> }
-        }
-        ReturnType::Type(arrow, ref return_type) => {
-            quote_spanned! { return_type.span() => #arrow impl #bound ::yew::functional::Hook<Output = #return_type> }
-        }
-    }
-}
-
 pub fn hook_impl(component: HookFn) -> syn::Result<TokenStream> {
     let HookFn { inner } = component;
 
@@ -80,75 +68,30 @@ When used in function components and hooks, this hook is equivalent to:
 
     let ItemFn {
         vis,
-        mut sig,
+        sig,
         mut block,
         attrs,
     } = inner;
 
+    let hook_sig = HookSignature::rewrite(&sig);
+
     let Signature {
-        fn_token,
-        ident,
-        mut generics,
-        inputs,
-        output: return_type,
+        ref fn_token,
+        ref ident,
+        ref inputs,
+        output: ref hook_return_type,
+        ref generics,
         ..
-    } = sig.clone();
+    } = hook_sig.sig;
 
-    let mut lifetimes = lifetime::CollectLifetimes::new("'arg", ident.span());
-    visit_mut::visit_signature_mut(&mut lifetimes, &mut sig);
-
-    let hook_lifetime = if !lifetimes.elided.is_empty() {
-        let hook_lifetime = lifetime::find_available_lifetime(&lifetimes);
-        generics.params = {
-            let elided_lifetimes = &lifetimes.elided;
-            let params = generics.params;
-
-            parse_quote!(#hook_lifetime, #(#elided_lifetimes,)* #params)
-        };
-
-        let mut where_clause = generics
-            .where_clause
-            .clone()
-            .unwrap_or_else(|| WhereClause {
-                where_token: token::Where {
-                    span: Span::mixed_site(),
-                },
-                predicates: Default::default(),
-            });
-
-        for elided in lifetimes.elided.iter() {
-            where_clause
-                .predicates
-                .push(parse_quote!(#elided: #hook_lifetime));
-        }
-
-        generics.where_clause = Some(where_clause);
-
-        Some(hook_lifetime)
-    } else {
-        None
-    };
-
-    let hook_return_type = rewrite_return_type(hook_lifetime.as_ref(), &return_type);
-    let output_type = match &return_type {
-        ReturnType::Default => quote! { () },
-        ReturnType::Type(_, ref m) => m.clone().into_token_stream(),
-    };
-
+    let output_type = &hook_sig.output_type;
     let hook_struct_name = Ident::new("HookProvider", Span::mixed_site());
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let states = Ident::new("states", Span::mixed_site());
 
-    let phantom_types = generics
-        .type_params()
-        .map(|ty_param| ty_param.ident.clone())
-        .collect::<Vec<_>>();
-
-    let phantom_lifetimes = generics
-        .lifetimes()
-        .map(|life| quote! { &#life () })
-        .collect::<Vec<_>>();
+    let phantom_types = hook_sig.phantom_types();
+    let phantom_lifetimes = hook_sig.phantom_lifetimes();
 
     let mut body_rewriter = body::BodyRewriter::default();
     visit_mut::visit_block_mut(&mut body_rewriter, &mut *block);
