@@ -1,6 +1,6 @@
 use crate::callback::Callback;
 use crate::context::ContextHandle;
-use crate::functional::{hook, use_component_scope, use_state};
+use crate::functional::{hook, use_component_scope, use_memo, use_state};
 
 /// Hook for consuming context values in function components.
 /// The context of the type passed as `T` is returned. If there is no such context in scope, `None` is returned.
@@ -49,13 +49,17 @@ pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<T> {
     let val = use_state(|| -> Option<T> { None });
     let state = {
         let val_dispatcher = val.setter();
-        use_state(move || State {
-            context: scope.context::<T>(Callback::from(move |m| {
-                val_dispatcher.clone().set(Some(m));
-            })),
-        })
+        use_memo(
+            move |_| State {
+                context: scope.context::<T>(Callback::from(move |m| {
+                    val_dispatcher.clone().set(Some(m));
+                })),
+            },
+            (),
+        )
     };
 
+    // we fallback to initial value if it was not overriden.
     (*val)
         .clone()
         .or_else(move || state.context.as_ref().map(|m| m.0.clone()))

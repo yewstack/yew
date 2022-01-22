@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::functional::{hook, use_hook};
+use crate::functional::{hook, use_memo};
 use crate::NodeRef;
 
 /// This hook is used for obtaining a mutable reference to a stateful value.
@@ -52,11 +52,7 @@ use crate::NodeRef;
 /// ```
 #[hook]
 pub fn use_mut_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<RefCell<T>> {
-    use_hook(
-        || Rc::new(RefCell::new(initial_value())),
-        |state, _| state.clone(),
-        |_| {},
-    )
+    use_memo(|_| RefCell::new(initial_value()), ())
 }
 
 /// This hook is used for obtaining a [`NodeRef`].
@@ -118,5 +114,5 @@ pub fn use_mut_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<RefCell<
 /// ```
 #[hook]
 pub fn use_node_ref() -> NodeRef {
-    use_hook(NodeRef::default, |state, _| state.clone(), |_| {})
+    (*use_memo(|_| NodeRef::default(), ())).clone()
 }
