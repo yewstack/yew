@@ -113,8 +113,8 @@ When used in function components and hooks, this hook is equivalent to:
     let hook_lifetime_plus = quote! { #hook_lifetime + };
     let inner_ident = Ident::new("inner", Span::mixed_site());
 
-    // let inner_fn_ident = Ident::new("inner_fn", Span::mixed_site());
-    // let input_args = hook_sig.input_args();
+    let inner_fn_ident = Ident::new("inner_fn", Span::mixed_site());
+    let input_args = hook_sig.input_args();
 
     let boxed_fn_rt = match &sig.output {
         ReturnType::Default => None,
@@ -126,15 +126,15 @@ When used in function components and hooks, this hook is equivalent to:
         #(#attrs)*
         #[doc = #doc_text]
         #vis #fn_token #ident #generics (#inputs) #hook_return_type #where_clause {
-            // fn #inner_fn_ident #generics (#ctx_ident: &mut ::yew::functional::HookContext, #inputs) -> #output_type #block
+            fn #inner_fn_ident #generics (#ctx_ident: &mut ::yew::functional::HookContext, #inputs) #boxed_fn_rt #where_clause #block
 
             // always capture inputs with closure for now, we need boxing implementation for `impl Trait`
             // arguments anyways.
-            // let inner = ::std::boxed::Box::new(move |#ctx_ident: &mut ::yew::functional::HookContext| #inner_fn_ident #call_generics (#ctx_ident, #(#input_args)*) )
-            //     as ::std::boxed::Box<#hook_lifetime_plus FnOnce(&mut ::yew::functional::HookContext) -> #output_type>;
-
-            let #inner_ident = ::std::boxed::Box::new(move |#ctx_ident: &mut ::yew::functional::HookContext| #boxed_fn_rt #block )
-                as #boxed_fn_type;
+            let #inner_ident = ::std::boxed::Box::new(
+                    move |#ctx_ident: &mut ::yew::functional::HookContext| #boxed_fn_rt {
+                        #inner_fn_ident (#ctx_ident, #(#input_args,)*)
+                    }
+                ) as #boxed_fn_type;
 
             struct #hook_struct_name #generics #where_clause {
                 _marker: ::std::marker::PhantomData<( #(#phantom_types,)* #(#phantom_lifetimes,)* )>,

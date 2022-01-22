@@ -3,8 +3,8 @@ use quote::quote;
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
-    parse_quote, parse_quote_spanned, token, FnArg, Ident, Lifetime, ReturnType, Signature, Type,
-    TypeReference, WhereClause,
+    parse_quote, parse_quote_spanned, token, FnArg, Ident, Lifetime, Pat, ReturnType, Signature,
+    Type, TypeReference, WhereClause,
 };
 
 use super::lifetime;
@@ -120,19 +120,19 @@ impl HookSignature {
             .collect()
     }
 
-    // pub fn input_args(&self) -> Vec<Ident> {
-    //     self.sig
-    //         .inputs
-    //         .iter()
-    //         .filter_map(|m| {
-    //             if let FnArg::Typed(m) = m {
-    //                 if let Pat::Ident(ref m) = *m.pat {
-    //                     return Some(m.ident.clone());
-    //                 }
-    //             }
+    pub fn input_args(&self) -> Vec<Ident> {
+        self.sig
+            .inputs
+            .iter()
+            .filter_map(|m| {
+                if let FnArg::Typed(m) = m {
+                    if let Pat::Ident(ref m) = *m.pat {
+                        return Some(m.ident.clone());
+                    }
+                }
 
-    //             None
-    //         })
-    //         .collect()
-    // }
+                None
+            })
+            .collect()
+    }
 }
