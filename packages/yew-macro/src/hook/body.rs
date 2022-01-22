@@ -4,7 +4,7 @@ use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
     parse_quote_spanned, visit_mut, Expr, ExprCall, ExprClosure, ExprForLoop, ExprIf, ExprLoop,
-    ExprMatch, ExprWhile, Ident,
+    ExprMatch, ExprWhile, Ident, Item,
 };
 
 #[derive(Debug, Default)]
@@ -109,5 +109,10 @@ impl VisitMut for BodyRewriter {
 
         self.with_branch(|m| visit_mut::visit_expr_mut(m, &mut i.cond));
         self.with_branch(|m| visit_mut::visit_block_mut(m, &mut i.body));
+    }
+
+    fn visit_item_mut(&mut self, _i: &mut Item) {
+        // We don't do anything for items.
+        // for components / hooks in other components / hooks, apply the attribute again.
     }
 }

@@ -51,7 +51,7 @@ use crate::NodeRef;
 /// }
 /// ```
 #[hook]
-pub fn use_mut_ref<T: 'static>(initial_value: impl 'hook + FnOnce() -> T) -> Rc<RefCell<T>> {
+pub fn use_mut_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<RefCell<T>> {
     use_hook(
         || Rc::new(RefCell::new(initial_value())),
         |state, _| state.clone(),
@@ -65,7 +65,7 @@ pub fn use_mut_ref<T: 'static>(initial_value: impl 'hook + FnOnce() -> T) -> Rc<
 /// If you need a mutable reference, consider using [`use_mut_ref`](super::use_mut_ref).
 /// If you need the component to be re-rendered on state change, consider using [`use_state`](super::use_state()).
 #[hook]
-pub fn use_ref<T: 'static>(initial_value: impl 'hook + FnOnce() -> T) -> Rc<T> {
+pub fn use_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<T> {
     use_hook(
         || Rc::new(initial_value()),
         |state, _| Rc::clone(state),
