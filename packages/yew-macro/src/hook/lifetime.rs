@@ -2,25 +2,6 @@ use proc_macro2::Span;
 use syn::visit_mut::{self, VisitMut};
 use syn::{GenericArgument, Lifetime, Receiver, TypeReference};
 
-/// Finds an unused lifetime.
-pub fn find_available_lifetime(lifetimes: &CollectLifetimes) -> Lifetime {
-    for i in 0.. {
-        let hook_lifetime = if i == 0 {
-            Lifetime::new("'hook", lifetimes.default_span)
-        } else {
-            Lifetime::new(&format!("'hook{}", i), lifetimes.default_span)
-        };
-
-        if !lifetimes.elided.contains(&hook_lifetime)
-            && !lifetimes.explicit.contains(&hook_lifetime)
-        {
-            return hook_lifetime;
-        }
-    }
-
-    unreachable!()
-}
-
 // borrowed from the async-trait crate.
 pub struct CollectLifetimes {
     pub elided: Vec<Lifetime>,

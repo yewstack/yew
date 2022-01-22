@@ -2,7 +2,11 @@ use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use super::{use_reducer, use_reducer_eq, Reducible, UseReducerDispatcher, UseReducerHandle};
+use super::{
+    use_reducer, use_reducer_eq, use_reducer_eq_next, use_reducer_next, Reducible,
+    UseReducerDispatcher, UseReducerHandle,
+};
+use crate::functional::hook;
 
 struct UseStateReducer<T> {
     value: Rc<T>,
@@ -65,6 +69,46 @@ where
     UseStateHandle { inner: handle }
 }
 
+/// This hook is used to manage state in a function component.
+///
+/// # Example
+/// ```rust
+/// # use yew::prelude::*;
+/// # use std::rc::Rc;
+/// #
+/// #[function_component(UseState)]
+/// fn state() -> Html {
+///     let counter = use_state(|| 0);
+///     let onclick = {
+///         let counter = counter.clone();
+///         Callback::from(move |_| counter.set(*counter + 1))
+///     };
+///
+///
+///     html! {
+///         <div>
+///             <button {onclick}>{ "Increment value" }</button>
+///             <p>
+///                 <b>{ "Current value: " }</b>
+///                 { *counter }
+///             </p>
+///         </div>
+///     }
+/// }
+/// ```
+#[hook]
+pub fn use_state_next<T, F>(init_fn: F) -> UseStateHandle<T>
+where
+    T: 'static,
+    F: FnOnce() -> T,
+{
+    let handle = use_reducer_next(move || UseStateReducer {
+        value: Rc::new(init_fn()),
+    });
+
+    UseStateHandle { inner: handle }
+}
+
 /// [`use_state`] but only re-renders when `prev_state != next_state`.
 ///
 /// This hook requires the state to implement [`PartialEq`].
@@ -74,6 +118,22 @@ where
     F: FnOnce() -> T,
 {
     let handle = use_reducer_eq(move || UseStateReducer {
+        value: Rc::new(init_fn()),
+    });
+
+    UseStateHandle { inner: handle }
+}
+
+/// [`use_state`] but only re-renders when `prev_state != next_state`.
+///
+/// This hook requires the state to implement [`PartialEq`].
+#[hook]
+pub fn use_state_eq_next<T, F>(init_fn: F) -> UseStateHandle<T>
+where
+    T: PartialEq + 'static,
+    F: FnOnce() -> T,
+{
+    let handle = use_reducer_eq_next(move || UseStateReducer {
         value: Rc::new(init_fn()),
     });
 

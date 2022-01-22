@@ -117,11 +117,11 @@ When used in function components and hooks, this hook is equivalent to:
             //     as ::std::boxed::Box<#hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>;
 
             let #inner_ident = ::std::boxed::Box::new(move |#states: &mut ::yew::functional::HookStates| #block )
-                as ::std::boxed::Box<#hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>;
+                as ::std::boxed::Box<dyn #hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>;
 
             struct #hook_struct_name #generics #where_clause {
                 _marker: ::std::marker::PhantomData<( #(#phantom_types,)* #(#phantom_lifetimes,)* )>,
-                #inner_ident: ::std::boxed::Box<#hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>
+                #inner_ident: ::std::boxed::Box<dyn #hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>
             }
 
             impl #impl_generics ::yew::functional::Hook for #hook_struct_name #ty_generics #where_clause {
@@ -133,7 +133,7 @@ When used in function components and hooks, this hook is equivalent to:
             }
 
             impl #impl_generics #hook_struct_name #ty_generics #where_clause {
-                fn new(#inner_ident: ::std::boxed::Box<#hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>) -> Self {
+                fn new(#inner_ident: ::std::boxed::Box<dyn #hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>) -> Self {
                    #hook_struct_name {
                         _marker: ::std::marker::PhantomData,
                         #inner_ident,

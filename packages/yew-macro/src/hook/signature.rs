@@ -54,8 +54,8 @@ impl HookSignature {
             ..
         } = sig;
 
-        let hook_lifetime = if !lifetimes.elided.is_empty() {
-            let hook_lifetime = lifetime::find_available_lifetime(&lifetimes);
+        let hook_lifetime = if !generics.params.is_empty() {
+            let hook_lifetime = Lifetime::new("'hook", Span::mixed_site());
             generics.params = {
                 let elided_lifetimes = &lifetimes.elided;
                 let params = &generics.params;
@@ -86,9 +86,10 @@ impl HookSignature {
             }
 
             for type_param in generics.type_params() {
+                let type_param_ident = &type_param.ident;
                 where_clause
                     .predicates
-                    .push(parse_quote!(#type_param: #hook_lifetime));
+                    .push(parse_quote!(#type_param_ident: #hook_lifetime));
             }
 
             generics.where_clause = Some(where_clause);
