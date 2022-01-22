@@ -4,20 +4,19 @@ description: "Setting your code editor"
 ---
 
 :::important contribute
-This document only contains information for adding supporting in Jetbrains IDEs and VS Code.
-Feel free to contribute to add instructions for your editor of choice.
+Using a different editor? Feel free to add instructions for your editor of choice.
 :::
 
 ## Add a template for creating components
 
-### Jetbrains IDEs
+### JetBrains IDEs
 
 1. Navigate to File | Settings | Editor | Live Templates.
-2. Select Rust and click on + icon to add a new Live Template.
+2. Select Rust and click on the + icon to add a new Live Template.
 3. Give it a name and description of your preference.
-4. Paste the following snippet in Template Text section
+4. Paste the following snippet in Template Text section.
 5. Change the applicability on the lower right, select Rust > Item > Module
-```rust ,ignore
+```rust, ignore
 use yew::prelude::*;
 
 struct $NAME$;
@@ -41,7 +40,7 @@ impl Component for $NAME$ {
 }
 ```
 
-For functional components, use the template below. Additionaly:
+For function components, use the template below. Additionally:
 
 1. Click on Edit Variable
 2. In the `func_name` row, set the Expression column to `snakeCase(NAME)` so that `ComponentName` will be automatically
@@ -57,15 +56,11 @@ pub struct $Name$Props {
 
 #[function_component($Name$)]
 pub fn $func_name$(props: &$Name$Props) -> Html {
-
-
     html! {
         <$tag$>$END$</$tag$>
     }
 }
 ```
-
-
 
 ### VS Code
 
@@ -100,7 +95,7 @@ pub fn $func_name$(props: &$Name$Props) -> Html {
 			"    }",
 			"}"
 		],
-		"description": "Create a new Yew component without properties but with a message enum"
+		"description": "Create a new Yew component with a message enum"
 	}
 }
 
@@ -108,19 +103,19 @@ pub fn $func_name$(props: &$Name$Props) -> Html {
 
 ## Support for the `html!` Macro
 
-### Jetbrains IDEs
+### JetBrains IDEs
 
-Since April 2021, Jetbrains has started to support proc-macro expansion as an experimental feature.
-The user has to manually enable it.
-[See the post here.](https://blog.jetbrains.com/rust/2021/04/08/intellij-rust-updates-for-2021-1/#proc-macros)
+JetBrains added experimental support for proc-macro expansion in April 2021.
+This feature must be enabled before it can be used.
+[See the blog post here.](https://blog.jetbrains.com/rust/2021/04/08/intellij-rust-updates-for-2021-1/#proc-macros)
 
-This still won't enable html autofill and formatting help, but will enable variable resolution for
+This still won't enable HTML autofill and formatting help, although it will enable variable resolution for
 component names and attributes inside the macro.
 Utilities like Rename, Go to Declaration, Find Usages will work inside the macro.
 
 ### VS Code
 
-There's no support for specialized syntax of `html!` but you can use the default HTML IntelliSense by adding the following snippet in your VS Code's `settings.json` file:
+There isn't support for the specialized syntax of `html!`. However, the default HTML IntelliSense can be used by adding this to your `settings.json` file:
 
 ```json
 "emmet.includeLanguages": {
