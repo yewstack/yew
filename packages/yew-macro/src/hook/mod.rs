@@ -113,8 +113,8 @@ When used in function components and hooks, this hook is equivalent to:
     let boxed_fn_type = quote! { ::std::boxed::Box<dyn #hook_lifetime_plus FnOnce(&mut ::yew::functional::HookContext) #boxed_fn_rt> };
 
     let output = quote! {
-        #[doc = #doc_text]
         #(#attrs)*
+        #[doc = #doc_text]
         #vis #fn_token #ident #generics (#inputs) #hook_return_type #where_clause {
             // fn #inner_fn_ident #generics (#ctx_ident: &mut ::yew::functional::HookContext, #inputs) -> #output_type #block
 
