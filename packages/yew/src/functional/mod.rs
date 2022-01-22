@@ -108,6 +108,10 @@ impl HookStates {
             process_message: self.process_message.clone(),
         }
     }
+
+    fn scope(&self) -> &AnyScope {
+        &self.scope
+    }
 }
 
 impl fmt::Debug for HookStates {

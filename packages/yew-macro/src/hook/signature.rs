@@ -1,9 +1,10 @@
 use proc_macro2::Span;
 use quote::quote;
 use syn::spanned::Spanned;
+use syn::visit_mut::VisitMut;
 use syn::{
-    parse_quote, parse_quote_spanned, token, visit_mut, Ident, Lifetime, ReturnType, Signature,
-    Type, TypeReference, WhereClause,
+    parse_quote, parse_quote_spanned, token, FnArg, Ident, Lifetime, ReturnType, Signature, Type,
+    TypeReference, WhereClause,
 };
 
 use super::lifetime;
@@ -23,7 +24,7 @@ impl HookSignature {
 
         match rt_type {
             ReturnType::Default => (
-                parse_quote! { -> impl #bound ::yew::functional::Hook<Ouput = ()> },
+                parse_quote! { -> impl #bound ::yew::functional::Hook<Output = ()> },
                 parse_quote! { () },
             ),
             ReturnType::Type(arrow, ref return_type) => (
@@ -40,7 +41,12 @@ impl HookSignature {
         let mut sig = sig.clone();
 
         let mut lifetimes = lifetime::CollectLifetimes::new("'arg", sig.ident.span());
-        visit_mut::visit_signature_mut(&mut lifetimes, &mut sig);
+        for arg in sig.inputs.iter_mut() {
+            match arg {
+                FnArg::Receiver(arg) => lifetimes.visit_receiver_mut(arg),
+                FnArg::Typed(arg) => lifetimes.visit_type_mut(&mut arg.ty),
+            }
+        }
 
         let Signature {
             ref mut generics,
@@ -71,6 +77,18 @@ impl HookSignature {
                 where_clause
                     .predicates
                     .push(parse_quote!(#elided: #hook_lifetime));
+            }
+
+            for explicit in lifetimes.explicit.iter() {
+                where_clause
+                    .predicates
+                    .push(parse_quote!(#explicit: #hook_lifetime));
+            }
+
+            for type_param in generics.type_params() {
+                where_clause
+                    .predicates
+                    .push(parse_quote!(#type_param: #hook_lifetime));
             }
 
             generics.where_clause = Some(where_clause);
@@ -105,4 +123,20 @@ impl HookSignature {
             .map(|life| parse_quote! { &#life () })
             .collect()
     }
+
+    // pub fn input_args(&self) -> Vec<Ident> {
+    //     self.sig
+    //         .inputs
+    //         .iter()
+    //         .filter_map(|m| {
+    //             if let FnArg::Typed(m) = m {
+    //                 if let Pat::Ident(ref m) = *m.pat {
+    //                     return Some(m.ident.clone());
+    //                 }
+    //             }
+
+    //             None
+    //         })
+    //         .collect()
+    // }
 }

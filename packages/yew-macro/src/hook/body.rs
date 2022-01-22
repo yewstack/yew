@@ -37,7 +37,7 @@ impl VisitMut for BodyRewriter {
             if let Some(m) = m.path.segments.last().as_ref().map(|m| &m.ident) {
                 if m.to_string().starts_with("use_") {
                     if self.is_branched() {
-                        emit_error!(i, "hooks cannot be called at this position.");
+                        emit_error!(m, "hooks cannot be called at this position.");
                     } else {
                         *i = parse_quote_spanned! { i.span() => ::yew::functional::Hook::run(#i, #states_ident) };
                     }

@@ -10,7 +10,7 @@ pub use use_reducer::*;
 pub use use_ref::*;
 pub use use_state::*;
 
-use crate::functional::{HookStates, HookUpdater, CURRENT_HOOK};
+use crate::functional::{AnyScope, HookStates, HookUpdater, CURRENT_HOOK};
 
 /// A trait that is implemented on hooks.
 ///
@@ -114,4 +114,18 @@ where
         runner: Box::new(runner),
         destructor: Box::new(destructor),
     }
+}
+
+pub(crate) fn use_component_scope() -> impl Hook<Output = AnyScope> {
+    struct HookProvider {}
+
+    impl Hook for HookProvider {
+        type Output = AnyScope;
+
+        fn run(self, states: &mut HookStates) -> Self::Output {
+            states.scope().clone()
+        }
+    }
+
+    HookProvider {}
 }

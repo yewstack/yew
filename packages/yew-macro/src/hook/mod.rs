@@ -89,6 +89,8 @@ When used in function components and hooks, this hook is equivalent to:
     let hook_struct_name = Ident::new("HookProvider", Span::mixed_site());
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+    let call_generics = ty_generics.as_turbofish();
+
     let states = Ident::new("states", Span::mixed_site());
 
     let phantom_types = hook_sig.phantom_types();
@@ -98,19 +100,28 @@ When used in function components and hooks, this hook is equivalent to:
     visit_mut::visit_block_mut(&mut body_rewriter, &mut *block);
 
     let hook_lifetime_plus = hook_lifetime.map(|m| quote! { #m + });
+    let inner_ident = Ident::new("inner", Span::mixed_site());
+
+    // let inner_fn_ident = Ident::new("inner_fn", Span::mixed_site());
+    // let input_args = hook_sig.input_args();
 
     let output = quote! {
         #(#attrs)*
         #[doc = #doc_text]
-        #vis #fn_token #ident #generics (#inputs) #hook_return_type {
+        #vis #fn_token #ident #generics (#inputs) #hook_return_type #where_clause {
+            // fn #inner_fn_ident #generics (#states: &mut ::yew::functional::HookStates, #inputs) -> #output_type #block
+
             // always capture inputs with closure for now, we need boxing implementation for `impl Trait`
             // arguments anyways.
-            let inner = ::std::boxed::Box::new(move |#states: &mut ::yew::functional::HookStates| #block)
+            // let inner = ::std::boxed::Box::new(move |#states: &mut ::yew::functional::HookStates| #inner_fn_ident #call_generics (#states, #(#input_args)*) )
+            //     as ::std::boxed::Box<#hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>;
+
+            let #inner_ident = ::std::boxed::Box::new(move |#states: &mut ::yew::functional::HookStates| #block )
                 as ::std::boxed::Box<#hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>;
 
-            struct #hook_struct_name #generics {
+            struct #hook_struct_name #generics #where_clause {
                 _marker: ::std::marker::PhantomData<( #(#phantom_types,)* #(#phantom_lifetimes,)* )>,
-                inner: ::std::boxed::Box<#hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>
+                #inner_ident: ::std::boxed::Box<#hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>
             }
 
             impl #impl_generics ::yew::functional::Hook for #hook_struct_name #ty_generics #where_clause {
@@ -121,10 +132,16 @@ When used in function components and hooks, this hook is equivalent to:
                 }
             }
 
-            #hook_struct_name {
-                _marker: ::std::marker::PhantomData,
-                inner,
+            impl #impl_generics #hook_struct_name #ty_generics #where_clause {
+                fn new(#inner_ident: ::std::boxed::Box<#hook_lifetime_plus FnOnce(&mut ::yew::functional::HookStates) -> #output_type>) -> Self {
+                   #hook_struct_name {
+                        _marker: ::std::marker::PhantomData,
+                        #inner_ident,
+                    }
+                }
             }
+
+            #hook_struct_name #call_generics ::new(#inner_ident)
         }
     };
 

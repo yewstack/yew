@@ -27,6 +27,7 @@ pub struct CollectLifetimes {
     pub explicit: Vec<Lifetime>,
     pub name: &'static str,
     pub default_span: Span,
+    // pub fn_ctr: u64,
 }
 
 impl CollectLifetimes {
@@ -36,6 +37,7 @@ impl CollectLifetimes {
             explicit: Vec::new(),
             name,
             default_span,
+            // fn_ctr: 0,
         }
     }
 
@@ -61,6 +63,20 @@ impl CollectLifetimes {
         self.elided.push(life.clone());
         life
     }
+
+    // fn is_in_fn(&self) -> bool {
+    //     self.fn_ctr > 0
+    // }
+
+    // fn with_in_fn<F, O>(&mut self, f: F) -> O
+    // where
+    //     F: FnOnce(&mut CollectLifetimes) -> O,
+    // {
+    //     self.fn_ctr += 1;
+    //     let result = { f(self) };
+    //     self.fn_ctr -= 1;
+    //     result
+    // }
 }
 
 impl VisitMut for CollectLifetimes {
