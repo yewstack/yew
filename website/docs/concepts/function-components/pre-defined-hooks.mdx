@@ -64,22 +64,20 @@ re-render when the setter receives a value that `prev_state != next_state`.
 
 This hook requires the state object to implement `PartialEq`.
 
-## `use_ref`
-`use_ref` is used for obtaining an immutable reference to a value.
+## `use_memo`
+`use_memo` is used for obtaining an immutable reference to a value.
 Its state persists across renders.
+Its value will be recalculated if the dependency changes.
 
-`use_ref` can be useful for keeping things in scope for the lifetime of the component, so long as
+`use_memo` can be useful for keeping things in scope for the lifetime of the component, so long as
 you don't store a clone of the resulting `Rc` anywhere that outlives the component.
 
-If you need a mutable reference, consider using [`use_mut_ref`](#use_mut_ref).
-If you need the component to be re-rendered on state change, consider using [`use_state`](#use_state).
-
 ```rust
-use yew::{function_component, html, use_ref, use_state, Callback, Html};
+use yew::{function_component, html, use_memo, use_state, Callback, Html};
 
-#[function_component(UseRef)]
+#[function_component(UseMemo)]
 fn ref_hook() -> Html {
-    let message = use_ref(|| "Some Expensive State.".to_string());
+    let message = use_memo(|_| "Some Expensive State.".to_string(), ());
 
     html! {
         <div>

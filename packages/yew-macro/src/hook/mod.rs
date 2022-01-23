@@ -95,23 +95,14 @@ When used in function components and hooks, this hook is equivalent to:
         ..
     } = hook_sig.sig;
 
-    let hook_lifetime = &hook_sig.hook_lifetime;
     let output_type = &hook_sig.output_type;
-    let hook_struct_name = Ident::new("HookProvider", Span::mixed_site());
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-    let call_generics = ty_generics.as_turbofish();
 
     let ctx_ident = Ident::new("ctx", Span::mixed_site());
 
-    let phantom_types = hook_sig.phantom_types();
-    let phantom_lifetimes = hook_sig.phantom_lifetimes();
-
     let mut body_rewriter = BodyRewriter::default();
     visit_mut::visit_block_mut(&mut body_rewriter, &mut *block);
-
-    let hook_lifetime_plus = quote! { #hook_lifetime + };
-    let inner_ident = Ident::new("inner", Span::mixed_site());
 
     let inner_fn_ident = Ident::new("inner_fn", Span::mixed_site());
     let input_args = hook_sig.input_args();
@@ -125,43 +116,32 @@ When used in function components and hooks, this hook is equivalent to:
     let inner_fn = quote! { fn #inner_fn_ident #generics (#ctx_ident: &mut ::yew::functional::HookContext, #inputs) #inner_fn_rt #where_clause #block };
 
     let inner_type_impl = if hook_sig.needs_boxing {
+        let hook_lifetime = &hook_sig.hook_lifetime;
+        let hook_lifetime_plus = quote! { #hook_lifetime + };
+
+        let boxed_inner_ident = Ident::new("boxed_inner", Span::mixed_site());
         let boxed_fn_type = quote! { ::std::boxed::Box<dyn #hook_lifetime_plus FnOnce(&mut ::yew::functional::HookContext) #inner_fn_rt> };
 
         // We need boxing implementation for `impl Trait` arguments.
         quote! {
-            let #inner_ident = ::std::boxed::Box::new(
+            let #boxed_inner_ident = ::std::boxed::Box::new(
                     move |#ctx_ident: &mut ::yew::functional::HookContext| #inner_fn_rt {
                         #inner_fn_ident (#ctx_ident, #(#input_args,)*)
                     }
                 ) as #boxed_fn_type;
 
-            struct #hook_struct_name #generics #where_clause {
-                _marker: ::std::marker::PhantomData<( #(#phantom_types,)* #(#phantom_lifetimes,)* )>,
-                #inner_ident: #boxed_fn_type,
-            }
-
-            impl #impl_generics ::yew::functional::Hook for #hook_struct_name #ty_generics #where_clause {
-                type Output = #output_type;
-
-                fn run(mut self, #ctx_ident: &mut ::yew::functional::HookContext) -> Self::Output {
-                    (self.inner)(#ctx_ident)
-                }
-            }
-
-            impl #impl_generics #hook_struct_name #ty_generics #where_clause {
-                fn new(#inner_ident: #boxed_fn_type) -> Self {
-                   #hook_struct_name {
-                        _marker: ::std::marker::PhantomData,
-                        #inner_ident,
-                    }
-                }
-            }
-
-            #hook_struct_name #call_generics ::new(#inner_ident)
+            ::yew::functional::BoxedHook::<#hook_lifetime, #output_type>::new(#boxed_inner_ident)
         }
     } else {
         let input_types = hook_sig.input_types();
+
         let args_ident = Ident::new("args", Span::mixed_site());
+        let hook_struct_name = Ident::new("HookProvider", Span::mixed_site());
+
+        let call_generics = ty_generics.as_turbofish();
+
+        let phantom_types = hook_sig.phantom_types();
+        let phantom_lifetimes = hook_sig.phantom_lifetimes();
 
         quote! {
             struct #hook_struct_name #generics #where_clause {

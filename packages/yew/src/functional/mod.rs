@@ -55,7 +55,7 @@ use crate::html::SealedBaseComponent;
 /// ```
 pub use yew_macro::function_component;
 
-/// This attribute creates a hook from a normal Rust function.
+/// This attribute creates a user-defined hook from a normal Rust function.
 pub use yew_macro::hook;
 
 type Msg = Box<dyn FnOnce() -> bool>;

@@ -46,6 +46,7 @@ All hooks must be marked by `#[hook]` to function as as hook.
 use web_sys::{Event, EventTarget};
 use std::borrow::Cow;
 use gloo::events::EventListener;
+use yew::prelude::*;
 
 #[hook]
 pub fn use_event<E, F>(target: &EventTarget, event_type: E, callback: F)
