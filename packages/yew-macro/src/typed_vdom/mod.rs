@@ -6,6 +6,7 @@ use syn::parse::{Parse, ParseStream};
 
 pub mod generate_element;
 mod globals;
+pub use globals::*;
 
 #[derive(Clone)]
 pub struct AttributePropDefinition {
@@ -30,6 +31,7 @@ impl AttributePropDefinition {
         let AttributePropDefinition { ty, .. } = self;
         let name = self.name();
         quote! {
+            #[prop_or_default]
             pub #name: ::std::option::Option::<#ty>,
         }
     }
@@ -73,6 +75,7 @@ impl ListenerPropDefinition {
         let ident = self.ident();
         let ty = &self.ty;
         quote! {
+            #[prop_or_default]
             pub #ident: ::std::option::Option::<::yew::Callback::<::web_sys::#ty>>,
         }
     }

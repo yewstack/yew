@@ -59,8 +59,11 @@ impl ToTokens for GenerateElement {
 
             #[derive(::std::default::Default, ::std::clone::Clone, ::std::fmt::Debug, ::yew::html::Properties, ::std::cmp::PartialEq)]
             pub struct #props_ident {
+                #[prop_or_default]
                 pub node_ref: ::std::option::Option::<::yew::NodeRef>,
+                #[prop_or_default]
                 pub key: ::std::option::Option::<::yew::virtual_dom::Key>,
+                #[prop_or_default]
                 pub children: ::yew::Children,
                 #(#props)*
                 #(#listeners)*

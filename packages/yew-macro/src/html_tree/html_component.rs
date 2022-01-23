@@ -7,10 +7,7 @@ use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{
-    AngleBracketedGenericArguments, GenericArgument, Path, PathArguments, PathSegment, Token, Type,
-    TypePath,
-};
+use syn::{AngleBracketedGenericArguments, GenericArgument, parse_quote_spanned, Path, PathArguments, PathSegment, Token, Type, TypePath};
 
 pub struct HtmlComponent {
     ty: Type,
@@ -24,6 +21,12 @@ impl PeekValue<()> for HtmlComponent {
             .or_else(|| HtmlComponentClose::peek(cursor))
             .map(|_| ())
     }
+}
+
+fn element_or_ty(ty: &Type) -> Type {
+    if crate::typed_vdom::element_names().contains(&&*ty.to_token_stream().to_string()) {
+        parse_quote_spanned! {ty.span()=> ::yew::virtual_dom::typings::#ty}
+    } else { ty.clone() }
 }
 
 impl Parse for HtmlComponent {
@@ -42,7 +45,7 @@ impl Parse for HtmlComponent {
         // Return early if it's a self-closing tag
         if open.is_self_closing() {
             return Ok(HtmlComponent {
-                ty: open.ty,
+                ty: element_or_ty(&open.ty),
                 props: open.props,
                 children: HtmlChildrenTree::new(),
             });
@@ -77,7 +80,7 @@ impl Parse for HtmlComponent {
         }
 
         Ok(HtmlComponent {
-            ty: open.ty,
+            ty: element_or_ty(&open.ty),
             props: open.props,
             children,
         })
