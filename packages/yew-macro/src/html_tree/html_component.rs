@@ -7,7 +7,10 @@ use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{AngleBracketedGenericArguments, GenericArgument, parse_quote_spanned, Path, PathArguments, PathSegment, Token, Type, TypePath};
+use syn::{
+    parse_quote_spanned, AngleBracketedGenericArguments, GenericArgument, Path, PathArguments,
+    PathSegment, Token, Type, TypePath,
+};
 
 pub struct HtmlComponent {
     ty: Type,
@@ -26,7 +29,9 @@ impl PeekValue<()> for HtmlComponent {
 fn element_or_ty(ty: &Type) -> Type {
     if crate::typed_vdom::element_names().contains(&&*ty.to_token_stream().to_string()) {
         parse_quote_spanned! {ty.span()=> ::yew::virtual_dom::typings::#ty}
-    } else { ty.clone() }
+    } else {
+        ty.clone()
+    }
 }
 
 impl Parse for HtmlComponent {

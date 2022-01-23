@@ -1,8 +1,8 @@
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
-use syn::{LitStr, parse_quote, Token, Type};
 use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream};
+use syn::{parse_quote, LitStr, Token, Type};
 
 pub mod generate_element;
 mod globals;

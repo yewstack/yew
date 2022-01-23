@@ -415,6 +415,6 @@ pub fn element_names() -> [&'static str; 142] {
         "h3",
         "h4",
         "h5",
-        "h6"
+        "h6",
     ]
 }

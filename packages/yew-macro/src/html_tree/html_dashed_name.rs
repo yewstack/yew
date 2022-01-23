@@ -2,7 +2,7 @@ use crate::{non_capitalized_ascii, stringify::Stringify, Peek};
 use boolinator::Boolinator;
 use proc_macro2::Ident;
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, ToTokens};
+use quote::{format_ident, quote, ToTokens};
 use std::fmt;
 use syn::buffer::Cursor;
 use syn::ext::IdentExt;
@@ -89,7 +89,9 @@ impl ToTokens for HtmlDashedName {
         let dashes = extended.iter().map(|(dash, _)| quote! {#dash});
         let idents = extended.iter().map(|(_, ident)| quote! {#ident});
         let extended = quote! { #(#dashes #idents)* };
-        tokens.extend(quote! { #name #extended });
+        let label = quote! { #name #extended };
+        let ident = format_ident!("{}", label.to_string(), span = Span::call_site());
+        ident.to_tokens(tokens)
     }
 }
 

@@ -7,7 +7,7 @@ use std::rc::Rc;
 use crate::macros::generate_element;
 
 use crate::virtual_dom::{AttrValue, Key, Listener, VNode};
-use crate::{NodeRef};
+use crate::NodeRef;
 
 generate_element! {
     base;
@@ -1058,7 +1058,6 @@ generate_element! {
     h6;
     props: {  }
 }
-
 
 /// Metadata of an HTML element
 ///
