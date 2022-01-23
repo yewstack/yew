@@ -59,6 +59,9 @@ impl ToTokens for GenerateElement {
 
             #[derive(::std::default::Default, ::std::clone::Clone, ::std::fmt::Debug, ::yew::html::Properties, ::std::cmp::PartialEq)]
             struct #props_ident {
+                node_ref: ::std::option::Option::<::yew::NodeRef>,
+                key: ::std::option::Option::<::yew::virtual_dom::Key>,
+                children: ::yew::Children,
                 #(#props)*
                 #(#listeners)*
             }
@@ -79,7 +82,7 @@ impl ToTokens for GenerateElement {
                             listeners
                         },
                         key: self.key,
-                        children: self.children.map(|it| it.into_iter().collect()).unwrap_or_default()
+                        children: self.children.into_iter().collect(),
                     }
                 }
             }
