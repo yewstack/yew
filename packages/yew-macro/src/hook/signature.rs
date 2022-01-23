@@ -1,10 +1,11 @@
 use proc_macro2::Span;
+use proc_macro_error::emit_error;
 use quote::quote;
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
-    parse_quote, parse_quote_spanned, token, visit_mut, FnArg, Ident, Lifetime, Pat, ReturnType,
-    Signature, Type, TypeImplTrait, TypeReference, WhereClause,
+    parse_quote, parse_quote_spanned, token, visit_mut, FnArg, Ident, Lifetime, Pat, Receiver,
+    ReturnType, Signature, Type, TypeImplTrait, TypeReference, WhereClause,
 };
 
 use super::lifetime;
@@ -25,6 +26,12 @@ impl VisitMut for CollectArgs {
         self.needs_boxing = true;
 
         visit_mut::visit_type_impl_trait_mut(self, impl_trait);
+    }
+
+    fn visit_receiver_mut(&mut self, recv: &mut Receiver) {
+        emit_error!(recv, "methods cannot be hooks");
+
+        visit_mut::visit_receiver_mut(self, recv);
     }
 }
 
@@ -153,6 +160,20 @@ impl HookSignature {
                     if let Pat::Ident(ref m) = *m.pat {
                         return Some(m.ident.clone());
                     }
+                }
+
+                None
+            })
+            .collect()
+    }
+
+    pub fn input_types(&self) -> Vec<Type> {
+        self.sig
+            .inputs
+            .iter()
+            .filter_map(|m| {
+                if let FnArg::Typed(m) = m {
+                    return Some(*m.ty.clone());
                 }
 
                 None

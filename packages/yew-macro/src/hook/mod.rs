@@ -116,22 +116,21 @@ When used in function components and hooks, this hook is equivalent to:
     let inner_fn_ident = Ident::new("inner_fn", Span::mixed_site());
     let input_args = hook_sig.input_args();
 
-    let boxed_fn_rt = match &sig.output {
+    // there might be some overridden lifetimes in the return type.
+    let inner_fn_rt = match &sig.output {
         ReturnType::Default => None,
-        ReturnType::Type(_, _) => Some(quote! { -> #output_type }),
+        ReturnType::Type(rarrow, _) => Some(quote! { #rarrow #output_type }),
     };
-    let boxed_fn_type = quote! { ::std::boxed::Box<dyn #hook_lifetime_plus FnOnce(&mut ::yew::functional::HookContext) #boxed_fn_rt> };
 
-    let output = quote! {
-        #(#attrs)*
-        #[doc = #doc_text]
-        #vis #fn_token #ident #generics (#inputs) #hook_return_type #where_clause {
-            fn #inner_fn_ident #generics (#ctx_ident: &mut ::yew::functional::HookContext, #inputs) #boxed_fn_rt #where_clause #block
+    let inner_fn = quote! { fn #inner_fn_ident #generics (#ctx_ident: &mut ::yew::functional::HookContext, #inputs) #inner_fn_rt #where_clause #block };
 
-            // always capture inputs with closure for now, we need boxing implementation for `impl Trait`
-            // arguments anyways.
+    let inner_type_impl = if hook_sig.needs_boxing {
+        let boxed_fn_type = quote! { ::std::boxed::Box<dyn #hook_lifetime_plus FnOnce(&mut ::yew::functional::HookContext) #inner_fn_rt> };
+
+        // We need boxing implementation for `impl Trait` arguments.
+        quote! {
             let #inner_ident = ::std::boxed::Box::new(
-                    move |#ctx_ident: &mut ::yew::functional::HookContext| #boxed_fn_rt {
+                    move |#ctx_ident: &mut ::yew::functional::HookContext| #inner_fn_rt {
                         #inner_fn_ident (#ctx_ident, #(#input_args,)*)
                     }
                 ) as #boxed_fn_type;
@@ -159,6 +158,47 @@ When used in function components and hooks, this hook is equivalent to:
             }
 
             #hook_struct_name #call_generics ::new(#inner_ident)
+        }
+    } else {
+        let input_types = hook_sig.input_types();
+        let args_ident = Ident::new("args", Span::mixed_site());
+
+        quote! {
+            struct #hook_struct_name #generics #where_clause {
+                _marker: ::std::marker::PhantomData<( #(#phantom_types,)* #(#phantom_lifetimes,)* )>,
+                #args_ident: (#(#input_types,)*),
+            }
+
+            impl #impl_generics ::yew::functional::Hook for #hook_struct_name #ty_generics #where_clause {
+                type Output = #output_type;
+
+                fn run(mut self, #ctx_ident: &mut ::yew::functional::HookContext) -> Self::Output {
+                    let (#(#input_args,)*) = self.#args_ident;
+
+                    #inner_fn_ident(#ctx_ident, #(#input_args,)*)
+                }
+            }
+
+            impl #impl_generics #hook_struct_name #ty_generics #where_clause {
+                fn new(#inputs) -> Self {
+                   #hook_struct_name {
+                        _marker: ::std::marker::PhantomData,
+                        #args_ident: (#(#input_args,)*),
+                    }
+                }
+            }
+
+            #hook_struct_name #call_generics ::new(#(#input_args,)*)
+        }
+    };
+
+    let output = quote! {
+        #(#attrs)*
+        #[doc = #doc_text]
+        #vis #fn_token #ident #generics (#inputs) #hook_return_type #where_clause {
+            #inner_fn
+
+            #inner_type_impl
         }
     };
 
