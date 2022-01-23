@@ -31,13 +31,15 @@ cd yew-app
 
 ### Run a hello world example
 
-To verify the Rust environment is setup, run the initial project using the cargo build tool. After output about the build process, you should see the expected "Hello World" message.
+To verify the Rust environment is setup, run the initial project using `cargo run`. You should see
+a "Hello World!" message.
 
 ```bash
 cargo run
+# output: Hello World!
 ```
 
-### Converting the project into a Yew web application
+### Setting up the project as a Yew web application
 
 To convert this simple command line application to a basic Yew web application, a few changes are needed.
 
@@ -58,12 +60,13 @@ yew = "0.19"
 
 #### Update main.rs
 
-We need to generate a template which sets up a root Component called `App` which renders a button that updates its value when clicked.
-Replace the contents of `src/main.rs` with the following code.
+We need to generate a template which sets up a root Component called `App` which renders a button
+that updates its value when clicked. Replace the contents of `src/main.rs` with the following code.
 
 :::note
-The line `yew::start_app::<App>()` inside `main()` starts your application and mounts it to the page's `<body>` tag.
-If you would like to start your application with any dynamic properties, you can instead use `yew::start_app_with_props::<App>(..)`.
+The call to `yew::start_app::<App>()` inside the `main` function starts your application and mounts
+it to the page's `<body>` tag. If you would like to start your application with any dynamic
+properties, you can instead use `yew::start_app_with_props::<App>(..)`.
 :::
 
 ```rust ,no_run, title=main.rs
@@ -115,7 +118,7 @@ Run the following command to build and serve the application locally.
 trunk serve
 ```
 
-Trunk will helpfully rebuild your application if you modify any of its files.
+Trunk will rebuild your application if you modify any of its source code files.
 
 ## Congratulations
 
