@@ -2,8 +2,7 @@
 
 use super::{
     lifecycle::{
-        ComponentState, CreateRunner, DestroyRunner, RenderRunner, RenderedRunner, UpdateEvent,
-        UpdateRunner,
+        ComponentState, CreateRunner, DestroyRunner, RenderRunner, UpdateEvent, UpdateRunner,
     },
     BaseComponent,
 };
@@ -244,9 +243,6 @@ impl<COMP: BaseComponent> Scope<COMP> {
             RenderRunner {
                 state: self.state.clone(),
             },
-            RenderedRunner {
-                state: self.state.clone(),
-            },
         );
         // Not guaranteed to already have the scheduler started
         scheduler::start();
@@ -379,9 +375,6 @@ mod feat_ssr {
                     html_sender: Some(tx),
                 },
                 RenderRunner {
-                    state: self.state.clone(),
-                },
-                RenderedRunner {
                     state: self.state.clone(),
                 },
             );
