@@ -99,12 +99,8 @@ impl HtmlTree {
 
                 if input.peek(Token![=]) || (input.peek(Token![?]) && input.peek2(Token![=])) {
                     Some(HtmlType::List)
-                } else if ident_str.chars().next().unwrap().is_ascii_uppercase()
-                    || input.peek(Token![::])
-                {
-                    Some(HtmlType::Component)
                 } else {
-                    Some(HtmlType::Element)
+                    Some(HtmlType::Component)
                 }
             } else {
                 None

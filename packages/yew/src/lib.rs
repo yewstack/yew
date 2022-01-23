@@ -261,6 +261,7 @@ pub mod macros {
     pub use crate::html;
     pub use crate::html_nested;
     pub use crate::props;
+    pub use yew_macro::generate_element;
 }
 
 mod app_handle;

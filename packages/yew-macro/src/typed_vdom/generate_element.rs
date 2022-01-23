@@ -55,13 +55,13 @@ impl ToTokens for GenerateElement {
 
         let out = quote! {
             #[allow(non_camel_case_types)]
-            struct #element_name;
+            pub struct #element_name;
 
             #[derive(::std::default::Default, ::std::clone::Clone, ::std::fmt::Debug, ::yew::html::Properties, ::std::cmp::PartialEq)]
-            struct #props_ident {
-                node_ref: ::std::option::Option::<::yew::NodeRef>,
-                key: ::std::option::Option::<::yew::virtual_dom::Key>,
-                children: ::yew::Children,
+            pub struct #props_ident {
+                pub node_ref: ::std::option::Option::<::yew::NodeRef>,
+                pub key: ::std::option::Option::<::yew::virtual_dom::Key>,
+                pub children: ::yew::Children,
                 #(#props)*
                 #(#listeners)*
             }

@@ -1,9 +1,10 @@
+#![allow(missing_docs)]
 //! This module contains the items required for a statically typed VDOM
 
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use yew_macro::generate_element;
+use crate::macros::generate_element;
 
 use crate::virtual_dom::{AttrValue, Key, Listener, VNode};
 use crate::{NodeRef};
