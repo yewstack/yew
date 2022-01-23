@@ -9,14 +9,6 @@ use crate::macros::generate_element;
 use crate::virtual_dom::{AttrValue, Key, Listener, VNode};
 use crate::{NodeRef};
 
-
-generate_element! {
-    html;
-    props: {
-        manifest: AttrValue,
-     }
-}
-
 generate_element! {
     base;
     props: {

@@ -387,6 +387,8 @@ pub mod prelude {
     pub use crate::suspense::Suspense;
 
     pub use crate::functional::*;
+
+    pub use crate::virtual_dom::typings::*;
 }
 
 pub use self::prelude::*;
