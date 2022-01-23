@@ -10,11 +10,8 @@ struct UseEffectBase<T, D> {
 }
 
 #[hook]
-pub fn use_effect_base<T, D, R>(
-    callback: impl FnOnce(&T) -> D + 'static,
-    deps: T,
-    effect_changed_fn: R,
-) where
+fn use_effect_base<T, D, R>(callback: impl FnOnce(&T) -> D + 'static, deps: T, effect_changed_fn: R)
+where
     T: 'static,
     D: FnOnce() + 'static,
     R: FnOnce(Option<&T>, Option<&T>) -> bool + 'static,

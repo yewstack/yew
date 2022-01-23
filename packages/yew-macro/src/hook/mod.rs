@@ -48,14 +48,14 @@ impl Parse for HookFn {
 }
 
 pub fn hook_impl(component: HookFn) -> syn::Result<TokenStream> {
-    let HookFn { inner } = component;
+    let HookFn { inner: original_fn } = component;
 
     let ItemFn {
         vis,
         sig,
         mut block,
         attrs,
-    } = inner;
+    } = original_fn.clone();
 
     let sig_s = quote! { #vis #sig {
         __yew_macro_dummy_function_body__
@@ -172,7 +172,10 @@ When used in function components and hooks, this hook is equivalent to:
         }
     };
 
+    // There're some weird issues with doc tests that it cannot detect return types properly.
+    // So we print original implementation instead.
     let output = quote! {
+        #[cfg(not(doctest))]
         #(#attrs)*
         #[doc = #doc_text]
         #vis #fn_token #ident #generics (#inputs) #hook_return_type #where_clause {
@@ -180,6 +183,9 @@ When used in function components and hooks, this hook is equivalent to:
 
             #inner_type_impl
         }
+
+        #[cfg(doctest)]
+        #original_fn
     };
 
     Ok(output)
