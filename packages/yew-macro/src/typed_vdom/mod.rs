@@ -43,9 +43,10 @@ impl AttributePropDefinition {
         format_ident!("r#{}", self.name)
     }
     fn build_if_lets(&self) -> TokenStream {
-        let name = self.name();
+        let ident = self.name();
+        let name = self.name.to_string().replace('_', "-");
         quote! {
-            if let Some(val) = self.#name {
+            if let Some(val) = self.#ident {
                 attrs.insert(::std::stringify!(#name), val);
             }
         }
