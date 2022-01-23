@@ -35,15 +35,6 @@ pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<T> {
         context: Option<(T, ContextHandle<T>)>,
     }
 
-    impl<T> PartialEq for State<T>
-    where
-        T: Clone + PartialEq + 'static,
-    {
-        fn eq(&self, rhs: &Self) -> bool {
-            self.context.as_ref().map(|m| &m.0) == rhs.context.as_ref().map(|m| &m.0)
-        }
-    }
-
     let scope = use_component_scope();
 
     let val = use_state(|| -> Option<T> { None });

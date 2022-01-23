@@ -15,7 +15,7 @@
 
 use crate::html::{AnyScope, BaseComponent, HtmlResult};
 use crate::Properties;
-use std::cell::RefCell;
+use std::cell::{RefCell, RefMut};
 use std::fmt;
 use std::ops::DerefMut;
 use std::rc::Rc;
@@ -88,23 +88,25 @@ impl HookContext {
         let hook_pos = self.counter;
         self.counter += 1;
 
-        // Initialize hook if this is the first call
-        if hook_pos >= self.hooks.len() {
-            let initial_state = Rc::new(RefCell::new(initializer()));
-            self.hooks.push(initial_state.clone());
-            self.destroy_listeners.push(Box::new(move || {
-                destructor(initial_state.borrow_mut().deref_mut());
-            }));
-        }
+        let hook = match self.hooks.get(hook_pos).cloned() {
+            Some(m) => m,
+            None => {
+                let initial_state = Rc::new(RefCell::new(initializer()));
+                self.hooks.push(initial_state.clone());
 
-        let hook = self
-            .hooks
-            .get(hook_pos)
-            .expect("Not the same number of hooks. Hooks must not be called conditionally")
-            .clone();
+                {
+                    let initial_state = initial_state.clone();
+                    self.destroy_listeners.push(Box::new(move || {
+                        destructor(initial_state.borrow_mut().deref_mut());
+                    }));
+                }
+                initial_state
+            }
+        };
 
         HookUpdater {
             hook,
+            scope: self.scope.clone(),
             process_message: self.process_message.clone(),
         }
     }
@@ -173,7 +175,7 @@ where
                 },
                 hooks: vec![],
                 destroy_listeners: vec![],
-                total_hook_counter: 0,
+                total_hook_counter: None,
             }),
         }
     }
@@ -193,7 +195,7 @@ where
 
         let result = T::run(&mut *ctx, props);
 
-        // Procedural Macros catch most conditionally called hooks at compile time, but it cannot
+        // Procedural Macros can catch most conditionally called hooks at compile time, but it cannot
         // detect early return (as the return can be Err(_), Suspension).
         if result.is_err() {
             if let Some(m) = ctx.total_hook_counter {
@@ -214,6 +216,8 @@ where
                 }
             }
         }
+
+        result
     }
 
     fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
@@ -247,64 +251,61 @@ impl MsgQueue {
 
 /// The `HookUpdater` provides a convenient interface for hooking into the lifecycle of
 /// the underlying Yew Component that backs the function component.
-///
-/// Two interfaces are provided - callback and post_render.
-/// - `callback` allows the creation of regular yew callbacks on the host component.
-/// - `post_render` allows the creation of events that happen after a render is complete.
-///
-/// See [`use_effect`](hooks::use_effect()) and [`use_context`](hooks::use_context())
-/// for more details on how to use the hook updater to provide function components
-/// the necessary callbacks to update the underlying state.
 #[derive(Clone)]
 pub(crate) struct HookUpdater {
     hook: Rc<RefCell<dyn std::any::Any>>,
+    scope: AnyScope,
     process_message: ProcessMessage,
 }
 
 impl HookUpdater {
-    /// Callback which runs the hook.
+    /// Retrieves the hook state
+    pub fn borrow_mut<T: 'static>(&self) -> RefMut<'_, T> {
+        RefMut::map(self.hook.borrow_mut(), |m| {
+            m.downcast_mut()
+                .expect("incompatible hook type. Hooks must always be called in the same order")
+        })
+    }
+
+    /// Registers a callback to be run immediately.
     pub fn callback<T: 'static, F>(&self, cb: F)
     where
         F: FnOnce(&mut T) -> bool + 'static,
     {
-        let internal_hook_state = self.hook.clone();
-        let process_message = self.process_message.clone();
+        let this = self.clone();
 
         // Update the component
         // We're calling "link.send_message", so we're not calling it post-render
         let post_render = false;
-        process_message(
+        (self.process_message)(
             Box::new(move || {
-                let mut r = internal_hook_state.borrow_mut();
-                let hook: &mut T = r
-                    .downcast_mut()
-                    .expect("internal error: hook downcasted to wrong type");
-                cb(hook)
+                let mut hook = this.borrow_mut();
+                cb(&mut *hook)
             }),
             post_render,
         );
     }
 
-    /// Callback called after the render
+    /// Registers a callback to be run after the render
     pub fn post_render<T: 'static, F>(&self, cb: F)
     where
         F: FnOnce(&mut T) -> bool + 'static,
     {
-        let internal_hook_state = self.hook.clone();
-        let process_message = self.process_message.clone();
+        let this = self.clone();
 
         // Update the component
         // We're calling "message_queue.push", so not calling it post-render
         let post_render = true;
-        process_message(
+        (self.process_message)(
             Box::new(move || {
-                let mut hook = internal_hook_state.borrow_mut();
-                let hook: &mut T = hook
-                    .downcast_mut()
-                    .expect("internal error: hook downcasted to wrong type");
-                cb(hook)
+                let mut hook = this.borrow_mut();
+                cb(&mut *hook)
             }),
             post_render,
         );
+    }
+
+    pub fn scope(&self) -> &AnyScope {
+        &self.scope
     }
 }

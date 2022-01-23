@@ -71,12 +71,9 @@ where
 
             // Execute the actual hook closure we were given. Let it mutate the hook state and let
             // it create a callback that takes the mutable hook state.
-            let mut hook = updater.hook.borrow_mut();
-            let hook: &mut T = hook
-                .downcast_mut()
-                .expect("Incompatible hook type. Hooks must always be called in the same order");
+            let mut hook = updater.borrow_mut::<T>();
 
-            runner(hook, updater.clone())
+            runner(&mut *hook, updater.clone())
         }
     }
 
