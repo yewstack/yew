@@ -50,7 +50,7 @@ pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<T> {
         )
     };
 
-    // we fallback to initial value if it was not overriden.
+    // we fallback to initial value if it was not updated.
     (*val)
         .clone()
         .or_else(move || state.context.as_ref().map(|m| m.0.clone()))

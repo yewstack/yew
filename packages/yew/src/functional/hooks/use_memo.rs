@@ -16,40 +16,23 @@ where
         T: 'static,
         Dependents: 'static + PartialEq,
     {
-        deps: Option<Rc<Dependents>>,
-        val: Option<Rc<T>>,
+        inner: Option<(Rc<Dependents>, Rc<T>)>,
     }
 
-    use_hook(
-        || {
-            let state: UseMemo<T, Dependents> = UseMemo {
-                val: None,
-                deps: None,
-            };
-
+    use_hook::<UseMemo<T, Dependents>, _, _, _, _>(
+        || UseMemo { inner: None },
+        move |state, _updater| {
             state
-        },
-        move |state, _updater| match state.val.clone() {
-            Some(m) => {
-                if Some(&deps) != state.deps.as_ref() {
+                .inner
+                .as_ref()
+                .and_then(|(m, n)| (m.as_ref() == &*deps).then(|| n.clone()))
+                .unwrap_or_else(|| {
                     let val = Rc::new(memo_fn(&deps));
 
-                    state.val = Some(val.clone());
-                    state.deps = Some(deps);
+                    state.inner = Some((deps, val.clone()));
 
                     val
-                } else {
-                    m
-                }
-            }
-            None => {
-                let val = Rc::new(memo_fn(&deps));
-
-                state.val = Some(val.clone());
-                state.deps = Some(deps);
-
-                val
-            }
+                })
         },
         |_| {},
     )

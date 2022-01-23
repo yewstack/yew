@@ -85,15 +85,5 @@ where
 }
 
 pub(crate) fn use_component_scope() -> impl Hook<Output = AnyScope> {
-    struct HookProvider {}
-
-    impl Hook for HookProvider {
-        type Output = AnyScope;
-
-        fn run(self, ctx: &mut HookContext) -> Self::Output {
-            ctx.scope().clone()
-        }
-    }
-
-    HookProvider {}
+    use_hook(|| (), |_, updater| updater.scope().clone(), |_| {})
 }
