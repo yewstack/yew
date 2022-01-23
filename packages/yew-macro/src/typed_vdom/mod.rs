@@ -1,17 +1,14 @@
-use proc_macro2::{Ident, TokenStream};
-use quote::quote;
+use proc_macro2::{Ident, Span, TokenStream};
+use quote::{format_ident, quote};
 use syn::parse::{Parse, ParseStream};
-use syn::{Token, Type};
-
+use syn::{parse_quote, Token, Type};
 pub mod generate_element;
 mod globals;
-
 #[derive(Clone)]
 pub struct AttributePropDefinition {
     name: Ident,
     ty: Type,
 }
-
 impl Parse for AttributePropDefinition {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let name = input.parse()?;
@@ -20,41 +17,56 @@ impl Parse for AttributePropDefinition {
         Ok(Self { name, ty })
     }
 }
-
 impl AttributePropDefinition {
     pub fn new(name: Ident, ty: Type) -> Self {
         Self { name, ty }
     }
     fn build_fields(&self) -> TokenStream {
         let AttributePropDefinition { name, ty } = self;
-        quote! {
-            pub #name: ::std::option::Option::<#ty>,
-        }
+        quote! {            pub #name: ::std::option::Option::<#ty>,        }
     }
-
     fn _build_setter(&self) -> TokenStream {
         let AttributePropDefinition { name, ty } = self;
-        quote! {
-            pub fn #name(&mut self, val: #ty) {
-                self.#name = ::std::option::Option::Some(val);
-            }
-        }
+        quote! {            pub fn #name(&mut self, val: #ty) {                self.#name = ::std::option::Option::Some(val);            }        }
     }
-
     fn build_if_lets(&self) -> TokenStream {
         let AttributePropDefinition { name, .. } = self;
         if name == "children" || name == "key" || name == "node_ref" {
             quote! {}
         } else {
-            quote! {
-                if let Some(val) = self.#name {
-                    attrs.insert(::std::stringify!(#name), val);
-                }
-            }
+            quote! {                if let Some(val) = self.#name {                    attrs.insert(::std::stringify!(#name), val);                }            }
         }
     }
 }
-
+#[derive(Clone)]
+pub struct ListenerPropDefinition {
+    event: Ident,
+    ty: Type,
+}
+impl ListenerPropDefinition {
+    fn new(event: Ident) -> Self {
+        Self {
+            event,
+            ty: parse_quote! { Event },
+        }
+    }
+    fn new_with_ty(event: Ident, ty: Type) -> Self {
+        Self { event, ty }
+    }
+    fn ident(&self) -> Ident {
+        format_ident!("on_{}", self.event, span = self.event.span())
+    }
+    fn build_fields(&self) -> TokenStream {
+        let ident = self.ident();
+        let ty = &self.ty;
+        quote! {            pub #ident: ::std::option::Option::<::yew::Callback::<::web_sys::#ty>>,        }
+    }
+    fn build_if_lets(&self) -> TokenStream {
+        let ident = self.ident();
+        let on_event = Ident::new(&format!("on{}", self.event), Span::mixed_site());
+        quote! {            if let Some(value) = self.#ident {                listeners.push(::yew::html::#on_event::Wrapper::__macro_new(value));            }        }
+    }
+}
 pub(crate) mod kw {
     syn::custom_keyword!(props);
 }

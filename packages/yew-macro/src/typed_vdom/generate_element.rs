@@ -1,4 +1,4 @@
-use crate::typed_vdom::globals::global_attributes;
+use crate::typed_vdom::globals::{global_attributes, listeners};
 use crate::typed_vdom::{kw, AttributePropDefinition};
 use convert_case::{Case, Casing};
 use proc_macro2::{Ident, TokenStream};
@@ -47,7 +47,11 @@ impl ToTokens for GenerateElement {
             span = element_name.span()
         );
         let props = prop_definitions.iter().map(|it| it.build_fields());
-        let if_lets = prop_definitions.iter().map(|it| it.build_if_lets());
+        let attr_if_lets = prop_definitions.iter().map(|it| it.build_if_lets());
+
+        let all_listeners = listeners();
+        let listeners = all_listeners.iter().map(|it| it.build_fields());
+        let listeners_if_lets = all_listeners.iter().map(|it| it.build_if_lets());
 
         let out = quote! {
             #[allow(non_camel_case_types)]
@@ -56,6 +60,7 @@ impl ToTokens for GenerateElement {
             #[derive(::std::default::Default, ::std::clone::Clone, ::std::fmt::Debug, ::yew::html::Properties, ::std::cmp::PartialEq)]
             struct #props_ident {
                 #(#props)*
+                #(#listeners)*
             }
 
             impl #props_ident {
@@ -65,10 +70,14 @@ impl ToTokens for GenerateElement {
                         node_ref: ::std::option::Option::unwrap_or_default(self.node_ref),
                         attributes: {
                             let mut attrs = ::std::collections::HashMap::new();
-                            #(#if_lets)*
+                            #(#attr_if_lets)*
                             attrs
                         },
-                        listeners: ::std::default::Default::default(),
+                        listeners: {
+                            let mut listeners = ::std::vec![];
+                            #(#listeners_if_lets)*
+                            listeners
+                        },
                         key: self.key,
                         children: self.children.map(|it| it.into_iter().collect()).unwrap_or_default()
                     }

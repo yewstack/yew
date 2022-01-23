@@ -40,15 +40,15 @@ pub struct ElementData {
     children: Vec<VNode>,
 }
 
-
 #[cfg(test)]
 mod tests {
-    use crate::html;
+    use crate::{html, Callback};
+
     fn _compiles() {
         use super::button as Btn;
 
         let _ = html! {
-            <Btn disabled="true" class="fuck" />
+            <Btn disabled="true" class="fuck" on_click={Callback::noop()} />
         };
     }
 }
