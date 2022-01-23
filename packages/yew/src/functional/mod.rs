@@ -63,11 +63,14 @@ type ProcessMessage = Rc<dyn Fn(Msg, bool)>;
 
 /// A hook context to be passed to hooks.
 pub struct HookContext {
-    counter: usize,
     scope: AnyScope,
+
     process_message: ProcessMessage,
     hooks: Vec<Rc<RefCell<dyn std::any::Any>>>,
     destroy_listeners: Vec<Box<dyn FnOnce()>>,
+
+    counter: usize,
+    total_hook_counter: Option<usize>,
 }
 
 impl HookContext {
@@ -170,6 +173,7 @@ where
                 },
                 hooks: vec![],
                 destroy_listeners: vec![],
+                total_hook_counter: 0,
             }),
         }
     }
@@ -186,7 +190,30 @@ where
         let props = ctx.props();
         let mut ctx = self.hook_ctx.borrow_mut();
         ctx.counter = 0;
-        T::run(&mut *ctx, props)
+
+        let result = T::run(&mut *ctx, props);
+
+        // Procedural Macros catch most conditionally called hooks at compile time, but it cannot
+        // detect early return (as the return can be Err(_), Suspension).
+        if result.is_err() {
+            if let Some(m) = ctx.total_hook_counter {
+                // Suspended Components can have less hooks called when suspended, but not more.
+                if m < ctx.counter {
+                    panic!("Hooks are called conditionally.");
+                }
+            }
+        } else {
+            match ctx.total_hook_counter {
+                Some(m) => {
+                    if m != ctx.counter {
+                        panic!("Hooks are called conditionally.");
+                    }
+                }
+                None => {
+                    ctx.total_hook_counter = Some(ctx.counter);
+                }
+            }
+        }
     }
 
     fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {

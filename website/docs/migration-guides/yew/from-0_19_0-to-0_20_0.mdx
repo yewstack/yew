@@ -6,3 +6,10 @@ title: "From 0.19.0 to 0.20.0"
 
 This method of controlling body has caused issues in event registration and
 SSR hydration. They have been removed. Read more in the [github issue](https://github.com/yewstack/yew/pull/2346).
+
+## Hooks and Function Components V2
+
+The Function Components and Hooks API are re-implemented with a different mechanism:
+
+- User-defined hooks are now required to have a prefix `use_` and must be marked by `#[hook]` attribute.
+- Hooks are now only callable under the top level of a function component or a user defined hooks.
