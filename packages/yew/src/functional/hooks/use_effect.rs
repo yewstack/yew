@@ -13,7 +13,7 @@ struct UseEffectBase<T, D> {
 pub fn use_effect_base<T, D, R>(
     callback: impl FnOnce(&T) -> D + 'static,
     deps: T,
-    should_render_fn: R,
+    effect_changed_fn: R,
 ) where
     T: 'static,
     D: FnOnce() + 'static,
@@ -35,7 +35,7 @@ pub fn use_effect_base<T, D, R>(
 
             updater.post_render(move |state: &mut UseEffectBase<T, D>| {
                 if let Some((deps, callback)) = state.runner_with_deps.take() {
-                    if !should_render_fn(Some(&*deps), state.deps.as_deref()) {
+                    if !effect_changed_fn(Some(&*deps), state.deps.as_deref()) {
                         return false;
                     }
 
@@ -108,5 +108,5 @@ where
     T: PartialEq + 'static,
     D: FnOnce() + 'static,
 {
-    use_effect_base(callback, deps, |lhs, rhs| lhs == rhs)
+    use_effect_base(callback, deps, |lhs, rhs| lhs != rhs)
 }
