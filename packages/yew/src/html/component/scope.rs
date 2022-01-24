@@ -2,8 +2,7 @@
 
 use super::{
     lifecycle::{
-        ComponentState, CreateRunner, DestroyRunner, RenderRunner, RenderedRunner, UpdateEvent,
-        UpdateRunner,
+        ComponentState, CreateRunner, DestroyRunner, RenderRunner, UpdateEvent, UpdateRunner,
     },
     BaseComponent,
 };
@@ -244,9 +243,6 @@ impl<COMP: BaseComponent> Scope<COMP> {
             RenderRunner {
                 state: self.state.clone(),
             },
-            RenderedRunner {
-                state: self.state.clone(),
-            },
         );
         // Not guaranteed to already have the scheduler started
         scheduler::start();
@@ -306,7 +302,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     /// component's update method when invoked.
     ///
     /// Please be aware that currently the result of this callback
-    /// synchronously schedules a call to the [Component](Component)
+    /// synchronously schedules a call to the [Component](crate::Component)
     /// interface.
     pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
     where
@@ -335,7 +331,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     ///
     /// Please be aware that currently the results of these callbacks
     /// will synchronously schedule calls to the
-    /// [Component](Component) interface.
+    /// [Component](crate::Component) interface.
     pub fn batch_callback<F, IN, OUT>(&self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> OUT + 'static,
@@ -379,9 +375,6 @@ mod feat_ssr {
                     html_sender: Some(tx),
                 },
                 RenderRunner {
-                    state: self.state.clone(),
-                },
-                RenderedRunner {
                     state: self.state.clone(),
                 },
             );

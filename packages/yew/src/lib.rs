@@ -117,7 +117,7 @@ pub use yew_macro::classes;
 ///
 /// [`Html`]: ./html/type.Html.html
 /// [`html_nested!`]: ./macro.html_nested.html
-/// [Yew Docs]: https://yew.rs/concepts/html/
+/// [Yew Docs]: https://yew.rs/docs/next/concepts/html
 pub use yew_macro::html;
 
 /// This macro is similar to [`html!`], but preserves the component type instead
