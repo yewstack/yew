@@ -486,7 +486,3 @@ error[E0277]: the trait bound `Cow<'static, str>: From<{integer}>` is not satisf
             and 14 others
     = note: required because of the requirements on the impl of `Into<Cow<'static, str>>` for `{integer}`
 note: required by `into`
-   --> $RUST/core/src/convert/mod.rs
-    |
-    |     fn into(self) -> T;
-    |     ^^^^^^^^^^^^^^^^^^^

@@ -442,10 +442,6 @@ error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VText>` is 
     |
     = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `yew::virtual_dom::VText`
 note: required by `into`
-   --> $RUST/core/src/convert/mod.rs
-    |
-    |     fn into(self) -> T;
-    |     ^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
    --> tests/html_macro/component-fail.rs:102:29
@@ -455,10 +451,6 @@ error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
     |
     = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
 note: required by `into`
-   --> $RUST/core/src/convert/mod.rs
-    |
-    |     fn into(self) -> T;
-    |     ^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
    --> tests/html_macro/component-fail.rs:103:30
@@ -468,7 +460,3 @@ error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
     |
     = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
 note: required by `into`
-   --> $RUST/core/src/convert/mod.rs
-    |
-    |     fn into(self) -> T;
-    |     ^^^^^^^^^^^^^^^^^^^

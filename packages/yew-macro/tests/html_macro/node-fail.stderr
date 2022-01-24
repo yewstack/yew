@@ -51,10 +51,6 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
     = note: required because of the requirements on the impl of `ToString` for `()`
     = note: required because of the requirements on the impl of `From<()>` for `VNode`
 note: required by `from`
-   --> $RUST/core/src/convert/mod.rs
-    |
-    |     fn from(_: T) -> Self;
-    |     ^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
    --> tests/html_macro/node-fail.rs:17:9
@@ -67,7 +63,3 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
     = note: required because of the requirements on the impl of `ToString` for `()`
     = note: required because of the requirements on the impl of `From<()>` for `VNode`
 note: required by `from`
-   --> $RUST/core/src/convert/mod.rs
-    |
-    |     fn from(_: T) -> Self;
-    |     ^^^^^^^^^^^^^^^^^^^^^^
