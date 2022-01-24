@@ -73,7 +73,7 @@ Its value will be recalculated only if any of the dependencies values change.
 you don't store a clone of the resulting `Rc` anywhere that outlives the component.
 
 ```rust
-use yew::{function_component, html, use_memo, use_state, Callback, Html};
+use yew::{function_component, html, use_memo, use_state, Callback, Html, Properties};
 
 #[derive(PartialEq, Properties)]
 pub struct Props {
@@ -84,7 +84,7 @@ pub struct Props {
 fn ref_hook(props: &Props) -> Html {
     // Will only get recalculated if `props.step` value changes
     let message = use_memo(
-        |step: usize| format!("{}. Do Some Expensive Calculation", step),
+        |step| format!("{}. Do Some Expensive Calculation", step),
         props.step
     );
 
