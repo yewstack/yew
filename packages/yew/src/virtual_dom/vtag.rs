@@ -753,15 +753,15 @@ mod tests {
     #[test]
     fn it_compares_attributes_static() {
         let a = html! {
-            <div a="test"></div>
+            <div class="test"></div>
         };
 
         let b = html! {
-            <div a="test"></div>
+            <div class="test"></div>
         };
 
         let c = html! {
-            <div a="fail"></div>
+            <div class="fail"></div>
         };
 
         assert_eq!(a, b);
@@ -771,15 +771,15 @@ mod tests {
     #[test]
     fn it_compares_attributes_dynamic() {
         let a = html! {
-            <div a={"test".to_owned()}></div>
+            <div class={"test".to_owned()}></div>
         };
 
         let b = html! {
-            <div a={"test".to_owned()}></div>
+            <div class={"test".to_owned()}></div>
         };
 
         let c = html! {
-            <div a={"fail".to_owned()}></div>
+            <div class={"fail".to_owned()}></div>
         };
 
         assert_eq!(a, b);
@@ -887,8 +887,8 @@ mod tests {
         let namespace = Some(namespace);
         let svg_el = document.create_element_ns(namespace, "svg").unwrap();
 
-        let mut g_node = html! { <g class="segment"></g> };
-        let path_node = html! { <path></path> };
+        let mut g_node = html! { <@{"g"} class="segment"></@> };
+        let path_node = html! { <@{"path"}></@> };
         let mut svg_node = html! { <svg>{path_node}</svg> };
 
         let svg_tag = assert_vtag_mut(&mut svg_node);
@@ -945,22 +945,22 @@ mod tests {
     #[test]
     fn it_compares_checked() {
         let a = html! {
-            <input type="checkbox" checked=false />
+            <input type="checkbox" />
         };
 
         let b = html! {
-            <input type="checkbox" checked=false />
+            <input type="checkbox" />
         };
 
         let c = html! {
-            <input type="checkbox" checked=true />
+            <input type="checkbox" checked="true" />
         };
 
         assert_eq!(a, b);
         assert_ne!(a, c);
     }
 
-    #[test]
+    /*#[test] aria/data attributes will be part of props composition/"rest" prop
     fn it_allows_aria_attributes() {
         let a = html! {
             <p aria-controls="it-works">
@@ -994,7 +994,7 @@ mod tests {
         } else {
             panic!("vtag expected");
         }
-    }
+    }*/
 
     #[test]
     fn it_does_not_set_missing_class_name() {
@@ -1230,13 +1230,13 @@ mod tests {
         let test_ref = NodeRef::default();
         let mut before = html! {
             <>
-                <div ref={&test_ref} id="before" />
+                <div ref={test_ref.clone()} id="before" />
             </>
         };
         let mut after = html! {
             <>
                 <h6 />
-                <div ref={&test_ref} id="after" />
+                <div ref={test_ref.clone()} id="after" />
             </>
         };
         // The point of this diff is to first render the "after" div and then detach the "before" div,

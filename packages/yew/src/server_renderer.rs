@@ -44,11 +44,11 @@ where
 
     /// Renders Yew Application.
     pub async fn render(self) -> String {
-        let mut s = String::new();
+        let mut buf = String::new();
 
-        self.render_to_string(&mut s).await;
+        self.render_to_string(&mut buf).await;
 
-        s
+        buf
     }
 
     /// Renders Yew Application to a String.

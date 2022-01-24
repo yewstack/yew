@@ -70,9 +70,9 @@ impl ToTokens for GenerateElement {
             }
 
             impl #props_ident {
-                fn into_data(self) -> ElementData {
+                fn into_data(self) -> ::yew::virtual_dom::typings::ElementData {
 
-                    ElementData {
+                    ::yew::virtual_dom::typings::ElementData {
                         node_ref: ::std::option::Option::unwrap_or_default(self.node_ref),
                         attributes: {
                             let mut attrs = ::std::collections::HashMap::new();
@@ -99,7 +99,7 @@ impl ToTokens for GenerateElement {
                 }
 
                 fn view(&self, ctx: &::yew::html::Context<Self>) -> ::yew::html::Html {
-                    let element: ElementData = ctx.props().clone().into_data();
+                    let element = ctx.props().clone().into_data();
                     // todo use __new_{other, textarea, input} depending upon the element
                     ::yew::virtual_dom::VTag::__new_other(
                         ::std::stringify!(#element_name).into(),

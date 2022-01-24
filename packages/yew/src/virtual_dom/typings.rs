@@ -1064,11 +1064,11 @@ generate_element! {
 /// A [Component](crate::html::Component) is generated using this data for every element.
 #[derive(Debug)]
 pub struct ElementData {
-    node_ref: NodeRef,
-    attributes: HashMap<&'static str, AttrValue>,
-    listeners: Vec<Option<Rc<dyn Listener>>>,
-    key: Option<Key>,
-    children: Vec<VNode>,
+    pub node_ref: NodeRef,
+    pub attributes: HashMap<&'static str, AttrValue>,
+    pub listeners: Vec<Option<Rc<dyn Listener>>>,
+    pub key: Option<Key>,
+    pub children: Vec<VNode>,
 }
 
 #[cfg(all(test, feature = "wasm_test"))]
@@ -1098,7 +1098,7 @@ mod tests {
         #[function_component]
         fn Comp(props: &Props) -> Html {
             html! {
-                <Btn class="ccc" name="yes" on_click={props.on_click.clone()}>{ TEXT }</Btn>
+                <Btn class="ccc" name="yes" onclick={props.on_click.clone()}>{ TEXT }</Btn>
             }
         }
 

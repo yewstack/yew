@@ -469,6 +469,13 @@ mod layout_tests_keys {
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
+    // the tests use an <e> element
+    // this call can serve as a very simple custom element declaration
+    yew_macro::generate_element! {
+        e;
+        props: {}
+    }
+
     struct Comp {}
 
     #[derive(Properties, Clone, PartialEq)]

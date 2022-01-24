@@ -76,7 +76,7 @@ impl Parse for HtmlDashedName {
         let name = input.call(Ident::parse_any)?;
         let mut extended = Vec::new();
         while input.peek(Token![-]) {
-            extended.push((input.parse::<Token![-]>()?, input.parse::<Ident>()?));
+            extended.push((input.parse::<Token![-]>()?, Ident::parse_any(input)?));
         }
 
         Ok(HtmlDashedName { name, extended })
