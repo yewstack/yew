@@ -1,7 +1,8 @@
 use proc_macro2::Span;
+use std::sync::{Arc, Mutex};
 use syn::visit_mut::{self, VisitMut};
 use syn::{
-    GenericArgument, Lifetime, ParenthesizedGenericArguments, Receiver, TypeImplTrait,
+    GenericArgument, Lifetime, ParenthesizedGenericArguments, Receiver, TypeBareFn, TypeImplTrait,
     TypeParamBound, TypeReference,
 };
 
@@ -12,8 +13,8 @@ pub struct CollectLifetimes {
     pub name: &'static str,
     pub default_span: Span,
 
-    pub impl_trait_ctr: u64,
-    pub impl_fn_ctr: u64,
+    pub impl_trait_lock: Arc<Mutex<()>>,
+    pub impl_fn_lock: Arc<Mutex<()>>,
 }
 
 impl CollectLifetimes {
@@ -24,17 +25,17 @@ impl CollectLifetimes {
             name,
             default_span,
 
-            impl_trait_ctr: 0,
-            impl_fn_ctr: 0,
+            impl_trait_lock: Arc::default(),
+            impl_fn_lock: Arc::default(),
         }
     }
 
     fn is_impl_trait(&self) -> bool {
-        self.impl_trait_ctr > 0
+        self.impl_trait_lock.try_lock().is_err()
     }
 
     fn is_impl_fn(&self) -> bool {
-        self.impl_fn_ctr > 0
+        self.impl_fn_lock.try_lock().is_err()
     }
 
     fn visit_opt_lifetime(&mut self, lifetime: &mut Option<Lifetime>) {
@@ -69,7 +70,7 @@ impl VisitMut for CollectLifetimes {
     }
 
     fn visit_type_reference_mut(&mut self, ty: &mut TypeReference) {
-        // We don't rewrite references in the impl FnOnce(&arg)
+        // We don't rewrite references in the impl FnOnce(&arg) or fn(&arg)
         if self.is_impl_fn() {
             return;
         }
@@ -91,29 +92,30 @@ impl VisitMut for CollectLifetimes {
     }
 
     fn visit_type_impl_trait_mut(&mut self, impl_trait: &mut TypeImplTrait) {
-        self.impl_trait_ctr += 1;
+        let impl_trait_lock = self.impl_trait_lock.clone();
+        let _locked = impl_trait_lock.try_lock();
 
         impl_trait
             .bounds
             .insert(0, TypeParamBound::Lifetime(self.next_lifetime(None)));
 
         visit_mut::visit_type_impl_trait_mut(self, impl_trait);
-
-        self.impl_trait_ctr -= 1;
     }
 
     fn visit_parenthesized_generic_arguments_mut(
         &mut self,
         generic_args: &mut ParenthesizedGenericArguments,
     ) {
-        if self.is_impl_trait() {
-            self.impl_fn_ctr += 1;
-        }
+        let impl_fn_lock = self.impl_fn_lock.clone();
+        let _maybe_locked = self.is_impl_trait().then(|| impl_fn_lock.try_lock());
 
         visit_mut::visit_parenthesized_generic_arguments_mut(self, generic_args);
+    }
 
-        if self.is_impl_trait() {
-            self.impl_fn_ctr -= 1;
-        }
+    fn visit_type_bare_fn_mut(&mut self, i: &mut TypeBareFn) {
+        let impl_fn_lock = self.impl_fn_lock.clone();
+        let _locked = impl_fn_lock.try_lock();
+
+        visit_mut::visit_type_bare_fn_mut(self, i);
     }
 }

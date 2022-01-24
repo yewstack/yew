@@ -1,8 +1,9 @@
 use crate::functional::{hook, use_hook};
 use std::rc::Rc;
 
-/// This hook is used for obtaining a immutable reference to a value that is recalculated when it's
-/// dependency changes.
+/// Get a immutable reference to a memoized value
+///
+/// Memoization means it will only get recalculated when provided dependencies update/change
 #[hook]
 pub fn use_memo<T, Dependents>(memo_fn: impl FnOnce(&Dependents) -> T, deps: Dependents) -> Rc<T>
 where
@@ -19,8 +20,8 @@ where
         inner: Option<(Rc<Dependents>, Rc<T>)>,
     }
 
-    use_hook::<UseMemo<T, Dependents>, _, _, _, _>(
-        || UseMemo { inner: None },
+    use_hook(
+        || -> UseMemo<T, Dependents> { UseMemo { inner: None } },
         move |state, _updater| {
             state
                 .inner

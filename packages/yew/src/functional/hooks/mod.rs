@@ -57,17 +57,14 @@ impl<T> Hook for BoxedHook<'_, T> {
 /// The `initializer` callback is called once to create the initial state of the hook.
 /// `runner` callback handles the logic of the hook. It is called when the hook function is called.
 /// `destructor`, as the name implies, is called to cleanup the leftovers of the hook.
-pub(crate) fn use_hook<'hook, T, INIT, RUN, TEAR, O>(
-    initializer: INIT,
-    runner: RUN,
-    destructor: TEAR,
+pub(crate) fn use_hook<'hook, T, O>(
+    initializer: impl 'hook + FnOnce() -> T,
+    runner: impl 'hook + FnOnce(&mut T, HookUpdater) -> O,
+    destructor: impl 'static + FnOnce(&mut T),
 ) -> impl 'hook + Hook<Output = O>
 where
     T: 'static,
     O: 'hook,
-    INIT: 'hook + FnOnce() -> T,
-    RUN: 'hook + FnOnce(&mut T, HookUpdater) -> O,
-    TEAR: 'static + FnOnce(&mut T),
 {
     struct HookProvider<'a, T, O> {
         initializer: Box<dyn FnOnce() -> T + 'a>,
@@ -89,7 +86,7 @@ where
             } = self;
 
             // Extract current hook
-            let updater = ctx.next_state::<T, _, _>(initializer, destructor);
+            let updater = ctx.next_state(initializer, destructor);
 
             // Execute the actual hook closure we were given. Let it mutate the hook state and let
             // it create a callback that takes the mutable hook state.

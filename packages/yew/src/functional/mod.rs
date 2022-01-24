@@ -70,19 +70,18 @@ pub struct HookContext {
     destroy_listeners: Vec<Box<dyn FnOnce()>>,
 
     counter: usize,
+    #[cfg(debug_assertions)]
     total_hook_counter: Option<usize>,
 }
 
 impl HookContext {
-    pub(crate) fn next_state<T, INIT, TEAR>(
+    pub(crate) fn next_state<T>(
         &mut self,
-        initializer: INIT,
-        destructor: TEAR,
+        initializer: impl FnOnce() -> T,
+        destructor: impl FnOnce(&mut T) + 'static,
     ) -> HookUpdater
     where
         T: 'static,
-        INIT: FnOnce() -> T,
-        TEAR: FnOnce(&mut T) + 'static,
     {
         // Determine which hook position we're at and increment for the next hook
         let hook_pos = self.counter;
@@ -157,7 +156,6 @@ where
             _never: std::marker::PhantomData::default(),
             message_queue: message_queue.clone(),
             hook_ctx: RefCell::new(HookContext {
-                counter: 0,
                 scope,
                 process_message: {
                     let scope = ctx.link().clone();
@@ -171,6 +169,9 @@ where
                 },
                 hooks: vec![],
                 destroy_listeners: vec![],
+
+                counter: 0,
+                #[cfg(debug_assertions)]
                 total_hook_counter: None,
             }),
         }
@@ -189,26 +190,30 @@ where
         let mut ctx = self.hook_ctx.borrow_mut();
         ctx.counter = 0;
 
+        #[allow(clippy::let_and_return)]
         let result = T::run(&mut *ctx, props);
 
-        // Procedural Macros can catch most conditionally called hooks at compile time, but it cannot
-        // detect early return (as the return can be Err(_), Suspension).
-        if result.is_err() {
-            if let Some(m) = ctx.total_hook_counter {
-                // Suspended Components can have less hooks called when suspended, but not more.
-                if m < ctx.counter {
-                    panic!("Hooks are called conditionally.");
-                }
-            }
-        } else {
-            match ctx.total_hook_counter {
-                Some(m) => {
-                    if m != ctx.counter {
+        #[cfg(debug_assertions)]
+        {
+            // Procedural Macros can catch most conditionally called hooks at compile time, but it cannot
+            // detect early return (as the return can be Err(_), Suspension).
+            if result.is_err() {
+                if let Some(m) = ctx.total_hook_counter {
+                    // Suspended Components can have less hooks called when suspended, but not more.
+                    if m < ctx.counter {
                         panic!("Hooks are called conditionally.");
                     }
                 }
-                None => {
-                    ctx.total_hook_counter = Some(ctx.counter);
+            } else {
+                match ctx.total_hook_counter {
+                    Some(m) => {
+                        if m != ctx.counter {
+                            panic!("Hooks are called conditionally.");
+                        }
+                    }
+                    None => {
+                        ctx.total_hook_counter = Some(ctx.counter);
+                    }
                 }
             }
         }
@@ -264,10 +269,7 @@ impl HookUpdater {
     }
 
     /// Registers a callback to be run immediately.
-    pub fn callback<T: 'static, F>(&self, cb: F)
-    where
-        F: FnOnce(&mut T) -> bool + 'static,
-    {
+    pub fn callback<T: 'static>(&self, cb: impl FnOnce(&mut T) -> bool + 'static) {
         let this = self.clone();
 
         // Update the component
@@ -283,10 +285,7 @@ impl HookUpdater {
     }
 
     /// Registers a callback to be run after the render
-    pub fn post_render<T: 'static, F>(&self, cb: F)
-    where
-        F: FnOnce(&mut T) -> bool + 'static,
-    {
+    pub fn post_render<T: 'static>(&self, cb: impl FnOnce(&mut T) -> bool + 'static) {
         let this = self.clone();
 
         // Update the component

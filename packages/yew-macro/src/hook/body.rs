@@ -1,5 +1,6 @@
 use proc_macro2::Span;
 use proc_macro_error::emit_error;
+use std::sync::{Arc, Mutex};
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
@@ -9,22 +10,21 @@ use syn::{
 
 #[derive(Debug, Default)]
 pub struct BodyRewriter {
-    branch_ctr: u64,
+    branch_lock: Arc<Mutex<()>>,
 }
 
 impl BodyRewriter {
     fn is_branched(&self) -> bool {
-        self.branch_ctr > 0
+        self.branch_lock.try_lock().is_err()
     }
 
     fn with_branch<F, O>(&mut self, f: F) -> O
     where
         F: FnOnce(&mut BodyRewriter) -> O,
     {
-        self.branch_ctr += 1;
-        let result = { f(self) };
-        self.branch_ctr -= 1;
-        result
+        let branch_lock = self.branch_lock.clone();
+        let _branched = branch_lock.try_lock();
+        f(self)
     }
 }
 

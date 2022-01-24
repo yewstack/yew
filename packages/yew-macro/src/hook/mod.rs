@@ -24,7 +24,7 @@ impl Parse for HookFn {
         let sig = func.sig.clone();
 
         if sig.asyncness.is_some() {
-            emit_error!(sig.asyncness, "hooks can't be async functions");
+            emit_error!(sig.asyncness, "async functions can't be hooks");
         }
 
         if sig.constness.is_some() {

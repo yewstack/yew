@@ -65,9 +65,9 @@ re-render when the setter receives a value that `prev_state != next_state`.
 This hook requires the state object to implement `PartialEq`.
 
 ## `use_memo`
-`use_memo` is used for obtaining an immutable reference to a value.
+`use_memo` is used for obtaining an immutable reference to a memoized value.
 Its state persists across renders.
-Its value will be recalculated if the dependency changes.
+Its value will be recalculated only if any of the dependencies values change.
 
 `use_memo` can be useful for keeping things in scope for the lifetime of the component, so long as
 you don't store a clone of the resulting `Rc` anywhere that outlives the component.
@@ -75,9 +75,18 @@ you don't store a clone of the resulting `Rc` anywhere that outlives the compone
 ```rust
 use yew::{function_component, html, use_memo, use_state, Callback, Html};
 
+#[derive(PartialEq, Properties)]
+pub struct Props {
+    pub step: usize,
+}
+
 #[function_component(UseMemo)]
-fn ref_hook() -> Html {
-    let message = use_memo(|_| "Some Expensive State.".to_string(), ());
+fn ref_hook(props: &Props) -> Html {
+    // Will only get recalculated if `props.step` value changes
+    let message = use_memo(
+        |step: usize| format!("{}. Do Some Expensive Calculation", step),
+        props.step
+    );
 
     html! {
         <div>
