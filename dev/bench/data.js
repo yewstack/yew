@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1642997011956,
+  "lastUpdate": 1643115422310,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -3155,6 +3155,115 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 32_startup-bt",
             "value": "39.80199999999999",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "365.9482421875",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "48148198+anuvratsingh@users.noreply.github.com",
+            "name": "Anuvrat Singh",
+            "username": "anuvratsingh"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4580d94c5925bb3eae32080238a22bdd4f81a3ef",
+          "message": "Add ContextHandle in yew::prelude (#2372)\n\n* Adds ContextHandle in yew::prelude\r\n\r\n* Adds ContextHandle in yew::prelude\r\n\r\nAdded ContextHandle in /yew/src/lib.rs and updated stderr with test-overwrite\r\n\r\n* Formats code using cargo fmt\r\n\r\n* Revert \"Adds ContextHandle in yew::prelude\"\r\n\r\nThis reverts commit abdf21f2d523ac2df56cca3d29f8860dbefc5cc5.",
+          "timestamp": "2022-01-25T14:51:16+02:00",
+          "tree_id": "e9ffd6ae8ecfb1ffe4190662099bddef09570707",
+          "url": "https://github.com/yewstack/yew/commit/4580d94c5925bb3eae32080238a22bdd4f81a3ef"
+        },
+        "date": 1643115420562,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "164.2255",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "182.166",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "328.3755",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "67.6965",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "81.108",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "27.823",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "1943.279",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "370.257",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "190.033",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "0.9634513854980468",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.5035057067871094",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.5043067932128906",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.510845184326172",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.1291122436523438",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1786.3202499999998",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "27.35999999999999",
             "unit": ""
           },
           {
