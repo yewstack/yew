@@ -88,6 +88,16 @@ impl_into_prop!(|value: &'static str| -> AttrValue { AttrValue::Static(value) })
 impl_into_prop!(|value: String| -> AttrValue { AttrValue::Owned(value) });
 impl_into_prop!(|value: Rc<str>| -> AttrValue { AttrValue::Rc(value) });
 
+const TRUE: AttrValue = AttrValue::Static("true");
+const FALSE: AttrValue = AttrValue::Static("false");
+impl_into_prop!(|value: bool| -> AttrValue {
+    if value {
+        TRUE
+    } else {
+        FALSE
+    }
+});
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -99,5 +109,6 @@ mod test {
         let _: AttrValue = "foo".into_prop_value();
         let _: Option<AttrValue> = "foo".into_prop_value();
         let _: Option<AttrValue> = Rc::<str>::from("foo").into_prop_value();
+        let _: AttrValue = true.into_prop_value();
     }
 }
