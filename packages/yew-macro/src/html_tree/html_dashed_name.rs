@@ -90,7 +90,7 @@ impl ToTokens for HtmlDashedName {
         let idents = extended.iter().map(|(_, ident)| quote! {#ident});
         let extended = quote! { #(#dashes #idents)* };
         let label = quote! { #name #extended };
-        let ident = format_ident!("{}", label.to_string(), span = Span::call_site());
+        let ident = format_ident!("r#{}", label.to_string(), span = Span::call_site());
         ident.to_tokens(tokens)
     }
 }
