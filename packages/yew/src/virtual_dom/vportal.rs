@@ -177,7 +177,7 @@ mod layout_tests {
                     {VNode::VPortal(VPortal::new_before(
                         html! { {"PORTAL"} },
                         target_with_child.clone(),
-                        Some(target_child.clone().into()),
+                        Some(target_child.into()),
                     ))}
                 </div>
             },

@@ -30,7 +30,7 @@ fn app_content() -> HtmlResult {
 
     Ok(html! {
         <div class="content-area">
-            <textarea value={value.to_string()} oninput={on_text_input}></textarea>
+            <textarea oninput={on_text_input}>{value.to_string()}</textarea>
             <div class="action-area">
                 <button onclick={on_take_a_break}>{"Take a break!"}</button>
                 <div class="hint">{"You can take a break at anytime"}<br />{"and your work will be preserved."}</div>
