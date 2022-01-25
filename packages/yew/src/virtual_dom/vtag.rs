@@ -716,17 +716,11 @@ mod tests {
 
     #[test]
     fn it_compares_tags() {
-        let a = html! {
-            <div></div>
-        };
+        let a = VNode::from(VTag::new("div"));
 
-        let b = html! {
-            <div></div>
-        };
+        let b = VNode::from(VTag::new("div"));
 
-        let c = html! {
-            <p></p>
-        };
+        let c = VNode::from(VTag::new("p"));
 
         assert_eq!(a, b);
         assert_ne!(a, c);
@@ -734,53 +728,47 @@ mod tests {
 
     #[test]
     fn it_compares_text() {
-        let a = html! {
-            <div>{ "correct" }</div>
-        };
+        let a = VNode::from({
+            let mut tag = VTag::new("div");
+            tag.add_children(vec![html! { "correct" }]);
+            tag
+        });
 
-        let b = html! {
-            <div>{ "correct" }</div>
-        };
+        let b = VNode::from({
+            let mut tag = VTag::new("div");
+            tag.add_children(vec![html! { "correct" }]);
+            tag
+        });
 
-        let c = html! {
-            <div>{ "incorrect" }</div>
-        };
-
-        assert_eq!(a, b);
-        assert_ne!(a, c);
-    }
-
-    #[test]
-    fn it_compares_attributes_static() {
-        let a = html! {
-            <div class="test"></div>
-        };
-
-        let b = html! {
-            <div class="test"></div>
-        };
-
-        let c = html! {
-            <div class="fail"></div>
-        };
+        let c = VNode::from({
+            let mut tag = VTag::new("div");
+            tag.add_children(vec![html! { "incorrect" }]);
+            tag
+        });
 
         assert_eq!(a, b);
         assert_ne!(a, c);
     }
 
     #[test]
-    fn it_compares_attributes_dynamic() {
-        let a = html! {
-            <div class={"test".to_owned()}></div>
-        };
+    fn it_compares_attributes() {
+        let a = VNode::from({
+            let mut tag = VTag::new("div");
+            tag.add_attribute("class", "test");
+            tag
+        });
 
-        let b = html! {
-            <div class={"test".to_owned()}></div>
-        };
+        let b = VNode::from({
+            let mut tag = VTag::new("div");
+            tag.add_attribute("class", "test");
+            tag
+        });
 
-        let c = html! {
-            <div class={"fail".to_owned()}></div>
-        };
+        let c = VNode::from({
+            let mut tag = VTag::new("div");
+            tag.add_attribute("class", "fail");
+            tag
+        });
 
         assert_eq!(a, b);
         assert_ne!(a, c);
@@ -789,71 +777,25 @@ mod tests {
     #[test]
     fn it_compares_children() {
         let a = html! {
-            <div>
-                <p></p>
-            </div>
+            <@{"div"}>
+                <@{"p"}></@>
+            </@>
         };
 
         let b = html! {
-            <div>
-                <p></p>
-            </div>
+            <@{"div"}>
+                <@{"p"}></@>
+            </@>
         };
 
         let c = html! {
-            <div>
-                <span></span>
-            </div>
+            <@{"div"}>
+                <@{"span"}></@>
+            </@>
         };
 
         assert_eq!(a, b);
         assert_ne!(a, c);
-    }
-
-    #[test]
-    fn it_compares_classes_static() {
-        let a = html! {
-            <div class="test"></div>
-        };
-
-        let b = html! {
-            <div class="test"></div>
-        };
-
-        let c = html! {
-            <div class="fail"></div>
-        };
-
-        let d = html! {
-            <div class={format!("fail{}", "")}></div>
-        };
-
-        assert_eq!(a, b);
-        assert_ne!(a, c);
-        assert_ne!(a, d);
-    }
-
-    #[test]
-    fn it_compares_classes_dynamic() {
-        let a = html! {
-            <div class={"test".to_owned()}></div>
-        };
-
-        let b = html! {
-            <div class={"test".to_owned()}></div>
-        };
-
-        let c = html! {
-            <div class={"fail".to_owned()}></div>
-        };
-
-        let d = html! {
-            <div class={format!("fail{}", "")}></div>
-        };
-
-        assert_eq!(a, b);
-        assert_ne!(a, c);
-        assert_ne!(a, d);
     }
 
     fn assert_vtag(node: &VNode) -> &VTag {
@@ -889,7 +831,7 @@ mod tests {
 
         let mut g_node = html! { <@{"g"} class="segment"></@> };
         let path_node = html! { <@{"path"}></@> };
-        let mut svg_node = html! { <svg>{path_node}</svg> };
+        let mut svg_node = html! { <@{"svg"}>{path_node}</@> };
 
         let svg_tag = assert_vtag_mut(&mut svg_node);
         svg_tag.apply(&scope, &div_el, NodeRef::default(), None);
@@ -908,35 +850,23 @@ mod tests {
 
     #[test]
     fn it_compares_values() {
-        let a = html! {
-            <input value="test"/>
-        };
+        let a = VNode::from({
+            let mut tag = VTag::new("input");
+            tag.set_value("test");
+            tag
+        });
 
-        let b = html! {
-            <input value="test"/>
-        };
+        let b = VNode::from({
+            let mut tag = VTag::new("input");
+            tag.set_value("test");
+            tag
+        });
 
-        let c = html! {
-            <input value="fail"/>
-        };
-
-        assert_eq!(a, b);
-        assert_ne!(a, c);
-    }
-
-    #[test]
-    fn it_compares_kinds() {
-        let a = html! {
-            <input type="text"/>
-        };
-
-        let b = html! {
-            <input type="text"/>
-        };
-
-        let c = html! {
-            <input type="hidden"/>
-        };
+        let c = VNode::from({
+            let mut tag = VTag::new("input");
+            tag.set_value("fail");
+            tag
+        });
 
         assert_eq!(a, b);
         assert_ne!(a, c);
@@ -944,17 +874,26 @@ mod tests {
 
     #[test]
     fn it_compares_checked() {
-        let a = html! {
-            <input type="checkbox" />
-        };
+        let a = VNode::from({
+            let mut tag = VTag::new("input");
+            tag.add_attribute("type", "checkbox");
+            tag.set_checked(false);
+            tag
+        });
 
-        let b = html! {
-            <input type="checkbox" />
-        };
+        let b = VNode::from({
+            let mut tag = VTag::new("input");
+            tag.add_attribute("type", "checkbox");
+            tag.set_checked(false);
+            tag
+        });
 
-        let c = html! {
-            <input type="checkbox" checked="true" />
-        };
+        let c = VNode::from({
+            let mut tag = VTag::new("input");
+            tag.add_attribute("type", "checkbox");
+            tag.set_checked(true);
+            tag
+        });
 
         assert_eq!(a, b);
         assert_ne!(a, c);
@@ -1003,7 +942,7 @@ mod tests {
 
         document().body().unwrap().append_child(&parent).unwrap();
 
-        let mut elem = html! { <div></div> };
+        let mut elem = VNode::from(VTag::new("div"));
         VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
         let vtag = assert_vtag_mut(&mut elem);
         // test if the className has not been set
@@ -1025,12 +964,12 @@ mod tests {
 
     #[test]
     fn it_sets_class_name_static() {
-        test_set_class_name(|| html! { <div class="ferris the crab"></div> });
+        test_set_class_name(|| html! { <@{"div"} class="ferris the crab"></@> });
     }
 
     #[test]
     fn it_sets_class_name_dynamic() {
-        test_set_class_name(|| html! { <div class={"ferris the crab".to_owned()}></div> });
+        test_set_class_name(|| html! { <@{"div"} class={"ferris the crab".to_owned()}></@> });
     }
 
     #[test]
@@ -1043,7 +982,11 @@ mod tests {
         let expected = "not_changed_value";
 
         // Initial state
-        let mut elem = html! { <input value={expected} /> };
+        let mut elem = VNode::from({
+            let mut tag = VTag::new("input");
+            tag.set_value(expected);
+            tag
+        });
         VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
         let vtag = if let VNode::VTag(vtag) = elem {
             vtag
@@ -1057,7 +1000,11 @@ mod tests {
         input.unwrap().set_value("User input");
 
         let ancestor = vtag;
-        let mut elem = html! { <input value={expected} /> };
+        let mut elem = VNode::from({
+            let mut tag = VTag::new("input");
+            tag.set_value(expected);
+            tag
+        });
         let vtag = assert_vtag_mut(&mut elem);
 
         // Sync happens here
@@ -1086,22 +1033,16 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         // Initial state
-        let mut elem = html! { <input /> };
-        VDiff::apply(&mut elem, &scope, &parent, NodeRef::default(), None);
-        let vtag = if let VNode::VTag(vtag) = elem {
-            vtag
-        } else {
-            panic!("should be vtag")
-        };
+        let mut vtag = VTag::new("input");
+        VDiff::apply(&mut vtag, &scope, &parent, NodeRef::default(), None);
 
         // User input
         let input_ref = vtag.reference.as_ref().unwrap();
         let input = input_ref.dyn_ref::<InputElement>();
         input.unwrap().set_value("User input");
 
-        let ancestor = vtag;
-        let mut elem = html! { <input /> };
-        let vtag = assert_vtag_mut(&mut elem);
+        let ancestor = Box::new(vtag);
+        let mut vtag = VTag::new("input");
 
         // Value should not be refreshed
         vtag.apply(
@@ -1186,7 +1127,7 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let node_ref = NodeRef::default();
-        let mut elem: VNode = html! { <div ref={node_ref.clone()}></div> };
+        let mut elem: VNode = html! { <@{"div"} ref={node_ref.clone()}></@> };
         assert_vtag_mut(&mut elem);
         elem.apply(&scope, &parent, NodeRef::default(), None);
         let parent_node = parent.deref();
@@ -1202,14 +1143,14 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let node_ref_a = NodeRef::default();
-        let mut elem_a = html! { <div id="a" ref={node_ref_a.clone()} /> };
+        let mut elem_a = html! { <@{"div"} id="a" ref={node_ref_a.clone()} /> };
         elem_a.apply(&scope, &parent, NodeRef::default(), None);
 
         // save the Node to check later that it has been reused.
         let node_a = node_ref_a.get().unwrap();
 
         let node_ref_b = NodeRef::default();
-        let mut elem_b = html! { <div id="b" ref={node_ref_b.clone()} /> };
+        let mut elem_b = html! { <@{"div"} id="b" ref={node_ref_b.clone()} /> };
         elem_b.apply(&scope, &parent, NodeRef::default(), Some(elem_a));
 
         let node_b = node_ref_b.get().unwrap();
@@ -1228,17 +1169,24 @@ mod tests {
         document().body().unwrap().append_child(&parent).unwrap();
 
         let test_ref = NodeRef::default();
-        let mut before = html! {
-            <>
-                <div ref={test_ref.clone()} id="before" />
-            </>
-        };
-        let mut after = html! {
-            <>
-                <h6 />
-                <div ref={test_ref.clone()} id="after" />
-            </>
-        };
+        let mut before = VNode::from({
+            let mut tag = VTag::new("div");
+            tag.add_attribute("id", "before");
+            tag.node_ref = test_ref.clone();
+            tag
+        });
+
+        let mut after = VNode::from({
+            VList::with_children(
+                vec![VTag::new("h6").into(), {
+                    let mut tag = VTag::new("div");
+                    tag.add_attribute("id", "after");
+                    tag.node_ref = test_ref.clone();
+                    tag.into()
+                }],
+                None,
+            )
+        });
         // The point of this diff is to first render the "after" div and then detach the "before" div,
         // while both should be bound to the same node ref
 
@@ -1569,7 +1517,7 @@ mod ssr_tests {
     async fn test_textarea() {
         #[function_component]
         fn Comp() -> Html {
-            html! { <textarea value="teststring" /> }
+            html! { <textarea>{ "teststring" }</textarea> }
         }
 
         let renderer = ServerRenderer::<Comp>::new();

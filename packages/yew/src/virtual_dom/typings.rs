@@ -1085,8 +1085,6 @@ mod tests {
 
     #[test]
     fn it_works() {
-        use super::button as Btn;
-
         const TEXT: &'static str = "Inner Text";
         const CLICKED_TEXT: &'static str = "Clicked Text";
 
@@ -1098,7 +1096,7 @@ mod tests {
         #[function_component]
         fn Comp(props: &Props) -> Html {
             html! {
-                <Btn class="ccc" name="yes" onclick={props.on_click.clone()}>{ TEXT }</Btn>
+                <button class="ccc" name="yes" onclick={props.on_click.clone()}>{ TEXT }</button>
             }
         }
 

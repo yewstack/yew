@@ -97,7 +97,10 @@ impl HtmlTree {
                 let ident = Ident::parse_any(&input).ok()?;
                 let ident_str = ident.to_string();
 
-                if input.peek(Token![=]) || (input.peek(Token![?]) && input.peek2(Token![=])) || ident_str == "key" {
+                if input.peek(Token![=])
+                    || (input.peek(Token![?]) && input.peek2(Token![=]))
+                    || ident_str == "key"
+                {
                     Some(HtmlType::List)
                 } else {
                     Some(HtmlType::Component)
