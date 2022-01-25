@@ -55,10 +55,9 @@ where
 /// }
 /// ```
 #[hook]
-pub fn use_state<T, F>(init_fn: F) -> UseStateHandle<T>
+pub fn use_state<T>(init_fn: impl FnOnce() -> T) -> UseStateHandle<T>
 where
     T: 'static,
-    F: FnOnce() -> T,
 {
     let handle = use_reducer(move || UseStateReducer {
         value: Rc::new(init_fn()),
@@ -71,10 +70,9 @@ where
 ///
 /// This hook requires the state to implement [`PartialEq`].
 #[hook]
-pub fn use_state_eq<T, F>(init_fn: F) -> UseStateHandle<T>
+pub fn use_state_eq<T>(init_fn: impl FnOnce() -> T) -> UseStateHandle<T>
 where
     T: PartialEq + 'static,
-    F: FnOnce() -> T,
 {
     let handle = use_reducer_eq(move || UseStateReducer {
         value: Rc::new(init_fn()),

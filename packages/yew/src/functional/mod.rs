@@ -17,7 +17,6 @@ use crate::html::{AnyScope, BaseComponent, HtmlResult};
 use crate::Properties;
 use std::cell::{RefCell, RefMut};
 use std::fmt;
-use std::ops::DerefMut;
 use std::rc::Rc;
 
 mod hooks;
@@ -67,7 +66,6 @@ pub struct HookContext {
 
     process_message: ProcessMessage,
     hooks: Vec<Rc<RefCell<dyn std::any::Any>>>,
-    destroy_listeners: Vec<Box<dyn FnOnce()>>,
 
     counter: usize,
     #[cfg(debug_assertions)]
@@ -75,11 +73,7 @@ pub struct HookContext {
 }
 
 impl HookContext {
-    pub(crate) fn next_state<T>(
-        &mut self,
-        initializer: impl FnOnce() -> T,
-        destructor: impl FnOnce(&mut T) + 'static,
-    ) -> HookUpdater
+    pub(crate) fn next_state<T>(&mut self, initializer: impl FnOnce() -> T) -> HookUpdater
     where
         T: 'static,
     {
@@ -93,12 +87,6 @@ impl HookContext {
                 let initial_state = Rc::new(RefCell::new(initializer()));
                 self.hooks.push(initial_state.clone());
 
-                {
-                    let initial_state = initial_state.clone();
-                    self.destroy_listeners.push(Box::new(move || {
-                        destructor(initial_state.borrow_mut().deref_mut());
-                    }));
-                }
                 initial_state
             }
         };
@@ -168,7 +156,6 @@ where
                     })
                 },
                 hooks: vec![],
-                destroy_listeners: vec![],
 
                 counter: 0,
                 #[cfg(debug_assertions)]
@@ -229,8 +216,9 @@ where
 
     fn destroy(&mut self, _ctx: &Context<Self>) {
         let mut hook_ctx = self.hook_ctx.borrow_mut();
-        for hook in hook_ctx.destroy_listeners.drain(..) {
-            hook()
+
+        for hook in hook_ctx.hooks.drain(..) {
+            drop(hook);
         }
     }
 }

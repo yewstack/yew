@@ -3,18 +3,34 @@ use std::rc::Rc;
 
 type UseEffectRunnerFn<T, D> = Box<dyn FnOnce(&T) -> D>;
 
-struct UseEffectBase<T, D> {
+struct UseEffectBase<T, D>
+where
+    D: FnOnce() + 'static,
+{
     runner_with_deps: Option<(Rc<T>, UseEffectRunnerFn<T, D>)>,
     destructor: Option<Box<D>>,
     deps: Option<Rc<T>>,
 }
 
-#[hook]
-fn use_effect_base<T, D, R>(callback: impl FnOnce(&T) -> D + 'static, deps: T, effect_changed_fn: R)
+impl<T, D> Drop for UseEffectBase<T, D>
 where
+    D: FnOnce() + 'static,
+{
+    fn drop(&mut self) {
+        if let Some(destructor) = self.destructor.take() {
+            destructor()
+        }
+    }
+}
+
+#[hook]
+fn use_effect_base<T, D>(
+    callback: impl FnOnce(&T) -> D + 'static,
+    deps: T,
+    effect_changed_fn: impl FnOnce(Option<&T>, Option<&T>) -> bool + 'static,
+) where
     T: 'static,
     D: FnOnce() + 'static,
-    R: FnOnce(Option<&T>, Option<&T>) -> bool + 'static,
 {
     let deps = Rc::new(deps);
 
@@ -47,11 +63,6 @@ where
                 }
                 false
             });
-        },
-        |hook| {
-            if let Some(destructor) = hook.destructor.take() {
-                destructor()
-            }
         },
     );
 }

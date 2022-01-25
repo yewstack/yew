@@ -5,23 +5,23 @@ use std::rc::Rc;
 ///
 /// Memoization means it will only get recalculated when provided dependencies update/change
 #[hook]
-pub fn use_memo<T, Dependents>(memo_fn: impl FnOnce(&Dependents) -> T, deps: Dependents) -> Rc<T>
+pub fn use_memo<T, D>(memo_fn: impl FnOnce(&D) -> T, deps: D) -> Rc<T>
 where
     T: 'static,
-    Dependents: 'static + PartialEq,
+    D: 'static + PartialEq,
 {
     let deps = Rc::new(deps);
 
-    pub struct UseMemo<T, Dependents>
+    pub struct UseMemo<T, D>
     where
         T: 'static,
-        Dependents: 'static + PartialEq,
+        D: 'static + PartialEq,
     {
-        inner: Option<(Rc<Dependents>, Rc<T>)>,
+        inner: Option<(Rc<D>, Rc<T>)>,
     }
 
     use_hook(
-        || -> UseMemo<T, Dependents> { UseMemo { inner: None } },
+        || -> UseMemo<T, D> { UseMemo { inner: None } },
         move |state, _updater| {
             state
                 .inner
@@ -35,6 +35,5 @@ where
                     val
                 })
         },
-        |_| {},
     )
 }

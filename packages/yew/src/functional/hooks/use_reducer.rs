@@ -145,11 +145,12 @@ where
 
 /// The base function of [`use_reducer`] and [`use_reducer_eq`]
 #[hook]
-fn use_reducer_base<T, F, R>(initial_fn: F, should_render_fn: R) -> UseReducerHandle<T>
+fn use_reducer_base<T>(
+    initial_fn: impl FnOnce() -> T,
+    should_render_fn: impl 'static + Fn(&T, &T) -> bool,
+) -> UseReducerHandle<T>
 where
     T: Reducible + 'static,
-    F: FnOnce() -> T,
-    R: (Fn(&T, &T) -> bool) + 'static,
 {
     use_hook(
         move || UseReducer {
@@ -188,7 +189,6 @@ where
                 dispatch,
             }
         },
-        |_| {},
     )
 }
 
@@ -261,10 +261,9 @@ where
 /// }
 /// ```
 #[hook]
-pub fn use_reducer<T, F>(initial_fn: F) -> UseReducerHandle<T>
+pub fn use_reducer<T>(initial_fn: impl FnOnce() -> T) -> UseReducerHandle<T>
 where
     T: Reducible + 'static,
-    F: FnOnce() -> T,
 {
     use_reducer_base(initial_fn, |_, _| true)
 }
@@ -274,10 +273,9 @@ where
 /// This requires the state to implement [`PartialEq`] in addition to the [`Reducible`] trait
 /// required by [`use_reducer`].
 #[hook]
-pub fn use_reducer_eq<T, F>(initial_fn: F) -> UseReducerHandle<T>
+pub fn use_reducer_eq<T>(initial_fn: impl FnOnce() -> T) -> UseReducerHandle<T>
 where
     T: Reducible + PartialEq + 'static,
-    F: FnOnce() -> T,
 {
     use_reducer_base(initial_fn, T::ne)
 }

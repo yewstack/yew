@@ -60,7 +60,6 @@ impl<T> Hook for BoxedHook<'_, T> {
 pub(crate) fn use_hook<'hook, T, O>(
     initializer: impl 'hook + FnOnce() -> T,
     runner: impl 'hook + FnOnce(&mut T, HookUpdater) -> O,
-    destructor: impl 'static + FnOnce(&mut T),
 ) -> impl 'hook + Hook<Output = O>
 where
     T: 'static,
@@ -69,7 +68,6 @@ where
     struct HookProvider<'a, T, O> {
         initializer: Box<dyn FnOnce() -> T + 'a>,
         runner: Box<dyn FnOnce(&mut T, HookUpdater) -> O + 'a>,
-        destructor: Box<dyn FnOnce(&mut T)>,
     }
 
     impl<T, O> Hook for HookProvider<'_, T, O>
@@ -82,11 +80,10 @@ where
             let Self {
                 initializer,
                 runner,
-                destructor,
             } = self;
 
             // Extract current hook
-            let updater = ctx.next_state(initializer, destructor);
+            let updater = ctx.next_state(initializer);
 
             // Execute the actual hook closure we were given. Let it mutate the hook state and let
             // it create a callback that takes the mutable hook state.
@@ -99,11 +96,10 @@ where
     HookProvider {
         initializer: Box::new(initializer),
         runner: Box::new(runner),
-        destructor: Box::new(destructor),
     }
 }
 
 #[hook]
 pub(crate) fn use_component_scope() -> AnyScope {
-    use_hook(|| (), |_, updater| updater.scope().clone(), |_| {})
+    use_hook(|| (), |_, updater| updater.scope().clone())
 }
