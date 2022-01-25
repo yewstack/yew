@@ -3,7 +3,7 @@ title: "Portals"
 description: "Rendering into out-of-tree DOM nodes"
 ---
 
-## How to think about portals?
+## What is a portal?
 
 Portals provide a first-class way to render children into a DOM node that exists outside the DOM hierarchy of the parent component.
 `yew::create_portal(child, host)` returns a `Html` value that renders `child` not hierarchically under its parent component,
@@ -11,9 +11,16 @@ but as a child of the `host` element.
 
 ## Usage
 
-Typical uses of portals can include modal dialogs and hovercards, as well as more technical applications such as controlling the contents of an element's [`shadowRoot`](https://developer.mozilla.org/en-US/docs/Web/API/Element/shadowRoot), appending stylesheets to the surrounding document's `<head>` and collecting referenced elements inside a central `<defs>` element of an `<svg>`.
+Typical uses of portals can include modal dialogs and hovercards, as well as more technical applications
+such as controlling the contents of an element's
+[`shadowRoot`](https://developer.mozilla.org/en-US/docs/Web/API/Element/shadowRoot), appending
+stylesheets to the surrounding document's `<head>` and collecting referenced elements inside a
+central `<defs>` element of an `<svg>`.
 
-Note that `yew::create_portal` is a rather low-level building block, on which other components should be built that provide the interface for your specific use case. As an example, here is a simple modal dialogue that renders its `children` into an element outside `yew`'s control, identified by the `id="modal_host"`.
+Note that `yew::create_portal` is a low-level building block. Libraries should use it to implement
+higher-level APIs which can then be consumed by applications. For example, here is a
+simple modal dialogue that renders its `children` into an element outside `yew`'s control,
+identified by the `id="modal_host"`.
 
 ```rust
 use yew::{html, create_portal, function_component, Children, Properties, Html};

@@ -23,16 +23,18 @@ Using the `html!` macro can feel pretty magic, but it has nothing to hide. If yo
 how it works, try expanding the `html!` macro calls in your program. There's a useful command called
 `cargo expand` which allows you to see the expansion of Rust macros. `cargo expand` isn't shipped with
 `cargo` by default so you'll need to install it with `cargo install cargo-expand` if you haven't
-already.
+already. [Rust-Analyzer](https://rust-analyzer.github.io/) also provides a mechanism for
+[obtaining macro output from within an IDE](https://rust-analyzer.github.io/manual.html#expand-macro-recursively).
 
-Note that when viewing expanded macro code, you're likely to encounter unusually verbose code. The
-reason is because generated code can sometimes clash with other code in an application. In order
-to prevent issues, `proc_macro` "hygiene" is adhered to. Some examples include:
+Output from the `html!` macro is often pretty terse! This is a feature: machine-generated code can
+sometimes clash with other code in an application. In order to prevent issues, `proc_macro`
+"hygiene" is adhered to. Some examples include:
 
 1. Instead of using `yew::<module>` the macro generates `::yew::<module>` to make sure that the
 Yew package is referenced correctly. This is also why `::alloc::vec::Vec::new()` is called instead
 of just `Vec::new()`.
-2. Due to potential trait method name collisions, `<Type as Trait>` is used to make sure that we're using items from the right trait.
+2. Due to potential trait method name collisions, `<Type as Trait>` is used to make sure that we're
+using members from the correct trait.
 
 ## What is a virtual DOM?
 
