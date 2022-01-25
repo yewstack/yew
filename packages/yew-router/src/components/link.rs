@@ -25,8 +25,6 @@ where
     #[prop_or_default]
     pub query: Option<Q>,
     #[prop_or_default]
-    pub disabled: bool,
-    #[prop_or_default]
     pub children: Children,
 }
 
@@ -112,7 +110,6 @@ where
             <a class={classes}
                 {href}
                 {onclick}
-                {disabled}
             >
                 { children }
             </a>
