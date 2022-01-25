@@ -17,8 +17,8 @@ pub struct VPortal {
 }
 
 impl VDiff for VPortal {
-    fn detach(&mut self, _: &Element) {
-        self.node.detach(&self.host);
+    fn detach(&mut self, _: &Element, _parent_to_detach: bool) {
+        self.node.detach(&self.host, false);
         self.sibling_ref.set(None);
     }
 
@@ -43,7 +43,7 @@ impl VDiff for VPortal {
                 } = old_portal;
                 if old_host != self.host {
                     // Remount the inner node somewhere else instead of diffing
-                    node.detach(&old_host);
+                    node.detach(&old_host, false);
                     None
                 } else if old_sibling != self.next_sibling {
                     // Move the node, but keep the state
@@ -54,7 +54,7 @@ impl VDiff for VPortal {
                 }
             }
             Some(mut node) => {
-                node.detach(parent);
+                node.detach(parent, false);
                 None
             }
             None => None,

@@ -179,6 +179,7 @@ impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
 
 pub(crate) struct DestroyRunner<COMP: BaseComponent> {
     pub(crate) state: Shared<Option<ComponentState<COMP>>>,
+    pub(crate) parent_to_detach: bool,
 }
 
 impl<COMP: BaseComponent> Runnable for DestroyRunner<COMP> {
@@ -190,7 +191,7 @@ impl<COMP: BaseComponent> Runnable for DestroyRunner<COMP> {
             state.component.destroy(&state.context);
 
             if let Some(ref m) = state.parent {
-                state.root_node.detach(m);
+                state.root_node.detach(m, self.parent_to_detach);
                 state.node_ref.set(None);
             }
         }

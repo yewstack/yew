@@ -115,7 +115,7 @@ impl AnyScope {
 pub(crate) trait Scoped {
     fn to_any(&self) -> AnyScope;
     fn root_vnode(&self) -> Option<Ref<'_, VNode>>;
-    fn destroy(&mut self);
+    fn destroy(&mut self, parent_to_detach: bool);
     fn shift_node(&self, parent: Element, next_sibling: NodeRef);
 }
 
@@ -136,9 +136,10 @@ impl<COMP: BaseComponent> Scoped for Scope<COMP> {
     }
 
     /// Process an event to destroy a component
-    fn destroy(&mut self) {
+    fn destroy(&mut self, parent_to_detach: bool) {
         scheduler::push_component_destroy(DestroyRunner {
             state: self.state.clone(),
+            parent_to_detach,
         });
         // Not guaranteed to already have the scheduler started
         scheduler::start();
@@ -387,6 +388,7 @@ mod feat_ssr {
 
             scheduler::push_component_destroy(DestroyRunner {
                 state: self.state.clone(),
+                parent_to_detach: false,
             });
             scheduler::start();
         }
