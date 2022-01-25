@@ -161,8 +161,8 @@ mod layout_tests {
             name: "Portal - replaced by text",
             node: html! {
                 <div>
-                    {VNode::VRef(first_target.clone().into())}
-                    {VNode::VRef(second_target.clone().into())}
+                    {VNode::VRef(first_target.into())}
+                    {VNode::VRef(second_target.into())}
                     {"FOO"}
                     {"AFTER"}
                 </div>
@@ -176,7 +176,7 @@ mod layout_tests {
                     {VNode::VRef(target_with_child.clone().into())}
                     {VNode::VPortal(VPortal::new_before(
                         html! { {"PORTAL"} },
-                        target_with_child.clone(),
+                        target_with_child,
                         Some(target_child.into()),
                     ))}
                 </div>

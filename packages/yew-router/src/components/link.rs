@@ -85,7 +85,6 @@ where
             classes,
             to,
             children,
-            disabled,
             ..
         } = ctx.props().clone();
         let onclick = ctx.link().callback(|e: MouseEvent| {
