@@ -153,7 +153,6 @@ async fn suspense_works() {
     );
 }
 
-/* This test is failing for some reason. See https://github.com/yewstack/yew/pull/2396#discussion_r792030286
 #[wasm_bindgen_test]
 async fn suspense_not_suspended_at_start() {
     #[derive(PartialEq)]
@@ -202,23 +201,13 @@ async fn suspense_not_suspended_at_start() {
     fn content() -> HtmlResult {
         let resleep = use_sleep()?;
 
-        let value = use_state(|| "I am writing a long story...".to_string());
-
-        let on_text_input = {
-            let value = value.clone();
-
-            Callback::from(move |e: InputEvent| {
-                let input: HtmlTextAreaElement = e.target_unchecked_into();
-
-                value.set(input.value());
-            })
-        };
+        let value = use_state(String::new);
 
         let on_take_a_break = Callback::from(move |_| (resleep.clone())());
 
         Ok(html! {
             <div class="content-area">
-                <textarea oninput={on_text_input}>{value.to_string()}</textarea>
+                <textarea>{value.to_string()}</textarea>
                 <div class="action-area">
                     <button class="take-a-break" onclick={on_take_a_break}>{"Take a break!"}</button>
                 </div>
@@ -268,7 +257,7 @@ async fn suspense_not_suspended_at_start() {
         r#"<div class="content-area"><textarea></textarea><div class="action-area"><button class="take-a-break">Take a break!</button></div></div>"#
     );
 }
-*/
+
 #[wasm_bindgen_test]
 async fn suspense_nested_suspense_works() {
     #[derive(PartialEq)]
