@@ -19,11 +19,11 @@ fn props_are_passed() {
 
         fn run(props: &Self::TProps) -> HtmlResult {
             assert_eq!(&props.value, "props");
-            return Ok(html! {
+            Ok(html! {
                 <div id="result">
                     {"done"}
                 </div>
-            });
+            })
         }
     }
     type PropsComponent = FunctionComponent<PropsPassedFunction>;

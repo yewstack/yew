@@ -20,13 +20,13 @@ fn use_state_works() {
             if *counter < 5 {
                 counter.set(*counter + 1)
             }
-            return Ok(html! {
+            Ok(html! {
                 <div>
                     {"Test Output: "}
                     <div id="result">{*counter}</div>
                     {"\n"}
                 </div>
-            });
+            })
         }
     }
     type UseComponent = FunctionComponent<UseStateFunction>;
