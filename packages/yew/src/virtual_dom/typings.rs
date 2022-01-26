@@ -505,11 +505,6 @@ generate_element! {
 }
 
 generate_element! {
-    svg;
-    props: {  }
-}
-
-generate_element! {
     math;
     props: {  }
 }
