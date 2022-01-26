@@ -60,24 +60,30 @@ trait AccessValue {
     fn set_value(&self, v: &str);
 }
 
-macro_rules! impl_access_value {
-    ($( $type:ty )*) => {
-        $(
-            impl AccessValue for $type {
-                #[inline]
-                fn value(&self) -> String {
-                    <$type>::value(&self)
-                }
+impl AccessValue for InputElement {
+    #[inline]
+    fn value(&self) -> String {
+        InputElement::value(&self)
+    }
 
-                #[inline]
-                fn set_value(&self, v: &str) {
-                    <$type>::set_value(&self, v)
-                }
-            }
-        )*
-    };
+    #[inline]
+    fn set_value(&self, v: &str) {
+        InputElement::set_value(&self, v)
+    }
 }
-impl_access_value! {InputElement TextAreaElement}
+
+impl AccessValue for TextAreaElement {
+    #[inline]
+    fn value(&self) -> String {
+        self.inner_text()
+    }
+
+    #[inline]
+    fn set_value(&self, v: &str) {
+        let node = web_sys::Node::from(web_sys::Text::new_with_data(v).unwrap());
+        self.append_child(&node);
+    }
+}
 
 /// Fields specific to
 /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) [VTag]s
