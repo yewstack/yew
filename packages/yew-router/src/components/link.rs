@@ -25,6 +25,8 @@ where
     #[prop_or_default]
     pub query: Option<Q>,
     #[prop_or_default]
+    pub disabled: bool,
+    #[prop_or_default]
     pub children: Children,
 }
 
@@ -60,6 +62,10 @@ where
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::OnClick => {
+                if ctx.props().disabled {
+                    return false;
+                }
+
                 let LinkProps { to, query, .. } = ctx.props();
                 let navigator = ctx
                     .link()
@@ -85,6 +91,7 @@ where
             classes,
             to,
             children,
+            disabled,
             ..
         } = ctx.props().clone();
         let onclick = ctx.link().callback(|e: MouseEvent| {
@@ -96,7 +103,7 @@ where
             .link()
             .navigator()
             .expect_throw("failed to get navigator");
-        let href: AttrValue = {
+        let href: Option<AttrValue> = disabled.then(||{
             let href = navigator.route_to_url(to);
 
             match navigator.kind() {
@@ -104,7 +111,7 @@ where
                 _ => href,
             }
             .into()
-        };
+        });
         html! {
             <a class={classes}
                 {href}

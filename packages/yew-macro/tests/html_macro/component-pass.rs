@@ -96,7 +96,7 @@ pub struct ChildProperties {
     #[prop_or_default]
     pub string: ::std::string::String,
     #[prop_or_default]
-    pub r#fn: ::std::primitive::i32,
+    pub fun: ::std::primitive::i32,
     pub int: ::std::primitive::i32,
     #[prop_or_default]
     pub opt_str: ::std::option::Option<::std::string::String>,
@@ -161,7 +161,7 @@ mod scoped {
 
 fn compile_pass() {
     ::yew::html! { <Child int=1 /> };
-    ::yew::html! { <Child int=1 r#fn=1 /> };
+    ::yew::html! { <Child int=1 fun=1 /> };
 
     ::yew::html! {
         <>

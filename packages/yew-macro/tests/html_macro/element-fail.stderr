@@ -40,11 +40,11 @@ error: this closing tag has no corresponding opening tag
 17 |     html! { <div></span> };
    |                  ^^^^^^^
 
-error: this closing tag has no corresponding opening tag
-  --> tests/html_macro/element-fail.rs:18:20
+error: expected ident
+  --> tests/html_macro/element-fail.rs:18:17
    |
 18 |     html! { <tag-a></tag-b> };
-   |                    ^^^^^^^^
+   |                 ^
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
   --> tests/html_macro/element-fail.rs:21:24
@@ -59,70 +59,58 @@ error: expected a valid html element
    |                  ^^^^^^^
 
 error: `attr` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:26:27
+  --> tests/html_macro/element-fail.rs:26:13
    |
 26 |     html! { <input attr=1 attr=2 /> };
-   |                           ^^^^
+   |             ^^^^^^^^^^^^^^^^^^^^^^^
 
 error: `value` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:27:32
+  --> tests/html_macro/element-fail.rs:27:13
    |
 27 |     html! { <input value="123" value="456" /> };
-   |                                ^^^^^
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: `kind` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:28:36
+  --> tests/html_macro/element-fail.rs:28:13
    |
 28 |     html! { <input kind="checkbox" kind="submit" /> };
-   |                                    ^^^^
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: `checked` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:29:33
+  --> tests/html_macro/element-fail.rs:29:13
    |
 29 |     html! { <input checked=true checked=false /> };
-   |                                 ^^^^^^^
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: `disabled` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:30:34
+  --> tests/html_macro/element-fail.rs:30:13
    |
 30 |     html! { <input disabled=true disabled=false /> };
-   |                                  ^^^^^^^^
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: `selected` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:31:35
+  --> tests/html_macro/element-fail.rs:31:13
    |
 31 |     html! { <option selected=true selected=false /> };
-   |                                   ^^^^^^^^
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: `class` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:32:32
+  --> tests/html_macro/element-fail.rs:32:13
    |
 32 |     html! { <div class="first" class="second" /> };
-   |                                ^^^^^
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: `ref` can only be specified once
-  --> tests/html_macro/element-fail.rs:33:20
+  --> tests/html_macro/element-fail.rs:33:13
    |
 33 |     html! { <input ref={()} ref={()} /> };
-   |                    ^^^
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: `ref` can only be specified once
-  --> tests/html_macro/element-fail.rs:63:20
+  --> tests/html_macro/element-fail.rs:63:13
    |
 63 |     html! { <input ref={()} ref={()} /> };
-   |                    ^^^
-
-error: the tag `<input>` is a void element and cannot have children (hint: rewrite this as `<input/>`)
-  --> tests/html_macro/element-fail.rs:66:13
-   |
-66 |     html! { <input type="text"></input> };
-   |             ^^^^^^^^^^^^^^^^^^^
-
-error: the tag `<iNpUt>` is a void element and cannot have children (hint: rewrite this as `<iNpUt/>`)
-  --> tests/html_macro/element-fail.rs:68:13
-   |
-68 |     html! { <iNpUt type="text"></iNpUt> };
-   |             ^^^^^^^^^^^^^^^^^^^
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: this dynamic tag is missing an expression block defining its value
   --> tests/html_macro/element-fail.rs:71:14
@@ -202,97 +190,94 @@ error: the property value must be either a literal or enclosed in braces. Consid
 92 |     html! { <input string=NotToString /> };
    |                           ^^^^^^^^^^^
 
-warning: use of deprecated function `compile_fail::deprecated_use_of_class`: the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead.
-  --> tests/html_macro/element-fail.rs:80:25
+error[E0412]: cannot find type `iNpUt` in this scope
+  --> tests/html_macro/element-fail.rs:68:14
    |
-80 |     html! { <div class={("deprecated", "warning")} /> };
-   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: `#[warn(deprecated)]` on by default
+68 |     html! { <iNpUt type="text"></iNpUt> };
+   |              ^^^^^ not found in this scope
 
-error[E0308]: mismatched types
+error[E0412]: cannot find type `iNpUt` in this scope
+  --> tests/html_macro/element-fail.rs:68:14
+   |
+5  | fn compile_fail() {
+   |                - help: you might be missing a type parameter: `<iNpUt>`
+...
+68 |     html! { <iNpUt type="text"></iNpUt> };
+   |              ^^^^^ not found in this scope
+
+error[E0277]: the trait bound `{integer}: IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:36:28
    |
 36 |     html! { <input checked=1 /> };
-   |                            ^ expected `bool`, found integer
-
-error[E0308]: mismatched types
-  --> tests/html_macro/element-fail.rs:37:29
+   |                            ^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `{integer}`
    |
-37 |     html! { <input checked={Some(false)} /> };
-   |                             ^^^^^^^^^^^ expected `bool`, found enum `Option`
-   |
-   = note: expected type `bool`
-              found enum `Option<bool>`
+   = help: the following implementations were found:
+             <&'static str as IntoPropValue<AttrValue>>
+             <&'static str as IntoPropValue<Classes>>
+             <&'static str as IntoPropValue<Option<AttrValue>>>
+             <&'static str as IntoPropValue<Option<String>>>
+           and 18 others
 
-error[E0308]: mismatched types
+error[E0277]: the trait bound `{integer}: IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:38:29
    |
 38 |     html! { <input disabled=1 /> };
-   |                             ^ expected `bool`, found integer
-
-error[E0308]: mismatched types
-  --> tests/html_macro/element-fail.rs:39:30
+   |                             ^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `{integer}`
    |
-39 |     html! { <input disabled={Some(true)} /> };
-   |                              ^^^^^^^^^^ expected `bool`, found enum `Option`
-   |
-   = note: expected type `bool`
-              found enum `Option<bool>`
+   = help: the following implementations were found:
+             <&'static str as IntoPropValue<AttrValue>>
+             <&'static str as IntoPropValue<Classes>>
+             <&'static str as IntoPropValue<Option<AttrValue>>>
+             <&'static str as IntoPropValue<Option<String>>>
+           and 18 others
 
-error[E0308]: mismatched types
+error[E0277]: the trait bound `{integer}: IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:40:30
    |
 40 |     html! { <option selected=1 /> };
-   |                              ^ expected `bool`, found integer
+   |                              ^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `{integer}`
+   |
+   = help: the following implementations were found:
+             <&'static str as IntoPropValue<AttrValue>>
+             <&'static str as IntoPropValue<Classes>>
+             <&'static str as IntoPropValue<Option<AttrValue>>>
+             <&'static str as IntoPropValue<Option<String>>>
+           and 18 others
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:43:26
    |
 43 |     html! { <input type={()} /> };
    |                          ^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `()`
-   |
-note: required by `into_prop_value`
-  --> $WORKSPACE/packages/yew/src/html/conversion.rs
-   |
-   |     fn into_prop_value(self) -> T;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:44:27
    |
 44 |     html! { <input value={()} /> };
    |                           ^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `()`
-   |
-note: required by `into_prop_value`
-  --> $WORKSPACE/packages/yew/src/html/conversion.rs
-   |
-   |     fn into_prop_value(self) -> T;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:45:22
    |
 45 |     html! { <a href={()} /> };
    |                      ^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `()`
-   |
-note: required by `into_prop_value`
-  --> $WORKSPACE/packages/yew/src/html/conversion.rs
-   |
-   |     fn into_prop_value(self) -> T;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error[E0277]: the trait bound `NotToString: IntoPropValue<Option<AttrValue>>` is not satisfied
-  --> tests/html_macro/element-fail.rs:46:28
+error[E0609]: no field `string` on type `InputProps`
+  --> tests/html_macro/element-fail.rs:46:5
    |
 46 |     html! { <input string={NotToString} /> };
-   |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `NotToString`
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unknown field
    |
-note: required by `into_prop_value`
-  --> $WORKSPACE/packages/yew/src/html/conversion.rs
+   = note: available fields are: `node_ref`, `key`, `children`, `accept`, `alt` ... and 144 others
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no method named `string` found for struct `InputPropsBuilder` in the current scope
+  --> tests/html_macro/element-fail.rs:46:5
    |
-   |     fn into_prop_value(self) -> T;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+46 |     html! { <input string={NotToString} /> };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `InputPropsBuilder<InputPropsBuilderStepPropsBuilder>`
+   |
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:47:23
@@ -304,12 +289,8 @@ error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<AttrVal
              <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<String> as IntoPropValue<Option<AttrValue>>>
+             <Option<bool> as IntoPropValue<Option<AttrValue>>>
              <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
-note: required by `into_prop_value`
-  --> $WORKSPACE/packages/yew/src/html/conversion.rs
-   |
-   |     fn into_prop_value(self) -> T;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:48:22
@@ -321,156 +302,84 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<AttrValue
              <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<String> as IntoPropValue<Option<AttrValue>>>
+             <Option<bool> as IntoPropValue<Option<AttrValue>>>
              <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
-note: required by `into_prop_value`
-  --> $WORKSPACE/packages/yew/src/html/conversion.rs
-   |
-   |     fn into_prop_value(self) -> T;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `{integer}`
-   --> tests/html_macro/element-fail.rs:51:28
-    |
-51  |     html! { <input onclick=1 /> };
-    |                            ^ expected an `Fn<(MouseEvent,)>` closure, found `{integer}`
-    |
-    = help: the trait `Fn<(MouseEvent,)>` is not implemented for `{integer}`
-    = note: required because of the requirements on the impl of `IntoEventCallback<MouseEvent>` for `{integer}`
-note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
-   --> $WORKSPACE/packages/yew/src/html/listener/events.rs
-    |
-    | / impl_short! {
-    | |     onauxclick(MouseEvent)
-    | |     onclick(MouseEvent)
-    | |
-...   |
-    | |     ontransitionstart(TransitionEvent)
-    | | }
-    | |_^ required by this bound in `yew::html::onclick::Wrapper::__macro_new`
-    = note: this error originates in the macro `impl_action` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
-   --> tests/html_macro/element-fail.rs:52:29
-    |
-52  |     html! { <input onclick={Callback::from(|a: String| ())} /> };
-    |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |                             |
-    |                             expected an implementor of trait `IntoEventCallback<MouseEvent>`
-    |                             help: consider borrowing here: `&Callback::from(|a: String| ())`
-    |
-    = note: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
-    = note: required because of the requirements on the impl of `IntoEventCallback<MouseEvent>` for `yew::Callback<String>`
-note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
-   --> $WORKSPACE/packages/yew/src/html/listener/events.rs
-    |
-    | / impl_short! {
-    | |     onauxclick(MouseEvent)
-    | |     onclick(MouseEvent)
-    | |
-...   |
-    | |     ontransitionstart(TransitionEvent)
-    | | }
-    | |_^ required by this bound in `yew::html::onclick::Wrapper::__macro_new`
-    = note: this error originates in the macro `impl_action` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error[E0277]: the trait bound `Option<{integer}>: IntoEventCallback<FocusEvent>` is not satisfied
-   --> tests/html_macro/element-fail.rs:53:29
-    |
-53  |     html! { <input onfocus={Some(5)} /> };
-    |                             ^^^^^^^ the trait `IntoEventCallback<FocusEvent>` is not implemented for `Option<{integer}>`
-    |
-    = help: the following implementations were found:
-              <Option<T> as IntoEventCallback<EVENT>>
-              <Option<yew::Callback<EVENT>> as IntoEventCallback<EVENT>>
-note: required by a bound in `yew::html::onfocus::Wrapper::__macro_new`
-   --> $WORKSPACE/packages/yew/src/html/listener/events.rs
-    |
-    | / impl_short! {
-    | |     onauxclick(MouseEvent)
-    | |     onclick(MouseEvent)
-    | |
-...   |
-    | |     ontransitionstart(TransitionEvent)
-    | | }
-    | |_^ required by this bound in `yew::html::onfocus::Wrapper::__macro_new`
-    = note: this error originates in the macro `impl_action` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
-  --> tests/html_macro/element-fail.rs:56:25
+error[E0277]: the trait bound `{integer}: IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not satisfied
+  --> tests/html_macro/element-fail.rs:51:28
    |
-56 |     html! { <input ref={()} /> };
-   |                         ^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `()`
+51 |     html! { <input onclick=1 /> };
+   |                            ^ the trait `IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not implemented for `{integer}`
    |
-note: required by `into_prop_value`
-  --> $WORKSPACE/packages/yew/src/html/conversion.rs
-   |
-   |     fn into_prop_value(self) -> T;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: the following implementations were found:
+             <&'static str as IntoPropValue<AttrValue>>
+             <&'static str as IntoPropValue<Classes>>
+             <&'static str as IntoPropValue<Option<AttrValue>>>
+             <&'static str as IntoPropValue<Option<String>>>
+           and 18 others
 
-error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>` is not satisfied
-  --> tests/html_macro/element-fail.rs:57:25
+error[E0277]: the trait bound `yew::Callback<String>: IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not satisfied
+  --> tests/html_macro/element-fail.rs:52:29
    |
-57 |     html! { <input ref={Some(NodeRef::default())} /> };
-   |                         ^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `Option<yew::NodeRef>`
+52 |     html! { <input onclick={Callback::from(|a: String| ())} /> };
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not implemented for `yew::Callback<String>`
+
+error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<yew::Callback<FocusEvent>>>` is not satisfied
+  --> tests/html_macro/element-fail.rs:53:29
+   |
+53 |     html! { <input onfocus={Some(5)} /> };
+   |                             ^^^^^^^ the trait `IntoPropValue<Option<yew::Callback<FocusEvent>>>` is not implemented for `Option<{integer}>`
    |
    = help: the following implementations were found:
              <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<String> as IntoPropValue<Option<AttrValue>>>
+             <Option<bool> as IntoPropValue<Option<AttrValue>>>
              <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
-note: required by `into_prop_value`
-  --> $WORKSPACE/packages/yew/src/html/conversion.rs
+
+error[E0308]: mismatched types
+  --> tests/html_macro/element-fail.rs:56:25
    |
-   |     fn into_prop_value(self) -> T;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+56 |     html! { <input ref={()} /> };
+   |                         ^^ expected struct `yew::NodeRef`, found `()`
 
-error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
-   --> tests/html_macro/element-fail.rs:58:29
-    |
-58  |     html! { <input onclick={Callback::from(|a: String| ())} /> };
-    |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |                             |
-    |                             expected an implementor of trait `IntoEventCallback<MouseEvent>`
-    |                             help: consider borrowing here: `&Callback::from(|a: String| ())`
-    |
-    = note: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
-    = note: required because of the requirements on the impl of `IntoEventCallback<MouseEvent>` for `yew::Callback<String>`
-note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
-   --> $WORKSPACE/packages/yew/src/html/listener/events.rs
-    |
-    | / impl_short! {
-    | |     onauxclick(MouseEvent)
-    | |     onclick(MouseEvent)
-    | |
-...   |
-    | |     ontransitionstart(TransitionEvent)
-    | | }
-    | |_^ required by this bound in `yew::html::onclick::Wrapper::__macro_new`
-    = note: this error originates in the macro `impl_action` (in Nightly builds, run with -Z macro-backtrace for more info)
+error[E0308]: mismatched types
+  --> tests/html_macro/element-fail.rs:57:25
+   |
+57 |     html! { <input ref={Some(NodeRef::default())} /> };
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^ expected struct `yew::NodeRef`, found enum `Option`
+   |
+   = note: expected struct `yew::NodeRef`
+                found enum `Option<yew::NodeRef>`
 
-error[E0277]: the trait bound `NotToString: IntoPropValue<Option<AttrValue>>` is not satisfied
-  --> tests/html_macro/element-fail.rs:60:28
+error[E0277]: the trait bound `yew::Callback<String>: IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not satisfied
+  --> tests/html_macro/element-fail.rs:58:29
+   |
+58 |     html! { <input onclick={Callback::from(|a: String| ())} /> };
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<yew::Callback<MouseEvent>>>` is not implemented for `yew::Callback<String>`
+
+error[E0609]: no field `string` on type `InputProps`
+  --> tests/html_macro/element-fail.rs:60:5
    |
 60 |     html! { <input string={NotToString} /> };
-   |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `NotToString`
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unknown field
    |
-note: required by `into_prop_value`
-  --> $WORKSPACE/packages/yew/src/html/conversion.rs
-   |
-   |     fn into_prop_value(self) -> T;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: available fields are: `node_ref`, `key`, `children`, `accept`, `alt` ... and 144 others
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
+error[E0599]: no method named `string` found for struct `InputPropsBuilder` in the current scope
+  --> tests/html_macro/element-fail.rs:60:5
+   |
+60 |     html! { <input string={NotToString} /> };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `InputPropsBuilder<InputPropsBuilderStepPropsBuilder>`
+   |
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
   --> tests/html_macro/element-fail.rs:62:25
    |
 62 |     html! { <input ref={()} /> };
-   |                         ^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `()`
-   |
-note: required by `into_prop_value`
-  --> $WORKSPACE/packages/yew/src/html/conversion.rs
-   |
-   |     fn into_prop_value(self) -> T;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                         ^^ expected struct `yew::NodeRef`, found `()`
 
 error[E0277]: the trait bound `Cow<'static, str>: From<{integer}>` is not satisfied
    --> tests/html_macro/element-fail.rs:77:15
@@ -486,3 +395,9 @@ error[E0277]: the trait bound `Cow<'static, str>: From<{integer}>` is not satisf
             and 14 others
     = note: required because of the requirements on the impl of `Into<Cow<'static, str>>` for `{integer}`
 note: required by `into`
+
+error[E0277]: the trait bound `(&str, &str): IntoPropValue<Option<AttrValue>>` is not satisfied
+  --> tests/html_macro/element-fail.rs:80:25
+   |
+80 |     html! { <div class={("deprecated", "warning")} /> };
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `(&str, &str)`

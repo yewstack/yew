@@ -83,17 +83,17 @@ impl App {
         let active_class = if !navbar_active { "is-active" } else { "" };
 
         html! {
-            <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
+            <nav class="navbar is-primary"> // role="navigation" aria-label="main navigation"
                 <div class="navbar-brand">
                     <h1 class="navbar-item is-size-3">{ "Yew Blog" }</h1>
 
                     <button class={classes!("navbar-burger", "burger", active_class)}
-                        aria-label="menu" aria-expanded="false"
+                        // aria-label="menu" aria-expanded="false"
                         onclick={link.callback(|_| Msg::ToggleNavbar)}
                     >
-                        <span aria-hidden="true"></span>
-                        <span aria-hidden="true"></span>
-                        <span aria-hidden="true"></span>
+                        <span></span> // aria-hidden="true"
+                        <span></span> // aria-hidden="true"
+                        <span></span> // aria-hidden="true"
                     </button>
                 </div>
                 <div class={classes!("navbar-menu", active_class)}>
