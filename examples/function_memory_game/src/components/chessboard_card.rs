@@ -42,7 +42,7 @@ pub fn ChessboardCard(props: &Props) -> Html {
 
     html! {
       <div class="chess-board-card-container">
-          <div class={classes!("card", flipped.then(|| "flipped"))} {onclick}>
+          <div class={classes!("card", flipped.then(|| "flipped"))} onclick={Callback::from(onclick)}>
               <img class="front" src={get_link_by_cardname} alt="card" />
               <img class="back" src="public/back.png" alt="card" />
           </div>

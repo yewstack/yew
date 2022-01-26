@@ -103,7 +103,7 @@ where
             .link()
             .navigator()
             .expect_throw("failed to get navigator");
-        let href: Option<AttrValue> = disabled.then(||{
+        let href: Option<AttrValue> = disabled.then(|| {
             let href = navigator.route_to_url(to);
 
             match navigator.kind() {

@@ -63,12 +63,12 @@ trait AccessValue {
 impl AccessValue for InputElement {
     #[inline]
     fn value(&self) -> String {
-        InputElement::value(&self)
+        InputElement::value(self)
     }
 
     #[inline]
     fn set_value(&self, v: &str) {
-        InputElement::set_value(&self, v)
+        InputElement::set_value(self, v)
     }
 }
 
@@ -81,7 +81,8 @@ impl AccessValue for TextAreaElement {
     #[inline]
     fn set_value(&self, v: &str) {
         let node = web_sys::Node::from(web_sys::Text::new_with_data(v).unwrap());
-        self.append_child(&node);
+        self.append_child(&node)
+            .expect("failed to set textarea value");
     }
 }
 
