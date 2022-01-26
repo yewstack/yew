@@ -33,7 +33,12 @@ mod feat_ssr {
     use super::*;
 
     impl VText {
-        pub(crate) async fn render_to_string(&self, w: &mut String) {
+        pub(crate) async fn render_to_string(
+            &self,
+            w: &mut String,
+            _parent_scope: &AnyScope,
+            _hydratable: bool,
+        ) {
             html_escape::encode_text_to_string(&self.text, w);
         }
     }

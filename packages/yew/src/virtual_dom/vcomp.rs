@@ -189,6 +189,7 @@ trait Mountable {
         &'a self,
         w: &'a mut String,
         parent_scope: &'a AnyScope,
+        hydratable: bool,
     ) -> LocalBoxFuture<'a, ()>;
 }
 
@@ -233,10 +234,13 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         &'a self,
         w: &'a mut String,
         parent_scope: &'a AnyScope,
+        hydratable: bool,
     ) -> LocalBoxFuture<'a, ()> {
         async move {
             let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-            scope.render_to_string(w, self.props.clone()).await;
+            scope
+                .render_to_string(w, self.props.clone(), hydratable)
+                .await;
         }
         .boxed_local()
     }
@@ -313,13 +317,26 @@ mod feat_ssr {
     use super::*;
 
     impl VComp {
-        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+        pub(crate) async fn render_to_string(
+            &self,
+            w: &mut String,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+        ) {
+            if hydratable {
+                w.push_str("<!--yew-comp-start-->");
+            }
+
             self.mountable
                 .as_ref()
                 .map(|m| m.copy())
                 .unwrap()
-                .render_to_string(w, parent_scope)
+                .render_to_string(w, parent_scope, hydratable)
                 .await;
+
+            if hydratable {
+                w.push_str("<!--yew-comp-end-->");
+            }
         }
     }
 }

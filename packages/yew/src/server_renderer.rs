@@ -10,6 +10,7 @@ where
     COMP: BaseComponent,
 {
     props: COMP::Properties,
+    hydratable: bool,
 }
 
 impl<COMP> Default for ServerRenderer<COMP>
@@ -39,7 +40,20 @@ where
 {
     /// Creates a [ServerRenderer] with custom properties.
     pub fn with_props(props: COMP::Properties) -> Self {
-        Self { props }
+        Self {
+            props,
+            hydratable: true,
+        }
+    }
+
+    /// Sets whether an the rendered result is hydratable.
+    ///
+    /// Defaults to `true`.
+    ///
+    /// When this is sets to `true`, the rendered artifact will include assistive nodes
+    /// to assist with the hydration process.
+    pub fn set_hydratable(&mut self, val: bool) {
+        self.hydratable = val;
     }
 
     /// Renders Yew Application.
@@ -54,6 +68,8 @@ where
     /// Renders Yew Application to a String.
     pub async fn render_to_string(self, w: &mut String) {
         let scope = Scope::<COMP>::new(None);
-        scope.render_to_string(w, self.props.into()).await;
+        scope
+            .render_to_string(w, self.props.into(), self.hydratable)
+            .await;
     }
 }

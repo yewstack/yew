@@ -155,9 +155,23 @@ mod feat_ssr {
     use super::*;
 
     impl VSuspense {
-        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+        pub(crate) async fn render_to_string(
+            &self,
+            w: &mut String,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+        ) {
+            if hydratable {
+                w.push_str("<!--yew-suspense-start-->");
+            }
             // always render children on the server side.
-            self.children.render_to_string(w, parent_scope).await;
+            self.children
+                .render_to_string(w, parent_scope, hydratable)
+                .await;
+
+            if hydratable {
+                w.push_str("<!--yew-suspense-end-->");
+            }
         }
     }
 }

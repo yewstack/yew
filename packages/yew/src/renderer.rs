@@ -90,6 +90,23 @@ where
     }
 }
 
+#[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    impl<COMP> Renderer<COMP>
+    where
+        COMP: BaseComponent + 'static,
+    {
+        /// Hydrates the application.
+        pub fn hydrate(self) -> AppHandle<COMP> {
+            set_default_panic_hook();
+            todo!()
+        }
+    }
+}
+
 /// The main entry point of a Yew application.
 /// If you would like to pass props, use the `start_app_with_props_in_element` method.
 pub fn start_app_in_element<COMP>(element: Element) -> AppHandle<COMP>
