@@ -4,6 +4,7 @@ use crate::dom_bundle::{DomBundle, Reconcilable};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{Key, VList, VNode, VText};
 use std::borrow::Borrow;
+use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::hash::Hash;
 use std::ops::Deref;
@@ -28,6 +29,7 @@ impl Deref for BList {
 }
 
 /// Helper struct, that keeps the position where the next element is to be placed at
+#[derive(Clone)]
 struct NodeWriter<'s> {
     parent_scope: &'s AnyScope,
     parent: &'s Element,
@@ -246,27 +248,86 @@ impl BList {
 
         // Step 2.2. Put the middle part back together in the new key order
         let mut replacements: Vec<BNode> = Vec::with_capacity((matching_len_start..lefts_to).len());
-        // Roughly keep track of the order in which elements appear. If one appears out-of-order
-        // we (over approximately) have to shift the element, otherwise it is guaranteed to be in place.
-        let mut max_seen_idx = 0;
+        // The goal is to shift as few nodes as possible.
+
+        // We handle runs of in-order nodes. When we encounter one out-of-order, we decide whether:
+        // - to shift all nodes in the current run to the position after the node before of the run, or to
+        // - "commit" to the current run, shift all nodes before the end of the run that we might
+        //   encounter in the future, and then start a new run.
+        // Example of a run:
+        //               barrier_idx --v                   v-- end_idx
+        // spliced_middle  [ ... , M , N , C , D , E , F , G , ... ] (original element order)
+        //                                 ^---^-----------^ the nodes that are part of the current run
+        //                           v start_writer
+        // replacements    [ ... , M , C , D , G ]                   (new element order)
+        //                             ^-- start_idx
+        let mut barrier_idx = 0; // nodes from spliced_middle[..barrier_idx] are shifted unconditionally
+        struct RunInformation<'a> {
+            start_writer: NodeWriter<'a>,
+            start_idx: usize,
+            end_idx: usize,
+        }
+        let mut current_run: Option<RunInformation<'_>> = None;
+
         for l in lefts
             .drain(matching_len_start..) // lefts_to.. has been drained
             .rev()
         {
-            let bundle = match spare_bundles.take(key!(l)) {
-                Some(KeyedEntry(idx, mut r_bundle)) => {
-                    if idx < max_seen_idx {
-                        writer.shift(&mut r_bundle);
+            let ancestor = spare_bundles.take(key!(l));
+            // Check if we need to shift or commit a run
+            if let Some(run) = current_run.as_mut() {
+                if let Some(KeyedEntry(idx, _)) = ancestor {
+                    // If there are only few runs, this is a cold path
+                    if idx < run.end_idx {
+                        // Have to decide whether to shift or commit the current run. A few calculations:
+                        // A perfect estimate of the amount of nodes we have to shift if we move this run:
+                        let run_length = replacements.len() - run.start_idx;
+                        // A very crude estimate of the amount of nodes we will have to shift if we commit the run:
+                        // Note nodes of the current run should not be counted here!
+                        let estimated_skipped_nodes = run.end_idx - idx.max(barrier_idx);
+                        // double run_length to counteract that the run is part of the estimated_skipped_nodes
+                        if 2 * run_length > estimated_skipped_nodes {
+                            // less work to commit to this run
+                            barrier_idx = 1 + run.end_idx;
+                        } else {
+                            // Less work to shift this run
+                            for r in replacements[run.start_idx..].iter_mut().rev() {
+                                run.start_writer.shift(r);
+                            }
+                        }
+                        current_run = None;
                     }
-                    max_seen_idx = usize::max(max_seen_idx, idx);
-                    writer = writer.patch(l, &mut r_bundle);
-                    r_bundle
                 }
-                None => {
-                    let (next_writer, bundle) = writer.add(l);
-                    writer = next_writer;
-                    bundle
+            }
+            let bundle = if let Some(KeyedEntry(idx, mut r_bundle)) = ancestor {
+                match current_run.as_mut() {
+                    // hot path
+                    // We know that idx >= run.end_idx, so this node doesn't need to shift
+                    Some(run) => run.end_idx = idx,
+                    None => {
+                        match idx.cmp(&barrier_idx) {
+                            // peep hole optimization, don't start a run as the element is already where it should be
+                            Ordering::Equal => barrier_idx += 1,
+                            // shift the node unconditionally, don't start a run
+                            Ordering::Less => writer.shift(&mut r_bundle),
+                            // start a run
+                            Ordering::Greater => {
+                                current_run = Some(RunInformation {
+                                    start_writer: writer.clone(),
+                                    start_idx: replacements.len(),
+                                    end_idx: idx,
+                                })
+                            }
+                        }
+                    }
                 }
+                writer = writer.patch(l, &mut r_bundle);
+                r_bundle
+            } else {
+                // Even if there is an active run, we don't have to modify it
+                let (next_writer, bundle) = writer.add(l);
+                writer = next_writer;
+                bundle
             };
             replacements.push(bundle);
         }
