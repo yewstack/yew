@@ -327,7 +327,7 @@ where
     COMP: BaseComponent,
     COMP::Properties: Default,
 {
-    start_app_with_props_in_element(element, COMP::Properties::default())
+    start_app_with_props_in_element::<COMP>(element, COMP::Properties::default())
 }
 
 /// Starts an yew app mounted to the body of the document.
@@ -337,7 +337,7 @@ where
     COMP: BaseComponent,
     COMP::Properties: Default,
 {
-    start_app_with_props(COMP::Properties::default())
+    start_app_with_props::<COMP>(COMP::Properties::default())
 }
 
 /// The main entry point of a Yew application. This function does the
@@ -359,7 +359,7 @@ pub fn start_app_with_props<COMP>(props: COMP::Properties) -> AppHandle<COMP>
 where
     COMP: BaseComponent,
 {
-    start_app_with_props_in_element(
+    start_app_with_props_in_element::<COMP>(
         gloo_utils::document()
             .body()
             .expect("no body node found")
@@ -378,7 +378,7 @@ where
 /// ```
 pub mod prelude {
     pub use crate::callback::Callback;
-    pub use crate::context::ContextProvider;
+    pub use crate::context::{ContextHandle, ContextProvider};
     pub use crate::dom_bundle::AppHandle;
     pub use crate::events::*;
     pub use crate::html::{

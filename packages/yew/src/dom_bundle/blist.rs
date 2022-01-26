@@ -304,22 +304,20 @@ impl BList {
                     // hot path
                     // We know that idx >= run.end_idx, so this node doesn't need to shift
                     Some(run) => run.end_idx = idx,
-                    None => {
-                        match idx.cmp(&barrier_idx) {
-                            // peep hole optimization, don't start a run as the element is already where it should be
-                            Ordering::Equal => barrier_idx += 1,
-                            // shift the node unconditionally, don't start a run
-                            Ordering::Less => writer.shift(&mut r_bundle),
-                            // start a run
-                            Ordering::Greater => {
-                                current_run = Some(RunInformation {
-                                    start_writer: writer.clone(),
-                                    start_idx: replacements.len(),
-                                    end_idx: idx,
-                                })
-                            }
+                    None => match idx.cmp(&barrier_idx) {
+                        // peep hole optimization, don't start a run as the element is already where it should be
+                        Ordering::Equal => barrier_idx += 1,
+                        // shift the node unconditionally, don't start a run
+                        Ordering::Less => writer.shift(&mut r_bundle),
+                        // start a run
+                        Ordering::Greater => {
+                            current_run = Some(RunInformation {
+                                start_writer: writer.clone(),
+                                start_idx: replacements.len(),
+                                end_idx: idx,
+                            })
                         }
-                    }
+                    },
                 }
                 writer = writer.patch(l, &mut r_bundle);
                 r_bundle

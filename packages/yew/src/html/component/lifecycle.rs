@@ -125,9 +125,6 @@ impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
                     RenderRunner {
                         state: self.state.clone(),
                     },
-                    RenderedRunner {
-                        state: self.state.clone(),
-                    },
                 );
                 // Only run from the scheduler, so no need to call `scheduler::start()`
             }
@@ -174,9 +171,24 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
 
                         suspense.resume(m);
                     }
+
                     let scope = state.context.scope.clone().into();
                     let node = state.render_state.reconcile(root, &scope);
                     state.node_ref.link(node);
+
+                    if state.render_state.should_trigger_rendered() {
+                        let first_render = !state.has_rendered;
+                        state.has_rendered = true;
+
+                        scheduler::push_component_rendered(
+                            self.state.as_ptr() as usize,
+                            RenderedRunner {
+                                state: self.state.clone(),
+                                first_render,
+                            },
+                            first_render,
+                        );
+                    }
                 }
 
                 Err(RenderError::Suspended(m)) => {
@@ -191,9 +203,6 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
                             shared_state.as_ptr() as usize,
                             RenderRunner {
                                 state: shared_state.clone(),
-                            },
-                            RenderedRunner {
-                                state: shared_state,
                             },
                         );
                     } else {
@@ -210,9 +219,6 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
                             scheduler::push_component_render(
                                 shared_state.as_ptr() as usize,
                                 RenderRunner {
-                                    state: shared_state.clone(),
-                                },
-                                RenderedRunner {
                                     state: shared_state.clone(),
                                 },
                             );
@@ -234,8 +240,9 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
     }
 }
 
-pub struct RenderedRunner<COMP: BaseComponent> {
-    pub state: Shared<Option<ComponentState<COMP>>>,
+struct RenderedRunner<COMP: BaseComponent> {
+    state: Shared<Option<ComponentState<COMP>>>,
+    first_render: bool,
 }
 
 impl<COMP: BaseComponent> Runnable for RenderedRunner<COMP> {
@@ -244,10 +251,8 @@ impl<COMP: BaseComponent> Runnable for RenderedRunner<COMP> {
             #[cfg(debug_assertions)]
             super::log_event(state.vcomp_id, "rendered");
 
-            if state.suspension.is_none() && state.render_state.should_trigger_rendered() {
-                let first_render = !state.has_rendered;
-                state.component.rendered(&state.context, first_render);
-                state.has_rendered = true;
+            if state.suspension.is_none() {
+                state.component.rendered(&state.context, self.first_render);
             }
         }
     }

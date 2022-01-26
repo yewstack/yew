@@ -1,8 +1,7 @@
 //! Component scope module
 
 use super::lifecycle::{
-    ComponentState, CreateRunner, DestroyRunner, RenderRunner, RenderedRunner, UpdateEvent,
-    UpdateRunner,
+    ComponentState, CreateRunner, DestroyRunner, RenderRunner, UpdateEvent, UpdateRunner,
 };
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
@@ -220,9 +219,6 @@ impl<COMP: BaseComponent> Scope<COMP> {
                 scope: self.clone(),
             },
             RenderRunner {
-                state: self.state.clone(),
-            },
-            RenderedRunner {
                 state: self.state.clone(),
             },
         );
