@@ -56,8 +56,9 @@ impl Component for App {
                         let input: HtmlTextAreaElement = e.target_unchecked_into();
                         Msg::Payload(input.value())
                     })}
-                    value={self.payload.clone()}
-                />
+                >
+                    {self.payload.clone()}
+                </textarea>
                 <button onclick={ctx.link().callback(|_| Msg::Payload(bindings::get_payload()))}>
                     { "Get the payload!" }
                 </button>

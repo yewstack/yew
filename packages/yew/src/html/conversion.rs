@@ -64,6 +64,16 @@ where
     }
 }
 
+impl<T, E> IntoPropValue<Option<Callback<E>>> for T
+where
+    T: Fn(E) + 'static,
+{
+    #[inline]
+    fn into_prop_value(self) -> Option<Callback<E>> {
+        Some(Callback::from(self))
+    }
+}
+
 macro_rules! impl_into_prop {
     (|$value:ident: $from_ty:ty| -> $to_ty:ty { $conversion:expr }) => {
         // implement V -> T
