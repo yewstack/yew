@@ -313,19 +313,6 @@ impl ToTokens for HtmlElement {
                             )
                         }
                     }
-                    "textarea" => {
-                        quote! {
-                            ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
-                                ::yew::virtual_dom::VTag::__new_textarea(
-                                    #value,
-                                    #node_ref,
-                                    #key,
-                                    #attributes,
-                                    #listeners,
-                                ),
-                            )
-                        }
-                    }
                     _ => {
                         quote! {
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
@@ -387,17 +374,9 @@ impl ToTokens for HtmlElement {
                     #[allow(clippy::redundant_clone, unused_braces, clippy::let_and_return)]
                     let mut #vtag = match ::std::convert::AsRef::<::std::primitive::str>::as_ref(&#vtag_name) {
                         "input" => {
-                            ::yew::virtual_dom::VTag::__new_textarea(
+                            ::yew::virtual_dom::VTag::__new_input(
                                 #value,
-                                #node_ref,
-                                #key,
-                                #attributes,
-                                #listeners,
-                            )
-                        }
-                        "textarea" => {
-                            ::yew::virtual_dom::VTag::__new_textarea(
-                                #value,
+                                #checked,
                                 #node_ref,
                                 #key,
                                 #attributes,

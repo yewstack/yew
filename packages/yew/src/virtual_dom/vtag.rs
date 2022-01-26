@@ -12,7 +12,7 @@ use std::mem;
 use std::ops::Deref;
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
-use web_sys::{Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
+use web_sys::{Element, HtmlInputElement as InputElement};
 
 /// SVG namespace string used for creating svg elements
 pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
@@ -72,20 +72,6 @@ impl AccessValue for InputElement {
     }
 }
 
-impl AccessValue for TextAreaElement {
-    #[inline]
-    fn value(&self) -> String {
-        self.inner_text()
-    }
-
-    #[inline]
-    fn set_value(&self, v: &str) {
-        let node = web_sys::Node::from(web_sys::Text::new_with_data(v).unwrap());
-        self.append_child(&node)
-            .expect("failed to set textarea value");
-    }
-}
-
 /// Fields specific to
 /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) [VTag]s
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
@@ -130,15 +116,6 @@ enum VTagInner {
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input)
     /// [VTag]s
     Input(InputFields),
-
-    /// Fields specific to
-    /// [TextArea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
-    /// [VTag]s
-    Textarea {
-        /// Contains a value of an
-        /// [TextArea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
-        value: Value<TextAreaElement>,
-    },
 
     /// Fields for all other kinds of [VTag]s
     Other {
@@ -193,9 +170,6 @@ impl VTag {
         Self::new_base(
             match &*tag.to_ascii_lowercase() {
                 "input" => VTagInner::Input(Default::default()),
-                "textarea" => VTagInner::Textarea {
-                    value: Default::default(),
-                },
                 _ => VTagInner::Other {
                     tag,
                     children: Default::default(),
@@ -234,35 +208,6 @@ impl VTag {
                 // but we use own field to control real `checked` parameter
                 checked,
             }),
-            node_ref,
-            key,
-            attributes,
-            listeners,
-        )
-    }
-
-    /// Creates a new
-    /// [TextArea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea) [VTag]
-    /// instance.
-    ///
-    /// Unlike [VTag::new()], this sets all the public fields of [VTag] in one call. This allows the
-    /// compiler to inline property and child list construction in the `html!` macro. This enables
-    /// higher instruction parallelism by reducing data dependency and avoids `memcpy` of Vtag
-    /// fields.
-    #[doc(hidden)]
-    #[allow(clippy::too_many_arguments)]
-    pub fn __new_textarea(
-        value: Option<AttrValue>,
-        node_ref: NodeRef,
-        key: Option<Key>,
-        // at bottom for more readable macro-expanded coded
-        attributes: Attributes,
-        listeners: Listeners,
-    ) -> Self {
-        VTag::new_base(
-            VTagInner::Textarea {
-                value: Value(value, PhantomData),
-            },
             node_ref,
             key,
             attributes,
@@ -320,7 +265,6 @@ impl VTag {
     pub fn tag(&self) -> &str {
         match &self.inner {
             VTagInner::Input { .. } => "input",
-            VTagInner::Textarea { .. } => "textarea",
             VTagInner::Other { tag, .. } => tag.as_ref(),
         }
     }
@@ -363,26 +307,20 @@ impl VTag {
     }
 
     /// Returns the `value` of an
-    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) or
-    /// [TextArea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
+    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input)
     pub fn value(&self) -> Option<&AttrValue> {
         match &self.inner {
             VTagInner::Input(f) => f.value.0.as_ref(),
-            VTagInner::Textarea { value } => value.0.as_ref(),
             VTagInner::Other { .. } => None,
         }
     }
 
     /// Sets `value` for an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) or
-    /// [TextArea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
     pub fn set_value(&mut self, value: impl IntoPropValue<Option<AttrValue>>) {
         match &mut self.inner {
             VTagInner::Input(f) => {
                 f.value.0 = value.into_prop_value();
-            }
-            VTagInner::Textarea { value: dst } => {
-                dst.0 = value.into_prop_value();
             }
             VTagInner::Other { .. } => (),
         }
@@ -537,8 +475,7 @@ impl VDiff for VTag {
                     VNode::VTag(a) => {
                         self.key == a.key
                             && match (&self.inner, &a.inner) {
-                                (VTagInner::Input(_), VTagInner::Input(_))
-                                | (VTagInner::Textarea { .. }, VTagInner::Textarea { .. }) => true,
+                                (VTagInner::Input(_), VTagInner::Input(_)) => true,
                                 (
                                     VTagInner::Other { tag: l, .. },
                                     VTagInner::Other { tag: r, .. },
@@ -582,9 +519,6 @@ impl VDiff for VTag {
                     VTagInner::Input(f) => {
                         f.apply(el.unchecked_ref());
                     }
-                    VTagInner::Textarea { value } => {
-                        value.apply(el.unchecked_ref());
-                    }
                     VTagInner::Other { children, .. } => {
                         if !children.is_empty() {
                             children.apply(parent_scope, &el, NodeRef::default(), None);
@@ -598,9 +532,6 @@ impl VDiff for VTag {
 
                 match (&mut self.inner, ancestor.inner) {
                     (VTagInner::Input(new), VTagInner::Input(old)) => {
-                        new.apply_diff(el.unchecked_ref(), old);
-                    }
-                    (VTagInner::Textarea { value: new }, VTagInner::Textarea { value: old }) => {
                         new.apply_diff(el.unchecked_ref(), old);
                     }
                     (
@@ -636,7 +567,6 @@ impl PartialEq for VTag {
                  Input(l),
                 Input (r),
             ) => l == r,
-            (Textarea { value: value_l }, Textarea { value: value_r }) => value_l == value_r,
             (Other { tag: tag_l, .. }, Other { tag: tag_r, .. }) => tag_l == tag_r,
             _ => false,
         }) && self.listeners.eq(&other.listeners)
@@ -652,7 +582,6 @@ impl PartialEq for VTag {
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
-    use crate::virtual_dom::VText;
     use std::fmt::Write;
 
     impl VTag {
@@ -685,13 +614,6 @@ mod feat_ssr {
 
             match self.inner {
                 VTagInner::Input(_) => {}
-                VTagInner::Textarea { .. } => {
-                    if let Some(m) = self.value() {
-                        VText::new(m.to_owned()).render_to_string(w).await;
-                    }
-
-                    w.push_str("</textarea>");
-                }
                 VTagInner::Other {
                     ref tag,
                     ref children,

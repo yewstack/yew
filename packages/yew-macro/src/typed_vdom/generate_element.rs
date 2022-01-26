@@ -53,6 +53,29 @@ impl ToTokens for GenerateElement {
         let listeners = all_listeners.iter().map(|it| it.build_fields());
         let listeners_if_lets = all_listeners.iter().map(|it| it.build_if_lets());
 
+        let vtag_init = match element_name.to_string().trim() {
+            "input" => quote! {
+                ::yew::virtual_dom::VTag::__new_input(
+                    element.attributes.remove("value"),
+                    element.attributes.remove("checked").map(|_| true).unwrap_or(false),
+                    element.node_ref,
+                    element.key,
+                    ::yew::virtual_dom::Attributes::IndexMap(element.attributes.into_iter().collect()),
+                    ::yew::virtual_dom::Listeners::Pending(element.listeners.into_boxed_slice()),
+                )
+            },
+            _ => quote! {
+                ::yew::virtual_dom::VTag::__new_other(
+                    ::std::stringify!(#element_name).into(),
+                    element.node_ref,
+                    element.key,
+                    ::yew::virtual_dom::Attributes::IndexMap(element.attributes.into_iter().collect()),
+                    ::yew::virtual_dom::Listeners::Pending(element.listeners.into_boxed_slice()),
+                    ::yew::virtual_dom::VList::with_children(element.children, ::std::option::Option::None),
+                )
+            },
+        };
+
         let out = quote! {
             #[allow(non_camel_case_types)]
             pub struct #element_name;
@@ -99,16 +122,10 @@ impl ToTokens for GenerateElement {
                 }
 
                 fn view(&self, ctx: &::yew::html::Context<Self>) -> ::yew::html::Html {
-                    let element = ctx.props().clone().into_data();
-                    // todo use __new_{other, textarea, input} depending upon the element
-                    ::yew::virtual_dom::VTag::__new_other(
-                        ::std::stringify!(#element_name).into(),
-                        element.node_ref,
-                        element.key,
-                        ::yew::virtual_dom::Attributes::IndexMap(element.attributes.into_iter().collect()),
-                        ::yew::virtual_dom::Listeners::Pending(element.listeners.into_boxed_slice()),
-                        ::yew::virtual_dom::VList::with_children(element.children, ::std::option::Option::None),
-                    ).into()
+                    #[allow(unused_mut)]
+                    let mut element = ctx.props().clone().into_data();
+
+                    ::std::convert::Into::<::yew::virtual_dom::VNode>::into({ #vtag_init })
                 }
             }
         };

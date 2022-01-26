@@ -1,5 +1,6 @@
 use super::{Component, NodeRef, Scope};
 use crate::virtual_dom::AttrValue;
+use crate::Callback;
 use std::{borrow::Cow, rc::Rc};
 
 /// Marker trait for types that the [`html!`](macro@crate::html) macro may clone implicitly.
@@ -50,6 +51,16 @@ where
     #[inline]
     fn into_prop_value(self) -> Option<T> {
         Some(self.clone())
+    }
+}
+
+impl<T, E> IntoPropValue<Callback<E>> for T
+where
+    T: Fn(E) + 'static,
+{
+    #[inline]
+    fn into_prop_value(self) -> Callback<E> {
+        Callback::from(self)
     }
 }
 
