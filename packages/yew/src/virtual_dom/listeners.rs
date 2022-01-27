@@ -358,12 +358,10 @@ impl GlobalHandlers {
     fn ensure_handled(&mut self, desc: EventDescriptor) {
         if !self.handling.contains(&desc) {
             let cl = BODY.with(|body| {
-                let cl = Closure::wrap(
-                    Box::new({
-                        let desc = desc.clone();
-                        move |e: Event| Registry::handle(desc.clone(), e)
-                    }) as Box<dyn Fn(Event)>
-                );
+                let cl = Closure::wrap(Box::new({
+                    let desc = desc.clone();
+                    move |e: Event| Registry::handle(desc.clone(), e)
+                }) as Box<dyn Fn(Event)>);
                 AsRef::<web_sys::EventTarget>::as_ref(body)
                     .add_event_listener_with_callback_and_add_event_listener_options(
                         desc.kind.type_name(),
