@@ -7,9 +7,10 @@ use crate::functional::{hook, use_state};
 ///
 /// Memoization means it will only get recalculated when provided dependencies update/change
 #[hook]
-pub fn use_memo<T, D>(memo_fn: impl FnOnce(&D) -> T, deps: D) -> Rc<T>
+pub fn use_memo<T, F, D>(f: F, deps: D) -> Rc<T>
 where
     T: 'static,
+    F: FnOnce(&D) -> T,
     D: 'static + PartialEq,
 {
     let val = use_state(|| -> RefCell<Option<Rc<T>>> { RefCell::new(None) });
@@ -25,7 +26,7 @@ where
         // Previous value exists and last_deps == deps
         (Some(m), None) => m.clone(),
         _ => {
-            let new_val = Rc::new(memo_fn(&deps));
+            let new_val = Rc::new(f(&deps));
             *last_deps = Some(deps);
 
             *val = Some(new_val.clone());

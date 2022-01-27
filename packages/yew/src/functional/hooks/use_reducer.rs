@@ -146,7 +146,7 @@ where
 
 /// The base function of [`use_reducer`] and [`use_reducer_eq`]
 fn use_reducer_base<'hook, T>(
-    initial_fn: impl 'hook + FnOnce() -> T,
+    init_fn: impl 'hook + FnOnce() -> T,
     should_render_fn: impl 'static + Fn(&T, &T) -> bool,
 ) -> impl 'hook + Hook<Output = UseReducerHandle<T>>
 where
@@ -160,7 +160,7 @@ where
     {
         _marker: PhantomData<&'hook ()>,
 
-        initial_fn: F,
+        init_fn: F,
         should_render_fn: R,
     }
 
@@ -174,13 +174,13 @@ where
 
         fn run(self, ctx: &mut HookContext) -> Self::Output {
             let Self {
-                initial_fn,
+                init_fn,
                 should_render_fn,
                 ..
             } = self;
 
             let state = ctx.next_state(move |re_render| {
-                let val = Rc::new(RefCell::new(Rc::new(initial_fn())));
+                let val = Rc::new(RefCell::new(Rc::new(init_fn())));
                 let should_render_fn = Rc::new(should_render_fn);
 
                 UseReducer {
@@ -212,7 +212,7 @@ where
 
     HookProvider {
         _marker: PhantomData,
-        initial_fn,
+        init_fn,
         should_render_fn,
     }
 }
@@ -286,11 +286,12 @@ where
 /// }
 /// ```
 #[hook]
-pub fn use_reducer<T>(initial_fn: impl FnOnce() -> T) -> UseReducerHandle<T>
+pub fn use_reducer<T, F>(init_fn: F) -> UseReducerHandle<T>
 where
     T: Reducible + 'static,
+    F: FnOnce() -> T,
 {
-    use_reducer_base(initial_fn, |_, _| true)
+    use_reducer_base(init_fn, |_, _| true)
 }
 
 /// [`use_reducer`] but only re-renders when `prev_state != next_state`.
@@ -298,9 +299,10 @@ where
 /// This requires the state to implement [`PartialEq`] in addition to the [`Reducible`] trait
 /// required by [`use_reducer`].
 #[hook]
-pub fn use_reducer_eq<T>(initial_fn: impl FnOnce() -> T) -> UseReducerHandle<T>
+pub fn use_reducer_eq<T, F>(init_fn: F) -> UseReducerHandle<T>
 where
     T: Reducible + PartialEq + 'static,
+    F: FnOnce() -> T,
 {
-    use_reducer_base(initial_fn, T::ne)
+    use_reducer_base(init_fn, T::ne)
 }

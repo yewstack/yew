@@ -31,7 +31,7 @@ use crate::functional::{hook, use_component_scope, use_memo, use_state};
 /// ```
 #[hook]
 pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<T> {
-    struct State<T: Clone + PartialEq + 'static> {
+    struct UseContext<T: Clone + PartialEq + 'static> {
         context: Option<(T, ContextHandle<T>)>,
     }
 
@@ -41,7 +41,7 @@ pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<T> {
     let state = {
         let val_dispatcher = val.setter();
         use_memo(
-            move |_| State {
+            move |_| UseContext {
                 context: scope.context::<T>(Callback::from(move |m| {
                     val_dispatcher.clone().set(Some(m));
                 })),

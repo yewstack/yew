@@ -58,7 +58,7 @@ where
 }
 
 fn use_effect_base<T, D>(
-    callback: impl FnOnce(&T) -> D + 'static,
+    runner: impl FnOnce(&T) -> D + 'static,
     deps: T,
     effect_changed_fn: impl Fn(Option<&T>, Option<&T>) -> bool + 'static,
 ) -> impl Hook<Output = ()>
@@ -73,7 +73,7 @@ where
         D: FnOnce() + 'static,
         R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
     {
-        callback: F,
+        runner: F,
         deps: Rc<T>,
         effect_changed_fn: R,
     }
@@ -89,7 +89,7 @@ where
 
         fn run(self, ctx: &mut HookContext) -> Self::Output {
             let Self {
-                callback,
+                runner,
                 deps,
                 effect_changed_fn,
             } = self;
@@ -103,12 +103,12 @@ where
                 })
             });
 
-            state.borrow_mut().runner_with_deps = Some((deps, callback));
+            state.borrow_mut().runner_with_deps = Some((deps, runner));
         }
     }
 
     HookProvider {
-        callback,
+        runner,
         deps: Rc::new(deps),
         effect_changed_fn,
     }
@@ -145,11 +145,12 @@ where
 /// }
 /// ```
 #[hook]
-pub fn use_effect<D>(callback: impl FnOnce() -> D + 'static)
+pub fn use_effect<F, D>(f: F)
 where
+    F: FnOnce() -> D + 'static,
     D: FnOnce() + 'static,
 {
-    use_effect_base(|_| callback(), (), |_, _| true);
+    use_effect_base(|_| f(), (), |_, _| true);
 }
 
 /// This hook is similar to [`use_effect`] but it accepts dependencies.
@@ -158,10 +159,11 @@ where
 /// To detect changes, dependencies must implement `PartialEq`.
 /// Note that the destructor also runs when dependencies change.
 #[hook]
-pub fn use_effect_with_deps<T, D>(callback: impl FnOnce(&T) -> D + 'static, deps: T)
+pub fn use_effect_with_deps<T, F, D>(f: F, deps: T)
 where
     T: PartialEq + 'static,
+    F: FnOnce(&T) -> D + 'static,
     D: FnOnce() + 'static,
 {
-    use_effect_base(callback, deps, |lhs, rhs| lhs != rhs)
+    use_effect_base(f, deps, |lhs, rhs| lhs != rhs)
 }
