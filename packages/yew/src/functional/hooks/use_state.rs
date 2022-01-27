@@ -6,15 +6,13 @@ use super::{use_reducer, use_reducer_eq, Reducible, UseReducerDispatcher, UseRed
 use crate::functional::hook;
 
 struct UseStateReducer<T> {
-    value: Rc<T>,
+    value: T,
 }
 
 impl<T> Reducible for UseStateReducer<T> {
     type Action = T;
     fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
-        Rc::new(Self {
-            value: action.into(),
-        })
+        Rc::new(Self { value: action })
     }
 }
 
@@ -60,9 +58,7 @@ where
     T: 'static,
     F: FnOnce() -> T,
 {
-    let handle = use_reducer(move || UseStateReducer {
-        value: Rc::new(init_fn()),
-    });
+    let handle = use_reducer(move || UseStateReducer { value: init_fn() });
 
     UseStateHandle { inner: handle }
 }
@@ -76,9 +72,7 @@ where
     T: PartialEq + 'static,
     F: FnOnce() -> T,
 {
-    let handle = use_reducer_eq(move || UseStateReducer {
-        value: Rc::new(init_fn()),
-    });
+    let handle = use_reducer_eq(move || UseStateReducer { value: init_fn() });
 
     UseStateHandle { inner: handle }
 }

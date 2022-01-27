@@ -1,5 +1,4 @@
 use std::cell::RefCell;
-use std::rc::Rc;
 
 use crate::functional::{hook, Effect, Hook, HookContext};
 
@@ -10,9 +9,9 @@ where
     D: FnOnce() + 'static,
     R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
 {
-    runner_with_deps: Option<(Rc<T>, F)>,
+    runner_with_deps: Option<(T, F)>,
     destructor: Option<D>,
-    deps: Option<Rc<T>>,
+    deps: Option<T>,
     effect_changed_fn: R,
 }
 
@@ -26,8 +25,8 @@ where
     fn rendered(&self) {
         let mut this = self.borrow_mut();
 
-        if let Some((deps, callback)) = this.runner_with_deps.take() {
-            if !(this.effect_changed_fn)(Some(&*deps), this.deps.as_deref()) {
+        if let Some((deps, runner)) = this.runner_with_deps.take() {
+            if !(this.effect_changed_fn)(Some(&deps), this.deps.as_ref()) {
                 return;
             }
 
@@ -35,7 +34,7 @@ where
                 de();
             }
 
-            let new_destructor = callback(&deps);
+            let new_destructor = runner(&deps);
 
             this.deps = Some(deps);
             this.destructor = Some(new_destructor);
@@ -74,7 +73,7 @@ where
         R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
     {
         runner: F,
-        deps: Rc<T>,
+        deps: T,
         effect_changed_fn: R,
     }
 
@@ -109,7 +108,7 @@ where
 
     HookProvider {
         runner,
-        deps: Rc::new(deps),
+        deps,
         effect_changed_fn,
     }
 }
