@@ -323,20 +323,12 @@ mod feat_ssr {
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
-            if hydratable {
-                w.push_str("<!--yew-comp-start-->");
-            }
-
             self.mountable
                 .as_ref()
                 .map(|m| m.copy())
                 .unwrap()
                 .render_to_string(w, parent_scope, hydratable)
                 .await;
-
-            if hydratable {
-                w.push_str("<!--yew-comp-end-->");
-            }
         }
     }
 }

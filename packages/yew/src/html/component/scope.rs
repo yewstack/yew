@@ -385,7 +385,15 @@ mod feat_ssr {
             );
             scheduler::start();
 
+            if hydratable {
+                w.push_str("<!--yew-comp-start-->");
+            }
+
             let html = rx.await.unwrap();
+
+            if hydratable {
+                w.push_str("<!--yew-comp-end-->");
+            }
 
             let self_any_scope = self.to_any();
             html.render_to_string(w, &self_any_scope, hydratable).await;
