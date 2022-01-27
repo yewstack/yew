@@ -3,22 +3,22 @@ use std::rc::Rc;
 
 use crate::functional::{hook, Effect, Hook, HookContext};
 
-struct UseEffectBase<T, C, D, R>
+struct UseEffectBase<T, F, D, R>
 where
-    C: FnOnce(&T) -> D + 'static,
+    F: FnOnce(&T) -> D + 'static,
     T: 'static,
     D: FnOnce() + 'static,
     R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
 {
-    runner_with_deps: Option<(Rc<T>, C)>,
+    runner_with_deps: Option<(Rc<T>, F)>,
     destructor: Option<D>,
     deps: Option<Rc<T>>,
     effect_changed_fn: R,
 }
 
-impl<T, C, D, R> Effect for RefCell<UseEffectBase<T, C, D, R>>
+impl<T, F, D, R> Effect for RefCell<UseEffectBase<T, F, D, R>>
 where
-    C: FnOnce(&T) -> D + 'static,
+    F: FnOnce(&T) -> D + 'static,
     T: 'static,
     D: FnOnce() + 'static,
     R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
@@ -43,9 +43,9 @@ where
     }
 }
 
-impl<T, C, D, R> Drop for UseEffectBase<T, C, D, R>
+impl<T, F, D, R> Drop for UseEffectBase<T, F, D, R>
 where
-    C: FnOnce(&T) -> D + 'static,
+    F: FnOnce(&T) -> D + 'static,
     T: 'static,
     D: FnOnce() + 'static,
     R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
@@ -66,21 +66,21 @@ where
     T: 'static,
     D: FnOnce() + 'static,
 {
-    struct HookProvider<T, C, D, R>
+    struct HookProvider<T, F, D, R>
     where
-        C: FnOnce(&T) -> D + 'static,
+        F: FnOnce(&T) -> D + 'static,
         T: 'static,
         D: FnOnce() + 'static,
         R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
     {
-        callback: C,
+        callback: F,
         deps: Rc<T>,
         effect_changed_fn: R,
     }
 
-    impl<T, C, D, R> Hook for HookProvider<T, C, D, R>
+    impl<T, F, D, R> Hook for HookProvider<T, F, D, R>
     where
-        C: FnOnce(&T) -> D + 'static,
+        F: FnOnce(&T) -> D + 'static,
         T: 'static,
         D: FnOnce() + 'static,
         R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
@@ -94,7 +94,7 @@ where
                 effect_changed_fn,
             } = self;
 
-            let state = ctx.next_effect(|_| -> RefCell<UseEffectBase<T, C, D, R>> {
+            let state = ctx.next_effect(|_| -> RefCell<UseEffectBase<T, F, D, R>> {
                 RefCell::new(UseEffectBase {
                     runner_with_deps: None,
                     destructor: None,

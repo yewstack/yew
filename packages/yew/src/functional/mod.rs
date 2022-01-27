@@ -60,25 +60,6 @@ pub use yew_macro::hook;
 
 type ReRender = Rc<dyn Fn()>;
 
-#[derive(Clone)]
-struct Queue<T>(Rc<RefCell<Vec<T>>>);
-
-impl<T> Default for Queue<T> {
-    fn default() -> Self {
-        Queue(Rc::default())
-    }
-}
-
-impl<T> Queue<T> {
-    fn push(&self, msg: T) {
-        self.0.borrow_mut().push(msg);
-    }
-
-    fn drain(&self) -> Vec<T> {
-        self.0.borrow_mut().drain(..).collect()
-    }
-}
-
 /// Primitives of a Hook state.
 pub(crate) trait Effect {
     fn rendered(&self) {}
@@ -87,11 +68,10 @@ pub(crate) trait Effect {
 /// A hook context to be passed to hooks.
 pub struct HookContext {
     pub(crate) scope: AnyScope,
-
     re_render: ReRender,
-    states: Vec<Rc<dyn Any>>,
 
-    effects: Queue<Rc<dyn Effect>>,
+    states: Vec<Rc<dyn Any>>,
+    effects: Vec<Rc<dyn Effect>>,
 
     counter: usize,
     #[cfg(debug_assertions)]
@@ -124,11 +104,11 @@ impl HookContext {
     where
         T: 'static + Effect,
     {
-        let last_counter = self.counter;
+        let prev_state_len = self.states.len();
         let t = self.next_state(initializer);
 
-        // This is a new effect, we push it into the effects queue.
-        if self.counter != last_counter {
+        // This is a new effect, we add it to effects.
+        if self.states.len() != prev_state_len {
             self.effects.push(t.clone());
         }
 
@@ -157,7 +137,6 @@ pub trait FunctionProvider {
 pub struct FunctionComponent<T: FunctionProvider + 'static> {
     _never: std::marker::PhantomData<T>,
     hook_ctx: RefCell<HookContext>,
-    effects: Queue<Rc<dyn Effect>>,
 }
 
 impl<T: FunctionProvider> fmt::Debug for FunctionComponent<T> {
@@ -175,19 +154,17 @@ where
 
     fn create(ctx: &Context<Self>) -> Self {
         let scope = AnyScope::from(ctx.link().clone());
-        let effects = Queue::default();
 
         Self {
             _never: std::marker::PhantomData::default(),
-            effects: effects.clone(),
             hook_ctx: RefCell::new(HookContext {
-                effects,
+                effects: Vec::new(),
                 scope,
                 re_render: {
                     let link = ctx.link().clone();
                     Rc::new(move || link.send_message(()))
                 },
-                states: vec![],
+                states: Vec::new(),
 
                 counter: 0,
                 #[cfg(debug_assertions)]
@@ -241,14 +218,17 @@ where
     }
 
     fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
-        for effect in self.effects.0.borrow().iter() {
+        let hook_ctx = self.hook_ctx.borrow();
+
+        for effect in hook_ctx.effects.iter() {
             effect.rendered();
         }
     }
 
     fn destroy(&mut self, _ctx: &Context<Self>) {
-        self.effects.drain();
         let mut hook_ctx = self.hook_ctx.borrow_mut();
+        // We clear the effects as these are also references to states.
+        hook_ctx.effects.clear();
 
         for state in hook_ctx.states.drain(..) {
             drop(state);
