@@ -196,6 +196,8 @@ where
                             should_render
                         };
 
+                        // Currently, this triggers a render immediately, so we need to release the
+                        // borrowed reference first.
                         if should_render {
                             re_render()
                         }
