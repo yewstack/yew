@@ -23,7 +23,6 @@ where
 {
     current_state: Rc<RefCell<Rc<T>>>,
 
-    // To be replaced with OnceCell once it becomes available in std.
     dispatch: DispatchFn<T>,
 }
 
