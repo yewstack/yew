@@ -12,7 +12,7 @@ pub use use_reducer::*;
 pub use use_ref::*;
 pub use use_state::*;
 
-use crate::functional::{hook, AnyScope, HookContext, HookUpdater};
+use crate::functional::{AnyScope, HookContext};
 
 /// A trait that is implemented on hooks.
 ///
@@ -49,57 +49,16 @@ impl<T> Hook for BoxedHook<'_, T> {
     }
 }
 
-/// Low level building block of creating hooks.
-///
-/// It is used to created the pre-defined primitive hooks.
-/// Generally, it isn't needed to create hooks and should be avoided as most custom hooks can be
-/// created by combining other hooks as described in [Yew Docs].
-///
-/// The `initializer` callback is called once to create the initial state of the hook.
-/// `runner` callback handles the logic of the hook. It is called when the hook function is called.
-pub(crate) fn use_hook<'hook, T, O>(
-    initializer: impl 'hook + FnOnce() -> T,
-    runner: impl 'hook + FnOnce(&mut T, HookUpdater) -> O,
-) -> impl 'hook + Hook<Output = O>
-where
-    T: 'static,
-    O: 'hook,
-{
-    struct HookProvider<'a, T, O> {
-        initializer: Box<dyn FnOnce() -> T + 'a>,
-        runner: Box<dyn FnOnce(&mut T, HookUpdater) -> O + 'a>,
-    }
+pub(crate) fn use_component_scope() -> impl Hook<Output = AnyScope> {
+    struct HookProvider {}
 
-    impl<T, O> Hook for HookProvider<'_, T, O>
-    where
-        T: 'static,
-    {
-        type Output = O;
+    impl Hook for HookProvider {
+        type Output = AnyScope;
 
         fn run(self, ctx: &mut HookContext) -> Self::Output {
-            let Self {
-                initializer,
-                runner,
-            } = self;
-
-            // Extract current hook
-            let updater = ctx.next_state(initializer);
-
-            // Execute the actual hook closure we were given. Let it mutate the hook state and let
-            // it create a callback that takes the mutable hook state.
-            let mut hook = updater.borrow_mut::<T>();
-
-            runner(&mut *hook, updater.clone())
+            ctx.scope.clone()
         }
     }
 
-    HookProvider {
-        initializer: Box::new(initializer),
-        runner: Box::new(runner),
-    }
-}
-
-#[hook]
-pub(crate) fn use_component_scope() -> AnyScope {
-    use_hook(|| (), |_, updater| updater.scope().clone())
+    HookProvider {}
 }

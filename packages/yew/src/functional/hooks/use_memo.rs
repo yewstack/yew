@@ -1,5 +1,7 @@
-use crate::functional::{hook, use_hook};
+use std::cell::RefCell;
 use std::rc::Rc;
+
+use crate::functional::{hook, use_state};
 
 /// Get a immutable reference to a memoized value
 ///
@@ -10,30 +12,25 @@ where
     T: 'static,
     D: 'static + PartialEq,
 {
-    let deps = Rc::new(deps);
+    let val = use_state(|| -> RefCell<Option<Rc<T>>> { RefCell::new(None) });
+    let last_deps = use_state(|| -> RefCell<Option<D>> { RefCell::new(None) });
 
-    pub struct UseMemo<T, D>
-    where
-        T: 'static,
-        D: 'static + PartialEq,
-    {
-        inner: Option<(Rc<D>, Rc<T>)>,
+    let mut val = val.borrow_mut();
+    let mut last_deps = last_deps.borrow_mut();
+
+    match (
+        val.as_ref(),
+        last_deps.as_ref().and_then(|m| (m != &deps).then(|| ())),
+    ) {
+        // Previous value exists and last_deps == deps
+        (Some(m), None) => m.clone(),
+        _ => {
+            let new_val = Rc::new(memo_fn(&deps));
+            *last_deps = Some(deps);
+
+            *val = Some(new_val.clone());
+
+            new_val
+        }
     }
-
-    use_hook(
-        || -> UseMemo<T, D> { UseMemo { inner: None } },
-        move |state, _updater| {
-            state
-                .inner
-                .as_ref()
-                .and_then(|(m, n)| (m.as_ref() == &*deps).then(|| n.clone()))
-                .unwrap_or_else(|| {
-                    let val = Rc::new(memo_fn(&deps));
-
-                    state.inner = Some((deps, val.clone()));
-
-                    val
-                })
-        },
-    )
 }

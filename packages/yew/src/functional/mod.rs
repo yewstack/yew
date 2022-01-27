@@ -15,7 +15,8 @@
 
 use crate::html::{AnyScope, BaseComponent, HtmlResult};
 use crate::Properties;
-use std::cell::{RefCell, RefMut};
+use std::any::Any;
+use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
@@ -57,15 +58,40 @@ pub use yew_macro::function_component;
 /// This attribute creates a user-defined hook from a normal Rust function.
 pub use yew_macro::hook;
 
-type Msg = Box<dyn FnOnce() -> bool>;
-type ProcessMessage = Rc<dyn Fn(Msg, bool)>;
+type ReRender = Rc<dyn Fn()>;
+
+#[derive(Clone)]
+struct Queue<T>(Rc<RefCell<Vec<T>>>);
+
+impl<T> Default for Queue<T> {
+    fn default() -> Self {
+        Queue(Rc::default())
+    }
+}
+
+impl<T> Queue<T> {
+    fn push(&self, msg: T) {
+        self.0.borrow_mut().push(msg);
+    }
+
+    fn drain(&self) -> Vec<T> {
+        self.0.borrow_mut().drain(..).collect()
+    }
+}
+
+/// Primitives of a Hook state.
+pub(crate) trait Effect {
+    fn rendered(&self) {}
+}
 
 /// A hook context to be passed to hooks.
 pub struct HookContext {
-    scope: AnyScope,
+    pub(crate) scope: AnyScope,
 
-    process_message: ProcessMessage,
-    hooks: Vec<Rc<RefCell<dyn std::any::Any>>>,
+    re_render: ReRender,
+    states: Vec<Rc<dyn Any>>,
+
+    effects: Queue<Rc<dyn Effect>>,
 
     counter: usize,
     #[cfg(debug_assertions)]
@@ -73,7 +99,7 @@ pub struct HookContext {
 }
 
 impl HookContext {
-    pub(crate) fn next_state<T>(&mut self, initializer: impl FnOnce() -> T) -> HookUpdater
+    pub(crate) fn next_state<T>(&mut self, initializer: impl FnOnce(ReRender) -> T) -> Rc<T>
     where
         T: 'static,
     {
@@ -81,21 +107,32 @@ impl HookContext {
         let hook_pos = self.counter;
         self.counter += 1;
 
-        let hook = match self.hooks.get(hook_pos).cloned() {
+        let state = match self.states.get(hook_pos).cloned() {
             Some(m) => m,
             None => {
-                let initial_state = Rc::new(RefCell::new(initializer()));
-                self.hooks.push(initial_state.clone());
+                let initial_state = Rc::new(initializer(self.re_render.clone()));
+                self.states.push(initial_state.clone());
 
                 initial_state
             }
         };
 
-        HookUpdater {
-            hook,
-            scope: self.scope.clone(),
-            process_message: self.process_message.clone(),
+        state.downcast().unwrap()
+    }
+
+    pub(crate) fn next_effect<T>(&mut self, initializer: impl FnOnce(ReRender) -> T) -> Rc<T>
+    where
+        T: 'static + Effect,
+    {
+        let last_counter = self.counter;
+        let t = self.next_state(initializer);
+
+        // This is a new effect, we push it into the effects queue.
+        if self.counter != last_counter {
+            self.effects.push(t.clone());
         }
+
+        t
     }
 }
 
@@ -120,7 +157,7 @@ pub trait FunctionProvider {
 pub struct FunctionComponent<T: FunctionProvider + 'static> {
     _never: std::marker::PhantomData<T>,
     hook_ctx: RefCell<HookContext>,
-    message_queue: MsgQueue,
+    effects: Queue<Rc<dyn Effect>>,
 }
 
 impl<T: FunctionProvider> fmt::Debug for FunctionComponent<T> {
@@ -133,29 +170,24 @@ impl<T> BaseComponent for FunctionComponent<T>
 where
     T: FunctionProvider + 'static,
 {
-    type Message = Box<dyn FnOnce() -> bool>;
+    type Message = ();
     type Properties = T::TProps;
 
     fn create(ctx: &Context<Self>) -> Self {
         let scope = AnyScope::from(ctx.link().clone());
-        let message_queue = MsgQueue::default();
+        let effects = Queue::default();
 
         Self {
             _never: std::marker::PhantomData::default(),
-            message_queue: message_queue.clone(),
+            effects: effects.clone(),
             hook_ctx: RefCell::new(HookContext {
+                effects,
                 scope,
-                process_message: {
-                    let scope = ctx.link().clone();
-                    Rc::new(move |msg, post_render| {
-                        if post_render {
-                            message_queue.push(msg);
-                        } else {
-                            scope.send_message(msg);
-                        }
-                    })
+                re_render: {
+                    let link = ctx.link().clone();
+                    Rc::new(move || link.send_message(()))
                 },
-                hooks: vec![],
+                states: vec![],
 
                 counter: 0,
                 #[cfg(debug_assertions)]
@@ -164,8 +196,8 @@ where
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        msg()
+    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
+        true
     }
 
     fn changed(&mut self, _ctx: &Context<Self>) -> bool {
@@ -208,87 +240,20 @@ where
         result
     }
 
-    fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
-        for msg in self.message_queue.drain() {
-            ctx.link().send_message(msg);
+    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
+        for effect in self.effects.0.borrow().iter() {
+            effect.rendered();
         }
     }
 
     fn destroy(&mut self, _ctx: &Context<Self>) {
+        self.effects.drain();
         let mut hook_ctx = self.hook_ctx.borrow_mut();
 
-        for hook in hook_ctx.hooks.drain(..) {
-            drop(hook);
+        for state in hook_ctx.states.drain(..) {
+            drop(state);
         }
     }
 }
 
 impl<T> SealedBaseComponent for FunctionComponent<T> where T: FunctionProvider + 'static {}
-
-#[derive(Clone, Default)]
-struct MsgQueue(Rc<RefCell<Vec<Msg>>>);
-
-impl MsgQueue {
-    fn push(&self, msg: Msg) {
-        self.0.borrow_mut().push(msg);
-    }
-
-    fn drain(&self) -> Vec<Msg> {
-        self.0.borrow_mut().drain(..).collect()
-    }
-}
-
-/// The `HookUpdater` provides a convenient interface for hooking into the lifecycle of
-/// the underlying Yew Component that backs the function component.
-#[derive(Clone)]
-pub(crate) struct HookUpdater {
-    hook: Rc<RefCell<dyn std::any::Any>>,
-    scope: AnyScope,
-    process_message: ProcessMessage,
-}
-
-impl HookUpdater {
-    /// Retrieves the hook state
-    pub fn borrow_mut<T: 'static>(&self) -> RefMut<'_, T> {
-        RefMut::map(self.hook.borrow_mut(), |m| {
-            m.downcast_mut()
-                .expect("incompatible hook type. Hooks must always be called in the same order")
-        })
-    }
-
-    /// Registers a callback to be run immediately.
-    pub fn callback<T: 'static>(&self, cb: impl FnOnce(&mut T) -> bool + 'static) {
-        let this = self.clone();
-
-        // Update the component
-        // We're calling "link.send_message", so we're not calling it post-render
-        let post_render = false;
-        (self.process_message)(
-            Box::new(move || {
-                let mut hook = this.borrow_mut();
-                cb(&mut *hook)
-            }),
-            post_render,
-        );
-    }
-
-    /// Registers a callback to be run after the render
-    pub fn post_render<T: 'static>(&self, cb: impl FnOnce(&mut T) -> bool + 'static) {
-        let this = self.clone();
-
-        // Update the component
-        // We're calling "message_queue.push", so not calling it post-render
-        let post_render = true;
-        (self.process_message)(
-            Box::new(move || {
-                let mut hook = this.borrow_mut();
-                cb(&mut *hook)
-            }),
-            post_render,
-        );
-    }
-
-    pub fn scope(&self) -> &AnyScope {
-        &self.scope
-    }
-}

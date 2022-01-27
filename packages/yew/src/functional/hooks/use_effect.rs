@@ -1,20 +1,54 @@
-use crate::functional::{hook, use_hook};
+use std::cell::RefCell;
 use std::rc::Rc;
 
-type UseEffectRunnerFn<T, D> = Box<dyn FnOnce(&T) -> D>;
+use crate::functional::{hook, Effect, Hook, HookContext};
 
-struct UseEffectBase<T, D>
+struct UseEffectBase<T, C, D, R>
 where
+    C: FnOnce(&T) -> D + 'static,
+    T: 'static,
     D: FnOnce() + 'static,
+    R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
 {
-    runner_with_deps: Option<(Rc<T>, UseEffectRunnerFn<T, D>)>,
-    destructor: Option<Box<D>>,
+    runner_with_deps: Option<(Rc<T>, C)>,
+    destructor: Option<D>,
     deps: Option<Rc<T>>,
+    effect_changed_fn: R,
 }
 
-impl<T, D> Drop for UseEffectBase<T, D>
+impl<T, C, D, R> Effect for RefCell<UseEffectBase<T, C, D, R>>
 where
+    C: FnOnce(&T) -> D + 'static,
+    T: 'static,
     D: FnOnce() + 'static,
+    R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
+{
+    fn rendered(&self) {
+        let mut this = self.borrow_mut();
+
+        if let Some((deps, callback)) = this.runner_with_deps.take() {
+            if !(this.effect_changed_fn)(Some(&*deps), this.deps.as_deref()) {
+                return;
+            }
+
+            if let Some(de) = this.destructor.take() {
+                de();
+            }
+
+            let new_destructor = callback(&deps);
+
+            this.deps = Some(deps);
+            this.destructor = Some(new_destructor);
+        }
+    }
+}
+
+impl<T, C, D, R> Drop for UseEffectBase<T, C, D, R>
+where
+    C: FnOnce(&T) -> D + 'static,
+    T: 'static,
+    D: FnOnce() + 'static,
+    R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
 {
     fn drop(&mut self) {
         if let Some(destructor) = self.destructor.take() {
@@ -23,48 +57,61 @@ where
     }
 }
 
-#[hook]
 fn use_effect_base<T, D>(
     callback: impl FnOnce(&T) -> D + 'static,
     deps: T,
-    effect_changed_fn: impl FnOnce(Option<&T>, Option<&T>) -> bool + 'static,
-) where
+    effect_changed_fn: impl Fn(Option<&T>, Option<&T>) -> bool + 'static,
+) -> impl Hook<Output = ()>
+where
     T: 'static,
     D: FnOnce() + 'static,
 {
-    let deps = Rc::new(deps);
+    struct HookProvider<T, C, D, R>
+    where
+        C: FnOnce(&T) -> D + 'static,
+        T: 'static,
+        D: FnOnce() + 'static,
+        R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
+    {
+        callback: C,
+        deps: Rc<T>,
+        effect_changed_fn: R,
+    }
 
-    use_hook(
-        move || {
-            let destructor: Option<Box<D>> = None;
-            UseEffectBase {
-                runner_with_deps: None,
-                destructor,
-                deps: None,
-            }
-        },
-        move |state, updater| {
-            state.runner_with_deps = Some((deps, Box::new(callback)));
+    impl<T, C, D, R> Hook for HookProvider<T, C, D, R>
+    where
+        C: FnOnce(&T) -> D + 'static,
+        T: 'static,
+        D: FnOnce() + 'static,
+        R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
+    {
+        type Output = ();
 
-            updater.post_render(move |state: &mut UseEffectBase<T, D>| {
-                if let Some((deps, callback)) = state.runner_with_deps.take() {
-                    if !effect_changed_fn(Some(&*deps), state.deps.as_deref()) {
-                        return false;
-                    }
+        fn run(self, ctx: &mut HookContext) -> Self::Output {
+            let Self {
+                callback,
+                deps,
+                effect_changed_fn,
+            } = self;
 
-                    if let Some(de) = state.destructor.take() {
-                        de();
-                    }
-
-                    let new_destructor = callback(&deps);
-
-                    state.deps = Some(deps);
-                    state.destructor = Some(Box::new(new_destructor));
-                }
-                false
+            let state = ctx.next_effect(|_| -> RefCell<UseEffectBase<T, C, D, R>> {
+                RefCell::new(UseEffectBase {
+                    runner_with_deps: None,
+                    destructor: None,
+                    deps: None,
+                    effect_changed_fn,
+                })
             });
-        },
-    );
+
+            state.borrow_mut().runner_with_deps = Some((deps, callback));
+        }
+    }
+
+    HookProvider {
+        callback,
+        deps: Rc::new(deps),
+        effect_changed_fn,
+    }
 }
 
 /// This hook is used for hooking into the component's lifecycle.

@@ -1,9 +1,10 @@
 use std::cell::RefCell;
 use std::fmt;
+use std::marker::PhantomData;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use crate::functional::{hook, use_hook};
+use crate::functional::{hook, Hook, HookContext};
 
 type DispatchFn<T> = Rc<dyn Fn(<T as Reducible>::Action)>;
 
@@ -20,10 +21,10 @@ struct UseReducer<T>
 where
     T: Reducible,
 {
-    current_state: Rc<T>,
+    current_state: Rc<RefCell<Rc<T>>>,
 
     // To be replaced with OnceCell once it becomes available in std.
-    dispatch: RefCell<Option<DispatchFn<T>>>,
+    dispatch: DispatchFn<T>,
 }
 
 /// State handle for [`use_reducer`] and [`use_reducer_eq`] hook
@@ -144,52 +145,76 @@ where
 }
 
 /// The base function of [`use_reducer`] and [`use_reducer_eq`]
-#[hook]
-fn use_reducer_base<T>(
-    initial_fn: impl FnOnce() -> T,
+fn use_reducer_base<'hook, T>(
+    initial_fn: impl 'hook + FnOnce() -> T,
     should_render_fn: impl 'static + Fn(&T, &T) -> bool,
-) -> UseReducerHandle<T>
+) -> impl 'hook + Hook<Output = UseReducerHandle<T>>
 where
     T: Reducible + 'static,
 {
-    use_hook(
-        move || UseReducer {
-            current_state: Rc::new(initial_fn()),
-            dispatch: RefCell::default(),
-        },
-        |s, updater| {
-            let mut dispatch_ref = s.dispatch.borrow_mut();
+    struct HookProvider<'hook, T, F, R>
+    where
+        T: Reducible + 'static,
+        F: 'hook + FnOnce() -> T,
+        R: 'static + Fn(&T, &T) -> bool,
+    {
+        _marker: PhantomData<&'hook ()>,
 
-            // Create dispatch once.
-            let dispatch = match *dispatch_ref {
-                Some(ref m) => (*m).to_owned(),
-                None => {
-                    let should_render_fn = Rc::new(should_render_fn);
+        initial_fn: F,
+        should_render_fn: R,
+    }
 
-                    let dispatch: Rc<dyn Fn(T::Action)> = Rc::new(move |action: T::Action| {
-                        let should_render_fn = should_render_fn.clone();
+    impl<'hook, T, F, R> Hook for HookProvider<'hook, T, F, R>
+    where
+        T: Reducible + 'static,
+        F: 'hook + FnOnce() -> T,
+        R: 'static + Fn(&T, &T) -> bool,
+    {
+        type Output = UseReducerHandle<T>;
 
-                        updater.callback(move |state: &mut UseReducer<T>| {
-                            let next_state = state.current_state.clone().reduce(action);
-                            let should_render = should_render_fn(&next_state, &state.current_state);
-                            state.current_state = next_state;
+        fn run(self, ctx: &mut HookContext) -> Self::Output {
+            let Self {
+                initial_fn,
+                should_render_fn,
+                ..
+            } = self;
+
+            let state = ctx.next_state(move |re_render| {
+                let val = Rc::new(RefCell::new(Rc::new(initial_fn())));
+                let should_render_fn = Rc::new(should_render_fn);
+
+                UseReducer {
+                    current_state: val.clone(),
+                    dispatch: Rc::new(move |action: T::Action| {
+                        let should_render = {
+                            let should_render_fn = should_render_fn.clone();
+                            let mut val = val.borrow_mut();
+                            let next_val = (*val).clone().reduce(action);
+                            let should_render = should_render_fn(&next_val, &val);
+                            *val = next_val;
 
                             should_render
-                        });
-                    });
+                        };
 
-                    *dispatch_ref = Some(dispatch.clone());
-
-                    dispatch
+                        if should_render {
+                            re_render()
+                        }
+                    }),
                 }
-            };
+            });
 
-            UseReducerHandle {
-                value: Rc::clone(&s.current_state),
-                dispatch,
-            }
-        },
-    )
+            let value = state.current_state.borrow().clone();
+            let dispatch = state.dispatch.clone();
+
+            UseReducerHandle { value, dispatch }
+        }
+    }
+
+    HookProvider {
+        _marker: PhantomData,
+        initial_fn,
+        should_render_fn,
+    }
 }
 
 /// This hook is an alternative to [`use_state`](super::use_state()).
