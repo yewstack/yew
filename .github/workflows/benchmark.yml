@@ -5,7 +5,7 @@ on:
     branches:
       - master
   pull_request_target:
-      types: [labeled, synchronize, opened, reopened]
+    types: [labeled, synchronize, opened, reopened]
 
 permissions:
   # deployments permission to deploy GitHub pages website
@@ -53,6 +53,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: "./yew"
+          ref: "${{ github.head_ref }}"
 
       - uses: actions/checkout@v2
         with:
