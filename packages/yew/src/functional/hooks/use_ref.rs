@@ -55,7 +55,7 @@ pub fn use_mut_ref<T: 'static, F>(init_fn: F) -> Rc<RefCell<T>>
 where
     F: FnOnce() -> T,
 {
-    use_memo(|_| RefCell::new(initial_fn()), ())
+    use_memo(|_| RefCell::new(init_fn()), ())
 }
 
 /// This hook is used for obtaining a [`NodeRef`].
