@@ -146,28 +146,26 @@ where
 /// The base function of [`use_reducer`] and [`use_reducer_eq`]
 fn use_reducer_base<'hook, T>(
     init_fn: impl 'hook + FnOnce() -> T,
-    should_render_fn: impl 'static + Fn(&T, &T) -> bool,
+    should_render_fn: fn(&T, &T) -> bool,
 ) -> impl 'hook + Hook<Output = UseReducerHandle<T>>
 where
     T: Reducible + 'static,
 {
-    struct HookProvider<'hook, T, F, R>
+    struct HookProvider<'hook, T, F>
     where
         T: Reducible + 'static,
         F: 'hook + FnOnce() -> T,
-        R: 'static + Fn(&T, &T) -> bool,
     {
         _marker: PhantomData<&'hook ()>,
 
         init_fn: F,
-        should_render_fn: R,
+        should_render_fn: fn(&T, &T) -> bool,
     }
 
-    impl<'hook, T, F, R> Hook for HookProvider<'hook, T, F, R>
+    impl<'hook, T, F> Hook for HookProvider<'hook, T, F>
     where
         T: Reducible + 'static,
         F: 'hook + FnOnce() -> T,
-        R: 'static + Fn(&T, &T) -> bool,
     {
         type Output = UseReducerHandle<T>;
 

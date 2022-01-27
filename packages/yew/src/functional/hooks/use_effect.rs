@@ -2,25 +2,23 @@ use std::cell::RefCell;
 
 use crate::functional::{hook, Effect, Hook, HookContext};
 
-struct UseEffectBase<T, F, D, R>
+struct UseEffectBase<T, F, D>
 where
     F: FnOnce(&T) -> D + 'static,
     T: 'static,
     D: FnOnce() + 'static,
-    R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
 {
     runner_with_deps: Option<(T, F)>,
     destructor: Option<D>,
     deps: Option<T>,
-    effect_changed_fn: R,
+    effect_changed_fn: fn(Option<&T>, Option<&T>) -> bool,
 }
 
-impl<T, F, D, R> Effect for RefCell<UseEffectBase<T, F, D, R>>
+impl<T, F, D> Effect for RefCell<UseEffectBase<T, F, D>>
 where
     F: FnOnce(&T) -> D + 'static,
     T: 'static,
     D: FnOnce() + 'static,
-    R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
 {
     fn rendered(&self) {
         let mut this = self.borrow_mut();
@@ -42,12 +40,11 @@ where
     }
 }
 
-impl<T, F, D, R> Drop for UseEffectBase<T, F, D, R>
+impl<T, F, D> Drop for UseEffectBase<T, F, D>
 where
     F: FnOnce(&T) -> D + 'static,
     T: 'static,
     D: FnOnce() + 'static,
-    R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
 {
     fn drop(&mut self) {
         if let Some(destructor) = self.destructor.take() {
@@ -59,30 +56,28 @@ where
 fn use_effect_base<T, D>(
     runner: impl FnOnce(&T) -> D + 'static,
     deps: T,
-    effect_changed_fn: impl Fn(Option<&T>, Option<&T>) -> bool + 'static,
+    effect_changed_fn: fn(Option<&T>, Option<&T>) -> bool,
 ) -> impl Hook<Output = ()>
 where
     T: 'static,
     D: FnOnce() + 'static,
 {
-    struct HookProvider<T, F, D, R>
+    struct HookProvider<T, F, D>
     where
         F: FnOnce(&T) -> D + 'static,
         T: 'static,
         D: FnOnce() + 'static,
-        R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
     {
         runner: F,
         deps: T,
-        effect_changed_fn: R,
+        effect_changed_fn: fn(Option<&T>, Option<&T>) -> bool,
     }
 
-    impl<T, F, D, R> Hook for HookProvider<T, F, D, R>
+    impl<T, F, D> Hook for HookProvider<T, F, D>
     where
         F: FnOnce(&T) -> D + 'static,
         T: 'static,
         D: FnOnce() + 'static,
-        R: Fn(Option<&T>, Option<&T>) -> bool + 'static,
     {
         type Output = ();
 
@@ -93,7 +88,7 @@ where
                 effect_changed_fn,
             } = self;
 
-            let state = ctx.next_effect(|_| -> RefCell<UseEffectBase<T, F, D, R>> {
+            let state = ctx.next_effect(|_| -> RefCell<UseEffectBase<T, F, D>> {
                 RefCell::new(UseEffectBase {
                     runner_with_deps: None,
                     destructor: None,
