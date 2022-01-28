@@ -1,19 +1,49 @@
-use crate::functional::{hook, use_hook};
-use std::rc::Rc;
+use std::cell::RefCell;
 
-type UseEffectRunnerFn<T, D> = Box<dyn FnOnce(&T) -> D>;
+use crate::functional::{hook, Effect, Hook, HookContext};
 
-struct UseEffectBase<T, D>
+struct UseEffectBase<T, F, D>
 where
+    F: FnOnce(&T) -> D + 'static,
+    T: 'static,
     D: FnOnce() + 'static,
 {
-    runner_with_deps: Option<(Rc<T>, UseEffectRunnerFn<T, D>)>,
-    destructor: Option<Box<D>>,
-    deps: Option<Rc<T>>,
+    runner_with_deps: Option<(T, F)>,
+    destructor: Option<D>,
+    deps: Option<T>,
+    effect_changed_fn: fn(Option<&T>, Option<&T>) -> bool,
 }
 
-impl<T, D> Drop for UseEffectBase<T, D>
+impl<T, F, D> Effect for RefCell<UseEffectBase<T, F, D>>
 where
+    F: FnOnce(&T) -> D + 'static,
+    T: 'static,
+    D: FnOnce() + 'static,
+{
+    fn rendered(&self) {
+        let mut this = self.borrow_mut();
+
+        if let Some((deps, runner)) = this.runner_with_deps.take() {
+            if !(this.effect_changed_fn)(Some(&deps), this.deps.as_ref()) {
+                return;
+            }
+
+            if let Some(de) = this.destructor.take() {
+                de();
+            }
+
+            let new_destructor = runner(&deps);
+
+            this.deps = Some(deps);
+            this.destructor = Some(new_destructor);
+        }
+    }
+}
+
+impl<T, F, D> Drop for UseEffectBase<T, F, D>
+where
+    F: FnOnce(&T) -> D + 'static,
+    T: 'static,
     D: FnOnce() + 'static,
 {
     fn drop(&mut self) {
@@ -23,48 +53,59 @@ where
     }
 }
 
-#[hook]
 fn use_effect_base<T, D>(
-    callback: impl FnOnce(&T) -> D + 'static,
+    runner: impl FnOnce(&T) -> D + 'static,
     deps: T,
-    effect_changed_fn: impl FnOnce(Option<&T>, Option<&T>) -> bool + 'static,
-) where
+    effect_changed_fn: fn(Option<&T>, Option<&T>) -> bool,
+) -> impl Hook<Output = ()>
+where
     T: 'static,
     D: FnOnce() + 'static,
 {
-    let deps = Rc::new(deps);
+    struct HookProvider<T, F, D>
+    where
+        F: FnOnce(&T) -> D + 'static,
+        T: 'static,
+        D: FnOnce() + 'static,
+    {
+        runner: F,
+        deps: T,
+        effect_changed_fn: fn(Option<&T>, Option<&T>) -> bool,
+    }
 
-    use_hook(
-        move || {
-            let destructor: Option<Box<D>> = None;
-            UseEffectBase {
-                runner_with_deps: None,
-                destructor,
-                deps: None,
-            }
-        },
-        move |state, updater| {
-            state.runner_with_deps = Some((deps, Box::new(callback)));
+    impl<T, F, D> Hook for HookProvider<T, F, D>
+    where
+        F: FnOnce(&T) -> D + 'static,
+        T: 'static,
+        D: FnOnce() + 'static,
+    {
+        type Output = ();
 
-            updater.post_render(move |state: &mut UseEffectBase<T, D>| {
-                if let Some((deps, callback)) = state.runner_with_deps.take() {
-                    if !effect_changed_fn(Some(&*deps), state.deps.as_deref()) {
-                        return false;
-                    }
+        fn run(self, ctx: &mut HookContext) -> Self::Output {
+            let Self {
+                runner,
+                deps,
+                effect_changed_fn,
+            } = self;
 
-                    if let Some(de) = state.destructor.take() {
-                        de();
-                    }
-
-                    let new_destructor = callback(&deps);
-
-                    state.deps = Some(deps);
-                    state.destructor = Some(Box::new(new_destructor));
-                }
-                false
+            let state = ctx.next_effect(|_| -> RefCell<UseEffectBase<T, F, D>> {
+                RefCell::new(UseEffectBase {
+                    runner_with_deps: None,
+                    destructor: None,
+                    deps: None,
+                    effect_changed_fn,
+                })
             });
-        },
-    );
+
+            state.borrow_mut().runner_with_deps = Some((deps, runner));
+        }
+    }
+
+    HookProvider {
+        runner,
+        deps,
+        effect_changed_fn,
+    }
 }
 
 /// This hook is used for hooking into the component's lifecycle.
@@ -98,11 +139,12 @@ fn use_effect_base<T, D>(
 /// }
 /// ```
 #[hook]
-pub fn use_effect<D>(callback: impl FnOnce() -> D + 'static)
+pub fn use_effect<F, D>(f: F)
 where
+    F: FnOnce() -> D + 'static,
     D: FnOnce() + 'static,
 {
-    use_effect_base(|_| callback(), (), |_, _| true);
+    use_effect_base(|_| f(), (), |_, _| true);
 }
 
 /// This hook is similar to [`use_effect`] but it accepts dependencies.
@@ -111,10 +153,11 @@ where
 /// To detect changes, dependencies must implement `PartialEq`.
 /// Note that the destructor also runs when dependencies change.
 #[hook]
-pub fn use_effect_with_deps<T, D>(callback: impl FnOnce(&T) -> D + 'static, deps: T)
+pub fn use_effect_with_deps<T, F, D>(f: F, deps: T)
 where
     T: PartialEq + 'static,
+    F: FnOnce(&T) -> D + 'static,
     D: FnOnce() + 'static,
 {
-    use_effect_base(callback, deps, |lhs, rhs| lhs != rhs)
+    use_effect_base(f, deps, |lhs, rhs| lhs != rhs)
 }
