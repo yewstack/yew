@@ -97,11 +97,11 @@ html! {
     <div>
         <div id="abc"></div>
         <div class="parent">
-            <span class="child" value="anything"></span>
+            <span class="child"></span>
             <label for="first-name">{ "First Name" }</label>
             <input type="text" id="first-name" value="placeholder" />
             <input type="checkbox" checked=true />
-            <textarea value="write a story" />
+            <textarea>{ "write a story" }</textarea>
             <select name="status">
                 <option selected=true disabled=false value="">{ "Selected" }</option>
                 <option selected=false disabled=true value="">{ "Unselected" }</option>
@@ -128,7 +128,7 @@ html! {
         <@{"g"} filter="url(#filter0_d)">
             <@{"circle"} cx="75.3326" cy="73.4918" r="55" fill="#FDD630"/>
             <@{"circle"} cx="75.3326" cy="73.4918" r="52.5" stroke="black" stroke-width="5"/>
-        </g>
+        </@>
         <@{"circle"} cx="71" cy="99" r="5" fill="white" fill-opacity="0.75" stroke="black" stroke-width="3"/>
         <@{"defs"}>
             <@{"filter"} id="filter0_d" x="16.3326" y="18.4918" width="118" height="118" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
