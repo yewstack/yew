@@ -206,6 +206,7 @@ mod ssr_tests {
             }
         }
 
+        #[hook]
         pub fn use_sleep() -> SuspensionResult<Rc<dyn Fn()>> {
             let sleep_state = use_reducer(SleepState::new);
 

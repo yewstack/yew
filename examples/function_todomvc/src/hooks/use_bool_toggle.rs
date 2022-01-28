@@ -1,6 +1,6 @@
 use std::ops::Deref;
 use std::rc::Rc;
-use yew::{use_state_eq, UseStateHandle};
+use yew::prelude::*;
 
 #[derive(Clone)]
 pub struct UseBoolToggleHandle {
@@ -47,6 +47,7 @@ impl Deref for UseBoolToggleHandle {
 /// <button {onclick}>{ "Click me" }</button>
 /// ...
 /// ```
+#[hook]
 pub fn use_bool_toggle(default: bool) -> UseBoolToggleHandle {
     let state = use_state_eq(|| default);
 
