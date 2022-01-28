@@ -40,12 +40,18 @@ The `#[function_component]` attribute is a procedural macro which automatically 
 Hooks are functions that let you "hook into" components' state and/or lifecycle and perform
 actions. Yew comes with a few pre-defined Hooks. You can also create your own.
 
+Hooks can only be used at the following locations:
+- Top level of a function / hook.
+- If condition inside a function / hook, given it's not already branched.
+- Match condition inside a function / hook, given it's not already branched.
+- Blocks inside a function / hook, given it's not already branched.
+
 #### Pre-defined Hooks
 
 Yew comes with the following predefined Hooks:
 - [`use_state`](./../function-components/pre-defined-hooks.mdx#use_state)
 - [`use_state_eq`](./../function-components/pre-defined-hooks.mdx#use_state_eq)
-- [`use_ref`](./../function-components/pre-defined-hooks.mdx#use_ref)
+- [`use_memo`](./../function-components/pre-defined-hooks.mdx#use_memo)
 - [`use_mut_ref`](./../function-components/pre-defined-hooks.mdx#use_mut_ref)
 - [`use_node_ref`](./../function-components/pre-defined-hooks.mdx#use_node_ref)
 - [`use_reducer`](./../function-components/pre-defined-hooks.mdx#use_reducer)

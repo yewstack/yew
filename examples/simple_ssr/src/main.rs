@@ -57,6 +57,7 @@ impl PartialEq for UuidState {
     }
 }
 
+#[hook]
 fn use_random_uuid() -> SuspensionResult<Uuid> {
     let s = use_state(UuidState::new);
 
