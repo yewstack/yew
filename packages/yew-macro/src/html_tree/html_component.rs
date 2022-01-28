@@ -13,9 +13,9 @@ use syn::{
 };
 
 pub struct HtmlComponent {
-    ty: Type,
-    props: ComponentProps,
-    children: HtmlChildrenTree,
+    pub ty: Type,
+    pub props: ComponentProps,
+    pub children: HtmlChildrenTree,
 }
 
 impl PeekValue<()> for HtmlComponent {
