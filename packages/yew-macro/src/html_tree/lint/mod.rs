@@ -1,15 +1,15 @@
 //! Lints to catch possible misuse of the `html!` macro use. At the moment these are mostly focused
 //! on accessibility.
 
+use crate::html_tree::html_component::HtmlComponent;
 use proc_macro_error::emit_warning;
 use quote::ToTokens;
 use syn::spanned::Spanned;
 use syn::Type;
-use crate::html_tree::html_component::HtmlComponent;
 
 use crate::props::{ComponentProps, Prop};
 
-use super::{HtmlTree};
+use super::HtmlTree;
 
 /// Lints HTML elements to check if they are well formed. If the element is not well-formed, then
 /// use `proc-macro-error` (and the `emit_warning!` macro) to produce a warning. At present, these
@@ -53,8 +53,14 @@ fn get_attribute<'a>(props: &'a ComponentProps, name: &str) -> Option<&'a Prop> 
 
 fn get_component_name(component: &HtmlComponent) -> String {
     match &component.ty {
-        Type::Path(type_path) => type_path.path.segments.last().as_ref().map(|it| it.ident.to_token_stream().to_string()).unwrap_or_default(),
-        _ => String::new()
+        Type::Path(type_path) => type_path
+            .path
+            .segments
+            .last()
+            .as_ref()
+            .map(|it| it.ident.to_token_stream().to_string())
+            .unwrap_or_default(),
+        _ => String::new(),
     }
 }
 
@@ -64,7 +70,7 @@ pub struct AHrefLint;
 impl Lint for AHrefLint {
     fn lint(element: &HtmlComponent) {
         let name = &element.ty;
-        if !get_component_name(&element).eq_ignore_ascii_case("a") {
+        if !get_component_name(element).eq_ignore_ascii_case("a") {
             return;
         };
         if let Some(prop) = get_attribute(&element.props, "href") {
@@ -92,7 +98,6 @@ impl Lint for AHrefLint {
                     https://developer.mozilla.org/en-US/docs/Learn/Accessibility/HTML#more_on_links"
             )
         }
-
     }
 }
 
@@ -102,7 +107,7 @@ pub struct ImgAltLint;
 impl Lint for ImgAltLint {
     fn lint(element: &HtmlComponent) {
         let name = &element.ty;
-        if !get_component_name(&element).eq_ignore_ascii_case("img") {
+        if !get_component_name(element).eq_ignore_ascii_case("img") {
             return;
         };
         if get_attribute(&element.props, "alt").is_none() {
