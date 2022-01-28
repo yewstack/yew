@@ -1,5 +1,8 @@
-use crate::{functional::use_hook, NodeRef};
-use std::{cell::RefCell, rc::Rc};
+use std::cell::RefCell;
+use std::rc::Rc;
+
+use crate::functional::{hook, use_memo, use_state};
+use crate::NodeRef;
 
 /// This hook is used for obtaining a mutable reference to a stateful value.
 /// Its state persists across renders.
@@ -47,25 +50,12 @@ use std::{cell::RefCell, rc::Rc};
 ///     }
 /// }
 /// ```
-pub fn use_mut_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<RefCell<T>> {
-    use_hook(
-        || Rc::new(RefCell::new(initial_value())),
-        |state, _| state.clone(),
-        |_| {},
-    )
-}
-
-/// This hook is used for obtaining a immutable reference to a stateful value.
-/// Its state persists across renders.
-///
-/// If you need a mutable reference, consider using [`use_mut_ref`](super::use_mut_ref).
-/// If you need the component to be re-rendered on state change, consider using [`use_state`](super::use_state()).
-pub fn use_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<T> {
-    use_hook(
-        || Rc::new(initial_value()),
-        |state, _| Rc::clone(state),
-        |_| {},
-    )
+#[hook]
+pub fn use_mut_ref<T: 'static, F>(init_fn: F) -> Rc<RefCell<T>>
+where
+    F: FnOnce() -> T,
+{
+    use_memo(|_| RefCell::new(init_fn()), ())
 }
 
 /// This hook is used for obtaining a [`NodeRef`].
@@ -88,7 +78,7 @@ pub fn use_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<T> {
 ///
 ///     {
 ///         let div_ref = div_ref.clone();
-///         
+///
 ///         use_effect_with_deps(
 ///             |div_ref| {
 ///                 let div = div_ref
@@ -125,6 +115,7 @@ pub fn use_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<T> {
 /// }
 ///
 /// ```
+#[hook]
 pub fn use_node_ref() -> NodeRef {
-    use_hook(NodeRef::default, |state, _| state.clone(), |_| {})
+    (*use_state(NodeRef::default)).clone()
 }

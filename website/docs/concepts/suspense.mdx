@@ -60,6 +60,7 @@ struct User {
     name: String,
 }
 
+#[hook]
 fn use_user() -> SuspensionResult<User> {
     match load_user() {
         // If a user is loaded, then we return it as Ok(user).
@@ -96,6 +97,7 @@ fn on_load_user_complete<F: FnOnce()>(_fn: F) {
     todo!()  // implementation omitted.
 }
 
+#[hook]
 fn use_user() -> SuspensionResult<User> {
     match load_user() {
         // If a user is loaded, then we return it as Ok(user).

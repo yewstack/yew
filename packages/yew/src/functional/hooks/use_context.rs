@@ -1,5 +1,6 @@
+use crate::callback::Callback;
 use crate::context::ContextHandle;
-use crate::functional::{get_current_scope, use_hook};
+use crate::functional::{hook, use_component_scope, use_memo, use_state};
 
 /// Hook for consuming context values in function components.
 /// The context of the type passed as `T` is returned. If there is no such context in scope, `None` is returned.
@@ -28,38 +29,29 @@ use crate::functional::{get_current_scope, use_hook};
 ///     }
 /// }
 /// ```
+#[hook]
 pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<T> {
-    struct UseContextState<T2: Clone + PartialEq + 'static> {
-        initialized: bool,
-        context: Option<(T2, ContextHandle<T2>)>,
+    struct UseContext<T: Clone + PartialEq + 'static> {
+        context: Option<(T, ContextHandle<T>)>,
     }
 
-    let scope = get_current_scope()
-        .expect("No current Scope. `use_context` can only be called inside function components");
+    let scope = use_component_scope();
 
-    use_hook(
-        move || UseContextState {
-            initialized: false,
-            context: None,
-        },
-        |state: &mut UseContextState<T>, updater| {
-            if !state.initialized {
-                state.initialized = true;
-                let callback = move |ctx: T| {
-                    updater.callback(|state: &mut UseContextState<T>| {
-                        if let Some(context) = &mut state.context {
-                            context.0 = ctx;
-                        }
-                        true
-                    });
-                };
-                state.context = scope.context::<T>(callback.into());
-            }
+    let val = use_state(|| -> Option<T> { None });
+    let state = {
+        let val_dispatcher = val.setter();
+        use_memo(
+            move |_| UseContext {
+                context: scope.context::<T>(Callback::from(move |m| {
+                    val_dispatcher.clone().set(Some(m));
+                })),
+            },
+            (),
+        )
+    };
 
-            Some(state.context.as_ref()?.0.clone())
-        },
-        |state| {
-            state.context = None;
-        },
-    )
+    // we fallback to initial value if it was not updated.
+    (*val)
+        .clone()
+        .or_else(move || state.context.as_ref().map(|m| m.0.clone()))
 }
