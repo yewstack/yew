@@ -422,7 +422,7 @@ impl Reconcilable for VList {
         test_log!("lefts: {:?}", lefts);
         test_log!("rights: {:?}", rights);
 
-        if let Some(additional) = rights.len().checked_sub(lefts.len()) {
+        if let Some(additional) = lefts.len().checked_sub(rights.len()) {
             rights.reserve_exact(additional);
         }
         let first = if self.fully_keyed && blist.fully_keyed {
