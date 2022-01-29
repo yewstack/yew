@@ -1196,7 +1196,7 @@ mod tests {
         elem.apply(&scope, &parent, NodeRef::default(), None);
         let parent_node = parent.deref();
         assert_eq!(node_ref.get(), parent_node.first_child());
-        elem.detach(&parent);
+        elem.detach(&parent, false);
         assert!(node_ref.get().is_none());
     }
 
