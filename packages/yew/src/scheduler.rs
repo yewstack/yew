@@ -122,13 +122,13 @@ pub(crate) fn start_now() {
     });
 }
 
-#[cfg(any(target_arch = "wasm32", feature = "tokio"))]
-mod feat_with_runtime {
+#[cfg(target_arch = "wasm32")]
+mod target_wasm {
     use super::*;
     use crate::io_coop::spawn_local;
 
-    // When a runtime is available, we delay the start of scheduler, so all messages that needs to
-    // be queued can be queued.
+    /// We delay the start of the scheduler to the end of the browser event loop.
+    /// So any messages that needs to be queued can be queued.
     pub(crate) fn start() {
         spawn_local(async {
             start_now();
@@ -136,24 +136,25 @@ mod feat_with_runtime {
     }
 }
 
-#[cfg(any(target_arch = "wasm32", feature = "tokio"))]
-pub(crate) use feat_with_runtime::*;
+#[cfg(target_arch = "wasm32")]
+pub(crate) use target_wasm::*;
 
-#[cfg(not(any(target_arch = "wasm32", feature = "tokio")))]
-mod feat_no_runtime {
+#[cfg(not(target_arch = "wasm32"))]
+mod target_native {
     use super::*;
 
-    // We have no runtime available, so we have no choice but to run now.
-    // Mainly an issue with async-std at the moment. This can be revisited when
-    // either spawn_local is no longer unstable for async-std. Or we make our future Send
-    // on SSR.
+    // Delayed rendering is not very useful on server-side rendering.
+    // There is not event listener or other high priority events that needs to be
+    // processed and we risk of having a future un-finished.
+    // Until scheduler is future-capable which we means can join inside a future,
+    // it can remain synchronous.
     pub(crate) fn start() {
         start_now();
     }
 }
 
-#[cfg(not(any(target_arch = "wasm32", feature = "tokio")))]
-pub(crate) use feat_no_runtime::*;
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) use target_native::*;
 
 impl Scheduler {
     /// Fill vector with tasks to be executed according to Runnable type execution priority
