@@ -476,7 +476,7 @@ impl VTag {
 
 impl VDiff for VTag {
     /// Remove VTag from parent.
-    fn detach(&mut self, parent: &Element) {
+    fn detach(&mut self, parent: &Element, parent_to_detach: bool) {
         let node = self
             .reference
             .take()
@@ -486,10 +486,15 @@ impl VDiff for VTag {
 
         // recursively remove its children
         if let VTagInner::Other { children, .. } = &mut self.inner {
-            children.detach(&node);
+            // This tag will be removed, so there's no point to remove any child.
+            children.detach(&node, true);
         }
-        if parent.remove_child(&node).is_err() {
-            console::warn!("Node not found to remove VTag");
+        if !parent_to_detach {
+            let result = parent.remove_child(&node);
+
+            if result.is_err() {
+                console::warn!("Node not found to remove VTag");
+            }
         }
         // It could be that the ref was already reused when rendering another element.
         // Only unset the ref it still belongs to our node
@@ -555,7 +560,7 @@ impl VDiff for VTag {
                 } else {
                     let el = self.create_element(parent);
                     super::insert_node(&el, parent, ancestor.first_node().as_ref());
-                    ancestor.detach(parent);
+                    ancestor.detach(parent, false);
                     (None, el)
                 }
             }
@@ -605,7 +610,7 @@ impl VDiff for VTag {
                         if !new.is_empty() {
                             new.apply(parent_scope, &el, NodeRef::default(), Some(old.into()));
                         } else if !old.is_empty() {
-                            old.detach(&el);
+                            old.detach(&el, false);
                         }
                     }
                     // Can not happen, because we checked for tag equability above
@@ -1191,7 +1196,7 @@ mod tests {
         elem.apply(&scope, &parent, NodeRef::default(), None);
         let parent_node = parent.deref();
         assert_eq!(node_ref.get(), parent_node.first_child());
-        elem.detach(&parent);
+        elem.detach(&parent, false);
         assert!(node_ref.get().is_none());
     }
 
