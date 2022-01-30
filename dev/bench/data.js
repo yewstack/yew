@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1643363884615,
+  "lastUpdate": 1643542212641,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -3705,6 +3705,115 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 34_startup-totalbytes",
             "value": "364.2373046875",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "futursolo@users.noreply.github.com",
+            "name": "Kaede Hoshikawa",
+            "username": "futursolo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b7b28ba96380ad7cd22e7fb815d3f3d561d6b61c",
+          "message": "Do not detach child elements if parent element is about to be detached (#2420)\n\n* Make a use_hook hook with the new Hook trait.\r\n\r\n* Implement Lifetime.\r\n\r\n* Rewrites function signature.\r\n\r\n* Only apply lifetime if there're other lifetimes.\r\n\r\n* Cleanup signature rewrite logic.\r\n\r\n* Rewrite hook body.\r\n\r\n* Port some built-in hooks.\r\n\r\n* Finish porting all built-in hooks.\r\n\r\n* Port tests.\r\n\r\n* Fix tests.\r\n\r\n* Migrate to macro-based hooks.\r\n\r\n* Fix HookContext, add tests on non-possible locations.\r\n\r\n* Fix stderr for trybuild.\r\n\r\n* Add 1 more test case.\r\n\r\n* Adjust doc location.\r\n\r\n* Pretty print hook signature.\r\n\r\n* Fix Items & std::ops::Fn*.\r\n\r\n* Add use_memo.\r\n\r\n* Optimise Implementation of hooks.\r\n\r\n* Use Box to capture function value only.\r\n\r\n* Detect whether needs boxing.\r\n\r\n* Add args if boxing not needed.\r\n\r\n* Enforce hook number.\r\n\r\n* Deduplicate use_effect.\r\n\r\n* Optimise Implementation.\r\n\r\n* Update documentation.\r\n\r\n* Fix website test. Strip BoxedHook implementation from it.\r\n\r\n* Allow doc string.\r\n\r\n* Workaround doc tests.\r\n\r\n* Optimise codebase & documentation.\r\n\r\n* Fix website test.\r\n\r\n* Reduce implementation complexity.\r\n\r\n* Destructor is no more.\r\n\r\n* Do not detach child element if parent element is about to be detached as well.\r\n\r\n* Fix tests.",
+          "timestamp": "2022-01-30T13:24:33+02:00",
+          "tree_id": "e384534c301ddf5108f711074747a42dfbf1e546",
+          "url": "https://github.com/yewstack/yew/commit/b7b28ba96380ad7cd22e7fb815d3f3d561d6b61c"
+        },
+        "date": 1643542211339,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "180.3315",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "193.606",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "452.2335",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "93.866",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "108.8545",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "32.7375",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "2101.9480000000003",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "416.04",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "208.642",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "0.9634513854980468",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.5000953674316406",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.4615478515625",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.510845184326172",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.1290321350097656",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1785.2385",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "30.429999999999993",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "367.962890625",
             "unit": ""
           }
         ]
