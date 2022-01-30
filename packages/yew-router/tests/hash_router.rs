@@ -1,4 +1,6 @@
+use gloo::timers::future::sleep;
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::functional::function_component;
 use yew::prelude::*;
@@ -112,19 +114,29 @@ fn root() -> Html {
 // - query parameters
 // - 404 redirects
 #[test]
-fn router_works() {
+async fn router_works() {
     yew::start_app_in_element::<Root>(gloo::utils::document().get_element_by_id("output").unwrap());
+
+    sleep(Duration::ZERO).await;
 
     assert_eq!("Home", obtain_result_by_id("result"));
 
+    sleep(Duration::ZERO).await;
+
     let initial_length = history_length();
 
+    sleep(Duration::ZERO).await;
+
     click("button"); // replacing the current route
+
+    sleep(Duration::ZERO).await;
     assert_eq!("2", obtain_result_by_id("result-params"));
     assert_eq!("bar", obtain_result_by_id("result-query"));
     assert_eq!(initial_length, history_length());
 
     click("button"); // pushing a new route
+
+    sleep(Duration::ZERO).await;
     assert_eq!("3", obtain_result_by_id("result-params"));
     assert_eq!("baz", obtain_result_by_id("result-query"));
     assert_eq!(initial_length + 1, history_length());

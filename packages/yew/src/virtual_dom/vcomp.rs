@@ -9,17 +9,19 @@ use std::borrow::Borrow;
 use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use web_sys::Element;
 
 thread_local! {
     #[cfg(debug_assertions)]
-     static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<u64, Vec<String>>>
+     static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<usize, Vec<String>>>
         = Default::default();
+     static COMP_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 }
 
 /// Push [VComp] event to lifecycle debugging registry
 #[cfg(debug_assertions)]
-pub(crate) fn log_event(vcomp_id: u64, event: impl ToString) {
+pub(crate) fn log_event(vcomp_id: usize, event: impl ToString) {
     EVENT_HISTORY.with(|h| {
         h.borrow_mut()
             .entry(vcomp_id)
@@ -30,7 +32,7 @@ pub(crate) fn log_event(vcomp_id: u64, event: impl ToString) {
 
 /// Get [VComp] event log from lifecycle debugging registry
 #[cfg(debug_assertions)]
-pub(crate) fn get_event_log(vcomp_id: u64) -> Vec<String> {
+pub(crate) fn get_event_log(vcomp_id: usize) -> Vec<String> {
     EVENT_HISTORY.with(|h| {
         h.borrow()
             .get(&vcomp_id)
@@ -47,9 +49,7 @@ pub struct VComp {
     pub(crate) node_ref: NodeRef,
     pub(crate) key: Option<Key>,
 
-    /// Used for debug logging
-    #[cfg(debug_assertions)]
-    pub(crate) id: u64,
+    pub(crate) id: usize,
 }
 
 impl Clone for VComp {
@@ -68,7 +68,6 @@ impl Clone for VComp {
             node_ref: self.node_ref.clone(),
             key: self.key.clone(),
 
-            #[cfg(debug_assertions)]
             id: self.id,
         }
     }
@@ -138,18 +137,7 @@ impl VComp {
             scope: None,
             key,
 
-            #[cfg(debug_assertions)]
-            id: {
-                thread_local! {
-                    static ID_COUNTER: std::cell::RefCell<u64> = Default::default();
-                }
-
-                ID_COUNTER.with(|c| {
-                    let c = &mut *c.borrow_mut();
-                    *c += 1;
-                    *c
-                })
-            },
+            id: Self::next_id(),
         }
     }
 
@@ -170,6 +158,10 @@ impl VComp {
                 get_event_log(self.id)
             );
         })
+    }
+
+    pub(crate) fn next_id() -> usize {
+        COMP_ID_COUNTER.with(|m| m.fetch_add(1, Ordering::Relaxed))
     }
 }
 
@@ -197,7 +189,7 @@ struct PropsWrapper<COMP: BaseComponent> {
 }
 
 impl<COMP: BaseComponent> PropsWrapper<COMP> {
-    pub fn new(props: Rc<COMP::Properties>) -> Self {
+    fn new(props: Rc<COMP::Properties>) -> Self {
         Self { props }
     }
 }
@@ -327,6 +319,7 @@ mod feat_ssr {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::scheduler;
     use crate::{html, Children, Component, Context, Html, NodeRef, Properties};
     use gloo_utils::document;
     use web_sys::Node;
@@ -372,6 +365,7 @@ mod tests {
 
         let mut ancestor = html! { <Comp></Comp> };
         ancestor.apply(&parent_scope, &parent_element, NodeRef::default(), None);
+        scheduler::start_now();
 
         for _ in 0..10000 {
             let mut node = html! { <Comp></Comp> };
@@ -381,6 +375,7 @@ mod tests {
                 NodeRef::default(),
                 Some(ancestor),
             );
+            scheduler::start_now();
             ancestor = node;
         }
     }
@@ -534,6 +529,7 @@ mod tests {
         parent.set_inner_html("");
 
         node.apply(scope, parent, NodeRef::default(), None);
+        scheduler::start_now();
         parent.inner_html()
     }
 
@@ -593,9 +589,11 @@ mod tests {
         let node_ref = NodeRef::default();
         let mut elem: VNode = html! { <Comp ref={node_ref.clone()}></Comp> };
         elem.apply(&scope, &parent, NodeRef::default(), None);
+        scheduler::start_now();
         let parent_node = parent.deref();
         assert_eq!(node_ref.get(), parent_node.first_child());
         elem.detach(&parent, false);
+        scheduler::start_now();
         assert!(node_ref.get().is_none());
     }
 }
@@ -609,10 +607,8 @@ mod layout_tests {
     use crate::{Children, Component, Context, Html, Properties};
     use std::marker::PhantomData;
 
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     struct Comp<T> {

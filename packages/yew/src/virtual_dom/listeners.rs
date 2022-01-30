@@ -522,9 +522,10 @@ mod tests {
     use web_sys::{Event, EventInit, MouseEvent};
     wasm_bindgen_test_configure!(run_in_browser);
 
-    use crate::{html, html::TargetCast, AppHandle, Component, Context, Html};
+    use crate::{html, html::TargetCast, scheduler, AppHandle, Component, Context, Html};
     use gloo_utils::document;
     use wasm_bindgen::JsCast;
+    use yew::Callback;
 
     #[derive(Clone)]
     enum Message {
@@ -545,15 +546,19 @@ mod tests {
         where
             C: Component<Message = Message>,
         {
+            let link = ctx.link().clone();
+            let onclick = Callback::from(move |_| {
+                link.send_message(Message::Action);
+                scheduler::start_now();
+            });
+
             if state.stop_listening {
                 html! {
                     <a>{state.action}</a>
                 }
             } else {
                 html! {
-                    <a onclick={ctx.link().callback(
-                        |_| Message::Action,
-                    )}>
+                    <a {onclick}>
                         {state.action}
                     </a>
                 }
@@ -629,6 +634,7 @@ mod tests {
         let root = document().create_element("div").unwrap();
         document().body().unwrap().append_child(&root).unwrap();
         let app = crate::start_app_in_element::<Comp<M>>(root);
+        scheduler::start_now();
 
         (app, get_el_by_tag(tag))
     }
@@ -650,6 +656,8 @@ mod tests {
         assert_count(&el, 2);
 
         link.send_message(Message::StopListening);
+        scheduler::start_now();
+
         el.click();
         assert_count(&el, 2);
     }
@@ -663,7 +671,11 @@ mod tests {
             where
                 C: Component<Message = Message>,
             {
-                let onblur = ctx.link().callback(|_| Message::Action);
+                let link = ctx.link().clone();
+                let onblur = Callback::from(move |_| {
+                    link.send_message(Message::Action);
+                    scheduler::start_now();
+                });
                 html! {
                     <div>
                         <a>
@@ -713,7 +725,11 @@ mod tests {
                         </div>
                     }
                 } else {
-                    let cb = ctx.link().callback(|_| Message::Action);
+                    let link = ctx.link().clone();
+                    let cb = Callback::from(move |_| {
+                        link.send_message(Message::Action);
+                        scheduler::start_now();
+                    });
                     html! {
                         <div onclick={cb.clone()}>
                             <a onclick={cb}>
@@ -736,6 +752,7 @@ mod tests {
         assert_count(&el, 4);
 
         link.send_message(Message::StopListening);
+        scheduler::start_now();
         el.click();
         assert_count(&el, 4);
     }
@@ -749,13 +766,22 @@ mod tests {
             where
                 C: Component<Message = Message>,
             {
+                let link = ctx.link().clone();
+                let onclick = Callback::from(move |_| {
+                    link.send_message(Message::Action);
+                    scheduler::start_now();
+                });
+
+                let link = ctx.link().clone();
+                let onclick2 = Callback::from(move |e: MouseEvent| {
+                    e.stop_propagation();
+                    link.send_message(Message::Action);
+                    scheduler::start_now();
+                });
+
                 html! {
-                    <div onclick={ctx.link().callback(|_| Message::Action)}>
-                        <a onclick={ctx.link().callback(|mouse_event: MouseEvent| {
-                            let event: Event = mouse_event.dyn_into().unwrap();
-                            event.stop_propagation();
-                            Message::Action
-                        })}>
+                    <div onclick={onclick}>
+                        <a onclick={onclick2}>
                             {state.action}
                         </a>
                     </div>
@@ -786,12 +812,21 @@ mod tests {
             where
                 C: Component<Message = Message>,
             {
+                let link = ctx.link().clone();
+                let onclick = Callback::from(move |_| {
+                    link.send_message(Message::Action);
+                    scheduler::start_now();
+                });
+
+                let link = ctx.link().clone();
+                let onclick2 = Callback::from(move |e: MouseEvent| {
+                    e.stop_propagation();
+                    link.send_message(Message::Action);
+                    scheduler::start_now();
+                });
                 html! {
-                    <div onclick={ctx.link().callback(|_| Message::Action)}>
-                        <div onclick={ctx.link().callback(|event: MouseEvent|  {
-                                event.stop_propagation();
-                                Message::Action
-                            })}>
+                    <div onclick={onclick}>
+                        <div onclick={onclick2}>
                             <a>
                                 {state.action}
                             </a>
@@ -831,19 +866,23 @@ mod tests {
                         </div>
                     }
                 } else {
+                    let link = ctx.link().clone();
+                    let onchange = Callback::from(move |e: web_sys::Event| {
+                        let el: web_sys::HtmlInputElement = e.target_unchecked_into();
+                        link.send_message(Message::SetText(el.value()));
+                        scheduler::start_now();
+                    });
+
+                    let link = ctx.link().clone();
+                    let oninput = Callback::from(move |e: web_sys::InputEvent| {
+                        let el: web_sys::HtmlInputElement = e.target_unchecked_into();
+                        link.send_message(Message::SetText(el.value()));
+                        scheduler::start_now();
+                    });
+
                     html! {
                         <div>
-                            <input
-                                type="text"
-                                onchange={ctx.link().callback(|e: web_sys::Event| {
-                                    let el: web_sys::HtmlInputElement = e.target_unchecked_into();
-                                    Message::SetText(el.value())
-                                })}
-                                oninput={ctx.link().callback(|e: web_sys::InputEvent| {
-                                    let el: web_sys::HtmlInputElement = e.target_unchecked_into();
-                                    Message::SetText(el.value())
-                                })}
-                            />
+                            <input type="text" {onchange} {oninput} />
                             <p>{state.text.clone()}</p>
                         </div>
                     }
@@ -860,6 +899,8 @@ mod tests {
             input_el.set_value(s);
             if s == &"baz" {
                 link.send_message(Message::StopListening);
+                scheduler::start_now();
+
                 s = &"bar";
             }
             input_el

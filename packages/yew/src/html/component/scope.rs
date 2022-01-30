@@ -2,7 +2,8 @@
 
 use super::{
     lifecycle::{
-        ComponentState, CreateRunner, DestroyRunner, RenderRunner, UpdateEvent, UpdateRunner,
+        CompStateInner, ComponentState, CreateRunner, DestroyRunner, RenderRunner, UpdateEvent,
+        UpdateRunner,
     },
     BaseComponent,
 };
@@ -12,23 +13,54 @@ use crate::html::NodeRef;
 use crate::scheduler::{self, Shared};
 use crate::virtual_dom::{insert_node, VNode};
 use gloo_utils::document;
-use std::any::{Any, TypeId};
+use std::any::TypeId;
 use std::cell::{Ref, RefCell};
+use std::marker::PhantomData;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::{fmt, iter};
 use web_sys::{Element, Node};
 
+#[derive(Debug)]
+pub(crate) struct MsgQueue<Msg>(Shared<Vec<Msg>>);
+
+impl<Msg> MsgQueue<Msg> {
+    pub fn new() -> Self {
+        MsgQueue(Rc::default())
+    }
+
+    pub fn push(&self, msg: Msg) -> usize {
+        let mut inner = self.0.borrow_mut();
+        inner.push(msg);
+
+        inner.len()
+    }
+
+    pub fn drain(&self) -> Vec<Msg> {
+        self.0.borrow_mut().drain(..).collect()
+    }
+}
+
+impl<Msg> Clone for MsgQueue<Msg> {
+    fn clone(&self) -> Self {
+        MsgQueue(self.0.clone())
+    }
+}
+
 /// Untyped scope used for accessing parent scope
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct AnyScope {
     type_id: TypeId,
     parent: Option<Rc<AnyScope>>,
-    state: Rc<dyn Any>,
+    state: Shared<Option<ComponentState>>,
 
-    // Used for debug logging
-    #[cfg(debug_assertions)]
-    pub(crate) vcomp_id: u64,
+    pub(crate) vcomp_id: usize,
+}
+
+impl fmt::Debug for AnyScope {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("AnyScope<_>")
+    }
 }
 
 impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
@@ -38,7 +70,6 @@ impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
             parent: scope.parent,
             state: scope.state,
 
-            #[cfg(debug_assertions)]
             vcomp_id: scope.vcomp_id,
         }
     }
@@ -50,9 +81,8 @@ impl AnyScope {
         Self {
             type_id: TypeId::of::<()>(),
             parent: None,
-            state: Rc::new(()),
+            state: Rc::new(RefCell::new(None)),
 
-            #[cfg(debug_assertions)]
             vcomp_id: 0,
         }
     }
@@ -69,25 +99,20 @@ impl AnyScope {
 
     /// Attempts to downcast into a typed scope
     pub fn downcast<COMP: BaseComponent>(self) -> Scope<COMP> {
-        let state = self
-            .state
-            .downcast::<RefCell<Option<ComponentState<COMP>>>>()
-            .expect("unexpected component type");
+        let state = self.state.borrow();
 
-        #[cfg(debug_assertions)]
-        let vcomp_id = state
-            .borrow()
+        state
             .as_ref()
-            .map(|s| s.vcomp_id)
-            .unwrap_or_default();
-
-        Scope {
-            parent: self.parent,
-            state,
-
-            #[cfg(debug_assertions)]
-            vcomp_id,
-        }
+            .map(|m| {
+                m.inner
+                    .as_any()
+                    .downcast_ref::<CompStateInner<COMP>>()
+                    .unwrap()
+                    .context
+                    .link()
+                    .clone()
+            })
+            .unwrap()
     }
 
     pub(crate) fn find_parent_scope<C: BaseComponent>(&self) -> Option<Scope<C>> {
@@ -155,12 +180,12 @@ impl<COMP: BaseComponent> Scoped for Scope<COMP> {
 
 /// A context which allows sending messages to a component.
 pub struct Scope<COMP: BaseComponent> {
+    _marker: PhantomData<COMP>,
     parent: Option<Rc<AnyScope>>,
-    pub(crate) state: Shared<Option<ComponentState<COMP>>>,
+    pub(crate) pending_messages: MsgQueue<COMP::Message>,
+    pub(crate) state: Shared<Option<ComponentState>>,
 
-    // Used for debug logging
-    #[cfg(debug_assertions)]
-    pub(crate) vcomp_id: u64,
+    pub(crate) vcomp_id: usize,
 }
 
 impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {
@@ -172,10 +197,11 @@ impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {
 impl<COMP: BaseComponent> Clone for Scope<COMP> {
     fn clone(&self) -> Self {
         Scope {
+            _marker: PhantomData,
+            pending_messages: self.pending_messages.clone(),
             parent: self.parent.clone(),
             state: self.state.clone(),
 
-            #[cfg(debug_assertions)]
             vcomp_id: self.vcomp_id,
         }
     }
@@ -192,7 +218,14 @@ impl<COMP: BaseComponent> Scope<COMP> {
         self.state.try_borrow().ok().and_then(|state_ref| {
             state_ref.as_ref()?;
             Some(Ref::map(state_ref, |state| {
-                state.as_ref().unwrap().component.as_ref()
+                &state
+                    .as_ref()
+                    .unwrap()
+                    .inner
+                    .as_any()
+                    .downcast_ref::<CompStateInner<COMP>>()
+                    .unwrap()
+                    .component
             }))
         })
     }
@@ -200,15 +233,16 @@ impl<COMP: BaseComponent> Scope<COMP> {
     pub(crate) fn new(parent: Option<AnyScope>) -> Self {
         let parent = parent.map(Rc::new);
         let state = Rc::new(RefCell::new(None));
+        let pending_messages = MsgQueue::new();
 
-        #[cfg(debug_assertions)]
         let vcomp_id = parent.as_ref().map(|p| p.vcomp_id).unwrap_or_default();
 
         Scope {
+            _marker: PhantomData,
+            pending_messages,
             state,
             parent,
 
-            #[cfg(debug_assertions)]
             vcomp_id,
         }
     }
@@ -261,7 +295,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
         self.push_update(UpdateEvent::Properties(props, node_ref, next_sibling));
     }
 
-    fn push_update(&self, event: UpdateEvent<COMP>) {
+    fn push_update(&self, event: UpdateEvent) {
         scheduler::push_component_update(UpdateRunner {
             state: self.state.clone(),
             event,
@@ -271,40 +305,25 @@ impl<COMP: BaseComponent> Scope<COMP> {
     }
 
     /// Send a message to the component.
-    ///
-    /// Please be aware that currently this method synchronously
-    /// schedules a call to the [Component](crate::html::Component) interface.
     pub fn send_message<T>(&self, msg: T)
     where
         T: Into<COMP::Message>,
     {
-        self.push_update(UpdateEvent::Message(msg.into()));
+        // We are the first message in queue, so we queue the update.
+        if self.pending_messages.push(msg.into()) == 1 {
+            self.push_update(UpdateEvent::Message);
+        }
     }
 
     /// Send a batch of messages to the component.
-    ///
-    /// This is useful for reducing re-renders of the components
-    /// because the messages are handled together and the view
-    /// function is called only once if needed.
-    ///
-    /// Please be aware that currently this method synchronously
-    /// schedules calls to the [Component](crate::html::Component) interface.
     pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
-        // There is no reason to schedule empty batches.
-        // This check is especially handy for the batch_callback method.
-        if messages.is_empty() {
-            return;
+        for message in messages {
+            self.send_message(message);
         }
-
-        self.push_update(UpdateEvent::MessageBatch(messages));
     }
 
     /// Creates a `Callback` which will send a message to the linked
     /// component's update method when invoked.
-    ///
-    /// Please be aware that currently the result of this callback
-    /// synchronously schedules a call to the [Component](crate::Component)
-    /// interface.
     pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
     where
         M: Into<COMP::Message>,
@@ -329,10 +348,6 @@ impl<COMP: BaseComponent> Scope<COMP> {
     /// link.batch_callback(|_| vec![Msg::A, Msg::B]);
     /// link.batch_callback(|_| Some(Msg::A));
     /// ```
-    ///
-    /// Please be aware that currently the results of these callbacks
-    /// will synchronously schedule calls to the
-    /// [Component](crate::Component) interface.
     pub fn batch_callback<F, IN, OUT>(&self, function: F) -> Callback<IN>
     where
         F: Fn(IN) -> OUT + 'static,

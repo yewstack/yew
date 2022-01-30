@@ -99,7 +99,7 @@ pub(crate) fn push_component_update(runnable: impl Runnable + 'static) {
 }
 
 /// Execute any pending [Runnable]s
-pub(crate) fn start() {
+pub(crate) fn start_now() {
     thread_local! {
         // The lock is used to prevent recursion. If the lock cannot be acquired, it is because the
         // `start()` method is being called recursively as part of a `runnable.run()`.
@@ -121,6 +121,39 @@ pub(crate) fn start() {
         }
     });
 }
+
+#[cfg(any(target_arch = "wasm32", feature = "tokio"))]
+mod feat_with_runtime {
+    use super::*;
+    use crate::io_coop::spawn_local;
+
+    // When a runtime is available, we delay the start of scheduler, so all messages that needs to
+    // be queued can be queued.
+    pub(crate) fn start() {
+        spawn_local(async {
+            start_now();
+        });
+    }
+}
+
+#[cfg(any(target_arch = "wasm32", feature = "tokio"))]
+pub(crate) use feat_with_runtime::*;
+
+#[cfg(not(any(target_arch = "wasm32", feature = "tokio")))]
+mod feat_no_runtime {
+    use super::*;
+
+    // We have no runtime available, so we have no choice but to run now.
+    // Mainly an issue with async-std at the moment. This can be revisited when
+    // either spawn_local is no longer unstable for async-std. Or we make our future Send
+    // on SSR.
+    pub(crate) fn start() {
+        start_now();
+    }
+}
+
+#[cfg(not(any(target_arch = "wasm32", feature = "tokio")))]
+pub(crate) use feat_no_runtime::*;
 
 impl Scheduler {
     /// Fill vector with tasks to be executed according to Runnable type execution priority

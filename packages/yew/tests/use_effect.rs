@@ -1,15 +1,17 @@
 mod common;
 
 use common::obtain_result;
+use gloo::timers::future::sleep;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
+use std::time::Duration;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
-fn use_effect_destroys_on_component_drop() {
+async fn use_effect_destroys_on_component_drop() {
     #[derive(Properties, Clone)]
     struct WrapperProps {
         destroy_called: Rc<dyn Fn()>,
@@ -68,11 +70,14 @@ fn use_effect_destroys_on_component_drop() {
             destroy_called: Rc::new(move || *destroy_counter_c.borrow_mut().deref_mut() += 1),
         },
     );
+
+    sleep(Duration::ZERO).await;
+
     assert_eq!(1, *destroy_counter.borrow().deref());
 }
 
 #[wasm_bindgen_test]
-fn use_effect_works_many_times() {
+async fn use_effect_works_many_times() {
     #[function_component(UseEffectComponent)]
     fn use_effect_comp() -> Html {
         let counter = use_state(|| 0);
@@ -100,12 +105,14 @@ fn use_effect_works_many_times() {
     yew::start_app_in_element::<UseEffectComponent>(
         gloo_utils::document().get_element_by_id("output").unwrap(),
     );
+
+    sleep(Duration::ZERO).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "4");
 }
 
 #[wasm_bindgen_test]
-fn use_effect_works_once() {
+async fn use_effect_works_once() {
     #[function_component(UseEffectComponent)]
     fn use_effect_comp() -> Html {
         let counter = use_state(|| 0);
@@ -131,12 +138,15 @@ fn use_effect_works_once() {
     yew::start_app_in_element::<UseEffectComponent>(
         gloo_utils::document().get_element_by_id("output").unwrap(),
     );
+    sleep(Duration::ZERO).await;
+
     let result = obtain_result();
+
     assert_eq!(result.as_str(), "1");
 }
 
 #[wasm_bindgen_test]
-fn use_effect_refires_on_dependency_change() {
+async fn use_effect_refires_on_dependency_change() {
     #[function_component(UseEffectComponent)]
     fn use_effect_comp() -> Html {
         let number_ref = use_mut_ref(|| 0);
@@ -175,6 +185,8 @@ fn use_effect_refires_on_dependency_change() {
     yew::start_app_in_element::<UseEffectComponent>(
         gloo_utils::document().get_element_by_id("output").unwrap(),
     );
+
+    sleep(Duration::ZERO).await;
     let result: String = obtain_result();
 
     assert_eq!(result.as_str(), "11");
