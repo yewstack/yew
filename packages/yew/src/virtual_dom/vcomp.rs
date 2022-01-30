@@ -9,11 +9,12 @@ use std::borrow::Borrow;
 use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
+#[cfg(debug_assertions)]
 use std::sync::atomic::{AtomicUsize, Ordering};
 use web_sys::Element;
 
+#[cfg(debug_assertions)]
 thread_local! {
-    #[cfg(debug_assertions)]
      static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<usize, Vec<String>>>
         = Default::default();
      static COMP_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -49,6 +50,7 @@ pub struct VComp {
     pub(crate) node_ref: NodeRef,
     pub(crate) key: Option<Key>,
 
+    #[cfg(debug_assertions)]
     pub(crate) id: usize,
 }
 
@@ -68,6 +70,7 @@ impl Clone for VComp {
             node_ref: self.node_ref.clone(),
             key: self.key.clone(),
 
+            #[cfg(debug_assertions)]
             id: self.id,
         }
     }
@@ -137,6 +140,7 @@ impl VComp {
             scope: None,
             key,
 
+            #[cfg(debug_assertions)]
             id: Self::next_id(),
         }
     }
@@ -160,6 +164,7 @@ impl VComp {
         })
     }
 
+    #[cfg(debug_assertions)]
     pub(crate) fn next_id() -> usize {
         COMP_ID_COUNTER.with(|m| m.fetch_add(1, Ordering::Relaxed))
     }

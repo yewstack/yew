@@ -54,6 +54,7 @@ pub struct AnyScope {
     parent: Option<Rc<AnyScope>>,
     state: Shared<Option<ComponentState>>,
 
+    #[cfg(debug_assertions)]
     pub(crate) vcomp_id: usize,
 }
 
@@ -70,6 +71,7 @@ impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
             parent: scope.parent,
             state: scope.state,
 
+            #[cfg(debug_assertions)]
             vcomp_id: scope.vcomp_id,
         }
     }
@@ -83,6 +85,7 @@ impl AnyScope {
             parent: None,
             state: Rc::new(RefCell::new(None)),
 
+            #[cfg(debug_assertions)]
             vcomp_id: 0,
         }
     }
@@ -185,6 +188,7 @@ pub struct Scope<COMP: BaseComponent> {
     pub(crate) pending_messages: MsgQueue<COMP::Message>,
     pub(crate) state: Shared<Option<ComponentState>>,
 
+    #[cfg(debug_assertions)]
     pub(crate) vcomp_id: usize,
 }
 
@@ -202,6 +206,7 @@ impl<COMP: BaseComponent> Clone for Scope<COMP> {
             parent: self.parent.clone(),
             state: self.state.clone(),
 
+            #[cfg(debug_assertions)]
             vcomp_id: self.vcomp_id,
         }
     }
@@ -235,6 +240,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
         let state = Rc::new(RefCell::new(None));
         let pending_messages = MsgQueue::new();
 
+        #[cfg(debug_assertions)]
         let vcomp_id = parent.as_ref().map(|p| p.vcomp_id).unwrap_or_default();
 
         Scope {
@@ -243,6 +249,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
             state,
             parent,
 
+            #[cfg(debug_assertions)]
             vcomp_id,
         }
     }
