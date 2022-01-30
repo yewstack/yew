@@ -243,8 +243,8 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
 }
 
 impl VDiff for VComp {
-    fn detach(&mut self, _parent: &Element) {
-        self.take_scope().destroy();
+    fn detach(&mut self, _parent: &Element, parent_to_detach: bool) {
+        self.take_scope().destroy(parent_to_detach);
     }
 
     fn shift(&self, _previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef) {
@@ -276,7 +276,7 @@ impl VDiff for VComp {
                 }
             }
 
-            ancestor.detach(parent);
+            ancestor.detach(parent, false);
         }
 
         self.scope = Some(mountable.mount(
@@ -595,7 +595,7 @@ mod tests {
         elem.apply(&scope, &parent, NodeRef::default(), None);
         let parent_node = parent.deref();
         assert_eq!(node_ref.get(), parent_node.first_child());
-        elem.detach(&parent);
+        elem.detach(&parent, false);
         assert!(node_ref.get().is_none());
     }
 }

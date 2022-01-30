@@ -497,7 +497,9 @@ impl Default for Attributes {
 /// This trait provides features to update a tree by calculating a difference against another tree.
 pub(crate) trait VDiff {
     /// Remove self from parent.
-    fn detach(&mut self, parent: &Element);
+    ///
+    /// Parent to detach is `true` if the parent element will also be detached.
+    fn detach(&mut self, parent: &Element, parent_to_detach: bool);
 
     /// Move elements from one parent to another parent.
     /// This is currently only used by `VSuspense` to preserve component state without detaching
