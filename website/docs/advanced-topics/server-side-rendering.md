@@ -33,6 +33,8 @@ to render `<App />` into a `String`.
 ```rust
 use yew::prelude::*;
 use yew::ServerRenderer;
+use tokio::task::LocalSet;
+use tokio::task::spawn_blocking;
 
 #[function_component]
 fn App() -> Html {
@@ -41,9 +43,21 @@ fn App() -> Html {
 
 #[tokio::main]
 async fn main() {
-    let renderer = ServerRenderer::<App>::new();
+    // Yew is not thread-safe so we need to spawn it onto a single thread.
+    let rendered = spawn_blocking(move || {
+        use tokio::runtime::Builder;
+        let set = LocalSet::new();
 
-    let rendered = renderer.render().await;
+        let rt = Builder::new_current_thread().enable_all().build().unwrap();
+
+        set.block_on(&rt, async {
+            let renderer = yew::ServerRenderer::<App>::new();
+
+            renderer.render().await
+        })
+    })
+    .await
+    .expect("rendering has failed.");
 
     // Prints: <div>Hello, World!</div>
     println!("{}", rendered);
