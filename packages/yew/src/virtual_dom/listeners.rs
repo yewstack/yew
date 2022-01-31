@@ -66,17 +66,28 @@ macro_rules! gen_listener_kinds {
         /// Supported kinds of DOM event listeners
         // Using instead of strings to optimise registry collection performance by simplifying
         // hashmap hash calculation.
-        #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+        #[derive(Clone, PartialEq, Eq, Hash, Debug)]
         #[allow(non_camel_case_types)]
         #[allow(missing_docs)]
         pub enum ListenerKind {
             $( $kind, )*
+            other(std::borrow::Cow<'static, str>),
+        }
+
+        impl ListenerKind {
+            pub fn type_name(&self) -> &str {
+                match self {
+                    Self::other(type_name) => type_name.as_ref(),
+                    kind => &kind.as_ref()[2..],
+                }
+            }
         }
 
         impl AsRef<str> for ListenerKind {
             fn as_ref(&self) -> &str {
                 match self {
                     $( Self::$kind => stringify!($kind), )*
+                    Self::other(type_name) => type_name.as_ref(),
                 }
             }
         }
@@ -312,7 +323,7 @@ impl Default for Listeners {
     }
 }
 
-#[derive(Clone, Copy, Hash, Eq, PartialEq, Debug)]
+#[derive(Clone, Hash, Eq, PartialEq, Debug)]
 struct EventDescriptor {
     kind: ListenerKind,
     passive: bool,
@@ -347,12 +358,13 @@ impl GlobalHandlers {
     fn ensure_handled(&mut self, desc: EventDescriptor) {
         if !self.handling.contains(&desc) {
             let cl = BODY.with(|body| {
-                let cl = Closure::wrap(
-                    Box::new(move |e: Event| Registry::handle(desc, e)) as Box<dyn Fn(Event)>
-                );
+                let cl = Closure::wrap(Box::new({
+                    let desc = desc.clone();
+                    move |e: Event| Registry::handle(desc.clone(), e)
+                }) as Box<dyn Fn(Event)>);
                 AsRef::<web_sys::EventTarget>::as_ref(body)
                     .add_event_listener_with_callback_and_add_event_listener_options(
-                        &desc.kind.as_ref()[2..],
+                        desc.kind.type_name(),
                         cl.as_ref().unchecked_ref(),
                         &{
                             let mut opts = web_sys::AddEventListenerOptions::new();
@@ -371,7 +383,7 @@ impl GlobalHandlers {
             #[cfg(not(test))]
             cl.forget();
             #[cfg(test)]
-            self.registered.push((desc.kind, cl));
+            self.registered.push((desc.kind.clone(), cl));
 
             self.handling.insert(desc);
         }
@@ -386,7 +398,7 @@ impl Drop for GlobalHandlers {
             for (kind, cl) in std::mem::take(&mut self.registered) {
                 AsRef::<web_sys::EventTarget>::as_ref(body)
                     .remove_event_listener_with_callback(
-                        &kind.as_ref()[2..],
+                        kind.type_name(),
                         cl.as_ref().unchecked_ref(),
                     )
                     .unwrap();
@@ -421,7 +433,7 @@ impl Registry {
             HashMap::<EventDescriptor, Vec<Rc<dyn Listener>>>::with_capacity(listeners.len());
         for l in listeners.iter().filter_map(|l| l.as_ref()).cloned() {
             let desc = EventDescriptor::from(l.deref());
-            self.global.ensure_handled(desc);
+            self.global.ensure_handled(desc.clone());
             by_desc.entry(desc).or_default().push(l);
         }
         self.by_id.insert(id, by_desc);
@@ -437,7 +449,7 @@ impl Registry {
 
             for l in listeners.iter().filter_map(|l| l.as_ref()).cloned() {
                 let desc = EventDescriptor::from(l.deref());
-                self.global.ensure_handled(desc);
+                self.global.ensure_handled(desc.clone());
                 by_desc.entry(desc).or_default().push(l);
             }
         }
