@@ -174,10 +174,14 @@ impl TryFrom<Props<true>> for ComponentProps {
 fn validate(props: Props<true>) -> Result<Props<true>, syn::Error> {
     props.check_no_duplicates()?;
     props.check_all(|prop| match &prop.label {
-        PropLabel::HtmlDashedName(name) if syn::parse_str::<Ident>(&name.to_string()).is_err() => Err(syn::Error::new_spanned(
-            &name,
-            "expected a valid Rust identifier",
-        )),
+        PropLabel::HtmlDashedName(name)
+            if syn::parse2::<Ident>(name.to_token_stream()).is_err() =>
+        {
+            Err(syn::Error::new_spanned(
+                &name,
+                "expected a valid Rust identifier",
+            ))
+        }
         _ => Ok(()),
     })?;
 
