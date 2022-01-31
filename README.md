@@ -11,7 +11,7 @@
     <a href="https://crates.io/crates/yew"><img alt="Crate Info" src="https://img.shields.io/crates/v/yew.svg"/></a>
     <a href="https://docs.rs/yew/"><img alt="API Docs" src="https://img.shields.io/badge/docs.rs-yew-green"/></a>
     <a href="https://discord.gg/VQck8X4"><img alt="Discord Chat" src="https://img.shields.io/discord/701068342760570933"/></a>
-    <a href="https://gitlocalize.com/repo/4999/whole_project?utm_source=badge"> <img src="https://gitlocalize.com/repo/4999/whole_project/badge.svg" /> </a>
+    <a href="https://gitlocalize.com/repo/7052/whole_project?utm_source=badge"> <img src="https://gitlocalize.com/repo/7052/whole_project/badge.svg" /> </a>
     <a href="https://blog.rust-lang.org/2020/12/31/Rust-1.56.0.html"><img alt="Rustc Version 1.56.0+" src="https://img.shields.io/badge/rustc-1.56%2B-lightgrey.svg"/></a>
   </p>
 
@@ -70,7 +70,7 @@ Please [report all bugs!](https://github.com/yewstack/yew/issues/new/choose) We 
 
 #### 🤓 Want to help translate?
 
-Translations can be submitted on the [Yew GitLocalize Repo](https://gitlocalize.com/repo/4999). If you are interested in being the official moderator for a language, please reach out on Discord.
+Translations can be submitted on the [Yew GitLocalize Repo](https://gitlocalize.com/repo/7052). If you are interested in being the official moderator for a language, please reach out on Discord.
 
 ## Contributors
 
