@@ -54,9 +54,9 @@ fn compile_pass() {
     ::yew::props!(Props { a: 5 });
     let (a, b) = (3, 5);
     ::yew::props!(Props { a, b });
-    ::yew::props!(RawIdentProps { true: 5 });
+    ::yew::props!(RawIdentProps { r#true: 5 });
     let (r#true, r#pointless_raw_name) = (3, 5);
-    ::yew::props!(RawIdentProps { true, pointless_raw_name });
+    ::yew::props!(RawIdentProps { r#true, pointless_raw_name });
 }
 
 fn main() {}

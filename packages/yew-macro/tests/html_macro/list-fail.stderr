@@ -59,7 +59,7 @@ error: only a single `key` prop is allowed on a fragment
    |                              ^^^
 
 error: fragments only accept the `key` prop
-  --> tests/html_macro/list-fail.rs:25:13
+  --> tests/html_macro/list-fail.rs:25:14
    |
 25 |     html! { <some_attr="test"></> };
-   |             ^^^^^^^^^^^^^^^^^^
+   |              ^^^^^^^^^

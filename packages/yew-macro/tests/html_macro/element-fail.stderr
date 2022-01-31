@@ -59,58 +59,58 @@ error: expected a valid html element
    |                  ^^^^^^^
 
 error: `attr` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:26:13
+  --> tests/html_macro/element-fail.rs:26:27
    |
 26 |     html! { <input attr=1 attr=2 /> };
-   |             ^^^^^^^^^^^^^^^^^^^^^^^
+   |                           ^^^^
 
 error: `value` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:27:13
+  --> tests/html_macro/element-fail.rs:27:32
    |
 27 |     html! { <input value="123" value="456" /> };
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                                ^^^^^
 
 error: `kind` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:28:13
+  --> tests/html_macro/element-fail.rs:28:36
    |
 28 |     html! { <input kind="checkbox" kind="submit" /> };
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                                    ^^^^
 
 error: `checked` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:29:13
+  --> tests/html_macro/element-fail.rs:29:33
    |
 29 |     html! { <input checked=true checked=false /> };
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                                 ^^^^^^^
 
 error: `disabled` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:30:13
+  --> tests/html_macro/element-fail.rs:30:34
    |
 30 |     html! { <input disabled=true disabled=false /> };
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                                  ^^^^^^^^
 
 error: `selected` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:31:13
+  --> tests/html_macro/element-fail.rs:31:35
    |
 31 |     html! { <option selected=true selected=false /> };
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                                   ^^^^^^^^
 
 error: `class` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:32:13
+  --> tests/html_macro/element-fail.rs:32:32
    |
 32 |     html! { <div class="first" class="second" /> };
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                                ^^^^^
 
 error: `ref` can only be specified once
-  --> tests/html_macro/element-fail.rs:33:13
+  --> tests/html_macro/element-fail.rs:33:20
    |
 33 |     html! { <input ref={()} ref={()} /> };
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                    ^^^
 
 error: `ref` can only be specified once
-  --> tests/html_macro/element-fail.rs:63:13
+  --> tests/html_macro/element-fail.rs:63:20
    |
 63 |     html! { <input ref={()} ref={()} /> };
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                    ^^^
 
 error: this dynamic tag is missing an expression block defining its value
   --> tests/html_macro/element-fail.rs:71:14
@@ -263,21 +263,18 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<AttrValue>>` is not sati
    |                      ^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `()`
 
 error[E0609]: no field `string` on type `InputProps`
-  --> tests/html_macro/element-fail.rs:46:5
+  --> tests/html_macro/element-fail.rs:46:20
    |
 46 |     html! { <input string={NotToString} /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unknown field
+   |                    ^^^^^^ unknown field
    |
    = note: available fields are: `node_ref`, `key`, `children`, `accept`, `alt` ... and 144 others
-   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `string` found for struct `InputPropsBuilder` in the current scope
-  --> tests/html_macro/element-fail.rs:46:5
+  --> tests/html_macro/element-fail.rs:46:20
    |
 46 |     html! { <input string={NotToString} /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `InputPropsBuilder<InputPropsBuilderStepPropsBuilder>`
-   |
-   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+   |                    ^^^^^^ method not found in `InputPropsBuilder<InputPropsBuilderStepPropsBuilder>`
 
 error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:47:23
@@ -357,21 +354,18 @@ error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<Strin
    = note: required because of the requirements on the impl of `IntoPropValue<Option<yew::Callback<MouseEvent>>>` for `yew::Callback<String>`
 
 error[E0609]: no field `string` on type `InputProps`
-  --> tests/html_macro/element-fail.rs:60:5
+  --> tests/html_macro/element-fail.rs:60:20
    |
 60 |     html! { <input string={NotToString} /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unknown field
+   |                    ^^^^^^ unknown field
    |
    = note: available fields are: `node_ref`, `key`, `children`, `accept`, `alt` ... and 144 others
-   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `string` found for struct `InputPropsBuilder` in the current scope
-  --> tests/html_macro/element-fail.rs:60:5
+  --> tests/html_macro/element-fail.rs:60:20
    |
 60 |     html! { <input string={NotToString} /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method not found in `InputPropsBuilder<InputPropsBuilderStepPropsBuilder>`
-   |
-   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+   |                    ^^^^^^ method not found in `InputPropsBuilder<InputPropsBuilderStepPropsBuilder>`
 
 error[E0308]: mismatched types
   --> tests/html_macro/element-fail.rs:62:25
