@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1643655289406,
+  "lastUpdate": 1643656508755,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -4136,6 +4136,115 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 32_startup-bt",
             "value": "33.73799999999999",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "367.962890625",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a877b0b5072a7fadaa81b141b947180366a0c252",
+          "message": "Bump @docusaurus/plugin-google-analytics in /website (#2425)\n\nBumps [@docusaurus/plugin-google-analytics](https://github.com/facebook/docusaurus/tree/HEAD/packages/docusaurus-plugin-google-analytics) from 2.0.0-beta.14 to 2.0.0-beta.15.\r\n- [Release notes](https://github.com/facebook/docusaurus/releases)\r\n- [Changelog](https://github.com/facebook/docusaurus/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/facebook/docusaurus/commits/v2.0.0-beta.15/packages/docusaurus-plugin-google-analytics)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: \"@docusaurus/plugin-google-analytics\"\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\n\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2022-01-31T19:52:43+01:00",
+          "tree_id": "cdb15f2041b6aa8f6e479c27c9814854cbddfa71",
+          "url": "https://github.com/yewstack/yew/commit/a877b0b5072a7fadaa81b141b947180366a0c252"
+        },
+        "date": 1643656507057,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "200.4035",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "218.6385",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "408.0925",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "92.147",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "103.597",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "33.7645",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "2331.639",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "460.434",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "223.224",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.2453231811523438",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.4578094482421875",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.5036354064941406",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.510845184326172",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.1287879943847656",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1863.18925",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "37.79599999999999",
             "unit": ""
           },
           {
