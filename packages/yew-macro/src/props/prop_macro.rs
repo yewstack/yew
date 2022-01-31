@@ -1,5 +1,6 @@
 use super::{ComponentProps, Prop, Props, SortedPropList};
 use crate::html_tree::HtmlDashedName;
+use crate::props::PropLabel;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
 use std::convert::TryInto;
@@ -10,7 +11,6 @@ use syn::{
     token::Brace,
     Expr, Token, TypePath,
 };
-use crate::props::PropLabel;
 
 /// Pop from `Punctuated` without leaving it in a state where it has trailing punctuation.
 fn pop_last_punctuated<T, P>(punctuated: &mut Punctuated<T, P>) -> Option<T> {
@@ -61,7 +61,10 @@ impl Parse for PropValue {
 impl<const IS_COMP: bool> From<PropValue> for Prop<IS_COMP> {
     fn from(prop_value: PropValue) -> Self {
         let PropValue { label, value } = prop_value;
-        Prop { label: PropLabel::HtmlDashedName(label), value }
+        Prop {
+            label: PropLabel::HtmlDashedName(label),
+            value,
+        }
     }
 }
 

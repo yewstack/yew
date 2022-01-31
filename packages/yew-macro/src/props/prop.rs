@@ -1,14 +1,19 @@
+use proc_macro2::{Ident, Spacing, TokenStream, TokenTree};
+use quote::{format_ident, ToTokens};
+use std::fmt;
 use std::{
     cmp::Ordering,
     convert::TryFrom,
     ops::{Deref, DerefMut},
 };
-use proc_macro2::{Ident, Spacing, TokenStream, TokenTree};
-use syn::{Block, braced, Expr, ExprBlock, ExprPath, ExprRange, LitStr, parse::{Parse, ParseBuffer, ParseStream}, Stmt, Token, token::Brace};
 use syn::ext::IdentExt;
-use std::fmt;
-use quote::{format_ident, ToTokens};
 use syn::spanned::Spanned;
+use syn::{
+    braced,
+    parse::{Parse, ParseBuffer, ParseStream},
+    token::Brace,
+    Block, Expr, ExprBlock, ExprPath, ExprRange, LitStr, Stmt, Token,
+};
 
 use crate::html_tree::HtmlDashedName;
 
@@ -17,14 +22,14 @@ use super::CHILDREN_LABEL;
 #[derive(Clone, PartialEq)]
 pub enum PropLabel {
     HtmlDashedName(HtmlDashedName),
-    Ident(Ident)
+    Ident(Ident),
 }
 
 impl PropLabel {
     pub fn name(&self) -> &Ident {
         match self {
             PropLabel::HtmlDashedName(n) => &n.name,
-            PropLabel::Ident(i) => i
+            PropLabel::Ident(i) => i,
         }
     }
 
@@ -76,15 +81,19 @@ impl<const IS_COMP: bool> Prop<IS_COMP> {
         let _brace = braced!(value in input);
         let expr = value.parse::<Expr>()?;
         let label = match expr {
-            Expr::Path(ExprPath { ref attrs, qself: None, ref path, }) => {
-                match (path.get_ident(), attrs.is_empty()) {
-                    (Some(ident), true) => PropLabel::Ident(ident.clone()),
-                    _ => return Err(syn::Error::new_spanned(
+            Expr::Path(ExprPath {
+                ref attrs,
+                qself: None,
+                ref path,
+            }) => match (path.get_ident(), attrs.is_empty()) {
+                (Some(ident), true) => PropLabel::Ident(ident.clone()),
+                _ => {
+                    return Err(syn::Error::new_spanned(
                         path,
                         "only simple identifiers are allowed in the shorthand property syntax",
                     ))
                 }
-            }
+            },
             _ => {
                 return Err(syn::Error::new_spanned(
                     expr,
@@ -121,12 +130,9 @@ impl<const IS_COMP: bool> Prop<IS_COMP> {
     }
 }
 
-impl Prop<true> {
+impl Prop<true> {}
 
-}
-
-impl Prop<false> {
-}
+impl Prop<false> {}
 
 fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
     if input.peek(Brace) {

@@ -1,4 +1,5 @@
 use super::{Prop, Props, SpecialProps, CHILDREN_LABEL};
+use crate::props::PropLabel;
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use std::convert::TryFrom;
@@ -8,7 +9,6 @@ use syn::{
     token::Dot2,
     Expr,
 };
-use crate::props::PropLabel;
 
 struct BaseExpr {
     pub dot2: Dot2,
@@ -173,14 +173,12 @@ impl TryFrom<Props<true>> for ComponentProps {
 
 fn validate(props: Props<true>) -> Result<Props<true>, syn::Error> {
     props.check_no_duplicates()?;
-    props.check_all(|prop| {
-        match &prop.label {
-            PropLabel::HtmlDashedName(label) => Err(syn::Error::new_spanned(
-                &label,
-                "expected a valid Rust identifier",
-            )),
-            _ => Ok(())
-        }
+    props.check_all(|prop| match &prop.label {
+        PropLabel::HtmlDashedName(label) => Err(syn::Error::new_spanned(
+            &label,
+            "expected a valid Rust identifier",
+        )),
+        _ => Ok(()),
     })?;
 
     Ok(props)
