@@ -21,6 +21,11 @@ where
     pub(crate) context: Context<COMP>,
 }
 
+/// A trait to provide common,
+/// generic free behaviour across all components to reduce code size.
+///
+/// Mostly a thin wrapper that passes the context to a component's lifecycle
+/// methods.
 pub(crate) trait Stateful {
     fn view(&self) -> RenderResult<VNode>;
     fn rendered(&mut self, first_render: bool);

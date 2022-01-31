@@ -36,8 +36,20 @@ impl<Msg> MsgQueue<Msg> {
         inner.len()
     }
 
+    pub fn append(&self, other: &mut Vec<Msg>) -> usize {
+        let mut inner = self.0.borrow_mut();
+        inner.append(other);
+
+        inner.len()
+    }
+
     pub fn drain(&self) -> Vec<Msg> {
-        self.0.borrow_mut().drain(..).collect()
+        let mut other_queue = Vec::new();
+        let mut inner = self.0.borrow_mut();
+
+        std::mem::swap(&mut *inner, &mut other_queue);
+
+        other_queue
     }
 }
 
@@ -323,9 +335,12 @@ impl<COMP: BaseComponent> Scope<COMP> {
     }
 
     /// Send a batch of messages to the component.
-    pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
-        for message in messages {
-            self.send_message(message);
+    pub fn send_message_batch(&self, mut messages: Vec<COMP::Message>) {
+        let msg_len = messages.len();
+
+        // The queue was empty, so we queue the update
+        if self.pending_messages.append(&mut messages) == msg_len {
+            self.push_update(UpdateEvent::Message);
         }
     }
 

@@ -127,7 +127,7 @@ mod target_wasm {
     use super::*;
     use crate::io_coop::spawn_local;
 
-    /// We delay the start of the scheduler to the end of the browser event loop.
+    /// We delay the start of the scheduler to the end of the micro task queue.
     /// So any messages that needs to be queued can be queued.
     pub(crate) fn start() {
         spawn_local(async {
@@ -143,10 +143,10 @@ pub(crate) use target_wasm::*;
 mod target_native {
     use super::*;
 
-    // Delayed rendering is not very useful on server-side rendering.
-    // There is not event listener or other high priority events that needs to be
+    // Delayed rendering is not very useful in the context of server-side rendering.
+    // There are no event listeners or other high priority events that need to be
     // processed and we risk of having a future un-finished.
-    // Until scheduler is future-capable which we means can join inside a future,
+    // Until scheduler is future-capable which means we can join inside a future,
     // it can remain synchronous.
     pub(crate) fn start() {
         start_now();
