@@ -44,11 +44,11 @@ where
 /// element (if that attribute can be found on the prop).
 ///
 /// Attribute names are lowercased before being compared (so pass "href" for `name` and not "HREF").
-fn get_attribute<'a>(props: &'a ComponentProps, name: &str) -> Option<&'a Prop> {
+fn get_attribute<'a>(props: &'a ComponentProps, name: &str) -> Option<&'a Prop<true>> {
     props
         .props
         .iter()
-        .find(|item| item.label.eq_ignore_ascii_case(name))
+        .find(|item| item.label.to_string().eq_ignore_ascii_case(name))
 }
 
 fn get_component_name(component: &HtmlComponent) -> String {

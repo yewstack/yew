@@ -8,6 +8,7 @@ use syn::{
     token::Dot2,
     Expr,
 };
+use crate::props::PropLabel;
 
 struct BaseExpr {
     pub dot2: Dot2,
@@ -35,17 +36,17 @@ impl ToTokens for BaseExpr {
 }
 
 pub struct ComponentProps {
-    pub props: Props,
+    pub props: Props<true>,
     base_expr: Option<Expr>,
 }
 impl ComponentProps {
     /// Get the special props supported by both variants
-    pub fn special(&self) -> &SpecialProps {
+    pub fn special(&self) -> &SpecialProps<true> {
         &self.props.special
     }
 
     // check if the `children` prop is given explicitly
-    pub fn children(&self) -> Option<&Prop> {
+    pub fn children(&self) -> Option<&Prop<true>> {
         self.props.get_by_label(CHILDREN_LABEL)
     }
 
@@ -159,10 +160,10 @@ impl Parse for ComponentProps {
     }
 }
 
-impl TryFrom<Props> for ComponentProps {
+impl TryFrom<Props<true>> for ComponentProps {
     type Error = syn::Error;
 
-    fn try_from(props: Props) -> Result<Self, Self::Error> {
+    fn try_from(props: Props<true>) -> Result<Self, Self::Error> {
         Ok(Self {
             props: validate(props)?,
             base_expr: None,
@@ -170,16 +171,15 @@ impl TryFrom<Props> for ComponentProps {
     }
 }
 
-fn validate(props: Props) -> Result<Props, syn::Error> {
+fn validate(props: Props<true>) -> Result<Props<true>, syn::Error> {
     props.check_no_duplicates()?;
     props.check_all(|prop| {
-        if !prop.label.extended.is_empty() {
-            Err(syn::Error::new_spanned(
-                &prop.label,
+        match &prop.label {
+            PropLabel::HtmlDashedName(label) => Err(syn::Error::new_spanned(
+                &label,
                 "expected a valid Rust identifier",
-            ))
-        } else {
-            Ok(())
+            )),
+            _ => Ok(())
         }
     })?;
 

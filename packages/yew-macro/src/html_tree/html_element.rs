@@ -272,7 +272,7 @@ impl ToTokens for HtmlElement {
             quote! { ::yew::virtual_dom::listeners::Listeners::None }
         } else {
             let listeners_it = listeners.iter().map(|Prop { label, value, .. }| {
-                let name = &label.name;
+                let name = &label.name();
                 quote! {
                     ::yew::html::#name::Wrapper::__macro_new(#value)
                 }
@@ -428,7 +428,7 @@ impl ToTokens for HtmlElement {
     }
 }
 
-fn wrap_attr_prop(prop: &Prop) -> TokenStream {
+fn wrap_attr_prop(prop: &Prop<false>) -> TokenStream {
     let value = prop.value.optimize_literals();
     quote_spanned! {value.span()=>
         ::yew::html::IntoPropValue::<

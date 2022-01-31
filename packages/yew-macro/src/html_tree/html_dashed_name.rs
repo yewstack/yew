@@ -18,6 +18,7 @@ pub struct HtmlDashedName {
 impl HtmlDashedName {
     /// Checks if this name is equal to the provided item (which can be anything implementing
     /// `Into<String>`).
+    #[allow(dead_code)]
     pub fn eq_ignore_ascii_case<S>(&self, other: S) -> bool
     where
         S: Into<String>,

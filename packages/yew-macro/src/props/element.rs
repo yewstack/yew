@@ -18,19 +18,19 @@ impl ClassesForm {
 }
 
 pub struct ElementProps {
-    pub attributes: Vec<Prop>,
-    pub listeners: Vec<Prop>,
+    pub attributes: Vec<Prop<false>>,
+    pub listeners: Vec<Prop<false>>,
     pub classes: Option<ClassesForm>,
-    pub booleans: Vec<Prop>,
-    pub value: Option<Prop>,
-    pub checked: Option<Prop>,
-    pub node_ref: Option<Prop>,
-    pub key: Option<Prop>,
+    pub booleans: Vec<Prop<false>>,
+    pub value: Option<Prop<false>>,
+    pub checked: Option<Prop<false>>,
+    pub node_ref: Option<Prop<false>>,
+    pub key: Option<Prop<false>>,
 }
 
 impl Parse for ElementProps {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut props = input.parse::<Props>()?;
+        let mut props = input.parse::<Props<false>>()?;
 
         let listeners =
             props.drain_filter(|prop| LISTENER_SET.contains(prop.label.to_string().as_str()));

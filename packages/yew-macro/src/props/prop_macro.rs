@@ -10,6 +10,7 @@ use syn::{
     token::Brace,
     Expr, Token, TypePath,
 };
+use crate::props::PropLabel;
 
 /// Pop from `Punctuated` without leaving it in a state where it has trailing punctuation.
 fn pop_last_punctuated<T, P>(punctuated: &mut Punctuated<T, P>) -> Option<T> {
@@ -57,10 +58,10 @@ impl Parse for PropValue {
     }
 }
 
-impl From<PropValue> for Prop {
-    fn from(prop_value: PropValue) -> Prop {
+impl<const IS_COMP: bool> From<PropValue> for Prop<IS_COMP> {
+    fn from(prop_value: PropValue) -> Self {
         let PropValue { label, value } = prop_value;
-        Prop { label, value }
+        Prop { label: PropLabel::HtmlDashedName(label), value }
     }
 }
 
@@ -101,7 +102,7 @@ impl Parse for PropsMacroInput {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let PropsExpr { ty, fields, .. } = input.parse()?;
         let prop_list = SortedPropList::new(fields.into_iter().map(Into::into).collect());
-        let props: Props = prop_list.try_into()?;
+        let props: Props<true> = prop_list.try_into()?;
         props.special.check_all(|prop| {
             let label = &prop.label;
             Err(syn::Error::new_spanned(
