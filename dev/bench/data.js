@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1643658442185,
+  "lastUpdate": 1643746144474,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -4463,6 +4463,115 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 32_startup-bt",
             "value": "37.67399999999999",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "367.962890625",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "56165400+michaelgrigoryan25@users.noreply.github.com",
+            "name": "Michael Grigoryan",
+            "username": "michaelgrigoryan25"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bd373d2861af9207dcb22338e369d2cfd32702d1",
+          "message": "docs: added a screenshot of an example (#2422)\n\n* docs: added a screenshot of an example\r\n\r\n* Added the screenshot\r\n\r\n* Update index.mdx\r\n\r\n* Update website/versioned_docs/version-0.19.0/tutorial/index.mdx\r\n\r\nCo-authored-by: Julius Lungys <32368314+voidpumpkin@users.noreply.github.com>\r\n\r\n* Rename screenshot\r\n\r\n* Delete screenshot.png\r\n\r\n* Update index.mdx\r\n\r\nCo-authored-by: Julius Lungys <32368314+voidpumpkin@users.noreply.github.com>",
+          "timestamp": "2022-02-01T21:02:58+01:00",
+          "tree_id": "0ef197997c5796a7d863687b39820056e4b53fc9",
+          "url": "https://github.com/yewstack/yew/commit/bd373d2861af9207dcb22338e369d2cfd32702d1"
+        },
+        "date": 1643746142212,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "162.92700000000002",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "172.9105",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "312.041",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "68.25",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "92.3215",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "30.8305",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "2175.1040000000003",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "432.8855",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "210.3835",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "0.9634513854980468",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.4578094482421875",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.5068473815917969",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.510845184326172",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.1287879943847656",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1882.03",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "40.54199999999999",
             "unit": ""
           },
           {
