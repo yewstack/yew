@@ -166,7 +166,9 @@ pub use yew_macro::html;
 /// }
 ///
 /// impl Into<Html> for ListItem {
-///   fn into(self) -> Html { html! { <self /> } }
+///   fn into(self) -> Html { 
+///     html! { <Self /> } 
+///   }
 /// }
 /// // You can use `List` with nested `ListItem` components.
 /// // Using any other kind of element would result in a compile error.
