@@ -1,269 +1,269 @@
 error: this opening tag has no corresponding closing tag
-  --> tests/html_macro/component-fail.rs:43:13
+##[error]  --> tests/html_macro/component-fail.rs:43:13
    |
 43 |     html! { <Child> };
    |             ^^^^^^^
 
 error: unexpected end of input, expected identifier
-  --> tests/html_macro/component-fail.rs:44:13
+##[error]  --> tests/html_macro/component-fail.rs:44:13
    |
 44 |     html! { <Child:: /> };
    |             ^^^^^^^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
-  --> tests/html_macro/component-fail.rs:45:20
+##[error]  --> tests/html_macro/component-fail.rs:45:20
    |
 45 |     html! { <Child with /> };
    |                    ^^^^
 
 error: expected base props expression after `..`
-  --> tests/html_macro/component-fail.rs:46:20
+##[error]  --> tests/html_macro/component-fail.rs:46:20
    |
 46 |     html! { <Child .. /> };
    |                    ^^
 
 error: unexpected end of input, expected expression
-  --> tests/html_macro/component-fail.rs:46:13
+##[error]  --> tests/html_macro/component-fail.rs:46:13
    |
 46 |     html! { <Child .. /> };
    |             ^^^^^^^^^^^^
 
 error: expected base props expression after `..`
-  --> tests/html_macro/component-fail.rs:47:20
+##[error]  --> tests/html_macro/component-fail.rs:47:20
    |
 47 |     html! { <Child ..{ 5 + } /> };
    |                    ^^
 
 error: unexpected end of input, expected expression
-  --> tests/html_macro/component-fail.rs:47:28
+##[error]  --> tests/html_macro/component-fail.rs:47:28
    |
 47 |     html! { <Child ..{ 5 + } /> };
    |                            ^
 
 error: `props` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
-  --> tests/html_macro/component-fail.rs:48:20
+##[error]  --> tests/html_macro/component-fail.rs:48:20
    |
 48 |     html! { <Child props /> };
    |                    ^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
-  --> tests/html_macro/component-fail.rs:49:20
+##[error]  --> tests/html_macro/component-fail.rs:49:20
    |
 49 |     html! { <Child with props > };
    |                    ^^^^
 
 error: this opening tag has no corresponding closing tag
-  --> tests/html_macro/component-fail.rs:50:13
+##[error]  --> tests/html_macro/component-fail.rs:50:13
    |
 50 |     html! { <Child ..props > };
    |             ^^^^^^^^^^^^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
-  --> tests/html_macro/component-fail.rs:52:20
+##[error]  --> tests/html_macro/component-fail.rs:52:20
    |
 52 |     html! { <Child with p1 with p2 /> };
    |                    ^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
-  --> tests/html_macro/component-fail.rs:54:20
+##[error]  --> tests/html_macro/component-fail.rs:54:20
    |
 54 |     html! { <Child with props ref={()} ref={()} /> };
    |                    ^^^^
 
 error: base props expression must appear last in list of props
-  --> tests/html_macro/component-fail.rs:55:20
+##[error]  --> tests/html_macro/component-fail.rs:55:20
    |
 55 |     html! { <Child ..props ref={()} ref={()} /> };
    |                    ^^^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
-  --> tests/html_macro/component-fail.rs:56:20
+##[error]  --> tests/html_macro/component-fail.rs:56:20
    |
 56 |     html! { <Child with props ref={()} ref={()} value=1 /> };
    |                    ^^^^
 
 error: base props expression must appear last in list of props
-  --> tests/html_macro/component-fail.rs:57:20
+##[error]  --> tests/html_macro/component-fail.rs:57:20
    |
 57 |     html! { <Child ..props ref={()} ref={()} value=1 /> };
    |                    ^^^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
-  --> tests/html_macro/component-fail.rs:58:20
+##[error]  --> tests/html_macro/component-fail.rs:58:20
    |
 58 |     html! { <Child with props ref={()} value=1 ref={()} /> };
    |                    ^^^^
 
 error: base props expression must appear last in list of props
-  --> tests/html_macro/component-fail.rs:59:20
+##[error]  --> tests/html_macro/component-fail.rs:59:20
    |
 59 |     html! { <Child ..props ref={()} value=1 ref={()} /> };
    |                    ^^^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
-  --> tests/html_macro/component-fail.rs:60:20
+##[error]  --> tests/html_macro/component-fail.rs:60:20
    |
 60 |     html! { <Child with props value=1 ref={()}  ref={()} /> };
    |                    ^^^^
 
 error: base props expression must appear last in list of props
-  --> tests/html_macro/component-fail.rs:61:20
+##[error]  --> tests/html_macro/component-fail.rs:61:20
    |
 61 |     html! { <Child ..props value=1 ref={()}  ref={()} /> };
    |                    ^^^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
-  --> tests/html_macro/component-fail.rs:62:28
+##[error]  --> tests/html_macro/component-fail.rs:62:28
    |
 62 |     html! { <Child value=1 with props  ref={()}  ref={()} /> };
    |                            ^^^^
 
 error: base props expression must appear last in list of props
-  --> tests/html_macro/component-fail.rs:63:28
+##[error]  --> tests/html_macro/component-fail.rs:63:28
    |
 63 |     html! { <Child value=1 ..props  ref={()}  ref={()} /> };
    |                            ^^^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
-  --> tests/html_macro/component-fail.rs:64:37
+##[error]  --> tests/html_macro/component-fail.rs:64:37
    |
 64 |     html! { <Child value=1 ref={()} with props ref={()} /> };
    |                                     ^^^^
 
 error: base props expression must appear last in list of props
-  --> tests/html_macro/component-fail.rs:65:37
+##[error]  --> tests/html_macro/component-fail.rs:65:37
    |
 65 |     html! { <Child value=1 ref={()} ..props ref={()} /> };
    |                                     ^^^^^^^
 
 error: `with` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
-  --> tests/html_macro/component-fail.rs:66:47
+##[error]  --> tests/html_macro/component-fail.rs:66:47
    |
 66 |     html! { <Child ref={()} ref={()} value=1  with props  /> };
    |                                               ^^^^
 
 error: `ref` can only be specified once
-  --> tests/html_macro/component-fail.rs:67:20
+##[error]  --> tests/html_macro/component-fail.rs:67:20
    |
 67 |     html! { <Child ref={()} ref={()} value=1 ..props  /> };
    |                    ^^^
 
 error: base props expression must appear last in list of props
-  --> tests/html_macro/component-fail.rs:70:20
+##[error]  --> tests/html_macro/component-fail.rs:70:20
    |
 70 |     html! { <Child .. props value=1 /> };
    |                    ^^^^^^^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
-  --> tests/html_macro/component-fail.rs:72:24
+##[error]  --> tests/html_macro/component-fail.rs:72:24
    |
 72 |     html! { <Child ref=() /> };
    |                        ^^
 
 error: `invalid` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)
-  --> tests/html_macro/component-fail.rs:73:20
+##[error]  --> tests/html_macro/component-fail.rs:73:20
    |
 73 |     html! { <Child invalid-prop-name=0 /> };
    |                    ^^^^^^^
 
 error: expected an expression following this equals sign
-  --> tests/html_macro/component-fail.rs:75:26
+##[error]  --> tests/html_macro/component-fail.rs:75:26
    |
 75 |     html! { <Child string= /> };
    |                          ^
 
 error: `int` can only be specified once but is given here again
-  --> tests/html_macro/component-fail.rs:76:26
+##[error]  --> tests/html_macro/component-fail.rs:76:26
    |
 76 |     html! { <Child int=1 int=2 int=3 /> };
    |                          ^^^
 
 error: `int` can only be specified once but is given here again
-  --> tests/html_macro/component-fail.rs:76:32
+##[error]  --> tests/html_macro/component-fail.rs:76:32
    |
 76 |     html! { <Child int=1 int=2 int=3 /> };
    |                                ^^^
 
 error: `ref` can only be specified once
-  --> tests/html_macro/component-fail.rs:81:35
+##[error]  --> tests/html_macro/component-fail.rs:81:35
    |
 81 |     html! { <Child int=1 ref={()} ref={()} /> };
    |                                   ^^^
 
 error: this closing tag has no corresponding opening tag
-  --> tests/html_macro/component-fail.rs:84:13
+##[error]  --> tests/html_macro/component-fail.rs:84:13
    |
 84 |     html! { </Child> };
    |             ^^^^^^^^
 
 error: this opening tag has no corresponding closing tag
-  --> tests/html_macro/component-fail.rs:85:13
+##[error]  --> tests/html_macro/component-fail.rs:85:13
    |
 85 |     html! { <Child><Child></Child> };
    |             ^^^^^^^
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
-  --> tests/html_macro/component-fail.rs:86:28
+##[error]  --> tests/html_macro/component-fail.rs:86:28
    |
 86 |     html! { <Child></Child><Child></Child> };
    |                            ^^^^^^^^^^^^^^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
-  --> tests/html_macro/component-fail.rs:90:24
+##[error]  --> tests/html_macro/component-fail.rs:90:24
    |
 90 |     html! { <Child int=num ..props /> };
    |                        ^^^
 
 error: cannot specify the `children` prop when the component already has children
-   --> tests/html_macro/component-fail.rs:108:26
+##[error]   --> tests/html_macro/component-fail.rs:108:26
     |
 108 |         <ChildContainer {children}>
     |                          ^^^^^^^^
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
-   --> tests/html_macro/component-fail.rs:115:9
+##[error]   --> tests/html_macro/component-fail.rs:115:9
     |
 115 |         <span>{ 2 }</span>
     |         ^^^^^^^^^^^^^^^^^^
 
 error: only simple identifiers are allowed in the shorthand property syntax
-   --> tests/html_macro/component-fail.rs:118:21
+##[error]   --> tests/html_macro/component-fail.rs:118:21
     |
 118 |     html! { <Child {std::f64::consts::PI} /> };
     |                     ^^^^^^^^^^^^^^^^^^^^
 
 error: missing label for property value. If trying to use the shorthand property syntax, only identifiers may be used
-   --> tests/html_macro/component-fail.rs:119:21
+##[error]   --> tests/html_macro/component-fail.rs:119:21
     |
 119 |     html! { <Child {7 + 6} /> };
     |                     ^^^^^
 
 error: missing label for property value. If trying to use the shorthand property syntax, only identifiers may be used
-   --> tests/html_macro/component-fail.rs:120:21
+##[error]   --> tests/html_macro/component-fail.rs:120:21
     |
 120 |     html! { <Child {children.len()} /> };
     |                     ^^^^^^^^^^^^^^
 
 error[E0425]: cannot find value `blah` in this scope
-  --> tests/html_macro/component-fail.rs:68:22
+##[error]  --> tests/html_macro/component-fail.rs:68:22
    |
 68 |     html! { <Child ..blah /> };
    |                      ^^^^ not found in this scope
 
 error[E0425]: cannot find value `props` in this scope
-  --> tests/html_macro/component-fail.rs:69:30
+##[error]  --> tests/html_macro/component-fail.rs:69:30
    |
 69 |     html! { <Child value=1 ..props /> };
    |                              ^^^^^ not found in this scope
 
 error[E0412]: cannot find type `other` in this scope
-   --> tests/html_macro/component-fail.rs:103:30
+##[error]   --> tests/html_macro/component-fail.rs:103:30
     |
 103 |     html! { <ChildContainer><other /></ChildContainer> };
     |                              ^^^^^ not found in this scope
 
 error[E0412]: cannot find type `other` in this scope
-   --> tests/html_macro/component-fail.rs:103:30
+##[error]   --> tests/html_macro/component-fail.rs:103:30
     |
 42  | fn compile_fail() {
     |                - help: you might be missing a type parameter: `<other>`
@@ -272,7 +272,7 @@ error[E0412]: cannot find type `other` in this scope
     |                              ^^^^^ not found in this scope
 
 error[E0308]: mismatched types
-  --> tests/html_macro/component-fail.rs:53:22
+##[error]  --> tests/html_macro/component-fail.rs:53:22
    |
 53 |     html! { <Child ..p1 ..p2 /> };
    |              -----   ^^^^^^^ expected struct `ChildProperties`, found struct `std::ops::Range`
@@ -283,7 +283,7 @@ error[E0308]: mismatched types
               found struct `std::ops::Range<_>`
 
 error[E0308]: mismatched types
-  --> tests/html_macro/component-fail.rs:53:14
+##[error]  --> tests/html_macro/component-fail.rs:53:14
    |
 53 |     html! { <Child ..p1 ..p2 /> };
    |              ^^^^^ expected struct `ChildProperties`, found struct `std::ops::Range`
@@ -292,7 +292,7 @@ error[E0308]: mismatched types
               found struct `std::ops::Range<_>`
 
 error[E0609]: no field `value` on type `ChildProperties`
-  --> tests/html_macro/component-fail.rs:69:20
+##[error]  --> tests/html_macro/component-fail.rs:69:20
    |
 69 |     html! { <Child value=1 ..props /> };
    |                    ^^^^^ unknown field
@@ -300,7 +300,7 @@ error[E0609]: no field `value` on type `ChildProperties`
    = note: available fields are: `string`, `int`
 
 error[E0609]: no field `r#type` on type `ChildProperties`
-  --> tests/html_macro/component-fail.rs:71:20
+##[error]  --> tests/html_macro/component-fail.rs:71:20
    |
 71 |     html! { <Child type=0 /> };
    |                    ^^^^ unknown field
@@ -308,7 +308,7 @@ error[E0609]: no field `r#type` on type `ChildProperties`
    = note: available fields are: `string`, `int`
 
 error[E0599]: no method named `r#type` found for struct `ChildPropertiesBuilder` in the current scope
-  --> tests/html_macro/component-fail.rs:71:20
+##[error]  --> tests/html_macro/component-fail.rs:71:20
    |
 4  | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `r#type` not found for this
@@ -317,7 +317,7 @@ error[E0599]: no method named `r#type` found for struct `ChildPropertiesBuilder`
    |                    ^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
 
 error[E0609]: no field `unknown` on type `ChildProperties`
-  --> tests/html_macro/component-fail.rs:74:20
+##[error]  --> tests/html_macro/component-fail.rs:74:20
    |
 74 |     html! { <Child unknown="unknown" /> };
    |                    ^^^^^^^ unknown field
@@ -325,7 +325,7 @@ error[E0609]: no field `unknown` on type `ChildProperties`
    = note: available fields are: `string`, `int`
 
 error[E0599]: no method named `unknown` found for struct `ChildPropertiesBuilder` in the current scope
-  --> tests/html_macro/component-fail.rs:74:20
+##[error]  --> tests/html_macro/component-fail.rs:74:20
    |
 4  | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `unknown` not found for this
@@ -334,13 +334,13 @@ error[E0599]: no method named `unknown` found for struct `ChildPropertiesBuilder
    |                    ^^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
 
 error[E0277]: the trait bound `(): IntoPropValue<String>` is not satisfied
-  --> tests/html_macro/component-fail.rs:77:33
+##[error]  --> tests/html_macro/component-fail.rs:77:33
    |
 77 |     html! { <Child int=1 string={} /> };
    |                                 ^^ the trait `IntoPropValue<String>` is not implemented for `()`
 
 error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfied
-  --> tests/html_macro/component-fail.rs:78:33
+##[error]  --> tests/html_macro/component-fail.rs:78:33
    |
 78 |     html! { <Child int=1 string=3 /> };
    |                                 ^ the trait `IntoPropValue<String>` is not implemented for `{integer}`
@@ -353,7 +353,7 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
            and 20 others
 
 error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfied
-  --> tests/html_macro/component-fail.rs:79:34
+##[error]  --> tests/html_macro/component-fail.rs:79:34
    |
 79 |     html! { <Child int=1 string={3} /> };
    |                                  ^ the trait `IntoPropValue<String>` is not implemented for `{integer}`
@@ -366,19 +366,19 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
            and 20 others
 
 error[E0308]: mismatched types
-  --> tests/html_macro/component-fail.rs:80:31
+##[error]  --> tests/html_macro/component-fail.rs:80:31
    |
 80 |     html! { <Child int=1 ref={()} /> };
    |                               ^^ expected struct `NodeRef`, found `()`
 
 error[E0277]: the trait bound `u32: IntoPropValue<i32>` is not satisfied
-  --> tests/html_macro/component-fail.rs:82:24
+##[error]  --> tests/html_macro/component-fail.rs:82:24
    |
 82 |     html! { <Child int=0u32 /> };
    |                        ^^^^ the trait `IntoPropValue<i32>` is not implemented for `u32`
 
 error[E0599]: no method named `string` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> tests/html_macro/component-fail.rs:83:20
+##[error]  --> tests/html_macro/component-fail.rs:83:20
    |
 4  | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `string` not found for this
@@ -390,7 +390,7 @@ error[E0599]: no method named `string` found for struct `ChildPropertiesBuilder<
            - `ChildPropertiesBuilder<ChildPropertiesBuilderStepPropsBuilder>`
 
 error[E0609]: no field `children` on type `ChildProperties`
-  --> tests/html_macro/component-fail.rs:87:14
+##[error]  --> tests/html_macro/component-fail.rs:87:14
    |
 87 |     html! { <Child>{ "Not allowed" }</Child> };
    |              ^^^^^ unknown field
@@ -398,7 +398,7 @@ error[E0609]: no field `children` on type `ChildProperties`
    = note: available fields are: `string`, `int`
 
 error[E0599]: no method named `children` found for struct `ChildPropertiesBuilder` in the current scope
-  --> tests/html_macro/component-fail.rs:87:14
+##[error]  --> tests/html_macro/component-fail.rs:87:14
    |
 4  | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `children` not found for this
@@ -407,7 +407,7 @@ error[E0599]: no method named `children` found for struct `ChildPropertiesBuilde
    |              ^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
 
 error[E0609]: no field `children` on type `ChildProperties`
-  --> tests/html_macro/component-fail.rs:94:10
+##[error]  --> tests/html_macro/component-fail.rs:94:10
    |
 94 |         <Child ..ChildProperties { string: "hello".to_owned(), int: 5 }>
    |          ^^^^^ unknown field
@@ -415,7 +415,7 @@ error[E0609]: no field `children` on type `ChildProperties`
    = note: available fields are: `string`, `int`
 
 error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
-  --> tests/html_macro/component-fail.rs:99:14
+##[error]  --> tests/html_macro/component-fail.rs:99:14
    |
 24 | #[derive(Clone, Properties, PartialEq)]
    |                 ---------- method `build` not found for this
@@ -427,7 +427,7 @@ error[E0599]: no method named `build` found for struct `ChildContainerProperties
            - `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStepPropsBuilder>`
 
 error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
-   --> tests/html_macro/component-fail.rs:100:14
+##[error]   --> tests/html_macro/component-fail.rs:100:14
     |
 24  | #[derive(Clone, Properties, PartialEq)]
     |                 ---------- method `build` not found for this
@@ -439,7 +439,7 @@ error[E0599]: no method named `build` found for struct `ChildContainerProperties
             - `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStepPropsBuilder>`
 
 error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VText>` is not satisfied
-   --> tests/html_macro/component-fail.rs:101:31
+##[error]   --> tests/html_macro/component-fail.rs:101:31
     |
 101 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
     |                               ^^^^^^^^^^^^^ the trait `From<yew::virtual_dom::VText>` is not implemented for `VChild<Child>`
@@ -448,7 +448,7 @@ error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VText>` is 
 note: required by `into`
 
 error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
-   --> tests/html_macro/component-fail.rs:102:29
+##[error]   --> tests/html_macro/component-fail.rs:102:29
     |
 102 |     html! { <ChildContainer><></></ChildContainer> };
     |                             ^ the trait `From<VNode>` is not implemented for `VChild<Child>`
