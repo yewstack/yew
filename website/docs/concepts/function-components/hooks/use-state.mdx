@@ -1,0 +1,67 @@
+---
+title: "use_state"
+---
+
+`use_state` is used to manage state in a function component.
+It returns a `UseStateHandle` object which `Deref`s to the currently stored value
+and provides a `set` method to update the value.
+
+The hook takes a function as input which determines the initial value.
+
+:::tip Advanced tip
+
+The setter function is guaranteed to be the same across the entire
+component lifecycle. You can safely omit the `UseStateHandle` from the
+dependents of `use_effect_with_deps` if you only intend to set
+values from within the hook.
+
+:::
+
+This hook will always trigger a re-render upon receiving a new state. See
+[`use_state_eq`](#use_state_eq) if you want the component to only
+re-render when the state changes.
+
+## Example
+
+```rust
+use std::opt::Deref;
+use yew::{Callback, function_component, html, use_state, Html};
+
+#[function_component]
+fn StateExample() -> Html {
+    let name_handle = use_state(|| String::from("Bob"));
+    let name = name_handle.deref().clone();
+    let onclick = {
+        let name = name.clone();
+        Callback::from(move |_| name_handle.set(format!("{}y Jr.", name)))
+    };
+
+
+    html! {
+        <div>
+            <button {onclick}>{ "Update name" }</button>
+            <p>
+                <b>{ "My name is: " }</b>
+                { name }
+            </p>
+        </div>
+    }
+}
+```
+
+:::caution
+
+The value held in the handle will reflect the value at the time the
+handle is returned by the `use_state`. It is possible that the handle
+does not dereference to an up to date value if you are moving it into a
+`use_effect_with_deps` hook. You can register the
+state to the dependents so the hook can be updated when the value changes.
+
+:::
+
+## `use_state_eq`
+
+This hook has the same effect as `use_state` but will only trigger a
+re-render when the setter receives a value that `prev_state != next_state`.
+
+This hook requires the state object to implement `PartialEq`.

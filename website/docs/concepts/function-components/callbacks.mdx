@@ -1,0 +1,72 @@
+---
+title: "Callbacks"
+---
+
+Callbacks used to asynchronously communicate in Yew upwards the components tree and other things like agents or DOM.
+Internally their type is just `Fn` wrapped in `Rc` to allow them to be cloned. You will need to clone them often.
+
+They have an `emit` function that takes their `<IN, OUT = ()>` types as an arguments.
+
+```rust
+use yew::{html, Component, Context, Html};
+
+let cb: Callback<String, String> = Callback::from(move |name: String| {
+    format!("Bye {}", name)
+});
+
+let result = cb.emit(String::from("Bob")); // call the callback
+web_sys::console::log_1(&result.into()); // will print "Bye Bob"
+```
+
+## Passing callbacks as props
+
+A common pattern in yew is to create a callback and pass it down as a prop.
+
+```rust
+use yew::{function_component, html, Html, Properties};
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    pub on_name_entry: Callback<String, String>,
+}
+
+#[function_component]
+fn HelloWorld(props: &Props) -> Html {
+
+    props.on_name_entry.emit("Bob");
+
+    html! { "Hello" }
+}
+
+// Then supply the prop
+#[function_component]
+fn App() -> Html {
+    let on_name_entry: Callback<String> = Callback::from(move |name: String| {
+        let greeting = format!("Hey, {}!", name);
+        web_sys::console::log_1(&greeting.into());
+    });
+
+    html! {<HelloWorld {on_name_entry} />}
+}
+
+```
+
+## DOM Events and Callbacks
+
+Callbacks are also used to hook into DOM events.
+
+For example here we define a callback that will be called when user clicks the button:
+
+```rust
+use yew::{function_component, html, Html, Properties};
+
+#[function_component]
+fn App() -> Html {
+    let onclick = Callback::from(move |_| {
+        let greeting = String::from("Hi there");
+        web_sys::console::log_1(&greeting.into());
+    });
+
+    html! {<button {onclick}>{ "Click" }</button>}
+}
+```
