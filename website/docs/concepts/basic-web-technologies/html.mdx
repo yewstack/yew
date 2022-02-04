@@ -16,7 +16,7 @@ For HTML we achieve this by providing the `html!` macro:
 ```rust
 use yew::prelude::*;
 
-let my_header: Html = html!{<img src="img_girl.jpg" alt="Girl in a jacket" width="500" height="600">};
+let my_header: Html = html!{<img src="img_girl.jpg" alt="Girl in a jacket" width="500" height="600" />};
 ```
 
 `html!` macro allows you to write html generation as if it was in a `.html` file and then behind the scenes by yew gets turned into internal builder patterns that generate all DOM nodes.

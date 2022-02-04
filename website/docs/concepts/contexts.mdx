@@ -26,10 +26,10 @@ pub struct NavbarProps {
 fn Navbar(props: &NavbarProps) -> Html {
     html! {
         <div>
-            <Title theme={ctx.props().theme.clone()}>
+            <Title theme={props.theme.clone()}>
                 { "App title" }
             </Title>
-            <NavButton theme={ctx.props().theme.clone()}>
+            <NavButton theme={props.theme.clone()}>
                 { "Somewhere" }
             </NavButton>
         </div>

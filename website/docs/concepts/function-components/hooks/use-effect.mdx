@@ -55,7 +55,7 @@ Same way with the clean-up function - it gets called only before re-calling the 
 :::
 
 ```rust
-use yew::{function_component, html, Html, Properties};
+use yew::{function_component, html, Html, Properties, use_effect_with_deps};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -64,6 +64,7 @@ pub struct Props {
 
 #[function_component]
 fn HelloWorld(props: &Props) -> Html {
+    let is_loading = props.is_loading.clone();
 
     use_effect_with_deps(
         move |_| {
@@ -71,10 +72,10 @@ fn HelloWorld(props: &Props) -> Html {
             || ()
         },
         // highlight-next-line
-        *props.is_loading,
+        is_loading,
     );
 
-    html! { <>{"Am I loading? - "}{*props.is_loading}</> }
+    html! { <>{"Am I loading? - "}{is_loading}</> }
 }
 ```
 
@@ -85,7 +86,7 @@ fn HelloWorld(props: &Props) -> Html {
 Provide a empty tuple `()` as dependencies when you need to do something only on first render.
 
 ```rust
-use yew::{function_component, html, Html};
+use yew::{function_component, html, Html, use_effect_with_deps};
 
 #[function_component]
 fn HelloWorld() -> Html {
@@ -109,7 +110,7 @@ Use [Only on first render](#only-on-first-render) and write the code in the clea
 It will only get called when the component is removed from view / gets destroyed.
 
 ```rust
-use yew::{function_component, html, Html};
+use yew::{function_component, html, Html, use_effect_with_deps};
 
 #[function_component]
 fn HelloWorld() -> Html {
@@ -135,22 +136,25 @@ But for cases when you need to do it manually always re-apply and destroy old ev
 Same tip applies to intervals and timeouts.
 
 ```rust
-use yew::{function_component, html, Html};
+use yew::{function_component, html, Html, use_effect_with_deps, use_node_ref};
 
 #[function_component]
 fn HelloWorld() -> Html {
-    let ref = use_node_ref();
+    let span_ref = use_node_ref();
 
-    use_effect_with_deps(
-        move |_| {
-            let listener = gloo::EventListener::new(&ref, "click", move |event| {
-                web_sys::console::log_1(&"I got clicked".into());
-            });
-            move || drop(listener)
-        },
-        (),
-    );
+    {
+        let span_ref = span_ref.clone();
+        use_effect_with_deps(
+            move |_| {
+                let listener = gloo::events::EventListener::new(&span_ref.cast::<web_sys::HtmlElement>().unwrap(), "click", move |event| {
+                    web_sys::console::log_1(&"I got clicked".into());
+                });
+                move || drop(listener)
+            },
+            (),
+        );
+    }
 
-    html! {<span {ref}>"Hello"</span>}
+    html! {<span ref={span_ref}>{"Hello"}</span>}
 }
 ```

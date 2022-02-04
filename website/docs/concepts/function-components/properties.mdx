@@ -66,7 +66,7 @@ pub struct Props {
 
 #[function_component]
 fn HelloWorld(props: &Props) -> Html {
-    html! { <>{"Am I loading? - "}{*props.is_loading}</> }
+    html! { <>{"Am I loading? - "}{props.is_loading.clone()}</> }
 }
 
 // Then supply the prop
@@ -120,7 +120,7 @@ The docstrings of your properties should mention whether a prop is optional and 
 Initialize the prop value with the default value of the field's type using the `Default` trait.
 
 ```rust
-use yew::Properties;
+use yew::{function_component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -132,7 +132,7 @@ pub struct Props {
 
 #[function_component]
 fn HelloWorld(props: &Props) -> Html {
-    if *props.is_disabled {
+    if props.is_loading.clone() {
         html! { "Loading" }
     } else {
         html! { "Hello world" }
@@ -141,12 +141,12 @@ fn HelloWorld(props: &Props) -> Html {
 
 // Then use like this with default
 #[function_component]
-fn App() -> Html {
+fn Case1() -> Html {
     html! {<HelloWorld />}
 }
 // Or no override the default
 #[function_component]
-fn App() -> Html {
+fn Case2() -> Html {
     html! {<HelloWorld is_loading={true} />}
 }
 ```
@@ -158,7 +158,7 @@ Use `value` to initialize the prop value. `value` can be any expression that ret
 For example, to default a boolean prop to `true`, use the attribute `#[prop_or(true)]`.
 
 ```rust
-use yew::Properties;
+use yew::{function_component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -175,12 +175,12 @@ fn HelloWorld(props: &Props) -> Html {
 
 // Then use like this with default
 #[function_component]
-fn App() -> Html {
+fn Case1() -> Html {
     html! {<HelloWorld />}
 }
 // Or no override the default
 #[function_component]
-fn App() -> Html {
+fn Case2() -> Html {
     html! {<HelloWorld name={"Sam".to_string()} />}
 }
 ```
@@ -191,7 +191,7 @@ fn App() -> Html {
 Call `function` to initialize the prop value. `function` should have the signature `FnMut() -> T` where `T` is the field type.
 
 ```rust
-use yew::Properties;
+use yew::{function_component, html, Html, Properties};
 
 fn create_default_name() -> String {
     "Bob".to_string()
@@ -212,12 +212,12 @@ fn HelloWorld(props: &Props) -> Html {
 
 // Then use like this with default
 #[function_component]
-fn App() -> Html {
+fn Case1() -> Html {
     html! {<HelloWorld />}
 }
 // Or no override the default
 #[function_component]
-fn App() -> Html {
+fn Case2() -> Html {
     html! {<HelloWorld name={"Sam".to_string()} />}
 }
 ```
@@ -233,7 +233,7 @@ The macro uses the same syntax as a struct expression except that you can't use 
 The type path can either point to the props directly (`path::to::Props`) or the associated properties of a component (`MyComp::Properties`).
 
 ```rust
-use yew::{Properties, props};
+use yew::{function_component, html, Html, Properties, props};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {

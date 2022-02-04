@@ -38,13 +38,8 @@ use yew::{function_component, html, Html};
 fn HelloWorld() -> Html {
     html! { "Hello world" }
 }
-```
 
-Then somewhere else you can use the component inside the `html!`
-
-```rust
-use yew::{function_component, html, Html};
-
+// Then somewhere else you can use the component inside the `html!`
 #[function_component]
 fn App() -> Html {
     html! {<HelloWorld />}
@@ -55,7 +50,7 @@ fn App() -> Html {
 
 Yew will build a tree of these components that from the previous example would look like this:
 
-```
+```md
 <App />
    |
 <HelloWorld />

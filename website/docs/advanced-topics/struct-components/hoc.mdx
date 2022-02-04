@@ -15,7 +15,7 @@ Higher Order Components are components that dont add any new Html and only wrap 
 Hook into Context and pass it down to a struct component
 
 ```rust
-use yew::{ContextProvider, function_component, html, use_context, use_state, Html};
+use yew::prelude::*;
 
 #[derive(Clone, Debug, PartialEq)]
 struct Theme {
@@ -45,4 +45,38 @@ pub fn ThemedButtonHOC() -> Html {
     html! {<ThemedButtonStructComponent {theme} />}
 }
 // highlight-end
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    pub theme: Theme,
+}
+
+struct ThemedButtonStructComponent;
+
+impl Component for ThemedButtonStructComponent {
+    type Message = ();
+    type Properties = Props;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let theme = &ctx.props().theme;
+        html! {
+            <button style={format!(
+                    "background: {}; color: {};",
+                    theme.background,
+                    theme.foreground
+                )}
+            >
+                { "Click me!" }
+            </button>
+        }
+    }
+}
+
+
+
+
 ```
