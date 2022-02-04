@@ -20,8 +20,8 @@ Props are defined using the `Properties` trait.
 ## Reactivity
 
 Yew always checks if props changed to know if the component needs to be rerendered.
-This way Yew can be considered a very reactive framework as any change from the parent will allways be propogated downwards
-and the view will never be out of sync from the data comming from props/state.
+This way Yew can be considered a very reactive framework as any change from the parent will always be propagated downwards
+and the view will never be out of sync from the data coming from props/state.
 
 :::tip
 
@@ -51,7 +51,7 @@ pub struct Props {
 
 ## Use in function components
 
-The atribute `#[function_component]` allows to optionaly specify Props in the function arguments
+The attribute `#[function_component]` allows to optionally specify Props in the function arguments
 
 <Tabs>
   <TabItem value="with-props" label="With Props">
@@ -111,7 +111,7 @@ The following attributes allow you to give your props initial values which will 
 
 :::tip
 Attributes aren't visible in Rustdoc generated documentation.
-The docstrings of your properties should mention whether a prop is optional and if it has a special default value.
+The doc strings of your properties should mention whether a prop is optional and if it has a special default value.
 :::
 
 <Tabs>
