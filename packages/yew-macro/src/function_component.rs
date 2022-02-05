@@ -272,7 +272,6 @@ pub fn function_component_impl(
             }
         }
 
-
         #[doc = #component_type_doc]
         #[allow(type_alias_bounds)]
         #vis type #component_name #generics = ::yew::functional::FunctionComponent<#provider_name #ty_generics>;
