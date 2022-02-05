@@ -261,15 +261,26 @@ error[E0412]: cannot find type `other` in this scope
     |
 103 |     html! { <ChildContainer><other /></ChildContainer> };
     |                              ^^^^^ not found in this scope
+    |
+help: there is an enum variant `yew::virtual_dom::ListenerKind::other`; try using the variant's enum
+    |
+103 |     html! { <ChildContainer><yew::virtual_dom::ListenerKind /></ChildContainer> };
+    |                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 error[E0412]: cannot find type `other` in this scope
    --> tests/html_macro/component-fail.rs:103:30
     |
-42  | fn compile_fail() {
-    |                - help: you might be missing a type parameter: `<other>`
-...
 103 |     html! { <ChildContainer><other /></ChildContainer> };
     |                              ^^^^^ not found in this scope
+    |
+help: there is an enum variant `yew::virtual_dom::ListenerKind::other`; try using the variant's enum
+    |
+103 |     html! { <ChildContainer><yew::virtual_dom::ListenerKind /></ChildContainer> };
+    |                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+help: you might be missing a type parameter
+    |
+42  | fn compile_fail<other>() {
+    |                +++++++
 
 error[E0308]: mismatched types
   --> tests/html_macro/component-fail.rs:53:22
