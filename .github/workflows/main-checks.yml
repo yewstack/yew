@@ -3,7 +3,7 @@ name: Main Checks
 on:
   pull_request:
   push:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
 
@@ -154,20 +154,11 @@ jobs:
 
       - name: Run tests
         uses: actions-rs/cargo@v1
-        env:
-          TRYBUILD: overwrite
         with:
           command: test
           args: --all-targets --workspace --exclude yew --exclude website-test
 
-      - run: cat packages/yew-macro/tests/html_macro/component-fail.stderr
 
-      - name: Upload component-fail.stderr
-        uses: actions/upload-artifact@v2
-        with:
-          name: component-fail.stderr
-          path: packages/yew-macro/tests/html_macro/component-fail.stderr
-          retention-days: 1
 
   test-lints:
     name: Test lints on nightly
