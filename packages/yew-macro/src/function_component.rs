@@ -252,6 +252,7 @@ pub fn function_component_impl(
 
     let ctx_ident = Ident::new("ctx", Span::mixed_site());
 
+    let component_type_doc = format!("{} Component", component_name);
     let quoted = quote! {
         #[doc(hidden)]
         #[allow(non_camel_case_types)]
@@ -271,6 +272,8 @@ pub fn function_component_impl(
             }
         }
 
+
+        #[doc = #component_type_doc]
         #[allow(type_alias_bounds)]
         #vis type #component_name #generics = ::yew::functional::FunctionComponent<#provider_name #ty_generics>;
     };
