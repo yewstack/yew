@@ -1,0 +1,50 @@
+---
+title: "use_node_ref"
+---
+
+`use_node_ref` is used for maintaining an easy reference to the DOM element represented as a `NodeRef`. It also persists across renders.
+
+## Example
+
+```rust
+use web_sys::HtmlInputElement;
+use yew::{
+    function_component, functional::*, html,
+    NodeRef, Html
+};
+
+#[function_component(UseRef)]
+pub fn ref_hook() -> Html {
+    // highlight-next-line
+    let input_ref = use_node_ref();
+    let value = use_state(|| 25_f64);
+
+    let onclick = {
+        let input_ref = input_ref.clone();
+        let value = value.clone();
+        move |_| {
+            // highlight-start
+            if let Some(input) = input_ref.cast::<HtmlInputElement>() {
+                value.set(*value + input.value_as_number());
+            }
+            // highlight-end
+        }
+    };
+
+    html! {
+        <div>
+    // highlight-next-line
+            <input ref={input_ref} type="number" />
+            <button {onclick}>{ format!("Add input to {}", *value) }</button>
+        </div>
+    }
+}
+```
+
+:::tip Advanced tip
+
+When conditionally rendering elements you can use `NodeRef` in conjunction with `use_effect_with_deps`
+to perform actions each time an element is rendered and just before its going to be removed from the
+DOM.
+
+:::

@@ -1,12 +1,18 @@
 //! Function components are a simplified version of normal components.
-//! They consist of a single function annotated with the attribute `#[function_component(_)]`
+//! They consist of a single function annotated with the attribute `#[function_component]`
 //! that receives props and determines what should be rendered by returning [`Html`](crate::Html).
+//!
+//! Functions with the attribute have to return `Html` and may take a single parameter for the type of props the component should accept.
+//! The parameter type needs to be a reference to a `Properties` type (ex. `props: &MyProps`).
+//! If the function doesn't have any parameters the resulting component doesn't accept any props.
+//!
+//! Just mark the component with the attribute. The component will be named after the function.
 //!
 //! ```rust
 //! # use yew::prelude::*;
 //! #
-//! #[function_component(HelloWorld)]
-//! fn hello_world() -> Html {
+//! #[function_component]
+//! fn HelloWorld() -> Html {
 //!     html! { "Hello world" }
 //! }
 //! ```

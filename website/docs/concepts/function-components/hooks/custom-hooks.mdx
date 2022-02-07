@@ -1,6 +1,5 @@
 ---
 title: "Custom Hooks"
-description: "Defining your own Hooks "
 ---
 
 ## Defining custom Hooks
@@ -42,6 +41,7 @@ We'll start by creating a new function called `use_event`.
 The `use_` prefix denotes that a function is a hook.
 This function will take an event target, a event type and a callback.
 All hooks must be marked by `#[hook]` to function as as hook.
+
 ```rust
 use web_sys::{Event, EventTarget};
 use std::borrow::Cow;

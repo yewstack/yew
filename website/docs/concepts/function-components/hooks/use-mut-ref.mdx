@@ -1,0 +1,55 @@
+---
+title: "use_mut_ref"
+---
+
+`use_mut_ref` is used for obtaining a mutable reference to a value.
+Its state persists across renders.
+
+It is important to note that you do not get notified of state changes.
+If you need the component to be re-rendered on state change, consider using [`use_state`](./use-state).
+
+## Example
+
+Here you can see we count `message_count` as that number is not used in `Html` and thus does not need to cause a rerender.
+
+```rust
+use web_sys::HtmlInputElement;
+use yew::{
+    events::Event,
+    function_component, html, use_mut_ref, use_state,
+    Callback, TargetCast,
+    Html,
+};
+
+#[function_component]
+fn MutRefExample() -> Html {
+    let message = use_state(|| "".to_string());
+    let message_count = use_mut_ref(|| 0);
+
+    let onclick = Callback::from(move |_| {
+        let window = gloo::utils::window();
+
+        if *message_count.borrow_mut() > 3 {
+            window.alert_with_message("Message limit reached").unwrap();
+        } else {
+            *message_count.borrow_mut() += 1;
+            window.alert_with_message("Message sent").unwrap();
+        }
+    });
+
+    let onchange = {
+        let message = message.clone();
+        Callback::from(move |e: Event| {
+            let input: HtmlInputElement = e.target_unchecked_into();
+            message.set(input.value());
+        })
+    };
+
+    html! {
+        <div>
+            <input {onchange} value={(*message).clone()} />
+            <button {onclick}>{ "Send" }</button>
+        </div>
+    }
+}
+```
