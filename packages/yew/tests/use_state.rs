@@ -1,13 +1,15 @@
 mod common;
 
 use common::obtain_result;
+use gloo::timers::future::sleep;
+use std::time::Duration;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
-fn use_state_works() {
+async fn use_state_works() {
     #[function_component(UseComponent)]
     fn use_state_comp() -> Html {
         let counter = use_state(|| 0);
@@ -26,12 +28,13 @@ fn use_state_works() {
     yew::start_app_in_element::<UseComponent>(
         gloo_utils::document().get_element_by_id("output").unwrap(),
     );
+    sleep(Duration::ZERO).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "5");
 }
 
 #[wasm_bindgen_test]
-fn multiple_use_state_setters() {
+async fn multiple_use_state_setters() {
     #[function_component(UseComponent)]
     fn use_state_comp() -> Html {
         let counter = use_state(|| 0);
@@ -67,12 +70,13 @@ fn multiple_use_state_setters() {
     yew::start_app_in_element::<UseComponent>(
         gloo_utils::document().get_element_by_id("output").unwrap(),
     );
+    sleep(Duration::ZERO).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "11");
 }
 
 #[wasm_bindgen_test]
-fn use_state_eq_works() {
+async fn use_state_eq_works() {
     use std::sync::atomic::{AtomicUsize, Ordering};
     static RENDER_COUNT: AtomicUsize = AtomicUsize::new(0);
 
@@ -94,6 +98,7 @@ fn use_state_eq_works() {
     yew::start_app_in_element::<UseComponent>(
         gloo_utils::document().get_element_by_id("output").unwrap(),
     );
+    sleep(Duration::ZERO).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "1");
     assert_eq!(RENDER_COUNT.load(Ordering::Relaxed), 2);
