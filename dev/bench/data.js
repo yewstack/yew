@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1643746144474,
+  "lastUpdate": 1644224986714,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -4572,6 +4572,115 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 32_startup-bt",
             "value": "40.54199999999999",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "367.962890625",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "32368314+voidpumpkin@users.noreply.github.com",
+            "name": "Julius Lungys",
+            "username": "voidpumpkin"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "636692507e705884abbe808fceb11ceb50863283",
+          "message": "Convert components concept docs from SC to FC (#2434)\n\n* Convert components concept docs from SC to FC\r\n- moved struct components to advanced topics\r\n- added docs about HOC for Suspense and Context\r\n- added a ease-in topic before components that introduces\r\nHTML/CSS/JS in yew\r\n- edit components concept to use function components\r\n\r\n* translations\r\n\r\n* fix todo links\r\n\r\n* fix tests\r\n\r\n* spelling bee",
+          "timestamp": "2022-02-07T11:03:12+02:00",
+          "tree_id": "5badbdbad8a41ddbcc5e5ebb34b4a2225caa4269",
+          "url": "https://github.com/yewstack/yew/commit/636692507e705884abbe808fceb11ceb50863283"
+        },
+        "date": 1644224985224,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "213.4295",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "234.239",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "448.5355",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "90.4245",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "99.735",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "30.8775",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "2698.133",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "557.3240000000001",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "251.2665",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "0.9634513854980468",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.4578094482421875",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.4615478515625",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.510845184326172",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.1287879943847656",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1857.71075",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "31.641999999999992",
             "unit": ""
           },
           {
