@@ -141,7 +141,7 @@ impl AnyScope {
     /// Attempts to find a parent scope of a certain type
     ///
     /// Returns [`None`] if no parent scope with the specified type was found.
-    pub(crate) fn find_parent_scope<C: BaseComponent>(&self) -> Option<Scope<C>> {
+    pub fn find_parent_scope<C: BaseComponent>(&self) -> Option<Scope<C>> {
         let expected_type_id = TypeId::of::<C>();
         iter::successors(Some(self), |scope| scope.get_parent())
             .filter(|scope| scope.get_type_id() == &expected_type_id)
