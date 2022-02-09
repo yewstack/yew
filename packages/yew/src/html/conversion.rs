@@ -82,7 +82,7 @@ macro_rules! impl_into_prop {
 impl_into_prop!(|value: &'static str| -> String { value.to_owned() });
 
 impl_into_prop!(|value: &'static str| -> AttrValue { AttrValue::Static(value) });
-impl_into_prop!(|value: String| -> AttrValue { AttrValue::Owned(value) });
+impl_into_prop!(|value: String| -> AttrValue { AttrValue::Rc(Rc::from(value)) });
 impl_into_prop!(|value: Rc<str>| -> AttrValue { AttrValue::Rc(value) });
 
 #[cfg(test)]
