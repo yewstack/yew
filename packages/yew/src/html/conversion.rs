@@ -5,9 +5,6 @@ use std::{borrow::Cow, rc::Rc};
 /// Marker trait for types that the [`html!`](macro@crate::html) macro may clone implicitly.
 pub trait ImplicitClone: Clone {}
 
-// this is only implemented because there's no way to avoid cloning this value
-impl ImplicitClone for Cow<'static, str> {}
-
 impl<T: ImplicitClone> ImplicitClone for Option<T> {}
 impl<T> ImplicitClone for Rc<T> {}
 
