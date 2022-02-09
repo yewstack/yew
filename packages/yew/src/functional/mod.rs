@@ -1,12 +1,18 @@
 //! Function components are a simplified version of normal components.
-//! They consist of a single function annotated with the attribute `#[function_component(_)]`
+//! They consist of a single function annotated with the attribute `#[function_component]`
 //! that receives props and determines what should be rendered by returning [`Html`](crate::Html).
+//!
+//! Functions with the attribute have to return `Html` and may take a single parameter for the type of props the component should accept.
+//! The parameter type needs to be a reference to a `Properties` type (ex. `props: &MyProps`).
+//! If the function doesn't have any parameters the resulting component doesn't accept any props.
+//!
+//! Just mark the component with the attribute. The component will be named after the function.
 //!
 //! ```rust
 //! # use yew::prelude::*;
 //! #
-//! #[function_component(HelloWorld)]
-//! fn hello_world() -> Html {
+//! #[function_component]
+//! fn HelloWorld() -> Html {
 //!     html! { "Hello world" }
 //! }
 //! ```
@@ -15,7 +21,7 @@
 
 use crate::html::{AnyScope, BaseComponent, HtmlResult};
 use crate::Properties;
-use scoped_tls_hkt::scoped_thread_local;
+use std::any::Any;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
@@ -55,17 +61,71 @@ use crate::html::SealedBaseComponent;
 /// ```
 pub use yew_macro::function_component;
 
-scoped_thread_local!(static mut CURRENT_HOOK: HookState);
+/// This attribute creates a user-defined hook from a normal Rust function.
+pub use yew_macro::hook;
 
-type Msg = Box<dyn FnOnce() -> bool>;
-type ProcessMessage = Rc<dyn Fn(Msg, bool)>;
+type ReRender = Rc<dyn Fn()>;
 
-struct HookState {
+/// Primitives of a Hook state.
+pub(crate) trait Effect {
+    fn rendered(&self) {}
+}
+
+/// A hook context to be passed to hooks.
+pub struct HookContext {
+    pub(crate) scope: AnyScope,
+    re_render: ReRender,
+
+    states: Vec<Rc<dyn Any>>,
+    effects: Vec<Rc<dyn Effect>>,
+
     counter: usize,
-    scope: AnyScope,
-    process_message: ProcessMessage,
-    hooks: Vec<Rc<RefCell<dyn std::any::Any>>>,
-    destroy_listeners: Vec<Box<dyn FnOnce()>>,
+    #[cfg(debug_assertions)]
+    total_hook_counter: Option<usize>,
+}
+
+impl HookContext {
+    pub(crate) fn next_state<T>(&mut self, initializer: impl FnOnce(ReRender) -> T) -> Rc<T>
+    where
+        T: 'static,
+    {
+        // Determine which hook position we're at and increment for the next hook
+        let hook_pos = self.counter;
+        self.counter += 1;
+
+        let state = match self.states.get(hook_pos).cloned() {
+            Some(m) => m,
+            None => {
+                let initial_state = Rc::new(initializer(self.re_render.clone()));
+                self.states.push(initial_state.clone());
+
+                initial_state
+            }
+        };
+
+        state.downcast().unwrap()
+    }
+
+    pub(crate) fn next_effect<T>(&mut self, initializer: impl FnOnce(ReRender) -> T) -> Rc<T>
+    where
+        T: 'static + Effect,
+    {
+        let prev_state_len = self.states.len();
+        let t = self.next_state(initializer);
+
+        // This is a new effect, we add it to effects.
+        if self.states.len() != prev_state_len {
+            self.effects.push(t.clone());
+        }
+
+        t
+    }
+}
+
+impl fmt::Debug for HookContext {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("HookContext<_>")
+    }
 }
 
 /// Trait that allows a struct to act as Function Component.
@@ -76,14 +136,13 @@ pub trait FunctionProvider {
     /// Render the component. This function returns the [`Html`](crate::Html) to be rendered for the component.
     ///
     /// Equivalent of [`Component::view`](crate::html::Component::view).
-    fn run(props: &Self::TProps) -> HtmlResult;
+    fn run(ctx: &mut HookContext, props: &Self::TProps) -> HtmlResult;
 }
 
 /// Wrapper that allows a struct implementing [`FunctionProvider`] to be consumed as a component.
 pub struct FunctionComponent<T: FunctionProvider + 'static> {
     _never: std::marker::PhantomData<T>,
-    hook_state: RefCell<HookState>,
-    message_queue: MsgQueue,
+    hook_ctx: RefCell<HookContext>,
 }
 
 impl<T: FunctionProvider> fmt::Debug for FunctionComponent<T> {
@@ -92,52 +151,36 @@ impl<T: FunctionProvider> fmt::Debug for FunctionComponent<T> {
     }
 }
 
-impl<T> FunctionComponent<T>
-where
-    T: FunctionProvider,
-{
-    fn with_hook_state<R>(&self, f: impl FnOnce() -> R) -> R {
-        let mut hook_state = self.hook_state.borrow_mut();
-        hook_state.counter = 0;
-        CURRENT_HOOK.set(&mut *hook_state, f)
-    }
-}
-
 impl<T> BaseComponent for FunctionComponent<T>
 where
     T: FunctionProvider + 'static,
 {
-    type Message = Box<dyn FnOnce() -> bool>;
+    type Message = ();
     type Properties = T::TProps;
 
     fn create(ctx: &Context<Self>) -> Self {
         let scope = AnyScope::from(ctx.link().clone());
-        let message_queue = MsgQueue::default();
 
         Self {
             _never: std::marker::PhantomData::default(),
-            message_queue: message_queue.clone(),
-            hook_state: RefCell::new(HookState {
-                counter: 0,
+            hook_ctx: RefCell::new(HookContext {
+                effects: Vec::new(),
                 scope,
-                process_message: {
-                    let scope = ctx.link().clone();
-                    Rc::new(move |msg, post_render| {
-                        if post_render {
-                            message_queue.push(msg);
-                        } else {
-                            scope.send_message(msg);
-                        }
-                    })
+                re_render: {
+                    let link = ctx.link().clone();
+                    Rc::new(move || link.send_message(()))
                 },
-                hooks: vec![],
-                destroy_listeners: vec![],
+                states: Vec::new(),
+
+                counter: 0,
+                #[cfg(debug_assertions)]
+                total_hook_counter: None,
             }),
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        msg()
+    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
+        true
     }
 
     fn changed(&mut self, _ctx: &Context<Self>) -> bool {
@@ -145,107 +188,58 @@ where
     }
 
     fn view(&self, ctx: &Context<Self>) -> HtmlResult {
-        self.with_hook_state(|| T::run(&*ctx.props()))
+        let props = ctx.props();
+        let mut ctx = self.hook_ctx.borrow_mut();
+        ctx.counter = 0;
+
+        #[allow(clippy::let_and_return)]
+        let result = T::run(&mut *ctx, props);
+
+        #[cfg(debug_assertions)]
+        {
+            // Procedural Macros can catch most conditionally called hooks at compile time, but it cannot
+            // detect early return (as the return can be Err(_), Suspension).
+            if result.is_err() {
+                if let Some(m) = ctx.total_hook_counter {
+                    // Suspended Components can have less hooks called when suspended, but not more.
+                    if m < ctx.counter {
+                        panic!("Hooks are called conditionally.");
+                    }
+                }
+            } else {
+                match ctx.total_hook_counter {
+                    Some(m) => {
+                        if m != ctx.counter {
+                            panic!("Hooks are called conditionally.");
+                        }
+                    }
+                    None => {
+                        ctx.total_hook_counter = Some(ctx.counter);
+                    }
+                }
+            }
+        }
+
+        result
     }
 
-    fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
-        for msg in self.message_queue.drain() {
-            ctx.link().send_message(msg);
+    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
+        let hook_ctx = self.hook_ctx.borrow();
+
+        for effect in hook_ctx.effects.iter() {
+            effect.rendered();
         }
     }
 
     fn destroy(&mut self, _ctx: &Context<Self>) {
-        let mut hook_state = self.hook_state.borrow_mut();
-        for hook in hook_state.destroy_listeners.drain(..) {
-            hook()
+        let mut hook_ctx = self.hook_ctx.borrow_mut();
+        // We clear the effects as these are also references to states.
+        hook_ctx.effects.clear();
+
+        for state in hook_ctx.states.drain(..) {
+            drop(state);
         }
     }
 }
 
-pub(crate) fn get_current_scope() -> Option<AnyScope> {
-    if CURRENT_HOOK.is_set() {
-        Some(CURRENT_HOOK.with(|state| state.scope.clone()))
-    } else {
-        None
-    }
-}
-
 impl<T> SealedBaseComponent for FunctionComponent<T> where T: FunctionProvider + 'static {}
-
-#[derive(Clone, Default)]
-struct MsgQueue(Rc<RefCell<Vec<Msg>>>);
-
-impl MsgQueue {
-    fn push(&self, msg: Msg) {
-        self.0.borrow_mut().push(msg);
-    }
-
-    fn drain(&self) -> Vec<Msg> {
-        self.0.borrow_mut().drain(..).collect()
-    }
-}
-
-/// The `HookUpdater` provides a convenient interface for hooking into the lifecycle of
-/// the underlying Yew Component that backs the function component.
-///
-/// Two interfaces are provided - callback and post_render.
-/// - `callback` allows the creation of regular yew callbacks on the host component.
-/// - `post_render` allows the creation of events that happen after a render is complete.
-///
-/// See [`use_effect`](hooks::use_effect()) and [`use_context`](hooks::use_context())
-/// for more details on how to use the hook updater to provide function components
-/// the necessary callbacks to update the underlying state.
-#[derive(Clone)]
-#[allow(missing_debug_implementations)]
-pub struct HookUpdater {
-    hook: Rc<RefCell<dyn std::any::Any>>,
-    process_message: ProcessMessage,
-}
-
-impl HookUpdater {
-    /// Callback which runs the hook.
-    pub fn callback<T: 'static, F>(&self, cb: F)
-    where
-        F: FnOnce(&mut T) -> bool + 'static,
-    {
-        let internal_hook_state = self.hook.clone();
-        let process_message = self.process_message.clone();
-
-        // Update the component
-        // We're calling "link.send_message", so we're not calling it post-render
-        let post_render = false;
-        process_message(
-            Box::new(move || {
-                let mut r = internal_hook_state.borrow_mut();
-                let hook: &mut T = r
-                    .downcast_mut()
-                    .expect("internal error: hook downcasted to wrong type");
-                cb(hook)
-            }),
-            post_render,
-        );
-    }
-
-    /// Callback called after the render
-    pub fn post_render<T: 'static, F>(&self, cb: F)
-    where
-        F: FnOnce(&mut T) -> bool + 'static,
-    {
-        let internal_hook_state = self.hook.clone();
-        let process_message = self.process_message.clone();
-
-        // Update the component
-        // We're calling "message_queue.push", so not calling it post-render
-        let post_render = true;
-        process_message(
-            Box::new(move || {
-                let mut hook = internal_hook_state.borrow_mut();
-                let hook: &mut T = hook
-                    .downcast_mut()
-                    .expect("internal error: hook downcasted to wrong type");
-                cb(hook)
-            }),
-            post_render,
-        );
-    }
-}

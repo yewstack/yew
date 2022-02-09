@@ -49,12 +49,14 @@
 mod classes;
 mod derive_props;
 mod function_component;
+mod hook;
 mod html_tree;
 mod props;
 mod stringify;
 
 use derive_props::DerivePropsInput;
 use function_component::{function_component_impl, FunctionComponent, FunctionComponentName};
+use hook::{hook_impl, HookFn};
 use html_tree::{HtmlRoot, HtmlRootVNode};
 use proc_macro::TokenStream;
 use quote::ToTokens;
@@ -122,15 +124,29 @@ pub fn classes(input: TokenStream) -> TokenStream {
     TokenStream::from(classes.into_token_stream())
 }
 
+#[proc_macro_error::proc_macro_error]
 #[proc_macro_attribute]
-pub fn function_component(
-    attr: proc_macro::TokenStream,
-    item: proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
+pub fn function_component(attr: TokenStream, item: TokenStream) -> proc_macro::TokenStream {
     let item = parse_macro_input!(item as FunctionComponent);
     let attr = parse_macro_input!(attr as FunctionComponentName);
 
     function_component_impl(attr, item)
+        .unwrap_or_else(|err| err.to_compile_error())
+        .into()
+}
+
+#[proc_macro_error::proc_macro_error]
+#[proc_macro_attribute]
+pub fn hook(attr: TokenStream, item: TokenStream) -> proc_macro::TokenStream {
+    let item = parse_macro_input!(item as HookFn);
+
+    if let Some(m) = proc_macro2::TokenStream::from(attr).into_iter().next() {
+        return syn::Error::new_spanned(m, "hook attribute does not accept any arguments")
+            .into_compile_error()
+            .into();
+    }
+
+    hook_impl(item)
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
 }

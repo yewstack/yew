@@ -4,11 +4,12 @@ sidebar_label: Contexts
 description: "Using contexts to pass data within application"
 ---
 
-Generally data is passed down the component tree using props but that becomes tedious for values such as 
-user preferences, authentication information etc. Consider the following example which passes down the 
+Generally data is passed down the component tree using props but that becomes tedious for values such as
+user preferences, authentication information etc. Consider the following example which passes down the
 theme using props:
+
 ```rust
-use yew::{html, Children, Component, Context, Html, Properties};
+use yew::{html, Children, Component, Context, Html, Properties, function_component};
 
 #[derive(Clone, PartialEq)]
 pub struct Theme {
@@ -21,27 +22,17 @@ pub struct NavbarProps {
     theme: Theme,
 }
 
-pub struct Navbar;
-
-impl Component for Navbar {
-    type Message = ();
-    type Properties = NavbarProps;
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        html! {
-            <div>
-                <Title theme={ctx.props().theme.clone()}>
-                    { "App title" }
-                </Title>
-                <NavButton theme={ctx.props().theme.clone()}>
-                    { "Somewhere" }
-                </NavButton>
-            </div>
-        }
+#[function_component]
+fn Navbar(props: &NavbarProps) -> Html {
+    html! {
+        <div>
+            <Title theme={props.theme.clone()}>
+                { "App title" }
+            </Title>
+            <NavButton theme={props.theme.clone()}>
+                { "Somewhere" }
+            </NavButton>
+        </div>
     }
 }
 
@@ -51,14 +42,14 @@ pub struct ThemeProps {
     children: Children,
 }
 
-#[yew::function_component(Title)]
-fn title(_props: &ThemeProps) -> Html {
+#[function_component]
+fn Title(_props: &ThemeProps) -> Html {
     html! {
         // impl
     }
 }
-#[yew::function_component(NavButton)]
-fn nav_button(_props: &ThemeProps) -> Html {
+#[function_component]
+fn NavButton(_props: &ThemeProps) -> Html {
     html! {
         // impl
     }
@@ -75,16 +66,17 @@ html! {
 };
 ```
 
-Passing down data like this isn't ideal for something like a theme which needs to be available everywhere. 
+Passing down data like this isn't ideal for something like a theme which needs to be available everywhere.
 This is where contexts come in.
 
-Contexts provide a way to share data between components without passing them down explicitly as props.
-They make data available to all components in the tree.
+Contexts can be understood as a global-ish opt in props.
+You need to provide the value somewhere in the component tree and all sub-components will be able to listen into its value and changes.
 
 ## Using Contexts
 
 In order to use contexts, we need a struct which defines what data is to be passed.
 For the above use-case, consider the following struct:
+
 ```rust
 #[derive(Clone, Debug, PartialEq)]
 struct Theme {
@@ -101,49 +93,9 @@ The children are re-rendered when the context changes.
 
 #### Struct components
 
-The `Scope::context` method is used to consume contexts in struct components.
-
-##### Example
-
-```rust
-use yew::{Callback, html, Component, Context, Html};
-
-#[derive(Clone, Debug, PartialEq)]
-struct Theme {
-    foreground: String,
-    background: String,
-}
-
-struct ContextDemo;
-
-impl Component for ContextDemo {
-    type Message = ();
-    type Properties = ();
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let (theme, _) = ctx
-            .link()
-            .context::<Theme>(Callback::noop())
-            .expect("context to be set");
-        html! {
-            <button style={format!(
-                    "background: {}; color: {};", 
-                    theme.background, 
-                    theme.foreground
-                )}
-            >
-                { "Click me!" }
-            </button>
-        }
-    }
-}
-```
+Use [HOC](../advanced-topics/struct-components/hoc)
 
 #### Function components
 
-`use_context` hook is used to consume contexts in function components. 
-See [docs for use_context](function-components/pre-defined-hooks.mdx#use_context) to learn more.
+`use_context` hook is used to consume contexts in function components.
+See [docs for use_context](function-components/hooks/use-context) to learn more.

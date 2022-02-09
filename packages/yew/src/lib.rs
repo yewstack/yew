@@ -308,7 +308,7 @@ pub use renderer::*;
 pub mod prelude {
     pub use crate::app_handle::AppHandle;
     pub use crate::callback::Callback;
-    pub use crate::context::ContextProvider;
+    pub use crate::context::{ContextHandle, ContextProvider};
     pub use crate::events::*;
     pub use crate::html::{
         create_portal, BaseComponent, Children, ChildrenWithProps, Classes, Component, Context,

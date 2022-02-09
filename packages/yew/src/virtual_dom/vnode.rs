@@ -126,19 +126,19 @@ impl VNode {
 
 impl VDiff for VNode {
     /// Remove VNode from parent.
-    fn detach(&mut self, parent: &Element) {
+    fn detach(&mut self, parent: &Element, parent_to_detach: bool) {
         match *self {
-            VNode::VTag(ref mut vtag) => vtag.detach(parent),
-            VNode::VText(ref mut vtext) => vtext.detach(parent),
-            VNode::VComp(ref mut vcomp) => vcomp.detach(parent),
-            VNode::VList(ref mut vlist) => vlist.detach(parent),
+            VNode::VTag(ref mut vtag) => vtag.detach(parent, parent_to_detach),
+            VNode::VText(ref mut vtext) => vtext.detach(parent, parent_to_detach),
+            VNode::VComp(ref mut vcomp) => vcomp.detach(parent, parent_to_detach),
+            VNode::VList(ref mut vlist) => vlist.detach(parent, parent_to_detach),
             VNode::VRef(ref node) => {
                 if parent.remove_child(node).is_err() {
                     console::warn!("Node not found to remove VRef");
                 }
             }
-            VNode::VPortal(ref mut vportal) => vportal.detach(parent),
-            VNode::VSuspense(ref mut vsuspense) => vsuspense.detach(parent),
+            VNode::VPortal(ref mut vportal) => vportal.detach(parent, parent_to_detach),
+            VNode::VSuspense(ref mut vsuspense) => vsuspense.detach(parent, parent_to_detach),
         }
     }
 
@@ -183,12 +183,13 @@ impl VDiff for VNode {
             }
             VNode::VRef(ref mut node) => {
                 if let Some(mut ancestor) = ancestor {
+                    // We always remove VRef in case it's meant to be used somewhere else.
                     if let VNode::VRef(n) = &ancestor {
                         if node == n {
                             return NodeRef::new(node.clone());
                         }
                     }
-                    ancestor.detach(parent);
+                    ancestor.detach(parent, false);
                 }
                 super::insert_node(node, parent, next_sibling.get().as_ref());
                 NodeRef::new(node.clone())

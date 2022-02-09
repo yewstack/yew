@@ -3,7 +3,11 @@ use quote::{format_ident, quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::token::{Comma, Fn};
-use syn::{Attribute, Block, FnArg, Generics, Ident, Item, ItemFn, ReturnType, Type, Visibility};
+use syn::{
+    visit_mut, Attribute, Block, FnArg, Generics, Ident, Item, ItemFn, ReturnType, Type, Visibility,
+};
+
+use crate::hook::BodyRewriter;
 
 #[derive(Clone)]
 pub struct FunctionComponent {
@@ -169,7 +173,7 @@ fn print_fn(func_comp: FunctionComponent, use_fn_name: bool) -> TokenStream {
         fn_token,
         name,
         attrs,
-        block,
+        mut block,
         return_type,
         generics,
         arg,
@@ -184,9 +188,14 @@ fn print_fn(func_comp: FunctionComponent, use_fn_name: bool) -> TokenStream {
         Ident::new("inner", Span::mixed_site())
     };
 
+    let ctx_ident = Ident::new("ctx", Span::mixed_site());
+
+    let mut body_rewriter = BodyRewriter::default();
+    visit_mut::visit_block_mut(&mut body_rewriter, &mut *block);
+
     quote! {
         #(#attrs)*
-        #fn_token #name #ty_generics (#arg) -> #return_type
+        #fn_token #name #ty_generics (#ctx_ident: &mut ::yew::functional::HookContext, #arg) -> #return_type
         #where_clause
         {
             #block
@@ -241,6 +250,8 @@ pub fn function_component_impl(
         Ident::new("inner", Span::mixed_site())
     };
 
+    let ctx_ident = Ident::new("ctx", Span::mixed_site());
+
     let quoted = quote! {
         #[doc(hidden)]
         #[allow(non_camel_case_types)]
@@ -253,10 +264,10 @@ pub fn function_component_impl(
         impl #impl_generics ::yew::functional::FunctionProvider for #provider_name #ty_generics #where_clause {
             type TProps = #props_type;
 
-            fn run(#provider_props: &Self::TProps) -> ::yew::html::HtmlResult {
+            fn run(#ctx_ident: &mut ::yew::functional::HookContext, #provider_props: &Self::TProps) -> ::yew::html::HtmlResult {
                 #func
 
-                ::yew::html::IntoHtmlResult::into_html_result(#fn_name #fn_generics (#provider_props))
+                ::yew::html::IntoHtmlResult::into_html_result(#fn_name #fn_generics (#ctx_ident, #provider_props))
             }
         }
 
