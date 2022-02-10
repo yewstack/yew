@@ -1,3 +1,6 @@
+#[cfg(feature = "hydration")]
+use std::collections::VecDeque;
+
 use super::{Key, VDiff, VNode};
 use crate::html::{AnyScope, NodeRef};
 use web_sys::{Element, Node};
@@ -13,6 +16,10 @@ pub struct VSuspense {
 
     /// The element to attach to when children is not attached to DOM
     detached_parent: Option<Element>,
+
+    /// The fallback fragment when the suspense boundary is hydrating.
+    #[cfg(feature = "hydration")]
+    fallback_fragment: Option<VecDeque<Node>>,
 
     /// Whether the current status is suspended.
     suspended: bool,
@@ -34,6 +41,8 @@ impl VSuspense {
             fallback: fallback.into(),
             detached_parent,
             suspended,
+            #[cfg(feature = "hydration")]
+            fallback_fragment: None,
             key,
         }
     }
@@ -61,6 +70,18 @@ impl VDiff for VSuspense {
 
     fn shift(&self, previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef) {
         if self.suspended {
+            #[cfg(feature = "hydration")]
+            {
+                use crate::virtual_dom::shift_fragment;
+                if let Some(ref m) = self.fallback_fragment {
+                    shift_fragment(m, previous_parent, next_parent, next_sibling);
+                } else {
+                    self.fallback
+                        .shift(previous_parent, next_parent, next_sibling);
+                }
+            }
+
+            #[cfg(not(feature = "hydration"))]
             self.fallback
                 .shift(previous_parent, next_parent, next_sibling);
         } else {
@@ -107,6 +128,24 @@ impl VDiff for VSuspense {
                     children_ancestor,
                 );
 
+                #[cfg(feature = "hydration")]
+                {
+                    if self.fallback_fragment.is_none() {
+                        self.fallback
+                            .apply(parent_scope, parent, next_sibling, fallback_ancestor)
+                    } else {
+                        let node_ref = NodeRef::default();
+                        node_ref.set(
+                            self.fallback_fragment
+                                .as_ref()
+                                .and_then(|m| m.front().cloned()),
+                        );
+
+                        node_ref
+                    }
+                }
+
+                #[cfg(not(feature = "hydration"))]
                 self.fallback
                     .apply(parent_scope, parent, next_sibling, fallback_ancestor)
             }
@@ -136,6 +175,22 @@ impl VDiff for VSuspense {
             }
 
             (false, true) => {
+                #[cfg(feature = "hydration")]
+                {
+                    if let Some(m) = self.fallback_fragment.take() {
+                        // We can simply remove the fallback fragments it's not connected to
+                        // anything.
+                        for node in m.into_iter() {
+                            parent
+                                .remove_child(&node)
+                                .expect("failed to remove fragment node.");
+                        }
+                    } else {
+                        fallback_ancestor.unwrap().detach(parent, false);
+                    }
+                }
+
+                #[cfg(not(feature = "hydration"))]
                 fallback_ancestor.unwrap().detach(parent, false);
 
                 children_ancestor.as_ref().unwrap().shift(
@@ -159,15 +214,39 @@ mod feat_hydration {
 
     use web_sys::Node;
 
-    use crate::virtual_dom::VHydrate;
+    use crate::virtual_dom::{collect_between, VHydrate};
 
     impl VHydrate for VSuspense {
         fn hydrate(
             &mut self,
             parent_scope: &AnyScope,
-            parent: &Element,
+            _parent: &Element,
             fragment: &mut VecDeque<Node>,
         ) -> NodeRef {
+            let detached_parent = self.detached_parent.as_ref().expect("no detached parent?");
+
+            // We start hydration with the VSuspense being suspended.
+            // A subsequent render will resume the VSuspense if not needed to be suspended.
+            self.suspended = true;
+
+            let fallback_nodes = collect_between(fragment, "suspense");
+
+            let mut nodes = fallback_nodes
+                .iter()
+                .map(|m| m.clone_node_with_deep(true).expect("failed to clone node."))
+                .collect::<VecDeque<_>>();
+
+            for node in nodes.iter() {
+                detached_parent.append_child(node).unwrap();
+            }
+
+            self.children
+                .hydrate(parent_scope, detached_parent, &mut nodes);
+
+            assert!(nodes.is_empty(), "expected EOF, found node.");
+
+            self.fallback_fragment = Some(fallback_nodes);
+
             todo!()
         }
     }

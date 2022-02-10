@@ -523,6 +523,8 @@ mod feat_hydration {
     use super::*;
     use std::collections::VecDeque;
 
+    use crate::virtual_dom::collect_between;
+
     impl<COMP: BaseComponent> Scope<COMP> {
         /// Hydrates the component.
         ///
@@ -542,56 +544,8 @@ mod feat_hydration {
             node_ref: NodeRef,
             props: Rc<COMP::Properties>,
         ) -> NodeRef {
-            let first_node = fragment
-                .pop_front()
-                .expect("expected component start, found EOF");
-
-            // We set the first node as the component start comment for now.
-            node_ref.set(Some(first_node.clone()));
-
-            assert_eq!(
-                first_node.node_type(),
-                Node::COMMENT_NODE,
-                // TODO: improve error message with human readable node type name.
-                "expected component start, found node type {}",
-                first_node.node_type()
-            );
-
-            let mut nodes = VecDeque::new();
-
-            if first_node.text_content().unwrap_or_else(|| "".to_string()) != "yew-comp-start" {
-                panic!("expected comment start, found comment node");
-            }
-
-            let mut current_node;
-            let mut nested_layers = 1;
-
-            loop {
-                current_node = fragment
-                    .pop_front()
-                    .expect("expected component end, found EOF");
-
-                if current_node.node_type() == Node::COMMENT_NODE {
-                    let text_content = current_node
-                        .text_content()
-                        .unwrap_or_else(|| "".to_string());
-
-                    if text_content == "yew-comp-start" {
-                        // We found another component, we need to increase component counter.
-                        nested_layers += 1;
-                    } else if text_content == "yew-comp-end" {
-                        // We found a component end, minus component counter.
-                        nested_layers -= 1;
-                        if nested_layers == 0 {
-                            // We have found the component end of the current component, breaking
-                            // the loop.
-                            break;
-                        }
-                    }
-                }
-
-                nodes.push_back(current_node.clone());
-            }
+            let nodes = collect_between(fragment, "comp");
+            node_ref.set(nodes.front().cloned());
 
             let next_sibling = NodeRef::default();
             // We register the first sibling, but we don't pop them from the fragment.

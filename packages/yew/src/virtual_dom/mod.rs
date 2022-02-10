@@ -591,6 +591,62 @@ mod feat_hydration {
                 .unwrap();
         }
     }
+
+    pub(crate) fn collect_between(fragment: &mut VecDeque<Node>, divider: &str) -> VecDeque<Node> {
+        let start_mark = format!("yew-{}-start", divider);
+        let end_mark = format!("yew-{}-end", divider);
+
+        let first_node = fragment
+            .pop_front()
+            .unwrap_or_else(|| panic!("expected {} start, found EOF", divider));
+
+        assert_eq!(
+            first_node.node_type(),
+            Node::COMMENT_NODE,
+            // TODO: improve error message with human readable node type name.
+            "expected {} start, found node type {}",
+            divider,
+            first_node.node_type()
+        );
+
+        let mut nodes = VecDeque::new();
+
+        if first_node.text_content().unwrap_or_else(|| "".to_string()) != start_mark {
+            panic!("expected {} start, found comment node", divider);
+        }
+
+        let mut current_node;
+        let mut nested_layers = 1;
+
+        loop {
+            current_node = fragment
+                .pop_front()
+                .expect("expected component end, found EOF");
+
+            if current_node.node_type() == Node::COMMENT_NODE {
+                let text_content = current_node
+                    .text_content()
+                    .unwrap_or_else(|| "".to_string());
+
+                if text_content == start_mark {
+                    // We found another component, we need to increase component counter.
+                    nested_layers += 1;
+                } else if text_content == end_mark {
+                    // We found a component end, minus component counter.
+                    nested_layers -= 1;
+                    if nested_layers == 0 {
+                        // We have found the component end of the current component, breaking
+                        // the loop.
+                        break;
+                    }
+                }
+            }
+
+            nodes.push_back(current_node.clone());
+        }
+
+        nodes
+    }
 }
 
 #[cfg(feature = "hydration")]
