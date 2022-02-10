@@ -102,7 +102,7 @@ mod feat_hydration {
         /// Hydrates the application.
         pub fn hydrate(self) -> AppHandle<COMP> {
             set_default_panic_hook();
-            todo!()
+            AppHandle::<COMP>::hydrate_with_props(self.root, Rc::new(self.props))
         }
     }
 }

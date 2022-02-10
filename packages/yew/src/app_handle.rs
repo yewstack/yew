@@ -33,6 +33,23 @@ where
         app
     }
 
+    pub(crate) fn hydrate_with_props(element: Element, props: Rc<COMP::Properties>) -> Self {
+        let app = Self {
+            scope: Scope::new(None),
+        };
+
+        app.scope.hydrate_in_place(
+            element.clone(),
+            element
+                .first_child()
+                .expect("expected component, found EOF"),
+            NodeRef::default(),
+            props,
+        );
+
+        app
+    }
+
     /// Schedule the app for destruction
     pub fn destroy(mut self) {
         self.scope.destroy()
