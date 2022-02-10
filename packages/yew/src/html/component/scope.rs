@@ -446,6 +446,7 @@ mod feat_ssr {
                 state: self.state.clone(),
                 parent_to_detach: false,
             });
+
             scheduler::start();
         }
     }

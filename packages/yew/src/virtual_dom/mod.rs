@@ -592,6 +592,7 @@ mod feat_hydration {
         }
     }
 
+    /// Collects nodes for a Component or a Suspense Boundary.
     pub(crate) fn collect_between(fragment: &mut VecDeque<Node>, divider: &str) -> VecDeque<Node> {
         let start_mark = format!("yew-{}-start", divider);
         let end_mark = format!("yew-{}-end", divider);
@@ -608,6 +609,13 @@ mod feat_hydration {
             divider,
             first_node.node_type()
         );
+
+        // We remove the start comment.
+        first_node
+            .parent_element()
+            .unwrap()
+            .remove_child(&first_node)
+            .unwrap();
 
         let mut nodes = VecDeque::new();
 
@@ -637,6 +645,13 @@ mod feat_hydration {
                     if nested_layers == 0 {
                         // We have found the component end of the current component, breaking
                         // the loop.
+
+                        // We remove the end comment.
+                        current_node
+                            .parent_element()
+                            .unwrap()
+                            .remove_child(&first_node)
+                            .unwrap();
                         break;
                     }
                 }
