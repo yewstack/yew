@@ -529,7 +529,7 @@ mod feat_hydration {
     impl<COMP: BaseComponent> Scope<COMP> {
         /// Hydrates the component.
         ///
-        /// Returns the NodeRef of the next sibling.
+        /// Returns a pending NodeRef of the next sibling.
         ///
         /// # Note
         ///
@@ -545,12 +545,10 @@ mod feat_hydration {
             node_ref: NodeRef,
             props: Rc<COMP::Properties>,
         ) -> NodeRef {
-            let nodes = collect_between(fragment, "comp");
+            let nodes = collect_between(fragment, &parent, "comp");
             node_ref.set(nodes.front().cloned());
 
             let next_sibling = NodeRef::default();
-            // We register the first sibling, but we don't pop them from the fragment.
-            next_sibling.set(fragment.front().cloned());
 
             scheduler::push_component_create(
                 CreateRunner {
@@ -568,6 +566,17 @@ mod feat_hydration {
                     state: self.state.clone(),
                 },
             );
+
+            // We schedule a second render immediately after hydration, for the following reason:
+            // 1. Fix next sibling NodeRef
+            // 2. Switch from fallback UI to children UI for <Suspense /> component.
+            scheduler::push_component_render(
+                self.state.as_ptr() as usize,
+                RenderRunner {
+                    state: self.state.clone(),
+                },
+            );
+
             // Not guaranteed to already have the scheduler started
             scheduler::start();
 

@@ -553,12 +553,16 @@ mod feat_hydration {
         /// hydrates current tree.
         ///
         /// Returns a reference to the first node of the hydrated tree.
+        ///
+        /// # Important
+        ///
+        /// DOM tree is hydrated from top to bottom. This is different than VDiff::apply.
         fn hydrate(
             &mut self,
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut VecDeque<Node>,
-        ) -> NodeRef;
+        ) -> (NodeRef, Option<NodeRef>);
     }
 
     /// Collects child nodes of an element into a VecDeque.
@@ -593,9 +597,16 @@ mod feat_hydration {
     }
 
     /// Collects nodes for a Component or a Suspense Boundary.
-    pub(crate) fn collect_between(fragment: &mut VecDeque<Node>, divider: &str) -> VecDeque<Node> {
+    pub(crate) fn collect_between(
+        fragment: &mut VecDeque<Node>,
+        parent: &Element,
+        divider: &str,
+    ) -> VecDeque<Node> {
         let start_mark = format!("yew-{}-start", divider);
         let end_mark = format!("yew-{}-end", divider);
+
+        // We trim all text nodes it's likely these are whitespaces.
+        trim_start_text_nodes(parent, fragment);
 
         let first_node = fragment
             .pop_front()
@@ -661,6 +672,19 @@ mod feat_hydration {
         }
 
         nodes
+    }
+
+    /// Remove child nodes until first non-text node.
+    pub(crate) fn trim_start_text_nodes(parent: &Element, fragment: &mut VecDeque<Node>) {
+        while let Some(ref m) = fragment.front().cloned() {
+            if m.node_type() == Node::TEXT_NODE {
+                fragment.pop_front();
+
+                parent.remove_child(m).unwrap();
+            } else {
+                break;
+            }
+        }
     }
 }
 

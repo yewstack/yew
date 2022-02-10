@@ -720,15 +720,18 @@ mod feat_hydration {
 
     use web_sys::Node;
 
-    use crate::virtual_dom::{collect_child_nodes, VHydrate};
+    use crate::virtual_dom::{collect_child_nodes, trim_start_text_nodes, VHydrate};
 
     impl VHydrate for VTag {
         fn hydrate(
             &mut self,
             parent_scope: &AnyScope,
-            _parent: &Element,
+            parent: &Element,
             fragment: &mut VecDeque<Node>,
-        ) -> NodeRef {
+        ) -> (NodeRef, Option<NodeRef>) {
+            // We trim all text nodes it's likely these are whitespaces.
+            trim_start_text_nodes(parent, fragment);
+
             let node = fragment.pop_front().expect("expected element, found EOF.");
             let el = node.dyn_into::<Element>().expect("expected an element.");
 
@@ -764,7 +767,7 @@ mod feat_hydration {
 
             self.node_ref.set(Some(el.deref().clone()));
             self.reference = el.into();
-            self.node_ref.clone()
+            (self.node_ref.clone(), None)
         }
     }
 }

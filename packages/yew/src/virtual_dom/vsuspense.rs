@@ -214,22 +214,22 @@ mod feat_hydration {
 
     use web_sys::Node;
 
-    use crate::virtual_dom::{collect_between, VHydrate};
+    use crate::virtual_dom::{collect_between, trim_start_text_nodes, VHydrate};
 
     impl VHydrate for VSuspense {
         fn hydrate(
             &mut self,
             parent_scope: &AnyScope,
-            _parent: &Element,
+            parent: &Element,
             fragment: &mut VecDeque<Node>,
-        ) -> NodeRef {
+        ) -> (NodeRef, Option<NodeRef>) {
             let detached_parent = self.detached_parent.as_ref().expect("no detached parent?");
 
             // We start hydration with the VSuspense being suspended.
             // A subsequent render will resume the VSuspense if not needed to be suspended.
             self.suspended = true;
 
-            let fallback_nodes = collect_between(fragment, "suspense");
+            let fallback_nodes = collect_between(fragment, parent, "suspense");
 
             let mut nodes = fallback_nodes
                 .iter()
@@ -243,11 +243,20 @@ mod feat_hydration {
             self.children
                 .hydrate(parent_scope, detached_parent, &mut nodes);
 
-            assert!(nodes.is_empty(), "expected EOF, found node.");
+            // We trim all text nodes before checking it's likely these are whitespaces.
+            trim_start_text_nodes(detached_parent, &mut nodes);
+
+            assert!(nodes.is_empty(), "expected end of suspense, found node.");
+
+            let first_node = fallback_nodes
+                .front()
+                .cloned()
+                .map(NodeRef::new)
+                .unwrap_or_else(NodeRef::default);
 
             self.fallback_fragment = Some(fallback_nodes);
 
-            todo!()
+            (first_node, None)
         }
     }
 }

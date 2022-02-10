@@ -21,7 +21,6 @@ pub struct SuspenseProps {
 pub enum SuspenseMsg {
     Suspend(Suspension),
     Resume(Suspension),
-    Refresh,
 }
 
 /// Suspend rendering and show a fallback UI until the underlying task completes.
@@ -70,8 +69,6 @@ impl Component for Suspense {
 
                 suspensions_len != self.suspensions.len()
             }
-
-            Self::Message::Refresh => true,
         }
     }
 
@@ -94,13 +91,6 @@ impl Component for Suspense {
         );
 
         VNode::from(vsuspense)
-    }
-
-    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
-        if first_render {
-            // We refresh the suspense boundary for hydration, just in case it does not need to be suspended.
-            ctx.link().send_message(SuspenseMsg::Refresh);
-        }
     }
 }
 

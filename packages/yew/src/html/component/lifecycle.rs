@@ -5,7 +5,7 @@ use crate::html::{RenderError, RenderResult};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{Suspense, Suspension};
 #[cfg(feature = "hydration")]
-use crate::virtual_dom::VHydrate;
+use crate::virtual_dom::{trim_start_text_nodes, VHydrate};
 use crate::virtual_dom::{VDiff, VNode};
 use crate::Callback;
 use crate::{Context, NodeRef};
@@ -333,12 +333,15 @@ impl Runnable for RenderRunner {
                             Some(mut fragment) => {
                                 let first_node = new_root.hydrate(&scope, m, &mut fragment);
 
+                                // We trim all text nodes before checking it's likely these are whitespaces.
+                                trim_start_text_nodes(m, &mut fragment);
+
                                 assert!(
-                                    fragment.front().is_none(),
+                                    fragment.is_empty(),
                                     "expected end of component, found node"
                                 );
 
-                                first_node
+                                first_node.0
                             }
                             None => new_root.apply(&scope, m, next_sibling, ancestor),
                         };

@@ -200,7 +200,7 @@ trait Mountable {
         parent: Element,
         fragment: &mut VecDeque<Node>,
         node_ref: NodeRef,
-    ) -> Box<dyn Scoped>;
+    ) -> (Box<dyn Scoped>, NodeRef);
 }
 
 struct PropsWrapper<COMP: BaseComponent> {
@@ -262,11 +262,11 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         parent: Element,
         fragment: &mut VecDeque<Node>,
         node_ref: NodeRef,
-    ) -> Box<dyn Scoped> {
+    ) -> (Box<dyn Scoped>, NodeRef) {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        scope.hydrate_in_place(parent, fragment, node_ref, self.props);
+        let next_sibling = scope.hydrate_in_place(parent, fragment, node_ref, self.props);
 
-        Box::new(scope)
+        (Box::new(scope), next_sibling)
     }
 }
 
@@ -374,20 +374,22 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut VecDeque<Node>,
-        ) -> NodeRef {
+        ) -> (NodeRef, Option<NodeRef>) {
             let mountable = self
                 .mountable
                 .take()
                 .expect("tried to hydrate a mounted VComp");
 
-            self.scope = Some(mountable.hydrate(
+            let (scoped, next_sibling) = mountable.hydrate(
                 parent_scope,
                 parent.clone(),
                 fragment,
                 self.node_ref.clone(),
-            ));
+            );
 
-            self.node_ref.clone()
+            self.scope = Some(scoped);
+
+            (self.node_ref.clone(), Some(next_sibling))
         }
     }
 }

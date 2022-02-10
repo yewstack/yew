@@ -69,7 +69,13 @@ mod feat_hydration {
             let mut fragment = collect_child_nodes(&element);
 
             app.scope
-                .hydrate_in_place(element, &mut fragment, NodeRef::default(), props);
+                .hydrate_in_place(element.clone(), &mut fragment, NodeRef::default(), props);
+
+            // We remove all remaining nodes, this mimics the clear_element behaviour in
+            // mount_with_props.
+            for node in fragment.iter() {
+                element.remove_child(&node).unwrap();
+            }
 
             app
         }
