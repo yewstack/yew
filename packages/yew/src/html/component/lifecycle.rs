@@ -341,7 +341,7 @@ impl Runnable for RenderRunner {
                                     "expected end of component, found node"
                                 );
 
-                                first_node.0
+                                first_node
                             }
                             None => new_root.apply(&scope, m, next_sibling, ancestor),
                         };

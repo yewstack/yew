@@ -728,7 +728,7 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut VecDeque<Node>,
-        ) -> (NodeRef, Option<NodeRef>) {
+        ) -> NodeRef {
             // We trim all text nodes it's likely these are whitespaces.
             trim_start_text_nodes(parent, fragment);
 
@@ -767,7 +767,7 @@ mod feat_hydration {
 
             self.node_ref.set(Some(el.deref().clone()));
             self.reference = el.into();
-            (self.node_ref.clone(), None)
+            self.node_ref.clone()
         }
     }
 }

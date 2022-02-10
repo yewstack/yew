@@ -544,7 +544,7 @@ mod feat_hydration {
             fragment: &mut VecDeque<Node>,
             node_ref: NodeRef,
             props: Rc<COMP::Properties>,
-        ) -> NodeRef {
+        ) {
             let nodes = collect_between(fragment, &parent, "comp");
             node_ref.set(nodes.front().cloned());
 
@@ -553,7 +553,7 @@ mod feat_hydration {
             scheduler::push_component_create(
                 CreateRunner {
                     parent: Some(parent),
-                    next_sibling: next_sibling.clone(),
+                    next_sibling,
                     placeholder: VNode::default(),
                     node_ref,
                     props,
@@ -579,8 +579,6 @@ mod feat_hydration {
 
             // Not guaranteed to already have the scheduler started
             scheduler::start();
-
-            next_sibling
         }
     }
 }

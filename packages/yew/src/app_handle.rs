@@ -74,7 +74,7 @@ mod feat_hydration {
             // We remove all remaining nodes, this mimics the clear_element behaviour in
             // mount_with_props.
             for node in fragment.iter() {
-                element.remove_child(&node).unwrap();
+                element.remove_child(node).unwrap();
             }
 
             app

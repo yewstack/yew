@@ -360,7 +360,7 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut VecDeque<Node>,
-        ) -> (NodeRef, Option<NodeRef>) {
+        ) -> NodeRef {
             match self {
                 VNode::VTag(vtag) => vtag.hydrate(parent_scope, parent, fragment),
                 VNode::VText(vtext) => vtext.hydrate(parent_scope, parent, fragment),

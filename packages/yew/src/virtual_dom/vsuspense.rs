@@ -222,7 +222,7 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut VecDeque<Node>,
-        ) -> (NodeRef, Option<NodeRef>) {
+        ) -> NodeRef {
             let detached_parent = self.detached_parent.as_ref().expect("no detached parent?");
 
             // We start hydration with the VSuspense being suspended.
@@ -256,7 +256,7 @@ mod feat_hydration {
 
             self.fallback_fragment = Some(fallback_nodes);
 
-            (first_node, None)
+            first_node
         }
     }
 }

@@ -8,6 +8,7 @@ use crate::html::{BaseComponent, Children, Component, Context, Html, Properties}
 /// A [Properties] type with Children being the only property.
 #[derive(Debug, Properties, PartialEq)]
 pub struct ChildrenProps {
+    /// The Children of a Component.
     #[prop_or_default]
     pub children: Children,
 }

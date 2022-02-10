@@ -397,25 +397,18 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut VecDeque<Node>,
-        ) -> (NodeRef, Option<NodeRef>) {
-            let mut maybe_next_sibling: Option<NodeRef> = None;
+        ) -> NodeRef {
+            let node_ref = NodeRef::default();
 
-            for child in self.children.iter_mut() {
-                let (first_node, next_sibling) = child.hydrate(parent_scope, parent, fragment);
+            for (index, child) in self.children.iter_mut().enumerate() {
+                let child_node_ref = child.hydrate(parent_scope, parent, fragment);
 
-                // We link them together.
-                if let Some(ref m) = maybe_next_sibling {
-                    m.link(first_node);
+                if index == 0 {
+                    node_ref.link(child_node_ref);
                 }
-
-                maybe_next_sibling = next_sibling;
             }
 
-            // We find the first non-empty node and use that as our first node.
-            let node_ref = NodeRef::default();
-            node_ref.set(self.children.iter().find_map(|m| m.first_node()));
-
-            (node_ref, None)
+            node_ref
         }
     }
 }

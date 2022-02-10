@@ -144,7 +144,7 @@ mod feat_hydration {
             _parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut VecDeque<Node>,
-        ) -> (NodeRef, Option<NodeRef>) {
+        ) -> NodeRef {
             assert!(
                 self.reference.is_none(),
                 "trying to hydrate a mounted VText."
@@ -161,7 +161,7 @@ mod feat_hydration {
                         m.set_node_value(Some(self.text.as_ref()));
                         self.reference = Some(m.clone());
 
-                        return (NodeRef::new(m.into()), None);
+                        return NodeRef::new(m.into());
                     }
                 }
             }
@@ -171,7 +171,7 @@ mod feat_hydration {
             let text_node = document().create_text_node(&self.text);
             insert_node(&text_node, parent, fragment.front());
             self.reference = Some(text_node.clone());
-            (NodeRef::new(text_node.into()), None)
+            NodeRef::new(text_node.into())
         }
     }
 }

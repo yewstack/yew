@@ -562,7 +562,7 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut VecDeque<Node>,
-        ) -> (NodeRef, Option<NodeRef>);
+        ) -> NodeRef;
     }
 
     /// Collects child nodes of an element into a VecDeque.
