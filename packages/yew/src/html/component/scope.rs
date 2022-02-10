@@ -435,12 +435,12 @@ mod feat_ssr {
 
             let html = rx.await.unwrap();
 
+            let self_any_scope = self.to_any();
+            html.render_to_string(w, &self_any_scope, hydratable).await;
+
             if hydratable {
                 w.push_str("<!--yew-comp-end-->");
             }
-
-            let self_any_scope = self.to_any();
-            html.render_to_string(w, &self_any_scope, hydratable).await;
 
             scheduler::push_component_destroy(DestroyRunner {
                 state: self.state.clone(),
