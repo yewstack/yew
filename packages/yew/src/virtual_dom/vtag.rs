@@ -729,10 +729,17 @@ mod feat_hydration {
             parent: &Element,
             fragment: &mut VecDeque<Node>,
         ) -> NodeRef {
-            // We trim all text nodes it's likely these are whitespaces.
+            // We trim all text nodes as it's likely these are whitespaces.
             trim_start_text_nodes(parent, fragment);
 
             let node = fragment.pop_front().expect("expected element, found EOF.");
+
+            assert_eq!(
+                node.node_type(),
+                Node::ELEMENT_NODE,
+                "expected element, found node type {}.",
+                node.node_type(),
+            );
             let el = node.dyn_into::<Element>().expect("expected an element.");
 
             assert_eq!(
@@ -740,7 +747,7 @@ mod feat_hydration {
                 self.tag(),
                 "expected element of kind {}, found {}.",
                 self.tag(),
-                el.tag_name()
+                el.tag_name(),
             );
 
             // We simply registers listeners and updates all attributes.
