@@ -561,6 +561,7 @@ mod feat_hydration {
         ) -> NodeRef;
     }
 
+    /// Collects child nodes of an element into a VecDeque.
     pub(crate) fn collect_child_nodes(parent: &Node) -> VecDeque<Node> {
         let mut fragment = VecDeque::with_capacity(parent.child_nodes().length() as usize);
 

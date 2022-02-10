@@ -6,12 +6,16 @@ use crate::html::{AnyScope, BaseComponent, NodeRef, Scope, Scoped};
 use futures::future::{FutureExt, LocalBoxFuture};
 use std::any::TypeId;
 use std::borrow::Borrow;
+#[cfg(feature = "hydration")]
+use std::collections::VecDeque;
 use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 #[cfg(debug_assertions)]
 use std::sync::atomic::{AtomicUsize, Ordering};
 use web_sys::Element;
+#[cfg(feature = "hydration")]
+use web_sys::Node;
 
 #[cfg(debug_assertions)]
 thread_local! {
@@ -188,6 +192,15 @@ trait Mountable {
         parent_scope: &'a AnyScope,
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()>;
+
+    #[cfg(feature = "hydration")]
+    fn hydrate(
+        self: Box<Self>,
+        parent_scope: &AnyScope,
+        parent: Element,
+        fragment: &mut VecDeque<Node>,
+        node_ref: NodeRef,
+    ) -> Box<dyn Scoped>;
 }
 
 struct PropsWrapper<COMP: BaseComponent> {
@@ -240,6 +253,20 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
                 .await;
         }
         .boxed_local()
+    }
+
+    #[cfg(feature = "hydration")]
+    fn hydrate(
+        self: Box<Self>,
+        parent_scope: &AnyScope,
+        parent: Element,
+        fragment: &mut VecDeque<Node>,
+        node_ref: NodeRef,
+    ) -> Box<dyn Scoped> {
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+        scope.hydrate_in_place(parent, fragment, node_ref, self.props);
+
+        Box::new(scope)
     }
 }
 
@@ -348,7 +375,19 @@ mod feat_hydration {
             parent: &Element,
             fragment: &mut VecDeque<Node>,
         ) -> NodeRef {
-            todo!()
+            let mountable = self
+                .mountable
+                .take()
+                .expect("tried to hydrate a mounted VComp");
+
+            self.scope = Some(mountable.hydrate(
+                parent_scope,
+                parent.clone(),
+                fragment,
+                self.node_ref.clone(),
+            ));
+
+            self.node_ref.clone()
         }
     }
 }

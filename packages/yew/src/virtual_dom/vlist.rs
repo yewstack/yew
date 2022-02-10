@@ -398,7 +398,15 @@ mod feat_hydration {
             parent: &Element,
             fragment: &mut VecDeque<Node>,
         ) -> NodeRef {
-            todo!()
+            for child in self.children.iter_mut() {
+                child.hydrate(parent_scope, parent, fragment);
+            }
+
+            // We find the first non-empty node and use that as our first node.
+            let node_ref = NodeRef::default();
+            node_ref.set(self.children.iter().find_map(|m| m.first_node()));
+
+            node_ref
         }
     }
 }

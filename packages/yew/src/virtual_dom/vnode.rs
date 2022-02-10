@@ -370,7 +370,7 @@ mod feat_hydration {
                 VNode::VRef(_) => {
                     panic!("VRef is not hydratable. Try move it to a component mounted after an effect.")
                 }
-                // Portals are not rendered.
+                // You cannot hydrate a VPortal.
                 VNode::VPortal(_) => {
                     panic!("VPortal is not hydratable. Try move it to a component mounted after an effect.")
                 }

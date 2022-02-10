@@ -546,6 +546,9 @@ mod feat_hydration {
                 .pop_front()
                 .expect("expected component start, found EOF");
 
+            // We set the first node as the component start comment for now.
+            node_ref.set(Some(first_node.clone()));
+
             assert_eq!(
                 first_node.node_type(),
                 Node::COMMENT_NODE,
