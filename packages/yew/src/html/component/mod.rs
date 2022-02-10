@@ -2,11 +2,13 @@
 
 mod children;
 mod lifecycle;
+mod marker;
 mod properties;
 mod scope;
 
 use super::{Html, HtmlResult, IntoHtmlResult};
 pub use children::*;
+pub use marker::*;
 pub use properties::*;
 pub(crate) use scope::Scoped;
 pub use scope::{AnyScope, Scope, SendAsMessage};

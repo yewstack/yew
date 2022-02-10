@@ -223,6 +223,21 @@ impl Runnable for UpdateRunner {
                     state.inner.props_changed(props)
                 }
                 UpdateEvent::Shift(parent, next_sibling) => {
+                    // We need to shift the hydrate fragment if the component is not hydrated.
+                    #[cfg(feature = "hydration")]
+                    {
+                        use crate::virtual_dom::shift_fragment;
+
+                        if let Some(ref m) = state.hydrate_fragment {
+                            shift_fragment(
+                                m,
+                                state.parent.as_ref().unwrap(),
+                                &parent,
+                                next_sibling.clone(),
+                            );
+                        }
+                    }
+
                     state.root_node.shift(
                         state.parent.as_ref().unwrap(),
                         &parent,

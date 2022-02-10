@@ -562,7 +562,7 @@ mod feat_hydration {
     }
 
     /// Collects child nodes of an element into a VecDeque.
-    pub(crate) fn collect_child_nodes(parent: &Node) -> VecDeque<Node> {
+    pub(crate) fn collect_child_nodes(parent: &Element) -> VecDeque<Node> {
         let mut fragment = VecDeque::with_capacity(parent.child_nodes().length() as usize);
 
         let mut current_node = parent.first_child();
@@ -575,6 +575,21 @@ mod feat_hydration {
         }
 
         fragment
+    }
+
+    /// VDiff::shift, but for fragments
+    pub(crate) fn shift_fragment(
+        fragment: &VecDeque<Node>,
+        previous_parent: &Element,
+        next_parent: &Element,
+        next_sibling: NodeRef,
+    ) {
+        for node in fragment.iter() {
+            previous_parent.remove_child(node).unwrap();
+            next_parent
+                .insert_before(node, next_sibling.get().as_ref())
+                .unwrap();
+        }
     }
 }
 
