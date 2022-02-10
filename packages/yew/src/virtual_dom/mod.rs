@@ -568,7 +568,7 @@ mod feat_hydration {
         let mut current_node = parent.first_child();
 
         // This is easier than iterating child nodes at the moment
-        // as we don't have to downcast iterator values and minimises dom access.
+        // as we don't have to downcast iterator values.
         while let Some(m) = current_node {
             current_node = m.next_sibling();
             fragment.push_back(m);

@@ -151,6 +151,7 @@ mod feat_hydration {
             );
 
             if let Some(m) = fragment.front().cloned() {
+                // better safe than sorry.
                 if m.node_type() == Node::TEXT_NODE {
                     if let Ok(m) = m.dyn_into::<TextNode>() {
                         // pop current node.

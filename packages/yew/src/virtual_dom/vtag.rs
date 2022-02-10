@@ -720,16 +720,51 @@ mod feat_hydration {
 
     use web_sys::Node;
 
-    use crate::virtual_dom::VHydrate;
+    use crate::virtual_dom::{collect_child_nodes, VHydrate};
 
     impl VHydrate for VTag {
         fn hydrate(
             &mut self,
             parent_scope: &AnyScope,
-            parent: &Element,
+            _parent: &Element,
             fragment: &mut VecDeque<Node>,
         ) -> NodeRef {
-            todo!()
+            let node = fragment.pop_front().expect("expected element, found EOF.");
+            let el = node.dyn_into::<Element>().expect("expected an element.");
+
+            assert_eq!(
+                el.tag_name(),
+                self.tag(),
+                "expected element of kind {}, found {}.",
+                self.tag(),
+                el.tag_name()
+            );
+
+            // We simply registers listeners and updates all attributes.
+            self.attributes.apply(&el);
+            self.listeners.apply(&el);
+
+            // For input and textarea elements, we update their value anyways.
+            match &mut self.inner {
+                VTagInner::Input(f) => {
+                    f.apply(el.unchecked_ref());
+                }
+                VTagInner::Textarea { value } => {
+                    value.apply(el.unchecked_ref());
+                }
+                VTagInner::Other { children, .. } => {
+                    let mut nodes = collect_child_nodes(&el);
+                    if !children.is_empty() {
+                        children.hydrate(parent_scope, &el, &mut nodes);
+                    }
+
+                    assert!(nodes.is_empty(), "expected EOF, found node.");
+                }
+            }
+
+            self.node_ref.set(Some(el.deref().clone()));
+            self.reference = el.into();
+            self.node_ref.clone()
         }
     }
 }
