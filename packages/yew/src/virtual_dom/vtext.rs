@@ -134,15 +134,43 @@ mod feat_hydration {
     use web_sys::Node;
 
     use crate::virtual_dom::VHydrate;
+    use wasm_bindgen::JsCast;
+
+    use crate::virtual_dom::insert_node;
 
     impl VHydrate for VText {
         fn hydrate(
             &mut self,
-            parent_scope: &AnyScope,
+            _parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut VecDeque<Node>,
         ) -> NodeRef {
-            todo!()
+            assert!(
+                self.reference.is_none(),
+                "trying to hydrate a mounted VText."
+            );
+
+            if let Some(m) = fragment.front().cloned() {
+                if m.node_type() == Node::TEXT_NODE {
+                    if let Ok(m) = m.dyn_into::<TextNode>() {
+                        // pop current node.
+                        fragment.pop_front();
+
+                        // always update node value, see reason below.
+                        m.set_node_value(Some(self.text.as_ref()));
+                        self.reference = Some(m.clone());
+
+                        return NodeRef::new(m.into());
+                    }
+                }
+            }
+
+            // If there are multiple text nodes placed back-to-back, it may be parsed as a single
+            // text node, hence we need to add extra text nodes here if the next node is not a text node.
+            let text_node = document().create_text_node(&self.text);
+            insert_node(&text_node, parent, fragment.front());
+            self.reference = Some(text_node.clone());
+            NodeRef::new(text_node.into())
         }
     }
 }
