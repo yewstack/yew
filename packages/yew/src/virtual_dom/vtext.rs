@@ -60,13 +60,17 @@ impl std::fmt::Debug for VText {
 
 impl VDiff for VText {
     /// Remove VText from parent.
-    fn detach(&mut self, parent: &Element) {
+    fn detach(&mut self, parent: &Element, parent_to_detach: bool) {
         let node = self
             .reference
             .take()
             .expect("tried to remove not rendered VText from DOM");
-        if parent.remove_child(&node).is_err() {
-            console::warn!("Node not found to remove VText");
+        if !parent_to_detach {
+            let result = parent.remove_child(&node);
+
+            if result.is_err() {
+                console::warn!("Node not found to remove VText");
+            }
         }
     }
 
@@ -104,7 +108,7 @@ impl VDiff for VText {
                 return NodeRef::new(text_node.into());
             }
 
-            ancestor.detach(parent);
+            ancestor.detach(parent, false);
         }
 
         let text_node = document().create_text_node(&self.text);

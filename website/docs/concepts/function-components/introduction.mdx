@@ -1,19 +1,35 @@
 ---
 title: "Function Components"
-sidebar_label: Introduction
-description: "Introduction to function components "
+slug: /concepts/function-components
 ---
 
-Function components are a simplified version of normal components. They consist of a single function
-that receives props and determines what should be rendered by returning `Html`. Basically, it's a
-component that's been reduced to just the `view` method. On its own that would be quite limiting
-because you can only create pure components, but that's where Hooks come in. Hooks allow function
-components to maintain their own internal state and use other Yew features without needing to manually
-implement the `Component` trait.
+Lets revisit this previous statement:
+
+> Yew mostly operates on the idea of keeping everything that a reusable piece of
+> UI may need, in one place - rust files.
+
+It is only partially correct, "rust files" should be replaced with "components".
+
+## What are Components?
+
+Components are the building blocks of Yew.
+
+They:
+
+- Take arguments in form of [Props](./properties)
+- Can have their own state
+- Get computed into HTML visible to the user (DOM)
+
+## Two flavours of Yew Components
+
+You are currently reading about function components - the recommended way to write components when starting with Yew.
+
+But we have to note that there is a more advanced, but less recommended way to write them - [Struct components](../advanced-topics/struct-components/introduction)
 
 ## Creating function components
 
-The easiest way to create a function component is to add the [`#[function_component]`](./../function-components/attribute.mdx) attribute to a function.
+To create a function component add the `#[function_component]` attribute to a function.
+Also name the function in PascalCase as it is the convention for naming components.
 
 ```rust
 use yew::{function_component, html, Html};
@@ -22,44 +38,32 @@ use yew::{function_component, html, Html};
 fn HelloWorld() -> Html {
     html! { "Hello world" }
 }
+
+// Then somewhere else you can use the component inside the `html!`
+#[function_component]
+fn App() -> Html {
+    html! {<HelloWorld />}
+}
 ```
 
-### Under the hood
+## What happens to components
 
-There are two parts to how Yew implements function components.
+Yew will build a tree of these components that from the previous example would look like this:
 
-The first part is the `FunctionProvider` trait which is analogous to the `Component` trait, except
-that it only has a single method (called `run`). The second part is the `FunctionComponent` struct
-which wraps types implementing `FunctionProvider` and implements `Component`.
+```md
+<App />
+   |
+<HelloWorld />
+```
 
-The `#[function_component]` attribute is a procedural macro which automatically implements
-`FunctionProvider` for you and exposes it wrapped in `FunctionComponent`.
+It will call those functions / function components to compute a virtual version of the DOM (VDOM) that you as the library user see as the `Html` type.
 
-### Hooks
+Yew will compare current DOM with VDOM and only update the new/changed/necessary parts.
 
-Hooks are functions that let you "hook into" components' state and/or lifecycle and perform
-actions. Yew comes with a few pre-defined Hooks. You can also create your own.
+This is what we call **rendering**.
 
-#### Pre-defined Hooks
+:::note
 
-Yew comes with the following predefined Hooks:
-- [`use_state`](./../function-components/pre-defined-hooks.mdx#use_state)
-- [`use_state_eq`](./../function-components/pre-defined-hooks.mdx#use_state_eq)
-- [`use_ref`](./../function-components/pre-defined-hooks.mdx#use_ref)
-- [`use_mut_ref`](./../function-components/pre-defined-hooks.mdx#use_mut_ref)
-- [`use_node_ref`](./../function-components/pre-defined-hooks.mdx#use_node_ref)
-- [`use_reducer`](./../function-components/pre-defined-hooks.mdx#use_reducer)
-- [`use_reducer_eq`](./../function-components/pre-defined-hooks.mdx#use_reducer_eq)
-- [`use_effect`](./../function-components/pre-defined-hooks.mdx#use_effect)
-- [`use_effect_with_deps`](./../function-components/pre-defined-hooks.mdx#use_effect_with_deps)
-- [`use_context`](./../function-components/pre-defined-hooks.mdx#use_context)
+Behind the scenes `Html` type is just an alias for `VNode` - virtual node.
 
-#### Custom Hooks
-
-There are cases where you want to define your own Hooks for reasons. Yew allows you to define your own Hooks which lets you extract your potentially stateful logic from the component into reusable functions.
-See the [Defining custom hooks](./../function-components/custom-hooks.mdx#defining-custom-hooks) section for more information.
-
-## Further reading
-
-* The React documentation has a section on [React hooks](https://reactjs.org/docs/hooks-intro.html).
-These are not exactly the same as Yew's hooks, but the underlying concept is similar.
+:::

@@ -1,38 +1,38 @@
 mod common;
 
 use common::obtain_result;
+use gloo::timers::future::sleep;
+use std::time::Duration;
 use wasm_bindgen_test::*;
-use yew::functional::{FunctionComponent, FunctionProvider};
-use yew::{html, HtmlResult, Properties};
+use yew::prelude::*;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
-fn props_are_passed() {
-    struct PropsPassedFunction {}
+async fn props_are_passed() {
     #[derive(Properties, Clone, PartialEq)]
     struct PropsPassedFunctionProps {
         value: String,
     }
-    impl FunctionProvider for PropsPassedFunction {
-        type TProps = PropsPassedFunctionProps;
 
-        fn run(props: &Self::TProps) -> HtmlResult {
-            assert_eq!(&props.value, "props");
-            return Ok(html! {
-                <div id="result">
-                    {"done"}
-                </div>
-            });
+    #[function_component]
+    fn PropsComponent(props: &PropsPassedFunctionProps) -> Html {
+        assert_eq!(&props.value, "props");
+        html! {
+            <div id="result">
+                {"done"}
+            </div>
         }
     }
-    type PropsComponent = FunctionComponent<PropsPassedFunction>;
+
     yew::start_app_with_props_in_element::<PropsComponent>(
         gloo_utils::document().get_element_by_id("output").unwrap(),
         PropsPassedFunctionProps {
             value: "props".to_string(),
         },
     );
+
+    sleep(Duration::ZERO).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "done");
 }

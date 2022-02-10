@@ -44,6 +44,7 @@ async fn suspense_works() {
         }
     }
 
+    #[hook]
     pub fn use_sleep() -> SuspensionResult<Rc<dyn Fn()>> {
         let sleep_state = use_reducer(SleepState::new);
 
@@ -118,6 +119,8 @@ async fn suspense_works() {
         .unwrap()
         .click();
 
+    TimeoutFuture::new(0).await;
+
     gloo_utils::document()
         .query_selector(".increase")
         .unwrap()
@@ -125,6 +128,8 @@ async fn suspense_works() {
         .dyn_into::<HtmlElement>()
         .unwrap()
         .click();
+
+    TimeoutFuture::new(1).await;
 
     let result = obtain_result();
     assert_eq!(
@@ -182,6 +187,7 @@ async fn suspense_not_suspended_at_start() {
         }
     }
 
+    #[hook]
     pub fn use_sleep() -> SuspensionResult<Rc<dyn Fn()>> {
         let sleep_state = use_reducer(SleepState::new);
 
@@ -297,6 +303,7 @@ async fn suspense_nested_suspense_works() {
         }
     }
 
+    #[hook]
     pub fn use_sleep() -> SuspensionResult<Rc<dyn Fn()>> {
         let sleep_state = use_reducer(SleepState::new);
 
@@ -430,6 +437,7 @@ async fn effects_not_run_when_suspended() {
         }
     }
 
+    #[hook]
     pub fn use_sleep() -> SuspensionResult<Rc<dyn Fn()>> {
         let sleep_state = use_reducer(SleepState::new);
 
@@ -538,6 +546,8 @@ async fn effects_not_run_when_suspended() {
         .unwrap()
         .click();
 
+    TimeoutFuture::new(0).await;
+
     gloo_utils::document()
         .query_selector(".increase")
         .unwrap()
@@ -545,6 +555,8 @@ async fn effects_not_run_when_suspended() {
         .dyn_into::<HtmlElement>()
         .unwrap()
         .click();
+
+    TimeoutFuture::new(0).await;
 
     let result = obtain_result();
     assert_eq!(

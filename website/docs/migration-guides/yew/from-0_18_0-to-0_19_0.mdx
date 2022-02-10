@@ -7,11 +7,12 @@ import TabItem from '@theme/TabItem';
 
 `Yew 0.19.0` has changed a lot, thus this migration will not cover ALL of the changes.
 
-Instead only the most impacting changes are mentioned and the rest should be picked up by cargo.
+Instead only the most impactful changes are mentioned and the rest should be picked up by `cargo`.
 
-## html! requirement for braces around most props
+## `html!` requirement for braces around most props
 
-Put it simply almost all the time you have to provide braces for props:
+The syntax of the `html!` macro has been updated, such that in most cases you will need to enclose
+props with braces.
 
 <Tabs>
   <TabItem value="Invalid" label="Invalid">
@@ -40,7 +41,7 @@ html!{
   </TabItem>
   <TabItem value="Shorthand" label="Shorthand">
 
-Also now you can use a shorthand if prop and variable names are the same:
+Shorthand initialization has been added:
 
 ```rust {4}, ignore
 let age = 1;
@@ -54,9 +55,10 @@ html!{
   </TabItem>
 </Tabs>
 
-There is a community provided regex to help with this change, though we cant promise it will work all the time.
+There is a community provided regex to help automate the update, though we can't promise it will work
+all the time.
 
-It for sure breaks when it encounters closures, specifically `|_|` syntax.
+It breaks when it encounters closures (specifically the `|_|` syntax).
 
 find with `=(?![{">=\s])([^\s></]*(\s!{0,1}[=|&]{2}\s[^\s></]*)*)`
 
@@ -64,9 +66,10 @@ replace with `={$1}`
 
 ## Function components
 
-[Function components](./../../concepts/function-components/introduction) are a brand new way to write components that require less boilerplate than their structural counter part.
+[Function components](./../../concepts/function-components/introduction) are a brand new way to write components that
+requires less boilerplate than their structural counterpart.
 
-While this change does not force you to change your codebase, this migration time is a good opportunity to start using them in your codebase.
+While this change does not force you to change your codebase, as you migrate from `0.18` to `0.19`, this migration time might present a good opportunity to start using them in your codebase.
 
 ## Struct components lifecycle methods and ctx
 
@@ -128,8 +131,9 @@ html! {
 
 ## New crate - yew-agent
 
-Yew agents were removed to their separate crate, see [yew agents migration guide](./../yew-agent/from-0_0_0-to-0_1_0)
+Yew agents were removed to a separate crate, see [yew agents migration guide](./../yew-agent/from-0_0_0-to-0_1_0)
 
 ## Ending note
 
-We are sorry if some things are not covered in this guide as it was truly a huge update and we hope that the uncovered issues will be clearly explained by cargo check/build/clippy.
+We are sorry if some things are not covered in this guide as it was truly a huge update and we hope
+that the uncovered issues will be clearly explained in error messages emitted by the Rust compiler.

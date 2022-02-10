@@ -52,7 +52,7 @@ where
 
     /// Schedule the app for destruction
     pub fn destroy(mut self) {
-        self.scope.destroy()
+        self.scope.destroy(false)
     }
 }
 
