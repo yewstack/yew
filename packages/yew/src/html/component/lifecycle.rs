@@ -4,14 +4,20 @@ use super::{AnyScope, BaseComponent, Scope};
 use crate::html::{RenderError, RenderResult};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{Suspense, Suspension};
+#[cfg(feature = "hydration")]
+use crate::virtual_dom::VHydrate;
 use crate::virtual_dom::{VDiff, VNode};
 use crate::Callback;
 use crate::{Context, NodeRef};
 #[cfg(feature = "ssr")]
 use futures::channel::oneshot;
 use std::any::Any;
+#[cfg(feature = "hydration")]
+use std::collections::VecDeque;
 use std::rc::Rc;
 use web_sys::Element;
+#[cfg(feature = "hydration")]
+use web_sys::Node;
 
 pub(crate) struct CompStateInner<COMP>
 where
@@ -107,49 +113,15 @@ pub(crate) struct ComponentState {
 
     suspension: Option<Suspension>,
 
+    #[cfg(feature = "hydration")]
+    hydrate_fragment: Option<VecDeque<Node>>,
+
     #[cfg(feature = "ssr")]
     html_sender: Option<oneshot::Sender<VNode>>,
 
     // Used for debug logging
     #[cfg(debug_assertions)]
     pub(crate) vcomp_id: usize,
-}
-
-impl ComponentState {
-    pub(crate) fn new<COMP: BaseComponent>(
-        parent: Option<Element>,
-        next_sibling: NodeRef,
-        root_node: VNode,
-        node_ref: NodeRef,
-        scope: Scope<COMP>,
-        props: Rc<COMP::Properties>,
-        #[cfg(feature = "ssr")] html_sender: Option<oneshot::Sender<VNode>>,
-    ) -> Self {
-        #[cfg(debug_assertions)]
-        let vcomp_id = scope.vcomp_id;
-        let context = Context { scope, props };
-
-        let inner = Box::new(CompStateInner {
-            component: COMP::create(&context),
-            context,
-        });
-
-        Self {
-            inner,
-            root_node,
-            parent,
-            next_sibling,
-            node_ref,
-            suspension: None,
-            has_rendered: false,
-
-            #[cfg(feature = "ssr")]
-            html_sender,
-
-            #[cfg(debug_assertions)]
-            vcomp_id,
-        }
-    }
 }
 
 pub(crate) struct CreateRunner<COMP: BaseComponent> {
@@ -161,25 +133,63 @@ pub(crate) struct CreateRunner<COMP: BaseComponent> {
     pub(crate) scope: Scope<COMP>,
     #[cfg(feature = "ssr")]
     pub(crate) html_sender: Option<oneshot::Sender<VNode>>,
+    #[cfg(feature = "hydration")]
+    pub(crate) hydrate_fragment: Option<VecDeque<Node>>,
 }
 
 impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
     fn run(self: Box<Self>) {
+        let scope = self.scope.clone();
+
         let mut current_state = self.scope.state.borrow_mut();
         if current_state.is_none() {
             #[cfg(debug_assertions)]
             crate::virtual_dom::vcomp::log_event(self.scope.vcomp_id, "create");
 
-            *current_state = Some(ComponentState::new(
-                self.parent,
-                self.next_sibling,
-                self.placeholder,
-                self.node_ref,
-                self.scope.clone(),
-                self.props,
+            let Self {
+                props,
+                placeholder,
+                parent,
+                next_sibling,
+                node_ref,
+
+                #[cfg(feature = "hydration")]
+                hydrate_fragment,
+
                 #[cfg(feature = "ssr")]
-                self.html_sender,
-            ));
+                html_sender,
+                ..
+            } = *self;
+
+            #[cfg(debug_assertions)]
+            let vcomp_id = scope.vcomp_id;
+            let context = Context { scope, props };
+
+            let inner = Box::new(CompStateInner {
+                component: COMP::create(&context),
+                context,
+            });
+
+            let state = ComponentState {
+                inner,
+                root_node: placeholder,
+                parent,
+                next_sibling,
+                node_ref,
+                suspension: None,
+                has_rendered: false,
+
+                #[cfg(feature = "hydration")]
+                hydrate_fragment,
+
+                #[cfg(feature = "ssr")]
+                html_sender,
+
+                #[cfg(debug_assertions)]
+                vcomp_id,
+            };
+
+            *current_state = Some(state);
         }
     }
 }
@@ -300,7 +310,24 @@ impl Runnable for RenderRunner {
                         let scope = state.inner.any_scope();
                         let next_sibling = state.next_sibling.clone();
 
+                        #[cfg(not(feature = "hydration"))]
                         let node = new_root.apply(&scope, m, next_sibling, ancestor);
+
+                        #[cfg(feature = "hydration")]
+                        let node = match state.hydrate_fragment.take() {
+                            Some(mut fragment) => {
+                                let first_node = new_root.hydrate(&scope, m, &mut fragment);
+
+                                assert!(
+                                    fragment.front().is_none(),
+                                    "expected end of component, found node"
+                                );
+
+                                first_node
+                            }
+                            None => new_root.apply(&scope, m, next_sibling, ancestor),
+                        };
+
                         state.node_ref.link(node);
 
                         let first_render = !state.has_rendered;

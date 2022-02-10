@@ -293,6 +293,9 @@ impl<COMP: BaseComponent> Scope<COMP> {
                 scope: self.clone(),
                 #[cfg(feature = "ssr")]
                 html_sender: None,
+
+                #[cfg(feature = "hydration")]
+                hydrate_fragment: None,
             },
             RenderRunner {
                 state: self.state.clone(),
@@ -416,6 +419,9 @@ mod feat_ssr {
                     props,
                     scope: self.clone(),
                     html_sender: Some(tx),
+
+                    #[cfg(feature = "hydration")]
+                    hydrate_fragment: None,
                 },
                 RenderRunner {
                     state: self.state.clone(),
@@ -515,6 +521,7 @@ mod feat_io {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
+    use std::collections::VecDeque;
 
     impl<COMP: BaseComponent> Scope<COMP> {
         /// Hydrates the component.
@@ -525,13 +532,20 @@ mod feat_hydration {
         ///
         /// This method is expected to collect all the elements belongs to the current component
         /// immediately.
+        ///
+        /// We don't remove the comment node at the moment as it's needed to maintain the
+        /// structure.
         pub(crate) fn hydrate_in_place(
             &self,
             parent: Element,
-            first_node: Node,
+            fragment: &mut VecDeque<Node>,
             node_ref: NodeRef,
             props: Rc<COMP::Properties>,
         ) -> NodeRef {
+            let first_node = fragment
+                .pop_front()
+                .expect("expected component start, found EOF");
+
             assert_eq!(
                 first_node.node_type(),
                 Node::COMMENT_NODE,
@@ -540,18 +554,18 @@ mod feat_hydration {
                 first_node.node_type()
             );
 
-            let mut nodes = Vec::new();
+            let mut nodes = VecDeque::new();
 
             if first_node.text_content().unwrap_or_else(|| "".to_string()) != "yew-comp-start" {
                 panic!("expected comment start, found comment node");
             }
 
-            let mut current_node = first_node;
+            let mut current_node;
             let mut nested_layers = 1;
 
             loop {
-                current_node = current_node
-                    .next_sibling()
+                current_node = fragment
+                    .pop_front()
                     .expect("expected component end, found EOF");
 
                 if current_node.node_type() == Node::COMMENT_NODE {
@@ -573,11 +587,12 @@ mod feat_hydration {
                     }
                 }
 
-                nodes.push(current_node.clone());
+                nodes.push_back(current_node.clone());
             }
 
             let next_sibling = NodeRef::default();
-            next_sibling.set(current_node.next_sibling());
+            // We register the first sibling, but we don't pop them from the fragment.
+            next_sibling.set(fragment.front().cloned());
 
             scheduler::push_component_create(
                 CreateRunner {
@@ -589,6 +604,7 @@ mod feat_hydration {
                     scope: self.clone(),
                     #[cfg(feature = "ssr")]
                     html_sender: None,
+                    hydrate_fragment: Some(nodes),
                 },
                 RenderRunner {
                     state: self.state.clone(),

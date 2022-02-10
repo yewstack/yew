@@ -33,23 +33,6 @@ where
         app
     }
 
-    pub(crate) fn hydrate_with_props(element: Element, props: Rc<COMP::Properties>) -> Self {
-        let app = Self {
-            scope: Scope::new(None),
-        };
-
-        app.scope.hydrate_in_place(
-            element.clone(),
-            element
-                .first_child()
-                .expect("expected component, found EOF"),
-            NodeRef::default(),
-            props,
-        );
-
-        app
-    }
-
     /// Schedule the app for destruction
     pub fn destroy(mut self) {
         self.scope.destroy(false)
@@ -64,6 +47,32 @@ where
 
     fn deref(&self) -> &Self::Target {
         &self.scope
+    }
+}
+
+#[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    use crate::virtual_dom::collect_child_nodes;
+
+    impl<COMP> AppHandle<COMP>
+    where
+        COMP: BaseComponent,
+    {
+        pub(crate) fn hydrate_with_props(element: Element, props: Rc<COMP::Properties>) -> Self {
+            let app = Self {
+                scope: Scope::new(None),
+            };
+
+            let mut fragment = collect_child_nodes(&element);
+
+            app.scope
+                .hydrate_in_place(element, &mut fragment, NodeRef::default(), props);
+
+            app
+        }
     }
 }
 

@@ -124,6 +124,29 @@ impl PartialEq for VText {
     }
 }
 
+#[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    use std::collections::VecDeque;
+
+    use web_sys::Node;
+
+    use crate::virtual_dom::VHydrate;
+
+    impl VHydrate for VText {
+        fn hydrate(
+            &mut self,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut VecDeque<Node>,
+        ) -> NodeRef {
+            todo!()
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     extern crate self as yew;

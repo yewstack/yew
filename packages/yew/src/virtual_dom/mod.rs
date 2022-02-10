@@ -541,6 +541,45 @@ pub(crate) trait VDiff {
     ) -> NodeRef;
 }
 
+#[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    use std::collections::VecDeque;
+
+    /// This trait provides features to hydrate a fragment.
+    pub(crate) trait VHydrate {
+        /// hydrates current tree.
+        ///
+        /// Returns a reference to the first node of the hydrated tree.
+        fn hydrate(
+            &mut self,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut VecDeque<Node>,
+        ) -> NodeRef;
+    }
+
+    pub(crate) fn collect_child_nodes(parent: &Node) -> VecDeque<Node> {
+        let mut fragment = VecDeque::with_capacity(parent.child_nodes().length() as usize);
+
+        let mut current_node = parent.first_child();
+
+        // This is easier than iterating child nodes at the moment
+        // as we don't have to downcast iterator values and minimises dom access.
+        while let Some(m) = current_node {
+            current_node = m.next_sibling();
+            fragment.push_back(m);
+        }
+
+        fragment
+    }
+}
+
+#[cfg(feature = "hydration")]
+pub(crate) use feat_hydration::*;
+
 pub(crate) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&Node>) {
     match next_sibling {
         Some(next_sibling) => parent

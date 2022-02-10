@@ -150,6 +150,29 @@ impl VDiff for VSuspense {
     }
 }
 
+#[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    use std::collections::VecDeque;
+
+    use web_sys::Node;
+
+    use crate::virtual_dom::VHydrate;
+
+    impl VHydrate for VSuspense {
+        fn hydrate(
+            &mut self,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut VecDeque<Node>,
+        ) -> NodeRef {
+            todo!()
+        }
+    }
+}
+
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;

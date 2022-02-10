@@ -345,6 +345,41 @@ mod feat_ssr {
     }
 }
 
+#[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    use std::collections::VecDeque;
+
+    use crate::virtual_dom::VHydrate;
+
+    impl VHydrate for VNode {
+        fn hydrate(
+            &mut self,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut VecDeque<Node>,
+        ) -> NodeRef {
+            match self {
+                VNode::VTag(vtag) => vtag.hydrate(parent_scope, parent, fragment),
+                VNode::VText(vtext) => vtext.hydrate(parent_scope, parent, fragment),
+                VNode::VComp(vcomp) => vcomp.hydrate(parent_scope, parent, fragment),
+                VNode::VList(vlist) => vlist.hydrate(parent_scope, parent, fragment),
+                // You cannot hydrate a VRef.
+                VNode::VRef(_) => {
+                    panic!("VRef is not hydratable. Try move it to a component mounted after an effect.")
+                }
+                // Portals are not rendered.
+                VNode::VPortal(_) => {
+                    panic!("VPortal is not hydratable. Try move it to a component mounted after an effect.")
+                }
+                VNode::VSuspense(vsuspense) => vsuspense.hydrate(parent_scope, parent, fragment),
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod layout_tests {
     use super::*;
