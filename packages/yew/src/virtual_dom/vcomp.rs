@@ -972,7 +972,8 @@ mod ssr_tests {
             }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
+        let mut renderer = ServerRenderer::<Comp>::new();
+        renderer.set_hydratable(false);
 
         let s = renderer.render().await;
 

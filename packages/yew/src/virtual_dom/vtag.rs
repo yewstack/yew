@@ -1551,7 +1551,8 @@ mod ssr_tests {
             html! { <div></div> }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
+        let mut renderer = ServerRenderer::<Comp>::new();
+        renderer.set_hydratable(false);
 
         let s = renderer.render().await;
 
@@ -1565,7 +1566,8 @@ mod ssr_tests {
             html! { <div class="abc"></div> }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
+        let mut renderer = ServerRenderer::<Comp>::new();
+        renderer.set_hydratable(false);
 
         let s = renderer.render().await;
 
@@ -1579,7 +1581,8 @@ mod ssr_tests {
             html! { <div>{"Hello!"}</div> }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
+        let mut renderer = ServerRenderer::<Comp>::new();
+        renderer.set_hydratable(false);
 
         let s = renderer.render().await;
 
@@ -1593,7 +1596,8 @@ mod ssr_tests {
             html! { <div>{"Hello!"}<input value="abc" type="text" /></div> }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
+        let mut renderer = ServerRenderer::<Comp>::new();
+        renderer.set_hydratable(false);
 
         let s = renderer.render().await;
 
@@ -1607,7 +1611,8 @@ mod ssr_tests {
             html! { <textarea value="teststring" /> }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
+        let mut renderer = ServerRenderer::<Comp>::new();
+        renderer.set_hydratable(false);
 
         let s = renderer.render().await;
 

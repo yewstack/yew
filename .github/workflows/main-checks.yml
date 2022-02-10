@@ -159,6 +159,36 @@ jobs:
           args: --all-targets --workspace --exclude yew --exclude website-test
 
 
+  ssr_tests:
+    name: SSR Tests on ${{ matrix.toolchain }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain:
+          # anyway to dynamically grep the MSRV from Cargo.toml?
+          - 1.56.0 # MSRV
+          - stable
+          - nightly
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+          profile: minimal
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --workspace ssr_tests --features ssr
+
 
   test-lints:
     name: Test lints on nightly
@@ -180,4 +210,3 @@ jobs:
         with:
           command: test
           args: -p yew-macro test_html_lints --features lints
-

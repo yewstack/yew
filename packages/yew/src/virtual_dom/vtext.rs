@@ -256,16 +256,21 @@ mod layout_tests {
 mod ssr_tests {
     use tokio::test;
 
-    use super::*;
+    use crate::prelude::*;
+    use crate::ServerRenderer;
 
     #[test]
     async fn test_simple_str() {
-        let vtext = VText::new("abc");
+        #[function_component]
+        fn Comp() -> Html {
+            html! { "abc" }
+        }
 
-        let mut s = String::new();
+        let mut renderer = ServerRenderer::<Comp>::new();
+        renderer.set_hydratable(false);
 
-        vtext.render_to_string(&mut s).await;
+        let s = renderer.render().await;
 
-        assert_eq!("abc", s.as_str());
+        assert_eq!(s, r#"abc"#);
     }
 }
