@@ -1,0 +1,21 @@
+[package]
+name = "ssr_router"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+yew = { path = "../../packages/yew", features = ["ssr", "hydration"] }
+function_router = { path = "../function_router" }
+log = "0.4"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen-futures = "0.4"
+wasm-logger = "0.2"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { version = "1.15.0", features = ["full"] }
+warp = "0.3"
+structopt = "0.3"
+env_logger = "0.9"

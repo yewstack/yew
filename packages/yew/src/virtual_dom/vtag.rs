@@ -653,6 +653,12 @@ mod feat_ssr {
     use crate::virtual_dom::VText;
     use std::fmt::Write;
 
+    // Elements that cannot have any child elements.
+    static VOID_ELEMENTS: &[&str; 14] = &[
+        "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param",
+        "source", "track", "wbr",
+    ];
+
     impl VTag {
         pub(crate) async fn render_to_string(
             &self,
@@ -702,9 +708,12 @@ mod feat_ssr {
                     ref children,
                     ..
                 } => {
-                    children.render_to_string(w, parent_scope, hydratable).await;
+                    if !VOID_ELEMENTS.contains(&tag.as_ref()) {
+                        // We don't write children of void elements nor closing tags.
+                        children.render_to_string(w, parent_scope, hydratable).await;
 
-                    write!(w, "</{}>", tag).unwrap();
+                        write!(w, "</{}>", tag).unwrap();
+                    }
                 }
             }
         }
@@ -732,7 +741,9 @@ mod feat_hydration {
             // We trim all text nodes as it's likely these are whitespaces.
             trim_start_text_nodes(parent, fragment);
 
-            let node = fragment.pop_front().expect("expected element, found EOF.");
+            let node = fragment
+                .pop_front()
+                .unwrap_or_else(|| panic!("expected element of type {}, found EOF.", self.tag()));
 
             assert_eq!(
                 node.node_type(),
@@ -767,6 +778,8 @@ mod feat_hydration {
                     if !children.is_empty() {
                         children.hydrate(parent_scope, &el, &mut nodes);
                     }
+
+                    trim_start_text_nodes(parent, &mut nodes);
 
                     assert!(nodes.is_empty(), "expected EOF, found node.");
                 }
