@@ -4,7 +4,7 @@ use yew::prelude::*;
 
 #[derive(Clone, Debug, Eq, PartialEq, Properties)]
 pub struct Props {
-    pub seed: u64,
+    pub seed: u32,
 }
 
 #[function_component]

@@ -6,7 +6,7 @@ use yew_router::components::Link;
 
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct Props {
-    pub seed: u64,
+    pub seed: u32,
 }
 
 #[derive(PartialEq, Debug)]
@@ -15,9 +15,9 @@ pub struct PostMetaState {
 }
 
 impl Reducible for PostMetaState {
-    type Action = u64;
+    type Action = u32;
 
-    fn reduce(self: Rc<Self>, action: u64) -> Rc<Self> {
+    fn reduce(self: Rc<Self>, action: u32) -> Rc<Self> {
         Self {
             inner: PostMeta::generate_from_seed(action),
         }

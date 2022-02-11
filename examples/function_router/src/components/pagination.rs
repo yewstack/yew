@@ -10,13 +10,13 @@ const ELLIPSIS: &str = "\u{02026}";
 
 #[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
 pub struct PageQuery {
-    pub page: u64,
+    pub page: u32,
 }
 
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct Props {
-    pub page: u64,
-    pub total_pages: u64,
+    pub page: u32,
+    pub total_pages: u32,
     pub route_to_page: Route,
 }
 
@@ -52,7 +52,7 @@ pub fn RelNavButtons(props: &Props) -> Html {
 
 #[derive(Properties, Clone, Debug, PartialEq)]
 pub struct RenderLinksProps {
-    range: Range<u64>,
+    range: Range<u32>,
     len: usize,
     max_links: usize,
     props: Props,
@@ -90,7 +90,7 @@ pub fn RenderLinks(props: &RenderLinksProps) -> Html {
 
 #[derive(Properties, Clone, Debug, PartialEq)]
 pub struct RenderLinkProps {
-    to_page: u64,
+    to_page: u32,
     props: Props,
 }
 

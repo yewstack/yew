@@ -3,7 +3,7 @@ use rand::{distributions, Rng};
 use yew::prelude::*;
 
 /// Amount of milliseconds to wait before showing the next set of authors.
-const CAROUSEL_DELAY_MS: u64 = 15000;
+const CAROUSEL_DELAY_MS: u32 = 15000;
 
 #[function_component]
 pub fn AuthorList() -> Html {
@@ -56,7 +56,7 @@ pub fn AuthorList() -> Html {
     }
 }
 
-fn random_author_seeds() -> Vec<u64> {
+fn random_author_seeds() -> Vec<u32> {
     rand::thread_rng()
         .sample_iter(distributions::Standard)
         .take(2)

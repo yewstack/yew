@@ -10,11 +10,11 @@ use crate::pages::{
 #[derive(Routable, PartialEq, Clone, Debug)]
 pub enum Route {
     #[at("/posts/:id")]
-    Post { id: u64 },
+    Post { id: u32 },
     #[at("/posts")]
     Posts,
     #[at("/authors/:id")]
-    Author { id: u64 },
+    Author { id: u32 },
     #[at("/authors")]
     Authors,
     #[at("/")]

@@ -2,7 +2,7 @@ use crate::generator::{Generated, Generator};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Author {
-    pub seed: u64,
+    pub seed: u32,
     pub name: String,
     pub keywords: Vec<String>,
     pub image_url: String,
@@ -24,7 +24,7 @@ impl Generated for Author {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PostMeta {
-    pub seed: u64,
+    pub seed: u32,
     pub title: String,
     pub author: Author,
     pub keywords: Vec<String>,
@@ -56,8 +56,8 @@ pub struct Post {
 
 impl Generated for Post {
     fn generate(gen: &mut Generator) -> Self {
-        const PARTS_MIN: usize = 1;
-        const PARTS_MAX: usize = 10;
+        const PARTS_MIN: u32 = 1;
+        const PARTS_MAX: u32 = 10;
 
         let meta = PostMeta::generate(gen);
 
@@ -96,8 +96,8 @@ pub struct Section {
 
 impl Generated for Section {
     fn generate(gen: &mut Generator) -> Self {
-        const PARAGRAPHS_MIN: usize = 1;
-        const PARAGRAPHS_MAX: usize = 8;
+        const PARAGRAPHS_MIN: u32 = 1;
+        const PARAGRAPHS_MAX: u32 = 8;
 
         let title = gen.title();
         let n_paragraphs = gen.range(PARAGRAPHS_MIN, PARAGRAPHS_MAX);

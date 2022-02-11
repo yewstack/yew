@@ -4,8 +4,8 @@ use crate::Route;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-const ITEMS_PER_PAGE: u64 = 10;
-const TOTAL_PAGES: u64 = u64::MAX / ITEMS_PER_PAGE;
+const ITEMS_PER_PAGE: u32 = 10;
+const TOTAL_PAGES: u32 = u32::MAX / ITEMS_PER_PAGE;
 
 #[function_component]
 pub fn PostList() -> Html {

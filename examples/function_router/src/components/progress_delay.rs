@@ -4,8 +4,8 @@ use gloo_timers::callback::Interval;
 use instant::Instant;
 use yew::prelude::*;
 
-const RESOLUTION: u64 = 500;
-const MIN_INTERVAL_MS: u64 = 50;
+const RESOLUTION: u32 = 500;
+const MIN_INTERVAL_MS: u32 = 50;
 
 pub enum ValueAction {
     Tick,
@@ -34,7 +34,7 @@ impl Reducible for ValueState {
             .into(),
 
             Self::Action::Tick => {
-                let elapsed = self.start.elapsed().as_millis() as u64;
+                let elapsed = self.start.elapsed().as_millis() as u32;
                 let value = elapsed as f64 / self.props.duration_ms as f64;
 
                 let mut start = self.start;
@@ -59,7 +59,7 @@ impl Reducible for ValueState {
 
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct Props {
-    pub duration_ms: u64,
+    pub duration_ms: u32,
     pub on_complete: Callback<()>,
     #[prop_or_default]
     pub on_progress: Callback<f64>,

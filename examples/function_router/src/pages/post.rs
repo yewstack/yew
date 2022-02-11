@@ -7,7 +7,7 @@ use yew_router::prelude::*;
 
 #[derive(Clone, Debug, Eq, PartialEq, Properties)]
 pub struct Props {
-    pub seed: u64,
+    pub seed: u32,
 }
 
 #[derive(PartialEq, Debug)]
@@ -16,9 +16,9 @@ pub struct PostState {
 }
 
 impl Reducible for PostState {
-    type Action = u64;
+    type Action = u32;
 
-    fn reduce(self: Rc<Self>, action: u64) -> Rc<Self> {
+    fn reduce(self: Rc<Self>, action: u32) -> Rc<Self> {
         Self {
             inner: content::Post::generate_from_seed(action),
         }
@@ -45,6 +45,12 @@ pub fn Post(props: &Props) -> Html {
             seed,
         );
     }
+
+    log::error!(
+        "title: {}, seed: {}",
+        content::PostMeta::generate_from_seed(seed).title,
+        seed
+    );
 
     let post = &post.inner;
 
