@@ -418,6 +418,13 @@ mod feat_ssr {
             scheduler::start();
 
             if hydratable {
+                #[cfg(debug_assertions)]
+                w.push_str(&format!(
+                    "<!--yew-comp-start: {}-->",
+                    std::any::type_name::<COMP>()
+                ));
+
+                #[cfg(not(debug_assertions))]
                 w.push_str("<!--yew-comp-start-->");
             }
 
@@ -427,6 +434,13 @@ mod feat_ssr {
             html.render_to_string(w, &self_any_scope, hydratable).await;
 
             if hydratable {
+                #[cfg(debug_assertions)]
+                w.push_str(&format!(
+                    "<!--yew-comp-end: {}-->",
+                    std::any::type_name::<COMP>()
+                ));
+
+                #[cfg(not(debug_assertions))]
                 w.push_str("<!--yew-comp-end-->");
             }
 
@@ -533,6 +547,16 @@ mod feat_hydration {
             node_ref: NodeRef,
             props: Rc<COMP::Properties>,
         ) {
+            // This is very helpful to see which component is failing during hydration
+            // which means this component may not having a stable layout / differs between
+            // client-side and server-side.
+            #[cfg(debug_assertions)]
+            log::trace!(
+                "queuing hydration of: {}(ID: {})",
+                std::any::type_name::<COMP>(),
+                self.id
+            );
+
             let nodes = collect_between(fragment, &parent, "comp");
             node_ref.set(nodes.front().cloned());
 

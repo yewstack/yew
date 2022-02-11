@@ -626,7 +626,11 @@ mod feat_hydration {
 
         let mut nodes = VecDeque::new();
 
-        if first_node.text_content().unwrap_or_else(|| "".to_string()) != start_mark {
+        if !first_node
+            .text_content()
+            .unwrap_or_else(|| "".to_string())
+            .starts_with(&start_mark)
+        {
             panic!("expected {} start, found comment node", divider);
         }
 
@@ -636,17 +640,17 @@ mod feat_hydration {
         loop {
             current_node = fragment
                 .pop_front()
-                .expect("expected component end, found EOF");
+                .unwrap_or_else(|| panic!("expected {} end, found EOF", divider));
 
             if current_node.node_type() == Node::COMMENT_NODE {
                 let text_content = current_node
                     .text_content()
                     .unwrap_or_else(|| "".to_string());
 
-                if text_content == start_mark {
+                if text_content.starts_with(&start_mark) {
                     // We found another component, we need to increase component counter.
                     nested_layers += 1;
-                } else if text_content == end_mark {
+                } else if text_content.starts_with(&end_mark) {
                     // We found a component end, minus component counter.
                     nested_layers -= 1;
                     if nested_layers == 0 {
