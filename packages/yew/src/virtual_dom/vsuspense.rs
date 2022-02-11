@@ -1,4 +1,3 @@
-#[cfg(feature = "hydration")]
 use std::collections::VecDeque;
 
 use super::{Key, VDiff, VNode};
@@ -123,13 +122,16 @@ impl VDiff for VSuspense {
                     if m.key != self.key || self.detached_parent != m.detached_parent {
                         m.detach(parent, false);
 
-                        (false, None, None, None)
+                        (false, None, None, Option::<VecDeque<Node>>::None)
                     } else {
                         (
                             m.suspended,
                             Some(*m.children),
                             Some(*m.fallback),
+                            #[cfg(feature = "hydration")]
                             m.fallback_fragment,
+                            #[cfg(not(feature = "hydration"))]
+                            None,
                         )
                     }
                 }
@@ -139,6 +141,9 @@ impl VDiff for VSuspense {
                 }
                 None => (false, None, None, None),
             };
+
+        #[cfg(not(feature = "hydration"))]
+        let _ = fallback_fragment;
 
         // When it's suspended, we render children into an element that is detached from the dom
         // tree while rendering fallback UI into the original place where children resides in.

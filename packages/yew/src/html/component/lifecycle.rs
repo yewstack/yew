@@ -351,7 +351,7 @@ impl RenderRunner {
         let scope = state.inner.any_scope();
         let next_sibling = state.next_sibling.clone();
 
-        let node = new_root.apply(&scope, m, next_sibling, ancestor);
+        let node = new_root.apply(&scope, parent, next_sibling, Some(ancestor));
 
         state.node_ref.link(node);
 
@@ -478,6 +478,7 @@ mod tests {
     extern crate self as yew;
 
     use crate::html;
+    use crate::html::VComp;
     use crate::html::*;
     use crate::Properties;
     use std::ops::Deref;

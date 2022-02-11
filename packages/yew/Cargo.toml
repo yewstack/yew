@@ -85,7 +85,7 @@ wasm_test = []
 wasm_bench = []
 ssr = ["futures", "html-escape"]
 hydration = []
-default = ["hydration"]
+default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1.15.0", features = ["full"] }
