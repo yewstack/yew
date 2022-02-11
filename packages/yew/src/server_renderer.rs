@@ -1,6 +1,7 @@
 use super::*;
 
 use crate::html::Scope;
+use crate::virtual_dom::VComp;
 
 /// A Yew Server-side Renderer.
 #[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
@@ -67,7 +68,7 @@ where
 
     /// Renders Yew Application to a String.
     pub async fn render_to_string(self, w: &mut String) {
-        let scope = Scope::<COMP>::new(None);
+        let scope = Scope::<COMP>::new(None, VComp::next_id());
         scope
             .render_to_string(w, self.props.into(), self.hydratable)
             .await;

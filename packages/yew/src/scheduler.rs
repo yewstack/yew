@@ -1,7 +1,7 @@
 //! This module contains a scheduler.
 
 use std::cell::RefCell;
-use std::collections::{hash_map::Entry, HashMap, VecDeque};
+use std::collections::{BTreeMap, VecDeque};
 use std::rc::Rc;
 
 /// Alias for Rc<RefCell<T>>
@@ -24,12 +24,20 @@ struct Scheduler {
     destroy: Vec<Box<dyn Runnable>>,
     create: Vec<Box<dyn Runnable>>,
     update: Vec<Box<dyn Runnable>>,
-    render_first: VecDeque<Box<dyn Runnable>>,
-    render: RenderScheduler,
 
-    /// Stacks to ensure child calls are always before parent calls
-    rendered_first: Vec<Box<dyn Runnable>>,
-    rendered: RenderedScheduler,
+    hydrate: VecDeque<Box<dyn Runnable>>,
+
+    /// A Binary Tree Map here guarantees components with lower id (parent) is rendered first and
+    /// no more than 1 render can be scheduled before a component is rendered.
+    ///
+    /// Parent can destroy child components but not otherwise, we can save unnecessary render by
+    /// rendering parent first.
+    render_first: BTreeMap<usize, Box<dyn Runnable>>,
+    render: BTreeMap<usize, Box<dyn Runnable>>,
+
+    /// Binary Tree Map to guarantee children rendered are always called before parent calls
+    rendered_first: BTreeMap<usize, Box<dyn Runnable>>,
+    rendered: BTreeMap<usize, Box<dyn Runnable>>,
 }
 
 /// Execute closure with a mutable reference to the scheduler
@@ -54,14 +62,27 @@ pub fn push(runnable: Box<dyn Runnable>) {
     start();
 }
 
-/// Push a component creation, first render and first rendered [Runnable]s to be executed
+/// Push a component creation and first render [Runnable]s to be executed
 pub(crate) fn push_component_create(
+    component_id: usize,
     create: impl Runnable + 'static,
     first_render: impl Runnable + 'static,
 ) {
     with(|s| {
         s.create.push(Box::new(create));
-        s.render_first.push_back(Box::new(first_render));
+        s.render_first.insert(component_id, Box::new(first_render));
+    });
+}
+
+/// Push a component creation and hydrate [Runnable]s to be executed
+pub(crate) fn push_component_hydrate(
+    component_id: usize,
+    create: impl Runnable + 'static,
+    hydrate: impl Runnable + 'static,
+) {
+    with(|s| {
+        s.create.push(Box::new(create));
+        s.hydrate.insert(component_id, Box::new(hydrate));
     });
 }
 
@@ -70,10 +91,20 @@ pub(crate) fn push_component_destroy(runnable: impl Runnable + 'static) {
     with(|s| s.destroy.push(Box::new(runnable)));
 }
 
+/// Push a component first render and rendered [Runnable]s to be executed
+///
+/// This is used by hydration to push first render.
+/// push_component_create already pushes a first render so this is not needed.
+pub(crate) fn push_component_first_render(component_id: usize, render: impl Runnable + 'static) {
+    with(|s| {
+        s.render_first.insert(component_id, Box::new(render));
+    });
+}
+
 /// Push a component render and rendered [Runnable]s to be executed
 pub(crate) fn push_component_render(component_id: usize, render: impl Runnable + 'static) {
     with(|s| {
-        s.render.schedule(component_id, Box::new(render));
+        s.render.insert(component_id, Box::new(render));
     });
 }
 
@@ -86,9 +117,9 @@ pub(crate) fn push_component_rendered(
         let rendered = Box::new(rendered);
 
         if first_render {
-            s.rendered_first.push(rendered);
+            s.rendered_first.insert(component_id, rendered);
         } else {
-            s.rendered.schedule(component_id, rendered);
+            s.rendered.insert(component_id, rendered);
         }
     });
 }
@@ -170,12 +201,11 @@ impl Scheduler {
         // Create events can be batched, as they are typically just for object creation
         to_run.append(&mut self.create);
 
-        // First render must never be skipped and takes priority over main, because it may need
-        // to init `NodeRef`s
-        //
-        // Should be processed one at time, because they can spawn more create and rendered events
-        // for their children.
-        if let Some(r) = self.render_first.pop_front() {
+        // Hydration needs a higher priority than first render.
+        // They are both RenderRunnable, but hydration will schedule a "first" render after it's hydrated to
+        // fix NodeRef before rendered() can be called. First-render may not happen immediately if the component is
+        // suspended.
+        if let Some(r) = self.hydrate.pop_front() {
             to_run.push(r);
         }
 
@@ -184,7 +214,35 @@ impl Scheduler {
         if !to_run.is_empty() {
             return;
         }
-        to_run.extend(self.rendered_first.drain(..).rev());
+
+        // First render must never be skipped and takes priority over main, because it may need
+        // to init `NodeRef`s
+        //
+        // Should be processed one at time, because they can spawn more create and rendered events
+        // for their children.
+        //
+        // To be replaced with BTreeMap::pop_front once it is stable.
+        if let Some(r) = self
+            .render_first
+            .keys()
+            .next()
+            .cloned()
+            .and_then(|m| self.render.remove(&m))
+        {
+            to_run.push(r);
+        }
+
+        // These typically do nothing and don't spawn any other events - can be batched.
+        // Should be run only after all first renders have finished.
+        if !to_run.is_empty() {
+            return;
+        }
+
+        if !self.rendered_first.is_empty() {
+            let mut rendered_first = BTreeMap::new();
+            std::mem::swap(&mut self.rendered_first, &mut rendered_first);
+            to_run.extend(rendered_first.into_values().rev());
+        }
 
         // Updates are after the first render to ensure we always have the entire child tree
         // rendered, once an update is processed.
@@ -202,7 +260,17 @@ impl Scheduler {
         if !to_run.is_empty() {
             return;
         }
-        if let Some(r) = self.render.pop() {
+
+        // To be replaced with BTreeMap::pop_front once it is stable.
+        // Should be processed one at time, because they can spawn more create and rendered events
+        // for their children.
+        if let Some(r) = self
+            .render
+            .keys()
+            .next()
+            .cloned()
+            .and_then(|m| self.render.remove(&m))
+        {
             to_run.push(r);
         }
 
@@ -211,91 +279,11 @@ impl Scheduler {
         if !to_run.is_empty() {
             return;
         }
-        self.rendered.drain_into(to_run);
-    }
-}
 
-/// Task to be executed for specific component
-struct QueueTask {
-    /// Tasks in the queue to skip for this component
-    skip: usize,
-
-    /// Runnable to execute
-    runnable: Box<dyn Runnable>,
-}
-
-/// Scheduler for non-first component renders with deduplication
-#[derive(Default)]
-struct RenderScheduler {
-    /// Task registry by component ID
-    tasks: HashMap<usize, QueueTask>,
-
-    /// Task queue by component ID
-    queue: VecDeque<usize>,
-}
-
-impl RenderScheduler {
-    /// Schedule render task execution
-    fn schedule(&mut self, component_id: usize, runnable: Box<dyn Runnable>) {
-        self.queue.push_back(component_id);
-        match self.tasks.entry(component_id) {
-            Entry::Vacant(e) => {
-                e.insert(QueueTask { skip: 0, runnable });
-            }
-            Entry::Occupied(mut e) => {
-                let v = e.get_mut();
-                v.skip += 1;
-
-                // Technically the 2 runners should be functionally identical, but might as well
-                // overwrite it for good measure, accounting for future changes. We have it here
-                // anyway.
-                v.runnable = runnable;
-            }
-        }
-    }
-
-    /// Try to pop a task from the queue, if any
-    fn pop(&mut self) -> Option<Box<dyn Runnable>> {
-        while let Some(id) = self.queue.pop_front() {
-            match self.tasks.entry(id) {
-                Entry::Occupied(mut e) => {
-                    let v = e.get_mut();
-                    if v.skip == 0 {
-                        return Some(e.remove().runnable);
-                    }
-                    v.skip -= 1;
-                }
-                Entry::Vacant(_) => (),
-            }
-        }
-        None
-    }
-}
-
-/// Deduplicating scheduler for component rendered calls with deduplication
-#[derive(Default)]
-struct RenderedScheduler {
-    /// Task registry by component ID
-    tasks: HashMap<usize, Box<dyn Runnable>>,
-
-    /// Task stack by component ID
-    stack: Vec<usize>,
-}
-
-impl RenderedScheduler {
-    /// Schedule rendered task execution
-    fn schedule(&mut self, component_id: usize, runnable: Box<dyn Runnable>) {
-        if self.tasks.insert(component_id, runnable).is_none() {
-            self.stack.push(component_id);
-        }
-    }
-
-    /// Drain all tasks into `dst`, if any
-    fn drain_into(&mut self, dst: &mut Vec<Box<dyn Runnable>>) {
-        for id in self.stack.drain(..).rev() {
-            if let Some(t) = self.tasks.remove(&id) {
-                dst.push(t);
-            }
+        if !self.rendered.is_empty() {
+            let mut rendered = BTreeMap::new();
+            std::mem::swap(&mut self.rendered, &mut rendered);
+            to_run.extend(rendered.into_values().rev());
         }
     }
 }

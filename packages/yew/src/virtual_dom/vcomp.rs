@@ -11,16 +11,16 @@ use std::collections::VecDeque;
 use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
-#[cfg(debug_assertions)]
 use std::sync::atomic::{AtomicUsize, Ordering};
 use web_sys::Element;
 #[cfg(feature = "hydration")]
 use web_sys::Node;
 
-#[cfg(debug_assertions)]
 thread_local! {
+    #[cfg(debug_assertions)]
      static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<usize, Vec<String>>>
         = Default::default();
+
      static COMP_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 }
 
@@ -54,7 +54,6 @@ pub struct VComp {
     pub(crate) node_ref: NodeRef,
     pub(crate) key: Option<Key>,
 
-    #[cfg(debug_assertions)]
     pub(crate) id: usize,
 }
 
@@ -74,7 +73,6 @@ impl Clone for VComp {
             node_ref: self.node_ref.clone(),
             key: self.key.clone(),
 
-            #[cfg(debug_assertions)]
             id: self.id,
         }
     }
@@ -137,15 +135,16 @@ impl VComp {
     where
         COMP: BaseComponent,
     {
+        let id = Self::next_id();
+
         VComp {
             type_id: TypeId::of::<COMP>(),
             node_ref,
-            mountable: Some(Box::new(PropsWrapper::<COMP>::new(props))),
+            mountable: Some(Box::new(PropsWrapper::<COMP>::new(props, id))),
             scope: None,
             key,
 
-            #[cfg(debug_assertions)]
-            id: Self::next_id(),
+            id,
         }
     }
 
@@ -168,7 +167,6 @@ impl VComp {
         })
     }
 
-    #[cfg(debug_assertions)]
     pub(crate) fn next_id() -> usize {
         COMP_ID_COUNTER.with(|m| m.fetch_add(1, Ordering::Relaxed))
     }
@@ -205,11 +203,12 @@ trait Mountable {
 
 struct PropsWrapper<COMP: BaseComponent> {
     props: Rc<COMP::Properties>,
+    comp_id: usize,
 }
 
 impl<COMP: BaseComponent> PropsWrapper<COMP> {
-    fn new(props: Rc<COMP::Properties>) -> Self {
-        Self { props }
+    fn new(props: Rc<COMP::Properties>, comp_id: usize) -> Self {
+        Self { props, comp_id }
     }
 }
 
@@ -217,6 +216,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     fn copy(&self) -> Box<dyn Mountable> {
         let wrapper: PropsWrapper<COMP> = PropsWrapper {
             props: Rc::clone(&self.props),
+            comp_id: self.comp_id,
         };
         Box::new(wrapper)
     }
@@ -228,7 +228,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         parent: Element,
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped> {
-        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()), self.comp_id);
         scope.mount_in_place(parent, next_sibling, node_ref, self.props);
 
         Box::new(scope)
@@ -247,7 +247,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()> {
         async move {
-            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()), self.comp_id);
             scope
                 .render_to_string(w, self.props.clone(), hydratable)
                 .await;
@@ -263,7 +263,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         fragment: &mut VecDeque<Node>,
         node_ref: NodeRef,
     ) -> Box<dyn Scoped> {
-        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()), self.comp_id);
         scope.hydrate_in_place(parent, fragment, node_ref, self.props);
 
         Box::new(scope)
@@ -438,7 +438,7 @@ mod tests {
     #[test]
     fn update_loop() {
         let document = gloo_utils::document();
-        let parent_scope: AnyScope = crate::html::Scope::<Comp>::new(None).into();
+        let parent_scope: AnyScope = crate::html::Scope::<Comp>::new(None, VComp::next_id()).into();
         let parent_element = document.create_element("div").unwrap();
 
         let mut ancestor = html! { <Comp></Comp> };

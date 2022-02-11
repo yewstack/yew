@@ -65,9 +65,6 @@ pub struct AnyScope {
     type_id: TypeId,
     parent: Option<Rc<AnyScope>>,
     state: Shared<Option<ComponentState>>,
-
-    #[cfg(debug_assertions)]
-    pub(crate) vcomp_id: usize,
 }
 
 impl fmt::Debug for AnyScope {
@@ -82,9 +79,6 @@ impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
             type_id: TypeId::of::<COMP>(),
             parent: scope.parent,
             state: scope.state,
-
-            #[cfg(debug_assertions)]
-            vcomp_id: scope.vcomp_id,
         }
     }
 }
@@ -96,9 +90,6 @@ impl AnyScope {
             type_id: TypeId::of::<()>(),
             parent: None,
             state: Rc::new(RefCell::new(None)),
-
-            #[cfg(debug_assertions)]
-            vcomp_id: 0,
         }
     }
 
@@ -200,8 +191,7 @@ pub struct Scope<COMP: BaseComponent> {
     pub(crate) pending_messages: MsgQueue<COMP::Message>,
     pub(crate) state: Shared<Option<ComponentState>>,
 
-    #[cfg(debug_assertions)]
-    pub(crate) vcomp_id: usize,
+    pub(crate) id: usize,
 }
 
 impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {
@@ -218,8 +208,7 @@ impl<COMP: BaseComponent> Clone for Scope<COMP> {
             parent: self.parent.clone(),
             state: self.state.clone(),
 
-            #[cfg(debug_assertions)]
-            vcomp_id: self.vcomp_id,
+            id: self.id,
         }
     }
 }
@@ -247,13 +236,10 @@ impl<COMP: BaseComponent> Scope<COMP> {
         })
     }
 
-    pub(crate) fn new(parent: Option<AnyScope>) -> Self {
+    pub(crate) fn new(parent: Option<AnyScope>, id: usize) -> Self {
         let parent = parent.map(Rc::new);
         let state = Rc::new(RefCell::new(None));
         let pending_messages = MsgQueue::new();
-
-        #[cfg(debug_assertions)]
-        let vcomp_id = parent.as_ref().map(|p| p.vcomp_id).unwrap_or_default();
 
         Scope {
             _marker: PhantomData,
@@ -261,8 +247,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
             state,
             parent,
 
-            #[cfg(debug_assertions)]
-            vcomp_id,
+            id,
         }
     }
 
@@ -275,7 +260,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
         props: Rc<COMP::Properties>,
     ) {
         #[cfg(debug_assertions)]
-        crate::virtual_dom::vcomp::log_event(self.vcomp_id, "create placeholder");
+        crate::virtual_dom::vcomp::log_event(self.id, "create placeholder");
         let placeholder = {
             let placeholder: Node = document().create_text_node("").into();
             insert_node(&placeholder, &parent, next_sibling.get().as_ref());
@@ -284,6 +269,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
         };
 
         scheduler::push_component_create(
+            self.id,
             CreateRunner {
                 parent: Some(parent),
                 next_sibling,
@@ -312,7 +298,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
         next_sibling: NodeRef,
     ) {
         #[cfg(debug_assertions)]
-        crate::virtual_dom::vcomp::log_event(self.vcomp_id, "reuse");
+        crate::virtual_dom::vcomp::log_event(self.id, "reuse");
 
         self.push_update(UpdateEvent::Properties(props, node_ref, next_sibling));
     }
@@ -411,6 +397,7 @@ mod feat_ssr {
             let (tx, rx) = oneshot::channel();
 
             scheduler::push_component_create(
+                self.id,
                 CreateRunner {
                     parent: None,
                     next_sibling: NodeRef::default(),
@@ -550,7 +537,8 @@ mod feat_hydration {
 
             let next_sibling = NodeRef::default();
 
-            scheduler::push_component_create(
+            scheduler::push_component_hydrate(
+                self.id,
                 CreateRunner {
                     parent: Some(parent),
                     next_sibling,

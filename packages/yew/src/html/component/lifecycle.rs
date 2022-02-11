@@ -33,6 +33,8 @@ where
 /// Mostly a thin wrapper that passes the context to a component's lifecycle
 /// methods.
 pub(crate) trait Stateful {
+    fn id(&self) -> usize;
+
     fn view(&self) -> RenderResult<VNode>;
     fn rendered(&mut self, first_render: bool);
     fn destroy(&mut self);
@@ -50,6 +52,10 @@ impl<COMP> Stateful for CompStateInner<COMP>
 where
     COMP: BaseComponent,
 {
+    fn id(&self) -> usize {
+        self.context.scope.id
+    }
+
     fn view(&self) -> RenderResult<VNode> {
         self.component.view(&self.context)
     }
@@ -118,10 +124,6 @@ pub(crate) struct ComponentState {
 
     #[cfg(feature = "ssr")]
     html_sender: Option<oneshot::Sender<VNode>>,
-
-    // Used for debug logging
-    #[cfg(debug_assertions)]
-    pub(crate) vcomp_id: usize,
 }
 
 pub(crate) struct CreateRunner<COMP: BaseComponent> {
@@ -144,7 +146,7 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
         let mut current_state = self.scope.state.borrow_mut();
         if current_state.is_none() {
             #[cfg(debug_assertions)]
-            crate::virtual_dom::vcomp::log_event(self.scope.vcomp_id, "create");
+            crate::virtual_dom::vcomp::log_event(self.scope.id, "create");
 
             let Self {
                 props,
@@ -161,8 +163,6 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
                 ..
             } = *self;
 
-            #[cfg(debug_assertions)]
-            let vcomp_id = scope.vcomp_id;
             let context = Context { scope, props };
 
             let inner = Box::new(CompStateInner {
@@ -184,9 +184,6 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
 
                 #[cfg(feature = "ssr")]
                 html_sender,
-
-                #[cfg(debug_assertions)]
-                vcomp_id,
             };
 
             *current_state = Some(state);
@@ -253,13 +250,13 @@ impl Runnable for UpdateRunner {
 
             #[cfg(debug_assertions)]
             crate::virtual_dom::vcomp::log_event(
-                state.vcomp_id,
+                state.inner.id(),
                 format!("update(schedule_render={})", schedule_render),
             );
 
             if schedule_render {
                 scheduler::push_component_render(
-                    self.state.as_ptr() as usize,
+                    state.inner.id(),
                     RenderRunner {
                         state: self.state.clone(),
                     },
@@ -279,7 +276,7 @@ impl Runnable for DestroyRunner {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().take() {
             #[cfg(debug_assertions)]
-            crate::virtual_dom::vcomp::log_event(state.vcomp_id, "destroy");
+            crate::virtual_dom::vcomp::log_event(state.inner.id(), "destroy");
 
             state.inner.destroy();
 
@@ -295,11 +292,87 @@ pub(crate) struct RenderRunner {
     pub(crate) state: Shared<Option<ComponentState>>,
 }
 
+impl RenderRunner {
+    #[cfg(feature = "hydration")]
+    fn render_html(&self, parent: &Element, state: &mut ComponentState, ancestor: VNode) {
+        let new_root = &mut state.root_node;
+        let scope = state.inner.any_scope();
+        let next_sibling = state.next_sibling.clone();
+
+        match state.hydrate_fragment.take() {
+            Some(mut fragment) => {
+                // We schedule a second render to run immediately after hydration,
+                // for the following reason:
+                // 1. Fix NodeRef (first_node and next_sibling)
+                // 2. Switch from fallback UI to children UI for <Suspense /> component.
+                scheduler::push_component_first_render(
+                    state.inner.id(),
+                    RenderRunner {
+                        state: self.state.clone(),
+                    },
+                );
+
+                // This first node is not guaranteed to be correct here.
+                // As it may be a comment node that is removed afterwards.
+                // but we link it anyways.
+                let node = new_root.hydrate(&scope, parent, &mut fragment);
+
+                // We trim all text nodes before checking as it's likely these are whitespaces.
+                trim_start_text_nodes(parent, &mut fragment);
+
+                assert!(fragment.is_empty(), "expected end of component, found node");
+
+                state.node_ref.link(node);
+            }
+            None => {
+                let node = new_root.apply(&scope, parent, next_sibling, Some(ancestor));
+
+                state.node_ref.link(node);
+
+                let first_render = !state.has_rendered;
+                state.has_rendered = true;
+
+                scheduler::push_component_rendered(
+                    state.inner.id(),
+                    RenderedRunner {
+                        state: self.state.clone(),
+                        first_render,
+                    },
+                    first_render,
+                );
+            }
+        };
+    }
+
+    #[cfg(not(feature = "hydration"))]
+    fn render_html(&self, parent: &Element, state: &mut ComponentState, ancestor: VNode) {
+        let new_root = &mut state.root_node;
+        let scope = state.inner.any_scope();
+        let next_sibling = state.next_sibling.clone();
+
+        let node = new_root.apply(&scope, m, next_sibling, ancestor);
+
+        state.node_ref.link(node);
+
+        let first_render = !state.has_rendered;
+        state.has_rendered = true;
+
+        scheduler::push_component_rendered(
+            state.inner.id(),
+            RenderedRunner {
+                state: self.state.clone(),
+                first_render,
+            },
+            first_render,
+        );
+    }
+}
+
 impl Runnable for RenderRunner {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             #[cfg(debug_assertions)]
-            crate::virtual_dom::vcomp::log_event(state.vcomp_id, "render");
+            crate::virtual_dom::vcomp::log_event(state.inner.id(), "render");
 
             match state.inner.view() {
                 Ok(m) => {
@@ -319,57 +392,8 @@ impl Runnable for RenderRunner {
                         suspense.resume(m);
                     }
 
-                    if let Some(ref m) = state.parent {
-                        let ancestor = Some(root);
-                        let new_root = &mut state.root_node;
-                        let scope = state.inner.any_scope();
-                        let next_sibling = state.next_sibling.clone();
-
-                        #[cfg(not(feature = "hydration"))]
-                        let node = new_root.apply(&scope, m, next_sibling, ancestor);
-
-                        #[cfg(feature = "hydration")]
-                        let node = match state.hydrate_fragment.take() {
-                            Some(mut fragment) => {
-                                // We schedule a second render to run immediately after hydration,
-                                // for the following reason:
-                                // 1. Fix NodeRef (first_node and next_sibling)
-                                // 2. Switch from fallback UI to children UI for <Suspense /> component.
-                                scheduler::push_component_render(
-                                    self.state.as_ptr() as usize,
-                                    RenderRunner {
-                                        state: self.state.clone(),
-                                    },
-                                );
-
-                                let first_node = new_root.hydrate(&scope, m, &mut fragment);
-
-                                // We trim all text nodes before checking it's likely these are whitespaces.
-                                trim_start_text_nodes(m, &mut fragment);
-
-                                assert!(
-                                    fragment.is_empty(),
-                                    "expected end of component, found node"
-                                );
-
-                                first_node
-                            }
-                            None => new_root.apply(&scope, m, next_sibling, ancestor),
-                        };
-
-                        state.node_ref.link(node);
-
-                        let first_render = !state.has_rendered;
-                        state.has_rendered = true;
-
-                        scheduler::push_component_rendered(
-                            self.state.as_ptr() as usize,
-                            RenderedRunner {
-                                state: self.state.clone(),
-                                first_render,
-                            },
-                            first_render,
-                        );
+                    if let Some(ref m) = state.parent.clone() {
+                        self.render_html(m, state, root);
                     } else {
                         #[cfg(feature = "ssr")]
                         if let Some(tx) = state.html_sender.take() {
@@ -387,9 +411,9 @@ impl Runnable for RenderRunner {
                         // schedule a render immediately if suspension is resumed.
 
                         scheduler::push_component_render(
-                            shared_state.as_ptr() as usize,
+                            state.inner.id(),
                             RenderRunner {
-                                state: shared_state.clone(),
+                                state: shared_state,
                             },
                         );
                     } else {
@@ -402,9 +426,11 @@ impl Runnable for RenderRunner {
                             .expect("To suspend rendering, a <Suspense /> component is required.");
                         let suspense = suspense_scope.get_component().unwrap();
 
+                        let comp_id = state.inner.id();
+
                         m.listen(Callback::from(move |_| {
                             scheduler::push_component_render(
-                                shared_state.as_ptr() as usize,
+                                comp_id,
                                 RenderRunner {
                                     state: shared_state.clone(),
                                 },
@@ -437,7 +463,7 @@ impl Runnable for RenderedRunner {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             #[cfg(debug_assertions)]
-            crate::virtual_dom::vcomp::log_event(state.vcomp_id, "rendered");
+            crate::virtual_dom::vcomp::log_event(state.inner.id(), "rendered");
 
             if state.suspension.is_none() && state.parent.is_some() {
                 state.inner.rendered(self.first_render);
@@ -569,7 +595,7 @@ mod tests {
 
     fn test_lifecycle(props: Props, expected: &[&str]) {
         let document = gloo_utils::document();
-        let scope = Scope::<Comp>::new(None);
+        let scope = Scope::<Comp>::new(None, VComp::next_id());
         let el = document.create_element("div").unwrap();
         let lifecycle = props.lifecycle.clone();
 
