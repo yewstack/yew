@@ -292,6 +292,15 @@ impl PartialEq for VNode {
             (VNode::VRef(a), VNode::VRef(b)) => a == b,
             // TODO: Need to improve PartialEq for VComp before enabling.
             (VNode::VComp(_), VNode::VComp(_)) => false,
+            (VNode::VList(a), b) => {
+                if let Some(m) = a.iter().next() {
+                    if a.len() == 1 {
+                        return m == b;
+                    }
+                }
+
+                false
+            }
             _ => false,
         }
     }
@@ -380,7 +389,7 @@ mod feat_hydration {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_arch = "wasm32"))]
 mod layout_tests {
     use super::*;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};

@@ -4,7 +4,6 @@
 use std::ops::Deref;
 
 use crate::html::{BaseComponent, NodeRef, Scope, Scoped};
-use crate::virtual_dom::VComp;
 use std::rc::Rc;
 use web_sys::Element;
 
@@ -26,7 +25,7 @@ where
     pub(crate) fn mount_with_props(element: Element, props: Rc<COMP::Properties>) -> Self {
         clear_element(&element);
         let app = Self {
-            scope: Scope::new(None, VComp::next_id()),
+            scope: Scope::new(None),
         };
         app.scope
             .mount_in_place(element, NodeRef::default(), NodeRef::default(), props);
@@ -64,7 +63,7 @@ mod feat_hydration {
     {
         pub(crate) fn hydrate_with_props(element: Element, props: Rc<COMP::Properties>) -> Self {
             let app = Self {
-                scope: Scope::new(None, VComp::next_id()),
+                scope: Scope::new(None),
             };
 
             let mut fragment = collect_child_nodes(&element);

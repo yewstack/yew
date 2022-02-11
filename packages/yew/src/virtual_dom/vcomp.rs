@@ -140,7 +140,7 @@ impl VComp {
         VComp {
             type_id: TypeId::of::<COMP>(),
             node_ref,
-            mountable: Some(Box::new(PropsWrapper::<COMP>::new(props, id))),
+            mountable: Some(Box::new(PropsWrapper::<COMP>::new(props))),
             scope: None,
             key,
 
@@ -203,12 +203,11 @@ trait Mountable {
 
 struct PropsWrapper<COMP: BaseComponent> {
     props: Rc<COMP::Properties>,
-    comp_id: usize,
 }
 
 impl<COMP: BaseComponent> PropsWrapper<COMP> {
-    fn new(props: Rc<COMP::Properties>, comp_id: usize) -> Self {
-        Self { props, comp_id }
+    fn new(props: Rc<COMP::Properties>) -> Self {
+        Self { props }
     }
 }
 
@@ -216,7 +215,6 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     fn copy(&self) -> Box<dyn Mountable> {
         let wrapper: PropsWrapper<COMP> = PropsWrapper {
             props: Rc::clone(&self.props),
-            comp_id: self.comp_id,
         };
         Box::new(wrapper)
     }
@@ -228,7 +226,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         parent: Element,
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped> {
-        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()), self.comp_id);
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
         scope.mount_in_place(parent, next_sibling, node_ref, self.props);
 
         Box::new(scope)
@@ -247,7 +245,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()> {
         async move {
-            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()), self.comp_id);
+            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
             scope
                 .render_to_string(w, self.props.clone(), hydratable)
                 .await;
@@ -263,7 +261,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         fragment: &mut VecDeque<Node>,
         node_ref: NodeRef,
     ) -> Box<dyn Scoped> {
-        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()), self.comp_id);
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
         scope.hydrate_in_place(parent, fragment, node_ref, self.props);
 
         Box::new(scope)
@@ -394,7 +392,7 @@ mod feat_hydration {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_arch = "wasm32"))]
 mod tests {
     use super::*;
     use crate::scheduler;
@@ -438,7 +436,7 @@ mod tests {
     #[test]
     fn update_loop() {
         let document = gloo_utils::document();
-        let parent_scope: AnyScope = crate::html::Scope::<Comp>::new(None, VComp::next_id()).into();
+        let parent_scope: AnyScope = crate::html::Scope::<Comp>::new(None).into();
         let parent_element = document.create_element("div").unwrap();
 
         let mut ancestor = html! { <Comp></Comp> };
@@ -676,7 +674,7 @@ mod tests {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_arch = "wasm32"))]
 mod layout_tests {
     extern crate self as yew;
 

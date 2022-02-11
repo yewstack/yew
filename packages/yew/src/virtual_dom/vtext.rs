@@ -206,7 +206,7 @@ mod test {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_arch = "wasm32"))]
 mod layout_tests {
     extern crate self as yew;
 

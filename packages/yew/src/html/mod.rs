@@ -172,7 +172,7 @@ pub fn create_portal(child: Html, host: Element) -> Html {
     VNode::VPortal(VPortal::new(child, host))
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_arch = "wasm32"))]
 mod tests {
     use super::*;
     use gloo_utils::document;

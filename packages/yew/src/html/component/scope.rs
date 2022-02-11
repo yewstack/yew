@@ -11,7 +11,7 @@ use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
 use crate::html::NodeRef;
 use crate::scheduler::{self, Shared};
-use crate::virtual_dom::{insert_node, VNode};
+use crate::virtual_dom::{insert_node, VComp, VNode};
 use gloo_utils::document;
 use std::any::TypeId;
 use std::cell::{Ref, RefCell};
@@ -84,7 +84,7 @@ impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
 }
 
 impl AnyScope {
-    #[cfg(test)]
+    #[cfg(all(test, target_arch = "wasm32"))]
     pub(crate) fn test() -> Self {
         Self {
             type_id: TypeId::of::<()>(),
@@ -236,7 +236,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
         })
     }
 
-    pub(crate) fn new(parent: Option<AnyScope>, id: usize) -> Self {
+    pub(crate) fn new(parent: Option<AnyScope>) -> Self {
         let parent = parent.map(Rc::new);
         let state = Rc::new(RefCell::new(None));
         let pending_messages = MsgQueue::new();
@@ -247,7 +247,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
             state,
             parent,
 
-            id,
+            id: VComp::next_id(),
         }
     }
 

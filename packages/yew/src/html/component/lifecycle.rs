@@ -473,12 +473,11 @@ impl Runnable for RenderedRunner {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_arch = "wasm32"))]
 mod tests {
     extern crate self as yew;
 
     use crate::html;
-    use crate::html::VComp;
     use crate::html::*;
     use crate::Properties;
     use std::ops::Deref;
@@ -597,7 +596,7 @@ mod tests {
 
     fn test_lifecycle(props: Props, expected: &[&str]) {
         let document = gloo_utils::document();
-        let scope = Scope::<Comp>::new(None, VComp::next_id());
+        let scope = Scope::<Comp>::new(None);
         let el = document.create_element("div").unwrap();
         let lifecycle = props.lifecycle.clone();
 

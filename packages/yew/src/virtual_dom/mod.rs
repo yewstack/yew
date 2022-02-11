@@ -211,7 +211,7 @@ trait Apply {
 }
 
 /// A collection of attributes for an element
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub enum Attributes {
     /// Static list of attributes.
     ///
@@ -236,6 +236,17 @@ pub enum Attributes {
     /// was not used to guarantee it.
     IndexMap(IndexMap<&'static str, AttrValue>),
 }
+
+impl PartialEq for Attributes {
+    fn eq(&self, rhs: &Self) -> bool {
+        self.iter()
+            .zip(rhs.iter())
+            .try_for_each(|(l, r)| if l == r { Ok(()) } else { Err(()) })
+            .is_ok()
+    }
+}
+
+impl Eq for Attributes {}
 
 impl Attributes {
     /// Construct a default Attributes instance

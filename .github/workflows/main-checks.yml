@@ -89,7 +89,6 @@ jobs:
           args: --doc --features doc_test --features wasm_test
 
 
-
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
     runs-on: ubuntu-latest
@@ -156,7 +155,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-targets --workspace --exclude yew --exclude website-test
+          args: --all-targets --workspace --exclude website-test
 
 
   ssr_tests:
