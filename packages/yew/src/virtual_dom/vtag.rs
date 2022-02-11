@@ -729,6 +729,11 @@ mod feat_hydration {
             parent: &Element,
             fragment: &mut VecDeque<Node>,
         ) -> NodeRef {
+            assert!(
+                self.node_ref.get().is_some(),
+                "trying to hydrate a mounted VTag"
+            );
+
             // We trim all text nodes as it's likely these are whitespaces.
             trim_start_text_nodes(parent, fragment);
 

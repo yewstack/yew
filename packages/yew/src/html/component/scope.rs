@@ -567,16 +567,6 @@ mod feat_hydration {
                 },
             );
 
-            // We schedule a second render immediately after hydration, for the following reason:
-            // 1. Fix next sibling NodeRef
-            // 2. Switch from fallback UI to children UI for <Suspense /> component.
-            scheduler::push_component_render(
-                self.state.as_ptr() as usize,
-                RenderRunner {
-                    state: self.state.clone(),
-                },
-            );
-
             // Not guaranteed to already have the scheduler started
             scheduler::start();
         }

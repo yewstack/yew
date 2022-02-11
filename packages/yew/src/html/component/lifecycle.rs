@@ -331,6 +331,17 @@ impl Runnable for RenderRunner {
                         #[cfg(feature = "hydration")]
                         let node = match state.hydrate_fragment.take() {
                             Some(mut fragment) => {
+                                // We schedule a second render to run immediately after hydration,
+                                // for the following reason:
+                                // 1. Fix NodeRef (first_node and next_sibling)
+                                // 2. Switch from fallback UI to children UI for <Suspense /> component.
+                                scheduler::push_component_render(
+                                    self.state.as_ptr() as usize,
+                                    RenderRunner {
+                                        state: self.state.clone(),
+                                    },
+                                );
+
                                 let first_node = new_root.hydrate(&scope, m, &mut fragment);
 
                                 // We trim all text nodes before checking it's likely these are whitespaces.

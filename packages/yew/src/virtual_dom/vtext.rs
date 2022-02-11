@@ -157,7 +157,11 @@ mod feat_hydration {
                         // pop current node.
                         fragment.pop_front();
 
-                        // always update node value, see reason below.
+                        // TODO: It may make sense to assert the text content in the text node against
+                        // the VText when #[cfg(debug_assertions)] is true, but this may be complicated.
+                        // We always replace the text value for now.
+                        //
+                        // Please see the next comment for a detailed explanation.
                         m.set_node_value(Some(self.text.as_ref()));
                         self.reference = Some(m.clone());
 
@@ -166,8 +170,10 @@ mod feat_hydration {
                 }
             }
 
-            // If there are multiple text nodes placed back-to-back, it may be parsed as a single
-            // text node, hence we need to add extra text nodes here if the next node is not a text node.
+            // If there are multiple text nodes placed back-to-back in SSR, it may be parsed as a single
+            // text node by browser, hence we need to add extra text nodes here if the next node is not a text node.
+            // Similarly, the value of the text node may be a combination of multiple VText vnodes.
+            // So we always need to override their values.
             let text_node = document().create_text_node(&self.text);
             insert_node(&text_node, parent, fragment.front());
             self.reference = Some(text_node.clone());
