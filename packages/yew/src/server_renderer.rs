@@ -66,7 +66,7 @@ where
         s
     }
 
-    /// Renders Yew Application to a String.
+    /// Renders Yew Application into the provided String.
     pub async fn render_to_string(self, w: &mut String) {
         let scope = Scope::<COMP>::new(None, VComp::next_id());
         scope

@@ -1,10 +1,19 @@
-# Server-side Rendering Example
+# SSR Router Example
 
-This example demonstrates server-side rendering.
+This example is the same as the function router example, but with
+server-side rendering and hydration support. It reuses the same codebase
+of the function router example.
 
-The hydration bundle must be built first with the following command:
+# How to run this example
 
-`trunk build examples/simple_ssr/index.html`
+1. build hydration bundle
 
-Then run `cargo run --bin simple_ssr_server -- --dir examples/simple_ssr/dist` and navigate to http://localhost:8080/ to
-view results.
+`trunk build examples/ssr_router/index.html`
+
+2. Run the server
+
+`cargo run --bin ssr_router_server -- --dir examples/ssr_router/dist`
+
+3. Open Browser
+
+Navigate to http://localhost:8080/ to view results.

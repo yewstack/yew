@@ -2,9 +2,16 @@
 
 This example demonstrates server-side rendering.
 
-The hydration bundle must be built first with the following command:
+# How to run this example
+
+1. build hydration bundle
 
 `trunk build examples/simple_ssr/index.html`
 
-Then run `cargo run --bin simple_ssr_server -- --dir examples/simple_ssr/dist` and navigate to http://localhost:8080/ to
-view results.
+2. Run the server
+
+`cargo run --bin simple_ssr_server -- --dir examples/simple_ssr/dist`
+
+3. Open Browser
+
+Navigate to http://localhost:8080/ to view results.
