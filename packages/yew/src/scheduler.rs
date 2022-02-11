@@ -94,7 +94,8 @@ pub(crate) fn push_component_destroy(runnable: impl Runnable + 'static) {
 /// Push a component first render and rendered [Runnable]s to be executed
 ///
 /// This is used by hydration to push first render.
-/// push_component_create already pushes a first render so this is not needed.
+/// push_component_create already pushes a first render so this is not needed if a component is not
+/// hydrating.
 pub(crate) fn push_component_first_render(component_id: usize, render: impl Runnable + 'static) {
     with(|s| {
         s.render_first.insert(component_id, Box::new(render));
@@ -227,7 +228,7 @@ impl Scheduler {
             .keys()
             .next()
             .cloned()
-            .and_then(|m| self.render.remove(&m))
+            .and_then(|m| self.render_first.remove(&m))
         {
             to_run.push(r);
         }

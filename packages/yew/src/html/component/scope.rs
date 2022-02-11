@@ -287,6 +287,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
                 state: self.state.clone(),
             },
         );
+
         // Not guaranteed to already have the scheduler started
         scheduler::start();
     }
