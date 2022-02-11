@@ -58,6 +58,11 @@ jobs:
               continue
             fi
 
+            # ssr does not need trunk
+            if [[ "$example" == "ssr_router" ]]; then
+              continue
+            fi
+
             echo "building: $example"
             (
               cd "$path"

@@ -1,0 +1,4 @@
+[tasks.doc-test]
+private = true
+clear = true
+script = ["exit 0"]

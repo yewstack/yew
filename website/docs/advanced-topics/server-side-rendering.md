@@ -172,7 +172,7 @@ possible.
 
 ## Example
 
-```rust
+```rust ,ignore
 use yew::prelude::*;
 use yew::Renderer;
 

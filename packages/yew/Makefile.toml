@@ -26,6 +26,8 @@ args = [
     "--doc",
     "--features",
     "doc_test,wasm_test",
+    "-p",
+    "yew",
 ]
 
 [tasks.bench]
