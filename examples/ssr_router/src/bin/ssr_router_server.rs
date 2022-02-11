@@ -1,4 +1,5 @@
 use function_router::{ServerApp, ServerAppProps};
+use std::collections::HashMap;
 use std::path::PathBuf;
 use structopt::StructOpt;
 use tokio::task::spawn_blocking;
@@ -13,7 +14,7 @@ struct Opt {
     dir: PathBuf,
 }
 
-async fn render(index_html_s: &str, url: &str) -> String {
+async fn render(index_html_s: &str, url: &str, queries: HashMap<String, String>) -> String {
     let url = url.to_string();
 
     let content = spawn_blocking(move || {
@@ -22,7 +23,10 @@ async fn render(index_html_s: &str, url: &str) -> String {
 
         let rt = Builder::new_current_thread().enable_all().build().unwrap();
 
-        let server_app_props = ServerAppProps { url: url.into() };
+        let server_app_props = ServerAppProps {
+            url: url.into(),
+            queries,
+        };
 
         set.block_on(&rt, async {
             let renderer = yew::ServerRenderer::<ServerApp>::with_props(server_app_props);
@@ -48,17 +52,21 @@ async fn main() {
         .await
         .expect("failed to read index.html");
 
-    let render = move |s: warp::filters::path::FullPath| {
+    let render = move |s: warp::filters::path::FullPath, queries: HashMap<String, String>| {
         let index_html_s = index_html_s.clone();
 
-        async move { warp::reply::html(render(&index_html_s, s.as_str()).await) }
+        async move { warp::reply::html(render(&index_html_s, s.as_str(), queries).await) }
     };
 
-    let html = warp::path::end().and(warp::path::full().then(render.clone()));
+    let html = warp::path::end().and(
+        warp::path::full()
+            .and(warp::filters::query::query())
+            .then(render.clone()),
+    );
 
-    let routes = html
-        .or(warp::fs::dir(opts.dir))
-        .or(warp::path::full().then(render));
+    let routes = html.or(warp::fs::dir(opts.dir)).or(warp::path::full()
+        .and(warp::filters::query::query())
+        .then(render));
 
     println!("You can view the website at: http://localhost:8080/");
 

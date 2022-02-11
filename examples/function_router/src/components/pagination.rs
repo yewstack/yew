@@ -138,7 +138,7 @@ pub fn Links(props: &Props) -> Html {
     html! {
         <>
             <RenderLinks range={ 1..page } len={pages_prev} max_links={links_left} props={props.clone()} />
-            <li><RenderLink to_page={page} props={props.clone()} /></li>
+            <RenderLink to_page={page} props={props.clone()} />
             <RenderLinks range={ page + 1..total_pages + 1 } len={pages_next} max_links={links_right} props={props.clone()} />
         </>
     }

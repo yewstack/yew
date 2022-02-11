@@ -54,15 +54,20 @@ mod arch_native {
     use yew::virtual_dom::AttrValue;
     use yew_router::history::{AnyHistory, History, MemoryHistory};
 
+    use std::collections::HashMap;
+
     #[derive(Properties, PartialEq, Debug)]
     pub struct ServerAppProps {
         pub url: AttrValue,
+        pub queries: HashMap<String, String>,
     }
 
     #[function_component]
     pub fn ServerApp(props: &ServerAppProps) -> Html {
         let history = AnyHistory::from(MemoryHistory::new());
-        history.push(&*props.url);
+        history
+            .push_with_query(&*props.url, &props.queries)
+            .unwrap();
 
         html! {
             <Router history={history}>
