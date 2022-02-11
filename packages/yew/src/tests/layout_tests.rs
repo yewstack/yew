@@ -1,4 +1,5 @@
 use crate::html::{AnyScope, Scope};
+use crate::scheduler;
 use crate::virtual_dom::{VDiff, VNode, VText};
 use crate::{Component, Context, Html};
 use gloo::console::log;
@@ -51,6 +52,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         log!("Independently apply layout '{}'", layout.name);
 
         node.apply(&parent_scope, &parent_element, next_sibling.clone(), None);
+        scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -69,6 +71,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             next_sibling.clone(),
             Some(node),
         );
+        scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -83,6 +86,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             next_sibling.clone(),
             Some(node_clone),
         );
+        scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
             "END",
@@ -103,6 +107,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             next_sibling.clone(),
             ancestor,
         );
+        scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -123,6 +128,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             next_sibling.clone(),
             ancestor,
         );
+        scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -134,6 +140,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
 
     // Detach last layout
     empty_node.apply(&parent_scope, &parent_element, next_sibling, ancestor);
+    scheduler::start_now();
     assert_eq!(
         parent_element.inner_html(),
         "END",

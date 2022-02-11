@@ -1,7 +1,9 @@
 use std::collections::HashSet;
 use std::rc::Rc;
 
+use gloo::timers::future::sleep;
 use gloo_utils::document;
+use std::time::Duration;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_test::*;
 use web_sys::HtmlElement;
@@ -30,7 +32,7 @@ impl Reducible for CounterState {
 }
 
 #[wasm_bindgen_test]
-fn use_reducer_works() {
+async fn use_reducer_works() {
     #[function_component(UseReducerComponent)]
     fn use_reducer_comp() -> Html {
         let counter = use_reducer(|| CounterState { counter: 10 });
@@ -55,6 +57,7 @@ fn use_reducer_works() {
     yew::start_app_in_element::<UseReducerComponent>(
         gloo_utils::document().get_element_by_id("output").unwrap(),
     );
+    sleep(Duration::ZERO).await;
     let result = obtain_result();
 
     assert_eq!(result.as_str(), "11");
@@ -76,7 +79,7 @@ impl Reducible for ContentState {
 }
 
 #[wasm_bindgen_test]
-fn use_reducer_eq_works() {
+async fn use_reducer_eq_works() {
     #[function_component(UseReducerComponent)]
     fn use_reducer_comp() -> Html {
         let content = use_reducer_eq(|| ContentState {
@@ -113,6 +116,7 @@ fn use_reducer_eq_works() {
     yew::start_app_in_element::<UseReducerComponent>(
         document().get_element_by_id("output").unwrap(),
     );
+    sleep(Duration::ZERO).await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "1");
@@ -122,6 +126,7 @@ fn use_reducer_eq_works() {
         .unwrap()
         .unchecked_into::<HtmlElement>()
         .click();
+    sleep(Duration::ZERO).await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "2");
@@ -131,6 +136,7 @@ fn use_reducer_eq_works() {
         .unwrap()
         .unchecked_into::<HtmlElement>()
         .click();
+    sleep(Duration::ZERO).await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "2");
@@ -140,6 +146,7 @@ fn use_reducer_eq_works() {
         .unwrap()
         .unchecked_into::<HtmlElement>()
         .click();
+    sleep(Duration::ZERO).await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "3");
@@ -149,6 +156,7 @@ fn use_reducer_eq_works() {
         .unwrap()
         .unchecked_into::<HtmlElement>()
         .click();
+    sleep(Duration::ZERO).await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "3");

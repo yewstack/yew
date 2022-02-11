@@ -182,7 +182,7 @@ html! {
 
 Refresh the browser page, and you should see the following output displayed:
 
-**TODO: Add screenshot**
+![Running WASM application screenshot](/img/tutorial_application_screenshot.png)
 
 ### Using Rust language constructs in the markup
 
@@ -431,7 +431,8 @@ fn app() -> Html {
             <h1>{ "RustConf Explorer" }</h1>
             <div>
                 <h3>{"Videos to watch"}</h3>
-                <VideosList videos={videos} on_click={on_video_select.clone()} />
+-               <VideosList videos={videos} />
++               <VideosList videos={videos} on_click={on_video_select.clone()} />
             </div>
 +            { for details }
 -            <div>

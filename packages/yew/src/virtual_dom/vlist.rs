@@ -154,7 +154,7 @@ impl VList {
         while diff < 0 {
             let mut r = rights_it.next().unwrap();
             test_log!("removing: {:?}", r);
-            r.detach(parent);
+            r.detach(parent, false);
             diff += 1;
         }
 
@@ -268,7 +268,7 @@ impl VList {
         // Remove any extra rights
         for (_, (mut r, _)) in rights_diff.drain() {
             test_log!("removing: {:?}", r);
-            r.detach(parent);
+            r.detach(parent, false);
         }
 
         // Diff matching children at the start
@@ -307,9 +307,9 @@ mod feat_ssr {
 }
 
 impl VDiff for VList {
-    fn detach(&mut self, parent: &Element) {
+    fn detach(&mut self, parent: &Element, parent_to_detach: bool) {
         for mut child in self.children.drain(..) {
-            child.detach(parent);
+            child.detach(parent, parent_to_detach);
         }
     }
 

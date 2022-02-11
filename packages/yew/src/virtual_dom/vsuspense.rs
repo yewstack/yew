@@ -48,14 +48,14 @@ impl VSuspense {
 }
 
 impl VDiff for VSuspense {
-    fn detach(&mut self, parent: &Element) {
+    fn detach(&mut self, parent: &Element, parent_to_detach: bool) {
         if self.suspended {
-            self.fallback.detach(parent);
+            self.fallback.detach(parent, parent_to_detach);
             if let Some(ref m) = self.detached_parent {
-                self.children.detach(m);
+                self.children.detach(m, false);
             }
         } else {
-            self.children.detach(parent);
+            self.children.detach(parent, parent_to_detach);
         }
     }
 
@@ -82,7 +82,7 @@ impl VDiff for VSuspense {
             Some(VNode::VSuspense(mut m)) => {
                 // We only preserve the child state if they are the same suspense.
                 if m.key != self.key || self.detached_parent != m.detached_parent {
-                    m.detach(parent);
+                    m.detach(parent, false);
 
                     (false, None, None)
                 } else {
@@ -90,7 +90,7 @@ impl VDiff for VSuspense {
                 }
             }
             Some(mut m) => {
-                m.detach(parent);
+                m.detach(parent, false);
                 (false, None, None)
             }
             None => (false, None, None),
@@ -136,7 +136,7 @@ impl VDiff for VSuspense {
             }
 
             (false, true) => {
-                fallback_ancestor.unwrap().detach(parent);
+                fallback_ancestor.unwrap().detach(parent, false);
 
                 children_ancestor.as_ref().unwrap().shift(
                     detached_parent,

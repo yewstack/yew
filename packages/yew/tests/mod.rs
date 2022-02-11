@@ -1,13 +1,15 @@
 mod common;
 
 use common::obtain_result;
+use gloo::timers::future::sleep;
+use std::time::Duration;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
-fn props_are_passed() {
+async fn props_are_passed() {
     #[derive(Properties, Clone, PartialEq)]
     struct PropsPassedFunctionProps {
         value: String,
@@ -29,6 +31,8 @@ fn props_are_passed() {
             value: "props".to_string(),
         },
     );
+
+    sleep(Duration::ZERO).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "done");
 }
