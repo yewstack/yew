@@ -729,11 +729,6 @@ mod feat_hydration {
             parent: &Element,
             fragment: &mut VecDeque<Node>,
         ) -> NodeRef {
-            assert!(
-                self.node_ref.get().is_some(),
-                "trying to hydrate a mounted VTag"
-            );
-
             // We trim all text nodes as it's likely these are whitespaces.
             trim_start_text_nodes(parent, fragment);
 
@@ -748,11 +743,11 @@ mod feat_hydration {
             let el = node.dyn_into::<Element>().expect("expected an element.");
 
             assert_eq!(
-                el.tag_name(),
+                el.tag_name().to_lowercase(),
                 self.tag(),
                 "expected element of kind {}, found {}.",
                 self.tag(),
-                el.tag_name(),
+                el.tag_name().to_lowercase(),
             );
 
             // We simply registers listeners and updates all attributes.

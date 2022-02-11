@@ -59,7 +59,24 @@ impl VSuspense {
 impl VDiff for VSuspense {
     fn detach(&mut self, parent: &Element, parent_to_detach: bool) {
         if self.suspended {
+            #[cfg(feature = "hydration")]
+            {
+                if let Some(m) = self.fallback_fragment.take() {
+                    if !parent_to_detach {
+                        for node in m.into_iter() {
+                            parent
+                                .remove_child(&node)
+                                .expect("failed to remove child element");
+                        }
+                    }
+                } else {
+                    self.fallback.detach(parent, parent_to_detach);
+                }
+            }
+
+            #[cfg(not(feature = "hydration"))]
             self.fallback.detach(parent, parent_to_detach);
+
             if let Some(ref m) = self.detached_parent {
                 self.children.detach(m, false);
             }
@@ -99,23 +116,29 @@ impl VDiff for VSuspense {
     ) -> NodeRef {
         let detached_parent = self.detached_parent.as_ref().expect("no detached parent?");
 
-        let (already_suspended, children_ancestor, fallback_ancestor) = match ancestor {
-            Some(VNode::VSuspense(mut m)) => {
-                // We only preserve the child state if they are the same suspense.
-                if m.key != self.key || self.detached_parent != m.detached_parent {
-                    m.detach(parent, false);
+        let (already_suspended, children_ancestor, fallback_ancestor, fallback_fragment) =
+            match ancestor {
+                Some(VNode::VSuspense(mut m)) => {
+                    // We only preserve the child state if they are the same suspense.
+                    if m.key != self.key || self.detached_parent != m.detached_parent {
+                        m.detach(parent, false);
 
-                    (false, None, None)
-                } else {
-                    (m.suspended, Some(*m.children), Some(*m.fallback))
+                        (false, None, None, None)
+                    } else {
+                        (
+                            m.suspended,
+                            Some(*m.children),
+                            Some(*m.fallback),
+                            m.fallback_fragment,
+                        )
+                    }
                 }
-            }
-            Some(mut m) => {
-                m.detach(parent, false);
-                (false, None, None)
-            }
-            None => (false, None, None),
-        };
+                Some(mut m) => {
+                    m.detach(parent, false);
+                    (false, None, None, None)
+                }
+                None => (false, None, None, None),
+            };
 
         // When it's suspended, we render children into an element that is detached from the dom
         // tree while rendering fallback UI into the original place where children resides in.
@@ -130,16 +153,14 @@ impl VDiff for VSuspense {
 
                 #[cfg(feature = "hydration")]
                 {
-                    if self.fallback_fragment.is_none() {
+                    if fallback_fragment.is_none() {
                         self.fallback
                             .apply(parent_scope, parent, next_sibling, fallback_ancestor)
                     } else {
                         let node_ref = NodeRef::default();
-                        node_ref.set(
-                            self.fallback_fragment
-                                .as_ref()
-                                .and_then(|m| m.front().cloned()),
-                        );
+                        node_ref.set(fallback_fragment.as_ref().and_then(|m| m.front().cloned()));
+
+                        self.fallback_fragment = fallback_fragment;
 
                         node_ref
                     }
@@ -177,7 +198,7 @@ impl VDiff for VSuspense {
             (false, true) => {
                 #[cfg(feature = "hydration")]
                 {
-                    if let Some(m) = self.fallback_fragment.take() {
+                    if let Some(m) = fallback_fragment {
                         // We can simply remove the fallback fragments it's not connected to
                         // anything.
                         for node in m.into_iter() {
@@ -243,7 +264,7 @@ mod feat_hydration {
             self.children
                 .hydrate(parent_scope, detached_parent, &mut nodes);
 
-            // We trim all text nodes before checking it's likely these are whitespaces.
+            // We trim all text nodes before checking as it's likely these are whitespaces.
             trim_start_text_nodes(detached_parent, &mut nodes);
 
             assert!(nodes.is_empty(), "expected end of suspense, found node.");

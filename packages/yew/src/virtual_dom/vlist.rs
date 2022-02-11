@@ -404,7 +404,7 @@ mod feat_hydration {
                 let child_node_ref = child.hydrate(parent_scope, parent, fragment);
 
                 if index == 0 {
-                    node_ref.link(child_node_ref);
+                    node_ref.reuse(child_node_ref);
                 }
             }
 

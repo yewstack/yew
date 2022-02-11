@@ -539,7 +539,6 @@ mod feat_hydration {
             let next_sibling = NodeRef::default();
 
             scheduler::push_component_hydrate(
-                self.id,
                 CreateRunner {
                     parent: Some(parent),
                     next_sibling,

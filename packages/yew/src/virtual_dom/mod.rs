@@ -622,11 +622,7 @@ mod feat_hydration {
         );
 
         // We remove the start comment.
-        first_node
-            .parent_element()
-            .unwrap()
-            .remove_child(&first_node)
-            .unwrap();
+        parent.remove_child(&first_node).unwrap();
 
         let mut nodes = VecDeque::new();
 
@@ -658,11 +654,7 @@ mod feat_hydration {
                         // the loop.
 
                         // We remove the end comment.
-                        current_node
-                            .parent_element()
-                            .unwrap()
-                            .remove_child(&first_node)
-                            .unwrap();
+                        parent.remove_child(&current_node).unwrap();
                         break;
                     }
                 }

@@ -301,11 +301,12 @@ impl RenderRunner {
 
         match state.hydrate_fragment.take() {
             Some(mut fragment) => {
-                // We schedule a second render to run immediately after hydration,
+                // We schedule a "first" render to run immediately after hydration,
                 // for the following reason:
                 // 1. Fix NodeRef (first_node and next_sibling)
-                // 2. Switch from fallback UI to children UI for <Suspense /> component.
-                scheduler::push_component_first_render(
+                // 2. Switch from fallback UI to children UI for <Suspense /> component (if it is
+                //    not meant to be suspended.).
+                scheduler::push_component_render(
                     state.inner.id(),
                     RenderRunner {
                         state: self.state.clone(),

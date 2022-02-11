@@ -76,30 +76,18 @@ pub(crate) fn push_component_create(
 
 /// Push a component creation and hydrate [Runnable]s to be executed
 pub(crate) fn push_component_hydrate(
-    component_id: usize,
     create: impl Runnable + 'static,
     hydrate: impl Runnable + 'static,
 ) {
     with(|s| {
         s.create.push(Box::new(create));
-        s.hydrate.insert(component_id, Box::new(hydrate));
+        s.hydrate.push_back(Box::new(hydrate));
     });
 }
 
 /// Push a component destruction [Runnable] to be executed
 pub(crate) fn push_component_destroy(runnable: impl Runnable + 'static) {
     with(|s| s.destroy.push(Box::new(runnable)));
-}
-
-/// Push a component first render and rendered [Runnable]s to be executed
-///
-/// This is used by hydration to push first render.
-/// push_component_create already pushes a first render so this is not needed if a component is not
-/// hydrating.
-pub(crate) fn push_component_first_render(component_id: usize, render: impl Runnable + 'static) {
-    with(|s| {
-        s.render_first.insert(component_id, Box::new(render));
-    });
 }
 
 /// Push a component render and rendered [Runnable]s to be executed
