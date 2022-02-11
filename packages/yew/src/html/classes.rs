@@ -76,7 +76,7 @@ impl IntoPropValue<AttrValue> for Classes {
                 None => unsafe { unreachable_unchecked() },
             }
         } else {
-            AttrValue::Owned(self.to_string())
+            AttrValue::Rc(Rc::from(self.to_string()))
         }
     }
 }
