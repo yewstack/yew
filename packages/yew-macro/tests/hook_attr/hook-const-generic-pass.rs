@@ -1,6 +1,6 @@
-use yew::prelude::*;
+#![no_implicit_prelude]
 
-#[hook]
+#[::yew::prelude::hook]
 fn use_a_const<const N: u32>() -> u32 {
     N
 }
