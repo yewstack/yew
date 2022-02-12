@@ -1,6 +1,6 @@
 //! Component children module
 
-use crate::html::Html;
+use crate::html::{Html, Properties};
 use crate::virtual_dom::{VChild, VNode};
 use std::fmt;
 
@@ -207,4 +207,12 @@ impl<T> IntoIterator for ChildrenRenderer<T> {
     fn into_iter(self) -> Self::IntoIter {
         self.children.into_iter()
     }
+}
+
+/// A [Properties] type with Children being the only property.
+#[derive(Debug, Properties, PartialEq)]
+pub struct ChildrenProps {
+    /// The Children of a Component.
+    #[prop_or_default]
+    pub children: Children,
 }

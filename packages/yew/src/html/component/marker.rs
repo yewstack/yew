@@ -3,15 +3,7 @@
 use std::marker::PhantomData;
 
 use crate::html;
-use crate::html::{BaseComponent, Children, Component, Context, Html, Properties};
-
-/// A [Properties] type with Children being the only property.
-#[derive(Debug, Properties, PartialEq)]
-pub struct ChildrenProps {
-    /// The Children of a Component.
-    #[prop_or_default]
-    pub children: Children,
-}
+use crate::html::{BaseComponent, ChildrenProps, Component, Context, Html};
 
 /// A Component to represent a component that does not exist in current implementation.
 ///
