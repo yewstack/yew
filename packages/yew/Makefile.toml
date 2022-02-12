@@ -1,7 +1,7 @@
 [tasks.native-test]
 command = "cargo"
 toolchain = "1.56"
-args = ["test", "native_"]
+args = ["test", "native_", "--features", "ssr,hydration"]
 
 [tasks.test]
 dependencies = ["native-test"]
@@ -46,4 +46,4 @@ args = [
 
 [tasks.ssr-test]
 command = "cargo"
-args = ["test", "ssr_tests", "--features", "ssr"]
+args = ["test", "ssr_tests", "--features", "ssr,hydration"]

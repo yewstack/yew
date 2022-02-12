@@ -81,7 +81,7 @@ trybuild = "1"
 
 [features]
 doc_test = []
-wasm_test = []
+wasm_test = ["ssr", "hydration"]
 wasm_bench = []
 ssr = ["futures", "html-escape"]
 hydration = []
