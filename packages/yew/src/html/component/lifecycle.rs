@@ -225,9 +225,16 @@ impl Runnable for UpdateRunner {
                                 &parent,
                                 next_sibling.clone(),
                             );
+                        } else {
+                            state.root_node.shift(
+                                state.parent.as_ref().unwrap(),
+                                &parent,
+                                next_sibling.clone(),
+                            );
                         }
                     }
 
+                    #[cfg(not(feature = "hydration"))]
                     state.root_node.shift(
                         state.parent.as_ref().unwrap(),
                         &parent,
