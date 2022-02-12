@@ -558,6 +558,7 @@ mod feat_hydration {
     use super::*;
 
     use std::collections::VecDeque;
+    use std::ops::{Deref, DerefMut};
 
     /// This trait provides features to hydrate a fragment.
     pub(crate) trait VHydrate {
@@ -572,125 +573,155 @@ mod feat_hydration {
             &mut self,
             parent_scope: &AnyScope,
             parent: &Element,
-            fragment: &mut VecDeque<Node>,
+            fragment: &mut Fragment,
         ) -> NodeRef;
     }
 
-    /// Collects child nodes of an element into a VecDeque.
-    pub(crate) fn collect_child_nodes(parent: &Element) -> VecDeque<Node> {
-        let mut fragment = VecDeque::with_capacity(parent.child_nodes().length() as usize);
+    /// A Hydration Fragment
+    #[derive(Default, Debug, Clone, PartialEq, Eq)]
+    pub(crate) struct Fragment(VecDeque<Node>);
 
-        let mut current_node = parent.first_child();
+    impl Deref for Fragment {
+        type Target = VecDeque<Node>;
 
-        // This is easier than iterating child nodes at the moment
-        // as we don't have to downcast iterator values.
-        while let Some(m) = current_node {
-            current_node = m.next_sibling();
-            fragment.push_back(m);
-        }
-
-        fragment
-    }
-
-    /// VDiff::shift, but for fragments
-    pub(crate) fn shift_fragment(
-        fragment: &VecDeque<Node>,
-        previous_parent: &Element,
-        next_parent: &Element,
-        next_sibling: NodeRef,
-    ) {
-        for node in fragment.iter() {
-            previous_parent.remove_child(node).unwrap();
-            next_parent
-                .insert_before(node, next_sibling.get().as_ref())
-                .unwrap();
+        fn deref(&self) -> &Self::Target {
+            &self.0
         }
     }
 
-    /// Collects nodes for a Component or a Suspense Boundary.
-    pub(crate) fn collect_between(
-        fragment: &mut VecDeque<Node>,
-        parent: &Element,
-        divider: &str,
-    ) -> VecDeque<Node> {
-        let start_mark = format!("yew-{}-start", divider);
-        let end_mark = format!("yew-{}-end", divider);
+    impl DerefMut for Fragment {
+        fn deref_mut(&mut self) -> &mut Self::Target {
+            &mut self.0
+        }
+    }
 
-        // We trim all text nodes it's likely these are whitespaces.
-        trim_start_text_nodes(parent, fragment);
+    impl Fragment {
+        /// Collects child nodes of an element into a VecDeque.
+        pub(crate) fn collect_children(parent: &Element) -> Self {
+            let mut fragment = VecDeque::with_capacity(parent.child_nodes().length() as usize);
 
-        let first_node = fragment
-            .pop_front()
-            .unwrap_or_else(|| panic!("expected {} start, found EOF", divider));
+            let mut current_node = parent.first_child();
 
-        assert_eq!(
-            first_node.node_type(),
-            Node::COMMENT_NODE,
-            // TODO: improve error message with human readable node type name.
-            "expected {} start, found node type {}",
-            divider,
-            first_node.node_type()
-        );
+            // This is easier than iterating child nodes at the moment
+            // as we don't have to downcast iterator values.
+            while let Some(m) = current_node {
+                current_node = m.next_sibling();
+                fragment.push_back(m);
+            }
 
-        // We remove the start comment.
-        parent.remove_child(&first_node).unwrap();
-
-        let mut nodes = VecDeque::new();
-
-        if !first_node
-            .text_content()
-            .unwrap_or_else(|| "".to_string())
-            .starts_with(&start_mark)
-        {
-            panic!("expected {} start, found comment node", divider);
+            Self(fragment)
         }
 
-        let mut current_node;
-        let mut nested_layers = 1;
+        /// VDiff::shift, but for fragments
+        pub(crate) fn shift(
+            &self,
+            previous_parent: &Element,
+            next_parent: &Element,
+            next_sibling: NodeRef,
+        ) {
+            for node in self.iter() {
+                previous_parent.remove_child(node).unwrap();
+                next_parent
+                    .insert_before(node, next_sibling.get().as_ref())
+                    .unwrap();
+            }
+        }
 
-        loop {
-            current_node = fragment
+        /// Collects nodes for a Component or a Suspense Boundary.
+        pub(crate) fn collect_between(
+            collect_from: &mut Fragment,
+            parent: &Element,
+            divider: &str,
+        ) -> Self {
+            let start_mark = format!("yew-{}-start", divider);
+            let end_mark = format!("yew-{}-end", divider);
+
+            // We trim all text nodes as it's likely these are whitespaces.
+            collect_from.trim_start_text_nodes(parent);
+
+            let first_node = collect_from
                 .pop_front()
-                .unwrap_or_else(|| panic!("expected {} end, found EOF", divider));
+                .unwrap_or_else(|| panic!("expected {} start, found EOF", divider));
 
-            if current_node.node_type() == Node::COMMENT_NODE {
-                let text_content = current_node
-                    .text_content()
-                    .unwrap_or_else(|| "".to_string());
+            assert_eq!(
+                first_node.node_type(),
+                Node::COMMENT_NODE,
+                // TODO: improve error message with human readable node type name.
+                "expected {} start, found node type {}",
+                divider,
+                first_node.node_type()
+            );
 
-                if text_content.starts_with(&start_mark) {
-                    // We found another component, we need to increase component counter.
-                    nested_layers += 1;
-                } else if text_content.starts_with(&end_mark) {
-                    // We found a component end, minus component counter.
-                    nested_layers -= 1;
-                    if nested_layers == 0 {
-                        // We have found the component end of the current component, breaking
-                        // the loop.
+            // We remove the start comment.
+            parent.remove_child(&first_node).unwrap();
 
-                        // We remove the end comment.
-                        parent.remove_child(&current_node).unwrap();
-                        break;
+            let mut nodes = VecDeque::new();
+
+            if !first_node
+                .text_content()
+                .unwrap_or_else(|| "".to_string())
+                .starts_with(&start_mark)
+            {
+                panic!("expected {} start, found comment node", divider);
+            }
+
+            let mut current_node;
+            let mut nested_layers = 1;
+
+            loop {
+                current_node = collect_from
+                    .pop_front()
+                    .unwrap_or_else(|| panic!("expected {} end, found EOF", divider));
+
+                if current_node.node_type() == Node::COMMENT_NODE {
+                    let text_content = current_node
+                        .text_content()
+                        .unwrap_or_else(|| "".to_string());
+
+                    if text_content.starts_with(&start_mark) {
+                        // We found another component, we need to increase component counter.
+                        nested_layers += 1;
+                    } else if text_content.starts_with(&end_mark) {
+                        // We found a component end, minus component counter.
+                        nested_layers -= 1;
+                        if nested_layers == 0 {
+                            // We have found the component end of the current component, breaking
+                            // the loop.
+
+                            // We remove the end comment.
+                            parent.remove_child(&current_node).unwrap();
+                            break;
+                        }
                     }
                 }
+
+                nodes.push_back(current_node.clone());
             }
 
-            nodes.push_back(current_node.clone());
+            Self(nodes)
         }
 
-        nodes
-    }
+        /// Remove child nodes until first non-text node.
+        pub(crate) fn trim_start_text_nodes(&mut self, parent: &Element) {
+            while let Some(ref m) = self.front().cloned() {
+                if m.node_type() == Node::TEXT_NODE {
+                    self.pop_front();
 
-    /// Remove child nodes until first non-text node.
-    pub(crate) fn trim_start_text_nodes(parent: &Element, fragment: &mut VecDeque<Node>) {
-        while let Some(ref m) = fragment.front().cloned() {
-            if m.node_type() == Node::TEXT_NODE {
-                fragment.pop_front();
-
-                parent.remove_child(m).unwrap();
-            } else {
-                break;
+                    parent.remove_child(m).unwrap();
+                } else {
+                    break;
+                }
             }
+        }
+
+        /// Deeply clones all nodes.
+        pub(crate) fn deep_clone(&self) -> Self {
+            let nodes = self
+                .iter()
+                .map(|m| m.clone_node_with_deep(true).expect("failed to clone node."))
+                .collect::<VecDeque<_>>();
+
+            Self(nodes)
         }
     }
 }

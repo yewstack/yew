@@ -1,8 +1,11 @@
-use std::collections::VecDeque;
-
+#[cfg(feature = "hydration")]
+use super::Fragment;
 use super::{Key, VDiff, VNode};
 use crate::html::{AnyScope, NodeRef};
 use web_sys::{Element, Node};
+
+#[cfg(not(feature = "hydration"))]
+type Fragment = ();
 
 /// This struct represents a suspendable DOM fragment.
 #[derive(Clone, Debug, PartialEq)]
@@ -18,7 +21,7 @@ pub struct VSuspense {
 
     /// The fallback fragment when the suspense boundary is hydrating.
     #[cfg(feature = "hydration")]
-    fallback_fragment: Option<VecDeque<Node>>,
+    fallback_fragment: Option<Fragment>,
 
     /// Whether the current status is suspended.
     suspended: bool,
@@ -62,9 +65,9 @@ impl VDiff for VSuspense {
             {
                 if let Some(m) = self.fallback_fragment.take() {
                     if !parent_to_detach {
-                        for node in m.into_iter() {
+                        for node in m.iter() {
                             parent
-                                .remove_child(&node)
+                                .remove_child(node)
                                 .expect("failed to remove child element");
                         }
                     }
@@ -88,9 +91,8 @@ impl VDiff for VSuspense {
         if self.suspended {
             #[cfg(feature = "hydration")]
             {
-                use crate::virtual_dom::shift_fragment;
                 if let Some(ref m) = self.fallback_fragment {
-                    shift_fragment(m, previous_parent, next_parent, next_sibling);
+                    m.shift(previous_parent, next_parent, next_sibling);
                 } else {
                     self.fallback
                         .shift(previous_parent, next_parent, next_sibling);
@@ -122,7 +124,7 @@ impl VDiff for VSuspense {
                     if m.key != self.key || self.detached_parent != m.detached_parent {
                         m.detach(parent, false);
 
-                        (false, None, None, Option::<VecDeque<Node>>::None)
+                        (false, None, None, Option::<Fragment>::None)
                     } else {
                         (
                             m.suspended,
@@ -206,9 +208,9 @@ impl VDiff for VSuspense {
                     if let Some(m) = fallback_fragment {
                         // We can simply remove the fallback fragments it's not connected to
                         // anything.
-                        for node in m.into_iter() {
+                        for node in m.iter() {
                             parent
-                                .remove_child(&node)
+                                .remove_child(node)
                                 .expect("failed to remove fragment node.");
                         }
                     } else {
@@ -236,18 +238,14 @@ impl VDiff for VSuspense {
 mod feat_hydration {
     use super::*;
 
-    use std::collections::VecDeque;
-
-    use web_sys::Node;
-
-    use crate::virtual_dom::{collect_between, trim_start_text_nodes, VHydrate};
+    use crate::virtual_dom::{Fragment, VHydrate};
 
     impl VHydrate for VSuspense {
         fn hydrate(
             &mut self,
             parent_scope: &AnyScope,
             parent: &Element,
-            fragment: &mut VecDeque<Node>,
+            fragment: &mut Fragment,
         ) -> NodeRef {
             let detached_parent = self.detached_parent.as_ref().expect("no detached parent?");
 
@@ -255,12 +253,9 @@ mod feat_hydration {
             // A subsequent render will resume the VSuspense if not needed to be suspended.
             self.suspended = true;
 
-            let fallback_nodes = collect_between(fragment, parent, "suspense");
+            let fallback_nodes = Fragment::collect_between(fragment, parent, "suspense");
 
-            let mut nodes = fallback_nodes
-                .iter()
-                .map(|m| m.clone_node_with_deep(true).expect("failed to clone node."))
-                .collect::<VecDeque<_>>();
+            let mut nodes = fallback_nodes.deep_clone();
 
             for node in nodes.iter() {
                 detached_parent.append_child(node).unwrap();
@@ -270,7 +265,7 @@ mod feat_hydration {
                 .hydrate(parent_scope, detached_parent, &mut nodes);
 
             // We trim all text nodes before checking as it's likely these are whitespaces.
-            trim_start_text_nodes(detached_parent, &mut nodes);
+            nodes.trim_start_text_nodes(detached_parent);
 
             assert!(nodes.is_empty(), "expected end of suspense, found node.");
 

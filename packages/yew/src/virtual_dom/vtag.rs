@@ -725,21 +725,19 @@ mod feat_ssr {
 mod feat_hydration {
     use super::*;
 
-    use std::collections::VecDeque;
-
     use web_sys::Node;
 
-    use crate::virtual_dom::{collect_child_nodes, trim_start_text_nodes, VHydrate};
+    use crate::virtual_dom::{Fragment, VHydrate};
 
     impl VHydrate for VTag {
         fn hydrate(
             &mut self,
             parent_scope: &AnyScope,
             parent: &Element,
-            fragment: &mut VecDeque<Node>,
+            fragment: &mut Fragment,
         ) -> NodeRef {
             // We trim all text nodes as it's likely these are whitespaces.
-            trim_start_text_nodes(parent, fragment);
+            fragment.trim_start_text_nodes(parent);
 
             let node = fragment
                 .pop_front()
@@ -774,12 +772,12 @@ mod feat_hydration {
                     value.apply(el.unchecked_ref());
                 }
                 VTagInner::Other { children, .. } => {
-                    let mut nodes = collect_child_nodes(&el);
+                    let mut nodes = Fragment::collect_children(&el);
                     if !children.is_empty() {
                         children.hydrate(parent_scope, &el, &mut nodes);
                     }
 
-                    trim_start_text_nodes(parent, &mut nodes);
+                    nodes.trim_start_text_nodes(parent);
 
                     assert!(nodes.is_empty(), "expected EOF, found node.");
                 }

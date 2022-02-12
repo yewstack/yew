@@ -5,19 +5,15 @@ use crate::html::{RenderError, RenderResult};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{Suspense, Suspension};
 #[cfg(feature = "hydration")]
-use crate::virtual_dom::{trim_start_text_nodes, VHydrate};
+use crate::virtual_dom::{Fragment, VHydrate};
 use crate::virtual_dom::{VDiff, VNode};
 use crate::Callback;
 use crate::{Context, NodeRef};
 #[cfg(feature = "ssr")]
 use futures::channel::oneshot;
 use std::any::Any;
-#[cfg(feature = "hydration")]
-use std::collections::VecDeque;
 use std::rc::Rc;
 use web_sys::Element;
-#[cfg(feature = "hydration")]
-use web_sys::Node;
 
 pub(crate) struct CompStateInner<COMP>
 where
@@ -120,7 +116,7 @@ pub(crate) struct ComponentState {
     suspension: Option<Suspension>,
 
     #[cfg(feature = "hydration")]
-    hydrate_fragment: Option<VecDeque<Node>>,
+    hydrate_fragment: Option<Fragment>,
 
     #[cfg(feature = "ssr")]
     html_sender: Option<oneshot::Sender<VNode>>,
@@ -136,7 +132,7 @@ pub(crate) struct CreateRunner<COMP: BaseComponent> {
     #[cfg(feature = "ssr")]
     pub(crate) html_sender: Option<oneshot::Sender<VNode>>,
     #[cfg(feature = "hydration")]
-    pub(crate) hydrate_fragment: Option<VecDeque<Node>>,
+    pub(crate) hydrate_fragment: Option<Fragment>,
 }
 
 impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
@@ -223,11 +219,8 @@ impl Runnable for UpdateRunner {
                     // We need to shift the hydrate fragment if the component is not hydrated.
                     #[cfg(feature = "hydration")]
                     {
-                        use crate::virtual_dom::shift_fragment;
-
                         if let Some(ref m) = state.hydrate_fragment {
-                            shift_fragment(
-                                m,
+                            m.shift(
                                 state.parent.as_ref().unwrap(),
                                 &parent,
                                 next_sibling.clone(),
@@ -319,7 +312,7 @@ impl RenderRunner {
                 let node = new_root.hydrate(&scope, parent, &mut fragment);
 
                 // We trim all text nodes before checking as it's likely these are whitespaces.
-                trim_start_text_nodes(parent, &mut fragment);
+                fragment.trim_start_text_nodes(parent);
 
                 assert!(fragment.is_empty(), "expected end of component, found node");
 

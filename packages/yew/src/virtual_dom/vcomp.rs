@@ -1,20 +1,18 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
+#[cfg(feature = "hydration")]
+use super::Fragment;
 use super::{Key, VDiff, VNode};
 use crate::html::{AnyScope, BaseComponent, NodeRef, Scope, Scoped};
 #[cfg(feature = "ssr")]
 use futures::future::{FutureExt, LocalBoxFuture};
 use std::any::TypeId;
 use std::borrow::Borrow;
-#[cfg(feature = "hydration")]
-use std::collections::VecDeque;
 use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use web_sys::Element;
-#[cfg(feature = "hydration")]
-use web_sys::Node;
 
 thread_local! {
     #[cfg(debug_assertions)]
@@ -196,7 +194,7 @@ trait Mountable {
         self: Box<Self>,
         parent_scope: &AnyScope,
         parent: Element,
-        fragment: &mut VecDeque<Node>,
+        fragment: &mut Fragment,
         node_ref: NodeRef,
     ) -> Box<dyn Scoped>;
 }
@@ -258,7 +256,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         self: Box<Self>,
         parent_scope: &AnyScope,
         parent: Element,
-        fragment: &mut VecDeque<Node>,
+        fragment: &mut Fragment,
         node_ref: NodeRef,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
@@ -360,18 +358,14 @@ mod feat_ssr {
 mod feat_hydration {
     use super::*;
 
-    use std::collections::VecDeque;
-
-    use web_sys::Node;
-
-    use crate::virtual_dom::VHydrate;
+    use crate::virtual_dom::{Fragment, VHydrate};
 
     impl VHydrate for VComp {
         fn hydrate(
             &mut self,
             parent_scope: &AnyScope,
             parent: &Element,
-            fragment: &mut VecDeque<Node>,
+            fragment: &mut Fragment,
         ) -> NodeRef {
             let mountable = self
                 .mountable

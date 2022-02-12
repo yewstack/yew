@@ -359,16 +359,14 @@ mod feat_ssr {
 mod feat_hydration {
     use super::*;
 
-    use std::collections::VecDeque;
-
-    use crate::virtual_dom::VHydrate;
+    use crate::virtual_dom::{Fragment, VHydrate};
 
     impl VHydrate for VNode {
         fn hydrate(
             &mut self,
             parent_scope: &AnyScope,
             parent: &Element,
-            fragment: &mut VecDeque<Node>,
+            fragment: &mut Fragment,
         ) -> NodeRef {
             match self {
                 VNode::VTag(vtag) => vtag.hydrate(parent_scope, parent, fragment),

@@ -385,18 +385,14 @@ impl VDiff for VList {
 mod feat_hydration {
     use super::*;
 
-    use std::collections::VecDeque;
-
-    use web_sys::Node;
-
-    use crate::virtual_dom::VHydrate;
+    use crate::virtual_dom::{Fragment, VHydrate};
 
     impl VHydrate for VList {
         fn hydrate(
             &mut self,
             parent_scope: &AnyScope,
             parent: &Element,
-            fragment: &mut VecDeque<Node>,
+            fragment: &mut Fragment,
         ) -> NodeRef {
             let node_ref = NodeRef::default();
 

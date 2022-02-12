@@ -55,7 +55,7 @@ where
 mod feat_hydration {
     use super::*;
 
-    use crate::virtual_dom::collect_child_nodes;
+    use crate::virtual_dom::Fragment;
 
     impl<COMP> AppHandle<COMP>
     where
@@ -66,7 +66,7 @@ mod feat_hydration {
                 scope: Scope::new(None),
             };
 
-            let mut fragment = collect_child_nodes(&element);
+            let mut fragment = Fragment::collect_children(&element);
 
             app.scope
                 .hydrate_in_place(element.clone(), &mut fragment, NodeRef::default(), props);

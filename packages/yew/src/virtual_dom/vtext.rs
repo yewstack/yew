@@ -129,11 +129,9 @@ impl PartialEq for VText {
 mod feat_hydration {
     use super::*;
 
-    use std::collections::VecDeque;
-
     use web_sys::Node;
 
-    use crate::virtual_dom::VHydrate;
+    use crate::virtual_dom::{Fragment, VHydrate};
     use wasm_bindgen::JsCast;
 
     use crate::virtual_dom::insert_node;
@@ -143,7 +141,7 @@ mod feat_hydration {
             &mut self,
             _parent_scope: &AnyScope,
             parent: &Element,
-            fragment: &mut VecDeque<Node>,
+            fragment: &mut Fragment,
         ) -> NodeRef {
             assert!(
                 self.reference.is_none(),

@@ -524,9 +524,8 @@ mod feat_io {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-    use std::collections::VecDeque;
 
-    use crate::virtual_dom::collect_between;
+    use crate::virtual_dom::Fragment;
 
     impl<COMP: BaseComponent> Scope<COMP> {
         /// Hydrates the component.
@@ -543,7 +542,7 @@ mod feat_hydration {
         pub(crate) fn hydrate_in_place(
             &self,
             parent: Element,
-            fragment: &mut VecDeque<Node>,
+            fragment: &mut Fragment,
             node_ref: NodeRef,
             props: Rc<COMP::Properties>,
         ) {
@@ -557,7 +556,7 @@ mod feat_hydration {
                 self.id
             );
 
-            let nodes = collect_between(fragment, &parent, "comp");
+            let nodes = Fragment::collect_between(fragment, &parent, "comp");
             node_ref.set(nodes.front().cloned());
 
             let next_sibling = NodeRef::default();
