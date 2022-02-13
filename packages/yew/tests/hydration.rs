@@ -190,7 +190,7 @@ async fn hydration_with_suspense() {
     // still hydrating, during hydration, the server rendered result is shown.
     assert_eq!(
         result.as_str(),
-        r#"<!--yew-comp-start: yew::functional::FunctionComponent<hydration::hydration_with_suspense::{{closure}}::ContentFunctionProvider>--><div class="content-area"><div class="actual-result">0</div><button class="increase">increase</button><div class="action-area"><button class="take-a-break">Take a break!</button></div></div><!--yew-comp-end: yew::functional::FunctionComponent<hydration::hydration_with_suspense::{{closure}}::ContentFunctionProvider>-->"#
+        r#"<!--<[yew::functional::FunctionComponent<hydration::hydration_with_suspense::{{closure}}::ContentFunctionProvider>]>--><div class="content-area"><div class="actual-result">0</div><button class="increase">increase</button><div class="action-area"><button class="take-a-break">Take a break!</button></div></div><!--</[yew::functional::FunctionComponent<hydration::hydration_with_suspense::{{closure}}::ContentFunctionProvider>]>-->"#
     );
 
     sleep(Duration::from_millis(50)).await;
@@ -475,7 +475,7 @@ async fn hydration_nested_suspense_works() {
     let result = obtain_result();
     assert_eq!(
         result.as_str(),
-        r#"<!--yew-comp-start: yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::ContentFunctionProvider>--><div class="content-area"><div class="action-area"><button class="take-a-break">Take a break!</button></div><!--yew-comp-start: yew::suspense::component::Suspense--><!--yew-suspense-start--><!--yew-comp-start: yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::InnerContentFunctionProvider>--><div class="content-area"><div class="action-area"><button class="take-a-break2">Take a break!</button></div></div><!--yew-comp-end: yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::InnerContentFunctionProvider>--><!--yew-suspense-end--><!--yew-comp-end: yew::suspense::component::Suspense--></div><!--yew-comp-end: yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::ContentFunctionProvider>-->"#
+        r#"<!--<[yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::ContentFunctionProvider>]>--><div class="content-area"><div class="action-area"><button class="take-a-break">Take a break!</button></div><!--<[yew::suspense::component::Suspense]>--><!--<?>--><!--<[yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::InnerContentFunctionProvider>]>--><div class="content-area"><div class="action-area"><button class="take-a-break2">Take a break!</button></div></div><!--</[yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::InnerContentFunctionProvider>]>--><!--</?>--><!--</[yew::suspense::component::Suspense]>--></div><!--</[yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::ContentFunctionProvider>]>-->"#
     );
 
     sleep(Duration::from_millis(50)).await;
@@ -484,7 +484,7 @@ async fn hydration_nested_suspense_works() {
     let result = obtain_result();
     assert_eq!(
         result.as_str(),
-        r#"<div class="content-area"><div class="action-area"><button class="take-a-break">Take a break!</button></div><!--yew-comp-start: yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::InnerContentFunctionProvider>--><div class="content-area"><div class="action-area"><button class="take-a-break2">Take a break!</button></div></div><!--yew-comp-end: yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::InnerContentFunctionProvider>--></div>"#
+        r#"<div class="content-area"><div class="action-area"><button class="take-a-break">Take a break!</button></div><!--<[yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::InnerContentFunctionProvider>]>--><div class="content-area"><div class="action-area"><button class="take-a-break2">Take a break!</button></div></div><!--</[yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::InnerContentFunctionProvider>]>--></div>"#
     );
 
     sleep(Duration::from_millis(50)).await;

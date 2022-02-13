@@ -158,15 +158,17 @@ pub(crate) struct CreateRunner<COMP: BaseComponent> {
 
 impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
     fn run(self: Box<Self>) {
-        let scope = self.scope.clone();
+        let state = self.scope.state.clone();
+        let mut current_state = state.borrow_mut();
 
-        let mut current_state = self.scope.state.borrow_mut();
         if current_state.is_none() {
             #[cfg(debug_assertions)]
             crate::virtual_dom::vcomp::log_event(self.scope.id, "create");
 
             let Self {
-                props, rendered, ..
+                props,
+                rendered,
+                scope,
             } = *self;
 
             let context = Context { scope, props };
@@ -528,7 +530,7 @@ impl Runnable for RenderedRunner {
                 #[cfg(feature = "hydration")]
                 Rendered::Hydration { .. } => {}
 
-                // We only call rendered when the component is rendered & not suspended..
+                // We only call rendered when the component is rendered & not suspended.
                 Rendered::Render { .. } => {
                     if state.suspension.is_none() {
                         state.inner.rendered(self.first_render);

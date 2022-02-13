@@ -416,13 +416,10 @@ mod feat_ssr {
 
             if hydratable {
                 #[cfg(debug_assertions)]
-                w.push_str(&format!(
-                    "<!--yew-comp-start: {}-->",
-                    std::any::type_name::<COMP>()
-                ));
+                w.push_str(&format!("<!--<[{}]>-->", std::any::type_name::<COMP>()));
 
                 #[cfg(not(debug_assertions))]
-                w.push_str("<!--yew-comp-start-->");
+                w.push_str("<!--<[]>-->");
             }
 
             let html = rx.await.unwrap();
@@ -432,13 +429,10 @@ mod feat_ssr {
 
             if hydratable {
                 #[cfg(debug_assertions)]
-                w.push_str(&format!(
-                    "<!--yew-comp-end: {}-->",
-                    std::any::type_name::<COMP>()
-                ));
+                w.push_str(&format!("<!--</[{}]>-->", std::any::type_name::<COMP>()));
 
                 #[cfg(not(debug_assertions))]
-                w.push_str("<!--yew-comp-end-->");
+                w.push_str("<!--</[]>-->");
             }
 
             scheduler::push_component_destroy(DestroyRunner {
@@ -553,7 +547,8 @@ mod feat_hydration {
                 self.id
             );
 
-            let fragment = Fragment::collect_between(fragment, &parent, "comp");
+            let fragment =
+                Fragment::collect_between(fragment, &parent, "<[", "</[", "]>", "component");
             node_ref.set(fragment.front().cloned());
             let next_sibling = NodeRef::default();
 

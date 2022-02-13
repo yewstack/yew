@@ -270,7 +270,8 @@ mod feat_hydration {
             // We start hydration with the VSuspense being suspended.
             // A subsequent render will resume the VSuspense if not needed to be suspended.
 
-            let fallback_nodes = Fragment::collect_between(fragment, parent, "suspense");
+            let fallback_nodes =
+                Fragment::collect_between(fragment, parent, "<?", "</?", ">", "suspense");
 
             let mut nodes = fallback_nodes.deep_clone();
 
@@ -313,7 +314,7 @@ mod feat_ssr {
             hydratable: bool,
         ) {
             if hydratable {
-                w.push_str("<!--yew-suspense-start-->");
+                w.push_str("<!--<?>-->");
             }
             // always render children on the server side.
             self.children
@@ -321,7 +322,7 @@ mod feat_ssr {
                 .await;
 
             if hydratable {
-                w.push_str("<!--yew-suspense-end-->");
+                w.push_str("<!--</?>-->");
             }
         }
     }

@@ -631,39 +631,47 @@ mod feat_hydration {
         pub(crate) fn collect_between(
             collect_from: &mut Fragment,
             parent: &Element,
-            divider: &str,
+            open_start_mark: &str,
+            close_start_mark: &str,
+            end_mark: &str,
+            kind_name: &str,
         ) -> Self {
-            let start_mark = format!("yew-{}-start", divider);
-            let end_mark = format!("yew-{}-end", divider);
+            let is_open_tag = |node: &Node| {
+                let comment_text = node.text_content().unwrap_or_else(|| "".to_string());
 
-            // We trim all text nodes as it's likely these are whitespaces.
+                comment_text.starts_with(&open_start_mark) && comment_text.ends_with(&end_mark)
+            };
+
+            let is_close_tag = |node: &Node| {
+                let comment_text = node.text_content().unwrap_or_else(|| "".to_string());
+
+                comment_text.starts_with(&close_start_mark) && comment_text.ends_with(&end_mark)
+            };
+
+            // We trim all leading text nodes as it's likely these are whitespaces.
             collect_from.trim_start_text_nodes(parent);
 
             let first_node = collect_from
                 .pop_front()
-                .unwrap_or_else(|| panic!("expected {} start, found EOF", divider));
+                .unwrap_or_else(|| panic!("expected {} opening tag, found EOF", kind_name));
 
             assert_eq!(
                 first_node.node_type(),
                 Node::COMMENT_NODE,
                 // TODO: improve error message with human readable node type name.
                 "expected {} start, found node type {}",
-                divider,
+                kind_name,
                 first_node.node_type()
             );
 
-            // We remove the start comment.
-            parent.remove_child(&first_node).unwrap();
-
             let mut nodes = VecDeque::new();
 
-            if !first_node
-                .text_content()
-                .unwrap_or_else(|| "".to_string())
-                .starts_with(&start_mark)
-            {
-                panic!("expected {} start, found comment node", divider);
+            if !is_open_tag(&first_node) {
+                panic!("expected {} opening tag, found comment node", kind_name);
             }
+
+            // We remove the opening tag.
+            parent.remove_child(&first_node).unwrap();
 
             let mut current_node;
             let mut nested_layers = 1;
@@ -671,24 +679,20 @@ mod feat_hydration {
             loop {
                 current_node = collect_from
                     .pop_front()
-                    .unwrap_or_else(|| panic!("expected {} end, found EOF", divider));
+                    .unwrap_or_else(|| panic!("expected {} closing tag, found EOF", kind_name));
 
                 if current_node.node_type() == Node::COMMENT_NODE {
-                    let text_content = current_node
-                        .text_content()
-                        .unwrap_or_else(|| "".to_string());
-
-                    if text_content.starts_with(&start_mark) {
-                        // We found another component, we need to increase component counter.
+                    if is_open_tag(&current_node) {
+                        // We found another opening tag, we need to increase component counter.
                         nested_layers += 1;
-                    } else if text_content.starts_with(&end_mark) {
-                        // We found a component end, minus component counter.
+                    } else if is_close_tag(&current_node) {
+                        // We found a closing tag, minus component counter.
                         nested_layers -= 1;
                         if nested_layers == 0 {
-                            // We have found the component end of the current component, breaking
+                            // We have found the end of the current tag we are collecting, breaking
                             // the loop.
 
-                            // We remove the end comment.
+                            // We remove the closing tag.
                             parent.remove_child(&current_node).unwrap();
                             break;
                         }
