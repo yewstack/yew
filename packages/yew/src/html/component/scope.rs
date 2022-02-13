@@ -564,7 +564,8 @@ mod feat_hydration {
                 fragment,
             };
 
-            scheduler::push_component_hydrate(
+            scheduler::push_component_create(
+                self.id,
                 CreateRunner {
                     rendered,
                     props,

@@ -46,12 +46,6 @@ pub fn Post(props: &Props) -> Html {
         );
     }
 
-    log::error!(
-        "title: {}, seed: {}",
-        content::PostMeta::generate_from_seed(seed).title,
-        seed
-    );
-
     let post = &post.inner;
 
     let render_quote = |quote: &content::Quote| {

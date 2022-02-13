@@ -2,8 +2,6 @@
 
 use std::cell::RefCell;
 use std::collections::BTreeMap;
-#[cfg(feature = "hydration")]
-use std::collections::VecDeque;
 use std::rc::Rc;
 
 /// Alias for Rc<RefCell<T>>
@@ -26,9 +24,6 @@ struct Scheduler {
     destroy: Vec<Box<dyn Runnable>>,
     create: Vec<Box<dyn Runnable>>,
     update: Vec<Box<dyn Runnable>>,
-
-    #[cfg(feature = "hydration")]
-    hydrate: VecDeque<Box<dyn Runnable>>,
 
     /// A Binary Tree Map here guarantees components with lower id (parent) is rendered first and
     /// no more than 1 render can be scheduled before a component is rendered.
@@ -74,18 +69,6 @@ pub(crate) fn push_component_create(
     with(|s| {
         s.create.push(Box::new(create));
         s.render_first.insert(component_id, Box::new(first_render));
-    });
-}
-
-/// Push a component creation and hydrate [Runnable]s to be executed
-#[cfg(feature = "hydration")]
-pub(crate) fn push_component_hydrate(
-    create: impl Runnable + 'static,
-    hydrate: impl Runnable + 'static,
-) {
-    with(|s| {
-        s.create.push(Box::new(create));
-        s.hydrate.push_back(Box::new(hydrate));
     });
 }
 
@@ -193,17 +176,6 @@ impl Scheduler {
 
         // Create events can be batched, as they are typically just for object creation
         to_run.append(&mut self.create);
-
-        #[cfg(feature = "hydration")]
-        {
-            // Hydration needs a higher priority than first render.
-            // They are both RenderRunnable, but hydration will schedule a "first" render after it's hydrated to
-            // fix NodeRef before rendered() can be called. First-render may not happen immediately if the component is
-            // suspended.
-            if let Some(r) = self.hydrate.pop_front() {
-                to_run.push(r);
-            }
-        }
 
         // These typically do nothing and don't spawn any other events - can be batched.
         // Should be run only after all first renders have finished.
