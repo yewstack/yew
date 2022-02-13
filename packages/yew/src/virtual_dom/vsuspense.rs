@@ -1,11 +1,18 @@
 #[cfg(feature = "hydration")]
 use super::Fragment;
-use super::{Key, VDiff, VNode};
+use super::{VDiff, VNode};
 use crate::html::{AnyScope, NodeRef};
 use web_sys::{Element, Node};
 
-#[cfg(not(feature = "hydration"))]
-type Fragment = ();
+/// An enum to Respresent Fallback UI for a VSuspense.
+#[derive(Clone, Debug, PartialEq)]
+enum VSuspenseFallback {
+    /// Suspense Fallback during Rendering
+    Render { root_node: Box<VNode> },
+    /// Suspense Fallback during Hydration
+    #[cfg(feature = "hydration")]
+    Hydration { fragment: Fragment },
+}
 
 /// This struct represents a suspendable DOM fragment.
 #[derive(Clone, Debug, PartialEq)]
@@ -14,97 +21,84 @@ pub struct VSuspense {
     children: Box<VNode>,
 
     /// Fallback nodes when suspended.
-    fallback: Box<VNode>,
+    ///
+    /// None if not suspended.
+    fallback: Option<VSuspenseFallback>,
 
-    /// The element to attach to when children is not attached to DOM
     detached_parent: Option<Element>,
-
-    /// The fallback fragment when the suspense boundary is hydrating.
-    #[cfg(feature = "hydration")]
-    fallback_fragment: Option<Fragment>,
-
-    /// Whether the current status is suspended.
-    suspended: bool,
-
-    /// The Key.
-    pub(crate) key: Option<Key>,
 }
 
 impl VSuspense {
     pub(crate) fn new(
         children: VNode,
-        fallback: VNode,
+        fallback: Option<VNode>,
         detached_parent: Option<Element>,
-        suspended: bool,
-        key: Option<Key>,
     ) -> Self {
         Self {
             children: children.into(),
-            fallback: fallback.into(),
+            fallback: fallback.map(|m| VSuspenseFallback::Render {
+                root_node: m.into(),
+            }),
             detached_parent,
-            suspended,
-            #[cfg(feature = "hydration")]
-            fallback_fragment: None,
-            key,
         }
     }
 
     pub(crate) fn first_node(&self) -> Option<Node> {
-        if self.suspended {
-            self.fallback.first_node()
-        } else {
-            self.children.first_node()
+        match self.fallback {
+            Some(VSuspenseFallback::Render { ref root_node, .. }) => root_node.first_node(),
+
+            #[cfg(feature = "hydration")]
+            Some(VSuspenseFallback::Hydration { ref fragment, .. }) => fragment.front().cloned(),
+
+            None => self.children.first_node(),
         }
     }
 }
 
 impl VDiff for VSuspense {
     fn detach(&mut self, parent: &Element, parent_to_detach: bool) {
-        if self.suspended {
+        let detached_parent = self.detached_parent.as_ref().expect("no detached parent?");
+
+        match self.fallback {
+            Some(VSuspenseFallback::Render { ref mut root_node }) => {
+                root_node.detach(parent, parent_to_detach);
+                self.children.detach(detached_parent, true);
+            }
+
             #[cfg(feature = "hydration")]
-            {
-                if let Some(m) = self.fallback_fragment.take() {
-                    if !parent_to_detach {
-                        for node in m.iter() {
-                            parent
-                                .remove_child(node)
-                                .expect("failed to remove child element");
-                        }
+            Some(VSuspenseFallback::Hydration { ref fragment }) => {
+                if !parent_to_detach {
+                    for node in fragment.iter() {
+                        parent
+                            .remove_child(node)
+                            .expect("failed to remove child element");
                     }
-                } else {
-                    self.fallback.detach(parent, parent_to_detach);
                 }
+
+                self.children.detach(detached_parent, true);
             }
 
-            #[cfg(not(feature = "hydration"))]
-            self.fallback.detach(parent, parent_to_detach);
-
-            if let Some(ref m) = self.detached_parent {
-                self.children.detach(m, false);
+            None => {
+                self.children.detach(parent, parent_to_detach);
             }
-        } else {
-            self.children.detach(parent, parent_to_detach);
         }
     }
 
     fn shift(&self, previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef) {
-        if self.suspended {
-            #[cfg(feature = "hydration")]
-            {
-                if let Some(ref m) = self.fallback_fragment {
-                    m.shift(previous_parent, next_parent, next_sibling);
-                } else {
-                    self.fallback
-                        .shift(previous_parent, next_parent, next_sibling);
-                }
+        match self.fallback {
+            Some(VSuspenseFallback::Render { ref root_node }) => {
+                root_node.shift(previous_parent, next_parent, next_sibling);
             }
 
-            #[cfg(not(feature = "hydration"))]
-            self.fallback
-                .shift(previous_parent, next_parent, next_sibling);
-        } else {
-            self.children
-                .shift(previous_parent, next_parent, next_sibling);
+            #[cfg(feature = "hydration")]
+            Some(VSuspenseFallback::Hydration { ref fragment }) => {
+                fragment.shift(previous_parent, next_parent, next_sibling)
+            }
+
+            None => {
+                self.children
+                    .shift(previous_parent, next_parent, next_sibling);
+            }
         }
     }
 
@@ -117,117 +111,141 @@ impl VDiff for VSuspense {
     ) -> NodeRef {
         let detached_parent = self.detached_parent.as_ref().expect("no detached parent?");
 
-        let (already_suspended, children_ancestor, fallback_ancestor, fallback_fragment) =
-            match ancestor {
-                Some(VNode::VSuspense(mut m)) => {
-                    // We only preserve the child state if they are the same suspense.
-                    if m.key != self.key || self.detached_parent != m.detached_parent {
-                        m.detach(parent, false);
-
-                        (false, None, None, Option::<Fragment>::None)
-                    } else {
-                        (
-                            m.suspended,
-                            Some(*m.children),
-                            Some(*m.fallback),
-                            #[cfg(feature = "hydration")]
-                            m.fallback_fragment,
-                            #[cfg(not(feature = "hydration"))]
-                            None,
-                        )
-                    }
-                }
-                Some(mut m) => {
+        let (children_ancestor, fallback_ancestor) = match ancestor {
+            Some(VNode::VSuspense(mut m)) => {
+                // We only preserve the child state if they are the same suspense.
+                if self.detached_parent != m.detached_parent {
                     m.detach(parent, false);
-                    (false, None, None, None)
-                }
-                None => (false, None, None, None),
-            };
 
-        #[cfg(not(feature = "hydration"))]
-        let _ = fallback_fragment;
+                    (None, None)
+                } else {
+                    (Some(*m.children), m.fallback)
+                }
+            }
+            Some(mut m) => {
+                m.detach(parent, false);
+                (None, None)
+            }
+            None => (None, None),
+        };
 
         // When it's suspended, we render children into an element that is detached from the dom
         // tree while rendering fallback UI into the original place where children resides in.
-        match (self.suspended, already_suspended) {
-            (true, true) => {
-                self.children.apply(
-                    parent_scope,
-                    detached_parent,
-                    NodeRef::default(),
-                    children_ancestor,
-                );
+        match (self.fallback.as_mut(), fallback_ancestor) {
+            // Currently Suspended, Continue to be Suspended.
+            (Some(fallback), Some(fallback_ancestor)) => {
+                match (fallback, fallback_ancestor) {
+                    (
+                        VSuspenseFallback::Render {
+                            root_node: ref mut fallback,
+                        },
+                        VSuspenseFallback::Render {
+                            root_node: fallback_ancestor,
+                        },
+                    ) => {
+                        self.children.apply(
+                            parent_scope,
+                            detached_parent,
+                            NodeRef::default(),
+                            children_ancestor,
+                        );
+                        fallback.apply(parent_scope, parent, next_sibling, Some(*fallback_ancestor))
+                    }
 
-                #[cfg(feature = "hydration")]
-                {
-                    if fallback_fragment.is_none() {
-                        self.fallback
-                            .apply(parent_scope, parent, next_sibling, fallback_ancestor)
-                    } else {
+                    // current fallback cannot be Hydration.
+                    #[cfg(feature = "hydration")]
+                    (VSuspenseFallback::Hydration { .. }, VSuspenseFallback::Render { .. }) => {
+                        panic!("invalid suspense state!")
+                    }
+
+                    #[cfg(feature = "hydration")]
+                    (_, VSuspenseFallback::Hydration { fragment }) => {
+                        self.children.apply(
+                            parent_scope,
+                            detached_parent,
+                            NodeRef::default(),
+                            children_ancestor,
+                        );
+
                         let node_ref = NodeRef::default();
-                        node_ref.set(fallback_fragment.as_ref().and_then(|m| m.front().cloned()));
+                        node_ref.set(fragment.front().cloned());
 
-                        self.fallback_fragment = fallback_fragment;
+                        self.fallback = Some(VSuspenseFallback::Hydration { fragment });
 
                         node_ref
                     }
                 }
-
-                #[cfg(not(feature = "hydration"))]
-                self.fallback
-                    .apply(parent_scope, parent, next_sibling, fallback_ancestor)
             }
 
-            (false, false) => {
+            // Currently not Suspended, Continue to be not Suspended.
+            (None, None) => {
                 self.children
                     .apply(parent_scope, parent, next_sibling, children_ancestor)
             }
 
-            (true, false) => {
-                children_ancestor.as_ref().unwrap().shift(
-                    parent,
-                    detached_parent,
-                    NodeRef::default(),
-                );
+            // The children is about to be suspended.
+            (Some(fallback), None) => {
+                match fallback {
+                    VSuspenseFallback::Render {
+                        root_node: ref mut fallback,
+                    } => {
+                        if let Some(ref m) = children_ancestor {
+                            m.shift(parent, detached_parent, NodeRef::default());
+                        }
 
-                self.children.apply(
-                    parent_scope,
-                    detached_parent,
-                    NodeRef::default(),
-                    children_ancestor,
-                );
+                        self.children.apply(
+                            parent_scope,
+                            detached_parent,
+                            NodeRef::default(),
+                            children_ancestor,
+                        );
 
-                // first render of fallback, ancestor needs to be None.
-                self.fallback
-                    .apply(parent_scope, parent, next_sibling, None)
+                        // first render of fallback, ancestor needs to be None.
+                        fallback.apply(parent_scope, parent, next_sibling, None)
+                    }
+
+                    // current fallback cannot be Hydration.
+                    #[cfg(feature = "hydration")]
+                    VSuspenseFallback::Hydration { .. } => {
+                        panic!("invalid suspense state!")
+                    }
+                }
             }
 
-            (false, true) => {
-                #[cfg(feature = "hydration")]
-                {
-                    if let Some(m) = fallback_fragment {
+            // The children is about to be resumed.
+            (None, Some(fallback_ancestor)) => {
+                match fallback_ancestor {
+                    VSuspenseFallback::Render {
+                        root_node: mut fallback_ancestor,
+                    } => {
+                        fallback_ancestor.detach(parent, false);
+
+                        if let Some(ref m) = children_ancestor {
+                            m.shift(detached_parent, parent, next_sibling.clone());
+                        }
+
+                        self.children
+                            .apply(parent_scope, parent, next_sibling, children_ancestor)
+                    }
+
+                    #[cfg(feature = "hydration")]
+                    VSuspenseFallback::Hydration { fragment } => {
                         // We can simply remove the fallback fragments it's not connected to
                         // anything.
-                        for node in m.iter() {
+                        for node in fragment.iter() {
                             parent
                                 .remove_child(node)
                                 .expect("failed to remove fragment node.");
                         }
-                    } else {
-                        fallback_ancestor.unwrap().detach(parent, false);
+
+                        if let Some(ref m) = children_ancestor {
+                            m.shift(detached_parent, parent, next_sibling.clone());
+                        }
+
+                        self.children
+                            .apply(parent_scope, parent, next_sibling, children_ancestor)
                     }
                 }
-
-                #[cfg(not(feature = "hydration"))]
-                fallback_ancestor.unwrap().detach(parent, false);
-
-                children_ancestor.as_ref().unwrap().shift(
-                    detached_parent,
-                    parent,
-                    next_sibling.clone(),
-                );
-                self.children
-                    .apply(parent_scope, parent, next_sibling, children_ancestor)
             }
         }
     }
@@ -251,7 +269,6 @@ mod feat_hydration {
 
             // We start hydration with the VSuspense being suspended.
             // A subsequent render will resume the VSuspense if not needed to be suspended.
-            self.suspended = true;
 
             let fallback_nodes = Fragment::collect_between(fragment, parent, "suspense");
 
@@ -275,7 +292,9 @@ mod feat_hydration {
                 .map(NodeRef::new)
                 .unwrap_or_else(NodeRef::default);
 
-            self.fallback_fragment = Some(fallback_nodes);
+            self.fallback = Some(VSuspenseFallback::Hydration {
+                fragment: fallback_nodes,
+            });
 
             first_node
         }

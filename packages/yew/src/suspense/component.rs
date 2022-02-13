@@ -1,5 +1,5 @@
 use crate::html::{Children, Component, Context, Html, Properties, Scope};
-use crate::virtual_dom::{Key, VList, VNode, VSuspense};
+use crate::virtual_dom::{VList, VNode, VSuspense};
 
 use web_sys::Element;
 
@@ -12,9 +12,6 @@ pub struct SuspenseProps {
 
     #[prop_or_default]
     pub fallback: Html,
-
-    #[prop_or_default]
-    pub key: Option<Key>,
 }
 
 #[derive(Debug)]
@@ -73,23 +70,13 @@ impl Component for Suspense {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let SuspenseProps {
-            children,
-            fallback: fallback_vnode,
-            key,
-        } = (*ctx.props()).clone();
+        let SuspenseProps { children, fallback } = (*ctx.props()).clone();
 
-        let children_vnode =
-            VNode::from(VList::with_children(children.into_iter().collect(), None));
+        let children = VNode::from(VList::with_children(children.into_iter().collect(), None));
 
-        let vsuspense = VSuspense::new(
-            children_vnode,
-            fallback_vnode,
-            self.detached_parent.clone(),
-            !self.suspensions.is_empty(),
-            key,
-        );
+        let fallback = (!self.suspensions.is_empty()).then(|| fallback);
 
+        let vsuspense = VSuspense::new(children, fallback, self.detached_parent.clone());
         VNode::from(vsuspense)
     }
 }

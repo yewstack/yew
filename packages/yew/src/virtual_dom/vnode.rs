@@ -30,6 +30,8 @@ pub enum VNode {
 }
 
 impl VNode {
+    pub const EMPTY: &'static VNode = &VNode::VList(VList::new());
+
     pub fn key(&self) -> Option<Key> {
         match self {
             VNode::VComp(vcomp) => vcomp.key.clone(),
@@ -38,7 +40,8 @@ impl VNode {
             VNode::VTag(vtag) => vtag.key.clone(),
             VNode::VText(_) => None,
             VNode::VPortal(vportal) => vportal.node.key(),
-            VNode::VSuspense(vsuspense) => vsuspense.key.clone(),
+            // VSuspenses are created by <Suspense /> and <Suspense /> is keyed by its VComp.
+            VNode::VSuspense(_) => None,
         }
     }
 
@@ -50,7 +53,7 @@ impl VNode {
             VNode::VRef(_) | VNode::VText(_) => false,
             VNode::VTag(vtag) => vtag.key.is_some(),
             VNode::VPortal(vportal) => vportal.node.has_key(),
-            VNode::VSuspense(vsuspense) => vsuspense.key.is_some(),
+            VNode::VSuspense(_) => false,
         }
     }
 

@@ -15,6 +15,45 @@ use std::any::Any;
 use std::rc::Rc;
 use web_sys::Element;
 
+/// A State to track current component rendering status.
+pub(crate) enum Rendered {
+    Render {
+        parent: Element,
+
+        next_sibling: NodeRef,
+        node_ref: NodeRef,
+
+        root_node: VNode,
+    },
+    #[cfg(feature = "hydration")]
+    Hydration {
+        parent: Element,
+
+        next_sibling: NodeRef,
+        node_ref: NodeRef,
+
+        fragment: Fragment,
+    },
+    #[cfg(feature = "ssr")]
+    Ssr {
+        sender: Option<oneshot::Sender<VNode>>,
+    },
+}
+
+impl Rendered {
+    pub fn root_vnode(&self) -> Option<&VNode> {
+        match self {
+            Rendered::Render { ref root_node, .. } => Some(root_node),
+
+            #[cfg(feature = "hydration")]
+            Rendered::Hydration { .. } => None,
+
+            #[cfg(feature = "ssr")]
+            Rendered::Ssr { .. } => None,
+        }
+    }
+}
+
 pub(crate) struct CompStateInner<COMP>
 where
     COMP: BaseComponent,
@@ -104,35 +143,17 @@ where
 pub(crate) struct ComponentState {
     pub(crate) inner: Box<dyn Stateful>,
 
-    pub(crate) root_node: VNode,
+    pub(crate) rendered: Rendered,
 
-    /// When a component has no parent, it means that it should not be rendered.
-    parent: Option<Element>,
-
-    next_sibling: NodeRef,
-    node_ref: NodeRef,
     has_rendered: bool,
 
     suspension: Option<Suspension>,
-
-    #[cfg(feature = "hydration")]
-    hydrate_fragment: Option<Fragment>,
-
-    #[cfg(feature = "ssr")]
-    html_sender: Option<oneshot::Sender<VNode>>,
 }
 
 pub(crate) struct CreateRunner<COMP: BaseComponent> {
-    pub(crate) parent: Option<Element>,
-    pub(crate) next_sibling: NodeRef,
-    pub(crate) placeholder: VNode,
-    pub(crate) node_ref: NodeRef,
+    pub(crate) rendered: Rendered,
     pub(crate) props: Rc<COMP::Properties>,
     pub(crate) scope: Scope<COMP>,
-    #[cfg(feature = "ssr")]
-    pub(crate) html_sender: Option<oneshot::Sender<VNode>>,
-    #[cfg(feature = "hydration")]
-    pub(crate) hydrate_fragment: Option<Fragment>,
 }
 
 impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
@@ -145,18 +166,7 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
             crate::virtual_dom::vcomp::log_event(self.scope.id, "create");
 
             let Self {
-                props,
-                placeholder,
-                parent,
-                next_sibling,
-                node_ref,
-
-                #[cfg(feature = "hydration")]
-                hydrate_fragment,
-
-                #[cfg(feature = "ssr")]
-                html_sender,
-                ..
+                props, rendered, ..
             } = *self;
 
             let context = Context { scope, props };
@@ -168,18 +178,9 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
 
             let state = ComponentState {
                 inner,
-                root_node: placeholder,
-                parent,
-                next_sibling,
-                node_ref,
+                rendered,
                 suspension: None,
                 has_rendered: false,
-
-                #[cfg(feature = "hydration")]
-                hydrate_fragment,
-
-                #[cfg(feature = "ssr")]
-                html_sender,
             };
 
             *current_state = Some(state);
@@ -203,46 +204,78 @@ pub(crate) struct UpdateRunner {
 
 impl Runnable for UpdateRunner {
     fn run(self: Box<Self>) {
-        if let Some(mut state) = self.state.borrow_mut().as_mut() {
+        if let Some(state) = self.state.borrow_mut().as_mut() {
             let schedule_render = match self.event {
                 UpdateEvent::Message => state.inner.flush_messages(),
-                UpdateEvent::Properties(props, node_ref, next_sibling) => {
-                    // When components are updated, a new node ref could have been passed in
-                    state.node_ref = node_ref;
-                    // When components are updated, their siblings were likely also updated
-                    state.next_sibling = next_sibling;
-                    // Only trigger changed if props were changed
+                UpdateEvent::Properties(props, next_node_ref, next_sibling) => {
+                    match state.rendered {
+                        Rendered::Render {
+                            ref mut node_ref,
+                            next_sibling: ref mut current_next_sibling,
+                            ..
+                        } => {
+                            // When components are updated, a new node ref could have been passed in
+                            *node_ref = next_node_ref;
+                            // When components are updated, their siblings were likely also updated
+                            *current_next_sibling = next_sibling;
+                            // Only trigger changed if props were changed
+                            state.inner.props_changed(props)
+                        }
 
-                    state.inner.props_changed(props)
+                        #[cfg(feature = "hydration")]
+                        Rendered::Hydration {
+                            ref mut node_ref,
+                            next_sibling: ref mut current_next_sibling,
+                            ..
+                        } => {
+                            // When components are updated, a new node ref could have been passed in
+                            *node_ref = next_node_ref;
+                            // When components are updated, their siblings were likely also updated
+                            *current_next_sibling = next_sibling;
+                            // Only trigger changed if props were changed
+                            state.inner.props_changed(props)
+                        }
+
+                        #[cfg(feature = "ssr")]
+                        Rendered::Ssr { .. } => state.inner.props_changed(props),
+                    }
                 }
-                UpdateEvent::Shift(parent, next_sibling) => {
-                    // We need to shift the hydrate fragment if the component is not hydrated.
-                    #[cfg(feature = "hydration")]
-                    {
-                        if let Some(ref m) = state.hydrate_fragment {
-                            m.shift(
-                                state.parent.as_ref().unwrap(),
-                                &parent,
-                                next_sibling.clone(),
-                            );
-                        } else {
-                            state.root_node.shift(
-                                state.parent.as_ref().unwrap(),
-                                &parent,
-                                next_sibling.clone(),
-                            );
+
+                UpdateEvent::Shift(next_parent, next_sibling) => {
+                    match state.rendered {
+                        Rendered::Render {
+                            ref root_node,
+                            ref mut parent,
+                            next_sibling: ref mut current_next_sibling,
+                            ..
+                        } => {
+                            root_node.shift(parent, &next_parent, next_sibling.clone());
+
+                            *parent = next_parent;
+                            *current_next_sibling = next_sibling;
+                        }
+
+                        // We need to shift the hydrate fragment if the component is not hydrated.
+                        #[cfg(feature = "hydration")]
+                        Rendered::Hydration {
+                            ref fragment,
+                            ref mut parent,
+                            next_sibling: ref mut current_next_sibling,
+                            ..
+                        } => {
+                            fragment.shift(parent, &next_parent, next_sibling.clone());
+
+                            *parent = next_parent;
+                            *current_next_sibling = next_sibling;
+                        }
+
+                        // Shifting is not possible during SSR.
+                        #[cfg(feature = "ssr")]
+                        Rendered::Ssr { .. } => {
+                            #[cfg(debug_assertions)]
+                            panic!("shifting is not possible during SSR");
                         }
                     }
-
-                    #[cfg(not(feature = "hydration"))]
-                    state.root_node.shift(
-                        state.parent.as_ref().unwrap(),
-                        &parent,
-                        next_sibling.clone(),
-                    );
-
-                    state.parent = Some(parent);
-                    state.next_sibling = next_sibling;
 
                     false
                 }
@@ -280,9 +313,36 @@ impl Runnable for DestroyRunner {
 
             state.inner.destroy();
 
-            if let Some(ref m) = state.parent {
-                state.root_node.detach(m, self.parent_to_detach);
-                state.node_ref.set(None);
+            match state.rendered {
+                Rendered::Render {
+                    ref mut root_node,
+                    ref parent,
+                    ref node_ref,
+                    ..
+                } => {
+                    root_node.detach(parent, self.parent_to_detach);
+
+                    node_ref.set(None);
+                }
+                // We need to detach the hydrate fragment if the component is not hydrated.
+                #[cfg(feature = "hydration")]
+                Rendered::Hydration {
+                    ref fragment,
+                    ref parent,
+                    ref node_ref,
+                    ..
+                } => {
+                    for node in fragment.iter() {
+                        parent
+                            .remove_child(node)
+                            .expect("failed to remove fragment node.");
+                    }
+
+                    node_ref.set(None);
+                }
+
+                #[cfg(feature = "ssr")]
+                Rendered::Ssr { .. } => {}
             }
         }
     }
@@ -293,42 +353,37 @@ pub(crate) struct RenderRunner {
 }
 
 impl RenderRunner {
-    #[cfg(feature = "hydration")]
-    fn render_html(&self, parent: &Element, state: &mut ComponentState, ancestor: VNode) {
-        let new_root = &mut state.root_node;
+    fn render(&self, state: &mut ComponentState, new_root: VNode) {
+        // Currently not suspended, we remove any previous suspension and update
+        // normally.
+
+        if let Some(m) = state.suspension.take() {
+            let comp_scope = state.inner.any_scope();
+
+            let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
+            let suspense = suspense_scope.get_component().unwrap();
+
+            suspense.resume(m);
+        }
+
         let scope = state.inner.any_scope();
-        let next_sibling = state.next_sibling.clone();
 
-        match state.hydrate_fragment.take() {
-            Some(mut fragment) => {
-                // We schedule a "first" render to run immediately after hydration,
-                // for the following reason:
-                // 1. Fix NodeRef (first_node and next_sibling)
-                // 2. Switch from fallback UI to children UI for <Suspense /> component (if it is
-                //    not meant to be suspended.).
-                scheduler::push_component_render(
-                    state.inner.id(),
-                    RenderRunner {
-                        state: self.state.clone(),
-                    },
-                );
+        match state.rendered {
+            Rendered::Render {
+                root_node: ref mut current_root,
+                ref parent,
+                ref next_sibling,
+                ref node_ref,
+                ..
+            } => {
+                let mut root = new_root;
+                std::mem::swap(&mut root, current_root);
 
-                // This first node is not guaranteed to be correct here.
-                // As it may be a comment node that is removed afterwards.
-                // but we link it anyways.
-                let node = new_root.hydrate(&scope, parent, &mut fragment);
+                let ancestor = root;
 
-                // We trim all text nodes before checking as it's likely these are whitespaces.
-                fragment.trim_start_text_nodes(parent);
+                let node = current_root.apply(&scope, parent, next_sibling.clone(), Some(ancestor));
 
-                assert!(fragment.is_empty(), "expected end of component, found node");
-
-                state.node_ref.link(node);
-            }
-            None => {
-                let node = new_root.apply(&scope, parent, next_sibling, Some(ancestor));
-
-                state.node_ref.link(node);
+                node_ref.link(node);
 
                 let first_render = !state.has_rendered;
                 state.has_rendered = true;
@@ -342,30 +397,103 @@ impl RenderRunner {
                     first_render,
                 );
             }
+
+            #[cfg(feature = "hydration")]
+            Rendered::Hydration {
+                ref mut fragment,
+                ref parent,
+                ref node_ref,
+                ref next_sibling,
+            } => {
+                // We schedule a "first" render to run immediately after hydration,
+                // for the following reason:
+                // 1. Fix NodeRef (first_node and next_sibling)
+                // 2. Switch from fallback UI to children UI for <Suspense /> component (if it is
+                //    not meant to be suspended.).
+                scheduler::push_component_render(
+                    state.inner.id(),
+                    RenderRunner {
+                        state: self.state.clone(),
+                    },
+                );
+
+                let mut root = new_root;
+
+                // This first node is not guaranteed to be correct here.
+                // As it may be a comment node that is removed afterwards.
+                // but we link it anyways.
+                let node = root.hydrate(&scope, parent, fragment);
+
+                // We trim all text nodes before checking as it's likely these are whitespaces.
+                fragment.trim_start_text_nodes(parent);
+
+                assert!(fragment.is_empty(), "expected end of component, found node");
+
+                node_ref.link(node);
+
+                state.rendered = Rendered::Render {
+                    root_node: root,
+                    parent: parent.clone(),
+                    node_ref: node_ref.clone(),
+                    next_sibling: next_sibling.clone(),
+                };
+            }
+
+            #[cfg(feature = "ssr")]
+            Rendered::Ssr { ref mut sender } => {
+                if let Some(tx) = sender.take() {
+                    tx.send(new_root).unwrap();
+                }
+            }
         };
     }
 
-    #[cfg(not(feature = "hydration"))]
-    fn render_html(&self, parent: &Element, state: &mut ComponentState, ancestor: VNode) {
-        let new_root = &mut state.root_node;
-        let scope = state.inner.any_scope();
-        let next_sibling = state.next_sibling.clone();
+    fn suspend(&self, state: &mut ComponentState, suspension: Suspension) {
+        // Currently suspended, we re-use previous root node and send
+        // suspension to parent element.
+        let shared_state = self.state.clone();
 
-        let node = new_root.apply(&scope, parent, next_sibling, Some(ancestor));
+        if suspension.resumed() {
+            // schedule a render immediately if suspension is resumed.
 
-        state.node_ref.link(node);
+            scheduler::push_component_render(
+                state.inner.id(),
+                RenderRunner {
+                    state: shared_state,
+                },
+            );
+        } else {
+            // We schedule a render after current suspension is resumed.
 
-        let first_render = !state.has_rendered;
-        state.has_rendered = true;
+            let comp_scope = state.inner.any_scope();
 
-        scheduler::push_component_rendered(
-            state.inner.id(),
-            RenderedRunner {
-                state: self.state.clone(),
-                first_render,
-            },
-            first_render,
-        );
+            let suspense_scope = comp_scope
+                .find_parent_scope::<Suspense>()
+                .expect("To suspend rendering, a <Suspense /> component is required.");
+            let suspense = suspense_scope.get_component().unwrap();
+
+            let comp_id = state.inner.id();
+
+            suspension.listen(Callback::from(move |_| {
+                scheduler::push_component_render(
+                    comp_id,
+                    RenderRunner {
+                        state: shared_state.clone(),
+                    },
+                );
+                scheduler::start();
+            }));
+
+            if let Some(ref last_suspension) = state.suspension {
+                if &suspension != last_suspension {
+                    // We remove previous suspension from the suspense.
+                    suspense.resume(last_suspension.clone());
+                }
+            }
+            state.suspension = Some(suspension.clone());
+
+            suspense.suspend(suspension);
+        }
     }
 }
 
@@ -376,80 +504,8 @@ impl Runnable for RenderRunner {
             crate::virtual_dom::vcomp::log_event(state.inner.id(), "render");
 
             match state.inner.view() {
-                Ok(m) => {
-                    // Currently not suspended, we remove any previous suspension and update
-                    // normally.
-                    let mut root = m;
-                    if state.parent.is_some() {
-                        std::mem::swap(&mut root, &mut state.root_node);
-                    }
-
-                    if let Some(m) = state.suspension.take() {
-                        let comp_scope = state.inner.any_scope();
-
-                        let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
-                        let suspense = suspense_scope.get_component().unwrap();
-
-                        suspense.resume(m);
-                    }
-
-                    if let Some(ref m) = state.parent.clone() {
-                        self.render_html(m, state, root);
-                    } else {
-                        #[cfg(feature = "ssr")]
-                        if let Some(tx) = state.html_sender.take() {
-                            tx.send(root).unwrap();
-                        }
-                    }
-                }
-
-                Err(RenderError::Suspended(m)) => {
-                    // Currently suspended, we re-use previous root node and send
-                    // suspension to parent element.
-                    let shared_state = self.state.clone();
-
-                    if m.resumed() {
-                        // schedule a render immediately if suspension is resumed.
-
-                        scheduler::push_component_render(
-                            state.inner.id(),
-                            RenderRunner {
-                                state: shared_state,
-                            },
-                        );
-                    } else {
-                        // We schedule a render after current suspension is resumed.
-
-                        let comp_scope = state.inner.any_scope();
-
-                        let suspense_scope = comp_scope
-                            .find_parent_scope::<Suspense>()
-                            .expect("To suspend rendering, a <Suspense /> component is required.");
-                        let suspense = suspense_scope.get_component().unwrap();
-
-                        let comp_id = state.inner.id();
-
-                        m.listen(Callback::from(move |_| {
-                            scheduler::push_component_render(
-                                comp_id,
-                                RenderRunner {
-                                    state: shared_state.clone(),
-                                },
-                            );
-                            scheduler::start();
-                        }));
-
-                        if let Some(ref last_m) = state.suspension {
-                            if &m != last_m {
-                                // We remove previous suspension from the suspense.
-                                suspense.resume(last_m.clone());
-                            }
-                        }
-                        state.suspension = Some(m.clone());
-
-                        suspense.suspend(m);
-                    }
-                }
+                Ok(m) => self.render(state, m),
+                Err(RenderError::Suspended(m)) => self.suspend(state, m),
             };
         }
     }
@@ -466,8 +522,18 @@ impl Runnable for RenderedRunner {
             #[cfg(debug_assertions)]
             crate::virtual_dom::vcomp::log_event(state.inner.id(), "rendered");
 
-            if state.suspension.is_none() && state.parent.is_some() {
-                state.inner.rendered(self.first_render);
+            match state.rendered {
+                #[cfg(feature = "ssr")]
+                Rendered::Ssr { .. } => {}
+                #[cfg(feature = "hydration")]
+                Rendered::Hydration { .. } => {}
+
+                // We only call rendered when the component is rendered & not suspended..
+                Rendered::Render { .. } => {
+                    if state.suspension.is_none() {
+                        state.inner.rendered(self.first_render);
+                    }
+                }
             }
         }
     }

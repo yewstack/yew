@@ -1,12 +1,10 @@
 //! Component scope module
 
-use super::{
-    lifecycle::{
-        CompStateInner, ComponentState, CreateRunner, DestroyRunner, RenderRunner, UpdateEvent,
-        UpdateRunner,
-    },
-    BaseComponent,
+use super::lifecycle::{
+    CompStateInner, ComponentState, CreateRunner, DestroyRunner, RenderRunner, Rendered,
+    UpdateEvent, UpdateRunner,
 };
+use super::BaseComponent;
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
 use crate::html::NodeRef;
@@ -162,7 +160,12 @@ impl<COMP: BaseComponent> Scoped for Scope<COMP> {
         state_ref.as_ref()?;
 
         Some(Ref::map(state_ref, |state_ref| {
-            &state_ref.as_ref().unwrap().root_node
+            state_ref
+                .as_ref()
+                .unwrap()
+                .rendered
+                .root_vnode()
+                .unwrap_or(VNode::EMPTY)
         }))
     }
 
@@ -268,20 +271,19 @@ impl<COMP: BaseComponent> Scope<COMP> {
             VNode::VRef(placeholder)
         };
 
+        let rendered = Rendered::Render {
+            root_node: placeholder,
+            node_ref,
+            next_sibling,
+            parent,
+        };
+
         scheduler::push_component_create(
             self.id,
             CreateRunner {
-                parent: Some(parent),
-                next_sibling,
-                placeholder,
-                node_ref,
+                rendered,
                 props,
                 scope: self.clone(),
-                #[cfg(feature = "ssr")]
-                html_sender: None,
-
-                #[cfg(feature = "hydration")]
-                hydrate_fragment: None,
             },
             RenderRunner {
                 state: self.state.clone(),
@@ -397,19 +399,14 @@ mod feat_ssr {
         ) {
             let (tx, rx) = oneshot::channel();
 
+            let rendered = Rendered::Ssr { sender: Some(tx) };
+
             scheduler::push_component_create(
                 self.id,
                 CreateRunner {
-                    parent: None,
-                    next_sibling: NodeRef::default(),
-                    placeholder: VNode::default(),
-                    node_ref: NodeRef::default(),
+                    rendered,
                     props,
                     scope: self.clone(),
-                    html_sender: Some(tx),
-
-                    #[cfg(feature = "hydration")]
-                    hydrate_fragment: None,
                 },
                 RenderRunner {
                     state: self.state.clone(),
@@ -556,22 +553,22 @@ mod feat_hydration {
                 self.id
             );
 
-            let nodes = Fragment::collect_between(fragment, &parent, "comp");
-            node_ref.set(nodes.front().cloned());
-
+            let fragment = Fragment::collect_between(fragment, &parent, "comp");
+            node_ref.set(fragment.front().cloned());
             let next_sibling = NodeRef::default();
+
+            let rendered = Rendered::Hydration {
+                parent,
+                node_ref,
+                next_sibling,
+                fragment,
+            };
 
             scheduler::push_component_hydrate(
                 CreateRunner {
-                    parent: Some(parent),
-                    next_sibling,
-                    placeholder: VNode::default(),
-                    node_ref,
+                    rendered,
                     props,
                     scope: self.clone(),
-                    #[cfg(feature = "ssr")]
-                    html_sender: None,
-                    hydrate_fragment: Some(nodes),
                 },
                 RenderRunner {
                     state: self.state.clone(),
