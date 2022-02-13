@@ -132,7 +132,7 @@ impl VDiff for VSuspense {
         // When it's suspended, we render children into an element that is detached from the dom
         // tree while rendering fallback UI into the original place where children resides in.
         match (self.fallback.as_mut(), fallback_ancestor) {
-            // Currently Suspended, Continue to be Suspended.
+            // Currently suspended, continue to be suspended.
             (Some(fallback), Some(fallback_ancestor)) => {
                 match (fallback, fallback_ancestor) {
                     (
@@ -177,7 +177,7 @@ impl VDiff for VSuspense {
                 }
             }
 
-            // Currently not Suspended, Continue to be not Suspended.
+            // Currently not suspended, continue to be not suspended.
             (None, None) => {
                 self.children
                     .apply(parent_scope, parent, next_sibling, children_ancestor)
@@ -282,7 +282,7 @@ mod feat_hydration {
             self.children
                 .hydrate(parent_scope, detached_parent, &mut nodes);
 
-            // We trim all text nodes before checking as it's likely these are whitespaces.
+            // We trim all leading text nodes before checking as it's likely these are whitespaces.
             nodes.trim_start_text_nodes(detached_parent);
 
             assert!(nodes.is_empty(), "expected end of suspense, found node.");
@@ -316,7 +316,7 @@ mod feat_ssr {
             if hydratable {
                 w.push_str("<!--<?>-->");
             }
-            // always render children on the server side.
+            // always render children on the server side (for now).
             self.children
                 .render_to_string(w, parent_scope, hydratable)
                 .await;

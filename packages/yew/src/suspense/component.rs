@@ -1,3 +1,4 @@
+use crate::html;
 use crate::html::{Children, Component, Context, Html, Properties, Scope};
 use crate::virtual_dom::{VList, VNode, VSuspense};
 
@@ -6,37 +7,36 @@ use web_sys::Element;
 use super::Suspension;
 
 #[derive(Properties, PartialEq, Debug, Clone)]
-pub struct SuspenseProps {
-    #[prop_or_default]
+pub(crate) struct BaseSuspenseProps {
     pub children: Children,
 
-    #[prop_or_default]
     pub fallback: Html,
+
+    pub suspendible: bool,
 }
 
 #[derive(Debug)]
-pub enum SuspenseMsg {
+pub(crate) enum BaseSuspenseMsg {
     Suspend(Suspension),
     Resume(Suspension),
 }
 
-/// Suspend rendering and show a fallback UI until the underlying task completes.
+/// The Implementation of Suspense Component.
 #[derive(Debug)]
-pub struct Suspense {
+pub(crate) struct BaseSuspense {
     link: Scope<Self>,
     suspensions: Vec<Suspension>,
     detached_parent: Option<Element>,
 }
 
-impl Component for Suspense {
-    type Properties = SuspenseProps;
-    type Message = SuspenseMsg;
+impl Component for BaseSuspense {
+    type Properties = BaseSuspenseProps;
+    type Message = BaseSuspenseMsg;
 
     fn create(ctx: &Context<Self>) -> Self {
         Self {
             link: ctx.link().clone(),
             suspensions: Vec::new(),
-
             #[cfg(target_arch = "wasm32")]
             detached_parent: web_sys::window()
                 .and_then(|m| m.document())
@@ -47,9 +47,14 @@ impl Component for Suspense {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Self::Message::Suspend(m) => {
+                assert!(
+                    ctx.props().suspendible,
+                    "You cannot suspend from a component rendered as a fallback."
+                );
+
                 if m.resumed() {
                     return false;
                 }
@@ -70,23 +75,66 @@ impl Component for Suspense {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let SuspenseProps { children, fallback } = (*ctx.props()).clone();
+        let BaseSuspenseProps {
+            children, fallback, ..
+        } = (*ctx.props()).clone();
 
-        let children = VNode::from(VList::with_children(children.into_iter().collect(), None));
+        if ctx.props().suspendible {
+            let children = VNode::from(VList::with_children(children.into_iter().collect(), None));
+            let fallback = (!self.suspensions.is_empty()).then(|| fallback);
 
-        let fallback = (!self.suspensions.is_empty()).then(|| fallback);
-
-        let vsuspense = VSuspense::new(children, fallback, self.detached_parent.clone());
-        VNode::from(vsuspense)
+            let vsuspense = VSuspense::new(children, fallback, self.detached_parent.clone());
+            VNode::from(vsuspense)
+        } else {
+            html! {<>{children}</>}
+        }
     }
 }
 
-impl Suspense {
+impl BaseSuspense {
     pub(crate) fn suspend(&self, s: Suspension) {
-        self.link.send_message(SuspenseMsg::Suspend(s));
+        self.link.send_message(BaseSuspenseMsg::Suspend(s));
     }
 
     pub(crate) fn resume(&self, s: Suspension) {
-        self.link.send_message(SuspenseMsg::Resume(s));
+        self.link.send_message(BaseSuspenseMsg::Resume(s));
+    }
+}
+
+#[derive(Properties, PartialEq, Debug, Clone)]
+pub struct SuspenseProps {
+    #[prop_or_default]
+    pub children: Children,
+
+    #[prop_or_default]
+    pub fallback: Html,
+}
+
+/// Suspend rendering and show a fallback UI until the underlying task completes.
+#[derive(Debug)]
+pub struct Suspense {}
+
+impl Component for Suspense {
+    type Properties = SuspenseProps;
+    type Message = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {}
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let SuspenseProps { children, fallback } = ctx.props().clone();
+
+        let fallback = html! {
+            <BaseSuspense fallback={Html::default()} suspendible={false}>
+                {fallback}
+            </BaseSuspense>
+        };
+
+        html! {
+            <BaseSuspense {fallback} suspendible={true}>
+                {children}
+            </BaseSuspense>
+        }
     }
 }
