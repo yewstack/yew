@@ -1,3 +1,4 @@
+use proc_macro2::{Ident, Span};
 use syn::parse_quote;
 
 use crate::typed_vdom::{AttributePropDefinition, ListenerPropDefinition};
@@ -417,4 +418,75 @@ pub fn element_names() -> [&'static str; 142] {
         "h5",
         "h6",
     ]
+}
+
+// obtained by running
+// Array.from(document.querySelectorAll('.main-page-content ul')).slice(0, 5)
+// .map(it => Array.from(it.children)).flat().map(it => it.querySelector('li a code').innerText)
+// on https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes
+// all of these elements must be prefixed by aria-
+pub fn all_aria_labels() -> [AttributePropDefinition; 49] {
+    [
+        "atomic",
+        "invalid",
+        "rowcount",
+        "colindex",
+        "grabbed",
+        "hidden",
+        "details",
+        "owns",
+        "placeholder",
+        "required",
+        "selected",
+        "sort",
+        "activedescendant",
+        "autocomplete",
+        "keyshortcuts",
+        "live",
+        "valuemax",
+        "current",
+        "labelledby",
+        "colcount",
+        "setsize",
+        "readonly",
+        "valuetext",
+        "disabled",
+        "pressed",
+        "haspopup",
+        "valuenow",
+        "relevant",
+        "description",
+        "busy",
+        "multiselectable",
+        "expanded",
+        "level",
+        "describedby",
+        "rowindex",
+        "errormessage",
+        "flowto",
+        "dropeffect",
+        "multiline",
+        "modal",
+        "label",
+        "controls",
+        "checked",
+        "orientation",
+        "roledescription",
+        "posinset",
+        "valuemin",
+        "rowspan",
+        "colspan",
+    ]
+    .map(|it| {
+        AttributePropDefinition::new(
+            Ident::new(&format!("aria_{it}"), Span::mixed_site()),
+            parse_quote! { ::yew::virtual_dom::AttrValue },
+        )
+    })
+}
+pub fn others() -> [AttributePropDefinition; 1] {
+    [AttributePropDefinition::new(
+        parse_quote! { role },
+        parse_quote! { ::yew::virtual_dom::AttrValue },
+    )]
 }

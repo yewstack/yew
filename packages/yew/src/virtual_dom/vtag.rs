@@ -833,42 +833,6 @@ mod tests {
         assert_ne!(a, c);
     }
 
-    /*#[test] aria/data attributes will be part of props composition/"rest" prop
-    fn it_allows_aria_attributes() {
-        let a = html! {
-            <p aria-controls="it-works">
-                <a class="btn btn-primary"
-                   data-toggle="collapse"
-                   href="#collapseExample"
-                   role="button"
-                   aria-expanded="false"
-                   aria-controls="collapseExample">
-                    { "Link with href" }
-                </a>
-                <button class="btn btn-primary"
-                        type="button"
-                        data-toggle="collapse"
-                        data-target="#collapseExample"
-                        aria-expanded="false"
-                        aria-controls="collapseExample">
-                    { "Button with data-target" }
-                </button>
-                <div own-attribute-with-multiple-parts="works" />
-            </p>
-        };
-        if let VNode::VTag(vtag) = a {
-            assert_eq!(
-                vtag.attributes
-                    .iter()
-                    .find(|(k, _)| k == &"aria-controls")
-                    .map(|(_, v)| v),
-                Some("it-works")
-            );
-        } else {
-            panic!("vtag expected");
-        }
-    }*/
-
     #[test]
     fn it_does_not_set_missing_class_name() {
         let scope = test_scope();

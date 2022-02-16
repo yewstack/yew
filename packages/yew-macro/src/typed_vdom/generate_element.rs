@@ -1,5 +1,5 @@
 use crate::typed_vdom::globals::{global_attributes, listeners};
-use crate::typed_vdom::{kw, AttributePropDefinition};
+use crate::typed_vdom::{all_aria_labels, kw, others, AttributePropDefinition};
 use convert_case::{Case, Casing};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
@@ -38,8 +38,13 @@ impl Parse for GenerateElement {
 impl ToTokens for GenerateElement {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let element_name = &self.element_name;
-        let mut prop_definitions = self.props.clone();
-        prop_definitions.extend(global_attributes());
+        let prop_definitions = {
+            let mut prop_definitions = self.props.clone();
+            prop_definitions.extend(global_attributes());
+            prop_definitions.extend(all_aria_labels());
+            prop_definitions.extend(others());
+            prop_definitions
+        };
 
         let props_ident = format_ident!(
             "{}Props",
