@@ -7,19 +7,17 @@ You can access a live version here:
 
 # Running this example
 
-do `./build.sh && ./serve.sh`
+do `./build.sh && trunk serve`
 
 ## notes
 
-This example is NOT built with [trunk](https://github.com/thedodd/trunk).
-Multi-threading in yew does not currently build with Trunk, due to issues described in the [multi_thread](/examples/multi_thread/README.md) example.
+The worker is NOT built with [trunk](https://github.com/thedodd/trunk). However, we use `trunk` to serve the app.
+Note: multi-threading in yew does not currently build with Trunk, due to issues described in the [multi_thread](/examples/multi_thread/README.md) example.
 
 Instead the example is built with [`wasm-pack`](https://rustwasm.github.io/wasm-pack/) directly.
 
 To build, run `./build.sh`.
-You can then serve the build, with `./serve.sh`.
-
-This example uses python3 as a server, any alternative will work.
+You can then serve the build, with `trunk serve`.
 
 # Thanks to
 

@@ -50,6 +50,6 @@ impl yew_agent::Worker for Worker {
     }
 
     fn name_of_resource() -> &'static str {
-        "wasm.js"
+        "static/wasm.js"
     }
 }
