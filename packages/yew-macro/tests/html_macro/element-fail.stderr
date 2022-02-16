@@ -216,7 +216,19 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<Option<AttrValue>>` is n
              <&'static str as IntoPropValue<Classes>>
              <&'static str as IntoPropValue<Option<AttrValue>>>
              <&'static str as IntoPropValue<Option<String>>>
-           and 20 others
+           and 18 others
+
+error[E0277]: the trait bound `Option<bool>: IntoPropValue<Option<AttrValue>>` is not satisfied
+  --> tests/html_macro/element-fail.rs:37:29
+   |
+37 |     html! { <input checked={Some(false)} /> };
+   |                             ^^^^^^^^^^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `Option<bool>`
+   |
+   = help: the following implementations were found:
+             <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
+             <Option<&'static str> as IntoPropValue<Option<String>>>
+             <Option<String> as IntoPropValue<Option<AttrValue>>>
+             <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
 
 error[E0277]: the trait bound `{integer}: IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:38:29
@@ -229,7 +241,19 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<Option<AttrValue>>` is n
              <&'static str as IntoPropValue<Classes>>
              <&'static str as IntoPropValue<Option<AttrValue>>>
              <&'static str as IntoPropValue<Option<String>>>
-           and 20 others
+           and 18 others
+
+error[E0277]: the trait bound `Option<bool>: IntoPropValue<Option<AttrValue>>` is not satisfied
+  --> tests/html_macro/element-fail.rs:39:30
+   |
+39 |     html! { <input disabled={Some(true)} /> };
+   |                              ^^^^^^^^^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `Option<bool>`
+   |
+   = help: the following implementations were found:
+             <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
+             <Option<&'static str> as IntoPropValue<Option<String>>>
+             <Option<String> as IntoPropValue<Option<AttrValue>>>
+             <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
 
 error[E0277]: the trait bound `{integer}: IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:40:30
@@ -242,7 +266,7 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<Option<AttrValue>>` is n
              <&'static str as IntoPropValue<Classes>>
              <&'static str as IntoPropValue<Option<AttrValue>>>
              <&'static str as IntoPropValue<Option<String>>>
-           and 20 others
+           and 18 others
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<AttrValue>>` is not satisfied
   --> tests/html_macro/element-fail.rs:43:26
@@ -268,7 +292,7 @@ error[E0609]: no field `string` on type `InputProps`
 46 |     html! { <input string={NotToString} /> };
    |                    ^^^^^^ unknown field
    |
-   = note: available fields are: `node_ref`, `key`, `children`, `accept`, `alt` ... and 144 others
+   = note: available fields are: `node_ref`, `key`, `children`, `accept`, `alt` ... and 194 others
 
 error[E0599]: no method named `string` found for struct `InputPropsBuilder` in the current scope
   --> tests/html_macro/element-fail.rs:46:20
@@ -286,7 +310,6 @@ error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<AttrVal
              <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<String> as IntoPropValue<Option<AttrValue>>>
-             <Option<bool> as IntoPropValue<Option<AttrValue>>>
              <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<AttrValue>>` is not satisfied
@@ -299,7 +322,6 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<AttrValue
              <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<String> as IntoPropValue<Option<AttrValue>>>
-             <Option<bool> as IntoPropValue<Option<AttrValue>>>
              <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `{integer}`
@@ -359,7 +381,7 @@ error[E0609]: no field `string` on type `InputProps`
 60 |     html! { <input string={NotToString} /> };
    |                    ^^^^^^ unknown field
    |
-   = note: available fields are: `node_ref`, `key`, `children`, `accept`, `alt` ... and 144 others
+   = note: available fields are: `node_ref`, `key`, `children`, `accept`, `alt` ... and 194 others
 
 error[E0599]: no method named `string` found for struct `InputPropsBuilder` in the current scope
   --> tests/html_macro/element-fail.rs:60:20

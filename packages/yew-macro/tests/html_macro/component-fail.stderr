@@ -361,7 +361,7 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
              <&'static str as IntoPropValue<Classes>>
              <&'static str as IntoPropValue<Option<AttrValue>>>
              <&'static str as IntoPropValue<Option<String>>>
-           and 20 others
+           and 18 others
 
 error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfied
   --> tests/html_macro/component-fail.rs:79:34
@@ -374,7 +374,7 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
              <&'static str as IntoPropValue<Classes>>
              <&'static str as IntoPropValue<Option<AttrValue>>>
              <&'static str as IntoPropValue<Option<String>>>
-           and 20 others
+           and 18 others
 
 error[E0308]: mismatched types
   --> tests/html_macro/component-fail.rs:80:31
