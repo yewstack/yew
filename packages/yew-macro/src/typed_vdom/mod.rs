@@ -45,7 +45,7 @@ impl AttributePropDefinition {
         let name = self.name.to_string().replace('_', "-");
         let name = LitStr::new(&name, self.name.span());
         quote! {
-            if let Some(val) = self.#ident {
+            if let ::std::option::Option::Some(val) = self.#ident {
                 attrs.insert(#name, val);
             }
         }

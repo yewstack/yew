@@ -81,7 +81,7 @@ mod test {
     #[test]
     fn all_key_conversions() {
         html! {
-            <div key="string literal">
+            <key="string literal">
                 <img key={"String".to_owned()} />
                 <p key={Rc::<str>::from("rc")}></p>
                 <div key='a'>
@@ -97,7 +97,7 @@ mod test {
                     <p key=24_i32></p>
                     <p key=25_i128></p>
                 </div>
-            </div>
+            </>
         };
     }
 }
