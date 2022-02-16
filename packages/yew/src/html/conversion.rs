@@ -1,15 +1,19 @@
-use super::{Component, NodeRef, Scope};
+use std::rc::Rc;
+
 use crate::virtual_dom::AttrValue;
 use crate::Callback;
-use std::rc::Rc;
+
+use super::{Component, NodeRef, Scope};
 
 /// Marker trait for types that the [`html!`](macro@crate::html) macro may clone implicitly.
 pub trait ImplicitClone: Clone {}
 
 impl<T: ImplicitClone> ImplicitClone for Option<T> {}
+
 impl<T> ImplicitClone for Rc<T> {}
 
 impl ImplicitClone for NodeRef {}
+
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
 // TODO there are still a few missing
 
@@ -39,6 +43,7 @@ impl<T> IntoPropValue<T> for T {
         self
     }
 }
+
 impl<T> IntoPropValue<T> for &T
 where
     T: ImplicitClone,
@@ -55,6 +60,7 @@ impl<T> IntoPropValue<Option<T>> for T {
         Some(self)
     }
 }
+
 impl<T> IntoPropValue<Option<T>> for &T
 where
     T: ImplicitClone,
@@ -121,14 +127,13 @@ impl_into_prop!(|value: String| -> AttrValue { AttrValue::Rc(Rc::from(value)) })
 impl_into_prop!(|value: Rc<str>| -> AttrValue { AttrValue::Rc(value) });
 
 const TRUE: AttrValue = AttrValue::Static("true");
-const FALSE: AttrValue = AttrValue::Static("false");
-impl_into_prop!(|value: bool| -> AttrValue {
-    if value {
-        TRUE
-    } else {
-        FALSE
+
+impl IntoPropValue<Option<AttrValue>> for bool {
+    #[inline]
+    fn into_prop_value(self) -> Option<AttrValue> {
+        self.then(|| TRUE)
     }
-});
+}
 
 #[cfg(test)]
 mod test {
@@ -141,6 +146,9 @@ mod test {
         let _: AttrValue = "foo".into_prop_value();
         let _: Option<AttrValue> = "foo".into_prop_value();
         let _: Option<AttrValue> = Rc::<str>::from("foo").into_prop_value();
-        let _: AttrValue = true.into_prop_value();
+        let boolean: Option<AttrValue> = true.into_prop_value();
+        assert_eq!(boolean, Some(AttrValue::Static("TRUE")));
+        let boolean: Option<AttrValue> = false.into_prop_value();
+        assert_eq!(boolean, None);
     }
 }
