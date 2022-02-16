@@ -479,7 +479,7 @@ pub fn all_aria_labels() -> [AttributePropDefinition; 49] {
     ]
     .map(|it| {
         AttributePropDefinition::new(
-            Ident::new(&format!("aria_{it}"), Span::mixed_site()),
+            Ident::new(&format!("aria_{}", it), Span::mixed_site()),
             parse_quote! { ::yew::virtual_dom::AttrValue },
         )
     })
