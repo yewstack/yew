@@ -127,7 +127,7 @@ use crate::html::{BaseComponent, ChildrenProps, Component, Context, Html};
 ///             <Provider2>
 ///                 <Provider3>
 ///
-///                     // Hydration will success as the PhantomComponent in the server-side
+///                     // Hydration will succeed as the PhantomComponent in the server-side
 ///                     // implementation will represent a Provider4 component in this position.
 ///                     <Provider4>
 ///                         <Comp />
