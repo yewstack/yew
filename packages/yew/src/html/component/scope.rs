@@ -540,8 +540,8 @@ mod feat_hydration {
             // This is very helpful to see which component is failing during hydration
             // which means this component may not having a stable layout / differs between
             // client-side and server-side.
-            #[cfg(debug_assertions)]
-            log::trace!(
+            #[cfg(all(debug_assertions, feature = "trace_hydration"))]
+            gloo::console::trace!(
                 "queuing hydration of: {}(ID: {})",
                 std::any::type_name::<COMP>(),
                 self.id
