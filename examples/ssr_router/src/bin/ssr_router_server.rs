@@ -1,10 +1,13 @@
 use function_router::{ServerApp, ServerAppProps};
+use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use structopt::StructOpt;
-use tokio::task::spawn_blocking;
-use tokio::task::LocalSet;
+use tokio_util::task::LocalPoolHandle;
 use warp::Filter;
+
+// We spawn a local pool that is as big as the number of cpu threads.
+static LOCAL_POOL: Lazy<LocalPoolHandle> = Lazy::new(|| LocalPoolHandle::new(num_cpus::get()));
 
 /// A basic example
 #[derive(StructOpt, Debug)]
@@ -17,28 +20,22 @@ struct Opt {
 async fn render(index_html_s: &str, url: &str, queries: HashMap<String, String>) -> String {
     let url = url.to_string();
 
-    let content = spawn_blocking(move || {
-        use tokio::runtime::Builder;
-        let set = LocalSet::new();
+    let content = LOCAL_POOL
+        .spawn_pinned(move || async move {
+            let server_app_props = ServerAppProps {
+                url: url.into(),
+                queries,
+            };
 
-        let rt = Builder::new_current_thread().enable_all().build().unwrap();
-
-        let server_app_props = ServerAppProps {
-            url: url.into(),
-            queries,
-        };
-
-        set.block_on(&rt, async {
             let renderer = yew::ServerRenderer::<ServerApp>::with_props(server_app_props);
 
             renderer.render().await
         })
-    })
-    .await
-    .expect("the thread has failed.");
+        .await
+        .expect("the task has failed.");
 
-    // Good enough for an example, but developers should print their html properly in actual
-    // application.
+    // Good enough for an example, but developers should avoid the replace and extra allocation
+    // here in an actual app.
     index_html_s.replace("<body>", &format!("<body>{}", content))
 }
 
