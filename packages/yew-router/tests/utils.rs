@@ -24,3 +24,12 @@ pub fn history_length() -> u32 {
         .length()
         .expect("No history length found")
 }
+
+pub fn link_href(selector: &str) -> String {
+    gloo::utils::document()
+        .query_selector(selector)
+        .expect("Failed to run query selector")
+        .expect(format!("No such link: {}", selector).as_str())
+        .get_attribute("href")
+        .expect("No href attribute")
+}
