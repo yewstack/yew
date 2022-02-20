@@ -50,8 +50,6 @@ use std::{fmt, hint::unreachable_unchecked};
 pub enum AttrValue {
     /// String living for `'static`
     Static(&'static str),
-    /// Owned string
-    Owned(String),
     /// Reference counted string
     Rc(Rc<str>),
 }
@@ -62,7 +60,6 @@ impl Deref for AttrValue {
     fn deref(&self) -> &Self::Target {
         match self {
             AttrValue::Static(s) => *s,
-            AttrValue::Owned(s) => s.as_str(),
             AttrValue::Rc(s) => &*s,
         }
     }
@@ -76,7 +73,7 @@ impl From<&'static str> for AttrValue {
 
 impl From<String> for AttrValue {
     fn from(s: String) -> Self {
-        AttrValue::Owned(s)
+        AttrValue::Rc(Rc::from(s))
     }
 }
 
@@ -99,7 +96,6 @@ impl Clone for AttrValue {
     fn clone(&self) -> Self {
         match self {
             AttrValue::Static(s) => AttrValue::Static(s),
-            AttrValue::Owned(s) => AttrValue::Owned(s.clone()),
             AttrValue::Rc(s) => AttrValue::Rc(Rc::clone(s)),
         }
     }
@@ -115,7 +111,6 @@ impl fmt::Display for AttrValue {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             AttrValue::Static(s) => write!(f, "{}", s),
-            AttrValue::Owned(s) => write!(f, "{}", s),
             AttrValue::Rc(s) => write!(f, "{}", s),
         }
     }
@@ -136,7 +131,6 @@ impl AttrValue {
     pub fn into_string(self) -> String {
         match self {
             AttrValue::Static(s) => (*s).to_owned(),
-            AttrValue::Owned(s) => s,
             AttrValue::Rc(mut rc) => {
                 if let Some(s) = Rc::get_mut(&mut rc) {
                     (*s).to_owned()
@@ -157,9 +151,6 @@ mod tests_attr_value {
         let av = AttrValue::Static("str");
         assert_eq!(av.into_string(), "str");
 
-        let av = AttrValue::Owned("String".to_string());
-        assert_eq!(av.into_string(), "String");
-
         let av = AttrValue::Rc("Rc<str>".into());
         assert_eq!(av.into_string(), "Rc<str>");
     }
@@ -174,25 +165,17 @@ mod tests_attr_value {
 
         let av = AttrValue::from(Cow::from("BorrowedCow"));
         assert_eq!(av.into_string(), "BorrowedCow");
-
-        let av = AttrValue::from(Cow::from("OwnedCow".to_string()));
-        assert_eq!(av.into_string(), "OwnedCow");
     }
 
     #[test]
     fn test_equality() {
         // construct 3 AttrValue with same embedded value; expectation is that all are equal
-        let a = AttrValue::Owned("same".to_string());
-        let b = AttrValue::Static("same");
-        let c = AttrValue::Rc("same".into());
+        let a = AttrValue::Static("same");
+        let b = AttrValue::Rc("same".into());
 
         assert_eq!(a, b);
-        assert_eq!(b, c);
-        assert_eq!(a, c);
 
         assert_eq!(a, b);
-        assert_eq!(b, c);
-        assert_eq!(a, c);
     }
 }
 
