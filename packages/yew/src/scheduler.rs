@@ -99,7 +99,7 @@ pub(crate) fn push_component_update(runnable: impl Runnable + 'static) {
 }
 
 /// Execute any pending [Runnable]s
-pub(crate) fn start() {
+pub(crate) fn start_now() {
     thread_local! {
         // The lock is used to prevent recursion. If the lock cannot be acquired, it is because the
         // `start()` method is being called recursively as part of a `runnable.run()`.
@@ -121,6 +121,40 @@ pub(crate) fn start() {
         }
     });
 }
+
+#[cfg(target_arch = "wasm32")]
+mod target_wasm {
+    use super::*;
+    use crate::io_coop::spawn_local;
+
+    /// We delay the start of the scheduler to the end of the micro task queue.
+    /// So any messages that needs to be queued can be queued.
+    pub(crate) fn start() {
+        spawn_local(async {
+            start_now();
+        });
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+pub(crate) use target_wasm::*;
+
+#[cfg(not(target_arch = "wasm32"))]
+mod target_native {
+    use super::*;
+
+    // Delayed rendering is not very useful in the context of server-side rendering.
+    // There are no event listeners or other high priority events that need to be
+    // processed and we risk of having a future un-finished.
+    // Until scheduler is future-capable which means we can join inside a future,
+    // it can remain synchronous.
+    pub(crate) fn start() {
+        start_now();
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) use target_native::*;
 
 impl Scheduler {
     /// Fill vector with tasks to be executed according to Runnable type execution priority

@@ -37,7 +37,7 @@ where
 
     /// Schedule the app for destruction
     pub fn destroy(self) {
-        self.scope.destroy()
+        self.scope.destroy(false)
     }
 }
 

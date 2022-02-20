@@ -20,9 +20,9 @@ pub struct BPortal {
 }
 
 impl DomBundle for BPortal {
-    fn detach(self, _: &Element) {
+    fn detach(self, _: &Element, _parent_to_detach: bool) {
         test_log!("Detaching portal from host{:?}", self.host.outer_html());
-        self.node.detach(&self.host);
+        self.node.detach(&self.host, false);
         test_log!("Detached portal from host{:?}", self.host.outer_html());
     }
 

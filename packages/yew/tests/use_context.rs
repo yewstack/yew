@@ -1,14 +1,16 @@
 mod common;
 
 use common::obtain_result_by_id;
+use gloo::timers::future::sleep;
 use std::rc::Rc;
+use std::time::Duration;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
-fn use_context_scoping_works() {
+async fn use_context_scoping_works() {
     #[derive(Clone, Debug, PartialEq)]
     struct ExampleContext(String);
 
@@ -62,12 +64,15 @@ fn use_context_scoping_works() {
     yew::start_app_in_element::<UseContextComponent>(
         gloo_utils::document().get_element_by_id("output").unwrap(),
     );
+
+    sleep(Duration::ZERO).await;
+
     let result: String = obtain_result_by_id("result");
     assert_eq!("correct", result);
 }
 
 #[wasm_bindgen_test]
-fn use_context_works_with_multiple_types() {
+async fn use_context_works_with_multiple_types() {
     #[derive(Clone, Debug, PartialEq)]
     struct ContextA(u32);
     #[derive(Clone, Debug, PartialEq)]
@@ -141,10 +146,12 @@ fn use_context_works_with_multiple_types() {
     yew::start_app_in_element::<TestComponent>(
         gloo_utils::document().get_element_by_id("output").unwrap(),
     );
+
+    sleep(Duration::ZERO).await;
 }
 
 #[wasm_bindgen_test]
-fn use_context_update_works() {
+async fn use_context_update_works() {
     #[derive(Clone, Debug, PartialEq)]
     struct MyContext(String);
 
@@ -238,6 +245,8 @@ fn use_context_update_works() {
     yew::start_app_in_element::<TestComponent>(
         gloo_utils::document().get_element_by_id("output").unwrap(),
     );
+
+    sleep(Duration::ZERO).await;
 
     // 1 initial render + 3 update steps
     assert_eq!(obtain_result_by_id("test-0"), "total: 4");

@@ -1,19 +1,99 @@
 //! Component lifecycle module
 
 use super::scope::{AnyScope, Scope};
+use super::BaseComponent;
 use crate::dom_bundle::ComponentRenderState;
-use crate::html::{BaseComponent, RenderError};
+use crate::html::RenderError;
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{Suspense, Suspension};
-use crate::Callback;
-use crate::{Context, NodeRef};
+use crate::{Callback, Context, HtmlResult, NodeRef};
+use std::any::Any;
 use std::rc::Rc;
 
-pub struct ComponentState<COMP: BaseComponent> {
-    pub(super) component: Box<COMP>,
-    pub(super) render_state: ComponentRenderState,
+pub struct CompStateInner<COMP>
+where
+    COMP: BaseComponent,
+{
+    pub(crate) component: COMP,
+    pub(crate) context: Context<COMP>,
+}
 
-    context: Context<COMP>,
+/// A trait to provide common,
+/// generic free behaviour across all components to reduce code size.
+///
+/// Mostly a thin wrapper that passes the context to a component's lifecycle
+/// methods.
+pub trait Stateful {
+    fn view(&self) -> HtmlResult;
+    fn rendered(&mut self, first_render: bool);
+    fn destroy(&mut self);
+
+    fn any_scope(&self) -> AnyScope;
+
+    fn flush_messages(&mut self) -> bool;
+    fn props_changed(&mut self, props: Rc<dyn Any>) -> bool;
+
+    fn as_any(&self) -> &dyn Any;
+    fn as_any_mut(&mut self) -> &mut dyn Any;
+}
+
+impl<COMP> Stateful for CompStateInner<COMP>
+where
+    COMP: BaseComponent,
+{
+    fn view(&self) -> HtmlResult {
+        self.component.view(&self.context)
+    }
+
+    fn rendered(&mut self, first_render: bool) {
+        self.component.rendered(&self.context, first_render)
+    }
+
+    fn destroy(&mut self) {
+        self.component.destroy(&self.context);
+    }
+
+    fn any_scope(&self) -> AnyScope {
+        self.context.link().clone().into()
+    }
+
+    fn flush_messages(&mut self) -> bool {
+        self.context
+            .link()
+            .pending_messages
+            .drain()
+            .into_iter()
+            .fold(false, |acc, msg| {
+                self.component.update(&self.context, msg) || acc
+            })
+    }
+
+    fn props_changed(&mut self, props: Rc<dyn Any>) -> bool {
+        let props = match Rc::downcast::<COMP::Properties>(props) {
+            Ok(m) => m,
+            _ => return false,
+        };
+
+        if self.context.props != props {
+            self.context.props = Rc::clone(&props);
+            self.component.changed(&self.context)
+        } else {
+            false
+        }
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+}
+
+pub struct ComponentState {
+    pub(super) inner: Box<dyn Stateful>,
+
+    pub(super) render_state: ComponentRenderState,
     node_ref: NodeRef,
     has_rendered: bool,
 
@@ -21,25 +101,28 @@ pub struct ComponentState<COMP: BaseComponent> {
 
     // Used for debug logging
     #[cfg(debug_assertions)]
-    vcomp_id: u64,
+    pub(crate) vcomp_id: usize,
 }
 
-impl<COMP: BaseComponent> ComponentState<COMP> {
-    fn new(
+impl ComponentState {
+    pub(crate) fn new<COMP: BaseComponent>(
         initial_render_state: ComponentRenderState,
         node_ref: NodeRef,
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
     ) -> Self {
         #[cfg(debug_assertions)]
-        let vcomp_id = { scope.vcomp_id };
+        let vcomp_id = scope.vcomp_id;
         let context = Context { scope, props };
 
-        let component = Box::new(COMP::create(&context));
-        Self {
-            component,
-            render_state: initial_render_state,
+        let inner = Box::new(CompStateInner {
+            component: COMP::create(&context),
             context,
+        });
+
+        Self {
+            inner,
+            render_state: initial_render_state,
             node_ref,
             suspension: None,
             has_rendered: false,
@@ -74,42 +157,31 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
     }
 }
 
-pub enum UpdateEvent<COMP: BaseComponent> {
-    /// Wraps messages for a component.
-    Message(COMP::Message),
-    /// Wraps batch of messages for a component.
-    MessageBatch(Vec<COMP::Message>),
+pub enum UpdateEvent {
+    /// Drain messages for a component.
+    Message,
     /// Wraps properties, node ref, and next sibling for a component.
-    Properties(Rc<COMP::Properties>, NodeRef, NodeRef),
+    Properties(Rc<dyn Any>, NodeRef, NodeRef),
 }
 
-pub struct UpdateRunner<COMP: BaseComponent> {
-    pub state: Shared<Option<ComponentState<COMP>>>,
-    pub event: UpdateEvent<COMP>,
+pub struct UpdateRunner {
+    pub state: Shared<Option<ComponentState>>,
+    pub event: UpdateEvent,
 }
 
-impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
+impl Runnable for UpdateRunner {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().as_mut() {
             let schedule_render = match self.event {
-                UpdateEvent::Message(message) => state.component.update(&state.context, message),
-                UpdateEvent::MessageBatch(messages) => {
-                    messages.into_iter().fold(false, |acc, msg| {
-                        state.component.update(&state.context, msg) || acc
-                    })
-                }
+                UpdateEvent::Message => state.inner.flush_messages(),
                 UpdateEvent::Properties(props, node_ref, next_sibling) => {
                     // When components are updated, a new node ref could have been passed in
                     state.node_ref = node_ref;
                     // When components are updated, their siblings were likely also updated
                     state.render_state.reuse(next_sibling);
                     // Only trigger changed if props were changed
-                    if state.context.props != props {
-                        state.context.props = Rc::clone(&props);
-                        state.component.changed(&state.context)
-                    } else {
-                        false
-                    }
+
+                    state.inner.props_changed(props)
                 }
             };
 
@@ -132,39 +204,40 @@ impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
     }
 }
 
-pub struct DestroyRunner<COMP: BaseComponent> {
-    pub state: Shared<Option<ComponentState<COMP>>>,
+pub struct DestroyRunner {
+    pub state: Shared<Option<ComponentState>>,
+    pub parent_to_detach: bool,
 }
 
-impl<COMP: BaseComponent> Runnable for DestroyRunner<COMP> {
+impl Runnable for DestroyRunner {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().take() {
             #[cfg(debug_assertions)]
             super::log_event(state.vcomp_id, "destroy");
 
-            state.component.destroy(&state.context);
-            state.render_state.detach();
+            state.inner.destroy();
+            state.render_state.detach(self.parent_to_detach);
             state.node_ref.set(None);
         }
     }
 }
 
-pub struct RenderRunner<COMP: BaseComponent> {
-    pub state: Shared<Option<ComponentState<COMP>>>,
+pub struct RenderRunner {
+    pub state: Shared<Option<ComponentState>>,
 }
 
-impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
+impl Runnable for RenderRunner {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             #[cfg(debug_assertions)]
             super::log_event(state.vcomp_id, "render");
 
-            match state.component.view(&state.context) {
+            match state.inner.view() {
                 Ok(root) => {
                     // Currently not suspended, we remove any previous suspension and update
                     // normally.
                     if let Some(m) = state.suspension.take() {
-                        let comp_scope = AnyScope::from(state.context.scope.clone());
+                        let comp_scope = state.inner.any_scope();
 
                         let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
                         let suspense = suspense_scope.get_component().unwrap();
@@ -172,7 +245,7 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
                         suspense.resume(m);
                     }
 
-                    let scope = state.context.scope.clone().into();
+                    let scope = state.inner.any_scope();
                     let node = state.render_state.reconcile(root, &scope);
                     state.node_ref.link(node);
 
@@ -208,7 +281,7 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
                     } else {
                         // We schedule a render after current suspension is resumed.
 
-                        let comp_scope = AnyScope::from(state.context.scope.clone());
+                        let comp_scope = state.inner.any_scope();
 
                         let suspense_scope = comp_scope
                             .find_parent_scope::<Suspense>()
@@ -222,6 +295,7 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
                                     state: shared_state.clone(),
                                 },
                             );
+                            scheduler::start();
                         }));
 
                         if let Some(ref last_m) = state.suspension {
@@ -240,19 +314,19 @@ impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
     }
 }
 
-struct RenderedRunner<COMP: BaseComponent> {
-    state: Shared<Option<ComponentState<COMP>>>,
+struct RenderedRunner {
+    state: Shared<Option<ComponentState>>,
     first_render: bool,
 }
 
-impl<COMP: BaseComponent> Runnable for RenderedRunner<COMP> {
+impl Runnable for RenderedRunner {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             #[cfg(debug_assertions)]
             super::log_event(state.vcomp_id, "rendered");
 
             if state.suspension.is_none() {
-                state.component.rendered(&state.context, self.first_render);
+                state.inner.rendered(self.first_render);
             }
         }
     }
@@ -392,6 +466,7 @@ mod tests {
 
         lifecycle.borrow_mut().clear();
         scope.mount_in_place(render_state, node_ref, Rc::new(props));
+        crate::scheduler::start_now();
 
         assert_eq!(&lifecycle.borrow_mut().deref()[..], expected);
     }

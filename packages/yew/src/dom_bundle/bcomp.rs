@@ -40,8 +40,8 @@ impl fmt::Debug for BComp {
 }
 
 impl DomBundle for BComp {
-    fn detach(self, _parent: &Element) {
-        self.scope.destroy_boxed();
+    fn detach(self, _parent: &Element, parent_to_detach: bool) {
+        self.scope.destroy_boxed(parent_to_detach);
     }
 
     fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
@@ -264,9 +264,9 @@ impl ComponentRenderState {
         }
     }
     /// Detach the rendered content from the DOM
-    pub(crate) fn detach(self) {
+    pub(crate) fn detach(self, parent_to_detach: bool) {
         if let Some(ref m) = self.parent {
-            self.root_node.detach(m);
+            self.root_node.detach(m, parent_to_detach);
         }
     }
 
@@ -282,14 +282,15 @@ pub trait Scoped {
     /// Shift the node associated with this scope to a new place
     fn shift_node(&self, parent: Element, next_sibling: NodeRef);
     /// Process an event to destroy a component
-    fn destroy(self);
-    fn destroy_boxed(self: Box<Self>);
+    fn destroy(self, parent_to_detach: bool);
+    fn destroy_boxed(self: Box<Self>, parent_to_detach: bool);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::dom_bundle::{DomBundle, Reconcilable};
+    use crate::scheduler;
     use crate::{
         html,
         virtual_dom::{Key, VChild, VNode},
@@ -341,6 +342,7 @@ mod tests {
 
         let comp = html! { <Comp></Comp> };
         let (_, mut bundle) = comp.attach(&parent_scope, &parent_element, NodeRef::default());
+        scheduler::start_now();
 
         for _ in 0..10000 {
             let node = html! { <Comp></Comp> };
@@ -350,6 +352,7 @@ mod tests {
                 NodeRef::default(),
                 &mut bundle,
             );
+            scheduler::start_now();
         }
     }
 
@@ -504,6 +507,7 @@ mod tests {
         parent.set_inner_html("");
 
         node.attach(scope, parent, NodeRef::default());
+        scheduler::start_now();
         parent.inner_html()
     }
 
@@ -563,9 +567,11 @@ mod tests {
         let node_ref = NodeRef::default();
         let elem = html! { <Comp ref={node_ref.clone()}></Comp> };
         let (_, elem) = elem.attach(&scope, &parent, NodeRef::default());
+        scheduler::start_now();
         let parent_node = parent.deref();
         assert_eq!(node_ref.get(), parent_node.first_child());
-        elem.detach(&parent);
+        elem.detach(&parent, false);
+        scheduler::start_now();
         assert!(node_ref.get().is_none());
     }
 }

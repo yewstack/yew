@@ -151,7 +151,7 @@ impl BList {
         if lefts.len() < rights.len() {
             for r in rights.drain(lefts.len()..) {
                 test_log!("removing: {:?}", r);
-                r.detach(parent);
+                r.detach(parent, false);
             }
         }
 
@@ -336,7 +336,7 @@ impl BList {
         // Step 2.3. Remove any extra rights
         for KeyedEntry(_, r) in spare_bundles.drain() {
             test_log!("removing: {:?}", r);
-            r.detach(parent);
+            r.detach(parent, false);
         }
 
         // Step 3. Diff matching children at the start
@@ -354,9 +354,9 @@ impl BList {
 }
 
 impl DomBundle for BList {
-    fn detach(self, parent: &Element) {
+    fn detach(self, parent: &Element, parent_to_detach: bool) {
         for child in self.rev_children.into_iter() {
-            child.detach(parent);
+            child.detach(parent, parent_to_detach);
         }
     }
 

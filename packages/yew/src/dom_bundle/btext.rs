@@ -15,10 +15,13 @@ pub struct BText {
 }
 
 impl DomBundle for BText {
-    fn detach(self, parent: &Element) {
-        let node = &self.text_node;
-        if parent.remove_child(node).is_err() {
-            console::warn!("Node not found to remove VText");
+    fn detach(self, parent: &Element, parent_to_detach: bool) {
+        if !parent_to_detach {
+            let result = parent.remove_child(&self.text_node);
+
+            if result.is_err() {
+                console::warn!("Node not found to remove VText");
+            }
         }
     }
 

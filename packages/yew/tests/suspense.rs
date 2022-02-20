@@ -119,6 +119,8 @@ async fn suspense_works() {
         .unwrap()
         .click();
 
+    TimeoutFuture::new(0).await;
+
     gloo_utils::document()
         .query_selector(".increase")
         .unwrap()
@@ -126,6 +128,8 @@ async fn suspense_works() {
         .dyn_into::<HtmlElement>()
         .unwrap()
         .click();
+
+    TimeoutFuture::new(1).await;
 
     let result = obtain_result();
     assert_eq!(
@@ -542,6 +546,8 @@ async fn effects_not_run_when_suspended() {
         .unwrap()
         .click();
 
+    TimeoutFuture::new(0).await;
+
     gloo_utils::document()
         .query_selector(".increase")
         .unwrap()
@@ -549,6 +555,8 @@ async fn effects_not_run_when_suspended() {
         .dyn_into::<HtmlElement>()
         .unwrap()
         .click();
+
+    TimeoutFuture::new(0).await;
 
     let result = obtain_result();
     assert_eq!(

@@ -1,5 +1,6 @@
 use crate::dom_bundle::{BNode, DomBundle, Reconcilable};
 use crate::html::AnyScope;
+use crate::scheduler;
 use crate::virtual_dom::VNode;
 use crate::{Component, Context, Html};
 use gloo::console::log;
@@ -51,6 +52,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         log!("Independently apply layout '{}'", layout.name);
 
         let (_, mut bundle) = vnode.attach(&parent_scope, &parent_element, next_sibling.clone());
+        scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -69,6 +71,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             next_sibling.clone(),
             &mut bundle,
         );
+        scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -77,7 +80,8 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         );
 
         // Detach
-        bundle.detach(&parent_element);
+        bundle.detach(&parent_element, false);
+        scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
             "END",
@@ -98,6 +102,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             next_sibling.clone(),
             &mut bundle,
         );
+        scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -117,6 +122,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             next_sibling.clone(),
             &mut bundle,
         );
+        scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -127,8 +133,9 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
 
     // Detach last layout
     if let Some(bundle) = bundle {
-        bundle.detach(&parent_element);
+        bundle.detach(&parent_element, false);
     }
+    scheduler::start_now();
     assert_eq!(
         parent_element.inner_html(),
         "END",

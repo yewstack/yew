@@ -41,7 +41,9 @@ use web_sys::{Element, Node};
 
 trait DomBundle {
     /// Remove self from parent.
-    fn detach(self, parent: &Element);
+    ///
+    /// Parent to detach is `true` if the parent element will also be detached.
+    fn detach(self, parent: &Element, parent_to_detach: bool);
 
     /// Move elements from one parent to another parent.
     /// This is for example used by `VSuspense` to preserve component state without detaching
@@ -116,7 +118,7 @@ trait Reconcilable {
     {
         let (self_ref, self_) = self.attach(parent_scope, parent, next_sibling);
         let ancestor = std::mem::replace(bundle, self_.into());
-        ancestor.detach(parent);
+        ancestor.detach(parent, false);
         self_ref
     }
 }

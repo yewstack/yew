@@ -30,25 +30,29 @@ macro_rules! gen_listener_kinds {
         /// Supported kinds of DOM event listeners
         // Using instead of strings to optimise registry collection performance by simplifying
         // hashmap hash calculation.
-        #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+        #[derive(Clone, PartialEq, Eq, Hash, Debug)]
         #[allow(non_camel_case_types)]
         #[allow(missing_docs)]
         pub enum ListenerKind {
             $( $kind, )*
+            other(std::borrow::Cow<'static, str>),
         }
 
         impl ListenerKind {
-            /// Get the case-sensitive string representing the event type
-            pub fn event_type(&self) -> &'static str {
+            pub fn type_name(&self) -> std::borrow::Cow<'static, str> {
                 match self {
-                    $( ListenerKind::$kind => stringify!($kind), )*
+                    Self::other(type_name) => type_name.clone(),
+                    $( Self::$kind => stringify!($kind)[2..].into(), )*
                 }
             }
         }
 
         impl AsRef<str> for ListenerKind {
             fn as_ref(&self) -> &str {
-                self.event_type()
+                match self {
+                    $( Self::$kind => stringify!($kind), )*
+                    Self::other(type_name) => type_name.as_ref(),
+                }
             }
         }
     };

@@ -69,16 +69,21 @@ pub struct BTag {
 }
 
 impl DomBundle for BTag {
-    fn detach(self, parent: &Element) {
+    fn detach(self, parent: &Element, parent_to_detach: bool) {
         self.listeners.unregister();
 
         let node = self.reference;
         // recursively remove its children
         if let BTagInner::Other { child_bundle, .. } = self.inner {
-            child_bundle.detach(&node);
+            // This tag will be removed, so there's no point to remove any child.
+            child_bundle.detach(&node, true);
         }
-        if parent.remove_child(&node).is_err() {
-            console::warn!("Node not found to remove VTag");
+        if !parent_to_detach {
+            let result = parent.remove_child(&node);
+
+            if result.is_err() {
+                console::warn!("Node not found to remove VTag");
+            }
         }
         // It could be that the ref was already reused when rendering another element.
         // Only unset the ref it still belongs to our node
@@ -761,7 +766,7 @@ mod tests {
         assert_vtag_ref(&elem);
         let (_, elem) = elem.attach(&scope, &parent, NodeRef::default());
         assert_eq!(node_ref.get(), parent.first_child());
-        elem.detach(&parent);
+        elem.detach(&parent, false);
         assert!(node_ref.get().is_none());
     }
 

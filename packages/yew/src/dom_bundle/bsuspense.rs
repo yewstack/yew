@@ -30,12 +30,12 @@ impl BSuspense {
 }
 
 impl DomBundle for BSuspense {
-    fn detach(self, parent: &Element) {
+    fn detach(self, parent: &Element, parent_to_detach: bool) {
         if let Some(fallback) = self.fallback_bundle {
-            fallback.detach(parent);
-            self.children_bundle.detach(&self.detached_parent);
+            fallback.detach(parent, parent_to_detach);
+            self.children_bundle.detach(&self.detached_parent, false);
         } else {
-            self.children_bundle.detach(parent);
+            self.children_bundle.detach(parent, parent_to_detach);
         }
     }
 
@@ -164,7 +164,11 @@ impl Reconcilable for VSuspense {
             }
             // Freshly unsuspended. Detach fallback from the DOM, then shift children into it.
             (false, Some(_)) => {
-                suspense.fallback_bundle.take().unwrap().detach(parent);
+                suspense
+                    .fallback_bundle
+                    .take()
+                    .unwrap() // We just matched Some(_)
+                    .detach(parent, false);
 
                 children_bundle.shift(parent, next_sibling.clone());
                 children.reconcile_node(parent_scope, parent, next_sibling, children_bundle)

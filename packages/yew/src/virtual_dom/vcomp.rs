@@ -7,6 +7,9 @@ use std::any::TypeId;
 use std::fmt;
 use std::rc::Rc;
 
+#[cfg(debug_assertions)]
+thread_local! {}
+
 /// A virtual component.
 pub struct VComp {
     pub(crate) type_id: TypeId,

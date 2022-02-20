@@ -1,14 +1,16 @@
 mod common;
 
 use common::obtain_result;
+use gloo::timers::future::sleep;
 use std::ops::DerefMut;
+use std::time::Duration;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
-fn use_ref_works() {
+async fn use_ref_works() {
     #[function_component(UseRefComponent)]
     fn use_ref_comp() -> Html {
         let ref_example = use_mut_ref(|| 0);
@@ -29,6 +31,7 @@ fn use_ref_works() {
     yew::start_app_in_element::<UseRefComponent>(
         gloo_utils::document().get_element_by_id("output").unwrap(),
     );
+    sleep(Duration::ZERO).await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "true");

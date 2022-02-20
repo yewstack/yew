@@ -1,0 +1,160 @@
+---
+title: "use_effect"
+---
+
+`use_effect` is used for hooking into the component's lifecycle and creating side-effects.
+
+It takes a function which is called after every component's render finishes.
+
+The input function has to return a closure - a cleanup function, which is called right before starting a new render.
+
+## Example
+
+```rust
+use yew::{Callback, function_component, html, use_effect, use_state, Html};
+
+#[function_component]
+fn EffectExample() -> Html {
+    let counter = use_state(|| 0);
+
+    {
+        let counter = counter.clone();
+        use_effect(move || {
+            // Make a call to DOM API after component is rendered
+            gloo::utils::document().set_title(&format!("You clicked {} times", *counter));
+
+            // Perform the cleanup
+            || gloo::utils::document().set_title("You clicked 0 times")
+        });
+    }
+    let onclick = {
+        let counter = counter.clone();
+        Callback::from(move |_| counter.set(*counter + 1))
+    };
+
+    html! {
+        <button {onclick}>{ format!("Increment to {}", *counter) }</button>
+    }
+}
+```
+
+## `use_effect_with_deps`
+
+`use_effect_with_deps` is a more enhanced version of [`use_effect`](#use_effect).
+
+It takes a second argument - dependencies.
+
+Only when dependencies change, it calls the provided function.
+
+Same way with the clean-up function - it gets called only before re-calling the function from the first argument.
+
+:::note
+
+`dependencies` must implement `PartialEq`.
+
+:::
+
+```rust
+use yew::{function_component, html, Html, Properties, use_effect_with_deps};
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    pub is_loading: bool,
+}
+
+#[function_component]
+fn HelloWorld(props: &Props) -> Html {
+    let is_loading = props.is_loading.clone();
+
+    use_effect_with_deps(
+        move |_| {
+            web_sys::console::log_1(&" Is loading prop changed!".into());
+            || ()
+        },
+        // highlight-next-line
+        is_loading,
+    );
+
+    html! { <>{"Am I loading? - "}{is_loading}</> }
+}
+```
+
+## Tips
+
+### Only on first render
+
+Provide a empty tuple `()` as dependencies when you need to do something only on first render.
+
+```rust
+use yew::{function_component, html, Html, use_effect_with_deps};
+
+#[function_component]
+fn HelloWorld() -> Html {
+
+    use_effect_with_deps(
+        move |_| {
+            web_sys::console::log_1(&"I got rendered, yay!".into());
+            || ()
+        },
+        // highlight-next-line
+        (),
+    );
+
+    html! { "Hello" }
+}
+```
+
+### On destructing or last render
+
+Use [Only on first render](#only-on-first-render) and write the code in the cleanup function.
+It will only get called when the component is removed from view / gets destroyed.
+
+```rust
+use yew::{function_component, html, Html, use_effect_with_deps};
+
+#[function_component]
+fn HelloWorld() -> Html {
+    use_effect_with_deps(
+        move |_| {
+            // move is not needed bellow but the docs page breaks without it
+            move || {
+                web_sys::console::log_1(&"Noo dont kill me, ahhh!".into());
+            }
+        },
+        (),
+    );
+    html! { "Hello" }
+}
+```
+
+### Applying event listeners to the DOM
+
+Generally you can directly add the `on` + event name as just a html attribute.
+
+But for cases when you need to do it manually always re-apply and destroy old event listeners every render to avoid duplicate listeners in the DOM.
+
+Same tip applies to intervals and timeouts.
+
+```rust
+use yew::{function_component, html, Html, use_effect_with_deps, use_node_ref};
+
+#[function_component]
+fn HelloWorld() -> Html {
+    let span_ref = use_node_ref();
+
+    {
+        let span_ref = span_ref.clone();
+        use_effect_with_deps(
+            move |_| {
+                let listener = gloo::events::EventListener::new(&span_ref.cast::<web_sys::HtmlElement>().unwrap(), "click", move |event| {
+                    web_sys::console::log_1(&"I got clicked".into());
+                });
+                move || drop(listener)
+            },
+            (),
+        );
+    }
+
+    html! {<span ref={span_ref}>{"Hello"}</span>}
+}
+```

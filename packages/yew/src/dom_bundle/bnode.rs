@@ -43,19 +43,20 @@ impl BNode {
 
 impl DomBundle for BNode {
     /// Remove VNode from parent.
-    fn detach(self, parent: &Element) {
+    fn detach(self, parent: &Element, parent_to_detach: bool) {
         match self {
-            Self::BTag(vtag) => vtag.detach(parent),
-            Self::BText(btext) => btext.detach(parent),
-            Self::BComp(bsusp) => bsusp.detach(parent),
-            Self::BList(blist) => blist.detach(parent),
+            Self::BTag(vtag) => vtag.detach(parent, parent_to_detach),
+            Self::BText(btext) => btext.detach(parent, parent_to_detach),
+            Self::BComp(bsusp) => bsusp.detach(parent, parent_to_detach),
+            Self::BList(blist) => blist.detach(parent, parent_to_detach),
             Self::BRef(ref node) => {
+                // Always remove user-defined nodes to clear possible parent references of them
                 if parent.remove_child(node).is_err() {
                     console::warn!("Node not found to remove VRef");
                 }
             }
-            Self::BPortal(bportal) => bportal.detach(parent),
-            Self::BSuspense(bsusp) => bsusp.detach(parent),
+            Self::BPortal(bportal) => bportal.detach(parent, parent_to_detach),
+            Self::BSuspense(bsusp) => bsusp.detach(parent, parent_to_detach),
         }
     }
 
