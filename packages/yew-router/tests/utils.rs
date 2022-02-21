@@ -1,5 +1,6 @@
 use wasm_bindgen::JsCast;
 
+#[allow(dead_code)]
 pub fn obtain_result_by_id(id: &str) -> String {
     gloo::utils::document()
         .get_element_by_id(id)
@@ -7,6 +8,7 @@ pub fn obtain_result_by_id(id: &str) -> String {
         .inner_html()
 }
 
+#[allow(dead_code)]
 pub fn click(selector: &str) {
     gloo::utils::document()
         .query_selector(selector)
@@ -17,6 +19,7 @@ pub fn click(selector: &str) {
         .click();
 }
 
+#[allow(dead_code)]
 pub fn history_length() -> u32 {
     gloo::utils::window()
         .history()
@@ -25,6 +28,7 @@ pub fn history_length() -> u32 {
         .expect("No history length found")
 }
 
+#[allow(dead_code)]
 pub fn link_href(selector: &str) -> String {
     gloo::utils::document()
         .query_selector(selector)
