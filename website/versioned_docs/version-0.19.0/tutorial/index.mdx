@@ -478,6 +478,13 @@ serde = { version = "1.0", features = ["derive"] }
 wasm-bindgen-futures = "0.4"
 ```
 
+Import `Deserialize` and `Request`:
+```rust ,ignore {2-3}
+use yew::prelude::*;
++ use serde::Deserialize;
++ use reqwasm::http::Request;
+```
+
 Update the `Video` struct to derive the `Deserialize` trait:
 
 ```rust ,ignore {1-2}
