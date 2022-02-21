@@ -42,12 +42,15 @@ pub fn fetch_base_url() -> Option<String> {
 }
 
 pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
-    gloo::utils::window().location().href().ok().and_then(|base| {
-        web_sys::Url::new_with_base(pathname, &base).ok()
-    }).map(|url| {
-        url.set_search(query);
-        format!("{}{}", url.pathname(), url.search())
-    })
+    gloo::utils::window()
+        .location()
+        .href()
+        .ok()
+        .and_then(|base| web_sys::Url::new_with_base(pathname, &base).ok())
+        .map(|url| {
+            url.set_search(query);
+            format!("{}{}", url.pathname(), url.search())
+        })
 }
 
 #[cfg(test)]
@@ -89,9 +92,15 @@ mod tests {
     }
 
     #[test]
-    fn test_compose_href() {
+    fn test_compose_path() {
         assert_eq!(compose_path("/home", ""), Some("/home".to_string()));
-        assert_eq!(compose_path("/path/to", "foo=bar"), Some("/path/to?foo=bar".to_string()));
-        assert_eq!(compose_path("/events", "from=2019&to=2021"), Some("/events?from=2019&to=2021".to_string()));
-    }    
+        assert_eq!(
+            compose_path("/path/to", "foo=bar"),
+            Some("/path/to?foo=bar".to_string())
+        );
+        assert_eq!(
+            compose_path("/events", "from=2019&to=2021"),
+            Some("/events?from=2019&to=2021".to_string())
+        );
+    }
 }

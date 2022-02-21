@@ -24,11 +24,17 @@ struct SearchParams {
 
 impl SearchParams {
     fn new(q: &str) -> Self {
-        Self { q: q.to_string(), lang: None  }
+        Self {
+            q: q.to_string(),
+            lang: None,
+        }
     }
 
     fn new_with_lang(q: &str, lang: &str) -> Self {
-        Self { q: q.to_string(), lang: Some(lang.to_string()) }
+        Self {
+            q: q.to_string(),
+            lang: Some(lang.to_string()),
+        }
     }
 }
 
@@ -92,11 +98,20 @@ async fn link_in_browser_router() {
     sleep(Duration::ZERO).await;
 
     assert_eq!("/posts", link_href("#browser-router ul > li.posts > a"));
-    assert_eq!("/posts?page=2", link_href("#browser-router ul > li.posts-page-2 > a"));
+    assert_eq!(
+        "/posts?page=2",
+        link_href("#browser-router ul > li.posts-page-2 > a")
+    );
 
     assert_eq!("/search", link_href("#browser-router ul > li.search > a"));
-    assert_eq!("/search?q=Rust", link_href("#browser-router ul > li.search-q > a"));
-    assert_eq!("/search?q=Rust&lang=en_US", link_href("#browser-router ul > li.search-q-lang > a"));
+    assert_eq!(
+        "/search?q=Rust",
+        link_href("#browser-router ul > li.search-q > a")
+    );
+    assert_eq!(
+        "/search?q=Rust&lang=en_US",
+        link_href("#browser-router ul > li.search-q-lang > a")
+    );
 }
 
 #[function_component(RootForBasename)]
@@ -118,11 +133,23 @@ async fn link_with_basename() {
     sleep(Duration::ZERO).await;
 
     assert_eq!("/base/posts", link_href("#with-basename ul > li.posts > a"));
-    assert_eq!("/base/posts?page=2", link_href("#with-basename ul > li.posts-page-2 > a"));
+    assert_eq!(
+        "/base/posts?page=2",
+        link_href("#with-basename ul > li.posts-page-2 > a")
+    );
 
-    assert_eq!("/base/search", link_href("#with-basename ul > li.search > a"));
-    assert_eq!("/base/search?q=Rust", link_href("#with-basename ul > li.search-q > a"));
-    assert_eq!("/base/search?q=Rust&lang=en_US", link_href("#with-basename ul > li.search-q-lang > a"));
+    assert_eq!(
+        "/base/search",
+        link_href("#with-basename ul > li.search > a")
+    );
+    assert_eq!(
+        "/base/search?q=Rust",
+        link_href("#with-basename ul > li.search-q > a")
+    );
+    assert_eq!(
+        "/base/search?q=Rust&lang=en_US",
+        link_href("#with-basename ul > li.search-q-lang > a")
+    );
 }
 
 #[function_component(RootForHashRouter)]
@@ -144,9 +171,18 @@ async fn link_in_hash_router() {
     sleep(Duration::ZERO).await;
 
     assert_eq!("#/posts", link_href("#hash-router ul > li.posts > a"));
-    assert_eq!("#/posts?page=2", link_href("#hash-router ul > li.posts-page-2 > a"));
+    assert_eq!(
+        "#/posts?page=2",
+        link_href("#hash-router ul > li.posts-page-2 > a")
+    );
 
     assert_eq!("#/search", link_href("#hash-router ul > li.search > a"));
-    assert_eq!("#/search?q=Rust", link_href("#hash-router ul > li.search-q > a"));
-    assert_eq!("#/search?q=Rust&lang=en_US", link_href("#hash-router ul > li.search-q-lang > a"));
+    assert_eq!(
+        "#/search?q=Rust",
+        link_href("#hash-router ul > li.search-q > a")
+    );
+    assert_eq!(
+        "#/search?q=Rust&lang=en_US",
+        link_href("#hash-router ul > li.search-q-lang > a")
+    );
 }

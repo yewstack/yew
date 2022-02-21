@@ -7,8 +7,8 @@ use yew::virtual_dom::AttrValue;
 
 use crate::navigator::NavigatorKind;
 use crate::scope_ext::RouterScopeExt;
-use crate::Routable;
 use crate::utils;
+use crate::Routable;
 
 /// Props for [`Link`]
 #[derive(Properties, Clone, PartialEq)]
@@ -103,14 +103,13 @@ where
             .expect_throw("failed to get navigator");
         let href: AttrValue = {
             let pathname = navigator.route_to_url(to);
-            let path = query.and_then(|query| {
-                serde_urlencoded::to_string(query).ok()
-            }).and_then(|query| {
-                utils::compose_path(&pathname, &query)
-            }).unwrap_or_else(|| pathname.to_string());
+            let path = query
+                .and_then(|query| serde_urlencoded::to_string(query).ok())
+                .and_then(|query| utils::compose_path(&pathname, &query))
+                .unwrap_or_else(|| pathname.to_string());
 
             match navigator.kind() {
-                NavigatorKind::Hash => format!("#{}", path).into(),
+                NavigatorKind::Hash => format!("#{}", path),
                 _ => path,
             }
             .into()
