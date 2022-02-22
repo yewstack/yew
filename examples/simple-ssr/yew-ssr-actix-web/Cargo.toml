@@ -1,0 +1,12 @@
+[package]
+name = "yew-ssr-actix-web"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.17.0", features = ["full"] }
+actix-web = "4.0.0-rc.1"
+yew = { path = "../../../packages/yew", features = ["ssr"] }
+
+reqwest = { version = "0.11.9", features = ["json"] }
+serde = { version = "1.0.136", features = ["derive"] }
