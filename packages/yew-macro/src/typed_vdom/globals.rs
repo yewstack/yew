@@ -492,8 +492,14 @@ pub fn others() -> [AttributePropDefinition; 1] {
 }
 
 pub fn all_shared_attributes_as_string() -> Vec<String> {
-    let mut attrs = all_shared_attributes().iter().map(|it| it.name.to_string()).collect::<Vec<String>>();
-    let listeners = listeners().iter().map(|it| it.ident().to_string()).collect::<Vec<String>>();
+    let mut attrs = all_shared_attributes()
+        .iter()
+        .map(|it| it.name.to_string())
+        .collect::<Vec<String>>();
+    let listeners = listeners()
+        .iter()
+        .map(|it| it.ident().to_string())
+        .collect::<Vec<String>>();
     attrs.extend(listeners);
     attrs
 }
@@ -506,9 +512,9 @@ pub fn all_shared_attributes() -> Vec<AttributePropDefinition> {
 }
 
 pub mod globals_macro {
+    use super::*;
     use proc_macro2::TokenStream;
     use quote::quote;
-    use super::*;
 
     pub fn globals_impl() -> TokenStream {
         let prop_definitions = all_shared_attributes();

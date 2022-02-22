@@ -1,5 +1,6 @@
 use super::{Prop, Props, SpecialProps, CHILDREN_LABEL};
 use crate::props::PropLabel;
+use crate::typed_vdom::all_shared_attributes_as_string;
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use std::convert::TryFrom;
@@ -9,7 +10,6 @@ use syn::{
     token::Dot2,
     Expr,
 };
-use crate::typed_vdom::all_shared_attributes_as_string;
 
 struct BaseExpr {
     pub dot2: Dot2,
@@ -51,7 +51,12 @@ impl ComponentProps {
         self.props.get_by_label(CHILDREN_LABEL)
     }
 
-    fn prop_validation_tokens(&self, props_ty: impl ToTokens, has_children: bool, is_element_component: bool) -> TokenStream {
+    fn prop_validation_tokens(
+        &self,
+        props_ty: impl ToTokens,
+        has_children: bool,
+        is_element_component: bool,
+    ) -> TokenStream {
         let shared = all_shared_attributes_as_string();
 
         let check_children = if has_children {
@@ -66,11 +71,14 @@ impl ComponentProps {
             .map(|Prop { label, .. }| {
                 let should_check = {
                     let label = label.to_string();
-                    label == "__globals" || (is_element_component && shared.contains(&label.to_string()))
+                    label == "__globals"
+                        || (is_element_component && shared.contains(&label))
                 };
                 if should_check {
                     quote! {}
-                } else { quote_spanned!( label.span()=> __yew_props.#label; ) }
+                } else {
+                    quote_spanned!( label.span()=> __yew_props.#label; )
+                }
             })
             .chain(self.base_expr.iter().map(|expr| {
                 quote_spanned! {props_ty.span()=>
@@ -94,9 +102,10 @@ impl ComponentProps {
         &self,
         props_ty: impl ToTokens,
         children_renderer: Option<CR>,
-        is_element: bool
+        is_element: bool,
     ) -> TokenStream {
-        let validate_props = self.prop_validation_tokens(&props_ty, children_renderer.is_some(), is_element);
+        let validate_props =
+            self.prop_validation_tokens(&props_ty, children_renderer.is_some(), is_element);
         let shared = all_shared_attributes_as_string();
         let build_props = match &self.base_expr {
             None => {

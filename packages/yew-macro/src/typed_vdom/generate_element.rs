@@ -1,5 +1,5 @@
-use crate::typed_vdom::globals::{listeners};
-use crate::typed_vdom::{kw, AttributePropDefinition, all_shared_attributes};
+use crate::typed_vdom::globals::listeners;
+use crate::typed_vdom::{all_shared_attributes, kw, AttributePropDefinition};
 use convert_case::{Case, Casing};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};

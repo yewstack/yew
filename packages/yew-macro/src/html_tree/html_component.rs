@@ -102,10 +102,18 @@ impl ToTokens for HtmlComponent {
         // incredibly jank but works ¯\_(ツ)_/¯
         let is_element = {
             let ty_str = ty.to_token_stream().to_string();
-            let ty_str = ty_str.split("::").filter_map(|it| {
-                let trimmed = it.trim();
-                if trimmed.is_empty() { None } else { Some(trimmed) }
-            }).take(3).collect::<Vec<_>>();
+            let ty_str = ty_str
+                .split("::")
+                .filter_map(|it| {
+                    let trimmed = it.trim();
+                    if trimmed.is_empty() {
+                        None
+                    } else {
+                        Some(trimmed)
+                    }
+                })
+                .take(3)
+                .collect::<Vec<_>>();
             ty_str == vec!["yew", "virtual_dom", "typings"]
         };
 
