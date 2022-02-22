@@ -490,3 +490,39 @@ pub fn others() -> [AttributePropDefinition; 1] {
         parse_quote! { ::yew::virtual_dom::AttrValue },
     )]
 }
+
+pub fn all_shared_attributes_as_string() -> Vec<String> {
+    let mut attrs = all_shared_attributes().iter().map(|it| it.name.to_string()).collect::<Vec<String>>();
+    let listeners = listeners().iter().map(|it| it.ident().to_string()).collect::<Vec<String>>();
+    attrs.extend(listeners);
+    attrs
+}
+pub fn all_shared_attributes() -> Vec<AttributePropDefinition> {
+    let mut prop_definitions = Vec::new();
+    prop_definitions.extend(global_attributes());
+    prop_definitions.extend(all_aria_labels());
+    prop_definitions.extend(others());
+    prop_definitions
+}
+
+pub mod globals_macro {
+    use proc_macro2::TokenStream;
+    use quote::quote;
+    use super::*;
+
+    pub fn globals_impl() -> TokenStream {
+        let prop_definitions = all_shared_attributes();
+        let props = prop_definitions.iter().map(|it| it.build_fields());
+
+        let all_listeners = listeners();
+        let listeners = all_listeners.iter().map(|it| it.build_fields());
+
+        quote! {
+            #[derive(Debug, PartialEq, ::yew::Properties, Clone, Default)]
+            pub struct Globals {
+                #(#props)*
+                #(#listeners)*
+            }
+        }
+    }
+}

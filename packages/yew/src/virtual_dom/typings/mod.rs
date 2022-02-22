@@ -1,6 +1,8 @@
 #![allow(missing_docs)]
 //! This module contains the items required for a statically typed VDOM
 
+pub mod globals;
+
 use std::collections::HashMap;
 use std::rc::Rc;
 

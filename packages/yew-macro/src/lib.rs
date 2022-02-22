@@ -162,3 +162,8 @@ pub fn generate_element(input: proc_macro::TokenStream) -> proc_macro::TokenStre
 
     input.to_token_stream().into()
 }
+
+#[proc_macro]
+pub fn globals(_: TokenStream) -> TokenStream {
+    TokenStream::from(typed_vdom::globals_macro::globals_impl())
+}

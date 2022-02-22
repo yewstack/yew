@@ -1,5 +1,5 @@
-use crate::typed_vdom::globals::{global_attributes, listeners};
-use crate::typed_vdom::{all_aria_labels, kw, others, AttributePropDefinition};
+use crate::typed_vdom::globals::{listeners};
+use crate::typed_vdom::{kw, AttributePropDefinition, all_shared_attributes};
 use convert_case::{Case, Casing};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
@@ -38,24 +38,21 @@ impl Parse for GenerateElement {
 impl ToTokens for GenerateElement {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let element_name = &self.element_name;
-        let prop_definitions = {
-            let mut prop_definitions = self.props.clone();
-            prop_definitions.extend(global_attributes());
-            prop_definitions.extend(all_aria_labels());
-            prop_definitions.extend(others());
-            prop_definitions
+        let prop_definitions = &self.props;
+        let all_prop_definitions = {
+            let mut all_prop_definitions = all_shared_attributes();
+            all_prop_definitions.extend(self.props.clone());
+            all_prop_definitions
         };
-
         let props_ident = format_ident!(
             "{}Props",
             element_name.to_string().to_case(Case::Pascal),
             span = element_name.span()
         );
         let props = prop_definitions.iter().map(|it| it.build_fields());
-        let attr_if_lets = prop_definitions.iter().map(|it| it.build_if_lets());
+        let attr_if_lets = all_prop_definitions.iter().map(|it| it.build_if_lets());
 
         let all_listeners = listeners();
-        let listeners = all_listeners.iter().map(|it| it.build_fields());
         let listeners_if_lets = all_listeners.iter().map(|it| it.build_if_lets());
 
         let vtag_init = match element_name.to_string().trim() {
@@ -88,20 +85,36 @@ impl ToTokens for GenerateElement {
             #[derive(::std::default::Default, ::std::clone::Clone, ::std::fmt::Debug, ::yew::html::Properties, ::std::cmp::PartialEq)]
             pub struct #props_ident {
                 #[prop_or_default]
+                pub __globals: ::yew::virtual_dom::typings::globals::Globals,
+                #[prop_or_default]
                 pub node_ref: ::std::option::Option::<::yew::NodeRef>,
                 #[prop_or_default]
                 pub key: ::std::option::Option::<::yew::virtual_dom::Key>,
                 #[prop_or_default]
                 pub children: ::yew::Children,
                 #(#props)*
-                #(#listeners)*
+            }
+
+            impl std::ops::Deref for #props_ident {
+                type Target = ::yew::virtual_dom::typings::globals::Globals;
+
+                fn deref(&self) -> &Self::Target {
+                    &self.__globals
+                }
+            }
+
+
+            impl std::ops::DerefMut for #props_ident {
+                fn deref_mut(&mut self) -> &mut Self::Target {
+                    &mut self.__globals
+                }
             }
 
             impl #props_ident {
                 fn into_data(self) -> ::yew::virtual_dom::typings::ElementData {
 
                     ::yew::virtual_dom::typings::ElementData {
-                        node_ref: ::std::option::Option::unwrap_or_default(self.node_ref),
+                        node_ref: ::std::option::Option::unwrap_or_default(self.node_ref.clone()),
                         attributes: {
                             let mut attrs = ::std::collections::HashMap::new();
                             #(#attr_if_lets)*
@@ -112,7 +125,7 @@ impl ToTokens for GenerateElement {
                             #(#listeners_if_lets)*
                             listeners
                         },
-                        key: self.key,
+                        key: self.key.clone(),
                         children: self.children.into_iter().collect(),
                     }
                 }

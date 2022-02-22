@@ -10,8 +10,8 @@ pub use globals::*;
 
 #[derive(Clone)]
 pub struct AttributePropDefinition {
-    name: Ident,
-    ty: Type,
+    pub name: Ident,
+    pub ty: Type,
 }
 
 impl Parse for AttributePropDefinition {
@@ -45,8 +45,8 @@ impl AttributePropDefinition {
         let name = self.name.to_string().replace('_', "-");
         let name = LitStr::new(&name, self.name.span());
         quote! {
-            if let ::std::option::Option::Some(val) = self.#ident {
-                attrs.insert(#name, val);
+            if let ::std::option::Option::Some(val) = self.#ident.as_ref() {
+                attrs.insert(#name, val.clone());
             }
         }
     }
@@ -82,7 +82,7 @@ impl ListenerPropDefinition {
     fn build_if_lets(&self) -> TokenStream {
         let ident = self.ident();
         quote! {
-            if let Some(value) = self.#ident {
+            if let Some(value) = self.#ident.as_ref() {
                 listeners.push(::yew::html::#ident::Wrapper::__macro_new(value));
             }
         }

@@ -123,6 +123,6 @@ impl ToTokens for PropsMacroInput {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self { ty, props } = self;
 
-        tokens.extend(props.build_properties_tokens(ty, None::<TokenStream>))
+        tokens.extend(props.build_properties_tokens(ty, None::<TokenStream>, false))
     }
 }

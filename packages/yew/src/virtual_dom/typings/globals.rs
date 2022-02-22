@@ -1,0 +1,2 @@
+yew_macro::globals!();
+

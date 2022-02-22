@@ -99,6 +99,15 @@ impl ToTokens for HtmlComponent {
             props,
             children,
         } = self;
+        // incredibly jank but works ¯\_(ツ)_/¯
+        let is_element = {
+            let ty_str = ty.to_token_stream().to_string();
+            let ty_str = ty_str.split("::").filter_map(|it| {
+                let trimmed = it.trim();
+                if trimmed.is_empty() { None } else { Some(trimmed) }
+            }).take(3).collect::<Vec<_>>();
+            ty_str == vec!["yew", "virtual_dom", "typings"]
+        };
 
         let props_ty = quote_spanned!(ty.span()=> <#ty as ::yew::html::BaseComponent>::Properties);
         let children_renderer = if children.is_empty() {
@@ -106,7 +115,7 @@ impl ToTokens for HtmlComponent {
         } else {
             Some(quote! { ::yew::html::ChildrenRenderer::new(#children) })
         };
-        let build_props = props.build_properties_tokens(&props_ty, children_renderer);
+        let build_props = props.build_properties_tokens(&props_ty, children_renderer, is_element);
 
         let special_props = props.special();
         let node_ref = if let Some(node_ref) = &special_props.node_ref {

@@ -9,6 +9,7 @@ use syn::{
     token::Dot2,
     Expr,
 };
+use crate::typed_vdom::all_shared_attributes_as_string;
 
 struct BaseExpr {
     pub dot2: Dot2,
@@ -50,7 +51,9 @@ impl ComponentProps {
         self.props.get_by_label(CHILDREN_LABEL)
     }
 
-    fn prop_validation_tokens(&self, props_ty: impl ToTokens, has_children: bool) -> TokenStream {
+    fn prop_validation_tokens(&self, props_ty: impl ToTokens, has_children: bool, is_element_component: bool) -> TokenStream {
+        let shared = all_shared_attributes_as_string();
+
         let check_children = if has_children {
             Some(quote_spanned! {props_ty.span()=> __yew_props.children; })
         } else {
@@ -60,7 +63,15 @@ impl ComponentProps {
         let check_props: TokenStream = self
             .props
             .iter()
-            .map(|Prop { label, .. }| quote_spanned! ( label.span()=> __yew_props.#label; ))
+            .map(|Prop { label, .. }| {
+                let should_check = {
+                    let label = label.to_string();
+                    label == "__globals" || (is_element_component && shared.contains(&label.to_string()))
+                };
+                if should_check {
+                    quote! {}
+                } else { quote_spanned!( label.span()=> __yew_props.#label; ) }
+            })
             .chain(self.base_expr.iter().map(|expr| {
                 quote_spanned! {props_ty.span()=>
                     let _: #props_ty = #expr;
@@ -83,16 +94,32 @@ impl ComponentProps {
         &self,
         props_ty: impl ToTokens,
         children_renderer: Option<CR>,
+        is_element: bool
     ) -> TokenStream {
-        let validate_props = self.prop_validation_tokens(&props_ty, children_renderer.is_some());
+        let validate_props = self.prop_validation_tokens(&props_ty, children_renderer.is_some(), is_element);
+        let shared = all_shared_attributes_as_string();
         let build_props = match &self.base_expr {
             None => {
-                let set_props = self.props.iter().map(|Prop { label, value, .. }| {
-                    quote_spanned! {value.span()=>
-                        .#label(#value)
+                let mut set_props = vec![];
+                let mut global_props = vec![];
+                for Prop { label, value, .. } in self.props.iter() {
+                    if shared.contains(&label.to_string()) {
+                        global_props.push(quote_spanned! {value.span()=>
+                            .#label(#value)
+                        })
+                    } else {
+                        set_props.push(quote_spanned! {value.span()=>
+                            .#label(#value)
+                        })
                     }
+                }
+                let globals_setter = is_element.then(|| quote! {
+                    .__globals(
+                        <::yew::virtual_dom::typings::globals::Globals as ::yew::html::Properties>::builder()
+                        #(#global_props)*
+                        .build()
+                    )
                 });
-
                 let set_children = children_renderer.map(|children| {
                     quote_spanned! {props_ty.span()=>
                         .children(#children)
@@ -103,6 +130,7 @@ impl ComponentProps {
                     <#props_ty as ::yew::html::Properties>::builder()
                         #(#set_props)*
                         #set_children
+                        #globals_setter
                         .build()
                 }
             }
