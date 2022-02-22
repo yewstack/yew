@@ -1,9 +1,9 @@
 use proc_macro2::{Span, TokenStream};
 use proc_macro_error::emit_error;
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::visit_mut;
-use syn::{parse_file, Ident, ItemFn, LitStr, ReturnType, Signature};
+use syn::{parse_file, GenericParam, Ident, ItemFn, LitStr, ReturnType, Signature};
 
 mod body;
 mod lifetime;
@@ -98,6 +98,19 @@ When used in function components and hooks, this hook is equivalent to:
     let output_type = &hook_sig.output_type;
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+    let call_generics = {
+        let mut generics = generics.clone();
+
+        // We need to filter out lifetimes.
+        generics.params = generics
+            .params
+            .into_iter()
+            .filter(|m| !matches!(m, GenericParam::Lifetime(_)))
+            .collect();
+
+        let (_impl_generics, ty_generics, _where_clause) = generics.split_for_impl();
+        ty_generics.as_turbofish().to_token_stream()
+    };
 
     let ctx_ident = Ident::new("ctx", Span::mixed_site());
 
@@ -120,13 +133,13 @@ When used in function components and hooks, this hook is equivalent to:
         let hook_lifetime_plus = quote! { #hook_lifetime + };
 
         let boxed_inner_ident = Ident::new("boxed_inner", Span::mixed_site());
-        let boxed_fn_type = quote! { ::std::boxed::Box<dyn #hook_lifetime_plus FnOnce(&mut ::yew::functional::HookContext) #inner_fn_rt> };
+        let boxed_fn_type = quote! { ::std::boxed::Box<dyn #hook_lifetime_plus ::std::ops::FnOnce(&mut ::yew::functional::HookContext) #inner_fn_rt> };
 
         // We need boxing implementation for `impl Trait` arguments.
         quote! {
             let #boxed_inner_ident = ::std::boxed::Box::new(
                     move |#ctx_ident: &mut ::yew::functional::HookContext| #inner_fn_rt {
-                        #inner_fn_ident (#ctx_ident, #(#input_args,)*)
+                        #inner_fn_ident #call_generics (#ctx_ident, #(#input_args,)*)
                     }
                 ) as #boxed_fn_type;
 
@@ -137,8 +150,6 @@ When used in function components and hooks, this hook is equivalent to:
 
         let args_ident = Ident::new("args", Span::mixed_site());
         let hook_struct_name = Ident::new("HookProvider", Span::mixed_site());
-
-        let call_generics = ty_generics.as_turbofish();
 
         let phantom_types = hook_sig.phantom_types();
         let phantom_lifetimes = hook_sig.phantom_lifetimes();
@@ -155,7 +166,7 @@ When used in function components and hooks, this hook is equivalent to:
                 fn run(mut self, #ctx_ident: &mut ::yew::functional::HookContext) -> Self::Output {
                     let (#(#input_args,)*) = self.#args_ident;
 
-                    #inner_fn_ident(#ctx_ident, #(#input_args,)*)
+                    #inner_fn_ident #call_generics (#ctx_ident, #(#input_args,)*)
                 }
             }
 
