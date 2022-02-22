@@ -71,8 +71,7 @@ impl ComponentProps {
             .map(|Prop { label, .. }| {
                 let should_check = {
                     let label = label.to_string();
-                    label == "__globals"
-                        || (is_element_component && shared.contains(&label))
+                    label == "__globals" || (is_element_component && shared.contains(&label))
                 };
                 if should_check {
                     quote! {}
@@ -112,7 +111,7 @@ impl ComponentProps {
                 let mut set_props = vec![];
                 let mut global_props = vec![];
                 for Prop { label, value, .. } in self.props.iter() {
-                    if shared.contains(&label.to_string()) {
+                    if is_element && shared.contains(&label.to_string()) {
                         global_props.push(quote_spanned! {value.span()=>
                             .#label(#value)
                         })
@@ -137,9 +136,9 @@ impl ComponentProps {
 
                 quote_spanned! {props_ty.span()=>
                     <#props_ty as ::yew::html::Properties>::builder()
+                        #globals_setter
                         #(#set_props)*
                         #set_children
-                        #globals_setter
                         .build()
                 }
             }
