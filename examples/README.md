@@ -50,7 +50,7 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [router](router)                                   | S  | The best yew blog built with `yew-router`                                                                                          |
 | [simple_ssr](simple_ssr)                           | F  | Demonstrates server-side rendering                                                                                                 |
 | [store](store)                                     | S  | Showcases the `yewtil::store` API                                                                                                  |
-| [suspense](suspense)                               | F  | This is an example that demonstrates <Suspense /> support                                                                          |
+| [suspense](suspense)                               | F  | This is an example that demonstrates `<Suspense />` support                                                                          |
 | [function_memory_game](function_memory_game)       | F  | Implementation of [Memory Game](https://github.com/bradlygreen/Memory-Game)                                            |
 | [timer](timer)                                     | S  | Demonstrates the use of the interval and timeout services                                                                          |
 | [todomvc](todomvc)                                 | S  | Implementation of [TodoMVC](http://todomvc.com/)                                                                                   |
