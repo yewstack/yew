@@ -24,13 +24,7 @@ get an overview of the talks and watch them all from one page.
 
 ### Prerequisites
 
-To get started, let's make sure we have an up-to-date development environment.
-We will need the following tools:
-- [Rust](https://www.rust-lang.org/)
-- [`trunk`](https://trunkrs.dev/)
-- `wasm32-unknown-unknown` target, the WASM compiler and build target for Rust.
-
-This tutorial also assumes you're already familiar with Rust. If you're new to Rust,
+This tutorial assumes you're already familiar with Rust. If you're new to Rust,
 the free [Rust Book](https://doc.rust-lang.org/book/ch00-00-introduction.html) offers a great starting point for
 beginners and continues to be an excellent resource even for experienced Rust developers.
 
@@ -78,7 +72,7 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
-+ yew = { git = "https://github.com/yewstack/yew/" }
+yew = { git = "https://github.com/yewstack/yew/" }
 ```
 
 ```rust ,no_run title="src/main.rs"
@@ -409,7 +403,7 @@ fn video_details(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
 
 Now, modify the `App` component to display `VideoDetails` component whenever a video is selected.
 
-```rust ,ignore {4,6-11,13-15,24-29}
+```rust ,ignore {4,6-11,13-15,22-23,25-29}
 #[function_component(App)]
 fn app() -> Html {
     // ...
@@ -439,7 +433,7 @@ fn app() -> Html {
 -                <h3>{ "John Doe: Building and breaking things" }</h3>
 -                <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
 -            </div>
--        </>
+        </>
     }
 }
 ```
