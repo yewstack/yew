@@ -440,7 +440,8 @@ fn app() -> Html {
 
 Don't worry about the `use_state` right now, we will come back to that later.
 Note the trick we pulled with `{ for details }`. `Option<_>` implements `Iterator` so we can use it to display the only
-element returned by the `Iterator` with the `{ for ... }` syntax.
+element returned by the `Iterator` with a special `{ for ... }` syntax
+[supported by the `html!` macro](concepts/html/lists).
 
 ### Handling state
 
