@@ -4,7 +4,7 @@ error[E0277]: the trait bound `Unimplemented: yew::Component` is not satisfied
 6 |     html! { <Unimplemented /> };
   |              ^^^^^^^^^^^^^ the trait `yew::Component` is not implemented for `Unimplemented`
   |
-  = note: required because of the requirements on the impl of `BaseComponent` for `Unimplemented`
+  = note: required because of the requirements on the impl of `IntoComponent` for `Unimplemented`
 
 error[E0599]: the function or associated item `new` exists for struct `VChild<Unimplemented>`, but its trait bounds were not satisfied
  --> tests/html_macro/component-unimplemented-fail.rs:6:14

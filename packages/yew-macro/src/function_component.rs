@@ -4,7 +4,8 @@ use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::token::{Comma, Fn};
 use syn::{
-    visit_mut, Attribute, Block, FnArg, Generics, Ident, Item, ItemFn, ReturnType, Type, Visibility,
+    parse_quote_spanned, visit_mut, Attribute, Block, FnArg, Generics, Ident, Item, ItemFn,
+    ReturnType, Type, Visibility,
 };
 
 use crate::hook::BodyRewriter;
@@ -217,6 +218,23 @@ impl FunctionComponent {
             .clone()
             .unwrap_or_else(|| self.name.clone())
     }
+
+    // We need to cast 'static on all generics for into component.
+    fn into_component_generics(&self) -> Generics {
+        let mut generics = self.generics.clone();
+
+        let where_clause = generics.make_where_clause();
+        for ty_generic in self.generics.type_params() {
+            let ident = &ty_generic.ident;
+            let bound = parse_quote_spanned! { ident.span() =>
+                #ident: 'static
+            };
+
+            where_clause.predicates.push(bound);
+        }
+
+        generics
+    }
 }
 
 pub struct FunctionComponentName {
@@ -278,6 +296,7 @@ pub fn function_component_impl(
 
     let func = print_fn(&component);
 
+    let into_comp_generics = component.into_component_generics();
     let component_attrs = component.filter_attrs_for_component_struct();
     let component_impl_attrs = component.filter_attrs_for_component_impl();
     let phantom_generics = component.phantom_generics();
@@ -296,10 +315,22 @@ pub fn function_component_impl(
     let component_props = Ident::new("props", Span::mixed_site());
     let ctx_ident = Ident::new("ctx", Span::mixed_site());
 
+    let into_comp_impl = {
+        let (impl_generics, ty_generics, where_clause) = into_comp_generics.split_for_impl();
+
+        quote! {
+            impl #impl_generics ::yew::html::IntoComponent for #component_name #ty_generics #where_clause {
+                type Message = ();
+                type Properties = #props_type;
+                type Component = ::yew::functional::FunctionComponent<#component_name #ty_generics>;
+            }
+        }
+    };
+
     let quoted = quote! {
         #(#component_attrs)*
         #[allow(unused_parens)]
-        #vis struct #component_name #impl_generics #where_clause {
+        #vis struct #component_name #generics #where_clause {
             _marker: ::std::marker::PhantomData<(#phantom_generics)>,
         }
 
@@ -316,11 +347,7 @@ pub fn function_component_impl(
             }
         }
 
-        impl #impl_generics ::yew::html::IntoComponent for #component_name #ty_generics #where_clause {
-            type Message = ();
-            type Properties = #props_type;
-            type Component = ::yew::functional::FunctionComponent<#component_name #ty_generics>;
-        }
+        #into_comp_impl
     };
 
     Ok(quoted)
