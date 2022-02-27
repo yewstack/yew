@@ -7,14 +7,14 @@ use crate::html::Scope;
 #[derive(Debug)]
 pub struct ServerRenderer<COMP>
 where
-    COMP: BaseComponent,
+    COMP: IntoComponent,
 {
     props: COMP::Properties,
 }
 
 impl<COMP> Default for ServerRenderer<COMP>
 where
-    COMP: BaseComponent,
+    COMP: IntoComponent,
     COMP::Properties: Default,
 {
     fn default() -> Self {
@@ -24,7 +24,7 @@ where
 
 impl<COMP> ServerRenderer<COMP>
 where
-    COMP: BaseComponent,
+    COMP: IntoComponent,
     COMP::Properties: Default,
 {
     /// Creates a [ServerRenderer] with default properties.
@@ -35,7 +35,7 @@ where
 
 impl<COMP> ServerRenderer<COMP>
 where
-    COMP: BaseComponent,
+    COMP: IntoComponent,
 {
     /// Creates a [ServerRenderer] with custom properties.
     pub fn with_props(props: COMP::Properties) -> Self {
@@ -53,7 +53,7 @@ where
 
     /// Renders Yew Application to a String.
     pub async fn render_to_string(self, w: &mut String) {
-        let scope = Scope::<COMP>::new(None);
+        let scope = Scope::<<COMP as IntoComponent>::Component>::new(None);
         scope.render_to_string(w, self.props.into()).await;
     }
 }

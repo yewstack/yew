@@ -48,7 +48,7 @@ pub trait BaseComponent: SealedBaseComponent + Sized + 'static {
     /// The Component's Message.
     type Message: 'static;
 
-    /// The Component's properties.
+    /// The Component's Properties.
     type Properties: Properties;
 
     /// Creates a component.
@@ -166,3 +166,24 @@ where
 }
 
 impl<T> SealedBaseComponent for T where T: Sized + Component + 'static {}
+
+/// A trait to register the component type.
+pub trait IntoComponent {
+    /// The Component's Message.
+    type Message: 'static;
+
+    /// The Component's Properties.
+    type Properties: Properties;
+
+    /// The Component Type.
+    type Component: BaseComponent<Properties = Self::Properties, Message = Self::Message> + 'static;
+}
+
+impl<T> IntoComponent for T
+where
+    T: Sized + Component + 'static,
+{
+    type Properties = T::Properties;
+    type Message = T::Message;
+    type Component = T;
+}

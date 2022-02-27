@@ -1,5 +1,5 @@
 use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, quote, ToTokens};
+use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::token::{Comma, Fn};
@@ -167,15 +167,15 @@ impl FunctionComponent {
             .collect()
     }
 
-    /// Filters attributes that should be copied to provider impl block.
-    fn filter_attrs_for_provider_impl(&self) -> Vec<Attribute> {
+    /// Filters attributes that should be copied to the component impl block.
+    fn filter_attrs_for_component_impl(&self) -> Vec<Attribute> {
         self.attrs
             .iter()
             .filter_map(|m| {
                 m.path
                     .get_ident()
                     .and_then(|ident| match ident.to_string().as_str() {
-                        "doc" | "allow" => Some(m.clone()),
+                        "allow" => Some(m.clone()),
                         _ => None,
                     })
             })
@@ -216,14 +216,6 @@ impl FunctionComponent {
         self.component_name
             .clone()
             .unwrap_or_else(|| self.name.clone())
-    }
-
-    fn provider_type_ident(&self) -> Ident {
-        format_ident!(
-            "{}FunctionProvider",
-            self.component_name(),
-            span = Span::mixed_site(),
-        )
     }
 }
 
@@ -287,11 +279,10 @@ pub fn function_component_impl(
     let func = print_fn(&component);
 
     let type_alias_attrs = component.filter_attrs_for_type_alias();
-    let provider_impl_attrs = component.filter_attrs_for_provider_impl();
+    let component_impl_attrs = component.filter_attrs_for_component_impl();
     let phantom_generics = component.phantom_generics();
     let component_name = component.component_name();
     let fn_name = component.inner_fn_ident();
-    let provider_name = component.provider_type_ident();
 
     let FunctionComponent {
         props_type,
@@ -302,33 +293,36 @@ pub fn function_component_impl(
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let fn_generics = ty_generics.as_turbofish();
 
-    let provider_props = Ident::new("props", Span::mixed_site());
+    let component_props = Ident::new("props", Span::mixed_site());
     let ctx_ident = Ident::new("ctx", Span::mixed_site());
 
     let quoted = quote! {
-        #[doc(hidden)]
+        #(#type_alias_attrs)*
         #[allow(non_camel_case_types)]
         #[allow(unused_parens)]
-        #vis struct #provider_name #impl_generics #where_clause {
+        #[automatically_derived]
+        #vis struct #component_name #impl_generics #where_clause {
             _marker: ::std::marker::PhantomData<(#phantom_generics)>,
         }
 
         // we cannot disable any lints here because it will be applied to the function body
         // as well.
-        #(#provider_impl_attrs)*
-        impl #impl_generics ::yew::functional::FunctionProvider for #provider_name #ty_generics #where_clause {
-            type TProps = #props_type;
+        #(#component_impl_attrs)*
+        impl #impl_generics ::yew::functional::FunctionProvider for #component_name #ty_generics #where_clause {
+            type Properties = #props_type;
 
-            fn run(#ctx_ident: &mut ::yew::functional::HookContext, #provider_props: &Self::TProps) -> ::yew::html::HtmlResult {
+            fn run(#ctx_ident: &mut ::yew::functional::HookContext, #component_props: &Self::Properties) -> ::yew::html::HtmlResult {
                 #func
 
-                ::yew::html::IntoHtmlResult::into_html_result(#fn_name #fn_generics (#ctx_ident, #provider_props))
+                ::yew::html::IntoHtmlResult::into_html_result(#fn_name #fn_generics (#ctx_ident, #component_props))
             }
         }
 
-        #[allow(type_alias_bounds)]
-        #(#type_alias_attrs)*
-        #vis type #component_name #generics = ::yew::functional::FunctionComponent<#provider_name #ty_generics, #props_type>;
+        impl #impl_generics ::yew::html::IntoComponent for #component_name #ty_generics #where_clause {
+            type Message = ();
+            type Properties = #props_type;
+            type Component = ::yew::functional::FunctionComponent<#component_name #ty_generics>;
+        }
     };
 
     Ok(quoted)
