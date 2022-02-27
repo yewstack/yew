@@ -478,8 +478,7 @@ impl Registry {
     fn handle(desc: EventDescriptor, event: Event) {
         let target = match event
             .target()
-            .map(|el| el.dyn_into::<web_sys::Element>().ok())
-            .flatten()
+            .and_then(|el| el.dyn_into::<web_sys::Element>().ok())
         {
             Some(el) => el,
             None => return,
@@ -492,18 +491,15 @@ impl Registry {
         let run_handler = |el: &web_sys::Element| {
             if let Some(l) = LISTENER_ID_PROP
                 .with(|prop| js_sys::Reflect::get(el, prop).ok())
-                .map(|v| v.dyn_into().ok())
-                .flatten()
-                .map(|num: js_sys::Number| {
+                .and_then(|v| v.dyn_into().ok())
+                .and_then(|num: js_sys::Number| {
                     Registry::with(|r| {
                         r.by_id
                             .get(&(num.value_of() as u32))
-                            .map(|s| s.get(&desc))
-                            .flatten()
+                            .and_then(|s| s.get(&desc))
                             .cloned()
                     })
                 })
-                .flatten()
             {
                 for l in l {
                     l.handle(event.clone());
