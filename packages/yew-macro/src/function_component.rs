@@ -180,7 +180,7 @@ fn print_fn(func_comp: FunctionComponent, use_fn_name: bool) -> TokenStream {
         ..
     } = func_comp;
 
-    let (_impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+    let (impl_generics, _ty_generics, where_clause) = generics.split_for_impl();
 
     let name = if use_fn_name {
         name
@@ -195,7 +195,7 @@ fn print_fn(func_comp: FunctionComponent, use_fn_name: bool) -> TokenStream {
 
     quote! {
         #(#attrs)*
-        #fn_token #name #ty_generics (#ctx_ident: &mut ::yew::functional::HookContext, #arg) -> #return_type
+        #fn_token #name #impl_generics (#ctx_ident: &mut ::yew::functional::HookContext, #arg) -> #return_type
         #where_clause
         {
             #block
@@ -256,7 +256,7 @@ pub fn function_component_impl(
         #[doc(hidden)]
         #[allow(non_camel_case_types)]
         #[allow(unused_parens)]
-        #vis struct #provider_name #ty_generics {
+        #vis struct #provider_name #impl_generics #where_clause {
             _marker: ::std::marker::PhantomData<(#phantom_generics)>,
         }
 
