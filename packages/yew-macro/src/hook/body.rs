@@ -71,7 +71,7 @@ impl VisitMut for BodyRewriter {
                     if ident.to_string().starts_with("use_") {
                         if self.is_branched() {
                             emit_error!(
-                                m,
+                                ident,
                                 "hooks cannot be called at this position.";
                                 help = "move hooks to the top-level of your function.";
                                 note = "see: https://yew.rs/docs/next/concepts/function-components/introduction#hooks"
