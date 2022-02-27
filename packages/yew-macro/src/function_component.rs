@@ -220,7 +220,7 @@ impl FunctionComponent {
     }
 
     // We need to cast 'static on all generics for into component.
-    fn into_component_generics(&self) -> Generics {
+    fn create_into_component_generics(&self) -> Generics {
         let mut generics = self.generics.clone();
 
         let where_clause = generics.make_where_clause();
@@ -296,7 +296,7 @@ pub fn function_component_impl(
 
     let func = print_fn(&component);
 
-    let into_comp_generics = component.into_component_generics();
+    let into_comp_generics = component.create_into_component_generics();
     let component_attrs = component.filter_attrs_for_component_struct();
     let component_impl_attrs = component.filter_attrs_for_component_impl();
     let phantom_generics = component.phantom_generics();

@@ -181,7 +181,7 @@ pub trait IntoComponent {
 
 impl<T> IntoComponent for T
 where
-    T: Sized + Component + 'static,
+    T: BaseComponent + 'static,
 {
     type Properties = T::Properties;
     type Message = T::Message;
