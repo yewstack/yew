@@ -20,6 +20,8 @@ pub struct FunctionComponent {
     name: Ident,
     return_type: Box<Type>,
     fn_token: Fn,
+
+    component_name: Option<Ident>,
 }
 
 impl Parse for FunctionComponent {
@@ -144,7 +146,84 @@ impl Parse for FunctionComponent {
             name: sig.ident,
             return_type,
             fn_token: sig.fn_token,
+            component_name: None,
         })
+    }
+}
+
+impl FunctionComponent {
+    /// Filters attributes that should be copied to type alias.
+    fn filter_attrs_for_type_alias(&self) -> Vec<Attribute> {
+        self.attrs
+            .iter()
+            .filter_map(|m| {
+                m.path
+                    .get_ident()
+                    .and_then(|ident| match ident.to_string().as_str() {
+                        "doc" | "allow" => Some(m.clone()),
+                        _ => None,
+                    })
+            })
+            .collect()
+    }
+
+    /// Filters attributes that should be copied to provider impl block.
+    fn filter_attrs_for_provider_impl(&self) -> Vec<Attribute> {
+        self.attrs
+            .iter()
+            .filter_map(|m| {
+                m.path
+                    .get_ident()
+                    .and_then(|ident| match ident.to_string().as_str() {
+                        "doc" | "allow" => Some(m.clone()),
+                        _ => None,
+                    })
+            })
+            .collect()
+    }
+
+    fn phantom_generics(&self) -> Punctuated<Ident, Comma> {
+        self.generics
+            .type_params()
+            .map(|ty_param| ty_param.ident.clone()) // create a new Punctuated sequence without any type bounds
+            .collect::<Punctuated<_, Comma>>()
+    }
+
+    fn merge_component_name(&mut self, name: FunctionComponentName) -> syn::Result<()> {
+        if let Some(ref m) = name.component_name {
+            if m == &self.name {
+                return Err(syn::Error::new_spanned(
+                    m,
+                    "the component must not have the same name as the function",
+                ));
+            }
+        }
+
+        self.component_name = name.component_name;
+
+        Ok(())
+    }
+
+    fn inner_fn_ident(&self) -> Ident {
+        if self.component_name.is_some() {
+            self.name.clone()
+        } else {
+            Ident::new("inner", Span::mixed_site())
+        }
+    }
+
+    fn component_name(&self) -> Ident {
+        self.component_name
+            .clone()
+            .unwrap_or_else(|| self.name.clone())
+    }
+
+    fn provider_type_ident(&self) -> Ident {
+        format_ident!(
+            "{}FunctionProvider",
+            self.component_name(),
+            span = Span::mixed_site(),
+        )
     }
 }
 
@@ -168,30 +247,26 @@ impl Parse for FunctionComponentName {
     }
 }
 
-fn print_fn(func_comp: FunctionComponent, use_fn_name: bool) -> TokenStream {
+fn print_fn(func_comp: &FunctionComponent) -> TokenStream {
+    let name = func_comp.inner_fn_ident();
     let FunctionComponent {
-        fn_token,
-        name,
-        attrs,
-        mut block,
-        return_type,
-        generics,
-        arg,
+        ref fn_token,
+        ref attrs,
+        ref block,
+        ref return_type,
+        ref generics,
+        ref arg,
         ..
     } = func_comp;
-
+    let mut block = *block.clone();
     let (impl_generics, _ty_generics, where_clause) = generics.split_for_impl();
 
-    let name = if use_fn_name {
-        name
-    } else {
-        Ident::new("inner", Span::mixed_site())
-    };
+    // We use _ctx here so if the component does not use any hooks, the usused_vars lint will not
+    // be triggered.
+    let ctx_ident = Ident::new("_ctx", Span::mixed_site());
 
-    let ctx_ident = Ident::new("ctx", Span::mixed_site());
-
-    let mut body_rewriter = BodyRewriter::default();
-    visit_mut::visit_block_mut(&mut body_rewriter, &mut *block);
+    let mut body_rewriter = BodyRewriter::new(ctx_ident.clone());
+    visit_mut::visit_block_mut(&mut body_rewriter, &mut block);
 
     quote! {
         #(#attrs)*
@@ -205,51 +280,29 @@ fn print_fn(func_comp: FunctionComponent, use_fn_name: bool) -> TokenStream {
 
 pub fn function_component_impl(
     name: FunctionComponentName,
-    component: FunctionComponent,
+    mut component: FunctionComponent,
 ) -> syn::Result<TokenStream> {
-    let FunctionComponentName { component_name } = name;
+    component.merge_component_name(name)?;
 
-    let has_separate_name = component_name.is_some();
+    let func = print_fn(&component);
 
-    let func = print_fn(component.clone(), has_separate_name);
+    let type_alias_attrs = component.filter_attrs_for_type_alias();
+    let provider_impl_attrs = component.filter_attrs_for_provider_impl();
+    let phantom_generics = component.phantom_generics();
+    let component_name = component.component_name();
+    let fn_name = component.inner_fn_ident();
+    let provider_name = component.provider_type_ident();
 
     let FunctionComponent {
         props_type,
         generics,
         vis,
-        name: function_name,
         ..
     } = component;
-    let component_name = component_name.unwrap_or_else(|| function_name.clone());
-    let provider_name = format_ident!(
-        "{}FunctionProvider",
-        component_name,
-        span = Span::mixed_site()
-    );
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-
-    if has_separate_name && function_name == component_name {
-        return Err(syn::Error::new_spanned(
-            component_name,
-            "the component must not have the same name as the function",
-        ));
-    }
-
-    let phantom_generics = generics
-        .type_params()
-        .map(|ty_param| ty_param.ident.clone()) // create a new Punctuated sequence without any type bounds
-        .collect::<Punctuated<_, Comma>>();
-
-    let provider_props = Ident::new("props", Span::mixed_site());
-
     let fn_generics = ty_generics.as_turbofish();
 
-    let fn_name = if has_separate_name {
-        function_name
-    } else {
-        Ident::new("inner", Span::mixed_site())
-    };
-
+    let provider_props = Ident::new("props", Span::mixed_site());
     let ctx_ident = Ident::new("ctx", Span::mixed_site());
 
     let quoted = quote! {
@@ -260,7 +313,9 @@ pub fn function_component_impl(
             _marker: ::std::marker::PhantomData<(#phantom_generics)>,
         }
 
-        #[automatically_derived]
+        // we cannot disable any lints here because it will be applied to the function body
+        // as well.
+        #(#provider_impl_attrs)*
         impl #impl_generics ::yew::functional::FunctionProvider for #provider_name #ty_generics #where_clause {
             type TProps = #props_type;
 
@@ -272,6 +327,7 @@ pub fn function_component_impl(
         }
 
         #[allow(type_alias_bounds)]
+        #(#type_alias_attrs)*
         #vis type #component_name #generics = ::yew::functional::FunctionComponent<#provider_name #ty_generics, #props_type>;
     };
 

@@ -1,4 +1,3 @@
-use proc_macro2::Span;
 use proc_macro_error::emit_error;
 use std::sync::{Arc, Mutex};
 use syn::spanned::Spanned;
@@ -8,12 +7,20 @@ use syn::{
     ExprMatch, ExprWhile, Ident, Item,
 };
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct BodyRewriter {
     branch_lock: Arc<Mutex<()>>,
+    ctx_ident: Ident,
 }
 
 impl BodyRewriter {
+    pub fn new(ctx_ident: Ident) -> Self {
+        Self {
+            branch_lock: Arc::default(),
+            ctx_ident,
+        }
+    }
+
     fn is_branched(&self) -> bool {
         self.branch_lock.try_lock().is_err()
     }
@@ -30,7 +37,7 @@ impl BodyRewriter {
 
 impl VisitMut for BodyRewriter {
     fn visit_expr_call_mut(&mut self, i: &mut ExprCall) {
-        let ctx_ident = Ident::new("ctx", Span::mixed_site());
+        let ctx_ident = &self.ctx_ident;
 
         // Only rewrite hook calls.
         if let Expr::Path(ref m) = &*i.func {
