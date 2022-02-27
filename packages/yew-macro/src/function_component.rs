@@ -152,8 +152,8 @@ impl Parse for FunctionComponent {
 }
 
 impl FunctionComponent {
-    /// Filters attributes that should be copied to type alias.
-    fn filter_attrs_for_type_alias(&self) -> Vec<Attribute> {
+    /// Filters attributes that should be copied to component definition.
+    fn filter_attrs_for_component_struct(&self) -> Vec<Attribute> {
         self.attrs
             .iter()
             .filter_map(|m| {
@@ -278,7 +278,7 @@ pub fn function_component_impl(
 
     let func = print_fn(&component);
 
-    let type_alias_attrs = component.filter_attrs_for_type_alias();
+    let component_attrs = component.filter_attrs_for_component_struct();
     let component_impl_attrs = component.filter_attrs_for_component_impl();
     let phantom_generics = component.phantom_generics();
     let component_name = component.component_name();
@@ -297,10 +297,8 @@ pub fn function_component_impl(
     let ctx_ident = Ident::new("ctx", Span::mixed_site());
 
     let quoted = quote! {
-        #(#type_alias_attrs)*
-        #[allow(non_camel_case_types)]
+        #(#component_attrs)*
         #[allow(unused_parens)]
-        #[automatically_derived]
         #vis struct #component_name #impl_generics #where_clause {
             _marker: ::std::marker::PhantomData<(#phantom_generics)>,
         }
