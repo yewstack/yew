@@ -31,7 +31,7 @@ pub use hooks::*;
 
 use crate::html::Context;
 
-use crate::html::SealedBaseComponent;
+use crate::html::sealed::SealedBaseComponent;
 
 /// This attribute creates a function component from a normal Rust function.
 ///
