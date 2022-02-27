@@ -272,7 +272,7 @@ pub fn function_component_impl(
         }
 
         #[allow(type_alias_bounds)]
-        #vis type #component_name #generics = ::yew::functional::FunctionComponent<#provider_name #ty_generics>;
+        #vis type #component_name #generics = ::yew::functional::FunctionComponent<#provider_name #ty_generics, #props_type>;
     };
 
     Ok(quoted)

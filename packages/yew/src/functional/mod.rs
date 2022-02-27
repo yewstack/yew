@@ -140,20 +140,29 @@ pub trait FunctionProvider {
 }
 
 /// Wrapper that allows a struct implementing [`FunctionProvider`] to be consumed as a component.
-pub struct FunctionComponent<T: FunctionProvider + 'static> {
-    _never: std::marker::PhantomData<T>,
+pub struct FunctionComponent<T, TProps>
+where
+    T: FunctionProvider<TProps = TProps> + 'static,
+    TProps: Properties + 'static,
+{
+    _never: std::marker::PhantomData<(T, TProps)>,
     hook_ctx: RefCell<HookContext>,
 }
 
-impl<T: FunctionProvider> fmt::Debug for FunctionComponent<T> {
+impl<T, TProps> fmt::Debug for FunctionComponent<T, TProps>
+where
+    T: FunctionProvider<TProps = TProps> + 'static,
+    TProps: Properties + 'static,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("FunctionComponent<_>")
     }
 }
 
-impl<T> BaseComponent for FunctionComponent<T>
+impl<T, TProps> BaseComponent for FunctionComponent<T, TProps>
 where
-    T: FunctionProvider + 'static,
+    T: FunctionProvider<TProps = TProps> + 'static,
+    TProps: Properties + 'static,
 {
     type Message = ();
     type Properties = T::TProps;
@@ -242,4 +251,9 @@ where
     }
 }
 
-impl<T> SealedBaseComponent for FunctionComponent<T> where T: FunctionProvider + 'static {}
+impl<T, TProps> SealedBaseComponent for FunctionComponent<T, TProps>
+where
+    T: FunctionProvider<TProps = TProps> + 'static,
+    TProps: Properties + 'static,
+{
+}
