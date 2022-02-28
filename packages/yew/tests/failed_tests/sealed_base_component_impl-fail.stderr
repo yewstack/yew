@@ -1,7 +1,7 @@
 error[E0603]: module `component` is private
   --> tests/failed_tests/sealed_base_component_impl-fail.rs:26:17
    |
-26 | impl yew::html::component::SealedBaseComponent for Comp {}
+26 | impl yew::html::component::sealed::SealedBaseComponent for Comp {}
    |                 ^^^^^^^^^ private module
    |
 note: the module `component` is defined here

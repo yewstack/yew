@@ -13,7 +13,7 @@ use crate::html::{IntoComponent, NodeRef};
 use crate::scheduler::{self, Shared};
 use crate::virtual_dom::{insert_node, VNode};
 use gloo_utils::document;
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 use std::cell::{Ref, RefCell};
 use std::marker::PhantomData;
 use std::ops::Deref;
@@ -64,7 +64,7 @@ impl<Msg> Clone for MsgQueue<Msg> {
 pub struct AnyScope {
     type_id: TypeId,
     parent: Option<Rc<AnyScope>>,
-    state: Shared<Option<ComponentState>>,
+    typed_scope: Rc<dyn Any>,
 
     #[cfg(debug_assertions)]
     pub(crate) vcomp_id: usize,
@@ -79,12 +79,12 @@ impl fmt::Debug for AnyScope {
 impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
     fn from(scope: Scope<COMP>) -> Self {
         AnyScope {
-            type_id: TypeId::of::<COMP>(),
-            parent: scope.parent,
-            state: scope.state,
-
             #[cfg(debug_assertions)]
             vcomp_id: scope.vcomp_id,
+
+            type_id: TypeId::of::<COMP>(),
+            parent: scope.parent.clone(),
+            typed_scope: Rc::new(scope),
         }
     }
 }
@@ -95,7 +95,7 @@ impl AnyScope {
         Self {
             type_id: TypeId::of::<()>(),
             parent: None,
-            state: Rc::new(RefCell::new(None)),
+            typed_scope: Rc::new(()),
 
             #[cfg(debug_assertions)]
             vcomp_id: 0,
@@ -125,17 +125,9 @@ impl AnyScope {
     ///
     /// Returns [`None`] if the self value can't be cast into the target type.
     pub fn try_downcast<ICOMP: IntoComponent>(&self) -> Option<Scope<ICOMP::Component>> {
-        let state = self.state.borrow();
-
-        state.as_ref().map(|m| {
-            m.inner
-                .as_any()
-                .downcast_ref::<CompStateInner<ICOMP::Component>>()
-                .unwrap()
-                .context
-                .link()
-                .clone()
-        })
+        self.typed_scope
+            .downcast_ref::<Scope<ICOMP::Component>>()
+            .cloned()
     }
 
     /// Attempts to find a parent scope of a certain type
