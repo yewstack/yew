@@ -28,6 +28,33 @@ error[E0277]: the trait bound `Comp<MissingTypeBounds>: IntoComponent` is not sa
    = help: the following implementations were found:
              <Comp<P> as IntoComponent>
 
+error[E0599]: the function or associated item `new` exists for struct `VChild<Comp<MissingTypeBounds>>`, but its trait bounds were not satisfied
+  --> tests/function_component_attr/generic-props-fail.rs:27:14
+   |
+8  | #[function_component(Comp)]
+   | --------------------------- doesn't satisfy `Comp<MissingTypeBounds>: IntoComponent`
+...
+27 |     html! { <Comp<MissingTypeBounds> /> };
+   |              ^^^^ function or associated item cannot be called on `VChild<Comp<MissingTypeBounds>>` due to unsatisfied trait bounds
+   |
+   = note: the following trait bounds were not satisfied:
+           `Comp<MissingTypeBounds>: IntoComponent`
+
+error[E0277]: the trait bound `MissingTypeBounds: yew::Properties` is not satisfied
+  --> tests/function_component_attr/generic-props-fail.rs:27:14
+   |
+27 |     html! { <Comp<MissingTypeBounds> /> };
+   |              ^^^^ the trait `yew::Properties` is not implemented for `MissingTypeBounds`
+   |
+note: required by a bound in `Comp`
+  --> tests/function_component_attr/generic-props-fail.rs:11:8
+   |
+8  | #[function_component(Comp)]
+   |                      ---- required by a bound in this
+...
+11 |     P: Properties + PartialEq,
+   |        ^^^^^^^^^^ required by this bound in `Comp`
+
 error[E0107]: missing generics for struct `Comp`
   --> tests/function_component_attr/generic-props-fail.rs:30:14
    |
