@@ -121,7 +121,7 @@ impl ToTokens for HtmlComponent {
         tokens.extend(quote_spanned! {ty.span()=>
             {
                 let __yew_props = #build_props;
-                ::yew::virtual_dom::VChild::<<#ty as ::yew::html::IntoComponent>::Component>::new(__yew_props, #node_ref, #key)
+                ::yew::virtual_dom::VChild::<#ty>::new(__yew_props, #node_ref, #key)
             }
         });
     }

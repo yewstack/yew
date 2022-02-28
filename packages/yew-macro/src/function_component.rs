@@ -320,9 +320,8 @@ pub fn function_component_impl(
 
         quote! {
             impl #impl_generics ::yew::html::IntoComponent for #component_name #ty_generics #where_clause {
-                type Message = ();
                 type Properties = #props_type;
-                type Component = ::yew::functional::FunctionComponent<#component_name #ty_generics>;
+                type Component = ::yew::functional::FunctionComponent<Self>;
             }
         }
     };

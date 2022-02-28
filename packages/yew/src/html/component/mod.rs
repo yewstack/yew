@@ -169,16 +169,16 @@ where
 
 impl<T> sealed::SealedBaseComponent for T where T: Sized + Component + 'static {}
 
-/// A trait to register the component type.
+/// A trait that indicates a type is able to be converted into a component.
+///
+/// You may want to use this trait if you want to accept both function components and struct
+/// components as a generic parameter.
 pub trait IntoComponent {
-    /// The Component's Message.
-    type Message: 'static;
-
     /// The Component's Properties.
     type Properties: Properties;
 
     /// The Component Type.
-    type Component: BaseComponent<Properties = Self::Properties, Message = Self::Message> + 'static;
+    type Component: BaseComponent<Properties = Self::Properties> + 'static;
 }
 
 impl<T> IntoComponent for T
@@ -186,6 +186,5 @@ where
     T: BaseComponent + 'static,
 {
     type Properties = T::Properties;
-    type Message = T::Message;
     type Component = T;
 }

@@ -9,7 +9,7 @@ use super::{
 };
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
-use crate::html::NodeRef;
+use crate::html::{IntoComponent, NodeRef};
 use crate::scheduler::{self, Shared};
 use crate::virtual_dom::{insert_node, VNode};
 use gloo_utils::document;
@@ -117,20 +117,20 @@ impl AnyScope {
     /// # Panics
     ///
     /// If the self value can't be cast into the target type.
-    pub fn downcast<COMP: BaseComponent>(self) -> Scope<COMP> {
-        self.try_downcast::<COMP>().unwrap()
+    pub fn downcast<ICOMP: IntoComponent>(&self) -> Scope<ICOMP::Component> {
+        self.try_downcast::<ICOMP>().unwrap()
     }
 
     /// Attempts to downcast into a typed scope
     ///
     /// Returns [`None`] if the self value can't be cast into the target type.
-    pub fn try_downcast<COMP: BaseComponent>(self) -> Option<Scope<COMP>> {
+    pub fn try_downcast<ICOMP: IntoComponent>(&self) -> Option<Scope<ICOMP::Component>> {
         let state = self.state.borrow();
 
         state.as_ref().map(|m| {
             m.inner
                 .as_any()
-                .downcast_ref::<CompStateInner<COMP>>()
+                .downcast_ref::<CompStateInner<ICOMP::Component>>()
                 .unwrap()
                 .context
                 .link()
@@ -141,13 +141,9 @@ impl AnyScope {
     /// Attempts to find a parent scope of a certain type
     ///
     /// Returns [`None`] if no parent scope with the specified type was found.
-    pub fn find_parent_scope<C: BaseComponent>(&self) -> Option<Scope<C>> {
-        let expected_type_id = TypeId::of::<C>();
+    pub fn find_parent_scope<ICOMP: IntoComponent>(&self) -> Option<Scope<ICOMP::Component>> {
         iter::successors(Some(self), |scope| scope.get_parent())
-            .filter(|scope| scope.get_type_id() == &expected_type_id)
-            .cloned()
-            .map(AnyScope::downcast::<C>)
-            .next()
+            .find_map(AnyScope::try_downcast::<ICOMP>)
     }
 
     /// Accesses a value provided by a parent `ContextProvider` component of the
