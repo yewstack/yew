@@ -278,6 +278,7 @@ pub mod suspense;
 pub mod tests;
 pub mod utils;
 pub mod virtual_dom;
+pub use imut as immutable;
 #[cfg(feature = "ssr")]
 pub use server_renderer::*;
 

@@ -29,6 +29,7 @@ thiserror = "1.0"
 
 futures = { version = "0.3", optional = true }
 html-escape = { version = "0.2.9", optional = true }
+imut = { git = "https://github.com/rustminded/imut", branch = "main", features = ["map"] }
 
 [dependencies.web-sys]
 version = "0.3"

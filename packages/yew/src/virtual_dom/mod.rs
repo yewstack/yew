@@ -21,8 +21,7 @@ pub mod vtext;
 
 use crate::html::{AnyScope, NodeRef};
 use indexmap::IndexMap;
-use std::borrow::Cow;
-use std::{collections::HashMap, fmt, hint::unreachable_unchecked, iter};
+use std::{collections::HashMap, hint::unreachable_unchecked, iter};
 use web_sys::{Element, Node};
 
 #[doc(inline)]
@@ -43,143 +42,9 @@ pub use self::vsuspense::VSuspense;
 pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
-use std::fmt::Formatter;
-use std::ops::Deref;
-use std::rc::Rc;
 
 /// Attribute value
-#[derive(Debug)]
-pub enum AttrValue {
-    /// String living for `'static`
-    Static(&'static str),
-    /// Reference counted string
-    Rc(Rc<str>),
-}
-
-impl Deref for AttrValue {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
-        match self {
-            AttrValue::Static(s) => *s,
-            AttrValue::Rc(s) => &*s,
-        }
-    }
-}
-
-impl From<&'static str> for AttrValue {
-    fn from(s: &'static str) -> Self {
-        AttrValue::Static(s)
-    }
-}
-
-impl From<String> for AttrValue {
-    fn from(s: String) -> Self {
-        AttrValue::Rc(Rc::from(s))
-    }
-}
-
-impl From<Rc<str>> for AttrValue {
-    fn from(s: Rc<str>) -> Self {
-        AttrValue::Rc(s)
-    }
-}
-
-impl From<Cow<'static, str>> for AttrValue {
-    fn from(s: Cow<'static, str>) -> Self {
-        match s {
-            Cow::Borrowed(s) => s.into(),
-            Cow::Owned(s) => s.into(),
-        }
-    }
-}
-
-impl Clone for AttrValue {
-    fn clone(&self) -> Self {
-        match self {
-            AttrValue::Static(s) => AttrValue::Static(s),
-            AttrValue::Rc(s) => AttrValue::Rc(Rc::clone(s)),
-        }
-    }
-}
-
-impl AsRef<str> for AttrValue {
-    fn as_ref(&self) -> &str {
-        &*self
-    }
-}
-
-impl fmt::Display for AttrValue {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            AttrValue::Static(s) => write!(f, "{}", s),
-            AttrValue::Rc(s) => write!(f, "{}", s),
-        }
-    }
-}
-
-impl PartialEq for AttrValue {
-    fn eq(&self, other: &Self) -> bool {
-        self.as_ref() == other.as_ref()
-    }
-}
-
-impl Eq for AttrValue {}
-
-impl AttrValue {
-    /// Consumes the AttrValue and returns the owned String from the AttrValue whenever possible.
-    /// For AttrValue::Rc the <str> is cloned to String in case there are other Rc or Weak pointers to the
-    /// same allocation.
-    pub fn into_string(self) -> String {
-        match self {
-            AttrValue::Static(s) => (*s).to_owned(),
-            AttrValue::Rc(mut rc) => {
-                if let Some(s) = Rc::get_mut(&mut rc) {
-                    (*s).to_owned()
-                } else {
-                    rc.to_string()
-                }
-            }
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests_attr_value {
-    use super::*;
-
-    #[test]
-    fn test_into_string() {
-        let av = AttrValue::Static("str");
-        assert_eq!(av.into_string(), "str");
-
-        let av = AttrValue::Rc("Rc<str>".into());
-        assert_eq!(av.into_string(), "Rc<str>");
-    }
-
-    #[test]
-    fn test_from_string() {
-        let av = AttrValue::from("str");
-        assert_eq!(av.into_string(), "str");
-
-        let av = AttrValue::from("String".to_string());
-        assert_eq!(av.into_string(), "String");
-
-        let av = AttrValue::from(Cow::from("BorrowedCow"));
-        assert_eq!(av.into_string(), "BorrowedCow");
-    }
-
-    #[test]
-    fn test_equality() {
-        // construct 3 AttrValue with same embedded value; expectation is that all are equal
-        let a = AttrValue::Static("same");
-        let b = AttrValue::Rc("same".into());
-
-        assert_eq!(a, b);
-
-        assert_eq!(a, b);
-    }
-}
+pub type AttrValue = imut::IString;
 
 /// Applies contained changes to DOM [Element]
 trait Apply {

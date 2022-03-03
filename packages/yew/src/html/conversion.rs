@@ -2,29 +2,11 @@ use super::{Component, NodeRef, Scope};
 use crate::virtual_dom::AttrValue;
 use std::rc::Rc;
 
-/// Marker trait for types that the [`html!`](macro@crate::html) macro may clone implicitly.
-pub trait ImplicitClone: Clone {}
-
-impl<T: ImplicitClone> ImplicitClone for Option<T> {}
-impl<T> ImplicitClone for Rc<T> {}
+pub use imut::ImplicitClone;
 
 impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
 // TODO there are still a few missing
-
-macro_rules! impl_implicit_clone {
-    ($($ty:ty),+ $(,)?) => {
-        $(impl ImplicitClone for $ty {})*
-    };
-}
-
-#[rustfmt::skip]
-impl_implicit_clone!(
-    u8, u16, u32, u64, u128,
-    i8, i16, i32, i64, i128,
-    f32, f64,
-    &'static str,
-);
 
 /// A trait similar to `Into<T>` which allows conversion to a value of a `Properties` struct.
 pub trait IntoPropValue<T> {
@@ -98,6 +80,34 @@ impl_into_prop!(|value: &'static str| -> String { value.to_owned() });
 impl_into_prop!(|value: &'static str| -> AttrValue { AttrValue::Static(value) });
 impl_into_prop!(|value: String| -> AttrValue { AttrValue::Rc(Rc::from(value)) });
 impl_into_prop!(|value: Rc<str>| -> AttrValue { AttrValue::Rc(value) });
+
+impl<T: ImplicitClone + 'static> IntoPropValue<imut::IArray<T>> for &'static [T] {
+    fn into_prop_value(self) -> imut::IArray<T> {
+        imut::IArray::from(self)
+    }
+}
+
+impl<T: ImplicitClone + 'static> IntoPropValue<imut::IArray<T>> for Vec<T> {
+    fn into_prop_value(self) -> imut::IArray<T> {
+        imut::IArray::from(self)
+    }
+}
+
+impl<K: Eq + std::hash::Hash + ImplicitClone + 'static, V: PartialEq + ImplicitClone + 'static>
+    IntoPropValue<imut::IMap<K, V>> for &'static [(K, V)]
+{
+    fn into_prop_value(self) -> imut::IMap<K, V> {
+        imut::IMap::from(self)
+    }
+}
+
+impl<K: Eq + std::hash::Hash + ImplicitClone + 'static, V: PartialEq + ImplicitClone + 'static>
+    IntoPropValue<imut::IMap<K, V>> for indexmap::IndexMap<K, V>
+{
+    fn into_prop_value(self) -> imut::IMap<K, V> {
+        imut::IMap::from(self)
+    }
+}
 
 #[cfg(test)]
 mod test {
