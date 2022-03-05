@@ -20,7 +20,7 @@ fn main() -> Result<()> {
     let transformed_benchmarks: Vec<GhActionBenchmark> = input_json
         .into_iter()
         .map(|v| GhActionBenchmark {
-            name: format!("{} {}", v["framework"], v["benchmark"]).replace("\"", ""),
+            name: format!("{} {}", v["framework"], v["benchmark"]).replace('\"', ""),
             unit: String::default(),
             value: v["median"].to_string(),
         })
