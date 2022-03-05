@@ -162,7 +162,7 @@ impl Reconcilable for VTag {
         match bundle {
             // If the ancestor is a tag of the same type, don't recreate, keep the
             // old tag and update its attributes and children.
-            BNode::BTag(ex) if self.key == ex.key => {
+            BNode::Tag(ex) if self.key == ex.key => {
                 if match (&self.inner, &ex.inner) {
                     (VTagInner::Input(_), BTagInner::Input(_)) => true,
                     (VTagInner::Textarea { .. }, BTagInner::Textarea { .. }) => true,
@@ -447,7 +447,7 @@ mod tests {
     }
 
     fn assert_btag_ref(node: &BNode) -> &BTag {
-        if let BNode::BTag(vtag) = node {
+        if let BNode::Tag(vtag) = node {
             return vtag;
         }
         panic!("should be btag");
@@ -461,7 +461,7 @@ mod tests {
     }
 
     fn assert_btag_mut(node: &mut BNode) -> &mut BTag {
-        if let BNode::BTag(btag) = node {
+        if let BNode::Tag(btag) = node {
             return btag;
         }
         panic!("should be btag");

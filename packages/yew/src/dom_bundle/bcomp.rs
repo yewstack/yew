@@ -92,7 +92,7 @@ impl Reconcilable for VComp {
     ) -> NodeRef {
         match bundle {
             // If the existing bundle is the same type, reuse it and update its properties
-            BNode::BComp(ref mut bcomp)
+            BNode::Comp(ref mut bcomp)
                 if self.type_id == bcomp.type_id && self.key == bcomp.key =>
             {
                 self.reconcile(parent_scope, parent, next_sibling, bcomp)
@@ -216,7 +216,7 @@ impl ComponentRenderState {
             let placeholder: Node = document().create_text_node("").into();
             insert_node(&placeholder, &parent, next_sibling.get().as_ref());
             node_ref.set(Some(placeholder.clone()));
-            BNode::BRef(placeholder)
+            BNode::Ref(placeholder)
         };
         Self {
             root_node: placeholder,
@@ -232,7 +232,7 @@ impl ComponentRenderState {
         use super::blist::BList;
 
         Self {
-            root_node: BNode::BList(BList::new()),
+            root_node: BNode::List(BList::new()),
             parent: None,
             next_sibling: NodeRef::default(),
             html_sender: Some(tx),

@@ -59,7 +59,7 @@ impl Reconcilable for VText {
         bundle: &mut BNode,
     ) -> NodeRef {
         match bundle {
-            BNode::BText(btext) => self.reconcile(parent_scope, parent, next_sibling, btext),
+            BNode::Text(btext) => self.reconcile(parent_scope, parent, next_sibling, btext),
             _ => self.replace(parent_scope, parent, next_sibling, bundle),
         }
     }

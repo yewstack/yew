@@ -101,11 +101,11 @@ impl BNode {
     /// Assert that a bundle node is a list, or convert it to a list with a single child
     fn make_list(&mut self) -> &mut BList {
         match self {
-            Self::BList(blist) => blist,
+            Self::List(blist) => blist,
             self_ => {
-                let b = std::mem::replace(self_, BNode::BList(BList::new()));
+                let b = std::mem::replace(self_, BNode::List(BList::new()));
                 let self_list = match self_ {
-                    BNode::BList(blist) => blist,
+                    BNode::List(blist) => blist,
                     _ => unreachable!("just been set to the variant"),
                 };
                 let key = b.key().cloned();

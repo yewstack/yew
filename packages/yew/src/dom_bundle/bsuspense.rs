@@ -100,7 +100,7 @@ impl Reconcilable for VSuspense {
     ) -> NodeRef {
         match bundle {
             // We only preserve the child state if they are the same suspense.
-            BNode::BSuspense(m)
+            BNode::Suspense(m)
                 if m.key == self.key
                     && self.detached_parent.as_ref() == Some(&m.detached_parent) =>
             {

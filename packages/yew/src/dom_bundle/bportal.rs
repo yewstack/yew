@@ -64,7 +64,7 @@ impl Reconcilable for VPortal {
         bundle: &mut BNode,
     ) -> NodeRef {
         match bundle {
-            BNode::BPortal(portal) => self.reconcile(parent_scope, parent, next_sibling, portal),
+            BNode::Portal(portal) => self.reconcile(parent_scope, parent, next_sibling, portal),
             _ => self.replace(parent_scope, parent, next_sibling, bundle),
         }
     }

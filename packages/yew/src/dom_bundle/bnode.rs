@@ -11,32 +11,32 @@ use web_sys::{Element, Node};
 /// The bundle implementation to [VNode].
 pub enum BNode {
     /// A bind between `VTag` and `Element`.
-    BTag(Box<BTag>),
+    Tag(Box<BTag>),
     /// A bind between `VText` and `TextNode`.
-    BText(BText),
+    Text(BText),
     /// A bind between `VComp` and `Element`.
-    BComp(BComp),
+    Comp(BComp),
     /// A holder for a list of other nodes.
-    BList(BList),
+    List(BList),
     /// A portal to another part of the document
-    BPortal(BPortal),
+    Portal(BPortal),
     /// A holder for any `Node` (necessary for replacing node).
-    BRef(Node),
+    Ref(Node),
     /// A suspendible document fragment.
-    BSuspense(Box<BSuspense>),
+    Suspense(Box<BSuspense>),
 }
 
 impl BNode {
     /// Get the key of the underlying node
     pub(super) fn key(&self) -> Option<&Key> {
         match self {
-            Self::BComp(bsusp) => bsusp.key(),
-            Self::BList(blist) => blist.key(),
-            Self::BRef(_) => None,
-            Self::BTag(btag) => btag.key(),
-            Self::BText(_) => None,
-            Self::BPortal(bportal) => bportal.key(),
-            Self::BSuspense(bsusp) => bsusp.key(),
+            Self::Comp(bsusp) => bsusp.key(),
+            Self::List(blist) => blist.key(),
+            Self::Ref(_) => None,
+            Self::Tag(btag) => btag.key(),
+            Self::Text(_) => None,
+            Self::Portal(bportal) => bportal.key(),
+            Self::Suspense(bsusp) => bsusp.key(),
         }
     }
 }
@@ -45,34 +45,34 @@ impl DomBundle for BNode {
     /// Remove VNode from parent.
     fn detach(self, parent: &Element, parent_to_detach: bool) {
         match self {
-            Self::BTag(vtag) => vtag.detach(parent, parent_to_detach),
-            Self::BText(btext) => btext.detach(parent, parent_to_detach),
-            Self::BComp(bsusp) => bsusp.detach(parent, parent_to_detach),
-            Self::BList(blist) => blist.detach(parent, parent_to_detach),
-            Self::BRef(ref node) => {
+            Self::Tag(vtag) => vtag.detach(parent, parent_to_detach),
+            Self::Text(btext) => btext.detach(parent, parent_to_detach),
+            Self::Comp(bsusp) => bsusp.detach(parent, parent_to_detach),
+            Self::List(blist) => blist.detach(parent, parent_to_detach),
+            Self::Ref(ref node) => {
                 // Always remove user-defined nodes to clear possible parent references of them
                 if parent.remove_child(node).is_err() {
                     console::warn!("Node not found to remove VRef");
                 }
             }
-            Self::BPortal(bportal) => bportal.detach(parent, parent_to_detach),
-            Self::BSuspense(bsusp) => bsusp.detach(parent, parent_to_detach),
+            Self::Portal(bportal) => bportal.detach(parent, parent_to_detach),
+            Self::Suspense(bsusp) => bsusp.detach(parent, parent_to_detach),
         }
     }
 
     fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
         match self {
-            Self::BTag(ref vtag) => vtag.shift(next_parent, next_sibling),
-            Self::BText(ref btext) => btext.shift(next_parent, next_sibling),
-            Self::BComp(ref bsusp) => bsusp.shift(next_parent, next_sibling),
-            Self::BList(ref vlist) => vlist.shift(next_parent, next_sibling),
-            Self::BRef(ref node) => {
+            Self::Tag(ref vtag) => vtag.shift(next_parent, next_sibling),
+            Self::Text(ref btext) => btext.shift(next_parent, next_sibling),
+            Self::Comp(ref bsusp) => bsusp.shift(next_parent, next_sibling),
+            Self::List(ref vlist) => vlist.shift(next_parent, next_sibling),
+            Self::Ref(ref node) => {
                 next_parent
                     .insert_before(node, next_sibling.get().as_ref())
                     .unwrap();
             }
-            Self::BPortal(ref vportal) => vportal.shift(next_parent, next_sibling),
-            Self::BSuspense(ref vsuspense) => vsuspense.shift(next_parent, next_sibling),
+            Self::Portal(ref vportal) => vportal.shift(next_parent, next_sibling),
+            Self::Suspense(ref vsuspense) => vsuspense.shift(next_parent, next_sibling),
         }
     }
 }
@@ -105,7 +105,7 @@ impl Reconcilable for VNode {
             }
             VNode::VRef(node) => {
                 super::insert_node(&node, parent, next_sibling.get().as_ref());
-                (NodeRef::new(node.clone()), BNode::BRef(node))
+                (NodeRef::new(node.clone()), BNode::Ref(node))
             }
             VNode::VPortal(vportal) => {
                 let (node_ref, portal) = vportal.attach(parent_scope, parent, next_sibling);
@@ -142,7 +142,7 @@ impl Reconcilable for VNode {
             VNode::VList(vlist) => vlist.reconcile_node(parent_scope, parent, next_sibling, bundle),
             VNode::VRef(node) => {
                 let _existing = match bundle {
-                    BNode::BRef(ref n) if &node == n => n,
+                    BNode::Ref(ref n) if &node == n => n,
                     _ => {
                         return VNode::VRef(node).replace(
                             parent_scope,
@@ -167,55 +167,55 @@ impl Reconcilable for VNode {
 impl From<BText> for BNode {
     #[inline]
     fn from(btext: BText) -> Self {
-        Self::BText(btext)
+        Self::Text(btext)
     }
 }
 
 impl From<BList> for BNode {
     #[inline]
     fn from(blist: BList) -> Self {
-        Self::BList(blist)
+        Self::List(blist)
     }
 }
 
 impl From<BTag> for BNode {
     #[inline]
     fn from(btag: BTag) -> Self {
-        Self::BTag(Box::new(btag))
+        Self::Tag(Box::new(btag))
     }
 }
 
 impl From<BComp> for BNode {
     #[inline]
     fn from(bcomp: BComp) -> Self {
-        Self::BComp(bcomp)
+        Self::Comp(bcomp)
     }
 }
 
 impl From<BPortal> for BNode {
     #[inline]
     fn from(bportal: BPortal) -> Self {
-        Self::BPortal(bportal)
+        Self::Portal(bportal)
     }
 }
 
 impl From<BSuspense> for BNode {
     #[inline]
     fn from(bsusp: BSuspense) -> Self {
-        Self::BSuspense(Box::new(bsusp))
+        Self::Suspense(Box::new(bsusp))
     }
 }
 
 impl fmt::Debug for BNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            Self::BTag(ref vtag) => vtag.fmt(f),
-            Self::BText(ref btext) => btext.fmt(f),
-            Self::BComp(ref bsusp) => bsusp.fmt(f),
-            Self::BList(ref vlist) => vlist.fmt(f),
-            Self::BRef(ref vref) => write!(f, "VRef ( \"{}\" )", crate::utils::print_node(vref)),
-            Self::BPortal(ref vportal) => vportal.fmt(f),
-            Self::BSuspense(ref bsusp) => bsusp.fmt(f),
+            Self::Tag(ref vtag) => vtag.fmt(f),
+            Self::Text(ref btext) => btext.fmt(f),
+            Self::Comp(ref bsusp) => bsusp.fmt(f),
+            Self::List(ref vlist) => vlist.fmt(f),
+            Self::Ref(ref vref) => write!(f, "VRef ( \"{}\" )", crate::utils::print_node(vref)),
+            Self::Portal(ref vportal) => vportal.fmt(f),
+            Self::Suspense(ref bsusp) => bsusp.fmt(f),
         }
     }
 }
