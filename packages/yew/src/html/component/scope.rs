@@ -103,24 +103,35 @@ impl AnyScope {
     }
 
     /// Attempts to downcast into a typed scope
+    ///
+    /// # Panics
+    ///
+    /// If the self value can't be cast into the target type.
     pub fn downcast<COMP: BaseComponent>(self) -> Scope<COMP> {
-        let state = self.state.borrow();
-
-        state
-            .as_ref()
-            .map(|m| {
-                m.inner
-                    .as_any()
-                    .downcast_ref::<CompStateInner<COMP>>()
-                    .unwrap()
-                    .context
-                    .link()
-                    .clone()
-            })
-            .unwrap()
+        self.try_downcast::<COMP>().unwrap()
     }
 
-    pub(super) fn find_parent_scope<C: BaseComponent>(&self) -> Option<Scope<C>> {
+    /// Attempts to downcast into a typed scope
+    ///
+    /// Returns [`None`] if the self value can't be cast into the target type.
+    pub fn try_downcast<COMP: BaseComponent>(self) -> Option<Scope<COMP>> {
+        let state = self.state.borrow();
+
+        state.as_ref().map(|m| {
+            m.inner
+                .as_any()
+                .downcast_ref::<CompStateInner<COMP>>()
+                .unwrap()
+                .context
+                .link()
+                .clone()
+        })
+    }
+
+    /// Attempts to find a parent scope of a certain type
+    ///
+    /// Returns [`None`] if no parent scope with the specified type was found.
+    pub fn find_parent_scope<C: BaseComponent>(&self) -> Option<Scope<C>> {
         let expected_type_id = TypeId::of::<C>();
         iter::successors(Some(self), |scope| scope.get_parent())
             .filter(|scope| scope.get_type_id() == &expected_type_id)
