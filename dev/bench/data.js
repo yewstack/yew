@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1646510378880,
+  "lastUpdate": 1646538205341,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -6425,6 +6425,115 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 32_startup-bt",
             "value": "35.86199999999999",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "359.8974609375",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "WorldSEnder@users.noreply.github.com",
+            "name": "WorldSEnder",
+            "username": "WorldSEnder"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "78d4204a9a52a826bd2be4e7383d29e04233fb5b",
+          "message": "Introduce explicit internal datastructures modeling dom state (#2330)\n\n* detach destructures now\n\n* add failing keyed-list issue\n\n* crude port to the new bundle infrastructure\n\n* port over the infrastructure\n\nthe new bcomp is especially nice and lost a few unwraps owed to not having\nto reserve space for a scope before rendering.\nNote also that bsuspense has been slimmed a bit, storing the suspended flag\nimplicitly in the state.\nsome naming is not perfect yet and has to be adjusted still.\n\n* mass rename: apply -> reconcile\n\n* get rid of move_before in favor of shift\n\n* generate id directly when creating a new scope\n\n* bundle for text nodes\n\n* work on naming: ancestor -> bundle\n\n* slightly optimize list reconciler, add doccomments\n\n* address review\n\n* add internal documentation\n\n* address review comments\n\nrename fields in bsuspense\nconvert to gloo::events\n\n* move even more stuff into dom_bundle to scope exports\n\n- app_handle and layout_tests are now in there\n- items are publically re-exported in crate::dom_bundle\n- dom_bundle itself is private\n- btag and bcomp get their own submodules\n- bcomp now contains the lifecycle and scope impls\n\n* move replace into Reconcilable\n\n* move lifecycle and scope back into html as per review\n\n* move back Value and InputFields into html\n\n* actually only type-check format args in production\n\n* fix documentation link\n\n* move btag_impl up into containing module\n\n* shift comps immediately\n\nshifting the rendered Nodes does not tie into the lifecycle,\nas such it can happen immediately\n\n* use list-bundle in tag-bundle\n\n* fix cargo make tests\n\n* improve 05_swap benchmark\n\n* fix a blunder where I swapped operands\n\n* fix naming of BNode variants",
+          "timestamp": "2022-03-06T08:37:07+05:00",
+          "tree_id": "4369460cb6855132d9109aff874371a75151c447",
+          "url": "https://github.com/yewstack/yew/commit/78d4204a9a52a826bd2be4e7383d29e04233fb5b"
+        },
+        "date": 1646538203907,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "224.179",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "220.442",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "407.13",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "83.565",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "109.9455",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "33.438",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "2374.045",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "470.869",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "227.1965",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "0.9634475708007812",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.501728057861328",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.5026473999023438",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.5109291076660156",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.128643035888672",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1730.344",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "34.971999999999994",
             "unit": ""
           },
           {
