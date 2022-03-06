@@ -175,7 +175,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     }
 
     fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef) {
-        let scope: Scope<COMP> = scope.to_any().downcast();
+        let scope: Scope<COMP> = scope.to_any().downcast::<COMP>();
         scope.reuse(self.props, node_ref, next_sibling);
     }
 

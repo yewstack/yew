@@ -31,7 +31,7 @@ pub use hooks::*;
 
 use crate::html::Context;
 
-use crate::html::SealedBaseComponent;
+use crate::html::sealed::SealedBaseComponent;
 
 /// This attribute creates a function component from a normal Rust function.
 ///
@@ -131,21 +131,27 @@ impl fmt::Debug for HookContext {
 /// Trait that allows a struct to act as Function Component.
 pub trait FunctionProvider {
     /// Properties for the Function Component.
-    type TProps: Properties + PartialEq;
+    type Properties: Properties + PartialEq;
 
     /// Render the component. This function returns the [`Html`](crate::Html) to be rendered for the component.
     ///
     /// Equivalent of [`Component::view`](crate::html::Component::view).
-    fn run(ctx: &mut HookContext, props: &Self::TProps) -> HtmlResult;
+    fn run(ctx: &mut HookContext, props: &Self::Properties) -> HtmlResult;
 }
 
 /// Wrapper that allows a struct implementing [`FunctionProvider`] to be consumed as a component.
-pub struct FunctionComponent<T: FunctionProvider + 'static> {
+pub struct FunctionComponent<T>
+where
+    T: FunctionProvider + 'static,
+{
     _never: std::marker::PhantomData<T>,
     hook_ctx: RefCell<HookContext>,
 }
 
-impl<T: FunctionProvider> fmt::Debug for FunctionComponent<T> {
+impl<T> fmt::Debug for FunctionComponent<T>
+where
+    T: FunctionProvider + 'static,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("FunctionComponent<_>")
     }
@@ -156,7 +162,7 @@ where
     T: FunctionProvider + 'static,
 {
     type Message = ();
-    type Properties = T::TProps;
+    type Properties = T::Properties;
 
     fn create(ctx: &Context<Self>) -> Self {
         let scope = AnyScope::from(ctx.link().clone());
