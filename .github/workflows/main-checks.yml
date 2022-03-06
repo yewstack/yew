@@ -59,7 +59,7 @@ jobs:
 
       - name: Lint feature soundness
         run: |
-          cargo clippy --release -- --deny=warnings --release
+          cargo clippy --release -- --deny=warnings
           cargo clippy --release --features=ssr -- --deny=warnings
           cargo clippy --release --features=render -- --deny=warnings
           cargo clippy --release --all-features --all-targets -- --deny=warnings
