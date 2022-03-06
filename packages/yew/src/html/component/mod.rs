@@ -8,16 +8,52 @@ mod scope;
 use super::{Html, HtmlResult, IntoHtmlResult};
 pub use children::*;
 pub use properties::*;
-pub(crate) use scope::Scoped;
 pub use scope::{AnyScope, Scope, SendAsMessage};
 use std::rc::Rc;
+#[cfg(debug_assertions)]
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+#[cfg(debug_assertions)]
+thread_local! {
+     static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<usize, Vec<String>>>
+        = Default::default();
+    static COMP_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
+}
+
+/// Push [Component] event to lifecycle debugging registry
+#[cfg(debug_assertions)]
+pub(crate) fn log_event(vcomp_id: usize, event: impl ToString) {
+    EVENT_HISTORY.with(|h| {
+        h.borrow_mut()
+            .entry(vcomp_id)
+            .or_default()
+            .push(event.to_string())
+    });
+}
+
+/// Get [Component] event log from lifecycle debugging registry
+#[cfg(debug_assertions)]
+#[allow(dead_code)]
+pub(crate) fn get_event_log(vcomp_id: usize) -> Vec<String> {
+    EVENT_HISTORY.with(|h| {
+        h.borrow()
+            .get(&vcomp_id)
+            .map(|l| (*l).clone())
+            .unwrap_or_default()
+    })
+}
+
+#[cfg(debug_assertions)]
+pub(crate) fn next_id() -> usize {
+    COMP_ID_COUNTER.with(|m| m.fetch_add(1, Ordering::Relaxed))
+}
 
 /// The [`Component`]'s context. This contains component's [`Scope`] and and props and
 /// is passed to every lifecycle method.
 #[derive(Debug)]
 pub struct Context<COMP: BaseComponent> {
-    pub(crate) scope: Scope<COMP>,
-    pub(crate) props: Rc<COMP::Properties>,
+    scope: Scope<COMP>,
+    props: Rc<COMP::Properties>,
 }
 
 impl<COMP: BaseComponent> Context<COMP> {
