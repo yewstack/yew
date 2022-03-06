@@ -1,24 +1,46 @@
 use super::Apply;
 use crate::dom_bundle::test_log;
 use crate::virtual_dom::{Listener, ListenerKind, Listeners};
+use ::wasm_bindgen::{prelude::wasm_bindgen, JsCast};
 use gloo::events::{EventListener, EventListenerOptions, EventListenerPhase};
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::ops::Deref;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use wasm_bindgen::JsCast;
-use web_sys::{Element, Event};
+use web_sys::{Element, Event, EventTarget as HtmlEventTarget};
+
+#[wasm_bindgen]
+extern "C" {
+    // Duck-typing, not a real class on js-side. On rust-side, use impls of EventTarget below
+    type EventTargetable;
+    #[wasm_bindgen(method, getter = __yew_listener_id, structural)]
+    fn listener_id(this: &EventTargetable) -> Option<u32>;
+
+    #[wasm_bindgen(method, setter = __yew_listener_id, structural)]
+    fn set_listener_id(this: &EventTargetable, id: u32);
+}
+
+/// DOM-Types that can have listeners registered on them. Uses the duck-typed interface from above
+/// in impls.
+trait EventTarget {
+    fn listener_id(&self) -> Option<u32>;
+    fn set_listener_id(&self, id: u32);
+}
+
+impl EventTarget for Element {
+    fn listener_id(&self) -> Option<u32> {
+        self.unchecked_ref::<EventTargetable>().listener_id()
+    }
+
+    fn set_listener_id(&self, id: u32) {
+        self.unchecked_ref::<EventTargetable>().set_listener_id(id)
+    }
+}
 
 thread_local! {
     /// Global event listener registry
-    static REGISTRY: RefCell<Registry> = Default::default();
-
-    /// Key used to store listener id on element
-    static LISTENER_ID_PROP: wasm_bindgen::JsValue = "__yew_listener_id".into();
-
-    /// Cached reference to the document body
-    static BODY: web_sys::HtmlElement = gloo_utils::document().body().unwrap();
+    static REGISTRY: RefCell<Registry> = RefCell::new(Registry::new_global());
 }
 
 /// Bubble events during delegation
@@ -127,11 +149,14 @@ impl From<&dyn Listener> for EventDescriptor {
     }
 }
 
-/// Ensures global event handler registration.
+/// Ensures event handler registration.
 //
 // Separate struct to DRY, while avoiding partial struct mutability.
-#[derive(Default, Debug)]
-struct GlobalHandlers {
+#[derive(Debug)]
+struct HostHandlers {
+    /// The host element where events are registered
+    host: HtmlEventTarget,
+
     /// Events with registered handlers that are possibly passive
     handling: HashSet<EventDescriptor>,
 
@@ -141,24 +166,31 @@ struct GlobalHandlers {
     registered: Vec<(ListenerKind, EventListener)>,
 }
 
-impl GlobalHandlers {
+impl HostHandlers {
+    fn new(host: HtmlEventTarget) -> Self {
+        Self {
+            host,
+            handling: HashSet::default(),
+            #[cfg(test)]
+            registered: Vec::default(),
+        }
+    }
+
     /// Ensure a descriptor has a global event handler assigned
     fn ensure_handled(&mut self, desc: EventDescriptor) {
         if !self.handling.contains(&desc) {
             let cl = {
                 let desc = desc.clone();
-                BODY.with(move |body| {
-                    let options = EventListenerOptions {
-                        phase: EventListenerPhase::Capture,
-                        passive: desc.passive,
-                    };
-                    EventListener::new_with_options(
-                        body,
-                        desc.kind.type_name(),
-                        options,
-                        move |e: &Event| Registry::handle(desc.clone(), e.clone()),
-                    )
-                })
+                let options = EventListenerOptions {
+                    phase: EventListenerPhase::Capture,
+                    passive: desc.passive,
+                };
+                EventListener::new_with_options(
+                    &self.host,
+                    desc.kind.type_name(),
+                    options,
+                    move |e: &Event| Registry::handle(desc.clone(), e.clone()),
+                )
             };
 
             // Never drop the closure as this event handler is static
@@ -173,19 +205,32 @@ impl GlobalHandlers {
 }
 
 /// Global multiplexing event handler registry
-#[derive(Default, Debug)]
+#[derive(Debug)]
 struct Registry {
     /// Counter for assigning new IDs
     id_counter: u32,
 
     /// Registered global event handlers
-    global: GlobalHandlers,
+    global: HostHandlers,
 
     /// Contains all registered event listeners by listener ID
     by_id: HashMap<u32, HashMap<EventDescriptor, Vec<Rc<dyn Listener>>>>,
 }
 
 impl Registry {
+    fn new(host: HtmlEventTarget) -> Self {
+        Self {
+            id_counter: u32::default(),
+            global: HostHandlers::new(host),
+            by_id: HashMap::default(),
+        }
+    }
+
+    fn new_global() -> Self {
+        let body = gloo_utils::document().body().unwrap();
+        Self::new(body.into())
+    }
+
     /// Run f with access to global Registry
     #[inline]
     fn with<R>(f: impl FnOnce(&mut Registry) -> R) -> R {
@@ -230,11 +275,7 @@ impl Registry {
         let id = self.id_counter;
         self.id_counter += 1;
 
-        LISTENER_ID_PROP.with(|prop| {
-            if !js_sys::Reflect::set(el, prop, &js_sys::Number::from(id)).unwrap() {
-                panic!("failed to set listener ID property");
-            }
-        });
+        el.set_listener_id(id);
 
         id
     }
@@ -253,19 +294,12 @@ impl Registry {
     }
 
     fn run_handlers(desc: EventDescriptor, event: Event, target: web_sys::Element) {
+        let get_handlers = |el: &dyn EventTarget| -> Option<Vec<Rc<dyn Listener>>> {
+            let id = el.listener_id()?;
+            Registry::with(|r| r.by_id.get(&id)?.get(&desc).cloned())
+        };
         let run_handler = |el: &web_sys::Element| {
-            if let Some(l) = LISTENER_ID_PROP
-                .with(|prop| js_sys::Reflect::get(el, prop).ok())
-                .and_then(|v| v.dyn_into().ok())
-                .and_then(|num: js_sys::Number| {
-                    Registry::with(|r| {
-                        r.by_id
-                            .get(&(num.value_of() as u32))
-                            .and_then(|s| s.get(&desc))
-                            .cloned()
-                    })
-                })
-            {
+            if let Some(l) = get_handlers(el) {
                 for l in l {
                     l.handle(event.clone());
                 }
@@ -399,7 +433,7 @@ mod tests {
         M: Mixin,
     {
         // Remove any existing listeners and elements
-        super::Registry::with(|r| *r = Default::default());
+        super::Registry::with(|r| *r = super::Registry::new_global());
         if let Some(el) = document().query_selector(tag).unwrap() {
             el.parent_element().unwrap().remove();
         }
