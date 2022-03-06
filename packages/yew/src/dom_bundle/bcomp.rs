@@ -1,16 +1,13 @@
 //! This module contains the bundle implementation of a virtual component [BComp].
 
-use super::{insert_node, BNode, DomBundle, Reconcilable};
-use crate::html::{AnyScope, BaseComponent, Scope};
-use crate::virtual_dom::{Key, VComp, VNode};
+use super::{BNode, DomBundle, Reconcilable};
+use crate::html::AnyScope;
+use crate::html::Scoped;
+use crate::virtual_dom::{Key, VComp};
 use crate::NodeRef;
-#[cfg(feature = "ssr")]
-use futures::channel::oneshot;
-use gloo_utils::document;
-use std::cell::Ref;
+use std::fmt;
 use std::{any::TypeId, borrow::Borrow};
-use std::{fmt, rc::Rc};
-use web_sys::{Element, Node};
+use web_sys::Element;
 
 /// A virtual component. Compare with [VComp].
 pub struct BComp {

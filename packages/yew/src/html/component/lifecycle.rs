@@ -10,6 +10,8 @@ use std::any::Any;
 use std::rc::Rc;
 
 #[cfg(feature = "render")]
+use crate::dom_bundle::{DomBundle, Reconcilable};
+#[cfg(feature = "render")]
 use crate::html::NodeRef;
 #[cfg(feature = "render")]
 use web_sys::Element;
@@ -283,6 +285,7 @@ impl Runnable for UpdateRunner {
                             #[cfg(debug_assertions)]
                             panic!("properties do not change during SSR");
 
+                            #[cfg(not(debug_assertions))]
                             false
                         }
                     }
@@ -290,14 +293,19 @@ impl Runnable for UpdateRunner {
 
                 #[cfg(feature = "render")]
                 UpdateEvent::Shift(next_parent, next_sibling) => {
-                    match state.rendered {
+                    match state.render_state {
                         ComponentRenderState::Render {
                             ref root_node,
                             ref mut parent,
                             next_sibling: ref mut current_next_sibling,
                             ..
                         } => {
-                            root_node.shift(parent, &next_parent, next_sibling.clone());
+                            //         self.root_node.shift(&new_parent, next_sibling.clone());
+
+                            //         self.parent = Some(new_parent);
+                            //         self.next_sibling = next_sibling;
+
+                            root_node.shift(&next_parent, next_sibling.clone());
 
                             *parent = next_parent;
                             *current_next_sibling = next_sibling;
@@ -352,7 +360,7 @@ impl Runnable for DestroyRunner {
             match state.render_state {
                 #[cfg(feature = "render")]
                 ComponentRenderState::Render {
-                    ref mut root_node,
+                    root_node,
                     ref parent,
                     ref node_ref,
                     ..
@@ -404,7 +412,6 @@ impl RenderRunner {
             );
         } else {
             // We schedule a render after current suspension is resumed.
-
             let comp_scope = state.inner.any_scope();
 
             let suspense_scope = comp_scope
@@ -449,45 +456,22 @@ impl RenderRunner {
         match state.render_state {
             #[cfg(feature = "render")]
             ComponentRenderState::Render {
-                root_node: ref mut current_root,
+                ref mut root_node,
                 ref parent,
                 ref next_sibling,
                 ref node_ref,
                 ..
             } => {
                 let scope = state.inner.any_scope();
-                let mut root = new_root;
-                std::mem::swap(&mut root, current_root);
-
-                let ancestor = root;
-
-                let node = current_root.apply(&scope, parent, next_sibling.clone(), Some(ancestor));
-
-                node_ref.link(node);
+                let new_node_ref =
+                    new_root.reconcile_node(&scope, parent, next_sibling.clone(), root_node);
+                node_ref.link(new_node_ref);
 
                 let first_render = !state.has_rendered;
                 state.has_rendered = true;
 
-                // let scope = state.inner.any_scope();
-                // let node = state.render_state.reconcile(root, &scope);
-                // state.node_ref.link(node);
-
-                // if state.render_state.should_trigger_rendered() {
-                //     let first_render = !state.has_rendered;
-                //     state.has_rendered = true;
-
-                //     scheduler::push_component_rendered(
-                //         self.state.as_ptr() as usize,
-                //         RenderedRunner {
-                //             state: self.state.clone(),
-                //             first_render,
-                //         },
-                //         first_render,
-                //     );
-                // }
-
                 scheduler::push_component_rendered(
-                    state.inner.id(),
+                    self.state.as_ptr() as usize,
                     RenderedRunner {
                         state: self.state.clone(),
                         first_render,
@@ -511,8 +495,8 @@ mod feat_render {
     use super::*;
 
     pub(crate) struct RenderedRunner {
-        state: Shared<Option<ComponentState>>,
-        first_render: bool,
+        pub state: Shared<Option<ComponentState>>,
+        pub first_render: bool,
     }
 
     impl Runnable for RenderedRunner {

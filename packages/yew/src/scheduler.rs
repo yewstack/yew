@@ -204,7 +204,7 @@ mod feat_render {
 }
 
 #[cfg(feature = "render")]
-pub(crate) use feat_render;
+pub(crate) use feat_render::*;
 
 /// Execute any pending [Runnable]s
 pub(crate) fn start_now() {

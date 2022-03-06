@@ -344,7 +344,7 @@ mod feat_render_ssr {
             })
         }
 
-        fn push_update(&self, event: UpdateEvent) {
+        pub(super) fn push_update(&self, event: UpdateEvent) {
             scheduler::push_component_update(UpdateRunner {
                 state: self.state.clone(),
                 event,
@@ -389,6 +389,9 @@ mod feat_render {
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
+    use crate::html::NodeRef;
+    use crate::scheduler;
+    use std::cell::Ref;
     use web_sys::Element;
 
     impl<COMP> Scope<COMP>
@@ -407,7 +410,7 @@ mod feat_render {
             let state = ComponentRenderState::Render {
                 root_node: placeholder,
                 node_ref,
-                parent: Some(parent),
+                parent,
                 next_sibling,
             };
 
@@ -432,7 +435,7 @@ mod feat_render {
             next_sibling: NodeRef,
         ) {
             #[cfg(debug_assertions)]
-            super::log_event(self.vcomp_id, "reuse");
+            super::super::log_event(self.vcomp_id, "reuse");
 
             self.push_update(UpdateEvent::Properties(props, node_ref, next_sibling));
         }
@@ -480,10 +483,10 @@ mod feat_render {
         }
 
         fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
-            let mut state_ref = self.state.borrow_mut();
-            if let Some(render_state) = state_ref.as_mut() {
-                render_state.render_state.shift(parent, next_sibling)
-            }
+            scheduler::push_component_update(UpdateRunner {
+                state: self.state.clone(),
+                event: UpdateEvent::Shift(parent, next_sibling),
+            })
         }
     }
 }
