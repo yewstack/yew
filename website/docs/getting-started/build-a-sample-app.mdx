@@ -55,9 +55,21 @@ edition = "2018"
 
 [dependencies]
 # you can check the latest version here: https://crates.io/crates/yew
-# You only need feature render
 yew = { version = "0.19", features = ["render"] }
 ```
+
+:::info
+
+You only need feature `render` if you are building an application.
+It will enable the `Renderer` and all client-side rendering related code.
+
+If you are making a library, do not enable this feature as it will pull in
+client-side rendering logic into the server-side rendering bundle.
+
+If you need the Renderer for testing or examples, you should enable it
+in the `dev-dependencies` instead.
+
+:::
 
 #### Update main.rs
 
