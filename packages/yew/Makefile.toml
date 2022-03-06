@@ -41,7 +41,7 @@ cargo clippy --features=ssr -- --deny=warnings
 cargo clippy --features=render -- --deny=warnings
 cargo clippy --all-features --all-targets -- --deny=warnings
 
-cargo clippy --release -- --deny=warnings --release
+cargo clippy --release -- --deny=warnings
 cargo clippy --release --features=ssr -- --deny=warnings
 cargo clippy --release --features=render -- --deny=warnings
 cargo clippy --release --all-features --all-targets -- --deny=warnings

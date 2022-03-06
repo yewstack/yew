@@ -282,6 +282,7 @@ mod app_handle;
 #[cfg(feature = "render")]
 mod renderer;
 
+#[cfg(feature = "render")]
 #[cfg(test)]
 pub mod tests {
     pub use crate::dom_bundle::layout_tests;

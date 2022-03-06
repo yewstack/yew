@@ -1,3 +1,5 @@
+#![cfg(feature = "wasm_test")]
+
 mod common;
 
 use common::obtain_result_by_id;

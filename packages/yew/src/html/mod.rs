@@ -180,15 +180,14 @@ pub fn create_portal(child: Html, host: Element) -> Html {
     VNode::VPortal(VPortal::new(child, host))
 }
 
+#[cfg(feature = "wasm_test")]
 #[cfg(test)]
 mod tests {
     use super::*;
     use gloo_utils::document;
 
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]

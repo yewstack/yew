@@ -1,3 +1,5 @@
+#![cfg(feature = "wasm_test")]
+
 use std::sync::atomic::{AtomicBool, Ordering};
 
 mod common;

@@ -1,3 +1,5 @@
+#![cfg(feature = "wasm_test")]
+
 use std::collections::HashSet;
 use std::rc::Rc;
 
