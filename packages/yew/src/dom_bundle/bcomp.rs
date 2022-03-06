@@ -118,6 +118,7 @@ impl Reconcilable for VComp {
     }
 }
 
+#[cfg(feature = "wasm_test")]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -133,10 +134,8 @@ mod tests {
     use web_sys::Element;
     use web_sys::Node;
 
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     struct Comp;
@@ -408,6 +407,7 @@ mod tests {
     }
 }
 
+#[cfg(feature = "wasm_test")]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
@@ -417,10 +417,8 @@ mod layout_tests {
     use crate::{Children, Component, Context, Html, Properties};
     use std::marker::PhantomData;
 
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     struct Comp<T> {
