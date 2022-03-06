@@ -31,7 +31,7 @@ struct Scheduler {
 
     /// Stacks to ensure child calls are always before parent calls
     rendered_first: Vec<Box<dyn Runnable>>,
-    #[cfg(any(feature = "ssr", feature = "render"))]
+    #[cfg(feature = "render")]
     rendered: RenderedScheduler,
 }
 
@@ -85,21 +85,6 @@ mod feat_render_ssr {
             s.render.schedule(component_id, Box::new(render));
         });
     }
-    pub(crate) fn push_component_rendered(
-        component_id: usize,
-        rendered: impl Runnable + 'static,
-        first_render: bool,
-    ) {
-        with(|s| {
-            let rendered = Box::new(rendered);
-
-            if first_render {
-                s.rendered_first.push(rendered);
-            } else {
-                s.rendered.schedule(component_id, rendered);
-            }
-        });
-    }
 
     /// Push a component update [Runnable] to be executed
     pub(crate) fn push_component_update(runnable: impl Runnable + 'static) {
@@ -117,7 +102,7 @@ mod feat_render_ssr {
 
     /// Scheduler for non-first component renders with deduplication
     #[derive(Default)]
-    struct RenderScheduler {
+    pub(super) struct RenderScheduler {
         /// Task registry by component ID
         tasks: HashMap<usize, QueueTask>,
 
@@ -127,7 +112,7 @@ mod feat_render_ssr {
 
     impl RenderScheduler {
         /// Schedule render task execution
-        fn schedule(&mut self, component_id: usize, runnable: Box<dyn Runnable>) {
+        pub fn schedule(&mut self, component_id: usize, runnable: Box<dyn Runnable>) {
             self.queue.push_back(component_id);
             match self.tasks.entry(component_id) {
                 Entry::Vacant(e) => {
@@ -146,7 +131,7 @@ mod feat_render_ssr {
         }
 
         /// Try to pop a task from the queue, if any
-        fn pop(&mut self) -> Option<Box<dyn Runnable>> {
+        pub fn pop(&mut self) -> Option<Box<dyn Runnable>> {
             while let Some(id) = self.queue.pop_front() {
                 match self.tasks.entry(id) {
                     Entry::Occupied(mut e) => {
@@ -162,10 +147,36 @@ mod feat_render_ssr {
             None
         }
     }
+}
+
+#[cfg(any(feature = "ssr", feature = "render"))]
+pub(crate) use feat_render_ssr::*;
+
+#[cfg(feature = "render")]
+mod feat_render {
+    use super::*;
+
+    use std::collections::HashMap;
+
+    pub(crate) fn push_component_rendered(
+        component_id: usize,
+        rendered: impl Runnable + 'static,
+        first_render: bool,
+    ) {
+        with(|s| {
+            let rendered = Box::new(rendered);
+
+            if first_render {
+                s.rendered_first.push(rendered);
+            } else {
+                s.rendered.schedule(component_id, rendered);
+            }
+        });
+    }
 
     /// Deduplicating scheduler for component rendered calls with deduplication
     #[derive(Default)]
-    struct RenderedScheduler {
+    pub(super) struct RenderedScheduler {
         /// Task registry by component ID
         tasks: HashMap<usize, Box<dyn Runnable>>,
 
@@ -175,14 +186,14 @@ mod feat_render_ssr {
 
     impl RenderedScheduler {
         /// Schedule rendered task execution
-        fn schedule(&mut self, component_id: usize, runnable: Box<dyn Runnable>) {
+        pub fn schedule(&mut self, component_id: usize, runnable: Box<dyn Runnable>) {
             if self.tasks.insert(component_id, runnable).is_none() {
                 self.stack.push(component_id);
             }
         }
 
         /// Drain all tasks into `dst`, if any
-        fn drain_into(&mut self, dst: &mut Vec<Box<dyn Runnable>>) {
+        pub fn drain_into(&mut self, dst: &mut Vec<Box<dyn Runnable>>) {
             for id in self.stack.drain(..).rev() {
                 if let Some(t) = self.tasks.remove(&id) {
                     dst.push(t);
@@ -192,8 +203,8 @@ mod feat_render_ssr {
     }
 }
 
-#[cfg(any(feature = "ssr", feature = "render"))]
-pub(crate) use feat_render_ssr::*;
+#[cfg(feature = "render")]
+pub(crate) use feat_render;
 
 /// Execute any pending [Runnable]s
 pub(crate) fn start_now() {
@@ -305,7 +316,10 @@ impl Scheduler {
             if let Some(r) = self.render.pop() {
                 to_run.push(r);
             }
+        }
 
+        #[cfg(feature = "render")]
+        {
             // These typically do nothing and don't spawn any other events - can be batched.
             // Should be run only after all renders have finished.
             if !to_run.is_empty() {

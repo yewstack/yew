@@ -2,13 +2,15 @@
 
 use super::scope::{AnyScope, Scope};
 use super::BaseComponent;
-use crate::html::{Html, NodeRef, RenderError};
+use crate::html::{Html, RenderError};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{Suspense, Suspension};
 use crate::{Callback, Context, HtmlResult};
 use std::any::Any;
 use std::rc::Rc;
 
+#[cfg(feature = "render")]
+use crate::html::NodeRef;
 #[cfg(feature = "render")]
 use web_sys::Element;
 
@@ -30,7 +32,6 @@ pub(crate) enum ComponentRenderState {
 
 impl std::fmt::Debug for ComponentRenderState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        #[cfg(any(feature = "render", feature = "ssr"))]
         match self {
             #[cfg(feature = "render")]
             Self::Render {
@@ -48,7 +49,7 @@ impl std::fmt::Debug for ComponentRenderState {
 
             #[cfg(feature = "ssr")]
             Self::Ssr { ref sender } => {
-                let debug_struct = f.debug_struct("ComponentRenderState::Ssr");
+                let mut debug_struct = f.debug_struct("ComponentRenderState::Ssr");
 
                 let debug_struct = match sender {
                     Some(_) => debug_struct.field("sender", &"Some(_)"),
@@ -176,6 +177,8 @@ pub struct ComponentState {
     pub(super) inner: Box<dyn Stateful>,
 
     pub(super) render_state: ComponentRenderState,
+
+    #[cfg(feature = "render")]
     has_rendered: bool,
 
     suspension: Option<Suspension>,
@@ -204,6 +207,8 @@ impl ComponentState {
             inner,
             render_state: initial_render_state,
             suspension: None,
+
+            #[cfg(feature = "render")]
             has_rendered: false,
 
             #[cfg(debug_assertions)]
@@ -238,7 +243,7 @@ pub(crate) enum UpdateEvent {
     /// Drain messages for a component.
     Message,
     /// Wraps properties, node ref, and next sibling for a component
-    #[cfg(any(feature = "render", feature = "ssr"))]
+    #[cfg(feature = "render")]
     Properties(Rc<dyn Any>, NodeRef, NodeRef),
     /// Shift Scope.
     #[cfg(feature = "render")]
@@ -252,10 +257,11 @@ pub(crate) struct UpdateRunner {
 
 impl Runnable for UpdateRunner {
     fn run(self: Box<Self>) {
+        #[allow(unused_mut)]
         if let Some(mut state) = self.state.borrow_mut().as_mut() {
             let schedule_render = match self.event {
                 UpdateEvent::Message => state.inner.flush_messages(),
-                #[cfg(any(feature = "render", feature = "ssr"))]
+                #[cfg(feature = "render")]
                 UpdateEvent::Properties(props, next_node_ref, next_sibling) => {
                     match state.render_state {
                         #[cfg(feature = "render")]
@@ -274,10 +280,12 @@ impl Runnable for UpdateRunner {
 
                         #[cfg(feature = "ssr")]
                         ComponentRenderState::Ssr { .. } => {
-                            // Only trigger changed if props were changed
-                            state.inner.props_changed(props)
+                            #[cfg(debug_assertions)]
+                            panic!("properties do not change during SSR");
+
+                            false
                         }
-                    };
+                    }
                 }
 
                 #[cfg(feature = "render")]
@@ -328,6 +336,8 @@ impl Runnable for UpdateRunner {
 
 pub(crate) struct DestroyRunner {
     pub state: Shared<Option<ComponentState>>,
+
+    #[cfg(feature = "render")]
     pub parent_to_detach: bool,
 }
 
@@ -496,23 +506,31 @@ impl RenderRunner {
     }
 }
 
-pub(crate) struct RenderedRunner {
-    state: Shared<Option<ComponentState>>,
-    first_render: bool,
-}
+#[cfg(feature = "render")]
+mod feat_render {
+    use super::*;
 
-impl Runnable for RenderedRunner {
-    fn run(self: Box<Self>) {
-        if let Some(state) = self.state.borrow_mut().as_mut() {
-            #[cfg(debug_assertions)]
-            super::log_event(state.vcomp_id, "rendered");
+    pub(crate) struct RenderedRunner {
+        state: Shared<Option<ComponentState>>,
+        first_render: bool,
+    }
 
-            if state.suspension.is_none() {
-                state.inner.rendered(self.first_render);
+    impl Runnable for RenderedRunner {
+        fn run(self: Box<Self>) {
+            if let Some(state) = self.state.borrow_mut().as_mut() {
+                #[cfg(debug_assertions)]
+                super::super::log_event(state.vcomp_id, "rendered");
+
+                if state.suspension.is_none() {
+                    state.inner.rendered(self.first_render);
+                }
             }
         }
     }
 }
+
+#[cfg(feature = "render")]
+use feat_render::*;
 
 #[cfg(feature = "wasm_test")]
 #[cfg(test)]

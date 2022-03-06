@@ -207,7 +207,7 @@ mod feat_ssr {
     impl<COMP: BaseComponent> Scope<COMP> {
         pub(crate) async fn render_to_string(self, w: &mut String, props: Rc<COMP::Properties>) {
             let (tx, rx) = oneshot::channel();
-            let state = ComponentRenderState::Ssr { sender: tx };
+            let state = ComponentRenderState::Ssr { sender: Some(tx) };
 
             scheduler::push_component_create(
                 CreateRunner {
@@ -222,11 +222,13 @@ mod feat_ssr {
 
             let html = rx.await.unwrap();
 
-            let self_any_scope = self.to_any();
+            let self_any_scope = AnyScope::from(self.clone());
             html.render_to_string(w, &self_any_scope).await;
 
             scheduler::push_component_destroy(DestroyRunner {
                 state: self.state.clone(),
+
+                #[cfg(feature = "render")]
                 parent_to_detach: false,
             });
             scheduler::start();
