@@ -263,6 +263,7 @@ pub mod macros {
 
 pub mod callback;
 pub mod context;
+#[cfg(feature = "render")]
 mod dom_bundle;
 pub mod functional;
 pub mod html;
@@ -290,6 +291,7 @@ pub mod tests {
 pub mod events {
     pub use crate::html::TargetCast;
 
+    #[cfg(feature = "render")]
     pub use crate::dom_bundle::set_event_bubbling;
 
     #[doc(no_inline)]

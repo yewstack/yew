@@ -1,10 +1,12 @@
 //! This module contains the bundle version of an abstract node [BNode]
 
+use super::insert_node;
 use super::{BComp, BList, BPortal, BSuspense, BTag, BText};
 use crate::dom_bundle::{DomBundle, Reconcilable};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{Key, VNode};
 use gloo::console;
+use gloo::utils::document;
 use std::fmt;
 use web_sys::{Element, Node};
 
@@ -38,6 +40,18 @@ impl BNode {
             Self::Portal(bportal) => bportal.key(),
             Self::Suspense(bsusp) => bsusp.key(),
         }
+    }
+
+    /// Creates a placeholder for rendering.
+    pub(crate) fn create_placeholder(
+        parent: &Element,
+        next_sibling: &NodeRef,
+        node_ref: &NodeRef,
+    ) -> Self {
+        let placeholder: Node = document().create_text_node("").into();
+        insert_node(&placeholder, parent, next_sibling.get().as_ref());
+        node_ref.set(Some(placeholder.clone()));
+        BNode::Ref(placeholder)
     }
 }
 

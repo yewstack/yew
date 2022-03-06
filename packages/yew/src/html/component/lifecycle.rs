@@ -2,13 +2,95 @@
 
 use super::scope::{AnyScope, Scope};
 use super::BaseComponent;
-use crate::dom_bundle::ComponentRenderState;
-use crate::html::RenderError;
+use crate::html::{Html, NodeRef, RenderError};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{Suspense, Suspension};
-use crate::{Callback, Context, HtmlResult, NodeRef};
+use crate::{Callback, Context, HtmlResult};
 use std::any::Any;
 use std::rc::Rc;
+
+#[cfg(feature = "render")]
+use web_sys::Element;
+
+pub(crate) enum ComponentRenderState {
+    #[cfg(feature = "render")]
+    Render {
+        root_node: crate::dom_bundle::BNode,
+        /// When a component has no parent, it means that it should not be rendered.
+        parent: web_sys::Element,
+        next_sibling: NodeRef,
+        node_ref: NodeRef,
+    },
+
+    #[cfg(feature = "ssr")]
+    Ssr {
+        sender: Option<futures::channel::oneshot::Sender<Html>>,
+    },
+}
+
+impl std::fmt::Debug for ComponentRenderState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        #[cfg(any(feature = "render", feature = "ssr"))]
+        match self {
+            #[cfg(feature = "render")]
+            Self::Render {
+                ref root_node,
+                ref parent,
+                ref next_sibling,
+                ref node_ref,
+            } => f
+                .debug_struct("ComponentRenderState::Render")
+                .field("root_node", root_node)
+                .field("parent", parent)
+                .field("next_sibling", next_sibling)
+                .field("node_ref", node_ref)
+                .finish(),
+
+            #[cfg(feature = "ssr")]
+            Self::Ssr { ref sender } => {
+                let debug_struct = f.debug_struct("ComponentRenderState::Ssr");
+
+                let debug_struct = match sender {
+                    Some(_) => debug_struct.field("sender", &"Some(_)"),
+                    None => debug_struct.field("sender", &"None"),
+                };
+
+                debug_struct.finish()
+            }
+        }
+    }
+}
+
+// impl ComponentRenderState {
+//     /// Reuse the render state, asserting a new next_sibling
+//     pub(crate) fn reuse(&mut self, next_sibling: NodeRef) {
+//         self.next_sibling = next_sibling;
+//     }
+//     /// Shift the rendered content to a new DOM position
+//     pub(crate) fn shift(&mut self, new_parent: Element, next_sibling: NodeRef) {
+//         self.root_node.shift(&new_parent, next_sibling.clone());
+
+//         self.parent = Some(new_parent);
+//         self.next_sibling = next_sibling;
+//     }
+//     /// Reconcile the rendered content with a new [VNode]
+//     pub(crate) fn reconcile(&mut self, root: VNode, scope: &AnyScope) -> NodeRef {
+//         if let Some(ref parent) = self.parent {
+//             let next_sibling = self.next_sibling.clone();
+
+//             root.reconcile_node(scope, parent, next_sibling, &mut self.root_node)
+//         } else {
+//             #[cfg(feature = "ssr")]
+//             if let Some(tx) = self.html_sender.take() {
+//                 tx.send(root).unwrap();
+//             }
+//             NodeRef::default()
+//         }
+//     }
+//     pub(crate) fn should_trigger_rendered(&self) -> bool {
+//         self.parent.is_some()
+//     }
+// }
 
 pub struct CompStateInner<COMP>
 where
@@ -94,7 +176,6 @@ pub struct ComponentState {
     pub(super) inner: Box<dyn Stateful>,
 
     pub(super) render_state: ComponentRenderState,
-    node_ref: NodeRef,
     has_rendered: bool,
 
     suspension: Option<Suspension>,
@@ -107,7 +188,6 @@ pub struct ComponentState {
 impl ComponentState {
     pub(crate) fn new<COMP: BaseComponent>(
         initial_render_state: ComponentRenderState,
-        node_ref: NodeRef,
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
     ) -> Self {
@@ -123,7 +203,6 @@ impl ComponentState {
         Self {
             inner,
             render_state: initial_render_state,
-            node_ref,
             suspension: None,
             has_rendered: false,
 
@@ -133,9 +212,8 @@ impl ComponentState {
     }
 }
 
-pub struct CreateRunner<COMP: BaseComponent> {
+pub(crate) struct CreateRunner<COMP: BaseComponent> {
     pub initial_render_state: ComponentRenderState,
-    pub node_ref: NodeRef,
     pub props: Rc<COMP::Properties>,
     pub scope: Scope<COMP>,
 }
@@ -149,7 +227,6 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
 
             *current_state = Some(ComponentState::new(
                 self.initial_render_state,
-                self.node_ref,
                 self.scope.clone(),
                 self.props,
             ));
@@ -157,14 +234,18 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
     }
 }
 
-pub enum UpdateEvent {
+pub(crate) enum UpdateEvent {
     /// Drain messages for a component.
     Message,
-    /// Wraps properties, node ref, and next sibling for a component.
+    /// Wraps properties, node ref, and next sibling for a component
+    #[cfg(any(feature = "render", feature = "ssr"))]
     Properties(Rc<dyn Any>, NodeRef, NodeRef),
+    /// Shift Scope.
+    #[cfg(feature = "render")]
+    Shift(Element, NodeRef),
 }
 
-pub struct UpdateRunner {
+pub(crate) struct UpdateRunner {
     pub state: Shared<Option<ComponentState>>,
     pub event: UpdateEvent,
 }
@@ -174,14 +255,55 @@ impl Runnable for UpdateRunner {
         if let Some(mut state) = self.state.borrow_mut().as_mut() {
             let schedule_render = match self.event {
                 UpdateEvent::Message => state.inner.flush_messages(),
-                UpdateEvent::Properties(props, node_ref, next_sibling) => {
-                    // When components are updated, a new node ref could have been passed in
-                    state.node_ref = node_ref;
-                    // When components are updated, their siblings were likely also updated
-                    state.render_state.reuse(next_sibling);
-                    // Only trigger changed if props were changed
+                #[cfg(any(feature = "render", feature = "ssr"))]
+                UpdateEvent::Properties(props, next_node_ref, next_sibling) => {
+                    match state.render_state {
+                        #[cfg(feature = "render")]
+                        ComponentRenderState::Render {
+                            ref mut node_ref,
+                            next_sibling: ref mut current_next_sibling,
+                            ..
+                        } => {
+                            // When components are updated, a new node ref could have been passed in
+                            *node_ref = next_node_ref;
+                            // When components are updated, their siblings were likely also updated
+                            *current_next_sibling = next_sibling;
+                            // Only trigger changed if props were changed
+                            state.inner.props_changed(props)
+                        }
 
-                    state.inner.props_changed(props)
+                        #[cfg(feature = "ssr")]
+                        ComponentRenderState::Ssr { .. } => {
+                            // Only trigger changed if props were changed
+                            state.inner.props_changed(props)
+                        }
+                    };
+                }
+
+                #[cfg(feature = "render")]
+                UpdateEvent::Shift(next_parent, next_sibling) => {
+                    match state.rendered {
+                        ComponentRenderState::Render {
+                            ref root_node,
+                            ref mut parent,
+                            next_sibling: ref mut current_next_sibling,
+                            ..
+                        } => {
+                            root_node.shift(parent, &next_parent, next_sibling.clone());
+
+                            *parent = next_parent;
+                            *current_next_sibling = next_sibling;
+                        }
+
+                        // Shifting is not possible during SSR.
+                        #[cfg(feature = "ssr")]
+                        ComponentRenderState::Ssr { .. } => {
+                            #[cfg(debug_assertions)]
+                            panic!("shifting is not possible during SSR");
+                        }
+                    }
+
+                    false
                 }
             };
 
@@ -204,7 +326,7 @@ impl Runnable for UpdateRunner {
     }
 }
 
-pub struct DestroyRunner {
+pub(crate) struct DestroyRunner {
     pub state: Shared<Option<ComponentState>>,
     pub parent_to_detach: bool,
 }
@@ -216,13 +338,28 @@ impl Runnable for DestroyRunner {
             super::log_event(state.vcomp_id, "destroy");
 
             state.inner.destroy();
-            state.render_state.detach(self.parent_to_detach);
-            state.node_ref.set(None);
+
+            match state.render_state {
+                #[cfg(feature = "render")]
+                ComponentRenderState::Render {
+                    ref mut root_node,
+                    ref parent,
+                    ref node_ref,
+                    ..
+                } => {
+                    root_node.detach(parent, self.parent_to_detach);
+
+                    node_ref.set(None);
+                }
+
+                #[cfg(feature = "ssr")]
+                ComponentRenderState::Ssr { .. } => {}
+            }
         }
     }
 }
 
-pub struct RenderRunner {
+pub(crate) struct RenderRunner {
     pub state: Shared<Option<ComponentState>>,
 }
 
@@ -233,88 +370,133 @@ impl Runnable for RenderRunner {
             super::log_event(state.vcomp_id, "render");
 
             match state.inner.view() {
-                Ok(root) => {
-                    // Currently not suspended, we remove any previous suspension and update
-                    // normally.
-                    if let Some(m) = state.suspension.take() {
-                        let comp_scope = state.inner.any_scope();
-
-                        let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
-                        let suspense = suspense_scope.get_component().unwrap();
-
-                        suspense.resume(m);
-                    }
-
-                    let scope = state.inner.any_scope();
-                    let node = state.render_state.reconcile(root, &scope);
-                    state.node_ref.link(node);
-
-                    if state.render_state.should_trigger_rendered() {
-                        let first_render = !state.has_rendered;
-                        state.has_rendered = true;
-
-                        scheduler::push_component_rendered(
-                            self.state.as_ptr() as usize,
-                            RenderedRunner {
-                                state: self.state.clone(),
-                                first_render,
-                            },
-                            first_render,
-                        );
-                    }
-                }
-
-                Err(RenderError::Suspended(m)) => {
-                    // Currently suspended, we re-use previous root node and send
-                    // suspension to parent element.
-                    let shared_state = self.state.clone();
-
-                    if m.resumed() {
-                        // schedule a render immediately if suspension is resumed.
-
-                        scheduler::push_component_render(
-                            shared_state.as_ptr() as usize,
-                            RenderRunner {
-                                state: shared_state.clone(),
-                            },
-                        );
-                    } else {
-                        // We schedule a render after current suspension is resumed.
-
-                        let comp_scope = state.inner.any_scope();
-
-                        let suspense_scope = comp_scope
-                            .find_parent_scope::<Suspense>()
-                            .expect("To suspend rendering, a <Suspense /> component is required.");
-                        let suspense = suspense_scope.get_component().unwrap();
-
-                        m.listen(Callback::from(move |_| {
-                            scheduler::push_component_render(
-                                shared_state.as_ptr() as usize,
-                                RenderRunner {
-                                    state: shared_state.clone(),
-                                },
-                            );
-                            scheduler::start();
-                        }));
-
-                        if let Some(ref last_m) = state.suspension {
-                            if &m != last_m {
-                                // We remove previous suspension from the suspense.
-                                suspense.resume(last_m.clone());
-                            }
-                        }
-                        state.suspension = Some(m.clone());
-
-                        suspense.suspend(m);
-                    }
-                }
+                Ok(m) => self.render(state, m),
+                Err(RenderError::Suspended(m)) => self.suspend(state, m),
             };
         }
     }
 }
 
-struct RenderedRunner {
+impl RenderRunner {
+    fn suspend(&self, state: &mut ComponentState, suspension: Suspension) {
+        // Currently suspended, we re-use previous root node and send
+        // suspension to parent element.
+        let shared_state = self.state.clone();
+
+        if suspension.resumed() {
+            // schedule a render immediately if suspension is resumed.
+
+            scheduler::push_component_render(
+                shared_state.as_ptr() as usize,
+                RenderRunner {
+                    state: shared_state,
+                },
+            );
+        } else {
+            // We schedule a render after current suspension is resumed.
+
+            let comp_scope = state.inner.any_scope();
+
+            let suspense_scope = comp_scope
+                .find_parent_scope::<Suspense>()
+                .expect("To suspend rendering, a <Suspense /> component is required.");
+            let suspense = suspense_scope.get_component().unwrap();
+
+            suspension.listen(Callback::from(move |_| {
+                scheduler::push_component_render(
+                    shared_state.as_ptr() as usize,
+                    RenderRunner {
+                        state: shared_state.clone(),
+                    },
+                );
+                scheduler::start();
+            }));
+
+            if let Some(ref last_suspension) = state.suspension {
+                if &suspension != last_suspension {
+                    // We remove previous suspension from the suspense.
+                    suspense.resume(last_suspension.clone());
+                }
+            }
+            state.suspension = Some(suspension.clone());
+
+            suspense.suspend(suspension);
+        }
+    }
+
+    fn render(&self, state: &mut ComponentState, new_root: Html) {
+        // Currently not suspended, we remove any previous suspension and update
+        // normally.
+        if let Some(m) = state.suspension.take() {
+            let comp_scope = state.inner.any_scope();
+
+            let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
+            let suspense = suspense_scope.get_component().unwrap();
+
+            suspense.resume(m);
+        }
+
+        match state.render_state {
+            #[cfg(feature = "render")]
+            ComponentRenderState::Render {
+                root_node: ref mut current_root,
+                ref parent,
+                ref next_sibling,
+                ref node_ref,
+                ..
+            } => {
+                let scope = state.inner.any_scope();
+                let mut root = new_root;
+                std::mem::swap(&mut root, current_root);
+
+                let ancestor = root;
+
+                let node = current_root.apply(&scope, parent, next_sibling.clone(), Some(ancestor));
+
+                node_ref.link(node);
+
+                let first_render = !state.has_rendered;
+                state.has_rendered = true;
+
+                // let scope = state.inner.any_scope();
+                // let node = state.render_state.reconcile(root, &scope);
+                // state.node_ref.link(node);
+
+                // if state.render_state.should_trigger_rendered() {
+                //     let first_render = !state.has_rendered;
+                //     state.has_rendered = true;
+
+                //     scheduler::push_component_rendered(
+                //         self.state.as_ptr() as usize,
+                //         RenderedRunner {
+                //             state: self.state.clone(),
+                //             first_render,
+                //         },
+                //         first_render,
+                //     );
+                // }
+
+                scheduler::push_component_rendered(
+                    state.inner.id(),
+                    RenderedRunner {
+                        state: self.state.clone(),
+                        first_render,
+                    },
+                    first_render,
+                );
+            }
+
+            #[cfg(feature = "ssr")]
+            ComponentRenderState::Ssr { ref mut sender } => {
+                if let Some(tx) = sender.take() {
+                    tx.send(new_root).unwrap();
+                }
+            }
+        };
+    }
+}
+
+pub(crate) struct RenderedRunner {
     state: Shared<Option<ComponentState>>,
     first_render: bool,
 }
@@ -332,11 +514,12 @@ impl Runnable for RenderedRunner {
     }
 }
 
+#[cfg(feature = "wasm_test")]
 #[cfg(test)]
 mod tests {
     extern crate self as yew;
 
-    use crate::dom_bundle::ComponentRenderState;
+    use super::*;
     use crate::html;
     use crate::html::*;
     use crate::Properties;

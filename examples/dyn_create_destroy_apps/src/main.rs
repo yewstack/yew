@@ -55,14 +55,15 @@ impl Component for App {
                 // Get the key for the entry and create and mount a new CounterModel app
                 // with a callback that destroys the app when emitted
                 let app_key = app_entry.key();
-                let new_counter_app = yew::start_app_with_props_in_element(
+                let new_counter_app = yew::Renderer::<CounterModel>::with_root_and_props(
                     app_div.clone(),
                     CounterProps {
                         destroy_callback: ctx
                             .link()
                             .callback(move |_| Msg::DestroyCounterApp(app_key)),
                     },
-                );
+                )
+                .render();
 
                 // Insert the app and the app div to our app collection
                 app_entry.insert((app_div, new_counter_app));

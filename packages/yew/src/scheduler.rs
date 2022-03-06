@@ -1,7 +1,7 @@
 //! This module contains a scheduler.
 
 use std::cell::RefCell;
-use std::collections::{hash_map::Entry, HashMap, VecDeque};
+use std::collections::VecDeque;
 use std::rc::Rc;
 
 /// Alias for Rc<RefCell<T>>
@@ -25,10 +25,13 @@ struct Scheduler {
     create: Vec<Box<dyn Runnable>>,
     update: Vec<Box<dyn Runnable>>,
     render_first: VecDeque<Box<dyn Runnable>>,
+
+    #[cfg(any(feature = "ssr", feature = "render"))]
     render: RenderScheduler,
 
     /// Stacks to ensure child calls are always before parent calls
     rendered_first: Vec<Box<dyn Runnable>>,
+    #[cfg(any(feature = "ssr", feature = "render"))]
     rendered: RenderedScheduler,
 }
 
@@ -54,49 +57,143 @@ pub fn push(runnable: Box<dyn Runnable>) {
     start();
 }
 
-/// Push a component creation, first render and first rendered [Runnable]s to be executed
-pub(crate) fn push_component_create(
-    create: impl Runnable + 'static,
-    first_render: impl Runnable + 'static,
-) {
-    with(|s| {
-        s.create.push(Box::new(create));
-        s.render_first.push_back(Box::new(first_render));
-    });
-}
+#[cfg(any(feature = "ssr", feature = "render"))]
+mod feat_render_ssr {
+    use super::*;
 
-/// Push a component destruction [Runnable] to be executed
-pub(crate) fn push_component_destroy(runnable: impl Runnable + 'static) {
-    with(|s| s.destroy.push(Box::new(runnable)));
-}
+    use std::collections::{hash_map::Entry, HashMap};
 
-/// Push a component render and rendered [Runnable]s to be executed
-pub(crate) fn push_component_render(component_id: usize, render: impl Runnable + 'static) {
-    with(|s| {
-        s.render.schedule(component_id, Box::new(render));
-    });
-}
+    /// Push a component creation, first render and first rendered [Runnable]s to be executed
+    pub(crate) fn push_component_create(
+        create: impl Runnable + 'static,
+        first_render: impl Runnable + 'static,
+    ) {
+        with(|s| {
+            s.create.push(Box::new(create));
+            s.render_first.push_back(Box::new(first_render));
+        });
+    }
 
-pub(crate) fn push_component_rendered(
-    component_id: usize,
-    rendered: impl Runnable + 'static,
-    first_render: bool,
-) {
-    with(|s| {
-        let rendered = Box::new(rendered);
+    /// Push a component destruction [Runnable] to be executed
+    pub(crate) fn push_component_destroy(runnable: impl Runnable + 'static) {
+        with(|s| s.destroy.push(Box::new(runnable)));
+    }
 
-        if first_render {
-            s.rendered_first.push(rendered);
-        } else {
-            s.rendered.schedule(component_id, rendered);
+    /// Push a component render and rendered [Runnable]s to be executed
+    pub(crate) fn push_component_render(component_id: usize, render: impl Runnable + 'static) {
+        with(|s| {
+            s.render.schedule(component_id, Box::new(render));
+        });
+    }
+    pub(crate) fn push_component_rendered(
+        component_id: usize,
+        rendered: impl Runnable + 'static,
+        first_render: bool,
+    ) {
+        with(|s| {
+            let rendered = Box::new(rendered);
+
+            if first_render {
+                s.rendered_first.push(rendered);
+            } else {
+                s.rendered.schedule(component_id, rendered);
+            }
+        });
+    }
+
+    /// Push a component update [Runnable] to be executed
+    pub(crate) fn push_component_update(runnable: impl Runnable + 'static) {
+        with(|s| s.update.push(Box::new(runnable)));
+    }
+
+    /// Task to be executed for specific component
+    struct QueueTask {
+        /// Tasks in the queue to skip for this component
+        skip: usize,
+
+        /// Runnable to execute
+        runnable: Box<dyn Runnable>,
+    }
+
+    /// Scheduler for non-first component renders with deduplication
+    #[derive(Default)]
+    struct RenderScheduler {
+        /// Task registry by component ID
+        tasks: HashMap<usize, QueueTask>,
+
+        /// Task queue by component ID
+        queue: VecDeque<usize>,
+    }
+
+    impl RenderScheduler {
+        /// Schedule render task execution
+        fn schedule(&mut self, component_id: usize, runnable: Box<dyn Runnable>) {
+            self.queue.push_back(component_id);
+            match self.tasks.entry(component_id) {
+                Entry::Vacant(e) => {
+                    e.insert(QueueTask { skip: 0, runnable });
+                }
+                Entry::Occupied(mut e) => {
+                    let v = e.get_mut();
+                    v.skip += 1;
+
+                    // Technically the 2 runners should be functionally identical, but might as well
+                    // overwrite it for good measure, accounting for future changes. We have it here
+                    // anyway.
+                    v.runnable = runnable;
+                }
+            }
         }
-    });
+
+        /// Try to pop a task from the queue, if any
+        fn pop(&mut self) -> Option<Box<dyn Runnable>> {
+            while let Some(id) = self.queue.pop_front() {
+                match self.tasks.entry(id) {
+                    Entry::Occupied(mut e) => {
+                        let v = e.get_mut();
+                        if v.skip == 0 {
+                            return Some(e.remove().runnable);
+                        }
+                        v.skip -= 1;
+                    }
+                    Entry::Vacant(_) => (),
+                }
+            }
+            None
+        }
+    }
+
+    /// Deduplicating scheduler for component rendered calls with deduplication
+    #[derive(Default)]
+    struct RenderedScheduler {
+        /// Task registry by component ID
+        tasks: HashMap<usize, Box<dyn Runnable>>,
+
+        /// Task stack by component ID
+        stack: Vec<usize>,
+    }
+
+    impl RenderedScheduler {
+        /// Schedule rendered task execution
+        fn schedule(&mut self, component_id: usize, runnable: Box<dyn Runnable>) {
+            if self.tasks.insert(component_id, runnable).is_none() {
+                self.stack.push(component_id);
+            }
+        }
+
+        /// Drain all tasks into `dst`, if any
+        fn drain_into(&mut self, dst: &mut Vec<Box<dyn Runnable>>) {
+            for id in self.stack.drain(..).rev() {
+                if let Some(t) = self.tasks.remove(&id) {
+                    dst.push(t);
+                }
+            }
+        }
+    }
 }
 
-/// Push a component update [Runnable] to be executed
-pub(crate) fn push_component_update(runnable: impl Runnable + 'static) {
-    with(|s| s.update.push(Box::new(runnable)));
-}
+#[cfg(any(feature = "ssr", feature = "render"))]
+pub(crate) use feat_render_ssr::*;
 
 /// Execute any pending [Runnable]s
 pub(crate) fn start_now() {
@@ -195,107 +292,26 @@ impl Scheduler {
         // Likely to cause duplicate renders via component updates, so placed before them
         to_run.append(&mut self.main);
 
-        // Run after all possible updates to avoid duplicate renders.
-        //
-        // Should be processed one at time, because they can spawn more create and first render
-        // events for their children.
-        if !to_run.is_empty() {
-            return;
-        }
-        if let Some(r) = self.render.pop() {
-            to_run.push(r);
-        }
-
-        // These typically do nothing and don't spawn any other events - can be batched.
-        // Should be run only after all renders have finished.
-        if !to_run.is_empty() {
-            return;
-        }
-        self.rendered.drain_into(to_run);
-    }
-}
-
-/// Task to be executed for specific component
-struct QueueTask {
-    /// Tasks in the queue to skip for this component
-    skip: usize,
-
-    /// Runnable to execute
-    runnable: Box<dyn Runnable>,
-}
-
-/// Scheduler for non-first component renders with deduplication
-#[derive(Default)]
-struct RenderScheduler {
-    /// Task registry by component ID
-    tasks: HashMap<usize, QueueTask>,
-
-    /// Task queue by component ID
-    queue: VecDeque<usize>,
-}
-
-impl RenderScheduler {
-    /// Schedule render task execution
-    fn schedule(&mut self, component_id: usize, runnable: Box<dyn Runnable>) {
-        self.queue.push_back(component_id);
-        match self.tasks.entry(component_id) {
-            Entry::Vacant(e) => {
-                e.insert(QueueTask { skip: 0, runnable });
+        #[cfg(any(feature = "ssr", feature = "render"))]
+        {
+            // Run after all possible updates to avoid duplicate renders.
+            //
+            // Should be processed one at time, because they can spawn more create and first render
+            // events for their children.
+            if !to_run.is_empty() {
+                return;
             }
-            Entry::Occupied(mut e) => {
-                let v = e.get_mut();
-                v.skip += 1;
 
-                // Technically the 2 runners should be functionally identical, but might as well
-                // overwrite it for good measure, accounting for future changes. We have it here
-                // anyway.
-                v.runnable = runnable;
+            if let Some(r) = self.render.pop() {
+                to_run.push(r);
             }
-        }
-    }
 
-    /// Try to pop a task from the queue, if any
-    fn pop(&mut self) -> Option<Box<dyn Runnable>> {
-        while let Some(id) = self.queue.pop_front() {
-            match self.tasks.entry(id) {
-                Entry::Occupied(mut e) => {
-                    let v = e.get_mut();
-                    if v.skip == 0 {
-                        return Some(e.remove().runnable);
-                    }
-                    v.skip -= 1;
-                }
-                Entry::Vacant(_) => (),
+            // These typically do nothing and don't spawn any other events - can be batched.
+            // Should be run only after all renders have finished.
+            if !to_run.is_empty() {
+                return;
             }
-        }
-        None
-    }
-}
-
-/// Deduplicating scheduler for component rendered calls with deduplication
-#[derive(Default)]
-struct RenderedScheduler {
-    /// Task registry by component ID
-    tasks: HashMap<usize, Box<dyn Runnable>>,
-
-    /// Task stack by component ID
-    stack: Vec<usize>,
-}
-
-impl RenderedScheduler {
-    /// Schedule rendered task execution
-    fn schedule(&mut self, component_id: usize, runnable: Box<dyn Runnable>) {
-        if self.tasks.insert(component_id, runnable).is_none() {
-            self.stack.push(component_id);
-        }
-    }
-
-    /// Drain all tasks into `dst`, if any
-    fn drain_into(&mut self, dst: &mut Vec<Box<dyn Runnable>>) {
-        for id in self.stack.drain(..).rev() {
-            if let Some(t) = self.tasks.remove(&id) {
-                dst.push(t);
-            }
+            self.rendered.drain_into(to_run);
         }
     }
 }
