@@ -9,7 +9,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1"
 chrono = "0.4"
-git2 = "0.13"
+git2 = "0.14"
 regex = "1"
 reqwest = { version = "0.11", features = ["blocking", "json"] }
 serde = { version = "1", features = ["derive"] }
