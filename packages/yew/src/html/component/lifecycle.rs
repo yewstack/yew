@@ -64,38 +64,7 @@ impl std::fmt::Debug for ComponentRenderState {
     }
 }
 
-// impl ComponentRenderState {
-//     /// Reuse the render state, asserting a new next_sibling
-//     pub(crate) fn reuse(&mut self, next_sibling: NodeRef) {
-//         self.next_sibling = next_sibling;
-//     }
-//     /// Shift the rendered content to a new DOM position
-//     pub(crate) fn shift(&mut self, new_parent: Element, next_sibling: NodeRef) {
-//         self.root_node.shift(&new_parent, next_sibling.clone());
-
-//         self.parent = Some(new_parent);
-//         self.next_sibling = next_sibling;
-//     }
-//     /// Reconcile the rendered content with a new [VNode]
-//     pub(crate) fn reconcile(&mut self, root: VNode, scope: &AnyScope) -> NodeRef {
-//         if let Some(ref parent) = self.parent {
-//             let next_sibling = self.next_sibling.clone();
-
-//             root.reconcile_node(scope, parent, next_sibling, &mut self.root_node)
-//         } else {
-//             #[cfg(feature = "ssr")]
-//             if let Some(tx) = self.html_sender.take() {
-//                 tx.send(root).unwrap();
-//             }
-//             NodeRef::default()
-//         }
-//     }
-//     pub(crate) fn should_trigger_rendered(&self) -> bool {
-//         self.parent.is_some()
-//     }
-// }
-
-pub struct CompStateInner<COMP>
+pub(crate) struct CompStateInner<COMP>
 where
     COMP: BaseComponent,
 {
@@ -108,7 +77,7 @@ where
 ///
 /// Mostly a thin wrapper that passes the context to a component's lifecycle
 /// methods.
-pub trait Stateful {
+pub(crate) trait Stateful {
     fn view(&self) -> HtmlResult;
     fn rendered(&mut self, first_render: bool);
     fn destroy(&mut self);
@@ -175,7 +144,7 @@ where
     }
 }
 
-pub struct ComponentState {
+pub(crate) struct ComponentState {
     pub(super) inner: Box<dyn Stateful>,
 
     pub(super) render_state: ComponentRenderState,
@@ -300,11 +269,6 @@ impl Runnable for UpdateRunner {
                             next_sibling: ref mut current_next_sibling,
                             ..
                         } => {
-                            //         self.root_node.shift(&new_parent, next_sibling.clone());
-
-                            //         self.parent = Some(new_parent);
-                            //         self.next_sibling = next_sibling;
-
                             root_node.shift(&next_parent, next_sibling.clone());
 
                             *parent = next_parent;

@@ -16,13 +16,13 @@ mod btext;
 #[cfg(test)]
 mod tests;
 
-pub(crate) use self::bcomp::BComp;
-pub(crate) use self::blist::BList;
+use self::bcomp::BComp;
+use self::blist::BList;
 pub(crate) use self::bnode::BNode;
-pub(crate) use self::bportal::BPortal;
-pub(crate) use self::bsuspense::BSuspense;
-pub(crate) use self::btag::BTag;
-pub(crate) use self::btext::BText;
+use self::bportal::BPortal;
+use self::bsuspense::BSuspense;
+use self::btag::BTag;
+use self::btext::BText;
 
 #[doc(hidden)] // Publically exported from crate::events
 pub use self::btag::set_event_bubbling;
