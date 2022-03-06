@@ -14,6 +14,6 @@ regex = "1"
 reqwest = { version = "0.11", features = ["blocking", "json"] }
 serde = { version = "1", features = ["derive"] }
 structopt = "0.3"
-strum = { version = "0.23", features = ["derive"] }
+strum = { version = "0.24", features = ["derive"] }
 lazy_static = "1.4.0"
 semver = "1.0"
