@@ -42,7 +42,7 @@ impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
 }
 
 impl AnyScope {
-    #[cfg(feature = "wasm_test")]
+    #[cfg(feature = "render")]
     #[cfg(test)]
     pub(crate) fn test() -> Self {
         Self {
