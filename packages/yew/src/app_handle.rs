@@ -1,6 +1,6 @@
 //! [AppHandle] contains the state Yew keeps to bootstrap a component in an isolated scope.
 
-use super::{ComponentRenderState, Scoped};
+use crate::dom_bundle::{ComponentRenderState, Scoped};
 use crate::html::{IntoComponent, NodeRef, Scope};
 use std::ops::Deref;
 use std::rc::Rc;

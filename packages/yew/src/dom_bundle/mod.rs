@@ -5,7 +5,6 @@
 //! In order to efficiently implement updates, and diffing, additional information has to be
 //! kept around. This information is carried in the bundle.
 
-mod app_handle;
 mod bcomp;
 mod blist;
 mod bnode;
@@ -27,8 +26,6 @@ use self::btext::BText;
 
 pub(crate) use self::bcomp::{ComponentRenderState, Mountable, PropsWrapper, Scoped};
 
-#[doc(hidden)] // Publically exported from crate::app_handle
-pub use self::app_handle::AppHandle;
 #[doc(hidden)] // Publically exported from crate::events
 pub use self::btag::set_event_bubbling;
 #[cfg(test)]

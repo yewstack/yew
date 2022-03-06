@@ -28,9 +28,10 @@ async fn use_ref_works() {
         }
     }
 
-    yew::start_app_in_element::<UseRefComponent>(
+    yew::Renderer::<UseRefComponent>::with_root(
         gloo_utils::document().get_element_by_id("output").unwrap(),
-    );
+    )
+    .render();
     sleep(Duration::ZERO).await;
 
     let result = obtain_result();

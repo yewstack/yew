@@ -46,9 +46,10 @@ async fn use_memo_works() {
         }
     }
 
-    yew::start_app_in_element::<UseMemoComponent>(
+    yew::Renderer::<UseMemoComponent>::with_root(
         gloo_utils::document().get_element_by_id("output").unwrap(),
-    );
+    )
+    .render();
 
     sleep(Duration::ZERO).await;
 

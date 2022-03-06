@@ -78,10 +78,11 @@ rustversion = "1"
 trybuild = "1"
 
 [features]
-doc_test = []
-wasm_test = []
-wasm_bench = []
 ssr = ["futures", "html-escape"]
+render = []
+doc_test = ["render"]
+wasm_test = ["render"]
+wasm_bench = ["render"]
 default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]

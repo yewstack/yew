@@ -95,7 +95,8 @@ async fn suspense_works() {
         }
     }
 
-    yew::start_app_in_element::<App>(gloo_utils::document().get_element_by_id("output").unwrap());
+    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+        .render();
 
     TimeoutFuture::new(10).await;
     let result = obtain_result();
@@ -244,7 +245,8 @@ async fn suspense_not_suspended_at_start() {
         }
     }
 
-    yew::start_app_in_element::<App>(gloo_utils::document().get_element_by_id("output").unwrap());
+    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+        .render();
 
     TimeoutFuture::new(10).await;
 
@@ -362,7 +364,8 @@ async fn suspense_nested_suspense_works() {
         }
     }
 
-    yew::start_app_in_element::<App>(gloo_utils::document().get_element_by_id("output").unwrap());
+    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+        .render();
 
     TimeoutFuture::new(10).await;
     let result = obtain_result();
@@ -517,10 +520,11 @@ async fn effects_not_run_when_suspended() {
         counter: counter.clone(),
     };
 
-    yew::start_app_with_props_in_element::<App>(
+    yew::Renderer::<App>::with_root_and_props(
         gloo_utils::document().get_element_by_id("output").unwrap(),
         props,
-    );
+    )
+    .render();
 
     TimeoutFuture::new(10).await;
     let result = obtain_result();

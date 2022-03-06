@@ -54,9 +54,10 @@ async fn use_reducer_works() {
         }
     }
 
-    yew::start_app_in_element::<UseReducerComponent>(
+    yew::Renderer::<UseReducerComponent>::with_root(
         gloo_utils::document().get_element_by_id("output").unwrap(),
-    );
+    )
+    .render();
     sleep(Duration::ZERO).await;
     let result = obtain_result();
 
@@ -113,9 +114,10 @@ async fn use_reducer_eq_works() {
         }
     }
 
-    yew::start_app_in_element::<UseReducerComponent>(
+    yew::Renderer::<UseReducerComponent>::with_root(
         document().get_element_by_id("output").unwrap(),
-    );
+    )
+    .render();
     sleep(Duration::ZERO).await;
 
     let result = obtain_result();

@@ -406,7 +406,7 @@ mod tests {
 
         let root = document().create_element("div").unwrap();
         document().body().unwrap().append_child(&root).unwrap();
-        let app = crate::start_app_in_element::<Comp<M>>(root);
+        let app = crate::Renderer::<Comp<M>>::with_root(root).render();
         scheduler::start_now();
 
         (app, get_el_by_tag(tag))
