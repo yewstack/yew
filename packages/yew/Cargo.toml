@@ -70,7 +70,6 @@ wasm-bindgen-futures = "0.4"
 tokio = { version = "1.15.0", features = ["rt"], optional = true }
 
 [dev-dependencies]
-easybench-wasm = "0.2"
 wasm-bindgen-test = "0.3"
 gloo = { version = "0.6", features = ["futures"] }
 wasm-bindgen-futures = "0.4"
@@ -82,7 +81,6 @@ ssr = ["futures", "html-escape"]
 render = []
 doc_test = ["render"]
 wasm_test = ["render"]
-wasm_bench = ["render"]
 default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
