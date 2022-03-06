@@ -6,7 +6,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-strum = "0.23"
+strum = "0.24"
 strum_macros = "0.23"
 serde = "1"
 serde_derive = "1"
