@@ -10,7 +10,7 @@ use std::any::Any;
 use std::rc::Rc;
 
 #[cfg(feature = "render")]
-use crate::dom_bundle::{DomBundle, Reconcilable};
+use crate::dom_bundle::{BNode, DomBundle, Reconcilable};
 #[cfg(feature = "render")]
 use crate::html::NodeRef;
 #[cfg(feature = "render")]
@@ -19,7 +19,7 @@ use web_sys::Element;
 pub(crate) enum ComponentRenderState {
     #[cfg(feature = "render")]
     Render {
-        root_node: crate::dom_bundle::BNode,
+        root_node: BNode,
         /// When a component has no parent, it means that it should not be rendered.
         parent: web_sys::Element,
         next_sibling: NodeRef,
@@ -492,10 +492,8 @@ mod tests {
     use std::cell::RefCell;
     use std::ops::Deref;
     use std::rc::Rc;
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[derive(Clone, Properties, Default, PartialEq)]

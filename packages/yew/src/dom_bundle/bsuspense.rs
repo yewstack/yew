@@ -8,7 +8,7 @@ use web_sys::Element;
 
 /// The bundle implementation to [VSuspense]
 #[derive(Debug)]
-pub struct BSuspense {
+pub(crate) struct BSuspense {
     children_bundle: BNode,
     /// The supsense is suspended if fallback contains [Some] bundle
     fallback_bundle: Option<BNode>,

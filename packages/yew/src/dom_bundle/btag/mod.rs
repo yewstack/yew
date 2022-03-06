@@ -56,7 +56,7 @@ enum BTagInner {
 
 /// The bundle implementation to [VTag]
 #[derive(Debug)]
-pub struct BTag {
+pub(crate) struct BTag {
     /// [BTag] fields that are specific to different [BTag] kinds.
     inner: BTagInner,
     listeners: ListenerRegistration,

@@ -10,7 +10,7 @@ use std::{any::TypeId, borrow::Borrow};
 use web_sys::Element;
 
 /// A virtual component. Compare with [VComp].
-pub struct BComp {
+pub(crate) struct BComp {
     type_id: TypeId,
     scope: Box<dyn Scoped>,
     node_ref: NodeRef,

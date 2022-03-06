@@ -10,7 +10,7 @@ use web_sys::Element;
 
 /// The bundle implementation to [VPortal].
 #[derive(Debug)]
-pub struct BPortal {
+pub(crate) struct BPortal {
     /// The element under which the content is inserted.
     host: Element,
     /// The next sibling after the inserted content

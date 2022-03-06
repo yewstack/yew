@@ -9,7 +9,7 @@ use gloo_utils::document;
 use web_sys::{Element, Text as TextNode};
 
 /// The bundle implementation to [VText]
-pub struct BText {
+pub(crate) struct BText {
     text: AttrValue,
     text_node: TextNode,
 }

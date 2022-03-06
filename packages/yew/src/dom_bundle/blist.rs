@@ -12,7 +12,7 @@ use web_sys::Element;
 
 /// This struct represents a mounted [VList]
 #[derive(Debug)]
-pub struct BList {
+pub(crate) struct BList {
     /// The reverse (render order) list of child [BNode]s
     rev_children: Vec<BNode>,
     /// All [BNode]s in the BList have keys

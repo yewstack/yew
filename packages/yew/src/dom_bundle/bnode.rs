@@ -11,7 +11,7 @@ use std::fmt;
 use web_sys::{Element, Node};
 
 /// The bundle implementation to [VNode].
-pub enum BNode {
+pub(crate) enum BNode {
     /// A bind between `VTag` and `Element`.
     Tag(Box<BTag>),
     /// A bind between `VText` and `TextNode`.
