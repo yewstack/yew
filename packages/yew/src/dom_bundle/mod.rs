@@ -13,9 +13,6 @@ mod bsuspense;
 mod btag;
 mod btext;
 
-#[cfg(test)]
-mod tests;
-
 use self::bcomp::BComp;
 use self::blist::BList;
 pub(crate) use self::bnode::BNode;
@@ -26,9 +23,6 @@ use self::btext::BText;
 
 #[doc(hidden)] // Publically exported from crate::events
 pub use self::btag::set_event_bubbling;
-#[cfg(test)]
-#[doc(hidden)] // Publically exported from crate::tests
-pub use self::tests::layout_tests;
 
 use crate::html::AnyScope;
 use crate::NodeRef;
@@ -144,3 +138,31 @@ macro_rules! test_log {
 /// Log an operation during tests for debugging purposes
 /// Set RUSTFLAGS="--cfg verbose_tests" environment variable to activate.
 pub(self) use test_log;
+
+#[cfg(test)]
+mod tests {
+    use super::{BNode, Reconcilable};
+
+    use crate::html::{AnyScope, NodeRef};
+    use crate::virtual_dom::VNode;
+    use web_sys::Element;
+
+    impl VNode {
+        pub(crate) fn reconcile_sequentially(
+            self,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            next_sibling: NodeRef,
+            bundle: &mut Option<BNode>,
+        ) -> NodeRef {
+            match bundle {
+                None => {
+                    let (self_ref, node) = self.attach(parent_scope, parent, next_sibling);
+                    *bundle = Some(node);
+                    self_ref
+                }
+                Some(bundle) => self.reconcile_node(parent_scope, parent, next_sibling, bundle),
+            }
+        }
+    }
+}
