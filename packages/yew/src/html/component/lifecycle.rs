@@ -646,11 +646,10 @@ mod tests {
         let scope = Scope::<Comp>::new(None);
         let el = document.create_element("div").unwrap();
         let node_ref = NodeRef::default();
-        let render_state = ComponentRenderState::new(el, NodeRef::default(), &node_ref);
         let lifecycle = props.lifecycle.clone();
 
         lifecycle.borrow_mut().clear();
-        scope.mount_in_place(render_state, node_ref, Rc::new(props));
+        scope.mount_in_place(el, NodeRef::default(), node_ref, Rc::new(props));
         crate::scheduler::start_now();
 
         assert_eq!(&lifecycle.borrow_mut().deref()[..], expected);
