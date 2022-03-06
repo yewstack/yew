@@ -8,6 +8,7 @@ use web_sys::Element;
 
 /// An instance of an application.
 #[derive(Debug)]
+#[cfg_attr(documenting, doc(cfg(feature = "render")))]
 pub struct AppHandle<ICOMP: IntoComponent> {
     /// `Scope` holder
     pub(crate) scope: Scope<<ICOMP as IntoComponent>::Component>,

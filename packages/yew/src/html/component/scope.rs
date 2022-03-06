@@ -42,6 +42,7 @@ impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
 }
 
 impl AnyScope {
+    #[cfg(feature = "wasm_test")]
     #[cfg(test)]
     pub(crate) fn test() -> Self {
         Self {
@@ -219,6 +220,7 @@ mod feat_ssr {
                     state: self.state.clone(),
                 },
             );
+            scheduler::start();
 
             let html = rx.await.unwrap();
 
