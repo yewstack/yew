@@ -82,7 +82,7 @@ dependencies = ["test"]
 [tasks.test]
 private = true
 command = "cargo"
-args = ["test", "--all-targets", "--workspace", "--exclude", "website-test"]
+args = ["test", "--all-targets"]
 
 [tasks.doc-test-flow]
 private = true

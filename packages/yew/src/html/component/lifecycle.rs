@@ -1,19 +1,16 @@
 //! Component lifecycle module
 
-use super::{AnyScope, BaseComponent, Scope};
-use crate::html::{RenderError, RenderResult};
+use super::scope::{AnyScope, Scope};
+use super::BaseComponent;
+use crate::dom_bundle::ComponentRenderState;
+use crate::html::RenderError;
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{Suspense, Suspension};
-use crate::virtual_dom::{VDiff, VNode};
-use crate::Callback;
-use crate::{Context, NodeRef};
-#[cfg(feature = "ssr")]
-use futures::channel::oneshot;
+use crate::{Callback, Context, HtmlResult, NodeRef};
 use std::any::Any;
 use std::rc::Rc;
-use web_sys::Element;
 
-pub(crate) struct CompStateInner<COMP>
+pub struct CompStateInner<COMP>
 where
     COMP: BaseComponent,
 {
@@ -26,8 +23,8 @@ where
 ///
 /// Mostly a thin wrapper that passes the context to a component's lifecycle
 /// methods.
-pub(crate) trait Stateful {
-    fn view(&self) -> RenderResult<VNode>;
+pub trait Stateful {
+    fn view(&self) -> HtmlResult;
     fn rendered(&mut self, first_render: bool);
     fn destroy(&mut self);
 
@@ -44,7 +41,7 @@ impl<COMP> Stateful for CompStateInner<COMP>
 where
     COMP: BaseComponent,
 {
-    fn view(&self) -> RenderResult<VNode> {
+    fn view(&self) -> HtmlResult {
         self.component.view(&self.context)
     }
 
@@ -93,22 +90,14 @@ where
     }
 }
 
-pub(crate) struct ComponentState {
-    pub(crate) inner: Box<dyn Stateful>,
+pub struct ComponentState {
+    pub(super) inner: Box<dyn Stateful>,
 
-    pub(crate) root_node: VNode,
-
-    /// When a component has no parent, it means that it should not be rendered.
-    parent: Option<Element>,
-
-    next_sibling: NodeRef,
+    pub(super) render_state: ComponentRenderState,
     node_ref: NodeRef,
     has_rendered: bool,
 
     suspension: Option<Suspension>,
-
-    #[cfg(feature = "ssr")]
-    html_sender: Option<oneshot::Sender<VNode>>,
 
     // Used for debug logging
     #[cfg(debug_assertions)]
@@ -117,13 +106,10 @@ pub(crate) struct ComponentState {
 
 impl ComponentState {
     pub(crate) fn new<COMP: BaseComponent>(
-        parent: Option<Element>,
-        next_sibling: NodeRef,
-        root_node: VNode,
+        initial_render_state: ComponentRenderState,
         node_ref: NodeRef,
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
-        #[cfg(feature = "ssr")] html_sender: Option<oneshot::Sender<VNode>>,
     ) -> Self {
         #[cfg(debug_assertions)]
         let vcomp_id = scope.vcomp_id;
@@ -136,15 +122,10 @@ impl ComponentState {
 
         Self {
             inner,
-            root_node,
-            parent,
-            next_sibling,
+            render_state: initial_render_state,
             node_ref,
             suspension: None,
             has_rendered: false,
-
-            #[cfg(feature = "ssr")]
-            html_sender,
 
             #[cfg(debug_assertions)]
             vcomp_id,
@@ -152,15 +133,11 @@ impl ComponentState {
     }
 }
 
-pub(crate) struct CreateRunner<COMP: BaseComponent> {
-    pub(crate) parent: Option<Element>,
-    pub(crate) next_sibling: NodeRef,
-    pub(crate) placeholder: VNode,
-    pub(crate) node_ref: NodeRef,
-    pub(crate) props: Rc<COMP::Properties>,
-    pub(crate) scope: Scope<COMP>,
-    #[cfg(feature = "ssr")]
-    pub(crate) html_sender: Option<oneshot::Sender<VNode>>,
+pub struct CreateRunner<COMP: BaseComponent> {
+    pub initial_render_state: ComponentRenderState,
+    pub node_ref: NodeRef,
+    pub props: Rc<COMP::Properties>,
+    pub scope: Scope<COMP>,
 }
 
 impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
@@ -168,34 +145,28 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
         let mut current_state = self.scope.state.borrow_mut();
         if current_state.is_none() {
             #[cfg(debug_assertions)]
-            crate::virtual_dom::vcomp::log_event(self.scope.vcomp_id, "create");
+            super::log_event(self.scope.vcomp_id, "create");
 
             *current_state = Some(ComponentState::new(
-                self.parent,
-                self.next_sibling,
-                self.placeholder,
+                self.initial_render_state,
                 self.node_ref,
                 self.scope.clone(),
                 self.props,
-                #[cfg(feature = "ssr")]
-                self.html_sender,
             ));
         }
     }
 }
 
-pub(crate) enum UpdateEvent {
+pub enum UpdateEvent {
     /// Drain messages for a component.
     Message,
     /// Wraps properties, node ref, and next sibling for a component.
     Properties(Rc<dyn Any>, NodeRef, NodeRef),
-    /// Shift Scope.
-    Shift(Element, NodeRef),
 }
 
-pub(crate) struct UpdateRunner {
-    pub(crate) state: Shared<Option<ComponentState>>,
-    pub(crate) event: UpdateEvent,
+pub struct UpdateRunner {
+    pub state: Shared<Option<ComponentState>>,
+    pub event: UpdateEvent,
 }
 
 impl Runnable for UpdateRunner {
@@ -207,27 +178,15 @@ impl Runnable for UpdateRunner {
                     // When components are updated, a new node ref could have been passed in
                     state.node_ref = node_ref;
                     // When components are updated, their siblings were likely also updated
-                    state.next_sibling = next_sibling;
+                    state.render_state.reuse(next_sibling);
                     // Only trigger changed if props were changed
 
                     state.inner.props_changed(props)
                 }
-                UpdateEvent::Shift(parent, next_sibling) => {
-                    state.root_node.shift(
-                        state.parent.as_ref().unwrap(),
-                        &parent,
-                        next_sibling.clone(),
-                    );
-
-                    state.parent = Some(parent);
-                    state.next_sibling = next_sibling;
-
-                    false
-                }
             };
 
             #[cfg(debug_assertions)]
-            crate::virtual_dom::vcomp::log_event(
+            super::log_event(
                 state.vcomp_id,
                 format!("update(schedule_render={})", schedule_render),
             );
@@ -245,46 +204,38 @@ impl Runnable for UpdateRunner {
     }
 }
 
-pub(crate) struct DestroyRunner {
-    pub(crate) state: Shared<Option<ComponentState>>,
-    pub(crate) parent_to_detach: bool,
+pub struct DestroyRunner {
+    pub state: Shared<Option<ComponentState>>,
+    pub parent_to_detach: bool,
 }
 
 impl Runnable for DestroyRunner {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().take() {
             #[cfg(debug_assertions)]
-            crate::virtual_dom::vcomp::log_event(state.vcomp_id, "destroy");
+            super::log_event(state.vcomp_id, "destroy");
 
             state.inner.destroy();
-
-            if let Some(ref m) = state.parent {
-                state.root_node.detach(m, self.parent_to_detach);
-                state.node_ref.set(None);
-            }
+            state.render_state.detach(self.parent_to_detach);
+            state.node_ref.set(None);
         }
     }
 }
 
-pub(crate) struct RenderRunner {
-    pub(crate) state: Shared<Option<ComponentState>>,
+pub struct RenderRunner {
+    pub state: Shared<Option<ComponentState>>,
 }
 
 impl Runnable for RenderRunner {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             #[cfg(debug_assertions)]
-            crate::virtual_dom::vcomp::log_event(state.vcomp_id, "render");
+            super::log_event(state.vcomp_id, "render");
 
             match state.inner.view() {
-                Ok(m) => {
+                Ok(root) => {
                     // Currently not suspended, we remove any previous suspension and update
                     // normally.
-                    let mut root = m;
-                    if state.parent.is_some() {
-                        std::mem::swap(&mut root, &mut state.root_node);
-                    }
-
                     if let Some(m) = state.suspension.take() {
                         let comp_scope = state.inner.any_scope();
 
@@ -294,15 +245,11 @@ impl Runnable for RenderRunner {
                         suspense.resume(m);
                     }
 
-                    if let Some(ref m) = state.parent {
-                        let ancestor = Some(root);
-                        let new_root = &mut state.root_node;
-                        let scope = state.inner.any_scope();
-                        let next_sibling = state.next_sibling.clone();
+                    let scope = state.inner.any_scope();
+                    let node = state.render_state.reconcile(root, &scope);
+                    state.node_ref.link(node);
 
-                        let node = new_root.apply(&scope, m, next_sibling, ancestor);
-                        state.node_ref.link(node);
-
+                    if state.render_state.should_trigger_rendered() {
                         let first_render = !state.has_rendered;
                         state.has_rendered = true;
 
@@ -314,11 +261,6 @@ impl Runnable for RenderRunner {
                             },
                             first_render,
                         );
-                    } else {
-                        #[cfg(feature = "ssr")]
-                        if let Some(tx) = state.html_sender.take() {
-                            tx.send(root).unwrap();
-                        }
                     }
                 }
 
@@ -372,8 +314,8 @@ impl Runnable for RenderRunner {
     }
 }
 
-pub(crate) struct RenderedRunner {
-    pub(crate) state: Shared<Option<ComponentState>>,
+struct RenderedRunner {
+    state: Shared<Option<ComponentState>>,
     first_render: bool,
 }
 
@@ -381,9 +323,9 @@ impl Runnable for RenderedRunner {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             #[cfg(debug_assertions)]
-            crate::virtual_dom::vcomp::log_event(state.vcomp_id, "rendered");
+            super::log_event(state.vcomp_id, "rendered");
 
-            if state.suspension.is_none() && state.parent.is_some() {
+            if state.suspension.is_none() {
                 state.inner.rendered(self.first_render);
             }
         }
@@ -394,10 +336,13 @@ impl Runnable for RenderedRunner {
 mod tests {
     extern crate self as yew;
 
+    use crate::dom_bundle::ComponentRenderState;
     use crate::html;
     use crate::html::*;
     use crate::Properties;
+    use std::cell::RefCell;
     use std::ops::Deref;
+    use std::rc::Rc;
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
@@ -515,10 +460,12 @@ mod tests {
         let document = gloo_utils::document();
         let scope = Scope::<Comp>::new(None);
         let el = document.create_element("div").unwrap();
+        let node_ref = NodeRef::default();
+        let render_state = ComponentRenderState::new(el, NodeRef::default(), &node_ref);
         let lifecycle = props.lifecycle.clone();
 
         lifecycle.borrow_mut().clear();
-        scope.mount_in_place(el, NodeRef::default(), NodeRef::default(), Rc::new(props));
+        scope.mount_in_place(render_state, node_ref, Rc::new(props));
         crate::scheduler::start_now();
 
         assert_eq!(&lifecycle.borrow_mut().deref()[..], expected);
