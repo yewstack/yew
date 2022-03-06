@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1646564344780,
+  "lastUpdate": 1646569354076,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -6643,6 +6643,115 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 32_startup-bt",
             "value": "27.78999999999999",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "359.8974609375",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "973fdd953cd9c6e30226d89334333eb4cd7741f6",
+          "message": "Bump follow-redirects from 1.14.7 to 1.14.9 in /website (#2497)\n\nBumps [follow-redirects](https://github.com/follow-redirects/follow-redirects) from 1.14.7 to 1.14.9.\r\n- [Release notes](https://github.com/follow-redirects/follow-redirects/releases)\r\n- [Commits](https://github.com/follow-redirects/follow-redirects/compare/v1.14.7...v1.14.9)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: follow-redirects\r\n  dependency-type: indirect\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\n\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2022-03-06T14:16:47+02:00",
+          "tree_id": "67612f71cb6ab41c156d93efd30598fce083ea6a",
+          "url": "https://github.com/yewstack/yew/commit/973fdd953cd9c6e30226d89334333eb4cd7741f6"
+        },
+        "date": 1646569352592,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "168.7805",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "179.7465",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "228.015",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "58.802",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "74.856",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "26.5965",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "1938.078",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "360.1725",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "189.3475",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.2461891174316406",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.5027732849121094",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.5057144165039062",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.5066261291503906",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.1281890869140625",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1878.7425000000003",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "28.297999999999995",
             "unit": ""
           },
           {
