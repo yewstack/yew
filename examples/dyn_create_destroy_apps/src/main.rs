@@ -107,5 +107,5 @@ impl Component for App {
 
 fn main() {
     // Start main app
-    yew::start_app::<App>();
+    yew::Renderer::<App>::new().render();
 }

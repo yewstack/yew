@@ -10,7 +10,7 @@ serde = { version = "1.0", features = ["derive"] }
 strum = "0.23"
 strum_macros = "0.23"
 gloo = "0.6"
-yew = { path = "../../packages/yew" }
+yew = { path = "../../packages/yew", features = ["render"] }
 
 [dependencies.web-sys]
 version = "0.3"
