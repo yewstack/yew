@@ -387,7 +387,7 @@ pub(crate) use feat_render_ssr::*;
 #[cfg(feature = "render")]
 mod feat_render {
     use super::*;
-    use crate::dom_bundle::BNode;
+    use crate::dom_bundle::Bundle;
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
@@ -408,9 +408,9 @@ mod feat_render {
             node_ref: NodeRef,
             props: Rc<COMP::Properties>,
         ) {
-            let placeholder = BNode::create_placeholder(&parent, &next_sibling, &node_ref);
+            let bundle = Bundle::new(&parent, &next_sibling, &node_ref);
             let state = ComponentRenderState::Render {
-                root_node: placeholder,
+                bundle,
                 node_ref,
                 parent,
                 next_sibling,

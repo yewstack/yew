@@ -8,7 +8,7 @@ use web_sys::Element;
 
 /// The bundle implementation to [VSuspense]
 #[derive(Debug)]
-pub(crate) struct BSuspense {
+pub(super) struct BSuspense {
     children_bundle: BNode,
     /// The supsense is suspended if fallback contains [Some] bundle
     fallback_bundle: Option<BNode>,
@@ -18,7 +18,7 @@ pub(crate) struct BSuspense {
 
 impl BSuspense {
     /// Get the key of the underlying suspense
-    pub(super) fn key(&self) -> Option<&Key> {
+    pub fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
     /// Get the bundle node that actually shows up in the dom

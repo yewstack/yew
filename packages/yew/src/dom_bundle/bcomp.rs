@@ -10,7 +10,7 @@ use std::{any::TypeId, borrow::Borrow};
 use web_sys::Element;
 
 /// A virtual component. Compare with [VComp].
-pub(crate) struct BComp {
+pub(super) struct BComp {
     type_id: TypeId,
     scope: Box<dyn Scoped>,
     node_ref: NodeRef,
@@ -19,7 +19,7 @@ pub(crate) struct BComp {
 
 impl BComp {
     /// Get the key of the underlying component
-    pub(super) fn key(&self) -> Option<&Key> {
+    pub fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
 }

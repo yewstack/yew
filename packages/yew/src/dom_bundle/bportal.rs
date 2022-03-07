@@ -10,7 +10,7 @@ use web_sys::Element;
 
 /// The bundle implementation to [VPortal].
 #[derive(Debug)]
-pub(crate) struct BPortal {
+pub(super) struct BPortal {
     /// The element under which the content is inserted.
     host: Element,
     /// The next sibling after the inserted content
@@ -99,7 +99,7 @@ impl Reconcilable for VPortal {
 
 impl BPortal {
     /// Get the key of the underlying portal
-    pub(super) fn key(&self) -> Option<&Key> {
+    pub fn key(&self) -> Option<&Key> {
         self.node.key()
     }
 }

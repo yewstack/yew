@@ -105,7 +105,7 @@ impl ListenerRegistration {
     }
 
     /// Remove any registered event listeners from the global registry
-    pub(super) fn unregister(&self) {
+    pub fn unregister(&self) {
         if let Self::Registered(id) = self {
             Registry::with(|r| r.unregister(id));
         }

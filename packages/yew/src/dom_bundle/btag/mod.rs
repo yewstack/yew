@@ -56,7 +56,7 @@ enum BTagInner {
 
 /// The bundle implementation to [VTag]
 #[derive(Debug)]
-pub(crate) struct BTag {
+pub(super) struct BTag {
     /// [BTag] fields that are specific to different [BTag] kinds.
     inner: BTagInner,
     listeners: ListenerRegistration,
@@ -247,7 +247,7 @@ impl VTag {
 
 impl BTag {
     /// Get the key of the underlying tag
-    pub(super) fn key(&self) -> Option<&Key> {
+    pub fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
 

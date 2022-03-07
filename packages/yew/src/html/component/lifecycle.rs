@@ -10,7 +10,7 @@ use std::any::Any;
 use std::rc::Rc;
 
 #[cfg(feature = "render")]
-use crate::dom_bundle::{BNode, DomBundle, Reconcilable};
+use crate::dom_bundle::Bundle;
 #[cfg(feature = "render")]
 use crate::html::NodeRef;
 #[cfg(feature = "render")]
@@ -19,7 +19,7 @@ use web_sys::Element;
 pub(crate) enum ComponentRenderState {
     #[cfg(feature = "render")]
     Render {
-        root_node: BNode,
+        bundle: Bundle,
         /// When a component has no parent, it means that it should not be rendered.
         parent: web_sys::Element,
         next_sibling: NodeRef,
@@ -37,13 +37,13 @@ impl std::fmt::Debug for ComponentRenderState {
         match self {
             #[cfg(feature = "render")]
             Self::Render {
-                ref root_node,
+                ref bundle,
                 ref parent,
                 ref next_sibling,
                 ref node_ref,
             } => f
                 .debug_struct("ComponentRenderState::Render")
-                .field("root_node", root_node)
+                .field("bundle", bundle)
                 .field("parent", parent)
                 .field("next_sibling", next_sibling)
                 .field("node_ref", node_ref)
@@ -264,12 +264,12 @@ impl Runnable for UpdateRunner {
                 UpdateEvent::Shift(next_parent, next_sibling) => {
                     match state.render_state {
                         ComponentRenderState::Render {
-                            ref root_node,
+                            ref bundle,
                             ref mut parent,
                             next_sibling: ref mut current_next_sibling,
                             ..
                         } => {
-                            root_node.shift(&next_parent, next_sibling.clone());
+                            bundle.shift(&next_parent, next_sibling.clone());
 
                             *parent = next_parent;
                             *current_next_sibling = next_sibling;
@@ -324,12 +324,12 @@ impl Runnable for DestroyRunner {
             match state.render_state {
                 #[cfg(feature = "render")]
                 ComponentRenderState::Render {
-                    root_node,
+                    bundle,
                     ref parent,
                     ref node_ref,
                     ..
                 } => {
-                    root_node.detach(parent, self.parent_to_detach);
+                    bundle.detach(parent, self.parent_to_detach);
 
                     node_ref.set(None);
                 }
@@ -420,15 +420,14 @@ impl RenderRunner {
         match state.render_state {
             #[cfg(feature = "render")]
             ComponentRenderState::Render {
-                ref mut root_node,
+                ref mut bundle,
                 ref parent,
                 ref next_sibling,
                 ref node_ref,
                 ..
             } => {
                 let scope = state.inner.any_scope();
-                let new_node_ref =
-                    new_root.reconcile_node(&scope, parent, next_sibling.clone(), root_node);
+                let new_node_ref = bundle.reconcile(&scope, parent, next_sibling.clone(), new_root);
                 node_ref.link(new_node_ref);
 
                 let first_render = !state.has_rendered;
