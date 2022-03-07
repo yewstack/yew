@@ -50,14 +50,14 @@ impl std::fmt::Debug for ComponentRenderState {
 
             #[cfg(feature = "ssr")]
             Self::Ssr { ref sender } => {
-                let mut debug_struct = f.debug_struct("ComponentRenderState::Ssr");
-
-                let debug_struct = match sender {
-                    Some(_) => debug_struct.field("sender", &"Some(_)"),
-                    None => debug_struct.field("sender", &"None"),
+                let sender_repr = match sender {
+                    Some(_) => "Some(_)",
+                    None => "None",
                 };
 
-                debug_struct.finish()
+                f.debug_struct("ComponentRenderState::Ssr")
+                    .field("sender", &sender_repr)
+                    .finish()
             }
         }
     }

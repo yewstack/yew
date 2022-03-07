@@ -35,7 +35,12 @@ use utils::{insert_node, test_log};
 #[doc(hidden)] // Publically exported from crate::events
 pub use self::btag::set_event_bubbling;
 
-/// Bundle of a Component.
+/// A Bundle.
+///
+/// Each component holds a bundle that represents a realised layout, designated by a VNode.
+///
+/// This is not to be confused with [BComp], which represents a component in the position of a
+/// bundle layout.
 #[derive(Debug)]
 pub(crate) struct Bundle(BNode);
 

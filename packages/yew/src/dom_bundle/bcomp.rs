@@ -26,11 +26,9 @@ impl BComp {
 
 impl fmt::Debug for BComp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "BComp {{ root: {:?} }}",
-            self.scope.as_ref().render_state(),
-        )
+        f.debug_struct("BComp")
+            .field("root", &self.scope.as_ref().render_state())
+            .finish()
     }
 }
 
