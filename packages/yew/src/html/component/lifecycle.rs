@@ -20,7 +20,6 @@ pub(crate) enum ComponentRenderState {
     #[cfg(feature = "render")]
     Render {
         bundle: Bundle,
-        /// When a component has no parent, it means that it should not be rendered.
         parent: web_sys::Element,
         next_sibling: NodeRef,
         node_ref: NodeRef,

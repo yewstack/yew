@@ -40,7 +40,7 @@ pub use self::btag::set_event_bubbling;
 pub(crate) struct Bundle(BNode);
 
 impl Bundle {
-    /// Creates a new root.
+    /// Creates a new bundle.
     pub fn new(parent: &Element, next_sibling: &NodeRef, node_ref: &NodeRef) -> Self {
         let placeholder: Node = document().create_text_node("").into();
         insert_node(&placeholder, parent, next_sibling.get().as_ref());
@@ -53,7 +53,7 @@ impl Bundle {
         self.0.shift(next_parent, next_sibling);
     }
 
-    /// Applies a virtual dom layout to current root.
+    /// Applies a virtual dom layout to current bundle.
     pub fn reconcile(
         &mut self,
         parent_scope: &AnyScope,
@@ -64,7 +64,7 @@ impl Bundle {
         next_node.reconcile_node(parent_scope, parent, next_sibling, &mut self.0)
     }
 
-    /// Detaches current root.
+    /// Detaches current bundle.
     pub fn detach(self, parent: &Element, parent_to_detach: bool) {
         self.0.detach(parent, parent_to_detach);
     }
