@@ -117,7 +117,7 @@ impl ToTokens for HtmlComponent {
             ty_str == vec!["yew", "virtual_dom", "typings"]
         };
 
-        let props_ty = quote_spanned!(ty.span()=> <#ty as ::yew::html::BaseComponent>::Properties);
+        let props_ty = quote_spanned!(ty.span()=> <#ty as ::yew::html::IntoComponent>::Properties);
         let children_renderer = if children.is_empty() {
             None
         } else {

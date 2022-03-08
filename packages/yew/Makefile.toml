@@ -28,20 +28,6 @@ args = [
     "doc_test,wasm_test",
 ]
 
-[tasks.bench]
-extend = "core::wasm-pack-base"
-command = "wasm-pack"
-args = [
-    "test",
-    "--release",
-    "--firefox",
-    "--headless",
-    "--",
-    "--features",
-    "wasm_bench",
-    "bench",
-]
-
 [tasks.ssr-test]
 command = "cargo"
 args = ["test", "ssr_tests", "--features", "ssr"]

@@ -7,6 +7,7 @@ mod error;
 mod listener;
 
 pub use classes::*;
+pub(crate) use component::sealed;
 pub use component::*;
 pub use conversion::*;
 pub use error::*;

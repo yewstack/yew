@@ -8,16 +8,52 @@ mod scope;
 use super::{Html, HtmlResult, IntoHtmlResult};
 pub use children::*;
 pub use properties::*;
-pub(crate) use scope::Scoped;
 pub use scope::{AnyScope, Scope, SendAsMessage};
 use std::rc::Rc;
+#[cfg(debug_assertions)]
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+#[cfg(debug_assertions)]
+thread_local! {
+     static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<usize, Vec<String>>>
+        = Default::default();
+    static COMP_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
+}
+
+/// Push [Component] event to lifecycle debugging registry
+#[cfg(debug_assertions)]
+pub(crate) fn log_event(vcomp_id: usize, event: impl ToString) {
+    EVENT_HISTORY.with(|h| {
+        h.borrow_mut()
+            .entry(vcomp_id)
+            .or_default()
+            .push(event.to_string())
+    });
+}
+
+/// Get [Component] event log from lifecycle debugging registry
+#[cfg(debug_assertions)]
+#[allow(dead_code)]
+pub(crate) fn get_event_log(vcomp_id: usize) -> Vec<String> {
+    EVENT_HISTORY.with(|h| {
+        h.borrow()
+            .get(&vcomp_id)
+            .map(|l| (*l).clone())
+            .unwrap_or_default()
+    })
+}
+
+#[cfg(debug_assertions)]
+pub(crate) fn next_id() -> usize {
+    COMP_ID_COUNTER.with(|m| m.fetch_add(1, Ordering::Relaxed))
+}
 
 /// The [`Component`]'s context. This contains component's [`Scope`] and and props and
 /// is passed to every lifecycle method.
 #[derive(Debug)]
 pub struct Context<COMP: BaseComponent> {
-    pub(crate) scope: Scope<COMP>,
-    pub(crate) props: Rc<COMP::Properties>,
+    scope: Scope<COMP>,
+    props: Rc<COMP::Properties>,
 }
 
 impl<COMP: BaseComponent> Context<COMP> {
@@ -34,9 +70,11 @@ impl<COMP: BaseComponent> Context<COMP> {
     }
 }
 
-/// A Sealed trait that prevents direct implementation of
-/// [BaseComponent].
-pub trait SealedBaseComponent {}
+pub(crate) mod sealed {
+    /// A Sealed trait that prevents direct implementation of
+    /// [BaseComponent].
+    pub trait SealedBaseComponent {}
+}
 
 /// The common base of both function components and struct components.
 ///
@@ -44,11 +82,11 @@ pub trait SealedBaseComponent {}
 /// [`#[function_component]`](crate::functional::function_component).
 ///
 /// We provide a blanket implementation of this trait for every member that implements [`Component`].
-pub trait BaseComponent: SealedBaseComponent + Sized + 'static {
+pub trait BaseComponent: sealed::SealedBaseComponent + Sized + 'static {
     /// The Component's Message.
     type Message: 'static;
 
-    /// The Component's properties.
+    /// The Component's Properties.
     type Properties: Properties;
 
     /// Creates a component.
@@ -165,4 +203,24 @@ where
     }
 }
 
-impl<T> SealedBaseComponent for T where T: Sized + Component + 'static {}
+impl<T> sealed::SealedBaseComponent for T where T: Sized + Component + 'static {}
+
+/// A trait that indicates a type is able to be converted into a component.
+///
+/// You may want to use this trait if you want to accept both function components and struct
+/// components as a generic parameter.
+pub trait IntoComponent {
+    /// The Component's Properties.
+    type Properties: Properties;
+
+    /// The Component Type.
+    type Component: BaseComponent<Properties = Self::Properties> + 'static;
+}
+
+impl<T> IntoComponent for T
+where
+    T: BaseComponent + 'static,
+{
+    type Properties = T::Properties;
+    type Component = T;
+}

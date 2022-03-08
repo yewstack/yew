@@ -5,7 +5,6 @@
 # * lint
 # * lint-release
 # * tests
-# * benchmarks
 #
 # Run `cargo make --list-all-steps` for more details.
 #
@@ -39,12 +38,6 @@ description = "Run all tests"
 dependencies = ["tests-setup"]
 env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["**/examples/*", "**/packages/changelog"] }
 run_task = { name = ["test-flow", "doc-test-flow", "ssr-test", "website-test"], fork = true }
-
-[tasks.benchmarks]
-category = "Testing"
-description = "Run benchmarks"
-env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["**/examples/*"] }
-run_task = { name = "bench-flow", fork = true }
 
 [tasks.lint-flow]
 private = true
@@ -82,7 +75,7 @@ dependencies = ["test"]
 [tasks.test]
 private = true
 command = "cargo"
-args = ["test", "--all-targets", "--workspace", "--exclude", "website-test"]
+args = ["test", "--all-targets"]
 
 [tasks.doc-test-flow]
 private = true
@@ -97,16 +90,6 @@ args = ["test", "--doc"]
 [tasks.website-test]
 command = "cargo"
 args = ["test", "-p", "website-test"]
-
-[tasks.bench-flow]
-private = true
-workspace = true
-dependencies = ["bench"]
-
-[tasks.bench]
-private = true
-command = "cargo"
-args = ["bench"]
 
 [tasks.generate-change-log]
 category = "Maintainer processes"

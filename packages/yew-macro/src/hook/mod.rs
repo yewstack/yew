@@ -1,9 +1,10 @@
 use proc_macro2::{Span, TokenStream};
 use proc_macro_error::emit_error;
-use quote::{quote, ToTokens};
+use quote::quote;
 use syn::parse::{Parse, ParseStream};
-use syn::visit_mut;
-use syn::{parse_file, GenericParam, Ident, ItemFn, LitStr, ReturnType, Signature};
+use syn::{
+    parse_file, parse_quote, visit_mut, Attribute, Ident, ItemFn, LitStr, ReturnType, Signature,
+};
 
 mod body;
 mod lifetime;
@@ -47,27 +48,22 @@ impl Parse for HookFn {
     }
 }
 
-pub fn hook_impl(component: HookFn) -> syn::Result<TokenStream> {
-    let HookFn { inner: original_fn } = component;
+impl HookFn {
+    fn doc_attr(&self) -> Attribute {
+        let vis = &self.inner.vis;
+        let sig = &self.inner.sig;
 
-    let ItemFn {
-        vis,
-        sig,
-        mut block,
-        attrs,
-    } = original_fn.clone();
+        let sig_s = quote! { #vis #sig {
+            __yew_macro_dummy_function_body__
+        } }
+        .to_string();
 
-    let sig_s = quote! { #vis #sig {
-        __yew_macro_dummy_function_body__
-    } }
-    .to_string();
+        let sig_file = parse_file(&sig_s).unwrap();
+        let sig_formatted = prettyplease::unparse(&sig_file);
 
-    let sig_file = parse_file(&sig_s).unwrap();
-    let sig_formatted = prettyplease::unparse(&sig_file);
-
-    let doc_text = LitStr::new(
-        &format!(
-            r#"
+        let literal = LitStr::new(
+            &format!(
+                r#"
 # Note
 
 When used in function components and hooks, this hook is equivalent to:
@@ -76,15 +72,32 @@ When used in function components and hooks, this hook is equivalent to:
 {}
 ```
 "#,
-            sig_formatted.replace(
-                "__yew_macro_dummy_function_body__",
-                "/* implementation omitted */"
-            )
-        ),
-        Span::mixed_site(),
-    );
+                sig_formatted.replace(
+                    "__yew_macro_dummy_function_body__",
+                    "/* implementation omitted */"
+                )
+            ),
+            Span::mixed_site(),
+        );
 
-    let hook_sig = HookSignature::rewrite(&sig);
+        parse_quote!(#[doc = #literal])
+    }
+}
+
+pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
+    let doc_attr = hook.doc_attr();
+
+    let HookFn { inner: original_fn } = hook;
+
+    let ItemFn {
+        ref vis,
+        ref sig,
+        ref block,
+        ref attrs,
+    } = original_fn;
+    let mut block = *block.clone();
+
+    let hook_sig = HookSignature::rewrite(sig);
 
     let Signature {
         ref fn_token,
@@ -98,24 +111,13 @@ When used in function components and hooks, this hook is equivalent to:
     let output_type = &hook_sig.output_type;
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-    let call_generics = {
-        let mut generics = generics.clone();
+    let call_generics = hook_sig.call_generics();
 
-        // We need to filter out lifetimes.
-        generics.params = generics
-            .params
-            .into_iter()
-            .filter(|m| !matches!(m, GenericParam::Lifetime(_)))
-            .collect();
+    // We use _ctx so that if a hook does not use other hooks, it will not trigger unused_vars.
+    let ctx_ident = Ident::new("_ctx", Span::mixed_site());
 
-        let (_impl_generics, ty_generics, _where_clause) = generics.split_for_impl();
-        ty_generics.as_turbofish().to_token_stream()
-    };
-
-    let ctx_ident = Ident::new("ctx", Span::mixed_site());
-
-    let mut body_rewriter = BodyRewriter::default();
-    visit_mut::visit_block_mut(&mut body_rewriter, &mut *block);
+    let mut body_rewriter = BodyRewriter::new(ctx_ident.clone());
+    visit_mut::visit_block_mut(&mut body_rewriter, &mut block);
 
     let inner_fn_ident = Ident::new("inner_fn", Span::mixed_site());
     let input_args = hook_sig.input_args();
@@ -188,7 +190,7 @@ When used in function components and hooks, this hook is equivalent to:
     let output = quote! {
         #[cfg(not(doctest))]
         #(#attrs)*
-        #[doc = #doc_text]
+        #doc_attr
         #vis #fn_token #ident #generics (#inputs) #hook_return_type #where_clause {
             #inner_fn
 

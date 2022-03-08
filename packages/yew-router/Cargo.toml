@@ -23,6 +23,7 @@ js-sys = "0.3"
 gloo = { version = "0.6", features = ["futures"] }
 route-recognizer = "0.3"
 serde = "1"
+serde_urlencoded = "0.7.1"
 
 [dependencies.web-sys]
 version = "0.3"

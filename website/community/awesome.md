@@ -5,7 +5,7 @@ description: "Community projects built using yew"
 
 ## Projects
 
-- [Realworld example](https://github.com/jetli/rust-yew-realworld-example-app) - Exemplary real world app built with Rust + Yew + WebAssembly.
+- [Realworld example](https://github.com/jetli/rust-yew-realworld-example-app) - Exemplary real world app built with Rust + Yew + WebAssembly. It utilizes Yew's latest `function components` and `hooks`. It also supports desktop application powered by [Tauri](https://github.com/tauri-apps/tauri).
 - [webapp.rs](https://github.com/saschagrunert/webapp.rs) - A web application completely written in Rust, frontend is built with Yew.
 - [Rust-Full-Stack](https://github.com/steadylearner/Rust-Full-Stack) - Easily testable and working Rust codes with blog posts to explain them.
 - [Bucket Questions](https://github.com/hgzimmerman/BucketQuestions) - A webapp written entirely in Rust for a dumb party game.
@@ -44,7 +44,11 @@ description: "Community projects built using yew"
 - [Sea_battle](https://github.com/MAE664128/sea_battle) - A simple example of a sea battle game. Rust + Yew.
 - [tide-async-graphql-mongodb](https://github.com/zzy/tide-async-graphql-mongodb) - Clean boilerplate for graphql services, with wasm/yew frontend.
 - [surfer](https://github.com/zzy/surfer) - A blog built on yew + graphql, with [live demo site](https://gaiding.com). Backend for graphql services, and frontend for web application.
-- [qubit](https://abhimanyu003.github.io/qubit) - A handy calculator, based on Rust and WebAssembly. [Live Demo](https://abhimanyu003.github.io/qubit/)
+- [qubit](https://abhimanyu003.github.io/qubit) - A handy calculator, based on Rust and WebAssembly, [Live Demo](https://abhimanyu003.github.io/qubit/).
+- [Paudle](https://github.com/pmsanford/paudle) - A reimplementation of the excellent word game Wordle by Josh Wardle.
+- [Rust algorithms](https://github.com/Jondolf/rust-algorithms) - A website with interactive implementations of various algorithms (only sorting algorithms for now).
+- [Marc Portfolio](https://gitlab.com/marcempunkt/maeurerdev) - A software developer portfolio, [Live Demo](https://maeurer.dev/).
+- [zzhack](https://github.com/youncccat/zzhack) - A personal blog, based on Rust & Yew, [Live Demo](https://www.zzhack.fun/technology).
 
 ## Templates
 
@@ -67,6 +71,7 @@ description: "Community projects built using yew"
 - [yew-feather](https://github.com/pedrodesu/yew-feather) - Feather Icons components for Yew.
 - [tailwind-yew-builder](https://github.com/matiu2/tailwind-yew-builder) - Builds Tailwind CSS for Yew using docker-compose. Also supports Trunk.
 - [yew-components](https://github.com/angular-rust/yew-components) - Material Design Components for the Yew framework.
+- [yew-chart](https://github.com/titanclass/yew-chart) - A Yew-based charting library that provides SVG based components for rendering charts.
 
 ### Components
 
@@ -77,6 +82,8 @@ description: "Community projects built using yew"
 ### Hooks
 
 - [yew-hooks](https://github.com/jetli/yew-hooks) - Custom Hooks library for Yew, inspired by [streamich/react-use](https://github.com/streamich/react-use) and [alibaba/hooks](https://github.com/alibaba/hooks).
+- [yew-side-effect](https://github.com/futursolo/yew-side-effect) - Reconcile Side Effects in Yew Applications, inspired by [react-side-effect](https://github.com/gaearon/react-side-effect) and [react-helmet](https://github.com/nfl/react-helmet).
+- [Bounce](https://github.com/futursolo/bounce) - The uncomplicated state management library for Yew, inspired by [Redux](https://github.com/reduxjs/redux) and [Recoil](https://github.com/facebookexperimental/Recoil).
 
 ### Utils
 
@@ -84,6 +91,8 @@ description: "Community projects built using yew"
 - [reacty_yew](https://github.com/hobofan/reacty_yew) - Generate Yew components from React components via Typescript type definitions.
 - [styled-yew](https://github.com/IcyDefiance/styled-yew) - CSS in Rust, similar to styled-components, but for Yew.
 - [stylist-rs](https://github.com/futursolo/stylist-rs) - A CSS-in-Rust styling solution for WebAssembly Applications.
+- [Yew Interop](https://github.com/Madoshakalaka/yew-interop) - Load JavaScript and CSS asynchronously in Yew.
+- [Tailwind RS](https://github.com/oovm/tailwind-rs) - Tailwind style tracer in rust, JIT + AOT interpreter.
 
 ### Wasm
 
@@ -116,6 +125,8 @@ description: "Community projects built using yew"
 - [How to render blog posts with Rust Yew mounted API](https://www.steadylearner.com/blog/read/How-to-render-blog-posts-with-Rust-Yew-mounted-API)
 - [A Web Application completely in Rust](https://medium.com/@saschagrunert/a-web-application-completely-in-rust-6f6bdb6c4471)
 - [Yew - Rust & WebAsse-frontend framework](https://sudonull.com/post/11627-Yew-Rust-WebAsse-frontend-framework)
+- [Create a desktop app in Rust using Tauri and Yew](https://dev.to/stevepryde/create-a-desktop-app-in-rust-using-tauri-and-yew-2bhe)
+- [A code walkthrough video of Yew with a real-world app with Christopher Hunt and Kiki Carter](https://www.youtube.com/watch?v=ilrGIJGdqRo)
 
 ## Books
 
@@ -134,6 +145,8 @@ Yew team love to share ideas with other projects and believe we can all help eac
 - [Sauron](https://github.com/ivanceras/sauron) - Sauron is an HTML web framework for building web-apps.
 - [Seed](https://github.com/seed-rs/seed) - A Rust framework for creating web apps.
 - [Smithy](https://github.com/rbalicki2/smithy) - A framework for building WebAssembly apps in Rust.
+- [Dioxus](https://github.com/DioxusLabs/dioxus) - Elegant React-like library for building user interfaces for desktop, web, mobile, SSR, liveview, and more.
+- [Sycamore](https://github.com/sycamore-rs/sycamore) - A reactive library for creating web apps in Rust and WebAssembly.
 
 ## Related lists
 

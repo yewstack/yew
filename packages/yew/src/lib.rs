@@ -264,9 +264,9 @@ pub mod macros {
     pub use yew_macro::generate_element;
 }
 
-mod app_handle;
 pub mod callback;
 pub mod context;
+mod dom_bundle;
 pub mod functional;
 pub mod html;
 mod io_coop;
@@ -275,18 +275,21 @@ mod sealed;
 #[cfg(feature = "ssr")]
 mod server_renderer;
 pub mod suspense;
-#[cfg(test)]
-pub mod tests;
 pub mod utils;
 pub mod virtual_dom;
 #[cfg(feature = "ssr")]
 pub use server_renderer::*;
 
+#[cfg(test)]
+pub mod tests {
+    pub use crate::dom_bundle::layout_tests;
+}
+
 /// The module that contains all events available in the framework.
 pub mod events {
     pub use crate::html::TargetCast;
 
-    pub use crate::virtual_dom::listeners::set_event_bubbling;
+    pub use crate::dom_bundle::set_event_bubbling;
 
     #[doc(no_inline)]
     pub use web_sys::{
@@ -295,10 +298,10 @@ pub mod events {
     };
 }
 
-pub use crate::app_handle::AppHandle;
+pub use crate::dom_bundle::AppHandle;
 use web_sys::Element;
 
-use crate::html::BaseComponent;
+use crate::html::IntoComponent;
 
 thread_local! {
     static PANIC_HOOK_IS_SET: Cell<bool> = Cell::new(false);
@@ -320,42 +323,42 @@ fn set_default_panic_hook() {
 
 /// The main entry point of a Yew application.
 /// If you would like to pass props, use the `start_app_with_props_in_element` method.
-pub fn start_app_in_element<COMP>(element: Element) -> AppHandle<COMP>
+pub fn start_app_in_element<ICOMP>(element: Element) -> AppHandle<ICOMP>
 where
-    COMP: BaseComponent,
-    COMP::Properties: Default,
+    ICOMP: IntoComponent,
+    ICOMP::Properties: Default,
 {
-    start_app_with_props_in_element(element, COMP::Properties::default())
+    start_app_with_props_in_element(element, ICOMP::Properties::default())
 }
 
 /// Starts an yew app mounted to the body of the document.
 /// Alias to start_app_in_element(Body)
-pub fn start_app<COMP>() -> AppHandle<COMP>
+pub fn start_app<ICOMP>() -> AppHandle<ICOMP>
 where
-    COMP: BaseComponent,
-    COMP::Properties: Default,
+    ICOMP: IntoComponent,
+    ICOMP::Properties: Default,
 {
-    start_app_with_props(COMP::Properties::default())
+    start_app_with_props(ICOMP::Properties::default())
 }
 
 /// The main entry point of a Yew application. This function does the
 /// same as `start_app_in_element(...)` but allows to start an Yew application with properties.
-pub fn start_app_with_props_in_element<COMP>(
+pub fn start_app_with_props_in_element<ICOMP>(
     element: Element,
-    props: COMP::Properties,
-) -> AppHandle<COMP>
+    props: ICOMP::Properties,
+) -> AppHandle<ICOMP>
 where
-    COMP: BaseComponent,
+    ICOMP: IntoComponent,
 {
     set_default_panic_hook();
-    AppHandle::<COMP>::mount_with_props(element, Rc::new(props))
+    AppHandle::<ICOMP>::mount_with_props(element, Rc::new(props))
 }
 
 /// The main entry point of a Yew application.
 /// This function does the same as `start_app(...)` but allows to start an Yew application with properties.
-pub fn start_app_with_props<COMP>(props: COMP::Properties) -> AppHandle<COMP>
+pub fn start_app_with_props<ICOMP>(props: ICOMP::Properties) -> AppHandle<ICOMP>
 where
-    COMP: BaseComponent,
+    ICOMP: IntoComponent,
 {
     start_app_with_props_in_element(
         gloo_utils::document()
@@ -375,16 +378,17 @@ where
 /// use yew::prelude::*;
 /// ```
 pub mod prelude {
-    pub use crate::app_handle::AppHandle;
     pub use crate::callback::Callback;
     pub use crate::context::{ContextHandle, ContextProvider};
+    pub use crate::dom_bundle::AppHandle;
     pub use crate::events::*;
     pub use crate::html::{
         create_portal, BaseComponent, Children, ChildrenWithProps, Classes, Component, Context,
-        Html, HtmlResult, NodeRef, Properties,
+        Html, HtmlResult, IntoComponent, NodeRef, Properties,
     };
     pub use crate::macros::{classes, html, html_nested};
     pub use crate::suspense::Suspense;
+    pub use crate::virtual_dom::AttrValue;
 
     pub use crate::functional::*;
 }

@@ -7,6 +7,7 @@ use yew::virtual_dom::AttrValue;
 
 use crate::navigator::NavigatorKind;
 use crate::scope_ext::RouterScopeExt;
+use crate::utils;
 use crate::Routable;
 
 /// Props for [`Link`]
@@ -62,10 +63,6 @@ where
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::OnClick => {
-                if ctx.props().disabled {
-                    return false;
-                }
-
                 let LinkProps { to, query, .. } = ctx.props();
                 let navigator = ctx
                     .link()
@@ -90,6 +87,7 @@ where
         let LinkProps {
             classes,
             to,
+            query,
             children,
             disabled,
             ..
@@ -103,19 +101,24 @@ where
             .link()
             .navigator()
             .expect_throw("failed to get navigator");
-        let href: Option<AttrValue> = disabled.then(|| {
-            let href = navigator.route_to_url(to);
+        let href: AttrValue = {
+            let pathname = navigator.route_to_url(to);
+            let path = query
+                .and_then(|query| serde_urlencoded::to_string(query).ok())
+                .and_then(|query| utils::compose_path(&pathname, &query))
+                .unwrap_or_else(|| pathname.to_string());
 
             match navigator.kind() {
-                NavigatorKind::Hash => format!("#{}", href).into(),
-                _ => href,
+                NavigatorKind::Hash => format!("#{}", path),
+                _ => path,
             }
             .into()
-        });
+        };
         html! {
             <a class={classes}
                 {href}
                 {onclick}
+                {disabled}
             >
                 { children }
             </a>
