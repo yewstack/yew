@@ -3,29 +3,29 @@ use super::*;
 use crate::html::Scope;
 
 /// A Yew Server-side Renderer.
-#[derive(Debug)]
 #[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
-pub struct ServerRenderer<COMP>
+#[derive(Debug)]
+pub struct ServerRenderer<ICOMP>
 where
-    COMP: BaseComponent,
+    ICOMP: IntoComponent,
 {
-    props: COMP::Properties,
+    props: ICOMP::Properties,
 }
 
-impl<COMP> Default for ServerRenderer<COMP>
+impl<ICOMP> Default for ServerRenderer<ICOMP>
 where
-    COMP: BaseComponent,
-    COMP::Properties: Default,
+    ICOMP: IntoComponent,
+    ICOMP::Properties: Default,
 {
     fn default() -> Self {
-        Self::with_props(COMP::Properties::default())
+        Self::with_props(ICOMP::Properties::default())
     }
 }
 
-impl<COMP> ServerRenderer<COMP>
+impl<ICOMP> ServerRenderer<ICOMP>
 where
-    COMP: BaseComponent,
-    COMP::Properties: Default,
+    ICOMP: IntoComponent,
+    ICOMP::Properties: Default,
 {
     /// Creates a [ServerRenderer] with default properties.
     pub fn new() -> Self {
@@ -33,12 +33,12 @@ where
     }
 }
 
-impl<COMP> ServerRenderer<COMP>
+impl<ICOMP> ServerRenderer<ICOMP>
 where
-    COMP: BaseComponent,
+    ICOMP: IntoComponent,
 {
     /// Creates a [ServerRenderer] with custom properties.
-    pub fn with_props(props: COMP::Properties) -> Self {
+    pub fn with_props(props: ICOMP::Properties) -> Self {
         Self { props }
     }
 
@@ -53,7 +53,7 @@ where
 
     /// Renders Yew Application to a String.
     pub async fn render_to_string(self, w: &mut String) {
-        let scope = Scope::<COMP>::new(None);
+        let scope = Scope::<<ICOMP as IntoComponent>::Component>::new(None);
         scope.render_to_string(w, self.props.into()).await;
     }
 }

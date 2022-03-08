@@ -1,4 +1,3 @@
-use proc_macro2::Span;
 use proc_macro_error::emit_error;
 use std::sync::{Arc, Mutex};
 use syn::spanned::Spanned;
@@ -8,12 +7,20 @@ use syn::{
     ExprMatch, ExprWhile, Ident, Item,
 };
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct BodyRewriter {
     branch_lock: Arc<Mutex<()>>,
+    ctx_ident: Ident,
 }
 
 impl BodyRewriter {
+    pub fn new(ctx_ident: Ident) -> Self {
+        Self {
+            branch_lock: Arc::default(),
+            ctx_ident,
+        }
+    }
+
     fn is_branched(&self) -> bool {
         self.branch_lock.try_lock().is_err()
     }
@@ -30,7 +37,7 @@ impl BodyRewriter {
 
 impl VisitMut for BodyRewriter {
     fn visit_expr_call_mut(&mut self, i: &mut ExprCall) {
-        let ctx_ident = Ident::new("ctx", Span::mixed_site());
+        let ctx_ident = &self.ctx_ident;
 
         // Only rewrite hook calls.
         if let Expr::Path(ref m) = &*i.func {
@@ -53,6 +60,32 @@ impl VisitMut for BodyRewriter {
         }
 
         visit_mut::visit_expr_call_mut(self, i);
+    }
+
+    fn visit_expr_mut(&mut self, i: &mut Expr) {
+        let ctx_ident = &self.ctx_ident;
+
+        match &mut *i {
+            Expr::Macro(m) => {
+                if let Some(ident) = m.mac.path.segments.last().as_ref().map(|m| &m.ident) {
+                    if ident.to_string().starts_with("use_") {
+                        if self.is_branched() {
+                            emit_error!(
+                                ident,
+                                "hooks cannot be called at this position.";
+                                help = "move hooks to the top-level of your function.";
+                                note = "see: https://yew.rs/docs/next/concepts/function-components/introduction#hooks"
+                            );
+                        } else {
+                            *i = parse_quote_spanned! { i.span() => ::yew::functional::Hook::run(#i, #ctx_ident) };
+                        }
+                    } else {
+                        visit_mut::visit_expr_macro_mut(self, m);
+                    }
+                }
+            }
+            _ => visit_mut::visit_expr_mut(self, i),
+        }
     }
 
     fn visit_expr_closure_mut(&mut self, i: &mut ExprClosure) {

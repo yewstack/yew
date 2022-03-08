@@ -10,9 +10,10 @@ use super::{
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
 use crate::dom_bundle::{ComponentRenderState, Scoped};
+use crate::html::IntoComponent;
 use crate::html::NodeRef;
 use crate::scheduler::{self, Shared};
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 use std::cell::{Ref, RefCell};
 use std::marker::PhantomData;
 use std::ops::Deref;
@@ -63,7 +64,7 @@ impl<Msg> Clone for MsgQueue<Msg> {
 pub struct AnyScope {
     type_id: TypeId,
     parent: Option<Rc<AnyScope>>,
-    state: Shared<Option<ComponentState>>,
+    typed_scope: Rc<dyn Any>,
 }
 
 impl fmt::Debug for AnyScope {
@@ -76,8 +77,8 @@ impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
     fn from(scope: Scope<COMP>) -> Self {
         AnyScope {
             type_id: TypeId::of::<COMP>(),
-            parent: scope.parent,
-            state: scope.state,
+            parent: scope.parent.clone(),
+            typed_scope: Rc::new(scope),
         }
     }
 }
@@ -88,7 +89,7 @@ impl AnyScope {
         Self {
             type_id: TypeId::of::<()>(),
             parent: None,
-            state: Rc::new(RefCell::new(None)),
+            typed_scope: Rc::new(()),
         }
     }
 
@@ -107,37 +108,25 @@ impl AnyScope {
     /// # Panics
     ///
     /// If the self value can't be cast into the target type.
-    pub fn downcast<COMP: BaseComponent>(self) -> Scope<COMP> {
-        self.try_downcast::<COMP>().unwrap()
+    pub fn downcast<ICOMP: IntoComponent>(&self) -> Scope<ICOMP::Component> {
+        self.try_downcast::<ICOMP>().unwrap()
     }
 
     /// Attempts to downcast into a typed scope
     ///
     /// Returns [`None`] if the self value can't be cast into the target type.
-    pub fn try_downcast<COMP: BaseComponent>(self) -> Option<Scope<COMP>> {
-        let state = self.state.borrow();
-
-        state.as_ref().map(|m| {
-            m.inner
-                .as_any()
-                .downcast_ref::<CompStateInner<COMP>>()
-                .unwrap()
-                .context
-                .link()
-                .clone()
-        })
+    pub fn try_downcast<ICOMP: IntoComponent>(&self) -> Option<Scope<ICOMP::Component>> {
+        self.typed_scope
+            .downcast_ref::<Scope<ICOMP::Component>>()
+            .cloned()
     }
 
     /// Attempts to find a parent scope of a certain type
     ///
     /// Returns [`None`] if no parent scope with the specified type was found.
-    pub fn find_parent_scope<C: BaseComponent>(&self) -> Option<Scope<C>> {
-        let expected_type_id = TypeId::of::<C>();
+    pub fn find_parent_scope<ICOMP: IntoComponent>(&self) -> Option<Scope<ICOMP::Component>> {
         iter::successors(Some(self), |scope| scope.get_parent())
-            .filter(|scope| scope.get_type_id() == &expected_type_id)
-            .cloned()
-            .map(AnyScope::downcast::<C>)
-            .next()
+            .find_map(AnyScope::try_downcast::<ICOMP>)
     }
 
     /// Accesses a value provided by a parent `ContextProvider` component of the
