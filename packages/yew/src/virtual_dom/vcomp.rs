@@ -2,7 +2,7 @@
 
 use super::Key;
 use crate::dom_bundle::{Mountable, PropsWrapper};
-use crate::html::{BaseComponent, NodeRef};
+use crate::html::{BaseComponent, IntoComponent, NodeRef};
 use std::any::TypeId;
 use std::fmt;
 use std::rc::Rc;
@@ -41,15 +41,15 @@ impl Clone for VComp {
 }
 
 /// A virtual child component.
-pub struct VChild<COMP: BaseComponent> {
+pub struct VChild<ICOMP: IntoComponent> {
     /// The component properties
-    pub props: Rc<COMP::Properties>,
+    pub props: Rc<ICOMP::Properties>,
     /// Reference to the mounted node
     node_ref: NodeRef,
     key: Option<Key>,
 }
 
-impl<COMP: BaseComponent> Clone for VChild<COMP> {
+impl<ICOMP: IntoComponent> Clone for VChild<ICOMP> {
     fn clone(&self) -> Self {
         VChild {
             props: Rc::clone(&self.props),
@@ -59,21 +59,21 @@ impl<COMP: BaseComponent> Clone for VChild<COMP> {
     }
 }
 
-impl<COMP: BaseComponent> PartialEq for VChild<COMP>
+impl<ICOMP: IntoComponent> PartialEq for VChild<ICOMP>
 where
-    COMP::Properties: PartialEq,
+    ICOMP::Properties: PartialEq,
 {
-    fn eq(&self, other: &VChild<COMP>) -> bool {
+    fn eq(&self, other: &VChild<ICOMP>) -> bool {
         self.props == other.props
     }
 }
 
-impl<COMP> VChild<COMP>
+impl<ICOMP> VChild<ICOMP>
 where
-    COMP: BaseComponent,
+    ICOMP: IntoComponent,
 {
     /// Creates a child component that can be accessed and modified by its parent.
-    pub fn new(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self {
+    pub fn new(props: ICOMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self {
         Self {
             props: Rc::new(props),
             node_ref,
@@ -82,25 +82,25 @@ where
     }
 }
 
-impl<COMP> From<VChild<COMP>> for VComp
+impl<ICOMP> From<VChild<ICOMP>> for VComp
 where
-    COMP: BaseComponent,
+    ICOMP: IntoComponent,
 {
-    fn from(vchild: VChild<COMP>) -> Self {
-        VComp::new::<COMP>(vchild.props, vchild.node_ref, vchild.key)
+    fn from(vchild: VChild<ICOMP>) -> Self {
+        VComp::new::<ICOMP>(vchild.props, vchild.node_ref, vchild.key)
     }
 }
 
 impl VComp {
     /// Creates a new `VComp` instance.
-    pub fn new<COMP>(props: Rc<COMP::Properties>, node_ref: NodeRef, key: Option<Key>) -> Self
+    pub fn new<ICOMP>(props: Rc<ICOMP::Properties>, node_ref: NodeRef, key: Option<Key>) -> Self
     where
-        COMP: BaseComponent,
+        ICOMP: IntoComponent,
     {
         VComp {
-            type_id: TypeId::of::<COMP>(),
+            type_id: TypeId::of::<ICOMP::Component>(),
             node_ref,
-            mountable: Box::new(PropsWrapper::<COMP>::new(props)),
+            mountable: Box::new(PropsWrapper::<ICOMP::Component>::new(props)),
             key,
         }
     }
