@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1646740773683,
+  "lastUpdate": 1646744999200,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -7733,6 +7733,115 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 32_startup-bt",
             "value": "29.813999999999993",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "359.8974609375",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "futursolo@users.noreply.github.com",
+            "name": "Kaede Hoshikawa",
+            "username": "futursolo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "51238fb0e3748ecb59a58af640557914c0266d25",
+          "message": "Better Function Component in docs + Macro-based Hooks (#2478)\n\n* Fix const function component.\r\n\r\n* Show Properties on the function definition.\r\n\r\n* Filter certain doc attributes to be applied to type alias. More precise warnings.\r\n\r\n* Implement macro-based hook.\r\n\r\n* Add fail case.\r\n\r\n* Function Component no longer a type alias.\r\n\r\n* Clippy!\r\n\r\n* Force 'static on generics.\r\n\r\n* Fix clippy!\r\n\r\n* Fix clippy and trybuild.\r\n\r\n* Fix clippy and trybuild.\r\n\r\n* Fix clippy.\r\n\r\n* BaseComponent was not sealed properly.\r\n\r\n* Adjust prelude.\r\n\r\n* Public API should use IntoComponent for better ergonomics.\r\n\r\n* Fix race condition.\r\n\r\n* Fix trybuild.",
+          "timestamp": "2022-03-08T18:03:40+05:00",
+          "tree_id": "2b60051537c771ca9edb07857f9a2579ba3e416a",
+          "url": "https://github.com/yewstack/yew/commit/51238fb0e3748ecb59a58af640557914c0266d25"
+        },
+        "date": 1646744997767,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "218.8085",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "212.633",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "341.786",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "82.16499999999999",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "92.4665",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "31.6705",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "2299.8995",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "443.104",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "207.51",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "0.9634475708007812",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.5049896240234375",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.5056991577148438",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.5126914978027344",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.1257438659667969",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1731.9340000000002",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "35.58399999999999",
             "unit": ""
           },
           {
