@@ -237,8 +237,7 @@ pub(crate) struct UpdateRunner {
 
 impl Runnable for UpdateRunner {
     fn run(self: Box<Self>) {
-        #[allow(unused_mut)]
-        if let Some(mut state) = self.state.borrow_mut().as_mut() {
+        if let Some(state) = self.state.borrow_mut().as_mut() {
             let schedule_render = match self.event {
                 UpdateEvent::Message => state.inner.flush_messages(),
                 #[cfg(feature = "render")]
