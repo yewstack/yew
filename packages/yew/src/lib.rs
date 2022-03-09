@@ -265,6 +265,7 @@ pub mod macros {
 
 pub mod callback;
 pub mod context;
+#[cfg_attr(documenting, doc(cfg(feature = "render")))]
 #[cfg(feature = "render")]
 mod dom_bundle;
 pub mod functional;

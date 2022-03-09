@@ -63,7 +63,7 @@ impl std::fmt::Debug for ComponentRenderState {
     }
 }
 
-pub(crate) struct CompStateInner<COMP>
+struct CompStateInner<COMP>
 where
     COMP: BaseComponent,
 {
@@ -184,6 +184,16 @@ impl ComponentState {
             #[cfg(debug_assertions)]
             vcomp_id,
         }
+    }
+
+    pub(crate) fn downcast_comp_ref<COMP>(&self) -> Option<&COMP>
+    where
+        COMP: BaseComponent + 'static,
+    {
+        self.inner
+            .as_any()
+            .downcast_ref::<CompStateInner<COMP>>()
+            .map(|m| &m.component)
     }
 }
 

@@ -6,7 +6,7 @@ use crate::scheduler::Shared;
 use std::cell::RefCell;
 
 #[cfg(any(feature = "render", feature = "ssr"))]
-use super::lifecycle::{CompStateInner, ComponentState, UpdateEvent, UpdateRunner};
+use super::lifecycle::{ComponentState, UpdateEvent, UpdateRunner};
 use super::BaseComponent;
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
@@ -242,6 +242,7 @@ mod feat_ssr {
 mod feat_no_render_ssr {
     use super::*;
 
+    // Skeleton code to provide public methods when no renderer are enabled.
     impl<COMP: BaseComponent> Scope<COMP> {
         /// Returns the linked component if available
         pub fn get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
@@ -333,15 +334,12 @@ mod feat_render_ssr {
         pub fn get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
             self.state.try_borrow().ok().and_then(|state_ref| {
                 state_ref.as_ref()?;
+                // TODO: Replace unwrap with Ref::filter_map once it becomes stable.
                 Some(Ref::map(state_ref, |state| {
-                    &state
+                    state
                         .as_ref()
+                        .and_then(|m| m.downcast_comp_ref::<COMP>())
                         .unwrap()
-                        .inner
-                        .as_any()
-                        .downcast_ref::<CompStateInner<COMP>>()
-                        .unwrap()
-                        .component
                 }))
             })
         }

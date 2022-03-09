@@ -34,6 +34,7 @@ static BUBBLE_EVENTS: AtomicBool = AtomicBool::new(true);
 /// handler has no effect.
 ///
 /// This function should be called before any component is mounted.
+#[cfg_attr(documenting, doc(cfg(feature = "render")))]
 pub fn set_event_bubbling(bubble: bool) {
     BUBBLE_EVENTS.store(bubble, Ordering::Relaxed);
 }
