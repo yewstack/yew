@@ -4,7 +4,7 @@ use super::scope::{AnyScope, Scope};
 use super::BaseComponent;
 use crate::html::{Html, RenderError};
 use crate::scheduler::{self, Runnable, Shared};
-use crate::suspense::{Suspense, Suspension};
+use crate::suspense::{BaseSuspense, Suspension};
 use crate::{Callback, Context, HtmlResult};
 use std::any::Any;
 use std::rc::Rc;
@@ -387,7 +387,7 @@ impl RenderRunner {
             let comp_scope = state.inner.any_scope();
 
             let suspense_scope = comp_scope
-                .find_parent_scope::<Suspense>()
+                .find_parent_scope::<BaseSuspense>()
                 .expect("To suspend rendering, a <Suspense /> component is required.");
             let suspense = suspense_scope.get_component().unwrap();
 
@@ -419,7 +419,7 @@ impl RenderRunner {
         if let Some(m) = state.suspension.take() {
             let comp_scope = state.inner.any_scope();
 
-            let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
+            let suspense_scope = comp_scope.find_parent_scope::<BaseSuspense>().unwrap();
             let suspense = suspense_scope.get_component().unwrap();
 
             suspense.resume(m);

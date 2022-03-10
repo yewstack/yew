@@ -17,7 +17,7 @@ pub struct VSuspense {
 }
 
 impl VSuspense {
-    pub(crate) fn new(
+    pub fn new(
         children: VNode,
         fallback: VNode,
         detached_parent: Option<Element>,
