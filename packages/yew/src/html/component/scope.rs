@@ -402,13 +402,11 @@ mod feat_io {
     use crate::io_coop::spawn_local;
 
     impl<COMP: BaseComponent> Scope<COMP> {
-        /// This method creates a [`Callback`] which returns a Future which
-        /// returns a message to be sent back to the component's event
-        /// loop.
+        /// This method creates a [`Callback`] which, when emitted, asynchronously awaits the
+        /// message returned from the passed function before sending it to the linked component.
         ///
         /// # Panics
-        /// If the future panics, then the promise will not resolve, and
-        /// will leak.
+        /// If the future panics, then the promise will not resolve, and will leak.
         pub fn callback_future<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
         where
             M: Into<COMP::Message>,
@@ -425,8 +423,8 @@ mod feat_io {
             closure.into()
         }
 
-        /// This method processes a Future that returns a message and sends it back to the component's
-        /// loop.
+        /// This method asynchronously awaits a [Future] that returns a message and sends it
+        /// to the linked component.
         ///
         /// # Panics
         /// If the future panics, then the promise will not resolve, and will leak.
@@ -443,17 +441,19 @@ mod feat_io {
             spawn_local(js_future);
         }
 
-        /// Registers a Future that resolves to multiple messages.
+        /// Asynchronously send a batch of messages to a component. This asynchronously awaits the
+        /// passed [Future], before sending the message batch to the linked component.
+        ///
         /// # Panics
         /// If the future panics, then the promise will not resolve, and will leak.
         pub fn send_future_batch<F>(&self, future: F)
         where
-            F: Future<Output = Vec<COMP::Message>> + 'static,
+            F: Future + 'static,
+            F::Output: SendAsMessage<COMP>,
         {
             let link = self.clone();
             let js_future = async move {
-                let messages: Vec<COMP::Message> = future.await;
-                link.send_message_batch(messages);
+                future.await.send(&link);
             };
             spawn_local(js_future);
         }
