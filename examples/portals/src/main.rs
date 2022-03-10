@@ -1,6 +1,6 @@
 use wasm_bindgen::JsCast;
 use web_sys::{Element, ShadowRootInit, ShadowRootMode};
-use yew::{create_portal, html, Children, Component, Context, Html, NodeRef, Properties};
+use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct ShadowDOMProps {
@@ -49,15 +49,16 @@ impl Component for ShadowDOMHost {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let contents = if let Some(ref inner_host) = self.inner_host {
-            create_portal(
+        let contents = match self.inner_host {
+            Some(ref m) => {
+                let children = ctx.props().children.clone();
                 html! {
-                    {for ctx.props().children.iter()}
-                },
-                inner_host.clone(),
-            )
-        } else {
-            html! { <></> }
+                <Portal host={m.clone()}>
+                    {children}
+                </Portal>
+                }
+            }
+            None => Html::default(),
         };
         html! {
             <div ref={self.host_ref.clone()}>
@@ -76,15 +77,17 @@ impl Component for App {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        let document_head = gloo_utils::document()
+        let document_head: Element = gloo_utils::document()
             .head()
-            .expect("head element to be present");
-        let style_html = create_portal(
-            html! {
-                <style>{"p { color: red; }"}</style>
-            },
-            document_head.into(),
-        );
+            .expect("head element to be present")
+            .into();
+        let style_html = html! {
+            <Portal host={document_head}>
+                <style>
+                    {"p { color: red; }"}
+                </style>
+            </Portal>
+        };
         Self { style_html }
     }
 
@@ -102,5 +105,5 @@ impl Component for App {
 }
 
 fn main() {
-    yew::start_app::<App>();
+    yew::Renderer::<App>::new().render();
 }

@@ -12,7 +12,7 @@ use web_sys::Element;
 
 /// This struct represents a mounted [VList]
 #[derive(Debug)]
-pub struct BList {
+pub(super) struct BList {
     /// The reverse (render order) list of child [BNode]s
     rev_children: Vec<BNode>,
     /// All [BNode]s in the BList have keys
@@ -120,7 +120,7 @@ impl BNode {
 
 impl BList {
     /// Create a new empty [BList]
-    pub(super) const fn new() -> BList {
+    pub const fn new() -> BList {
         BList {
             rev_children: vec![],
             fully_keyed: true,
@@ -129,7 +129,7 @@ impl BList {
     }
 
     /// Get the key of the underlying fragment
-    pub(super) fn key(&self) -> Option<&Key> {
+    pub fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
 

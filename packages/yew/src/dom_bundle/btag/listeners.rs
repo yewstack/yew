@@ -34,6 +34,7 @@ static BUBBLE_EVENTS: AtomicBool = AtomicBool::new(true);
 /// handler has no effect.
 ///
 /// This function should be called before any component is mounted.
+#[cfg_attr(documenting, doc(cfg(feature = "render")))]
 pub fn set_event_bubbling(bubble: bool) {
     BUBBLE_EVENTS.store(bubble, Ordering::Relaxed);
 }
@@ -105,7 +106,7 @@ impl ListenerRegistration {
     }
 
     /// Remove any registered event listeners from the global registry
-    pub(super) fn unregister(&self) {
+    pub fn unregister(&self) {
         if let Self::Registered(id) = self {
             Registry::with(|r| r.unregister(id));
         }
@@ -406,7 +407,7 @@ mod tests {
 
         let root = document().create_element("div").unwrap();
         document().body().unwrap().append_child(&root).unwrap();
-        let app = crate::start_app_in_element::<Comp<M>>(root);
+        let app = crate::Renderer::<Comp<M>>::with_root(root).render();
         scheduler::start_now();
 
         (app, get_el_by_tag(tag))

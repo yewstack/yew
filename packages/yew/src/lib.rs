@@ -18,6 +18,8 @@
 //! Server-Side Rendering should work on all targets when feature `ssr` is enabled.
 //!
 //! ### Supported Features:
+//! - `render`: Enables Client-side Rendering support and [`Renderer`].
+//!   Only enable this feature if you are making a Yew application (not a library).
 //! - `ssr`: Enables Server-side Rendering support and [`ServerRenderer`].
 //! - `tokio`: Enables future-based APIs on non-wasm32 targets with tokio runtime. (You may want to
 //! enable this if your application uses future-based APIs and it does not compile / lint on
@@ -67,7 +69,7 @@
 //!
 //!# fn dont_execute() {
 //! fn main() {
-//!     yew::start_app::<App>();
+//!     yew::Renderer::<App>::new().render();
 //! }
 //!# }
 //! ```
@@ -83,8 +85,6 @@
 #![allow(macro_expanded_macro_exports_accessed_by_absolute_paths)]
 #![recursion_limit = "512"]
 extern crate self as yew;
-
-use std::{cell::Cell, panic::PanicInfo};
 
 /// This macro provides a convenient way to create [`Classes`].
 ///
@@ -265,10 +265,13 @@ pub mod macros {
 
 pub mod callback;
 pub mod context;
+#[cfg_attr(documenting, doc(cfg(feature = "render")))]
+#[cfg(feature = "render")]
 mod dom_bundle;
 pub mod functional;
 pub mod html;
 mod io_coop;
+pub mod portal;
 pub mod scheduler;
 mod sealed;
 #[cfg(feature = "ssr")]
@@ -278,16 +281,20 @@ pub mod utils;
 pub mod virtual_dom;
 #[cfg(feature = "ssr")]
 pub use server_renderer::*;
+#[cfg(feature = "render")]
+mod app_handle;
+#[cfg(feature = "render")]
+mod renderer;
 
+#[cfg(feature = "render")]
 #[cfg(test)]
-pub mod tests {
-    pub use crate::dom_bundle::layout_tests;
-}
+pub mod tests;
 
 /// The module that contains all events available in the framework.
 pub mod events {
     pub use crate::html::TargetCast;
 
+    #[cfg(feature = "render")]
     pub use crate::dom_bundle::set_event_bubbling;
 
     #[doc(no_inline)]
@@ -297,95 +304,31 @@ pub mod events {
     };
 }
 
-pub use crate::dom_bundle::AppHandle;
-use web_sys::Element;
+#[cfg(feature = "render")]
+pub use crate::app_handle::AppHandle;
+#[cfg(feature = "render")]
+pub use crate::renderer::{set_custom_panic_hook, Renderer};
 
-use crate::html::IntoComponent;
-
-thread_local! {
-    static PANIC_HOOK_IS_SET: Cell<bool> = Cell::new(false);
-}
-
-/// Set a custom panic hook.
-/// Unless a panic hook is set through this function, Yew will
-/// overwrite any existing panic hook when one of the `start_app*` functions are called.
-pub fn set_custom_panic_hook(hook: Box<dyn Fn(&PanicInfo<'_>) + Sync + Send + 'static>) {
-    std::panic::set_hook(hook);
-    PANIC_HOOK_IS_SET.with(|hook_is_set| hook_is_set.set(true));
-}
-
-fn set_default_panic_hook() {
-    if !PANIC_HOOK_IS_SET.with(|hook_is_set| hook_is_set.replace(true)) {
-        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-    }
-}
-
-/// The main entry point of a Yew application.
-/// If you would like to pass props, use the `start_app_with_props_in_element` method.
-pub fn start_app_in_element<ICOMP>(element: Element) -> AppHandle<ICOMP>
-where
-    ICOMP: IntoComponent,
-    ICOMP::Properties: Default,
-{
-    start_app_with_props_in_element(element, ICOMP::Properties::default())
-}
-
-/// Starts an yew app mounted to the body of the document.
-/// Alias to start_app_in_element(Body)
-pub fn start_app<ICOMP>() -> AppHandle<ICOMP>
-where
-    ICOMP: IntoComponent,
-    ICOMP::Properties: Default,
-{
-    start_app_with_props(ICOMP::Properties::default())
-}
-
-/// The main entry point of a Yew application. This function does the
-/// same as `start_app_in_element(...)` but allows to start an Yew application with properties.
-pub fn start_app_with_props_in_element<ICOMP>(
-    element: Element,
-    props: ICOMP::Properties,
-) -> AppHandle<ICOMP>
-where
-    ICOMP: IntoComponent,
-{
-    set_default_panic_hook();
-    AppHandle::<ICOMP>::mount_with_props(element, Rc::new(props))
-}
-
-/// The main entry point of a Yew application.
-/// This function does the same as `start_app(...)` but allows to start an Yew application with properties.
-pub fn start_app_with_props<ICOMP>(props: ICOMP::Properties) -> AppHandle<ICOMP>
-where
-    ICOMP: IntoComponent,
-{
-    start_app_with_props_in_element(
-        gloo_utils::document()
-            .body()
-            .expect("no body node found")
-            .into(),
-        props,
-    )
-}
-
-/// The Yew Prelude
-///
-/// The purpose of this module is to alleviate imports of many common types:
-///
-/// ```
-/// # #![allow(unused_imports)]
-/// use yew::prelude::*;
-/// ```
 pub mod prelude {
+    //! The Yew Prelude
+    //!
+    //! The purpose of this module is to alleviate imports of many common types:
+    //!
+    //! ```
+    //! # #![allow(unused_imports)]
+    //! use yew::prelude::*;
+    //! ```
+    #[cfg(feature = "render")]
+    pub use crate::app_handle::AppHandle;
     pub use crate::callback::Callback;
     pub use crate::context::{ContextHandle, ContextProvider};
-    pub use crate::dom_bundle::AppHandle;
     pub use crate::events::*;
     pub use crate::html::{
-        create_portal, BaseComponent, Children, ChildrenWithProps, Classes, Component, Context,
-        Html, HtmlResult, IntoComponent, NodeRef, Properties,
+        BaseComponent, Children, ChildrenWithProps, Classes, Component, Context, Html, HtmlResult,
+        IntoComponent, NodeRef, Properties,
     };
     pub use crate::macros::{classes, html, html_nested};
+    pub use crate::portal::Portal;
     pub use crate::suspense::Suspense;
     pub use crate::virtual_dom::AttrValue;
 
@@ -393,4 +336,3 @@ pub mod prelude {
 }
 
 pub use self::prelude::*;
-use std::rc::Rc;
