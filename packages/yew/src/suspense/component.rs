@@ -15,7 +15,7 @@ mod feat_render_ssr {
 
     use crate::html::{Children, Component, Context, Html, Scope};
     use crate::suspense::Suspension;
-    use crate::virtual_dom::{VList, VNode, VSuspense};
+    use crate::virtual_dom::{VNode, VSuspense};
     use crate::{function_component, html};
 
     #[derive(Properties, PartialEq, Debug, Clone)]
@@ -41,18 +41,18 @@ mod feat_render_ssr {
         type Properties = BaseSuspenseProps;
         type Message = BaseSuspenseMsg;
 
-        fn create(_ctx: &Context<Self>) -> Self {
+        fn create(ctx: &Context<Self>) -> Self {
             Self {
-                link: _ctx.link().clone(),
+                link: ctx.link().clone(),
                 suspensions: Vec::new(),
             }
         }
 
-        fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
             match msg {
                 Self::Message::Suspend(m) => {
                     assert!(
-                        _ctx.props().fallback.is_some(),
+                        ctx.props().fallback.is_some(),
                         "You cannot suspend from a component rendered as a fallback."
                     );
 
@@ -77,12 +77,10 @@ mod feat_render_ssr {
 
         fn view(&self, ctx: &Context<Self>) -> Html {
             let BaseSuspenseProps { children, fallback } = (*ctx.props()).clone();
+            let children = html! {<>{children}</>};
 
             match fallback {
                 Some(fallback) => {
-                    let children =
-                        VNode::from(VList::with_children(children.into_iter().collect(), None));
-
                     let vsuspense = VSuspense::new(
                         children,
                         fallback,
@@ -93,7 +91,7 @@ mod feat_render_ssr {
 
                     VNode::from(vsuspense)
                 }
-                None => html! {<>{children}</>},
+                None => children,
             }
         }
     }
