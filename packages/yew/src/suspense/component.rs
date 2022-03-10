@@ -13,8 +13,6 @@ pub struct SuspenseProps {
 mod feat_render_ssr {
     use super::*;
 
-    use web_sys::Element;
-
     use crate::html::{Children, Component, Context, Html, Scope};
     use crate::suspense::Suspension;
     use crate::virtual_dom::{VList, VNode, VSuspense};
@@ -37,7 +35,6 @@ mod feat_render_ssr {
     pub(crate) struct BaseSuspense {
         link: Scope<Self>,
         suspensions: Vec<Suspension>,
-        detached_parent: Option<Element>,
     }
 
     impl Component for BaseSuspense {
@@ -48,14 +45,6 @@ mod feat_render_ssr {
             Self {
                 link: _ctx.link().clone(),
                 suspensions: Vec::new(),
-
-                #[cfg(target_arch = "wasm32")]
-                detached_parent: web_sys::window()
-                    .and_then(|m| m.document())
-                    .and_then(|m| m.create_element("div").ok()),
-
-                #[cfg(not(target_arch = "wasm32"))]
-                detached_parent: None,
             }
         }
 
@@ -97,7 +86,6 @@ mod feat_render_ssr {
                     let vsuspense = VSuspense::new(
                         children,
                         fallback,
-                        self.detached_parent.clone(),
                         !self.suspensions.is_empty(),
                         // We don't need to key this as the key will be applied to the component.
                         None,

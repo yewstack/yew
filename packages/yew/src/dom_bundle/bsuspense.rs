@@ -4,6 +4,7 @@ use super::{BNode, DomBundle, Reconcilable};
 use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VSuspense};
 use crate::NodeRef;
+use gloo::utils::document;
 use web_sys::Element;
 
 /// The bundle implementation to [VSuspense]
@@ -56,11 +57,12 @@ impl Reconcilable for VSuspense {
         let VSuspense {
             children,
             fallback,
-            detached_parent,
             suspended,
             key,
         } = self;
-        let detached_parent = detached_parent.expect("no detached parent?");
+        let detached_parent = document()
+            .create_element("div")
+            .expect("failed to create detached element");
 
         // When it's suspended, we render children into an element that is detached from the dom
         // tree while rendering fallback UI into the original place where children resides in.
@@ -100,10 +102,7 @@ impl Reconcilable for VSuspense {
     ) -> NodeRef {
         match bundle {
             // We only preserve the child state if they are the same suspense.
-            BNode::Suspense(m)
-                if m.key == self.key
-                    && self.detached_parent.as_ref() == Some(&m.detached_parent) =>
-            {
+            BNode::Suspense(m) if m.key == self.key => {
                 self.reconcile(parent_scope, parent, next_sibling, m)
             }
             _ => self.replace(parent_scope, parent, next_sibling, bundle),
@@ -120,11 +119,9 @@ impl Reconcilable for VSuspense {
         let VSuspense {
             children,
             fallback,
-            detached_parent,
             suspended,
             key: _,
         } = self;
-        let detached_parent = detached_parent.expect("no detached parent?");
 
         let children_bundle = &mut suspense.children_bundle;
         // no need to update key & detached_parent
@@ -136,7 +133,7 @@ impl Reconcilable for VSuspense {
             (true, Some(fallback_bundle)) => {
                 children.reconcile_node(
                     parent_scope,
-                    &detached_parent,
+                    &suspense.detached_parent,
                     NodeRef::default(),
                     children_bundle,
                 );
@@ -149,11 +146,11 @@ impl Reconcilable for VSuspense {
             }
             // Freshly suspended. Shift children into the detached parent, then add fallback to the DOM
             (true, None) => {
-                children_bundle.shift(&detached_parent, NodeRef::default());
+                children_bundle.shift(&suspense.detached_parent, NodeRef::default());
 
                 children.reconcile_node(
                     parent_scope,
-                    &detached_parent,
+                    &suspense.detached_parent,
                     NodeRef::default(),
                     children_bundle,
                 );
