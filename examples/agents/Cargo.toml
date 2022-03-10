@@ -9,6 +9,6 @@ license = "MIT OR Apache-2.0"
 log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 wasm-logger = "0.2"
-yew = { path = "../../packages/yew" }
+yew = { path = "../../packages/yew", features = ["render"] }
 yew-agent = { path = "../../packages/yew-agent" }
 gloo-timers = "0.2"

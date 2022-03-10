@@ -53,7 +53,7 @@ macro_rules! impl_access_value {
 impl_access_value! {InputElement TextAreaElement}
 
 /// Able to have its value read or set
-pub trait AccessValue {
+pub(super) trait AccessValue {
     fn value(&self) -> String;
     fn set_value(&self, v: &str);
 }

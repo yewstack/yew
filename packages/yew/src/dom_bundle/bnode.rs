@@ -9,7 +9,7 @@ use std::fmt;
 use web_sys::{Element, Node};
 
 /// The bundle implementation to [VNode].
-pub enum BNode {
+pub(super) enum BNode {
     /// A bind between `VTag` and `Element`.
     Tag(Box<BTag>),
     /// A bind between `VText` and `TextNode`.
@@ -28,7 +28,7 @@ pub enum BNode {
 
 impl BNode {
     /// Get the key of the underlying node
-    pub(super) fn key(&self) -> Option<&Key> {
+    pub fn key(&self) -> Option<&Key> {
         match self {
             Self::Comp(bsusp) => bsusp.key(),
             Self::List(blist) => blist.key(),

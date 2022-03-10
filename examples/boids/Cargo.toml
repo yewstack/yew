@@ -11,7 +11,7 @@ anyhow = "1.0"
 getrandom = { version = "0.2", features = ["js"] }
 rand = "0.8"
 serde = { version = "1.0", features = ["derive"] }
-yew = { path = "../../packages/yew" }
+yew = { path = "../../packages/yew", features = ["render"] }
 gloo = "0.6"
 
 [dependencies.web-sys]
