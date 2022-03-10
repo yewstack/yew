@@ -247,7 +247,7 @@ impl ComponentRenderState {
         use super::blist::BList;
 
         Self {
-            hosting_root: BundleRoot,
+            hosting_root: BundleRoot::create_ssr(),
             view_node: BNode::List(BList::new()),
             parent: None,
             next_sibling: NodeRef::default(),
@@ -519,7 +519,7 @@ mod tests {
     fn setup_parent() -> (BundleRoot, AnyScope, Element) {
         let scope = AnyScope::test();
         let parent = document().create_element("div").unwrap();
-        let root = BundleRoot;
+        let root = BundleRoot::create_root(&parent);
 
         document().body().unwrap().append_child(&parent).unwrap();
 

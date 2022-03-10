@@ -41,12 +41,12 @@ impl Reconcilable for VPortal {
         _parent: &Element,
         host_next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
-        let inner_root = BundleRoot;
         let Self {
             host,
             inner_sibling,
             node,
         } = self;
+        let inner_root = BundleRoot::create_root(&host);
         let (_, inner) = node.attach(&inner_root, parent_scope, &host, inner_sibling.clone());
         (
             host_next_sibling,

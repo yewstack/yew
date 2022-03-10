@@ -460,7 +460,7 @@ mod tests {
         let document = gloo_utils::document();
         let scope = Scope::<Comp>::new(None);
         let parent = document.create_element("div").unwrap();
-        let root = BundleRoot;
+        let root = BundleRoot::create_root(&parent);
 
         let node_ref = NodeRef::default();
         let render_state = ComponentRenderState::new(root, parent, NodeRef::default(), &node_ref);

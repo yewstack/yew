@@ -23,18 +23,18 @@ use self::blist::BList;
 use self::bnode::BNode;
 use self::bportal::BPortal;
 use self::bsuspense::BSuspense;
-use self::btag::BTag;
+use self::btag::{BTag, EventDescriptor, Registry};
 use self::btext::BText;
 
 pub(crate) use self::bcomp::{ComponentRenderState, Mountable, PropsWrapper, Scoped};
 pub(crate) use self::tree_root::BundleRoot;
 
-#[doc(hidden)] // Publically exported from crate::app_handle
+#[doc(hidden)] // Publicly exported from crate::app_handle
 pub use self::app_handle::AppHandle;
-#[doc(hidden)] // Publically exported from crate::events
+#[doc(hidden)] // Publicly exported from crate::events
 pub use self::btag::set_event_bubbling;
 #[cfg(test)]
-#[doc(hidden)] // Publically exported from crate::tests
+#[doc(hidden)] // Publicly exported from crate::tests
 pub use self::tests::layout_tests;
 
 use crate::html::AnyScope;

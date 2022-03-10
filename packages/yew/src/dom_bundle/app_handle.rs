@@ -27,7 +27,7 @@ where
             scope: Scope::new(None),
         };
         let node_ref = NodeRef::default();
-        let hosting_root = BundleRoot;
+        let hosting_root = BundleRoot::create_root(&host);
         let initial_render_state =
             ComponentRenderState::new(hosting_root, host, NodeRef::default(), &node_ref);
         app.scope

@@ -4,6 +4,7 @@ mod attributes;
 mod listeners;
 
 pub use listeners::set_event_bubbling;
+pub use listeners::{EventDescriptor, Registry};
 
 use super::{insert_node, BList, BNode, BundleRoot, DomBundle, Reconcilable};
 use crate::html::AnyScope;
@@ -306,7 +307,7 @@ mod tests {
     fn setup_parent() -> (BundleRoot, AnyScope, Element) {
         let scope = AnyScope::test();
         let parent = document().create_element("div").unwrap();
-        let root = BundleRoot;
+        let root = BundleRoot::create_root(&parent);
 
         document().body().unwrap().append_child(&parent).unwrap();
 

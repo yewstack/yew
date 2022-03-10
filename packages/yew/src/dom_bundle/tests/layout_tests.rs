@@ -4,7 +4,6 @@ use crate::scheduler;
 use crate::virtual_dom::VNode;
 use crate::{Component, Context, Html};
 use gloo::console::log;
-use web_sys::Node;
 use yew::NodeRef;
 
 struct Comp;
@@ -40,10 +39,10 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     let document = gloo_utils::document();
     let scope: AnyScope = AnyScope::test();
     let parent_element = document.create_element("div").unwrap();
-    let root = BundleRoot;
-    let parent_node: Node = parent_element.clone().into();
+    let root = BundleRoot::create_root(&parent_element);
+
     let end_node = document.create_text_node("END");
-    parent_node.append_child(&end_node).unwrap();
+    parent_element.append_child(&end_node).unwrap();
 
     // Tests each layout independently
     let next_sibling = NodeRef::new(end_node.into());

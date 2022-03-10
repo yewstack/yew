@@ -38,11 +38,6 @@ impl EventTarget for Element {
     }
 }
 
-thread_local! {
-    /// Global event listener registry
-    static REGISTRY: RefCell<Registry> = RefCell::new(Registry::new_global());
-}
-
 /// Bubble events during delegation
 static BUBBLE_EVENTS: AtomicBool = AtomicBool::new(true);
 
@@ -88,7 +83,7 @@ impl Apply for Listeners {
             (Pending(pending), Registered(ref id)) => {
                 // Reuse the ID
                 test_log!("reusing listeners for {}", id);
-                root.with_listener_registry(|reg| reg.patch(id, &*pending));
+                root.with_listener_registry(|reg| reg.patch(root, id, &*pending));
             }
             (Pending(pending), bundle @ NoReg) => {
                 *bundle = ListenerRegistration::register(root, el, &pending);
@@ -121,7 +116,7 @@ impl ListenerRegistration {
     fn register(root: &BundleRoot, el: &Element, pending: &[Option<Rc<dyn Listener>>]) -> Self {
         Self::Registered(root.with_listener_registry(|reg| {
             let id = reg.set_listener_id(el);
-            reg.register(id, pending);
+            reg.register(root, id, pending);
             id
         }))
     }
@@ -135,7 +130,7 @@ impl ListenerRegistration {
 }
 
 #[derive(Clone, Hash, Eq, PartialEq, Debug)]
-struct EventDescriptor {
+pub struct EventDescriptor {
     kind: ListenerKind,
     passive: bool,
 }
@@ -167,22 +162,6 @@ struct HostHandlers {
 }
 
 impl HostHandlers {
-    fn event_listener(&self, desc: EventDescriptor) -> impl 'static + FnMut(&Event) {
-        move |e: &Event| {
-            REGISTRY.with(|reg| Registry::handle(reg, desc.clone(), e.clone()));
-        }
-    }
-}
-
-impl BundleRoot {
-    /// Run f with access to global Registry
-    #[inline]
-    fn with_listener_registry<R>(&self, f: impl FnOnce(&mut Registry) -> R) -> R {
-        REGISTRY.with(|r| f(&mut *r.borrow_mut()))
-    }
-}
-
-impl HostHandlers {
     fn new(host: HtmlEventTarget) -> Self {
         Self {
             host,
@@ -193,7 +172,7 @@ impl HostHandlers {
     }
 
     /// Ensure a descriptor has a global event handler assigned
-    fn ensure_handled(&mut self, desc: EventDescriptor) {
+    fn ensure_handled(&mut self, root: &BundleRoot, desc: EventDescriptor) {
         if !self.handling.contains(&desc) {
             let cl = {
                 let desc = desc.clone();
@@ -205,7 +184,7 @@ impl HostHandlers {
                     &self.host,
                     desc.kind.type_name(),
                     options,
-                    self.event_listener(desc),
+                    root.event_listener(desc),
                 )
             };
 
@@ -222,7 +201,7 @@ impl HostHandlers {
 
 /// Global multiplexing event handler registry
 #[derive(Debug)]
-struct Registry {
+pub struct Registry {
     /// Counter for assigning new IDs
     id_counter: u32,
 
@@ -242,25 +221,25 @@ impl Registry {
         }
     }
 
-    fn new_global() -> Self {
+    pub fn new_global() -> Self {
         let body = gloo_utils::document().body().unwrap();
         Self::new(body.into())
     }
 
     /// Register all passed listeners under ID
-    fn register(&mut self, id: u32, listeners: &[Option<Rc<dyn Listener>>]) {
+    fn register(&mut self, root: &BundleRoot, id: u32, listeners: &[Option<Rc<dyn Listener>>]) {
         let mut by_desc =
             HashMap::<EventDescriptor, Vec<Rc<dyn Listener>>>::with_capacity(listeners.len());
         for l in listeners.iter().filter_map(|l| l.as_ref()).cloned() {
             let desc = EventDescriptor::from(l.deref());
-            self.global.ensure_handled(desc.clone());
+            self.global.ensure_handled(root, desc.clone());
             by_desc.entry(desc).or_default().push(l);
         }
         self.by_id.insert(id, by_desc);
     }
 
     /// Patch an already registered set of handlers
-    fn patch(&mut self, id: &u32, listeners: &[Option<Rc<dyn Listener>>]) {
+    fn patch(&mut self, root: &BundleRoot, id: &u32, listeners: &[Option<Rc<dyn Listener>>]) {
         if let Some(by_desc) = self.by_id.get_mut(id) {
             // Keeping empty vectors is fine. Those don't do much and should happen rarely.
             for v in by_desc.values_mut() {
@@ -269,7 +248,7 @@ impl Registry {
 
             for l in listeners.iter().filter_map(|l| l.as_ref()).cloned() {
                 let desc = EventDescriptor::from(l.deref());
-                self.global.ensure_handled(desc.clone());
+                self.global.ensure_handled(root, desc.clone());
                 by_desc.entry(desc).or_default().push(l);
             }
         }
@@ -291,7 +270,7 @@ impl Registry {
     }
 
     /// Handle a global event firing
-    fn handle(weak_registry: &RefCell<Self>, desc: EventDescriptor, event: Event) {
+    pub fn handle(weak_registry: &RefCell<Self>, desc: EventDescriptor, event: Event) {
         let target = match event
             .target()
             .and_then(|el| el.dyn_into::<web_sys::Element>().ok())
@@ -449,7 +428,7 @@ mod tests {
         M: Mixin,
     {
         // Remove any existing listeners and elements
-        super::REGISTRY.with(|r| *r.borrow_mut() = super::Registry::new_global());
+        super::BundleRoot::clear_global_listeners();
         if let Some(el) = document().query_selector(tag).unwrap() {
             el.parent_element().unwrap().remove();
         }
