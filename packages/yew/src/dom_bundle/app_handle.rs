@@ -1,6 +1,6 @@
 //! [AppHandle] contains the state Yew keeps to bootstrap a component in an isolated scope.
 
-use super::{ComponentRenderState, Scoped};
+use super::{BundleRoot, ComponentRenderState, Scoped};
 use crate::html::{IntoComponent, NodeRef, Scope};
 use std::ops::Deref;
 use std::rc::Rc;
@@ -21,14 +21,15 @@ where
     /// similarly to the `program` function in Elm. You should provide an initial model, `update`
     /// function which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub(crate) fn mount_with_props(element: Element, props: Rc<ICOMP::Properties>) -> Self {
-        clear_element(&element);
+    pub(crate) fn mount_with_props(host: Element, props: Rc<ICOMP::Properties>) -> Self {
+        clear_element(&host);
         let app = Self {
             scope: Scope::new(None),
         };
         let node_ref = NodeRef::default();
+        let hosting_root = BundleRoot;
         let initial_render_state =
-            ComponentRenderState::new(element, NodeRef::default(), &node_ref);
+            ComponentRenderState::new(hosting_root, host, NodeRef::default(), &node_ref);
         app.scope
             .mount_in_place(initial_render_state, node_ref, props);
 

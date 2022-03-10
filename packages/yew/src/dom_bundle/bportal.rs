@@ -1,7 +1,6 @@
 //! This module contains the bundle implementation of a portal [BPortal].
 
-use super::test_log;
-use super::BNode;
+use super::{test_log, BNode, BundleRoot};
 use crate::dom_bundle::{DomBundle, Reconcilable};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::Key;
@@ -11,6 +10,8 @@ use web_sys::Element;
 /// The bundle implementation to [VPortal].
 #[derive(Debug)]
 pub struct BPortal {
+    // The inner root
+    inner_root: BundleRoot,
     /// The element under which the content is inserted.
     host: Element,
     /// The next sibling after the inserted content
@@ -20,13 +21,12 @@ pub struct BPortal {
 }
 
 impl DomBundle for BPortal {
-    fn detach(self, _: &Element, _parent_to_detach: bool) {
-        test_log!("Detaching portal from host{:?}", self.host.outer_html());
-        self.node.detach(&self.host, false);
-        test_log!("Detached portal from host{:?}", self.host.outer_html());
+    fn detach(self, _root: &BundleRoot, _parent: &Element, _parent_to_detach: bool) {
+        test_log!("Detaching portal from host",);
+        self.node.detach(&self.inner_root, &self.host, false);
     }
 
-    fn shift(&self, _next_parent: &Element, _next_sibling: NodeRef) {
+    fn shift(&self, _next_root: &BundleRoot, _next_parent: &Element, _next_sibling: NodeRef) {
         // portals have nothing in it's original place of DOM, we also do nothing.
     }
 }
@@ -36,19 +36,22 @@ impl Reconcilable for VPortal {
 
     fn attach(
         self,
+        _root: &BundleRoot,
         parent_scope: &AnyScope,
         _parent: &Element,
         host_next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
+        let inner_root = BundleRoot;
         let Self {
             host,
             inner_sibling,
             node,
         } = self;
-        let (_, inner) = node.attach(parent_scope, &host, inner_sibling.clone());
+        let (_, inner) = node.attach(&inner_root, parent_scope, &host, inner_sibling.clone());
         (
             host_next_sibling,
             BPortal {
+                inner_root,
                 host,
                 node: Box::new(inner),
                 inner_sibling,
@@ -58,19 +61,23 @@ impl Reconcilable for VPortal {
 
     fn reconcile_node(
         self,
+        root: &BundleRoot,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
     ) -> NodeRef {
         match bundle {
-            BNode::Portal(portal) => self.reconcile(parent_scope, parent, next_sibling, portal),
-            _ => self.replace(parent_scope, parent, next_sibling, bundle),
+            BNode::Portal(portal) => {
+                self.reconcile(root, parent_scope, parent, next_sibling, portal)
+            }
+            _ => self.replace(root, parent_scope, parent, next_sibling, bundle),
         }
     }
 
     fn reconcile(
         self,
+        _root: &BundleRoot,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -88,11 +95,19 @@ impl Reconcilable for VPortal {
         if old_host != portal.host || old_inner_sibling != portal.inner_sibling {
             // Remount the inner node somewhere else instead of diffing
             // Move the node, but keep the state
-            portal
-                .node
-                .shift(&portal.host, portal.inner_sibling.clone());
+            portal.node.shift(
+                &portal.inner_root,
+                &portal.host,
+                portal.inner_sibling.clone(),
+            );
         }
-        node.reconcile_node(parent_scope, parent, next_sibling.clone(), &mut portal.node);
+        node.reconcile_node(
+            &portal.inner_root,
+            parent_scope,
+            parent,
+            next_sibling.clone(),
+            &mut portal.node,
+        );
         next_sibling
     }
 }

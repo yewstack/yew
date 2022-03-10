@@ -1,6 +1,6 @@
 //! This module contains the bundle implementation of text [BText].
 
-use super::{insert_node, BNode, DomBundle, Reconcilable};
+use super::{insert_node, BNode, BundleRoot, DomBundle, Reconcilable};
 use crate::html::AnyScope;
 use crate::virtual_dom::{AttrValue, VText};
 use crate::NodeRef;
@@ -15,7 +15,7 @@ pub struct BText {
 }
 
 impl DomBundle for BText {
-    fn detach(self, parent: &Element, parent_to_detach: bool) {
+    fn detach(self, _root: &BundleRoot, parent: &Element, parent_to_detach: bool) {
         if !parent_to_detach {
             let result = parent.remove_child(&self.text_node);
 
@@ -25,7 +25,7 @@ impl DomBundle for BText {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, _next_root: &BundleRoot, next_parent: &Element, next_sibling: NodeRef) {
         let node = &self.text_node;
 
         next_parent
@@ -39,6 +39,7 @@ impl Reconcilable for VText {
 
     fn attach(
         self,
+        _root: &BundleRoot,
         _parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -53,18 +54,21 @@ impl Reconcilable for VText {
     /// Renders virtual node over existing `TextNode`, but only if value of text has changed.
     fn reconcile_node(
         self,
+        root: &BundleRoot,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
     ) -> NodeRef {
         match bundle {
-            BNode::Text(btext) => self.reconcile(parent_scope, parent, next_sibling, btext),
-            _ => self.replace(parent_scope, parent, next_sibling, bundle),
+            BNode::Text(btext) => self.reconcile(root, parent_scope, parent, next_sibling, btext),
+            _ => self.replace(root, parent_scope, parent, next_sibling, bundle),
         }
     }
+
     fn reconcile(
         self,
+        _root: &BundleRoot,
         _parent_scope: &AnyScope,
         _parent: &Element,
         _next_sibling: NodeRef,

@@ -1,6 +1,6 @@
 //! This module contains the bundle implementation of a virtual component [BComp].
 
-use super::{insert_node, BNode, DomBundle, Reconcilable};
+use super::{insert_node, BNode, BundleRoot, DomBundle, Reconcilable};
 use crate::html::{AnyScope, BaseComponent, Scope};
 use crate::virtual_dom::{Key, VComp, VNode};
 use crate::NodeRef;
@@ -40,12 +40,13 @@ impl fmt::Debug for BComp {
 }
 
 impl DomBundle for BComp {
-    fn detach(self, _parent: &Element, parent_to_detach: bool) {
+    fn detach(self, _root: &BundleRoot, _parent: &Element, parent_to_detach: bool) {
         self.scope.destroy_boxed(parent_to_detach);
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
-        self.scope.shift_node(next_parent.clone(), next_sibling);
+    fn shift(&self, next_root: &BundleRoot, next_parent: &Element, next_sibling: NodeRef) {
+        self.scope
+            .shift_node(next_root, next_parent.clone(), next_sibling);
     }
 }
 
@@ -54,6 +55,7 @@ impl Reconcilable for VComp {
 
     fn attach(
         self,
+        root: &BundleRoot,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -67,6 +69,7 @@ impl Reconcilable for VComp {
 
         let scope = mountable.mount(
             node_ref.clone(),
+            root,
             parent_scope,
             parent.to_owned(),
             next_sibling,
@@ -85,6 +88,7 @@ impl Reconcilable for VComp {
 
     fn reconcile_node(
         self,
+        root: &BundleRoot,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -95,14 +99,15 @@ impl Reconcilable for VComp {
             BNode::Comp(ref mut bcomp)
                 if self.type_id == bcomp.type_id && self.key == bcomp.key =>
             {
-                self.reconcile(parent_scope, parent, next_sibling, bcomp)
+                self.reconcile(root, parent_scope, parent, next_sibling, bcomp)
             }
-            _ => self.replace(parent_scope, parent, next_sibling, bundle),
+            _ => self.replace(root, parent_scope, parent, next_sibling, bundle),
         }
     }
 
     fn reconcile(
         self,
+        _root: &BundleRoot,
         _parent_scope: &AnyScope,
         _parent: &Element,
         next_sibling: NodeRef,
@@ -128,6 +133,7 @@ pub trait Mountable {
     fn mount(
         self: Box<Self>,
         node_ref: NodeRef,
+        root: &BundleRoot,
         parent_scope: &AnyScope,
         parent: Element,
         next_sibling: NodeRef,
@@ -163,12 +169,14 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     fn mount(
         self: Box<Self>,
         node_ref: NodeRef,
+        root: &BundleRoot,
         parent_scope: &AnyScope,
         parent: Element,
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        let initial_render_state = ComponentRenderState::new(parent, next_sibling, &node_ref);
+        let initial_render_state =
+            ComponentRenderState::new(root.clone(), parent, next_sibling, &node_ref);
         scope.mount_in_place(initial_render_state, node_ref, self.props);
 
         Box::new(scope)
@@ -194,7 +202,8 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
 }
 
 pub struct ComponentRenderState {
-    root_node: BNode,
+    hosting_root: BundleRoot,
+    view_node: BNode,
     /// When a component has no parent, it means that it should not be rendered.
     parent: Option<Element>,
     next_sibling: NodeRef,
@@ -205,13 +214,18 @@ pub struct ComponentRenderState {
 
 impl std::fmt::Debug for ComponentRenderState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.root_node.fmt(f)
+        self.view_node.fmt(f)
     }
 }
 
 impl ComponentRenderState {
     /// Prepare a place in the DOM to hold the eventual [VNode] from rendering a component
-    pub(crate) fn new(parent: Element, next_sibling: NodeRef, node_ref: &NodeRef) -> Self {
+    pub(crate) fn new(
+        hosting_root: BundleRoot,
+        parent: Element,
+        next_sibling: NodeRef,
+        node_ref: &NodeRef,
+    ) -> Self {
         let placeholder = {
             let placeholder: Node = document().create_text_node("").into();
             insert_node(&placeholder, &parent, next_sibling.get().as_ref());
@@ -219,7 +233,8 @@ impl ComponentRenderState {
             BNode::Ref(placeholder)
         };
         Self {
-            root_node: placeholder,
+            hosting_root,
+            view_node: placeholder,
             parent: Some(parent),
             next_sibling,
             #[cfg(feature = "ssr")]
@@ -232,7 +247,8 @@ impl ComponentRenderState {
         use super::blist::BList;
 
         Self {
-            root_node: BNode::List(BList::new()),
+            hosting_root: BundleRoot,
+            view_node: BNode::List(BList::new()),
             parent: None,
             next_sibling: NodeRef::default(),
             html_sender: Some(tx),
@@ -243,22 +259,35 @@ impl ComponentRenderState {
         self.next_sibling = next_sibling;
     }
     /// Shift the rendered content to a new DOM position
-    pub(crate) fn shift(&mut self, new_parent: Element, next_sibling: NodeRef) {
-        self.root_node.shift(&new_parent, next_sibling.clone());
+    pub(crate) fn shift(
+        &mut self,
+        next_root: &BundleRoot,
+        new_parent: Element,
+        next_sibling: NodeRef,
+    ) {
+        self.view_node
+            .shift(next_root, &new_parent, next_sibling.clone());
 
+        self.hosting_root = next_root.clone();
         self.parent = Some(new_parent);
         self.next_sibling = next_sibling;
     }
     /// Reconcile the rendered content with a new [VNode]
-    pub(crate) fn reconcile(&mut self, root: VNode, scope: &AnyScope) -> NodeRef {
+    pub(crate) fn reconcile(&mut self, view: VNode, scope: &AnyScope) -> NodeRef {
         if let Some(ref parent) = self.parent {
             let next_sibling = self.next_sibling.clone();
 
-            root.reconcile_node(scope, parent, next_sibling, &mut self.root_node)
+            view.reconcile_node(
+                &self.hosting_root,
+                scope,
+                parent,
+                next_sibling,
+                &mut self.view_node,
+            )
         } else {
             #[cfg(feature = "ssr")]
             if let Some(tx) = self.html_sender.take() {
-                tx.send(root).unwrap();
+                tx.send(view).unwrap();
             }
             NodeRef::default()
         }
@@ -266,7 +295,8 @@ impl ComponentRenderState {
     /// Detach the rendered content from the DOM
     pub(crate) fn detach(self, parent_to_detach: bool) {
         if let Some(ref m) = self.parent {
-            self.root_node.detach(m, parent_to_detach);
+            self.view_node
+                .detach(&self.hosting_root, m, parent_to_detach);
         }
     }
 
@@ -280,7 +310,7 @@ pub trait Scoped {
     /// Get the render state if it hasn't already been destroyed
     fn render_state(&self) -> Option<Ref<'_, ComponentRenderState>>;
     /// Shift the node associated with this scope to a new place
-    fn shift_node(&self, parent: Element, next_sibling: NodeRef);
+    fn shift_node(&self, next_root: &BundleRoot, parent: Element, next_sibling: NodeRef);
     /// Process an event to destroy a component
     fn destroy(self, parent_to_detach: bool);
     fn destroy_boxed(self: Box<Self>, parent_to_detach: bool);
@@ -336,22 +366,15 @@ mod tests {
 
     #[test]
     fn update_loop() {
-        let document = gloo_utils::document();
-        let parent_scope: AnyScope = AnyScope::test();
-        let parent_element = document.create_element("div").unwrap();
+        let (root, scope, parent) = setup_parent();
 
         let comp = html! { <Comp></Comp> };
-        let (_, mut bundle) = comp.attach(&parent_scope, &parent_element, NodeRef::default());
+        let (_, mut bundle) = comp.attach(&root, &scope, &parent, NodeRef::default());
         scheduler::start_now();
 
         for _ in 0..10000 {
             let node = html! { <Comp></Comp> };
-            node.reconcile_node(
-                &parent_scope,
-                &parent_element,
-                NodeRef::default(),
-                &mut bundle,
-            );
+            node.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut bundle);
             scheduler::start_now();
         }
     }
@@ -493,27 +516,28 @@ mod tests {
         }
     }
 
-    fn setup_parent() -> (AnyScope, Element) {
+    fn setup_parent() -> (BundleRoot, AnyScope, Element) {
         let scope = AnyScope::test();
         let parent = document().create_element("div").unwrap();
+        let root = BundleRoot;
 
         document().body().unwrap().append_child(&parent).unwrap();
 
-        (scope, parent)
+        (root, scope, parent)
     }
 
-    fn get_html(node: Html, scope: &AnyScope, parent: &Element) -> String {
+    fn get_html(node: Html, root: &BundleRoot, scope: &AnyScope, parent: &Element) -> String {
         // clear parent
         parent.set_inner_html("");
 
-        node.attach(scope, parent, NodeRef::default());
+        node.attach(root, scope, parent, NodeRef::default());
         scheduler::start_now();
         parent.inner_html()
     }
 
     #[test]
     fn all_ways_of_passing_children_work() {
-        let (scope, parent) = setup_parent();
+        let (root, scope, parent) = setup_parent();
 
         let children: Vec<_> = vec!["a", "b", "c"]
             .drain(..)
@@ -530,7 +554,7 @@ mod tests {
         let prop_method = html! {
             <List children={children_renderer.clone()} />
         };
-        assert_eq!(get_html(prop_method, &scope, &parent), expected_html);
+        assert_eq!(get_html(prop_method, &root, &scope, &parent), expected_html);
 
         let children_renderer_method = html! {
             <List>
@@ -538,7 +562,7 @@ mod tests {
             </List>
         };
         assert_eq!(
-            get_html(children_renderer_method, &scope, &parent),
+            get_html(children_renderer_method, &root, &scope, &parent),
             expected_html
         );
 
@@ -547,30 +571,30 @@ mod tests {
                 { children.clone() }
             </List>
         };
-        assert_eq!(get_html(direct_method, &scope, &parent), expected_html);
+        assert_eq!(
+            get_html(direct_method, &root, &scope, &parent),
+            expected_html
+        );
 
         let for_method = html! {
             <List>
                 { for children }
             </List>
         };
-        assert_eq!(get_html(for_method, &scope, &parent), expected_html);
+        assert_eq!(get_html(for_method, &root, &scope, &parent), expected_html);
     }
 
     #[test]
     fn reset_node_ref() {
-        let scope = AnyScope::test();
-        let parent = document().create_element("div").unwrap();
-
-        document().body().unwrap().append_child(&parent).unwrap();
+        let (root, scope, parent) = setup_parent();
 
         let node_ref = NodeRef::default();
         let elem = html! { <Comp ref={node_ref.clone()}></Comp> };
-        let (_, elem) = elem.attach(&scope, &parent, NodeRef::default());
+        let (_, elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         scheduler::start_now();
         let parent_node = parent.deref();
         assert_eq!(node_ref.get(), parent_node.first_child());
-        elem.detach(&parent, false);
+        elem.detach(&root, &parent, false);
         scheduler::start_now();
         assert!(node_ref.get().is_none());
     }

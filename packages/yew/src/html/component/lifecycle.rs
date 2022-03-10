@@ -336,7 +336,7 @@ impl Runnable for RenderedRunner {
 mod tests {
     extern crate self as yew;
 
-    use crate::dom_bundle::ComponentRenderState;
+    use crate::dom_bundle::{BundleRoot, ComponentRenderState};
     use crate::html;
     use crate::html::*;
     use crate::Properties;
@@ -459,9 +459,11 @@ mod tests {
     fn test_lifecycle(props: Props, expected: &[&str]) {
         let document = gloo_utils::document();
         let scope = Scope::<Comp>::new(None);
-        let el = document.create_element("div").unwrap();
+        let parent = document.create_element("div").unwrap();
+        let root = BundleRoot;
+
         let node_ref = NodeRef::default();
-        let render_state = ComponentRenderState::new(el, NodeRef::default(), &node_ref);
+        let render_state = ComponentRenderState::new(root, parent, NodeRef::default(), &node_ref);
         let lifecycle = props.lifecycle.clone();
 
         lifecycle.borrow_mut().clear();

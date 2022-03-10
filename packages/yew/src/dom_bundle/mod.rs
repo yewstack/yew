@@ -13,6 +13,7 @@ mod bportal;
 mod bsuspense;
 mod btag;
 mod btext;
+mod tree_root;
 
 #[cfg(test)]
 mod tests;
@@ -26,6 +27,7 @@ use self::btag::BTag;
 use self::btext::BText;
 
 pub(crate) use self::bcomp::{ComponentRenderState, Mountable, PropsWrapper, Scoped};
+pub(crate) use self::tree_root::BundleRoot;
 
 #[doc(hidden)] // Publically exported from crate::app_handle
 pub use self::app_handle::AppHandle;
@@ -43,12 +45,12 @@ trait DomBundle {
     /// Remove self from parent.
     ///
     /// Parent to detach is `true` if the parent element will also be detached.
-    fn detach(self, parent: &Element, parent_to_detach: bool);
+    fn detach(self, root: &BundleRoot, parent: &Element, parent_to_detach: bool);
 
     /// Move elements from one parent to another parent.
     /// This is for example used by `VSuspense` to preserve component state without detaching
     /// (which destroys component state).
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef);
+    fn shift(&self, next_root: &BundleRoot, next_parent: &Element, next_sibling: NodeRef);
 }
 
 /// This trait provides features to update a tree by calculating a difference against another tree.
@@ -58,6 +60,7 @@ trait Reconcilable {
     /// Attach a virtual node to the DOM tree.
     ///
     /// Parameters:
+    /// - `root`: bundle of the subtree root
     /// - `parent_scope`: the parent `Scope` used for passing messages to the
     ///   parent `Component`.
     /// - `parent`: the parent node in the DOM.
@@ -66,6 +69,7 @@ trait Reconcilable {
     /// Returns a reference to the newly inserted element.
     fn attach(
         self,
+        root: &BundleRoot,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -90,6 +94,7 @@ trait Reconcilable {
     /// Returns a reference to the newly inserted element.
     fn reconcile_node(
         self,
+        root: &BundleRoot,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -98,6 +103,7 @@ trait Reconcilable {
 
     fn reconcile(
         self,
+        root: &BundleRoot,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -107,6 +113,7 @@ trait Reconcilable {
     /// Replace an existing bundle by attaching self and detaching the existing one
     fn replace(
         self,
+        root: &BundleRoot,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -116,9 +123,9 @@ trait Reconcilable {
         Self: Sized,
         Self::Bundle: Into<BNode>,
     {
-        let (self_ref, self_) = self.attach(parent_scope, parent, next_sibling);
+        let (self_ref, self_) = self.attach(root, parent_scope, parent, next_sibling);
         let ancestor = std::mem::replace(bundle, self_.into());
-        ancestor.detach(parent, false);
+        ancestor.detach(root, parent, false);
         self_ref
     }
 }

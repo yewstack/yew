@@ -1,5 +1,5 @@
 use super::Apply;
-use crate::dom_bundle::test_log;
+use crate::dom_bundle::{test_log, BundleRoot};
 use crate::virtual_dom::{Listener, ListenerKind, Listeners};
 use ::wasm_bindgen::{prelude::wasm_bindgen, JsCast};
 use gloo::events::{EventListener, EventListenerOptions, EventListenerPhase};
@@ -73,14 +73,14 @@ impl Apply for Listeners {
     type Element = Element;
     type Bundle = ListenerRegistration;
 
-    fn apply(self, el: &Self::Element) -> ListenerRegistration {
+    fn apply(self, root: &BundleRoot, el: &Self::Element) -> ListenerRegistration {
         match self {
-            Self::Pending(pending) => ListenerRegistration::register(el, &pending),
+            Self::Pending(pending) => ListenerRegistration::register(root, el, &pending),
             Self::None => ListenerRegistration::NoReg,
         }
     }
 
-    fn apply_diff(self, el: &Self::Element, bundle: &mut ListenerRegistration) {
+    fn apply_diff(self, root: &BundleRoot, el: &Self::Element, bundle: &mut ListenerRegistration) {
         use ListenerRegistration::*;
         use Listeners::*;
 
@@ -88,10 +88,10 @@ impl Apply for Listeners {
             (Pending(pending), Registered(ref id)) => {
                 // Reuse the ID
                 test_log!("reusing listeners for {}", id);
-                Registry::with(|reg| reg.patch(id, &*pending));
+                root.with_listener_registry(|reg| reg.patch(id, &*pending));
             }
             (Pending(pending), bundle @ NoReg) => {
-                *bundle = ListenerRegistration::register(el, &pending);
+                *bundle = ListenerRegistration::register(root, el, &pending);
                 test_log!(
                     "registering listeners for {}",
                     match bundle {
@@ -106,7 +106,7 @@ impl Apply for Listeners {
                     _ => unreachable!(),
                 };
                 test_log!("unregistering listeners for {}", id);
-                Registry::with(|reg| reg.unregister(id));
+                root.with_listener_registry(|reg| reg.unregister(id));
                 *bundle = NoReg;
             }
             (None, NoReg) => {
@@ -118,8 +118,8 @@ impl Apply for Listeners {
 
 impl ListenerRegistration {
     /// Register listeners and return their handle ID
-    fn register(el: &Element, pending: &[Option<Rc<dyn Listener>>]) -> Self {
-        Self::Registered(Registry::with(|reg| {
+    fn register(root: &BundleRoot, el: &Element, pending: &[Option<Rc<dyn Listener>>]) -> Self {
+        Self::Registered(root.with_listener_registry(|reg| {
             let id = reg.set_listener_id(el);
             reg.register(id, pending);
             id
@@ -127,9 +127,9 @@ impl ListenerRegistration {
     }
 
     /// Remove any registered event listeners from the global registry
-    pub(super) fn unregister(&self) {
+    pub(super) fn unregister(&self, root: &BundleRoot) {
         if let Self::Registered(id) = self {
-            Registry::with(|r| r.unregister(id));
+            root.with_listener_registry(|r| r.unregister(id));
         }
     }
 }
@@ -167,6 +167,22 @@ struct HostHandlers {
 }
 
 impl HostHandlers {
+    fn event_listener(&self, desc: EventDescriptor) -> impl 'static + FnMut(&Event) {
+        move |e: &Event| {
+            REGISTRY.with(|reg| Registry::handle(reg, desc.clone(), e.clone()));
+        }
+    }
+}
+
+impl BundleRoot {
+    /// Run f with access to global Registry
+    #[inline]
+    fn with_listener_registry<R>(&self, f: impl FnOnce(&mut Registry) -> R) -> R {
+        REGISTRY.with(|r| f(&mut *r.borrow_mut()))
+    }
+}
+
+impl HostHandlers {
     fn new(host: HtmlEventTarget) -> Self {
         Self {
             host,
@@ -189,7 +205,7 @@ impl HostHandlers {
                     &self.host,
                     desc.kind.type_name(),
                     options,
-                    move |e: &Event| Registry::handle(desc.clone(), e.clone()),
+                    self.event_listener(desc),
                 )
             };
 
@@ -229,12 +245,6 @@ impl Registry {
     fn new_global() -> Self {
         let body = gloo_utils::document().body().unwrap();
         Self::new(body.into())
-    }
-
-    /// Run f with access to global Registry
-    #[inline]
-    fn with<R>(f: impl FnOnce(&mut Registry) -> R) -> R {
-        REGISTRY.with(|r| f(&mut *r.borrow_mut()))
     }
 
     /// Register all passed listeners under ID
@@ -281,7 +291,7 @@ impl Registry {
     }
 
     /// Handle a global event firing
-    fn handle(desc: EventDescriptor, event: Event) {
+    fn handle(weak_registry: &RefCell<Self>, desc: EventDescriptor, event: Event) {
         let target = match event
             .target()
             .and_then(|el| el.dyn_into::<web_sys::Element>().ok())
@@ -290,13 +300,19 @@ impl Registry {
             None => return,
         };
 
-        Self::run_handlers(desc, event, target);
+        Self::run_handlers(weak_registry, desc, event, target);
     }
 
-    fn run_handlers(desc: EventDescriptor, event: Event, target: web_sys::Element) {
+    fn run_handlers(
+        weak_registry: &RefCell<Self>,
+        desc: EventDescriptor,
+        event: Event,
+        target: web_sys::Element,
+    ) {
         let get_handlers = |el: &dyn EventTarget| -> Option<Vec<Rc<dyn Listener>>> {
             let id = el.listener_id()?;
-            Registry::with(|r| r.by_id.get(&id)?.get(&desc).cloned())
+            let reg = weak_registry.borrow_mut();
+            reg.by_id.get(&id)?.get(&desc).cloned()
         };
         let run_handler = |el: &web_sys::Element| {
             if let Some(l) = get_handlers(el) {
@@ -433,7 +449,7 @@ mod tests {
         M: Mixin,
     {
         // Remove any existing listeners and elements
-        super::Registry::with(|r| *r = super::Registry::new_global());
+        super::REGISTRY.with(|r| *r.borrow_mut() = super::Registry::new_global());
         if let Some(el) = document().query_selector(tag).unwrap() {
             el.parent_element().unwrap().remove();
         }

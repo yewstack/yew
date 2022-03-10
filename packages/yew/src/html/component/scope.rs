@@ -9,7 +9,7 @@ use super::{
 };
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
-use crate::dom_bundle::{ComponentRenderState, Scoped};
+use crate::dom_bundle::{BundleRoot, ComponentRenderState, Scoped};
 use crate::html::IntoComponent;
 use crate::html::NodeRef;
 use crate::scheduler::{self, Shared};
@@ -172,10 +172,12 @@ impl<COMP: BaseComponent> Scoped for Scope<COMP> {
         self.destroy(parent_to_detach)
     }
 
-    fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
+    fn shift_node(&self, next_root: &BundleRoot, parent: Element, next_sibling: NodeRef) {
         let mut state_ref = self.state.borrow_mut();
         if let Some(render_state) = state_ref.as_mut() {
-            render_state.render_state.shift(parent, next_sibling)
+            render_state
+                .render_state
+                .shift(next_root, parent, next_sibling)
         }
     }
 }
