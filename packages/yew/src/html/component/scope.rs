@@ -7,7 +7,7 @@ use std::cell::RefCell;
 
 #[cfg(any(feature = "render", feature = "ssr"))]
 use super::lifecycle::{ComponentState, UpdateEvent, UpdateRunner};
-use super::BaseComponent;
+use super::{BaseComponent, ComponentId};
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
 use crate::html::IntoComponent;
@@ -112,8 +112,7 @@ pub struct Scope<COMP: BaseComponent> {
     #[cfg(any(feature = "render", feature = "ssr"))]
     pub(crate) state: Shared<Option<ComponentState>>,
 
-    #[cfg(debug_assertions)]
-    pub(crate) vcomp_id: usize,
+    pub(crate) id: ComponentId,
 }
 
 impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {
@@ -134,8 +133,7 @@ impl<COMP: BaseComponent> Clone for Scope<COMP> {
             #[cfg(any(feature = "render", feature = "ssr"))]
             state: self.state.clone(),
 
-            #[cfg(debug_assertions)]
-            vcomp_id: self.vcomp_id,
+            id: self.id,
         }
     }
 }
@@ -211,6 +209,7 @@ mod feat_ssr {
             let state = ComponentRenderState::Ssr { sender: Some(tx) };
 
             scheduler::push_component_create(
+                self.id,
                 CreateRunner {
                     initial_render_state: state,
                     props,
@@ -325,8 +324,7 @@ mod feat_render_ssr {
                 state,
                 parent,
 
-                #[cfg(debug_assertions)]
-                vcomp_id: super::super::next_id(),
+                id: ComponentId::new(),
             }
         }
 
@@ -415,6 +413,7 @@ mod feat_render {
             };
 
             scheduler::push_component_create(
+                self.id,
                 CreateRunner {
                     initial_render_state: state,
                     props,
@@ -435,7 +434,7 @@ mod feat_render {
             next_sibling: NodeRef,
         ) {
             #[cfg(debug_assertions)]
-            super::super::log_event(self.vcomp_id, "reuse");
+            super::super::log_event(self.id, "reuse");
 
             self.push_update(UpdateEvent::Properties(props, node_ref, next_sibling));
         }
