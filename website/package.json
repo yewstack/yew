@@ -21,7 +21,7 @@
     "@docusaurus/plugin-content-pages": "^2.0.0-beta.17",
     "@docusaurus/plugin-google-analytics": "^2.0.0-beta.17",
     "@docusaurus/theme-classic": "^2.0.0-beta.17",
-    "@easyops-cn/docusaurus-search-local": "^0.22.0",
+    "@easyops-cn/docusaurus-search-local": "^0.23.0",
     "@mdx-js/react": "^1.6.21",
     "@svgr/webpack": "^6.2.1",
     "clsx": "^1.1.1",
