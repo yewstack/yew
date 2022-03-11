@@ -1,6 +1,6 @@
 //! [AppHandle] contains the state Yew keeps to bootstrap a component in an isolated scope.
 
-use super::{BundleRoot, ComponentRenderState, Scoped};
+use super::{BSubtree, ComponentRenderState, Scoped};
 use crate::html::{IntoComponent, NodeRef, Scope};
 use std::ops::Deref;
 use std::rc::Rc;
@@ -27,7 +27,7 @@ where
             scope: Scope::new(None),
         };
         let node_ref = NodeRef::default();
-        let hosting_root = BundleRoot::create_root(&host);
+        let hosting_root = BSubtree::create_root(&host);
         let initial_render_state =
             ComponentRenderState::new(hosting_root, host, NodeRef::default(), &node_ref);
         app.scope

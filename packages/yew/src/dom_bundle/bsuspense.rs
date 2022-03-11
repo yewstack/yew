@@ -1,6 +1,6 @@
 //! This module contains the bundle version of a supsense [BSuspense]
 
-use super::{BNode, BundleRoot, DomBundle, Reconcilable};
+use super::{BNode, BSubtree, DomBundle, Reconcilable};
 use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VSuspense};
 use crate::NodeRef;
@@ -30,7 +30,7 @@ impl BSuspense {
 }
 
 impl DomBundle for BSuspense {
-    fn detach(self, root: &BundleRoot, parent: &Element, parent_to_detach: bool) {
+    fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool) {
         if let Some(fallback) = self.fallback_bundle {
             fallback.detach(root, parent, parent_to_detach);
             self.children_bundle
@@ -40,7 +40,7 @@ impl DomBundle for BSuspense {
         }
     }
 
-    fn shift(&self, next_root: &BundleRoot, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_root: &BSubtree, next_parent: &Element, next_sibling: NodeRef) {
         self.active_node()
             .shift(next_root, next_parent, next_sibling)
     }
@@ -51,7 +51,7 @@ impl Reconcilable for VSuspense {
 
     fn attach(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -98,7 +98,7 @@ impl Reconcilable for VSuspense {
 
     fn reconcile_node(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -118,7 +118,7 @@ impl Reconcilable for VSuspense {
 
     fn reconcile(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,

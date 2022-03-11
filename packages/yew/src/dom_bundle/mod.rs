@@ -13,7 +13,7 @@ mod bportal;
 mod bsuspense;
 mod btag;
 mod btext;
-mod tree_root;
+mod subtree_root;
 
 #[cfg(test)]
 mod tests;
@@ -27,12 +27,12 @@ use self::btag::{BTag, EventDescriptor, Registry};
 use self::btext::BText;
 
 pub(crate) use self::bcomp::{ComponentRenderState, Mountable, PropsWrapper, Scoped};
-pub(crate) use self::tree_root::BundleRoot;
+pub(crate) use self::subtree_root::BSubtree;
 
 #[doc(hidden)] // Publicly exported from crate::app_handle
 pub use self::app_handle::AppHandle;
 #[doc(hidden)] // Publicly exported from crate::events
-pub use self::btag::set_event_bubbling;
+pub use self::subtree_root::set_event_bubbling;
 #[cfg(test)]
 #[doc(hidden)] // Publicly exported from crate::tests
 pub use self::tests::layout_tests;
@@ -45,12 +45,12 @@ trait DomBundle {
     /// Remove self from parent.
     ///
     /// Parent to detach is `true` if the parent element will also be detached.
-    fn detach(self, root: &BundleRoot, parent: &Element, parent_to_detach: bool);
+    fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool);
 
     /// Move elements from one parent to another parent.
     /// This is for example used by `VSuspense` to preserve component state without detaching
     /// (which destroys component state).
-    fn shift(&self, next_root: &BundleRoot, next_parent: &Element, next_sibling: NodeRef);
+    fn shift(&self, next_root: &BSubtree, next_parent: &Element, next_sibling: NodeRef);
 }
 
 /// This trait provides features to update a tree by calculating a difference against another tree.
@@ -69,7 +69,7 @@ trait Reconcilable {
     /// Returns a reference to the newly inserted element.
     fn attach(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -94,7 +94,7 @@ trait Reconcilable {
     /// Returns a reference to the newly inserted element.
     fn reconcile_node(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -103,7 +103,7 @@ trait Reconcilable {
 
     fn reconcile(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -113,7 +113,7 @@ trait Reconcilable {
     /// Replace an existing bundle by attaching self and detaching the existing one
     fn replace(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -142,13 +142,13 @@ fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&Node>) {
 
 #[cfg(all(test, feature = "wasm_test", verbose_tests))]
 macro_rules! test_log {
-    ($fmt:literal, $($arg:expr),* $(,)?) => {
+    ($fmt:literal $(,$arg:expr)* $(,)?) => {
         ::wasm_bindgen_test::console_log!(concat!("\t  ", $fmt), $($arg),*);
     };
 }
 #[cfg(not(all(test, feature = "wasm_test", verbose_tests)))]
 macro_rules! test_log {
-    ($fmt:literal, $($arg:expr),* $(,)?) => {
+    ($fmt:literal $(,$arg:expr)* $(,)?) => {
         // Only type-check the format expression, do not run any side effects
         let _ = || { std::format_args!(concat!("\t  ", $fmt), $($arg),*); };
     };

@@ -1,6 +1,6 @@
 //! This module contains the bundle implementation of a portal [BPortal].
 
-use super::{test_log, BNode, BundleRoot};
+use super::{test_log, BNode, BSubtree};
 use crate::dom_bundle::{DomBundle, Reconcilable};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::Key;
@@ -11,7 +11,7 @@ use web_sys::Element;
 #[derive(Debug)]
 pub struct BPortal {
     // The inner root
-    inner_root: BundleRoot,
+    inner_root: BSubtree,
     /// The element under which the content is inserted.
     host: Element,
     /// The next sibling after the inserted content
@@ -21,12 +21,12 @@ pub struct BPortal {
 }
 
 impl DomBundle for BPortal {
-    fn detach(self, _root: &BundleRoot, _parent: &Element, _parent_to_detach: bool) {
+    fn detach(self, _root: &BSubtree, _parent: &Element, _parent_to_detach: bool) {
         test_log!("Detaching portal from host",);
         self.node.detach(&self.inner_root, &self.host, false);
     }
 
-    fn shift(&self, _next_root: &BundleRoot, _next_parent: &Element, _next_sibling: NodeRef) {
+    fn shift(&self, _next_root: &BSubtree, _next_parent: &Element, _next_sibling: NodeRef) {
         // portals have nothing in it's original place of DOM, we also do nothing.
     }
 }
@@ -36,9 +36,9 @@ impl Reconcilable for VPortal {
 
     fn attach(
         self,
-        _root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
-        _parent: &Element,
+        parent: &Element,
         host_next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
         let Self {
@@ -46,7 +46,7 @@ impl Reconcilable for VPortal {
             inner_sibling,
             node,
         } = self;
-        let inner_root = BundleRoot::create_root(&host);
+        let inner_root = root.create_subroot(parent.clone(), &host);
         let (_, inner) = node.attach(&inner_root, parent_scope, &host, inner_sibling.clone());
         (
             host_next_sibling,
@@ -61,7 +61,7 @@ impl Reconcilable for VPortal {
 
     fn reconcile_node(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -77,7 +77,7 @@ impl Reconcilable for VPortal {
 
     fn reconcile(
         self,
-        _root: &BundleRoot,
+        _root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,

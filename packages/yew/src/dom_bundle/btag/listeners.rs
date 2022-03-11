@@ -1,5 +1,5 @@
 use super::Apply;
-use crate::dom_bundle::{test_log, BundleRoot};
+use crate::dom_bundle::{test_log, BSubtree};
 use crate::virtual_dom::{Listener, ListenerKind, Listeners};
 use ::wasm_bindgen::{prelude::wasm_bindgen, JsCast};
 use gloo::events::{EventListener, EventListenerOptions, EventListenerPhase};
@@ -7,7 +7,6 @@ use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::ops::Deref;
 use std::rc::Rc;
-use std::sync::atomic::{AtomicBool, Ordering};
 use web_sys::{Element, Event, EventTarget as HtmlEventTarget};
 
 #[wasm_bindgen]
@@ -16,14 +15,13 @@ extern "C" {
     type EventTargetable;
     #[wasm_bindgen(method, getter = __yew_listener_id, structural)]
     fn listener_id(this: &EventTargetable) -> Option<u32>;
-
     #[wasm_bindgen(method, setter = __yew_listener_id, structural)]
     fn set_listener_id(this: &EventTargetable, id: u32);
 }
 
-/// DOM-Types that can have listeners registered on them. Uses the duck-typed interface from above
-/// in impls.
-trait EventTarget {
+/// DOM-Types that can have listeners registered on them.
+/// Uses the duck-typed interface from above in impls.
+pub trait EventTarget {
     fn listener_id(&self) -> Option<u32>;
     fn set_listener_id(&self, id: u32);
 }
@@ -34,25 +32,8 @@ impl EventTarget for Element {
     }
 
     fn set_listener_id(&self, id: u32) {
-        self.unchecked_ref::<EventTargetable>().set_listener_id(id)
+        self.unchecked_ref::<EventTargetable>().set_listener_id(id);
     }
-}
-
-/// Bubble events during delegation
-static BUBBLE_EVENTS: AtomicBool = AtomicBool::new(true);
-
-/// Set, if events should bubble up the DOM tree, calling any matching callbacks.
-///
-/// Bubbling is enabled by default. Disabling bubbling can lead to substantial improvements in event
-/// handling performance.
-///
-/// Note that yew uses event delegation and implements internal even bubbling for performance
-/// reasons. Calling `Event.stopPropagation()` or `Event.stopImmediatePropagation()` in the event
-/// handler has no effect.
-///
-/// This function should be called before any component is mounted.
-pub fn set_event_bubbling(bubble: bool) {
-    BUBBLE_EVENTS.store(bubble, Ordering::Relaxed);
 }
 
 /// An active set of listeners on an element
@@ -68,14 +49,14 @@ impl Apply for Listeners {
     type Element = Element;
     type Bundle = ListenerRegistration;
 
-    fn apply(self, root: &BundleRoot, el: &Self::Element) -> ListenerRegistration {
+    fn apply(self, root: &BSubtree, el: &Self::Element) -> ListenerRegistration {
         match self {
             Self::Pending(pending) => ListenerRegistration::register(root, el, &pending),
             Self::None => ListenerRegistration::NoReg,
         }
     }
 
-    fn apply_diff(self, root: &BundleRoot, el: &Self::Element, bundle: &mut ListenerRegistration) {
+    fn apply_diff(self, root: &BSubtree, el: &Self::Element, bundle: &mut ListenerRegistration) {
         use ListenerRegistration::*;
         use Listeners::*;
 
@@ -113,16 +94,16 @@ impl Apply for Listeners {
 
 impl ListenerRegistration {
     /// Register listeners and return their handle ID
-    fn register(root: &BundleRoot, el: &Element, pending: &[Option<Rc<dyn Listener>>]) -> Self {
+    fn register(root: &BSubtree, el: &Element, pending: &[Option<Rc<dyn Listener>>]) -> Self {
         Self::Registered(root.with_listener_registry(|reg| {
-            let id = reg.set_listener_id(el);
+            let id = reg.set_listener_id(root, el);
             reg.register(root, id, pending);
             id
         }))
     }
 
     /// Remove any registered event listeners from the global registry
-    pub(super) fn unregister(&self, root: &BundleRoot) {
+    pub(super) fn unregister(&self, root: &BSubtree) {
         if let Self::Registered(id) = self {
             root.with_listener_registry(|r| r.unregister(id));
         }
@@ -172,7 +153,7 @@ impl HostHandlers {
     }
 
     /// Ensure a descriptor has a global event handler assigned
-    fn ensure_handled(&mut self, root: &BundleRoot, desc: EventDescriptor) {
+    fn ensure_handled(&mut self, root: &BSubtree, desc: EventDescriptor) {
         if !self.handling.contains(&desc) {
             let cl = {
                 let desc = desc.clone();
@@ -213,7 +194,7 @@ pub struct Registry {
 }
 
 impl Registry {
-    fn new(host: HtmlEventTarget) -> Self {
+    pub fn new(host: HtmlEventTarget) -> Self {
         Self {
             id_counter: u32::default(),
             global: HostHandlers::new(host),
@@ -221,13 +202,29 @@ impl Registry {
         }
     }
 
-    pub fn new_global() -> Self {
-        let body = gloo_utils::document().body().unwrap();
-        Self::new(body.into())
+    // Handle a single event, given the listener and event descriptor.
+    pub fn get_handler(
+        registry: &RefCell<Registry>,
+        listener: &dyn EventTarget,
+        desc: &EventDescriptor,
+    ) -> Option<impl FnOnce(&Event)> {
+        // The tricky part is that we want to drop the reference to the registry before
+        // calling any actual listeners (since that might end up running lifecycle methods
+        // and modify the registry). So we clone the current listeners and return a closure
+        let listener_id = listener.listener_id()?;
+        let registry_ref = registry.borrow();
+        let handlers = registry_ref.by_id.get(&listener_id)?;
+        let listeners = handlers.get(desc)?.clone();
+        drop(registry_ref); // unborrow the registry, before running any listeners
+        Some(move |event: &Event| {
+            for l in listeners {
+                l.handle(event.clone());
+            }
+        })
     }
 
     /// Register all passed listeners under ID
-    fn register(&mut self, root: &BundleRoot, id: u32, listeners: &[Option<Rc<dyn Listener>>]) {
+    fn register(&mut self, root: &BSubtree, id: u32, listeners: &[Option<Rc<dyn Listener>>]) {
         let mut by_desc =
             HashMap::<EventDescriptor, Vec<Rc<dyn Listener>>>::with_capacity(listeners.len());
         for l in listeners.iter().filter_map(|l| l.as_ref()).cloned() {
@@ -239,7 +236,7 @@ impl Registry {
     }
 
     /// Patch an already registered set of handlers
-    fn patch(&mut self, root: &BundleRoot, id: &u32, listeners: &[Option<Rc<dyn Listener>>]) {
+    fn patch(&mut self, root: &BSubtree, id: &u32, listeners: &[Option<Rc<dyn Listener>>]) {
         if let Some(by_desc) = self.by_id.get_mut(id) {
             // Keeping empty vectors is fine. Those don't do much and should happen rarely.
             for v in by_desc.values_mut() {
@@ -260,59 +257,14 @@ impl Registry {
     }
 
     /// Set unique listener ID onto element and return it
-    fn set_listener_id(&mut self, el: &Element) -> u32 {
+    fn set_listener_id(&mut self, root: &BSubtree, el: &Element) -> u32 {
         let id = self.id_counter;
         self.id_counter += 1;
 
+        root.brand_element(el);
         el.set_listener_id(id);
 
         id
-    }
-
-    /// Handle a global event firing
-    pub fn handle(weak_registry: &RefCell<Self>, desc: EventDescriptor, event: Event) {
-        let target = match event
-            .target()
-            .and_then(|el| el.dyn_into::<web_sys::Element>().ok())
-        {
-            Some(el) => el,
-            None => return,
-        };
-
-        Self::run_handlers(weak_registry, desc, event, target);
-    }
-
-    fn run_handlers(
-        weak_registry: &RefCell<Self>,
-        desc: EventDescriptor,
-        event: Event,
-        target: web_sys::Element,
-    ) {
-        let get_handlers = |el: &dyn EventTarget| -> Option<Vec<Rc<dyn Listener>>> {
-            let id = el.listener_id()?;
-            let reg = weak_registry.borrow_mut();
-            reg.by_id.get(&id)?.get(&desc).cloned()
-        };
-        let run_handler = |el: &web_sys::Element| {
-            if let Some(l) = get_handlers(el) {
-                for l in l {
-                    l.handle(event.clone());
-                }
-            }
-        };
-
-        run_handler(&target);
-
-        if BUBBLE_EVENTS.load(Ordering::Relaxed) {
-            let mut el = target;
-            while !event.cancel_bubble() {
-                el = match el.parent_element() {
-                    Some(el) => el,
-                    None => break,
-                };
-                run_handler(&el);
-            }
-        }
     }
 }
 
@@ -427,8 +379,7 @@ mod tests {
     where
         M: Mixin,
     {
-        // Remove any existing listeners and elements
-        super::BundleRoot::clear_global_listeners();
+        // Remove any existing elements
         if let Some(el) = document().query_selector(tag).unwrap() {
             el.parent_element().unwrap().remove();
         }

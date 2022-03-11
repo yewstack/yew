@@ -3,10 +3,9 @@
 mod attributes;
 mod listeners;
 
-pub use listeners::set_event_bubbling;
 pub use listeners::{EventDescriptor, Registry};
 
-use super::{insert_node, BList, BNode, BundleRoot, DomBundle, Reconcilable};
+use super::{insert_node, BList, BNode, BSubtree, DomBundle, Reconcilable};
 use crate::html::AnyScope;
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
@@ -26,10 +25,10 @@ trait Apply {
     type Bundle;
 
     /// Apply contained values to [Element](Self::Element) with no ancestor
-    fn apply(self, root: &BundleRoot, el: &Self::Element) -> Self::Bundle;
+    fn apply(self, root: &BSubtree, el: &Self::Element) -> Self::Bundle;
 
     /// Apply diff between [self] and `bundle` to [Element](Self::Element).
-    fn apply_diff(self, root: &BundleRoot, el: &Self::Element, bundle: &mut Self::Bundle);
+    fn apply_diff(self, root: &BSubtree, el: &Self::Element, bundle: &mut Self::Bundle);
 }
 
 /// [BTag] fields that are specific to different [BTag] kinds.
@@ -70,7 +69,7 @@ pub struct BTag {
 }
 
 impl DomBundle for BTag {
-    fn detach(self, root: &BundleRoot, parent: &Element, parent_to_detach: bool) {
+    fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool) {
         self.listeners.unregister(root);
 
         let node = self.reference;
@@ -93,7 +92,7 @@ impl DomBundle for BTag {
         }
     }
 
-    fn shift(&self, _next_root: &BundleRoot, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, _next_root: &BSubtree, next_parent: &Element, next_sibling: NodeRef) {
         next_parent
             .insert_before(&self.reference, next_sibling.get().as_ref())
             .unwrap();
@@ -105,7 +104,7 @@ impl Reconcilable for VTag {
 
     fn attach(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -154,7 +153,7 @@ impl Reconcilable for VTag {
 
     fn reconcile_node(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -193,7 +192,7 @@ impl Reconcilable for VTag {
 
     fn reconcile(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         _parent: &Element,
         _next_sibling: NodeRef,
@@ -304,10 +303,10 @@ mod tests {
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
-    fn setup_parent() -> (BundleRoot, AnyScope, Element) {
+    fn setup_parent() -> (BSubtree, AnyScope, Element) {
         let scope = AnyScope::test();
         let parent = document().create_element("div").unwrap();
-        let root = BundleRoot::create_root(&parent);
+        let root = BSubtree::create_root(&parent);
 
         document().body().unwrap().append_child(&parent).unwrap();
 

@@ -1,5 +1,5 @@
 //! This module contains fragments bundles, a [BList]
-use super::{test_log, BNode, BundleRoot};
+use super::{test_log, BNode, BSubtree};
 use crate::dom_bundle::{DomBundle, Reconcilable};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{Key, VList, VNode, VText};
@@ -31,7 +31,7 @@ impl Deref for BList {
 /// Helper struct, that keeps the position where the next element is to be placed at
 #[derive(Clone)]
 struct NodeWriter<'s> {
-    root: &'s BundleRoot,
+    root: &'s BSubtree,
     parent_scope: &'s AnyScope,
     parent: &'s Element,
     next_sibling: NodeRef,
@@ -143,7 +143,7 @@ impl BList {
 
     /// Diff and patch unkeyed child lists
     fn apply_unkeyed(
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -184,7 +184,7 @@ impl BList {
     /// Optimized for node addition or removal from either end of the list and small changes in the
     /// middle.
     fn apply_keyed(
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -367,13 +367,13 @@ impl BList {
 }
 
 impl DomBundle for BList {
-    fn detach(self, root: &BundleRoot, parent: &Element, parent_to_detach: bool) {
+    fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool) {
         for child in self.rev_children.into_iter() {
             child.detach(root, parent, parent_to_detach);
         }
     }
 
-    fn shift(&self, next_root: &BundleRoot, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_root: &BSubtree, next_parent: &Element, next_sibling: NodeRef) {
         for node in self.rev_children.iter().rev() {
             node.shift(next_root, next_parent, next_sibling.clone());
         }
@@ -385,7 +385,7 @@ impl Reconcilable for VList {
 
     fn attach(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -397,7 +397,7 @@ impl Reconcilable for VList {
 
     fn reconcile_node(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -411,7 +411,7 @@ impl Reconcilable for VList {
 
     fn reconcile(
         mut self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,

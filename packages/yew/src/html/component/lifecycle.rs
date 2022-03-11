@@ -336,7 +336,7 @@ impl Runnable for RenderedRunner {
 mod tests {
     extern crate self as yew;
 
-    use crate::dom_bundle::{BundleRoot, ComponentRenderState};
+    use crate::dom_bundle::{BSubtree, ComponentRenderState};
     use crate::html;
     use crate::html::*;
     use crate::Properties;
@@ -460,7 +460,7 @@ mod tests {
         let document = gloo_utils::document();
         let scope = Scope::<Comp>::new(None);
         let parent = document.create_element("div").unwrap();
-        let root = BundleRoot::create_root(&parent);
+        let root = BSubtree::create_root(&parent);
 
         let node_ref = NodeRef::default();
         let render_state = ComponentRenderState::new(root, parent, NodeRef::default(), &node_ref);

@@ -1,4 +1,4 @@
-use crate::dom_bundle::{BNode, BundleRoot, DomBundle, Reconcilable};
+use crate::dom_bundle::{BNode, BSubtree, DomBundle, Reconcilable};
 use crate::html::AnyScope;
 use crate::scheduler;
 use crate::virtual_dom::VNode;
@@ -39,7 +39,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     let document = gloo_utils::document();
     let scope: AnyScope = AnyScope::test();
     let parent_element = document.create_element("div").unwrap();
-    let root = BundleRoot::create_root(&parent_element);
+    let root = BSubtree::create_root(&parent_element);
 
     let end_node = document.create_text_node("END");
     parent_element.append_child(&end_node).unwrap();

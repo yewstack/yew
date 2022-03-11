@@ -1,6 +1,6 @@
 //! This module contains the bundle implementation of a virtual component [BComp].
 
-use super::{insert_node, BNode, BundleRoot, DomBundle, Reconcilable};
+use super::{insert_node, BNode, BSubtree, DomBundle, Reconcilable};
 use crate::html::{AnyScope, BaseComponent, Scope};
 use crate::virtual_dom::{Key, VComp, VNode};
 use crate::NodeRef;
@@ -40,11 +40,11 @@ impl fmt::Debug for BComp {
 }
 
 impl DomBundle for BComp {
-    fn detach(self, _root: &BundleRoot, _parent: &Element, parent_to_detach: bool) {
+    fn detach(self, _root: &BSubtree, _parent: &Element, parent_to_detach: bool) {
         self.scope.destroy_boxed(parent_to_detach);
     }
 
-    fn shift(&self, next_root: &BundleRoot, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_root: &BSubtree, next_parent: &Element, next_sibling: NodeRef) {
         self.scope
             .shift_node(next_root, next_parent.clone(), next_sibling);
     }
@@ -55,7 +55,7 @@ impl Reconcilable for VComp {
 
     fn attach(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -88,7 +88,7 @@ impl Reconcilable for VComp {
 
     fn reconcile_node(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -107,7 +107,7 @@ impl Reconcilable for VComp {
 
     fn reconcile(
         self,
-        _root: &BundleRoot,
+        _root: &BSubtree,
         _parent_scope: &AnyScope,
         _parent: &Element,
         next_sibling: NodeRef,
@@ -133,7 +133,7 @@ pub trait Mountable {
     fn mount(
         self: Box<Self>,
         node_ref: NodeRef,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
         next_sibling: NodeRef,
@@ -169,7 +169,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     fn mount(
         self: Box<Self>,
         node_ref: NodeRef,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
         next_sibling: NodeRef,
@@ -202,7 +202,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
 }
 
 pub struct ComponentRenderState {
-    hosting_root: BundleRoot,
+    hosting_root: BSubtree,
     view_node: BNode,
     /// When a component has no parent, it means that it should not be rendered.
     parent: Option<Element>,
@@ -221,7 +221,7 @@ impl std::fmt::Debug for ComponentRenderState {
 impl ComponentRenderState {
     /// Prepare a place in the DOM to hold the eventual [VNode] from rendering a component
     pub(crate) fn new(
-        hosting_root: BundleRoot,
+        hosting_root: BSubtree,
         parent: Element,
         next_sibling: NodeRef,
         node_ref: &NodeRef,
@@ -247,7 +247,7 @@ impl ComponentRenderState {
         use super::blist::BList;
 
         Self {
-            hosting_root: BundleRoot::create_ssr(),
+            hosting_root: BSubtree::create_ssr(),
             view_node: BNode::List(BList::new()),
             parent: None,
             next_sibling: NodeRef::default(),
@@ -261,7 +261,7 @@ impl ComponentRenderState {
     /// Shift the rendered content to a new DOM position
     pub(crate) fn shift(
         &mut self,
-        next_root: &BundleRoot,
+        next_root: &BSubtree,
         new_parent: Element,
         next_sibling: NodeRef,
     ) {
@@ -310,7 +310,7 @@ pub trait Scoped {
     /// Get the render state if it hasn't already been destroyed
     fn render_state(&self) -> Option<Ref<'_, ComponentRenderState>>;
     /// Shift the node associated with this scope to a new place
-    fn shift_node(&self, next_root: &BundleRoot, parent: Element, next_sibling: NodeRef);
+    fn shift_node(&self, next_root: &BSubtree, parent: Element, next_sibling: NodeRef);
     /// Process an event to destroy a component
     fn destroy(self, parent_to_detach: bool);
     fn destroy_boxed(self: Box<Self>, parent_to_detach: bool);
@@ -516,17 +516,17 @@ mod tests {
         }
     }
 
-    fn setup_parent() -> (BundleRoot, AnyScope, Element) {
+    fn setup_parent() -> (BSubtree, AnyScope, Element) {
         let scope = AnyScope::test();
         let parent = document().create_element("div").unwrap();
-        let root = BundleRoot::create_root(&parent);
+        let root = BSubtree::create_root(&parent);
 
         document().body().unwrap().append_child(&parent).unwrap();
 
         (root, scope, parent)
     }
 
-    fn get_html(node: Html, root: &BundleRoot, scope: &AnyScope, parent: &Element) -> String {
+    fn get_html(node: Html, root: &BSubtree, scope: &AnyScope, parent: &Element) -> String {
         // clear parent
         parent.set_inner_html("");
 

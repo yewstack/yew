@@ -1,6 +1,6 @@
 //! This module contains the bundle version of an abstract node [BNode]
 
-use super::{BComp, BList, BPortal, BSuspense, BTag, BText, BundleRoot};
+use super::{BComp, BList, BPortal, BSubtree, BSuspense, BTag, BText};
 use crate::dom_bundle::{DomBundle, Reconcilable};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{Key, VNode};
@@ -43,7 +43,7 @@ impl BNode {
 
 impl DomBundle for BNode {
     /// Remove VNode from parent.
-    fn detach(self, root: &BundleRoot, parent: &Element, parent_to_detach: bool) {
+    fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool) {
         match self {
             Self::Tag(vtag) => vtag.detach(root, parent, parent_to_detach),
             Self::Text(btext) => btext.detach(root, parent, parent_to_detach),
@@ -60,7 +60,7 @@ impl DomBundle for BNode {
         }
     }
 
-    fn shift(&self, next_root: &BundleRoot, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_root: &BSubtree, next_parent: &Element, next_sibling: NodeRef) {
         match self {
             Self::Tag(ref vtag) => vtag.shift(next_root, next_parent, next_sibling),
             Self::Text(ref btext) => btext.shift(next_root, next_parent, next_sibling),
@@ -82,7 +82,7 @@ impl Reconcilable for VNode {
 
     fn attach(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -122,7 +122,7 @@ impl Reconcilable for VNode {
 
     fn reconcile_node(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -133,7 +133,7 @@ impl Reconcilable for VNode {
 
     fn reconcile(
         self,
-        root: &BundleRoot,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
