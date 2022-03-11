@@ -1,6 +1,6 @@
 //! This module contains fragments bundles, a [BList]
 use super::{test_log, BNode};
-use crate::dom_bundle::{DomBundle, Reconcilable};
+use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{Key, VList, VNode, VText};
 use std::borrow::Borrow;
@@ -353,7 +353,7 @@ impl BList {
     }
 }
 
-impl DomBundle for BList {
+impl ReconcileTarget for BList {
     fn detach(self, parent: &Element, parent_to_detach: bool) {
         for child in self.rev_children.into_iter() {
             child.detach(parent, parent_to_detach);

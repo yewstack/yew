@@ -5,7 +5,7 @@ mod listeners;
 
 pub use listeners::set_event_bubbling;
 
-use super::{insert_node, BList, BNode, DomBundle, Reconcilable};
+use super::{insert_node, BList, BNode, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
@@ -68,7 +68,7 @@ pub(super) struct BTag {
     key: Option<Key>,
 }
 
-impl DomBundle for BTag {
+impl ReconcileTarget for BTag {
     fn detach(self, parent: &Element, parent_to_detach: bool) {
         self.listeners.unregister();
 
@@ -281,7 +281,7 @@ impl BTag {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::dom_bundle::{BNode, DomBundle, Reconcilable};
+    use crate::dom_bundle::{BNode, Reconcilable, ReconcileTarget};
     use crate::html;
     use crate::html::AnyScope;
     use crate::virtual_dom::vtag::{HTML_NAMESPACE, SVG_NAMESPACE};

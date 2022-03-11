@@ -29,7 +29,7 @@ use bportal::BPortal;
 use bsuspense::BSuspense;
 use btag::BTag;
 use btext::BText;
-use traits::{DomBundle, Reconcilable};
+use traits::{Reconcilable, ReconcileTarget};
 use utils::{insert_node, test_log};
 
 #[doc(hidden)] // Publically exported from crate::events

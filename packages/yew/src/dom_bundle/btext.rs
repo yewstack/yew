@@ -1,6 +1,6 @@
 //! This module contains the bundle implementation of text [BText].
 
-use super::{insert_node, BNode, DomBundle, Reconcilable};
+use super::{insert_node, BNode, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::{AttrValue, VText};
 use crate::NodeRef;
@@ -14,7 +14,7 @@ pub(super) struct BText {
     text_node: TextNode,
 }
 
-impl DomBundle for BText {
+impl ReconcileTarget for BText {
     fn detach(self, parent: &Element, parent_to_detach: bool) {
         if !parent_to_detach {
             let result = parent.remove_child(&self.text_node);

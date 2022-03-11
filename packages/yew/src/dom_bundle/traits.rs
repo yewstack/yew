@@ -3,7 +3,7 @@ use crate::html::AnyScope;
 use crate::html::NodeRef;
 use web_sys::Element;
 
-pub(super) trait DomBundle {
+pub(super) trait ReconcileTarget {
     /// Remove self from parent.
     ///
     /// Parent to detach is `true` if the parent element will also be detached.
@@ -17,7 +17,7 @@ pub(super) trait DomBundle {
 
 /// This trait provides features to update a tree by calculating a difference against another tree.
 pub(super) trait Reconcilable {
-    type Bundle: DomBundle;
+    type Bundle: ReconcileTarget;
 
     /// Attach a virtual node to the DOM tree.
     ///
