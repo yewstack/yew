@@ -1,0 +1,188 @@
+---
+name: Size Comparison
+
+on:
+  pull_request:
+
+size-cmp:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v3
+        with:
+          repository: 'yewstack/yew'
+          ref: master
+          path: yew-master
+
+      - name: Checkout pull request
+        uses: actions/checkout@v3
+        with:
+          path: current-pr
+
+      - name: Setup toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+          profile: minimal
+
+      - name: Restore Rust cache for master
+        uses: Swatinem/rust-cache@v1
+        with:
+          working-directory: yew-master
+          key: master
+
+      - name: Restore Rust cache for current pull request
+        uses: Swatinem/rust-cache@v1
+        with:
+          working-directory: current-pr
+          key: pr
+
+      - name: Setup Trunk
+        uses: jetli/trunk-action@v0.1.0
+        with:
+          version: 'latest'
+
+      - name: Write Optimisation Flags
+        run: |
+          cat >> Cargo.toml << EOF
+          [profile.release]
+          lto = true
+          codegen-units = 1
+          panic = "abort"
+          EOF
+        with:
+          working-directory: yew-master
+
+      - name: Write Optimisation Flags
+        run: |
+          cat >> Cargo.toml << EOF
+          [profile.release]
+          lto = true
+          codegen-units = 1
+          panic = "abort"
+          EOF
+        with:
+          working-directory: current-pr
+
+      - name: Build master examples
+        run: find examples/*/index.html | xargs -I '{}' trunk build --release '{}'
+        working-directory: yew-master
+
+      - name: Build pull request examples
+        run: find examples/*/index.html | xargs -I '{}' trunk build --release '{}'
+        working-directory: current-pr
+
+      - name: Make pull request comment
+        run: |
+          from typing import Dict, List, Optional
+
+          import glob
+          import os
+          import json
+
+          def find_example_sizes(parent_dir: str) -> Dict[str, int]:
+              example_dirs_names =
+
+              example_sizes: Dict[str, int] = {}
+
+              for example_dir in os.listdir(f"{parent_dir}/examples"):
+                  path = f"{parent_dir}/examples/{example_dir}"
+
+                  if not os.path.isdir(path):
+                      continue
+
+                  matches = glob.glob(f"{parent_dir}/examples/{example_dir}/dist/index*.wasm")
+
+                  if not matches:
+                      continue
+
+                  path = matches[0]
+
+                  example_sizes[example_dir] = os.path.getsize(path)
+
+              return example_sizes
+
+          master_sizes = find_example_sizes("yew-master")
+          pr_sizes = find_example_sizes("current-pr")
+
+          example_names = sorted(set([*master_sizes.keys(), *pr_sizes.keys()]))
+
+          joined_sizes = [(i, [master_sizes.get(i), pr_sizes.get(i)]) for i in example_names]
+
+          lines: List[str] = []
+
+          lines.append("### Size Comparison")
+          lines.append("")
+          lines.append("| examples | master | pull request | diff |")
+          lines.append("| --- | --- | --- | --- | ")
+
+          for (i, sizes) in joined_sizes:
+              (master_size, pr_size) = sizes
+              diff: Optional[int] = None
+
+              if master_size is not None and pr_size is not None:
+                  diff = pr_size - master_size
+
+              master_size_str = "N/A" if master_size is None else (
+                  f"{master_size / 1024:.3f}" if master_size != 0 else 0
+              )
+              pr_size_str = "N/A" if pr_size is None else (
+                  f"{pr_size / 1024:.3f}" if pr_size != 0 else 0
+              )
+              diff_str = "N/A" if diff is None else (f"{diff / 1024:.3f}" if diff != 0 else 0)
+              lines.append(f"| {i} | {master_size_str} | {pr_size_str} | {diff_str} |")
+
+          output = lines.join("\n")
+
+          with open(os.environ["GITHUB_ENV"], "a+") as f:
+              f.write(f"YEW_EXAMPLE_SIZES={json.dumps(output)}")
+
+        shell: python3 {0}
+
+      - name: Post Comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const commentInfo = {
+              ...context.repo,
+              issue_number: context.issue.number,
+            };
+
+            const comment = {
+              ...commentInfo,
+              body: process.env.YEW_EXAMPLE_SIZES,
+            };
+
+            function isCommentByBot(comment) {
+              return comment.user.type === "Bot" && comment.body.includes("### Size Comparison");
+            }
+
+            let commentId = null;
+            const comments = (await github.issues.listComments(commentInfo)).data;
+            for (let i = comments.length; i--; ) {
+              const c = comments[i];
+              if (isCommentByBot(c)) {
+                commentId = c.id;
+                break;
+              }
+            }
+
+            if (commentId) {
+              try {
+                await github.issues.updateComment({
+                  ...context.repo,
+                  comment_id: commentId,
+                  body: comment.body,
+                });
+              } catch (e) {
+                commentId = null;
+              }
+            }
+
+            if (!commentId) {
+              await github.issues.createComment(comment);
+            }
