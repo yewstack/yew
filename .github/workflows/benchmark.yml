@@ -90,7 +90,7 @@ jobs:
             ${{ runner.os }}
 
       # Optimisation flags has no effect unless set at workspace level.
-      - name: Write Optimisation Flags
+      - name: Write optimisation flags
         run: |
           cat >> Cargo.toml << EOF
           [profile.release]

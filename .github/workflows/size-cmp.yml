@@ -46,24 +46,26 @@ size-cmp:
         with:
           version: 'latest'
 
-      - name: Write Optimisation Flags
+      - name: Write optimisation flags for master
         run: |
           cat >> Cargo.toml << EOF
           [profile.release]
           lto = true
           codegen-units = 1
           panic = "abort"
+          opt-level = "z"
           EOF
         with:
           working-directory: yew-master
 
-      - name: Write Optimisation Flags
+      - name: Write optimisation flags for pull request
         run: |
           cat >> Cargo.toml << EOF
           [profile.release]
           lto = true
           codegen-units = 1
           panic = "abort"
+          opt-level = "z"
           EOF
         with:
           working-directory: current-pr
