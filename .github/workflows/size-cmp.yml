@@ -56,8 +56,7 @@ jobs:
           panic = "abort"
           opt-level = "z"
           EOF
-        with:
-          working-directory: yew-master
+        working-directory: yew-master
 
       - name: Write optimisation flags for pull request
         run: |
@@ -68,8 +67,7 @@ jobs:
           panic = "abort"
           opt-level = "z"
           EOF
-        with:
-          working-directory: current-pr
+        working-directory: current-pr
 
       - name: Build master examples
         run: find examples/*/index.html | xargs -I '{}' trunk build --release '{}'
