@@ -70,11 +70,11 @@ jobs:
         working-directory: current-pr
 
       - name: Build master examples
-        run: find examples/*/index.html | xargs -I '{}' trunk build --release '{}'
+        run: find examples/*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
         working-directory: yew-master
 
       - name: Build pull request examples
-        run: find examples/*/index.html | xargs -I '{}' trunk build --release '{}'
+        run: find examples/*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
         working-directory: current-pr
 
       - name: Make pull request comment
