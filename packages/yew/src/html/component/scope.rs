@@ -204,7 +204,12 @@ mod feat_ssr {
     };
 
     impl<COMP: BaseComponent> Scope<COMP> {
-        pub(crate) async fn render_to_string(self, w: &mut String, props: Rc<COMP::Properties>) {
+        pub(crate) async fn render_to_string(
+            self,
+            w: &mut String,
+            props: Rc<COMP::Properties>,
+            hydratable: bool,
+        ) {
             let (tx, rx) = oneshot::channel();
             let state = ComponentRenderState::Ssr { sender: Some(tx) };
 
@@ -221,10 +226,26 @@ mod feat_ssr {
             );
             scheduler::start();
 
+            if hydratable {
+                #[cfg(debug_assertions)]
+                w.push_str(&format!("<!--<[{}]>-->", std::any::type_name::<COMP>()));
+
+                #[cfg(not(debug_assertions))]
+                w.push_str("<!--<[]>-->");
+            }
+
             let html = rx.await.unwrap();
 
             let self_any_scope = AnyScope::from(self.clone());
-            html.render_to_string(w, &self_any_scope).await;
+            html.render_to_string(w, &self_any_scope, hydratable).await;
+
+            if hydratable {
+                #[cfg(debug_assertions)]
+                w.push_str(&format!("<!--</[{}]>-->", std::any::type_name::<COMP>()));
+
+                #[cfg(not(debug_assertions))]
+                w.push_str("<!--</[]>-->");
+            }
 
             scheduler::push_component_destroy(DestroyRunner {
                 state: self.state.clone(),

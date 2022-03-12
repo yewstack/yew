@@ -30,9 +30,24 @@ mod feat_ssr {
     use crate::html::AnyScope;
 
     impl VSuspense {
-        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+        pub(crate) async fn render_to_string(
+            &self,
+            w: &mut String,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+        ) {
+            if hydratable {
+                w.push_str("<!--<?>-->");
+            }
+
             // always render children on the server side.
-            self.children.render_to_string(w, parent_scope).await;
+            self.children
+                .render_to_string(w, parent_scope, hydratable)
+                .await;
+
+            if hydratable {
+                w.push_str("<!--</?>-->");
+            }
         }
     }
 }
@@ -120,7 +135,8 @@ mod ssr_tests {
 
         let s = local
             .run_until(async move {
-                let renderer = ServerRenderer::<Comp>::new();
+                let mut renderer = ServerRenderer::<Comp>::new();
+                renderer.set_hydratable(false);
 
                 renderer.render().await
             })
