@@ -3,6 +3,11 @@ name: Size Comparison
 
 on:
   pull_request:
+    branches: [master]
+    paths:
+      - "packages/**"
+      - "examples/**"
+      - "Cargo.toml"
 
 jobs:
   size-cmp:
@@ -112,80 +117,19 @@ jobs:
 
           joined_sizes = [(i, [master_sizes.get(i), pr_sizes.get(i)]) for i in example_names]
 
-          lines: List[str] = []
+          size_cmp_info = {
+              "sizes": joined_sizes,
+              "issue_number": ${{ github.event.number }},
+          }
 
-          lines.append("### Size Comparison")
-          lines.append("")
-          lines.append("| examples | master (KB) | pull request (KB) | diff |")
-          lines.append("| --- | --- | --- | --- | ")
-
-          for (i, sizes) in joined_sizes:
-              (master_size, pr_size) = sizes
-              diff: Optional[int] = None
-
-              if master_size is not None and pr_size is not None:
-                  diff = pr_size - master_size
-
-              master_size_str = "N/A" if master_size is None else (
-                  f"{master_size / 1024:.3f}" if master_size != 0 else "0"
-              )
-              pr_size_str = "N/A" if pr_size is None else (
-                  f"{pr_size / 1024:.3f}" if pr_size != 0 else "0"
-              )
-              diff_str = "N/A" if diff is None else (
-                  f"{diff / 1024:.3f}" if diff < 0 else (
-                      f"+{diff / 1024:.3f}" if diff > 0 else "0"
-                  )
-              )
-              lines.append(f"| {i} | {master_size_str} | {pr_size_str} | {diff_str} |")
-
-          output = "\n".join(lines)
-
-          with open(os.environ["GITHUB_ENV"], "a+") as f:
-              f.write(f"YEW_EXAMPLE_SIZES={json.dumps(output)}\n")
+          with open(".SIZE_CMP_INFO", "w+") as f:
+              f.write(json.dumps(size_cmp_info))
 
         shell: python3 {0}
 
-      - name: Post Comment
-        uses: actions/github-script@v6
+      - name: Update Artifact
+        uses: actions/upload-artifact@v2
         with:
-          script: |
-            const commentInfo = {
-              ...context.repo,
-              issue_number: context.issue.number,
-            };
-
-            const comment = {
-              ...commentInfo,
-              body: process.env.YEW_EXAMPLE_SIZES,
-            };
-
-            function isCommentByBot(comment) {
-              return comment.user.type === "Bot" && comment.body.includes("### Size Comparison");
-            }
-
-            let commentId = null;
-            const comments = (await github.rest.issues.listComments(commentInfo)).data;
-            for (let i = comments.length; i--; ) {
-              const c = comments[i];
-              if (isCommentByBot(c)) {
-                commentId = c.id;
-                break;
-              }
-            }
-
-            if (commentId) {
-              try {
-                await github.rest.issues.updateComment({
-                  ...context.repo,
-                  comment_id: commentId,
-                  body: comment.body,
-                });
-              } catch (e) {
-                commentId = null;
-              }
-            }
-
-            if (!commentId) {
-              await github.rest.issues.createComment(comment);
-            }
+          name: size-cmp-info
+          path: ".SIZE_CMP_INFO"
+          retention-days: 1
