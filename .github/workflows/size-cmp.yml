@@ -4,8 +4,9 @@ name: Size Comparison
 on:
   pull_request:
 
-size-cmp:
-  publish:
+jobs:
+  size-cmp:
+    name: Compare Size between master and current Pull Request
     runs-on: ubuntu-latest
 
     steps:
