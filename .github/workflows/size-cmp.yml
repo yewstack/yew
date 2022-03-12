@@ -165,7 +165,7 @@ jobs:
             }
 
             let commentId = null;
-            const comments = (await github.issues.listComments(commentInfo)).data;
+            const comments = (await github.rest.issues.listComments(commentInfo)).data;
             for (let i = comments.length; i--; ) {
               const c = comments[i];
               if (isCommentByBot(c)) {
@@ -176,7 +176,7 @@ jobs:
 
             if (commentId) {
               try {
-                await github.issues.updateComment({
+                await github.rest.issues.updateComment({
                   ...context.repo,
                   comment_id: commentId,
                   body: comment.body,
@@ -187,5 +187,5 @@ jobs:
             }
 
             if (!commentId) {
-              await github.issues.createComment(comment);
+              await github.rest.issues.createComment(comment);
             }
