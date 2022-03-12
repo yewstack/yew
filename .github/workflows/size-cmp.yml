@@ -86,8 +86,6 @@ jobs:
           import json
 
           def find_example_sizes(parent_dir: str) -> Dict[str, int]:
-              example_dirs_names =
-
               example_sizes: Dict[str, int] = {}
 
               for example_dir in os.listdir(f"{parent_dir}/examples"):
@@ -118,7 +116,7 @@ jobs:
 
           lines.append("### Size Comparison")
           lines.append("")
-          lines.append("| examples | master | pull request | diff |")
+          lines.append("| examples | master (KB) | pull request (KB) | diff |")
           lines.append("| --- | --- | --- | --- | ")
 
           for (i, sizes) in joined_sizes:
@@ -129,18 +127,22 @@ jobs:
                   diff = pr_size - master_size
 
               master_size_str = "N/A" if master_size is None else (
-                  f"{master_size / 1024:.3f}" if master_size != 0 else 0
+                  f"{master_size / 1024:.3f}" if master_size != 0 else "0"
               )
               pr_size_str = "N/A" if pr_size is None else (
-                  f"{pr_size / 1024:.3f}" if pr_size != 0 else 0
+                  f"{pr_size / 1024:.3f}" if pr_size != 0 else "0"
               )
-              diff_str = "N/A" if diff is None else (f"{diff / 1024:.3f}" if diff != 0 else 0)
+              diff_str = "N/A" if diff is None else (
+                  f"{diff / 1024:.3f}" if diff < 0 else (
+                      f"+{diff / 1024:.3f}" if diff > 0 else "0"
+                  )
+              )
               lines.append(f"| {i} | {master_size_str} | {pr_size_str} | {diff_str} |")
 
-          output = lines.join("\n")
+          output = "\n".join(lines)
 
           with open(os.environ["GITHUB_ENV"], "a+") as f:
-              f.write(f"YEW_EXAMPLE_SIZES={json.dumps(output)}")
+              f.write(f"YEW_EXAMPLE_SIZES={json.dumps(output)}\n")
 
         shell: python3 {0}
 
