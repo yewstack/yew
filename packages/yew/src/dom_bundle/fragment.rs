@@ -41,14 +41,8 @@ impl Fragment {
     }
 
     /// Shift current Fragment into a different position in the dom.
-    pub(crate) fn shift(
-        &self,
-        previous_parent: &Element,
-        next_parent: &Element,
-        next_sibling: NodeRef,
-    ) {
+    pub(crate) fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
         for node in self.iter() {
-            previous_parent.remove_child(node).unwrap();
             next_parent
                 .insert_before(node, next_sibling.get().as_ref())
                 .unwrap();
@@ -154,5 +148,16 @@ impl Fragment {
             .collect::<VecDeque<_>>();
 
         Self(nodes)
+    }
+
+    /// Detaches the fragment from DOM.
+    pub(crate) fn detach(self, parent: &Element, parent_to_detach: bool) {
+        if !parent_to_detach {
+            for node in self.iter() {
+                parent
+                    .remove_child(node)
+                    .expect("failed to remove child element");
+            }
+        }
     }
 }

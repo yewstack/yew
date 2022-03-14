@@ -40,9 +40,9 @@ mod feat_hydration {
         match node.node_type() {
             Node::ELEMENT_NODE => {
                 let tag = node
-                    .dyn_into::<Element>()
+                    .dyn_ref::<Element>()
                     .map(|m| m.tag_name().to_lowercase())
-                    .unwrap_or_else(|_| "unknown".to_owned());
+                    .unwrap_or_else(|| "unknown".to_owned());
 
                 format!("{} element node", tag).into()
             }
