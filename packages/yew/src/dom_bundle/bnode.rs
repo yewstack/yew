@@ -256,7 +256,7 @@ mod feat_hydration {
                 }
                 // You cannot hydrate a VPortal.
                 VNode::VPortal(_) => {
-                    panic!("VPortal is not hydratable. Try move it to a component mounted after an effect.")
+                    panic!("VPortal is not hydratable. Try to create your portal with the <Portal /> component.")
                 }
                 VNode::VSuspense(vsuspense) => {
                     let (node_ref, suspense) = vsuspense.hydrate(parent_scope, parent, fragment);

@@ -450,7 +450,29 @@ mod feat_hydration {
             parent: &Element,
             fragment: &mut Fragment,
         ) -> (NodeRef, Self::Bundle) {
-            todo!()
+            let node_ref = NodeRef::default();
+            let mut children = Vec::with_capacity(self.children.len());
+
+            for (index, child) in self.children.into_iter().enumerate() {
+                let (child_node_ref, child) = child.hydrate(parent_scope, parent, fragment);
+
+                if index == 0 {
+                    node_ref.reuse(child_node_ref);
+                }
+
+                children.push(child);
+            }
+
+            children.reverse();
+
+            (
+                node_ref,
+                BList {
+                    rev_children: children,
+                    fully_keyed: self.fully_keyed,
+                    key: self.key,
+                },
+            )
         }
     }
 }
