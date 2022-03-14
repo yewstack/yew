@@ -79,8 +79,9 @@ trybuild = "1"
 [features]
 ssr = ["futures", "html-escape"]
 render = []
-doc_test = ["render"]
-wasm_test = ["render"]
+hydration = ["render"]
+doc_test = ["render", "hydration"]
+wasm_test = ["render", "hydration"]
 default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
