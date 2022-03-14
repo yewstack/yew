@@ -1,0 +1,158 @@
+use std::collections::VecDeque;
+use std::ops::{Deref, DerefMut};
+
+use web_sys::{Element, Node};
+
+use crate::html::NodeRef;
+
+/// A Hydration Fragment
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
+pub(crate) struct Fragment(VecDeque<Node>);
+
+impl Deref for Fragment {
+    type Target = VecDeque<Node>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Fragment {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl Fragment {
+    /// Collects child nodes of an element into a VecDeque.
+    pub(crate) fn collect_children(parent: &Element) -> Self {
+        let mut fragment = VecDeque::with_capacity(parent.child_nodes().length() as usize);
+
+        let mut current_node = parent.first_child();
+
+        // This is easier than iterating child nodes at the moment
+        // as we don't have to downcast iterator values.
+        while let Some(m) = current_node {
+            current_node = m.next_sibling();
+            fragment.push_back(m);
+        }
+
+        Self(fragment)
+    }
+
+    /// Shift current Fragment into a different position in the dom.
+    pub(crate) fn shift(
+        &self,
+        previous_parent: &Element,
+        next_parent: &Element,
+        next_sibling: NodeRef,
+    ) {
+        for node in self.iter() {
+            previous_parent.remove_child(node).unwrap();
+            next_parent
+                .insert_before(node, next_sibling.get().as_ref())
+                .unwrap();
+        }
+    }
+
+    /// Collects nodes for a Component Bundle or a Suspense Boundary.
+    pub(crate) fn collect_between(
+        collect_from: &mut Fragment,
+        parent: &Element,
+        open_start_mark: &str,
+        close_start_mark: &str,
+        end_mark: &str,
+        kind_name: &str,
+    ) -> Self {
+        let is_open_tag = |node: &Node| {
+            let comment_text = node.text_content().unwrap_or_else(|| "".to_string());
+
+            comment_text.starts_with(&open_start_mark) && comment_text.ends_with(&end_mark)
+        };
+
+        let is_close_tag = |node: &Node| {
+            let comment_text = node.text_content().unwrap_or_else(|| "".to_string());
+
+            comment_text.starts_with(&close_start_mark) && comment_text.ends_with(&end_mark)
+        };
+
+        // We trim all leading text nodes as it's likely these are whitespaces.
+        collect_from.trim_start_text_nodes(parent);
+
+        let first_node = collect_from
+            .pop_front()
+            .unwrap_or_else(|| panic!("expected {} opening tag, found EOF", kind_name));
+
+        assert_eq!(
+            first_node.node_type(),
+            Node::COMMENT_NODE,
+            // TODO: improve error message with human readable node type name.
+            "expected {} start, found node type {}",
+            kind_name,
+            first_node.node_type()
+        );
+
+        let mut nodes = VecDeque::new();
+
+        if !is_open_tag(&first_node) {
+            panic!("expected {} opening tag, found comment node", kind_name);
+        }
+
+        // We remove the opening tag.
+        parent.remove_child(&first_node).unwrap();
+
+        let mut current_node;
+        let mut nested_layers = 1;
+
+        loop {
+            current_node = collect_from
+                .pop_front()
+                .unwrap_or_else(|| panic!("expected {} closing tag, found EOF", kind_name));
+
+            if current_node.node_type() == Node::COMMENT_NODE {
+                if is_open_tag(&current_node) {
+                    // We found another opening tag, we need to increase component counter.
+                    nested_layers += 1;
+                } else if is_close_tag(&current_node) {
+                    // We found a closing tag, minus component counter.
+                    nested_layers -= 1;
+                    if nested_layers == 0 {
+                        // We have found the end of the current tag we are collecting, breaking
+                        // the loop.
+
+                        // We remove the closing tag.
+                        parent.remove_child(&current_node).unwrap();
+                        break;
+                    }
+                }
+            }
+
+            nodes.push_back(current_node.clone());
+        }
+
+        Self(nodes)
+    }
+
+    /// Remove child nodes until first non-text node.
+    pub(crate) fn trim_start_text_nodes(&mut self, parent: &Element) {
+        while let Some(ref m) = self.front().cloned() {
+            if m.node_type() == Node::TEXT_NODE {
+                self.pop_front();
+
+                parent.remove_child(m).unwrap();
+            } else {
+                break;
+            }
+        }
+    }
+
+    /// Deeply clones all nodes.
+    pub(crate) fn deep_clone(&self) -> Self {
+        let nodes = self
+            .iter()
+            .map(|m| m.clone_node_with_deep(true).expect("failed to clone node."))
+            .collect::<VecDeque<_>>();
+
+        Self(nodes)
+    }
+}

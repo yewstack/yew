@@ -85,6 +85,64 @@ impl std::fmt::Debug for BText {
     }
 }
 
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    use web_sys::Node;
+
+    use crate::dom_bundle::{Fragment, Hydratable};
+    use wasm_bindgen::JsCast;
+
+    impl Hydratable for VText {
+        fn hydrate(
+            self,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut Fragment,
+        ) -> (NodeRef, Self::Bundle) {
+            if let Some(m) = fragment.front().cloned() {
+                // better safe than sorry.
+                if m.node_type() == Node::TEXT_NODE {
+                    if let Ok(m) = m.dyn_into::<TextNode>() {
+                        // pop current node.
+                        fragment.pop_front();
+
+                        // TODO: It may make sense to assert the text content in the text node against
+                        // the VText when #[cfg(debug_assertions)] is true, but this may be complicated.
+                        // We always replace the text value for now.
+                        //
+                        // Please see the next comment for a detailed explanation.
+                        m.set_node_value(Some(self.text.as_ref()));
+
+                        return (
+                            NodeRef::new(m.clone().into()),
+                            BText {
+                                text: self.text,
+                                text_node: m,
+                            },
+                        );
+                    }
+                }
+            }
+
+            // If there are multiple text nodes placed back-to-back in SSR, it may be parsed as a single
+            // text node by browser, hence we need to add extra text nodes here if the next node is not a text node.
+            // Similarly, the value of the text node may be a combination of multiple VText vnodes.
+            // So we always need to override their values.
+            self.attach(
+                parent_scope,
+                parent,
+                fragment
+                    .front()
+                    .cloned()
+                    .map(|m| NodeRef::new(m.into()))
+                    .unwrap_or_default(),
+            )
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     extern crate self as yew;

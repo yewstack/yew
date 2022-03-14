@@ -15,6 +15,9 @@ mod btext;
 mod traits;
 mod utils;
 
+#[cfg(feature = "hydration")]
+mod fragment;
+
 use gloo::utils::document;
 use web_sys::{Element, Node};
 
@@ -32,8 +35,14 @@ use btext::BText;
 use traits::{DomBundle, Reconcilable};
 use utils::{insert_node, test_log};
 
+#[cfg(feature = "hydration")]
+use fragment::Fragment;
+
+#[cfg(feature = "hydration")]
+use traits::Hydratable;
+
 #[doc(hidden)] // Publically exported from crate::events
-pub use self::btag::set_event_bubbling;
+pub use btag::set_event_bubbling;
 
 /// A Bundle.
 ///

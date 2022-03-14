@@ -86,3 +86,29 @@ pub(super) trait Reconcilable {
         self_ref
     }
 }
+
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    use crate::dom_bundle::Fragment;
+
+    pub(in crate::dom_bundle) trait Hydratable: Reconcilable {
+        /// hydrates current tree.
+        ///
+        /// Returns a reference to the first node of the hydrated tree.
+        ///
+        /// # Important
+        ///
+        /// DOM tree is hydrated from top to bottom. This is different than VDiff::apply.
+        fn hydrate(
+            self,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut Fragment,
+        ) -> (NodeRef, Self::Bundle);
+    }
+}
+
+#[cfg(feature = "hydration")]
+pub(in crate::dom_bundle) use feat_hydration::*;

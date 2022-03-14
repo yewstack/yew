@@ -51,6 +51,7 @@ features = [
   "Location",
   "MouseEvent",
   "Node",
+  "NodeList",
   "PointerEvent",
   "ProgressEvent",
   "Text",
