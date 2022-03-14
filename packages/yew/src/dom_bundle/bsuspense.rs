@@ -173,3 +173,21 @@ impl Reconcilable for VSuspense {
         }
     }
 }
+
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    use crate::dom_bundle::{Fragment, Hydratable};
+
+    impl Hydratable for VSuspense {
+        fn hydrate(
+            self,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut Fragment,
+        ) -> (NodeRef, Self::Bundle) {
+            todo!()
+        }
+    }
+}

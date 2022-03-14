@@ -136,7 +136,7 @@ mod feat_hydration {
                 fragment
                     .front()
                     .cloned()
-                    .map(|m| NodeRef::new(m.into()))
+                    .map(NodeRef::new)
                     .unwrap_or_default(),
             )
         }

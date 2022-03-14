@@ -116,6 +116,24 @@ impl Reconcilable for VComp {
     }
 }
 
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    use crate::dom_bundle::{Fragment, Hydratable};
+
+    impl Hydratable for VComp {
+        fn hydrate(
+            self,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut Fragment,
+        ) -> (NodeRef, Self::Bundle) {
+            todo!()
+        }
+    }
+}
+
 #[cfg(feature = "wasm_test")]
 #[cfg(test)]
 mod tests {

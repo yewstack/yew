@@ -437,6 +437,24 @@ impl Reconcilable for VList {
     }
 }
 
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    use crate::dom_bundle::{Fragment, Hydratable};
+
+    impl Hydratable for VList {
+        fn hydrate(
+            self,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut Fragment,
+        ) -> (NodeRef, Self::Bundle) {
+            todo!()
+        }
+    }
+}
+
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;

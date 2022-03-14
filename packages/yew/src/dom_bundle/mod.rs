@@ -37,9 +37,10 @@ use utils::{insert_node, test_log};
 
 #[cfg(feature = "hydration")]
 use fragment::Fragment;
-
 #[cfg(feature = "hydration")]
 use traits::Hydratable;
+#[cfg(feature = "hydration")]
+use utils::node_type_str;
 
 #[doc(hidden)] // Publically exported from crate::events
 pub use btag::set_event_bubbling;
