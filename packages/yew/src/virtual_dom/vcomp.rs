@@ -1,14 +1,21 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
 use super::Key;
-use crate::dom_bundle::{Mountable, PropsWrapper};
 use crate::html::{BaseComponent, IntoComponent, NodeRef};
 use std::any::TypeId;
 use std::fmt;
 use std::rc::Rc;
 
-#[cfg(debug_assertions)]
-thread_local! {}
+#[cfg(any(feature = "ssr", feature = "render"))]
+use crate::html::{AnyScope, Scope};
+
+#[cfg(feature = "render")]
+use crate::html::Scoped;
+#[cfg(feature = "render")]
+use web_sys::Element;
+
+#[cfg(feature = "ssr")]
+use futures::future::{FutureExt, LocalBoxFuture};
 
 /// A virtual component.
 pub struct VComp {
@@ -37,6 +44,85 @@ impl Clone for VComp {
             node_ref: self.node_ref.clone(),
             key: self.key.clone(),
         }
+    }
+}
+
+pub(crate) trait Mountable {
+    fn copy(&self) -> Box<dyn Mountable>;
+
+    #[cfg(feature = "render")]
+    fn mount(
+        self: Box<Self>,
+        node_ref: NodeRef,
+        parent_scope: &AnyScope,
+        parent: Element,
+        next_sibling: NodeRef,
+    ) -> Box<dyn Scoped>;
+
+    #[cfg(feature = "render")]
+    fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef);
+
+    #[cfg(feature = "ssr")]
+    fn render_to_string<'a>(
+        &'a self,
+        w: &'a mut String,
+        parent_scope: &'a AnyScope,
+        hydratable: bool,
+    ) -> LocalBoxFuture<'a, ()>;
+}
+
+pub(crate) struct PropsWrapper<COMP: BaseComponent> {
+    props: Rc<COMP::Properties>,
+}
+
+impl<COMP: BaseComponent> PropsWrapper<COMP> {
+    pub fn new(props: Rc<COMP::Properties>) -> Self {
+        Self { props }
+    }
+}
+
+impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
+    fn copy(&self) -> Box<dyn Mountable> {
+        let wrapper: PropsWrapper<COMP> = PropsWrapper {
+            props: Rc::clone(&self.props),
+        };
+        Box::new(wrapper)
+    }
+
+    #[cfg(feature = "render")]
+    fn mount(
+        self: Box<Self>,
+        node_ref: NodeRef,
+        parent_scope: &AnyScope,
+        parent: Element,
+        next_sibling: NodeRef,
+    ) -> Box<dyn Scoped> {
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+        scope.mount_in_place(parent, next_sibling, node_ref, self.props);
+
+        Box::new(scope)
+    }
+
+    #[cfg(feature = "render")]
+    fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef) {
+        let scope: Scope<COMP> = scope.to_any().downcast::<COMP>();
+        scope.reuse(self.props, node_ref, next_sibling);
+    }
+
+    #[cfg(feature = "ssr")]
+    fn render_to_string<'a>(
+        &'a self,
+        w: &'a mut String,
+        parent_scope: &'a AnyScope,
+        hydratable: bool,
+    ) -> LocalBoxFuture<'a, ()> {
+        async move {
+            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+            scope
+                .render_to_string(w, self.props.clone(), hydratable)
+                .await;
+        }
+        .boxed_local()
     }
 }
 
@@ -124,10 +210,15 @@ mod feat_ssr {
     use crate::html::AnyScope;
 
     impl VComp {
-        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+        pub(crate) async fn render_to_string(
+            &self,
+            w: &mut String,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+        ) {
             self.mountable
                 .as_ref()
-                .render_to_string(w, parent_scope)
+                .render_to_string(w, parent_scope, hydratable)
                 .await;
         }
     }
@@ -163,7 +254,8 @@ mod ssr_tests {
             }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
+        let mut renderer = ServerRenderer::<Comp>::new();
+        renderer.set_hydratable(false);
 
         let s = renderer.render().await;
 

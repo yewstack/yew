@@ -6,8 +6,7 @@ description: "Rendering into out-of-tree DOM nodes"
 ## What is a portal?
 
 Portals provide a first-class way to render children into a DOM node that exists outside the DOM hierarchy of the parent component.
-`yew::create_portal(child, host)` returns a `Html` value that renders `child` not hierarchically under its parent component,
-but as a child of the `host` element.
+The `<Portal />` component renders its `children` into the `host` element provided in its properties.
 
 ## Usage
 
@@ -17,13 +16,15 @@ such as controlling the contents of an element's
 stylesheets to the surrounding document's `<head>` and collecting referenced elements inside a
 central `<defs>` element of an `<svg>`.
 
-Note that `yew::create_portal` is a low-level building block. Libraries should use it to implement
-higher-level APIs which can then be consumed by applications. For example, here is a
-simple modal dialogue that renders its `children` into an element outside `yew`'s control,
+# Example
+
+This example implements a simple modal dialogue that renders its `children`
+into an element outside `yew`'s control,
 identified by the `id="modal_host"`.
 
 ```rust
-use yew::{html, create_portal, function_component, Children, Properties, Html};
+use yew::{html, function_component, Children, Properties, Html};
+use yew::portal::Portal;
 
 #[derive(Properties, PartialEq)]
 pub struct ModalProps {
@@ -37,10 +38,11 @@ fn modal(props: &ModalProps) -> Html {
         .get_element_by_id("modal_host")
         .expect("a #modal_host element");
 
-    create_portal(
-        html!{ {for props.children.iter()} },
-        modal_host.into(),
-    )
+    html! {
+        <Portal host={modal_host}>
+            { for props.children.iter() }
+        </Portal>
+    }
 }
 ```
 

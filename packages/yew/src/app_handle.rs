@@ -1,6 +1,6 @@
 //! [AppHandle] contains the state Yew keeps to bootstrap a component in an isolated scope.
 
-use super::{ComponentRenderState, Scoped};
+use crate::html::Scoped;
 use crate::html::{IntoComponent, NodeRef, Scope};
 use std::ops::Deref;
 use std::rc::Rc;
@@ -8,6 +8,7 @@ use web_sys::Element;
 
 /// An instance of an application.
 #[derive(Debug)]
+#[cfg_attr(documenting, doc(cfg(feature = "render")))]
 pub struct AppHandle<ICOMP: IntoComponent> {
     /// `Scope` holder
     pub(crate) scope: Scope<<ICOMP as IntoComponent>::Component>,
@@ -26,11 +27,9 @@ where
         let app = Self {
             scope: Scope::new(None),
         };
-        let node_ref = NodeRef::default();
-        let initial_render_state =
-            ComponentRenderState::new(element, NodeRef::default(), &node_ref);
+
         app.scope
-            .mount_in_place(initial_render_state, node_ref, props);
+            .mount_in_place(element, NodeRef::default(), NodeRef::default(), props);
 
         app
     }

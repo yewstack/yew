@@ -115,7 +115,8 @@ fn root() -> Html {
 // - 404 redirects
 #[test]
 async fn router_works() {
-    yew::start_app_in_element::<Root>(gloo::utils::document().get_element_by_id("output").unwrap());
+    yew::Renderer::<Root>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .render();
 
     sleep(Duration::ZERO).await;
 

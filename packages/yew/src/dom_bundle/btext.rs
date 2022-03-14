@@ -9,7 +9,7 @@ use gloo_utils::document;
 use web_sys::{Element, Text as TextNode};
 
 /// The bundle implementation to [VText]
-pub struct BText {
+pub(super) struct BText {
     text: AttrValue,
     text_node: TextNode,
 }
@@ -81,7 +81,7 @@ impl Reconcilable for VText {
 
 impl std::fmt::Debug for BText {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "BText {{ text: \"{}\" }}", self.text)
+        f.debug_struct("BText").field("text", &self.text).finish()
     }
 }
 

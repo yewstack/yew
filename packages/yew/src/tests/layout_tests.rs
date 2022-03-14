@@ -1,4 +1,4 @@
-use crate::dom_bundle::{BNode, DomBundle, Reconcilable};
+use crate::dom_bundle::Bundle;
 use crate::html::AnyScope;
 use crate::scheduler;
 use crate::virtual_dom::VNode;
@@ -51,7 +51,10 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         let vnode = layout.node.clone();
         log!("Independently apply layout '{}'", layout.name);
 
-        let (_, mut bundle) = vnode.attach(&parent_scope, &parent_element, next_sibling.clone());
+        let node_ref = NodeRef::default();
+
+        let mut bundle = Bundle::new(&parent_element, &next_sibling, &node_ref);
+        bundle.reconcile(&parent_scope, &parent_element, next_sibling.clone(), vnode);
         scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
@@ -65,12 +68,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
 
         log!("Independently reapply layout '{}'", layout.name);
 
-        vnode.reconcile_node(
-            &parent_scope,
-            &parent_element,
-            next_sibling.clone(),
-            &mut bundle,
-        );
+        bundle.reconcile(&parent_scope, &parent_element, next_sibling.clone(), vnode);
         scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
@@ -91,17 +89,19 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     }
 
     // Sequentially apply each layout
-    let mut bundle: Option<BNode> = None;
+    let node_ref = NodeRef::default();
+    let mut bundle = Bundle::new(&parent_element, &next_sibling, &node_ref);
     for layout in layouts.iter() {
         let next_vnode = layout.node.clone();
 
         log!("Sequentially apply layout '{}'", layout.name);
-        next_vnode.reconcile_sequentially(
+        bundle.reconcile(
             &parent_scope,
             &parent_element,
             next_sibling.clone(),
-            &mut bundle,
+            next_vnode,
         );
+
         scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
@@ -116,12 +116,13 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         let next_vnode = layout.node.clone();
 
         log!("Sequentially detach layout '{}'", layout.name);
-        next_vnode.reconcile_sequentially(
+        bundle.reconcile(
             &parent_scope,
             &parent_element,
             next_sibling.clone(),
-            &mut bundle,
+            next_vnode,
         );
+
         scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
@@ -132,9 +133,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     }
 
     // Detach last layout
-    if let Some(bundle) = bundle {
-        bundle.detach(&parent_element, false);
-    }
+    bundle.detach(&parent_element, false);
     scheduler::start_now();
     assert_eq!(
         parent_element.inner_html(),

@@ -27,6 +27,14 @@ jobs:
           command: clippy
           args: --all-targets -- -D warnings
 
+      - name: Lint feature soundness
+        run: |
+          cargo clippy -- --deny=warnings
+          cargo clippy --features=ssr -- --deny=warnings
+          cargo clippy --features=render -- --deny=warnings
+          cargo clippy --all-features --all-targets -- --deny=warnings
+        working-directory: packages/yew
+
 
   clippy-release:
     name: Clippy on release profile
@@ -48,6 +56,14 @@ jobs:
         with:
           command: clippy
           args: --all-targets --release -- -D warnings
+
+      - name: Lint feature soundness
+        run: |
+          cargo clippy --release -- --deny=warnings
+          cargo clippy --release --features=ssr -- --deny=warnings
+          cargo clippy --release --features=render -- --deny=warnings
+          cargo clippy --release --all-features --all-targets -- --deny=warnings
+        working-directory: packages/yew
 
 
   doc_tests:
@@ -180,4 +196,3 @@ jobs:
         with:
           command: test
           args: -p yew-macro test_html_lints --features lints
-

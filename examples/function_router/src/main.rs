@@ -9,5 +9,6 @@ pub use app::*;
 fn main() {
     #[cfg(target_arch = "wasm32")]
     wasm_logger::init(wasm_logger::Config::new(log::Level::Trace));
-    yew::start_app::<App>();
+    #[cfg(feature = "render")]
+    yew::Renderer::<App>::new().render();
 }
