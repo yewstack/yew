@@ -233,7 +233,36 @@ mod feat_hydration {
             parent: &Element,
             fragment: &mut Fragment,
         ) -> (NodeRef, Self::Bundle) {
-            todo!()
+            match self {
+                VNode::VTag(vtag) => {
+                    let (node_ref, tag) = vtag.hydrate(parent_scope, parent, fragment);
+                    (node_ref, tag.into())
+                }
+                VNode::VText(vtext) => {
+                    let (node_ref, text) = vtext.hydrate(parent_scope, parent, fragment);
+                    (node_ref, text.into())
+                }
+                VNode::VComp(vcomp) => {
+                    let (node_ref, comp) = vcomp.hydrate(parent_scope, parent, fragment);
+                    (node_ref, comp.into())
+                }
+                VNode::VList(vlist) => {
+                    let (node_ref, list) = vlist.hydrate(parent_scope, parent, fragment);
+                    (node_ref, list.into())
+                }
+                // You cannot hydrate a VRef.
+                VNode::VRef(_) => {
+                    panic!("VRef is not hydratable. Try move it to a component mounted after an effect.")
+                }
+                // You cannot hydrate a VPortal.
+                VNode::VPortal(_) => {
+                    panic!("VPortal is not hydratable. Try move it to a component mounted after an effect.")
+                }
+                VNode::VSuspense(vsuspense) => {
+                    let (node_ref, suspense) = vsuspense.hydrate(parent_scope, parent, fragment);
+                    (node_ref, suspense.into())
+                }
+            }
         }
     }
 }
