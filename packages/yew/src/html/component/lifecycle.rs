@@ -11,6 +11,8 @@ use std::rc::Rc;
 
 #[cfg(feature = "render")]
 use crate::dom_bundle::Bundle;
+#[cfg(feature = "hydration")]
+use crate::dom_bundle::Fragment;
 #[cfg(feature = "render")]
 use crate::html::NodeRef;
 #[cfg(feature = "render")]
@@ -20,9 +22,17 @@ pub(crate) enum ComponentRenderState {
     #[cfg(feature = "render")]
     Render {
         bundle: Bundle,
-        parent: web_sys::Element,
+        parent: Element,
         next_sibling: NodeRef,
         node_ref: NodeRef,
+    },
+    #[cfg(feature = "hydration")]
+    Hydration {
+        parent: Element,
+        next_sibling: NodeRef,
+        node_ref: NodeRef,
+
+        fragment: Fragment,
     },
 
     #[cfg(feature = "ssr")]
@@ -43,6 +53,20 @@ impl std::fmt::Debug for ComponentRenderState {
             } => f
                 .debug_struct("ComponentRenderState::Render")
                 .field("bundle", bundle)
+                .field("parent", parent)
+                .field("next_sibling", next_sibling)
+                .field("node_ref", node_ref)
+                .finish(),
+
+            #[cfg(feature = "hydration")]
+            Self::Hydration {
+                ref fragment,
+                ref parent,
+                ref next_sibling,
+                ref node_ref,
+            } => f
+                .debug_struct("ComponentRenderState::Render")
+                .field("fragment", fragment)
                 .field("parent", parent)
                 .field("next_sibling", next_sibling)
                 .field("node_ref", node_ref)
@@ -254,6 +278,20 @@ impl Runnable for UpdateRunner {
                             state.inner.props_changed(props)
                         }
 
+                        #[cfg(feature = "hydration")]
+                        ComponentRenderState::Hydration {
+                            ref mut node_ref,
+                            next_sibling: ref mut current_next_sibling,
+                            ..
+                        } => {
+                            // When components are updated, a new node ref could have been passed in
+                            *node_ref = next_node_ref;
+                            // When components are updated, their siblings were likely also updated
+                            *current_next_sibling = next_sibling;
+                            // Only trigger changed if props were changed
+                            state.inner.props_changed(props)
+                        }
+
                         #[cfg(feature = "ssr")]
                         ComponentRenderState::Ssr { .. } => {
                             #[cfg(debug_assertions)]
@@ -275,6 +313,20 @@ impl Runnable for UpdateRunner {
                             ..
                         } => {
                             bundle.shift(&next_parent, next_sibling.clone());
+
+                            *parent = next_parent;
+                            *current_next_sibling = next_sibling;
+                        }
+
+                        // We need to shift the hydrate fragment if the component is not hydrated.
+                        #[cfg(feature = "hydration")]
+                        ComponentRenderState::Hydration {
+                            ref fragment,
+                            ref mut parent,
+                            next_sibling: ref mut current_next_sibling,
+                            ..
+                        } => {
+                            fragment.shift(&next_parent, next_sibling.clone());
 
                             *parent = next_parent;
                             *current_next_sibling = next_sibling;
@@ -335,6 +387,22 @@ impl Runnable for DestroyRunner {
                     ..
                 } => {
                     bundle.detach(parent, self.parent_to_detach);
+
+                    node_ref.set(None);
+                }
+                // We need to detach the hydrate fragment if the component is not hydrated.
+                #[cfg(feature = "hydration")]
+                ComponentRenderState::Hydration {
+                    ref fragment,
+                    ref parent,
+                    ref node_ref,
+                    ..
+                } => {
+                    for node in fragment.iter() {
+                        parent
+                            .remove_child(node)
+                            .expect("failed to remove fragment node.");
+                    }
 
                     node_ref.set(None);
                 }
@@ -448,6 +516,47 @@ impl RenderRunner {
                     },
                     first_render,
                 );
+            }
+
+            #[cfg(feature = "hydration")]
+            ComponentRenderState::Hydration {
+                ref mut fragment,
+                ref parent,
+                ref node_ref,
+                ref next_sibling,
+            } => {
+                // We schedule a "first" render to run immediately after hydration,
+                // for the following reason:
+                // 1. Fix NodeRef (first_node and next_sibling)
+                // 2. Switch from fallback UI to children UI for <Suspense /> component (if it is
+                //    not meant to be suspended.).
+                scheduler::push_component_render(
+                    state.comp_id,
+                    RenderRunner {
+                        state: self.state.clone(),
+                    },
+                );
+
+                let scope = state.inner.any_scope();
+
+                // This first node is not guaranteed to be correct here.
+                // As it may be a comment node that is removed afterwards.
+                // but we link it anyways.
+                let (node, bundle) = Bundle::hydrate(&scope, parent, fragment, new_root);
+
+                // We trim all text nodes before checking as it's likely these are whitespaces.
+                fragment.trim_start_text_nodes(parent);
+
+                assert!(fragment.is_empty(), "expected end of component, found node");
+
+                node_ref.link(node);
+
+                state.render_state = ComponentRenderState::Render {
+                    bundle,
+                    parent: parent.clone(),
+                    node_ref: node_ref.clone(),
+                    next_sibling: next_sibling.clone(),
+                };
             }
 
             #[cfg(feature = "ssr")]

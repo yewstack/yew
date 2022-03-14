@@ -36,7 +36,7 @@ use traits::{DomBundle, Reconcilable};
 use utils::{insert_node, test_log};
 
 #[cfg(feature = "hydration")]
-use fragment::Fragment;
+pub(crate) use fragment::Fragment;
 #[cfg(feature = "hydration")]
 use traits::Hydratable;
 #[cfg(feature = "hydration")]
@@ -82,5 +82,23 @@ impl Bundle {
     /// Detaches current bundle.
     pub fn detach(self, parent: &Element, parent_to_detach: bool) {
         self.0.detach(parent, parent_to_detach);
+    }
+}
+
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    impl Bundle {
+        /// Creates a bundle by hydrating a virtual dom layout.
+        pub fn hydrate(
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut Fragment,
+            node: VNode,
+        ) -> (NodeRef, Self) {
+            let (node_ref, root) = node.hydrate(parent_scope, parent, fragment);
+            (node_ref, Self(root))
+        }
     }
 }

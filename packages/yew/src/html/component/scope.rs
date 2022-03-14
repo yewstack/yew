@@ -514,6 +514,77 @@ mod feat_render {
 #[cfg(feature = "render")]
 pub(crate) use feat_render::*;
 
+#[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    use crate::dom_bundle::Fragment;
+    use crate::html::component::lifecycle::{ComponentRenderState, CreateRunner, RenderRunner};
+    use crate::html::NodeRef;
+    use crate::scheduler;
+
+    use web_sys::Element;
+
+    impl<COMP> Scope<COMP>
+    where
+        COMP: BaseComponent,
+    {
+        /// Hydrates the component.
+        ///
+        /// Returns a pending NodeRef of the next sibling.
+        ///
+        /// # Note
+        ///
+        /// This method is expected to collect all the elements belongs to the current component
+        /// immediately.
+        pub(crate) fn hydrate_in_place(
+            &self,
+            parent: Element,
+            fragment: &mut Fragment,
+            node_ref: NodeRef,
+            props: Rc<COMP::Properties>,
+        ) {
+            // This is very helpful to see which component is failing during hydration
+            // which means this component may not having a stable layout / differs between
+            // client-side and server-side.
+            #[cfg(all(debug_assertions, feature = "trace_hydration"))]
+            gloo::console::trace!(format!(
+                "queuing hydration of: {}(ID: {:?})",
+                std::any::type_name::<COMP>(),
+                self.id
+            ));
+
+            let fragment =
+                Fragment::collect_between(fragment, &parent, "<[", "</[", "]>", "component");
+            node_ref.set(fragment.front().cloned());
+            let next_sibling = NodeRef::default();
+
+            let state = ComponentRenderState::Hydration {
+                parent,
+                node_ref,
+                next_sibling,
+                fragment,
+            };
+
+            scheduler::push_component_create(
+                self.id,
+                CreateRunner {
+                    initial_render_state: state,
+                    props,
+                    scope: self.clone(),
+                },
+                RenderRunner {
+                    state: self.state.clone(),
+                },
+            );
+
+            // Not guaranteed to already have the scheduler started
+            scheduler::start();
+        }
+    }
+}
+
 #[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
 #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
 mod feat_io {

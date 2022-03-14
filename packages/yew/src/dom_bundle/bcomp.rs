@@ -129,7 +129,25 @@ mod feat_hydration {
             parent: &Element,
             fragment: &mut Fragment,
         ) -> (NodeRef, Self::Bundle) {
-            todo!()
+            let VComp {
+                type_id,
+                mountable,
+                node_ref,
+                key,
+            } = self;
+
+            let scoped =
+                mountable.hydrate(parent_scope, parent.clone(), fragment, node_ref.clone());
+
+            (
+                node_ref.clone(),
+                BComp {
+                    type_id,
+                    scope: scoped,
+                    node_ref,
+                    key,
+                },
+            )
         }
     }
 }
