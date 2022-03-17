@@ -21,12 +21,12 @@ extern "C" {
 
 /// DOM-Types that can have listeners registered on them.
 /// Uses the duck-typed interface from above in impls.
-pub trait EventTarget {
+pub trait EventListening {
     fn listener_id(&self) -> Option<u32>;
     fn set_listener_id(&self, id: u32);
 }
 
-impl EventTarget for Element {
+impl EventListening for Element {
     fn listener_id(&self) -> Option<u32> {
         self.unchecked_ref::<EventTargetable>().listener_id()
     }
@@ -202,16 +202,21 @@ impl Registry {
         }
     }
 
-    // Handle a single event, given the listener and event descriptor.
+    /// Check if this registry has any listeners for the given event descriptor
+    pub fn has_any_listeners(&self, desc: &EventDescriptor) -> bool {
+        self.global.handling.contains(desc)
+    }
+
+    /// Handle a single event, given the listening element and event descriptor.
     pub fn get_handler(
         registry: &RefCell<Registry>,
-        listener: &dyn EventTarget,
+        listening: &dyn EventListening,
         desc: &EventDescriptor,
     ) -> Option<impl FnOnce(&Event)> {
         // The tricky part is that we want to drop the reference to the registry before
         // calling any actual listeners (since that might end up running lifecycle methods
         // and modify the registry). So we clone the current listeners and return a closure
-        let listener_id = listener.listener_id()?;
+        let listener_id = listening.listener_id()?;
         let registry_ref = registry.borrow();
         let handlers = registry_ref.by_id.get(&listener_id)?;
         let listeners = handlers.get(desc)?.clone();
@@ -261,14 +266,15 @@ impl Registry {
         let id = self.id_counter;
         self.id_counter += 1;
 
-        root.brand_element(el);
+        root.brand_element(el as &HtmlEventTarget);
         el.set_listener_id(id);
 
         id
     }
 }
 
-#[cfg(all(test, feature = "wasm_test"))]
+#[cfg(feature = "wasm_test")]
+#[cfg(test)]
 mod tests {
     use std::marker::PhantomData;
 
@@ -276,7 +282,10 @@ mod tests {
     use web_sys::{Event, EventInit, MouseEvent};
     wasm_bindgen_test_configure!(run_in_browser);
 
-    use crate::{html, html::TargetCast, scheduler, AppHandle, Component, Context, Html};
+    use crate::{
+        create_portal, html, html::TargetCast, scheduler, virtual_dom::VNode, AppHandle, Component,
+        Context, Html, Properties,
+    };
     use gloo_utils::document;
     use wasm_bindgen::JsCast;
     use yew::Callback;
@@ -298,26 +307,7 @@ mod tests {
     trait Mixin {
         fn view<C>(ctx: &Context<C>, state: &State) -> Html
         where
-            C: Component<Message = Message>,
-        {
-            let link = ctx.link().clone();
-            let onclick = Callback::from(move |_| {
-                link.send_message(Message::Action);
-                scheduler::start_now();
-            });
-
-            if state.stop_listening {
-                html! {
-                    <a>{state.action}</a>
-                }
-            } else {
-                html! {
-                    <a {onclick}>
-                        {state.action}
-                    </a>
-                }
-            }
-        }
+            C: Component<Message = Message, Properties = Self>;
     }
 
     struct Comp<M>
@@ -330,10 +320,10 @@ mod tests {
 
     impl<M> Component for Comp<M>
     where
-        M: Mixin + 'static,
+        M: Mixin + Properties + 'static,
     {
         type Message = Message;
-        type Properties = ();
+        type Properties = M;
 
         fn create(_: &Context<Self>) -> Self {
             Comp {
@@ -362,6 +352,7 @@ mod tests {
         }
     }
 
+    #[track_caller]
     fn assert_count(el: &web_sys::HtmlElement, count: isize) {
         assert_eq!(el.text_content(), Some(count.to_string()))
     }
@@ -377,7 +368,7 @@ mod tests {
 
     fn init<M>(tag: &str) -> (AppHandle<Comp<M>>, web_sys::HtmlElement)
     where
-        M: Mixin,
+        M: Mixin + Properties + Default,
     {
         // Remove any existing elements
         if let Some(el) = document().query_selector(tag).unwrap() {
@@ -394,9 +385,33 @@ mod tests {
 
     #[test]
     fn synchronous() {
+        #[derive(Default, PartialEq, Properties)]
         struct Synchronous;
 
-        impl Mixin for Synchronous {}
+        impl Mixin for Synchronous {
+            fn view<C>(ctx: &Context<C>, state: &State) -> Html
+            where
+                C: Component<Message = Message>,
+            {
+                let link = ctx.link().clone();
+                let onclick = Callback::from(move |_| {
+                    link.send_message(Message::Action);
+                    scheduler::start_now();
+                });
+
+                if state.stop_listening {
+                    html! {
+                        <a>{state.action}</a>
+                    }
+                } else {
+                    html! {
+                        <a {onclick}>
+                            {state.action}
+                        </a>
+                    }
+                }
+            }
+        }
 
         let (link, el) = init::<Synchronous>("a");
 
@@ -417,6 +432,7 @@ mod tests {
 
     #[test]
     async fn non_bubbling_event() {
+        #[derive(Default, PartialEq, Properties)]
         struct NonBubbling;
 
         impl Mixin for NonBubbling {
@@ -462,6 +478,7 @@ mod tests {
 
     #[test]
     fn bubbling() {
+        #[derive(Default, PartialEq, Properties)]
         struct Bubbling;
 
         impl Mixin for Bubbling {
@@ -512,6 +529,7 @@ mod tests {
 
     #[test]
     fn cancel_bubbling() {
+        #[derive(Default, PartialEq, Properties)]
         struct CancelBubbling;
 
         impl Mixin for CancelBubbling {
@@ -558,6 +576,7 @@ mod tests {
         // Here an event is being delivered to a DOM node which does
         // _not_ have a listener but which is contained within an
         // element that does and which cancels the bubble.
+        #[derive(Default, PartialEq, Properties)]
         struct CancelBubbling;
 
         impl Mixin for CancelBubbling {
@@ -600,10 +619,71 @@ mod tests {
         assert_count(&el, 2);
     }
 
+    #[test]
+    fn portal_bubbling() {
+        // Here an event is being delivered to a DOM node which is contained
+        // in a portal. It should bubble through the portal and reach the containing
+        // element
+        #[derive(PartialEq, Properties)]
+        struct PortalBubbling {
+            host: web_sys::Element,
+        }
+        impl Default for PortalBubbling {
+            fn default() -> Self {
+                let host = document().create_element("div").unwrap();
+                PortalBubbling { host }
+            }
+        }
+
+        impl Mixin for PortalBubbling {
+            fn view<C>(ctx: &Context<C>, state: &State) -> Html
+            where
+                C: Component<Message = Message, Properties = Self>,
+            {
+                let portal_target = ctx.props().host.clone();
+                let onclick = {
+                    let link = ctx.link().clone();
+                    Callback::from(move |_| {
+                        link.send_message(Message::Action);
+                        scheduler::start_now();
+                    })
+                };
+                let portal = create_portal(
+                    html! {
+                        <a>
+                            {state.action}
+                        </a>
+                    },
+                    portal_target.clone(),
+                );
+
+                html! {
+                    <>
+                        <div onclick={onclick}>
+                            {portal}
+                        </div>
+                        {VNode::VRef(portal_target.into())}
+                    </>
+                }
+            }
+        }
+
+        let (_, el) = init::<PortalBubbling>("a");
+
+        assert_count(&el, 0);
+
+        el.click();
+        assert_count(&el, 1);
+
+        el.click();
+        assert_count(&el, 2);
+    }
+
     fn test_input_listener<E>(make_event: impl Fn() -> E)
     where
         E: JsCast + std::fmt::Debug,
     {
+        #[derive(Default, PartialEq, Properties)]
         struct Input;
 
         impl Mixin for Input {
