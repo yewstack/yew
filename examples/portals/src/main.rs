@@ -69,6 +69,7 @@ impl Component for ShadowDOMHost {
 
 pub struct App {
     style_html: Html,
+    title_element: Element,
     counter: u32,
 }
 
@@ -84,6 +85,11 @@ impl Component for App {
         let document_head = gloo_utils::document()
             .head()
             .expect("head element to be present");
+        let title_element = document_head
+            .query_selector("title")
+            .expect("to find a title element")
+            .expect("to find a title element");
+        title_element.set_text_content(None); // Clear the title element
         let style_html = create_portal(
             html! {
                 <style>{"p { color: red; }"}</style>
@@ -92,6 +98,7 @@ impl Component for App {
         );
         Self {
             style_html,
+            title_element,
             counter: 0,
         }
     }
@@ -105,6 +112,16 @@ impl Component for App {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let onclick = ctx.link().callback(|_| AppMessage::IncreaseCounter);
+        let title = create_portal(
+            html! {
+                if self.counter > 0 {
+                    {format!("Clicked {} times", self.counter)}
+                } else {
+                    {"Yew • Portals"}
+                }
+            },
+            self.title_element.clone(),
+        );
         html! {
             <>
             {self.style_html.clone()}
@@ -114,7 +131,8 @@ impl Component for App {
                 <span>{"Buttons clicked inside the shadow dom work fine."}</span>
                 <button {onclick}>{"Click me!"}</button>
             </ShadowDOMHost>
-            <p>{format!("The button has been clicked {} times", self.counter)}</p>
+            <p>{format!("The button has been clicked {} times. This is also reflected in the title of the tab!", self.counter)}</p>
+            {title}
             </>
         }
     }
