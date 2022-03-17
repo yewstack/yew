@@ -3,6 +3,10 @@ use crate::html::AnyScope;
 use crate::html::NodeRef;
 use web_sys::Element;
 
+/// A Reconcile Target.
+///
+/// When a [Reconcilable] is attached, a reconcile target is created to store additional
+/// information.
 pub(super) trait ReconcileTarget {
     /// Remove self from parent.
     ///

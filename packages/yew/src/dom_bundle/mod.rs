@@ -37,7 +37,7 @@ pub use self::btag::set_event_bubbling;
 
 /// A Bundle.
 ///
-/// Each component holds a bundle that represents a realised layout, designated by a VNode.
+/// Each component holds a bundle that represents a realised layout, designated by a [VNode].
 ///
 /// This is not to be confused with [BComp], which represents a component in the position of a
 /// bundle layout.
