@@ -68,11 +68,16 @@ impl Component for ShadowDOMHost {
 }
 
 pub struct App {
-    pub style_html: Html,
+    style_html: Html,
+    counter: u32,
+}
+
+pub enum AppMessage {
+    IncreaseCounter,
 }
 
 impl Component for App {
-    type Message = ();
+    type Message = AppMessage;
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
@@ -85,17 +90,31 @@ impl Component for App {
             },
             document_head.into(),
         );
-        Self { style_html }
+        Self {
+            style_html,
+            counter: 0,
+        }
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            AppMessage::IncreaseCounter => self.counter += 1,
+        }
+        true
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let onclick = ctx.link().callback(|_| AppMessage::IncreaseCounter);
         html! {
             <>
             {self.style_html.clone()}
             <p>{"This paragraph is colored red, and its style is mounted into "}<pre>{"document.head"}</pre>{" with a portal"}</p>
             <ShadowDOMHost>
                 <p>{"This paragraph is rendered in a shadow dom and thus not affected by the surrounding styling context"}</p>
+                <span>{"Buttons clicked inside the shadow dom work fine."}</span>
+                <button {onclick}>{"Click me!"}</button>
             </ShadowDOMHost>
+            <p>{format!("The button has been clicked {} times", self.counter)}</p>
             </>
         }
     }

@@ -155,6 +155,7 @@ impl<'tree> Iterator for BubblingIterator<'tree> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let candidate = self.next_el.take()?;
+        let candidate_parent = self.subtree;
         if self.event.cancel_bubble() {
             return None;
         }
@@ -167,7 +168,7 @@ impl<'tree> Iterator for BubblingIterator<'tree> {
                 self.next_el = Some(parent);
             }
         }
-        Some((self.subtree, candidate))
+        Some((candidate_parent, candidate))
     }
 }
 
