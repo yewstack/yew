@@ -78,6 +78,24 @@ jobs:
       CARGO_BUILD_TARGET: ${{ matrix.target }}
     steps:
       - uses: actions/checkout@v2
+
+      - uses: Swatinem/rust-cache@v1
+
+      # we need this target to install wasm-bindgen-cli
+      - uses: actions-rs/toolchain@v1
+        if: ${{ matrix.target == 'wasm32-unknown-unknown' }}
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+          profile: minimal
+
+      - name: Install wasm-bindgen-cli
+        if: ${{ matrix.target == 'wasm32-unknown-unknown' }}
+        uses: actions-rs/install@v0.1
+        with:
+          crate: wasm-bindgen-cli
+          version: 0.2.78 # update this when changing wasm-bindgen version in yew
+
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.toolchain }}
@@ -91,14 +109,6 @@ jobs:
         with:
           command: test
           args: --doc --workspace --exclude yew --exclude website-test
-
-      - name: Install wasm-bindgen-cli
-        if: ${{ matrix.target == 'wasm32-unknown-unknown' }}
-        uses: actions-rs/install@v0.1
-        with:
-          crate: wasm-bindgen-cli
-          version: 0.2.78 # update this when changing wasm-bindgen version in yew
-
 
       - name: Run website code snippet tests
         uses: actions-rs/cargo@v1
