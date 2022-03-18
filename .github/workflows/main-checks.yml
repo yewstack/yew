@@ -51,14 +51,26 @@ jobs:
 
 
   doc_tests:
-    name: Documentation Tests
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - toolchain: stable
+            target: "x86_64-unknown-linux-gnu"
+          - toolchain: nightly
+            target: "x86_64-unknown-linux-gnu"
+          - toolchain: nightly
+            target: "wasm32-unknown-unknown"
+
+    name: Documentation Tests on ${{ matrix.toolchain }} with ${{ matrix.target }}
+    env:
+      CARGO_BUILD_TARGET: ${{ matrix.target }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
-          target: wasm32-unknown-unknown
+          toolchain: ${{ matrix.toolchain }}
+          target: ${{ matrix.target }}
           override: true
           profile: minimal
 
@@ -68,7 +80,6 @@ jobs:
         run: |
           sudo apt-get install aspell
           ci/spellcheck.sh list
-
 
       - name: Run doctest
         uses: actions-rs/cargo@v1

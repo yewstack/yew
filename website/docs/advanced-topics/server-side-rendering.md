@@ -30,7 +30,7 @@ To render Yew components at the server-side, you can create a renderer
 with `ServerRenderer::<App>::new()` and call `renderer.render().await`
 to render `<App />` into a `String`.
 
-```rust
+```rust ,ignore
 use yew::prelude::*;
 use yew::ServerRenderer;
 
