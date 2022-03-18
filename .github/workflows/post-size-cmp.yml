@@ -34,6 +34,7 @@ jobs:
               content = json.loads(f.read())
 
           joined_sizes = content["sizes"]
+          issue_number = content["issue_number"]
 
           lines: List[str] = []
 
@@ -66,7 +67,7 @@ jobs:
 
           with open(os.environ["GITHUB_ENV"], "a+") as f:
               f.write(f"YEW_EXAMPLE_SIZES={json.dumps(output)}\n")
-              f.write(f"PR_NUMBER={content["issue_number"]}\n")
+              f.write(f"PR_NUMBER={issue_number}\n")
 
         shell: python3 {0}
 
