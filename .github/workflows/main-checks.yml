@@ -91,10 +91,7 @@ jobs:
 
       - name: Install wasm-bindgen-cli
         if: ${{ matrix.target == 'wasm32-unknown-unknown' }}
-        uses: actions-rs/install@v0.1
-        with:
-          crate: wasm-bindgen-cli
-          version: 0.2.78 # update this when changing wasm-bindgen version in yew
+        run:  cargo install wasm-bindgen-cli --vers "0.2.78"
 
       - uses: actions-rs/toolchain@v1
         with:
