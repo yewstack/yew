@@ -79,6 +79,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: Swatinem/rust-cache@v1
+
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.toolchain }}
@@ -86,13 +88,14 @@ jobs:
           override: true
           profile: minimal
 
-      - uses: Swatinem/rust-cache@v1
-
       - name: Install wasm-bindgen-cli
         run: |
           wget https://github.com/rustwasm/wasm-bindgen/releases/download/0.2.78/wasm-bindgen-0.2.78-x86_64-unknown-linux-musl.tar.gz
           tar -xzf wasm-bindgen-0.2.78-x86_64-unknown-linux-musl.tar.gz
           mv wasm-bindgen-0.2.78-x86_64-unknown-linux-musl/wasm-bindgen ~/.cargo/bin/
+
+      - name: Setup geckodriver
+        uses: browser-actions/setup-geckodriver@latest
 
       - name: Run doctest
         uses: actions-rs/cargo@v1
