@@ -98,8 +98,7 @@ jobs:
           codegen-units = 1
           panic = "abort"
           EOF
-        with:
-          working-directory: yew
+        working-directory: yew
 
       - name: save yew-struct setup
         shell: bash
