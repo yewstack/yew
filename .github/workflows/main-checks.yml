@@ -107,6 +107,7 @@ jobs:
       - name: Run website code snippet tests
         uses: actions-rs/cargo@v1
         with:
+          toolchain: ${{ matrix.toolchain }}
           command: test
           args: -p website-test
 
