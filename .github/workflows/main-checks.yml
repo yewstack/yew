@@ -90,7 +90,8 @@ jobs:
 
       - name: Install wasm-bindgen-cli
         run: |
-          wget -qO- https://github.com/rustwasm/wasm-bindgen/releases/download/0.2.69/wasm-bindgen-0.2.78-x86_64-unknown-linux-musl.tar.gz | tar -xzf- && \
+          wget https://github.com/rustwasm/wasm-bindgen/releases/download/0.2.78/wasm-bindgen-0.2.78-x86_64-unknown-linux-musl.tar.gz
+          tar -xzf wasm-bindgen-0.2.78-x86_64-unknown-linux-musl.tar.gz
           mv wasm-bindgen-0.2.78-x86_64-unknown-linux-musl/wasm-bindgen ~/.cargo/bin/
 
       - name: Run doctest
