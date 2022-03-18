@@ -82,7 +82,7 @@ jobs:
         run: find examples/*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
         working-directory: current-pr
 
-      - name: Make pull request comment
+      - name: Collect size information
         run: |
           from typing import Dict, List, Optional
 
@@ -127,7 +127,7 @@ jobs:
 
         shell: python3 {0}
 
-      - name: Update Artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: size-cmp-info
