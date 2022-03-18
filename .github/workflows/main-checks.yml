@@ -79,18 +79,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      # we need this target to install wasm-bindgen-cli
-      - uses: actions-rs/toolchain@v1
-        if: ${{ matrix.target == 'wasm32-unknown-unknown' }}
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-
-      - name: Install wasm-bindgen-cli
-        if: ${{ matrix.target == 'wasm32-unknown-unknown' }}
-        run:  cargo install wasm-bindgen-cli --vers "0.2.78"
-
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.toolchain }}
@@ -99,6 +87,11 @@ jobs:
           profile: minimal
 
       - uses: Swatinem/rust-cache@v1
+
+      - name: Install wasm-bindgen-cli
+        run: |
+        wget -qO- https://github.com/rustwasm/wasm-bindgen/releases/download/0.2.69/wasm-bindgen-0.2.78-x86_64-unknown-linux-musl.tar.gz | tar -xzf- && \
+        mv wasm-bindgen-0.2.78-x86_64-unknown-linux-musl/wasm-bindgen ~/.cargo/bin/
 
       - name: Run doctest
         uses: actions-rs/cargo@v1
