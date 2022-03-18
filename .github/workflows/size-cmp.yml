@@ -1,0 +1,135 @@
+---
+name: Size Comparison
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - "packages/**"
+      - "examples/**"
+      - "Cargo.toml"
+
+jobs:
+  size-cmp:
+    name: Compare Size between master and current Pull Request
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v3
+        with:
+          repository: 'yewstack/yew'
+          ref: master
+          path: yew-master
+
+      - name: Checkout pull request
+        uses: actions/checkout@v3
+        with:
+          path: current-pr
+
+      - name: Setup toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+          profile: minimal
+
+      - name: Restore Rust cache for master
+        uses: Swatinem/rust-cache@v1
+        with:
+          working-directory: yew-master
+          key: master
+
+      - name: Restore Rust cache for current pull request
+        uses: Swatinem/rust-cache@v1
+        with:
+          working-directory: current-pr
+          key: pr
+
+      - name: Setup Trunk
+        uses: jetli/trunk-action@v0.1.0
+        with:
+          version: 'latest'
+
+      - name: Write optimisation flags for master
+        run: |
+          cat >> Cargo.toml << EOF
+          [profile.release]
+          lto = true
+          codegen-units = 1
+          panic = "abort"
+          opt-level = "z"
+          EOF
+        working-directory: yew-master
+
+      - name: Write optimisation flags for pull request
+        run: |
+          cat >> Cargo.toml << EOF
+          [profile.release]
+          lto = true
+          codegen-units = 1
+          panic = "abort"
+          opt-level = "z"
+          EOF
+        working-directory: current-pr
+
+      - name: Build master examples
+        run: find examples/*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
+        working-directory: yew-master
+
+      - name: Build pull request examples
+        run: find examples/*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
+        working-directory: current-pr
+
+      - name: Make pull request comment
+        run: |
+          from typing import Dict, List, Optional
+
+          import glob
+          import os
+          import json
+
+          def find_example_sizes(parent_dir: str) -> Dict[str, int]:
+              example_sizes: Dict[str, int] = {}
+
+              for example_dir in os.listdir(f"{parent_dir}/examples"):
+                  path = f"{parent_dir}/examples/{example_dir}"
+
+                  if not os.path.isdir(path):
+                      continue
+
+                  matches = glob.glob(f"{parent_dir}/examples/{example_dir}/dist/index*.wasm")
+
+                  if not matches:
+                      continue
+
+                  path = matches[0]
+
+                  example_sizes[example_dir] = os.path.getsize(path)
+
+              return example_sizes
+
+          master_sizes = find_example_sizes("yew-master")
+          pr_sizes = find_example_sizes("current-pr")
+
+          example_names = sorted(set([*master_sizes.keys(), *pr_sizes.keys()]))
+
+          joined_sizes = [(i, [master_sizes.get(i), pr_sizes.get(i)]) for i in example_names]
+
+          size_cmp_info = {
+              "sizes": joined_sizes,
+              "issue_number": ${{ github.event.number }},
+          }
+
+          with open(".SIZE_CMP_INFO", "w+") as f:
+              f.write(json.dumps(size_cmp_info))
+
+        shell: python3 {0}
+
+      - name: Update Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: size-cmp-info
+          path: ".SIZE_CMP_INFO"
+          retention-days: 1
