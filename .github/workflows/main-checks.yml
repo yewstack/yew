@@ -50,18 +50,10 @@ jobs:
           args: --all-targets --release -- -D warnings
 
   spell_tests:
-    name: Documentation Tests
+    name: Spell Test with aspell
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: wasm32-unknown-unknown
-          override: true
-          profile: minimal
-
-      - uses: Swatinem/rust-cache@v1
 
       - name: Check spelling
         run: |
@@ -99,6 +91,14 @@ jobs:
         with:
           command: test
           args: --doc --workspace --exclude yew --exclude website-test
+
+      - name: Install wasm-bindgen-cli
+        if: ${{ matrix.toolchain == 'wasm32-unknown-unknown' }}
+        uses: actions-rs/install@v0.1
+        with:
+          crate: wasm-bindgen-cli
+          version: 0.2.78 # update this when changing wasm-bindgen version in yew
+
 
       - name: Run website code snippet tests
         uses: actions-rs/cargo@v1
