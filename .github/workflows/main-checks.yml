@@ -49,10 +49,29 @@ jobs:
           command: clippy
           args: --all-targets --release -- -D warnings
 
+  spell_tests:
+    name: Documentation Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+          profile: minimal
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Check spelling
+        run: |
+          sudo apt-get install aspell
+          ci/spellcheck.sh list
 
   doc_tests:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         include:
           - toolchain: stable
@@ -62,7 +81,7 @@ jobs:
           - toolchain: nightly
             target: "wasm32-unknown-unknown"
 
-    name: Documentation Tests on ${{ matrix.toolchain }} with ${{ matrix.target }}
+    name: Test doc code snippets on ${{ matrix.toolchain }} with ${{ matrix.target }}
     env:
       CARGO_BUILD_TARGET: ${{ matrix.target }}
     steps:
@@ -74,18 +93,12 @@ jobs:
           override: true
           profile: minimal
 
-      - uses: Swatinem/rust-cache@v1
-
-      - name: Check spelling
-        run: |
-          sudo apt-get install aspell
-          ci/spellcheck.sh list
-
       - name: Run doctest
         uses: actions-rs/cargo@v1
+        if: ${{ matrix.toolchain == 'x86_64-unknown-linux-gnu' }}
         with:
           command: test
-          args: --doc
+          args: --doc --workspace --exclude yew --exclude website-test
 
       - name: Run website code snippet tests
         uses: actions-rs/cargo@v1
@@ -98,8 +111,6 @@ jobs:
         with:
           command: test
           args: --doc --features doc_test --features wasm_test
-
-
 
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
