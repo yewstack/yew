@@ -79,8 +79,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: Swatinem/rust-cache@v1
-
       # we need this target to install wasm-bindgen-cli
       - uses: actions-rs/toolchain@v1
         if: ${{ matrix.target == 'wasm32-unknown-unknown' }}
@@ -99,6 +97,8 @@ jobs:
           target: ${{ matrix.target }}
           override: true
           profile: minimal
+
+      - uses: Swatinem/rust-cache@v1
 
       - name: Run doctest
         uses: actions-rs/cargo@v1
