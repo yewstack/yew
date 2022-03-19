@@ -23,4 +23,4 @@ wasm-logger = "0.2"
 instant = { version = "0.1" }
 
 [features]
-render = ["yew/render"]
+csr = ["yew/csr"]

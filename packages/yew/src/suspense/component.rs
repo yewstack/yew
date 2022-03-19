@@ -94,7 +94,7 @@ impl Component for Suspense {
     }
 }
 
-#[cfg(any(feature = "render", feature = "ssr"))]
+#[cfg(any(feature = "csr", feature = "ssr"))]
 impl Suspense {
     pub(crate) fn suspend(&self, s: Suspension) {
         self.link.send_message(SuspenseMsg::Suspend(s));

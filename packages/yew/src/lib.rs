@@ -265,8 +265,8 @@ pub mod macros {
 
 pub mod callback;
 pub mod context;
-#[cfg_attr(documenting, doc(cfg(feature = "render")))]
-#[cfg(feature = "render")]
+#[cfg_attr(documenting, doc(cfg(feature = "csr")))]
+#[cfg(feature = "csr")]
 mod dom_bundle;
 pub mod functional;
 pub mod html;
@@ -280,12 +280,12 @@ pub mod utils;
 pub mod virtual_dom;
 #[cfg(feature = "ssr")]
 pub use server_renderer::*;
-#[cfg(feature = "render")]
+#[cfg(feature = "csr")]
 mod app_handle;
-#[cfg(feature = "render")]
+#[cfg(feature = "csr")]
 mod renderer;
 
-#[cfg(feature = "render")]
+#[cfg(feature = "csr")]
 #[cfg(test)]
 pub mod tests;
 
@@ -293,7 +293,7 @@ pub mod tests;
 pub mod events {
     pub use crate::html::TargetCast;
 
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     pub use crate::dom_bundle::set_event_bubbling;
 
     #[doc(no_inline)]
@@ -303,9 +303,9 @@ pub mod events {
     };
 }
 
-#[cfg(feature = "render")]
+#[cfg(feature = "csr")]
 pub use crate::app_handle::AppHandle;
-#[cfg(feature = "render")]
+#[cfg(feature = "csr")]
 pub use crate::renderer::{set_custom_panic_hook, Renderer};
 
 pub mod prelude {
@@ -317,7 +317,7 @@ pub mod prelude {
     //! # #![allow(unused_imports)]
     //! use yew::prelude::*;
     //! ```
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     pub use crate::app_handle::AppHandle;
     pub use crate::callback::Callback;
     pub use crate::context::{ContextHandle, ContextProvider};

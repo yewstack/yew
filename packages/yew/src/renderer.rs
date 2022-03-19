@@ -14,7 +14,7 @@ thread_local! {
 /// Set a custom panic hook.
 /// Unless a panic hook is set through this function, Yew will
 /// overwrite any existing panic hook when an application is rendered with [Renderer].
-#[cfg_attr(documenting, doc(cfg(feature = "render")))]
+#[cfg_attr(documenting, doc(cfg(feature = "csr")))]
 pub fn set_custom_panic_hook(hook: Box<dyn Fn(&PanicInfo<'_>) + Sync + Send + 'static>) {
     std::panic::set_hook(hook);
     PANIC_HOOK_IS_SET.with(|hook_is_set| hook_is_set.set(true));
@@ -30,7 +30,7 @@ fn set_default_panic_hook() {
 ///
 /// This is the main entry point of a Yew application.
 #[derive(Debug)]
-#[cfg_attr(documenting, doc(cfg(feature = "render")))]
+#[cfg_attr(documenting, doc(cfg(feature = "csr")))]
 #[must_use = "Renderer does nothing unless render() is called."]
 pub struct Renderer<ICOMP>
 where

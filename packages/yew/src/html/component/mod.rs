@@ -1,7 +1,7 @@
 //! Components wrapped with context including properties, state, and link
 
 mod children;
-#[cfg(any(feature = "render", feature = "ssr"))]
+#[cfg(any(feature = "csr", feature = "ssr"))]
 mod lifecycle;
 mod properties;
 mod scope;
@@ -9,13 +9,13 @@ mod scope;
 use super::{Html, HtmlResult, IntoHtmlResult};
 pub use children::*;
 pub use properties::*;
-#[cfg(feature = "render")]
+#[cfg(feature = "csr")]
 pub(crate) use scope::Scoped;
 pub use scope::{AnyScope, Scope, SendAsMessage};
 use std::rc::Rc;
 
-#[cfg(any(feature = "render", feature = "ssr"))]
-mod feat_render_ssr {
+#[cfg(any(feature = "csr", feature = "ssr"))]
+mod feat_csr_ssr {
     #[cfg(debug_assertions)]
     thread_local! {
          static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<usize, Vec<String>>>
@@ -55,8 +55,8 @@ mod feat_render_ssr {
     use std::sync::atomic::{AtomicUsize, Ordering};
 }
 #[cfg(debug_assertions)]
-#[cfg(any(feature = "render", feature = "ssr"))]
-pub(crate) use feat_render_ssr::*;
+#[cfg(any(feature = "csr", feature = "ssr"))]
+pub(crate) use feat_csr_ssr::*;
 
 /// The [`Component`]'s context. This contains component's [`Scope`] and and props and
 /// is passed to every lifecycle method.

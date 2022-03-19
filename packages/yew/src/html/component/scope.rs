@@ -1,11 +1,11 @@
 //! Component scope module
 
-#[cfg(any(feature = "render", feature = "ssr"))]
+#[cfg(any(feature = "csr", feature = "ssr"))]
 use crate::scheduler::Shared;
-#[cfg(any(feature = "render", feature = "ssr"))]
+#[cfg(any(feature = "csr", feature = "ssr"))]
 use std::cell::RefCell;
 
-#[cfg(any(feature = "render", feature = "ssr"))]
+#[cfg(any(feature = "csr", feature = "ssr"))]
 use super::lifecycle::{ComponentState, UpdateEvent, UpdateRunner};
 use super::BaseComponent;
 use crate::callback::Callback;
@@ -42,7 +42,7 @@ impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
 }
 
 impl AnyScope {
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     #[cfg(test)]
     pub(crate) fn test() -> Self {
         Self {
@@ -106,10 +106,10 @@ pub struct Scope<COMP: BaseComponent> {
     _marker: PhantomData<COMP>,
     parent: Option<Rc<AnyScope>>,
 
-    #[cfg(any(feature = "render", feature = "ssr"))]
+    #[cfg(any(feature = "csr", feature = "ssr"))]
     pub(crate) pending_messages: MsgQueue<COMP::Message>,
 
-    #[cfg(any(feature = "render", feature = "ssr"))]
+    #[cfg(any(feature = "csr", feature = "ssr"))]
     pub(crate) state: Shared<Option<ComponentState>>,
 
     #[cfg(debug_assertions)]
@@ -127,11 +127,11 @@ impl<COMP: BaseComponent> Clone for Scope<COMP> {
         Scope {
             _marker: PhantomData,
 
-            #[cfg(any(feature = "render", feature = "ssr"))]
+            #[cfg(any(feature = "csr", feature = "ssr"))]
             pending_messages: self.pending_messages.clone(),
             parent: self.parent.clone(),
 
-            #[cfg(any(feature = "render", feature = "ssr"))]
+            #[cfg(any(feature = "csr", feature = "ssr"))]
             state: self.state.clone(),
 
             #[cfg(debug_assertions)]
@@ -230,7 +230,7 @@ mod feat_ssr {
             scheduler::push_component_destroy(DestroyRunner {
                 state: self.state.clone(),
 
-                #[cfg(feature = "render")]
+                #[cfg(feature = "csr")]
                 parent_to_detach: false,
             });
             scheduler::start();
@@ -238,7 +238,7 @@ mod feat_ssr {
     }
 }
 
-#[cfg(not(any(feature = "ssr", feature = "render")))]
+#[cfg(not(any(feature = "ssr", feature = "csr")))]
 mod feat_no_render_ssr {
     use super::*;
 
@@ -264,8 +264,8 @@ mod feat_no_render_ssr {
     }
 }
 
-#[cfg(any(feature = "ssr", feature = "render"))]
-mod feat_render_ssr {
+#[cfg(any(feature = "ssr", feature = "csr"))]
+mod feat_csr_ssr {
     use super::*;
     use crate::scheduler::{self, Shared};
     use std::cell::Ref;
@@ -379,11 +379,11 @@ mod feat_render_ssr {
     }
 }
 
-#[cfg(any(feature = "ssr", feature = "render"))]
-pub(crate) use feat_render_ssr::*;
+#[cfg(any(feature = "ssr", feature = "csr"))]
+pub(crate) use feat_csr_ssr::*;
 
-#[cfg(feature = "render")]
-mod feat_render {
+#[cfg(feature = "csr")]
+mod feat_csr {
     use super::*;
     use crate::dom_bundle::Bundle;
     use crate::html::component::lifecycle::{
@@ -491,8 +491,8 @@ mod feat_render {
     }
 }
 
-#[cfg(feature = "render")]
-pub(crate) use feat_render::*;
+#[cfg(feature = "csr")]
+pub(crate) use feat_csr::*;
 
 #[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
 #[cfg(any(target_arch = "wasm32", feature = "tokio"))]

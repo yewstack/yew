@@ -133,8 +133,8 @@ impl NodeRef {
     }
 }
 
-#[cfg(feature = "render")]
-mod feat_render {
+#[cfg(feature = "csr")]
+mod feat_csr {
     use super::*;
 
     impl NodeRef {
