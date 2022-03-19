@@ -72,8 +72,21 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
-yew = { git = "https://github.com/yewstack/yew/" }
+yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
 ```
+
+:::info
+
+You only need feature `csr` if you are building an application.
+It will enable the `Renderer` and all client-side rendering related code.
+
+If you are making a library, do not enable this feature as it will pull in
+client-side rendering logic into the server-side rendering bundle.
+
+If you need the Renderer for testing or examples, you should enable it
+in the `dev-dependencies` instead.
+
+:::
 
 ```rust ,no_run title="src/main.rs"
 use yew::prelude::*;
@@ -86,7 +99,7 @@ fn app() -> Html {
 }
 
 fn main() {
-    yew::start_app::<App>();
+    yew::Renderer::<App>::new().render();
 }
 ```
 

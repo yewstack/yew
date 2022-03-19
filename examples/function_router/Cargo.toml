@@ -21,3 +21,6 @@ wasm-logger = "0.2"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 instant = { version = "0.1" }
+
+[features]
+csr = ["yew/csr"]

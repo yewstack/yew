@@ -5,7 +5,7 @@ mod listeners;
 
 pub use listeners::set_event_bubbling;
 
-use super::{insert_node, BList, BNode, DomBundle, Reconcilable};
+use super::{insert_node, BList, BNode, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
@@ -56,7 +56,7 @@ enum BTagInner {
 
 /// The bundle implementation to [VTag]
 #[derive(Debug)]
-pub struct BTag {
+pub(super) struct BTag {
     /// [BTag] fields that are specific to different [BTag] kinds.
     inner: BTagInner,
     listeners: ListenerRegistration,
@@ -68,7 +68,7 @@ pub struct BTag {
     key: Option<Key>,
 }
 
-impl DomBundle for BTag {
+impl ReconcileTarget for BTag {
     fn detach(self, parent: &Element, parent_to_detach: bool) {
         self.listeners.unregister();
 
@@ -247,15 +247,17 @@ impl VTag {
 
 impl BTag {
     /// Get the key of the underlying tag
-    pub(super) fn key(&self) -> Option<&Key> {
+    pub fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
 
+    #[cfg(feature = "wasm_test")]
     #[cfg(test)]
     fn reference(&self) -> &Element {
         &self.reference
     }
 
+    #[cfg(feature = "wasm_test")]
     #[cfg(test)]
     fn children(&self) -> &[BNode] {
         match &self.inner {
@@ -264,6 +266,7 @@ impl BTag {
         }
     }
 
+    #[cfg(feature = "wasm_test")]
     #[cfg(test)]
     fn tag(&self) -> &str {
         match &self.inner {
@@ -274,10 +277,11 @@ impl BTag {
     }
 }
 
+#[cfg(feature = "wasm_test")]
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::dom_bundle::{BNode, DomBundle, Reconcilable};
+    use crate::dom_bundle::{BNode, Reconcilable, ReconcileTarget};
     use crate::html;
     use crate::html::AnyScope;
     use crate::virtual_dom::vtag::{HTML_NAMESPACE, SVG_NAMESPACE};
@@ -287,10 +291,8 @@ mod tests {
     use wasm_bindgen::JsCast;
     use web_sys::HtmlInputElement as InputElement;
 
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     fn test_scope() -> AnyScope {
