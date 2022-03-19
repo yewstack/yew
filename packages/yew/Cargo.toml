@@ -78,9 +78,6 @@ trybuild = "1"
 
 [features]
 ssr = ["futures", "html-escape"]
-render = []
-doc_test = ["render"]
-wasm_test = ["render"]
 csr = []
 doc_test = ["csr"]
 wasm_test = ["csr"]

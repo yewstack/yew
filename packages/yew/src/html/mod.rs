@@ -172,14 +172,6 @@ mod feat_csr {
     }
 }
 
-/// Render children into a DOM node that exists outside the hierarchy of the parent
-/// component.
-/// ## Relevant examples
-/// - [Portals](https://github.com/yewstack/yew/tree/master/examples/portals)
-pub fn create_portal(child: Html, host: Element) -> Html {
-    VNode::VPortal(VPortal::new(child, host))
-}
-
 #[cfg(feature = "wasm_test")]
 #[cfg(test)]
 mod tests {
