@@ -18,7 +18,7 @@
 //! Server-Side Rendering should work on all targets when feature `ssr` is enabled.
 //!
 //! ### Supported Features:
-//! - `render`: Enables Client-side Rendering support and [`Renderer`].
+//! - `csr`: Enables Client-side Rendering support and [`Renderer`].
 //!   Only enable this feature if you are making a Yew application (not a library).
 //! - `ssr`: Enables Server-side Rendering support and [`ServerRenderer`].
 //! - `tokio`: Enables future-based APIs on non-wasm32 targets with tokio runtime. (You may want to
