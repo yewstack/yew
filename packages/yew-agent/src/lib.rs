@@ -37,6 +37,7 @@
     elided_lifetimes_in_paths
 )]
 
+pub mod station;
 pub mod task;
 pub mod worker;
 
