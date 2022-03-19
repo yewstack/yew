@@ -4,10 +4,12 @@ use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use yew::prelude::*;
+use yew::suspense::{Suspension, SuspensionResult};
 
 use futures::channel::oneshot;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::throw_str;
+use wasm_bindgen_futures::spawn_local;
 
 use super::traits::{Task, TaskWorker};
 use crate::worker::{use_bridge, UseBridgeHandle};
@@ -58,6 +60,16 @@ where
     }
 }
 
+impl<T> PartialEq for UseTaskHandle<T>
+where
+    T: Task,
+{
+    fn eq(&self, rhs: &Self) -> bool {
+        self.bridge == rhs.bridge
+    }
+}
+
+/// A hook to connect to a task.
 #[hook]
 pub fn use_task<T>() -> UseTaskHandle<T>
 where
@@ -85,4 +97,43 @@ where
         ctr,
         output_handles,
     }
+}
+
+/// A hook to run a task and suspends the component while the task is running.
+///
+/// The output is memorised and updated when the input changes.
+#[hook]
+pub fn use_memorized_task<T>(input: T::Input) -> SuspensionResult<Rc<T::Output>>
+where
+    T: Task + 'static,
+    T::Input: Clone + PartialEq,
+{
+    let task_runner = use_task::<T>();
+    let suspension_state = use_state(|| {
+        let (suspension, handle) = Suspension::new();
+
+        (Rc::new(RefCell::new(Some(handle))), Err(suspension))
+    });
+
+    let (handle, result) = (*suspension_state).clone();
+
+    use_effect_with_deps(
+        move |(task_runner, input)| {
+            let task_runner = task_runner.clone();
+            let input = input.clone();
+            spawn_local(async move {
+                let output = task_runner.run(input).await;
+
+                if let Some(m) = handle.borrow_mut().take() {
+                    suspension_state.set((Rc::default(), Ok(Rc::new(output))));
+
+                    m.resume();
+                }
+            });
+            || {}
+        },
+        (task_runner, input),
+    );
+
+    result
 }

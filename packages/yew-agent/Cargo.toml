@@ -13,3 +13,4 @@ gloo-worker = { git = "https://github.com/futursolo/gloo", branch = "worker-v2" 
 wasm-bindgen = "0.2"
 serde = { version = "1", features = ["derive"] }
 futures = "0.3"
+wasm-bindgen-futures = "0.4"
