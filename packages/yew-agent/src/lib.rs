@@ -1,20 +1,38 @@
 //! This module contains Yew's web worker implementation.
 //!
-//! There're 2 kinds of agents:
+//! ## Types
+//!
+//! There're a couple kinds of agents:
+//!
+//! ### Worker
+//!
+//! The low-level implementation of agents that provides an actor model and communicates with
+//! bridges.
+//!
+//! ## Reachability
+//!
+//! Agents needs to be spawned with a reachability.
+//! There're currently 2 kinds of reachability:
 //!
 //! ### Private
 //!
-//! Each time a bridge is created with the `use_private_bridge`, a new instance
+//! Each time a bridge is created with the `use_bridge`, a new instance
 //! of agent is spawned. This allows parallel computing between agents.
 //!
 //! ### Public
 //!
-//! Public agents are shared among all children of a [PublicAgentProvider].
+//! Public agents are shared among all children of a [WorkerProvider].
 //! Only 1 instance will be spawned for each public agents provider.
 
-mod primitives;
-mod private;
+#![deny(
+    clippy::all,
+    missing_docs,
+    missing_debug_implementations,
+    bare_trait_objects,
+    anonymous_parameters,
+    elided_lifetimes_in_paths
+)]
 
-#[doc(inline)]
-pub use primitives::{Agent, AgentScope, Bridge, Spawnable, Spawner};
-pub use private::{use_private_bridge, UsePrivateBridgeHandle};
+pub mod worker;
+
+mod reach;

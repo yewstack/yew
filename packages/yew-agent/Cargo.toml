@@ -10,3 +10,4 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 yew = { version = "0.19.3", path = "../yew" }
 gloo-worker = { git = "https://github.com/futursolo/gloo", branch = "worker-v2" }
+wasm-bindgen = "0.2"
