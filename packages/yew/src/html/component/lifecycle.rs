@@ -9,15 +9,15 @@ use crate::{Callback, Context, HtmlResult};
 use std::any::Any;
 use std::rc::Rc;
 
-#[cfg(feature = "render")]
+#[cfg(feature = "csr")]
 use crate::dom_bundle::Bundle;
-#[cfg(feature = "render")]
+#[cfg(feature = "csr")]
 use crate::html::NodeRef;
-#[cfg(feature = "render")]
+#[cfg(feature = "csr")]
 use web_sys::Element;
 
 pub(crate) enum ComponentRenderState {
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     Render {
         bundle: Bundle,
         parent: web_sys::Element,
@@ -34,7 +34,7 @@ pub(crate) enum ComponentRenderState {
 impl std::fmt::Debug for ComponentRenderState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            #[cfg(feature = "render")]
+            #[cfg(feature = "csr")]
             Self::Render {
                 ref bundle,
                 ref parent,
@@ -148,7 +148,7 @@ pub(crate) struct ComponentState {
 
     pub(super) render_state: ComponentRenderState,
 
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     has_rendered: bool,
 
     suspension: Option<Suspension>,
@@ -178,7 +178,7 @@ impl ComponentState {
             render_state: initial_render_state,
             suspension: None,
 
-            #[cfg(feature = "render")]
+            #[cfg(feature = "csr")]
             has_rendered: false,
 
             #[cfg(debug_assertions)]
@@ -223,10 +223,10 @@ pub(crate) enum UpdateEvent {
     /// Drain messages for a component.
     Message,
     /// Wraps properties, node ref, and next sibling for a component
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     Properties(Rc<dyn Any>, NodeRef, NodeRef),
     /// Shift Scope.
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     Shift(Element, NodeRef),
 }
 
@@ -240,10 +240,10 @@ impl Runnable for UpdateRunner {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             let schedule_render = match self.event {
                 UpdateEvent::Message => state.inner.flush_messages(),
-                #[cfg(feature = "render")]
+                #[cfg(feature = "csr")]
                 UpdateEvent::Properties(props, next_node_ref, next_sibling) => {
                     match state.render_state {
-                        #[cfg(feature = "render")]
+                        #[cfg(feature = "csr")]
                         ComponentRenderState::Render {
                             ref mut node_ref,
                             next_sibling: ref mut current_next_sibling,
@@ -268,7 +268,7 @@ impl Runnable for UpdateRunner {
                     }
                 }
 
-                #[cfg(feature = "render")]
+                #[cfg(feature = "csr")]
                 UpdateEvent::Shift(next_parent, next_sibling) => {
                     match state.render_state {
                         ComponentRenderState::Render {
@@ -317,7 +317,7 @@ impl Runnable for UpdateRunner {
 pub(crate) struct DestroyRunner {
     pub state: Shared<Option<ComponentState>>,
 
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     pub parent_to_detach: bool,
 }
 
@@ -330,7 +330,7 @@ impl Runnable for DestroyRunner {
             state.inner.destroy();
 
             match state.render_state {
-                #[cfg(feature = "render")]
+                #[cfg(feature = "csr")]
                 ComponentRenderState::Render {
                     bundle,
                     ref parent,
@@ -426,7 +426,7 @@ impl RenderRunner {
         }
 
         match state.render_state {
-            #[cfg(feature = "render")]
+            #[cfg(feature = "csr")]
             ComponentRenderState::Render {
                 ref mut bundle,
                 ref parent,
@@ -461,8 +461,8 @@ impl RenderRunner {
     }
 }
 
-#[cfg(feature = "render")]
-mod feat_render {
+#[cfg(feature = "csr")]
+mod feat_csr {
     use super::*;
 
     pub(crate) struct RenderedRunner {
@@ -484,8 +484,8 @@ mod feat_render {
     }
 }
 
-#[cfg(feature = "render")]
-use feat_render::*;
+#[cfg(feature = "csr")]
+use feat_csr::*;
 
 #[cfg(feature = "wasm_test")]
 #[cfg(test)]

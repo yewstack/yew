@@ -29,7 +29,7 @@ use bportal::BPortal;
 use bsuspense::BSuspense;
 use btag::BTag;
 use btext::BText;
-use traits::{DomBundle, Reconcilable};
+use traits::{Reconcilable, ReconcileTarget};
 use utils::{insert_node, test_log};
 
 #[doc(hidden)] // Publically exported from crate::events
@@ -37,7 +37,7 @@ pub use self::btag::set_event_bubbling;
 
 /// A Bundle.
 ///
-/// Each component holds a bundle that represents a realised layout, designated by a VNode.
+/// Each component holds a bundle that represents a realised layout, designated by a [VNode].
 ///
 /// This is not to be confused with [BComp], which represents a component in the position of a
 /// bundle layout.

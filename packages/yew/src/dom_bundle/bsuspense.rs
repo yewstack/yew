@@ -1,6 +1,6 @@
 //! This module contains the bundle version of a supsense [BSuspense]
 
-use super::{BNode, DomBundle, Reconcilable};
+use super::{BNode, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VSuspense};
 use crate::NodeRef;
@@ -30,7 +30,7 @@ impl BSuspense {
     }
 }
 
-impl DomBundle for BSuspense {
+impl ReconcileTarget for BSuspense {
     fn detach(self, parent: &Element, parent_to_detach: bool) {
         if let Some(fallback) = self.fallback_bundle {
             fallback.detach(parent, parent_to_detach);

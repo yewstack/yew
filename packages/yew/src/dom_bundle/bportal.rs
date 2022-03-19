@@ -2,7 +2,7 @@
 
 use super::test_log;
 use super::BNode;
-use crate::dom_bundle::{DomBundle, Reconcilable};
+use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::Key;
 use crate::virtual_dom::VPortal;
@@ -19,7 +19,7 @@ pub(super) struct BPortal {
     node: Box<BNode>,
 }
 
-impl DomBundle for BPortal {
+impl ReconcileTarget for BPortal {
     fn detach(self, _: &Element, _parent_to_detach: bool) {
         test_log!("Detaching portal from host{:?}", self.host.outer_html());
         self.node.detach(&self.host, false);

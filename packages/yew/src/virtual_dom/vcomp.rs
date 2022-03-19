@@ -6,12 +6,12 @@ use std::any::TypeId;
 use std::fmt;
 use std::rc::Rc;
 
-#[cfg(any(feature = "ssr", feature = "render"))]
+#[cfg(any(feature = "ssr", feature = "csr"))]
 use crate::html::{AnyScope, Scope};
 
-#[cfg(feature = "render")]
+#[cfg(feature = "csr")]
 use crate::html::Scoped;
-#[cfg(feature = "render")]
+#[cfg(feature = "csr")]
 use web_sys::Element;
 
 #[cfg(feature = "ssr")]
@@ -50,7 +50,7 @@ impl Clone for VComp {
 pub(crate) trait Mountable {
     fn copy(&self) -> Box<dyn Mountable>;
 
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     fn mount(
         self: Box<Self>,
         node_ref: NodeRef,
@@ -59,7 +59,7 @@ pub(crate) trait Mountable {
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped>;
 
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef);
 
     #[cfg(feature = "ssr")]
@@ -88,7 +88,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         Box::new(wrapper)
     }
 
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     fn mount(
         self: Box<Self>,
         node_ref: NodeRef,
@@ -102,7 +102,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         Box::new(scope)
     }
 
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef) {
         let scope: Scope<COMP> = scope.to_any().downcast::<COMP>();
         scope.reuse(self.props, node_ref, next_sibling);

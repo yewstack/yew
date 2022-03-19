@@ -26,12 +26,13 @@ struct Scheduler {
     update: Vec<Box<dyn Runnable>>,
     render_first: VecDeque<Box<dyn Runnable>>,
 
-    #[cfg(any(feature = "ssr", feature = "render"))]
+    #[cfg(any(feature = "ssr", feature = "csr"))]
     render: RenderScheduler,
 
     /// Stacks to ensure child calls are always before parent calls
     rendered_first: Vec<Box<dyn Runnable>>,
-    #[cfg(feature = "render")]
+
+    #[cfg(feature = "csr")]
     rendered: RenderedScheduler,
 }
 
@@ -57,8 +58,8 @@ pub fn push(runnable: Box<dyn Runnable>) {
     start();
 }
 
-#[cfg(any(feature = "ssr", feature = "render"))]
-mod feat_render_ssr {
+#[cfg(any(feature = "ssr", feature = "csr"))]
+mod feat_csr_ssr {
     use super::*;
 
     use std::collections::{hash_map::Entry, HashMap};
@@ -149,11 +150,11 @@ mod feat_render_ssr {
     }
 }
 
-#[cfg(any(feature = "ssr", feature = "render"))]
-pub(crate) use feat_render_ssr::*;
+#[cfg(any(feature = "ssr", feature = "csr"))]
+pub(crate) use feat_csr_ssr::*;
 
-#[cfg(feature = "render")]
-mod feat_render {
+#[cfg(feature = "csr")]
+mod feat_csr {
     use super::*;
 
     use std::collections::HashMap;
@@ -203,8 +204,8 @@ mod feat_render {
     }
 }
 
-#[cfg(feature = "render")]
-pub(crate) use feat_render::*;
+#[cfg(feature = "csr")]
+pub(crate) use feat_csr::*;
 
 /// Execute any pending [Runnable]s
 pub(crate) fn start_now() {
@@ -303,7 +304,7 @@ impl Scheduler {
         // Likely to cause duplicate renders via component updates, so placed before them
         to_run.append(&mut self.main);
 
-        #[cfg(any(feature = "ssr", feature = "render"))]
+        #[cfg(any(feature = "ssr", feature = "csr"))]
         {
             // Run after all possible updates to avoid duplicate renders.
             //
@@ -318,7 +319,7 @@ impl Scheduler {
             }
         }
 
-        #[cfg(feature = "render")]
+        #[cfg(feature = "csr")]
         {
             // These typically do nothing and don't spawn any other events - can be batched.
             // Should be run only after all renders have finished.

@@ -133,8 +133,8 @@ impl NodeRef {
     }
 }
 
-#[cfg(feature = "render")]
-mod feat_render {
+#[cfg(feature = "csr")]
+mod feat_csr {
     use super::*;
 
     impl NodeRef {
@@ -170,6 +170,14 @@ mod feat_render {
             node_ref
         }
     }
+}
+
+/// Render children into a DOM node that exists outside the hierarchy of the parent
+/// component.
+/// ## Relevant examples
+/// - [Portals](https://github.com/yewstack/yew/tree/master/examples/portals)
+pub fn create_portal(child: Html, host: Element) -> Html {
+    VNode::VPortal(VPortal::new(child, host))
 }
 
 #[cfg(feature = "wasm_test")]

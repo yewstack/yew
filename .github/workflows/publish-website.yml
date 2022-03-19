@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Download build artifact
-        uses: dawidd6/action-download-artifact@v2
+        uses: Legit-Labs/action-download-artifact@v2
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           workflow: build-website.yml
@@ -30,17 +30,18 @@ jobs:
 
       - if: github.event.workflow_run.event == 'pull_request'
         name: Download pr info
-        uses: dawidd6/action-download-artifact@v2
+        uses: Legit-Labs/action-download-artifact@v2
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           workflow: build-website.yml
           run_id: ${{ github.event.workflow_run.id }}
           name: pr-info
+          path: artifacts
 
       - if: github.event.workflow_run.event == 'pull_request'
         name: Apply pull request environment
         run: |
-          pr_number=$(cat "$PR_INFO_FILE")
+          pr_number=$(cat "artifacts/$PR_INFO_FILE")
           if ! [[ "$pr_number" =~ ^[0-9]+$ ]]; then
             echo "pr number invalid"
             exit 1
