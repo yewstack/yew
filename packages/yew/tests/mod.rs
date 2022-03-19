@@ -1,3 +1,5 @@
+#![cfg(feature = "wasm_test")]
+
 mod common;
 
 use common::obtain_result;
@@ -25,12 +27,13 @@ async fn props_are_passed() {
         }
     }
 
-    yew::start_app_with_props_in_element::<PropsComponent>(
+    yew::Renderer::<PropsComponent>::with_root_and_props(
         gloo_utils::document().get_element_by_id("output").unwrap(),
         PropsPassedFunctionProps {
             value: "props".to_string(),
         },
-    );
+    )
+    .render();
 
     sleep(Duration::ZERO).await;
     let result = obtain_result();

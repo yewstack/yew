@@ -483,6 +483,6 @@ error[E0277]: the trait bound `Cow<'static, str>: From<{integer}>` is not satisf
               <Cow<'a, CStr> as From<&'a CString>>
               <Cow<'a, CStr> as From<CString>>
               <Cow<'a, OsStr> as From<&'a OsStr>>
-            and 14 others
+            and 11 others
     = note: required because of the requirements on the impl of `Into<Cow<'static, str>>` for `{integer}`
 note: required by `into`

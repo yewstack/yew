@@ -1,6 +1,6 @@
 //! This module contains fragments bundles, a [BList]
 use super::{test_log, BNode};
-use crate::dom_bundle::{DomBundle, Reconcilable};
+use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{Key, VList, VNode, VText};
 use std::borrow::Borrow;
@@ -12,7 +12,7 @@ use web_sys::Element;
 
 /// This struct represents a mounted [VList]
 #[derive(Debug)]
-pub struct BList {
+pub(super) struct BList {
     /// The reverse (render order) list of child [BNode]s
     rev_children: Vec<BNode>,
     /// All [BNode]s in the BList have keys
@@ -120,7 +120,7 @@ impl BNode {
 
 impl BList {
     /// Create a new empty [BList]
-    pub(super) const fn new() -> BList {
+    pub const fn new() -> BList {
         BList {
             rev_children: vec![],
             fully_keyed: true,
@@ -129,7 +129,7 @@ impl BList {
     }
 
     /// Get the key of the underlying fragment
-    pub(super) fn key(&self) -> Option<&Key> {
+    pub fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
 
@@ -353,7 +353,7 @@ impl BList {
     }
 }
 
-impl DomBundle for BList {
+impl ReconcileTarget for BList {
     fn detach(self, parent: &Element, parent_to_detach: bool) {
         for child in self.rev_children.into_iter() {
             child.detach(parent, parent_to_detach);

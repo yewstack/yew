@@ -11,7 +11,7 @@ log = "0.4"
 getrandom = { version = "0.2", features = ["js"] }
 rand = { version = "0.8", features = ["small_rng"] }
 wasm-logger = "0.2"
-yew = { path = "../../packages/yew" }
+yew = { path = "../../packages/yew", features = ["csr"] }
 yew-router = { path = "../../packages/yew-router" }
 serde = { version = "1.0", features = ["derive"] }
 lazy_static = "1.4.0"

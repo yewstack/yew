@@ -13,7 +13,7 @@ gloo = "0.6"
 nanoid = "0.4"
 rand = "0.8"
 getrandom = { version = "0.2", features = ["js"] }
-yew = { path = "../../packages/yew" }
+yew = { path = "../../packages/yew", features = ["csr"] }
 
 [dependencies.web-sys]
 version = "0.3"
