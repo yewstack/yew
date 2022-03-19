@@ -4,6 +4,10 @@
 //!
 //! There're a couple kinds of agents:
 //!
+//! ### Task
+//!
+//! A kind of agent that for each input, a single output is expected.
+//!
 //! ### Worker
 //!
 //! The low-level implementation of agents that provides an actor model and communicates with
@@ -33,6 +37,9 @@
     elided_lifetimes_in_paths
 )]
 
+pub mod task;
 pub mod worker;
 
 mod reach;
+
+pub use reach::Reach;

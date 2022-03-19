@@ -14,7 +14,10 @@ pub struct WorkerProviderProps {
     pub path: AttrValue,
 
     /// The reachability of an agent.
-    reach: Reach,
+    ///
+    /// Default: [`Public`](Reach::Public).
+    #[prop_or(Reach::Public)]
+    pub reach: Reach,
 
     /// Lazily spawn the agent.
     ///
@@ -27,6 +30,7 @@ pub struct WorkerProviderProps {
     pub lazy: bool,
 
     /// Children of the provider.
+    #[prop_or_default]
     pub children: Children,
 }
 

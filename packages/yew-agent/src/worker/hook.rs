@@ -16,6 +16,7 @@ where
     T: Worker,
 {
     inner: Bridge<T>,
+    state: WorkerProviderState<T>,
 }
 
 impl<T> UseBridgeHandle<T>
@@ -35,6 +36,7 @@ where
     fn clone(&self) -> Self {
         Self {
             inner: self.inner.clone(),
+            state: self.state.clone(),
         }
     }
 }
@@ -46,7 +48,17 @@ where
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("UseBridgeHandle<_>")
             .field("inner", &self.inner)
+            .field("state", &"_")
             .finish()
+    }
+}
+
+impl<T> PartialEq for UseBridgeHandle<T>
+where
+    T: Worker,
+{
+    fn eq(&self, rhs: &Self) -> bool {
+        self.state == rhs.state
     }
 }
 
@@ -84,10 +96,11 @@ where
                 on_output(output);
             })
         },
-        worker_state,
+        worker_state.clone(),
     );
 
     UseBridgeHandle {
         inner: (*bridge).clone(),
+        state: worker_state,
     }
 }
