@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1647701530882,
+  "lastUpdate": 1647705292944,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -8932,6 +8932,115 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 32_startup-bt",
             "value": "29.835999999999984",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "330.5498046875",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "futursolo@users.noreply.github.com",
+            "name": "Kaede Hoshikawa",
+            "username": "futursolo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8bc2212716f298dc14a876c6e7aa7abe52c3de4e",
+          "message": "`#[cfg(feature = \"render\")]` and `yew::Renderer` (#2498)\n\n* Bring changes to this branch.\r\n\r\n* Bring changes to this branch.\r\n\r\n* Add feature render and renderer.\r\n\r\n* Bring changes to this branch.\r\n\r\n* Migrate examples to Renderer.\r\n\r\n* Satisfy no any render.\r\n\r\n* Satisfy ssr.\r\n\r\n* Satisfy feature render.\r\n\r\n* Lint feature soundness.\r\n\r\n* Suppress tests.\r\n\r\n* Fix pr-flow, update docs.\r\n\r\n* Add a notice.\r\n\r\n* Adjust visibility.\r\n\r\n* Correctly feature gate tests.\r\n\r\n* make test scope available under feature render.\r\n\r\n* Fix CI.\r\n\r\n* Fix CI.\r\n\r\n* Restore tests module to its original place as well.\r\n\r\n* Make bundles crate private.\r\n\r\n* Make most bundle APIs private.\r\n\r\n* Adjust docs.\r\n\r\n* Adjust debug implementation.\r\n\r\n* Replace start_app with Renderer.\r\n\r\n* Adjust documentation.\r\n\r\n* Remove unused lint.\r\n\r\n* Remove start_app from docs.\r\n\r\n* DomBundle -> ReconcileTarget.\r\n\r\n* Adjust documentation.\r\n\r\n* Once render, now csr.\r\n\r\n* Fix docs as well.",
+          "timestamp": "2022-03-20T00:48:47+09:00",
+          "tree_id": "729e7ea823785951a38dfe4a7824b0f002f422e7",
+          "url": "https://github.com/yewstack/yew/commit/8bc2212716f298dc14a876c6e7aa7abe52c3de4e"
+        },
+        "date": 1647705291590,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "185.2795",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "199.5645",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "379.8255",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "74.57400000000001",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "102.6335",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "32.038",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "2279.255",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "431.4185",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "212.28",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "0.9634475708007812",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.45648193359375",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.4602203369140625",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.5052261352539062",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.1240730285644531",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1732.364",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "33.02199999999999",
             "unit": ""
           },
           {
