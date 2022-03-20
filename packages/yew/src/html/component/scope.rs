@@ -239,7 +239,7 @@ mod feat_ssr {
 }
 
 #[cfg(not(any(feature = "ssr", feature = "csr")))]
-mod feat_no_render_ssr {
+mod feat_no_csr_ssr {
     use super::*;
 
     // Skeleton code to provide public methods when no renderer are enabled.
