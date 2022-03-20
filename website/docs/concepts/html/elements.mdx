@@ -21,14 +21,23 @@ use gloo::utils::document;
 
 #[function_component]
 fn MyComponent() -> Html {
-    // Create a div element from the document
-    let div: Element = document().create_element("div").unwrap();
-    // Add content, classes etc.
-    div.set_inner_html("Hello, World!");
-    // Convert Element into a Node
-    let node: Node = div.into();
-    // Return that Node as a Html value
-    Html::VRef(node)
+    // memoize as this only needs to be executed once
+    let node = use_memo(
+        |_| {
+            // Create a div element from the document
+            let div: Element = document().create_element("div").unwrap();
+            // Add content, classes etc.
+            div.set_inner_html("Hello, World!");
+            // Convert Element into a Node
+            let node: Node = div.into();
+            // Return that Node as a Html value
+            Html::VRef(node)
+        },
+        (),
+    );
+
+    // use_memo return Rc so we need to deref and clone
+    (*node).clone()
 }
 
 ```

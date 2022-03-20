@@ -19,15 +19,15 @@ fn MyComponent() -> Html {
 
 #[derive(Clone, PartialEq, Properties)]
 struct Props {
-    prop1: String,
-    prop2: String,
+    user_first_name: String,
+    user_last_name: String,
 }
 
 #[function_component]
 fn MyComponentWithProps(props: &Props) -> Html {
-    let Props { prop1, prop2 } = props;
+    let Props { user_first_name, user_last_name } = props;
     html! {
-        <>{"prop1: "}{prop1}{" and prop2: "}{prop2}</>
+        <>{"user_first_name: "}{user_first_name}{" and user_last_name: "}{user_last_name}</>
     }
 }
 
@@ -42,13 +42,13 @@ html!{
         <MyComponent />
 
         // With Properties
-        <MyComponentWithProps prop1={"lorem"} prop2={"ipsum"} />
+        <MyComponentWithProps prop1="lorem" prop2="ipsum" />
 
         // With the whole set of props provided at once
         <MyComponentWithProps ..props.clone() />
 
         // With Properties from a variable and specific values overridden
-        <MyComponentWithProps prop2={"lorem"} ..props />
+        <MyComponentWithProps prop2="lorem" ..props />
     </>
 };
 ```
