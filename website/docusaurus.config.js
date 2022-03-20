@@ -110,6 +110,10 @@ module.exports = {
         prism: {
             additionalLanguages: ['rust', 'toml'],
         },
+        googleAnalytics: {
+            trackingID: 'UA-141789564-1',
+            anonymizeIP: true,
+        },
     },
     i18n: {
         defaultLocale: 'en',
@@ -117,13 +121,6 @@ module.exports = {
     },
     plugins: [
         'content-pages',
-        [
-            '@docusaurus/plugin-google-analytics',
-            {
-                trackingID: 'UA-141789564-1',
-                anonymizeIP: true,
-            },
-        ],
         [
             '@docusaurus/theme-classic',
             {
