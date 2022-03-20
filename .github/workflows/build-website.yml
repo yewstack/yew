@@ -14,8 +14,22 @@ on:
       - ".github/workflows/*-website.yml"
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "16"
+
+      - name: Run prettier
+
   build:
     runs-on: ubuntu-latest
+    needs:
+      - lint # only build if code is formatted properly
     env:
       PR_INFO_FILE: ".PR_INFO"
     steps:
