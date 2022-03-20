@@ -1,5 +1,5 @@
 ---
-title: 'Events'
+title: "Events"
 ---
 
 ## Introduction
@@ -23,7 +23,7 @@ end up using a version which conflicts with the version that Yew specifies.
 The event listener name is the expected name when adding an event `Callback` in the `html` macro:
 
 ```rust
-use yew::{html, Callback};
+use yew::prelude::*;
 
 html! {
     <button onclick={Callback::from(|_| ())}>
@@ -188,32 +188,17 @@ wasm-bindgen = "0.2"
 //highlight-next-line
 use wasm_bindgen::JsCast;
 use web_sys::{EventTarget, HtmlInputElement};
-use yew::{
-    events::Event,
-    html,
-    Component, Context, Html,
-};
+use yew::prelude::*;
 
-pub struct Comp;
+#[function_component]
+fn MyComponent() -> Html {
+    let input_value_handle = use_state(String::default);
+    let input_value = (*input_value_handle).clone();
 
-pub enum Msg {
-    InputValue(String),
-}
+    let on_cautious_change = {
+        let input_value_handle = input_value_handle.clone();
 
-impl Component for Comp {
-    type Message = Msg;
-    type Properties = ();
-
-    fn create(_: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let link = ctx.link();
-
-        // Use batch_callback so if something unexpected happens we can return
-        // None and do nothing
-        let on_cautious_change = link.batch_callback(|e: Event| {
+        Callback::from(move |e: Event| {
             // When events are created the target is undefined, it's only
             // when dispatched does the target get added.
             let target: Option<EventTarget> = e.target();
@@ -222,44 +207,45 @@ impl Component for Comp {
             //highlight-next-line
             let input = target.and_then(|t| t.dyn_into::<HtmlInputElement>().ok());
 
-            input.map(|input| Msg::InputValue(input.value()))
-        });
+            if let Some(input) = input {
+                input_value_handle.set(input.value());
+            }
+        })
+    };
 
-        let on_dangerous_change = link.callback(|e: Event| {
-            let target: EventTarget = e
-                .target()
-                .expect("Event should have a target when dispatched");
-            // You must KNOW target is a HtmlInputElement, otherwise
-            // the call to value would be Undefined Behaviour (UB).
-            //highlight-next-line
-            Msg::InputValue(target.unchecked_into::<HtmlInputElement>().value())
-        });
+    let on_dangerous_change = Callback::from(move |e: Event| {
+        let target: EventTarget = e
+            .target()
+            .expect("Event should have a target when dispatched");
+        // You must KNOW target is a HtmlInputElement, otherwise
+        // the call to value would be Undefined Behaviour (UB).
+        // Here we are sure that this is input element so we can convert it to the appropriate type without checking
+        //highlight-next-line
+        input_value_handle.set(target.unchecked_into::<HtmlInputElement>().value());
+    });
 
-        html! {
-            <>
-                <label for="cautious-input">
-                    { "My cautious input:" }
-                    <input onchange={on_cautious_change}
-                        id="cautious-input"
-                        type="text"
-                    />
-                </label>
-                <label for="dangerous-input">
-                    { "My dangerous input:" }
-                    <input onchange={on_dangerous_change}
-                        id="dangerous-input"
-                        type="text"
-                    />
-                </label>
-            </>
-        }
+    html! {
+        <>
+            <label for="cautious-input">
+                { "My cautious input:" }
+                <input onchange={on_cautious_change}
+                    id="cautious-input"
+                    type="text"
+                    value={input_value.clone()}
+                />
+            </label>
+            <label for="dangerous-input">
+                { "My dangerous input:" }
+                <input onchange={on_dangerous_change}
+                    id="dangerous-input"
+                    type="text"
+                    value={input_value}
+                />
+            </label>
+        </>
     }
 }
 ```
-
-:::tip
-Use `batch_callback` when you want to conditionally return a value from a `Callback`.
-:::
 
 The methods from `JsCast` are [`dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
 and [`unchecked_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.unchecked_into)
@@ -296,63 +282,51 @@ but it works in a very similar way to `JsCast`.
 
 ```rust
 use web_sys::HtmlInputElement;
-use yew::{
-    events::Event,
-    html,
-    // Need to import TargetCast
-    //highlight-next-line
-    Component, Context, Html, TargetCast,
-};
+use yew::prelude::*;
 
-pub struct Comp;
+#[function_component]
+fn MyComponent() -> Html {
+    let input_value_handle = use_state(String::default);
+    let input_value = (*input_value_handle).clone();
 
-pub enum Msg {
-    InputValue(String),
-}
+    let on_cautious_change = {
+        let input_value_handle = input_value_handle.clone();
 
-impl Component for Comp {
-    type Message = Msg;
-    type Properties = ();
-
-    fn create(_: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let link = ctx.link();
-
-        let on_cautious_change = link.batch_callback(|e: Event| {
-            //highlight-next-line
+        Callback::from(move |e: Event| {
             let input = e.target_dyn_into::<HtmlInputElement>();
 
-            input.map(|input| Msg::InputValue(input.value()))
-        });
+            if let Some(input) = input {
+                input_value_handle.set(input.value());
+            }
+        })
+    };
 
-        let on_dangerous_change = link.callback(|e: Event| {
-            // You must KNOW target is a HtmlInputElement, otherwise
-            // the call to value would be Undefined Behaviour (UB).
-            //highlight-next-line
-            Msg::InputValue(e.target_unchecked_into::<HtmlInputElement>().value())
-        });
+    let on_dangerous_change = Callback::from(move |e: Event| {
+        // You must KNOW target is a HtmlInputElement, otherwise
+        // the call to value would be Undefined Behaviour (UB).
+        //highlight-next-line
+        input_value_handle.set(e.target_unchecked_into::<HtmlInputElement>().value());
+    });
 
-        html! {
-            <>
-                <label for="cautious-input">
-                    { "My cautious input:" }
-                    <input onchange={on_cautious_change}
-                        id="cautious-input"
-                        type="text"
-                    />
-                </label>
-                <label for="dangerous-input">
-                    { "My dangerous input:" }
-                    <input onchange={on_dangerous_change}
-                        id="dangerous-input"
-                        type="text"
-                    />
-                </label>
-            </>
-        }
+    html! {
+        <>
+            <label for="cautious-input">
+                { "My cautious input:" }
+                <input onchange={on_cautious_change}
+                    id="cautious-input"
+                    type="text"
+                    value={input_value.clone()}
+                />
+            </label>
+            <label for="dangerous-input">
+                { "My dangerous input:" }
+                <input onchange={on_dangerous_change}
+                    id="dangerous-input"
+                    type="text"
+                    value={input_value}
+                />
+            </label>
+        </>
     }
 }
 ```
@@ -367,56 +341,43 @@ does the cast on the target of the event. `TargetCast::target_unchecked_into` is
 [`NodeRef`](../components/refs) can be used instead of querying the event given to a `Callback`.
 
 ```rust
-//highlight-start
 use web_sys::HtmlInputElement;
-use yew::{html, Component, Context, Html, NodeRef};
-//highlight-end
+use yew::prelude::*;
 
-pub struct Comp {
+#[function_component]
+fn MyComponent() -> Html {
     //highlight-next-line
-    my_input: NodeRef,
-}
+    let input_node_ref = use_node_ref();
 
-pub enum Msg {
-    InputValue(String),
-}
+    let input_value_handle = use_state(String::default);
+    let input_value = (*input_value_handle).clone();
 
-impl Component for Comp {
-    type Message = Msg;
-    type Properties = ();
+    let onchange = {
+        let input_node_ref = input_node_ref.clone();
 
-    fn create(_: &Context<Self>) -> Self {
-        Self {
+        Callback::from(move |_| {
             //highlight-next-line
-            my_input: NodeRef::default(),
-        }
-    }
+            let input = input_node_ref.cast::<HtmlInputElement>();
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let link = ctx.link();
+            if let Some(input) = input {
+                input_value_handle.set(input.value());
+            }
+        })
+    };
 
-        let my_input_ref = self.my_input.clone();
-
-        let onchange = link.batch_callback(move |_| {
-            //highlight-next-line
-            let input = my_input_ref.cast::<HtmlInputElement>();
-
-            input.map(|input| Msg::InputValue(input.value()))
-        });
-
-        html! {
-            <>
-                <label for="my-input">
-                    { "My input:" }
-                    //highlight-next-line
-                    <input ref={self.my_input.clone()}
-                        {onchange}
-                        id="my-input"
-                        type="text"
-                    />
-                </label>
-            </>
-        }
+    html! {
+        <>
+            <label for="my-input">
+                { "My input:" }
+                //highlight-next-line
+                <input ref={input_node_ref}
+                    {onchange}
+                    id="my-input"
+                    type="text"
+                    value={input_value}
+                />
+            </label>
+        </>
     }
 }
 ```
@@ -425,65 +386,40 @@ Using `NodeRef`, you can ignore the event and use the `NodeRef::cast` method to 
 `Option<HtmlInputElement>` - this is optional as calling `cast` before the `NodeRef` has been
 set, or when the type doesn't match will return `None`.
 
-You might also see by using `NodeRef` we don't have to send the `String` back in the
-`Msg::InputValue` as we always have `my_input` in the component state - so we could do the following:
+You might also see by using `NodeRef` we don't have to send the `String` back into state as we always access to `input_node_ref` - so we could do the following:
 
 ```rust
 use web_sys::HtmlInputElement;
-use yew::{html, Component, Context, Html, NodeRef};
+use yew::prelude::*;
 
-pub struct Comp {
-    my_input: NodeRef,
-}
-
-pub enum Msg {
-    // Signal the input element has changed
-    //highlight-next-line
-    InputChanged,
-}
-
-impl Component for Comp {
-    type Message = Msg;
-    type Properties = ();
-
-    fn create(_: &Context<Self>) -> Self {
-        Self {
-            my_input: NodeRef::default(),
-        }
-    }
+#[function_component]
+fn MyComponent() -> Html {
+    let input_node_ref = use_node_ref();
 
     //highlight-start
-    fn update(&mut self, _: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            Msg::InputChanged => {
-                if let Some(input) = self.my_input.cast::<HtmlInputElement>() {
-                    let value = input.value();
-                    // do something with value
+    let onchange = {
+        let input_node_ref = input_node_ref.clone();
 
-                    true
-                } else {
-                    false
-                }
+        Callback::from(move |_| {
+            if let Some(input) = input_node_ref.cast::<HtmlInputElement>() {
+                let value = input.value();
+                // do something with value
             }
-        }
-    }
+        })
+    };
     //highlight-end
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let link = ctx.link();
-        //highlight-next-line
-        let onchange = link.callback(|_| Msg::InputChanged);
-
-        html! {
+    html! {
+        <>
             <label for="my-input">
                 { "My input:" }
-                <input ref={self.my_input.clone()}
+                <input ref={input_node_ref}
                     {onchange}
                     id="my-input"
                     type="text"
                 />
             </label>
-        }
+        </>
     }
 }
 ```
@@ -497,11 +433,9 @@ You may want to listen to an event that is not supported by Yew's `html` macro, 
 [supported events listed here](#event-types).
 
 In order to add an event listener to one of elements manually we need the help of
-[`NodeRef`](../components/refs) so that in the `rendered` method we can add a listener using the
+[`NodeRef`](../components/refs) so that in `use_effect_with_deps` we can add a listener using the
 [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/index.html) and
 [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) API.
-We do this in `rendered` as this is the only time we can guarantee that the element exists in
-the browser, Yew needs some time to create them after `view` is called.
 
 The examples below are going to show adding listeners for the made-up `custard` event. All events
 either unsupported by yew or custom can be represented as a
@@ -518,90 +452,49 @@ yourself ([there is a more concise way thanks to `gloo`](#using-gloo-concise)).
 ```rust
 use wasm_bindgen::{prelude::Closure, JsCast};
 use web_sys::HtmlElement;
-use yew::{
-    events::Event,
-    html,
-    Component, Context, Html, NodeRef,
-};
+use yew::prelude::*;
 
-pub struct Comp {
-    my_div: NodeRef,
-    custard_listener: Option<Closure<dyn Fn(Event)>>,
-}
+#[function_component]
+fn MyComponent() -> Html {
+    let div_node_ref = use_node_ref();
 
-pub enum Msg {
-    Custard,
-}
+    use_effect_with_deps(
+        {
+            let div_node_ref = div_node_ref.clone();
 
-impl Component for Comp {
-    type Message = Msg;
-    type Properties = ();
+            move |_| {
+                let mut custard_listener = None;
 
-    fn create(_: &Context<Self>) -> Self {
-        Self {
-            my_div: NodeRef::default(),
-            custard_listener: None,
-        }
-    }
+                if let Some(element) = div_node_ref.cast::<HtmlElement>() {
+                    // Create your Callback as you normally would
+                    let oncustard = Callback::from(move |_: Event| {
+                        // do something about custard..
+                    });
 
-    fn update(&mut self, _: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            Msg::Custard => {
-                // do something about custard..
-                true
+                    // Create a Closure from a Box<dyn Fn> - this has to be 'static
+                    let listener =
+                        Closure::<dyn Fn(Event)>::wrap(
+                            Box::new(move |e: Event| oncustard.emit(e))
+                        );
+
+                    element
+                        .add_event_listener_with_callback(
+                            "custard",
+                            listener.as_ref().unchecked_ref()
+                        )
+                        .unwrap();
+
+                    custard_listener = Some(listener);
+                }
+
+                move || drop(custard_listener)
             }
-        }
-    }
+        },
+        div_node_ref.clone()
+    );
 
-    fn view(&self, _: &Context<Self>) -> Html {
-        html! {
-            <div ref={self.my_div.clone()} id="my-div"></div>
-        }
-    }
-
-    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
-        if !first_render {
-            return;
-        }
-
-        if let Some(element) = self.my_div.cast::<HtmlElement>() {
-            // Create your Callback as you normally would
-            let oncustard = ctx.link().callback(|_: Event| Msg::Custard);
-
-            // Create a Closure from a Box<dyn Fn> - this has to be 'static
-            let listener =
-                Closure::<dyn Fn(Event)>::wrap(
-                    Box::new(move |e: Event| oncustard.emit(e))
-                );
-            element
-                .add_event_listener_with_callback(
-                    "custard",
-                    listener.as_ref().unchecked_ref()
-                )
-                .unwrap();
-
-			// Need to save listener in the component otherwise when the
-			// event is fired it will try and call the listener that no longer
-			// exists in memory!
-            self.custard_listener = Some(listener);
-        }
-    }
-
-    fn destroy(&mut self, _: &Context<Self>) {
-        // All done with the component but need to remove
-        // the event listener before the custard_listener memory
-        // goes out of scope.
-        if let (Some(element), Some(listener)) = (
-            self.my_div.cast::<HtmlElement>(),
-            self.custard_listener.take(),
-        ) {
-            element
-                .remove_event_listener_with_callback(
-                    "custard",
-                    listener.as_ref().unchecked_ref()
-                )
-                .unwrap();
-        }
+    html! {
+        <div ref={div_node_ref} id="my-div"></div>
     }
 }
 ```
@@ -624,77 +517,48 @@ gloo-events = "0.1"
 
 ```rust
 use web_sys::HtmlElement;
-use yew::{
-    events::Event,
-    html,
-    Component, Context, Html, NodeRef,
-};
+use yew::prelude::*;
 
 use gloo::events::EventListener;
 
-pub struct Comp {
-    my_div: NodeRef,
-    custard_listener: Option<EventListener>,
-}
+#[function_component]
+fn MyComponent() -> Html {
+    let div_node_ref = use_node_ref();
 
-pub enum Msg {
-    Custard,
-}
+    use_effect_with_deps(
+        {
+            let div_node_ref = div_node_ref.clone();
 
-impl Component for Comp {
-    type Message = Msg;
-    type Properties = ();
+            move |_| {
+                let mut custard_listener = None;
 
-    fn create(_: &Context<Self>) -> Self {
-        Self {
-            my_div: NodeRef::default(),
-            custard_listener: None,
-        }
-    }
+                if let Some(element) = div_node_ref.cast::<HtmlElement>() {
+                    // Create your Callback as you normally would
+                    let oncustard = Callback::from(move |_: Event| {
+                        // do something about custard..
+                    });
 
-    fn update(&mut self, _: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            Msg::Custard => {
-                // do something about custard..
-                true
+                    // Create a Closure from a Box<dyn Fn> - this has to be 'static
+                    let listener = EventListener::new(
+                        &element,
+                        "custard",
+                        move |e| oncustard.emit(e.clone())
+                    );
+
+                    custard_listener = Some(listener);
+                }
+
+                move || drop(custard_listener)
             }
-        }
-    }
+        },
+        div_node_ref.clone()
+    );
 
-    fn view(&self, _: &Context<Self>) -> Html {
-        html! {
-            <div ref={self.my_div.clone()} id="my-div"></div>
-        }
-    }
-
-    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
-        if !first_render {
-            return;
-        }
-
-        if let Some(element) = self.my_div.cast::<HtmlElement>() {
-            // Create your Callback as you normally would
-            let oncustard = ctx.link().callback(|_: Event| Msg::Custard);
-
-            let listener = EventListener::new(
-                &element,
-                "custard",
-                move |e| oncustard.emit(e.clone())
-            );
-
-            self.custard_listener = Some(listener);
-        }
+    html! {
+        <div ref={div_node_ref} id="my-div"></div>
     }
 }
 ```
 
-Notice that when using an `EventListener` you don't need to do anything when the
-component is about to be destroyed as the `EventListener` has a `drop` implementation
-which will remove the event listener from the element.
-
 For more information on `EventListener`, see the
 [gloo_events docs.rs](https://docs.rs/gloo-events/0.1.1/gloo_events/struct.EventListener.html).
-
-## Using EventListener in a Function Component
-
-See [Applying event listeners to the DOM](../function-components/hooks/use-effect#applying-event-listeners-to-the-dom).

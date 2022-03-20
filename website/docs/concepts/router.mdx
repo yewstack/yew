@@ -1,5 +1,5 @@
 ---
-title: 'Router'
+title: "Router"
 description: "Yew's official router"
 ---
 
@@ -397,25 +397,33 @@ digraph {
 }
 -->
 
-import useBaseUrl from '@docusaurus/useBaseUrl'
-import ThemedImage from '@theme/ThemedImage'
+import useBaseUrl from "@docusaurus/useBaseUrl";
+import ThemedImage from "@theme/ThemedImage";
 
 <ThemedImage
-    alt="nested router structure"
-    sources={{
-        light: useBaseUrl('/img/nested-router-light.svg'),
-        dark: useBaseUrl('/img/nested-router-dark.svg'),
-    }}
+  alt="nested router structure"
+  sources={{
+    light: useBaseUrl("/img/nested-router-light.svg"),
+    dark: useBaseUrl("/img/nested-router-dark.svg"),
+  }}
 />
 
 The nested `SettingsRouter` handles all urls that start with `/settings`. Additionally, it redirects urls that are not
 matched to the main `NotFound` route. So `/settings/gibberish` will redirect to `/404`.
+
+:::caution
+
+Though note that this is still work in progress so the way we do this is not final
+
+:::
 
 It can be implemented with the following code:
 
 ```rust
 use yew::prelude::*;
 use yew_router::prelude::*;
+use gloo::utils::window;
+use wasm_bindgen::UnwrapThrowExt;
 
 #[derive(Clone, Routable, PartialEq)]
 enum MainRoute {
@@ -425,7 +433,9 @@ enum MainRoute {
     News,
     #[at("/contact")]
     Contact,
-    #[at("/settings/:s")]
+    #[at("/settings")]
+    SettingsRoot,
+    #[at("/settings/*")]
     Settings,
     #[not_found]
     #[at("/404")]
@@ -434,7 +444,7 @@ enum MainRoute {
 
 #[derive(Clone, Routable, PartialEq)]
 enum SettingsRoute {
-    #[at("/settings/profile")]
+    #[at("/settings")]
     Profile,
     #[at("/settings/friends")]
     Friends,
@@ -450,9 +460,7 @@ fn switch_main(route: &MainRoute) -> Html {
         MainRoute::Home => html! {<h1>{"Home"}</h1>},
         MainRoute::News => html! {<h1>{"News"}</h1>},
         MainRoute::Contact => html! {<h1>{"Contact"}</h1>},
-        MainRoute::Settings => html! {
-            <Switch<SettingsRoute> render={Switch::render(switch_settings)} />
-        },
+        MainRoute::SettingsRoot | MainRoute::Settings => html! { <Switch<SettingsRoute> render={Switch::render(switch_settings)} /> },
         MainRoute::NotFound => html! {<h1>{"Not Found"}</h1>},
     }
 }
@@ -462,9 +470,7 @@ fn switch_settings(route: &SettingsRoute) -> Html {
         SettingsRoute::Profile => html! {<h1>{"Profile"}</h1>},
         SettingsRoute::Friends => html! {<h1>{"Friends"}</h1>},
         SettingsRoute::Theme => html! {<h1>{"Theme"}</h1>},
-        SettingsRoute::NotFound => html! {
-            <Redirect<MainRoute> to={MainRoute::NotFound}/>
-        }
+        SettingsRoute::NotFound => html! {<Redirect<MainRoute> to={MainRoute::NotFound}/>}
     }
 }
 
@@ -492,8 +498,8 @@ fallback to `/` if no `<base />` presents in the html file.
 
 ## Relevant examples
 
--   [Router](https://github.com/yewstack/yew/tree/master/examples/router)
+- [Router](https://github.com/yewstack/yew/tree/master/examples/router)
 
 ## API Reference
 
--   [yew-router](https://docs.rs/yew-router/)
+- [yew-router](https://docs.rs/yew-router/)

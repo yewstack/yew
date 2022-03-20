@@ -1,9 +1,9 @@
 ---
-title: 'Lists'
+title: "Lists"
 ---
 
-import Tabs from '@theme/Tabs'
-import TabItem from '@theme/TabItem'
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
 ## Iterators
 
@@ -16,7 +16,7 @@ The first is to call `collect::<Html>()` on the final transform in your iterator
 list that Yew can display.
 
 ```rust
-use yew::{html, Html};
+use yew::prelude::*;
 
 let items = (1..=10).collect::<Vec<_>>();
 
@@ -34,7 +34,7 @@ The alternative is to use the `for` keyword, which is not native Rust syntax and
 the HTML macro to output the needed code to display the iterator.
 
 ```rust
-use yew::{html};
+use yew::prelude::*;
 
 let items = (1..=10).collect::<Vec<_>>();
 
@@ -64,7 +64,7 @@ It is always recommended to add keys to lists.
 Keys can be added by passing a unique value to the special `key` prop:
 
 ```rust , ignore
-use yew::html;
+use yew::prelude::*;
 
 let names = vec!["Sam","Bob","Ray"]
 
@@ -119,6 +119,6 @@ If you need that div to be recreated instead of reused, then you can add differe
 
 ## Further reading
 
--   [TodoMVC](https://github.com/yewstack/yew/tree/master/examples/todomvc)
--   [Keyed list](https://github.com/yewstack/yew/tree/master/examples/keyed_list)
--   [Router](https://github.com/yewstack/yew/tree/master/examples/router)
+- [TodoMVC](https://github.com/yewstack/yew/tree/master/examples/todomvc)
+- [Keyed list](https://github.com/yewstack/yew/tree/master/examples/keyed_list)
+- [Router](https://github.com/yewstack/yew/tree/master/examples/router)

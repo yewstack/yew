@@ -1,66 +1,40 @@
 ---
-title: 'Components'
-description: 'Create complex layouts with component hierarchies'
+title: "Components"
+description: "Create complex layouts with component hierarchies"
 ---
 
 ## Basic
 
-Any type that implements `Component` can be used in the `html!` macro:
+Components can be used in the `html!` macro:
 
 ```rust
-use yew::{Component, Html, html, Context, Properties};
+use yew::prelude::*;
 
-struct MyComponent;
-
-impl Component for MyComponent {
-    type Message = ();
-    type Properties = ();
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, _ctx: &Context<Self>) -> Html {
-        html! {
-            { "This component has no properties!" }
-        }
+#[function_component]
+fn MyComponent() -> Html {
+    html! {
+        { "This component has no properties!" }
     }
 }
 
 #[derive(Clone, PartialEq, Properties)]
 struct Props {
-    prop1: String,
-    prop2: String,
+    user_first_name: String,
+    user_last_name: String,
 }
 
-struct MyComponentWithProps;
-
-impl Component for MyComponentWithProps {
-    type Message = ();
-    type Properties = Props;
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        html! {
-            {
-                format!(
-                    "prop1: {} and prop2: {}",
-                    ctx.props().prop1,
-                    ctx.props().prop2
-                )
-            }
-        }
+#[function_component]
+fn MyComponentWithProps(props: &Props) -> Html {
+    let Props { user_first_name, user_last_name } = props;
+    html! {
+        <>{"user_first_name: "}{user_first_name}{" and user_last_name: "}{user_last_name}</>
     }
 }
 
 let props = Props {
-    prop1: "Hello".to_owned(),
-    prop2: "World".to_owned(),
+    user_first_name: "Bob".to_owned(),
+    user_last_name: "Smith".to_owned(),
 };
-
 
 html!{
     <>
@@ -68,13 +42,13 @@ html!{
         <MyComponent />
 
         // With Properties
-        <MyComponentWithProps prop1="lorem" prop2="ipsum" />
+        <MyComponentWithProps user_first_name="Sam" user_last_name="Idle" />
 
         // With the whole set of props provided at once
         <MyComponentWithProps ..props.clone() />
 
         // With Properties from a variable and specific values overridden
-        <MyComponentWithProps prop2="lorem" ..props />
+        <MyComponentWithProps user_last_name="Elm" ..props />
     </>
 };
 ```
@@ -84,7 +58,7 @@ html!{
 Components can be passed children if they have a `children` field in their `Properties`.
 
 ```rust title="parent.rs"
-use yew::{Children, Component, Context, html, Html, Properties};
+use yew::prelude::*;
 
 #[derive(PartialEq, Properties)]
 struct Props {
@@ -92,22 +66,12 @@ struct Props {
     children: Children,
 }
 
-struct Container;
-
-impl Component for Container {
-    type Message = ();
-    type Properties = Props;
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        html! {
-            <div id={ctx.props().id.clone()}>
-                { ctx.props().children.clone() }
-            </div>
-        }
+#[function_component]
+fn Container(props: &Props) -> Html {
+    html! {
+        <div id={props.id.clone()}>
+            { props.children.clone() }
+        </div>
     }
 }
 
@@ -125,7 +89,7 @@ This base expression must occur after any individual props are passed.
 When passing a base props expression with a `children` field, the children passed in the `html!` macro overwrite the ones already present in the props.
 
 ```rust
-use yew::{Children, Component, Context, html, Html, props, Properties};
+use yew::prelude::*;
 
 #[derive(PartialEq, Properties)]
 struct Props {
@@ -133,26 +97,16 @@ struct Props {
     children: Children,
 }
 
-struct Container;
-
-impl Component for Container {
-    type Message = ();
-    type Properties = Props;
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        html! {
-            <div id={ctx.props().id.clone()}>
-                { ctx.props().children.clone() }
-            </div>
-        }
+#[function_component]
+fn Container(props: &Props) -> Html {
+    html! {
+        <div id={props.id.clone()}>
+            { props.children.clone() }
+        </div>
     }
 }
 
-let props = yew::props!(Container::Properties {
+let props = yew::props!(Props {
     id: "container-2",
     children: Children::default(),
 });
@@ -171,29 +125,20 @@ Nested component properties can be accessed and mutated if the containing compon
 
 ```rust
 use std::rc::Rc;
-use yew::{html, ChildrenWithProps, Component, Context, Html, Properties};
+use yew::prelude::*;
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct ListItemProps {
     value: String,
 }
 
-pub struct ListItem;
-
-impl Component for ListItem {
-    type Message = ();
-    type Properties = ListItemProps;
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        html! {
-            <span>
-                { ctx.props().value.clone() }
-            </span>
-        }
+#[function_component]
+fn ListItem(props: &ListItemProps) -> Html {
+    let ListItemProps { value } = props.clone();
+    html! {
+        <span>
+            {value}
+        </span>
     }
 }
 
@@ -202,25 +147,16 @@ pub struct Props {
     pub children: ChildrenWithProps<ListItem>,
 }
 
-pub struct List;
-impl Component for List {
-    type Message = ();
-    type Properties = Props;
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        html! {{
-            for ctx.props().children.iter().map(|mut item| {
-                let mut props = Rc::make_mut(&mut item.props);
-                props.value = format!("item-{}", props.value);
-                item
-            })
-        }}
-    }
+#[function_component]
+fn List(props: &Props) -> Html {
+    let modified_children = props.children.iter().map(|mut item| {
+            let mut props = Rc::make_mut(&mut item.props);
+            props.value = format!("item-{}", props.value);
+            item
+    });
+    html! { for modified_children }
 }
+
 html! {
     <List>
         <ListItem value="a" />
@@ -232,6 +168,5 @@ html! {
 
 ## Relevant examples
 
--   [Boids](https://github.com/yewstack/yew/tree/master/examples/boids)
--   [Router](https://github.com/yewstack/yew/tree/master/examples/router)
--   [Store](https://github.com/yewstack/yew/tree/master/examples/store)
+- [Function Todo MVC](https://github.com/yewstack/yew/tree/master/examples/function_todomvc)
+- [Function Router](https://github.com/yewstack/yew/tree/master/examples/function_router)

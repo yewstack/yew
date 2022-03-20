@@ -51,11 +51,11 @@ Add `yew` to the list of dependencies.
 [package]
 name = "yew-app"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-# you can check the latest version here: https://crates.io/crates/yew
-yew = { version = "0.19", features = ["csr"] }
+# this is the development version of Yew
+yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
 ```
 
 :::info

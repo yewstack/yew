@@ -1,12 +1,12 @@
 ---
-title: 'HTML'
+title: "HTML"
 sidebar_label: Introduction
-description: 'The procedural macro for generating HTML and SVG'
+description: "The procedural macro for generating HTML and SVG"
 slug: /concepts/html
 ---
 
-import Tabs from '@theme/Tabs'
-import TabItem from '@theme/TabItem'
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
 The `html!` macro allows you to write HTML and SVG code declaratively. It is similar to JSX
 (an extension to JavaScript which allows you to write HTML-like code inside of JavaScript).
@@ -33,7 +33,7 @@ Tags must either self-close `<... />` or have a corresponding end tag for each s
   <TabItem value="Open - Close" label="Open - Close" default>
 
 ```rust
-use yew::html;
+use yew::prelude::*;
 
 html! {
   <div id="my_div"></div>
@@ -44,7 +44,7 @@ html! {
   <TabItem value="Invalid" label="Invalid">
 
 ```rust ,compile_fail
-use yew::html;
+use yew::prelude::*;
 
 html! {
   <div id="my_div"> // <- MISSING CLOSE TAG
@@ -58,7 +58,7 @@ html! {
   <TabItem value="Self-closing" label="Self-closing">
 
 ```rust
-use yew::html;
+use yew::prelude::*;
 
 html! {
   <input id="my_input" />
@@ -69,7 +69,7 @@ html! {
   <TabItem value="Invalid" label="Invalid">
 
 ```rust ,compile_fail
-use yew::html;
+use yew::prelude::*;
 
 html! {
   <input id="my_input"> // <- MISSING SELF-CLOSE
@@ -91,7 +91,7 @@ Create complex nested HTML and SVG layouts with ease:
   <TabItem value="HTML" label="HTML">
 
 ```rust
-use yew::html;
+use yew::prelude::*;
 
 html! {
     <div>
@@ -115,7 +115,7 @@ html! {
   <TabItem value="SVG" label="SVG">
 
 ```rust
-use yew::html;
+use yew::prelude::*;
 
 html! {
     <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -169,7 +169,7 @@ Markup can be rendered conditonally by using Rust's conditional structures. ' +
 'Currently only `if` and `if let` are supported.
 
 ```rust
-use yew::html;
+use yew::prelude::*;
 
 html! {
   if true {
