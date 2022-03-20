@@ -4,8 +4,6 @@ use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::rc::Rc;
 
-use crate::html::ComponentId;
-
 /// Alias for Rc<RefCell<T>>
 pub type Shared<T> = Rc<RefCell<T>>;
 
@@ -32,12 +30,12 @@ struct Scheduler {
     ///
     /// Parent can destroy child components but not otherwise, we can save unnecessary render by
     /// rendering parent first.
-    render_first: BTreeMap<ComponentId, Box<dyn Runnable>>,
-    render: BTreeMap<ComponentId, Box<dyn Runnable>>,
+    render_first: BTreeMap<usize, Box<dyn Runnable>>,
+    render: BTreeMap<usize, Box<dyn Runnable>>,
 
     /// Binary Tree Map to guarantee children rendered are always called before parent calls
-    rendered_first: BTreeMap<ComponentId, Box<dyn Runnable>>,
-    rendered: BTreeMap<ComponentId, Box<dyn Runnable>>,
+    rendered_first: BTreeMap<usize, Box<dyn Runnable>>,
+    rendered: BTreeMap<usize, Box<dyn Runnable>>,
 }
 
 /// Execute closure with a mutable reference to the scheduler
@@ -67,7 +65,7 @@ mod feat_csr_ssr {
     use super::*;
     /// Push a component creation, first render and first rendered [Runnable]s to be executed
     pub(crate) fn push_component_create(
-        component_id: ComponentId,
+        component_id: usize,
         create: impl Runnable + 'static,
         first_render: impl Runnable + 'static,
     ) {
@@ -83,10 +81,7 @@ mod feat_csr_ssr {
     }
 
     /// Push a component render and rendered [Runnable]s to be executed
-    pub(crate) fn push_component_render(
-        component_id: ComponentId,
-        render: impl Runnable + 'static,
-    ) {
+    pub(crate) fn push_component_render(component_id: usize, render: impl Runnable + 'static) {
         with(|s| {
             s.render.insert(component_id, Box::new(render));
         });
@@ -106,7 +101,7 @@ mod feat_csr {
     use super::*;
 
     pub(crate) fn push_component_rendered(
-        component_id: ComponentId,
+        component_id: usize,
         rendered: impl Runnable + 'static,
         first_render: bool,
     ) {

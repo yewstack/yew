@@ -7,7 +7,7 @@ use std::cell::RefCell;
 
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use super::lifecycle::{ComponentState, UpdateEvent, UpdateRunner};
-use super::{BaseComponent, ComponentId};
+use super::BaseComponent;
 
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
@@ -113,7 +113,7 @@ pub struct Scope<COMP: BaseComponent> {
     #[cfg(any(feature = "csr", feature = "ssr"))]
     pub(crate) state: Shared<Option<ComponentState>>,
 
-    pub(crate) id: ComponentId,
+    pub(crate) id: usize,
 }
 
 impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {
@@ -269,6 +269,7 @@ mod feat_csr_ssr {
     use super::*;
     use crate::scheduler::{self, Shared};
     use std::cell::Ref;
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
     #[derive(Debug)]
     pub(crate) struct MsgQueue<Msg>(Shared<Vec<Msg>>);
@@ -308,6 +309,8 @@ mod feat_csr_ssr {
         }
     }
 
+    static COMP_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
     impl<COMP: BaseComponent> Scope<COMP> {
         /// Crate a scope with an optional parent scope
         pub(crate) fn new(parent: Option<AnyScope>) -> Self {
@@ -325,7 +328,7 @@ mod feat_csr_ssr {
                 state,
                 parent,
 
-                id: ComponentId::new(),
+                id: COMP_ID_COUNTER.fetch_add(1, Ordering::SeqCst),
             }
         }
 

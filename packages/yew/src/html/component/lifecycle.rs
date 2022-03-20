@@ -1,7 +1,7 @@
 //! Component lifecycle module
 
 use super::scope::{AnyScope, Scope};
-use super::{BaseComponent, ComponentId};
+use super::BaseComponent;
 use crate::html::{Html, RenderError};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{BaseSuspense, Suspension};
@@ -153,7 +153,7 @@ pub(crate) struct ComponentState {
 
     suspension: Option<Suspension>,
 
-    pub(crate) comp_id: ComponentId,
+    pub(crate) comp_id: usize,
 }
 
 impl ComponentState {
