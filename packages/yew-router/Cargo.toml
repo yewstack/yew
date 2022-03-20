@@ -36,7 +36,7 @@ features = [
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
 serde = { version = "1", features = ["derive"] }
-yew = { version = "0.19.3", path = "../yew", features = ["render"] }
+yew = { version = "0.19.3", path = "../yew", features = ["csr"] }
 
 [dev-dependencies.web-sys]
 version = "0.3"

@@ -1,7 +1,7 @@
 //! This module contains the bundle version of an abstract node [BNode]
 
 use super::{BComp, BList, BPortal, BSuspense, BTag, BText};
-use crate::dom_bundle::{DomBundle, Reconcilable};
+use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{Key, VNode};
 use gloo::console;
@@ -41,7 +41,7 @@ impl BNode {
     }
 }
 
-impl DomBundle for BNode {
+impl ReconcileTarget for BNode {
     /// Remove VNode from parent.
     fn detach(self, parent: &Element, parent_to_detach: bool) {
         match self {

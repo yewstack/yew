@@ -1,13 +1,14 @@
 //! Component scope module
 
-#[cfg(any(feature = "render", feature = "ssr"))]
+#[cfg(any(feature = "csr", feature = "ssr"))]
 use crate::scheduler::Shared;
-#[cfg(any(feature = "render", feature = "ssr"))]
+#[cfg(any(feature = "csr", feature = "ssr"))]
 use std::cell::RefCell;
 
-#[cfg(any(feature = "render", feature = "ssr"))]
+#[cfg(any(feature = "csr", feature = "ssr"))]
 use super::lifecycle::{ComponentState, UpdateEvent, UpdateRunner};
 use super::{BaseComponent, ComponentId};
+
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
 use crate::html::IntoComponent;
@@ -42,7 +43,7 @@ impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
 }
 
 impl AnyScope {
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     #[cfg(test)]
     pub(crate) fn test() -> Self {
         Self {
@@ -106,10 +107,10 @@ pub struct Scope<COMP: BaseComponent> {
     _marker: PhantomData<COMP>,
     parent: Option<Rc<AnyScope>>,
 
-    #[cfg(any(feature = "render", feature = "ssr"))]
+    #[cfg(any(feature = "csr", feature = "ssr"))]
     pub(crate) pending_messages: MsgQueue<COMP::Message>,
 
-    #[cfg(any(feature = "render", feature = "ssr"))]
+    #[cfg(any(feature = "csr", feature = "ssr"))]
     pub(crate) state: Shared<Option<ComponentState>>,
 
     pub(crate) id: ComponentId,
@@ -126,11 +127,11 @@ impl<COMP: BaseComponent> Clone for Scope<COMP> {
         Scope {
             _marker: PhantomData,
 
-            #[cfg(any(feature = "render", feature = "ssr"))]
+            #[cfg(any(feature = "csr", feature = "ssr"))]
             pending_messages: self.pending_messages.clone(),
             parent: self.parent.clone(),
 
-            #[cfg(any(feature = "render", feature = "ssr"))]
+            #[cfg(any(feature = "csr", feature = "ssr"))]
             state: self.state.clone(),
 
             id: self.id,
@@ -229,7 +230,7 @@ mod feat_ssr {
             scheduler::push_component_destroy(DestroyRunner {
                 state: self.state.clone(),
 
-                #[cfg(feature = "render")]
+                #[cfg(feature = "csr")]
                 parent_to_detach: false,
             });
             scheduler::start();
@@ -237,8 +238,8 @@ mod feat_ssr {
     }
 }
 
-#[cfg(not(any(feature = "ssr", feature = "render")))]
-mod feat_no_render_ssr {
+#[cfg(not(any(feature = "ssr", feature = "csr")))]
+mod feat_no_csr_ssr {
     use super::*;
 
     // Skeleton code to provide public methods when no renderer are enabled.
@@ -263,8 +264,8 @@ mod feat_no_render_ssr {
     }
 }
 
-#[cfg(any(feature = "ssr", feature = "render"))]
-mod feat_render_ssr {
+#[cfg(any(feature = "ssr", feature = "csr"))]
+mod feat_csr_ssr {
     use super::*;
     use crate::scheduler::{self, Shared};
     use std::cell::Ref;
@@ -377,11 +378,11 @@ mod feat_render_ssr {
     }
 }
 
-#[cfg(any(feature = "ssr", feature = "render"))]
-pub(crate) use feat_render_ssr::*;
+#[cfg(any(feature = "ssr", feature = "csr"))]
+pub(crate) use feat_csr_ssr::*;
 
-#[cfg(feature = "render")]
-mod feat_render {
+#[cfg(feature = "csr")]
+mod feat_csr {
     use super::*;
     use crate::dom_bundle::Bundle;
     use crate::html::component::lifecycle::{
@@ -490,8 +491,8 @@ mod feat_render {
     }
 }
 
-#[cfg(feature = "render")]
-pub(crate) use feat_render::*;
+#[cfg(feature = "csr")]
+pub(crate) use feat_csr::*;
 
 #[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
 #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
@@ -502,13 +503,11 @@ mod feat_io {
     use crate::io_coop::spawn_local;
 
     impl<COMP: BaseComponent> Scope<COMP> {
-        /// This method creates a [`Callback`] which returns a Future which
-        /// returns a message to be sent back to the component's event
-        /// loop.
+        /// This method creates a [`Callback`] which, when emitted, asynchronously awaits the
+        /// message returned from the passed function before sending it to the linked component.
         ///
         /// # Panics
-        /// If the future panics, then the promise will not resolve, and
-        /// will leak.
+        /// If the future panics, then the promise will not resolve, and will leak.
         pub fn callback_future<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
         where
             M: Into<COMP::Message>,
@@ -525,8 +524,8 @@ mod feat_io {
             closure.into()
         }
 
-        /// This method processes a Future that returns a message and sends it back to the component's
-        /// loop.
+        /// This method asynchronously awaits a [Future] that returns a message and sends it
+        /// to the linked component.
         ///
         /// # Panics
         /// If the future panics, then the promise will not resolve, and will leak.
@@ -543,17 +542,19 @@ mod feat_io {
             spawn_local(js_future);
         }
 
-        /// Registers a Future that resolves to multiple messages.
+        /// Asynchronously send a batch of messages to a component. This asynchronously awaits the
+        /// passed [Future], before sending the message batch to the linked component.
+        ///
         /// # Panics
         /// If the future panics, then the promise will not resolve, and will leak.
         pub fn send_future_batch<F>(&self, future: F)
         where
-            F: Future<Output = Vec<COMP::Message>> + 'static,
+            F: Future + 'static,
+            F::Output: SendAsMessage<COMP>,
         {
             let link = self.clone();
             let js_future = async move {
-                let messages: Vec<COMP::Message> = future.await;
-                link.send_message_batch(messages);
+                future.await.send(&link);
             };
             spawn_local(js_future);
         }

@@ -62,10 +62,9 @@ pub fn push(runnable: Box<dyn Runnable>) {
     start();
 }
 
-#[cfg(any(feature = "ssr", feature = "render"))]
-mod feat_render_ssr {
+#[cfg(any(feature = "ssr", feature = "csr"))]
+mod feat_csr_ssr {
     use super::*;
-
     /// Push a component creation, first render and first rendered [Runnable]s to be executed
     pub(crate) fn push_component_create(
         component_id: ComponentId,
@@ -99,12 +98,14 @@ mod feat_render_ssr {
     }
 }
 
-#[cfg(any(feature = "ssr", feature = "render"))]
-pub(crate) use feat_render_ssr::*;
+#[cfg(any(feature = "ssr", feature = "csr"))]
+pub(crate) use feat_csr_ssr::*;
 
-#[cfg(feature = "render")]
-mod feat_render {
+#[cfg(feature = "csr")]
+mod feat_csr {
     use super::*;
+
+    use std::collections::HashMap;
 
     pub(crate) fn push_component_rendered(
         component_id: ComponentId,
@@ -123,8 +124,8 @@ mod feat_render {
     }
 }
 
-#[cfg(feature = "render")]
-pub(crate) use feat_render::*;
+#[cfg(feature = "csr")]
+pub(crate) use feat_csr::*;
 
 /// Execute any pending [Runnable]s
 pub(crate) fn start_now() {

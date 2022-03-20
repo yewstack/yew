@@ -7,7 +7,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 js-sys = "0.3"
-yew = { path = "../../packages/yew", features = ["render"] }
+yew = { path = "../../packages/yew", features = ["csr"] }
 gloo-file = "0.2"
 
 [dependencies.web-sys]
