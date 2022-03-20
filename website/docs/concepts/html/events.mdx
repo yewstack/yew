@@ -219,6 +219,7 @@ fn MyComponent() -> Html {
             .expect("Event should have a target when dispatched");
         // You must KNOW target is a HtmlInputElement, otherwise
         // the call to value would be Undefined Behaviour (UB).
+        // Here we are sure that this is input element so we can convert it to the appropriate type without checking
         //highlight-next-line
         input_value_handle.set(target.unchecked_into::<HtmlInputElement>().value());
     });
