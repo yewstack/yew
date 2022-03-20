@@ -25,6 +25,10 @@ jobs:
           node-version: "16"
 
       - name: Run prettier
+        run: |
+          cd website
+          npm install
+          npm run fmt
 
   build:
     runs-on: ubuntu-latest
