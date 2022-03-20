@@ -1,190 +1,190 @@
 {
-  "version.label": {
-    "message": "Next",
-    "description": "The label for version current"
-  },
-  "sidebar.sidebar.category.Getting Started": {
-    "message": "Getting Started",
-    "description": "The label for category Getting Started in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.Concepts": {
-    "message": "Concepts",
-    "description": "The label for category Concepts in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.Concepts.link.generated-index.title": {
-    "message": "Yew concepts",
-    "description": "The generated-index page title for category Concepts in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.Concepts.link.generated-index.description": {
-    "message": "Learn about the important Yew concepts!",
-    "description": "The generated-index page description for category Concepts in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.Components": {
-    "message": "Components",
-    "description": "The label for category Components in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.HTML": {
-    "message": "HTML",
-    "description": "The label for category HTML in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.Function Components": {
-    "message": "Function Components",
-    "description": "The label for category Function Components in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.wasm-bindgen": {
-    "message": "wasm-bindgen",
-    "description": "The label for category wasm-bindgen in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.wasm-bindgen.link.generated-index.title": {
-    "message": "wasm-bindgen",
-    "description": "The generated-index page title for category wasm-bindgen in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.wasm-bindgen.link.generated-index.description": {
-    "message": "Learn about wasm-bindgen",
-    "description": "The generated-index page description for category wasm-bindgen in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.Advanced topics": {
-    "message": "Advanced topics",
-    "description": "The label for category Advanced topics in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.Advanced topics.link.generated-index.title": {
-    "message": "Advanced topics",
-    "description": "The generated-index page title for category Advanced topics in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.Advanced topics.link.generated-index.description": {
-    "message": "Learn about the advanced topics and inner workings of Yew!",
-    "description": "The generated-index page description for category Advanced topics in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.More": {
-    "message": "More",
-    "description": "The label for category More in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.More.link.generated-index.title": {
-    "message": "Miscellaneous",
-    "description": "The generated-index page title for category More in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.Migration guides": {
-    "message": "Migration guides",
-    "description": "The label for category Migration guides in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.yew": {
-    "message": "yew",
-    "description": "The label for category yew in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.yew-agent": {
-    "message": "yew-agent",
-    "description": "The label for category yew-agent in sidebar sidebar"
-  },
-  "sidebar.sidebar.category.yew-router": {
-    "message": "yew-router",
-    "description": "The label for category yew-router in sidebar sidebar"
-  },
-  "sidebar.docs.category.Getting Started": {
-    "message": "Getting Started",
-    "description": "The label for category Getting Started in sidebar docs"
-  },
-  "sidebar.docs.category.Concepts": {
-    "message": "Concepts",
-    "description": "The label for category Concepts in sidebar docs"
-  },
-  "sidebar.docs.category.Concepts.link.generated-index.title": {
-    "message": "Yew concepts",
-    "description": "The generated-index page title for category Concepts in sidebar docs"
-  },
-  "sidebar.docs.category.Concepts.link.generated-index.description": {
-    "message": "Learn about the important Yew concepts!",
-    "description": "The generated-index page description for category Concepts in sidebar docs"
-  },
-  "sidebar.docs.category.Components": {
-    "message": "Components",
-    "description": "The label for category Components in sidebar docs"
-  },
-  "sidebar.docs.category.HTML": {
-    "message": "HTML",
-    "description": "The label for category HTML in sidebar docs"
-  },
-  "sidebar.docs.category.Function Components": {
-    "message": "Function Components",
-    "description": "The label for category Function Components in sidebar docs"
-  },
-  "sidebar.docs.category.wasm-bindgen": {
-    "message": "wasm-bindgen",
-    "description": "The label for category wasm-bindgen in sidebar docs"
-  },
-  "sidebar.docs.category.wasm-bindgen.link.generated-index.title": {
-    "message": "wasm-bindgen",
-    "description": "The generated-index page title for category wasm-bindgen in sidebar docs"
-  },
-  "sidebar.docs.category.wasm-bindgen.link.generated-index.description": {
-    "message": "Learn about wasm-bindgen",
-    "description": "The generated-index page description for category wasm-bindgen in sidebar docs"
-  },
-  "sidebar.docs.category.Advanced topics": {
-    "message": "Advanced topics",
-    "description": "The label for category Advanced topics in sidebar docs"
-  },
-  "sidebar.docs.category.Advanced topics.link.generated-index.title": {
-    "message": "Advanced topics",
-    "description": "The generated-index page title for category Advanced topics in sidebar docs"
-  },
-  "sidebar.docs.category.Advanced topics.link.generated-index.description": {
-    "message": "Learn about the advanced topics and inner workings of Yew!",
-    "description": "The generated-index page description for category Advanced topics in sidebar docs"
-  },
-  "sidebar.docs.category.More": {
-    "message": "More",
-    "description": "The label for category More in sidebar docs"
-  },
-  "sidebar.docs.category.More.link.generated-index.title": {
-    "message": "Miscellaneous",
-    "description": "The generated-index page title for category More in sidebar docs"
-  },
-  "sidebar.docs.category.Migration guides": {
-    "message": "Migration guides",
-    "description": "The label for category Migration guides in sidebar docs"
-  },
-  "sidebar.docs.category.yew": {
-    "message": "yew",
-    "description": "The label for category yew in sidebar docs"
-  },
-  "sidebar.docs.category.yew-agent": {
-    "message": "yew-agent",
-    "description": "The label for category yew-agent in sidebar docs"
-  },
-  "sidebar.docs.category.yew-router": {
-    "message": "yew-router",
-    "description": "The label for category yew-router in sidebar docs"
-  },
-  "sidebar.docs.category.Intro With Basic Web Technologies": {
-    "message": "Intro With Basic Web Technologies",
-    "description": "The label for category Intro With Basic Web Technologies in sidebar docs"
-  },
-  "sidebar.docs.category.Intro With Basic Web Technologies.link.generated-index.title": {
-    "message": "Yew Take on Basic Web Technologies",
-    "description": "The generated-index page title for category Intro With Basic Web Technologies in sidebar docs"
-  },
-  "sidebar.docs.category.Intro With Basic Web Technologies.link.generated-index.description": {
-    "message": "Yew mostly operates on the idea of keeping everything that a reusable piece of UI may need, in one place - rust files. But also seeks to stay close to the original look of the technology. Explore further to fully grasp what we mean by these statements:",
-    "description": "The generated-index page description for category Intro With Basic Web Technologies in sidebar docs"
-  },
-  "sidebar.docs.category.Hooks": {
-    "message": "Hooks",
-    "description": "The label for category Hooks in sidebar docs"
-  },
-  "sidebar.docs.category.Javascript with Rust": {
-    "message": "Javascript with Rust",
-    "description": "The label for category Javascript with Rust in sidebar docs"
-  },
-  "sidebar.docs.category.Javascript with Rust.link.generated-index.title": {
-    "message": "wasm-bindgen",
-    "description": "The generated-index page title for category Javascript with Rust in sidebar docs"
-  },
-  "sidebar.docs.category.Javascript with Rust.link.generated-index.description": {
-    "message": "Learn about wasm-bindgen",
-    "description": "The generated-index page description for category Javascript with Rust in sidebar docs"
-  },
-  "sidebar.docs.category.Struct Components": {
-    "message": "Struct Components",
-    "description": "The label for category Struct Components in sidebar docs"
-  }
+    "version.label": {
+        "message": "Next",
+        "description": "The label for version current"
+    },
+    "sidebar.sidebar.category.Getting Started": {
+        "message": "Getting Started",
+        "description": "The label for category Getting Started in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.Concepts": {
+        "message": "Concepts",
+        "description": "The label for category Concepts in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.Concepts.link.generated-index.title": {
+        "message": "Yew concepts",
+        "description": "The generated-index page title for category Concepts in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.Concepts.link.generated-index.description": {
+        "message": "Learn about the important Yew concepts!",
+        "description": "The generated-index page description for category Concepts in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.Components": {
+        "message": "Components",
+        "description": "The label for category Components in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.HTML": {
+        "message": "HTML",
+        "description": "The label for category HTML in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.Function Components": {
+        "message": "Function Components",
+        "description": "The label for category Function Components in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.wasm-bindgen": {
+        "message": "wasm-bindgen",
+        "description": "The label for category wasm-bindgen in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.wasm-bindgen.link.generated-index.title": {
+        "message": "wasm-bindgen",
+        "description": "The generated-index page title for category wasm-bindgen in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.wasm-bindgen.link.generated-index.description": {
+        "message": "Learn about wasm-bindgen",
+        "description": "The generated-index page description for category wasm-bindgen in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.Advanced topics": {
+        "message": "Advanced topics",
+        "description": "The label for category Advanced topics in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.Advanced topics.link.generated-index.title": {
+        "message": "Advanced topics",
+        "description": "The generated-index page title for category Advanced topics in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.Advanced topics.link.generated-index.description": {
+        "message": "Learn about the advanced topics and inner workings of Yew!",
+        "description": "The generated-index page description for category Advanced topics in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.More": {
+        "message": "More",
+        "description": "The label for category More in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.More.link.generated-index.title": {
+        "message": "Miscellaneous",
+        "description": "The generated-index page title for category More in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.Migration guides": {
+        "message": "Migration guides",
+        "description": "The label for category Migration guides in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.yew": {
+        "message": "yew",
+        "description": "The label for category yew in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.yew-agent": {
+        "message": "yew-agent",
+        "description": "The label for category yew-agent in sidebar sidebar"
+    },
+    "sidebar.sidebar.category.yew-router": {
+        "message": "yew-router",
+        "description": "The label for category yew-router in sidebar sidebar"
+    },
+    "sidebar.docs.category.Getting Started": {
+        "message": "Getting Started",
+        "description": "The label for category Getting Started in sidebar docs"
+    },
+    "sidebar.docs.category.Concepts": {
+        "message": "Concepts",
+        "description": "The label for category Concepts in sidebar docs"
+    },
+    "sidebar.docs.category.Concepts.link.generated-index.title": {
+        "message": "Yew concepts",
+        "description": "The generated-index page title for category Concepts in sidebar docs"
+    },
+    "sidebar.docs.category.Concepts.link.generated-index.description": {
+        "message": "Learn about the important Yew concepts!",
+        "description": "The generated-index page description for category Concepts in sidebar docs"
+    },
+    "sidebar.docs.category.Components": {
+        "message": "Components",
+        "description": "The label for category Components in sidebar docs"
+    },
+    "sidebar.docs.category.HTML": {
+        "message": "HTML",
+        "description": "The label for category HTML in sidebar docs"
+    },
+    "sidebar.docs.category.Function Components": {
+        "message": "Function Components",
+        "description": "The label for category Function Components in sidebar docs"
+    },
+    "sidebar.docs.category.wasm-bindgen": {
+        "message": "wasm-bindgen",
+        "description": "The label for category wasm-bindgen in sidebar docs"
+    },
+    "sidebar.docs.category.wasm-bindgen.link.generated-index.title": {
+        "message": "wasm-bindgen",
+        "description": "The generated-index page title for category wasm-bindgen in sidebar docs"
+    },
+    "sidebar.docs.category.wasm-bindgen.link.generated-index.description": {
+        "message": "Learn about wasm-bindgen",
+        "description": "The generated-index page description for category wasm-bindgen in sidebar docs"
+    },
+    "sidebar.docs.category.Advanced topics": {
+        "message": "Advanced topics",
+        "description": "The label for category Advanced topics in sidebar docs"
+    },
+    "sidebar.docs.category.Advanced topics.link.generated-index.title": {
+        "message": "Advanced topics",
+        "description": "The generated-index page title for category Advanced topics in sidebar docs"
+    },
+    "sidebar.docs.category.Advanced topics.link.generated-index.description": {
+        "message": "Learn about the advanced topics and inner workings of Yew!",
+        "description": "The generated-index page description for category Advanced topics in sidebar docs"
+    },
+    "sidebar.docs.category.More": {
+        "message": "More",
+        "description": "The label for category More in sidebar docs"
+    },
+    "sidebar.docs.category.More.link.generated-index.title": {
+        "message": "Miscellaneous",
+        "description": "The generated-index page title for category More in sidebar docs"
+    },
+    "sidebar.docs.category.Migration guides": {
+        "message": "Migration guides",
+        "description": "The label for category Migration guides in sidebar docs"
+    },
+    "sidebar.docs.category.yew": {
+        "message": "yew",
+        "description": "The label for category yew in sidebar docs"
+    },
+    "sidebar.docs.category.yew-agent": {
+        "message": "yew-agent",
+        "description": "The label for category yew-agent in sidebar docs"
+    },
+    "sidebar.docs.category.yew-router": {
+        "message": "yew-router",
+        "description": "The label for category yew-router in sidebar docs"
+    },
+    "sidebar.docs.category.Intro With Basic Web Technologies": {
+        "message": "Intro With Basic Web Technologies",
+        "description": "The label for category Intro With Basic Web Technologies in sidebar docs"
+    },
+    "sidebar.docs.category.Intro With Basic Web Technologies.link.generated-index.title": {
+        "message": "Yew Take on Basic Web Technologies",
+        "description": "The generated-index page title for category Intro With Basic Web Technologies in sidebar docs"
+    },
+    "sidebar.docs.category.Intro With Basic Web Technologies.link.generated-index.description": {
+        "message": "Yew mostly operates on the idea of keeping everything that a reusable piece of UI may need, in one place - rust files. But also seeks to stay close to the original look of the technology. Explore further to fully grasp what we mean by these statements:",
+        "description": "The generated-index page description for category Intro With Basic Web Technologies in sidebar docs"
+    },
+    "sidebar.docs.category.Hooks": {
+        "message": "Hooks",
+        "description": "The label for category Hooks in sidebar docs"
+    },
+    "sidebar.docs.category.Javascript with Rust": {
+        "message": "Javascript with Rust",
+        "description": "The label for category Javascript with Rust in sidebar docs"
+    },
+    "sidebar.docs.category.Javascript with Rust.link.generated-index.title": {
+        "message": "wasm-bindgen",
+        "description": "The generated-index page title for category Javascript with Rust in sidebar docs"
+    },
+    "sidebar.docs.category.Javascript with Rust.link.generated-index.description": {
+        "message": "Learn about wasm-bindgen",
+        "description": "The generated-index page description for category Javascript with Rust in sidebar docs"
+    },
+    "sidebar.docs.category.Struct Components": {
+        "message": "Struct Components",
+        "description": "The label for category Struct Components in sidebar docs"
+    }
 }
