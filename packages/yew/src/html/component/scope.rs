@@ -211,14 +211,14 @@ mod feat_ssr {
 
             scheduler::push_component_create(
                 self.id,
-                CreateRunner {
+                Box::new(CreateRunner {
                     initial_render_state: state,
                     props,
                     scope: self.clone(),
-                },
-                RenderRunner {
+                }),
+                Box::new(RenderRunner {
                     state: self.state.clone(),
-                },
+                }),
             );
             scheduler::start();
 
@@ -227,12 +227,12 @@ mod feat_ssr {
             let self_any_scope = AnyScope::from(self.clone());
             html.render_to_string(w, &self_any_scope).await;
 
-            scheduler::push_component_destroy(DestroyRunner {
+            scheduler::push_component_destroy(Box::new(DestroyRunner {
                 state: self.state.clone(),
 
                 #[cfg(feature = "csr")]
                 parent_to_detach: false,
-            });
+            }));
             scheduler::start();
         }
     }
@@ -347,10 +347,10 @@ mod feat_csr_ssr {
         }
 
         pub(super) fn push_update(&self, event: UpdateEvent) {
-            scheduler::push_component_update(UpdateRunner {
+            scheduler::push_component_update(Box::new(UpdateRunner {
                 state: self.state.clone(),
                 event,
-            });
+            }));
             // Not guaranteed to already have the scheduler started
             scheduler::start();
         }
@@ -418,14 +418,14 @@ mod feat_csr {
 
             scheduler::push_component_create(
                 self.id,
-                CreateRunner {
+                Box::new(CreateRunner {
                     initial_render_state: state,
                     props,
                     scope: self.clone(),
-                },
-                RenderRunner {
+                }),
+                Box::new(RenderRunner {
                     state: self.state.clone(),
-                },
+                }),
             );
             // Not guaranteed to already have the scheduler started
             scheduler::start();
@@ -473,10 +473,10 @@ mod feat_csr {
 
         /// Process an event to destroy a component
         fn destroy(self, parent_to_detach: bool) {
-            scheduler::push_component_destroy(DestroyRunner {
+            scheduler::push_component_destroy(Box::new(DestroyRunner {
                 state: self.state,
                 parent_to_detach,
-            });
+            }));
             // Not guaranteed to already have the scheduler started
             scheduler::start();
         }
@@ -486,10 +486,10 @@ mod feat_csr {
         }
 
         fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
-            scheduler::push_component_update(UpdateRunner {
+            scheduler::push_component_update(Box::new(UpdateRunner {
                 state: self.state.clone(),
                 event: UpdateEvent::Shift(parent, next_sibling),
-            })
+            }))
         }
     }
 }

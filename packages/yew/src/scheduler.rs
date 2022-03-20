@@ -66,30 +66,30 @@ mod feat_csr_ssr {
     /// Push a component creation, first render and first rendered [Runnable]s to be executed
     pub(crate) fn push_component_create(
         component_id: usize,
-        create: impl Runnable + 'static,
-        first_render: impl Runnable + 'static,
+        create: Box<dyn Runnable>,
+        first_render: Box<dyn Runnable>,
     ) {
         with(|s| {
-            s.create.push(Box::new(create));
-            s.render_first.insert(component_id, Box::new(first_render));
+            s.create.push(create);
+            s.render_first.insert(component_id, first_render);
         });
     }
 
     /// Push a component destruction [Runnable] to be executed
-    pub(crate) fn push_component_destroy(runnable: impl Runnable + 'static) {
-        with(|s| s.destroy.push(Box::new(runnable)));
+    pub(crate) fn push_component_destroy(runnable: Box<dyn Runnable>) {
+        with(|s| s.destroy.push(runnable));
     }
 
     /// Push a component render and rendered [Runnable]s to be executed
-    pub(crate) fn push_component_render(component_id: usize, render: impl Runnable + 'static) {
+    pub(crate) fn push_component_render(component_id: usize, render: Box<dyn Runnable>) {
         with(|s| {
-            s.render.insert(component_id, Box::new(render));
+            s.render.insert(component_id, render);
         });
     }
 
     /// Push a component update [Runnable] to be executed
-    pub(crate) fn push_component_update(runnable: impl Runnable + 'static) {
-        with(|s| s.update.push(Box::new(runnable)));
+    pub(crate) fn push_component_update(runnable: Box<dyn Runnable>) {
+        with(|s| s.update.push(runnable));
     }
 }
 
@@ -102,12 +102,10 @@ mod feat_csr {
 
     pub(crate) fn push_component_rendered(
         component_id: usize,
-        rendered: impl Runnable + 'static,
+        rendered: Box<dyn Runnable>,
         first_render: bool,
     ) {
         with(|s| {
-            let rendered = Box::new(rendered);
-
             if first_render {
                 s.rendered_first.insert(component_id, rendered);
             } else {

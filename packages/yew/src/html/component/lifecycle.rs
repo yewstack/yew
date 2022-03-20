@@ -301,9 +301,9 @@ impl Runnable for UpdateRunner {
             if schedule_render {
                 scheduler::push_component_render(
                     state.comp_id,
-                    RenderRunner {
+                    Box::new(RenderRunner {
                         state: self.state.clone(),
-                    },
+                    }),
                 );
                 // Only run from the scheduler, so no need to call `scheduler::start()`
             }
@@ -377,9 +377,9 @@ impl RenderRunner {
 
             scheduler::push_component_render(
                 state.comp_id,
-                RenderRunner {
+                Box::new(RenderRunner {
                     state: shared_state,
-                },
+                }),
             );
         } else {
             // We schedule a render after current suspension is resumed.
@@ -393,9 +393,9 @@ impl RenderRunner {
             suspension.listen(Callback::from(move |_| {
                 scheduler::push_component_render(
                     comp_id,
-                    RenderRunner {
+                    Box::new(RenderRunner {
                         state: shared_state.clone(),
-                    },
+                    }),
                 );
                 scheduler::start();
             }));
@@ -442,10 +442,10 @@ impl RenderRunner {
 
                 scheduler::push_component_rendered(
                     state.comp_id,
-                    RenderedRunner {
+                    Box::new(RenderedRunner {
                         state: self.state.clone(),
                         first_render,
-                    },
+                    }),
                     first_render,
                 );
             }
