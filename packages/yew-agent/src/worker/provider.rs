@@ -4,7 +4,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use yew::prelude::*;
 
-use super::{Bridge, Spawnable, Worker};
+use super::{Spawnable, Worker, WorkerBridge};
 use crate::reach::Reach;
 
 /// Properties for [WorkerProvider].
@@ -42,7 +42,7 @@ where
     path: AttrValue,
     reach: Reach,
     lazy: bool,
-    held_bridge: Rc<RefCell<Option<Bridge<W>>>>,
+    held_bridge: Rc<RefCell<Option<WorkerBridge<W>>>>,
 }
 
 impl<W> WorkerProviderState<W>
@@ -50,7 +50,7 @@ where
     W: Worker,
 {
     /// Creates a bridge, uses "fork" for public
-    pub fn create_bridge<F>(&self, cb: F) -> Bridge<W>
+    pub fn create_bridge<F>(&self, cb: F) -> WorkerBridge<W>
     where
         F: 'static + Fn(W::Output),
     {

@@ -12,7 +12,7 @@ use wasm_bindgen::throw_str;
 use wasm_bindgen_futures::spawn_local;
 
 use super::traits::{Task, TaskWorker};
-use crate::worker::{use_bridge, UseBridgeHandle};
+use crate::worker::{use_worker_bridge, UseWorkerBridgeHandle};
 
 /// Handle for [use_task]
 #[derive(Debug)]
@@ -22,7 +22,7 @@ where
 {
     ctr: Rc<AtomicUsize>,
     output_handles: Rc<RefCell<HashMap<usize, oneshot::Sender<T::Output>>>>,
-    bridge: UseBridgeHandle<TaskWorker<T>>,
+    bridge: UseWorkerBridgeHandle<TaskWorker<T>>,
 }
 
 impl<T> UseTaskHandle<T>
@@ -81,7 +81,7 @@ where
     let bridge = {
         let output_handles = output_handles.clone();
 
-        use_bridge::<TaskWorker<T>, _>(move |(id, output)| {
+        use_worker_bridge::<TaskWorker<T>, _>(move |(id, output)| {
             if let Some(m) = {
                 let mut output_handles = output_handles.borrow_mut();
                 output_handles.remove(&id)

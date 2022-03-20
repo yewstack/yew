@@ -1,10 +1,12 @@
 //! This module contains the worker agent implementation.
 
-mod hook;
+mod hooks;
 mod provider;
 
-pub use hook::{use_bridge, UseBridgeHandle};
+pub use hooks::{
+    use_worker_bridge, use_worker_subscription, UseWorkerBridgeHandle, UseWorkerSubscriptionHandle,
+};
 pub use provider::{WorkerProvider, WorkerProviderProps};
 
 #[doc(inline)]
-pub use gloo_worker::{Bridge, HandlerId, Spawnable, Spawner, Worker, WorkerScope};
+pub use gloo_worker::{HandlerId, Spawnable, Worker, WorkerBridge, WorkerScope, WorkerSpawner};
