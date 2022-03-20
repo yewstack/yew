@@ -52,7 +52,8 @@ get further translated in GitLocalize.
 
 ```jsx
 import Translate from '@docusaurus/Translate'
-;<h2>
+
+<h2>
     <Translate id="header.translation.id" description="the header description">
         This header will be translated
     </Translate>
