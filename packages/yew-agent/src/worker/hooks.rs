@@ -24,7 +24,7 @@ impl<T> UseWorkerBridgeHandle<T>
 where
     T: Worker,
 {
-    /// Send a message to an worker.
+    /// Send an input to a worker agent.
     pub fn send(&self, msg: T::Input) {
         self.inner.send(msg);
     }
@@ -120,7 +120,7 @@ impl<T> UseWorkerSubscriptionHandle<T>
 where
     T: Worker,
 {
-    /// Send an input to an worker.
+    /// Send an input to a worker agent.
     pub fn send(&self, msg: T::Input) {
         self.bridge.send(msg);
     }

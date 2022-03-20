@@ -1,6 +1,5 @@
 use pin_project::pin_project;
 use std::collections::HashMap;
-use std::marker::PhantomData;
 use std::pin::Pin;
 
 use futures::channel::mpsc;
@@ -24,7 +23,6 @@ where
     I: Serialize + for<'de> Deserialize<'de>,
     O: Serialize + for<'de> Deserialize<'de>,
 {
-    _marker: PhantomData<(I, O)>,
     #[pin]
     rx: mpsc::UnboundedReceiver<IoPair<Self>>,
 }
@@ -75,10 +73,7 @@ where
     type Output = O;
 
     fn new(rx: mpsc::UnboundedReceiver<IoPair<Self>>) -> Self {
-        Self {
-            _marker: PhantomData,
-            rx,
-        }
+        Self { rx }
     }
 }
 
@@ -95,7 +90,6 @@ pub(crate) struct StationWorker<S>
 where
     S: 'static + Station,
 {
-    _marker: PhantomData<S>,
     link: WorkerScope<Self>,
     senders: HashMap<HandlerId, mpsc::UnboundedSender<<Self as Worker>::Input>>,
     tx: mpsc::UnboundedSender<IoPair<S::Receivable>>,
@@ -112,7 +106,6 @@ where
     fn create(link: WorkerScope<Self>) -> Self {
         let (tx, rx) = mpsc::unbounded();
         let this = Self {
-            _marker: PhantomData,
             link,
             senders: HashMap::new(),
             tx,
