@@ -462,7 +462,6 @@ fn switch_main(route: &MainRoute) -> Html {
         MainRoute::Contact => html! {<h1>{"Contact"}</h1>},
         MainRoute::SettingsRoot | MainRoute::Settings => html! { <Switch<SettingsRoute> render={Switch::render(switch_settings)} /> },
         MainRoute::NotFound => html! {<h1>{"Not Found"}</h1>},
-        },
     }
 }
 
