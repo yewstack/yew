@@ -271,7 +271,6 @@ mod dom_bundle;
 pub mod functional;
 pub mod html;
 mod io_coop;
-pub mod portal;
 pub mod scheduler;
 mod sealed;
 #[cfg(feature = "ssr")]
@@ -281,7 +280,6 @@ pub mod utils;
 pub mod virtual_dom;
 #[cfg(feature = "ssr")]
 pub use server_renderer::*;
-
 #[cfg(feature = "csr")]
 mod app_handle;
 #[cfg(feature = "csr")]
@@ -325,11 +323,10 @@ pub mod prelude {
     pub use crate::context::{ContextHandle, ContextProvider};
     pub use crate::events::*;
     pub use crate::html::{
-        BaseComponent, Children, ChildrenWithProps, Classes, Component, Context, Html, HtmlResult,
-        IntoComponent, NodeRef, Properties,
+        create_portal, BaseComponent, Children, ChildrenWithProps, Classes, Component, Context,
+        Html, HtmlResult, IntoComponent, NodeRef, Properties,
     };
     pub use crate::macros::{classes, html, html_nested};
-    pub use crate::portal::Portal;
     pub use crate::suspense::Suspense;
     pub use crate::virtual_dom::AttrValue;
 

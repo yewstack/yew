@@ -31,7 +31,6 @@ struct Scheduler {
 
     /// Stacks to ensure child calls are always before parent calls
     rendered_first: Vec<Box<dyn Runnable>>,
-
     #[cfg(feature = "csr")]
     rendered: RenderedScheduler,
 }
