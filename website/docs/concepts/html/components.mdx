@@ -149,13 +149,12 @@ pub struct Props {
 
 #[function_component]
 fn List(props: &Props) -> Html {
-    html! {{
-        for props.children.iter().map(|mut item| {
+    let modified_children = props.children.iter().map(|mut item| {
             let mut props = Rc::make_mut(&mut item.props);
             props.value = format!("item-{}", props.value);
             item
-        })
-    }}
+    });
+    html! { for modified_children }
 }
 
 html! {
