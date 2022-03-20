@@ -28,6 +28,7 @@ html!{
 只要元件的 `Properties` 中有 `children`，就可以傳遞子結點給元件。
 
 {% code title="parent.rs" %}
+
 ```rust
 html! {
     <Container>
@@ -36,9 +37,11 @@ html! {
     </Container>
 }
 ```
+
 {% endcode %}
 
 {% code title="container.rs" %}
+
 ```rust
 pub struct Container(Props);
 
@@ -61,6 +64,7 @@ impl Component for Container {
     }
 }
 ```
+
 {% endcode %}
 
 ## 指定子結點的型別
@@ -68,6 +72,7 @@ impl Component for Container {
 如果指定了子結點的型別，就可以使用或改變巢狀元件的屬性。下面的範例就是， `List` 元件包裹 `ListItem` 元件。另一個真實的範例是 `yew-router` 的原始碼。還有一個更進階的範例，請參考 Yew GitHub repo 中的 `nested-list` 範例。
 
 {% code title="parent.rs" %}
+
 ```rust
 html! {
     <List>
@@ -77,9 +82,11 @@ html! {
     </List>
 }
 ```
+
 {% endcode %}
 
 {% code title="list.rs" %}
+
 ```rust
 pub struct List(Props);
 
@@ -103,5 +110,5 @@ impl Component for List {
     }
 }
 ```
-{% endcode %}
 
+{% endcode %}

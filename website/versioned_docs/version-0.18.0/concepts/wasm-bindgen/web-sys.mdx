@@ -1,4 +1,3 @@
-
 The [`web-sys` crate](https://crates.io/crates/web-sys) provides bindings for Web APIs. This is
 procedurally generated from browser WebIDL which is why some of the names are so long and why
 some of the types are vague.
@@ -121,14 +120,15 @@ can be adapted and written using Rust with `web-sys`.
 ```js
 document.getElementById('mousemoveme').onmousemove = (e) => {
     // e = Mouse event.
-    var rect = e.target.getBoundingClientRect();
-    var x = e.clientX - rect.left; //x position within the element.
-    var y = e.clientY - rect.top;  //y position within the element.
-    console.log("Left? : " + x + " ; Top? : " + y + ".");
+    var rect = e.target.getBoundingClientRect()
+    var x = e.clientX - rect.left //x position within the element.
+    var y = e.clientY - rect.top //y position within the element.
+    console.log('Left? : ' + x + ' ; Top? : ' + y + '.')
 }
 ```
 
 ### `web-sys` example
+
 Using `web-sys` alone the above JavaSciprt example could be implemented like this:
 
 ```toml title=Cargo.toml

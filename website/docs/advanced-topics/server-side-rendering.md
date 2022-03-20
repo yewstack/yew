@@ -1,6 +1,6 @@
 ---
-title: "Server-side Rendering"
-description: "Render Yew on the server-side."
+title: 'Server-side Rendering'
+description: 'Render Yew on the server-side.'
 ---
 
 # Server-side Rendering
@@ -14,10 +14,10 @@ bundle. This is known as client-side rendering.
 This approach works fine for most websites, with some caveats:
 
 1. Users will not be able to see anything until the entire WebAssembly
-  bundle is downloaded and initial render has completed.
-  This can result in poor user experience if the user is using a slow network.
+   bundle is downloaded and initial render has completed.
+   This can result in poor user experience if the user is using a slow network.
 2. Some search engines do not support dynamically rendered web content and
-  those who do usually rank dynamic websites lower in the search results.
+   those who do usually rank dynamic websites lower in the search results.
 
 To solve these problems, we can render our website on the server side.
 
@@ -126,7 +126,7 @@ suspended.
 With this approach, developers can build a client-agnostic, SSR ready
 application with data fetching with very little effort.
 
-Example: [simple\_ssr](https://github.com/yewstack/yew/tree/master/examples/simple_ssr)
+Example: [simple_ssr](https://github.com/yewstack/yew/tree/master/examples/simple_ssr)
 
 :::caution
 

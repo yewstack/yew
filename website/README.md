@@ -2,7 +2,7 @@
 
 This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
 
-Most of the content sits inside the [docs](docs) folder and the [versioned_docs](versioned_docs) folder in the form of 
+Most of the content sits inside the [docs](docs) folder and the [versioned_docs](versioned_docs) folder in the form of
 markdown.
 
 ## Installation
@@ -51,13 +51,13 @@ It helps docusaurus to extract those texts and compile them to `.json` files to
 get further translated in GitLocalize.
 
 ```jsx
-import Translate from '@docusaurus/Translate';
+import Translate from '@docusaurus/Translate'
 
-<h2>
+;<h2>
     <Translate id="header.translation.id" description="the header description">
         This header will be translated
     </Translate>
-</h2>;
+</h2>
 ```
 
 If your pull request adds new `<Translation>` tags,

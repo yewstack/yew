@@ -1,12 +1,13 @@
 ---
 title: Literals and Expressions
 ---
+
 ## リテラル
 
-式が`Display`を実装した型を解決する場合、文字列に変換されてDOMに[Text](https://developer.mozilla.org/en-US/docs/Web/API/Text)ノードとして挿入されます。
+式が`Display`を実装した型を解決する場合、文字列に変換されて DOM に[Text](https://developer.mozilla.org/en-US/docs/Web/API/Text)ノードとして挿入されます。
 
 テキストは式として処理されるため、全ての表示される内容は`{}`ブロックによって囲まれる必要があります。
-これはYewのアプリと通常のHTMLの構文で最も異なる点です。
+これは Yew のアプリと通常の HTML の構文で最も異なる点です。
 
 ```rust
 let text = "lorem ipsum";
@@ -21,7 +22,7 @@ html!{
 
 ## 式
 
-HTMLに`{}`ブロックを使って式を挿入することができます。
+HTML に`{}`ブロックを使って式を挿入することができます。
 
 ```rust
 html! {

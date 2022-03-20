@@ -1,11 +1,12 @@
 ---
 title: Choosing a web library
 ---
+
 ## はじめに
 
-Yewアプリは[`web-sys`](https://docs.rs/web-sys)か[`stdweb`](https://docs.rs/stdweb)で作ることができます。
-これらのクレートはRustとWeb APIのバインディングを提供しています。
-Cargoの依存クレートに`yew`を追加する際はどちらかを選ばなければいけません:
+Yew アプリは[`web-sys`](https://docs.rs/web-sys)か[`stdweb`](https://docs.rs/stdweb)で作ることができます。
+これらのクレートは Rust と Web API のバインディングを提供しています。
+Cargo の依存クレートに`yew`を追加する際はどちらかを選ばなければいけません:
 
 ```toml
 # Choose `web-sys`
@@ -38,7 +39,7 @@ let window = Window::try_from(window_val).expect("conversion to window failed");
 window.alert("hello from wasm!");
 ```
 
-2つのクレートのAPIはわずかに異なりますが、だいたい同じ目的で似た機能が提供されています。
+2 つのクレートの API はわずかに異なりますが、だいたい同じ目的で似た機能が提供されています。
 
 ## 一方を選ぶ
 
@@ -47,77 +48,100 @@ window.alert("hello from wasm!");
 一方だけを使用するのが良いです。
 
 <table>
-  <thead>
-    <tr>
-      <th style={{ textAlign: "left" }}></th>
-      <th style={{ textAlign: "left" }}><code>web-sys</code>
-      </th>
-      <th style={{ textAlign: "left" }}><code>stdweb</code>
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style={{ textAlign: "left" }}>プロジェクトの進捗状況</td>
-      <td style={{ textAlign: "left" }}>
-        <a href="https://rustwasm.github.io/">Rust / Wasm 活動チーム</a>により活発にメンテナンスされている
-      </td>
-      <td style={{ textAlign: "left" }}>GitHubで8ヶ月間動きなし</td>
-    </tr>
-    <tr>
-      <td style={{ textAlign: "left" }}>Web API のカバー</td>
-      <td style={{ textAlign: "left" }}>RustのAPIはWeb IDLスペックから自動的に生成される。</td>
-      <td style={{ textAlign: "left" }}>Browser APIはコミュニティにより追加。</td>
-    </tr>
-    <tr>
-      <td style={{ textAlign: "left" }}>RustのAPIのデザイン</td>
-      <td style={{ textAlign: "left" }}>
-        ほとんどのAPIコールおいて<code>Result</code>が返ってくるよう保守的なアプローチがとられている。
-      </td>
-      <td style={{ textAlign: "left" }}>しばしば<code>Result</code>を返さずpanicするようになっている。例えば <code>stdweb::web::window()</code>ワーカーの中で呼ばれるパニックする。</td>
-    </tr>
-    <tr>
-      <td style={{ textAlign: "left" }}>サポートされているビルドツール</td>
-      <td style={{ textAlign: "left" }}>
-        <p></p>
-        <ul>
-          <li><code>wasm-bindgen</code>
-          </li>
-          <li><code>wasm-pack</code>
-          </li>
-        </ul>
-      </td>
-      <td style={{ textAlign: "left" }}>
-        <p></p>
-        <ul>
-          <li><code>cargo-web</code>
-          </li>
-          <li><code>wasm-bindgen</code>
-          </li>
-          <li><code>wasm-pack</code>
-          </li>
-        </ul>
-      </td>
-    </tr>
-    <tr>
-      <td style={{ textAlign: "left" }}>サポートされているターゲット</td>
-      <td style={{ textAlign: "left" }}>
-        <ul>
-          <li><code>wasm32-unknown-unknown</code>
-          </li>
-        </ul>
-      </td>
-      <td style={{ textAlign: "left" }}>
-        <ul>
-          <li><code>wasm32-unknown-unknown</code>
-          </li>
-          <li><code>wasm32-unknown-emscripten</code>
-          </li>
-          <li><code>asmjs-unknown-emscripten</code>
-          </li>
-        </ul>
-      </td>
-    </tr>
-  </tbody>
+    <thead>
+        <tr>
+            <th style={{ textAlign: 'left' }}></th>
+            <th style={{ textAlign: 'left' }}>
+                <code>web-sys</code>
+            </th>
+            <th style={{ textAlign: 'left' }}>
+                <code>stdweb</code>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style={{ textAlign: 'left' }}>プロジェクトの進捗状況</td>
+            <td style={{ textAlign: 'left' }}>
+                <a href="https://rustwasm.github.io/">Rust / Wasm 活動チーム</a>
+                により活発にメンテナンスされている
+            </td>
+            <td style={{ textAlign: 'left' }}>GitHubで8ヶ月間動きなし</td>
+        </tr>
+        <tr>
+            <td style={{ textAlign: 'left' }}>Web API のカバー</td>
+            <td style={{ textAlign: 'left' }}>
+                RustのAPIはWeb IDLスペックから自動的に生成される。
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                Browser APIはコミュニティにより追加。
+            </td>
+        </tr>
+        <tr>
+            <td style={{ textAlign: 'left' }}>RustのAPIのデザイン</td>
+            <td style={{ textAlign: 'left' }}>
+                ほとんどのAPIコールおいて<code>Result</code>
+                が返ってくるよう保守的なアプローチがとられている。
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                しばしば<code>Result</code>
+                を返さずpanicするようになっている。例えば{' '}
+                <code>stdweb::web::window()</code>
+                ワーカーの中で呼ばれるパニックする。
+            </td>
+        </tr>
+        <tr>
+            <td style={{ textAlign: 'left' }}>
+                サポートされているビルドツール
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                <p></p>
+                <ul>
+                    <li>
+                        <code>wasm-bindgen</code>
+                    </li>
+                    <li>
+                        <code>wasm-pack</code>
+                    </li>
+                </ul>
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                <p></p>
+                <ul>
+                    <li>
+                        <code>cargo-web</code>
+                    </li>
+                    <li>
+                        <code>wasm-bindgen</code>
+                    </li>
+                    <li>
+                        <code>wasm-pack</code>
+                    </li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td style={{ textAlign: 'left' }}>サポートされているターゲット</td>
+            <td style={{ textAlign: 'left' }}>
+                <ul>
+                    <li>
+                        <code>wasm32-unknown-unknown</code>
+                    </li>
+                </ul>
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                <ul>
+                    <li>
+                        <code>wasm32-unknown-unknown</code>
+                    </li>
+                    <li>
+                        <code>wasm32-unknown-emscripten</code>
+                    </li>
+                    <li>
+                        <code>asmjs-unknown-emscripten</code>
+                    </li>
+                </ul>
+            </td>
+        </tr>
+    </tbody>
 </table>
-

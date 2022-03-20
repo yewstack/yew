@@ -4,7 +4,7 @@ title: Children
 
 ## 普通用法
 
-*大多数情况下，*在组件内部包含有children时，您并不关心组件具体有什么类型的children。在这种情况下，下面的例子就足够了。
+*大多数情况下，*在组件内部包含有 children 时，您并不关心组件具体有什么类型的 children。在这种情况下，下面的例子就足够了。
 
 ```rust
 use yew::prelude::*;
@@ -35,7 +35,7 @@ impl Component for List {
 
 ## 高级用法
 
-当您希望将某一种类型的组件作为children传递给您的组件时，您可以使用`yew::html::ChildrenWithProps<T>` 。
+当您希望将某一种类型的组件作为 children 传递给您的组件时，您可以使用`yew::html::ChildrenWithProps<T>` 。
 
 ```rust
 use yew::html::ChildrenWithProps;
@@ -67,7 +67,7 @@ impl Component for ListProps {
 }
 ```
 
-当然，有时您可能需要将children限制为几个不同的组件。在这种情况下，您要再深入一点 Yew。
+当然，有时您可能需要将 children 限制为几个不同的组件。在这种情况下，您要再深入一点 Yew。
 
 [`derive_more`](https://github.com/JelteF/derive_more) crate 在这种情况下非常有用。如果你不想用它的话, 你需要手动为每个变量实现 `From` 。
 

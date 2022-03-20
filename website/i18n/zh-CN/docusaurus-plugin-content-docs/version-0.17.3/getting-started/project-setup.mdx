@@ -33,106 +33,171 @@ description: 为成功做好准备
 ### 对比
 
 <table>
-  <thead>
-    <tr>
-      <th style={{ textAlign: "left" }}></th>
-      <th style={{ textAlign: "left" }}><code>wasm-pack</code>
-      </th>
-      <th style={{ textAlign: "left" }}><code>wasm-bindgen</code>
-      </th>
-      <th style={{ textAlign: "left" }}><code>cargo-web</code>
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style={{ textAlign: "left" }}>&#x9879;&#x76EE;&#x72B6;&#x6001;</td>
-      <td style={{ textAlign: "left" }}>&#x7531; <a href="https://rustwasm.github.io/">Rust / Wasm &#x5DE5;&#x4F5C;&#x7EC4;</a>&#x79EF;&#x6781;&#x7EF4;&#x62A4;</td>
-      <td
-      style={{ textAlign: "left" }}>&#x7531; <a href="https://rustwasm.github.io/">Rust / Wasm &#x5DE5;&#x4F5C;&#x7EC4;</a>&#x79EF;&#x6781;&#x7EF4;&#x62A4;</td>
-        <td
-        style={{ textAlign: "left" }}>&#x8D85;&#x8FC7;&#x516D;&#x4E2A;&#x6708;&#x6CA1;&#x6709; Github &#x6D3B;&#x52A8;</td>
-    </tr>
-    <tr>
-      <td style={{ textAlign: "left" }}>&#x5F00;&#x53D1;&#x4F53;&#x9A8C;</td>
-      <td style={{ textAlign: "left" }}>&#x63A5;&#x8FD1;&#x5B8C;&#x7F8E;&#xFF01;&#x9700;&#x8981; <code>webpack</code> &#x4EE5;&#x83B7;&#x5F97;&#x6700;&#x4F73;&#x4F53;&#x9A8C;&#x3002;</td>
-      <td
-      style={{ textAlign: "left" }}>&#x6BD4;&#x8F83;&#x57FA;&#x7840;&#x3002;&#x4F60;&#x9700;&#x8981;&#x7F16;&#x5199;&#x4E00;&#x4E9B;&#x811A;&#x672C;&#x6765;&#x7B80;&#x5316;&#x4F60;&#x7684;&#x5F00;&#x53D1;&#x4F53;&#x9A8C;&#x3002;</td>
-        <td
-        style={{ textAlign: "left" }}>&#x7BA1;&#x7528;&#xFF01;&#x81EA;&#x5E26;&#x201C;&#x7535;&#x6C60;&#x201D;&#xFF0C;&#x4E0D;&#x9700;&#x8981;&#x5916;&#x90E8;&#x4F9D;&#x8D56;&#x3002;</td>
-    </tr>
-    <tr>
-      <td style={{ textAlign: "left" }}>&#x672C;&#x5730;&#x670D;&#x52A1;&#x5668;</td>
-      <td style={{ textAlign: "left" }}>&#x901A;&#x8FC7; <code>webpack</code> &#x63D2;&#x4EF6;&#x652F;&#x6301;</td>
-      <td
-      style={{ textAlign: "left" }}>&#x4E0D;&#x652F;&#x6301;</td>
-        <td style={{ textAlign: "left" }}>&#x652F;&#x6301;</td>
-    </tr>
-    <tr>
-      <td style={{ textAlign: "left" }}>&#x6839;&#x636E;&#x672C;&#x5730;&#x66F4;&#x6539;&#x81EA;&#x52A8;&#x91CD;&#x65B0;&#x6784;&#x5EFA;</td>
-      <td
-      style={{ textAlign: "left" }}>&#x901A;&#x8FC7; <code>webpack</code> &#x63D2;&#x4EF6;&#x652F;&#x6301;</td>
-        <td
-        style={{ textAlign: "left" }}>&#x4E0D;&#x652F;&#x6301;</td>
-          <td style={{ textAlign: "left" }}>&#x652F;&#x6301;</td>
-    </tr>
-    <tr>
-      <td style={{ textAlign: "left" }}>&#x65E0;&#x5934;&#x6D4F;&#x89C8;&#x5668;&#x6D4B;&#x8BD5;</td>
-      <td style={{ textAlign: "left" }}><a href="https://rustwasm.github.io/docs/wasm-pack/commands/test.html">&#x652F;&#x6301;</a>
-      </td>
-      <td style={{ textAlign: "left" }}><a href="https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html">&#x652F;&#x6301;</a>
-      </td>
-      <td style={{ textAlign: "left" }}><a href="https://github.com/koute/cargo-web#features">&#x652F;&#x6301;</a>
-      </td>
-    </tr>
-    <tr>
-      <td style={{ textAlign: "left" }}>&#x652F;&#x6301;&#x751F;&#x6210;&#x7684;&#x76EE;&#x6807;&#x4EE3;&#x7801;</td>
-      <td
-      style={{ textAlign: "left" }}>
-        <ul>
-          <li><code>wasm32-unknown-unknown</code>
-          </li>
-        </ul>
-        </td>
-        <td style={{ textAlign: "left" }}>
-          <ul>
-            <li><code>wasm32-unknown-unknown</code>
-            </li>
-          </ul>
-        </td>
-        <td style={{ textAlign: "left" }}>
-          <ul>
-            <li><code>wasm32-unknown-unknown</code>
-            </li>
-            <li><code>wasm32-unknown-emscripten</code>
-            </li>
-            <li><code>asmjs-unknown-emscripten</code>
-            </li>
-          </ul>
-        </td>
-    </tr>
-    <tr>
-      <td style={{ textAlign: "left" }}><code>web-sys</code>
-      </td>
-      <td style={{ textAlign: "left" }}>&#x517C;&#x5BB9;</td>
-      <td style={{ textAlign: "left" }}>&#x517C;&#x5BB9;</td>
-      <td style={{ textAlign: "left" }}>&#x4E0D;&#x517C;&#x5BB9;</td>
-    </tr>
-    <tr>
-      <td style={{ textAlign: "left" }}><code>stdweb</code>
-      </td>
-      <td style={{ textAlign: "left" }}>&#x517C;&#x5BB9;</td>
-      <td style={{ textAlign: "left" }}>&#x517C;&#x5BB9;</td>
-      <td style={{ textAlign: "left" }}>&#x517C;&#x5BB9;</td>
-    </tr>
-    <tr>
-      <td style={{ textAlign: "left" }}>&#x793A;&#x4F8B;&#x7528;&#x6CD5;</td>
-      <td style={{ textAlign: "left" }}><a href="https://github.com/yewstack/yew-wasm-pack-minimal">&#x65B0;&#x624B;&#x6A21;&#x677F;</a>
-      </td>
-      <td style={{ textAlign: "left" }}>Yew &#x793A;&#x4F8B;&#x7A0B;&#x5E8F;&#x7684;<a href="https://github.com/yewstack/yew/blob/master/examples/build_all.sh">&#x6784;&#x5EFA;&#x811A;&#x672C;</a>
-      </td>
-      <td style={{ textAlign: "left" }}>Yew &#x793A;&#x4F8B;&#x7A0B;&#x5E8F;&#x7684;<a href="https://github.com/yewstack/yew/blob/master/examples/build_all.sh">&#x6784;&#x5EFA;&#x811A;&#x672C;</a>
-      </td>
-    </tr>
-  </tbody>
+    <thead>
+        <tr>
+            <th style={{ textAlign: 'left' }}></th>
+            <th style={{ textAlign: 'left' }}>
+                <code>wasm-pack</code>
+            </th>
+            <th style={{ textAlign: 'left' }}>
+                <code>wasm-bindgen</code>
+            </th>
+            <th style={{ textAlign: 'left' }}>
+                <code>cargo-web</code>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style={{ textAlign: 'left' }}>
+                &#x9879;&#x76EE;&#x72B6;&#x6001;
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                &#x7531;{' '}
+                <a href="https://rustwasm.github.io/">
+                    Rust / Wasm &#x5DE5;&#x4F5C;&#x7EC4;
+                </a>
+                &#x79EF;&#x6781;&#x7EF4;&#x62A4;
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                &#x7531;{' '}
+                <a href="https://rustwasm.github.io/">
+                    Rust / Wasm &#x5DE5;&#x4F5C;&#x7EC4;
+                </a>
+                &#x79EF;&#x6781;&#x7EF4;&#x62A4;
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                &#x8D85;&#x8FC7;&#x516D;&#x4E2A;&#x6708;&#x6CA1;&#x6709; Github
+                &#x6D3B;&#x52A8;
+            </td>
+        </tr>
+        <tr>
+            <td style={{ textAlign: 'left' }}>
+                &#x5F00;&#x53D1;&#x4F53;&#x9A8C;
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                &#x63A5;&#x8FD1;&#x5B8C;&#x7F8E;&#xFF01;&#x9700;&#x8981;{' '}
+                <code>webpack</code>{' '}
+                &#x4EE5;&#x83B7;&#x5F97;&#x6700;&#x4F73;&#x4F53;&#x9A8C;&#x3002;
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                &#x6BD4;&#x8F83;&#x57FA;&#x7840;&#x3002;&#x4F60;&#x9700;&#x8981;&#x7F16;&#x5199;&#x4E00;&#x4E9B;&#x811A;&#x672C;&#x6765;&#x7B80;&#x5316;&#x4F60;&#x7684;&#x5F00;&#x53D1;&#x4F53;&#x9A8C;&#x3002;
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                &#x7BA1;&#x7528;&#xFF01;&#x81EA;&#x5E26;&#x201C;&#x7535;&#x6C60;&#x201D;&#xFF0C;&#x4E0D;&#x9700;&#x8981;&#x5916;&#x90E8;&#x4F9D;&#x8D56;&#x3002;
+            </td>
+        </tr>
+        <tr>
+            <td style={{ textAlign: 'left' }}>
+                &#x672C;&#x5730;&#x670D;&#x52A1;&#x5668;
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                &#x901A;&#x8FC7; <code>webpack</code>{' '}
+                &#x63D2;&#x4EF6;&#x652F;&#x6301;
+            </td>
+            <td style={{ textAlign: 'left' }}>&#x4E0D;&#x652F;&#x6301;</td>
+            <td style={{ textAlign: 'left' }}>&#x652F;&#x6301;</td>
+        </tr>
+        <tr>
+            <td style={{ textAlign: 'left' }}>
+                &#x6839;&#x636E;&#x672C;&#x5730;&#x66F4;&#x6539;&#x81EA;&#x52A8;&#x91CD;&#x65B0;&#x6784;&#x5EFA;
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                &#x901A;&#x8FC7; <code>webpack</code>{' '}
+                &#x63D2;&#x4EF6;&#x652F;&#x6301;
+            </td>
+            <td style={{ textAlign: 'left' }}>&#x4E0D;&#x652F;&#x6301;</td>
+            <td style={{ textAlign: 'left' }}>&#x652F;&#x6301;</td>
+        </tr>
+        <tr>
+            <td style={{ textAlign: 'left' }}>
+                &#x65E0;&#x5934;&#x6D4F;&#x89C8;&#x5668;&#x6D4B;&#x8BD5;
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                <a href="https://rustwasm.github.io/docs/wasm-pack/commands/test.html">
+                    &#x652F;&#x6301;
+                </a>
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                <a href="https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html">
+                    &#x652F;&#x6301;
+                </a>
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                <a href="https://github.com/koute/cargo-web#features">
+                    &#x652F;&#x6301;
+                </a>
+            </td>
+        </tr>
+        <tr>
+            <td style={{ textAlign: 'left' }}>
+                &#x652F;&#x6301;&#x751F;&#x6210;&#x7684;&#x76EE;&#x6807;&#x4EE3;&#x7801;
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                <ul>
+                    <li>
+                        <code>wasm32-unknown-unknown</code>
+                    </li>
+                </ul>
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                <ul>
+                    <li>
+                        <code>wasm32-unknown-unknown</code>
+                    </li>
+                </ul>
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                <ul>
+                    <li>
+                        <code>wasm32-unknown-unknown</code>
+                    </li>
+                    <li>
+                        <code>wasm32-unknown-emscripten</code>
+                    </li>
+                    <li>
+                        <code>asmjs-unknown-emscripten</code>
+                    </li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td style={{ textAlign: 'left' }}>
+                <code>web-sys</code>
+            </td>
+            <td style={{ textAlign: 'left' }}>&#x517C;&#x5BB9;</td>
+            <td style={{ textAlign: 'left' }}>&#x517C;&#x5BB9;</td>
+            <td style={{ textAlign: 'left' }}>&#x4E0D;&#x517C;&#x5BB9;</td>
+        </tr>
+        <tr>
+            <td style={{ textAlign: 'left' }}>
+                <code>stdweb</code>
+            </td>
+            <td style={{ textAlign: 'left' }}>&#x517C;&#x5BB9;</td>
+            <td style={{ textAlign: 'left' }}>&#x517C;&#x5BB9;</td>
+            <td style={{ textAlign: 'left' }}>&#x517C;&#x5BB9;</td>
+        </tr>
+        <tr>
+            <td style={{ textAlign: 'left' }}>
+                &#x793A;&#x4F8B;&#x7528;&#x6CD5;
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                <a href="https://github.com/yewstack/yew-wasm-pack-minimal">
+                    &#x65B0;&#x624B;&#x6A21;&#x677F;
+                </a>
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                Yew &#x793A;&#x4F8B;&#x7A0B;&#x5E8F;&#x7684;
+                <a href="https://github.com/yewstack/yew/blob/master/examples/build_all.sh">
+                    &#x6784;&#x5EFA;&#x811A;&#x672C;
+                </a>
+            </td>
+            <td style={{ textAlign: 'left' }}>
+                Yew &#x793A;&#x4F8B;&#x7A0B;&#x5E8F;&#x7684;
+                <a href="https://github.com/yewstack/yew/blob/master/examples/build_all.sh">
+                    &#x6784;&#x5EFA;&#x811A;&#x672C;
+                </a>
+            </td>
+        </tr>
+    </tbody>
 </table>

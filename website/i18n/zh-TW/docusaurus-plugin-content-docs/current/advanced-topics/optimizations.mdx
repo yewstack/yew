@@ -4,11 +4,11 @@ description: 加速你的專案
 
 # 優化與最佳實例
 
-## neq\_assign
+## neq_assign
 
 當元件從父元件接收到屬性時， `change` 的方法就會被呼叫。除了讓你更新元件的狀態，也讓你回傳，決定元件是否要在屬性改變時，重新渲染自己的布林值 `ShouldRender` 。
 
-重新渲染是很浪費效能的，儘可能避免這麼做。一般來說，只有在屬性真的改變時，才重新渲染。下面的程式碼是體現這個原則的例子，當屬性改變時，才回傳 `true`： 
+重新渲染是很浪費效能的，儘可能避免這麼做。一般來說，只有在屬性真的改變時，才重新渲染。下面的程式碼是體現這個原則的例子，當屬性改變時，才回傳 `true`：
 
 ```rust
 use yew::ShouldRender;
@@ -56,9 +56,9 @@ Yew 本身不支援純元件或是函數式元件，但是你可以透過 extern
 
 ## Keyed DOM nodes when they arrive
 
-## 使用 Cargo Workspaces  加速編譯
+## 使用 Cargo Workspaces 加速編譯
 
-Yew  最大的缺點就是花太多時間在編譯上了。編譯時間似乎和 `html!` 巨集中的程式碼質量相同。 對於小專案來說，這應該不是什麼大問題，但是對於有很多頁面的大型網頁應用程式來說，就必須要將程式碼封裝成很多 crates 以減少編譯所花的時間。
+Yew 最大的缺點就是花太多時間在編譯上了。編譯時間似乎和 `html!` 巨集中的程式碼質量相同。 對於小專案來說，這應該不是什麼大問題，但是對於有很多頁面的大型網頁應用程式來說，就必須要將程式碼封裝成很多 crates 以減少編譯所花的時間。
 
 你應該將路由與頁面區塊封裝成一個 main crate，然後將共用的程式碼與元件封裝成另一個 crate，將每個頁面會用到的不同的元件，各自封裝到不同的 crate 中，或是只產生 `Html` 的大方法中。最好的狀況，你只需要重新編譯你 main crate 與修改的頁面的 crate 的程式碼；而最壞的情況，你編輯了共用的 crate，你就必須重新編譯所有依賴這個共用 crate 的程式碼。
 
@@ -66,16 +66,16 @@ Yew  最大的缺點就是花太多時間在編譯上了。編譯時間似乎和
 
 ## 編譯大小的優化 <a id="build-size-optimization"></a>
 
-* 優化 Rust 的程式碼
-  * `wee_alloc` （使用輕量的分配器）
-  * `cargo.toml` （定義釋出的設定檔）
-* 使用 `wasm-opt` 優化 wasm 程式碼
+-   優化 Rust 的程式碼
+    -   `wee_alloc` （使用輕量的分配器）
+    -   `cargo.toml` （定義釋出的設定檔）
+-   使用 `wasm-opt` 優化 wasm 程式碼
 
 更多關於程式碼大小的資訊，請參考： [rustwasm book](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
 
-### wee\_alloc
+### wee_alloc
 
-[wee\_alloc](https://github.com/rustwasm/wee_alloc) 是一個比一般用在 Rust 二進制檔中的分配器更輕量的分配器。用他取代預設的分配器，可以讓 Wasm 的檔案大小更小，但是會造成速度和記憶體的開銷變大。
+[wee_alloc](https://github.com/rustwasm/wee_alloc) 是一個比一般用在 Rust 二進制檔中的分配器更輕量的分配器。用他取代預設的分配器，可以讓 Wasm 的檔案大小更小，但是會造成速度和記憶體的開銷變大。
 
 但比起檔案大小，速度和記憶體的開銷比較次要。更小的檔案大小意味著你的頁面可以載入的更快，因此我們通常建議你使用這個分配器作為預設的分配器，除分你的專案有很多吃重的記憶體分配工作。
 
@@ -94,13 +94,13 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 ```rust
 [profile.release]
 # less code to include into binary
-panic = 'abort' 
+panic = 'abort'
 # optimization over all codebase ( better optimization, slower build )
 codegen-units = 1
 # optimization for size ( more aggresive )
-opt-level = 'z' 
-# optimization for size 
-# opt-level = 's' 
+opt-level = 'z'
+# optimization for size
+# opt-level = 's'
 # link time optimization using using whole-program analysis
 lto = true
 ```
@@ -113,20 +113,19 @@ wasm-opt 資訊： [binaryen project](https://github.com/WebAssembly/binaryen)
 
 Rust Wasm 中有一個關於減少 Wasm 二進位檔大小的章節：[Shrinking .wasm size](https://rustwasm.github.io/book/game-of-life/code-size.html)
 
-* 使用`wasm-pack` 預設在發行版本編譯時優化 `wasm` 程式碼
-* 直接在 wasm 檔案上使用 `wasm-opt` 。
+-   使用`wasm-pack` 預設在發行版本編譯時優化 `wasm` 程式碼
+-   直接在 wasm 檔案上使用 `wasm-opt` 。
 
 ```rust
 wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
 ```
 
-#### 編譯 yew/examples/  中 最小的例子 <a id="build-size-of-minimal-example-in-yew-examples"></a>
+#### 編譯 yew/examples/ 中 最小的例子 <a id="build-size-of-minimal-example-in-yew-examples"></a>
 
 注意： `wasm-pack` 包含對 Rust 與 wasm 程式碼的優化。而`wasm-bindgen` 只是一個單純的例子，沒有對 `Rust` 做任何優化。
 
-| used tool | size |
-| :--- | :--- |
-| wasm-bindgen | 158KB |
+| used tool                   | size  |
+| :-------------------------- | :---- |
+| wasm-bindgen                | 158KB |
 | wasm-binggen + wasm-opt -Os | 116KB |
-| wasm-pack | 99KB |
-
+| wasm-pack                   | 99KB  |

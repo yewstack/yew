@@ -24,11 +24,11 @@ description: Yew 的官方路由器
 
 ### Switch
 
-`Switch` trait 用於讓 Route 在實作的 `trait` 之間來回轉換。 
+`Switch` trait 用於讓 Route 在實作的 `trait` 之間來回轉換。
 
 ### Router
 
-Router 元件會與 `RouteAgent` 溝通，並且自動解析從 agent 到 switch 的 Routes，Routes  會在 render 的 屬性中被揭露，這個屬性會決定 switch 的結果如何被轉換成 `Html`。
+Router 元件會與 `RouteAgent` 溝通，並且自動解析從 agent 到 switch 的 Routes，Routes 會在 render 的 屬性中被揭露，這個屬性會決定 switch 的結果如何被轉換成 `Html`。
 
 ## 如何使用路由器
 
@@ -44,7 +44,7 @@ enum AppRoute {
   #[to="/register"]
   Register,
   #[to="/delete_account"]
-  Delete, 
+  Delete,
   #[to="/posts/{id}"]
   ViewPost(i32),
   #[to="/posts/view"]
@@ -66,7 +66,7 @@ enum AppRoute {
   #[to="/register"]
   Register,
   #[to="/delete_account"]
-  Delete, 
+  Delete,
   #[to="/posts/{id}"]
   ViewPost(i32),
   #[to="/posts/view"]
@@ -79,4 +79,3 @@ enum AppRoute {
 對於有命名欄位的 struct 與 enum，你必須給出變數的名字，像是： `{user_name}` 或是 `{*:age}`。
 
 Switch trait 可以協助取得比起字串要更有結構的變數。你可以實作 `Switch`，這樣你就可以得到特定結構的變數，而他會是一個 `unsize`。但如果這個 URL 無法被轉換，就會被視為沒有匹配。
-

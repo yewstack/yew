@@ -1,6 +1,6 @@
 ---
-title: "#[function_component]"
-description: "#[function_component]属性"
+title: '#[function_component]'
+description: '#[function_component]属性'
 ---
 
 `#[function_component(_)]`将一个普通的 Rust 函数变成一个函数式组件。具有该属性的函数必须返回`Html`并且可以为组件应接受的 props 类型采用单个参数。参数类型需要是对实现`Properties`和`PartialEq`的类型的引用（例如`props: &MyProps` ）。如果函数没有任何参数，则生成的组件不接受任何 props 。

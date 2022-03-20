@@ -1,12 +1,12 @@
 ---
-title: "HTML"
+title: 'HTML'
 sidebar_label: Introduction
-description: "The procedural macro for generating HTML and SVG"
+description: 'The procedural macro for generating HTML and SVG'
 slug: /concepts/html
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
 
 The `html!` macro allows you to write HTML and SVG code declaratively. It is similar to JSX
 (an extension to JavaScript which allows you to write HTML-like code inside of JavaScript).
@@ -14,7 +14,7 @@ The `html!` macro allows you to write HTML and SVG code declaratively. It is sim
 **Important notes**
 
 1. The `html!` macro only accepts one root html node (you can counteract this by using
-    [fragments](./fragments.mdx) or [iterators](./../html/lists.mdx))
+   [fragments](./fragments.mdx) or [iterators](./../html/lists.mdx))
 2. An empty `html! {}` invocation is valid and will not render anything
 3. Literals must always be quoted and wrapped in braces: `html! { <p>{ "Hello, World" }</p> }`
 
@@ -166,7 +166,7 @@ Read more at [Lists](./html/lists)
 ## Conditional Rendering
 
 Markup can be rendered conditonally by using Rust's conditional structures. ' +
-    'Currently only `if` and `if let` are supported.
+'Currently only `if` and `if let` are supported.
 
 ```rust
 use yew::html;

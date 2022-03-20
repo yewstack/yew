@@ -55,4 +55,3 @@ html! {
      <div>{maybe_display_link()}</div>
 }
 ```
-

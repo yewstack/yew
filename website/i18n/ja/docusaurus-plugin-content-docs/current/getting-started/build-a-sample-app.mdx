@@ -2,7 +2,7 @@
 title: Build a sample app
 ---
 
-はじめに、Rustの新規ライブラリを作りましょう(**重要:** `--lib`フラグを渡すことで_バイナリ_ではなく_ライブラリ_を作ってください)
+はじめに、Rust の新規ライブラリを作りましょう(**重要:** `--lib`フラグを渡すことで*バイナリ*ではなく*ライブラリ*を作ってください)
 
 ```bash
 cargo new --lib yew-app && cd yew-app
@@ -114,8 +114,8 @@ mkdir static
 wasm-pack build --target web --out-name wasm --out-dir ./static
 ```
 
-`wasm-pack`はコンパイルされたWebAssemblyとJavaScriptラッパーをまとめたものを`./static`ディレクトリに作り、
-アプリのWebAssemblyバイナリを読み込んで動かします。
+`wasm-pack`はコンパイルされた WebAssembly と JavaScript ラッパーをまとめたものを`./static`ディレクトリに作り、
+アプリの WebAssembly バイナリを読み込んで動かします。
 
 そして、`./static`以下で好きなサーバーをファイルをサーブしてみましょう。
 例えば:
@@ -124,4 +124,3 @@ wasm-pack build --target web --out-name wasm --out-dir ./static
 cargo +nightly install miniserve
 miniserve ./static --index index.html
 ```
-
