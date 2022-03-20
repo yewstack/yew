@@ -98,6 +98,8 @@ See [docs for use_context](function-components/hooks/use-context) to learn more.
 
 #### Struct components
 
-Use [Higher Order Components](../advanced-topics/struct-components/hoc)
+We have 2 options to consume contexts in struct components:
 
-Or [example of struct component as a consumer](https://github.com/yewstack/yew/tree/master/examples/contexts/src/struct_component_subscriber.rs)
+- [Higher Order Components](../advanced-topics/struct-components/hoc) 
+    A higher order function component will consume the context and pass the data to the struct component which requires it.
+- Consume context directly in struct component. See [example of struct component as a consumer](https://github.com/yewstack/yew/tree/master/examples/contexts/src/struct_component_subscriber.rs)
