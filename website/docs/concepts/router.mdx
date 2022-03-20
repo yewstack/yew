@@ -433,6 +433,10 @@ enum MainRoute {
     News,
     #[at("/contact")]
     Contact,
+    #[at("/settings")]
+    SettingsRoot,
+    #[at("/settings/*")]
+    Settings,
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -440,7 +444,7 @@ enum MainRoute {
 
 #[derive(Clone, Routable, PartialEq)]
 enum SettingsRoute {
-    #[at("/settings/profile")]
+    #[at("/settings")]
     Profile,
     #[at("/settings/friends")]
     Friends,
@@ -456,14 +460,8 @@ fn switch_main(route: &MainRoute) -> Html {
         MainRoute::Home => html! {<h1>{"Home"}</h1>},
         MainRoute::News => html! {<h1>{"News"}</h1>},
         MainRoute::Contact => html! {<h1>{"Contact"}</h1>},
-        MainRoute::NotFound => {
-            // This part is very critically not ergonomic and will be improved in the future
-            let path = window().location().pathname().unwrap_throw();
-            if path.starts_with("/settings") && !path.starts_with("/settings/404") {
-                html!{<Switch<SettingsRoute> render={Switch::render(switch_settings)} />}
-            } else {
-                html! {<h1>{"Not Found"}</h1>}
-            }
+        MainRoute::SettingsRoot | MainRoute::Settings => html! { <Switch<SettingsRoute> render={Switch::render(switch_settings)} /> },
+        MainRoute::NotFound => html! {<h1>{"Not Found"}</h1>},
         },
     }
 }
