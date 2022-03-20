@@ -31,7 +31,7 @@ impl Default for ComponentId {
     }
 }
 
-#[cfg(any(feature = "render", feature = "ssr"))]
+#[cfg(any(feature = "csr", feature = "ssr"))]
 mod feat_csr_ssr {
     use super::*;
 
@@ -71,6 +71,7 @@ mod feat_csr_ssr {
         })
     }
 }
+
 #[cfg(debug_assertions)]
 #[cfg(any(feature = "csr", feature = "ssr"))]
 pub(crate) use feat_csr_ssr::*;

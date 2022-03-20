@@ -162,7 +162,6 @@ impl ComponentState {
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
     ) -> Self {
-        #[cfg(debug_assertions)]
         let comp_id = scope.id;
         let context = Context { scope, props };
 

@@ -105,8 +105,6 @@ pub(crate) use feat_csr_ssr::*;
 mod feat_csr {
     use super::*;
 
-    use std::collections::HashMap;
-
     pub(crate) fn push_component_rendered(
         component_id: ComponentId,
         rendered: impl Runnable + 'static,
