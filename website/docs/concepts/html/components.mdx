@@ -32,8 +32,8 @@ fn MyComponentWithProps(props: &Props) -> Html {
 }
 
 let props = Props {
-    prop1: "Hello".to_owned(),
-    prop2: "World".to_owned(),
+    user_first_name: "Bob".to_owned(),
+    user_last_name: "Smith".to_owned(),
 };
 
 html!{
@@ -42,13 +42,13 @@ html!{
         <MyComponent />
 
         // With Properties
-        <MyComponentWithProps prop1="lorem" prop2="ipsum" />
+        <MyComponentWithProps user_first_name="Sam" user_last_name="Idle" />
 
         // With the whole set of props provided at once
         <MyComponentWithProps ..props.clone() />
 
         // With Properties from a variable and specific values overridden
-        <MyComponentWithProps prop2="lorem" ..props />
+        <MyComponentWithProps user_last_name="Elm" ..props />
     </>
 };
 ```
