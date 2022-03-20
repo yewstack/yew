@@ -14,3 +14,4 @@ wasm-bindgen = "0.2"
 serde = { version = "1", features = ["derive"] }
 futures = "0.3"
 wasm-bindgen-futures = "0.4"
+pin-project = "1.0.10"
