@@ -55,12 +55,6 @@
 <path fill="grey" stroke="white" d="M271,-36C271,-36 217,-36 217,-36 211,-36 205,-30 205,-24 205,-24 205,-12 205,-12 205,-6 211,0 217,0 217,0 271,0 271,0 277,0 283,-6 283,-12 283,-12 283,-24 283,-24 283,-30 277,-36 271,-36"/>
 <text text-anchor="middle" x="244" y="-14.3" font-family="Times New Roman,serif" font-size="14.00" fill="white">Not Found</text>
 </g>
-<!-- SettingsNotFound&#45;&gt;Not Found -->
-<g id="edge10" class="edge">
-<title>SettingsNotFound&#45;&gt;Not Found</title>
-<path fill="none" stroke="white" d="M248.64,-36.1C250.75,-43.88 253.3,-53.26 255.66,-61.95"/>
-<polygon fill="white" stroke="white" points="252.31,-62.96 258.3,-71.7 259.06,-61.13 252.31,-62.96"/>
-</g>
 <!-- Main Router -->
 <g id="node9" class="node">
 <title>Main Router</title>
