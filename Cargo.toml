@@ -4,6 +4,7 @@ members = [
   "packages/yew",
   "packages/yew-macro",
   "packages/yew-agent",
+  "packages/yew-agent-macro",
   "packages/yew-router",
   "packages/yew-router-macro",
 

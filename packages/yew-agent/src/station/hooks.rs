@@ -10,7 +10,6 @@ use crate::worker::{
 };
 
 /// Handle for the [use_station_bridge] hook.
-#[derive(Debug, PartialEq)]
 pub struct UseStationBridgeHandle<S>
 where
     S: 'static + Station,
@@ -29,12 +28,32 @@ where
     }
 }
 
+impl<S> fmt::Debug for UseStationBridgeHandle<S>
+where
+    S: 'static + Station,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("UseStationBridgeHandle<_>")
+            .field("inner", &self.inner)
+            .finish()
+    }
+}
+
+impl<S> PartialEq for UseStationBridgeHandle<S>
+where
+    S: 'static + Station,
+{
+    fn eq(&self, rhs: &Self) -> bool {
+        self.inner == rhs.inner
+    }
+}
+
 impl<S> UseStationBridgeHandle<S>
 where
     S: 'static + Station,
 {
     /// Send an input to a station agent.
-    pub fn send(&self, msg: <S::Receivable as StationReceivable>::Input) {
+    pub fn send(&self, msg: <S::Receiver as StationReceivable>::Input) {
         self.inner.send(msg);
     }
 }
@@ -50,7 +69,7 @@ where
 pub fn use_station_bridge<S, F>(on_output: F) -> UseStationBridgeHandle<S>
 where
     S: 'static + Station,
-    F: Fn(<S::Receivable as StationReceivable>::Output) + 'static,
+    F: Fn(<S::Receiver as StationReceivable>::Output) + 'static,
 {
     let bridge = use_worker_bridge::<StationWorker<S>, _>(on_output);
 
@@ -58,7 +77,6 @@ where
 }
 
 /// Handle for the [use_station_subscription] hook.
-#[derive(PartialEq)]
 pub struct UseStationSubscriptionHandle<S>
 where
     S: 'static + Station,
@@ -82,7 +100,7 @@ where
     S: 'static + Station,
 {
     /// Send an input to a station agent.
-    pub fn send(&self, msg: <S::Receivable as StationReceivable>::Input) {
+    pub fn send(&self, msg: <S::Receiver as StationReceivable>::Input) {
         self.inner.send(msg);
     }
 }
@@ -90,7 +108,7 @@ where
 impl<S> fmt::Debug for UseStationSubscriptionHandle<S>
 where
     S: Station,
-    <S::Receivable as StationReceivable>::Output: fmt::Debug,
+    <S::Receiver as StationReceivable>::Output: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("UseStationSubscriptionHandle<_>")
@@ -103,10 +121,19 @@ impl<S> Deref for UseStationSubscriptionHandle<S>
 where
     S: Station,
 {
-    type Target = [Rc<<S::Receivable as StationReceivable>::Output>];
+    type Target = [Rc<<S::Receiver as StationReceivable>::Output>];
 
-    fn deref(&self) -> &[Rc<<S::Receivable as StationReceivable>::Output>] {
+    fn deref(&self) -> &[Rc<<S::Receiver as StationReceivable>::Output>] {
         &*self.inner
+    }
+}
+
+impl<S> PartialEq for UseStationSubscriptionHandle<S>
+where
+    S: 'static + Station,
+{
+    fn eq(&self, rhs: &Self) -> bool {
+        self.inner == rhs.inner
     }
 }
 

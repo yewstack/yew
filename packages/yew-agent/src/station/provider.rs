@@ -3,7 +3,7 @@ use yew::prelude::*;
 use super::traits::{Station, StationWorker};
 use crate::worker::{WorkerProvider, WorkerProviderProps};
 
-/// The task provider.
+/// The station provider.
 #[function_component]
 pub fn StationProvider<T>(props: &WorkerProviderProps) -> Html
 where

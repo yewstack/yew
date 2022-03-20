@@ -80,10 +80,10 @@ where
 /// A station agent.
 pub trait Station {
     /// The receiver type.
-    type Receivable: StationReceivable;
+    type Receiver: StationReceivable;
 
     /// Start a station.
-    fn start(recv: Self::Receivable);
+    fn start(recv: Self::Receiver);
 }
 
 pub(crate) struct StationWorker<S>
@@ -92,15 +92,15 @@ where
 {
     link: WorkerScope<Self>,
     senders: HashMap<HandlerId, mpsc::UnboundedSender<<Self as Worker>::Input>>,
-    tx: mpsc::UnboundedSender<IoPair<S::Receivable>>,
+    tx: mpsc::UnboundedSender<IoPair<S::Receiver>>,
 }
 
 impl<T> Worker for StationWorker<T>
 where
     T: 'static + Station,
 {
-    type Input = <T::Receivable as StationReceivable>::Input;
-    type Output = <T::Receivable as StationReceivable>::Output;
+    type Input = <T::Receiver as StationReceivable>::Input;
+    type Output = <T::Receiver as StationReceivable>::Output;
     type Message = ();
 
     fn create(link: WorkerScope<Self>) -> Self {
@@ -111,7 +111,7 @@ where
             tx,
         };
 
-        let receiver = T::Receivable::new(rx);
+        let receiver = T::Receiver::new(rx);
 
         T::start(receiver);
 

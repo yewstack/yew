@@ -1,0 +1,18 @@
+[package]
+name = "yew-agent-macro"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "1", features = ["full","extra-traits"] }
+proc-macro-error = "1"
+
+[dev-dependencies]
+rustversion = "1"
+trybuild = "1"
+yew-agent = { path = "../yew-agent" }
