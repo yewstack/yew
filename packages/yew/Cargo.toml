@@ -78,14 +78,14 @@ trybuild = "1"
 
 [features]
 ssr = ["futures", "html-escape"]
-render = []
-doc_test = ["render"]
-wasm_test = ["render"]
+csr = []
+doc_test = ["csr", "ssr"]
+wasm_test = ["csr"]
 default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1.15.0", features = ["full"] }
 
 [package.metadata.docs.rs]
-features = ["doc_test", "ssr"]
+features = ["doc_test"]
 rustdoc-args = ["--cfg", "documenting"]

@@ -2,8 +2,8 @@
 title: "Fragments"
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
 The `html!` macro always requires a single root node. In order to get around this restriction, you
 can use an "empty tag" (these are also called "fragments").
@@ -12,7 +12,7 @@ can use an "empty tag" (these are also called "fragments").
 <TabItem value="Valid" label="Valid">
 
 ```rust
-use yew::html;
+use yew::prelude::*;
 
 html! {
     <>
@@ -28,7 +28,7 @@ html! {
 <TabItem value="Invalid" label="Invalid">
 
 ```rust, compile_fail
-use yew::html;
+use yew::prelude::*;
 
 // error: only one root html element allowed
 

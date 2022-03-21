@@ -4,8 +4,6 @@ use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::rc::Rc;
 
-use crate::html::ComponentId;
-
 /// Alias for Rc<RefCell<T>>
 pub type Shared<T> = Rc<RefCell<T>>;
 
@@ -32,12 +30,12 @@ struct Scheduler {
     ///
     /// Parent can destroy child components but not otherwise, we can save unnecessary render by
     /// rendering parent first.
-    render_first: BTreeMap<ComponentId, Box<dyn Runnable>>,
-    render: BTreeMap<ComponentId, Box<dyn Runnable>>,
+    render_first: BTreeMap<usize, Box<dyn Runnable>>,
+    render: BTreeMap<usize, Box<dyn Runnable>>,
 
     /// Binary Tree Map to guarantee children rendered are always called before parent calls
-    rendered_first: BTreeMap<ComponentId, Box<dyn Runnable>>,
-    rendered: BTreeMap<ComponentId, Box<dyn Runnable>>,
+    rendered_first: BTreeMap<usize, Box<dyn Runnable>>,
+    rendered: BTreeMap<usize, Box<dyn Runnable>>,
 }
 
 /// Execute closure with a mutable reference to the scheduler
@@ -62,58 +60,52 @@ pub fn push(runnable: Box<dyn Runnable>) {
     start();
 }
 
-#[cfg(any(feature = "ssr", feature = "render"))]
-mod feat_render_ssr {
+#[cfg(any(feature = "ssr", feature = "csr"))]
+mod feat_csr_ssr {
     use super::*;
-
     /// Push a component creation, first render and first rendered [Runnable]s to be executed
     pub(crate) fn push_component_create(
-        component_id: ComponentId,
-        create: impl Runnable + 'static,
-        first_render: impl Runnable + 'static,
+        component_id: usize,
+        create: Box<dyn Runnable>,
+        first_render: Box<dyn Runnable>,
     ) {
         with(|s| {
-            s.create.push(Box::new(create));
-            s.render_first.insert(component_id, Box::new(first_render));
+            s.create.push(create);
+            s.render_first.insert(component_id, first_render);
         });
     }
 
     /// Push a component destruction [Runnable] to be executed
-    pub(crate) fn push_component_destroy(runnable: impl Runnable + 'static) {
-        with(|s| s.destroy.push(Box::new(runnable)));
+    pub(crate) fn push_component_destroy(runnable: Box<dyn Runnable>) {
+        with(|s| s.destroy.push(runnable));
     }
 
     /// Push a component render and rendered [Runnable]s to be executed
-    pub(crate) fn push_component_render(
-        component_id: ComponentId,
-        render: impl Runnable + 'static,
-    ) {
+    pub(crate) fn push_component_render(component_id: usize, render: Box<dyn Runnable>) {
         with(|s| {
-            s.render.insert(component_id, Box::new(render));
+            s.render.insert(component_id, render);
         });
     }
 
     /// Push a component update [Runnable] to be executed
-    pub(crate) fn push_component_update(runnable: impl Runnable + 'static) {
-        with(|s| s.update.push(Box::new(runnable)));
+    pub(crate) fn push_component_update(runnable: Box<dyn Runnable>) {
+        with(|s| s.update.push(runnable));
     }
 }
 
-#[cfg(any(feature = "ssr", feature = "render"))]
-pub(crate) use feat_render_ssr::*;
+#[cfg(any(feature = "ssr", feature = "csr"))]
+pub(crate) use feat_csr_ssr::*;
 
-#[cfg(feature = "render")]
-mod feat_render {
+#[cfg(feature = "csr")]
+mod feat_csr {
     use super::*;
 
     pub(crate) fn push_component_rendered(
-        component_id: ComponentId,
-        rendered: impl Runnable + 'static,
+        component_id: usize,
+        rendered: Box<dyn Runnable>,
         first_render: bool,
     ) {
         with(|s| {
-            let rendered = Box::new(rendered);
-
             if first_render {
                 s.rendered_first.insert(component_id, rendered);
             } else {
@@ -123,8 +115,8 @@ mod feat_render {
     }
 }
 
-#[cfg(feature = "render")]
-pub(crate) use feat_render::*;
+#[cfg(feature = "csr")]
+pub(crate) use feat_csr::*;
 
 /// Execute any pending [Runnable]s
 pub(crate) fn start_now() {
@@ -210,7 +202,7 @@ impl Scheduler {
         // Should be processed one at time, because they can spawn more create and rendered events
         // for their children.
         //
-        // To be replaced with BTreeMap::pop_front once it is stable.
+        // To be replaced with BTreeMap::pop_first once it is stable.
         if let Some(r) = self
             .render_first
             .keys()
@@ -228,8 +220,8 @@ impl Scheduler {
         }
 
         if !self.rendered_first.is_empty() {
-            let mut rendered_first = BTreeMap::new();
-            std::mem::swap(&mut self.rendered_first, &mut rendered_first);
+            let rendered_first = std::mem::take(&mut self.rendered_first);
+            // Children rendered lifecycle happen before parents.
             to_run.extend(rendered_first.into_values().rev());
         }
 
@@ -250,7 +242,7 @@ impl Scheduler {
             return;
         }
 
-        // To be replaced with BTreeMap::pop_front once it is stable.
+        // To be replaced with BTreeMap::pop_first once it is stable.
         // Should be processed one at time, because they can spawn more create and rendered events
         // for their children.
         if let Some(r) = self
@@ -270,9 +262,7 @@ impl Scheduler {
         }
 
         if !self.rendered.is_empty() {
-            let mut rendered = BTreeMap::new();
-            std::mem::swap(&mut self.rendered, &mut rendered);
-
+            let rendered = std::mem::take(&mut self.rendered);
             // Children rendered lifecycle happen before parents.
             to_run.extend(rendered.into_values().rev());
         }

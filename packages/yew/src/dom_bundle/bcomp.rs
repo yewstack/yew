@@ -1,6 +1,6 @@
 //! This module contains the bundle implementation of a virtual component [BComp].
 
-use super::{BNode, DomBundle, Reconcilable};
+use super::{BNode, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::html::Scoped;
 use crate::virtual_dom::{Key, VComp};
@@ -32,7 +32,7 @@ impl fmt::Debug for BComp {
     }
 }
 
-impl DomBundle for BComp {
+impl ReconcileTarget for BComp {
     fn detach(self, _parent: &Element, parent_to_detach: bool) {
         self.scope.destroy_boxed(parent_to_detach);
     }
@@ -120,7 +120,7 @@ impl Reconcilable for VComp {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::dom_bundle::{DomBundle, Reconcilable};
+    use crate::dom_bundle::{Reconcilable, ReconcileTarget};
     use crate::scheduler;
     use crate::{
         html,

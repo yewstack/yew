@@ -38,12 +38,12 @@ script = '''
 set -ex
 cargo clippy -- --deny=warnings
 cargo clippy --features=ssr -- --deny=warnings
-cargo clippy --features=render -- --deny=warnings
+cargo clippy --features=csr -- --deny=warnings
 cargo clippy --all-features --all-targets -- --deny=warnings
 
 cargo clippy --release -- --deny=warnings
 cargo clippy --release --features=ssr -- --deny=warnings
-cargo clippy --release --features=render -- --deny=warnings
+cargo clippy --release --features=csr -- --deny=warnings
 cargo clippy --release --all-features --all-targets -- --deny=warnings
 '''
 
