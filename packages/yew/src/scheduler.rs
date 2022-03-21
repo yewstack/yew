@@ -202,7 +202,7 @@ impl Scheduler {
         // Should be processed one at time, because they can spawn more create and rendered events
         // for their children.
         //
-        // To be replaced with BTreeMap::pop_front once it is stable.
+        // To be replaced with BTreeMap::pop_first once it is stable.
         if let Some(r) = self
             .render_first
             .keys()
@@ -220,8 +220,8 @@ impl Scheduler {
         }
 
         if !self.rendered_first.is_empty() {
-            let mut rendered_first = BTreeMap::new();
-            std::mem::swap(&mut self.rendered_first, &mut rendered_first);
+            let rendered_first = std::mem::take(&mut self.rendered_first);
+            // Children rendered lifecycle happen before parents.
             to_run.extend(rendered_first.into_values().rev());
         }
 
@@ -242,7 +242,7 @@ impl Scheduler {
             return;
         }
 
-        // To be replaced with BTreeMap::pop_front once it is stable.
+        // To be replaced with BTreeMap::pop_first once it is stable.
         // Should be processed one at time, because they can spawn more create and rendered events
         // for their children.
         if let Some(r) = self
@@ -262,9 +262,7 @@ impl Scheduler {
         }
 
         if !self.rendered.is_empty() {
-            let mut rendered = BTreeMap::new();
-            std::mem::swap(&mut self.rendered, &mut rendered);
-
+            let rendered = std::mem::take(&mut self.rendered);
             // Children rendered lifecycle happen before parents.
             to_run.extend(rendered.into_values().rev());
         }
