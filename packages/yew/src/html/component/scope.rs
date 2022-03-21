@@ -8,6 +8,7 @@ use std::cell::RefCell;
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use super::lifecycle::{ComponentState, UpdateEvent, UpdateRunner};
 use super::BaseComponent;
+
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
 use crate::html::IntoComponent;
@@ -112,8 +113,7 @@ pub struct Scope<COMP: BaseComponent> {
     #[cfg(any(feature = "csr", feature = "ssr"))]
     pub(crate) state: Shared<Option<ComponentState>>,
 
-    #[cfg(debug_assertions)]
-    pub(crate) vcomp_id: usize,
+    pub(crate) id: usize,
 }
 
 impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {
@@ -134,8 +134,7 @@ impl<COMP: BaseComponent> Clone for Scope<COMP> {
             #[cfg(any(feature = "csr", feature = "ssr"))]
             state: self.state.clone(),
 
-            #[cfg(debug_assertions)]
-            vcomp_id: self.vcomp_id,
+            id: self.id,
         }
     }
 }
@@ -211,14 +210,15 @@ mod feat_ssr {
             let state = ComponentRenderState::Ssr { sender: Some(tx) };
 
             scheduler::push_component_create(
-                CreateRunner {
+                self.id,
+                Box::new(CreateRunner {
                     initial_render_state: state,
                     props,
                     scope: self.clone(),
-                },
-                RenderRunner {
+                }),
+                Box::new(RenderRunner {
                     state: self.state.clone(),
-                },
+                }),
             );
             scheduler::start();
 
@@ -227,12 +227,12 @@ mod feat_ssr {
             let self_any_scope = AnyScope::from(self.clone());
             html.render_to_string(w, &self_any_scope).await;
 
-            scheduler::push_component_destroy(DestroyRunner {
+            scheduler::push_component_destroy(Box::new(DestroyRunner {
                 state: self.state.clone(),
 
                 #[cfg(feature = "csr")]
                 parent_to_detach: false,
-            });
+            }));
             scheduler::start();
         }
     }
@@ -269,6 +269,7 @@ mod feat_csr_ssr {
     use super::*;
     use crate::scheduler::{self, Shared};
     use std::cell::Ref;
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
     #[derive(Debug)]
     pub(crate) struct MsgQueue<Msg>(Shared<Vec<Msg>>);
@@ -308,6 +309,8 @@ mod feat_csr_ssr {
         }
     }
 
+    static COMP_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
     impl<COMP: BaseComponent> Scope<COMP> {
         /// Crate a scope with an optional parent scope
         pub(crate) fn new(parent: Option<AnyScope>) -> Self {
@@ -325,8 +328,7 @@ mod feat_csr_ssr {
                 state,
                 parent,
 
-                #[cfg(debug_assertions)]
-                vcomp_id: super::super::next_id(),
+                id: COMP_ID_COUNTER.fetch_add(1, Ordering::SeqCst),
             }
         }
 
@@ -345,10 +347,10 @@ mod feat_csr_ssr {
         }
 
         pub(super) fn push_update(&self, event: UpdateEvent) {
-            scheduler::push_component_update(UpdateRunner {
+            scheduler::push_component_update(Box::new(UpdateRunner {
                 state: self.state.clone(),
                 event,
-            });
+            }));
             // Not guaranteed to already have the scheduler started
             scheduler::start();
         }
@@ -415,14 +417,15 @@ mod feat_csr {
             };
 
             scheduler::push_component_create(
-                CreateRunner {
+                self.id,
+                Box::new(CreateRunner {
                     initial_render_state: state,
                     props,
                     scope: self.clone(),
-                },
-                RenderRunner {
+                }),
+                Box::new(RenderRunner {
                     state: self.state.clone(),
-                },
+                }),
             );
             // Not guaranteed to already have the scheduler started
             scheduler::start();
@@ -435,7 +438,7 @@ mod feat_csr {
             next_sibling: NodeRef,
         ) {
             #[cfg(debug_assertions)]
-            super::super::log_event(self.vcomp_id, "reuse");
+            super::super::log_event(self.id, "reuse");
 
             self.push_update(UpdateEvent::Properties(props, node_ref, next_sibling));
         }
@@ -470,10 +473,10 @@ mod feat_csr {
 
         /// Process an event to destroy a component
         fn destroy(self, parent_to_detach: bool) {
-            scheduler::push_component_destroy(DestroyRunner {
+            scheduler::push_component_destroy(Box::new(DestroyRunner {
                 state: self.state,
                 parent_to_detach,
-            });
+            }));
             // Not guaranteed to already have the scheduler started
             scheduler::start();
         }
@@ -483,10 +486,10 @@ mod feat_csr {
         }
 
         fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
-            scheduler::push_component_update(UpdateRunner {
+            scheduler::push_component_update(Box::new(UpdateRunner {
                 state: self.state.clone(),
                 event: UpdateEvent::Shift(parent, next_sibling),
-            })
+            }))
         }
     }
 }
