@@ -67,6 +67,7 @@ pub(crate) trait Mountable {
         &'a self,
         w: &'a mut String,
         parent_scope: &'a AnyScope,
+        hydratable: bool,
     ) -> LocalBoxFuture<'a, ()>;
 }
 
@@ -113,10 +114,13 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         &'a self,
         w: &'a mut String,
         parent_scope: &'a AnyScope,
+        hydratable: bool,
     ) -> LocalBoxFuture<'a, ()> {
         async move {
             let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-            scope.render_to_string(w, self.props.clone()).await;
+            scope
+                .render_to_string(w, self.props.clone(), hydratable)
+                .await;
         }
         .boxed_local()
     }
@@ -206,10 +210,15 @@ mod feat_ssr {
     use crate::html::AnyScope;
 
     impl VComp {
-        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+        pub(crate) async fn render_to_string(
+            &self,
+            w: &mut String,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+        ) {
             self.mountable
                 .as_ref()
-                .render_to_string(w, parent_scope)
+                .render_to_string(w, parent_scope, hydratable)
                 .await;
         }
     }
