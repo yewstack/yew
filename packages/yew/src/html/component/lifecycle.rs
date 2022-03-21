@@ -153,9 +153,7 @@ pub(crate) struct ComponentState {
 
     suspension: Option<Suspension>,
 
-    // Used for debug logging
-    #[cfg(debug_assertions)]
-    pub(crate) vcomp_id: usize,
+    pub(crate) comp_id: usize,
 }
 
 impl ComponentState {
@@ -164,8 +162,7 @@ impl ComponentState {
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
     ) -> Self {
-        #[cfg(debug_assertions)]
-        let vcomp_id = scope.vcomp_id;
+        let comp_id = scope.id;
         let context = Context { scope, props };
 
         let inner = Box::new(CompStateInner {
@@ -181,8 +178,7 @@ impl ComponentState {
             #[cfg(feature = "csr")]
             has_rendered: false,
 
-            #[cfg(debug_assertions)]
-            vcomp_id,
+            comp_id,
         }
     }
 
@@ -208,7 +204,7 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
         let mut current_state = self.scope.state.borrow_mut();
         if current_state.is_none() {
             #[cfg(debug_assertions)]
-            super::log_event(self.scope.vcomp_id, "create");
+            super::log_event(self.scope.id, "create");
 
             *current_state = Some(ComponentState::new(
                 self.initial_render_state,
@@ -240,6 +236,7 @@ impl Runnable for UpdateRunner {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             let schedule_render = match self.event {
                 UpdateEvent::Message => state.inner.flush_messages(),
+
                 #[cfg(feature = "csr")]
                 UpdateEvent::Properties(props, next_node_ref, next_sibling) => {
                     match state.render_state {
@@ -297,16 +294,16 @@ impl Runnable for UpdateRunner {
 
             #[cfg(debug_assertions)]
             super::log_event(
-                state.vcomp_id,
+                state.comp_id,
                 format!("update(schedule_render={})", schedule_render),
             );
 
             if schedule_render {
                 scheduler::push_component_render(
-                    self.state.as_ptr() as usize,
-                    RenderRunner {
+                    state.comp_id,
+                    Box::new(RenderRunner {
                         state: self.state.clone(),
-                    },
+                    }),
                 );
                 // Only run from the scheduler, so no need to call `scheduler::start()`
             }
@@ -325,7 +322,7 @@ impl Runnable for DestroyRunner {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().take() {
             #[cfg(debug_assertions)]
-            super::log_event(state.vcomp_id, "destroy");
+            super::log_event(state.comp_id, "destroy");
 
             state.inner.destroy();
 
@@ -357,7 +354,7 @@ impl Runnable for RenderRunner {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             #[cfg(debug_assertions)]
-            super::log_event(state.vcomp_id, "render");
+            super::log_event(state.comp_id, "render");
 
             match state.inner.view() {
                 Ok(m) => self.render(state, m),
@@ -373,14 +370,16 @@ impl RenderRunner {
         // suspension to parent element.
         let shared_state = self.state.clone();
 
+        let comp_id = state.comp_id;
+
         if suspension.resumed() {
             // schedule a render immediately if suspension is resumed.
 
             scheduler::push_component_render(
-                shared_state.as_ptr() as usize,
-                RenderRunner {
+                state.comp_id,
+                Box::new(RenderRunner {
                     state: shared_state,
-                },
+                }),
             );
         } else {
             // We schedule a render after current suspension is resumed.
@@ -393,10 +392,10 @@ impl RenderRunner {
 
             suspension.listen(Callback::from(move |_| {
                 scheduler::push_component_render(
-                    shared_state.as_ptr() as usize,
-                    RenderRunner {
+                    comp_id,
+                    Box::new(RenderRunner {
                         state: shared_state.clone(),
-                    },
+                    }),
                 );
                 scheduler::start();
             }));
@@ -442,11 +441,11 @@ impl RenderRunner {
                 state.has_rendered = true;
 
                 scheduler::push_component_rendered(
-                    self.state.as_ptr() as usize,
-                    RenderedRunner {
+                    state.comp_id,
+                    Box::new(RenderedRunner {
                         state: self.state.clone(),
                         first_render,
-                    },
+                    }),
                     first_render,
                 );
             }
@@ -474,7 +473,7 @@ mod feat_csr {
         fn run(self: Box<Self>) {
             if let Some(state) = self.state.borrow_mut().as_mut() {
                 #[cfg(debug_assertions)]
-                super::super::log_event(state.vcomp_id, "rendered");
+                super::super::log_event(state.comp_id, "rendered");
 
                 if state.suspension.is_none() {
                     state.inner.rendered(self.first_render);
