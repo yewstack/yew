@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1647855216396,
+  "lastUpdate": 1647874440730,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -9804,6 +9804,115 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 32_startup-bt",
             "value": "34.937999999999974",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "330.5498046875",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "futursolo@users.noreply.github.com",
+            "name": "Kaede Hoshikawa",
+            "username": "futursolo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "62d78d0641480ab54b33301efd8c02372e1ec63d",
+          "message": "An ever Increasing Component ID (#2537)\n\n* Bring changes to this branch.\r\n\r\n* Child components always render after parents.\r\n\r\n* Cleanup residual Portal references.\r\n\r\n* Fix after merge.\r\n\r\n* Fix trybuild.\r\n\r\n* Opt for usize.\r\n\r\n* Strip Generics.\r\n\r\n* take instead of replace, first instead of front.",
+          "timestamp": "2022-03-21T23:47:33+09:00",
+          "tree_id": "ea6e36b3cf4d4dc1ae678c0617645d1e509be726",
+          "url": "https://github.com/yewstack/yew/commit/62d78d0641480ab54b33301efd8c02372e1ec63d"
+        },
+        "date": 1647874438953,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "192.5855",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "221.246",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "396.6435",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "79.553",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "100.9835",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "33.069500000000005",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "2401.2574999999997",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "459.1325",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "224.1385",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "0.9634475708007812",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.5048446655273438",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.4602203369140625",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.5095291137695312",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.1240730285644531",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1882.145",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "36.35199999999999",
             "unit": ""
           },
           {
