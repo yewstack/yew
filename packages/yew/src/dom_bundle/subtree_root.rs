@@ -1,9 +1,11 @@
 //! Per-subtree state of apps
 
-use super::{test_log, EventDescriptor, Registry};
+use super::{test_log, Registry};
+use crate::virtual_dom::{Listener, ListenerKind};
+use gloo::events::{EventListener, EventListenerOptions, EventListenerPhase};
 use std::cell::RefCell;
-use std::collections::hash_map::Entry;
-use std::collections::HashMap;
+use std::collections::HashSet;
+use std::hash::{Hash, Hasher};
 use std::rc::{Rc, Weak};
 use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -61,11 +63,6 @@ fn next_root_id() -> TreeId {
     NEXT_ROOT_ID.fetch_add(1, Ordering::SeqCst)
 }
 
-type KnownSubtrees = HashMap<TreeId, Weak<SubtreeData>>;
-thread_local! {
-    static KNOWN_ROOTS: RefCell<KnownSubtrees> = RefCell::default();
-}
-
 /// Data kept per controlled subtree. [Portal] and [AppHandle] serve as
 /// hosts. Two controlled subtrees should never overlap.
 ///
@@ -76,24 +73,137 @@ pub struct BSubtree(
     Option<Rc<SubtreeData>>, // None during SSR
 );
 
-// The parent is the logical location where a subtree is mounted
-// Used to bubble events through portals, which are physically somewhere else in the DOM tree
-// but should bubble to logical ancestors in the virtual DOM tree
+/// The parent is the logical location where a subtree is mounted
+/// Used to bubble events through portals, which are physically somewhere else in the DOM tree
+/// but should bubble to logical ancestors in the virtual DOM tree
 #[derive(Debug)]
 struct ParentingInformation {
-    parent_root: Option<Rc<SubtreeData>>,
+    parent_root: Rc<SubtreeData>,
     // Logical parent of the subtree. Might be the host element of another subtree,
     // if mounted as a direct child, or a controlled element.
     mount_element: Element,
 }
 
+#[derive(Clone, Hash, Eq, PartialEq, Debug)]
+pub struct EventDescriptor {
+    kind: ListenerKind,
+    passive: bool,
+}
+
+impl From<&dyn Listener> for EventDescriptor {
+    fn from(l: &dyn Listener) -> Self {
+        Self {
+            kind: l.kind(),
+            passive: l.passive(),
+        }
+    }
+}
+
+/// Ensures event handler registration.
+//
+// Separate struct to DRY, while avoiding partial struct mutability.
+#[derive(Debug)]
+struct HostHandlers {
+    /// The host element where events are registered
+    host: HtmlEventTarget,
+
+    /// Keep track of all listeners to drop them on registry drop.
+    /// The registry is never dropped in production.
+    #[cfg(test)]
+    registered: Vec<(ListenerKind, EventListener)>,
+}
+
+impl HostHandlers {
+    fn new(host: HtmlEventTarget) -> Self {
+        Self {
+            host,
+            #[cfg(test)]
+            registered: Vec::default(),
+        }
+    }
+
+    fn add_listener(&mut self, desc: &EventDescriptor, callback: impl 'static + FnMut(&Event)) {
+        let cl = {
+            let desc = desc.clone();
+            let options = EventListenerOptions {
+                phase: EventListenerPhase::Capture,
+                passive: desc.passive,
+            };
+            EventListener::new_with_options(&self.host, desc.kind.type_name(), options, callback)
+        };
+
+        // Never drop the closure as this event handler is static
+        #[cfg(not(test))]
+        cl.forget();
+        #[cfg(test)]
+        self.registered.push((desc.kind.clone(), cl));
+    }
+}
+
+/// Per subtree data
 #[derive(Debug)]
 
 struct SubtreeData {
+    /// Data shared between all trees in an app
+    app_data: Rc<RefCell<AppData>>,
+    /// Parent subtree
+    parent: Option<ParentingInformation>,
+
     subtree_id: TreeId,
     host: HtmlEventTarget,
-    parent: Option<ParentingInformation>,
     event_registry: RefCell<Registry>,
+    global: RefCell<HostHandlers>,
+}
+
+#[derive(Debug)]
+struct WeakSubtree {
+    subtree_id: TreeId,
+    weak_ref: Weak<SubtreeData>,
+}
+
+impl Hash for WeakSubtree {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.subtree_id.hash(state)
+    }
+}
+
+impl PartialEq for WeakSubtree {
+    fn eq(&self, other: &Self) -> bool {
+        self.subtree_id == other.subtree_id
+    }
+}
+impl Eq for WeakSubtree {}
+
+/// Per tree data, shared between all subtrees in the hierarchy
+#[derive(Debug, Default)]
+struct AppData {
+    subtrees: HashSet<WeakSubtree>,
+    listening: HashSet<EventDescriptor>,
+}
+
+impl AppData {
+    fn add_subtree(&mut self, subtree: &Rc<SubtreeData>) {
+        for event in self.listening.iter() {
+            subtree.add_listener(event);
+        }
+        self.subtrees.insert(WeakSubtree {
+            subtree_id: subtree.subtree_id,
+            weak_ref: Rc::downgrade(subtree),
+        });
+    }
+    fn ensure_handled(&mut self, desc: &EventDescriptor) {
+        if !self.listening.insert(desc.clone()) {
+            return;
+        }
+        self.subtrees.retain(|subtree| {
+            if let Some(subtree) = subtree.weak_ref.upgrade() {
+                subtree.add_listener(desc);
+                true
+            } else {
+                false
+            }
+        })
+    }
 }
 
 /// Bubble events during delegation
@@ -192,49 +302,25 @@ impl<'tree> BubblingIterator<'tree> {
     }
 }
 
-struct SubtreeHierarchyIterator<'tree> {
-    current: Option<(&'tree Rc<SubtreeData>, &'tree Element)>,
-}
-
-impl<'tree> Iterator for SubtreeHierarchyIterator<'tree> {
-    type Item = (&'tree Rc<SubtreeData>, &'tree Element);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let next = self.current.take()?;
-        if let Some(parenting_info) = next.0.parent.as_ref() {
-            let parent_root = parenting_info
-                .parent_root
-                .as_ref()
-                .expect("Not in SSR, this shouldn't be None");
-            self.current = Some((parent_root, &parenting_info.mount_element));
-        }
-        Some(next)
-    }
-}
-
-impl<'tree> SubtreeHierarchyIterator<'tree> {
-    fn start_from(subtree: &'tree Rc<SubtreeData>, el: &'tree Element) -> Self {
-        Self {
-            current: Some((subtree, el)),
-        }
-    }
-}
-
 impl SubtreeData {
     fn new_ref(host_element: &HtmlEventTarget, parent: Option<ParentingInformation>) -> Rc<Self> {
         let tree_root_id = next_root_id();
-        let event_registry = Registry::new(host_element.clone());
+        let event_registry = Registry::new();
+        let host_handlers = HostHandlers::new(host_element.clone());
+        let app_data = match parent {
+            Some(ref parent) => parent.parent_root.app_data.clone(),
+            None => Rc::default(),
+        };
         let subtree = Rc::new(SubtreeData {
+            parent,
+            app_data,
+
             subtree_id: tree_root_id,
             host: host_element.clone(),
-            parent,
             event_registry: RefCell::new(event_registry),
+            global: RefCell::new(host_handlers),
         });
-        KNOWN_ROOTS.with(|roots| {
-            roots
-                .borrow_mut()
-                .insert(tree_root_id, Rc::downgrade(&subtree))
-        });
+        subtree.app_data.borrow_mut().add_subtree(&subtree);
         subtree
     }
 
@@ -242,22 +328,8 @@ impl SubtreeData {
         &self.event_registry
     }
 
-    fn find_by_id(tree_id: TreeId) -> Option<Rc<Self>> {
-        KNOWN_ROOTS.with(|roots| {
-            let mut roots = roots.borrow_mut();
-            let subtree = match roots.entry(tree_id) {
-                Entry::Occupied(subtree) => subtree,
-                _ => return None,
-            };
-            match subtree.get().upgrade() {
-                Some(subtree) => Some(subtree),
-                None => {
-                    // Remove stale entry
-                    subtree.remove();
-                    None
-                }
-            }
-        })
+    fn host_handlers(&self) -> &RefCell<HostHandlers> {
+        &self.global
     }
 
     // Bubble a potential parent until it reaches an internal element
@@ -275,11 +347,7 @@ impl SubtreeData {
         while next_subtree.host.eq(&next_el) {
             // we've reached the host, delegate to a parent if one exists
             let parent = next_subtree.parent.as_ref()?;
-            let parent_root = parent
-                .parent_root
-                .as_ref()
-                .expect("Not in SSR, this shouldn't be None");
-            next_subtree = parent_root;
+            next_subtree = &parent.parent_root;
             next_el = parent.mount_element.clone();
         }
         Some((next_subtree, next_el))
@@ -289,66 +357,50 @@ impl SubtreeData {
     fn start_bubbling_if_responsible<'s>(
         self: &'s Rc<Self>,
         event: &'s Event,
-        desc: &'s EventDescriptor,
     ) -> Option<BubblingIterator<'s>> {
         // Note: the event is not necessarily indentically the same object for all installed handlers
         // hence this cache can be unreliable.
-        let self_is_responsible = match event.subtree_id() {
-            Some(responsible_tree_id) if responsible_tree_id == self.subtree_id => true,
-            None => false,
+        let cached_responsible_tree_id = event.subtree_id();
+        if matches!(cached_responsible_tree_id, Some(responsible_tree_id) if responsible_tree_id != self.subtree_id)
+        {
             // some other handler has determined (via this function, but other `self`) a subtree that is
             // responsible for handling this event, and it's not this subtree.
-            Some(_) => return None,
-        };
+            return None;
+        }
         // We're tasked with finding the subtree that is reponsible with handling the event, and/or
-        // run the handling if that's `self`. The process is very similar
-        let target = event.target()?.dyn_into::<Element>().ok()?;
+        // run the handling if that's `self`.
+        let target = event.composed_path().get(0).dyn_into::<Element>().ok()?;
         let should_bubble = BUBBLE_EVENTS.load(Ordering::Relaxed);
-        let BrandingSearchResult {
-            branding,
-            closest_branded_ancestor,
-        } = find_closest_branded_element(target.clone(), should_bubble)?;
-        // The branded element can be in a subtree that has no handler installed for the event.
-        // We say that the most deeply nested subtree that does have a handler installed is "responsible"
-        // for handling the event.
-        let (responsible_tree_id, bubble_start) = if branding == self.subtree_id {
-            // since we're currently in this handler, `self` has a handler installed and is the most
-            // deeply nested one. This usual case saves a look-up in the global KNOWN_ROOTS.
-            if self.host.eq(&target) {
-                // One more special case: don't handle events that get fired directly on a subtree host
-                // but we still want to cache this fact
-                (NONE_TREE_ID, closest_branded_ancestor)
+        // We say that the most deeply nested subtree is "responsible" for handling the event.
+        let (responsible_tree_id, bubbling_start) =
+            if let Some(branding) = cached_responsible_tree_id {
+                (branding, target)
+            } else if let Some(branding) = find_closest_branded_element(target, should_bubble) {
+                let BrandingSearchResult {
+                    branding,
+                    closest_branded_ancestor,
+                } = branding;
+                event.set_subtree_id(branding);
+                (branding, closest_branded_ancestor)
             } else {
-                (self.subtree_id, closest_branded_ancestor)
-            }
-        } else {
-            // bubble through subtrees until we find one that has a handler installed for the event descriptor
-            let target_subtree = Self::find_by_id(branding)
-                .expect("incorrectly branded element: subtree already removed");
-            if target_subtree.host.eq(&target) {
-                (NONE_TREE_ID, closest_branded_ancestor)
-            } else {
-                let responsible_tree = SubtreeHierarchyIterator::start_from(
-                    &target_subtree,
-                    &closest_branded_ancestor,
-                )
-                .find(|(candidate, _)| {
-                    if candidate.subtree_id == self.subtree_id {
-                        true
-                    } else if !self_is_responsible {
-                        // only do this check if we aren't sure which subtree is responsible for handling
-                        candidate.event_registry().borrow().has_any_listeners(desc)
-                    } else {
-                        false
-                    }
-                })
-                .expect("nesting error: current subtree should show up in hierarchy");
-                (responsible_tree.0.subtree_id, responsible_tree.1.clone())
-            }
-        };
-        event.set_subtree_id(responsible_tree_id); // cache it for other event handlers
-        (responsible_tree_id == self.subtree_id)
-            .then(|| BubblingIterator::start_from(self, bubble_start, event, should_bubble))
+                // Possible only? if bubbling is disabled
+                // No tree should handle this event
+                event.set_subtree_id(NONE_TREE_ID);
+                return None;
+            };
+        if self.subtree_id != responsible_tree_id {
+            return None;
+        }
+        if self.host.eq(&bubbling_start) {
+            // One more special case: don't handle events that get fired directly on a subtree host
+            return None;
+        }
+        Some(BubblingIterator::start_from(
+            self,
+            bubbling_start,
+            event,
+            should_bubble,
+        ))
         // # More details: When nesting occurs
         //
         // Event listeners are installed only on the subtree roots. Still, those roots can
@@ -376,12 +428,24 @@ impl SubtreeData {
                 handler(&event)
             }
         };
-        if let Some(bubbling_it) = self.start_bubbling_if_responsible(&event, &desc) {
+        if let Some(bubbling_it) = self.start_bubbling_if_responsible(&event) {
             test_log!("Running handler on subtree {}", self.subtree_id);
             for (subtree, el) in bubbling_it {
                 run_handler(subtree, &el);
             }
         }
+    }
+    fn add_listener(self: &Rc<Self>, desc: &EventDescriptor) {
+        let this = self.clone();
+        let listener = {
+            let desc = desc.clone();
+            move |e: &Event| {
+                this.handle(desc.clone(), e.clone());
+            }
+        };
+        self.host_handlers()
+            .borrow_mut()
+            .add_listener(desc, listener);
     }
 }
 
@@ -402,11 +466,16 @@ impl BSubtree {
     /// Create a bundle root at the specified host element, that is logically
     /// mounted under the specified element in this tree.
     pub fn create_subroot(&self, mount_point: Element, host_element: &HtmlEventTarget) -> Self {
-        let parent_information = ParentingInformation {
-            parent_root: self.0.clone(),
+        let parent_information = self.0.as_ref().map(|parent_info| ParentingInformation {
+            parent_root: parent_info.clone(),
             mount_element: mount_point,
-        };
-        Self::do_create_root(host_element, Some(parent_information))
+        });
+        Self::do_create_root(host_element, parent_information)
+    }
+    /// Ensure the event described is handled on all subtrees
+    pub fn ensure_handled(&self, desc: &EventDescriptor) {
+        let inner = self.0.as_deref().expect("Can't access listeners in SSR");
+        inner.app_data.borrow_mut().ensure_handled(desc);
     }
     /// Create a bundle root for ssr
     #[cfg(feature = "ssr")]
@@ -419,15 +488,6 @@ impl BSubtree {
         let inner = self.0.as_deref().expect("Can't access listeners in SSR");
         f(&mut *inner.event_registry().borrow_mut())
     }
-    /// Return a closure that should be installed as an event listener on the root element for a specific
-    /// kind of event.
-    pub fn event_listener(&self, desc: EventDescriptor) -> impl 'static + FnMut(&Event) {
-        let inner = self.0.clone().expect("Can't access listeners in SSR"); // capture the registry
-        move |e: &Event| {
-            inner.handle(desc.clone(), e.clone());
-        }
-    }
-
     pub fn brand_element(&self, el: &dyn EventGrating) {
         let inner = self.0.as_deref().expect("Can't access listeners in SSR");
         el.set_subtree_id(inner.subtree_id);

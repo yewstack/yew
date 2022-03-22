@@ -23,8 +23,9 @@ use self::blist::BList;
 use self::bnode::BNode;
 use self::bportal::BPortal;
 use self::bsuspense::BSuspense;
-use self::btag::{BTag, EventDescriptor, Registry};
+use self::btag::{BTag, Registry};
 use self::btext::BText;
+use self::subtree_root::EventDescriptor;
 
 pub(crate) use self::bcomp::{ComponentRenderState, Mountable, PropsWrapper, Scoped};
 pub(crate) use self::subtree_root::BSubtree;

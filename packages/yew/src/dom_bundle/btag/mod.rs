@@ -3,7 +3,7 @@
 mod attributes;
 mod listeners;
 
-pub use listeners::{EventDescriptor, Registry};
+pub use listeners::Registry;
 
 use super::{insert_node, BList, BNode, BSubtree, DomBundle, Reconcilable};
 use crate::html::AnyScope;

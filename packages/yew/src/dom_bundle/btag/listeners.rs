@@ -1,10 +1,9 @@
 use super::Apply;
-use crate::dom_bundle::{test_log, BSubtree};
-use crate::virtual_dom::{Listener, ListenerKind, Listeners};
+use crate::dom_bundle::{test_log, BSubtree, EventDescriptor};
+use crate::virtual_dom::{Listener, Listeners};
 use ::wasm_bindgen::{prelude::wasm_bindgen, JsCast};
-use gloo::events::{EventListener, EventListenerOptions, EventListenerPhase};
 use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::ops::Deref;
 use std::rc::Rc;
 use web_sys::{Element, Event, EventTarget as HtmlEventTarget};
@@ -110,101 +109,22 @@ impl ListenerRegistration {
     }
 }
 
-#[derive(Clone, Hash, Eq, PartialEq, Debug)]
-pub struct EventDescriptor {
-    kind: ListenerKind,
-    passive: bool,
-}
-
-impl From<&dyn Listener> for EventDescriptor {
-    fn from(l: &dyn Listener) -> Self {
-        Self {
-            kind: l.kind(),
-            passive: l.passive(),
-        }
-    }
-}
-
-/// Ensures event handler registration.
-//
-// Separate struct to DRY, while avoiding partial struct mutability.
-#[derive(Debug)]
-struct HostHandlers {
-    /// The host element where events are registered
-    host: HtmlEventTarget,
-
-    /// Events with registered handlers that are possibly passive
-    handling: HashSet<EventDescriptor>,
-
-    /// Keep track of all listeners to drop them on registry drop.
-    /// The registry is never dropped in production.
-    #[cfg(test)]
-    registered: Vec<(ListenerKind, EventListener)>,
-}
-
-impl HostHandlers {
-    fn new(host: HtmlEventTarget) -> Self {
-        Self {
-            host,
-            handling: HashSet::default(),
-            #[cfg(test)]
-            registered: Vec::default(),
-        }
-    }
-
-    /// Ensure a descriptor has a global event handler assigned
-    fn ensure_handled(&mut self, root: &BSubtree, desc: EventDescriptor) {
-        if !self.handling.contains(&desc) {
-            let cl = {
-                let desc = desc.clone();
-                let options = EventListenerOptions {
-                    phase: EventListenerPhase::Capture,
-                    passive: desc.passive,
-                };
-                EventListener::new_with_options(
-                    &self.host,
-                    desc.kind.type_name(),
-                    options,
-                    root.event_listener(desc),
-                )
-            };
-
-            // Never drop the closure as this event handler is static
-            #[cfg(not(test))]
-            cl.forget();
-            #[cfg(test)]
-            self.registered.push((desc.kind.clone(), cl));
-
-            self.handling.insert(desc);
-        }
-    }
-}
-
 /// Global multiplexing event handler registry
 #[derive(Debug)]
 pub struct Registry {
     /// Counter for assigning new IDs
     id_counter: u32,
 
-    /// Registered global event handlers
-    global: HostHandlers,
-
     /// Contains all registered event listeners by listener ID
     by_id: HashMap<u32, HashMap<EventDescriptor, Vec<Rc<dyn Listener>>>>,
 }
 
 impl Registry {
-    pub fn new(host: HtmlEventTarget) -> Self {
+    pub fn new() -> Self {
         Self {
             id_counter: u32::default(),
-            global: HostHandlers::new(host),
             by_id: HashMap::default(),
         }
-    }
-
-    /// Check if this registry has any listeners for the given event descriptor
-    pub fn has_any_listeners(&self, desc: &EventDescriptor) -> bool {
-        self.global.handling.contains(desc)
     }
 
     /// Handle a single event, given the listening element and event descriptor.
@@ -234,7 +154,7 @@ impl Registry {
             HashMap::<EventDescriptor, Vec<Rc<dyn Listener>>>::with_capacity(listeners.len());
         for l in listeners.iter().filter_map(|l| l.as_ref()).cloned() {
             let desc = EventDescriptor::from(l.deref());
-            self.global.ensure_handled(root, desc.clone());
+            root.ensure_handled(&desc);
             by_desc.entry(desc).or_default().push(l);
         }
         self.by_id.insert(id, by_desc);
@@ -250,7 +170,7 @@ impl Registry {
 
             for l in listeners.iter().filter_map(|l| l.as_ref()).cloned() {
                 let desc = EventDescriptor::from(l.deref());
-                self.global.ensure_handled(root, desc.clone());
+                root.ensure_handled(&desc);
                 by_desc.entry(desc).or_default().push(l);
             }
         }
