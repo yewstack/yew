@@ -1,7 +1,7 @@
 //! This module contains the bundle implementation of a portal [BPortal].
 
 use super::{test_log, BNode, BSubtree};
-use crate::dom_bundle::{DomBundle, Reconcilable};
+use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::Key;
 use crate::virtual_dom::VPortal;
@@ -20,7 +20,7 @@ pub struct BPortal {
     node: Box<BNode>,
 }
 
-impl DomBundle for BPortal {
+impl ReconcileTarget for BPortal {
     fn detach(self, _root: &BSubtree, _parent: &Element, _parent_to_detach: bool) {
         test_log!("Detaching portal from host",);
         self.node.detach(&self.inner_root, &self.host, false);
@@ -114,7 +114,7 @@ impl Reconcilable for VPortal {
 
 impl BPortal {
     /// Get the key of the underlying portal
-    pub(super) fn key(&self) -> Option<&Key> {
+    pub fn key(&self) -> Option<&Key> {
         self.node.key()
     }
 }

@@ -1,7 +1,7 @@
 //! This module contains the bundle version of an abstract node [BNode]
 
 use super::{BComp, BList, BPortal, BSubtree, BSuspense, BTag, BText};
-use crate::dom_bundle::{DomBundle, Reconcilable};
+use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{Key, VNode};
 use gloo::console;
@@ -9,7 +9,7 @@ use std::fmt;
 use web_sys::{Element, Node};
 
 /// The bundle implementation to [VNode].
-pub enum BNode {
+pub(super) enum BNode {
     /// A bind between `VTag` and `Element`.
     Tag(Box<BTag>),
     /// A bind between `VText` and `TextNode`.
@@ -28,7 +28,7 @@ pub enum BNode {
 
 impl BNode {
     /// Get the key of the underlying node
-    pub(super) fn key(&self) -> Option<&Key> {
+    pub fn key(&self) -> Option<&Key> {
         match self {
             Self::Comp(bsusp) => bsusp.key(),
             Self::List(blist) => blist.key(),
@@ -41,7 +41,7 @@ impl BNode {
     }
 }
 
-impl DomBundle for BNode {
+impl ReconcileTarget for BNode {
     /// Remove VNode from parent.
     fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool) {
         match self {

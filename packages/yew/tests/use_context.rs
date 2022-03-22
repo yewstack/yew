@@ -1,3 +1,5 @@
+#![cfg(feature = "wasm_test")]
+
 mod common;
 
 use common::obtain_result_by_id;
@@ -61,9 +63,10 @@ async fn use_context_scoping_works() {
         }
     }
 
-    yew::start_app_in_element::<UseContextComponent>(
+    yew::Renderer::<UseContextComponent>::with_root(
         gloo_utils::document().get_element_by_id("output").unwrap(),
-    );
+    )
+    .render();
 
     sleep(Duration::ZERO).await;
 
@@ -143,9 +146,10 @@ async fn use_context_works_with_multiple_types() {
         }
     }
 
-    yew::start_app_in_element::<TestComponent>(
+    yew::Renderer::<TestComponent>::with_root(
         gloo_utils::document().get_element_by_id("output").unwrap(),
-    );
+    )
+    .render();
 
     sleep(Duration::ZERO).await;
 }
@@ -242,9 +246,10 @@ async fn use_context_update_works() {
         }
     }
 
-    yew::start_app_in_element::<TestComponent>(
+    yew::Renderer::<TestComponent>::with_root(
         gloo_utils::document().get_element_by_id("output").unwrap(),
-    );
+    )
+    .render();
 
     sleep(Duration::ZERO).await;
 

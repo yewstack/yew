@@ -1,14 +1,15 @@
 //! This module contains the bundle version of a supsense [BSuspense]
 
-use super::{BNode, BSubtree, DomBundle, Reconcilable};
+use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VSuspense};
 use crate::NodeRef;
+use gloo::utils::document;
 use web_sys::Element;
 
 /// The bundle implementation to [VSuspense]
 #[derive(Debug)]
-pub struct BSuspense {
+pub(super) struct BSuspense {
     children_bundle: BNode,
     /// The supsense is suspended if fallback contains [Some] bundle
     fallback_bundle: Option<BNode>,
@@ -18,7 +19,7 @@ pub struct BSuspense {
 
 impl BSuspense {
     /// Get the key of the underlying suspense
-    pub(super) fn key(&self) -> Option<&Key> {
+    pub fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
     /// Get the bundle node that actually shows up in the dom
@@ -29,7 +30,7 @@ impl BSuspense {
     }
 }
 
-impl DomBundle for BSuspense {
+impl ReconcileTarget for BSuspense {
     fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool) {
         if let Some(fallback) = self.fallback_bundle {
             fallback.detach(root, parent, parent_to_detach);
@@ -59,11 +60,12 @@ impl Reconcilable for VSuspense {
         let VSuspense {
             children,
             fallback,
-            detached_parent,
             suspended,
             key,
         } = self;
-        let detached_parent = detached_parent.expect("no detached parent?");
+        let detached_parent = document()
+            .create_element("div")
+            .expect("failed to create detached element");
 
         // When it's suspended, we render children into an element that is detached from the dom
         // tree while rendering fallback UI into the original place where children resides in.
@@ -106,10 +108,7 @@ impl Reconcilable for VSuspense {
     ) -> NodeRef {
         match bundle {
             // We only preserve the child state if they are the same suspense.
-            BNode::Suspense(m)
-                if m.key == self.key
-                    && self.detached_parent.as_ref() == Some(&m.detached_parent) =>
-            {
+            BNode::Suspense(m) if m.key == self.key => {
                 self.reconcile(root, parent_scope, parent, next_sibling, m)
             }
             _ => self.replace(root, parent_scope, parent, next_sibling, bundle),
@@ -127,11 +126,9 @@ impl Reconcilable for VSuspense {
         let VSuspense {
             children,
             fallback,
-            detached_parent,
             suspended,
             key: _,
         } = self;
-        let detached_parent = detached_parent.expect("no detached parent?");
 
         let children_bundle = &mut suspense.children_bundle;
         // no need to update key & detached_parent
@@ -144,7 +141,7 @@ impl Reconcilable for VSuspense {
                 children.reconcile_node(
                     root,
                     parent_scope,
-                    &detached_parent,
+                    &suspense.detached_parent,
                     NodeRef::default(),
                     children_bundle,
                 );
@@ -157,12 +154,12 @@ impl Reconcilable for VSuspense {
             }
             // Freshly suspended. Shift children into the detached parent, then add fallback to the DOM
             (true, None) => {
-                children_bundle.shift(root, &detached_parent, NodeRef::default());
+                children_bundle.shift(root, &suspense.detached_parent, NodeRef::default());
 
                 children.reconcile_node(
                     root,
                     parent_scope,
-                    &detached_parent,
+                    &suspense.detached_parent,
                     NodeRef::default(),
                     children_bundle,
                 );

@@ -1,14 +1,23 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
 use super::Key;
-use crate::dom_bundle::{Mountable, PropsWrapper};
 use crate::html::{BaseComponent, IntoComponent, NodeRef};
 use std::any::TypeId;
 use std::fmt;
 use std::rc::Rc;
 
-#[cfg(debug_assertions)]
-thread_local! {}
+#[cfg(any(feature = "ssr", feature = "csr"))]
+use crate::html::{AnyScope, Scope};
+
+#[cfg(feature = "csr")]
+use crate::dom_bundle::BSubtree;
+#[cfg(feature = "csr")]
+use crate::html::Scoped;
+#[cfg(feature = "csr")]
+use web_sys::Element;
+
+#[cfg(feature = "ssr")]
+use futures::future::{FutureExt, LocalBoxFuture};
 
 /// A virtual component.
 pub struct VComp {
@@ -37,6 +46,83 @@ impl Clone for VComp {
             node_ref: self.node_ref.clone(),
             key: self.key.clone(),
         }
+    }
+}
+
+pub(crate) trait Mountable {
+    fn copy(&self) -> Box<dyn Mountable>;
+
+    #[cfg(feature = "csr")]
+    fn mount(
+        self: Box<Self>,
+        root: &BSubtree,
+        node_ref: NodeRef,
+        parent_scope: &AnyScope,
+        parent: Element,
+        next_sibling: NodeRef,
+    ) -> Box<dyn Scoped>;
+
+    #[cfg(feature = "csr")]
+    fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef);
+
+    #[cfg(feature = "ssr")]
+    fn render_to_string<'a>(
+        &'a self,
+        w: &'a mut String,
+        parent_scope: &'a AnyScope,
+    ) -> LocalBoxFuture<'a, ()>;
+}
+
+pub(crate) struct PropsWrapper<COMP: BaseComponent> {
+    props: Rc<COMP::Properties>,
+}
+
+impl<COMP: BaseComponent> PropsWrapper<COMP> {
+    pub fn new(props: Rc<COMP::Properties>) -> Self {
+        Self { props }
+    }
+}
+
+impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
+    fn copy(&self) -> Box<dyn Mountable> {
+        let wrapper: PropsWrapper<COMP> = PropsWrapper {
+            props: Rc::clone(&self.props),
+        };
+        Box::new(wrapper)
+    }
+
+    #[cfg(feature = "csr")]
+    fn mount(
+        self: Box<Self>,
+        root: &BSubtree,
+        node_ref: NodeRef,
+        parent_scope: &AnyScope,
+        parent: Element,
+        next_sibling: NodeRef,
+    ) -> Box<dyn Scoped> {
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+        scope.mount_in_place(root.clone(), parent, next_sibling, node_ref, self.props);
+
+        Box::new(scope)
+    }
+
+    #[cfg(feature = "csr")]
+    fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef) {
+        let scope: Scope<COMP> = scope.to_any().downcast::<COMP>();
+        scope.reuse(self.props, node_ref, next_sibling);
+    }
+
+    #[cfg(feature = "ssr")]
+    fn render_to_string<'a>(
+        &'a self,
+        w: &'a mut String,
+        parent_scope: &'a AnyScope,
+    ) -> LocalBoxFuture<'a, ()> {
+        async move {
+            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+            scope.render_to_string(w, self.props.clone()).await;
+        }
+        .boxed_local()
     }
 }
 

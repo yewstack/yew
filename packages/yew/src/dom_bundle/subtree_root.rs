@@ -69,9 +69,7 @@ fn next_root_id() -> TreeId {
 /// [Portal]: super::bportal::BPortal
 /// [AppHandle]: super::app_handle::AppHandle
 #[derive(Debug, Clone)]
-pub struct BSubtree(
-    Option<Rc<SubtreeData>>, // None during SSR
-);
+pub struct BSubtree(Rc<SubtreeData>);
 
 /// The parent is the logical location where a subtree is mounted
 /// Used to bubble events through portals, which are physically somewhere else in the DOM tree
@@ -219,6 +217,7 @@ static BUBBLE_EVENTS: AtomicBool = AtomicBool::new(true);
 /// handler has no effect.
 ///
 /// This function should be called before any component is mounted.
+#[cfg_attr(documenting, doc(cfg(feature = "csr")))]
 pub fn set_event_bubbling(bubble: bool) {
     BUBBLE_EVENTS.store(bubble, Ordering::Relaxed);
 }
@@ -455,7 +454,7 @@ impl BSubtree {
         parent: Option<ParentingInformation>,
     ) -> Self {
         let shared_inner = SubtreeData::new_ref(host_element, parent);
-        let root = BSubtree(Some(shared_inner));
+        let root = BSubtree(shared_inner);
         root.brand_element(host_element);
         root
     }
@@ -466,30 +465,22 @@ impl BSubtree {
     /// Create a bundle root at the specified host element, that is logically
     /// mounted under the specified element in this tree.
     pub fn create_subroot(&self, mount_point: Element, host_element: &HtmlEventTarget) -> Self {
-        let parent_information = self.0.as_ref().map(|parent_info| ParentingInformation {
-            parent_root: parent_info.clone(),
+        let parent_information = ParentingInformation {
+            parent_root: self.0.clone(),
             mount_element: mount_point,
-        });
-        Self::do_create_root(host_element, parent_information)
+        };
+        Self::do_create_root(host_element, Some(parent_information))
     }
     /// Ensure the event described is handled on all subtrees
     pub fn ensure_handled(&self, desc: &EventDescriptor) {
-        let inner = self.0.as_deref().expect("Can't access listeners in SSR");
-        inner.app_data.borrow_mut().ensure_handled(desc);
-    }
-    /// Create a bundle root for ssr
-    #[cfg(feature = "ssr")]
-    pub fn create_ssr() -> Self {
-        BSubtree(None)
+        self.0.app_data.borrow_mut().ensure_handled(desc);
     }
     /// Run f with access to global Registry
     #[inline]
     pub fn with_listener_registry<R>(&self, f: impl FnOnce(&mut Registry) -> R) -> R {
-        let inner = self.0.as_deref().expect("Can't access listeners in SSR");
-        f(&mut *inner.event_registry().borrow_mut())
+        f(&mut *self.0.event_registry().borrow_mut())
     }
     pub fn brand_element(&self, el: &dyn EventGrating) {
-        let inner = self.0.as_deref().expect("Can't access listeners in SSR");
-        el.set_subtree_id(inner.subtree_id);
+        el.set_subtree_id(self.0.subtree_id);
     }
 }

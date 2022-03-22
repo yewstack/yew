@@ -31,3 +31,21 @@ args = [
 [tasks.ssr-test]
 command = "cargo"
 args = ["test", "ssr_tests", "--features", "ssr"]
+
+[tasks.clippy-feature-soundness]
+script = '''
+#!/usr/bin/env bash
+set -ex
+cargo clippy -- --deny=warnings
+cargo clippy --features=ssr -- --deny=warnings
+cargo clippy --features=csr -- --deny=warnings
+cargo clippy --all-features --all-targets -- --deny=warnings
+
+cargo clippy --release -- --deny=warnings
+cargo clippy --release --features=ssr -- --deny=warnings
+cargo clippy --release --features=csr -- --deny=warnings
+cargo clippy --release --all-features --all-targets -- --deny=warnings
+'''
+
+[tasks.lint-flow]
+dependencies = ["clippy-feature-soundness"]

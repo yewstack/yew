@@ -1,8 +1,10 @@
 mod msg_ctx;
 mod producer;
+mod struct_component_subscriber;
 mod subscriber;
 
 use producer::Producer;
+use struct_component_subscriber::StructComponentSubscriber;
 use subscriber::Subscriber;
 use yew::prelude::*;
 
@@ -14,10 +16,11 @@ pub fn App() -> Html {
         <MessageProvider>
             <Producer />
             <Subscriber />
+            <StructComponentSubscriber />
         </MessageProvider>
     }
 }
 
 fn main() {
-    yew::start_app::<App>();
+    yew::Renderer::<App>::new().render();
 }
