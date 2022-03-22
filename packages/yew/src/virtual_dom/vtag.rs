@@ -474,15 +474,12 @@ mod feat_ssr {
                     ..
                 } => {
                     if !VOID_ELEMENTS.contains(&tag.as_ref()) {
-                        // We don't write children of void elements nor closing tags.
                         children.render_to_string(w, parent_scope, hydratable).await;
 
                         write!(w, "</{}>", tag).unwrap();
                     } else {
-                        #[cfg(debug_assertions)]
-                        {
-                            assert!(children.is_empty(), "{} cannot have any children!", tag);
-                        }
+                        // We don't write children of void elements nor closing tags.
+                        debug_assert!(children.is_empty(), "{} cannot have any children!", tag);
                     }
                 }
             }
