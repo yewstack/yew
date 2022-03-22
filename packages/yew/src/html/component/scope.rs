@@ -410,6 +410,7 @@ mod feat_csr {
             props: Rc<COMP::Properties>,
         ) {
             let bundle = Bundle::new();
+            node_ref.link(next_sibling.clone());
             let state = ComponentRenderState::Render {
                 bundle,
                 root,
