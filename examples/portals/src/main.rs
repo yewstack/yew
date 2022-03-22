@@ -31,7 +31,7 @@ impl Component for ShadowDOMHost {
                 .get()
                 .expect("rendered host")
                 .unchecked_into::<Element>()
-                .attach_shadow(&ShadowRootInit::new(ShadowRootMode::Closed))
+                .attach_shadow(&ShadowRootInit::new(ShadowRootMode::Open))
                 .expect("installing shadow root succeeds");
             let inner_host = gloo_utils::document()
                 .create_element("div")
