@@ -25,7 +25,7 @@ impl ReconcileTarget for BText {
         }
     }
 
-    fn shift(&self, _next_root: &BSubtree, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
         let node = &self.text_node;
 
         next_parent

@@ -26,7 +26,7 @@ impl ReconcileTarget for BPortal {
         self.node.detach(&self.inner_root, &self.host, false);
     }
 
-    fn shift(&self, _next_root: &BSubtree, _next_parent: &Element, _next_sibling: NodeRef) {
+    fn shift(&self, _next_parent: &Element, _next_sibling: NodeRef) {
         // portals have nothing in it's original place of DOM, we also do nothing.
     }
 }
@@ -95,11 +95,8 @@ impl Reconcilable for VPortal {
         if old_host != portal.host || old_inner_sibling != portal.inner_sibling {
             // Remount the inner node somewhere else instead of diffing
             // Move the node, but keep the state
-            portal.node.shift(
-                &portal.inner_root,
-                &portal.host,
-                portal.inner_sibling.clone(),
-            );
+            let inner_sibling = portal.inner_sibling.clone();
+            portal.node.shift(&portal.host, inner_sibling);
         }
         node.reconcile_node(
             &portal.inner_root,

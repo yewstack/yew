@@ -60,7 +60,7 @@ impl<'s> NodeWriter<'s> {
 
     /// Shift a bundle into place without patching it
     fn shift(&self, bundle: &mut BNode) {
-        bundle.shift(self.root, self.parent, self.next_sibling.clone());
+        bundle.shift(self.parent, self.next_sibling.clone());
     }
 
     /// Patch a bundle with a new node
@@ -373,9 +373,9 @@ impl ReconcileTarget for BList {
         }
     }
 
-    fn shift(&self, next_root: &BSubtree, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
         for node in self.rev_children.iter().rev() {
-            node.shift(next_root, next_parent, next_sibling.clone());
+            node.shift(next_parent, next_sibling.clone());
         }
     }
 }

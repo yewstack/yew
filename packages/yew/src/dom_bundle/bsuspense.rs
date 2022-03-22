@@ -41,9 +41,8 @@ impl ReconcileTarget for BSuspense {
         }
     }
 
-    fn shift(&self, next_root: &BSubtree, next_parent: &Element, next_sibling: NodeRef) {
-        self.active_node()
-            .shift(next_root, next_parent, next_sibling)
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+        self.active_node().shift(next_parent, next_sibling)
     }
 }
 
@@ -154,7 +153,7 @@ impl Reconcilable for VSuspense {
             }
             // Freshly suspended. Shift children into the detached parent, then add fallback to the DOM
             (true, None) => {
-                children_bundle.shift(root, &suspense.detached_parent, NodeRef::default());
+                children_bundle.shift(&suspense.detached_parent, NodeRef::default());
 
                 children.reconcile_node(
                     root,
@@ -177,7 +176,7 @@ impl Reconcilable for VSuspense {
                     .unwrap() // We just matched Some(_)
                     .detach(root, parent, false);
 
-                children_bundle.shift(root, parent, next_sibling.clone());
+                children_bundle.shift(parent, next_sibling.clone());
                 children.reconcile_node(root, parent_scope, parent, next_sibling, children_bundle)
             }
         }

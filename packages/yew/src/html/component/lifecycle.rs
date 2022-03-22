@@ -73,12 +73,11 @@ impl ComponentRenderState {
             #[cfg(feature = "csr")]
             Self::Render {
                 bundle,
-                ref root,
                 parent,
                 next_sibling,
                 ..
             } => {
-                bundle.shift(root, &next_parent, next_next_sibling.clone());
+                bundle.shift(&next_parent, next_next_sibling.clone());
 
                 *parent = next_parent;
                 *next_sibling = next_next_sibling;

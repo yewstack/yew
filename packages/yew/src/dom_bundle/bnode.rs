@@ -60,19 +60,19 @@ impl ReconcileTarget for BNode {
         }
     }
 
-    fn shift(&self, next_root: &BSubtree, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
         match self {
-            Self::Tag(ref vtag) => vtag.shift(next_root, next_parent, next_sibling),
-            Self::Text(ref btext) => btext.shift(next_root, next_parent, next_sibling),
-            Self::Comp(ref bsusp) => bsusp.shift(next_root, next_parent, next_sibling),
-            Self::List(ref vlist) => vlist.shift(next_root, next_parent, next_sibling),
+            Self::Tag(ref vtag) => vtag.shift(next_parent, next_sibling),
+            Self::Text(ref btext) => btext.shift(next_parent, next_sibling),
+            Self::Comp(ref bsusp) => bsusp.shift(next_parent, next_sibling),
+            Self::List(ref vlist) => vlist.shift(next_parent, next_sibling),
             Self::Ref(ref node) => {
                 next_parent
                     .insert_before(node, next_sibling.get().as_ref())
                     .unwrap();
             }
-            Self::Portal(ref vportal) => vportal.shift(next_root, next_parent, next_sibling),
-            Self::Suspense(ref vsuspense) => vsuspense.shift(next_root, next_parent, next_sibling),
+            Self::Portal(ref vportal) => vportal.shift(next_parent, next_sibling),
+            Self::Suspense(ref vsuspense) => vsuspense.shift(next_parent, next_sibling),
         }
     }
 }

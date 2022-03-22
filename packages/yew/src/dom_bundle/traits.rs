@@ -15,7 +15,7 @@ pub(super) trait ReconcileTarget {
     /// Move elements from one parent to another parent.
     /// This is for example used by `VSuspense` to preserve component state without detaching
     /// (which destroys component state).
-    fn shift(&self, next_root: &BSubtree, next_parent: &Element, next_sibling: NodeRef);
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef);
 }
 
 /// This trait provides features to update a tree by calculating a difference against another tree.

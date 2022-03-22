@@ -55,8 +55,8 @@ impl Bundle {
     }
 
     /// Shifts the bundle into a different position.
-    pub fn shift(&self, next_root: &BSubtree, next_parent: &Element, next_sibling: NodeRef) {
-        self.0.shift(next_root, next_parent, next_sibling);
+    pub fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+        self.0.shift(next_parent, next_sibling);
     }
 
     /// Applies a virtual dom layout to current bundle.
