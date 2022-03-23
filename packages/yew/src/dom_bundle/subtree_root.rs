@@ -7,7 +7,7 @@ use std::cell::RefCell;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::rc::{Rc, Weak};
-use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsCast;
 use web_sys::{Element, Event, EventTarget as HtmlEventTarget};
@@ -17,16 +17,24 @@ use web_sys::{Element, Event, EventTarget as HtmlEventTarget};
 pub trait EventGrating {
     fn subtree_id(&self) -> Option<TreeId>;
     fn set_subtree_id(&self, tree_id: TreeId);
+    // When caching, we key on the length of the `composed_path`. Important to check
+    // considering event retargeting!
+    fn cache_key(&self) -> Option<u32>;
+    fn set_cache_key(&self, key: u32);
 }
 
 #[wasm_bindgen]
 extern "C" {
     // Duck-typing, not a real class on js-side. On rust-side, use impls of EventGrating below
     type EventTargetable;
-    #[wasm_bindgen(method, getter = __yew_subtree_root_id, structural)]
+    #[wasm_bindgen(method, getter = __yew_subtree_id, structural)]
     fn subtree_id(this: &EventTargetable) -> Option<TreeId>;
-    #[wasm_bindgen(method, setter = __yew_subtree_root_id, structural)]
+    #[wasm_bindgen(method, setter = __yew_subtree_id, structural)]
     fn set_subtree_id(this: &EventTargetable, id: TreeId);
+    #[wasm_bindgen(method, getter = __yew_subtree_cache_key, structural)]
+    fn cache_key(this: &EventTargetable) -> Option<u32>;
+    #[wasm_bindgen(method, setter = __yew_subtree_cache_key, structural)]
+    fn set_cache_key(this: &EventTargetable, key: u32);
 }
 
 macro_rules! impl_event_grating {
@@ -39,6 +47,12 @@ macro_rules! impl_event_grating {
                 fn set_subtree_id(&self, tree_id: TreeId) {
                     self.unchecked_ref::<EventTargetable>()
                         .set_subtree_id(tree_id);
+                }
+                fn cache_key(&self) -> Option<u32> {
+                    self.unchecked_ref::<EventTargetable>().cache_key()
+                }
+                fn set_cache_key(&self, key: u32) {
+                    self.unchecked_ref::<EventTargetable>().set_cache_key(key)
                 }
             }
         )*
@@ -53,11 +67,11 @@ impl_event_grating!(
 /// The TreeId is the additional payload attached to each listening element
 /// It identifies the host responsible for the target. Events not matching
 /// are ignored during handling
-type TreeId = i32;
+type TreeId = u32;
 
 /// Special id for caching the fact that some event should not be handled
 static NONE_TREE_ID: TreeId = 0;
-static NEXT_ROOT_ID: AtomicI32 = AtomicI32::new(1);
+static NEXT_ROOT_ID: AtomicU32 = AtomicU32::new(1);
 
 fn next_root_id() -> TreeId {
     NEXT_ROOT_ID.fetch_add(1, Ordering::SeqCst)
@@ -358,9 +372,21 @@ impl SubtreeData {
         event: &'s Event,
     ) -> Option<BubblingIterator<'s>> {
         // Note: the event is not necessarily indentically the same object for all installed handlers
-        // hence this cache can be unreliable.
-        let cached_responsible_tree_id = event.subtree_id();
-        if matches!(cached_responsible_tree_id, Some(responsible_tree_id) if responsible_tree_id != self.subtree_id)
+        // hence this cache can be unreliable. Hence the cached repsonsible_tree_id might be missing.
+        // On the other hand, due to event retargeting at shadow roots, the cache might be wrong!
+        // Keep in mind that we handle events in the capture phase, so top-down. When descending and
+        // retargeting into closed shadow-dom, the event might have been handled 'prematurely'.
+        // TODO: figure out how to prevent this and establish correct event handling for closed shadow root.
+        // Note: Other frameworks also get this wrong and dispatch such events multiple times.
+        let event_path = event.composed_path();
+        let derived_cached_key = event_path.length();
+        let cached_branding = if matches!(event.cache_key(), Some(cache_key) if cache_key == derived_cached_key)
+        {
+            event.subtree_id()
+        } else {
+            None
+        };
+        if matches!(cached_branding, Some(responsible_tree_id) if responsible_tree_id != self.subtree_id)
         {
             // some other handler has determined (via this function, but other `self`) a subtree that is
             // responsible for handling this event, and it's not this subtree.
@@ -368,29 +394,30 @@ impl SubtreeData {
         }
         // We're tasked with finding the subtree that is reponsible with handling the event, and/or
         // run the handling if that's `self`.
-        let target = event.composed_path().get(0).dyn_into::<Element>().ok()?;
+        let target = event_path.get(0).dyn_into::<Element>().ok()?;
         let should_bubble = BUBBLE_EVENTS.load(Ordering::Relaxed);
         // We say that the most deeply nested subtree is "responsible" for handling the event.
-        let (responsible_tree_id, bubbling_start) =
-            if let Some(branding) = cached_responsible_tree_id {
-                (branding, target)
-            } else if let Some(branding) = find_closest_branded_element(target, should_bubble) {
-                let BrandingSearchResult {
-                    branding,
-                    closest_branded_ancestor,
-                } = branding;
-                event.set_subtree_id(branding);
-                (branding, closest_branded_ancestor)
-            } else {
-                // Possible only? if bubbling is disabled
-                // No tree should handle this event
-                event.set_subtree_id(NONE_TREE_ID);
-                return None;
-            };
+        let (responsible_tree_id, bubbling_start) = if let Some(branding) = cached_branding {
+            (branding, target.clone())
+        } else if let Some(branding) = find_closest_branded_element(target.clone(), should_bubble) {
+            let BrandingSearchResult {
+                branding,
+                closest_branded_ancestor,
+            } = branding;
+            event.set_subtree_id(branding);
+            event.set_cache_key(derived_cached_key);
+            (branding, closest_branded_ancestor)
+        } else {
+            // Possible only? if bubbling is disabled
+            // No tree should handle this event
+            event.set_subtree_id(NONE_TREE_ID);
+            event.set_cache_key(derived_cached_key);
+            return None;
+        };
         if self.subtree_id != responsible_tree_id {
             return None;
         }
-        if self.host.eq(&bubbling_start) {
+        if self.host.eq(&target) {
             // One more special case: don't handle events that get fired directly on a subtree host
             return None;
         }

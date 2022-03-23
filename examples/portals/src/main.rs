@@ -111,7 +111,10 @@ impl Component for App {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let onclick = ctx.link().callback(|_| AppMessage::IncreaseCounter);
+        let onclick = ctx.link().callback(|ev: web_sys::MouseEvent| {
+            gloo_console::log!(&ev, &ev.composed_path());
+            AppMessage::IncreaseCounter
+        });
         let title = create_portal(
             html! {
                 if self.counter > 0 {
@@ -126,12 +129,14 @@ impl Component for App {
             <>
             {self.style_html.clone()}
             <p>{"This paragraph is colored red, and its style is mounted into "}<pre>{"document.head"}</pre>{" with a portal"}</p>
-            <ShadowDOMHost>
-                <p>{"This paragraph is rendered in a shadow dom and thus not affected by the surrounding styling context"}</p>
-                <span>{"Buttons clicked inside the shadow dom work fine."}</span>
-                <button {onclick}>{"Click me!"}</button>
-            </ShadowDOMHost>
-            <p>{format!("The button has been clicked {} times. This is also reflected in the title of the tab!", self.counter)}</p>
+            <div {onclick}>
+                <ShadowDOMHost>
+                    <p>{"This paragraph is rendered in a shadow dom and thus not affected by the surrounding styling context"}</p>
+                    <span>{"Buttons clicked inside the shadow dom work fine."}</span>
+                    <button>{"Click me!"}</button>
+                </ShadowDOMHost>
+                <p>{format!("The button has been clicked {} times. This is also reflected in the title of the tab!", self.counter)}</p>
+            </div>
             {title}
             </>
         }

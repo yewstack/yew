@@ -54,5 +54,10 @@ in an unrelated location in the actual DOM.
 This allows developers to be oblivious of whether a component they consume, is implemented with
 or without portals. Events fired on its children will bubble up regardless.
 
+A known issue is that events from portals into **closed** shadow roots will be dispatched twice,
+once targeting the element inside the shadow root and once targeting the host element itself. Keep
+in mind that **open** shadow roots work fine. If this impacts you, feel free to open a bug report
+about it.
+
 ## Further reading
 - [Portals example](https://github.com/yewstack/yew/tree/master/examples/portals)
