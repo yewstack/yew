@@ -199,12 +199,12 @@ mod tests {
     use std::marker::PhantomData;
 
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-    use web_sys::{Event, EventInit, MouseEvent};
+    use web_sys::{Event, EventInit, HtmlElement, MouseEvent};
     wasm_bindgen_test_configure!(run_in_browser);
 
     use crate::{
         create_portal, html, html::TargetCast, scheduler, virtual_dom::VNode, AppHandle, Component,
-        Context, Html, Properties,
+        Context, Html, NodeRef, Properties,
     };
     use gloo_utils::document;
     use wasm_bindgen::JsCast;
@@ -224,10 +224,16 @@ mod tests {
         text: String,
     }
 
-    trait Mixin {
+    #[derive(Default, PartialEq, Properties)]
+    struct MixinProps<M: Properties> {
+        state_ref: NodeRef,
+        wrapped: M,
+    }
+
+    trait Mixin: Properties + Sized {
         fn view<C>(ctx: &Context<C>, state: &State) -> Html
         where
-            C: Component<Message = Message, Properties = Self>;
+            C: Component<Message = Message, Properties = MixinProps<Self>>;
     }
 
     struct Comp<M>
@@ -243,7 +249,7 @@ mod tests {
         M: Mixin + Properties + 'static,
     {
         type Message = Message;
-        type Properties = M;
+        type Properties = MixinProps<M>;
 
         fn create(_: &Context<Self>) -> Self {
             Comp {
@@ -273,34 +279,48 @@ mod tests {
     }
 
     #[track_caller]
-    fn assert_count(el: &web_sys::HtmlElement, count: isize) {
-        assert_eq!(el.text_content(), Some(count.to_string()))
+    fn assert_count(el: &NodeRef, count: isize) {
+        let text = el
+            .get()
+            .expect("State ref not bound in the test case?")
+            .text_content();
+        assert_eq!(text, Some(count.to_string()))
     }
 
-    fn get_el_by_tag(tag: &str) -> web_sys::HtmlElement {
+    #[track_caller]
+    fn click(el: &NodeRef) {
+        el.get().unwrap().dyn_into::<HtmlElement>().unwrap().click();
+        scheduler::start_now();
+    }
+
+    fn get_el_by_selector(selector: &str) -> web_sys::HtmlElement {
         document()
-            .query_selector(tag)
+            .query_selector(selector)
             .unwrap()
             .unwrap()
             .dyn_into::<web_sys::HtmlElement>()
             .unwrap()
     }
 
-    fn init<M>(tag: &str) -> (AppHandle<Comp<M>>, web_sys::HtmlElement)
+    fn init<M>() -> (AppHandle<Comp<M>>, NodeRef)
     where
         M: Mixin + Properties + Default,
     {
         // Remove any existing elements
-        if let Some(el) = document().query_selector(tag).unwrap() {
-            el.parent_element().unwrap().remove();
+        let body = document().body().unwrap();
+        while let Some(child) = body.query_selector("div#testroot").unwrap() {
+            body.remove_child(&child).unwrap();
         }
 
         let root = document().create_element("div").unwrap();
-        document().body().unwrap().append_child(&root).unwrap();
-        let app = crate::Renderer::<Comp<M>>::with_root(root).render();
+        root.set_id("testroot");
+        body.append_child(&root).unwrap();
+        let props = <Comp<M> as Component>::Properties::default();
+        let el_ref = props.state_ref.clone();
+        let app = crate::Renderer::<Comp<M>>::with_root_and_props(root, props).render();
         scheduler::start_now();
 
-        (app, get_el_by_tag(tag))
+        (app, el_ref)
     }
 
     #[test]
@@ -311,21 +331,17 @@ mod tests {
         impl Mixin for Synchronous {
             fn view<C>(ctx: &Context<C>, state: &State) -> Html
             where
-                C: Component<Message = Message>,
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
             {
-                let link = ctx.link().clone();
-                let onclick = Callback::from(move |_| {
-                    link.send_message(Message::Action);
-                    scheduler::start_now();
-                });
+                let onclick = ctx.link().callback(|_| Message::Action);
 
                 if state.stop_listening {
                     html! {
-                        <a>{state.action}</a>
+                        <a ref={&ctx.props().state_ref}>{state.action}</a>
                     }
                 } else {
                     html! {
-                        <a {onclick}>
+                        <a {onclick} ref={&ctx.props().state_ref}>
                             {state.action}
                         </a>
                     }
@@ -333,20 +349,20 @@ mod tests {
             }
         }
 
-        let (link, el) = init::<Synchronous>("a");
+        let (link, el) = init::<Synchronous>();
 
         assert_count(&el, 0);
 
-        el.click();
+        click(&el);
         assert_count(&el, 1);
 
-        el.click();
+        click(&el);
         assert_count(&el, 2);
 
         link.send_message(Message::StopListening);
         scheduler::start_now();
 
-        el.click();
+        click(&el);
         assert_count(&el, 2);
     }
 
@@ -358,7 +374,7 @@ mod tests {
         impl Mixin for NonBubbling {
             fn view<C>(ctx: &Context<C>, state: &State) -> Html
             where
-                C: Component<Message = Message>,
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
             {
                 let link = ctx.link().clone();
                 let onblur = Callback::from(move |_| {
@@ -367,7 +383,7 @@ mod tests {
                 });
                 html! {
                     <div>
-                        <a>
+                        <a ref={&ctx.props().state_ref}>
                             <input id="input" {onblur} type="text" />
                             {state.action}
                         </a>
@@ -376,7 +392,7 @@ mod tests {
             }
         }
 
-        let (_, el) = init::<NonBubbling>("a");
+        let (_, el) = init::<NonBubbling>();
 
         assert_count(&el, 0);
 
@@ -404,25 +420,21 @@ mod tests {
         impl Mixin for Bubbling {
             fn view<C>(ctx: &Context<C>, state: &State) -> Html
             where
-                C: Component<Message = Message>,
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
             {
                 if state.stop_listening {
                     html! {
                         <div>
-                            <a>
+                            <a ref={&ctx.props().state_ref}>
                                 {state.action}
                             </a>
                         </div>
                     }
                 } else {
-                    let link = ctx.link().clone();
-                    let cb = Callback::from(move |_| {
-                        link.send_message(Message::Action);
-                        scheduler::start_now();
-                    });
+                    let cb = ctx.link().callback(|_| Message::Action);
                     html! {
                         <div onclick={cb.clone()}>
-                            <a onclick={cb}>
+                            <a onclick={cb} ref={&ctx.props().state_ref}>
                                 {state.action}
                             </a>
                         </div>
@@ -431,19 +443,17 @@ mod tests {
             }
         }
 
-        let (link, el) = init::<Bubbling>("a");
+        let (link, el) = init::<Bubbling>();
 
         assert_count(&el, 0);
-
-        el.click();
+        click(&el);
         assert_count(&el, 2);
-
-        el.click();
+        click(&el);
         assert_count(&el, 4);
 
         link.send_message(Message::StopListening);
         scheduler::start_now();
-        el.click();
+        click(&el);
         assert_count(&el, 4);
     }
 
@@ -455,24 +465,17 @@ mod tests {
         impl Mixin for CancelBubbling {
             fn view<C>(ctx: &Context<C>, state: &State) -> Html
             where
-                C: Component<Message = Message>,
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
             {
-                let link = ctx.link().clone();
-                let onclick = Callback::from(move |_| {
-                    link.send_message(Message::Action);
-                    scheduler::start_now();
-                });
-
-                let link = ctx.link().clone();
-                let onclick2 = Callback::from(move |e: MouseEvent| {
+                let onclick = ctx.link().callback(|_| Message::Action);
+                let onclick2 = ctx.link().callback(|e: MouseEvent| {
                     e.stop_propagation();
-                    link.send_message(Message::Action);
-                    scheduler::start_now();
+                    Message::Action
                 });
 
                 html! {
                     <div onclick={onclick}>
-                        <a onclick={onclick2}>
+                        <a onclick={onclick2} ref={&ctx.props().state_ref}>
                             {state.action}
                         </a>
                     </div>
@@ -480,14 +483,12 @@ mod tests {
             }
         }
 
-        let (_, el) = init::<CancelBubbling>("a");
+        let (_, el) = init::<CancelBubbling>();
 
         assert_count(&el, 0);
-
-        el.click();
+        click(&el);
         assert_count(&el, 1);
-
-        el.click();
+        click(&el);
         assert_count(&el, 2);
     }
 
@@ -502,24 +503,17 @@ mod tests {
         impl Mixin for CancelBubbling {
             fn view<C>(ctx: &Context<C>, state: &State) -> Html
             where
-                C: Component<Message = Message>,
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
             {
-                let link = ctx.link().clone();
-                let onclick = Callback::from(move |_| {
-                    link.send_message(Message::Action);
-                    scheduler::start_now();
-                });
-
-                let link = ctx.link().clone();
-                let onclick2 = Callback::from(move |e: MouseEvent| {
+                let onclick = ctx.link().callback(|_| Message::Action);
+                let onclick2 = ctx.link().callback(|e: MouseEvent| {
                     e.stop_propagation();
-                    link.send_message(Message::Action);
-                    scheduler::start_now();
+                    Message::Action
                 });
                 html! {
                     <div onclick={onclick}>
                         <div onclick={onclick2}>
-                            <a>
+                            <a ref={&ctx.props().state_ref}>
                                 {state.action}
                             </a>
                         </div>
@@ -528,22 +522,20 @@ mod tests {
             }
         }
 
-        let (_, el) = init::<CancelBubbling>("a");
+        let (_, el) = init::<CancelBubbling>();
 
         assert_count(&el, 0);
-
-        el.click();
+        click(&el);
         assert_count(&el, 1);
-
-        el.click();
+        click(&el);
         assert_count(&el, 2);
     }
 
+    /// Here an event is being delivered to a DOM node which is contained
+    /// in a portal. It should bubble through the portal and reach the containing
+    /// element.
     #[test]
     fn portal_bubbling() {
-        // Here an event is being delivered to a DOM node which is contained
-        // in a portal. It should bubble through the portal and reach the containing
-        // element
         #[derive(PartialEq, Properties)]
         struct PortalBubbling {
             host: web_sys::Element,
@@ -558,29 +550,18 @@ mod tests {
         impl Mixin for PortalBubbling {
             fn view<C>(ctx: &Context<C>, state: &State) -> Html
             where
-                C: Component<Message = Message, Properties = Self>,
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
             {
-                let portal_target = ctx.props().host.clone();
-                let onclick = {
-                    let link = ctx.link().clone();
-                    Callback::from(move |_| {
-                        link.send_message(Message::Action);
-                        scheduler::start_now();
-                    })
-                };
-                let portal = create_portal(
-                    html! {
-                        <a>
-                            {state.action}
-                        </a>
-                    },
-                    portal_target.clone(),
-                );
-
+                let portal_target = ctx.props().wrapped.host.clone();
+                let onclick = ctx.link().callback(|_| Message::Action);
                 html! {
                     <>
                         <div onclick={onclick}>
-                            {portal}
+                            {create_portal(html! {
+                                <a ref={&ctx.props().state_ref}>
+                                    {state.action}
+                                </a>
+                            }, portal_target.clone())}
                         </div>
                         {VNode::VRef(portal_target.into())}
                     </>
@@ -588,20 +569,64 @@ mod tests {
             }
         }
 
-        let (_, el) = init::<PortalBubbling>("a");
+        let (_, el) = init::<PortalBubbling>();
 
         assert_count(&el, 0);
-
-        el.click();
+        click(&el);
         assert_count(&el, 1);
+    }
 
-        el.click();
-        assert_count(&el, 2);
+    /// Here an event is being from inside a shadow root. It should only be caught exactly once on each handler
+    #[test]
+    fn open_shadow_dom_bubbling() {
+        use web_sys::{ShadowRootInit, ShadowRootMode};
+        #[derive(PartialEq, Properties)]
+        struct OpenShadowDom {
+            host: web_sys::Element,
+            inner_root: web_sys::Element,
+        }
+        impl Default for OpenShadowDom {
+            fn default() -> Self {
+                let host = document().create_element("div").unwrap();
+                let inner_root = document().create_element("div").unwrap();
+                let shadow = host
+                    .attach_shadow(&ShadowRootInit::new(ShadowRootMode::Open))
+                    .unwrap();
+                shadow.append_child(&inner_root).unwrap();
+                OpenShadowDom { host, inner_root }
+            }
+        }
+        impl Mixin for OpenShadowDom {
+            fn view<C>(ctx: &Context<C>, state: &State) -> Html
+            where
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
+            {
+                let onclick = ctx.link().callback(|_| Message::Action);
+                let mixin = &ctx.props().wrapped;
+                html! {
+                    <div onclick={onclick.clone()}>
+                        <div {onclick}>
+                            {create_portal(html! {
+                                <a ref={&ctx.props().state_ref}>
+                                    {state.action}
+                                </a>
+                            }, mixin.inner_root.clone())}
+                        </div>
+                        {VNode::VRef(mixin.host.clone().into())}
+                    </div>
+                }
+            }
+        }
+        let (_, el) = init::<OpenShadowDom>();
+
+        assert_count(&el, 0);
+        click(&el);
+        assert_count(&el, 2); // Once caught per handler
     }
 
     fn test_input_listener<E>(make_event: impl Fn() -> E)
     where
-        E: JsCast + std::fmt::Debug,
+        E: Into<Event> + std::fmt::Debug,
     {
         #[derive(Default, PartialEq, Properties)]
         struct Input;
@@ -609,45 +634,41 @@ mod tests {
         impl Mixin for Input {
             fn view<C>(ctx: &Context<C>, state: &State) -> Html
             where
-                C: Component<Message = Message>,
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
             {
                 if state.stop_listening {
                     html! {
                         <div>
                             <input type="text" />
-                            <p>{state.text.clone()}</p>
+                            <p ref={&ctx.props().state_ref}>{state.text.clone()}</p>
                         </div>
                     }
                 } else {
-                    let link = ctx.link().clone();
-                    let onchange = Callback::from(move |e: web_sys::Event| {
+                    let onchange = ctx.link().callback(|e: web_sys::Event| {
                         let el: web_sys::HtmlInputElement = e.target_unchecked_into();
-                        link.send_message(Message::SetText(el.value()));
-                        scheduler::start_now();
+                        Message::SetText(el.value())
                     });
-
-                    let link = ctx.link().clone();
-                    let oninput = Callback::from(move |e: web_sys::InputEvent| {
+                    let oninput = ctx.link().callback(|e: web_sys::InputEvent| {
                         let el: web_sys::HtmlInputElement = e.target_unchecked_into();
-                        link.send_message(Message::SetText(el.value()));
-                        scheduler::start_now();
+                        Message::SetText(el.value())
                     });
 
                     html! {
                         <div>
                             <input type="text" {onchange} {oninput} />
-                            <p>{state.text.clone()}</p>
+                            <p ref={&ctx.props().state_ref}>{state.text.clone()}</p>
                         </div>
                     }
                 }
             }
         }
 
-        let (link, input_el) = init::<Input>("input");
-        let input_el = input_el.dyn_into::<web_sys::HtmlInputElement>().unwrap();
-        let p_el = get_el_by_tag("p");
+        let (link, state_ref) = init::<Input>();
+        let input_el = get_el_by_selector("input")
+            .dyn_into::<web_sys::HtmlInputElement>()
+            .unwrap();
 
-        assert_eq!(&p_el.text_content().unwrap(), "");
+        assert_eq!(&state_ref.get().unwrap().text_content().unwrap(), "");
         for mut s in ["foo", "bar", "baz"].iter() {
             input_el.set_value(s);
             if s == &"baz" {
@@ -656,12 +677,9 @@ mod tests {
 
                 s = &"bar";
             }
-            input_el
-                .dyn_ref::<web_sys::EventTarget>()
-                .unwrap()
-                .dispatch_event(&make_event().dyn_into().unwrap())
-                .unwrap();
-            assert_eq!(&p_el.text_content().unwrap(), s);
+            input_el.dispatch_event(&make_event().into()).unwrap();
+            scheduler::start_now();
+            assert_eq!(&state_ref.get().unwrap().text_content().unwrap(), s);
         }
     }
 
