@@ -154,7 +154,6 @@ impl HostHandlers {
 
 /// Per subtree data
 #[derive(Debug)]
-
 struct SubtreeData {
     /// Data shared between all trees in an app
     app_data: Rc<RefCell<AppData>>,
@@ -246,8 +245,9 @@ struct BrandingSearchResult {
 /// Subtree roots are always branded with their own subtree id.
 fn find_closest_branded_element(mut el: Element, do_bubble: bool) -> Option<BrandingSearchResult> {
     if !do_bubble {
+        let branding = el.subtree_id()?;
         Some(BrandingSearchResult {
-            branding: el.subtree_id()?,
+            branding,
             closest_branded_ancestor: el,
         })
     } else {
@@ -266,53 +266,20 @@ fn find_closest_branded_element(mut el: Element, do_bubble: bool) -> Option<Bran
 
 /// Iterate over all potentially listening elements in bubbling order.
 /// If bubbling is turned off, yields at most a single element.
-struct BubblingIterator<'tree> {
-    event: &'tree Event,
-    subtree: &'tree Rc<SubtreeData>,
-    next_el: Option<Element>,
+fn start_bubbling_from(
+    subtree: &SubtreeData,
+    root_or_listener: Element,
     should_bubble: bool,
-}
+) -> impl '_ + Iterator<Item = (&'_ SubtreeData, Element)> {
+    let start = subtree.bubble_to_inner_element(root_or_listener, should_bubble);
 
-impl<'tree> Iterator for BubblingIterator<'tree> {
-    type Item = (&'tree Rc<SubtreeData>, Element);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let candidate = self.next_el.take()?;
-        let candidate_parent = self.subtree;
-        if self.event.cancel_bubble() {
+    std::iter::successors(start, move |(subtree, element)| {
+        if !should_bubble {
             return None;
         }
-        if self.should_bubble {
-            if let Some((next_subtree, parent)) = candidate
-                .parent_element()
-                .and_then(|parent| self.subtree.bubble_to_inner_element(parent, true))
-            {
-                self.subtree = next_subtree;
-                self.next_el = Some(parent);
-            }
-        }
-        Some((candidate_parent, candidate))
-    }
-}
-
-impl<'tree> BubblingIterator<'tree> {
-    fn start_from(
-        subtree: &'tree Rc<SubtreeData>,
-        root_or_listener: Element,
-        event: &'tree Event,
-        should_bubble: bool,
-    ) -> Self {
-        let start = match subtree.bubble_to_inner_element(root_or_listener, should_bubble) {
-            Some((subtree, next_el)) => (subtree, Some(next_el)),
-            None => (subtree, None),
-        };
-        Self {
-            event,
-            subtree: start.0,
-            next_el: start.1,
-            should_bubble,
-        }
-    }
+        let parent = element.parent_element()?;
+        subtree.bubble_to_inner_element(parent, true)
+    })
 }
 
 impl SubtreeData {
@@ -346,12 +313,11 @@ impl SubtreeData {
     }
 
     // Bubble a potential parent until it reaches an internal element
-    #[allow(clippy::needless_lifetimes)] // I don't see a way to omit the lifetimes here
-    fn bubble_to_inner_element<'s>(
-        self: &'s Rc<Self>,
+    fn bubble_to_inner_element(
+        &self,
         parent_el: Element,
         should_bubble: bool,
-    ) -> Option<(&'s Rc<Self>, Element)> {
+    ) -> Option<(&Self, Element)> {
         let mut next_subtree = self;
         let mut next_el = parent_el;
         if !should_bubble && next_subtree.host.eq(&next_el) {
@@ -366,11 +332,10 @@ impl SubtreeData {
         Some((next_subtree, next_el))
     }
 
-    #[allow(clippy::needless_lifetimes)] // I don't see a way to omit the lifetimes here
     fn start_bubbling_if_responsible<'s>(
-        self: &'s Rc<Self>,
+        &'s self,
         event: &'s Event,
-    ) -> Option<BubblingIterator<'s>> {
+    ) -> Option<impl 's + Iterator<Item = (&'s SubtreeData, Element)>> {
         // Note: the event is not necessarily indentically the same object for all installed handlers
         // hence this cache can be unreliable. Hence the cached repsonsible_tree_id might be missing.
         // On the other hand, due to event retargeting at shadow roots, the cache might be wrong!
@@ -421,12 +386,7 @@ impl SubtreeData {
             // One more special case: don't handle events that get fired directly on a subtree host
             return None;
         }
-        Some(BubblingIterator::start_from(
-            self,
-            bubbling_start,
-            event,
-            should_bubble,
-        ))
+        Some(start_bubbling_from(self, bubbling_start, should_bubble))
         // # More details: When nesting occurs
         //
         // Event listeners are installed only on the subtree roots. Still, those roots can
@@ -447,8 +407,8 @@ impl SubtreeData {
         // </AppRoot>
     }
     /// Handle a global event firing
-    fn handle(self: &Rc<Self>, desc: EventDescriptor, event: Event) {
-        let run_handler = |root: &Rc<Self>, el: &Element| {
+    fn handle(&self, desc: EventDescriptor, event: Event) {
+        let run_handler = |root: &Self, el: &Element| {
             let handler = Registry::get_handler(root.event_registry(), el, &desc);
             if let Some(handler) = handler {
                 handler(&event)
@@ -457,6 +417,9 @@ impl SubtreeData {
         if let Some(bubbling_it) = self.start_bubbling_if_responsible(&event) {
             test_log!("Running handler on subtree {}", self.subtree_id);
             for (subtree, el) in bubbling_it {
+                if event.cancel_bubble() {
+                    break;
+                }
                 run_handler(subtree, &el);
             }
         }
