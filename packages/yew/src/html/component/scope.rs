@@ -204,6 +204,8 @@ mod feat_ssr {
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
 
+    use crate::virtual_dom::Collectable;
+
     impl<COMP: BaseComponent> Scope<COMP> {
         pub(crate) async fn render_to_string(
             self,
@@ -227,12 +229,14 @@ mod feat_ssr {
             );
             scheduler::start();
 
-            if hydratable {
-                #[cfg(debug_assertions)]
-                w.push_str(&format!("<!--<[{}]>-->", std::any::type_name::<COMP>()));
+            #[cfg(debug_assertions)]
+            let collectable = Collectable::Component(std::any::type_name::<COMP>());
 
-                #[cfg(not(debug_assertions))]
-                w.push_str("<!--<[]>-->");
+            #[cfg(not(debug_assertions))]
+            let collectable = Collectable::Component;
+
+            if hydratable {
+                collectable.write_open_tag(w);
             }
 
             let html = rx.await.unwrap();
@@ -241,11 +245,7 @@ mod feat_ssr {
             html.render_to_string(w, &self_any_scope, hydratable).await;
 
             if hydratable {
-                #[cfg(debug_assertions)]
-                w.push_str(&format!("<!--</[{}]>-->", std::any::type_name::<COMP>()));
-
-                #[cfg(not(debug_assertions))]
-                w.push_str("<!--</[]>-->");
+                collectable.write_close_tag(w);
             }
 
             scheduler::push_component_destroy(Box::new(DestroyRunner {
