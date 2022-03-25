@@ -501,10 +501,10 @@ mod ssr_tests {
             html! { <div></div> }
         }
 
-        let mut renderer = ServerRenderer::<Comp>::new();
-        renderer.set_hydratable(false);
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, "<div></div>");
     }
@@ -516,10 +516,10 @@ mod ssr_tests {
             html! { <div class="abc"></div> }
         }
 
-        let mut renderer = ServerRenderer::<Comp>::new();
-        renderer.set_hydratable(false);
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, r#"<div class="abc"></div>"#);
     }
@@ -531,10 +531,10 @@ mod ssr_tests {
             html! { <div>{"Hello!"}</div> }
         }
 
-        let mut renderer = ServerRenderer::<Comp>::new();
-        renderer.set_hydratable(false);
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, r#"<div>Hello!</div>"#);
     }
@@ -546,10 +546,10 @@ mod ssr_tests {
             html! { <div>{"Hello!"}<input value="abc" type="text" /></div> }
         }
 
-        let mut renderer = ServerRenderer::<Comp>::new();
-        renderer.set_hydratable(false);
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, r#"<div>Hello!<input value="abc" type="text"></div>"#);
     }
@@ -561,10 +561,10 @@ mod ssr_tests {
             html! { <textarea value="teststring" /> }
         }
 
-        let mut renderer = ServerRenderer::<Comp>::new();
-        renderer.set_hydratable(false);
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, r#"<textarea>teststring</textarea>"#);
     }

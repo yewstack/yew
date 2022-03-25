@@ -128,10 +128,10 @@ mod ssr_tests {
             html! { <div>{"Hello "}{s}{"!"}</div> }
         }
 
-        let mut renderer = ServerRenderer::<Comp>::new();
-        renderer.set_hydratable(false);
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, "<div>Hello world!</div>");
     }
@@ -159,10 +159,10 @@ mod ssr_tests {
             }
         }
 
-        let mut renderer = ServerRenderer::<Comp>::new();
-        renderer.set_hydratable(false);
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(
             s,

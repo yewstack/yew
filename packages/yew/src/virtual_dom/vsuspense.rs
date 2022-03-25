@@ -135,10 +135,10 @@ mod ssr_tests {
 
         let s = local
             .run_until(async move {
-                let mut renderer = ServerRenderer::<Comp>::new();
-                renderer.set_hydratable(false);
-
-                renderer.render().await
+                ServerRenderer::<Comp>::new()
+                    .hydratable(false)
+                    .render()
+                    .await
             })
             .await;
 
