@@ -90,12 +90,17 @@ mod feat_ssr {
     use crate::html::AnyScope;
 
     impl VList {
-        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+        pub(crate) async fn render_to_string(
+            &self,
+            w: &mut String,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+        ) {
             // Concurrently render all children.
             for fragment in futures::future::join_all(self.children.iter().map(|m| async move {
                 let mut w = String::new();
 
-                m.render_to_string(&mut w, parent_scope).await;
+                m.render_to_string(&mut w, parent_scope, hydratable).await;
 
                 w
             }))
@@ -123,9 +128,10 @@ mod ssr_tests {
             html! { <div>{"Hello "}{s}{"!"}</div> }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, "<div>Hello world!</div>");
     }
@@ -153,9 +159,10 @@ mod ssr_tests {
             }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(
             s,

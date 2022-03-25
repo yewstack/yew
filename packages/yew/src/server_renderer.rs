@@ -10,6 +10,7 @@ where
     ICOMP: IntoComponent,
 {
     props: ICOMP::Properties,
+    hydratable: bool,
 }
 
 impl<ICOMP> Default for ServerRenderer<ICOMP>
@@ -39,7 +40,22 @@ where
 {
     /// Creates a [ServerRenderer] with custom properties.
     pub fn with_props(props: ICOMP::Properties) -> Self {
-        Self { props }
+        Self {
+            props,
+            hydratable: true,
+        }
+    }
+
+    /// Sets whether an the rendered result is hydratable.
+    ///
+    /// Defaults to `true`.
+    ///
+    /// When this is sets to `true`, the rendered artifact will include additional information
+    /// to assist with the hydration process.
+    pub fn hydratable(mut self, val: bool) -> Self {
+        self.hydratable = val;
+
+        self
     }
 
     /// Renders Yew Application.
@@ -54,6 +70,8 @@ where
     /// Renders Yew Application to a String.
     pub async fn render_to_string(self, w: &mut String) {
         let scope = Scope::<<ICOMP as IntoComponent>::Component>::new(None);
-        scope.render_to_string(w, self.props.into()).await;
+        scope
+            .render_to_string(w, self.props.into(), self.hydratable)
+            .await;
     }
 }

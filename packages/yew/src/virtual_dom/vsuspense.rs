@@ -28,11 +28,29 @@ impl VSuspense {
 mod feat_ssr {
     use super::*;
     use crate::html::AnyScope;
+    use crate::virtual_dom::Collectable;
 
     impl VSuspense {
-        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+        pub(crate) async fn render_to_string(
+            &self,
+            w: &mut String,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+        ) {
+            let collectable = Collectable::Suspense;
+
+            if hydratable {
+                collectable.write_open_tag(w);
+            }
+
             // always render children on the server side.
-            self.children.render_to_string(w, parent_scope).await;
+            self.children
+                .render_to_string(w, parent_scope, hydratable)
+                .await;
+
+            if hydratable {
+                collectable.write_close_tag(w);
+            }
         }
     }
 }
@@ -120,9 +138,10 @@ mod ssr_tests {
 
         let s = local
             .run_until(async move {
-                let renderer = ServerRenderer::<Comp>::new();
-
-                renderer.render().await
+                ServerRenderer::<Comp>::new()
+                    .hydratable(false)
+                    .render()
+                    .await
             })
             .await;
 

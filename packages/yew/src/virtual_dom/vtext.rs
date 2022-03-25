@@ -34,9 +34,15 @@ impl PartialEq for VText {
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
+    use crate::html::AnyScope;
 
     impl VText {
-        pub(crate) async fn render_to_string(&self, w: &mut String) {
+        pub(crate) async fn render_to_string(
+            &self,
+            w: &mut String,
+            _parent_scope: &AnyScope,
+            _hydratable: bool,
+        ) {
             html_escape::encode_text_to_string(&self.text, w);
         }
     }
@@ -46,16 +52,21 @@ mod feat_ssr {
 mod ssr_tests {
     use tokio::test;
 
-    use super::*;
+    use crate::prelude::*;
+    use crate::ServerRenderer;
 
     #[test]
     async fn test_simple_str() {
-        let vtext = VText::new("abc");
+        #[function_component]
+        fn Comp() -> Html {
+            html! { "abc" }
+        }
 
-        let mut s = String::new();
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
-        vtext.render_to_string(&mut s).await;
-
-        assert_eq!("abc", s.as_str());
+        assert_eq!(s, r#"abc"#);
     }
 }

@@ -157,13 +157,20 @@ mod feat_ssr {
             &'a self,
             w: &'a mut String,
             parent_scope: &'a AnyScope,
+            hydratable: bool,
         ) -> LocalBoxFuture<'a, ()> {
             async move {
                 match self {
-                    VNode::VTag(vtag) => vtag.render_to_string(w, parent_scope).await,
-                    VNode::VText(vtext) => vtext.render_to_string(w).await,
-                    VNode::VComp(vcomp) => vcomp.render_to_string(w, parent_scope).await,
-                    VNode::VList(vlist) => vlist.render_to_string(w, parent_scope).await,
+                    VNode::VTag(vtag) => vtag.render_to_string(w, parent_scope, hydratable).await,
+                    VNode::VText(vtext) => {
+                        vtext.render_to_string(w, parent_scope, hydratable).await
+                    }
+                    VNode::VComp(vcomp) => {
+                        vcomp.render_to_string(w, parent_scope, hydratable).await
+                    }
+                    VNode::VList(vlist) => {
+                        vlist.render_to_string(w, parent_scope, hydratable).await
+                    }
                     // We are pretty safe here as it's not possible to get a web_sys::Node without DOM
                     // support in the first place.
                     //
@@ -175,7 +182,9 @@ mod feat_ssr {
                     // Portals are not rendered.
                     VNode::VPortal(_) => {}
                     VNode::VSuspense(vsuspense) => {
-                        vsuspense.render_to_string(w, parent_scope).await
+                        vsuspense
+                            .render_to_string(w, parent_scope, hydratable)
+                            .await
                     }
                 }
             }
