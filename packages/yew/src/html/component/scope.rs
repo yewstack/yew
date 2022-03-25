@@ -204,8 +204,15 @@ mod feat_ssr {
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
 
+    use crate::virtual_dom::Collectable;
+
     impl<COMP: BaseComponent> Scope<COMP> {
-        pub(crate) async fn render_to_string(self, w: &mut String, props: Rc<COMP::Properties>) {
+        pub(crate) async fn render_to_string(
+            self,
+            w: &mut String,
+            props: Rc<COMP::Properties>,
+            hydratable: bool,
+        ) {
             let (tx, rx) = oneshot::channel();
             let state = ComponentRenderState::Ssr { sender: Some(tx) };
 
@@ -222,10 +229,24 @@ mod feat_ssr {
             );
             scheduler::start();
 
+            #[cfg(debug_assertions)]
+            let collectable = Collectable::Component(std::any::type_name::<COMP>());
+
+            #[cfg(not(debug_assertions))]
+            let collectable = Collectable::Component;
+
+            if hydratable {
+                collectable.write_open_tag(w);
+            }
+
             let html = rx.await.unwrap();
 
             let self_any_scope = AnyScope::from(self.clone());
-            html.render_to_string(w, &self_any_scope).await;
+            html.render_to_string(w, &self_any_scope, hydratable).await;
+
+            if hydratable {
+                collectable.write_close_tag(w);
+            }
 
             scheduler::push_component_destroy(Box::new(DestroyRunner {
                 state: self.state.clone(),
