@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1648029044326,
+  "lastUpdate": 1648224952696,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -10022,6 +10022,115 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 32_startup-bt",
             "value": "41.218",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "330.5556640625",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "WorldSEnder@users.noreply.github.com",
+            "name": "WorldSEnder",
+            "username": "WorldSEnder"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ee6a67e3ea54e45656b87de27f0f894067d16e0d",
+          "message": "Scoped event handlers (#2510)\n\n* implement event handling with multiple subtree roots\r\n* add listeners to all subtree roots\r\n* move host element to Registry\r\n* add BSubtree argument\r\n* surface level internal API for BSubtree\r\n* cache invalidation & document limitations\r\n* Update portal documentation\r\n* Add test case for hierarchical event bubbling\r\n* add shadow dom test case\r\n* add button to portals/shadow dom example\r\n* change ShadowRootMode in example to open\r\n\r\nBSubtree controls the element where listeners are registered.\r\n we have create_root and create_ssr\r\n\r\nAsync event dispatching is surprisingly complicated.\r\nMake sure to see #2510 for details, comments and discussion\r\n\r\ntakes care of catching original events in shadow doms",
+          "timestamp": "2022-03-25T17:09:15+01:00",
+          "tree_id": "d555be4441be741048777f8dbc5ad1f85952eac1",
+          "url": "https://github.com/yewstack/yew/commit/ee6a67e3ea54e45656b87de27f0f894067d16e0d"
+        },
+        "date": 1648224950135,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "214.97",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "218.0205",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "396.078",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "81.9455",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "102.1965",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "34.729",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "2490.689",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "475.3195",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "176.929",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "0.9634475708007812",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.5024986267089844",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.4602203369140625",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.5095291137695312",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.1272430419921875",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1736.664",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "38.01",
             "unit": ""
           },
           {
