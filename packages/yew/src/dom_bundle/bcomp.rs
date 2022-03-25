@@ -1,8 +1,7 @@
 //! This module contains the bundle implementation of a virtual component [BComp].
 
-use super::{BNode, Reconcilable, ReconcileTarget};
-use crate::html::AnyScope;
-use crate::html::Scoped;
+use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
+use crate::html::{AnyScope, Scoped};
 use crate::virtual_dom::{Key, VComp};
 use crate::NodeRef;
 use std::fmt;
@@ -33,7 +32,7 @@ impl fmt::Debug for BComp {
 }
 
 impl ReconcileTarget for BComp {
-    fn detach(self, _parent: &Element, parent_to_detach: bool) {
+    fn detach(self, _root: &BSubtree, _parent: &Element, parent_to_detach: bool) {
         self.scope.destroy_boxed(parent_to_detach);
     }
 
@@ -47,6 +46,7 @@ impl Reconcilable for VComp {
 
     fn attach(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -59,6 +59,7 @@ impl Reconcilable for VComp {
         } = self;
 
         let scope = mountable.mount(
+            root,
             node_ref.clone(),
             parent_scope,
             parent.to_owned(),
@@ -78,6 +79,7 @@ impl Reconcilable for VComp {
 
     fn reconcile_node(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -88,14 +90,15 @@ impl Reconcilable for VComp {
             BNode::Comp(ref mut bcomp)
                 if self.type_id == bcomp.type_id && self.key == bcomp.key =>
             {
-                self.reconcile(parent_scope, parent, next_sibling, bcomp)
+                self.reconcile(root, parent_scope, parent, next_sibling, bcomp)
             }
-            _ => self.replace(parent_scope, parent, next_sibling, bundle),
+            _ => self.replace(root, parent_scope, parent, next_sibling, bundle),
         }
     }
 
     fn reconcile(
         self,
+        _root: &BSubtree,
         _parent_scope: &AnyScope,
         _parent: &Element,
         next_sibling: NodeRef,
@@ -165,22 +168,15 @@ mod tests {
 
     #[test]
     fn update_loop() {
-        let document = gloo_utils::document();
-        let parent_scope: AnyScope = AnyScope::test();
-        let parent_element = document.create_element("div").unwrap();
+        let (root, scope, parent) = setup_parent();
 
         let comp = html! { <Comp></Comp> };
-        let (_, mut bundle) = comp.attach(&parent_scope, &parent_element, NodeRef::default());
+        let (_, mut bundle) = comp.attach(&root, &scope, &parent, NodeRef::default());
         scheduler::start_now();
 
         for _ in 0..10000 {
             let node = html! { <Comp></Comp> };
-            node.reconcile_node(
-                &parent_scope,
-                &parent_element,
-                NodeRef::default(),
-                &mut bundle,
-            );
+            node.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut bundle);
             scheduler::start_now();
         }
     }
@@ -322,27 +318,28 @@ mod tests {
         }
     }
 
-    fn setup_parent() -> (AnyScope, Element) {
+    fn setup_parent() -> (BSubtree, AnyScope, Element) {
         let scope = AnyScope::test();
         let parent = document().create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
 
         document().body().unwrap().append_child(&parent).unwrap();
 
-        (scope, parent)
+        (root, scope, parent)
     }
 
-    fn get_html(node: Html, scope: &AnyScope, parent: &Element) -> String {
+    fn get_html(node: Html, root: &BSubtree, scope: &AnyScope, parent: &Element) -> String {
         // clear parent
         parent.set_inner_html("");
 
-        node.attach(scope, parent, NodeRef::default());
+        node.attach(root, scope, parent, NodeRef::default());
         scheduler::start_now();
         parent.inner_html()
     }
 
     #[test]
     fn all_ways_of_passing_children_work() {
-        let (scope, parent) = setup_parent();
+        let (root, scope, parent) = setup_parent();
 
         let children: Vec<_> = vec!["a", "b", "c"]
             .drain(..)
@@ -359,7 +356,7 @@ mod tests {
         let prop_method = html! {
             <List children={children_renderer.clone()} />
         };
-        assert_eq!(get_html(prop_method, &scope, &parent), expected_html);
+        assert_eq!(get_html(prop_method, &root, &scope, &parent), expected_html);
 
         let children_renderer_method = html! {
             <List>
@@ -367,7 +364,7 @@ mod tests {
             </List>
         };
         assert_eq!(
-            get_html(children_renderer_method, &scope, &parent),
+            get_html(children_renderer_method, &root, &scope, &parent),
             expected_html
         );
 
@@ -376,30 +373,30 @@ mod tests {
                 { children.clone() }
             </List>
         };
-        assert_eq!(get_html(direct_method, &scope, &parent), expected_html);
+        assert_eq!(
+            get_html(direct_method, &root, &scope, &parent),
+            expected_html
+        );
 
         let for_method = html! {
             <List>
                 { for children }
             </List>
         };
-        assert_eq!(get_html(for_method, &scope, &parent), expected_html);
+        assert_eq!(get_html(for_method, &root, &scope, &parent), expected_html);
     }
 
     #[test]
     fn reset_node_ref() {
-        let scope = AnyScope::test();
-        let parent = document().create_element("div").unwrap();
-
-        document().body().unwrap().append_child(&parent).unwrap();
+        let (root, scope, parent) = setup_parent();
 
         let node_ref = NodeRef::default();
         let elem = html! { <Comp ref={node_ref.clone()}></Comp> };
-        let (_, elem) = elem.attach(&scope, &parent, NodeRef::default());
+        let (_, elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         scheduler::start_now();
         let parent_node = parent.deref();
         assert_eq!(node_ref.get(), parent_node.first_child());
-        elem.detach(&parent, false);
+        elem.detach(&root, &parent, false);
         scheduler::start_now();
         assert!(node_ref.get().is_none());
     }
