@@ -76,6 +76,14 @@ wasm-bindgen-futures = "0.4"
 rustversion = "1"
 trybuild = "1"
 
+[dev-dependencies.web-sys]
+version = "0.3"
+features = [
+  "ShadowRoot",
+  "ShadowRootInit",
+  "ShadowRootMode",
+]
+
 [features]
 ssr = ["futures", "html-escape"]
 csr = []

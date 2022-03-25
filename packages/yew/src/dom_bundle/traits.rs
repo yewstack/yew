@@ -1,6 +1,5 @@
-use super::BNode;
-use crate::html::AnyScope;
-use crate::html::NodeRef;
+use super::{BNode, BSubtree};
+use crate::html::{AnyScope, NodeRef};
 use web_sys::Element;
 
 /// A Reconcile Target.
@@ -11,7 +10,7 @@ pub(super) trait ReconcileTarget {
     /// Remove self from parent.
     ///
     /// Parent to detach is `true` if the parent element will also be detached.
-    fn detach(self, parent: &Element, parent_to_detach: bool);
+    fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool);
 
     /// Move elements from one parent to another parent.
     /// This is for example used by `VSuspense` to preserve component state without detaching
@@ -26,6 +25,7 @@ pub(super) trait Reconcilable {
     /// Attach a virtual node to the DOM tree.
     ///
     /// Parameters:
+    /// - `root`: bundle of the subtree root
     /// - `parent_scope`: the parent `Scope` used for passing messages to the
     ///   parent `Component`.
     /// - `parent`: the parent node in the DOM.
@@ -34,6 +34,7 @@ pub(super) trait Reconcilable {
     /// Returns a reference to the newly inserted element.
     fn attach(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -58,6 +59,7 @@ pub(super) trait Reconcilable {
     /// Returns a reference to the newly inserted element.
     fn reconcile_node(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -66,6 +68,7 @@ pub(super) trait Reconcilable {
 
     fn reconcile(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -75,6 +78,7 @@ pub(super) trait Reconcilable {
     /// Replace an existing bundle by attaching self and detaching the existing one
     fn replace(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -84,9 +88,9 @@ pub(super) trait Reconcilable {
         Self: Sized,
         Self::Bundle: Into<BNode>,
     {
-        let (self_ref, self_) = self.attach(parent_scope, parent, next_sibling);
+        let (self_ref, self_) = self.attach(root, parent_scope, parent, next_sibling);
         let ancestor = std::mem::replace(bundle, self_.into());
-        ancestor.detach(parent, false);
+        ancestor.detach(root, parent, false);
         self_ref
     }
 }

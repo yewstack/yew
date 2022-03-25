@@ -10,7 +10,7 @@ use std::any::Any;
 use std::rc::Rc;
 
 #[cfg(feature = "csr")]
-use crate::dom_bundle::Bundle;
+use crate::dom_bundle::{BSubtree, Bundle};
 #[cfg(feature = "csr")]
 use crate::html::NodeRef;
 #[cfg(feature = "csr")]
@@ -20,7 +20,8 @@ pub(crate) enum ComponentRenderState {
     #[cfg(feature = "csr")]
     Render {
         bundle: Bundle,
-        parent: web_sys::Element,
+        root: BSubtree,
+        parent: Element,
         next_sibling: NodeRef,
         node_ref: NodeRef,
     },
@@ -37,12 +38,14 @@ impl std::fmt::Debug for ComponentRenderState {
             #[cfg(feature = "csr")]
             Self::Render {
                 ref bundle,
+                ref root,
                 ref parent,
                 ref next_sibling,
                 ref node_ref,
             } => f
                 .debug_struct("ComponentRenderState::Render")
                 .field("bundle", bundle)
+                .field("root", root)
                 .field("parent", parent)
                 .field("next_sibling", next_sibling)
                 .field("node_ref", node_ref)
@@ -58,6 +61,32 @@ impl std::fmt::Debug for ComponentRenderState {
                 f.debug_struct("ComponentRenderState::Ssr")
                     .field("sender", &sender_repr)
                     .finish()
+            }
+        }
+    }
+}
+
+#[cfg(feature = "csr")]
+impl ComponentRenderState {
+    pub(crate) fn shift(&mut self, next_parent: Element, next_next_sibling: NodeRef) {
+        match self {
+            #[cfg(feature = "csr")]
+            Self::Render {
+                bundle,
+                parent,
+                next_sibling,
+                ..
+            } => {
+                bundle.shift(&next_parent, next_next_sibling.clone());
+
+                *parent = next_parent;
+                *next_sibling = next_next_sibling;
+            }
+
+            #[cfg(feature = "ssr")]
+            Self::Ssr { .. } => {
+                #[cfg(debug_assertions)]
+                panic!("shifting is not possible during SSR");
             }
         }
     }
@@ -221,9 +250,6 @@ pub(crate) enum UpdateEvent {
     /// Wraps properties, node ref, and next sibling for a component
     #[cfg(feature = "csr")]
     Properties(Rc<dyn Any>, NodeRef, NodeRef),
-    /// Shift Scope.
-    #[cfg(feature = "csr")]
-    Shift(Element, NodeRef),
 }
 
 pub(crate) struct UpdateRunner {
@@ -263,32 +289,6 @@ impl Runnable for UpdateRunner {
                             false
                         }
                     }
-                }
-
-                #[cfg(feature = "csr")]
-                UpdateEvent::Shift(next_parent, next_sibling) => {
-                    match state.render_state {
-                        ComponentRenderState::Render {
-                            ref bundle,
-                            ref mut parent,
-                            next_sibling: ref mut current_next_sibling,
-                            ..
-                        } => {
-                            bundle.shift(&next_parent, next_sibling.clone());
-
-                            *parent = next_parent;
-                            *current_next_sibling = next_sibling;
-                        }
-
-                        // Shifting is not possible during SSR.
-                        #[cfg(feature = "ssr")]
-                        ComponentRenderState::Ssr { .. } => {
-                            #[cfg(debug_assertions)]
-                            panic!("shifting is not possible during SSR");
-                        }
-                    }
-
-                    false
                 }
             };
 
@@ -331,10 +331,11 @@ impl Runnable for DestroyRunner {
                 ComponentRenderState::Render {
                     bundle,
                     ref parent,
+                    ref root,
                     ref node_ref,
                     ..
                 } => {
-                    bundle.detach(parent, self.parent_to_detach);
+                    bundle.detach(root, parent, self.parent_to_detach);
 
                     node_ref.set(None);
                 }
@@ -429,12 +430,14 @@ impl RenderRunner {
             ComponentRenderState::Render {
                 ref mut bundle,
                 ref parent,
+                ref root,
                 ref next_sibling,
                 ref node_ref,
                 ..
             } => {
                 let scope = state.inner.any_scope();
-                let new_node_ref = bundle.reconcile(&scope, parent, next_sibling.clone(), new_root);
+                let new_node_ref =
+                    bundle.reconcile(root, &scope, parent, next_sibling.clone(), new_root);
                 node_ref.link(new_node_ref);
 
                 let first_render = !state.has_rendered;
@@ -492,6 +495,7 @@ mod tests {
     extern crate self as yew;
 
     use super::*;
+    use crate::dom_bundle::BSubtree;
     use crate::html;
     use crate::html::*;
     use crate::Properties;
@@ -612,12 +616,19 @@ mod tests {
     fn test_lifecycle(props: Props, expected: &[&str]) {
         let document = gloo_utils::document();
         let scope = Scope::<Comp>::new(None);
-        let el = document.create_element("div").unwrap();
-        let node_ref = NodeRef::default();
+        let parent = document.create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+
         let lifecycle = props.lifecycle.clone();
 
         lifecycle.borrow_mut().clear();
-        scope.mount_in_place(el, NodeRef::default(), node_ref, Rc::new(props));
+        scope.mount_in_place(
+            root,
+            parent,
+            NodeRef::default(),
+            NodeRef::default(),
+            Rc::new(props),
+        );
         crate::scheduler::start_now();
 
         assert_eq!(&lifecycle.borrow_mut().deref()[..], expected);

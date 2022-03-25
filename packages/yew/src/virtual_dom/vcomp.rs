@@ -10,6 +10,8 @@ use std::rc::Rc;
 use crate::html::{AnyScope, Scope};
 
 #[cfg(feature = "csr")]
+use crate::dom_bundle::BSubtree;
+#[cfg(feature = "csr")]
 use crate::html::Scoped;
 #[cfg(feature = "csr")]
 use web_sys::Element;
@@ -53,6 +55,7 @@ pub(crate) trait Mountable {
     #[cfg(feature = "csr")]
     fn mount(
         self: Box<Self>,
+        root: &BSubtree,
         node_ref: NodeRef,
         parent_scope: &AnyScope,
         parent: Element,
@@ -91,13 +94,14 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     #[cfg(feature = "csr")]
     fn mount(
         self: Box<Self>,
+        root: &BSubtree,
         node_ref: NodeRef,
         parent_scope: &AnyScope,
         parent: Element,
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        scope.mount_in_place(parent, next_sibling, node_ref, self.props);
+        scope.mount_in_place(root.clone(), parent, next_sibling, node_ref, self.props);
 
         Box::new(scope)
     }

@@ -12,11 +12,12 @@ mod bportal;
 mod bsuspense;
 mod btag;
 mod btext;
+mod subtree_root;
+
 mod traits;
 mod utils;
 
-use gloo::utils::document;
-use web_sys::{Element, Node};
+use web_sys::Element;
 
 use crate::html::AnyScope;
 use crate::html::NodeRef;
@@ -27,13 +28,16 @@ use blist::BList;
 use bnode::BNode;
 use bportal::BPortal;
 use bsuspense::BSuspense;
-use btag::BTag;
+use btag::{BTag, Registry};
 use btext::BText;
+use subtree_root::EventDescriptor;
 use traits::{Reconcilable, ReconcileTarget};
 use utils::{insert_node, test_log};
 
 #[doc(hidden)] // Publically exported from crate::events
-pub use self::btag::set_event_bubbling;
+pub use subtree_root::set_event_bubbling;
+
+pub(crate) use subtree_root::BSubtree;
 
 /// A Bundle.
 ///
@@ -46,11 +50,8 @@ pub(crate) struct Bundle(BNode);
 
 impl Bundle {
     /// Creates a new bundle.
-    pub fn new(parent: &Element, next_sibling: &NodeRef, node_ref: &NodeRef) -> Self {
-        let placeholder: Node = document().create_text_node("").into();
-        insert_node(&placeholder, parent, next_sibling.get().as_ref());
-        node_ref.set(Some(placeholder.clone()));
-        Self(BNode::Ref(placeholder))
+    pub const fn new() -> Self {
+        Self(BNode::List(BList::new()))
     }
 
     /// Shifts the bundle into a different position.
@@ -61,16 +62,17 @@ impl Bundle {
     /// Applies a virtual dom layout to current bundle.
     pub fn reconcile(
         &mut self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         next_node: VNode,
     ) -> NodeRef {
-        next_node.reconcile_node(parent_scope, parent, next_sibling, &mut self.0)
+        next_node.reconcile_node(root, parent_scope, parent, next_sibling, &mut self.0)
     }
 
     /// Detaches current bundle.
-    pub fn detach(self, parent: &Element, parent_to_detach: bool) {
-        self.0.detach(parent, parent_to_detach);
+    pub fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool) {
+        self.0.detach(root, parent, parent_to_detach);
     }
 }

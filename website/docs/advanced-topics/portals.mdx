@@ -23,7 +23,7 @@ simple modal dialogue that renders its `children` into an element outside `yew`'
 identified by the `id="modal_host"`.
 
 ```rust
-use yew::{html, create_portal, function_component, Children, Properties, Html};
+use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct ModalProps {
@@ -31,11 +31,11 @@ pub struct ModalProps {
     pub children: Children,
 }
 
-#[function_component(Modal)]
-fn modal(props: &ModalProps) -> Html {
+#[function_component]
+fn Modal(props: &ModalProps) -> Html {
     let modal_host = gloo::utils::document()
         .get_element_by_id("modal_host")
-        .expect("a #modal_host element");
+        .expect("Expected to find a #modal_host element");
 
     create_portal(
         html!{ {for props.children.iter()} },
@@ -43,6 +43,21 @@ fn modal(props: &ModalProps) -> Html {
     )
 }
 ```
+
+## Event handling
+
+Events emitted on elements inside portals follow the virtual DOM when bubbling up. That is,
+if a portal is rendered as the child of an element, then an event listener on that element
+will catch events dispatched from inside the portal, even if the portal renders its contents
+in an unrelated location in the actual DOM.
+
+This allows developers to be oblivious of whether a component they consume, is implemented with
+or without portals. Events fired on its children will bubble up regardless.
+
+A known issue is that events from portals into **closed** shadow roots will be dispatched twice,
+once targeting the element inside the shadow root and once targeting the host element itself. Keep
+in mind that **open** shadow roots work fine. If this impacts you, feel free to open a bug report
+about it.
 
 ## Further reading
 - [Portals example](https://github.com/yewstack/yew/tree/master/examples/portals)

@@ -387,7 +387,7 @@ pub(crate) use feat_csr_ssr::*;
 #[cfg(feature = "csr")]
 mod feat_csr {
     use super::*;
-    use crate::dom_bundle::Bundle;
+    use crate::dom_bundle::{BSubtree, Bundle};
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
@@ -403,14 +403,17 @@ mod feat_csr {
         /// Mounts a component with `props` to the specified `element` in the DOM.
         pub(crate) fn mount_in_place(
             &self,
+            root: BSubtree,
             parent: Element,
             next_sibling: NodeRef,
             node_ref: NodeRef,
             props: Rc<COMP::Properties>,
         ) {
-            let bundle = Bundle::new(&parent, &next_sibling, &node_ref);
+            let bundle = Bundle::new();
+            node_ref.link(next_sibling.clone());
             let state = ComponentRenderState::Render {
                 bundle,
+                root,
                 node_ref,
                 parent,
                 next_sibling,
@@ -486,10 +489,10 @@ mod feat_csr {
         }
 
         fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
-            scheduler::push_component_update(Box::new(UpdateRunner {
-                state: self.state.clone(),
-                event: UpdateEvent::Shift(parent, next_sibling),
-            }))
+            let mut state_ref = self.state.borrow_mut();
+            if let Some(render_state) = state_ref.as_mut() {
+                render_state.render_state.shift(parent, next_sibling)
+            }
         }
     }
 }

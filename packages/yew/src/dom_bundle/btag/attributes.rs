@@ -1,4 +1,5 @@
 use super::Apply;
+use crate::dom_bundle::BSubtree;
 use crate::virtual_dom::vtag::{InputFields, Value};
 use crate::virtual_dom::Attributes;
 use indexmap::IndexMap;
@@ -11,14 +12,14 @@ impl<T: AccessValue> Apply for Value<T> {
     type Element = T;
     type Bundle = Self;
 
-    fn apply(self, el: &Self::Element) -> Self {
+    fn apply(self, _root: &BSubtree, el: &Self::Element) -> Self {
         if let Some(v) = self.deref() {
             el.set_value(v);
         }
         self
     }
 
-    fn apply_diff(self, el: &Self::Element, bundle: &mut Self) {
+    fn apply_diff(self, _root: &BSubtree, el: &Self::Element, bundle: &mut Self) {
         match (self.deref(), (*bundle).deref()) {
             (Some(new), Some(_)) => {
                 // Refresh value from the DOM. It might have changed.
@@ -62,21 +63,21 @@ impl Apply for InputFields {
     type Element = InputElement;
     type Bundle = Self;
 
-    fn apply(mut self, el: &Self::Element) -> Self {
+    fn apply(mut self, root: &BSubtree, el: &Self::Element) -> Self {
         // IMPORTANT! This parameter has to be set every time
         // to prevent strange behaviour in the browser when the DOM changes
         el.set_checked(self.checked);
 
-        self.value = self.value.apply(el);
+        self.value = self.value.apply(root, el);
         self
     }
 
-    fn apply_diff(self, el: &Self::Element, bundle: &mut Self) {
+    fn apply_diff(self, root: &BSubtree, el: &Self::Element, bundle: &mut Self) {
         // IMPORTANT! This parameter has to be set every time
         // to prevent strange behaviour in the browser when the DOM changes
         el.set_checked(self.checked);
 
-        self.value.apply_diff(el, &mut bundle.value);
+        self.value.apply_diff(root, el, &mut bundle.value);
     }
 }
 
@@ -186,7 +187,7 @@ impl Apply for Attributes {
     type Element = Element;
     type Bundle = Self;
 
-    fn apply(self, el: &Element) -> Self {
+    fn apply(self, _root: &BSubtree, el: &Element) -> Self {
         match &self {
             Self::Static(arr) => {
                 for kv in arr.iter() {
@@ -209,7 +210,7 @@ impl Apply for Attributes {
         self
     }
 
-    fn apply_diff(self, el: &Element, bundle: &mut Self) {
+    fn apply_diff(self, _root: &BSubtree, el: &Element, bundle: &mut Self) {
         #[inline]
         fn ptr_eq<T>(a: &[T], b: &[T]) -> bool {
             std::ptr::eq(a, b)

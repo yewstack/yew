@@ -1,42 +1,38 @@
 use super::Apply;
-use crate::dom_bundle::test_log;
-use crate::virtual_dom::{Listener, ListenerKind, Listeners};
-use gloo::events::{EventListener, EventListenerOptions, EventListenerPhase};
+use crate::dom_bundle::{test_log, BSubtree, EventDescriptor};
+use crate::virtual_dom::{Listener, Listeners};
+use ::wasm_bindgen::{prelude::wasm_bindgen, JsCast};
 use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::ops::Deref;
 use std::rc::Rc;
-use std::sync::atomic::{AtomicBool, Ordering};
-use wasm_bindgen::JsCast;
-use web_sys::{Element, Event};
+use web_sys::{Element, Event, EventTarget as HtmlEventTarget};
 
-thread_local! {
-    /// Global event listener registry
-    static REGISTRY: RefCell<Registry> = Default::default();
-
-    /// Key used to store listener id on element
-    static LISTENER_ID_PROP: wasm_bindgen::JsValue = "__yew_listener_id".into();
-
-    /// Cached reference to the document body
-    static BODY: web_sys::HtmlElement = gloo_utils::document().body().unwrap();
+#[wasm_bindgen]
+extern "C" {
+    // Duck-typing, not a real class on js-side. On rust-side, use impls of EventTarget below
+    type EventTargetable;
+    #[wasm_bindgen(method, getter = __yew_listener_id, structural)]
+    fn listener_id(this: &EventTargetable) -> Option<u32>;
+    #[wasm_bindgen(method, setter = __yew_listener_id, structural)]
+    fn set_listener_id(this: &EventTargetable, id: u32);
 }
 
-/// Bubble events during delegation
-static BUBBLE_EVENTS: AtomicBool = AtomicBool::new(true);
+/// DOM-Types that can have listeners registered on them.
+/// Uses the duck-typed interface from above in impls.
+pub trait EventListening {
+    fn listener_id(&self) -> Option<u32>;
+    fn set_listener_id(&self, id: u32);
+}
 
-/// Set, if events should bubble up the DOM tree, calling any matching callbacks.
-///
-/// Bubbling is enabled by default. Disabling bubbling can lead to substantial improvements in event
-/// handling performance.
-///
-/// Note that yew uses event delegation and implements internal even bubbling for performance
-/// reasons. Calling `Event.stopPropagation()` or `Event.stopImmediatePropagation()` in the event
-/// handler has no effect.
-///
-/// This function should be called before any component is mounted.
-#[cfg_attr(documenting, doc(cfg(feature = "render")))]
-pub fn set_event_bubbling(bubble: bool) {
-    BUBBLE_EVENTS.store(bubble, Ordering::Relaxed);
+impl EventListening for Element {
+    fn listener_id(&self) -> Option<u32> {
+        self.unchecked_ref::<EventTargetable>().listener_id()
+    }
+
+    fn set_listener_id(&self, id: u32) {
+        self.unchecked_ref::<EventTargetable>().set_listener_id(id);
+    }
 }
 
 /// An active set of listeners on an element
@@ -52,14 +48,14 @@ impl Apply for Listeners {
     type Element = Element;
     type Bundle = ListenerRegistration;
 
-    fn apply(self, el: &Self::Element) -> ListenerRegistration {
+    fn apply(self, root: &BSubtree, el: &Self::Element) -> ListenerRegistration {
         match self {
-            Self::Pending(pending) => ListenerRegistration::register(el, &pending),
+            Self::Pending(pending) => ListenerRegistration::register(root, el, &pending),
             Self::None => ListenerRegistration::NoReg,
         }
     }
 
-    fn apply_diff(self, el: &Self::Element, bundle: &mut ListenerRegistration) {
+    fn apply_diff(self, root: &BSubtree, el: &Self::Element, bundle: &mut ListenerRegistration) {
         use ListenerRegistration::*;
         use Listeners::*;
 
@@ -67,10 +63,10 @@ impl Apply for Listeners {
             (Pending(pending), Registered(ref id)) => {
                 // Reuse the ID
                 test_log!("reusing listeners for {}", id);
-                Registry::with(|reg| reg.patch(id, &*pending));
+                root.with_listener_registry(|reg| reg.patch(root, id, &*pending));
             }
             (Pending(pending), bundle @ NoReg) => {
-                *bundle = ListenerRegistration::register(el, &pending);
+                *bundle = ListenerRegistration::register(root, el, &pending);
                 test_log!(
                     "registering listeners for {}",
                     match bundle {
@@ -85,7 +81,7 @@ impl Apply for Listeners {
                     _ => unreachable!(),
                 };
                 test_log!("unregistering listeners for {}", id);
-                Registry::with(|reg| reg.unregister(id));
+                root.with_listener_registry(|reg| reg.unregister(id));
                 *bundle = NoReg;
             }
             (None, NoReg) => {
@@ -97,116 +93,75 @@ impl Apply for Listeners {
 
 impl ListenerRegistration {
     /// Register listeners and return their handle ID
-    fn register(el: &Element, pending: &[Option<Rc<dyn Listener>>]) -> Self {
-        Self::Registered(Registry::with(|reg| {
-            let id = reg.set_listener_id(el);
-            reg.register(id, pending);
+    fn register(root: &BSubtree, el: &Element, pending: &[Option<Rc<dyn Listener>>]) -> Self {
+        Self::Registered(root.with_listener_registry(|reg| {
+            let id = reg.set_listener_id(root, el);
+            reg.register(root, id, pending);
             id
         }))
     }
 
     /// Remove any registered event listeners from the global registry
-    pub fn unregister(&self) {
+    pub fn unregister(&self, root: &BSubtree) {
         if let Self::Registered(id) = self {
-            Registry::with(|r| r.unregister(id));
-        }
-    }
-}
-
-#[derive(Clone, Hash, Eq, PartialEq, Debug)]
-struct EventDescriptor {
-    kind: ListenerKind,
-    passive: bool,
-}
-
-impl From<&dyn Listener> for EventDescriptor {
-    fn from(l: &dyn Listener) -> Self {
-        Self {
-            kind: l.kind(),
-            passive: l.passive(),
-        }
-    }
-}
-
-/// Ensures global event handler registration.
-//
-// Separate struct to DRY, while avoiding partial struct mutability.
-#[derive(Default, Debug)]
-struct GlobalHandlers {
-    /// Events with registered handlers that are possibly passive
-    handling: HashSet<EventDescriptor>,
-
-    /// Keep track of all listeners to drop them on registry drop.
-    /// The registry is never dropped in production.
-    #[cfg(test)]
-    registered: Vec<(ListenerKind, EventListener)>,
-}
-
-impl GlobalHandlers {
-    /// Ensure a descriptor has a global event handler assigned
-    fn ensure_handled(&mut self, desc: EventDescriptor) {
-        if !self.handling.contains(&desc) {
-            let cl = {
-                let desc = desc.clone();
-                BODY.with(move |body| {
-                    let options = EventListenerOptions {
-                        phase: EventListenerPhase::Capture,
-                        passive: desc.passive,
-                    };
-                    EventListener::new_with_options(
-                        body,
-                        desc.kind.type_name(),
-                        options,
-                        move |e: &Event| Registry::handle(desc.clone(), e.clone()),
-                    )
-                })
-            };
-
-            // Never drop the closure as this event handler is static
-            #[cfg(not(test))]
-            cl.forget();
-            #[cfg(test)]
-            self.registered.push((desc.kind.clone(), cl));
-
-            self.handling.insert(desc);
+            root.with_listener_registry(|r| r.unregister(id));
         }
     }
 }
 
 /// Global multiplexing event handler registry
-#[derive(Default, Debug)]
-struct Registry {
+#[derive(Debug)]
+pub struct Registry {
     /// Counter for assigning new IDs
     id_counter: u32,
-
-    /// Registered global event handlers
-    global: GlobalHandlers,
 
     /// Contains all registered event listeners by listener ID
     by_id: HashMap<u32, HashMap<EventDescriptor, Vec<Rc<dyn Listener>>>>,
 }
 
 impl Registry {
-    /// Run f with access to global Registry
-    #[inline]
-    fn with<R>(f: impl FnOnce(&mut Registry) -> R) -> R {
-        REGISTRY.with(|r| f(&mut *r.borrow_mut()))
+    pub fn new() -> Self {
+        Self {
+            id_counter: u32::default(),
+            by_id: HashMap::default(),
+        }
+    }
+
+    /// Handle a single event, given the listening element and event descriptor.
+    pub fn get_handler(
+        registry: &RefCell<Registry>,
+        listening: &dyn EventListening,
+        desc: &EventDescriptor,
+    ) -> Option<impl FnOnce(&Event)> {
+        // The tricky part is that we want to drop the reference to the registry before
+        // calling any actual listeners (since that might end up running lifecycle methods
+        // and modify the registry). So we clone the current listeners and return a closure
+        let listener_id = listening.listener_id()?;
+        let registry_ref = registry.borrow();
+        let handlers = registry_ref.by_id.get(&listener_id)?;
+        let listeners = handlers.get(desc)?.clone();
+        drop(registry_ref); // unborrow the registry, before running any listeners
+        Some(move |event: &Event| {
+            for l in listeners {
+                l.handle(event.clone());
+            }
+        })
     }
 
     /// Register all passed listeners under ID
-    fn register(&mut self, id: u32, listeners: &[Option<Rc<dyn Listener>>]) {
+    fn register(&mut self, root: &BSubtree, id: u32, listeners: &[Option<Rc<dyn Listener>>]) {
         let mut by_desc =
             HashMap::<EventDescriptor, Vec<Rc<dyn Listener>>>::with_capacity(listeners.len());
         for l in listeners.iter().filter_map(|l| l.as_ref()).cloned() {
             let desc = EventDescriptor::from(l.deref());
-            self.global.ensure_handled(desc.clone());
+            root.ensure_handled(&desc);
             by_desc.entry(desc).or_default().push(l);
         }
         self.by_id.insert(id, by_desc);
     }
 
     /// Patch an already registered set of handlers
-    fn patch(&mut self, id: &u32, listeners: &[Option<Rc<dyn Listener>>]) {
+    fn patch(&mut self, root: &BSubtree, id: &u32, listeners: &[Option<Rc<dyn Listener>>]) {
         if let Some(by_desc) = self.by_id.get_mut(id) {
             // Keeping empty vectors is fine. Those don't do much and should happen rarely.
             for v in by_desc.values_mut() {
@@ -215,7 +170,7 @@ impl Registry {
 
             for l in listeners.iter().filter_map(|l| l.as_ref()).cloned() {
                 let desc = EventDescriptor::from(l.deref());
-                self.global.ensure_handled(desc.clone());
+                root.ensure_handled(&desc);
                 by_desc.entry(desc).or_default().push(l);
             }
         }
@@ -227,76 +182,30 @@ impl Registry {
     }
 
     /// Set unique listener ID onto element and return it
-    fn set_listener_id(&mut self, el: &Element) -> u32 {
+    fn set_listener_id(&mut self, root: &BSubtree, el: &Element) -> u32 {
         let id = self.id_counter;
         self.id_counter += 1;
 
-        LISTENER_ID_PROP.with(|prop| {
-            if !js_sys::Reflect::set(el, prop, &js_sys::Number::from(id)).unwrap() {
-                panic!("failed to set listener ID property");
-            }
-        });
+        root.brand_element(el as &HtmlEventTarget);
+        el.set_listener_id(id);
 
         id
     }
-
-    /// Handle a global event firing
-    fn handle(desc: EventDescriptor, event: Event) {
-        let target = match event
-            .target()
-            .and_then(|el| el.dyn_into::<web_sys::Element>().ok())
-        {
-            Some(el) => el,
-            None => return,
-        };
-
-        Self::run_handlers(desc, event, target);
-    }
-
-    fn run_handlers(desc: EventDescriptor, event: Event, target: web_sys::Element) {
-        let run_handler = |el: &web_sys::Element| {
-            if let Some(l) = LISTENER_ID_PROP
-                .with(|prop| js_sys::Reflect::get(el, prop).ok())
-                .and_then(|v| v.dyn_into().ok())
-                .and_then(|num: js_sys::Number| {
-                    Registry::with(|r| {
-                        r.by_id
-                            .get(&(num.value_of() as u32))
-                            .and_then(|s| s.get(&desc))
-                            .cloned()
-                    })
-                })
-            {
-                for l in l {
-                    l.handle(event.clone());
-                }
-            }
-        };
-
-        run_handler(&target);
-
-        if BUBBLE_EVENTS.load(Ordering::Relaxed) {
-            let mut el = target;
-            while !event.cancel_bubble() {
-                el = match el.parent_element() {
-                    Some(el) => el,
-                    None => break,
-                };
-                run_handler(&el);
-            }
-        }
-    }
 }
 
-#[cfg(all(test, feature = "wasm_test"))]
+#[cfg(feature = "wasm_test")]
+#[cfg(test)]
 mod tests {
     use std::marker::PhantomData;
 
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-    use web_sys::{Event, EventInit, MouseEvent};
+    use web_sys::{Event, EventInit, HtmlElement, MouseEvent};
     wasm_bindgen_test_configure!(run_in_browser);
 
-    use crate::{html, html::TargetCast, scheduler, AppHandle, Component, Context, Html};
+    use crate::{
+        create_portal, html, html::TargetCast, scheduler, virtual_dom::VNode, AppHandle, Component,
+        Context, Html, NodeRef, Properties,
+    };
     use gloo_utils::document;
     use wasm_bindgen::JsCast;
     use yew::Callback;
@@ -315,29 +224,16 @@ mod tests {
         text: String,
     }
 
-    trait Mixin {
+    #[derive(Default, PartialEq, Properties)]
+    struct MixinProps<M: Properties> {
+        state_ref: NodeRef,
+        wrapped: M,
+    }
+
+    trait Mixin: Properties + Sized {
         fn view<C>(ctx: &Context<C>, state: &State) -> Html
         where
-            C: Component<Message = Message>,
-        {
-            let link = ctx.link().clone();
-            let onclick = Callback::from(move |_| {
-                link.send_message(Message::Action);
-                scheduler::start_now();
-            });
-
-            if state.stop_listening {
-                html! {
-                    <a>{state.action}</a>
-                }
-            } else {
-                html! {
-                    <a {onclick}>
-                        {state.action}
-                    </a>
-                }
-            }
-        }
+            C: Component<Message = Message, Properties = MixinProps<Self>>;
     }
 
     struct Comp<M>
@@ -350,10 +246,10 @@ mod tests {
 
     impl<M> Component for Comp<M>
     where
-        M: Mixin + 'static,
+        M: Mixin + Properties + 'static,
     {
         type Message = Message;
-        type Properties = ();
+        type Properties = MixinProps<M>;
 
         fn create(_: &Context<Self>) -> Self {
             Comp {
@@ -382,68 +278,103 @@ mod tests {
         }
     }
 
-    fn assert_count(el: &web_sys::HtmlElement, count: isize) {
-        assert_eq!(el.text_content(), Some(count.to_string()))
+    #[track_caller]
+    fn assert_count(el: &NodeRef, count: isize) {
+        let text = el
+            .get()
+            .expect("State ref not bound in the test case?")
+            .text_content();
+        assert_eq!(text, Some(count.to_string()))
     }
 
-    fn get_el_by_tag(tag: &str) -> web_sys::HtmlElement {
+    #[track_caller]
+    fn click(el: &NodeRef) {
+        el.get().unwrap().dyn_into::<HtmlElement>().unwrap().click();
+        scheduler::start_now();
+    }
+
+    fn get_el_by_selector(selector: &str) -> web_sys::HtmlElement {
         document()
-            .query_selector(tag)
+            .query_selector(selector)
             .unwrap()
             .unwrap()
             .dyn_into::<web_sys::HtmlElement>()
             .unwrap()
     }
 
-    fn init<M>(tag: &str) -> (AppHandle<Comp<M>>, web_sys::HtmlElement)
+    fn init<M>() -> (AppHandle<Comp<M>>, NodeRef)
     where
-        M: Mixin,
+        M: Mixin + Properties + Default,
     {
-        // Remove any existing listeners and elements
-        super::Registry::with(|r| *r = Default::default());
-        if let Some(el) = document().query_selector(tag).unwrap() {
-            el.parent_element().unwrap().remove();
+        // Remove any existing elements
+        let body = document().body().unwrap();
+        while let Some(child) = body.query_selector("div#testroot").unwrap() {
+            body.remove_child(&child).unwrap();
         }
 
         let root = document().create_element("div").unwrap();
-        document().body().unwrap().append_child(&root).unwrap();
-        let app = crate::Renderer::<Comp<M>>::with_root(root).render();
+        root.set_id("testroot");
+        body.append_child(&root).unwrap();
+        let props = <Comp<M> as Component>::Properties::default();
+        let el_ref = props.state_ref.clone();
+        let app = crate::Renderer::<Comp<M>>::with_root_and_props(root, props).render();
         scheduler::start_now();
 
-        (app, get_el_by_tag(tag))
+        (app, el_ref)
     }
 
     #[test]
     fn synchronous() {
+        #[derive(Default, PartialEq, Properties)]
         struct Synchronous;
 
-        impl Mixin for Synchronous {}
+        impl Mixin for Synchronous {
+            fn view<C>(ctx: &Context<C>, state: &State) -> Html
+            where
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
+            {
+                let onclick = ctx.link().callback(|_| Message::Action);
 
-        let (link, el) = init::<Synchronous>("a");
+                if state.stop_listening {
+                    html! {
+                        <a ref={&ctx.props().state_ref}>{state.action}</a>
+                    }
+                } else {
+                    html! {
+                        <a {onclick} ref={&ctx.props().state_ref}>
+                            {state.action}
+                        </a>
+                    }
+                }
+            }
+        }
+
+        let (link, el) = init::<Synchronous>();
 
         assert_count(&el, 0);
 
-        el.click();
+        click(&el);
         assert_count(&el, 1);
 
-        el.click();
+        click(&el);
         assert_count(&el, 2);
 
         link.send_message(Message::StopListening);
         scheduler::start_now();
 
-        el.click();
+        click(&el);
         assert_count(&el, 2);
     }
 
     #[test]
     async fn non_bubbling_event() {
+        #[derive(Default, PartialEq, Properties)]
         struct NonBubbling;
 
         impl Mixin for NonBubbling {
             fn view<C>(ctx: &Context<C>, state: &State) -> Html
             where
-                C: Component<Message = Message>,
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
             {
                 let link = ctx.link().clone();
                 let onblur = Callback::from(move |_| {
@@ -452,7 +383,7 @@ mod tests {
                 });
                 html! {
                     <div>
-                        <a>
+                        <a ref={&ctx.props().state_ref}>
                             <input id="input" {onblur} type="text" />
                             {state.action}
                         </a>
@@ -461,7 +392,7 @@ mod tests {
             }
         }
 
-        let (_, el) = init::<NonBubbling>("a");
+        let (_, el) = init::<NonBubbling>();
 
         assert_count(&el, 0);
 
@@ -483,30 +414,27 @@ mod tests {
 
     #[test]
     fn bubbling() {
+        #[derive(Default, PartialEq, Properties)]
         struct Bubbling;
 
         impl Mixin for Bubbling {
             fn view<C>(ctx: &Context<C>, state: &State) -> Html
             where
-                C: Component<Message = Message>,
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
             {
                 if state.stop_listening {
                     html! {
                         <div>
-                            <a>
+                            <a ref={&ctx.props().state_ref}>
                                 {state.action}
                             </a>
                         </div>
                     }
                 } else {
-                    let link = ctx.link().clone();
-                    let cb = Callback::from(move |_| {
-                        link.send_message(Message::Action);
-                        scheduler::start_now();
-                    });
+                    let cb = ctx.link().callback(|_| Message::Action);
                     html! {
                         <div onclick={cb.clone()}>
-                            <a onclick={cb}>
+                            <a onclick={cb} ref={&ctx.props().state_ref}>
                                 {state.action}
                             </a>
                         </div>
@@ -515,47 +443,39 @@ mod tests {
             }
         }
 
-        let (link, el) = init::<Bubbling>("a");
+        let (link, el) = init::<Bubbling>();
 
         assert_count(&el, 0);
-
-        el.click();
+        click(&el);
         assert_count(&el, 2);
-
-        el.click();
+        click(&el);
         assert_count(&el, 4);
 
         link.send_message(Message::StopListening);
         scheduler::start_now();
-        el.click();
+        click(&el);
         assert_count(&el, 4);
     }
 
     #[test]
     fn cancel_bubbling() {
+        #[derive(Default, PartialEq, Properties)]
         struct CancelBubbling;
 
         impl Mixin for CancelBubbling {
             fn view<C>(ctx: &Context<C>, state: &State) -> Html
             where
-                C: Component<Message = Message>,
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
             {
-                let link = ctx.link().clone();
-                let onclick = Callback::from(move |_| {
-                    link.send_message(Message::Action);
-                    scheduler::start_now();
-                });
-
-                let link = ctx.link().clone();
-                let onclick2 = Callback::from(move |e: MouseEvent| {
+                let onclick = ctx.link().callback(|_| Message::Action);
+                let onclick2 = ctx.link().callback(|e: MouseEvent| {
                     e.stop_propagation();
-                    link.send_message(Message::Action);
-                    scheduler::start_now();
+                    Message::Action
                 });
 
                 html! {
                     <div onclick={onclick}>
-                        <a onclick={onclick2}>
+                        <a onclick={onclick2} ref={&ctx.props().state_ref}>
                             {state.action}
                         </a>
                     </div>
@@ -563,14 +483,12 @@ mod tests {
             }
         }
 
-        let (_, el) = init::<CancelBubbling>("a");
+        let (_, el) = init::<CancelBubbling>();
 
         assert_count(&el, 0);
-
-        el.click();
+        click(&el);
         assert_count(&el, 1);
-
-        el.click();
+        click(&el);
         assert_count(&el, 2);
     }
 
@@ -579,29 +497,23 @@ mod tests {
         // Here an event is being delivered to a DOM node which does
         // _not_ have a listener but which is contained within an
         // element that does and which cancels the bubble.
+        #[derive(Default, PartialEq, Properties)]
         struct CancelBubbling;
 
         impl Mixin for CancelBubbling {
             fn view<C>(ctx: &Context<C>, state: &State) -> Html
             where
-                C: Component<Message = Message>,
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
             {
-                let link = ctx.link().clone();
-                let onclick = Callback::from(move |_| {
-                    link.send_message(Message::Action);
-                    scheduler::start_now();
-                });
-
-                let link = ctx.link().clone();
-                let onclick2 = Callback::from(move |e: MouseEvent| {
+                let onclick = ctx.link().callback(|_| Message::Action);
+                let onclick2 = ctx.link().callback(|e: MouseEvent| {
                     e.stop_propagation();
-                    link.send_message(Message::Action);
-                    scheduler::start_now();
+                    Message::Action
                 });
                 html! {
                     <div onclick={onclick}>
                         <div onclick={onclick2}>
-                            <a>
+                            <a ref={&ctx.props().state_ref}>
                                 {state.action}
                             </a>
                         </div>
@@ -610,65 +522,153 @@ mod tests {
             }
         }
 
-        let (_, el) = init::<CancelBubbling>("a");
+        let (_, el) = init::<CancelBubbling>();
 
         assert_count(&el, 0);
-
-        el.click();
+        click(&el);
         assert_count(&el, 1);
-
-        el.click();
+        click(&el);
         assert_count(&el, 2);
+    }
+
+    /// Here an event is being delivered to a DOM node which is contained
+    /// in a portal. It should bubble through the portal and reach the containing
+    /// element.
+    #[test]
+    fn portal_bubbling() {
+        #[derive(PartialEq, Properties)]
+        struct PortalBubbling {
+            host: web_sys::Element,
+        }
+        impl Default for PortalBubbling {
+            fn default() -> Self {
+                let host = document().create_element("div").unwrap();
+                PortalBubbling { host }
+            }
+        }
+
+        impl Mixin for PortalBubbling {
+            fn view<C>(ctx: &Context<C>, state: &State) -> Html
+            where
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
+            {
+                let portal_target = ctx.props().wrapped.host.clone();
+                let onclick = ctx.link().callback(|_| Message::Action);
+                html! {
+                    <>
+                        <div onclick={onclick}>
+                            {create_portal(html! {
+                                <a ref={&ctx.props().state_ref}>
+                                    {state.action}
+                                </a>
+                            }, portal_target.clone())}
+                        </div>
+                        {VNode::VRef(portal_target.into())}
+                    </>
+                }
+            }
+        }
+
+        let (_, el) = init::<PortalBubbling>();
+
+        assert_count(&el, 0);
+        click(&el);
+        assert_count(&el, 1);
+    }
+
+    /// Here an event is being from inside a shadow root. It should only be caught exactly once on each handler
+    #[test]
+    fn open_shadow_dom_bubbling() {
+        use web_sys::{ShadowRootInit, ShadowRootMode};
+        #[derive(PartialEq, Properties)]
+        struct OpenShadowDom {
+            host: web_sys::Element,
+            inner_root: web_sys::Element,
+        }
+        impl Default for OpenShadowDom {
+            fn default() -> Self {
+                let host = document().create_element("div").unwrap();
+                let inner_root = document().create_element("div").unwrap();
+                let shadow = host
+                    .attach_shadow(&ShadowRootInit::new(ShadowRootMode::Open))
+                    .unwrap();
+                shadow.append_child(&inner_root).unwrap();
+                OpenShadowDom { host, inner_root }
+            }
+        }
+        impl Mixin for OpenShadowDom {
+            fn view<C>(ctx: &Context<C>, state: &State) -> Html
+            where
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
+            {
+                let onclick = ctx.link().callback(|_| Message::Action);
+                let mixin = &ctx.props().wrapped;
+                html! {
+                    <div onclick={onclick.clone()}>
+                        <div {onclick}>
+                            {create_portal(html! {
+                                <a ref={&ctx.props().state_ref}>
+                                    {state.action}
+                                </a>
+                            }, mixin.inner_root.clone())}
+                        </div>
+                        {VNode::VRef(mixin.host.clone().into())}
+                    </div>
+                }
+            }
+        }
+        let (_, el) = init::<OpenShadowDom>();
+
+        assert_count(&el, 0);
+        click(&el);
+        assert_count(&el, 2); // Once caught per handler
     }
 
     fn test_input_listener<E>(make_event: impl Fn() -> E)
     where
-        E: JsCast + std::fmt::Debug,
+        E: Into<Event> + std::fmt::Debug,
     {
+        #[derive(Default, PartialEq, Properties)]
         struct Input;
 
         impl Mixin for Input {
             fn view<C>(ctx: &Context<C>, state: &State) -> Html
             where
-                C: Component<Message = Message>,
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
             {
                 if state.stop_listening {
                     html! {
                         <div>
                             <input type="text" />
-                            <p>{state.text.clone()}</p>
+                            <p ref={&ctx.props().state_ref}>{state.text.clone()}</p>
                         </div>
                     }
                 } else {
-                    let link = ctx.link().clone();
-                    let onchange = Callback::from(move |e: web_sys::Event| {
+                    let onchange = ctx.link().callback(|e: web_sys::Event| {
                         let el: web_sys::HtmlInputElement = e.target_unchecked_into();
-                        link.send_message(Message::SetText(el.value()));
-                        scheduler::start_now();
+                        Message::SetText(el.value())
                     });
-
-                    let link = ctx.link().clone();
-                    let oninput = Callback::from(move |e: web_sys::InputEvent| {
+                    let oninput = ctx.link().callback(|e: web_sys::InputEvent| {
                         let el: web_sys::HtmlInputElement = e.target_unchecked_into();
-                        link.send_message(Message::SetText(el.value()));
-                        scheduler::start_now();
+                        Message::SetText(el.value())
                     });
 
                     html! {
                         <div>
                             <input type="text" {onchange} {oninput} />
-                            <p>{state.text.clone()}</p>
+                            <p ref={&ctx.props().state_ref}>{state.text.clone()}</p>
                         </div>
                     }
                 }
             }
         }
 
-        let (link, input_el) = init::<Input>("input");
-        let input_el = input_el.dyn_into::<web_sys::HtmlInputElement>().unwrap();
-        let p_el = get_el_by_tag("p");
+        let (link, state_ref) = init::<Input>();
+        let input_el = get_el_by_selector("input")
+            .dyn_into::<web_sys::HtmlInputElement>()
+            .unwrap();
 
-        assert_eq!(&p_el.text_content().unwrap(), "");
+        assert_eq!(&state_ref.get().unwrap().text_content().unwrap(), "");
         for mut s in ["foo", "bar", "baz"].iter() {
             input_el.set_value(s);
             if s == &"baz" {
@@ -677,12 +677,9 @@ mod tests {
 
                 s = &"bar";
             }
-            input_el
-                .dyn_ref::<web_sys::EventTarget>()
-                .unwrap()
-                .dispatch_event(&make_event().dyn_into().unwrap())
-                .unwrap();
-            assert_eq!(&p_el.text_content().unwrap(), s);
+            input_el.dispatch_event(&make_event().into()).unwrap();
+            scheduler::start_now();
+            assert_eq!(&state_ref.get().unwrap().text_content().unwrap(), s);
         }
     }
 
