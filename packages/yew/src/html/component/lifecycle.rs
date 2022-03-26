@@ -287,10 +287,8 @@ pub(crate) enum UpdateEvent {
     /// Drain messages for a component.
     Message,
     /// Wraps properties, node ref, and next sibling for a component
-
     #[cfg(feature = "csr")]
     Properties(Rc<dyn Any>, NodeRef, NodeRef),
-    /// Shift Scope.
 }
 
 pub(crate) struct UpdateRunner {
