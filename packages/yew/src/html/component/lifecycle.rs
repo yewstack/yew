@@ -291,8 +291,6 @@ pub(crate) enum UpdateEvent {
     #[cfg(feature = "csr")]
     Properties(Rc<dyn Any>, NodeRef, NodeRef),
     /// Shift Scope.
-    #[cfg(feature = "render")]
-    Shift(Element, NodeRef),
 }
 
 pub(crate) struct UpdateRunner {
