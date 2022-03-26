@@ -70,7 +70,7 @@ impl std::fmt::Debug for ComponentRenderState {
                 ref node_ref,
                 ref root,
             } => f
-                .debug_struct("ComponentRenderState::Render")
+                .debug_struct("ComponentRenderState::Hydration")
                 .field("fragment", fragment)
                 .field("root", root)
                 .field("parent", parent)
