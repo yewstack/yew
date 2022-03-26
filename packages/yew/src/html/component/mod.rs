@@ -3,11 +3,13 @@
 mod children;
 #[cfg(any(feature = "csr", feature = "ssr"))]
 mod lifecycle;
+mod marker;
 mod properties;
 mod scope;
 
 use super::{Html, HtmlResult, IntoHtmlResult};
 pub use children::*;
+pub use marker::*;
 pub use properties::*;
 
 #[cfg(feature = "csr")]

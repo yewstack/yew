@@ -109,7 +109,7 @@ impl ComponentRenderState {
                 *parent = next_parent;
                 *next_sibling = next_next_sibling;
             }
-            #[cfg(feature = "csr")]
+            #[cfg(feature = "hydration")]
             Self::Hydration {
                 fragment,
                 parent,
