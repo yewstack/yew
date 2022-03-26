@@ -111,7 +111,7 @@ mod feat_hydration {
         ///
         /// # Important
         ///
-        /// DOM tree is hydrated from top to bottom. This is different than VDiff::apply.
+        /// DOM tree is hydrated from top to bottom. This is different than [`Reconcilable`].
         fn hydrate(
             self,
             root: &BSubtree,

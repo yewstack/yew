@@ -32,16 +32,6 @@ use bnode::BNode;
 use bportal::BPortal;
 use bsuspense::BSuspense;
 
-#[cfg(feature = "hydration")]
-pub(crate) use fragment::Fragment;
-#[cfg(feature = "hydration")]
-use traits::Hydratable;
-#[cfg(feature = "hydration")]
-use utils::node_type_str;
-
-/// A Bundle.
-///
-/// Each component holds a bundle that represents a realised layout, designated by a VNode.
 use btag::{BTag, Registry};
 use btext::BText;
 use subtree_root::EventDescriptor;
@@ -51,6 +41,13 @@ use utils::{insert_node, test_log};
 pub use subtree_root::set_event_bubbling;
 
 pub(crate) use subtree_root::BSubtree;
+
+#[cfg(feature = "hydration")]
+pub(crate) use fragment::Fragment;
+#[cfg(feature = "hydration")]
+use traits::Hydratable;
+#[cfg(feature = "hydration")]
+use utils::node_type_str;
 
 /// A Bundle.
 ///
