@@ -43,16 +43,6 @@ impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
 }
 
 impl AnyScope {
-    #[cfg(feature = "csr")]
-    #[cfg(test)]
-    pub(crate) fn test() -> Self {
-        Self {
-            type_id: TypeId::of::<()>(),
-            parent: None,
-            typed_scope: Rc::new(()),
-        }
-    }
-
     /// Returns the parent scope
     pub fn get_parent(&self) -> Option<&AnyScope> {
         self.parent.as_deref()
@@ -417,6 +407,17 @@ mod feat_csr {
     use std::cell::Ref;
     use web_sys::Element;
 
+    impl AnyScope {
+        #[cfg(test)]
+        pub(crate) fn test() -> Self {
+            Self {
+                type_id: TypeId::of::<()>(),
+                parent: None,
+                typed_scope: Rc::new(()),
+            }
+        }
+    }
+
     impl<COMP> Scope<COMP>
     where
         COMP: BaseComponent,
@@ -524,7 +525,7 @@ mod feat_csr {
 mod feat_hydration {
     use super::*;
 
-    use crate::dom_bundle::Fragment;
+    use crate::dom_bundle::{BSubtree, Fragment};
     use crate::html::component::lifecycle::{ComponentRenderState, CreateRunner, RenderRunner};
     use crate::html::NodeRef;
     use crate::scheduler;
@@ -545,6 +546,7 @@ mod feat_hydration {
         /// immediately.
         pub(crate) fn hydrate_in_place(
             &self,
+            root: BSubtree,
             parent: Element,
             fragment: &mut Fragment,
             node_ref: NodeRef,
@@ -566,6 +568,7 @@ mod feat_hydration {
             let next_sibling = NodeRef::default();
 
             let state = ComponentRenderState::Hydration {
+                root,
                 parent,
                 node_ref,
                 next_sibling,

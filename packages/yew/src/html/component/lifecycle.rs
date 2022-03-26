@@ -33,7 +33,7 @@ pub(crate) enum ComponentRenderState {
         parent: Element,
         next_sibling: NodeRef,
         node_ref: NodeRef,
-
+        root: BSubtree,
         fragment: Fragment,
     },
 
@@ -49,13 +49,14 @@ impl std::fmt::Debug for ComponentRenderState {
             #[cfg(feature = "csr")]
             Self::Render {
                 ref bundle,
-                ref root,
+                root,
                 ref parent,
                 ref next_sibling,
                 ref node_ref,
             } => f
                 .debug_struct("ComponentRenderState::Render")
                 .field("bundle", bundle)
+                .field("root", root)
                 .field("parent", parent)
                 .field("next_sibling", next_sibling)
                 .field("node_ref", node_ref)
@@ -67,6 +68,7 @@ impl std::fmt::Debug for ComponentRenderState {
                 ref parent,
                 ref next_sibling,
                 ref node_ref,
+                ref root,
             } => f
                 .debug_struct("ComponentRenderState::Render")
                 .field("fragment", fragment)
@@ -103,6 +105,18 @@ impl ComponentRenderState {
                 ..
             } => {
                 bundle.shift(&next_parent, next_next_sibling.clone());
+
+                *parent = next_parent;
+                *next_sibling = next_next_sibling;
+            }
+            #[cfg(feature = "csr")]
+            Self::Hydration {
+                fragment,
+                parent,
+                next_sibling,
+                ..
+            } => {
+                fragment.shift(&next_parent, next_next_sibling.clone());
 
                 *parent = next_parent;
                 *next_sibling = next_next_sibling;
@@ -385,16 +399,13 @@ impl Runnable for DestroyRunner {
                 // We need to detach the hydrate fragment if the component is not hydrated.
                 #[cfg(feature = "hydration")]
                 ComponentRenderState::Hydration {
-                    ref fragment,
+                    ref root,
+                    fragment,
                     ref parent,
                     ref node_ref,
                     ..
                 } => {
-                    for node in fragment.iter() {
-                        parent
-                            .remove_child(node)
-                            .expect("failed to remove fragment node.");
-                    }
+                    fragment.detach(root, parent, self.parent_to_detach);
 
                     node_ref.set(None);
                 }
@@ -519,6 +530,7 @@ impl RenderRunner {
                 ref parent,
                 ref node_ref,
                 ref next_sibling,
+                ref root,
             } => {
                 // We schedule a "first" render to run immediately after hydration,
                 // for the following reason:
@@ -527,9 +539,9 @@ impl RenderRunner {
                 //    not meant to be suspended.).
                 scheduler::push_component_render(
                     state.comp_id,
-                    RenderRunner {
+                    Box::new(RenderRunner {
                         state: self.state.clone(),
-                    },
+                    }),
                 );
 
                 let scope = state.inner.any_scope();
@@ -537,7 +549,7 @@ impl RenderRunner {
                 // This first node is not guaranteed to be correct here.
                 // As it may be a comment node that is removed afterwards.
                 // but we link it anyways.
-                let (node, bundle) = Bundle::hydrate(&scope, parent, fragment, new_root);
+                let (node, bundle) = Bundle::hydrate(root, &scope, parent, fragment, new_root);
 
                 // We trim all text nodes before checking as it's likely these are whitespaces.
                 fragment.trim_start_text_nodes(parent);
@@ -547,6 +559,7 @@ impl RenderRunner {
                 node_ref.link(node);
 
                 state.render_state = ComponentRenderState::Render {
+                    root: root.clone(),
                     bundle,
                     parent: parent.clone(),
                     node_ref: node_ref.clone(),
@@ -596,7 +609,6 @@ mod tests {
     extern crate self as yew;
 
     use super::*;
-
     use crate::dom_bundle::BSubtree;
     use crate::html;
     use crate::html::*;
@@ -718,12 +730,6 @@ mod tests {
     fn test_lifecycle(props: Props, expected: &[&str]) {
         let document = gloo_utils::document();
         let scope = Scope::<Comp>::new(None);
-        let el = document.create_element("div").unwrap();
-        let node_ref = NodeRef::default();
-        let lifecycle = props.lifecycle.clone();
-
-        lifecycle.borrow_mut().clear();
-        scope.mount_in_place(el, NodeRef::default(), node_ref, Rc::new(props));
         let parent = document.create_element("div").unwrap();
         let root = BSubtree::create_root(&parent);
 

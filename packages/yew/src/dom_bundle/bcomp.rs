@@ -128,6 +128,7 @@ mod feat_hydration {
     impl Hydratable for VComp {
         fn hydrate(
             self,
+            root: &BSubtree,
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
@@ -139,8 +140,13 @@ mod feat_hydration {
                 key,
             } = self;
 
-            let scoped =
-                mountable.hydrate(parent_scope, parent.clone(), fragment, node_ref.clone());
+            let scoped = mountable.hydrate(
+                root.clone(),
+                parent_scope,
+                parent.clone(),
+                fragment,
+                node_ref.clone(),
+            );
 
             (
                 node_ref.clone(),

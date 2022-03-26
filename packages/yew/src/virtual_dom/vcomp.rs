@@ -78,6 +78,7 @@ pub(crate) trait Mountable {
     #[cfg(feature = "hydration")]
     fn hydrate(
         self: Box<Self>,
+        root: BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
         fragment: &mut Fragment,
@@ -143,13 +144,14 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     #[cfg(feature = "hydration")]
     fn hydrate(
         self: Box<Self>,
+        root: BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
         fragment: &mut Fragment,
         node_ref: NodeRef,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        scope.hydrate_in_place(parent, fragment, node_ref, self.props);
+        scope.hydrate_in_place(root, parent, fragment, node_ref, self.props);
 
         Box::new(scope)
     }
@@ -283,10 +285,10 @@ mod ssr_tests {
             }
         }
 
-        let mut renderer = ServerRenderer::<Comp>::new();
-        renderer.set_hydratable(false);
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(
             s,

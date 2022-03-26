@@ -3,6 +3,7 @@ use std::ops::{Deref, DerefMut};
 
 use web_sys::{Element, Node};
 
+use super::BSubtree;
 use crate::html::NodeRef;
 
 /// A Hydration Fragment
@@ -25,7 +26,7 @@ impl DerefMut for Fragment {
 
 impl Fragment {
     /// Collects child nodes of an element into a VecDeque.
-    pub(crate) fn collect_children(parent: &Element) -> Self {
+    pub fn collect_children(parent: &Element) -> Self {
         let mut fragment = VecDeque::with_capacity(parent.child_nodes().length() as usize);
 
         let mut current_node = parent.first_child();
@@ -40,17 +41,8 @@ impl Fragment {
         Self(fragment)
     }
 
-    /// Shift current Fragment into a different position in the dom.
-    pub(crate) fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
-        for node in self.iter() {
-            next_parent
-                .insert_before(node, next_sibling.get().as_ref())
-                .unwrap();
-        }
-    }
-
     /// Collects nodes for a Component Bundle or a Suspense Boundary.
-    pub(crate) fn collect_between(
+    pub fn collect_between(
         collect_from: &mut Fragment,
         parent: &Element,
         open_start_mark: &str,
@@ -128,7 +120,7 @@ impl Fragment {
     }
 
     /// Remove child nodes until first non-text node.
-    pub(crate) fn trim_start_text_nodes(&mut self, parent: &Element) {
+    pub fn trim_start_text_nodes(&mut self, parent: &Element) {
         while let Some(ref m) = self.front().cloned() {
             if m.node_type() == Node::TEXT_NODE {
                 self.pop_front();
@@ -141,7 +133,7 @@ impl Fragment {
     }
 
     /// Deeply clones all nodes.
-    pub(crate) fn deep_clone(&self) -> Self {
+    pub fn deep_clone(&self) -> Self {
         let nodes = self
             .iter()
             .map(|m| m.clone_node_with_deep(true).expect("failed to clone node."))
@@ -150,14 +142,23 @@ impl Fragment {
         Self(nodes)
     }
 
-    /// Detaches the fragment from DOM.
-    pub(crate) fn detach(self, parent: &Element, parent_to_detach: bool) {
+    // detaches current fragment.
+    pub fn detach(self, _root: &BSubtree, parent: &Element, parent_to_detach: bool) {
         if !parent_to_detach {
             for node in self.iter() {
                 parent
                     .remove_child(node)
                     .expect("failed to remove child element");
             }
+        }
+    }
+
+    /// Shift current Fragment into a different position in the dom.
+    pub fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+        for node in self.iter() {
+            next_parent
+                .insert_before(node, next_sibling.get().as_ref())
+                .unwrap();
         }
     }
 }

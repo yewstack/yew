@@ -75,20 +75,26 @@ mod feat_hydration {
     where
         ICOMP: IntoComponent,
     {
-        pub(crate) fn hydrate_with_props(element: Element, props: Rc<ICOMP::Properties>) -> Self {
+        pub(crate) fn hydrate_with_props(host: Element, props: Rc<ICOMP::Properties>) -> Self {
             let app = Self {
                 scope: Scope::new(None),
             };
 
-            let mut fragment = Fragment::collect_children(&element);
+            let mut fragment = Fragment::collect_children(&host);
+            let hosting_root = BSubtree::create_root(&host);
 
-            app.scope
-                .hydrate_in_place(element.clone(), &mut fragment, NodeRef::default(), props);
+            app.scope.hydrate_in_place(
+                hosting_root,
+                host.clone(),
+                &mut fragment,
+                NodeRef::default(),
+                props,
+            );
 
             // We remove all remaining nodes, this mimics the clear_element behaviour in
             // mount_with_props.
             for node in fragment.iter() {
-                element.remove_child(node).unwrap();
+                host.remove_child(node).unwrap();
             }
 
             app

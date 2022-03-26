@@ -42,12 +42,12 @@ impl ReconcileTarget for BSuspense {
             Some(m) => {
                 match m {
                     Fallback::Bundle(bundle) => {
-                        bundle.detach(parent, parent_to_detach);
+                        bundle.detach(root, parent, parent_to_detach);
                     }
 
                     #[cfg(feature = "hydration")]
                     Fallback::Fragment(fragment) => {
-                        fragment.detach(parent, parent_to_detach);
+                        fragment.detach(root, parent, parent_to_detach);
                     }
                 }
 
@@ -177,7 +177,7 @@ impl Reconcilable for VSuspense {
 
                 match fallback {
                     Fallback::Bundle(bundle) => {
-                        fallback.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
+                        vfallback.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
                     }
                     #[cfg(feature = "hydration")]
                     Fallback::Fragment(fragment) => {
@@ -223,11 +223,6 @@ impl Reconcilable for VSuspense {
                         unreachable!()
                     }
                 };
-                suspense
-                    .fallback_bundle
-                    .take()
-                    .unwrap() // We just matched Some(_)
-                    .detach(root, parent, false);
 
                 children_bundle.shift(parent, next_sibling.clone());
                 children.reconcile_node(root, parent_scope, parent, next_sibling, children_bundle)
@@ -245,6 +240,7 @@ mod feat_hydration {
     impl Hydratable for VSuspense {
         fn hydrate(
             self,
+            root: &BSubtree,
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
@@ -267,7 +263,7 @@ mod feat_hydration {
 
             let (_, children_bundle) =
                 self.children
-                    .hydrate(parent_scope, &detached_parent, &mut nodes);
+                    .hydrate(root, parent_scope, &detached_parent, &mut nodes);
 
             // We trim all leading text nodes before checking as it's likely these are whitespaces.
             nodes.trim_start_text_nodes(&detached_parent);

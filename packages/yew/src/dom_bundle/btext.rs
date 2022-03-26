@@ -101,6 +101,7 @@ mod feat_hydration {
     impl Hydratable for VText {
         fn hydrate(
             self,
+            root: &BSubtree,
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
@@ -135,6 +136,7 @@ mod feat_hydration {
             // Similarly, the value of the text node may be a combination of multiple VText vnodes.
             // So we always need to override their values.
             self.attach(
+                root,
                 parent_scope,
                 parent,
                 fragment

@@ -70,7 +70,6 @@ pub(super) trait Reconcilable {
 
     fn reconcile(
         self,
-
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
@@ -115,6 +114,7 @@ mod feat_hydration {
         /// DOM tree is hydrated from top to bottom. This is different than VDiff::apply.
         fn hydrate(
             self,
+            root: &BSubtree,
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,

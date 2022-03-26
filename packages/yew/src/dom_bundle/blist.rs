@@ -462,6 +462,7 @@ mod feat_hydration {
     impl Hydratable for VList {
         fn hydrate(
             self,
+            root: &BSubtree,
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
@@ -470,7 +471,7 @@ mod feat_hydration {
             let mut children = Vec::with_capacity(self.children.len());
 
             for (index, child) in self.children.into_iter().enumerate() {
-                let (child_node_ref, child) = child.hydrate(parent_scope, parent, fragment);
+                let (child_node_ref, child) = child.hydrate(root, parent_scope, parent, fragment);
 
                 if index == 0 {
                     node_ref.reuse(child_node_ref);

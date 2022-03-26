@@ -297,6 +297,7 @@ mod feat_hydration {
     impl Hydratable for VTag {
         fn hydrate(
             self,
+            root: &BSubtree,
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
@@ -335,23 +336,23 @@ mod feat_hydration {
             );
 
             // We simply registers listeners and updates all attributes.
-            let attributes = attributes.apply(&el);
-            let listeners = listeners.apply(&el);
+            let attributes = attributes.apply(root, &el);
+            let listeners = listeners.apply(root, &el);
 
             // For input and textarea elements, we update their value anyways.
             let inner = match inner {
                 VTagInner::Input(f) => {
-                    let f = f.apply(el.unchecked_ref());
+                    let f = f.apply(root, el.unchecked_ref());
                     BTagInner::Input(f)
                 }
                 VTagInner::Textarea { value } => {
-                    let value = value.apply(el.unchecked_ref());
+                    let value = value.apply(root, el.unchecked_ref());
 
                     BTagInner::Textarea { value }
                 }
                 VTagInner::Other { children, tag } => {
                     let mut nodes = Fragment::collect_children(&el);
-                    let (_, child_bundle) = children.hydrate(parent_scope, &el, &mut nodes);
+                    let (_, child_bundle) = children.hydrate(root, parent_scope, &el, &mut nodes);
 
                     nodes.trim_start_text_nodes(parent);
 
