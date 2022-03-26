@@ -42,7 +42,7 @@ impl Fragment {
         Self(fragment)
     }
 
-    /// Collects nodes for a Component Bundle or a Suspense Boundary.
+    /// Collects nodes for a Component Bundle or a BSuspense.
     pub fn collect_between(
         collect_from: &mut Fragment,
         collect_for: &Collectable,
