@@ -529,6 +529,7 @@ mod feat_hydration {
     use crate::html::component::lifecycle::{ComponentRenderState, CreateRunner, RenderRunner};
     use crate::html::NodeRef;
     use crate::scheduler;
+    use crate::virtual_dom::Collectable;
 
     use web_sys::Element;
 
@@ -562,8 +563,12 @@ mod feat_hydration {
                 self.id
             ));
 
-            let fragment =
-                Fragment::collect_between(fragment, &parent, "<[", "</[", "]>", "component");
+            #[cfg(debug_assertions)]
+            let collectable = Collectable::Component(std::any::type_name::<COMP>());
+            #[cfg(not(debug_assertions))]
+            let collectable = Collectable::Component;
+
+            let fragment = Fragment::collect_between(fragment, &collectable, &parent);
             node_ref.set(fragment.front().cloned());
             let next_sibling = NodeRef::default();
 

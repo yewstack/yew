@@ -179,7 +179,7 @@ mod tests_attr_value {
     }
 }
 
-#[cfg(feature = "ssr")] // & feature = "hydration"
+#[cfg(any(feature = "ssr", feature = "hydration"))]
 mod feat_ssr_hydration {
     /// A collectable.
     ///
@@ -251,10 +251,21 @@ mod feat_ssr_hydration {
             w.push_str(self.end_mark());
             w.push_str("-->");
         }
+
+        #[cfg(feature = "hydration")]
+        pub fn name(&self) -> &'static str {
+            match self {
+                #[cfg(debug_assertions)]
+                Self::Component(_) => "Component",
+                #[cfg(not(debug_assertions))]
+                Self::Component => "Component",
+                Self::Suspense => "Suspense",
+            }
+        }
     }
 }
 
-#[cfg(feature = "ssr")]
+#[cfg(any(feature = "ssr", feature = "hydration"))]
 pub(crate) use feat_ssr_hydration::*;
 
 /// A collection of attributes for an element

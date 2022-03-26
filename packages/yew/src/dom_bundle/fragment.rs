@@ -5,6 +5,7 @@ use web_sys::{Element, Node};
 
 use super::BSubtree;
 use crate::html::NodeRef;
+use crate::virtual_dom::Collectable;
 
 /// A Hydration Fragment
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
@@ -44,22 +45,21 @@ impl Fragment {
     /// Collects nodes for a Component Bundle or a Suspense Boundary.
     pub fn collect_between(
         collect_from: &mut Fragment,
+        collect_for: &Collectable,
         parent: &Element,
-        open_start_mark: &str,
-        close_start_mark: &str,
-        end_mark: &str,
-        kind_name: &str,
     ) -> Self {
         let is_open_tag = |node: &Node| {
             let comment_text = node.text_content().unwrap_or_else(|| "".to_string());
 
-            comment_text.starts_with(&open_start_mark) && comment_text.ends_with(&end_mark)
+            comment_text.starts_with(collect_for.open_start_mark())
+                && comment_text.ends_with(collect_for.end_mark())
         };
 
         let is_close_tag = |node: &Node| {
             let comment_text = node.text_content().unwrap_or_else(|| "".to_string());
 
-            comment_text.starts_with(&close_start_mark) && comment_text.ends_with(&end_mark)
+            comment_text.starts_with(collect_for.close_start_mark())
+                && comment_text.ends_with(collect_for.end_mark())
         };
 
         // We trim all leading text nodes as it's likely these are whitespaces.
@@ -67,21 +67,24 @@ impl Fragment {
 
         let first_node = collect_from
             .pop_front()
-            .unwrap_or_else(|| panic!("expected {} opening tag, found EOF", kind_name));
+            .unwrap_or_else(|| panic!("expected {} opening tag, found EOF", collect_for.name()));
 
         assert_eq!(
             first_node.node_type(),
             Node::COMMENT_NODE,
             // TODO: improve error message with human readable node type name.
             "expected {} start, found node type {}",
-            kind_name,
+            collect_for.name(),
             first_node.node_type()
         );
 
         let mut nodes = VecDeque::new();
 
         if !is_open_tag(&first_node) {
-            panic!("expected {} opening tag, found comment node", kind_name);
+            panic!(
+                "expected {} opening tag, found comment node",
+                collect_for.name()
+            );
         }
 
         // We remove the opening tag.
@@ -91,9 +94,9 @@ impl Fragment {
         let mut nested_layers = 1;
 
         loop {
-            current_node = collect_from
-                .pop_front()
-                .unwrap_or_else(|| panic!("expected {} closing tag, found EOF", kind_name));
+            current_node = collect_from.pop_front().unwrap_or_else(|| {
+                panic!("expected {} closing tag, found EOF", collect_for.name())
+            });
 
             if current_node.node_type() == Node::COMMENT_NODE {
                 if is_open_tag(&current_node) {

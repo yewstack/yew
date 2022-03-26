@@ -236,6 +236,7 @@ mod feat_hydration {
     use super::*;
 
     use crate::dom_bundle::{Fragment, Hydratable};
+    use crate::virtual_dom::Collectable;
 
     impl Hydratable for VSuspense {
         fn hydrate(
@@ -249,11 +250,8 @@ mod feat_hydration {
                 .create_element("div")
                 .expect("failed to create detached element");
 
-            // We start hydration with the BSuspense being suspended.
-            // A subsequent render will resume the BSuspense if not needed to be suspended.
-
-            let fallback_fragment =
-                Fragment::collect_between(fragment, parent, "<?", "</?", ">", "suspense");
+            let collectable = Collectable::Suspense;
+            let fallback_fragment = Fragment::collect_between(fragment, &collectable, parent);
 
             let mut nodes = fallback_fragment.deep_clone();
 
@@ -283,6 +281,8 @@ mod feat_hydration {
                     detached_parent,
                     key: self.key,
 
+                    // We start hydration with the BSuspense being suspended.
+                    // A subsequent render will resume the BSuspense if not needed to be suspended.
                     fallback: Some(Fallback::Fragment(fallback_fragment)),
                 },
             )
