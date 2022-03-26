@@ -1,13 +1,14 @@
 //! Component scope module
 
-#[cfg(any(feature = "render", feature = "ssr"))]
+#[cfg(any(feature = "csr", feature = "ssr"))]
 use crate::scheduler::Shared;
-#[cfg(any(feature = "render", feature = "ssr"))]
+#[cfg(any(feature = "csr", feature = "ssr"))]
 use std::cell::RefCell;
 
-#[cfg(any(feature = "render", feature = "ssr"))]
+#[cfg(any(feature = "csr", feature = "ssr"))]
 use super::lifecycle::{ComponentState, UpdateEvent, UpdateRunner};
-use super::{BaseComponent, ComponentId};
+use super::BaseComponent;
+
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
 use crate::html::IntoComponent;
@@ -42,7 +43,7 @@ impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
 }
 
 impl AnyScope {
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     #[cfg(test)]
     pub(crate) fn test() -> Self {
         Self {
@@ -106,13 +107,13 @@ pub struct Scope<COMP: BaseComponent> {
     _marker: PhantomData<COMP>,
     parent: Option<Rc<AnyScope>>,
 
-    #[cfg(any(feature = "render", feature = "ssr"))]
+    #[cfg(any(feature = "csr", feature = "ssr"))]
     pub(crate) pending_messages: MsgQueue<COMP::Message>,
 
-    #[cfg(any(feature = "render", feature = "ssr"))]
+    #[cfg(any(feature = "csr", feature = "ssr"))]
     pub(crate) state: Shared<Option<ComponentState>>,
 
-    pub(crate) id: ComponentId,
+    pub(crate) id: usize,
 }
 
 impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {
@@ -126,11 +127,11 @@ impl<COMP: BaseComponent> Clone for Scope<COMP> {
         Scope {
             _marker: PhantomData,
 
-            #[cfg(any(feature = "render", feature = "ssr"))]
+            #[cfg(any(feature = "csr", feature = "ssr"))]
             pending_messages: self.pending_messages.clone(),
             parent: self.parent.clone(),
 
-            #[cfg(any(feature = "render", feature = "ssr"))]
+            #[cfg(any(feature = "csr", feature = "ssr"))]
             state: self.state.clone(),
 
             id: self.id,
@@ -203,6 +204,8 @@ mod feat_ssr {
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
 
+    use crate::virtual_dom::Collectable;
+
     impl<COMP: BaseComponent> Scope<COMP> {
         pub(crate) async fn render_to_string(
             self,
@@ -215,23 +218,25 @@ mod feat_ssr {
 
             scheduler::push_component_create(
                 self.id,
-                CreateRunner {
+                Box::new(CreateRunner {
                     initial_render_state: state,
                     props,
                     scope: self.clone(),
-                },
-                RenderRunner {
+                }),
+                Box::new(RenderRunner {
                     state: self.state.clone(),
-                },
+                }),
             );
             scheduler::start();
 
-            if hydratable {
-                #[cfg(debug_assertions)]
-                w.push_str(&format!("<!--<[{}]>-->", std::any::type_name::<COMP>()));
+            #[cfg(debug_assertions)]
+            let collectable = Collectable::Component(std::any::type_name::<COMP>());
 
-                #[cfg(not(debug_assertions))]
-                w.push_str("<!--<[]>-->");
+            #[cfg(not(debug_assertions))]
+            let collectable = Collectable::Component;
+
+            if hydratable {
+                collectable.write_open_tag(w);
             }
 
             let html = rx.await.unwrap();
@@ -240,26 +245,22 @@ mod feat_ssr {
             html.render_to_string(w, &self_any_scope, hydratable).await;
 
             if hydratable {
-                #[cfg(debug_assertions)]
-                w.push_str(&format!("<!--</[{}]>-->", std::any::type_name::<COMP>()));
-
-                #[cfg(not(debug_assertions))]
-                w.push_str("<!--</[]>-->");
+                collectable.write_close_tag(w);
             }
 
-            scheduler::push_component_destroy(DestroyRunner {
+            scheduler::push_component_destroy(Box::new(DestroyRunner {
                 state: self.state.clone(),
 
-                #[cfg(feature = "render")]
+                #[cfg(feature = "csr")]
                 parent_to_detach: false,
-            });
+            }));
             scheduler::start();
         }
     }
 }
 
-#[cfg(not(any(feature = "ssr", feature = "render")))]
-mod feat_no_render_ssr {
+#[cfg(not(any(feature = "ssr", feature = "csr")))]
+mod feat_no_csr_ssr {
     use super::*;
 
     // Skeleton code to provide public methods when no renderer are enabled.
@@ -284,11 +285,12 @@ mod feat_no_render_ssr {
     }
 }
 
-#[cfg(any(feature = "ssr", feature = "render"))]
-mod feat_render_ssr {
+#[cfg(any(feature = "ssr", feature = "csr"))]
+mod feat_csr_ssr {
     use super::*;
     use crate::scheduler::{self, Shared};
     use std::cell::Ref;
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
     #[derive(Debug)]
     pub(crate) struct MsgQueue<Msg>(Shared<Vec<Msg>>);
@@ -328,6 +330,8 @@ mod feat_render_ssr {
         }
     }
 
+    static COMP_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
     impl<COMP: BaseComponent> Scope<COMP> {
         /// Crate a scope with an optional parent scope
         pub(crate) fn new(parent: Option<AnyScope>) -> Self {
@@ -345,7 +349,7 @@ mod feat_render_ssr {
                 state,
                 parent,
 
-                id: ComponentId::new(),
+                id: COMP_ID_COUNTER.fetch_add(1, Ordering::SeqCst),
             }
         }
 
@@ -364,10 +368,10 @@ mod feat_render_ssr {
         }
 
         pub(super) fn push_update(&self, event: UpdateEvent) {
-            scheduler::push_component_update(UpdateRunner {
+            scheduler::push_component_update(Box::new(UpdateRunner {
                 state: self.state.clone(),
                 event,
-            });
+            }));
             // Not guaranteed to already have the scheduler started
             scheduler::start();
         }
@@ -398,13 +402,13 @@ mod feat_render_ssr {
     }
 }
 
-#[cfg(any(feature = "ssr", feature = "render"))]
-pub(crate) use feat_render_ssr::*;
+#[cfg(any(feature = "ssr", feature = "csr"))]
+pub(crate) use feat_csr_ssr::*;
 
-#[cfg(feature = "render")]
-mod feat_render {
+#[cfg(feature = "csr")]
+mod feat_csr {
     use super::*;
-    use crate::dom_bundle::Bundle;
+    use crate::dom_bundle::{BSubtree, Bundle};
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
@@ -420,14 +424,18 @@ mod feat_render {
         /// Mounts a component with `props` to the specified `element` in the DOM.
         pub(crate) fn mount_in_place(
             &self,
+
+            root: BSubtree,
             parent: Element,
             next_sibling: NodeRef,
             node_ref: NodeRef,
             props: Rc<COMP::Properties>,
         ) {
-            let bundle = Bundle::new(&parent, &next_sibling, &node_ref);
+            let bundle = Bundle::new();
+            node_ref.link(next_sibling.clone());
             let state = ComponentRenderState::Render {
                 bundle,
+                root,
                 node_ref,
                 parent,
                 next_sibling,
@@ -435,14 +443,14 @@ mod feat_render {
 
             scheduler::push_component_create(
                 self.id,
-                CreateRunner {
+                Box::new(CreateRunner {
                     initial_render_state: state,
                     props,
                     scope: self.clone(),
-                },
-                RenderRunner {
+                }),
+                Box::new(RenderRunner {
                     state: self.state.clone(),
-                },
+                }),
             );
             // Not guaranteed to already have the scheduler started
             scheduler::start();
@@ -490,10 +498,10 @@ mod feat_render {
 
         /// Process an event to destroy a component
         fn destroy(self, parent_to_detach: bool) {
-            scheduler::push_component_destroy(DestroyRunner {
+            scheduler::push_component_destroy(Box::new(DestroyRunner {
                 state: self.state,
                 parent_to_detach,
-            });
+            }));
             // Not guaranteed to already have the scheduler started
             scheduler::start();
         }
@@ -503,16 +511,13 @@ mod feat_render {
         }
 
         fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
-            scheduler::push_component_update(UpdateRunner {
-                state: self.state.clone(),
-                event: UpdateEvent::Shift(parent, next_sibling),
-            })
+            let mut state_ref = self.state.borrow_mut();
+            if let Some(render_state) = state_ref.as_mut() {
+                render_state.render_state.shift(parent, next_sibling)
+            }
         }
     }
 }
-
-#[cfg(feature = "render")]
-pub(crate) use feat_render::*;
 
 #[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
 #[cfg(feature = "hydration")]
@@ -569,14 +574,14 @@ mod feat_hydration {
 
             scheduler::push_component_create(
                 self.id,
-                CreateRunner {
+                Box::new(CreateRunner {
                     initial_render_state: state,
                     props,
                     scope: self.clone(),
-                },
-                RenderRunner {
+                }),
+                Box::new(RenderRunner {
                     state: self.state.clone(),
-                },
+                }),
             );
 
             // Not guaranteed to already have the scheduler started
@@ -584,6 +589,8 @@ mod feat_hydration {
         }
     }
 }
+#[cfg(feature = "csr")]
+pub(crate) use feat_csr::*;
 
 #[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
 #[cfg(any(target_arch = "wasm32", feature = "tokio"))]

@@ -62,10 +62,10 @@ mod ssr_tests {
             html! { "abc" }
         }
 
-        let mut renderer = ServerRenderer::<Comp>::new();
-        renderer.set_hydratable(false);
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, r#"abc"#);
     }

@@ -1,7 +1,8 @@
 //! Component lifecycle module
 
 use super::scope::{AnyScope, Scope};
-use super::{BaseComponent, ComponentId};
+
+use super::BaseComponent;
 use crate::html::{Html, RenderError};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{BaseSuspense, Suspension};
@@ -9,19 +10,20 @@ use crate::{Callback, Context, HtmlResult};
 use std::any::Any;
 use std::rc::Rc;
 
-#[cfg(feature = "render")]
-use crate::dom_bundle::Bundle;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
-#[cfg(feature = "render")]
+#[cfg(feature = "csr")]
+use crate::dom_bundle::{BSubtree, Bundle};
+#[cfg(feature = "csr")]
 use crate::html::NodeRef;
-#[cfg(feature = "render")]
+#[cfg(feature = "csr")]
 use web_sys::Element;
 
 pub(crate) enum ComponentRenderState {
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     Render {
         bundle: Bundle,
+        root: BSubtree,
         parent: Element,
         next_sibling: NodeRef,
         node_ref: NodeRef,
@@ -44,9 +46,10 @@ pub(crate) enum ComponentRenderState {
 impl std::fmt::Debug for ComponentRenderState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            #[cfg(feature = "render")]
+            #[cfg(feature = "csr")]
             Self::Render {
                 ref bundle,
+                ref root,
                 ref parent,
                 ref next_sibling,
                 ref node_ref,
@@ -67,6 +70,7 @@ impl std::fmt::Debug for ComponentRenderState {
             } => f
                 .debug_struct("ComponentRenderState::Render")
                 .field("fragment", fragment)
+                .field("root", root)
                 .field("parent", parent)
                 .field("next_sibling", next_sibling)
                 .field("node_ref", node_ref)
@@ -82,6 +86,32 @@ impl std::fmt::Debug for ComponentRenderState {
                 f.debug_struct("ComponentRenderState::Ssr")
                     .field("sender", &sender_repr)
                     .finish()
+            }
+        }
+    }
+}
+
+#[cfg(feature = "csr")]
+impl ComponentRenderState {
+    pub(crate) fn shift(&mut self, next_parent: Element, next_next_sibling: NodeRef) {
+        match self {
+            #[cfg(feature = "csr")]
+            Self::Render {
+                bundle,
+                parent,
+                next_sibling,
+                ..
+            } => {
+                bundle.shift(&next_parent, next_next_sibling.clone());
+
+                *parent = next_parent;
+                *next_sibling = next_next_sibling;
+            }
+
+            #[cfg(feature = "ssr")]
+            Self::Ssr { .. } => {
+                #[cfg(debug_assertions)]
+                panic!("shifting is not possible during SSR");
             }
         }
     }
@@ -172,12 +202,12 @@ pub(crate) struct ComponentState {
 
     pub(super) render_state: ComponentRenderState,
 
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     has_rendered: bool,
 
     suspension: Option<Suspension>,
 
-    pub(crate) comp_id: ComponentId,
+    pub(crate) comp_id: usize,
 }
 
 impl ComponentState {
@@ -199,7 +229,7 @@ impl ComponentState {
             render_state: initial_render_state,
             suspension: None,
 
-            #[cfg(feature = "render")]
+            #[cfg(feature = "csr")]
             has_rendered: false,
 
             comp_id,
@@ -243,7 +273,8 @@ pub(crate) enum UpdateEvent {
     /// Drain messages for a component.
     Message,
     /// Wraps properties, node ref, and next sibling for a component
-    #[cfg(feature = "render")]
+
+    #[cfg(feature = "csr")]
     Properties(Rc<dyn Any>, NodeRef, NodeRef),
     /// Shift Scope.
     #[cfg(feature = "render")]
@@ -260,10 +291,11 @@ impl Runnable for UpdateRunner {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             let schedule_render = match self.event {
                 UpdateEvent::Message => state.inner.flush_messages(),
-                #[cfg(feature = "render")]
+
+                #[cfg(feature = "csr")]
                 UpdateEvent::Properties(props, next_node_ref, next_sibling) => {
                     match state.render_state {
-                        #[cfg(feature = "render")]
+                        #[cfg(feature = "csr")]
                         ComponentRenderState::Render {
                             ref mut node_ref,
                             next_sibling: ref mut current_next_sibling,
@@ -301,46 +333,6 @@ impl Runnable for UpdateRunner {
                         }
                     }
                 }
-
-                #[cfg(feature = "render")]
-                UpdateEvent::Shift(next_parent, next_sibling) => {
-                    match state.render_state {
-                        ComponentRenderState::Render {
-                            ref bundle,
-                            ref mut parent,
-                            next_sibling: ref mut current_next_sibling,
-                            ..
-                        } => {
-                            bundle.shift(&next_parent, next_sibling.clone());
-
-                            *parent = next_parent;
-                            *current_next_sibling = next_sibling;
-                        }
-
-                        // We need to shift the hydrate fragment if the component is not hydrated.
-                        #[cfg(feature = "hydration")]
-                        ComponentRenderState::Hydration {
-                            ref fragment,
-                            ref mut parent,
-                            next_sibling: ref mut current_next_sibling,
-                            ..
-                        } => {
-                            fragment.shift(&next_parent, next_sibling.clone());
-
-                            *parent = next_parent;
-                            *current_next_sibling = next_sibling;
-                        }
-
-                        // Shifting is not possible during SSR.
-                        #[cfg(feature = "ssr")]
-                        ComponentRenderState::Ssr { .. } => {
-                            #[cfg(debug_assertions)]
-                            panic!("shifting is not possible during SSR");
-                        }
-                    }
-
-                    false
-                }
             };
 
             #[cfg(debug_assertions)]
@@ -352,9 +344,9 @@ impl Runnable for UpdateRunner {
             if schedule_render {
                 scheduler::push_component_render(
                     state.comp_id,
-                    RenderRunner {
+                    Box::new(RenderRunner {
                         state: self.state.clone(),
-                    },
+                    }),
                 );
                 // Only run from the scheduler, so no need to call `scheduler::start()`
             }
@@ -365,7 +357,7 @@ impl Runnable for UpdateRunner {
 pub(crate) struct DestroyRunner {
     pub state: Shared<Option<ComponentState>>,
 
-    #[cfg(feature = "render")]
+    #[cfg(feature = "csr")]
     pub parent_to_detach: bool,
 }
 
@@ -378,14 +370,15 @@ impl Runnable for DestroyRunner {
             state.inner.destroy();
 
             match state.render_state {
-                #[cfg(feature = "render")]
+                #[cfg(feature = "csr")]
                 ComponentRenderState::Render {
                     bundle,
                     ref parent,
                     ref node_ref,
+                    ref root,
                     ..
                 } => {
-                    bundle.detach(parent, self.parent_to_detach);
+                    bundle.detach(root, parent, self.parent_to_detach);
 
                     node_ref.set(None);
                 }
@@ -444,9 +437,9 @@ impl RenderRunner {
 
             scheduler::push_component_render(
                 state.comp_id,
-                RenderRunner {
+                Box::new(RenderRunner {
                     state: shared_state,
-                },
+                }),
             );
         } else {
             // We schedule a render after current suspension is resumed.
@@ -460,9 +453,9 @@ impl RenderRunner {
             suspension.listen(Callback::from(move |_| {
                 scheduler::push_component_render(
                     comp_id,
-                    RenderRunner {
+                    Box::new(RenderRunner {
                         state: shared_state.clone(),
-                    },
+                    }),
                 );
                 scheduler::start();
             }));
@@ -492,16 +485,19 @@ impl RenderRunner {
         }
 
         match state.render_state {
-            #[cfg(feature = "render")]
+            #[cfg(feature = "csr")]
             ComponentRenderState::Render {
                 ref mut bundle,
                 ref parent,
+                ref root,
                 ref next_sibling,
                 ref node_ref,
                 ..
             } => {
                 let scope = state.inner.any_scope();
-                let new_node_ref = bundle.reconcile(&scope, parent, next_sibling.clone(), new_root);
+
+                let new_node_ref =
+                    bundle.reconcile(root, &scope, parent, next_sibling.clone(), new_root);
                 node_ref.link(new_node_ref);
 
                 let first_render = !state.has_rendered;
@@ -509,10 +505,10 @@ impl RenderRunner {
 
                 scheduler::push_component_rendered(
                     state.comp_id,
-                    RenderedRunner {
+                    Box::new(RenderedRunner {
                         state: self.state.clone(),
                         first_render,
-                    },
+                    }),
                     first_render,
                 );
             }
@@ -568,8 +564,8 @@ impl RenderRunner {
     }
 }
 
-#[cfg(feature = "render")]
-mod feat_render {
+#[cfg(feature = "csr")]
+mod feat_csr {
     use super::*;
 
     pub(crate) struct RenderedRunner {
@@ -591,8 +587,8 @@ mod feat_render {
     }
 }
 
-#[cfg(feature = "render")]
-use feat_render::*;
+#[cfg(feature = "csr")]
+use feat_csr::*;
 
 #[cfg(feature = "wasm_test")]
 #[cfg(test)]
@@ -600,6 +596,8 @@ mod tests {
     extern crate self as yew;
 
     use super::*;
+
+    use crate::dom_bundle::BSubtree;
     use crate::html;
     use crate::html::*;
     use crate::Properties;
@@ -726,6 +724,19 @@ mod tests {
 
         lifecycle.borrow_mut().clear();
         scope.mount_in_place(el, NodeRef::default(), node_ref, Rc::new(props));
+        let parent = document.create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+
+        let lifecycle = props.lifecycle.clone();
+
+        lifecycle.borrow_mut().clear();
+        scope.mount_in_place(
+            root,
+            parent,
+            NodeRef::default(),
+            NodeRef::default(),
+            Rc::new(props),
+        );
         crate::scheduler::start_now();
 
         assert_eq!(&lifecycle.borrow_mut().deref()[..], expected);

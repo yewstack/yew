@@ -44,11 +44,11 @@
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^2.0.0-beta.17",
-    "@tsconfig/docusaurus": "^1.0.4",
-    "@types/react": "^17.0.40",
+    "@tsconfig/docusaurus": "^1.0.5",
+    "@types/react": "^17.0.43",
     "@types/react-helmet": "^6.1.5",
     "@types/react-router-dom": "^5.3.3",
-    "typescript": "^4.6.2",
+    "typescript": "^4.6.3",
     "dir-compare": "^4.0.0"
   }
 }

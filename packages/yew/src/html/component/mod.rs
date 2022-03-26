@@ -1,7 +1,7 @@
 //! Components wrapped with context including properties, state, and link
 
 mod children;
-#[cfg(any(feature = "render", feature = "ssr"))]
+#[cfg(any(feature = "csr", feature = "ssr"))]
 mod lifecycle;
 mod properties;
 mod scope;
@@ -9,48 +9,22 @@ mod scope;
 use super::{Html, HtmlResult, IntoHtmlResult};
 pub use children::*;
 pub use properties::*;
-#[cfg(feature = "render")]
+
+#[cfg(feature = "csr")]
 pub(crate) use scope::Scoped;
 pub use scope::{AnyScope, Scope, SendAsMessage};
 use std::rc::Rc;
 
-use std::sync::atomic::{AtomicUsize, Ordering};
-
-/// A unique component ID.
-///
-/// This type is provided to better distinguish between component IDs and the older pointer-based
-/// component ids.
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
-pub(crate) struct ComponentId(usize);
-
-impl Default for ComponentId {
-    fn default() -> Self {
-        static COMP_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
-
-        Self(COMP_ID_COUNTER.fetch_add(1, Ordering::SeqCst))
-    }
-}
-
-#[cfg(any(feature = "render", feature = "ssr"))]
-mod feat_render_ssr {
-    use super::*;
-
-    impl ComponentId {
-        #[inline]
-        pub fn new() -> Self {
-            Self::default()
-        }
-    }
-
-    #[cfg(debug_assertions)]
+#[cfg(debug_assertions)]
+#[cfg(any(feature = "csr", feature = "ssr"))]
+mod feat_csr_ssr {
     thread_local! {
-         static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<ComponentId, Vec<String>>>
+         static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<usize, Vec<String>>>
             = Default::default();
     }
 
     /// Push [Component] event to lifecycle debugging registry
-    #[cfg(debug_assertions)]
-    pub(crate) fn log_event(comp_id: ComponentId, event: impl ToString) {
+    pub(crate) fn log_event(comp_id: usize, event: impl ToString) {
         EVENT_HISTORY.with(|h| {
             h.borrow_mut()
                 .entry(comp_id)
@@ -60,9 +34,8 @@ mod feat_render_ssr {
     }
 
     /// Get [Component] event log from lifecycle debugging registry
-    #[cfg(debug_assertions)]
     #[allow(dead_code)]
-    pub(crate) fn get_event_log(comp_id: ComponentId) -> Vec<String> {
+    pub(crate) fn get_event_log(comp_id: usize) -> Vec<String> {
         EVENT_HISTORY.with(|h| {
             h.borrow()
                 .get(&comp_id)
@@ -71,9 +44,10 @@ mod feat_render_ssr {
         })
     }
 }
+
 #[cfg(debug_assertions)]
-#[cfg(any(feature = "render", feature = "ssr"))]
-pub(crate) use feat_render_ssr::*;
+#[cfg(any(feature = "csr", feature = "ssr"))]
+pub(crate) use feat_csr_ssr::*;
 
 /// The [`Component`]'s context. This contains component's [`Scope`] and and props and
 /// is passed to every lifecycle method.

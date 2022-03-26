@@ -1,0 +1,116 @@
+---
+name: Post Comment for Size Comparison
+
+on:
+  workflow_run:
+    workflows: ["Size Comparison"]
+    types:
+      - completed
+
+jobs:
+  size-cmp:
+    name: Post Comment on Pull Request
+    runs-on: ubuntu-latest
+
+    steps:
+      - if: github.event.workflow_run.event == 'pull_request'
+        name: Download Artifact
+        uses: Legit-Labs/action-download-artifact@v2
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          workflow: size-cmp.yml
+          run_id: ${{ github.event.workflow_run.id }}
+          name: size-cmp-info
+          path: "size-cmp-info/"
+
+      - name: Make pull request comment
+        run: |
+          from typing import Dict, List, Optional
+
+          import os
+          import json
+
+          with open("size-cmp-info/.SIZE_CMP_INFO") as f:
+              content = json.loads(f.read())
+
+          joined_sizes = content["sizes"]
+          issue_number = content["issue_number"]
+
+          lines: List[str] = []
+
+          lines.append("### Size Comparison")
+          lines.append("")
+          lines.append("| examples | master (KB) | pull request (KB) | diff |")
+          lines.append("| --- | --- | --- | --- | ")
+
+          for (i, sizes) in joined_sizes:
+              (master_size, pr_size) = sizes
+              diff: Optional[int] = None
+
+              if master_size is not None and pr_size is not None:
+                  diff = pr_size - master_size
+
+              master_size_str = "N/A" if master_size is None else (
+                  f"{master_size / 1024:.3f}" if master_size != 0 else "0"
+              )
+              pr_size_str = "N/A" if pr_size is None else (
+                  f"{pr_size / 1024:.3f}" if pr_size != 0 else "0"
+              )
+              diff_str = "N/A" if diff is None else (
+                  f"{diff / 1024:.3f}" if diff < 0 else (
+                      f"+{diff / 1024:.3f}" if diff > 0 else "0"
+                  )
+              )
+              lines.append(f"| {i} | {master_size_str} | {pr_size_str} | {diff_str} |")
+
+          output = "\n".join(lines)
+
+          with open(os.environ["GITHUB_ENV"], "a+") as f:
+              f.write(f"YEW_EXAMPLE_SIZES={json.dumps(output)}\n")
+              f.write(f"PR_NUMBER={issue_number}\n")
+
+        shell: python3 {0}
+
+      - name: Post Comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const commentInfo = {
+              ...context.repo,
+              issue_number: ${{ env.PR_NUMBER }},
+            };
+
+            const comment = {
+              ...commentInfo,
+              body: JSON.parse(process.env.YEW_EXAMPLE_SIZES),
+            };
+
+            function isCommentByBot(comment) {
+              return comment.user.type === "Bot" && comment.body.includes("### Size Comparison");
+            }
+
+            let commentId = null;
+            const comments = (await github.rest.issues.listComments(commentInfo)).data;
+            for (let i = comments.length; i--; ) {
+              const c = comments[i];
+              if (isCommentByBot(c)) {
+                commentId = c.id;
+                break;
+              }
+            }
+
+            if (commentId) {
+              try {
+                await github.rest.issues.updateComment({
+                  ...context.repo,
+                  comment_id: commentId,
+                  body: comment.body,
+                });
+              } catch (e) {
+                commentId = null;
+              }
+            }
+
+            if (!commentId) {
+              await github.rest.issues.createComment(comment);
+            }

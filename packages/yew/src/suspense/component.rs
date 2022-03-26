@@ -9,8 +9,8 @@ pub struct SuspenseProps {
     pub fallback: Html,
 }
 
-#[cfg(any(feature = "render", feature = "ssr"))]
-mod feat_render_ssr {
+#[cfg(any(feature = "csr", feature = "ssr"))]
+mod feat_csr_ssr {
     use super::*;
 
     use crate::html::{Children, Component, Context, Html, Scope};
@@ -125,11 +125,11 @@ mod feat_render_ssr {
     }
 }
 
-#[cfg(any(feature = "render", feature = "ssr"))]
-pub use feat_render_ssr::*;
+#[cfg(any(feature = "csr", feature = "ssr"))]
+pub use feat_csr_ssr::*;
 
-#[cfg(not(any(feature = "ssr", feature = "render")))]
-mod feat_no_render_ssr {
+#[cfg(not(any(feature = "ssr", feature = "csr")))]
+mod feat_no_csr_ssr {
     use super::*;
 
     use crate::function_component;
@@ -141,5 +141,5 @@ mod feat_no_render_ssr {
     }
 }
 
-#[cfg(not(any(feature = "ssr", feature = "render")))]
-pub use feat_no_render_ssr::*;
+#[cfg(not(any(feature = "ssr", feature = "csr")))]
+pub use feat_no_csr_ssr::*;

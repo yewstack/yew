@@ -51,16 +51,16 @@ Add `yew` to the list of dependencies.
 [package]
 name = "yew-app"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-# you can check the latest version here: https://crates.io/crates/yew
-yew = { version = "0.19", features = ["render"] }
+# this is the development version of Yew
+yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
 ```
 
 :::info
 
-You only need feature `render` if you are building an application.
+You only need feature `csr` if you are building an application.
 It will enable the `Renderer` and all client-side rendering related code.
 
 If you are making a library, do not enable this feature as it will pull in

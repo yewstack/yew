@@ -77,13 +77,21 @@ wasm-bindgen-futures = "0.4"
 rustversion = "1"
 trybuild = "1"
 
+[dev-dependencies.web-sys]
+version = "0.3"
+features = [
+  "ShadowRoot",
+  "ShadowRootInit",
+  "ShadowRootMode",
+]
+
 [features]
 ssr = ["futures", "html-escape"]
-render = []
-hydration = ["render"]
+csr = []
+hydration = ["csr"]
 trace_hydration = ["hydration"]
-doc_test = ["render", "hydration", "ssr"]
-wasm_test = ["render", "hydration", "ssr"]
+doc_test = ["csr", "hydration", "ssr"]
+wasm_test = ["csr", "hydration", "ssr"]
 default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]

@@ -12,14 +12,16 @@ mod bportal;
 mod bsuspense;
 mod btag;
 mod btext;
-mod traits;
-mod utils;
+mod subtree_root;
 
 #[cfg(feature = "hydration")]
 mod fragment;
 
 use gloo::utils::document;
 use web_sys::{Element, Node};
+
+mod traits;
+mod utils;
 
 use crate::html::AnyScope;
 use crate::html::NodeRef;
@@ -48,6 +50,20 @@ pub use btag::set_event_bubbling;
 /// A Bundle.
 ///
 /// Each component holds a bundle that represents a realised layout, designated by a VNode.
+use btag::{BTag, Registry};
+use btext::BText;
+use subtree_root::EventDescriptor;
+use traits::{Reconcilable, ReconcileTarget};
+use utils::{insert_node, test_log};
+
+#[doc(hidden)] // Publically exported from crate::events
+pub use subtree_root::set_event_bubbling;
+
+pub(crate) use subtree_root::BSubtree;
+
+/// A Bundle.
+///
+/// Each component holds a bundle that represents a realised layout, designated by a [VNode].
 ///
 /// This is not to be confused with [BComp], which represents a component in the position of a
 /// bundle layout.
@@ -56,11 +72,9 @@ pub(crate) struct Bundle(BNode);
 
 impl Bundle {
     /// Creates a new bundle.
-    pub fn new(parent: &Element, next_sibling: &NodeRef, node_ref: &NodeRef) -> Self {
-        let placeholder: Node = document().create_text_node("").into();
-        insert_node(&placeholder, parent, next_sibling.get().as_ref());
-        node_ref.set(Some(placeholder.clone()));
-        Self(BNode::Ref(placeholder))
+
+    pub const fn new() -> Self {
+        Self(BNode::List(BList::new()))
     }
 
     /// Shifts the bundle into a different position.
@@ -71,17 +85,19 @@ impl Bundle {
     /// Applies a virtual dom layout to current bundle.
     pub fn reconcile(
         &mut self,
+
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         next_node: VNode,
     ) -> NodeRef {
-        next_node.reconcile_node(parent_scope, parent, next_sibling, &mut self.0)
+        next_node.reconcile_node(root, parent_scope, parent, next_sibling, &mut self.0)
     }
 
     /// Detaches current bundle.
     pub fn detach(self, parent: &Element, parent_to_detach: bool) {
-        self.0.detach(parent, parent_to_detach);
+        self.0.detach(root, parent, parent_to_detach);
     }
 }
 

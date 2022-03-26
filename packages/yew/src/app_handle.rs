@@ -1,5 +1,6 @@
 //! [AppHandle] contains the state Yew keeps to bootstrap a component in an isolated scope.
 
+use crate::dom_bundle::BSubtree;
 use crate::html::Scoped;
 use crate::html::{IntoComponent, NodeRef, Scope};
 use std::ops::Deref;
@@ -8,7 +9,7 @@ use web_sys::Element;
 
 /// An instance of an application.
 #[derive(Debug)]
-#[cfg_attr(documenting, doc(cfg(feature = "render")))]
+#[cfg_attr(documenting, doc(cfg(feature = "csr")))]
 pub struct AppHandle<ICOMP: IntoComponent> {
     /// `Scope` holder
     pub(crate) scope: Scope<<ICOMP as IntoComponent>::Component>,
@@ -22,14 +23,19 @@ where
     /// similarly to the `program` function in Elm. You should provide an initial model, `update`
     /// function which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub(crate) fn mount_with_props(element: Element, props: Rc<ICOMP::Properties>) -> Self {
-        clear_element(&element);
+    pub(crate) fn mount_with_props(host: Element, props: Rc<ICOMP::Properties>) -> Self {
+        clear_element(&host);
         let app = Self {
             scope: Scope::new(None),
         };
-
-        app.scope
-            .mount_in_place(element, NodeRef::default(), NodeRef::default(), props);
+        let hosting_root = BSubtree::create_root(&host);
+        app.scope.mount_in_place(
+            hosting_root,
+            host,
+            NodeRef::default(),
+            NodeRef::default(),
+            props,
+        );
 
         app
     }
@@ -52,9 +58,9 @@ where
 }
 
 /// Removes anything from the given element.
-fn clear_element(element: &Element) {
-    while let Some(child) = element.last_child() {
-        element.remove_child(&child).expect("can't remove a child");
+fn clear_element(host: &Element) {
+    while let Some(child) = host.last_child() {
+        host.remove_child(&child).expect("can't remove a child");
     }
 }
 

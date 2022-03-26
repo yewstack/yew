@@ -50,10 +50,12 @@ where
     ///
     /// Defaults to `true`.
     ///
-    /// When this is sets to `true`, the rendered artifact will include assistive nodes
+    /// When this is sets to `true`, the rendered artifact will include additional information
     /// to assist with the hydration process.
-    pub fn set_hydratable(&mut self, val: bool) {
+    pub fn hydratable(mut self, val: bool) -> Self {
         self.hydratable = val;
+
+        self
     }
 
     /// Renders Yew Application.
