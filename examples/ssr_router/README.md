@@ -6,7 +6,7 @@ of the function router example.
 
 # How to run this example
 
-1. build hydration bundle
+1. Build Hydration Bundle
 
 `trunk build examples/ssr_router/index.html`
 
