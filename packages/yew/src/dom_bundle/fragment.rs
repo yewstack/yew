@@ -90,11 +90,10 @@ impl Fragment {
         // We remove the opening tag.
         parent.remove_child(&first_node).unwrap();
 
-        let mut current_node;
         let mut nested_layers = 1;
 
         loop {
-            current_node = collect_from.pop_front().unwrap_or_else(|| {
+            let current_node = collect_from.pop_front().unwrap_or_else(|| {
                 panic!("expected {} closing tag, found EOF", collect_for.name())
             });
 
