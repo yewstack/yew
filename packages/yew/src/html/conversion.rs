@@ -74,6 +74,15 @@ impl<I, O, F> IntoPropValue<Callback<I, O>> for F
     }
 }
 
+impl<I, O, F> IntoPropValue<Option<Callback<I, O>>> for F
+    where
+        F: 'static + Fn(I) -> O,
+{
+    fn into_prop_value(self) -> Option<Callback<I, O>> {
+        Some(Callback::from(self))
+    }
+}
+
 impl<I, O, F> IntoPropValue<Option<Callback<I, O>>> for Option<F>
     where
         F: 'static + Fn(I) -> O,
@@ -134,8 +143,10 @@ mod test {
     #[test]
     fn test_callback() {
         let _: Callback<String> = (|_: String| ()).into_prop_value();
+        let _: Option<Callback<String>> = (|_: String| ()).into_prop_value();
         let _: Option<Callback<String>> = Some(|_: String| ()).into_prop_value();
         let _: Callback<String, String> = (|s: String| s).into_prop_value();
+        let _: Option<Callback<String, String>> = (|s: String| s).into_prop_value();
         let _: Option<Callback<String, String>> = Some(|s: String| s).into_prop_value();
     }
 }
