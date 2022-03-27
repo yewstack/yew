@@ -20,6 +20,8 @@ is contained inside the `Light` component, and the `Room` ties this together by 
 `Light` in the callback passed to the `Switch`.
 
 ```rust
+use yew::prelude::*;
+
 #[derive(PartialEq, Properties)]
 struct SwitchProps {
     on_toggle: Callback<MouseEvent>,
