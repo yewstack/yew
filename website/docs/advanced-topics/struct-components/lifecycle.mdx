@@ -16,7 +16,7 @@ stages in the lifecycle of a component.
 
 ### Create
 
-When a component is created, it receives properties from its parent component and is stored within
+When a component is created, it receives properties from its parent component, stored within
 the `Context<Self>` that's passed down to the `create` method. The properties can be used to
 initialize the component's state and the "link" can be used to register callbacks or send messages to the component.
 
@@ -93,10 +93,10 @@ For usage details, check out [the `html!` guide](concepts/html/introduction.mdx)
 ### Rendered
 
 The `rendered` component lifecycle method is called once `view` has been called and Yew has rendered
-the results to the DOM, but before the browser refreshes the page. This method is useful when you
+the results to the DOM, but before control is yielded to the browser. This method is useful when you
 want to perform actions that can only be completed after the component has rendered elements. There
 is also a parameter called `first_render` which can be used to determine whether this function is
-being called on the first render, or instead a subsequent one.
+being called on the first render or a subsequent one.
 
 ```rust
 use web_sys::HtmlInputElement;
@@ -145,7 +145,7 @@ Note that this lifecycle method does not require an implementation and will do n
 Communication with components happens primarily through messages which are handled by the
 `update` lifecycle method. This allows the component to update itself
 based on what the message was, and determine if it needs to re-render itself. Messages can be sent
-by event listeners, child components, Agents, Services, or Futures.
+by event listeners, child and parent components, Agents, Services, or Futures.
 
 Here's an example of what an implementation of `update` could look like:
 

@@ -3,49 +3,84 @@ title: 'Refs'
 description: 'Out-of-band DOM access'
 ---
 
-The `ref` keyword can be used inside of any HTML element or component to get the DOM `Element` that
-the item is attached to. This can be used to make changes to the DOM outside of the `view` lifecycle
-method.
+The `ref` keyword can be used on elements and struct components. See the page about [`NodeRef`](../../concepts/html/node-refs)
+for its usage on elements. When used on a component, the ref does not bind a DOM `Element`. Instead,
+the `ComponentRef` contains a reference to the `Scope` of the child, bound when the child is rendered.
 
-This is useful for getting ahold of canvas elements, or scrolling to different sections of a page.
-For example, using a `NodeRef` in a component's `rendered` method allows you to make draw calls to
-a canvas element after it has been rendered from `view`.
+The `ComponentRef` can then be used to send messages to the attached component, which are handdled in the `update`
+lifecycle method to perform side-effects or cause a rerender. Note that `ComponentRef<_>` is generically typed
+and receives the type of the referenced component as argument.
 
-The syntax is:
+By capturing a reference to the `Scope`, instead of a specific element inside the ref-ed component, component implementations
+are more modular. If you want to expose specific elements, for example the `<input>` element of a styled button, you should
+add a property of type `NodeRef` and bind the ref you receive from your components' parent to an element in the `html!`.
+
+A full example can be given by an externally controlled "light switch". Note that the state of the light
+is contained inside the `Light` component, and the `Room` ties this together by sending a message to the
+`Light` in the callback passed to the `Switch`.
 
 ```rust
-use web_sys::Element;
-use yew::{html, Component, Context, Html, NodeRef};
-
-struct Comp {
-    node_ref: NodeRef,
+#[derive(PartialEq, Properties)]
+struct SwitchProps {
+    on_toggle: Callback<MouseEvent>,
 }
 
-impl Component for Comp {
-    type Message = ();
+#[function_component]
+fn Switch(SwitchProps { on_toggle }: &SwitchProps) -> Html {
+    html! {
+        <button onclick={on_toggle}>{"Switch"}</button>
+    }
+}
+
+enum LightMessage {
+    Toggle,
+}
+
+struct Light {
+    is_on: bool,
+}
+
+impl Component for Light {
     type Properties = ();
+    type Message = LightMessage;
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Self {
-            // highlight-next-line
-            node_ref: NodeRef::default(),
-        }
+        Light { is_on: true }
+    }
+
+    fn update(&mut self, _ctx: &Context<Self>, LightMessage::Toggle: LightMessage) -> bool {
+        self.is_on = !self.is_on;
+        true
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
-            // highlight-next-line
-            <div ref={self.node_ref.clone()}></div>
+            <div class={classes!["light", self.is_on.then(|| "on")]} />
         }
     }
+}
 
-    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
-        // highlight-start
-        let has_attributes = self.node_ref
-            .cast::<Element>()
-            .unwrap()
-            .has_attributes();
-        // highlight-end
+#[function_component]
+fn Room() -> Html {
+    // highlight-next-line
+    let light_ref: ComponentRef<Light> = use_component_ref();
+    let on_toggle = {
+        let light_ref = light_ref.clone();
+        Callback::from(move |_| {
+            // highlight-start
+            light_ref
+                .get()
+                .expect("a light to have rendered")
+                .send_message(LightMessage::Toggle)
+            // highlight-end
+        })
+    };
+    html! {
+        <>
+            // highlight-next-line
+            <Light ref={&light_ref} />
+            <Switch {on_toggle} />
+        </>
     }
 }
 ```
@@ -53,3 +88,4 @@ impl Component for Comp {
 ## Relevant examples
 
 -   [Node Refs](https://github.com/yewstack/yew/tree/master/examples/node_refs)
+-   [Nested List](https://github.com/yewstack/yew/tree/master/examples/nested_list)
