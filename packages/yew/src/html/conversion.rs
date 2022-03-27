@@ -66,8 +66,8 @@ where
 }
 
 impl<I, O, F> IntoPropValue<Callback<I, O>> for F
-    where
-        F: 'static + Fn(I) -> O,
+where
+    F: 'static + Fn(I) -> O,
 {
     fn into_prop_value(self) -> Callback<I, O> {
         Callback::from(self)
@@ -75,8 +75,8 @@ impl<I, O, F> IntoPropValue<Callback<I, O>> for F
 }
 
 impl<I, O, F> IntoPropValue<Option<Callback<I, O>>> for F
-    where
-        F: 'static + Fn(I) -> O,
+where
+    F: 'static + Fn(I) -> O,
 {
     fn into_prop_value(self) -> Option<Callback<I, O>> {
         Some(Callback::from(self))
@@ -84,8 +84,8 @@ impl<I, O, F> IntoPropValue<Option<Callback<I, O>>> for F
 }
 
 impl<I, O, F> IntoPropValue<Option<Callback<I, O>>> for Option<F>
-    where
-        F: 'static + Fn(I) -> O,
+where
+    F: 'static + Fn(I) -> O,
 {
     fn into_prop_value(self) -> Option<Callback<I, O>> {
         self.map(|f| Callback::from(f))
