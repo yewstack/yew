@@ -303,6 +303,7 @@ error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<AttrVal
    = help: the following implementations were found:
              <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
+             <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
              <Option<String> as IntoPropValue<Option<AttrValue>>>
              <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
 note: required by `into_prop_value`
@@ -320,6 +321,7 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<AttrValue
    = help: the following implementations were found:
              <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
+             <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
              <Option<String> as IntoPropValue<Option<AttrValue>>>
              <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
 note: required by `into_prop_value`
@@ -416,6 +418,7 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
    = help: the following implementations were found:
              <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
+             <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
              <Option<String> as IntoPropValue<Option<AttrValue>>>
              <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
 note: required by `into_prop_value`
