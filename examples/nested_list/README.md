@@ -7,7 +7,7 @@ This example shows a nested list and displays which item was last hovered.
 ## Concepts
 
 - Creating components which only accepts specific child elements
-- Communicating with a component that isn't a parent. See `WeakComponentLink` in [main.rs](src/main.rs).
+- Communicating with a component that isn't a parent.
 
 ## Improvements
 
