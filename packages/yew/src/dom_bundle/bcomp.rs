@@ -18,9 +18,6 @@ pub(super) struct BComp {
     // A internal NodeRef passed around to track this components position. This
     // is "stable", i.e. does not change when reconciled.
     internal_ref: NodeRef,
-    // The user-passed NodeRef from VComp. Might change every time we reconcile.
-    // Gets linked to the internal ref
-    node_ref: NodeRef,
     key: Option<Key>,
 }
 
@@ -62,15 +59,14 @@ impl Reconcilable for VComp {
         let VComp {
             type_id,
             mountable,
-            node_ref,
+            scope_ref,
             key,
         } = self;
         let internal_ref = NodeRef::default();
-        node_ref.link(internal_ref.clone());
-
         let scope = mountable.mount(
             root,
             internal_ref.clone(),
+            scope_ref,
             parent_scope,
             parent.to_owned(),
             next_sibling,
@@ -80,7 +76,6 @@ impl Reconcilable for VComp {
             internal_ref.clone(),
             BComp {
                 type_id,
-                node_ref,
                 internal_ref,
                 key,
                 scope,
@@ -117,15 +112,13 @@ impl Reconcilable for VComp {
     ) -> NodeRef {
         let VComp {
             mountable,
-            node_ref,
+            scope_ref,
             key,
             type_id: _,
         } = self;
 
         bcomp.key = key;
-        let old_ref = std::mem::replace(&mut bcomp.node_ref, node_ref);
-        bcomp.node_ref.reuse(old_ref);
-        mountable.reuse(bcomp.scope.borrow(), next_sibling);
+        mountable.reuse(scope_ref, bcomp.scope.borrow(), next_sibling);
         bcomp.internal_ref.clone()
     }
 }
@@ -146,11 +139,10 @@ mod feat_hydration {
             let VComp {
                 type_id,
                 mountable,
-                node_ref,
+                scope_ref,
                 key,
             } = self;
             let internal_ref = NodeRef::default();
-            node_ref.link(internal_ref.clone());
 
             let scoped = mountable.hydrate(
                 root.clone(),
@@ -158,6 +150,7 @@ mod feat_hydration {
                 parent.clone(),
                 fragment,
                 internal_ref.clone(),
+                scope_ref,
             );
 
             (
@@ -165,7 +158,6 @@ mod feat_hydration {
                 BComp {
                     type_id,
                     scope: scoped,
-                    node_ref,
                     internal_ref,
                     key,
                 },
@@ -177,16 +169,18 @@ mod feat_hydration {
 #[cfg(feature = "wasm_test")]
 #[cfg(test)]
 mod tests {
-    use std::ops::Deref;
 
     use gloo_utils::document;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-    use web_sys::{Element, Node};
+    use web_sys::Element;
 
     use super::*;
     use crate::dom_bundle::{Bundle, Reconcilable, ReconcileTarget};
+    use crate::html::ComponentAnyRef;
     use crate::virtual_dom::{Key, VChild, VNode};
-    use crate::{html, scheduler, Children, Component, Context, Html, NodeRef, Properties};
+    use crate::{
+        html, scheduler, Children, Component, ComponentRef, Context, Html, NodeRef, Properties,
+    };
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -282,14 +276,14 @@ mod tests {
 
     #[test]
     fn set_component_node_ref() {
-        let test_node: Node = document().create_text_node("test").into();
-        let test_node_ref = NodeRef::new(test_node);
+        let test_node_ref = ComponentRef::new();
+        let internal_node_ref = <ComponentAnyRef as From<_>>::from(Some(test_node_ref.clone()));
         let check_node_ref = |vnode: VNode| {
             let vcomp = match vnode {
                 VNode::VComp(vcomp) => vcomp,
                 _ => unreachable!("should be a vcomp"),
             };
-            assert_eq!(vcomp.node_ref, test_node_ref);
+            assert_eq!(vcomp.scope_ref, internal_node_ref);
         };
 
         let props = Props {
@@ -298,11 +292,11 @@ mod tests {
         };
         let props_2 = props.clone();
 
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} /> });
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} field_1=1 /> });
-        check_node_ref(html! { <Comp field_1=1 ref={test_node_ref.clone()} /> });
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} ..props /> });
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} ..props_2 /> });
+        check_node_ref(html! { <Comp ref={&test_node_ref} /> });
+        check_node_ref(html! { <Comp ref={&test_node_ref} field_1=1 /> });
+        check_node_ref(html! { <Comp field_1=1 ref={&test_node_ref} /> });
+        check_node_ref(html! { <Comp ref={&test_node_ref} ..props /> });
+        check_node_ref(html! { <Comp ref={&test_node_ref} ..props_2 /> });
     }
 
     #[test]
@@ -312,7 +306,7 @@ mod tests {
                 field_1: 1,
                 field_2: 1,
             },
-            NodeRef::default(),
+            None,
             None,
         );
 
@@ -321,7 +315,7 @@ mod tests {
                 field_1: 1,
                 field_2: 1,
             },
-            NodeRef::default(),
+            None,
             None,
         );
 
@@ -330,7 +324,7 @@ mod tests {
                 field_1: 2,
                 field_2: 2,
             },
-            NodeRef::default(),
+            None,
             None,
         );
 
@@ -440,12 +434,11 @@ mod tests {
     fn reset_node_ref() {
         let (root, scope, parent) = setup_parent();
 
-        let node_ref = NodeRef::default();
-        let elem = html! { <Comp ref={node_ref.clone()}></Comp> };
+        let node_ref = ComponentRef::default();
+        let elem = html! { <Comp ref={&node_ref}></Comp> };
         let (_, elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         scheduler::start_now();
-        let parent_node = parent.deref();
-        assert_eq!(node_ref.get(), parent_node.first_child());
+        assert!(node_ref.get().is_some());
         elem.detach(&root, &parent, false);
         scheduler::start_now();
         assert!(node_ref.get().is_none());
@@ -456,16 +449,16 @@ mod tests {
         let (root, scope, parent) = setup_parent();
 
         let mut bundle = Bundle::new();
-        let node_ref_a = NodeRef::default();
-        let node_ref_b = NodeRef::default();
-        let elem = html! { <Comp ref={node_ref_a.clone()}></Comp> };
+        let node_ref_a = ComponentRef::default();
+        let node_ref_b = ComponentRef::default();
+        let elem = html! { <Comp ref={&node_ref_a}></Comp> };
         let node_a = bundle.reconcile(&root, &scope, &parent, NodeRef::default(), elem);
         scheduler::start_now();
         let node_a = node_a.get().unwrap();
 
         assert!(node_ref_a.get().is_some(), "node_ref_a should be bound");
 
-        let elem = html! { <Comp ref={node_ref_b.clone()}></Comp> };
+        let elem = html! { <Comp ref={&node_ref_b}></Comp> };
         let node_b = bundle.reconcile(&root, &scope, &parent, NodeRef::default(), elem);
         scheduler::start_now();
         let node_b = node_b.get().unwrap();

@@ -7,6 +7,7 @@ pub enum Msg {
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub on_hover: Callback<()>,
+    pub input_ref: NodeRef,
 }
 
 pub struct InputComponent;
@@ -33,6 +34,7 @@ impl Component for InputComponent {
             <input
                 type="text"
                 class="input-component"
+                ref={&ctx.props().input_ref}
                 onmouseover={ctx.link().callback(|_| Msg::Hover)}
             />
         }

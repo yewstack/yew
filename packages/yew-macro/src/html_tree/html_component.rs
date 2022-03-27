@@ -94,7 +94,8 @@ impl ToTokens for HtmlComponent {
             children,
         } = self;
 
-        let props_ty = quote_spanned!(ty.span()=> <#ty as ::yew::html::BaseComponent>::Properties);
+        let props_ty =
+            quote_spanned! {ty.span()=> <#ty as ::yew::html::BaseComponent>::Properties };
         let children_renderer = if children.is_empty() {
             None
         } else {
@@ -103,18 +104,20 @@ impl ToTokens for HtmlComponent {
         let build_props = props.build_properties_tokens(&props_ty, children_renderer);
 
         let special_props = props.special();
+        let comp_ref_ty = quote_spanned! {ty.span()=> ::yew::html::ComponentRef::< #ty > };
         let node_ref = if let Some(node_ref) = &special_props.node_ref {
             let value = &node_ref.value;
-            quote_spanned! {value.span()=> #value }
+            let value_quoted = quote_spanned! {value.span()=> #value };
+            quote! { ::std::option::Option::Some(::yew::html::IntoPropValue::< #comp_ref_ty >::into_prop_value( #value_quoted )) }
         } else {
-            quote! { <::yew::html::NodeRef as ::std::default::Default>::default() }
+            quote_spanned! {ty.span()=> ::std::option::Option::None }
         };
 
         let key = if let Some(key) = &special_props.key {
             let value = &key.value;
             quote_spanned! {value.span()=>
                 #[allow(clippy::useless_conversion)]
-                Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#value))
+                ::std::option::Option::Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#value))
             }
         } else {
             quote! { ::std::option::Option::None }

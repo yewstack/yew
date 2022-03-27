@@ -6,7 +6,7 @@ use std::rc::Rc;
 use web_sys::Element;
 
 use crate::dom_bundle::BSubtree;
-use crate::html::{BaseComponent, NodeRef, Scope, Scoped};
+use crate::html::{BaseComponent, ComponentAnyRef, NodeRef, Scope, Scoped};
 
 /// An instance of an application.
 #[derive(Debug)]
@@ -35,6 +35,7 @@ where
             host,
             NodeRef::default(),
             NodeRef::default(),
+            ComponentAnyRef::default(),
             props,
         );
 
@@ -88,6 +89,7 @@ mod feat_hydration {
                 host.clone(),
                 &mut fragment,
                 NodeRef::default(),
+                ComponentAnyRef::default(),
                 props,
             );
 

@@ -7,6 +7,7 @@ mod error;
 mod listener;
 
 use std::cell::RefCell;
+use std::marker::PhantomData;
 use std::rc::Rc;
 
 pub use classes::*;
@@ -133,24 +134,152 @@ impl NodeRef {
     }
 }
 
+/// Wrapped reference to another component for later use in lifecycle methods.
+///
+/// # Example
+/// Send messages to a child component
+/// ```
+/// # use yew::prelude::*;
+///
+/// struct MessageHolder {
+///     msg: String,
+/// }
+///
+/// impl Component for MessageHolder {
+///     type Message = String;
+///     type Properties = ();
+///
+///     fn create(_ctx: &Context<Self>) -> Self {
+///         Self {
+///             msg: "waiting...".to_string(),
+///         }
+///     }
+///
+///     fn update(&mut self, _ctx: &Context<Self>, message: Self::Message) -> bool {
+///         self.msg = message;
+///         true
+///     }
+///
+///     fn view(&self, _ctx: &Context<Self>) -> Html {
+///         html! { <span>{&self.msg}</span> }
+///     }
+/// }
+///
+/// pub struct Controller {
+///     log_ref: ComponentRef<MessageHolder>,
+/// }
+///
+/// impl Component for Controller {
+///     type Message = ();
+///     type Properties = ();
+///
+///     fn create(_ctx: &Context<Self>) -> Self {
+///         Self {
+///             log_ref: ComponentRef::default(),
+///         }
+///     }
+///
+///     fn view(&self, _ctx: &Context<Self>) -> Html {
+///         let onclick = {
+///             let log_ref = self.log_ref.clone();
+///             Callback::from(move |_| {
+///                 log_ref
+///                     .get()
+///                     .expect("a message holder")
+///                     .send_message("example message".to_string())
+///             })
+///         };
+///         html! {
+///             <>
+///                 <MessageHolder ref={&self.log_ref} />
+///                 <button {onclick}>{"Send example message"}</button>
+///             </>
+///         }
+///     }
+/// }
+/// ```
+/// ## Relevant examples
+/// - [`nested_list`](https://github.com/yewstack/yew/tree/master/examples/nested_list)
+pub struct ComponentRef<COMP: BaseComponent>(Rc<RefCell<CompRefInner>>, PhantomData<COMP>);
+
+impl<COMP: BaseComponent> std::fmt::Debug for ComponentRef<COMP> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ComponentAnyRef {{ scope: {:?} }}", self.get())
+    }
+}
+
+impl<COMP: BaseComponent> Clone for ComponentRef<COMP> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone(), PhantomData)
+    }
+}
+
+impl<COMP: BaseComponent> Default for ComponentRef<COMP> {
+    fn default() -> Self {
+        Self(Rc::default(), PhantomData)
+    }
+}
+
+impl<COMP: BaseComponent> ComponentRef<COMP> {
+    /// Create a new, unbound component ref
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Get the scope of the referenced node, if it exists
+    pub fn get(&self) -> Option<Scope<COMP>> {
+        Some(self.0.borrow().scope.as_ref()?.downcast::<COMP>())
+    }
+}
+
+impl<COMP: BaseComponent> PartialEq for ComponentRef<COMP> {
+    fn eq(&self, other: &Self) -> bool {
+        Rc::ptr_eq(&self.0, &other.0)
+    }
+}
+
+#[derive(Default, Clone)]
+pub(crate) struct ComponentAnyRef(Option<Rc<RefCell<CompRefInner>>>);
+
+impl<COMP: BaseComponent> From<Option<ComponentRef<COMP>>> for ComponentAnyRef {
+    fn from(user_ref: Option<ComponentRef<COMP>>) -> Self {
+        match user_ref {
+            Some(user_ref) => Self(Some(user_ref.0)),
+            None => Self(None),
+        }
+    }
+}
+
+impl std::fmt::Debug for ComponentAnyRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(ref inner) = self.0 {
+            write!(f, "ComponentAnyRef {{ scope: {:?} }}", inner.borrow().scope)
+        } else {
+            write!(f, "ComponentAnyRef(unbound)")
+        }
+    }
+}
+
+impl PartialEq for ComponentAnyRef {
+    fn eq(&self, other: &Self) -> bool {
+        match (&self.0, &other.0) {
+            (None, None) => true,
+            (Some(ref l), Some(ref r)) => Rc::ptr_eq(l, r),
+            _ => false,
+        }
+    }
+}
+
+#[derive(Default)]
+struct CompRefInner {
+    scope: Option<AnyScope>,
+}
+
 #[cfg(feature = "csr")]
 mod feat_csr {
     use super::*;
 
     impl NodeRef {
-        /// Reuse an existing `NodeRef`
-        pub(crate) fn reuse(&self, node_ref: Self) {
-            // Avoid circular references
-            if self == &node_ref {
-                return;
-            }
-
-            let mut this = self.0.borrow_mut();
-            let mut existing = node_ref.0.borrow_mut();
-            this.node = existing.node.take();
-            this.link = existing.link.take();
-        }
-
         /// Link a downstream `NodeRef`
         pub(crate) fn link(&self, node_ref: Self) {
             // Avoid circular references
@@ -168,6 +297,34 @@ mod feat_csr {
             let node_ref = NodeRef::default();
             node_ref.set(Some(node));
             node_ref
+        }
+    }
+
+    impl ComponentAnyRef {
+        /// Place a Scope in a reference for later use
+        pub(crate) fn set(&self, scope: Option<AnyScope>) {
+            if let Some(ref inner) = self.0 {
+                let mut this = inner.borrow_mut();
+                this.scope = scope;
+            }
+        }
+
+        pub(crate) fn swap_into(&mut self, next: Self, get_scope: impl FnOnce() -> AnyScope) {
+            if self == &next {
+                return;
+            }
+            let new = match self.0 {
+                Some(ref inner) => inner,
+                None => return,
+            };
+            let scope = match next.0 {
+                Some(scope) => {
+                    // debug_assert!(scope.borrow().scope == Some(get_scope()));
+                    scope.borrow_mut().scope.take()
+                }
+                None => Some(get_scope()),
+            };
+            new.borrow_mut().scope = scope;
         }
     }
 }

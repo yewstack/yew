@@ -1,13 +1,13 @@
 use yew::prelude::*;
 
 use super::list::{List, Msg as ListMsg};
-use super::{Hovered, WeakComponentLink};
+use super::Hovered;
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct Props {
     pub on_hover: Callback<Hovered>,
     pub text: String,
-    pub list_link: WeakComponentLink<List>,
+    pub list_link: ComponentRef<List>,
 }
 
 pub struct ListHeader;
@@ -21,7 +21,7 @@ impl Component for ListHeader {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let list_link = ctx.props().list_link.borrow().clone().unwrap();
+        let list_link = ctx.props().list_link.get().unwrap();
         let onmouseover = ctx.props().on_hover.reform(|e: MouseEvent| {
             e.stop_propagation();
             Hovered::Header

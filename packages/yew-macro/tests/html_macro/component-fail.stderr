@@ -361,11 +361,17 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
              <&'static str as IntoPropValue<Option<String>>>
            and 18 others
 
-error[E0308]: mismatched types
+error[E0277]: the trait bound `(): IntoPropValue<ComponentRef<Child>>` is not satisfied
   --> tests/html_macro/component-fail.rs:80:31
    |
 80 |     html! { <Child int=1 ref={()} /> };
-   |                               ^^ expected struct `NodeRef`, found `()`
+   |                               ^^ the trait `IntoPropValue<ComponentRef<Child>>` is not implemented for `()`
+   |
+note: required by `into_prop_value`
+  --> $WORKSPACE/packages/yew/src/html/conversion.rs
+   |
+   |     fn into_prop_value(self) -> T;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `u32: IntoPropValue<i32>` is not satisfied
   --> tests/html_macro/component-fail.rs:82:24

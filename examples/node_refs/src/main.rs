@@ -59,7 +59,7 @@ impl Component for App {
                     <label>{ "Using tag ref: " }</label>
                     <input
                         type="text"
-                        ref={self.refs[0].clone()}
+                        ref={&self.refs[0]}
                         class="input-element"
                         onmouseover={ctx.link().callback(|_| Msg::HoverIndex(0))}
                     />
@@ -67,7 +67,7 @@ impl Component for App {
                 <div>
                     <label>{ "Using component ref: " }</label>
                     <InputComponent
-                        ref={self.refs[1].clone()}
+                        input_ref={&self.refs[1]}
                         on_hover={ctx.link().callback(|_| Msg::HoverIndex(1))}
                     />
                 </div>

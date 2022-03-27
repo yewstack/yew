@@ -14,17 +14,18 @@ use super::Key;
 use crate::dom_bundle::BSubtree;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
-#[cfg(feature = "csr")]
-use crate::html::Scoped;
 #[cfg(any(feature = "ssr", feature = "csr"))]
 use crate::html::{AnyScope, Scope};
-use crate::html::{BaseComponent, NodeRef};
+use crate::html::{BaseComponent, ComponentAnyRef};
+#[cfg(any(feature = "hydration", feature = "csr"))]
+use crate::html::{NodeRef, Scoped};
+use crate::ComponentRef;
 
 /// A virtual component.
 pub struct VComp {
     pub(crate) type_id: TypeId,
     pub(crate) mountable: Box<dyn Mountable>,
-    pub(crate) node_ref: NodeRef,
+    pub(crate) scope_ref: ComponentAnyRef,
     pub(crate) key: Option<Key>,
 }
 
@@ -32,7 +33,7 @@ impl fmt::Debug for VComp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("VComp")
             .field("type_id", &self.type_id)
-            .field("node_ref", &self.node_ref)
+            .field("scope_ref", &self.scope_ref)
             .field("mountable", &"..")
             .field("key", &self.key)
             .finish()
@@ -44,7 +45,7 @@ impl Clone for VComp {
         Self {
             type_id: self.type_id,
             mountable: self.mountable.copy(),
-            node_ref: self.node_ref.clone(),
+            scope_ref: self.scope_ref.clone(),
             key: self.key.clone(),
         }
     }
@@ -58,13 +59,19 @@ pub(crate) trait Mountable {
         self: Box<Self>,
         root: &BSubtree,
         node_ref: NodeRef,
+        scope_ref: ComponentAnyRef,
         parent_scope: &AnyScope,
         parent: Element,
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped>;
 
     #[cfg(feature = "csr")]
-    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef);
+    fn reuse(
+        self: Box<Self>,
+        scope_ref: ComponentAnyRef,
+        scope: &dyn Scoped,
+        next_sibling: NodeRef,
+    );
 
     #[cfg(feature = "ssr")]
     fn render_to_string<'a>(
@@ -82,6 +89,7 @@ pub(crate) trait Mountable {
         parent: Element,
         fragment: &mut Fragment,
         node_ref: NodeRef,
+        scope_ref: ComponentAnyRef,
     ) -> Box<dyn Scoped>;
 }
 
@@ -108,20 +116,33 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         self: Box<Self>,
         root: &BSubtree,
         node_ref: NodeRef,
+        scope_ref: ComponentAnyRef,
         parent_scope: &AnyScope,
         parent: Element,
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        scope.mount_in_place(root.clone(), parent, next_sibling, node_ref, self.props);
+        scope.mount_in_place(
+            root.clone(),
+            parent,
+            next_sibling,
+            node_ref,
+            scope_ref,
+            self.props,
+        );
 
         Box::new(scope)
     }
 
     #[cfg(feature = "csr")]
-    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef) {
+    fn reuse(
+        self: Box<Self>,
+        scope_ref: ComponentAnyRef,
+        scope: &dyn Scoped,
+        next_sibling: NodeRef,
+    ) {
         let scope: Scope<COMP> = scope.to_any().downcast::<COMP>();
-        scope.reuse(self.props, next_sibling);
+        scope.reuse(self.props, scope_ref, next_sibling);
     }
 
     #[cfg(feature = "ssr")]
@@ -148,9 +169,10 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         parent: Element,
         fragment: &mut Fragment,
         node_ref: NodeRef,
+        scope_ref: ComponentAnyRef,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        scope.hydrate_in_place(root, parent, fragment, node_ref, self.props);
+        scope.hydrate_in_place(root, parent, fragment, node_ref, scope_ref, self.props);
 
         Box::new(scope)
     }
@@ -161,7 +183,7 @@ pub struct VChild<COMP: BaseComponent> {
     /// The component properties
     pub props: Rc<COMP::Properties>,
     /// Reference to the mounted node
-    node_ref: NodeRef,
+    scope_ref: Option<ComponentRef<COMP>>,
     key: Option<Key>,
 }
 
@@ -169,7 +191,7 @@ impl<COMP: BaseComponent> Clone for VChild<COMP> {
     fn clone(&self) -> Self {
         VChild {
             props: Rc::clone(&self.props),
-            node_ref: self.node_ref.clone(),
+            scope_ref: self.scope_ref.clone(),
             key: self.key.clone(),
         }
     }
@@ -189,10 +211,14 @@ where
     COMP: BaseComponent,
 {
     /// Creates a child component that can be accessed and modified by its parent.
-    pub fn new(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self {
+    pub fn new(
+        props: COMP::Properties,
+        scope_ref: Option<ComponentRef<COMP>>,
+        key: Option<Key>,
+    ) -> Self {
         Self {
             props: Rc::new(props),
-            node_ref,
+            scope_ref,
             key,
         }
     }
@@ -203,19 +229,23 @@ where
     COMP: BaseComponent,
 {
     fn from(vchild: VChild<COMP>) -> Self {
-        VComp::new::<COMP>(vchild.props, vchild.node_ref, vchild.key)
+        VComp::new::<COMP>(vchild.props, vchild.scope_ref, vchild.key)
     }
 }
 
 impl VComp {
     /// Creates a new `VComp` instance.
-    pub fn new<COMP>(props: Rc<COMP::Properties>, node_ref: NodeRef, key: Option<Key>) -> Self
+    pub fn new<COMP>(
+        props: Rc<COMP::Properties>,
+        scope_ref: Option<ComponentRef<COMP>>,
+        key: Option<Key>,
+    ) -> Self
     where
         COMP: BaseComponent,
     {
         VComp {
             type_id: TypeId::of::<COMP>(),
-            node_ref,
+            scope_ref: scope_ref.into(),
             mountable: Box::new(PropsWrapper::<COMP>::new(props)),
             key,
         }

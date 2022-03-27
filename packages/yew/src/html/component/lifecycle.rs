@@ -16,7 +16,7 @@ use crate::dom_bundle::{BSubtree, Bundle};
 use crate::html::NodeRef;
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
-use crate::html::{Html, RenderError};
+use crate::html::{ComponentAnyRef, Html, RenderError};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{BaseSuspense, Suspension};
 use crate::{Callback, Context, HtmlResult};
@@ -29,12 +29,14 @@ pub(crate) enum ComponentRenderState {
         parent: Element,
         next_sibling: NodeRef,
         node_ref: NodeRef,
+        scope_ref: ComponentAnyRef,
     },
     #[cfg(feature = "hydration")]
     Hydration {
         parent: Element,
         next_sibling: NodeRef,
         node_ref: NodeRef,
+        scope_ref: ComponentAnyRef,
         root: BSubtree,
         fragment: Fragment,
     },
@@ -55,6 +57,7 @@ impl std::fmt::Debug for ComponentRenderState {
                 ref parent,
                 ref next_sibling,
                 ref node_ref,
+                ref scope_ref,
             } => f
                 .debug_struct("ComponentRenderState::Render")
                 .field("bundle", bundle)
@@ -62,6 +65,7 @@ impl std::fmt::Debug for ComponentRenderState {
                 .field("parent", parent)
                 .field("next_sibling", next_sibling)
                 .field("node_ref", node_ref)
+                .field("scope_ref", scope_ref)
                 .finish(),
 
             #[cfg(feature = "hydration")]
@@ -70,6 +74,7 @@ impl std::fmt::Debug for ComponentRenderState {
                 ref parent,
                 ref next_sibling,
                 ref node_ref,
+                ref scope_ref,
                 ref root,
             } => f
                 .debug_struct("ComponentRenderState::Hydration")
@@ -78,6 +83,7 @@ impl std::fmt::Debug for ComponentRenderState {
                 .field("parent", parent)
                 .field("next_sibling", next_sibling)
                 .field("node_ref", node_ref)
+                .field("scope_ref", scope_ref)
                 .finish(),
 
             #[cfg(feature = "ssr")]
@@ -306,7 +312,7 @@ pub(crate) enum UpdateEvent {
     Message,
     /// Wraps properties, node ref, and next sibling for a component
     #[cfg(feature = "csr")]
-    Properties(Rc<dyn Any>, NodeRef),
+    Properties(Rc<dyn Any>, ComponentAnyRef, NodeRef),
 }
 
 pub(crate) struct UpdateRunner {
@@ -321,24 +327,29 @@ impl Runnable for UpdateRunner {
                 UpdateEvent::Message => state.inner.flush_messages(),
 
                 #[cfg(feature = "csr")]
-                UpdateEvent::Properties(props, next_sibling) => {
+                UpdateEvent::Properties(props, next_scope_ref, next_sibling) => {
                     match state.render_state {
                         #[cfg(feature = "csr")]
                         ComponentRenderState::Render {
+                            ref mut scope_ref,
                             next_sibling: ref mut current_next_sibling,
                             ..
                         } => {
+                            // When components are updated, a new node ref could have been passed in
+                            scope_ref.swap_into(next_scope_ref, || state.inner.any_scope());
                             // When components are updated, their siblings were likely also updated
                             *current_next_sibling = next_sibling;
                             // Only trigger changed if props were changed
                             state.inner.props_changed(props)
                         }
-
                         #[cfg(feature = "hydration")]
                         ComponentRenderState::Hydration {
+                            ref mut scope_ref,
                             next_sibling: ref mut current_next_sibling,
                             ..
                         } => {
+                            // When components are updated, a new node ref could have been passed in
+                            scope_ref.swap_into(next_scope_ref, || state.inner.any_scope());
                             // When components are updated, their siblings were likely also updated
                             *current_next_sibling = next_sibling;
                             // Only trigger changed if props were changed
@@ -398,11 +409,13 @@ impl Runnable for DestroyRunner {
                     ref parent,
                     ref node_ref,
                     ref root,
+                    ref scope_ref,
                     ..
                 } => {
                     bundle.detach(root, parent, self.parent_to_detach);
 
                     node_ref.set(None);
+                    scope_ref.set(None);
                 }
                 // We need to detach the hydrate fragment if the component is not hydrated.
                 #[cfg(feature = "hydration")]
@@ -511,10 +524,11 @@ impl RenderRunner {
                 ref root,
                 ref next_sibling,
                 ref node_ref,
+                ref scope_ref,
                 ..
             } => {
                 let scope = state.inner.any_scope();
-
+                scope_ref.set(Some(scope.clone()));
                 let new_node_ref =
                     bundle.reconcile(root, &scope, parent, next_sibling.clone(), new_root);
                 node_ref.link(new_node_ref);
@@ -537,6 +551,7 @@ impl RenderRunner {
                 ref mut fragment,
                 ref parent,
                 ref node_ref,
+                ref scope_ref,
                 ref next_sibling,
                 ref root,
             } => {
@@ -550,6 +565,7 @@ impl RenderRunner {
                 );
 
                 let scope = state.inner.any_scope();
+                scope_ref.set(Some(scope.clone()));
 
                 // This first node is not guaranteed to be correct here.
                 // As it may be a comment node that is removed afterwards.
@@ -569,6 +585,7 @@ impl RenderRunner {
                     parent: parent.clone(),
                     node_ref: node_ref.clone(),
                     next_sibling: next_sibling.clone(),
+                    scope_ref: scope_ref.clone(),
                 };
             }
 
@@ -747,6 +764,7 @@ mod tests {
             parent,
             NodeRef::default(),
             NodeRef::default(),
+            ComponentAnyRef::default(),
             Rc::new(props),
         );
         crate::scheduler::start_now();
