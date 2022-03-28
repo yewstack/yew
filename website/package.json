@@ -43,7 +43,7 @@
     ]
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^2.0.0-beta.17",
+    "@docusaurus/module-type-aliases": "^2.0.0-beta.18",
     "@tsconfig/docusaurus": "^1.0.5",
     "@types/react": "^17.0.43",
     "@types/react-helmet": "^6.1.5",
