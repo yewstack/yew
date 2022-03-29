@@ -6,7 +6,7 @@ mod conversion;
 mod error;
 mod listener;
 
-use std::cell::RefCell;
+use std::cell::{Ref, RefCell};
 use std::marker::PhantomData;
 use std::rc::Rc;
 
@@ -204,7 +204,7 @@ pub struct ComponentRef<COMP: BaseComponent>(Rc<RefCell<CompRefInner>>, PhantomD
 
 impl<COMP: BaseComponent> std::fmt::Debug for ComponentRef<COMP> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "ComponentAnyRef {{ scope: {:?} }}", self.get())
+        write!(f, "ComponentAnyRef {{ scope: {:?} }}", self.get_scope())
     }
 }
 
@@ -220,7 +220,19 @@ impl<COMP: BaseComponent> Default for ComponentRef<COMP> {
     }
 }
 
+impl<COMP: BaseComponent> PartialEq for ComponentRef<COMP> {
+    fn eq(&self, other: &Self) -> bool {
+        Rc::ptr_eq(&self.0, &other.0)
+    }
+}
+
 impl<COMP: BaseComponent> ComponentRef<COMP> {
+    fn get_scope(&self) -> Ref<'_, Option<AnyScope>> {
+        Ref::map(self.0.borrow(), |s| &s.scope)
+    }
+}
+
+impl<COMP: Component> ComponentRef<COMP> {
     /// Create a new, unbound component ref
     pub fn new() -> Self {
         Self::default()
@@ -228,13 +240,7 @@ impl<COMP: BaseComponent> ComponentRef<COMP> {
 
     /// Get the scope of the referenced node, if it exists
     pub fn get(&self) -> Option<Scope<COMP>> {
-        Some(self.0.borrow().scope.as_ref()?.downcast::<COMP>())
-    }
-}
-
-impl<COMP: BaseComponent> PartialEq for ComponentRef<COMP> {
-    fn eq(&self, other: &Self) -> bool {
-        Rc::ptr_eq(&self.0, &other.0)
+        Some(self.get_scope().as_ref()?.downcast::<COMP>())
     }
 }
 
