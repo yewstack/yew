@@ -59,14 +59,14 @@ impl Reconcilable for VComp {
         let VComp {
             type_id,
             mountable,
-            scope_ref,
+            comp_ref,
             key,
         } = self;
         let internal_ref = NodeRef::default();
         let scope = mountable.mount(
             root,
             internal_ref.clone(),
-            scope_ref,
+            comp_ref,
             parent_scope,
             parent.to_owned(),
             next_sibling,
@@ -112,13 +112,13 @@ impl Reconcilable for VComp {
     ) -> NodeRef {
         let VComp {
             mountable,
-            scope_ref,
+            comp_ref,
             key,
             type_id: _,
         } = self;
 
         bcomp.key = key;
-        mountable.reuse(scope_ref, bcomp.scope.borrow(), next_sibling);
+        mountable.reuse(comp_ref, bcomp.scope.borrow(), next_sibling);
         bcomp.internal_ref.clone()
     }
 }
@@ -139,7 +139,7 @@ mod feat_hydration {
             let VComp {
                 type_id,
                 mountable,
-                scope_ref,
+                comp_ref,
                 key,
             } = self;
             let internal_ref = NodeRef::default();
@@ -150,7 +150,7 @@ mod feat_hydration {
                 parent.clone(),
                 fragment,
                 internal_ref.clone(),
-                scope_ref,
+                comp_ref,
             );
 
             (
@@ -283,7 +283,7 @@ mod tests {
                 VNode::VComp(vcomp) => vcomp,
                 _ => unreachable!("should be a vcomp"),
             };
-            assert_eq!(vcomp.scope_ref, internal_node_ref);
+            assert_eq!(vcomp.comp_ref, internal_node_ref);
         };
 
         let props = Props {

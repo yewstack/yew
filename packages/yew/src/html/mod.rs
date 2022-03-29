@@ -309,22 +309,27 @@ mod feat_csr {
             }
         }
 
-        pub(crate) fn swap_into(&mut self, next: Self, get_scope: impl FnOnce() -> AnyScope) {
+        /// `self` should be bound. Then, behave like
+        /// ```ignore
+        /// let scope = self."take"().unwrap_or_else(get_scope);
+        /// next.set(Some(scope));
+        /// *self = next;
+        /// ```
+        /// but avoid to call `get_scope` when possible
+        pub(crate) fn morph_into(&mut self, next: Self, get_scope: impl FnOnce() -> AnyScope) {
             if self == &next {
                 return;
             }
+            let old = std::mem::replace(&mut self.0, next.0);
+            let old_scope = old.and_then(|old| {
+                // debug_assert!(old.borrow().scope == Some(get_scope()));
+                old.borrow_mut().scope.take()
+            });
             let new = match self.0 {
                 Some(ref inner) => inner,
                 None => return,
             };
-            let scope = match next.0 {
-                Some(scope) => {
-                    // debug_assert!(scope.borrow().scope == Some(get_scope()));
-                    scope.borrow_mut().scope.take()
-                }
-                None => Some(get_scope()),
-            };
-            new.borrow_mut().scope = scope;
+            new.borrow_mut().scope = Some(old_scope.unwrap_or_else(get_scope));
         }
     }
 }

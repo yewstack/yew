@@ -145,7 +145,8 @@ Note that this lifecycle method does not require an implementation and will do n
 Communication with components happens primarily through messages which are handled by the
 `update` lifecycle method. This allows the component to update itself
 based on what the message was, and determine if it needs to re-render itself. Messages can be sent
-by event listeners, child and parent components, Agents, Services, or Futures.
+from any callback, including event listeners - even asynchronous ones - in child and parent components,
+before the component is destroyed.
 
 Here's an example of what an implementation of `update` could look like:
 

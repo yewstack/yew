@@ -428,7 +428,7 @@ mod feat_csr {
             parent: Element,
             next_sibling: NodeRef,
             node_ref: NodeRef,
-            scope_ref: ComponentAnyRef,
+            comp_ref: ComponentAnyRef,
             props: Rc<COMP::Properties>,
         ) {
             let bundle = Bundle::new();
@@ -439,7 +439,7 @@ mod feat_csr {
                 node_ref,
                 parent,
                 next_sibling,
-                scope_ref,
+                comp_ref,
             };
 
             scheduler::push_component_create(
@@ -460,13 +460,13 @@ mod feat_csr {
         pub(crate) fn reuse(
             &self,
             props: Rc<COMP::Properties>,
-            scope_ref: ComponentAnyRef,
+            comp_ref: ComponentAnyRef,
             next_sibling: NodeRef,
         ) {
             #[cfg(debug_assertions)]
             super::super::log_event(self.id, "reuse");
 
-            self.push_update(UpdateEvent::Properties(props, scope_ref, next_sibling));
+            self.push_update(UpdateEvent::Properties(props, comp_ref, next_sibling));
         }
     }
 
@@ -550,7 +550,7 @@ mod feat_hydration {
             parent: Element,
             fragment: &mut Fragment,
             node_ref: NodeRef,
-            scope_ref: ComponentAnyRef,
+            comp_ref: ComponentAnyRef,
             props: Rc<COMP::Properties>,
         ) {
             // This is very helpful to see which component is failing during hydration
@@ -577,7 +577,7 @@ mod feat_hydration {
                 parent,
                 node_ref,
                 next_sibling,
-                scope_ref,
+                comp_ref,
                 fragment,
             };
 
