@@ -159,7 +159,7 @@ them into an `use_effect` hook.
 
 Whilst it's possible to use Struct Components with server-side rendering in
 hydration, the components will be created in a different order than they
-are directly rendered on the client-side. The render function will be called
+are directly rendered on the client-side. The view function will be called
 multiple times before the rendered function will be called and the
 component will start receiving messages immediately after the `view()`
 function is called after the first time. At that time, the DOM may not
