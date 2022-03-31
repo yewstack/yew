@@ -43,7 +43,3 @@ members = [
   "tools/benchmark-hooks",
   "tools/website-test",
 ]
-
-[patch.crates-io]
-xtask-wasm = { path = "/home/cecile/repos/xtask-wasm" }
-xtask-wasm-run-example = { path = "/home/cecile/repos/xtask-wasm/xtask-wasm-run-example" }

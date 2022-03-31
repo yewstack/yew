@@ -4,46 +4,34 @@ use web_sys::{HtmlInputElement, KeyboardEvent};
 use yew::immutable::*;
 use yew::prelude::*;
 
-struct MyComponent;
-
 #[derive(Properties, PartialEq)]
-struct MyComponentProps {
-    values: IMap<u32, IString>,
+struct DisplayProps {
+    values: IArray<IString>,
 }
 
-impl Component for MyComponent {
-    type Message = ();
-    type Properties = MyComponentProps;
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let props = ctx.props();
-
-        html! {
-            <>
-            <p>{"Hello to:"}</p>
-            <ul>
-            { for props.values.iter().map(|(i, s)| html!(<li>{i}{" => "}{s}</li>)) }
-            </ul>
-            </>
-        }
+#[function_component]
+fn Display(props: &DisplayProps) -> Html {
+    html! {
+        <>
+        <p>{"Hello to:"}</p>
+        <ul>
+        { for props.values.iter().map(|s| html!(<li>{s}</li>)) }
+        </ul>
+        </>
     }
 }
 
-struct App {
-    values: IMap<u32, IString>,
+pub struct ArrayExample {
+    values: IArray<IString>,
 }
 
-enum AppMessage {
+pub enum ArrayExampleMessage {
     AddName(String),
     Noop,
 }
 
-impl Component for App {
-    type Message = AppMessage;
+impl Component for ArrayExample {
+    type Message = ArrayExampleMessage;
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
@@ -54,18 +42,15 @@ impl Component for App {
 
     fn update(&mut self, _: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            AppMessage::AddName(name) => {
+            ArrayExampleMessage::AddName(name) => {
                 self.values = self
                     .values
                     .iter()
-                    .chain(std::iter::once((
-                        self.values.len() as u32,
-                        IString::from(name),
-                    )))
+                    .chain(std::iter::once(IString::from(name)))
                     .collect();
                 true
             }
-            AppMessage::Noop => false,
+            ArrayExampleMessage::Noop => false,
         }
     }
 
@@ -78,22 +63,19 @@ impl Component for App {
                 let target: HtmlInputElement = event_target.dyn_into().unwrap_throw();
                 let value = target.value();
                 target.set_value("");
-                AppMessage::AddName(value)
+                ArrayExampleMessage::AddName(value)
             } else {
-                AppMessage::Noop
+                ArrayExampleMessage::Noop
             }
         });
 
         html! {
             <>
+            <h2>{"Input"}</h2>
             <input {onkeyup} />
-            <MyComponent values={&self.values} />
+            <h2>{"Output"}</h2>
+            <Display values={&self.values} />
             </>
         }
     }
-}
-
-#[xtask_wasm::run_example]
-fn run_app() {
-    yew::start_app::<App>();
 }

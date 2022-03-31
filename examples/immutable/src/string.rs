@@ -4,40 +4,28 @@ use web_sys::{HtmlInputElement, InputEvent};
 use yew::immutable::*;
 use yew::prelude::*;
 
-struct MyComponent;
-
 #[derive(Properties, PartialEq)]
-struct MyComponentProps {
+struct DisplayProps {
     name: IString,
 }
 
-impl Component for MyComponent {
-    type Message = ();
-    type Properties = MyComponentProps;
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let props = ctx.props();
-
-        html! {
-            <p>{"Hello "}{&props.name}{"!"}</p>
-        }
+#[function_component]
+fn Display(props: &DisplayProps) -> Html {
+    html! {
+        <p>{"Hello "}{&props.name}{"!"}</p>
     }
 }
 
-struct App {
+pub struct StringExample {
     name: IString,
 }
 
-enum AppMessage {
+pub enum StringExampleMessage {
     UpdateName(String),
 }
 
-impl Component for App {
-    type Message = AppMessage;
+impl Component for StringExample {
+    type Message = StringExampleMessage;
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
@@ -48,7 +36,7 @@ impl Component for App {
 
     fn update(&mut self, _: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            AppMessage::UpdateName(name) => {
+            StringExampleMessage::UpdateName(name) => {
                 self.name = name.into();
                 true
             }
@@ -61,19 +49,16 @@ impl Component for App {
             let event: Event = e.dyn_into().unwrap_throw();
             let event_target = event.target().unwrap_throw();
             let target: HtmlInputElement = event_target.dyn_into().unwrap_throw();
-            AppMessage::UpdateName(target.value())
+            StringExampleMessage::UpdateName(target.value())
         });
 
         html! {
             <>
+            <h2>{"Input"}</h2>
             <input value={&self.name} {oninput} />
-            <MyComponent name={&self.name} />
+            <h2>{"Output"}</h2>
+            <Display name={&self.name} />
             </>
         }
     }
-}
-
-#[xtask_wasm::run_example]
-fn run_app() {
-    yew::start_app::<App>();
 }
