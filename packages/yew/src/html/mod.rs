@@ -244,10 +244,13 @@ impl<COMP: Component> ComponentRef<COMP> {
     }
 }
 
+/// Internal form of a `ComponentRef`, erasing the component type.
+/// The type-id is currently not stored, so be careful that the contained scope always has
+/// the correct component type.
 #[derive(Default, Clone)]
-pub(crate) struct ComponentAnyRef(Option<Rc<RefCell<CompRefInner>>>);
+pub(crate) struct ErasedComponentRef(Option<Rc<RefCell<CompRefInner>>>);
 
-impl<COMP: BaseComponent> From<Option<ComponentRef<COMP>>> for ComponentAnyRef {
+impl<COMP: BaseComponent> From<Option<ComponentRef<COMP>>> for ErasedComponentRef {
     fn from(user_ref: Option<ComponentRef<COMP>>) -> Self {
         match user_ref {
             Some(user_ref) => Self(Some(user_ref.0)),
@@ -256,7 +259,7 @@ impl<COMP: BaseComponent> From<Option<ComponentRef<COMP>>> for ComponentAnyRef {
     }
 }
 
-impl std::fmt::Debug for ComponentAnyRef {
+impl std::fmt::Debug for ErasedComponentRef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(ref inner) = self.0 {
             write!(f, "ComponentAnyRef {{ scope: {:?} }}", inner.borrow().scope)
@@ -266,7 +269,7 @@ impl std::fmt::Debug for ComponentAnyRef {
     }
 }
 
-impl PartialEq for ComponentAnyRef {
+impl PartialEq for ErasedComponentRef {
     fn eq(&self, other: &Self) -> bool {
         match (&self.0, &other.0) {
             (None, None) => true,
@@ -306,7 +309,7 @@ mod feat_csr {
         }
     }
 
-    impl ComponentAnyRef {
+    impl ErasedComponentRef {
         /// Place a Scope in a reference for later use
         pub(crate) fn set(&self, scope: Option<AnyScope>) {
             if let Some(ref inner) = self.0 {

@@ -16,7 +16,7 @@ use crate::dom_bundle::{BSubtree, Bundle};
 use crate::html::NodeRef;
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
-use crate::html::{ComponentAnyRef, Html, RenderError};
+use crate::html::{ErasedComponentRef, Html, RenderError};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{BaseSuspense, Suspension};
 use crate::{Callback, Context, HtmlResult};
@@ -139,7 +139,8 @@ where
 {
     component: COMP,
     context: Context<COMP>,
-    comp_ref: ComponentAnyRef,
+    #[allow(dead_code)]
+    comp_ref: ErasedComponentRef,
 }
 
 /// A trait to provide common,
@@ -155,7 +156,8 @@ pub(crate) trait Stateful {
     fn any_scope(&self) -> AnyScope;
 
     fn flush_messages(&mut self) -> bool;
-    fn props_changed(&mut self, props: Rc<dyn Any>, comp_ref: ComponentAnyRef) -> bool;
+    #[cfg(feature = "csr")]
+    fn props_changed(&mut self, props: Rc<dyn Any>, comp_ref: ErasedComponentRef) -> bool;
 
     fn as_any(&self) -> &dyn Any;
     fn as_any_mut(&mut self) -> &mut dyn Any;
@@ -170,12 +172,14 @@ where
     }
 
     fn rendered(&mut self, first_render: bool) {
+        #[cfg(feature = "csr")]
         self.comp_ref.set(Some(self.any_scope()));
         self.component.rendered(&self.context, first_render)
     }
 
     fn destroy(&mut self) {
         self.component.destroy(&self.context);
+        #[cfg(feature = "csr")]
         self.comp_ref.set(None);
     }
 
@@ -194,7 +198,8 @@ where
             })
     }
 
-    fn props_changed(&mut self, props: Rc<dyn Any>, next_comp_ref: ComponentAnyRef) -> bool {
+    #[cfg(feature = "csr")]
+    fn props_changed(&mut self, props: Rc<dyn Any>, next_comp_ref: ErasedComponentRef) -> bool {
         // When components are updated, a new node ref could have been passed in
         self.comp_ref
             .morph_into(next_comp_ref, || self.context.link().clone().into());
@@ -239,7 +244,7 @@ impl ComponentState {
         initial_render_state: ComponentRenderState,
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
-        comp_ref: ComponentAnyRef,
+        comp_ref: ErasedComponentRef,
     ) -> Self {
         let comp_id = scope.id;
         #[cfg(feature = "hydration")]
@@ -292,7 +297,7 @@ pub(crate) struct CreateRunner<COMP: BaseComponent> {
     pub initial_render_state: ComponentRenderState,
     pub props: Rc<COMP::Properties>,
     pub scope: Scope<COMP>,
-    pub comp_ref: ComponentAnyRef,
+    pub comp_ref: ErasedComponentRef,
 }
 
 impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
@@ -317,7 +322,7 @@ pub(crate) enum UpdateEvent {
     Message,
     /// Wraps properties, node ref, and next sibling for a component
     #[cfg(feature = "csr")]
-    Properties(Rc<dyn Any>, ComponentAnyRef, NodeRef),
+    Properties(Rc<dyn Any>, ErasedComponentRef, NodeRef),
 }
 
 pub(crate) struct UpdateRunner {
@@ -756,7 +761,7 @@ mod tests {
             parent,
             NodeRef::default(),
             NodeRef::default(),
-            ComponentAnyRef::default(),
+            ErasedComponentRef::default(),
             Rc::new(props),
         );
         crate::scheduler::start_now();
