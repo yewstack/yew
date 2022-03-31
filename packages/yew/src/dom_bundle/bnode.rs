@@ -270,7 +270,7 @@ mod feat_hydration {
                 }
                 // You cannot hydrate a VPortal.
                 VNode::VPortal(_) => {
-                    panic!("VPortal is not hydratable. Try to create your portal by delaying it with use_effect.")
+                    panic!("VPortal is not hydratable. Try creating your portal by delaying it with use_effect.")
                 }
                 VNode::VSuspense(vsuspense) => {
                     let (node_ref, suspense) =
