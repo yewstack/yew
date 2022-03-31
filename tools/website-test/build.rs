@@ -86,7 +86,7 @@ impl Level {
                 .unwrap()
                 .to_str()
                 .unwrap()
-                .replace("-", "_");
+                .replace('-', "_");
 
             self.write_space(dst, level);
 
