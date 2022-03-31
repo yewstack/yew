@@ -71,23 +71,30 @@ wasm-bindgen-futures = "0.4"
 tokio = { version = "1.15.0", features = ["rt"], optional = true }
 
 [dev-dependencies]
-easybench-wasm = "0.2"
 wasm-bindgen-test = "0.3"
 gloo = { version = "0.6", features = ["futures"] }
 wasm-bindgen-futures = "0.4"
 rustversion = "1"
 trybuild = "1"
 
+[dev-dependencies.web-sys]
+version = "0.3"
+features = [
+  "ShadowRoot",
+  "ShadowRootInit",
+  "ShadowRootMode",
+]
+
 [features]
-doc_test = []
-wasm_test = []
-wasm_bench = []
 ssr = ["futures", "html-escape"]
+csr = []
+doc_test = ["csr", "ssr"]
+wasm_test = ["csr"]
 default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1.15.0", features = ["full"] }
 
 [package.metadata.docs.rs]
-features = ["doc_test", "ssr"]
+features = ["doc_test"]
 rustdoc-args = ["--cfg", "documenting"]

@@ -23,6 +23,6 @@ impl BaseComponent for Comp {
     fn destroy(&mut self, _ctx: &Context<Self>) {}
 }
 
-impl yew::html::component::SealedBaseComponent for Comp {}
+impl yew::html::component::sealed::SealedBaseComponent for Comp {}
 
 fn main() {}

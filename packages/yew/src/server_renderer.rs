@@ -3,29 +3,30 @@ use super::*;
 use crate::html::Scope;
 
 /// A Yew Server-side Renderer.
-#[derive(Debug)]
 #[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
-pub struct ServerRenderer<COMP>
+#[derive(Debug)]
+pub struct ServerRenderer<ICOMP>
 where
-    COMP: BaseComponent,
+    ICOMP: IntoComponent,
 {
-    props: COMP::Properties,
+    props: ICOMP::Properties,
+    hydratable: bool,
 }
 
-impl<COMP> Default for ServerRenderer<COMP>
+impl<ICOMP> Default for ServerRenderer<ICOMP>
 where
-    COMP: BaseComponent,
-    COMP::Properties: Default,
+    ICOMP: IntoComponent,
+    ICOMP::Properties: Default,
 {
     fn default() -> Self {
-        Self::with_props(COMP::Properties::default())
+        Self::with_props(ICOMP::Properties::default())
     }
 }
 
-impl<COMP> ServerRenderer<COMP>
+impl<ICOMP> ServerRenderer<ICOMP>
 where
-    COMP: BaseComponent,
-    COMP::Properties: Default,
+    ICOMP: IntoComponent,
+    ICOMP::Properties: Default,
 {
     /// Creates a [ServerRenderer] with default properties.
     pub fn new() -> Self {
@@ -33,13 +34,28 @@ where
     }
 }
 
-impl<COMP> ServerRenderer<COMP>
+impl<ICOMP> ServerRenderer<ICOMP>
 where
-    COMP: BaseComponent,
+    ICOMP: IntoComponent,
 {
     /// Creates a [ServerRenderer] with custom properties.
-    pub fn with_props(props: COMP::Properties) -> Self {
-        Self { props }
+    pub fn with_props(props: ICOMP::Properties) -> Self {
+        Self {
+            props,
+            hydratable: true,
+        }
+    }
+
+    /// Sets whether an the rendered result is hydratable.
+    ///
+    /// Defaults to `true`.
+    ///
+    /// When this is sets to `true`, the rendered artifact will include additional information
+    /// to assist with the hydration process.
+    pub fn hydratable(mut self, val: bool) -> Self {
+        self.hydratable = val;
+
+        self
     }
 
     /// Renders Yew Application.
@@ -53,7 +69,9 @@ where
 
     /// Renders Yew Application to a String.
     pub async fn render_to_string(self, w: &mut String) {
-        let scope = Scope::<COMP>::new(None);
-        scope.render_to_string(w, self.props.into()).await;
+        let scope = Scope::<<ICOMP as IntoComponent>::Component>::new(None);
+        scope
+            .render_to_string(w, self.props.into(), self.hydratable)
+            .await;
     }
 }

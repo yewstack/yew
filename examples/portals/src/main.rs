@@ -31,7 +31,7 @@ impl Component for ShadowDOMHost {
                 .get()
                 .expect("rendered host")
                 .unchecked_into::<Element>()
-                .attach_shadow(&ShadowRootInit::new(ShadowRootMode::Closed))
+                .attach_shadow(&ShadowRootInit::new(ShadowRootMode::Open))
                 .expect("installing shadow root succeeds");
             let inner_host = gloo_utils::document()
                 .create_element("div")
@@ -68,39 +68,78 @@ impl Component for ShadowDOMHost {
 }
 
 pub struct App {
-    pub style_html: Html,
+    style_html: Html,
+    title_element: Element,
+    counter: u32,
+}
+
+pub enum AppMessage {
+    IncreaseCounter,
 }
 
 impl Component for App {
-    type Message = ();
+    type Message = AppMessage;
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
         let document_head = gloo_utils::document()
             .head()
             .expect("head element to be present");
+        let title_element = document_head
+            .query_selector("title")
+            .expect("to find a title element")
+            .expect("to find a title element");
+        title_element.set_text_content(None); // Clear the title element
         let style_html = create_portal(
             html! {
                 <style>{"p { color: red; }"}</style>
             },
             document_head.into(),
         );
-        Self { style_html }
+        Self {
+            style_html,
+            title_element,
+            counter: 0,
+        }
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            AppMessage::IncreaseCounter => self.counter += 1,
+        }
+        true
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let onclick = ctx.link().callback(|_| AppMessage::IncreaseCounter);
+        let title = create_portal(
+            html! {
+                if self.counter > 0 {
+                    {format!("Clicked {} times", self.counter)}
+                } else {
+                    {"Yew • Portals"}
+                }
+            },
+            self.title_element.clone(),
+        );
         html! {
             <>
             {self.style_html.clone()}
+            {title}
             <p>{"This paragraph is colored red, and its style is mounted into "}<pre>{"document.head"}</pre>{" with a portal"}</p>
-            <ShadowDOMHost>
-                <p>{"This paragraph is rendered in a shadow dom and thus not affected by the surrounding styling context"}</p>
-            </ShadowDOMHost>
+            <div>
+                <ShadowDOMHost>
+                    <p>{"This paragraph is rendered in a shadow dom and thus not affected by the surrounding styling context"}</p>
+                    <span>{"Buttons clicked inside the shadow dom work fine."}</span>
+                    <button {onclick}>{"Click me!"}</button>
+                </ShadowDOMHost>
+                <p>{format!("The button has been clicked {} times. This is also reflected in the title of the tab!", self.counter)}</p>
+            </div>
             </>
         }
     }
 }
 
 fn main() {
-    yew::start_app::<App>();
+    yew::Renderer::<App>::new().render();
 }

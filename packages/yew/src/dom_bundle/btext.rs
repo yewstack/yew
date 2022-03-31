@@ -1,6 +1,6 @@
 //! This module contains the bundle implementation of text [BText].
 
-use super::{insert_node, BNode, DomBundle, Reconcilable};
+use super::{insert_node, BNode, BSubtree, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::{AttrValue, VText};
 use crate::NodeRef;
@@ -9,13 +9,13 @@ use gloo_utils::document;
 use web_sys::{Element, Text as TextNode};
 
 /// The bundle implementation to [VText]
-pub struct BText {
+pub(super) struct BText {
     text: AttrValue,
     text_node: TextNode,
 }
 
-impl DomBundle for BText {
-    fn detach(self, parent: &Element, parent_to_detach: bool) {
+impl ReconcileTarget for BText {
+    fn detach(self, _root: &BSubtree, parent: &Element, parent_to_detach: bool) {
         if !parent_to_detach {
             let result = parent.remove_child(&self.text_node);
 
@@ -39,6 +39,7 @@ impl Reconcilable for VText {
 
     fn attach(
         self,
+        _root: &BSubtree,
         _parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -53,18 +54,21 @@ impl Reconcilable for VText {
     /// Renders virtual node over existing `TextNode`, but only if value of text has changed.
     fn reconcile_node(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
     ) -> NodeRef {
         match bundle {
-            BNode::Text(btext) => self.reconcile(parent_scope, parent, next_sibling, btext),
-            _ => self.replace(parent_scope, parent, next_sibling, bundle),
+            BNode::Text(btext) => self.reconcile(root, parent_scope, parent, next_sibling, btext),
+            _ => self.replace(root, parent_scope, parent, next_sibling, bundle),
         }
     }
+
     fn reconcile(
         self,
+        _root: &BSubtree,
         _parent_scope: &AnyScope,
         _parent: &Element,
         _next_sibling: NodeRef,
@@ -81,7 +85,7 @@ impl Reconcilable for VText {
 
 impl std::fmt::Debug for BText {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "BText {{ text: \"{}\" }}", self.text)
+        f.debug_struct("BText").field("text", &self.text).finish()
     }
 }
 

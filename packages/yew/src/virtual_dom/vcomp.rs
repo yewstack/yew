@@ -1,14 +1,23 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
 use super::Key;
-use crate::dom_bundle::{Mountable, PropsWrapper};
-use crate::html::{BaseComponent, NodeRef};
+use crate::html::{BaseComponent, IntoComponent, NodeRef};
 use std::any::TypeId;
 use std::fmt;
 use std::rc::Rc;
 
-#[cfg(debug_assertions)]
-thread_local! {}
+#[cfg(any(feature = "ssr", feature = "csr"))]
+use crate::html::{AnyScope, Scope};
+
+#[cfg(feature = "csr")]
+use crate::dom_bundle::BSubtree;
+#[cfg(feature = "csr")]
+use crate::html::Scoped;
+#[cfg(feature = "csr")]
+use web_sys::Element;
+
+#[cfg(feature = "ssr")]
+use futures::future::{FutureExt, LocalBoxFuture};
 
 /// A virtual component.
 pub struct VComp {
@@ -40,16 +49,97 @@ impl Clone for VComp {
     }
 }
 
+pub(crate) trait Mountable {
+    fn copy(&self) -> Box<dyn Mountable>;
+
+    #[cfg(feature = "csr")]
+    fn mount(
+        self: Box<Self>,
+        root: &BSubtree,
+        node_ref: NodeRef,
+        parent_scope: &AnyScope,
+        parent: Element,
+        next_sibling: NodeRef,
+    ) -> Box<dyn Scoped>;
+
+    #[cfg(feature = "csr")]
+    fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef);
+
+    #[cfg(feature = "ssr")]
+    fn render_to_string<'a>(
+        &'a self,
+        w: &'a mut String,
+        parent_scope: &'a AnyScope,
+        hydratable: bool,
+    ) -> LocalBoxFuture<'a, ()>;
+}
+
+pub(crate) struct PropsWrapper<COMP: BaseComponent> {
+    props: Rc<COMP::Properties>,
+}
+
+impl<COMP: BaseComponent> PropsWrapper<COMP> {
+    pub fn new(props: Rc<COMP::Properties>) -> Self {
+        Self { props }
+    }
+}
+
+impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
+    fn copy(&self) -> Box<dyn Mountable> {
+        let wrapper: PropsWrapper<COMP> = PropsWrapper {
+            props: Rc::clone(&self.props),
+        };
+        Box::new(wrapper)
+    }
+
+    #[cfg(feature = "csr")]
+    fn mount(
+        self: Box<Self>,
+        root: &BSubtree,
+        node_ref: NodeRef,
+        parent_scope: &AnyScope,
+        parent: Element,
+        next_sibling: NodeRef,
+    ) -> Box<dyn Scoped> {
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+        scope.mount_in_place(root.clone(), parent, next_sibling, node_ref, self.props);
+
+        Box::new(scope)
+    }
+
+    #[cfg(feature = "csr")]
+    fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef) {
+        let scope: Scope<COMP> = scope.to_any().downcast::<COMP>();
+        scope.reuse(self.props, node_ref, next_sibling);
+    }
+
+    #[cfg(feature = "ssr")]
+    fn render_to_string<'a>(
+        &'a self,
+        w: &'a mut String,
+        parent_scope: &'a AnyScope,
+        hydratable: bool,
+    ) -> LocalBoxFuture<'a, ()> {
+        async move {
+            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+            scope
+                .render_to_string(w, self.props.clone(), hydratable)
+                .await;
+        }
+        .boxed_local()
+    }
+}
+
 /// A virtual child component.
-pub struct VChild<COMP: BaseComponent> {
+pub struct VChild<ICOMP: IntoComponent> {
     /// The component properties
-    pub props: Rc<COMP::Properties>,
+    pub props: Rc<ICOMP::Properties>,
     /// Reference to the mounted node
     node_ref: NodeRef,
     key: Option<Key>,
 }
 
-impl<COMP: BaseComponent> Clone for VChild<COMP> {
+impl<ICOMP: IntoComponent> Clone for VChild<ICOMP> {
     fn clone(&self) -> Self {
         VChild {
             props: Rc::clone(&self.props),
@@ -59,21 +149,21 @@ impl<COMP: BaseComponent> Clone for VChild<COMP> {
     }
 }
 
-impl<COMP: BaseComponent> PartialEq for VChild<COMP>
+impl<ICOMP: IntoComponent> PartialEq for VChild<ICOMP>
 where
-    COMP::Properties: PartialEq,
+    ICOMP::Properties: PartialEq,
 {
-    fn eq(&self, other: &VChild<COMP>) -> bool {
+    fn eq(&self, other: &VChild<ICOMP>) -> bool {
         self.props == other.props
     }
 }
 
-impl<COMP> VChild<COMP>
+impl<ICOMP> VChild<ICOMP>
 where
-    COMP: BaseComponent,
+    ICOMP: IntoComponent,
 {
     /// Creates a child component that can be accessed and modified by its parent.
-    pub fn new(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self {
+    pub fn new(props: ICOMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self {
         Self {
             props: Rc::new(props),
             node_ref,
@@ -82,25 +172,25 @@ where
     }
 }
 
-impl<COMP> From<VChild<COMP>> for VComp
+impl<ICOMP> From<VChild<ICOMP>> for VComp
 where
-    COMP: BaseComponent,
+    ICOMP: IntoComponent,
 {
-    fn from(vchild: VChild<COMP>) -> Self {
-        VComp::new::<COMP>(vchild.props, vchild.node_ref, vchild.key)
+    fn from(vchild: VChild<ICOMP>) -> Self {
+        VComp::new::<ICOMP>(vchild.props, vchild.node_ref, vchild.key)
     }
 }
 
 impl VComp {
     /// Creates a new `VComp` instance.
-    pub fn new<COMP>(props: Rc<COMP::Properties>, node_ref: NodeRef, key: Option<Key>) -> Self
+    pub fn new<ICOMP>(props: Rc<ICOMP::Properties>, node_ref: NodeRef, key: Option<Key>) -> Self
     where
-        COMP: BaseComponent,
+        ICOMP: IntoComponent,
     {
         VComp {
-            type_id: TypeId::of::<COMP>(),
+            type_id: TypeId::of::<ICOMP::Component>(),
             node_ref,
-            mountable: Box::new(PropsWrapper::<COMP>::new(props)),
+            mountable: Box::new(PropsWrapper::<ICOMP::Component>::new(props)),
             key,
         }
     }
@@ -124,10 +214,15 @@ mod feat_ssr {
     use crate::html::AnyScope;
 
     impl VComp {
-        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+        pub(crate) async fn render_to_string(
+            &self,
+            w: &mut String,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+        ) {
             self.mountable
                 .as_ref()
-                .render_to_string(w, parent_scope)
+                .render_to_string(w, parent_scope, hydratable)
                 .await;
         }
     }

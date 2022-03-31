@@ -15,6 +15,7 @@ members = [
   "examples/dyn_create_destroy_apps",
   "examples/file_upload",
   "examples/function_memory_game",
+  "examples/function_router",
   "examples/function_todomvc",
   "examples/futures",
   "examples/game_of_life",

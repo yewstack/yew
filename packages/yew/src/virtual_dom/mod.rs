@@ -44,6 +44,84 @@ use std::hint::unreachable_unchecked;
 /// Attribute value
 pub type AttrValue = imut::IString;
 
+#[cfg(feature = "ssr")] // & feature = "hydration"
+mod feat_ssr_hydration {
+    /// A collectable.
+    ///
+    /// This indicates a kind that can be collected from fragment to be processed at a later time
+    pub(crate) enum Collectable {
+        #[cfg(debug_assertions)]
+        Component(&'static str),
+        #[cfg(not(debug_assertions))]
+        Component,
+        Suspense,
+    }
+
+    impl Collectable {
+        pub fn open_start_mark(&self) -> &'static str {
+            match self {
+                #[cfg(debug_assertions)]
+                Self::Component(_) => "<[",
+                #[cfg(not(debug_assertions))]
+                Self::Component => "<[",
+                Self::Suspense => "<?",
+            }
+        }
+        pub fn close_start_mark(&self) -> &'static str {
+            match self {
+                #[cfg(debug_assertions)]
+                Self::Component(_) => "</[",
+                #[cfg(not(debug_assertions))]
+                Self::Component => "</[",
+                Self::Suspense => "</?",
+            }
+        }
+
+        pub fn end_mark(&self) -> &'static str {
+            match self {
+                #[cfg(debug_assertions)]
+                Self::Component(_) => "]>",
+                #[cfg(not(debug_assertions))]
+                Self::Component => "]>",
+                Self::Suspense => ">",
+            }
+        }
+
+        #[cfg(feature = "ssr")]
+        pub fn write_open_tag(&self, w: &mut String) {
+            w.push_str("<!--");
+            w.push_str(self.open_start_mark());
+
+            #[cfg(debug_assertions)]
+            match self {
+                Self::Component(type_name) => w.push_str(type_name),
+                Self::Suspense => {}
+            }
+
+            w.push_str(self.end_mark());
+            w.push_str("-->");
+        }
+
+        #[cfg(feature = "ssr")]
+        pub fn write_close_tag(&self, w: &mut String) {
+            w.push_str("<!--");
+            w.push_str(self.close_start_mark());
+
+            #[cfg(debug_assertions)]
+            match self {
+                Self::Component(type_name) => w.push_str(type_name),
+                Self::Suspense => {}
+            }
+
+            w.push_str(self.end_mark());
+            w.push_str("-->");
+        }
+    }
+}
+
+#[cfg(feature = "ssr")]
+pub(crate) use feat_ssr_hydration::*;
+
 /// A collection of attributes for an element
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Attributes {
@@ -133,192 +211,5 @@ impl From<IndexMap<&'static str, AttrValue>> for Attributes {
 impl Default for Attributes {
     fn default() -> Self {
         Self::Static(&[])
-    }
-}
-
-#[cfg(all(test, feature = "wasm_bench"))]
-mod benchmarks {
-    use super::*;
-    use wasm_bindgen_test::{wasm_bindgen_test, wasm_bindgen_test_configure};
-
-    wasm_bindgen_test_configure!(run_in_browser);
-
-    macro_rules! run {
-        ($name:ident => {
-            $( $old:expr => $new:expr )+
-        }) => {
-            // NB: these benchmarks only compare diffing. They do not take into account aspects like
-            // allocation impact, which is lower for both `Static` and `Dynamic`.
-
-            let results = vec![
-                $(
-                    {
-                        let mut old = $old.clone();
-                        let new = $new.clone();
-                        let el = gloo_utils::document().create_element("div").unwrap();
-                        old.apply(&el);
-                        (
-                            format!("{} -> {}", attr_variant(&old), attr_variant(&new)),
-                            easybench_wasm::bench_env_limit(
-                                2.0,
-                                (NodeCloner(el), new, old),
-                                |(el, mut new, old)| new.apply_diff(&el.0, old),
-                            ),
-                        )
-                    },
-                )+
-            ];
-
-            let max_name_len = results.iter().map(|(name, _)| name.len()).max().unwrap_or_default();
-            wasm_bindgen_test::console_log!(
-                "{}:{}",
-                stringify!($name),
-                results.into_iter().fold(String::new(), |mut acc, (name, res)| {
-                    use std::fmt::Write;
-
-                    write!(&mut acc, "\n\t\t{:<width$}: ", name, width=max_name_len).unwrap();
-
-                    if res.ns_per_iter.is_nan() {
-                        acc += "benchmark too slow to produce meaningful results";
-                    } else {
-                        write!(
-                            &mut acc,
-                            "{:>7.4} ns (R²={:.3}, {:>7} iterations in {:>3} samples)",
-                            res.ns_per_iter,
-                            res.goodness_of_fit,
-                            res.iterations,
-                            res.samples,
-                        )
-                        .unwrap();
-                    }
-
-                    acc
-                })
-            );
-        };
-    }
-
-    #[wasm_bindgen_test]
-    fn bench_diff_empty() {
-        let static_ = Attributes::Static(&[]);
-        let dynamic = Attributes::Dynamic {
-            keys: &[],
-            values: Box::new([]),
-        };
-        let map = Attributes::IndexMap(Default::default());
-
-        run! {
-            empty => {
-                static_ => static_
-                dynamic => dynamic
-                map => map
-                static_ => dynamic
-                static_ => map
-                dynamic => map
-            }
-        }
-    }
-
-    #[wasm_bindgen_test]
-    fn bench_diff_equal() {
-        let static_ = Attributes::Static(sample_attrs());
-        let dynamic = make_dynamic(sample_values());
-        let map = make_indexed_map(sample_values());
-
-        run! {
-            equal => {
-                static_ => static_
-                dynamic => dynamic
-                map => map
-                static_ => dynamic
-                static_ => map
-                dynamic => map
-            }
-        }
-    }
-
-    #[wasm_bindgen_test]
-    fn bench_diff_change_first() {
-        let old = sample_values();
-        let mut new = old.clone();
-        new[0] = AttrValue::Static("changed");
-
-        let dynamic = (make_dynamic(old.clone()), make_dynamic(new.clone()));
-        let map = (make_indexed_map(old), make_indexed_map(new));
-
-        run! {
-            changed_first => {
-                dynamic.0 => dynamic.1
-                map.0 => map.1
-                dynamic.0 => map.1
-            }
-        }
-    }
-
-    fn make_dynamic(values: Vec<AttrValue>) -> Attributes {
-        Attributes::Dynamic {
-            keys: sample_keys(),
-            values: values.into_iter().map(Some).collect(),
-        }
-    }
-
-    fn make_indexed_map(values: Vec<AttrValue>) -> Attributes {
-        Attributes::IndexMap(
-            sample_keys()
-                .iter()
-                .copied()
-                .zip(values.into_iter())
-                .collect(),
-        )
-    }
-
-    fn sample_keys() -> &'static [&'static str] {
-        &[
-            "oh", "boy", "pipes", "are", "from", "to", "and", "the", "side",
-        ]
-    }
-
-    fn sample_values() -> Vec<AttrValue> {
-        [
-            "danny", "the", "the", "calling", "glen", "glen", "down", "mountain", "",
-        ]
-        .iter()
-        .map(|v| AttrValue::Static(*v))
-        .collect()
-    }
-
-    fn sample_attrs() -> &'static [[&'static str; 2]] {
-        &[
-            ["oh", "danny"],
-            ["boy", "the"],
-            ["pipes", "the"],
-            ["are", "calling"],
-            ["from", "glen"],
-            ["to", "glen"],
-            ["and", "down"],
-            ["the", "mountain"],
-            ["side", ""],
-        ]
-    }
-
-    fn attr_variant(attrs: &Attributes) -> &'static str {
-        use Attributes::*;
-
-        match attrs {
-            Static(_) => "static",
-            Dynamic { .. } => "dynamic",
-            IndexMap(_) => "indexed_map",
-        }
-    }
-
-    /// Clones the node on [Clone] call
-    struct NodeCloner(Element);
-
-    impl Clone for NodeCloner {
-        fn clone(&self) -> Self {
-            use wasm_bindgen::JsCast;
-
-            Self(self.0.clone_node().unwrap().dyn_into().unwrap())
-        }
     }
 }

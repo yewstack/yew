@@ -1,11 +1,11 @@
-use proc_macro2::Span;
+use proc_macro2::{Span, TokenStream};
 use proc_macro_error::emit_error;
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
-    parse_quote, parse_quote_spanned, token, visit_mut, FnArg, Ident, Lifetime, Pat, Receiver,
-    ReturnType, Signature, Type, TypeImplTrait, TypeReference, WhereClause,
+    parse_quote, parse_quote_spanned, token, visit_mut, FnArg, GenericParam, Ident, Lifetime, Pat,
+    Receiver, ReturnType, Signature, Type, TypeImplTrait, TypeReference, WhereClause,
 };
 
 use super::lifetime;
@@ -179,5 +179,19 @@ impl HookSignature {
                 None
             })
             .collect()
+    }
+
+    pub fn call_generics(&self) -> TokenStream {
+        let mut generics = self.sig.generics.clone();
+
+        // We need to filter out lifetimes.
+        generics.params = generics
+            .params
+            .into_iter()
+            .filter(|m| !matches!(m, GenericParam::Lifetime(_)))
+            .collect();
+
+        let (_impl_generics, ty_generics, _where_clause) = generics.split_for_impl();
+        ty_generics.as_turbofish().to_token_stream()
     }
 }

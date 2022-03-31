@@ -6,11 +6,11 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-strum = "0.23"
-strum_macros = "0.23"
+strum = "0.24"
+strum_macros = "0.24"
 serde = "1"
 serde_derive = "1"
-yew = { path = "../../packages/yew" }
+yew = { path = "../../packages/yew", features = ["csr"] }
 gloo = "0.6"
 
 [dependencies.web-sys]
