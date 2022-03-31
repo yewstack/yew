@@ -19,11 +19,6 @@ pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
 
-use crate::html::{AnyScope, NodeRef};
-use indexmap::IndexMap;
-use std::{collections::HashMap, hint::unreachable_unchecked, iter};
-use web_sys::{Element, Node};
-
 #[doc(inline)]
 pub use self::key::Key;
 #[doc(inline)]
@@ -43,20 +38,11 @@ pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
 
+use indexmap::IndexMap;
+use std::hint::unreachable_unchecked;
+
 /// Attribute value
 pub type AttrValue = imut::IString;
-
-/// Applies contained changes to DOM [Element]
-trait Apply {
-    /// [Element] type to apply the changes to
-    type Element;
-
-    /// Apply contained values to [Element] with no ancestor
-    fn apply(&mut self, el: &Self::Element);
-
-    /// Apply diff between [self] and `ancestor` to [Element].
-    fn apply_diff(&mut self, el: &Self::Element, ancestor: Self);
-}
 
 /// A collection of attributes for an element
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -136,194 +122,6 @@ impl Attributes {
             }
         }
     }
-
-    #[cold]
-    fn apply_diff_index_maps<'a, A, B>(
-        el: &Element,
-        // this makes it possible to diff `&'a IndexMap<_, A>` and `IndexMap<_, &'a A>`.
-        mut new_iter: impl Iterator<Item = (&'static str, &'a str)>,
-        new: &IndexMap<&'static str, A>,
-        old: &IndexMap<&'static str, B>,
-    ) where
-        A: AsRef<str>,
-        B: AsRef<str>,
-    {
-        let mut old_iter = old.iter();
-        loop {
-            match (new_iter.next(), old_iter.next()) {
-                (Some((new_key, new_value)), Some((old_key, old_value))) => {
-                    if new_key != *old_key {
-                        break;
-                    }
-                    if new_value != old_value.as_ref() {
-                        Self::set_attribute(el, new_key, new_value);
-                    }
-                }
-                // new attributes
-                (Some(attr), None) => {
-                    for (key, value) in iter::once(attr).chain(new_iter) {
-                        match old.get(key) {
-                            Some(old_value) => {
-                                if value != old_value.as_ref() {
-                                    Self::set_attribute(el, key, value);
-                                }
-                            }
-                            None => {
-                                Self::set_attribute(el, key, value);
-                            }
-                        }
-                    }
-                    break;
-                }
-                // removed attributes
-                (None, Some(attr)) => {
-                    for (key, _) in iter::once(attr).chain(old_iter) {
-                        if !new.contains_key(key) {
-                            Self::remove_attribute(el, key);
-                        }
-                    }
-                    break;
-                }
-                (None, None) => break,
-            }
-        }
-    }
-
-    /// Convert [Attributes] pair to [HashMap]s and patch changes to `el`.
-    /// Works with any [Attributes] variants.
-    #[cold]
-    fn apply_diff_as_maps<'a>(el: &Element, new: &'a Self, old: &'a Self) {
-        fn collect<'a>(src: &'a Attributes) -> HashMap<&'static str, &'a str> {
-            use Attributes::*;
-
-            match src {
-                Static(arr) => (*arr).iter().map(|[k, v]| (*k, *v)).collect(),
-                Dynamic { keys, values } => keys
-                    .iter()
-                    .zip(values.iter())
-                    .filter_map(|(k, v)| v.as_ref().map(|v| (*k, v.as_ref())))
-                    .collect(),
-                IndexMap(m) => m.iter().map(|(k, v)| (*k, v.as_ref())).collect(),
-            }
-        }
-
-        let new = collect(new);
-        let old = collect(old);
-
-        // Update existing or set new
-        for (k, new) in new.iter() {
-            if match old.get(k) {
-                Some(old) => old != new,
-                None => true,
-            } {
-                el.set_attribute(k, new).unwrap();
-            }
-        }
-
-        // Remove missing
-        for k in old.keys() {
-            if !new.contains_key(k) {
-                Self::remove_attribute(el, k);
-            }
-        }
-    }
-
-    fn set_attribute(el: &Element, key: &str, value: &str) {
-        el.set_attribute(key, value).expect("invalid attribute key")
-    }
-
-    fn remove_attribute(el: &Element, key: &str) {
-        el.remove_attribute(key)
-            .expect("could not remove attribute")
-    }
-}
-
-impl Apply for Attributes {
-    type Element = Element;
-
-    fn apply(&mut self, el: &Element) {
-        match self {
-            Self::Static(arr) => {
-                for kv in arr.iter() {
-                    Self::set_attribute(el, kv[0], kv[1]);
-                }
-            }
-            Self::Dynamic { keys, values } => {
-                for (k, v) in keys.iter().zip(values.iter()) {
-                    if let Some(v) = v {
-                        Self::set_attribute(el, k, v)
-                    }
-                }
-            }
-            Self::IndexMap(m) => {
-                for (k, v) in m.iter() {
-                    Self::set_attribute(el, k, v)
-                }
-            }
-        }
-    }
-
-    fn apply_diff(&mut self, el: &Element, ancestor: Self) {
-        #[inline]
-        fn ptr_eq<T>(a: &[T], b: &[T]) -> bool {
-            a.as_ptr() == b.as_ptr()
-        }
-
-        match (self, ancestor) {
-            // Hot path
-            (Self::Static(new), Self::Static(old)) if ptr_eq(new, old) => (),
-            // Hot path
-            (
-                Self::Dynamic {
-                    keys: new_k,
-                    values: new_v,
-                },
-                Self::Dynamic {
-                    keys: old_k,
-                    values: old_v,
-                },
-            ) if ptr_eq(new_k, old_k) => {
-                // Double zipping does not optimize well, so use asserts and unsafe instead
-                assert!(new_k.len() == new_v.len());
-                assert!(new_k.len() == old_v.len());
-                for i in 0..new_k.len() {
-                    macro_rules! key {
-                        () => {
-                            unsafe { new_k.get_unchecked(i) }
-                        };
-                    }
-                    macro_rules! set {
-                        ($new:expr) => {
-                            Self::set_attribute(el, key!(), $new)
-                        };
-                    }
-
-                    match unsafe { (new_v.get_unchecked(i), old_v.get_unchecked(i)) } {
-                        (Some(new), Some(old)) => {
-                            if new != old {
-                                set!(new);
-                            }
-                        }
-                        (Some(new), None) => set!(new),
-                        (None, Some(_)) => {
-                            Self::remove_attribute(el, key!());
-                        }
-                        (None, None) => (),
-                    }
-                }
-            }
-            // For VTag's constructed outside the html! macro
-            (Self::IndexMap(new), Self::IndexMap(old)) => {
-                let new_iter = new.iter().map(|(k, v)| (*k, v.as_ref()));
-                Self::apply_diff_index_maps(el, new_iter, new, &old);
-            }
-            // Cold path. Happens only with conditional swapping and reordering of `VTag`s with the
-            // same tag and no keys.
-            (new, ancestor) => {
-                Self::apply_diff_as_maps(el, new, &ancestor);
-            }
-        }
-    }
 }
 
 impl From<IndexMap<&'static str, AttrValue>> for Attributes {
@@ -336,66 +134,6 @@ impl Default for Attributes {
     fn default() -> Self {
         Self::Static(&[])
     }
-}
-
-// TODO(#938): What about implementing `VDiff` for `Element`?
-// It would make it possible to include ANY element into the tree.
-// `Ace` editor embedding for example?
-
-/// This trait provides features to update a tree by calculating a difference against another tree.
-pub(crate) trait VDiff {
-    /// Remove self from parent.
-    ///
-    /// Parent to detach is `true` if the parent element will also be detached.
-    fn detach(&mut self, parent: &Element, parent_to_detach: bool);
-
-    /// Move elements from one parent to another parent.
-    /// This is currently only used by `VSuspense` to preserve component state without detaching
-    /// (which destroys component state).
-    /// Prefer `detach` then apply if possible.
-    fn shift(&self, previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef);
-
-    /// Scoped diff apply to other tree.
-    ///
-    /// Virtual rendering for the node. It uses parent node and existing
-    /// children (virtual and DOM) to check the difference and apply patches to
-    /// the actual DOM representation.
-    ///
-    /// Parameters:
-    /// - `parent_scope`: the parent `Scope` used for passing messages to the
-    ///   parent `Component`.
-    /// - `parent`: the parent node in the DOM.
-    /// - `next_sibling`: the next sibling, used to efficiently find where to
-    ///   put the node.
-    /// - `ancestor`: the node that this node will be replacing in the DOM. This
-    ///   method will _always_ remove the `ancestor` from the `parent`.
-    ///
-    /// Returns a reference to the newly inserted element.
-    ///
-    /// ### Internal Behavior Notice:
-    ///
-    /// Note that these modify the DOM by modifying the reference that _already_
-    /// exists on the `ancestor`. If `self.reference` exists (which it
-    /// _shouldn't_) this method will panic.
-    ///
-    /// The exception to this is obviously `VRef` which simply uses the inner
-    /// `Node` directly (always removes the `Node` that exists).
-    fn apply(
-        &mut self,
-        parent_scope: &AnyScope,
-        parent: &Element,
-        next_sibling: NodeRef,
-        ancestor: Option<VNode>,
-    ) -> NodeRef;
-}
-
-pub(crate) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&Node>) {
-    match next_sibling {
-        Some(next_sibling) => parent
-            .insert_before(node, Some(next_sibling))
-            .expect("failed to insert tag before next sibling"),
-        None => parent.append_child(node).expect("failed to append child"),
-    };
 }
 
 #[cfg(all(test, feature = "wasm_bench"))]

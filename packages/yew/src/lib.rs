@@ -263,9 +263,9 @@ pub mod macros {
     pub use crate::props;
 }
 
-mod app_handle;
 pub mod callback;
 pub mod context;
+mod dom_bundle;
 pub mod functional;
 pub mod html;
 mod io_coop;
@@ -274,19 +274,22 @@ mod sealed;
 #[cfg(feature = "ssr")]
 mod server_renderer;
 pub mod suspense;
-#[cfg(test)]
-pub mod tests;
 pub mod utils;
 pub mod virtual_dom;
 pub use imut as immutable;
 #[cfg(feature = "ssr")]
 pub use server_renderer::*;
 
+#[cfg(test)]
+pub mod tests {
+    pub use crate::dom_bundle::layout_tests;
+}
+
 /// The module that contains all events available in the framework.
 pub mod events {
     pub use crate::html::TargetCast;
 
-    pub use crate::virtual_dom::listeners::set_event_bubbling;
+    pub use crate::dom_bundle::set_event_bubbling;
 
     #[doc(no_inline)]
     pub use web_sys::{
@@ -295,7 +298,7 @@ pub mod events {
     };
 }
 
-pub use crate::app_handle::AppHandle;
+pub use crate::dom_bundle::AppHandle;
 use web_sys::Element;
 
 use crate::html::BaseComponent;
@@ -325,7 +328,7 @@ where
     COMP: BaseComponent,
     COMP::Properties: Default,
 {
-    start_app_with_props_in_element(element, COMP::Properties::default())
+    start_app_with_props_in_element::<COMP>(element, COMP::Properties::default())
 }
 
 /// Starts an yew app mounted to the body of the document.
@@ -335,7 +338,7 @@ where
     COMP: BaseComponent,
     COMP::Properties: Default,
 {
-    start_app_with_props(COMP::Properties::default())
+    start_app_with_props::<COMP>(COMP::Properties::default())
 }
 
 /// The main entry point of a Yew application. This function does the
@@ -357,7 +360,7 @@ pub fn start_app_with_props<COMP>(props: COMP::Properties) -> AppHandle<COMP>
 where
     COMP: BaseComponent,
 {
-    start_app_with_props_in_element(
+    start_app_with_props_in_element::<COMP>(
         gloo_utils::document()
             .body()
             .expect("no body node found")
@@ -375,9 +378,9 @@ where
 /// use yew::prelude::*;
 /// ```
 pub mod prelude {
-    pub use crate::app_handle::AppHandle;
     pub use crate::callback::Callback;
     pub use crate::context::{ContextHandle, ContextProvider};
+    pub use crate::dom_bundle::AppHandle;
     pub use crate::events::*;
     pub use crate::html::{
         create_portal, BaseComponent, Children, ChildrenWithProps, Classes, Component, Context,
