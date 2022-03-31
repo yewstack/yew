@@ -188,6 +188,7 @@ mod feat_ssr {
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
+    use crate::html::ComponentAnyRef;
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
 
@@ -207,6 +208,7 @@ mod feat_ssr {
                     initial_render_state: state,
                     props,
                     scope: self.clone(),
+                    comp_ref: ComponentAnyRef::default(),
                 }),
                 Box::new(RenderRunner {
                     state: self.state.clone(),
@@ -439,7 +441,6 @@ mod feat_csr {
                 node_ref,
                 parent,
                 next_sibling,
-                comp_ref,
             };
 
             scheduler::push_component_create(
@@ -448,6 +449,7 @@ mod feat_csr {
                     initial_render_state: state,
                     props,
                     scope: self.clone(),
+                    comp_ref,
                 }),
                 Box::new(RenderRunner {
                     state: self.state.clone(),
@@ -577,7 +579,6 @@ mod feat_hydration {
                 parent,
                 node_ref,
                 next_sibling,
-                comp_ref,
                 fragment,
             };
 
@@ -587,6 +588,7 @@ mod feat_hydration {
                     initial_render_state: state,
                     props,
                     scope: self.clone(),
+                    comp_ref,
                 }),
                 Box::new(RenderRunner {
                     state: self.state.clone(),

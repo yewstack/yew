@@ -29,14 +29,12 @@ pub(crate) enum ComponentRenderState {
         parent: Element,
         next_sibling: NodeRef,
         node_ref: NodeRef,
-        comp_ref: ComponentAnyRef,
     },
     #[cfg(feature = "hydration")]
     Hydration {
         parent: Element,
         next_sibling: NodeRef,
         node_ref: NodeRef,
-        comp_ref: ComponentAnyRef,
         root: BSubtree,
         fragment: Fragment,
     },
@@ -57,7 +55,6 @@ impl std::fmt::Debug for ComponentRenderState {
                 ref parent,
                 ref next_sibling,
                 ref node_ref,
-                ref comp_ref,
             } => f
                 .debug_struct("ComponentRenderState::Render")
                 .field("bundle", bundle)
@@ -65,7 +62,6 @@ impl std::fmt::Debug for ComponentRenderState {
                 .field("parent", parent)
                 .field("next_sibling", next_sibling)
                 .field("node_ref", node_ref)
-                .field("comp_ref", comp_ref)
                 .finish(),
 
             #[cfg(feature = "hydration")]
@@ -74,7 +70,6 @@ impl std::fmt::Debug for ComponentRenderState {
                 ref parent,
                 ref next_sibling,
                 ref node_ref,
-                ref comp_ref,
                 ref root,
             } => f
                 .debug_struct("ComponentRenderState::Hydration")
@@ -83,7 +78,6 @@ impl std::fmt::Debug for ComponentRenderState {
                 .field("parent", parent)
                 .field("next_sibling", next_sibling)
                 .field("node_ref", node_ref)
-                .field("comp_ref", comp_ref)
                 .finish(),
 
             #[cfg(feature = "ssr")]
@@ -143,8 +137,9 @@ struct CompStateInner<COMP>
 where
     COMP: BaseComponent,
 {
-    pub(crate) component: COMP,
-    pub(crate) context: Context<COMP>,
+    component: COMP,
+    context: Context<COMP>,
+    comp_ref: ComponentAnyRef,
 }
 
 /// A trait to provide common,
@@ -160,7 +155,7 @@ pub(crate) trait Stateful {
     fn any_scope(&self) -> AnyScope;
 
     fn flush_messages(&mut self) -> bool;
-    fn props_changed(&mut self, props: Rc<dyn Any>) -> bool;
+    fn props_changed(&mut self, props: Rc<dyn Any>, comp_ref: ComponentAnyRef) -> bool;
 
     fn as_any(&self) -> &dyn Any;
     fn as_any_mut(&mut self) -> &mut dyn Any;
@@ -175,11 +170,13 @@ where
     }
 
     fn rendered(&mut self, first_render: bool) {
+        self.comp_ref.set(Some(self.any_scope()));
         self.component.rendered(&self.context, first_render)
     }
 
     fn destroy(&mut self) {
         self.component.destroy(&self.context);
+        self.comp_ref.set(None);
     }
 
     fn any_scope(&self) -> AnyScope {
@@ -197,7 +194,11 @@ where
             })
     }
 
-    fn props_changed(&mut self, props: Rc<dyn Any>) -> bool {
+    fn props_changed(&mut self, props: Rc<dyn Any>, next_comp_ref: ComponentAnyRef) -> bool {
+        // When components are updated, a new node ref could have been passed in
+        self.comp_ref
+            .morph_into(next_comp_ref, || self.context.link().clone().into());
+
         let props = match Rc::downcast::<COMP::Properties>(props) {
             Ok(m) => m,
             _ => return false,
@@ -238,6 +239,7 @@ impl ComponentState {
         initial_render_state: ComponentRenderState,
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
+        comp_ref: ComponentAnyRef,
     ) -> Self {
         let comp_id = scope.id;
         #[cfg(feature = "hydration")]
@@ -260,6 +262,7 @@ impl ComponentState {
         let inner = Box::new(CompStateInner {
             component: COMP::create(&context),
             context,
+            comp_ref,
         });
 
         Self {
@@ -289,6 +292,7 @@ pub(crate) struct CreateRunner<COMP: BaseComponent> {
     pub initial_render_state: ComponentRenderState,
     pub props: Rc<COMP::Properties>,
     pub scope: Scope<COMP>,
+    pub comp_ref: ComponentAnyRef,
 }
 
 impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
@@ -302,6 +306,7 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
                 self.initial_render_state,
                 self.scope.clone(),
                 self.props,
+                self.comp_ref,
             ));
         }
     }
@@ -331,29 +336,23 @@ impl Runnable for UpdateRunner {
                     match state.render_state {
                         #[cfg(feature = "csr")]
                         ComponentRenderState::Render {
-                            ref mut comp_ref,
                             next_sibling: ref mut current_next_sibling,
                             ..
                         } => {
-                            // When components are updated, a new node ref could have been passed in
-                            comp_ref.morph_into(next_comp_ref, || state.inner.any_scope());
                             // When components are updated, their siblings were likely also updated
                             *current_next_sibling = next_sibling;
                             // Only trigger changed if props were changed
-                            state.inner.props_changed(props)
+                            state.inner.props_changed(props, next_comp_ref)
                         }
                         #[cfg(feature = "hydration")]
                         ComponentRenderState::Hydration {
-                            ref mut comp_ref,
                             next_sibling: ref mut current_next_sibling,
                             ..
                         } => {
-                            // When components are updated, a new node ref could have been passed in
-                            comp_ref.morph_into(next_comp_ref, || state.inner.any_scope());
                             // When components are updated, their siblings were likely also updated
                             *current_next_sibling = next_sibling;
                             // Only trigger changed if props were changed
-                            state.inner.props_changed(props)
+                            state.inner.props_changed(props, next_comp_ref)
                         }
 
                         #[cfg(feature = "ssr")]
@@ -409,13 +408,11 @@ impl Runnable for DestroyRunner {
                     ref parent,
                     ref node_ref,
                     ref root,
-                    ref comp_ref,
                     ..
                 } => {
                     bundle.detach(root, parent, self.parent_to_detach);
 
                     node_ref.set(None);
-                    comp_ref.set(None);
                 }
                 // We need to detach the hydrate fragment if the component is not hydrated.
                 #[cfg(feature = "hydration")]
@@ -524,11 +521,9 @@ impl RenderRunner {
                 ref root,
                 ref next_sibling,
                 ref node_ref,
-                ref comp_ref,
                 ..
             } => {
                 let scope = state.inner.any_scope();
-                comp_ref.set(Some(scope.clone()));
                 let new_node_ref =
                     bundle.reconcile(root, &scope, parent, next_sibling.clone(), new_root);
                 node_ref.link(new_node_ref);
@@ -551,7 +546,6 @@ impl RenderRunner {
                 ref mut fragment,
                 ref parent,
                 ref node_ref,
-                ref comp_ref,
                 ref next_sibling,
                 ref root,
             } => {
@@ -565,7 +559,6 @@ impl RenderRunner {
                 );
 
                 let scope = state.inner.any_scope();
-                comp_ref.set(Some(scope.clone()));
 
                 // This first node is not guaranteed to be correct here.
                 // As it may be a comment node that is removed afterwards.
@@ -585,7 +578,6 @@ impl RenderRunner {
                     parent: parent.clone(),
                     node_ref: node_ref.clone(),
                     next_sibling: next_sibling.clone(),
-                    comp_ref: comp_ref.clone(),
                 };
             }
 
