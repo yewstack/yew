@@ -1,7 +1,5 @@
-use std::cell::RefCell;
-
 use crate::callback::Callback;
-use crate::functional::{hook, use_state};
+use crate::functional::{hook, use_memo};
 
 /// Get a immutable reference to a memoized `Callback`.
 ///
@@ -73,25 +71,5 @@ where
     F: Fn(IN) -> OUT + 'static,
     D: PartialEq + 'static,
 {
-    let callback = use_state(|| -> RefCell<Option<Callback<IN, OUT>>> { RefCell::new(None) });
-    let last_deps = use_state(|| -> RefCell<Option<D>> { RefCell::new(None) });
-
-    let mut callback = callback.borrow_mut();
-    let mut last_deps = last_deps.borrow_mut();
-
-    match (
-        callback.as_ref(),
-        last_deps.as_ref().and_then(|m| (m != &deps).then(|| ())),
-    ) {
-        // Previous callback exists and last_deps == deps
-        (Some(m), None) => m.clone(),
-        _ => {
-            let new_callback = Callback::from(f);
-            *last_deps = Some(deps);
-
-            *callback = Some(new_callback.clone());
-
-            new_callback
-        }
-    }
+    (*use_memo(move |_| Callback::from(f), deps)).clone()
 }
