@@ -155,6 +155,9 @@ impl Reconcilable for VTag {
             }
         };
         node_ref.set(Some(el.clone().into()));
+        if let Some(m) = set_node.as_ref() {
+            m(Some(el.clone().into()));
+        }
         (
             node_ref.clone(),
             BTag {
