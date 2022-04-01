@@ -6,6 +6,7 @@ mod listeners;
 pub use listeners::Registry;
 
 use super::{insert_node, BList, BNode, BSubtree, Reconcilable, ReconcileTarget};
+use crate::callback::Callback;
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
@@ -14,7 +15,6 @@ use gloo_utils::document;
 use listeners::ListenerRegistration;
 use std::fmt;
 use std::ops::DerefMut;
-use std::rc::Rc;
 use std::{borrow::Cow, hint::unreachable_unchecked};
 use wasm_bindgen::JsCast;
 use web_sys::{Element, HtmlTextAreaElement as TextAreaElement, Node};
@@ -67,7 +67,7 @@ pub(super) struct BTag {
     node_ref: NodeRef,
     key: Option<Key>,
     /// A reference setter.
-    set_node: Option<Rc<dyn Fn(Option<Node>)>>,
+    set_node: Option<Callback<Option<Node>>>,
 }
 
 impl ReconcileTarget for BTag {
@@ -94,7 +94,7 @@ impl ReconcileTarget for BTag {
         }
 
         if let Some(m) = self.set_node.as_ref() {
-            m(None);
+            m.emit(None);
         }
     }
 
@@ -159,7 +159,7 @@ impl Reconcilable for VTag {
         };
         node_ref.set(Some(el.clone().into()));
         if let Some(m) = set_node.as_ref() {
-            m(Some(el.clone().into()));
+            m.emit(Some(el.clone().into()));
         }
         (
             node_ref.clone(),
@@ -249,10 +249,10 @@ impl Reconcilable for VTag {
 
         tag.node_ref.set(Some(el.clone().into()));
         if let Some(m) = tag.set_node.as_ref() {
-            m(None)
+            m.emit(None)
         };
         if let Some(m) = self.set_node.as_ref() {
-            m(Some(el.clone().into()))
+            m.emit(Some(el.clone().into()))
         };
         tag.set_node = self.set_node;
 
@@ -318,10 +318,10 @@ mod tests {
     use super::*;
     use crate::dom_bundle::{BNode, Reconcilable, ReconcileTarget};
     use crate::html;
-    use crate::html::AnyScope;
+    use crate::html::{AnyScope, NodeRef};
     use crate::virtual_dom::vtag::{HTML_NAMESPACE, SVG_NAMESPACE};
     use crate::virtual_dom::{AttrValue, VNode, VTag};
-    use crate::{Html, NodeRef};
+    use crate::Html;
     use gloo_utils::document;
     use wasm_bindgen::JsCast;
     use web_sys::HtmlInputElement as InputElement;

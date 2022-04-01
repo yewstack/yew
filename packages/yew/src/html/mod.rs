@@ -13,6 +13,7 @@ pub use conversion::*;
 pub use error::*;
 pub use listener::*;
 
+use crate::callback::Callback;
 use crate::sealed::Sealed;
 use crate::virtual_dom::{VNode, VPortal};
 use std::cell::RefCell;
@@ -147,14 +148,14 @@ where
     ///
     /// This method converts node into the target element type via unchecked_into.
     /// You should only use this method if you are certain that it would cast into the target type.
-    pub unsafe fn into_node_setter<I>(self) -> Rc<dyn Fn(Option<Node>)>
+    pub unsafe fn into_node_setter<I>(self) -> Callback<Option<Node>>
     where
         I: JsCast,
         T: From<I>,
     {
-        Rc::new(move |node: Option<Node>| {
+        Callback::from(move |node: Option<Node>| {
             self.set_node_unchecked(node);
-        }) as Rc<dyn Fn(Option<Node>)>
+        })
     }
 }
 
