@@ -334,3 +334,9 @@ pub mod prelude {
 }
 
 pub use self::prelude::*;
+
+#[doc(hidden)]
+pub mod __vendored {
+    //! Vendored exports.
+    pub use web_sys;
+}

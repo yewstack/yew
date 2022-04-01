@@ -94,18 +94,31 @@ where
     T: Clone + 'static + JsCast,
 {
     /// Set by value via `JsCast::unchecked_into`.
-    ///
-    /// # Safety
-    ///
-    /// This method converts node into the target element type via unchecked_into.
-    /// You should only use this method if you are certain that it would cast into the target type.
-    pub unsafe fn set_node_unchecked<I>(&self, val: Option<Node>)
+    #[inline]
+    unsafe fn set_node_unchecked<I>(&self, val: Option<Node>)
     where
         I: JsCast,
         T: From<I>,
     {
         let val = val.map(|m| m.unchecked_into::<I>());
         self.set(val);
+    }
+
+    /// Creates a setter for Node.
+    ///
+    /// # Safety
+    ///
+    /// This method converts node into the target element type via unchecked_into.
+    /// You should only use this method if you are certain that it would cast into the target type.
+    pub unsafe fn create_node_setter<I>(&self) -> Rc<dyn Fn(Option<Node>)>
+    where
+        I: JsCast,
+        T: From<I>,
+    {
+        let this = self.clone();
+        Rc::new(move |node: Option<Node>| {
+            this.set_node_unchecked(node);
+        }) as Rc<dyn Fn(Option<Node>)>
     }
 }
 

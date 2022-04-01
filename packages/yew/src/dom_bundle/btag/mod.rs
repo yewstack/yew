@@ -13,10 +13,12 @@ use crate::NodeRef;
 use gloo::console;
 use gloo_utils::document;
 use listeners::ListenerRegistration;
+use std::fmt;
 use std::ops::DerefMut;
+use std::rc::Rc;
 use std::{borrow::Cow, hint::unreachable_unchecked};
 use wasm_bindgen::JsCast;
-use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
+use web_sys::{Element, HtmlTextAreaElement as TextAreaElement, Node};
 
 /// Applies contained changes to DOM [web_sys::Element]
 trait Apply {
@@ -55,7 +57,6 @@ enum BTagInner {
 }
 
 /// The bundle implementation to [VTag]
-#[derive(Debug)]
 pub(super) struct BTag {
     /// [BTag] fields that are specific to different [BTag] kinds.
     inner: BTagInner,
@@ -66,6 +67,8 @@ pub(super) struct BTag {
     /// A node reference used for DOM access in Component lifecycle methods
     node_ref: NodeRef,
     key: Option<Key>,
+    /// A reference setter.
+    set_node: Option<Rc<dyn Fn(Option<Node>)>>,
 }
 
 impl ReconcileTarget for BTag {
@@ -99,6 +102,19 @@ impl ReconcileTarget for BTag {
     }
 }
 
+impl fmt::Debug for BTag {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("VTag")
+            .field("inner", &self.inner)
+            .field("listeners", &self.listeners)
+            .field("set_node", &"Option<Rc<dyn Fn(Option<Node>)>>")
+            .field("node_ref", &self.node_ref)
+            .field("reference", &self.reference)
+            .field("key", &self.key)
+            .finish()
+    }
+}
+
 impl Reconcilable for VTag {
     type Bundle = BTag;
 
@@ -113,11 +129,12 @@ impl Reconcilable for VTag {
         let Self {
             listeners,
             attributes,
-            node_ref,
             key,
+            set_node,
             ..
         } = self;
         insert_node(&el, parent, next_sibling.get().as_ref());
+        let node_ref = NodeRef::default();
 
         let attributes = attributes.apply(root, &el);
         let listeners = listeners.apply(root, &el);
@@ -146,6 +163,7 @@ impl Reconcilable for VTag {
                 reference: el,
                 attributes,
                 key,
+                set_node,
                 node_ref,
             },
         )
@@ -223,13 +241,14 @@ impl Reconcilable for VTag {
 
         tag.key = self.key;
 
-        if self.node_ref != tag.node_ref && tag.node_ref.get().as_ref() == Some(el) {
-            tag.node_ref.set(None);
-        }
-        if self.node_ref != tag.node_ref {
-            tag.node_ref = self.node_ref;
-            tag.node_ref.set(Some(el.clone().into()));
-        }
+        tag.node_ref.set(Some(el.clone().into()));
+        if let Some(m) = tag.set_node.as_ref() {
+            m(None)
+        };
+        if let Some(m) = self.set_node.as_ref() {
+            m(Some(el.clone().into()))
+        };
+        tag.set_node = self.set_node;
 
         tag.node_ref.clone()
     }
