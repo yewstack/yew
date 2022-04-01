@@ -54,6 +54,7 @@ impl Reconcilable for VComp {
             type_id,
             mountable,
             key,
+            ..
         } = self;
 
         let node_ref = NodeRef::default();
@@ -108,6 +109,7 @@ impl Reconcilable for VComp {
             mountable,
             key,
             type_id: _,
+            ..
         } = self;
 
         bcomp.key = key;
