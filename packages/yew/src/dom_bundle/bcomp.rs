@@ -122,22 +122,21 @@ impl Reconcilable for VComp {
 mod tests {
     use super::*;
     use crate::dom_bundle::{Reconcilable, ReconcileTarget};
+    use crate::html::HtmlRef;
     use crate::scheduler;
     use crate::{
-        html,
+        function_component, html,
         virtual_dom::{Key, VChild, VNode},
         Children, Component, Context, Html, NodeRef, Properties,
     };
     use gloo_utils::document;
     use std::ops::Deref;
-    use web_sys::Element;
-    use web_sys::Node;
+    use web_sys::{Element, Node};
+    use yew::functional::FunctionComponent;
 
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     wasm_bindgen_test_configure!(run_in_browser);
-
-    struct Comp;
 
     #[derive(Clone, PartialEq, Properties)]
     struct Props {
@@ -145,23 +144,13 @@ mod tests {
         field_1: u32,
         #[prop_or_default]
         field_2: u32,
+        #[prop_or_default]
+        ref_: HtmlRef<Node>,
     }
 
-    impl Component for Comp {
-        type Message = ();
-        type Properties = Props;
-
-        fn create(_: &Context<Self>) -> Self {
-            Comp
-        }
-
-        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
-            unimplemented!();
-        }
-
-        fn view(&self, _ctx: &Context<Self>) -> Html {
-            html! { <div/> }
-        }
+    #[function_component]
+    fn Comp(props: &Props) -> Html {
+        html! { <div ref={props.ref_.clone()} /> }
     }
 
     #[test]
@@ -200,6 +189,7 @@ mod tests {
         let props = Props {
             field_1: 1,
             field_2: 1,
+            ref_: Default::default(),
         };
 
         html! {
@@ -217,6 +207,7 @@ mod tests {
         let props = Props {
             field_1: 1,
             field_2: 1,
+            ref_: Default::default(),
         };
         let props_2 = props.clone();
 
@@ -228,56 +219,31 @@ mod tests {
     }
 
     #[test]
-    fn set_component_node_ref() {
-        let test_node: Node = document().create_text_node("test").into();
-        let test_node_ref = NodeRef::new(test_node);
-        let check_node_ref = |vnode: VNode| {
-            let vcomp = match vnode {
-                VNode::VComp(vcomp) => vcomp,
-                _ => unreachable!("should be a vcomp"),
-            };
-            assert_eq!(vcomp.node_ref, test_node_ref);
-        };
-
-        let props = Props {
-            field_1: 1,
-            field_2: 1,
-        };
-        let props_2 = props.clone();
-
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} /> });
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} field_1=1 /> });
-        check_node_ref(html! { <Comp field_1=1 ref={test_node_ref.clone()} /> });
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} ..props /> });
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} ..props_2 /> });
-    }
-
-    #[test]
     fn vchild_partialeq() {
-        let vchild1: VChild<Comp> = VChild::new(
+        let vchild1: VChild<FunctionComponent<Comp>> = VChild::new(
             Props {
                 field_1: 1,
                 field_2: 1,
+                ref_: Default::default(),
             },
-            NodeRef::default(),
             None,
         );
 
-        let vchild2: VChild<Comp> = VChild::new(
+        let vchild2: VChild<FunctionComponent<Comp>> = VChild::new(
             Props {
                 field_1: 1,
                 field_2: 1,
+                ref_: Default::default(),
             },
-            NodeRef::default(),
             None,
         );
 
-        let vchild3: VChild<Comp> = VChild::new(
+        let vchild3: VChild<FunctionComponent<Comp>> = VChild::new(
             Props {
                 field_1: 2,
                 field_2: 2,
+                ref_: Default::default(),
             },
-            NodeRef::default(),
             None,
         );
 
@@ -388,7 +354,7 @@ mod tests {
     fn reset_node_ref() {
         let (root, scope, parent) = setup_parent();
 
-        let node_ref = NodeRef::default();
+        let node_ref = HtmlRef::default();
         let elem = html! { <Comp ref={node_ref.clone()}></Comp> };
         let (_, elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         scheduler::start_now();

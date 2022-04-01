@@ -319,6 +319,7 @@ mod tests {
     use gloo_utils::document;
     use wasm_bindgen::JsCast;
     use web_sys::HtmlInputElement as InputElement;
+    use yew::html::HtmlRef;
 
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
@@ -779,7 +780,7 @@ mod tests {
     fn reset_node_ref() {
         let (root, scope, parent) = setup_parent();
 
-        let node_ref = NodeRef::default();
+        let node_ref = HtmlRef::<Node>::default();
         let elem: VNode = html! { <div ref={node_ref.clone()}></div> };
         assert_vtag_ref(&elem);
         let (_, elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
@@ -792,14 +793,14 @@ mod tests {
     fn vtag_reuse_should_reset_ancestors_node_ref() {
         let (root, scope, parent) = setup_parent();
 
-        let node_ref_a = NodeRef::default();
+        let node_ref_a = HtmlRef::<Node>::default();
         let elem_a = html! { <div id="a" ref={node_ref_a.clone()} /> };
         let (_, mut elem) = elem_a.attach(&root, &scope, &parent, NodeRef::default());
 
         // save the Node to check later that it has been reused.
         let node_a = node_ref_a.get().unwrap();
 
-        let node_ref_b = NodeRef::default();
+        let node_ref_b = HtmlRef::<Node>::default();
         let elem_b = html! { <div id="b" ref={node_ref_b.clone()} /> };
         elem_b.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut elem);
 
@@ -816,16 +817,16 @@ mod tests {
     fn vtag_should_not_touch_newly_bound_refs() {
         let (root, scope, parent) = setup_parent();
 
-        let test_ref = NodeRef::default();
+        let test_ref = HtmlRef::<Node>::default();
         let before = html! {
             <>
-                <div ref={&test_ref} id="before" />
+                <div ref={test_ref.clone()} id="before" />
             </>
         };
         let after = html! {
             <>
                 <h6 />
-                <div ref={&test_ref} id="after" />
+                <div ref={test_ref.clone()} id="after" />
             </>
         };
         // The point of this diff is to first render the "after" div and then detach the "before" div,

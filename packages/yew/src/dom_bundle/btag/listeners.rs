@@ -199,12 +199,12 @@ mod tests {
     use std::marker::PhantomData;
 
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-    use web_sys::{Event, EventInit, HtmlElement, MouseEvent};
+    use web_sys::{Event, EventInit, HtmlElement, MouseEvent, Node};
     wasm_bindgen_test_configure!(run_in_browser);
 
     use crate::{
         create_portal, html, html::TargetCast, scheduler, virtual_dom::VNode, AppHandle, Component,
-        Context, Html, NodeRef, Properties,
+        Context, Html, HtmlRef, Properties,
     };
     use gloo_utils::document;
     use wasm_bindgen::JsCast;
@@ -226,7 +226,7 @@ mod tests {
 
     #[derive(Default, PartialEq, Properties)]
     struct MixinProps<M: Properties> {
-        state_ref: NodeRef,
+        state_ref: HtmlRef<Node>,
         wrapped: M,
     }
 
@@ -279,7 +279,7 @@ mod tests {
     }
 
     #[track_caller]
-    fn assert_count(el: &NodeRef, count: isize) {
+    fn assert_count(el: &HtmlRef<Node>, count: isize) {
         let text = el
             .get()
             .expect("State ref not bound in the test case?")
@@ -288,7 +288,7 @@ mod tests {
     }
 
     #[track_caller]
-    fn click(el: &NodeRef) {
+    fn click(el: &HtmlRef<Node>) {
         el.get().unwrap().dyn_into::<HtmlElement>().unwrap().click();
         scheduler::start_now();
     }
@@ -302,7 +302,7 @@ mod tests {
             .unwrap()
     }
 
-    fn init<M>() -> (AppHandle<Comp<M>>, NodeRef)
+    fn init<M>() -> (AppHandle<Comp<M>>, HtmlRef<Node>)
     where
         M: Mixin + Properties + Default,
     {
@@ -337,11 +337,11 @@ mod tests {
 
                 if state.stop_listening {
                     html! {
-                        <a ref={&ctx.props().state_ref}>{state.action}</a>
+                        <a ref={ctx.props().state_ref.clone()}>{state.action}</a>
                     }
                 } else {
                     html! {
-                        <a {onclick} ref={&ctx.props().state_ref}>
+                        <a {onclick} ref={ctx.props().state_ref.clone()}>
                             {state.action}
                         </a>
                     }
@@ -383,7 +383,7 @@ mod tests {
                 });
                 html! {
                     <div>
-                        <a ref={&ctx.props().state_ref}>
+                        <a ref={ctx.props().state_ref.clone()}>
                             <input id="input" {onblur} type="text" />
                             {state.action}
                         </a>
@@ -425,7 +425,7 @@ mod tests {
                 if state.stop_listening {
                     html! {
                         <div>
-                            <a ref={&ctx.props().state_ref}>
+                            <a ref={ctx.props().state_ref.clone()}>
                                 {state.action}
                             </a>
                         </div>
@@ -434,7 +434,7 @@ mod tests {
                     let cb = ctx.link().callback(|_| Message::Action);
                     html! {
                         <div onclick={cb.clone()}>
-                            <a onclick={cb} ref={&ctx.props().state_ref}>
+                            <a onclick={cb} ref={ctx.props().state_ref.clone()}>
                                 {state.action}
                             </a>
                         </div>
@@ -475,7 +475,7 @@ mod tests {
 
                 html! {
                     <div onclick={onclick}>
-                        <a onclick={onclick2} ref={&ctx.props().state_ref}>
+                        <a onclick={onclick2} ref={ctx.props().state_ref.clone()}>
                             {state.action}
                         </a>
                     </div>
@@ -513,7 +513,7 @@ mod tests {
                 html! {
                     <div onclick={onclick}>
                         <div onclick={onclick2}>
-                            <a ref={&ctx.props().state_ref}>
+                            <a ref={ctx.props().state_ref.clone()}>
                                 {state.action}
                             </a>
                         </div>
@@ -558,7 +558,7 @@ mod tests {
                     <>
                         <div onclick={onclick}>
                             {create_portal(html! {
-                                <a ref={&ctx.props().state_ref}>
+                                <a ref={ctx.props().state_ref.clone()}>
                                     {state.action}
                                 </a>
                             }, portal_target.clone())}
@@ -607,7 +607,7 @@ mod tests {
                     <div onclick={onclick.clone()}>
                         <div {onclick}>
                             {create_portal(html! {
-                                <a ref={&ctx.props().state_ref}>
+                                <a ref={ctx.props().state_ref.clone()}>
                                     {state.action}
                                 </a>
                             }, mixin.inner_root.clone())}
@@ -640,7 +640,7 @@ mod tests {
                     html! {
                         <div>
                             <input type="text" />
-                            <p ref={&ctx.props().state_ref}>{state.text.clone()}</p>
+                            <p ref={ctx.props().state_ref.clone()}>{state.text.clone()}</p>
                         </div>
                     }
                 } else {
@@ -656,7 +656,7 @@ mod tests {
                     html! {
                         <div>
                             <input type="text" {onchange} {oninput} />
-                            <p ref={&ctx.props().state_ref}>{state.text.clone()}</p>
+                            <p ref={ctx.props().state_ref.clone()}>{state.text.clone()}</p>
                         </div>
                     }
                 }

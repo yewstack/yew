@@ -1,7 +1,7 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
 use super::Key;
-use crate::html::{BaseComponent, IntoComponent, NodeRef};
+use crate::html::{BaseComponent, IntoComponent};
 use std::any::TypeId;
 use std::fmt;
 use std::rc::Rc;
@@ -12,7 +12,7 @@ use crate::html::{AnyScope, Scope};
 #[cfg(feature = "csr")]
 use crate::dom_bundle::BSubtree;
 #[cfg(feature = "csr")]
-use crate::html::Scoped;
+use crate::html::{NodeRef, Scoped};
 #[cfg(feature = "csr")]
 use web_sys::Element;
 
