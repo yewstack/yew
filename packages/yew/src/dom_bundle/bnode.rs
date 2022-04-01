@@ -266,11 +266,11 @@ mod feat_hydration {
                 }
                 // You cannot hydrate a VRef.
                 VNode::VRef(_) => {
-                    panic!("VRef is not hydratable. Try move it to a component mounted after an effect.")
+                    panic!("VRef is not hydratable. Try moving it to a component mounted after an effect.")
                 }
                 // You cannot hydrate a VPortal.
                 VNode::VPortal(_) => {
-                    panic!("VPortal is not hydratable. Try to create your portal by delaying it with use_effect.")
+                    panic!("VPortal is not hydratable. Try creating your portal by delaying it with use_effect.")
                 }
                 VNode::VSuspense(vsuspense) => {
                     let (node_ref, suspense) =
