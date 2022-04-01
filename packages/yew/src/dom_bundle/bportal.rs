@@ -47,6 +47,7 @@ impl Reconcilable for VPortal {
             node,
         } = self;
         let inner_root = root.create_subroot(parent.clone(), &host);
+        let inner_sibling = inner_sibling.map(NodeRef::new).unwrap_or_default();
         let (_, inner) = node.attach(&inner_root, parent_scope, &host, inner_sibling.clone());
         (
             host_next_sibling,
@@ -90,6 +91,7 @@ impl Reconcilable for VPortal {
         } = self;
 
         let old_host = std::mem::replace(&mut portal.host, host);
+        let inner_sibling = inner_sibling.map(NodeRef::new).unwrap_or_default();
         let old_inner_sibling = std::mem::replace(&mut portal.inner_sibling, inner_sibling);
 
         if old_host != portal.host || old_inner_sibling != portal.inner_sibling {
