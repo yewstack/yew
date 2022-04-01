@@ -60,7 +60,7 @@ pub(crate) trait Mountable {
     ) -> Box<dyn Scoped>;
 
     #[cfg(feature = "csr")]
-    fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef);
+    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef);
 
     #[cfg(feature = "ssr")]
     fn render_to_string<'a>(
@@ -105,9 +105,9 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     }
 
     #[cfg(feature = "csr")]
-    fn reuse(self: Box<Self>, node_ref: NodeRef, scope: &dyn Scoped, next_sibling: NodeRef) {
+    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef) {
         let scope: Scope<COMP> = scope.to_any().downcast::<COMP>();
-        scope.reuse(self.props, node_ref, next_sibling);
+        scope.reuse(self.props, next_sibling);
     }
 
     #[cfg(feature = "ssr")]

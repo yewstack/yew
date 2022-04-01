@@ -111,7 +111,7 @@ impl Reconcilable for VComp {
         } = self;
 
         bcomp.key = key;
-        mountable.reuse(bcomp.node_ref.clone(), bcomp.scope.borrow(), next_sibling);
+        mountable.reuse(bcomp.scope.borrow(), next_sibling);
         bcomp.node_ref.clone()
     }
 }
