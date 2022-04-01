@@ -1,9 +1,8 @@
 //! This module contains the bundle version of a supsense [BSuspense]
 
 use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::AnyScope;
+use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{Key, VSuspense};
-use crate::NodeRef;
 use gloo::utils::document;
 use web_sys::Element;
 

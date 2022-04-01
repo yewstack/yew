@@ -17,7 +17,7 @@ use crate::sealed::Sealed;
 use crate::virtual_dom::{VNode, VPortal};
 use std::cell::RefCell;
 use std::rc::Rc;
-use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen::JsCast;
 use web_sys::{Element, Node};
 
 /// A type which expected as a result of `view` function implementation.
@@ -121,7 +121,7 @@ where
     }
 
     /// Sets an [`HtmlRef`].
-    pub fn set<F: Into<T>>(&self, val: Option<F>) {
+    pub(crate) fn set<F: Into<T>>(&self, val: Option<F>) {
         let mut inner = self.inner.borrow_mut();
         *inner = val.map(Into::into);
     }
@@ -160,46 +160,8 @@ where
 }
 
 /// Wrapped Node reference for later use in Component lifecycle methods.
-// ///
-// /// # Example
-// /// Focus an `<input>` element on mount.
-// /// ```
-// /// use web_sys::HtmlInputElement;
-// ///# use yew::prelude::*;
-// ///
-// /// pub struct Input {
-// ///     node_ref: HtmlRef<HtmlInputElement>,
-// /// }
-// ///
-// /// impl Component for Input {
-// ///     type Message = ();
-// ///     type Properties = ();
-// ///
-// ///     fn create(_ctx: &Context<Self>) -> Self {
-// ///         Input {
-// ///             node_ref: HtmlRef::default(),
-// ///         }
-// ///     }
-// ///
-// ///     fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
-// ///         if first_render {
-// ///             if let Some(input) = self.node_ref.cast::<HtmlInputElement>() {
-// ///                 input.focus();
-// ///             }
-// ///         }
-// ///     }
-// ///
-// ///     fn view(&self, _ctx: &Context<Self>) -> Html {
-// ///         html! {
-// ///             <input ref={self.node_ref.clone()} type="text" />
-// ///         }
-// ///     }
-// /// }
-// /// ```
-// /// ## Relevant examples
-// /// - [Node Refs](https://github.com/yewstack/yew/tree/master/examples/node_refs)
 #[derive(Default, Clone)]
-pub struct NodeRef(Rc<RefCell<NodeRefInner>>);
+pub(crate) struct NodeRef(Rc<RefCell<NodeRefInner>>);
 
 impl PartialEq for NodeRef {
     fn eq(&self, other: &Self) -> bool {
@@ -228,12 +190,6 @@ impl NodeRef {
     pub fn get(&self) -> Option<Node> {
         let inner = self.0.borrow();
         inner.node.clone().or_else(|| inner.link.as_ref()?.get())
-    }
-
-    /// Try converting the node reference into another form
-    pub fn cast<INTO: AsRef<Node> + From<JsValue>>(&self) -> Option<INTO> {
-        let node = self.get();
-        node.map(Into::into).map(INTO::from)
     }
 
     /// Place a Node in a reference for later use

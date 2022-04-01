@@ -1,9 +1,8 @@
 //! This module contains the bundle implementation of text [BText].
 
 use super::{insert_node, BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::AnyScope;
+use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{AttrValue, VText};
-use crate::NodeRef;
 use gloo::console;
 use gloo_utils::document;
 use web_sys::{Element, Text as TextNode};

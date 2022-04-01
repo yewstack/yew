@@ -1,10 +1,9 @@
 use crate::dom_bundle::{BSubtree, Bundle};
-use crate::html::AnyScope;
+use crate::html::{AnyScope, NodeRef};
 use crate::scheduler;
 use crate::virtual_dom::VNode;
 use crate::{Component, Context, Html};
 use gloo::console::log;
-use yew::NodeRef;
 
 struct Comp;
 impl Component for Comp {

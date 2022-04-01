@@ -7,13 +7,27 @@ mod sealed {
     use super::*;
 
     /// Trait to limit `ref_` to `HtmlRef<_>`.
-    pub trait RefProp {}
+    pub trait RefProp {
+        #[cfg(debug_assertions)]
+        fn assert_ref_set(&self);
+    }
 
-    impl<T> RefProp for HtmlRef<T> {}
-    impl RefProp for () {}
+    impl<T> RefProp for HtmlRef<T>
+    where
+        T: Clone + 'static,
+    {
+        #[cfg(debug_assertions)]
+        fn assert_ref_set(&self) {
+            assert!(self.get().is_some(), "HtmlRef must be set!");
+        }
+    }
+    impl RefProp for () {
+        #[cfg(debug_assertions)]
+        fn assert_ref_set(&self) {}
+    }
 }
 
-use sealed::RefProp;
+pub(crate) use sealed::RefProp;
 
 /// Trait for building properties for a component
 pub trait Properties: PartialEq {

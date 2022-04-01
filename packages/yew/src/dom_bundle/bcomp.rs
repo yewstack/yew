@@ -1,9 +1,8 @@
 //! This module contains the bundle implementation of a virtual component [BComp].
 
 use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, Scoped};
+use crate::html::{AnyScope, NodeRef, Scoped};
 use crate::virtual_dom::{Key, VComp};
-use crate::NodeRef;
 use std::fmt;
 use std::{any::TypeId, borrow::Borrow};
 use web_sys::Element;
@@ -244,7 +243,7 @@ mod tests {
             Props {
                 field_1: 2,
                 field_2: 2,
-                ref_: ref_.clone(),
+                ref_,
             },
             None,
         );

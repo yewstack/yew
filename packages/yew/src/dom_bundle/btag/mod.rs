@@ -6,10 +6,9 @@ mod listeners;
 pub use listeners::Registry;
 
 use super::{insert_node, BList, BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::AnyScope;
+use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
-use crate::NodeRef;
 use gloo::console;
 use gloo_utils::document;
 use listeners::ListenerRegistration;

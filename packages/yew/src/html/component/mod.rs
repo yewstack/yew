@@ -123,7 +123,7 @@ pub trait Component: Sized + 'static {
     ///
     /// When the parent of a Component is re-rendered, it will either be re-created or
     /// receive new properties in the context passed to the `changed` lifecycle method.
-    type Properties: Properties;
+    type Properties: Properties<Ref = ()>;
 
     /// Called when component is created.
     fn create(ctx: &Context<Self>) -> Self;
