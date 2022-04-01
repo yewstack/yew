@@ -1,8 +1,8 @@
+use clap::Parser;
 use function_router::{ServerApp, ServerAppProps};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::path::PathBuf;
-use structopt::StructOpt;
 use tokio_util::task::LocalPoolHandle;
 use warp::Filter;
 
@@ -10,7 +10,7 @@ use warp::Filter;
 static LOCAL_POOL: Lazy<LocalPoolHandle> = Lazy::new(|| LocalPoolHandle::new(num_cpus::get()));
 
 /// A basic example
-#[derive(StructOpt, Debug)]
+#[derive(Parser, Debug)]
 struct Opt {
     /// the "dist" created by trunk directory to be served for hydration.
     #[structopt(short, long, parse(from_os_str))]
@@ -43,7 +43,7 @@ async fn render(index_html_s: &str, url: &str, queries: HashMap<String, String>)
 async fn main() {
     env_logger::init();
 
-    let opts = Opt::from_args();
+    let opts = Opt::parse();
 
     let index_html_s = tokio::fs::read_to_string(opts.dir.join("index.html"))
         .await
