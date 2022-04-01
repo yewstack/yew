@@ -62,6 +62,7 @@ module.exports = {
                 "concepts/function-components/hooks/use-node-ref",
                 "concepts/function-components/hooks/use-effect",
                 "concepts/function-components/hooks/use-memo",
+                "concepts/function-components/hooks/use-callback",
                 "concepts/function-components/hooks/use-context",
                 "concepts/function-components/hooks/custom-hooks",
               ],
