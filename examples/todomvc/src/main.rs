@@ -7,7 +7,7 @@ use yew::{
     events::{FocusEvent, KeyboardEvent},
     html,
     html::Scope,
-    Classes, Component, Context, Html, NodeRef, TargetCast,
+    Classes, Component, Context, Html, HtmlRef, TargetCast,
 };
 
 mod state;
@@ -28,7 +28,7 @@ pub enum Msg {
 
 pub struct App {
     state: State,
-    focus_ref: NodeRef,
+    focus_ref: HtmlRef<InputElement>,
 }
 
 impl Component for App {
@@ -42,7 +42,7 @@ impl Component for App {
             filter: Filter::All,
             edit_value: "".into(),
         };
-        let focus_ref = NodeRef::default();
+        let focus_ref = HtmlRef::default();
         Self { state, focus_ref }
     }
 
@@ -84,7 +84,7 @@ impl Component for App {
                 self.state.clear_completed();
             }
             Msg::Focus => {
-                if let Some(input) = self.focus_ref.cast::<InputElement>() {
+                if let Some(input) = self.focus_ref.get() {
                     input.focus().unwrap();
                 }
             }

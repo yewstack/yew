@@ -1,6 +1,5 @@
-use wasm_bindgen::JsCast;
 use web_sys::{Element, ShadowRootInit, ShadowRootMode};
-use yew::{create_portal, html, Children, Component, Context, Html, NodeRef, Properties};
+use yew::{create_portal, html, Children, Component, Context, Html, HtmlRef, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct ShadowDOMProps {
@@ -9,7 +8,7 @@ pub struct ShadowDOMProps {
 }
 
 pub struct ShadowDOMHost {
-    host_ref: NodeRef,
+    host_ref: HtmlRef<Element>,
     inner_host: Option<Element>,
 }
 
@@ -19,7 +18,7 @@ impl Component for ShadowDOMHost {
 
     fn create(_: &Context<Self>) -> Self {
         Self {
-            host_ref: NodeRef::default(),
+            host_ref: HtmlRef::default(),
             inner_host: None,
         }
     }
@@ -30,7 +29,6 @@ impl Component for ShadowDOMHost {
                 .host_ref
                 .get()
                 .expect("rendered host")
-                .unchecked_into::<Element>()
                 .attach_shadow(&ShadowRootInit::new(ShadowRootMode::Open))
                 .expect("installing shadow root succeeds");
             let inner_host = gloo_utils::document()

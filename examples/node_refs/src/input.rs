@@ -20,6 +20,7 @@ pub fn InputComponent(props: &Props) -> Html {
             type="text"
             class="input-component"
             onmouseover={on_mouse_over}
+            ref={props.ref_.clone()}
         />
     }
 }

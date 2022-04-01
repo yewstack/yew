@@ -17,7 +17,7 @@ pub enum Msg {
 
 pub struct App {
     apps: Slab<(Element, AppHandle<CounterModel>)>, // Contains the spawned apps and their parent div elements
-    apps_container_ref: NodeRef,
+    apps_container_ref: HtmlRef<Element>,
 }
 
 impl Component for App {
@@ -27,14 +27,14 @@ impl Component for App {
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
             apps: Slab::new(),
-            apps_container_ref: NodeRef::default(),
+            apps_container_ref: Default::default(),
         }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         let app_container = self
             .apps_container_ref
-            .cast::<Element>()
+            .get()
             .expect("Failed to cast app container div to HTMLElement");
 
         match msg {

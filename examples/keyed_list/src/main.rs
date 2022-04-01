@@ -28,7 +28,7 @@ pub struct App {
     last_id: usize,
     keyed: bool,
     build_component_ratio: f64,
-    delta_ref: NodeRef,
+    delta_ref: HtmlRef<HtmlElement>,
 }
 
 impl Component for App {
@@ -41,7 +41,7 @@ impl Component for App {
             last_id: 0,
             keyed: true,
             build_component_ratio: 0.5,
-            delta_ref: NodeRef::default(),
+            delta_ref: HtmlRef::default(),
         }
     }
 
@@ -126,7 +126,7 @@ impl Component for App {
                 let time_after = Instant::now();
                 let elapsed_max = time_after - time_before;
                 log::info!("Rendering started {} ms ago.", elapsed_max.as_millis());
-                if let Some(input) = self.delta_ref.cast::<HtmlElement>() {
+                if let Some(input) = self.delta_ref.get() {
                     let delta_text =
                         format!("The last rendering took {} ms", elapsed_max.as_millis());
                     input.set_inner_text(&delta_text);

@@ -9,13 +9,13 @@ pub enum Msg {
 }
 
 pub struct App {
-    input_ref: NodeRef,
+    input_ref: HtmlRef<HtmlInputElement>,
     input_comp_ref: HtmlRef<HtmlInputElement>,
     focus_index: usize,
 }
 impl App {
     fn apply_focus(&self) {
-        if let Some(m) = self.input_ref.cast::<HtmlInputElement>() {
+        if let Some(m) = self.input_ref.get() {
             m.focus().unwrap();
         }
         if let Some(m) = self.input_comp_ref.get() {
@@ -30,7 +30,7 @@ impl Component for App {
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
             focus_index: 0,
-            input_ref: NodeRef::default(),
+            input_ref: HtmlRef::default(),
             input_comp_ref: HtmlRef::default(),
         }
     }

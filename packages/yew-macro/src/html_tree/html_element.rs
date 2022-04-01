@@ -5,10 +5,23 @@ use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::{Delimiter, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
+use std::collections::HashMap;
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{parse_quote, Block, Expr, Ident, Lit, LitStr, Token, Type};
+
+fn get_element_types() -> HashMap<&'static str, Type> {
+    let mut map = HashMap::new();
+
+    map.insert(
+        "canvas",
+        parse_quote!(::yew::__vendored::web_sys::HtmlCanvasElement),
+    );
+    map.insert("p", parse_quote!(::yew::__vendored::web_sys::HtmlElement));
+
+    map
+}
 
 pub struct HtmlElement {
     pub name: TagName,
@@ -116,7 +129,7 @@ impl ToTokens for HtmlElement {
                     let value = &attr.value;
                     quote_spanned! {value.span()=>
                         ::std::option::Option::<_>::Some(
-                            ::yew::html::HtmlRef::<_>::create_node_setter::<#ty>(#value)
+                            unsafe { ::yew::html::HtmlRef::<_>::into_node_setter::<#ty>(#value) }
                         )
                     }
                 })
@@ -333,7 +346,13 @@ impl ToTokens for HtmlElement {
                     }
                     _ => {
                         // TODO: embed an entire map of element types.
-                        let node_ref = make_node_ref(parse_quote!{ ::yew::__vendored::web_sys::Element });
+                        let element_type = get_element_types()
+                            .get(name.as_str())
+                            .cloned()
+                            .unwrap_or_else(|| parse_quote!{ ::yew::__vendored::web_sys::Element });
+
+                        let node_ref = make_node_ref(element_type);
+
                         quote! {
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_other(

@@ -2,7 +2,7 @@ use gloo_render::{request_animation_frame, AnimationFrame};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGlRenderingContext as GL};
 use yew::html::Scope;
-use yew::{html, Component, Context, Html, NodeRef};
+use yew::prelude::*;
 
 pub enum Msg {
     Render(f64),
@@ -10,7 +10,7 @@ pub enum Msg {
 
 pub struct App {
     gl: Option<GL>,
-    node_ref: NodeRef,
+    node_ref: HtmlRef<HtmlCanvasElement>,
     _render_loop: Option<AnimationFrame>,
 }
 
@@ -21,7 +21,7 @@ impl Component for App {
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
             gl: None,
-            node_ref: NodeRef::default(),
+            node_ref: HtmlRef::default(),
             _render_loop: None,
         }
     }
@@ -50,7 +50,7 @@ impl Component for App {
         // resizing the rendering area when the window or canvas element are resized, as well as
         // for making GL calls.
 
-        let canvas = self.node_ref.cast::<HtmlCanvasElement>().unwrap();
+        let canvas = self.node_ref.get().unwrap();
 
         let gl: GL = canvas
             .get_context("webgl")

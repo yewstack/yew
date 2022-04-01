@@ -7,7 +7,7 @@ use yew_agent::{Bridge, Bridged};
 
 pub struct App {
     clicker_value: u32,
-    input_ref: NodeRef,
+    input_ref: HtmlRef<HtmlInputElement>,
     worker: Box<dyn Bridge<Worker>>,
     fibonacci_output: String,
 }
@@ -31,7 +31,7 @@ impl Component for App {
 
         Self {
             clicker_value: 0,
-            input_ref: NodeRef::default(),
+            input_ref: HtmlRef::default(),
             worker,
             fibonacci_output: String::from("Try out some fibonacci calculations!"),
         }
@@ -43,7 +43,7 @@ impl Component for App {
                 self.clicker_value += 1;
             }
             Self::Message::RunWorker => {
-                if let Some(input) = self.input_ref.cast::<HtmlInputElement>() {
+                if let Some(input) = self.input_ref.get() {
                     // start the worker off!
                     self.worker.send(WorkerInput {
                         n: input.value_as_number() as u32,
