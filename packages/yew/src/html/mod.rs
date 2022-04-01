@@ -17,7 +17,7 @@ use crate::sealed::Sealed;
 use crate::virtual_dom::{VNode, VPortal};
 use std::cell::RefCell;
 use std::rc::Rc;
-use wasm_bindgen::JsValue;
+use wasm_bindgen::{JsCast, JsValue};
 use web_sys::{Element, Node};
 
 /// A type which expected as a result of `view` function implementation.
@@ -45,6 +45,61 @@ impl IntoHtmlResult for Html {
     #[inline(always)]
     fn into_html_result(self) -> HtmlResult {
         Ok(self)
+    }
+}
+
+/// Wrapped a reference for later use in component effects.
+#[derive(Debug, Clone)]
+pub struct HtmlRef<T> {
+    inner: Rc<RefCell<Option<T>>>,
+}
+
+impl<T> Default for HtmlRef<T> {
+    fn default() -> Self {
+        Self {
+            inner: Rc::default(),
+        }
+    }
+}
+
+impl<T> HtmlRef<T>
+where
+    T: Clone + 'static,
+{
+    /// Creates an `HtmlRef`.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Get the current value of an [`HtmlRef`].
+    pub fn get(&self) -> Option<T> {
+        (*self.inner.borrow()).clone()
+    }
+
+    /// Sets an [`HtmlRef`].
+    pub fn set<F: Into<T>>(&self, val: Option<F>) {
+        let mut inner = self.inner.borrow_mut();
+        *inner = val.map(Into::into);
+    }
+}
+
+impl<T> HtmlRef<T>
+where
+    T: Clone + 'static + JsCast,
+{
+    /// Set by value via `JsCast::unchecked_into`.
+    ///
+    /// # Safety
+    ///
+    /// This method converts node into the target element type via unchecked_into.
+    /// You should only use this method if you are certain that it would cast into the target type.
+    pub unsafe fn set_node_unchecked<I>(&self, val: Option<Node>)
+    where
+        I: JsCast,
+        T: From<I>,
+    {
+        let val = val.map(|m| m.unchecked_into::<I>());
+        self.set(val);
     }
 }
 
