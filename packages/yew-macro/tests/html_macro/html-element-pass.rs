@@ -40,13 +40,14 @@ fn compile_pass() {
     let onclick = <::yew::Callback<::yew::events::MouseEvent> as ::std::convert::From<_>>::from(
         |_: ::yew::events::MouseEvent| (),
     );
-    let parent_ref = <::yew::NodeRef as ::std::default::Default>::default();
+    let parent_ref = ::yew::html::HtmlRef::<::yew::__vendored::web_sys::Node>::new();
 
     let dyn_tag =
         || <::std::string::String as ::std::convert::From<&::std::primitive::str>>::from("test");
     let mut extra_tags_iter = ::std::iter::IntoIterator::into_iter(::std::vec!["a", "b"]);
 
-    let attr_val_none: ::std::option::Option<::yew::virtual_dom::AttrValue> = ::std::option::Option::None;
+    let attr_val_none: ::std::option::Option<::yew::virtual_dom::AttrValue> =
+        ::std::option::Option::None;
 
     ::yew::html! {
         <div>

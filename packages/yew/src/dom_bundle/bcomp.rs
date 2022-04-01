@@ -105,12 +105,7 @@ impl Reconcilable for VComp {
         next_sibling: NodeRef,
         bcomp: &mut Self::Bundle,
     ) -> NodeRef {
-        let VComp {
-            mountable,
-            key,
-            type_id: _,
-            ..
-        } = self;
+        let VComp { mountable, key, .. } = self;
 
         bcomp.key = key;
         mountable.reuse(bcomp.scope.borrow(), next_sibling);

@@ -361,11 +361,18 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
              <&'static str as IntoPropValue<Option<String>>>
            and 18 others
 
-error[E0308]: mismatched types
+error[E0599]: no method named `ref_` found for struct `ChildPropertiesBuilder` in the current scope
   --> tests/html_macro/component-fail.rs:80:31
    |
+4  | #[derive(Clone, Properties, PartialEq)]
+   |                 ---------- method `ref_` not found for this
+...
 80 |     html! { <Child int=1 ref={()} /> };
-   |                               ^^ expected struct `NodeRef`, found `()`
+   |                               ^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStepPropsBuilder>`
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `ref_`, perhaps you need to implement it:
+           candidate #1: `yew::Properties`
 
 error[E0277]: the trait bound `u32: IntoPropValue<i32>` is not satisfied
   --> tests/html_macro/component-fail.rs:82:24

@@ -1,255 +1,255 @@
 error: this opening tag has no corresponding closing tag
- --> tests/html_macro/element-fail.rs:7:13
+ --> tests/html_macro/element-fail.rs:8:13
   |
-7 |     html! { <div> };
+8 |     html! { <div> };
   |             ^^^^^
 
 error: this opening tag has no corresponding closing tag
- --> tests/html_macro/element-fail.rs:8:18
+ --> tests/html_macro/element-fail.rs:9:18
   |
-8 |     html! { <div><div> };
+9 |     html! { <div><div> };
   |                  ^^^^^
 
 error: this opening tag has no corresponding closing tag
- --> tests/html_macro/element-fail.rs:9:13
-  |
-9 |     html! { <div><div></div> };
-  |             ^^^^^
+  --> tests/html_macro/element-fail.rs:10:13
+   |
+10 |     html! { <div><div></div> };
+   |             ^^^^^
 
 error: this closing tag has no corresponding opening tag
-  --> tests/html_macro/element-fail.rs:12:13
+  --> tests/html_macro/element-fail.rs:13:13
    |
-12 |     html! { </div> };
+13 |     html! { </div> };
    |             ^^^^^^
 
 error: this closing tag has no corresponding opening tag
-  --> tests/html_macro/element-fail.rs:13:18
+  --> tests/html_macro/element-fail.rs:14:18
    |
-13 |     html! { <div></span></div> };
+14 |     html! { <div></span></div> };
    |                  ^^^^^^^
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
-  --> tests/html_macro/element-fail.rs:14:20
+  --> tests/html_macro/element-fail.rs:15:20
    |
-14 |     html! { <img /></img> };
+15 |     html! { <img /></img> };
    |                    ^^^^^^
 
 error: this closing tag has no corresponding opening tag
-  --> tests/html_macro/element-fail.rs:17:18
+  --> tests/html_macro/element-fail.rs:18:18
    |
-17 |     html! { <div></span> };
+18 |     html! { <div></span> };
    |                  ^^^^^^^
 
 error: this closing tag has no corresponding opening tag
-  --> tests/html_macro/element-fail.rs:18:20
+  --> tests/html_macro/element-fail.rs:19:20
    |
-18 |     html! { <tag-a></tag-b> };
+19 |     html! { <tag-a></tag-b> };
    |                    ^^^^^^^^
 
 error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
-  --> tests/html_macro/element-fail.rs:21:24
+  --> tests/html_macro/element-fail.rs:22:24
    |
-21 |     html! { <div></div><div></div> };
+22 |     html! { <div></div><div></div> };
    |                        ^^^^^^^^^^^
 
 error: expected a valid html element
-  --> tests/html_macro/element-fail.rs:23:18
+  --> tests/html_macro/element-fail.rs:24:18
    |
-23 |     html! { <div>Invalid</div> };
+24 |     html! { <div>Invalid</div> };
    |                  ^^^^^^^
 
 error: `attr` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:26:27
+  --> tests/html_macro/element-fail.rs:27:27
    |
-26 |     html! { <input attr=1 attr=2 /> };
+27 |     html! { <input attr=1 attr=2 /> };
    |                           ^^^^
 
 error: `value` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:27:32
+  --> tests/html_macro/element-fail.rs:28:32
    |
-27 |     html! { <input value="123" value="456" /> };
+28 |     html! { <input value="123" value="456" /> };
    |                                ^^^^^
 
 error: `kind` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:28:36
+  --> tests/html_macro/element-fail.rs:29:36
    |
-28 |     html! { <input kind="checkbox" kind="submit" /> };
+29 |     html! { <input kind="checkbox" kind="submit" /> };
    |                                    ^^^^
 
 error: `checked` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:29:33
+  --> tests/html_macro/element-fail.rs:30:33
    |
-29 |     html! { <input checked=true checked=false /> };
+30 |     html! { <input checked=true checked=false /> };
    |                                 ^^^^^^^
 
 error: `disabled` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:30:34
+  --> tests/html_macro/element-fail.rs:31:34
    |
-30 |     html! { <input disabled=true disabled=false /> };
+31 |     html! { <input disabled=true disabled=false /> };
    |                                  ^^^^^^^^
 
 error: `selected` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:31:35
+  --> tests/html_macro/element-fail.rs:32:35
    |
-31 |     html! { <option selected=true selected=false /> };
+32 |     html! { <option selected=true selected=false /> };
    |                                   ^^^^^^^^
 
 error: `class` can only be specified once but is given here again
-  --> tests/html_macro/element-fail.rs:32:32
+  --> tests/html_macro/element-fail.rs:33:32
    |
-32 |     html! { <div class="first" class="second" /> };
+33 |     html! { <div class="first" class="second" /> };
    |                                ^^^^^
 
 error: `ref` can only be specified once
-  --> tests/html_macro/element-fail.rs:33:20
+  --> tests/html_macro/element-fail.rs:34:20
    |
-33 |     html! { <input ref={()} ref={()} /> };
+34 |     html! { <input ref={()} ref={()} /> };
    |                    ^^^
 
 error: `ref` can only be specified once
-  --> tests/html_macro/element-fail.rs:63:20
+  --> tests/html_macro/element-fail.rs:65:20
    |
-63 |     html! { <input ref={()} ref={()} /> };
+65 |     html! { <input ref={()} ref={()} /> };
    |                    ^^^
 
 error: the tag `<input>` is a void element and cannot have children (hint: rewrite this as `<input/>`)
-  --> tests/html_macro/element-fail.rs:66:13
+  --> tests/html_macro/element-fail.rs:68:13
    |
-66 |     html! { <input type="text"></input> };
+68 |     html! { <input type="text"></input> };
    |             ^^^^^^^^^^^^^^^^^^^
 
 error: the tag `<iNpUt>` is a void element and cannot have children (hint: rewrite this as `<iNpUt/>`)
-  --> tests/html_macro/element-fail.rs:68:13
+  --> tests/html_macro/element-fail.rs:70:13
    |
-68 |     html! { <iNpUt type="text"></iNpUt> };
+70 |     html! { <iNpUt type="text"></iNpUt> };
    |             ^^^^^^^^^^^^^^^^^^^
 
 error: this dynamic tag is missing an expression block defining its value
-  --> tests/html_macro/element-fail.rs:71:14
+  --> tests/html_macro/element-fail.rs:73:14
    |
-71 |     html! { <@></@> };
+73 |     html! { <@></@> };
    |              ^
 
 error: this dynamic tag is missing an expression block defining its value
-  --> tests/html_macro/element-fail.rs:72:14
+  --> tests/html_macro/element-fail.rs:74:14
    |
-72 |     html! { <@/> };
+74 |     html! { <@/> };
    |              ^
 
 error: dynamic closing tags must not have a body (hint: replace it with just `</@>`)
-  --> tests/html_macro/element-fail.rs:75:27
+  --> tests/html_macro/element-fail.rs:77:27
    |
-75 |     html! { <@{"test"}></@{"test"}> };
+77 |     html! { <@{"test"}></@{"test"}> };
    |                           ^^^^^^^^
-
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
-  --> tests/html_macro/element-fail.rs:83:24
-   |
-83 |     html! { <div class=("deprecated", "warning") /> };
-   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
-  --> tests/html_macro/element-fail.rs:84:24
-   |
-84 |     html! { <input ref=() /> };
-   |                        ^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
   --> tests/html_macro/element-fail.rs:85:24
    |
-85 |     html! { <input ref=() ref=() /> };
+85 |     html! { <div class=("deprecated", "warning") /> };
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
+  --> tests/html_macro/element-fail.rs:86:24
+   |
+86 |     html! { <input ref=() /> };
    |                        ^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
-  --> tests/html_macro/element-fail.rs:86:28
+  --> tests/html_macro/element-fail.rs:87:24
    |
-86 |     html! { <input onfocus=Some(5) /> };
+87 |     html! { <input ref=() ref=() /> };
+   |                        ^^
+
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
+  --> tests/html_macro/element-fail.rs:88:28
+   |
+88 |     html! { <input onfocus=Some(5) /> };
    |                            ^^^^^^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
-  --> tests/html_macro/element-fail.rs:87:27
+  --> tests/html_macro/element-fail.rs:89:27
    |
-87 |     html! { <input string=NotToString /> };
+89 |     html! { <input string=NotToString /> };
    |                           ^^^^^^^^^^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
-  --> tests/html_macro/element-fail.rs:88:22
+  --> tests/html_macro/element-fail.rs:90:22
    |
-88 |     html! { <a media=Some(NotToString) /> };
+90 |     html! { <a media=Some(NotToString) /> };
    |                      ^^^^^^^^^^^^^^^^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
-  --> tests/html_macro/element-fail.rs:89:21
+  --> tests/html_macro/element-fail.rs:91:21
    |
-89 |     html! { <a href=Some(5) /> };
+91 |     html! { <a href=Some(5) /> };
    |                     ^^^^^^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
-  --> tests/html_macro/element-fail.rs:90:25
+  --> tests/html_macro/element-fail.rs:92:25
    |
-90 |     html! { <input type=() /> };
+92 |     html! { <input type=() /> };
    |                         ^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
-  --> tests/html_macro/element-fail.rs:91:26
+  --> tests/html_macro/element-fail.rs:93:26
    |
-91 |     html! { <input value=() /> };
+93 |     html! { <input value=() /> };
    |                          ^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
-  --> tests/html_macro/element-fail.rs:92:27
+  --> tests/html_macro/element-fail.rs:94:27
    |
-92 |     html! { <input string=NotToString /> };
+94 |     html! { <input string=NotToString /> };
    |                           ^^^^^^^^^^^
 
 warning: use of deprecated function `compile_fail::deprecated_use_of_class`: the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead.
-  --> tests/html_macro/element-fail.rs:80:25
+  --> tests/html_macro/element-fail.rs:82:25
    |
-80 |     html! { <div class={("deprecated", "warning")} /> };
+82 |     html! { <div class={("deprecated", "warning")} /> };
    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: `#[warn(deprecated)]` on by default
 
 error[E0308]: mismatched types
-  --> tests/html_macro/element-fail.rs:36:28
+  --> tests/html_macro/element-fail.rs:37:28
    |
-36 |     html! { <input checked=1 /> };
+37 |     html! { <input checked=1 /> };
    |                            ^ expected `bool`, found integer
 
 error[E0308]: mismatched types
-  --> tests/html_macro/element-fail.rs:37:29
+  --> tests/html_macro/element-fail.rs:38:29
    |
-37 |     html! { <input checked={Some(false)} /> };
+38 |     html! { <input checked={Some(false)} /> };
    |                             ^^^^^^^^^^^ expected `bool`, found enum `Option`
    |
    = note: expected type `bool`
               found enum `Option<bool>`
 
 error[E0308]: mismatched types
-  --> tests/html_macro/element-fail.rs:38:29
+  --> tests/html_macro/element-fail.rs:39:29
    |
-38 |     html! { <input disabled=1 /> };
+39 |     html! { <input disabled=1 /> };
    |                             ^ expected `bool`, found integer
 
 error[E0308]: mismatched types
-  --> tests/html_macro/element-fail.rs:39:30
+  --> tests/html_macro/element-fail.rs:40:30
    |
-39 |     html! { <input disabled={Some(true)} /> };
+40 |     html! { <input disabled={Some(true)} /> };
    |                              ^^^^^^^^^^ expected `bool`, found enum `Option`
    |
    = note: expected type `bool`
               found enum `Option<bool>`
 
 error[E0308]: mismatched types
-  --> tests/html_macro/element-fail.rs:40:30
+  --> tests/html_macro/element-fail.rs:41:30
    |
-40 |     html! { <option selected=1 /> };
+41 |     html! { <option selected=1 /> };
    |                              ^ expected `bool`, found integer
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<AttrValue>>` is not satisfied
-  --> tests/html_macro/element-fail.rs:43:26
+  --> tests/html_macro/element-fail.rs:44:26
    |
-43 |     html! { <input type={()} /> };
+44 |     html! { <input type={()} /> };
    |                          ^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `()`
    |
 note: required by `into_prop_value`
@@ -259,9 +259,9 @@ note: required by `into_prop_value`
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<AttrValue>>` is not satisfied
-  --> tests/html_macro/element-fail.rs:44:27
+  --> tests/html_macro/element-fail.rs:45:27
    |
-44 |     html! { <input value={()} /> };
+45 |     html! { <input value={()} /> };
    |                           ^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `()`
    |
 note: required by `into_prop_value`
@@ -271,9 +271,9 @@ note: required by `into_prop_value`
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<AttrValue>>` is not satisfied
-  --> tests/html_macro/element-fail.rs:45:22
+  --> tests/html_macro/element-fail.rs:46:22
    |
-45 |     html! { <a href={()} /> };
+46 |     html! { <a href={()} /> };
    |                      ^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `()`
    |
 note: required by `into_prop_value`
@@ -283,9 +283,9 @@ note: required by `into_prop_value`
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `NotToString: IntoPropValue<Option<AttrValue>>` is not satisfied
-  --> tests/html_macro/element-fail.rs:46:28
+  --> tests/html_macro/element-fail.rs:47:28
    |
-46 |     html! { <input string={NotToString} /> };
+47 |     html! { <input string={NotToString} /> };
    |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `NotToString`
    |
 note: required by `into_prop_value`
@@ -295,9 +295,9 @@ note: required by `into_prop_value`
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<AttrValue>>` is not satisfied
-  --> tests/html_macro/element-fail.rs:47:23
+  --> tests/html_macro/element-fail.rs:48:23
    |
-47 |     html! { <a media={Some(NotToString)} /> };
+48 |     html! { <a media={Some(NotToString)} /> };
    |                       ^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `Option<NotToString>`
    |
    = help: the following implementations were found:
@@ -313,9 +313,9 @@ note: required by `into_prop_value`
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<AttrValue>>` is not satisfied
-  --> tests/html_macro/element-fail.rs:48:22
+  --> tests/html_macro/element-fail.rs:49:22
    |
-48 |     html! { <a href={Some(5)} /> };
+49 |     html! { <a href={Some(5)} /> };
    |                      ^^^^^^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `Option<{integer}>`
    |
    = help: the following implementations were found:
@@ -331,9 +331,9 @@ note: required by `into_prop_value`
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `{integer}`
-   --> tests/html_macro/element-fail.rs:51:28
+   --> tests/html_macro/element-fail.rs:52:28
     |
-51  |     html! { <input onclick=1 /> };
+52  |     html! { <input onclick=1 /> };
     |                            ^ expected an `Fn<(MouseEvent,)>` closure, found `{integer}`
     |
     = help: the trait `Fn<(MouseEvent,)>` is not implemented for `{integer}`
@@ -352,9 +352,9 @@ note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
     = note: this error originates in the macro `impl_action` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
-   --> tests/html_macro/element-fail.rs:52:29
+   --> tests/html_macro/element-fail.rs:53:29
     |
-52  |     html! { <input onclick={Callback::from(|a: String| ())} /> };
+53  |     html! { <input onclick={Callback::from(|a: String| ())} /> };
     |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |                             |
     |                             expected an implementor of trait `IntoEventCallback<MouseEvent>`
@@ -376,9 +376,9 @@ note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
     = note: this error originates in the macro `impl_action` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `Option<{integer}>: IntoEventCallback<FocusEvent>` is not satisfied
-   --> tests/html_macro/element-fail.rs:53:29
+   --> tests/html_macro/element-fail.rs:54:29
     |
-53  |     html! { <input onfocus={Some(5)} /> };
+54  |     html! { <input onfocus={Some(5)} /> };
     |                             ^^^^^^^ the trait `IntoEventCallback<FocusEvent>` is not implemented for `Option<{integer}>`
     |
     = help: the following implementations were found:
@@ -397,40 +397,46 @@ note: required by a bound in `yew::html::onfocus::Wrapper::__macro_new`
     | |_^ required by this bound in `yew::html::onfocus::Wrapper::__macro_new`
     = note: this error originates in the macro `impl_action` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
-  --> tests/html_macro/element-fail.rs:56:25
-   |
-56 |     html! { <input ref={()} /> };
-   |                         ^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `()`
-   |
-note: required by `into_prop_value`
-  --> $WORKSPACE/packages/yew/src/html/conversion.rs
-   |
-   |     fn into_prop_value(self) -> T;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>` is not satisfied
+error[E0308]: mismatched types
   --> tests/html_macro/element-fail.rs:57:25
    |
-57 |     html! { <input ref={Some(NodeRef::default())} /> };
-   |                         ^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `Option<yew::NodeRef>`
+57 |     html! { <input ref={()} /> };
+   |                         ^^ expected struct `yew::HtmlRef`, found `()`
    |
-   = help: the following implementations were found:
-             <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
-             <Option<&'static str> as IntoPropValue<Option<String>>>
-             <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
-             <Option<String> as IntoPropValue<Option<AttrValue>>>
-             <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
-note: required by `into_prop_value`
-  --> $WORKSPACE/packages/yew/src/html/conversion.rs
+   = note: expected struct `yew::HtmlRef<_>`
+           found unit type `()`
+
+error[E0308]: mismatched types
+  --> tests/html_macro/element-fail.rs:58:25
    |
-   |     fn into_prop_value(self) -> T;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+58 |     html! { <input ref={Some(HtmlRef::<HtmlInputElement>::default())} /> };
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected struct `yew::HtmlRef`, found enum `Option`
+   |
+   = note: expected struct `yew::HtmlRef<_>`
+                found enum `Option<yew::HtmlRef<HtmlInputElement>>`
+
+error[E0277]: the trait bound `HtmlDivElement: From<HtmlInputElement>` is not satisfied
+   --> tests/html_macro/element-fail.rs:59:25
+    |
+59  |     html! { <input ref={HtmlRef::<HtmlDivElement>::default()} /> };
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                         |
+    |                         expected an implementor of trait `From<HtmlInputElement>`
+    |                         help: consider borrowing here: `&HtmlRef::<HtmlDivElement>::default()`
+    |
+note: required by `yew::HtmlRef::<T>::into_node_setter`
+   --> $WORKSPACE/packages/yew/src/html/mod.rs
+    |
+    | /     pub unsafe fn into_node_setter<I>(self) -> Callback<Option<Node>>
+    | |     where
+    | |         I: JsCast,
+    | |         T: From<I>,
+    | |___________________^
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
-   --> tests/html_macro/element-fail.rs:58:29
+   --> tests/html_macro/element-fail.rs:60:29
     |
-58  |     html! { <input onclick={Callback::from(|a: String| ())} /> };
+60  |     html! { <input onclick={Callback::from(|a: String| ())} /> };
     |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |                             |
     |                             expected an implementor of trait `IntoEventCallback<MouseEvent>`
@@ -452,9 +458,9 @@ note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
     = note: this error originates in the macro `impl_action` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `NotToString: IntoPropValue<Option<AttrValue>>` is not satisfied
-  --> tests/html_macro/element-fail.rs:60:28
+  --> tests/html_macro/element-fail.rs:62:28
    |
-60 |     html! { <input string={NotToString} /> };
+62 |     html! { <input string={NotToString} /> };
    |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<AttrValue>>` is not implemented for `NotToString`
    |
 note: required by `into_prop_value`
@@ -463,22 +469,19 @@ note: required by `into_prop_value`
    |     fn into_prop_value(self) -> T;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
-  --> tests/html_macro/element-fail.rs:62:25
+error[E0308]: mismatched types
+  --> tests/html_macro/element-fail.rs:64:25
    |
-62 |     html! { <input ref={()} /> };
-   |                         ^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `()`
+64 |     html! { <input ref={()} /> };
+   |                         ^^ expected struct `yew::HtmlRef`, found `()`
    |
-note: required by `into_prop_value`
-  --> $WORKSPACE/packages/yew/src/html/conversion.rs
-   |
-   |     fn into_prop_value(self) -> T;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: expected struct `yew::HtmlRef<_>`
+           found unit type `()`
 
 error[E0277]: the trait bound `Cow<'static, str>: From<{integer}>` is not satisfied
-   --> tests/html_macro/element-fail.rs:77:15
+   --> tests/html_macro/element-fail.rs:79:15
     |
-77  |     html! { <@{55}></@> };
+79  |     html! { <@{55}></@> };
     |               ^^^^ the trait `From<{integer}>` is not implemented for `Cow<'static, str>`
     |
     = help: the following implementations were found:

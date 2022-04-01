@@ -1,3 +1,4 @@
+use yew::__vendored::web_sys::{HtmlDivElement, HtmlInputElement};
 use yew::prelude::*;
 
 struct NotToString;
@@ -54,7 +55,8 @@ fn compile_fail() {
 
     // NodeRef type mismatch
     html! { <input ref={()} /> };
-    html! { <input ref={Some(NodeRef::default())} /> };
+    html! { <input ref={Some(HtmlRef::<HtmlInputElement>::default())} /> };
+    html! { <input ref={HtmlRef::<HtmlDivElement>::default()} /> };
     html! { <input onclick={Callback::from(|a: String| ())} /> };
 
     html! { <input string={NotToString} /> };
