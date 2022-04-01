@@ -132,7 +132,6 @@ where
     T: Clone + 'static + JsCast,
 {
     /// Set by value via `JsCast::unchecked_into`.
-    #[inline]
     unsafe fn set_node_unchecked<I>(&self, val: Option<Node>)
     where
         I: JsCast,
@@ -191,13 +190,6 @@ impl NodeRef {
         let inner = self.0.borrow();
         inner.node.clone().or_else(|| inner.link.as_ref()?.get())
     }
-
-    /// Place a Node in a reference for later use
-    pub(crate) fn set(&self, node: Option<Node>) {
-        let mut this = self.0.borrow_mut();
-        this.node = node;
-        this.link = None;
-    }
 }
 
 #[cfg(feature = "csr")]
@@ -222,6 +214,13 @@ mod feat_csr {
             let node_ref = NodeRef::default();
             node_ref.set(Some(node));
             node_ref
+        }
+
+        /// Place a Node in a reference for later use
+        pub(crate) fn set(&self, node: Option<Node>) {
+            let mut this = self.0.borrow_mut();
+            this.node = node;
+            this.link = None;
         }
     }
 }

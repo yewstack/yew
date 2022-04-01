@@ -29,7 +29,9 @@ use std::rc::Rc;
 mod hooks;
 pub use hooks::*;
 
-use crate::html::{Context, RefProp};
+use crate::html::Context;
+#[cfg(debug_assertions)]
+use crate::html::RefProp;
 
 use crate::html::sealed::SealedBaseComponent;
 
@@ -229,7 +231,7 @@ where
         result
     }
 
-    fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
+    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
         let hook_ctx = self.hook_ctx.borrow();
 
         for effect in hook_ctx.effects.iter() {
@@ -237,7 +239,7 @@ where
         }
 
         #[cfg(debug_assertions)]
-        ctx.props().ref_().assert_ref_set();
+        _ctx.props().ref_().assert_ref_set();
     }
 
     fn destroy(&mut self, _ctx: &Context<Self>) {

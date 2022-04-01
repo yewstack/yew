@@ -1,5 +1,6 @@
 mod use_context;
 mod use_effect;
+mod use_imperative_handle;
 mod use_memo;
 mod use_reducer;
 mod use_ref;
