@@ -34,7 +34,8 @@ module.exports = {
           link: {
             type: "generated-index",
             title: "Yew Take on Basic Web Technologies",
-            description: "Yew mostly operates on the idea of keeping everything that a reusable piece of UI may need, in one place - rust files. But also seeks to stay close to the original look of the technology. Explore further to fully grasp what we mean by these statements:",
+            description:
+              "Yew mostly operates on the idea of keeping everything that a reusable piece of UI may need, in one place - rust files. But also seeks to stay close to the original look of the technology. Explore further to fully grasp what we mean by these statements:",
           },
           items: [
             "concepts/basic-web-technologies/html",
@@ -45,7 +46,10 @@ module.exports = {
         {
           type: "category",
           label: "Function Components",
-          link: { type: "doc", id: "concepts/function-components/introduction" },
+          link: {
+            type: "doc",
+            id: "concepts/function-components/introduction",
+          },
           items: [
             "concepts/function-components/properties",
             "concepts/function-components/callbacks",
@@ -54,12 +58,15 @@ module.exports = {
             {
               type: "category",
               label: "Hooks",
-              link: { type: "doc", id: "concepts/function-components/hooks/introduction" },
+              link: {
+                type: "doc",
+                id: "concepts/function-components/hooks/introduction",
+              },
               items: [
                 "concepts/function-components/hooks/use-state",
                 "concepts/function-components/hooks/use-reducer",
                 "concepts/function-components/hooks/use-mut-ref",
-                "concepts/function-components/hooks/use-node-ref",
+                "concepts/function-components/hooks/use-html-ref",
                 "concepts/function-components/hooks/use-effect",
                 "concepts/function-components/hooks/use-memo",
                 "concepts/function-components/hooks/use-context",
@@ -121,7 +128,10 @@ module.exports = {
         {
           type: "category",
           label: "Struct Components",
-          link: { type: "doc", id: "advanced-topics/struct-components/introduction" },
+          link: {
+            type: "doc",
+            id: "advanced-topics/struct-components/introduction",
+          },
           items: [
             "advanced-topics/struct-components/hoc",
             "advanced-topics/struct-components/introduction",

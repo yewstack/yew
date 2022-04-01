@@ -3,12 +3,12 @@ title: "Refs"
 description: "Out-of-band DOM access"
 ---
 
-The `ref` keyword can be used inside of any HTML element or component to get the DOM `Element` that 
+The `ref` keyword can be used inside of any HTML element or component to get the DOM `Element` that
 the item is attached to. This can be used to make changes to the DOM outside of the `view` lifecycle
-method. 
+method.
 
-This is useful for getting ahold of canvas elements, or scrolling to different sections of a page. 
-For example, using a `NodeRef` in a component's `rendered` method allows you to make draw calls to 
+This is useful for getting ahold of canvas elements, or scrolling to different sections of a page.
+For example, using a `NodeRef` in a component's `rendered` method allows you to make draw calls to
 a canvas element after it has been rendered from `view`.
 
 The syntax is:
@@ -16,9 +16,10 @@ The syntax is:
 ```rust
 use web_sys::Element;
 use yew::{html, Component, Context, Html, NodeRef};
+use yew::html::HtmlRef;
 
 struct Comp {
-    node_ref: NodeRef,
+    node_ref: HtmlRef<Element>,
 }
 
 impl Component for Comp {
@@ -28,7 +29,7 @@ impl Component for Comp {
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
             // highlight-next-line
-            node_ref: NodeRef::default(),
+            node_ref: HtmlRef::default(),
         }
     }
 
@@ -42,7 +43,7 @@ impl Component for Comp {
     fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
         // highlight-start
         let has_attributes = self.node_ref
-            .cast::<Element>()
+            .get()
             .unwrap()
             .has_attributes();
         // highlight-end

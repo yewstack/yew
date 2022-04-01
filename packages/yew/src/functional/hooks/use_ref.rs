@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::functional::{hook, use_memo, use_state};
-use crate::NodeRef;
+use crate::html::HtmlRef;
 
 /// This hook is used for obtaining a mutable reference to a stateful value.
 /// Its state persists across renders.
@@ -58,7 +58,7 @@ where
     use_memo(|_| RefCell::new(init_fn()), ())
 }
 
-/// This hook is used for obtaining a [`NodeRef`].
+/// This hook is used for obtaining an [`HtmlRef`].
 /// It persists across renders.
 ///
 /// It is important to note that you do not get notified of state changes.
@@ -67,14 +67,14 @@ where
 /// ```rust
 /// # use wasm_bindgen::{prelude::Closure, JsCast};
 /// # use yew::{
-/// #    function_component, html, use_effect_with_deps, use_node_ref,
+/// #    function_component, html, use_effect_with_deps, use_html_ref,
 /// #    Html,
 /// # };
 /// # use web_sys::{Event, HtmlElement};
 ///
-/// #[function_component(UseNodeRef)]
-/// pub fn node_ref_hook() -> Html {
-///     let div_ref = use_node_ref();
+/// #[function_component(UseHtmlRef)]
+/// pub fn html_ref_hook() -> Html {
+///     let div_ref = use_html_ref::<HtmlElement>();
 ///
 ///     {
 ///         let div_ref = div_ref.clone();
@@ -82,7 +82,7 @@ where
 ///         use_effect_with_deps(
 ///             |div_ref| {
 ///                 let div = div_ref
-///                     .cast::<HtmlElement>()
+///                     .get()
 ///                     .expect("div_ref not attached to div element");
 ///
 ///                 let listener = Closure::<dyn Fn(Event)>::wrap(Box::new(|_| {
@@ -116,6 +116,9 @@ where
 ///
 /// ```
 #[hook]
-pub fn use_node_ref() -> NodeRef {
-    (*use_state(NodeRef::default)).clone()
+pub fn use_html_ref<T>() -> HtmlRef<T>
+where
+    T: 'static + Clone,
+{
+    (*use_state(HtmlRef::<T>::default)).clone()
 }

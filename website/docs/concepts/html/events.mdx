@@ -353,9 +353,9 @@ see that `TargetCast::target_dyn_into` feels similar to `JsCast::dyn_into` but s
 does the cast on the target of the event. `TargetCast::target_unchecked_into` is similar to
 `JsCast::unchecked_into`, and as such all the same warnings above `JsCast` apply to `TargetCast`.
 
-### Using `NodeRef`
+### Using `HtmlRef`
 
-[`NodeRef`](../components/refs) can be used instead of querying the event given to a `Callback`.
+[`HtmlRef`](../components/refs) can be used instead of querying the event given to a `Callback`.
 
 ```rust
 use web_sys::HtmlInputElement;
@@ -364,17 +364,17 @@ use yew::prelude::*;
 #[function_component]
 fn MyComponent() -> Html {
     //highlight-next-line
-    let input_node_ref = use_node_ref();
+    let input_html_ref = use_html_ref::<HtmlInputElement>();
 
     let input_value_handle = use_state(String::default);
     let input_value = (*input_value_handle).clone();
 
     let onchange = {
-        let input_node_ref = input_node_ref.clone();
+        let input_html_ref = input_html_ref.clone();
 
         Callback::from(move |_| {
             //highlight-next-line
-            let input = input_node_ref.cast::<HtmlInputElement>();
+            let input = input_html_ref.get();
 
             if let Some(input) = input {
                 input_value_handle.set(input.value());
@@ -387,7 +387,7 @@ fn MyComponent() -> Html {
             <label for="my-input">
                 { "My input:" }
                 //highlight-next-line
-                <input ref={input_node_ref}
+                <input ref={input_html_ref}
                     {onchange}
                     id="my-input"
                     type="text"
@@ -399,11 +399,8 @@ fn MyComponent() -> Html {
 }
 ```
 
-Using `NodeRef`, you can ignore the event and use the `NodeRef::cast` method to get an
-`Option<HtmlInputElement>` - this is optional as calling `cast` before the `NodeRef` has been
-set, or when the type doesn't match will return `None`.
-
-You might also see by using `NodeRef` we don't have to send the `String` back into state as we always access to `input_node_ref` - so we could do the following:
+Using `HtmlRef::get()`, you can get an`Option<HtmlInputElement>` which is type checked at compile time.
+You might also see by using `HtmlRef` we don't have to send the `String` back into state as we always access to `use_html_ref` - so we could do the following:
 
 ```rust
 use web_sys::HtmlInputElement;
@@ -411,14 +408,14 @@ use yew::prelude::*;
 
 #[function_component]
 fn MyComponent() -> Html {
-    let input_node_ref = use_node_ref();
+    let input_html_ref = use_html_ref::<HtmlInputElement>();
 
     //highlight-start
     let onchange = {
-        let input_node_ref = input_node_ref.clone();
+        let input_html_ref = input_html_ref.clone();
 
         Callback::from(move |_| {
-            if let Some(input) = input_node_ref.cast::<HtmlInputElement>() {
+            if let Some(input) = input_html_ref.get() {
                 let value = input.value();
                 // do something with value
             }
@@ -430,7 +427,7 @@ fn MyComponent() -> Html {
         <>
             <label for="my-input">
                 { "My input:" }
-                <input ref={input_node_ref}
+                <input ref={input_html_ref}
                     {onchange}
                     id="my-input"
                     type="text"
@@ -450,7 +447,7 @@ You may want to listen to an event that is not supported by Yew's `html` macro, 
 [supported events listed here](#event-types).
 
 In order to add an event listener to one of elements manually we need the help of
-[`NodeRef`](../components/refs) so that in `use_effect_with_deps` we can add a listener using the
+[`HtmlRef`](../components/refs) so that in `use_effect_with_deps` we can add a listener using the
 [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/index.html) and
 [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) API.
 
@@ -473,16 +470,16 @@ use yew::prelude::*;
 
 #[function_component]
 fn MyComponent() -> Html {
-    let div_node_ref = use_node_ref();
+    let div_html_ref = use_html_ref::<HtmlElement>();
 
     use_effect_with_deps(
         {
-            let div_node_ref = div_node_ref.clone();
+            let div_html_ref = div_html_ref.clone();
 
             move |_| {
                 let mut custard_listener = None;
 
-                if let Some(element) = div_node_ref.cast::<HtmlElement>() {
+                if let Some(element) = div_html_ref.get() {
                     // Create your Callback as you normally would
                     let oncustard = Callback::from(move |_: Event| {
                         // do something about custard..
@@ -507,11 +504,11 @@ fn MyComponent() -> Html {
                 move || drop(custard_listener)
             }
         },
-        div_node_ref.clone()
+        div_html_ref.clone()
     );
 
     html! {
-        <div ref={div_node_ref} id="my-div"></div>
+        <div ref={div_html_ref} id="my-div"></div>
     }
 }
 ```
@@ -540,16 +537,16 @@ use gloo::events::EventListener;
 
 #[function_component]
 fn MyComponent() -> Html {
-    let div_node_ref = use_node_ref();
+    let div_html_ref = use_html_ref::<HtmlElement>();
 
     use_effect_with_deps(
         {
-            let div_node_ref = div_node_ref.clone();
+            let div_html_ref = div_html_ref.clone();
 
             move |_| {
                 let mut custard_listener = None;
 
-                if let Some(element) = div_node_ref.cast::<HtmlElement>() {
+                if let Some(element) = div_html_ref.get() {
                     // Create your Callback as you normally would
                     let oncustard = Callback::from(move |_: Event| {
                         // do something about custard..
@@ -568,11 +565,11 @@ fn MyComponent() -> Html {
                 move || drop(custard_listener)
             }
         },
-        div_node_ref.clone()
+        div_html_ref.clone()
     );
 
     html! {
-        <div ref={div_node_ref} id="my-div"></div>
+        <div ref={div_html_ref} id="my-div"></div>
     }
 }
 ```

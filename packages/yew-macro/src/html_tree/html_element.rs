@@ -19,6 +19,14 @@ fn get_element_types() -> HashMap<&'static str, Type> {
         parse_quote!(::yew::__vendored::web_sys::HtmlCanvasElement),
     );
     map.insert("p", parse_quote!(::yew::__vendored::web_sys::HtmlElement));
+    map.insert(
+        "div",
+        parse_quote!(::yew::__vendored::web_sys::HtmlDivElement),
+    );
+    map.insert(
+        "span",
+        parse_quote!(::yew::__vendored::web_sys::HtmlSpanElement),
+    );
 
     map
 }

@@ -220,11 +220,13 @@ mod tests {
 
     #[test]
     fn vchild_partialeq() {
+        let ref_ = HtmlRef::default();
+
         let vchild1: VChild<FunctionComponent<Comp>> = VChild::new(
             Props {
                 field_1: 1,
                 field_2: 1,
-                ref_: Default::default(),
+                ref_: ref_.clone(),
             },
             None,
         );
@@ -233,7 +235,7 @@ mod tests {
             Props {
                 field_1: 1,
                 field_2: 1,
-                ref_: Default::default(),
+                ref_: ref_.clone(),
             },
             None,
         );
@@ -242,7 +244,7 @@ mod tests {
             Props {
                 field_1: 2,
                 field_2: 2,
-                ref_: Default::default(),
+                ref_: ref_.clone(),
             },
             None,
         );

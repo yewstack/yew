@@ -49,6 +49,44 @@ impl IntoHtmlResult for Html {
 }
 
 /// Wrapped a reference for later use in component effects.
+///
+/// # Example
+/// Focus an `<input>` element on mount.
+/// ```
+/// use web_sys::HtmlInputElement;
+///# use yew::prelude::*;
+///
+/// pub struct Input {
+///     node_ref: HtmlRef<HtmlInputElement>,
+/// }
+///
+/// impl Component for Input {
+///     type Message = ();
+///     type Properties = ();
+///
+///     fn create(_ctx: &Context<Self>) -> Self {
+///         Input {
+///             node_ref: HtmlRef::default(),
+///         }
+///     }
+///
+///     fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
+///         if first_render {
+///             if let Some(input) = self.node_ref.get() {
+///                 input.focus();
+///             }
+///         }
+///     }
+///
+///     fn view(&self, _ctx: &Context<Self>) -> Html {
+///         html! {
+///             <input ref={self.node_ref.clone()} type="text" />
+///         }
+///     }
+/// }
+/// ```
+/// ## Relevant examples
+/// - [Node Refs](https://github.com/yewstack/yew/tree/master/examples/node_refs)
 #[derive(Debug, Clone)]
 pub struct HtmlRef<T> {
     inner: Rc<RefCell<Option<T>>>,
@@ -122,44 +160,44 @@ where
 }
 
 /// Wrapped Node reference for later use in Component lifecycle methods.
-///
-/// # Example
-/// Focus an `<input>` element on mount.
-/// ```
-/// use web_sys::HtmlInputElement;
-///# use yew::prelude::*;
-///
-/// pub struct Input {
-///     node_ref: NodeRef,
-/// }
-///
-/// impl Component for Input {
-///     type Message = ();
-///     type Properties = ();
-///
-///     fn create(_ctx: &Context<Self>) -> Self {
-///         Input {
-///             node_ref: NodeRef::default(),
-///         }
-///     }
-///
-///     fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
-///         if first_render {
-///             if let Some(input) = self.node_ref.cast::<HtmlInputElement>() {
-///                 input.focus();
-///             }
-///         }
-///     }
-///
-///     fn view(&self, _ctx: &Context<Self>) -> Html {
-///         html! {
-///             <input ref={self.node_ref.clone()} type="text" />
-///         }
-///     }
-/// }
-/// ```
-/// ## Relevant examples
-/// - [Node Refs](https://github.com/yewstack/yew/tree/master/examples/node_refs)
+// ///
+// /// # Example
+// /// Focus an `<input>` element on mount.
+// /// ```
+// /// use web_sys::HtmlInputElement;
+// ///# use yew::prelude::*;
+// ///
+// /// pub struct Input {
+// ///     node_ref: HtmlRef<HtmlInputElement>,
+// /// }
+// ///
+// /// impl Component for Input {
+// ///     type Message = ();
+// ///     type Properties = ();
+// ///
+// ///     fn create(_ctx: &Context<Self>) -> Self {
+// ///         Input {
+// ///             node_ref: HtmlRef::default(),
+// ///         }
+// ///     }
+// ///
+// ///     fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
+// ///         if first_render {
+// ///             if let Some(input) = self.node_ref.cast::<HtmlInputElement>() {
+// ///                 input.focus();
+// ///             }
+// ///         }
+// ///     }
+// ///
+// ///     fn view(&self, _ctx: &Context<Self>) -> Html {
+// ///         html! {
+// ///             <input ref={self.node_ref.clone()} type="text" />
+// ///         }
+// ///     }
+// /// }
+// /// ```
+// /// ## Relevant examples
+// /// - [Node Refs](https://github.com/yewstack/yew/tree/master/examples/node_refs)
 #[derive(Default, Clone)]
 pub struct NodeRef(Rc<RefCell<NodeRefInner>>);
 

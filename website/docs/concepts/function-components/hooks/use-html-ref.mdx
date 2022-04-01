@@ -1,8 +1,8 @@
 ---
-title: "use_node_ref"
+title: "use_html_ref"
 ---
 
-`use_node_ref` is used for maintaining an easy reference to the DOM element represented as a `NodeRef`. It also persists across renders.
+`use_html_ref` is used for maintaining an easy reference to the DOM element represented as an `HtmlRef`. It also persists across renders.
 
 ## Example
 
@@ -10,13 +10,13 @@ title: "use_node_ref"
 use web_sys::HtmlInputElement;
 use yew::{
     function_component, functional::*, html,
-    NodeRef, Html
+    Html
 };
 
 #[function_component(UseRef)]
 pub fn ref_hook() -> Html {
     // highlight-next-line
-    let input_ref = use_node_ref();
+    let input_ref = use_html_ref::<HtmlInputElement>();
     let value = use_state(|| 25_f64);
 
     let onclick = {
@@ -24,7 +24,7 @@ pub fn ref_hook() -> Html {
         let value = value.clone();
         move |_| {
             // highlight-start
-            if let Some(input) = input_ref.cast::<HtmlInputElement>() {
+            if let Some(input) = input_ref.get() {
                 value.set(*value + input.value_as_number());
             }
             // highlight-end
@@ -43,7 +43,7 @@ pub fn ref_hook() -> Html {
 
 :::tip Advanced tip
 
-When conditionally rendering elements you can use `NodeRef` in conjunction with `use_effect_with_deps`
+When conditionally rendering elements you can use `HtmlRef` in conjunction with `use_effect_with_deps`
 to perform actions each time an element is rendered and just before its going to be removed from the
 DOM.
 

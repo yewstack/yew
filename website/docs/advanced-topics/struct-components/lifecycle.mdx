@@ -101,11 +101,12 @@ being called on the first render, or instead a subsequent one.
 ```rust
 use web_sys::HtmlInputElement;
 use yew::{
-    Component, Context, html, Html, NodeRef,
+    Component, Context, html, Html,
+    html::HtmlRef,
 };
 
 pub struct MyComponent {
-    node_ref: NodeRef,
+    node_ref: HtmlRef<HtmlInputElement>,
 }
 
 impl Component for MyComponent {
@@ -114,7 +115,7 @@ impl Component for MyComponent {
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            node_ref: NodeRef::default(),
+            node_ref: HtmlRef::default(),
         }
     }
 
@@ -127,7 +128,7 @@ impl Component for MyComponent {
     // highlight-start
     fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
         if first_render {
-            if let Some(input) = self.node_ref.cast::<HtmlInputElement>() {
+            if let Some(input) = self.node_ref.get() {
                 input.focus();
             }
         }

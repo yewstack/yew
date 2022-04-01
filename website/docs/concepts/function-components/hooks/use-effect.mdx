@@ -136,17 +136,18 @@ But for cases when you need to do it manually always re-apply and destroy old ev
 Same tip applies to intervals and timeouts.
 
 ```rust
-use yew::{function_component, html, Html, use_effect_with_deps, use_node_ref};
+use yew::{function_component, html, Html, use_effect_with_deps, use_html_ref};
+use web_sys::HtmlElement;
 
 #[function_component]
 fn HelloWorld() -> Html {
-    let span_ref = use_node_ref();
+    let span_ref = use_html_ref::<HtmlElement>();
 
     {
         let span_ref = span_ref.clone();
         use_effect_with_deps(
             move |_| {
-                let listener = gloo::events::EventListener::new(&span_ref.cast::<web_sys::HtmlElement>().unwrap(), "click", move |event| {
+                let listener = gloo::events::EventListener::new(&span_ref.get().unwrap(), "click", move |event| {
                     web_sys::console::log_1(&"I got clicked".into());
                 });
                 move || drop(listener)

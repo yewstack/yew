@@ -93,6 +93,10 @@ impl ReconcileTarget for BTag {
         if self.node_ref.get().as_ref() == Some(&node) {
             self.node_ref.set(None);
         }
+
+        if let Some(m) = self.set_node.as_ref() {
+            m(None);
+        }
     }
 
     fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
