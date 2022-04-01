@@ -101,12 +101,6 @@ impl ToTokens for HtmlComponent {
         let build_props = props.build_properties_tokens(&props_ty, children_renderer);
 
         let special_props = props.special();
-        let node_ref = if let Some(node_ref) = &special_props.node_ref {
-            let value = &node_ref.value;
-            quote_spanned! {value.span()=> #value }
-        } else {
-            quote! { <::yew::html::NodeRef as ::std::default::Default>::default() }
-        };
 
         let key = if let Some(key) = &special_props.key {
             let value = &key.value;
@@ -121,7 +115,7 @@ impl ToTokens for HtmlComponent {
         tokens.extend(quote_spanned! {ty.span()=>
             {
                 let __yew_props = #build_props;
-                ::yew::virtual_dom::VChild::<#ty>::new(__yew_props, #node_ref, #key)
+                ::yew::virtual_dom::VChild::<#ty>::new(__yew_props, #key)
             }
         });
     }

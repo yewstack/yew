@@ -114,6 +114,11 @@ impl ComponentProps {
                         #ident.#label = ::yew::html::IntoPropValue::into_prop_value(#value);
                     }
                 });
+                let set_ref = self.special().node_ref.as_ref().map(|Prop { value, .. }| {
+                    quote_spanned! {value.span()=>
+                        #ident.ref_ = ::yew::html::IntoPropValue::into_prop_value(#value);
+                    }
+                });
                 let set_children = children_renderer.map(|children| {
                     quote_spanned! {props_ty.span()=>
                         #ident.children = #children;
@@ -124,6 +129,7 @@ impl ComponentProps {
                     let mut #ident = #expr;
                     #(#set_props)*
                     #set_children
+                    #set_ref
                     #ident
                 }
             }

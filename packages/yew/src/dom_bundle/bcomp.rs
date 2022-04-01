@@ -54,9 +54,10 @@ impl Reconcilable for VComp {
         let VComp {
             type_id,
             mountable,
-            node_ref,
             key,
         } = self;
+
+        let node_ref = NodeRef::default();
 
         let scope = mountable.mount(
             root,
@@ -106,16 +107,13 @@ impl Reconcilable for VComp {
     ) -> NodeRef {
         let VComp {
             mountable,
-            node_ref,
             key,
             type_id: _,
         } = self;
 
         bcomp.key = key;
-        let old_ref = std::mem::replace(&mut bcomp.node_ref, node_ref.clone());
-        bcomp.node_ref.reuse(old_ref);
-        mountable.reuse(node_ref.clone(), bcomp.scope.borrow(), next_sibling);
-        node_ref
+        mountable.reuse(bcomp.node_ref.clone(), bcomp.scope.borrow(), next_sibling);
+        bcomp.node_ref.clone()
     }
 }
 
