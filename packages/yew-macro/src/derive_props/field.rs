@@ -21,7 +21,7 @@ enum PropAttr {
 #[derive(Clone, Eq)]
 pub struct PropField {
     ty: Type,
-    pub(crate) name: Ident,
+    name: Ident,
     attr: PropAttr,
     extra_attrs: Vec<Attribute>,
 }

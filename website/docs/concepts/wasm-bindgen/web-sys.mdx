@@ -77,55 +77,29 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
 
 _[Inheritance in `web-sys` in The `wasm-bindgen` Guide](https://rustwasm.github.io/wasm-bindgen/web-sys/inheritance.html)._
 
-## The `Node` in `NodeRef`
+## The `Node` in `HtmlRef`
 
-Yew uses a [`NodeRef`](../components/refs) in order to provide a way for keeping a reference to
-a `Node` made by the [`html!`](../html/introduction.mdx) macro. The `Node` part of `NodeRef` is referring to
-[`web_sys::Node`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Node.html). The
-`NodeRef::get` method will return a `Option<Node>` value, however, most of the time in Yew you want
-to cast this value to a specific element so you can use it's specific methods. This casting
-can be done using [`JsCast`](../wasm-bindgen#JsCast) on the `Node` value, if present, but Yew
-provides the `NodeRef::cast` method to perform this casting for convenience and so that you don't
-necessarily have to include the `wasm-bindgen` dependency for the `JsCast` trait.
-
-The two code blocks below do essentially the same thing, the first is using `NodeRef::cast` and
-the second is using [`JsCast::dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
-on the `web_sys::Node` returned from `NodeRef::get`.
-
-<Tabs>
-  <TabItem value="Using NodeRef::cast" label="Using NodeRef::cast">
+Yew uses a [`HtmlRef`](../components/refs) in order to provide a way for keeping a reference to
+a `Node` made by the [`html!`](../html/introduction.mdx) macro. The
+`HtmlRef<T>::get` method will return a `Option<T>` value, correctly typed by procedural macro.
+If you wish to cast `T` into another type [`JsCast`](../wasm-bindgen#JsCast) on the value,
+if present. You may specify `T` as any type that implements `From<ElementType>`.
 
 ```rust
-use web_sys::HtmlInputElement;
-use yew::NodeRef;
+use web_sys::{HtmlElement, HtmlInputElement};
+use yew::{html, HtmlRef};
 
-fn with_node_ref_cast(node_ref: NodeRef) {
-    if let Some(input) = node_ref.cast::<HtmlInputElement>() {
-        // do something with HtmlInputElement
-    }
-}
+// You can specify HtmlInputElement as type for HtmlRef.
+let html_ref = HtmlRef::<HtmlInputElement>::new();
+
+let rendered = html! { <input ref={html_ref} /> };
+
+// You can also specify HtmlElement which implements From<HtmlInputElement>.
+let html_ref = HtmlRef::<HtmlElement>::new();
+
+let rendered = html! { <input ref={html_ref} /> };
+
 ```
-
-  </TabItem>
-  <TabItem value="Using NodeRef::get" label="Using NodeRef::get">
-
-```rust
-use wasm_bindgen::JsCast;
-use web_sys::HtmlInputElement;
-use yew::NodeRef;
-
-fn with_jscast(node_ref: NodeRef) {
-    if let Some(input) = node_ref
-        .get()
-        .and_then(|node| node.dyn_into::<HtmlInputElement>().ok()) {
-        // do something with HtmlInputElement
-    }
-}
-```
-
-  </TabItem>
-</Tabs>
-
 
 ## JavaScript example to Rust
 

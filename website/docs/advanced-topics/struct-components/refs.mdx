@@ -8,14 +8,14 @@ the item is attached to. This can be used to make changes to the DOM outside of 
 method.
 
 This is useful for getting ahold of canvas elements, or scrolling to different sections of a page.
-For example, using a `NodeRef` in a component's `rendered` method allows you to make draw calls to
+For example, using a `HtmlRef` in a component's `rendered` method allows you to make draw calls to
 a canvas element after it has been rendered from `view`.
 
 The syntax is:
 
 ```rust
 use web_sys::Element;
-use yew::{html, Component, Context, Html, NodeRef};
+use yew::{html, Component, Context, Html};
 use yew::html::HtmlRef;
 
 struct Comp {
