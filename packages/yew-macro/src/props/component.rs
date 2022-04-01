@@ -92,6 +92,12 @@ impl ComponentProps {
                     }
                 });
 
+                let set_ref = self.special().node_ref.as_ref().map(|Prop { value, .. }| {
+                    quote_spanned! {value.span()=>
+                        .ref_(#value)
+                    }
+                });
+
                 let set_children = children_renderer.map(|children| {
                     quote_spanned! {props_ty.span()=>
                         .children(#children)
@@ -102,6 +108,7 @@ impl ComponentProps {
                     <#props_ty as ::yew::html::Properties>::builder()
                         #(#set_props)*
                         #set_children
+                        #set_ref
                         .build()
                 }
             }

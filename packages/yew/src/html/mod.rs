@@ -62,6 +62,12 @@ impl<T> Default for HtmlRef<T> {
     }
 }
 
+impl<T> PartialEq for HtmlRef<T> {
+    fn eq(&self, rhs: &Self) -> bool {
+        Rc::ptr_eq(&self.inner, &rhs.inner)
+    }
+}
+
 impl<T> HtmlRef<T>
 where
     T: Clone + 'static,
@@ -193,19 +199,6 @@ mod feat_csr {
     use super::*;
 
     impl NodeRef {
-        // /// Reuse an existing `NodeRef`
-        // pub(crate) fn reuse(&self, node_ref: Self) {
-        //     // Avoid circular references
-        //     if self == &node_ref {
-        //         return;
-        //     }
-
-        //     let mut this = self.0.borrow_mut();
-        //     let existing = node_ref.0.borrow();
-        //     this.node = existing.node.clone();
-        //     this.link = existing.link.clone();
-        // }
-
         /// Link a downstream `NodeRef`
         pub(crate) fn link(&self, node_ref: Self) {
             // Avoid circular references

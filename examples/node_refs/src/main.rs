@@ -9,13 +9,17 @@ pub enum Msg {
 }
 
 pub struct App {
-    refs: Vec<NodeRef>,
+    input_ref: NodeRef,
+    input_comp_ref: HtmlRef<HtmlInputElement>,
     focus_index: usize,
 }
 impl App {
     fn apply_focus(&self) {
-        if let Some(input) = self.refs[self.focus_index].cast::<HtmlInputElement>() {
-            input.focus().unwrap();
+        if let Some(m) = self.input_ref.cast::<HtmlInputElement>() {
+            m.focus().unwrap();
+        }
+        if let Some(m) = self.input_comp_ref.get() {
+            m.focus().unwrap();
         }
     }
 }
@@ -26,7 +30,8 @@ impl Component for App {
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
             focus_index: 0,
-            refs: vec![NodeRef::default(), NodeRef::default()],
+            input_ref: NodeRef::default(),
+            input_comp_ref: HtmlRef::default(),
         }
     }
 
@@ -59,7 +64,7 @@ impl Component for App {
                     <label>{ "Using tag ref: " }</label>
                     <input
                         type="text"
-                        ref={self.refs[0].clone()}
+                        ref={self.input_ref.clone()}
                         class="input-element"
                         onmouseover={ctx.link().callback(|_| Msg::HoverIndex(0))}
                     />
@@ -67,7 +72,7 @@ impl Component for App {
                 <div>
                     <label>{ "Using component ref: " }</label>
                     <InputComponent
-                        ref={self.refs[1].clone()}
+                        ref={self.input_comp_ref.clone()}
                         on_hover={ctx.link().callback(|_| Msg::HoverIndex(1))}
                     />
                 </div>

@@ -1,40 +1,25 @@
+use web_sys::HtmlInputElement;
 use yew::prelude::*;
-
-pub enum Msg {
-    Hover,
-}
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub on_hover: Callback<()>,
+    #[prop_or_default]
+    pub ref_: HtmlRef<HtmlInputElement>,
 }
 
-pub struct InputComponent;
+#[function_component]
+pub fn InputComponent(props: &Props) -> Html {
+    let on_mouse_over = {
+        let on_hover = props.on_hover.clone();
+        Callback::from(move |_| on_hover.emit(()))
+    };
 
-impl Component for InputComponent {
-    type Message = Msg;
-    type Properties = Props;
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            Msg::Hover => {
-                ctx.props().on_hover.emit(());
-                false
-            }
-        }
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        html! {
-            <input
-                type="text"
-                class="input-component"
-                onmouseover={ctx.link().callback(|_| Msg::Hover)}
-            />
-        }
+    html! {
+        <input
+            type="text"
+            class="input-component"
+            onmouseover={on_mouse_over}
+        />
     }
 }

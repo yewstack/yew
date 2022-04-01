@@ -104,12 +104,14 @@ impl PropField {
             PropAttr::Option => {
                 quote! {
                     #( #extra_attrs )*
+                    #[allow(non_snake_case)]
                     #wrapped_name: #ty,
                 }
             }
             _ => {
                 quote! {
                     #( #extra_attrs )*
+                    #[allow(non_snake_case)]
                     #wrapped_name: ::std::option::Option<#ty>,
                 }
             }
