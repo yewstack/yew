@@ -9,7 +9,7 @@ use syn::spanned::Spanned;
 use syn::{Attribute, Error, Expr, Field, Path, Type, TypePath, Visibility};
 
 #[allow(clippy::large_enum_variant)]
-#[derive(PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 enum PropAttr {
     Required { wrapped_name: Ident },
     Option,
@@ -18,15 +18,23 @@ enum PropAttr {
     PropOrDefault,
 }
 
-#[derive(Eq)]
+#[derive(Clone, Eq)]
 pub struct PropField {
     ty: Type,
-    name: Ident,
+    pub(crate) name: Ident,
     attr: PropAttr,
     extra_attrs: Vec<Attribute>,
 }
 
 impl PropField {
+    pub fn name(&self) -> &Ident {
+        &self.name
+    }
+
+    pub fn type_(&self) -> &Type {
+        &self.ty
+    }
+
     /// All required property fields are wrapped in an `Option`
     pub fn is_required(&self) -> bool {
         matches!(self.attr, PropAttr::Required { .. })

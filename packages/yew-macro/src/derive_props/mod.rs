@@ -9,7 +9,7 @@ use proc_macro2::{Ident, Span};
 use quote::{format_ident, quote, ToTokens};
 use std::convert::TryInto;
 use syn::parse::{Parse, ParseStream, Result};
-use syn::{Attribute, DeriveInput, Generics, Visibility};
+use syn::{parse_quote, Attribute, DeriveInput, Generics, Type, Visibility};
 use wrapper::PropsWrapper;
 
 pub struct DerivePropsInput {
@@ -71,6 +71,20 @@ impl Parse for DerivePropsInput {
     }
 }
 
+impl DerivePropsInput {
+    fn ref_field(&self) -> Option<PropField> {
+        self.prop_fields
+            .iter()
+            .find_map(|m| (m.name() == "ref_").then(|| m.clone()))
+    }
+
+    fn ref_type(&self) -> Type {
+        self.ref_field()
+            .map(|m| m.type_().clone())
+            .unwrap_or_else(|| parse_quote! { () })
+    }
+}
+
 impl ToTokens for DerivePropsInput {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let Self {
@@ -104,15 +118,33 @@ impl ToTokens for DerivePropsInput {
 
         // The properties trait has a `builder` method which creates the props builder
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
+        let ref_type = self.ref_type();
+        let ref_impl = match self.ref_field() {
+            Some(_m) => {
+                quote! {
+                    &self.ref_
+                }
+            }
+            None => {
+                quote! { &() }
+            }
+        };
+
         let properties = quote! {
             impl #impl_generics ::yew::html::Properties for #props_name #ty_generics #where_clause {
                 type Builder = #builder_name<#builder_generic_args>;
+                type Ref = #ref_type;
 
                 fn builder() -> Self::Builder {
                     #builder_name {
                         wrapped: ::std::boxed::Box::new(::std::default::Default::default()),
                         _marker: ::std::marker::PhantomData,
                     }
+                }
+
+                fn ref_(&self) -> &Self::Ref {
+                    #ref_impl
                 }
             }
         };
