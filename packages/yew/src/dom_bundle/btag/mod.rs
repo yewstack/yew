@@ -13,7 +13,6 @@ use crate::virtual_dom::{Attributes, Key, VTag};
 use gloo::console;
 use gloo_utils::document;
 use listeners::ListenerRegistration;
-use std::fmt;
 use std::ops::DerefMut;
 use std::{borrow::Cow, hint::unreachable_unchecked};
 use wasm_bindgen::JsCast;
@@ -56,6 +55,7 @@ enum BTagInner {
 }
 
 /// The bundle implementation to [VTag]
+#[derive(Debug)]
 pub(super) struct BTag {
     /// [BTag] fields that are specific to different [BTag] kinds.
     inner: BTagInner,
@@ -102,19 +102,6 @@ impl ReconcileTarget for BTag {
         next_parent
             .insert_before(&self.reference, next_sibling.get().as_ref())
             .unwrap();
-    }
-}
-
-impl fmt::Debug for BTag {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("VTag")
-            .field("inner", &self.inner)
-            .field("listeners", &self.listeners)
-            .field("set_node", &"Option<Rc<dyn Fn(Option<Node>)>>")
-            .field("node_ref", &self.node_ref)
-            .field("reference", &self.reference)
-            .field("key", &self.key)
-            .finish()
     }
 }
 

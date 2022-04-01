@@ -121,12 +121,12 @@ impl Reconcilable for VComp {
 mod tests {
     use super::*;
     use crate::dom_bundle::{Reconcilable, ReconcileTarget};
-    use crate::html::HtmlRef;
+    use crate::html::{HtmlRef, NodeRef};
     use crate::scheduler;
     use crate::{
         function_component, html,
         virtual_dom::{Key, VChild, VNode},
-        Children, Component, Context, Html, NodeRef, Properties,
+        Children, Component, Context, Html, Properties,
     };
     use gloo_utils::document;
     use std::ops::Deref;
