@@ -1,22 +1,33 @@
 use super::Apply;
 use crate::dom_bundle::{test_log, BSubtree, EventDescriptor};
 use crate::virtual_dom::{Listener, Listeners};
-use ::wasm_bindgen::{prelude::wasm_bindgen, JsCast};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::rc::Rc;
+use wasm_bindgen::{prelude::wasm_bindgen, JsCast};
 use web_sys::{Element, Event, EventTarget as HtmlEventTarget};
 
-#[wasm_bindgen]
-extern "C" {
-    // Duck-typing, not a real class on js-side. On rust-side, use impls of EventTarget below
-    type EventTargetable;
-    #[wasm_bindgen(method, getter = __yew_listener_id, structural)]
-    fn listener_id(this: &EventTargetable) -> Option<u32>;
-    #[wasm_bindgen(method, setter = __yew_listener_id, structural)]
-    fn set_listener_id(this: &EventTargetable, id: u32);
+/// TODO: remove once rustwasm/wasm-bindgen#2774 makes its way into a release
+/// the module is only to scope the usage of #[allow], so remove that as well.
+/// pub(super) can be removed, doesn't need to be pub
+#[allow(clippy::unused_unit)]
+mod external {
+
+    use super::*;
+
+    #[wasm_bindgen]
+    extern "C" {
+        // Duck-typing, not a real class on js-side. On rust-side, use impls of EventTarget below
+        pub(super) type EventTargetable;
+        #[wasm_bindgen(method, getter = __yew_listener_id, structural)]
+        pub(super) fn listener_id(this: &EventTargetable) -> Option<u32>;
+        #[wasm_bindgen(method, setter = __yew_listener_id, structural)]
+        pub(super) fn set_listener_id(this: &EventTargetable, id: u32);
+    }
 }
+
+use external::*;
 
 /// DOM-Types that can have listeners registered on them.
 /// Uses the duck-typed interface from above in impls.
