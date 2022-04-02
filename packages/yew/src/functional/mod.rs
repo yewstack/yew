@@ -167,7 +167,7 @@ impl HookContext {
             // Subsequent suspension,
             // components can have less hooks called when suspended, but not more.
             (false, Some(total_hook_counter)) => assert!(
-                self.counter > total_hook_counter,
+                self.counter <= total_hook_counter,
                 "Hooks are called conditionally."
             ),
         }
