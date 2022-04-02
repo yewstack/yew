@@ -2,7 +2,6 @@ use clap::Parser;
 use once_cell::sync::Lazy;
 use simple_ssr::App;
 use std::path::PathBuf;
-use structopt::StructOpt;
 use tokio_util::task::LocalPoolHandle;
 use warp::Filter;
 

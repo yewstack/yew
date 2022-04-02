@@ -140,26 +140,36 @@ impl HookContext {
         self.counter = 0;
     }
 
+    /// asserts hook counter.
+    ///
+    /// This function asserts that the number of hooks matches for every render.
     #[cfg(debug_assertions)]
     fn assert_hook_context(&mut self, render_ok: bool) {
         // Procedural Macros can catch most conditionally called hooks at compile time, but it cannot
         // detect early return (as the return can be Err(_), Suspension).
-        if render_ok {
-            match self.total_hook_counter {
-                Some(m) => {
-                    if m != self.counter {
-                        panic!("Hooks are called conditionally.");
-                    }
-                }
-                None => {
-                    self.total_hook_counter = Some(self.counter);
-                }
+        match (render_ok, self.total_hook_counter) {
+            // First rendered,
+            // we store the hook counter.
+            (true, None) => {
+                self.total_hook_counter = Some(self.counter);
             }
-        } else if let Some(m) = self.total_hook_counter {
-            // Suspended Components can have less hooks called when suspended, but not more.
-            if m < self.counter {
-                panic!("Hooks are called conditionally.");
-            }
+            // Component is suspended before it's first rendered.
+            // We don't have a total count to compare with.
+            (false, None) => {}
+
+            // Subsequent render,
+            // we compare stored total count and current render count.
+            (true, Some(total_hook_counter)) => assert_eq!(
+                total_hook_counter, self.counter,
+                "Hooks are called conditionally."
+            ),
+
+            // Subsequent suspension,
+            // components can have less hooks called when suspended, but not more.
+            (false, Some(total_hook_counter)) => assert!(
+                self.counter > total_hook_counter,
+                "Hooks are called conditionally."
+            ),
         }
     }
 
