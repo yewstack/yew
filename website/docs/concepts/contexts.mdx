@@ -79,7 +79,7 @@ fn App() -> Html {
 
     html! {
         <Navbar {theme} />
-    };
+    }
 }
 ```
 
@@ -92,23 +92,28 @@ to its children.
 
 ### Step 1: Providing the context
 
-Firstly, we create a struct which defines what data is to be passed. For the above use-case, consider the following struct:
+A context provider is required to consume the context. `ContextProvider<T>`, where `T` is the context struct is used as the provider.
+`T` must implement `Clone` and `PartialEq`. `ContextProvider` is the component whose children will have the context available to them.
+The children are re-rendered when the context changes. A struct is used to define what data is to be passed. The `ContextProvider` can be used as:
 
 ```rust
+use std::rc::Rc;
+use yew::prelude::*;
+
 #[derive(Clone, Debug, PartialEq)]
 struct Theme {
     foreground: String,
     background: String,
 }
-```
 
-A context provider is required to consume the context. `ContextProvider<T>`, where `T` is the context struct is used as the provider.
-`T` must implement `Clone` and `PartialEq`. `ContextProvider` is the component whose children will have the context available to them.
-The children are re-rendered when the context changes. The `ContextProvider` can be used as:
+#[function_component]
+fn NavButton() -> Html {
+    let theme = use_context::<Theme>();
 
-```rust
-use std::rc::Rc;
-use yew::prelude::*;
+    html! {
+        // use theme
+    }
+}
 
 #[function_component]
 fn App() -> Html {
@@ -119,9 +124,9 @@ fn App() -> Html {
 
     html! {
         <ContextProvider<Rc<Theme>> context={theme}>
-            // children
+            <NavButton />
         </ContextProvider<Rc<Theme>>>
-    };
+    }
 }
 ```
 
