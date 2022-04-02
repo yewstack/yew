@@ -10,7 +10,7 @@ use std::any::Any;
 use std::rc::Rc;
 
 #[cfg(feature = "csr")]
-use crate::dom_bundle::Bundle;
+use crate::dom_bundle::{BSubtree, Bundle};
 #[cfg(feature = "csr")]
 use crate::html::NodeRef;
 #[cfg(feature = "csr")]
@@ -20,7 +20,8 @@ pub(crate) enum ComponentRenderState {
     #[cfg(feature = "csr")]
     Render {
         bundle: Bundle,
-        parent: web_sys::Element,
+        root: BSubtree,
+        parent: Element,
         next_sibling: NodeRef,
         node_ref: NodeRef,
     },
@@ -37,12 +38,14 @@ impl std::fmt::Debug for ComponentRenderState {
             #[cfg(feature = "csr")]
             Self::Render {
                 ref bundle,
+                ref root,
                 ref parent,
                 ref next_sibling,
                 ref node_ref,
             } => f
                 .debug_struct("ComponentRenderState::Render")
                 .field("bundle", bundle)
+                .field("root", root)
                 .field("parent", parent)
                 .field("next_sibling", next_sibling)
                 .field("node_ref", node_ref)
@@ -58,6 +61,32 @@ impl std::fmt::Debug for ComponentRenderState {
                 f.debug_struct("ComponentRenderState::Ssr")
                     .field("sender", &sender_repr)
                     .finish()
+            }
+        }
+    }
+}
+
+#[cfg(feature = "csr")]
+impl ComponentRenderState {
+    pub(crate) fn shift(&mut self, next_parent: Element, next_next_sibling: NodeRef) {
+        match self {
+            #[cfg(feature = "csr")]
+            Self::Render {
+                bundle,
+                parent,
+                next_sibling,
+                ..
+            } => {
+                bundle.shift(&next_parent, next_next_sibling.clone());
+
+                *parent = next_parent;
+                *next_sibling = next_next_sibling;
+            }
+
+            #[cfg(feature = "ssr")]
+            Self::Ssr { .. } => {
+                #[cfg(debug_assertions)]
+                panic!("shifting is not possible during SSR");
             }
         }
     }
@@ -153,9 +182,7 @@ pub(crate) struct ComponentState {
 
     suspension: Option<Suspension>,
 
-    // Used for debug logging
-    #[cfg(debug_assertions)]
-    pub(crate) vcomp_id: usize,
+    pub(crate) comp_id: usize,
 }
 
 impl ComponentState {
@@ -164,8 +191,7 @@ impl ComponentState {
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
     ) -> Self {
-        #[cfg(debug_assertions)]
-        let vcomp_id = scope.vcomp_id;
+        let comp_id = scope.id;
         let context = Context { scope, props };
 
         let inner = Box::new(CompStateInner {
@@ -181,8 +207,7 @@ impl ComponentState {
             #[cfg(feature = "csr")]
             has_rendered: false,
 
-            #[cfg(debug_assertions)]
-            vcomp_id,
+            comp_id,
         }
     }
 
@@ -208,7 +233,7 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
         let mut current_state = self.scope.state.borrow_mut();
         if current_state.is_none() {
             #[cfg(debug_assertions)]
-            super::log_event(self.scope.vcomp_id, "create");
+            super::log_event(self.scope.id, "create");
 
             *current_state = Some(ComponentState::new(
                 self.initial_render_state,
@@ -225,9 +250,6 @@ pub(crate) enum UpdateEvent {
     /// Wraps properties, node ref, and next sibling for a component
     #[cfg(feature = "csr")]
     Properties(Rc<dyn Any>, NodeRef, NodeRef),
-    /// Shift Scope.
-    #[cfg(feature = "csr")]
-    Shift(Element, NodeRef),
 }
 
 pub(crate) struct UpdateRunner {
@@ -240,6 +262,7 @@ impl Runnable for UpdateRunner {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             let schedule_render = match self.event {
                 UpdateEvent::Message => state.inner.flush_messages(),
+
                 #[cfg(feature = "csr")]
                 UpdateEvent::Properties(props, next_node_ref, next_sibling) => {
                     match state.render_state {
@@ -267,46 +290,20 @@ impl Runnable for UpdateRunner {
                         }
                     }
                 }
-
-                #[cfg(feature = "csr")]
-                UpdateEvent::Shift(next_parent, next_sibling) => {
-                    match state.render_state {
-                        ComponentRenderState::Render {
-                            ref bundle,
-                            ref mut parent,
-                            next_sibling: ref mut current_next_sibling,
-                            ..
-                        } => {
-                            bundle.shift(&next_parent, next_sibling.clone());
-
-                            *parent = next_parent;
-                            *current_next_sibling = next_sibling;
-                        }
-
-                        // Shifting is not possible during SSR.
-                        #[cfg(feature = "ssr")]
-                        ComponentRenderState::Ssr { .. } => {
-                            #[cfg(debug_assertions)]
-                            panic!("shifting is not possible during SSR");
-                        }
-                    }
-
-                    false
-                }
             };
 
             #[cfg(debug_assertions)]
             super::log_event(
-                state.vcomp_id,
+                state.comp_id,
                 format!("update(schedule_render={})", schedule_render),
             );
 
             if schedule_render {
                 scheduler::push_component_render(
-                    self.state.as_ptr() as usize,
-                    RenderRunner {
+                    state.comp_id,
+                    Box::new(RenderRunner {
                         state: self.state.clone(),
-                    },
+                    }),
                 );
                 // Only run from the scheduler, so no need to call `scheduler::start()`
             }
@@ -325,7 +322,7 @@ impl Runnable for DestroyRunner {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().take() {
             #[cfg(debug_assertions)]
-            super::log_event(state.vcomp_id, "destroy");
+            super::log_event(state.comp_id, "destroy");
 
             state.inner.destroy();
 
@@ -334,10 +331,11 @@ impl Runnable for DestroyRunner {
                 ComponentRenderState::Render {
                     bundle,
                     ref parent,
+                    ref root,
                     ref node_ref,
                     ..
                 } => {
-                    bundle.detach(parent, self.parent_to_detach);
+                    bundle.detach(root, parent, self.parent_to_detach);
 
                     node_ref.set(None);
                 }
@@ -357,7 +355,7 @@ impl Runnable for RenderRunner {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             #[cfg(debug_assertions)]
-            super::log_event(state.vcomp_id, "render");
+            super::log_event(state.comp_id, "render");
 
             match state.inner.view() {
                 Ok(m) => self.render(state, m),
@@ -373,14 +371,16 @@ impl RenderRunner {
         // suspension to parent element.
         let shared_state = self.state.clone();
 
+        let comp_id = state.comp_id;
+
         if suspension.resumed() {
             // schedule a render immediately if suspension is resumed.
 
             scheduler::push_component_render(
-                shared_state.as_ptr() as usize,
-                RenderRunner {
+                state.comp_id,
+                Box::new(RenderRunner {
                     state: shared_state,
-                },
+                }),
             );
         } else {
             // We schedule a render after current suspension is resumed.
@@ -393,10 +393,10 @@ impl RenderRunner {
 
             suspension.listen(Callback::from(move |_| {
                 scheduler::push_component_render(
-                    shared_state.as_ptr() as usize,
-                    RenderRunner {
+                    comp_id,
+                    Box::new(RenderRunner {
                         state: shared_state.clone(),
-                    },
+                    }),
                 );
                 scheduler::start();
             }));
@@ -430,23 +430,25 @@ impl RenderRunner {
             ComponentRenderState::Render {
                 ref mut bundle,
                 ref parent,
+                ref root,
                 ref next_sibling,
                 ref node_ref,
                 ..
             } => {
                 let scope = state.inner.any_scope();
-                let new_node_ref = bundle.reconcile(&scope, parent, next_sibling.clone(), new_root);
+                let new_node_ref =
+                    bundle.reconcile(root, &scope, parent, next_sibling.clone(), new_root);
                 node_ref.link(new_node_ref);
 
                 let first_render = !state.has_rendered;
                 state.has_rendered = true;
 
                 scheduler::push_component_rendered(
-                    self.state.as_ptr() as usize,
-                    RenderedRunner {
+                    state.comp_id,
+                    Box::new(RenderedRunner {
                         state: self.state.clone(),
                         first_render,
-                    },
+                    }),
                     first_render,
                 );
             }
@@ -474,7 +476,7 @@ mod feat_csr {
         fn run(self: Box<Self>) {
             if let Some(state) = self.state.borrow_mut().as_mut() {
                 #[cfg(debug_assertions)]
-                super::super::log_event(state.vcomp_id, "rendered");
+                super::super::log_event(state.comp_id, "rendered");
 
                 if state.suspension.is_none() {
                     state.inner.rendered(self.first_render);
@@ -493,6 +495,7 @@ mod tests {
     extern crate self as yew;
 
     use super::*;
+    use crate::dom_bundle::BSubtree;
     use crate::html;
     use crate::html::*;
     use crate::Properties;
@@ -613,12 +616,19 @@ mod tests {
     fn test_lifecycle(props: Props, expected: &[&str]) {
         let document = gloo_utils::document();
         let scope = Scope::<Comp>::new(None);
-        let el = document.create_element("div").unwrap();
-        let node_ref = NodeRef::default();
+        let parent = document.create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+
         let lifecycle = props.lifecycle.clone();
 
         lifecycle.borrow_mut().clear();
-        scope.mount_in_place(el, NodeRef::default(), node_ref, Rc::new(props));
+        scope.mount_in_place(
+            root,
+            parent,
+            NodeRef::default(),
+            NodeRef::default(),
+            Rc::new(props),
+        );
         crate::scheduler::start_now();
 
         assert_eq!(&lifecycle.borrow_mut().deref()[..], expected);

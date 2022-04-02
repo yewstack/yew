@@ -76,10 +76,18 @@ wasm-bindgen-futures = "0.4"
 rustversion = "1"
 trybuild = "1"
 
+[dev-dependencies.web-sys]
+version = "0.3"
+features = [
+  "ShadowRoot",
+  "ShadowRootInit",
+  "ShadowRootMode",
+]
+
 [features]
 ssr = ["futures", "html-escape"]
 csr = []
-doc_test = ["csr"]
+doc_test = ["csr", "ssr"]
 wasm_test = ["csr"]
 default = []
 
@@ -87,5 +95,5 @@ default = []
 tokio = { version = "1.15.0", features = ["full"] }
 
 [package.metadata.docs.rs]
-features = ["doc_test", "ssr"]
+features = ["doc_test"]
 rustdoc-args = ["--cfg", "documenting"]

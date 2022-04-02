@@ -1,5 +1,5 @@
 //! This module contains fragments bundles, a [BList]
-use super::{test_log, BNode};
+use super::{test_log, BNode, BSubtree};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{Key, VList, VNode, VText};
@@ -31,6 +31,7 @@ impl Deref for BList {
 /// Helper struct, that keeps the position where the next element is to be placed at
 #[derive(Clone)]
 struct NodeWriter<'s> {
+    root: &'s BSubtree,
     parent_scope: &'s AnyScope,
     parent: &'s Element,
     next_sibling: NodeRef,
@@ -45,7 +46,8 @@ impl<'s> NodeWriter<'s> {
             self.parent.outer_html(),
             self.next_sibling
         );
-        let (next, bundle) = node.attach(self.parent_scope, self.parent, self.next_sibling);
+        let (next, bundle) =
+            node.attach(self.root, self.parent_scope, self.parent, self.next_sibling);
         test_log!("  next_position: {:?}", next);
         (
             Self {
@@ -70,7 +72,13 @@ impl<'s> NodeWriter<'s> {
             self.next_sibling
         );
         // Advance the next sibling reference (from right to left)
-        let next = node.reconcile_node(self.parent_scope, self.parent, self.next_sibling, bundle);
+        let next = node.reconcile_node(
+            self.root,
+            self.parent_scope,
+            self.parent,
+            self.next_sibling,
+            bundle,
+        );
         test_log!("  next_position: {:?}", next);
         Self {
             next_sibling: next,
@@ -135,6 +143,7 @@ impl BList {
 
     /// Diff and patch unkeyed child lists
     fn apply_unkeyed(
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -142,6 +151,7 @@ impl BList {
         rights: &mut Vec<BNode>,
     ) -> NodeRef {
         let mut writer = NodeWriter {
+            root,
             parent_scope,
             parent,
             next_sibling,
@@ -151,7 +161,7 @@ impl BList {
         if lefts.len() < rights.len() {
             for r in rights.drain(lefts.len()..) {
                 test_log!("removing: {:?}", r);
-                r.detach(parent, false);
+                r.detach(root, parent, false);
             }
         }
 
@@ -174,6 +184,7 @@ impl BList {
     /// Optimized for node addition or removal from either end of the list and small changes in the
     /// middle.
     fn apply_keyed(
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -204,6 +215,7 @@ impl BList {
         if matching_len_end == std::cmp::min(left_vdoms.len(), rev_bundles.len()) {
             // No key changes
             return Self::apply_unkeyed(
+                root,
                 parent_scope,
                 parent,
                 next_sibling,
@@ -215,6 +227,7 @@ impl BList {
         // We partially drain the new vnodes in several steps.
         let mut lefts = left_vdoms;
         let mut writer = NodeWriter {
+            root,
             parent_scope,
             parent,
             next_sibling,
@@ -336,7 +349,7 @@ impl BList {
         // Step 2.3. Remove any extra rights
         for KeyedEntry(_, r) in spare_bundles.drain() {
             test_log!("removing: {:?}", r);
-            r.detach(parent, false);
+            r.detach(root, parent, false);
         }
 
         // Step 3. Diff matching children at the start
@@ -354,9 +367,9 @@ impl BList {
 }
 
 impl ReconcileTarget for BList {
-    fn detach(self, parent: &Element, parent_to_detach: bool) {
+    fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool) {
         for child in self.rev_children.into_iter() {
-            child.detach(parent, parent_to_detach);
+            child.detach(root, parent, parent_to_detach);
         }
     }
 
@@ -372,30 +385,33 @@ impl Reconcilable for VList {
 
     fn attach(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
         let mut self_ = BList::new();
-        let node_ref = self.reconcile(parent_scope, parent, next_sibling, &mut self_);
+        let node_ref = self.reconcile(root, parent_scope, parent, next_sibling, &mut self_);
         (node_ref, self_)
     }
 
     fn reconcile_node(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
     ) -> NodeRef {
-        // 'Forcefully' create a pretend the existing node is a list. Creates a
+        // 'Forcefully' pretend the existing node is a list. Creates a
         // singleton list if it isn't already.
         let blist = bundle.make_list();
-        self.reconcile(parent_scope, parent, next_sibling, blist)
+        self.reconcile(root, parent_scope, parent, next_sibling, blist)
     }
 
     fn reconcile(
         mut self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -426,9 +442,9 @@ impl Reconcilable for VList {
             rights.reserve_exact(additional);
         }
         let first = if self.fully_keyed && blist.fully_keyed {
-            BList::apply_keyed(parent_scope, parent, next_sibling, lefts, rights)
+            BList::apply_keyed(root, parent_scope, parent, next_sibling, lefts, rights)
         } else {
-            BList::apply_unkeyed(parent_scope, parent, next_sibling, lefts, rights)
+            BList::apply_unkeyed(root, parent_scope, parent, next_sibling, lefts, rights)
         };
         blist.fully_keyed = self.fully_keyed;
         blist.key = self.key;

@@ -10,6 +10,8 @@ use std::rc::Rc;
 use crate::html::{AnyScope, Scope};
 
 #[cfg(feature = "csr")]
+use crate::dom_bundle::BSubtree;
+#[cfg(feature = "csr")]
 use crate::html::Scoped;
 #[cfg(feature = "csr")]
 use web_sys::Element;
@@ -53,6 +55,7 @@ pub(crate) trait Mountable {
     #[cfg(feature = "csr")]
     fn mount(
         self: Box<Self>,
+        root: &BSubtree,
         node_ref: NodeRef,
         parent_scope: &AnyScope,
         parent: Element,
@@ -67,6 +70,7 @@ pub(crate) trait Mountable {
         &'a self,
         w: &'a mut String,
         parent_scope: &'a AnyScope,
+        hydratable: bool,
     ) -> LocalBoxFuture<'a, ()>;
 }
 
@@ -91,13 +95,14 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     #[cfg(feature = "csr")]
     fn mount(
         self: Box<Self>,
+        root: &BSubtree,
         node_ref: NodeRef,
         parent_scope: &AnyScope,
         parent: Element,
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        scope.mount_in_place(parent, next_sibling, node_ref, self.props);
+        scope.mount_in_place(root.clone(), parent, next_sibling, node_ref, self.props);
 
         Box::new(scope)
     }
@@ -113,10 +118,13 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         &'a self,
         w: &'a mut String,
         parent_scope: &'a AnyScope,
+        hydratable: bool,
     ) -> LocalBoxFuture<'a, ()> {
         async move {
             let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-            scope.render_to_string(w, self.props.clone()).await;
+            scope
+                .render_to_string(w, self.props.clone(), hydratable)
+                .await;
         }
         .boxed_local()
     }
@@ -206,10 +214,15 @@ mod feat_ssr {
     use crate::html::AnyScope;
 
     impl VComp {
-        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+        pub(crate) async fn render_to_string(
+            &self,
+            w: &mut String,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+        ) {
             self.mountable
                 .as_ref()
-                .render_to_string(w, parent_scope)
+                .render_to_string(w, parent_scope, hydratable)
                 .await;
         }
     }

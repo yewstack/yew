@@ -179,6 +179,84 @@ mod tests_attr_value {
     }
 }
 
+#[cfg(feature = "ssr")] // & feature = "hydration"
+mod feat_ssr_hydration {
+    /// A collectable.
+    ///
+    /// This indicates a kind that can be collected from fragment to be processed at a later time
+    pub(crate) enum Collectable {
+        #[cfg(debug_assertions)]
+        Component(&'static str),
+        #[cfg(not(debug_assertions))]
+        Component,
+        Suspense,
+    }
+
+    impl Collectable {
+        pub fn open_start_mark(&self) -> &'static str {
+            match self {
+                #[cfg(debug_assertions)]
+                Self::Component(_) => "<[",
+                #[cfg(not(debug_assertions))]
+                Self::Component => "<[",
+                Self::Suspense => "<?",
+            }
+        }
+        pub fn close_start_mark(&self) -> &'static str {
+            match self {
+                #[cfg(debug_assertions)]
+                Self::Component(_) => "</[",
+                #[cfg(not(debug_assertions))]
+                Self::Component => "</[",
+                Self::Suspense => "</?",
+            }
+        }
+
+        pub fn end_mark(&self) -> &'static str {
+            match self {
+                #[cfg(debug_assertions)]
+                Self::Component(_) => "]>",
+                #[cfg(not(debug_assertions))]
+                Self::Component => "]>",
+                Self::Suspense => ">",
+            }
+        }
+
+        #[cfg(feature = "ssr")]
+        pub fn write_open_tag(&self, w: &mut String) {
+            w.push_str("<!--");
+            w.push_str(self.open_start_mark());
+
+            #[cfg(debug_assertions)]
+            match self {
+                Self::Component(type_name) => w.push_str(type_name),
+                Self::Suspense => {}
+            }
+
+            w.push_str(self.end_mark());
+            w.push_str("-->");
+        }
+
+        #[cfg(feature = "ssr")]
+        pub fn write_close_tag(&self, w: &mut String) {
+            w.push_str("<!--");
+            w.push_str(self.close_start_mark());
+
+            #[cfg(debug_assertions)]
+            match self {
+                Self::Component(type_name) => w.push_str(type_name),
+                Self::Suspense => {}
+            }
+
+            w.push_str(self.end_mark());
+            w.push_str("-->");
+        }
+    }
+}
+
+#[cfg(feature = "ssr")]
+pub(crate) use feat_ssr_hydration::*;
+
 /// A collection of attributes for an element
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Attributes {

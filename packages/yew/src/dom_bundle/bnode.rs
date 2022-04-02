@@ -1,6 +1,6 @@
 //! This module contains the bundle version of an abstract node [BNode]
 
-use super::{BComp, BList, BPortal, BSuspense, BTag, BText};
+use super::{BComp, BList, BPortal, BSubtree, BSuspense, BTag, BText};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{Key, VNode};
@@ -43,20 +43,20 @@ impl BNode {
 
 impl ReconcileTarget for BNode {
     /// Remove VNode from parent.
-    fn detach(self, parent: &Element, parent_to_detach: bool) {
+    fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool) {
         match self {
-            Self::Tag(vtag) => vtag.detach(parent, parent_to_detach),
-            Self::Text(btext) => btext.detach(parent, parent_to_detach),
-            Self::Comp(bsusp) => bsusp.detach(parent, parent_to_detach),
-            Self::List(blist) => blist.detach(parent, parent_to_detach),
+            Self::Tag(vtag) => vtag.detach(root, parent, parent_to_detach),
+            Self::Text(btext) => btext.detach(root, parent, parent_to_detach),
+            Self::Comp(bsusp) => bsusp.detach(root, parent, parent_to_detach),
+            Self::List(blist) => blist.detach(root, parent, parent_to_detach),
             Self::Ref(ref node) => {
                 // Always remove user-defined nodes to clear possible parent references of them
                 if parent.remove_child(node).is_err() {
                     console::warn!("Node not found to remove VRef");
                 }
             }
-            Self::Portal(bportal) => bportal.detach(parent, parent_to_detach),
-            Self::Suspense(bsusp) => bsusp.detach(parent, parent_to_detach),
+            Self::Portal(bportal) => bportal.detach(root, parent, parent_to_detach),
+            Self::Suspense(bsusp) => bsusp.detach(root, parent, parent_to_detach),
         }
     }
 
@@ -82,25 +82,26 @@ impl Reconcilable for VNode {
 
     fn attach(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
         match self {
             VNode::VTag(vtag) => {
-                let (node_ref, tag) = vtag.attach(parent_scope, parent, next_sibling);
+                let (node_ref, tag) = vtag.attach(root, parent_scope, parent, next_sibling);
                 (node_ref, tag.into())
             }
             VNode::VText(vtext) => {
-                let (node_ref, text) = vtext.attach(parent_scope, parent, next_sibling);
+                let (node_ref, text) = vtext.attach(root, parent_scope, parent, next_sibling);
                 (node_ref, text.into())
             }
             VNode::VComp(vcomp) => {
-                let (node_ref, comp) = vcomp.attach(parent_scope, parent, next_sibling);
+                let (node_ref, comp) = vcomp.attach(root, parent_scope, parent, next_sibling);
                 (node_ref, comp.into())
             }
             VNode::VList(vlist) => {
-                let (node_ref, list) = vlist.attach(parent_scope, parent, next_sibling);
+                let (node_ref, list) = vlist.attach(root, parent_scope, parent, next_sibling);
                 (node_ref, list.into())
             }
             VNode::VRef(node) => {
@@ -108,11 +109,12 @@ impl Reconcilable for VNode {
                 (NodeRef::new(node.clone()), BNode::Ref(node))
             }
             VNode::VPortal(vportal) => {
-                let (node_ref, portal) = vportal.attach(parent_scope, parent, next_sibling);
+                let (node_ref, portal) = vportal.attach(root, parent_scope, parent, next_sibling);
                 (node_ref, portal.into())
             }
             VNode::VSuspense(vsuspsense) => {
-                let (node_ref, suspsense) = vsuspsense.attach(parent_scope, parent, next_sibling);
+                let (node_ref, suspsense) =
+                    vsuspsense.attach(root, parent_scope, parent, next_sibling);
                 (node_ref, suspsense.into())
             }
         }
@@ -120,31 +122,42 @@ impl Reconcilable for VNode {
 
     fn reconcile_node(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
     ) -> NodeRef {
-        self.reconcile(parent_scope, parent, next_sibling, bundle)
+        self.reconcile(root, parent_scope, parent, next_sibling, bundle)
     }
 
     fn reconcile(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
     ) -> NodeRef {
         match self {
-            VNode::VTag(vtag) => vtag.reconcile_node(parent_scope, parent, next_sibling, bundle),
-            VNode::VText(vtext) => vtext.reconcile_node(parent_scope, parent, next_sibling, bundle),
-            VNode::VComp(vcomp) => vcomp.reconcile_node(parent_scope, parent, next_sibling, bundle),
-            VNode::VList(vlist) => vlist.reconcile_node(parent_scope, parent, next_sibling, bundle),
+            VNode::VTag(vtag) => {
+                vtag.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
+            }
+            VNode::VText(vtext) => {
+                vtext.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
+            }
+            VNode::VComp(vcomp) => {
+                vcomp.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
+            }
+            VNode::VList(vlist) => {
+                vlist.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
+            }
             VNode::VRef(node) => {
                 let _existing = match bundle {
                     BNode::Ref(ref n) if &node == n => n,
                     _ => {
                         return VNode::VRef(node).replace(
+                            root,
                             parent_scope,
                             parent,
                             next_sibling,
@@ -155,10 +168,10 @@ impl Reconcilable for VNode {
                 NodeRef::new(node)
             }
             VNode::VPortal(vportal) => {
-                vportal.reconcile_node(parent_scope, parent, next_sibling, bundle)
+                vportal.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
             }
             VNode::VSuspense(vsuspsense) => {
-                vsuspsense.reconcile_node(parent_scope, parent, next_sibling, bundle)
+                vsuspsense.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
             }
         }
     }

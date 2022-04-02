@@ -418,8 +418,19 @@ mod feat_ssr {
     use crate::{html::AnyScope, virtual_dom::VText};
     use std::fmt::Write;
 
+    // Elements that cannot have any child elements.
+    static VOID_ELEMENTS: &[&str; 14] = &[
+        "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param",
+        "source", "track", "wbr",
+    ];
+
     impl VTag {
-        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+        pub(crate) async fn render_to_string(
+            &self,
+            w: &mut String,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+        ) {
             write!(w, "<{}", self.tag()).unwrap();
 
             let write_attr = |w: &mut String, name: &str, val: Option<&str>| {
@@ -450,7 +461,9 @@ mod feat_ssr {
                 VTagInner::Input(_) => {}
                 VTagInner::Textarea { .. } => {
                     if let Some(m) = self.value() {
-                        VText::new(m.to_owned()).render_to_string(w).await;
+                        VText::new(m.to_owned())
+                            .render_to_string(w, parent_scope, hydratable)
+                            .await;
                     }
 
                     w.push_str("</textarea>");
@@ -460,9 +473,14 @@ mod feat_ssr {
                     ref children,
                     ..
                 } => {
-                    children.render_to_string(w, parent_scope).await;
+                    if !VOID_ELEMENTS.contains(&tag.as_ref()) {
+                        children.render_to_string(w, parent_scope, hydratable).await;
 
-                    write!(w, "</{}>", tag).unwrap();
+                        write!(w, "</{}>", tag).unwrap();
+                    } else {
+                        // We don't write children of void elements nor closing tags.
+                        debug_assert!(children.is_empty(), "{} cannot have any children!", tag);
+                    }
                 }
             }
         }
@@ -483,9 +501,10 @@ mod ssr_tests {
             html! { <div></div> }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, "<div></div>");
     }
@@ -497,9 +516,10 @@ mod ssr_tests {
             html! { <div class="abc"></div> }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, r#"<div class="abc"></div>"#);
     }
@@ -511,9 +531,10 @@ mod ssr_tests {
             html! { <div>{"Hello!"}</div> }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, r#"<div>Hello!</div>"#);
     }
@@ -525,9 +546,10 @@ mod ssr_tests {
             html! { <div>{"Hello!"}<input value="abc" type="text" /></div> }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, r#"<div>Hello!<input value="abc" type="text"></div>"#);
     }
@@ -539,9 +561,10 @@ mod ssr_tests {
             html! { <textarea value="teststring" /> }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, r#"<textarea>teststring</textarea>"#);
     }
