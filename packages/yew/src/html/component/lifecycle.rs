@@ -96,8 +96,8 @@ struct CompStateInner<COMP>
 where
     COMP: BaseComponent,
 {
-    pub(crate) component: COMP,
     pub(crate) context: Context<COMP>,
+    pub(crate) component: COMP,
 }
 
 /// A trait to provide common,
@@ -186,19 +186,11 @@ pub(crate) struct ComponentState {
 }
 
 impl ComponentState {
-    pub(crate) fn new<COMP: BaseComponent>(
+    pub(crate) fn new(
         initial_render_state: ComponentRenderState,
-        scope: Scope<COMP>,
-        props: Rc<COMP::Properties>,
+        comp_id: usize,
+        inner: Box<dyn Stateful>,
     ) -> Self {
-        let comp_id = scope.id;
-        let context = Context { scope, props };
-
-        let inner = Box::new(CompStateInner {
-            component: COMP::create(&context),
-            context,
-        });
-
         Self {
             inner,
             render_state: initial_render_state,
@@ -222,23 +214,63 @@ impl ComponentState {
     }
 }
 
-pub(crate) struct CreateRunner<COMP: BaseComponent> {
-    pub initial_render_state: ComponentRenderState,
-    pub props: Rc<COMP::Properties>,
-    pub scope: Scope<COMP>,
+/// TODO: with some MaybeUninit, Box::assume_init and unsafe tricks we can get rid of
+/// the box reallocation here. I doubt it's worth it, for now though.
+trait IntoStateful {
+    // create the component, by turning the pre-allocated data into the state
+    fn into_stateful(self: Box<Self>) -> Box<dyn Stateful>;
 }
 
-impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
+struct ComponentInit<COMP: BaseComponent> {
+    context: Context<COMP>,
+}
+
+impl<COMP: BaseComponent> IntoStateful for ComponentInit<COMP> {
+    fn into_stateful(self: Box<Self>) -> Box<dyn Stateful> {
+        let context = self.context;
+
+        Box::new(CompStateInner {
+            component: COMP::create(&context),
+            context,
+        })
+    }
+}
+
+pub(crate) struct CreateRunner {
+    initial_render_state: ComponentRenderState,
+    state: Shared<Option<ComponentState>>,
+    comp_id: usize,
+    creator: Box<dyn IntoStateful>,
+}
+
+impl CreateRunner {
+    pub fn new_runnable<COMP: BaseComponent>(
+        initial_render_state: ComponentRenderState,
+        scope: Scope<COMP>,
+        props: Rc<COMP::Properties>,
+    ) -> Box<dyn Runnable> {
+        Box::new(CreateRunner {
+            initial_render_state,
+            state: scope.state.clone(),
+            comp_id: scope.id,
+            creator: Box::new(ComponentInit {
+                context: Context { props, scope },
+            }),
+        })
+    }
+}
+
+impl Runnable for CreateRunner {
     fn run(self: Box<Self>) {
-        let mut current_state = self.scope.state.borrow_mut();
+        let mut current_state = self.state.borrow_mut();
         if current_state.is_none() {
             #[cfg(debug_assertions)]
-            super::log_event(self.scope.id, "create");
+            super::log_event(self.comp_id, "create");
 
             *current_state = Some(ComponentState::new(
                 self.initial_render_state,
-                self.scope.clone(),
-                self.props,
+                self.comp_id,
+                self.creator.into_stateful(),
             ));
         }
     }

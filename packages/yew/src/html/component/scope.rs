@@ -218,11 +218,7 @@ mod feat_ssr {
 
             scheduler::push_component_create(
                 self.id,
-                Box::new(CreateRunner {
-                    initial_render_state: state,
-                    props,
-                    scope: self.clone(),
-                }),
+                CreateRunner::new_runnable(state, self.clone(), props),
                 Box::new(RenderRunner {
                     state: self.state.clone(),
                 }),
@@ -442,11 +438,7 @@ mod feat_csr {
 
             scheduler::push_component_create(
                 self.id,
-                Box::new(CreateRunner {
-                    initial_render_state: state,
-                    props,
-                    scope: self.clone(),
-                }),
+                CreateRunner::new_runnable(state, self.clone(), props),
                 Box::new(RenderRunner {
                     state: self.state.clone(),
                 }),
