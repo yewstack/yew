@@ -164,9 +164,6 @@ function is called after the first time. At that time, the DOM may not
 be connected, you should prevent any access to rendered nodes until
 `rendered()` method is called.
 
-When using SSR and Hydration, prefer function components whenever
-possible.
-
 :::
 
 ## Example
