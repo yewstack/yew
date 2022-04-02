@@ -182,7 +182,10 @@ impl Reconcilable for VSuspense {
                     #[cfg(feature = "hydration")]
                     Fallback::Fragment(fragment) => {
                         let node_ref = NodeRef::default();
-                        node_ref.set(fragment.front().cloned());
+                        match fragment.front().cloned() {
+                            Some(m) => node_ref.set(Some(m)),
+                            None => node_ref.link(next_sibling),
+                        }
                         node_ref
                     }
                 }
@@ -220,7 +223,7 @@ impl Reconcilable for VSuspense {
                         fragment.detach(root, parent, false);
                     }
                     None => {
-                        unreachable!()
+                        unreachable!("None condition has been checked before.")
                     }
                 };
 
