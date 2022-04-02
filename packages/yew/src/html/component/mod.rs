@@ -47,6 +47,15 @@ mod feat_csr_ssr {
     }
 }
 
+#[cfg(feature = "hydration")]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) enum RenderMode {
+    Hydration,
+    Render,
+    #[cfg(feature = "ssr")]
+    Ssr,
+}
+
 #[cfg(debug_assertions)]
 #[cfg(any(feature = "csr", feature = "ssr"))]
 pub(crate) use feat_csr_ssr::*;
@@ -57,6 +66,8 @@ pub(crate) use feat_csr_ssr::*;
 pub struct Context<COMP: BaseComponent> {
     scope: Scope<COMP>,
     props: Rc<COMP::Properties>,
+    #[cfg(feature = "hydration")]
+    mode: RenderMode,
 }
 
 impl<COMP: BaseComponent> Context<COMP> {
@@ -70,6 +81,11 @@ impl<COMP: BaseComponent> Context<COMP> {
     #[inline]
     pub fn props(&self) -> &COMP::Properties {
         &*self.props
+    }
+
+    #[cfg(feature = "hydration")]
+    pub(crate) fn mode(&self) -> RenderMode {
+        self.mode
     }
 }
 

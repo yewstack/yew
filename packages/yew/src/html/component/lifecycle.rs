@@ -3,6 +3,8 @@
 use super::scope::{AnyScope, Scope};
 
 use super::BaseComponent;
+#[cfg(feature = "hydration")]
+use crate::html::RenderMode;
 use crate::html::{Html, RenderError};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{BaseSuspense, Suspension};
@@ -231,7 +233,22 @@ impl ComponentState {
         props: Rc<COMP::Properties>,
     ) -> Self {
         let comp_id = scope.id;
-        let context = Context { scope, props };
+        #[cfg(feature = "hydration")]
+        let mode = {
+            match initial_render_state {
+                ComponentRenderState::Render { .. } => RenderMode::Render,
+                ComponentRenderState::Hydration { .. } => RenderMode::Hydration,
+                #[cfg(feature = "ssr")]
+                ComponentRenderState::Ssr { .. } => RenderMode::Ssr,
+            }
+        };
+
+        let context = Context {
+            scope,
+            props,
+            #[cfg(feature = "hydration")]
+            mode,
+        };
 
         let inner = Box::new(CompStateInner {
             component: COMP::create(&context),
@@ -533,7 +550,7 @@ impl RenderRunner {
                 // 1. Fix NodeRef (first_node and next_sibling)
                 // 2. Switch from fallback UI to children UI for <Suspense /> component (if it is
                 //    not meant to be suspended.).
-                scheduler::push_component_render(
+                scheduler::push_component_first_render(
                     state.comp_id,
                     Box::new(RenderRunner {
                         state: self.state.clone(),

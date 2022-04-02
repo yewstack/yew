@@ -154,17 +154,12 @@ component is side-effect free. It should not mutate any states or trigger
 additional renders. If your component currently mutates states or triggers
 additional renders, move them into an `use_effect` hook.
 
-:::danger Struct Components
-
-Whilst it's possible to use Struct Components with server-side rendering in
-hydrationt, the view function will be called
-multiple times before the rendered function will be called and the
-component will start receiving messages immediately after the `view()`
-function is called after the first time. At that time, the DOM may not
-be connected, you should prevent any access to rendered nodes until
-`rendered()` method is called.
-
-:::
+It's possible to use Struct Components with server-side rendering in
+hydration, the view function will be called
+multiple times before the rendered function will be called.
+The DOM is considered as not connected until rendered function is called,
+you should prevent any access to rendered nodes
+until `rendered()` method is called.
 
 ## Example
 
