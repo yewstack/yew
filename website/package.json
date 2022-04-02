@@ -17,12 +17,12 @@
         "fmt:write": "prettier --write ."
     },
     "dependencies": {
-        "@docusaurus/core": "^2.0.0-beta.17",
-        "@docusaurus/plugin-client-redirects": "^2.0.0-beta.17",
-        "@docusaurus/plugin-content-docs": "^2.0.0-beta.17",
-        "@docusaurus/plugin-content-pages": "^2.0.0-beta.17",
-        "@docusaurus/plugin-google-analytics": "^2.0.0-beta.17",
-        "@docusaurus/theme-classic": "^2.0.0-beta.17",
+        "@docusaurus/core": "2.0.0-beta.18",
+        "@docusaurus/plugin-client-redirects": "2.0.0-beta.18",
+        "@docusaurus/plugin-content-docs": "2.0.0-beta.18",
+        "@docusaurus/plugin-content-pages": "2.0.0-beta.18",
+        "@docusaurus/plugin-google-analytics": "2.0.0-beta.18",
+        "@docusaurus/theme-classic": "2.0.0-beta.18",
         "@easyops-cn/docusaurus-search-local": "^0.23.0",
         "@mdx-js/react": "^1.6.21",
         "@svgr/webpack": "^6.2.1",
@@ -45,7 +45,7 @@
         ]
     },
     "devDependencies": {
-        "@docusaurus/module-type-aliases": "^2.0.0-beta.17",
+        "@docusaurus/module-type-aliases": "2.0.0-beta.18",
         "@tsconfig/docusaurus": "^1.0.5",
         "@types/react": "^17.0.43",
         "@types/react-helmet": "^6.1.5",
