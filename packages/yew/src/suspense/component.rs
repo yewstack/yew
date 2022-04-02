@@ -13,15 +13,20 @@ pub struct SuspenseProps {
 mod feat_csr_ssr {
     use super::*;
 
+    #[cfg(feature = "hydration")]
+    use crate::callback::Callback;
+    #[cfg(feature = "hydration")]
+    use crate::html::RenderMode;
     use crate::html::{Children, Component, Context, Html, Scope};
     use crate::suspense::Suspension;
+    #[cfg(feature = "hydration")]
+    use crate::suspense::SuspensionHandle;
     use crate::virtual_dom::{VNode, VSuspense};
     use crate::{function_component, html};
 
     #[derive(Properties, PartialEq, Debug, Clone)]
     pub(crate) struct BaseSuspenseProps {
         pub children: Children,
-
         pub fallback: Option<Html>,
     }
 
@@ -35,6 +40,8 @@ mod feat_csr_ssr {
     pub(crate) struct BaseSuspense {
         link: Scope<Self>,
         suspensions: Vec<Suspension>,
+        #[cfg(feature = "hydration")]
+        hydration_handle: Option<SuspensionHandle>,
     }
 
     impl Component for BaseSuspense {
@@ -42,9 +49,30 @@ mod feat_csr_ssr {
         type Message = BaseSuspenseMsg;
 
         fn create(ctx: &Context<Self>) -> Self {
+            #[cfg(not(feature = "hydration"))]
+            let suspensions = Vec::new();
+
+            // We create a suspension to block suspense until its rendered method is notified.
+            #[cfg(feature = "hydration")]
+            let (suspensions, hydration_handle) = {
+                match ctx.mode() {
+                    RenderMode::Hydration => {
+                        let link = ctx.link().clone();
+                        let (s, handle) = Suspension::new();
+                        s.listen(Callback::from(move |s| {
+                            link.send_message(BaseSuspenseMsg::Resume(s));
+                        }));
+                        (vec![s], Some(handle))
+                    }
+                    _ => (Vec::new(), None),
+                }
+            };
+
             Self {
                 link: ctx.link().clone(),
-                suspensions: Vec::new(),
+                suspensions,
+                #[cfg(feature = "hydration")]
+                hydration_handle,
             }
         }
 
@@ -92,6 +120,15 @@ mod feat_csr_ssr {
                     VNode::from(vsuspense)
                 }
                 None => children,
+            }
+        }
+
+        #[cfg(feature = "hydration")]
+        fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
+            if first_render {
+                if let Some(m) = self.hydration_handle.take() {
+                    m.resume();
+                }
             }
         }
     }

@@ -5,6 +5,12 @@
 //! In order to efficiently implement updates, and diffing, additional information has to be
 //! kept around. This information is carried in the bundle.
 
+use web_sys::Element;
+
+use crate::html::AnyScope;
+use crate::html::NodeRef;
+use crate::virtual_dom::VNode;
+
 mod bcomp;
 mod blist;
 mod bnode;
@@ -14,30 +20,34 @@ mod btag;
 mod btext;
 mod subtree_root;
 
+#[cfg(feature = "hydration")]
+mod fragment;
+
 mod traits;
 mod utils;
-
-use web_sys::Element;
-
-use crate::html::AnyScope;
-use crate::html::NodeRef;
-use crate::virtual_dom::VNode;
 
 use bcomp::BComp;
 use blist::BList;
 use bnode::BNode;
 use bportal::BPortal;
 use bsuspense::BSuspense;
+
 use btag::{BTag, Registry};
 use btext::BText;
 use subtree_root::EventDescriptor;
 use traits::{Reconcilable, ReconcileTarget};
 use utils::{insert_node, test_log};
 
-#[doc(hidden)] // Publically exported from crate::events
 pub use subtree_root::set_event_bubbling;
 
 pub(crate) use subtree_root::BSubtree;
+
+#[cfg(feature = "hydration")]
+pub(crate) use fragment::Fragment;
+#[cfg(feature = "hydration")]
+use traits::Hydratable;
+#[cfg(feature = "hydration")]
+use utils::node_type_str;
 
 /// A Bundle.
 ///
@@ -50,6 +60,7 @@ pub(crate) struct Bundle(BNode);
 
 impl Bundle {
     /// Creates a new bundle.
+
     pub const fn new() -> Self {
         Self(BNode::List(BList::new()))
     }
@@ -74,5 +85,24 @@ impl Bundle {
     /// Detaches current bundle.
     pub fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool) {
         self.0.detach(root, parent, parent_to_detach);
+    }
+}
+
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    impl Bundle {
+        /// Creates a bundle by hydrating a virtual dom layout.
+        pub fn hydrate(
+            root: &BSubtree,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut Fragment,
+            node: VNode,
+        ) -> (NodeRef, Self) {
+            let (node_ref, bundle) = node.hydrate(root, parent_scope, parent, fragment);
+            (node_ref, Self(bundle))
+        }
     }
 }

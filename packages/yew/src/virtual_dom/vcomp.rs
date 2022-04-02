@@ -11,6 +11,8 @@ use crate::html::{AnyScope, Scope};
 
 #[cfg(feature = "csr")]
 use crate::dom_bundle::BSubtree;
+#[cfg(feature = "hydration")]
+use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
 use crate::html::Scoped;
 #[cfg(feature = "csr")]
@@ -72,6 +74,16 @@ pub(crate) trait Mountable {
         parent_scope: &'a AnyScope,
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()>;
+
+    #[cfg(feature = "hydration")]
+    fn hydrate(
+        self: Box<Self>,
+        root: BSubtree,
+        parent_scope: &AnyScope,
+        parent: Element,
+        fragment: &mut Fragment,
+        node_ref: NodeRef,
+    ) -> Box<dyn Scoped>;
 }
 
 pub(crate) struct PropsWrapper<COMP: BaseComponent> {
@@ -127,6 +139,21 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
                 .await;
         }
         .boxed_local()
+    }
+
+    #[cfg(feature = "hydration")]
+    fn hydrate(
+        self: Box<Self>,
+        root: BSubtree,
+        parent_scope: &AnyScope,
+        parent: Element,
+        fragment: &mut Fragment,
+        node_ref: NodeRef,
+    ) -> Box<dyn Scoped> {
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+        scope.hydrate_in_place(root, parent, fragment, node_ref, self.props);
+
+        Box::new(scope)
     }
 }
 
@@ -258,9 +285,10 @@ mod ssr_tests {
             }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(
             s,

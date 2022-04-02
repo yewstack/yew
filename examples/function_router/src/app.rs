@@ -1,4 +1,8 @@
+use std::collections::HashMap;
+
 use yew::prelude::*;
+use yew::virtual_dom::AttrValue;
+use yew_router::history::{AnyHistory, History, MemoryHistory};
 use yew_router::prelude::*;
 
 use crate::components::nav::Nav;
@@ -47,52 +51,39 @@ pub fn App() -> Html {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-mod arch_native {
-    use super::*;
-
-    use yew::virtual_dom::AttrValue;
-    use yew_router::history::{AnyHistory, History, MemoryHistory};
-
-    use std::collections::HashMap;
-
-    #[derive(Properties, PartialEq, Debug)]
-    pub struct ServerAppProps {
-        pub url: AttrValue,
-        pub queries: HashMap<String, String>,
-    }
-
-    #[function_component]
-    pub fn ServerApp(props: &ServerAppProps) -> Html {
-        let history = AnyHistory::from(MemoryHistory::new());
-        history
-            .push_with_query(&*props.url, &props.queries)
-            .unwrap();
-
-        html! {
-            <Router history={history}>
-                <Nav />
-
-                <main>
-                    <Switch<Route> render={Switch::render(switch)} />
-                </main>
-                <footer class="footer">
-                    <div class="content has-text-centered">
-                        { "Powered by " }
-                        <a href="https://yew.rs">{ "Yew" }</a>
-                        { " using " }
-                        <a href="https://bulma.io">{ "Bulma" }</a>
-                        { " and images from " }
-                        <a href="https://unsplash.com">{ "Unsplash" }</a>
-                    </div>
-                </footer>
-            </Router>
-        }
-    }
+#[derive(Properties, PartialEq, Debug)]
+pub struct ServerAppProps {
+    pub url: AttrValue,
+    pub queries: HashMap<String, String>,
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-pub use arch_native::*;
+#[function_component]
+pub fn ServerApp(props: &ServerAppProps) -> Html {
+    let history = AnyHistory::from(MemoryHistory::new());
+    history
+        .push_with_query(&*props.url, &props.queries)
+        .unwrap();
+
+    html! {
+        <Router history={history}>
+            <Nav />
+
+            <main>
+                <Switch<Route> render={Switch::render(switch)} />
+            </main>
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    { "Powered by " }
+                    <a href="https://yew.rs">{ "Yew" }</a>
+                    { " using " }
+                    <a href="https://bulma.io">{ "Bulma" }</a>
+                    { " and images from " }
+                    <a href="https://unsplash.com">{ "Unsplash" }</a>
+                </div>
+            </footer>
+        </Router>
+    }
+}
 
 fn switch(routes: &Route) -> Html {
     match routes.clone() {

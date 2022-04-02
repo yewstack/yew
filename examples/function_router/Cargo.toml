@@ -13,14 +13,11 @@ yew-router = { path = "../../packages/yew-router" }
 serde = { version = "1.0", features = ["derive"] }
 lazy_static = "1.4.0"
 gloo-timers = "0.2"
+wasm-logger = "0.2"
+instant = { version = "0.1", features = ["wasm-bindgen"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2", features = ["js"] }
-instant = { version = "0.1", features = ["wasm-bindgen"] }
-wasm-logger = "0.2"
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-instant = { version = "0.1" }
 
 [features]
 csr = ["yew/csr"]
