@@ -546,10 +546,7 @@ impl RenderRunner {
                 ref root,
             } => {
                 // We schedule a "first" render to run immediately after hydration,
-                // for the following reason:
-                // 1. Fix NodeRef (first_node and next_sibling)
-                // 2. Switch from fallback UI to children UI for <Suspense /> component (if it is
-                //    not meant to be suspended.).
+                // to fix NodeRefs (first_node and next_sibling).
                 scheduler::push_component_first_render(
                     state.comp_id,
                     Box::new(RenderRunner {
