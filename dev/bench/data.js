@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1648929444064,
+  "lastUpdate": 1648940889535,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -11003,6 +11003,115 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 32_startup-bt",
             "value": "38.29",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "330.548828125",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "futursolo@users.noreply.github.com",
+            "name": "Kaede Hoshikawa",
+            "username": "futursolo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e46ae55cabcb37432c1f0a55e71b5bb22024f308",
+          "message": "SSR Hydration (#2552)\n\n* Bring changes to this branch.\r\n\r\n* Add feature hydration.\r\n\r\n* Hydrate text.\r\n\r\n* Hydrate tag.\r\n\r\n* Hydrate node.\r\n\r\n* Hydrate List.\r\n\r\n* Hydrate Suspense.\r\n\r\n* Hydrate component.\r\n\r\n* Renderer::hydrate.\r\n\r\n* Add example and tests.\r\n\r\n* Fix comp_id.\r\n\r\n* Move some code away from generics.\r\n\r\n* Fix everything.\r\n\r\n* trybuild?\r\n\r\n* Collectable!\r\n\r\n* Phantom component.\r\n\r\n* Migrate docs as well.\r\n\r\n* Update example.\r\n\r\n* Fix docs and improve debug message.\r\n\r\n* Minor fixing.\r\n\r\n* Add hydration to feature soundness check.\r\n\r\n* Fix name in debug.\r\n\r\n* Remove Shift.\r\n\r\n* Remove comment.\r\n\r\n* Adjust readme.\r\n\r\n* Update website/docs/advanced-topics/server-side-rendering.md\r\n\r\nCo-authored-by: Muhammad Hamza <muhammadhamza1311@gmail.com>\r\n\r\n* Update packages/yew/src/dom_bundle/bnode.rs\r\n\r\nCo-authored-by: Muhammad Hamza <muhammadhamza1311@gmail.com>\r\n\r\n* Update packages/yew/src/dom_bundle/bnode.rs\r\n\r\nCo-authored-by: Muhammad Hamza <muhammadhamza1311@gmail.com>\r\n\r\n* Once via structopt, now direct clap.\r\n\r\n* Fix docs and empty fragment.\r\n\r\n* Remove struct component warning.\r\n\r\n* Move function router into a separate binary.\r\n\r\n* Optimise Code Logic.\r\n\r\n* Fix condition.\r\n\r\n* Fix rendering behaviour.\r\n\r\n* Fix comment.\r\n\r\nCo-authored-by: Muhammad Hamza <muhammadhamza1311@gmail.com>",
+          "timestamp": "2022-04-03T08:00:16+09:00",
+          "tree_id": "be8180372fef1b37b8415a75e338fe9c7715c4b1",
+          "url": "https://github.com/yewstack/yew/commit/e46ae55cabcb37432c1f0a55e71b5bb22024f308"
+        },
+        "date": 1648940888093,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "262.117",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "261.76099999999997",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "470.9905",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "73.328",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "106.6855",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "34.4755",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "3263.494",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "683.3995",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "272.1895",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.4005584716796875",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.6628379821777344",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.701202392578125",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.7103385925292969",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.421672821044922",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1733.84",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "35.22599999999999",
             "unit": ""
           },
           {
