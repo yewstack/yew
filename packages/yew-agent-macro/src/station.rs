@@ -1,82 +1,31 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
-use syn::parse::{Parse, ParseStream};
-use syn::punctuated::Punctuated;
-use syn::token::Comma;
-use syn::{Attribute, FnArg, Generics, Ident, Item, ItemFn, ReturnType, Type, Visibility};
+use syn::{FnArg, Ident, ReturnType, Signature, Type};
 
-#[derive(Clone)]
-pub struct StationFn {
-    recv_type: Box<Type>,
-    generics: Generics,
-    vis: Visibility,
-    attrs: Vec<Attribute>,
-    name: Ident,
-    station_name: Option<Ident>,
+use crate::agent_fn::{AgentFn, AgentFnType, AgentName};
 
-    func: ItemFn,
-}
+pub struct StationFn {}
 
-impl Parse for StationFn {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let parsed: Item = input.parse()?;
+impl AgentFnType for StationFn {
+    type RecvType = Type;
+    type OutputType = ();
 
-        let func = match parsed {
-            Item::Fn(m) => m,
+    fn attr_name() -> &'static str {
+        "station"
+    }
 
-            item => {
-                return Err(syn::Error::new_spanned(
-                    item,
-                    "`station` attribute can only be applied to functions",
-                ))
-            }
-        };
+    fn agent_type_name() -> &'static str {
+        "station"
+    }
+    fn agent_type_name_plural() -> &'static str {
+        "stations"
+    }
 
-        let ItemFn {
-            attrs, vis, sig, ..
-        } = func.clone();
-
-        if sig.generics.lifetimes().next().is_some() {
-            return Err(syn::Error::new_spanned(
-                sig.generics,
-                "stations can't have generic lifetime parameters",
-            ));
-        }
-
-        if sig.asyncness.is_none() {
-            return Err(syn::Error::new_spanned(
-                sig.asyncness,
-                "station functions must be async",
-            ));
-        }
-
-        if sig.constness.is_some() {
-            return Err(syn::Error::new_spanned(
-                sig.constness,
-                "const functions can't be stations",
-            ));
-        }
-
-        if sig.abi.is_some() {
-            return Err(syn::Error::new_spanned(
-                sig.abi,
-                "extern functions can't be stations",
-            ));
-        }
-
-        match sig.output {
-            ReturnType::Default => {}
-            ReturnType::Type(_, ty) => {
-                return Err(syn::Error::new_spanned(
-                    ty,
-                    "stations must not return anything.",
-                ))
-            }
-        }
-
-        let mut inputs = sig.inputs.into_iter();
+    fn parse_recv_type(sig: &Signature) -> syn::Result<Self::RecvType> {
+        let mut inputs = sig.inputs.iter();
         let arg = inputs
             .next()
+            .cloned()
             .unwrap_or_else(|| syn::parse_quote! { _: &() });
 
         let ty = match &arg {
@@ -101,124 +50,38 @@ impl Parse for StationFn {
             ));
         }
 
-        Ok(Self {
-            recv_type: ty,
-            generics: sig.generics,
-            vis,
-            attrs,
-            name: sig.ident,
-            station_name: None,
-            func,
-        })
-    }
-}
-
-impl StationFn {
-    /// Filters attributes that should be copied to station definition.
-    fn filter_attrs_for_station_struct(&self) -> Vec<Attribute> {
-        self.attrs
-            .iter()
-            .filter_map(|m| {
-                m.path
-                    .get_ident()
-                    .and_then(|ident| match ident.to_string().as_str() {
-                        "doc" | "allow" => Some(m.clone()),
-                        _ => None,
-                    })
-            })
-            .collect()
+        Ok(*ty)
     }
 
-    /// Filters attributes that should be copied to the station impl block.
-    fn filter_attrs_for_station_impl(&self) -> Vec<Attribute> {
-        self.attrs
-            .iter()
-            .filter_map(|m| {
-                m.path
-                    .get_ident()
-                    .and_then(|ident| match ident.to_string().as_str() {
-                        "allow" => Some(m.clone()),
-                        _ => None,
-                    })
-            })
-            .collect()
-    }
-
-    fn phantom_generics(&self) -> Punctuated<Ident, Comma> {
-        self.generics
-            .type_params()
-            .map(|ty_param| ty_param.ident.clone()) // create a new Punctuated sequence without any type bounds
-            .collect::<Punctuated<_, Comma>>()
-    }
-
-    fn merge_station_name(&mut self, name: StationName) -> syn::Result<()> {
-        if let Some(ref m) = name.station_name {
-            if m == &self.name {
+    fn parse_output_type(sig: &Signature) -> syn::Result<Self::OutputType> {
+        match &sig.output {
+            ReturnType::Default => {}
+            ReturnType::Type(_, ty) => {
                 return Err(syn::Error::new_spanned(
-                    m,
-                    "the station must not have the same name as the function",
-                ));
+                    ty,
+                    "station functions cannot return any value",
+                ))
             }
         }
 
-        self.station_name = name.station_name;
-
         Ok(())
     }
-
-    fn inner_fn_ident(&self) -> Ident {
-        if self.station_name.is_some() {
-            self.name.clone()
-        } else {
-            Ident::new("inner", Span::mixed_site())
-        }
-    }
-
-    fn station_name(&self) -> Ident {
-        self.station_name
-            .clone()
-            .unwrap_or_else(|| self.name.clone())
-    }
-
-    fn print_inner_fn(&self) -> ItemFn {
-        let mut func = self.func.clone();
-        func.sig.ident = self.inner_fn_ident();
-
-        func.vis = Visibility::Inherited;
-
-        func
-    }
 }
 
-pub struct StationName {
-    station_name: Option<Ident>,
-}
+pub fn station_impl(
+    name: AgentName,
+    mut station_fn: AgentFn<StationFn>,
+) -> syn::Result<TokenStream> {
+    station_fn.merge_agent_name(name)?;
 
-impl Parse for StationName {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        if input.is_empty() {
-            return Ok(Self { station_name: None });
-        }
-
-        let station_name = input.parse()?;
-
-        Ok(Self {
-            station_name: Some(station_name),
-        })
-    }
-}
-
-pub fn station_impl(name: StationName, mut station_fn: StationFn) -> syn::Result<TokenStream> {
-    station_fn.merge_station_name(name)?;
-
-    let struct_attrs = station_fn.filter_attrs_for_station_struct();
-    let station_impl_attrs = station_fn.filter_attrs_for_station_impl();
+    let struct_attrs = station_fn.filter_attrs_for_agent_struct();
+    let station_impl_attrs = station_fn.filter_attrs_for_agent_impl();
     let phantom_generics = station_fn.phantom_generics();
-    let station_name = station_fn.station_name();
+    let station_name = station_fn.agent_name();
     let fn_name = station_fn.inner_fn_ident();
     let inner_fn = station_fn.print_inner_fn();
 
-    let StationFn {
+    let AgentFn {
         recv_type,
         generics,
         vis,
