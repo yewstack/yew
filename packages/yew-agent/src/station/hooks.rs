@@ -97,7 +97,7 @@ where
         self.bridge.send(msg);
     }
 
-    /// Returns whether the current stream has been finished.
+    /// Returns whether the current bridge has received a finish message.
     pub fn finished(&self) -> bool {
         self.finished
     }

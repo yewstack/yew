@@ -7,7 +7,7 @@ use yew::prelude::*;
 use super::traits::{Reactor, ReactorStation};
 use super::tx_rx::{ReactorReceivable, ReactorSendable};
 use crate::station::{
-    use_station_bridge, use_station_subscription, UseStationBridgeHandle,
+    use_station_bridge, use_station_subscription, BridgeOutput, UseStationBridgeHandle,
     UseStationSubscriptionHandle,
 };
 
@@ -71,7 +71,7 @@ where
 pub fn use_reactor_bridge<R, F>(on_output: F) -> UseReactorBridgeHandle<R>
 where
     R: 'static + Reactor,
-    F: Fn(<R::Sender as ReactorSendable>::Output) + 'static,
+    F: Fn(BridgeOutput<<R::Sender as ReactorSendable>::Output>) + 'static,
 {
     let bridge = use_station_bridge::<ReactorStation<R>, _>(on_output);
 
@@ -104,6 +104,11 @@ where
     /// Send an input to a reactor agent.
     pub fn send(&self, msg: <R::Receiver as ReactorReceivable>::Input) {
         self.inner.send(msg);
+    }
+
+    /// Returns whether the current bridge has received a finish message.
+    pub fn finished(&self) -> bool {
+        self.inner.finished()
     }
 }
 

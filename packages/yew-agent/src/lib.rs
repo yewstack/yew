@@ -80,7 +80,7 @@
 
 extern crate self as yew_agent;
 
-// pub mod reactor;
+pub mod reactor;
 pub mod station;
 // pub mod task;
 pub mod worker;

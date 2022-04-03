@@ -47,6 +47,7 @@ pub use hooks::{
     use_station_bridge, use_station_subscription, UseStationBridgeHandle,
     UseStationSubscriptionHandle,
 };
+pub use messages::BridgeOutput;
 pub use provider::StationProvider;
 pub use recv::{StationReceivable, StationReceiver};
 

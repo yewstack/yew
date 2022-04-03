@@ -5,6 +5,7 @@ mod provider;
 mod traits;
 mod tx_rx;
 
+pub use crate::station::BridgeOutput;
 pub use hooks::{
     use_reactor_bridge, use_reactor_subscription, UseReactorBridgeHandle,
     UseReactorSubscriptionHandle,
