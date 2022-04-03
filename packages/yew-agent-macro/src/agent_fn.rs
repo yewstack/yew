@@ -1,8 +1,9 @@
-use proc_macro2::Span;
+use proc_macro2::{Span, TokenStream};
+use quote::ToTokens;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
-use syn::{Attribute, Generics, Ident, Item, ItemFn, Signature, Visibility};
+use syn::{Attribute, FnArg, Generics, Ident, Item, ItemFn, Signature, Type, Visibility};
 
 pub trait AgentFnType {
     type RecvType;
@@ -13,6 +14,48 @@ pub trait AgentFnType {
     fn agent_type_name_plural() -> &'static str;
     fn parse_recv_type(sig: &Signature) -> syn::Result<Self::RecvType>;
     fn parse_output_type(sig: &Signature) -> syn::Result<Self::OutputType>;
+
+    fn extract_fn_arg_type(arg: &FnArg) -> syn::Result<Type> {
+        let ty = match arg {
+            FnArg::Typed(arg) => arg.ty.clone(),
+
+            FnArg::Receiver(_) => {
+                return Err(syn::Error::new_spanned(
+                    arg,
+                    format!("{} can't accept a receiver", Self::agent_type_name_plural()),
+                ));
+            }
+        };
+
+        Ok(*ty)
+    }
+
+    fn assert_no_left_argument<I, T>(rest_inputs: I, expected_len: usize) -> syn::Result<()>
+    where
+        I: ExactSizeIterator + IntoIterator<Item = T>,
+        T: ToTokens,
+    {
+        // Checking after param parsing may make it a little inefficient
+        // but that's a requirement for better error messages in case of receivers
+        // `>0` because first one is already consumed.
+        if rest_inputs.len() > 0 {
+            let params: TokenStream = rest_inputs
+                .into_iter()
+                .map(|it| it.to_token_stream())
+                .collect();
+            return Err(syn::Error::new_spanned(
+                params,
+                format!(
+                    "{} can accept at most {} argument{}",
+                    Self::agent_type_name_plural(),
+                    expected_len,
+                    if expected_len > 1 { "s" } else { "" }
+                ),
+            ));
+        }
+
+        Ok(())
+    }
 }
 
 #[derive(Clone)]
