@@ -40,7 +40,6 @@ jobs:
       - name: Check Translations
         run: |
           cd website
-          npm install
           npm run check-translations
 
       - name: Build
