@@ -1,6 +1,7 @@
 use yew::prelude::*;
 
-use super::traits::{Station, StationWorker};
+use super::imp::StationWorker;
+use super::Station;
 use crate::worker::{WorkerProvider, WorkerProviderProps};
 
 /// The station provider.

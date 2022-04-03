@@ -4,10 +4,11 @@ use std::rc::Rc;
 
 use yew::prelude::*;
 
-use super::traits::{Station, StationReceivable, StationWorker};
-use crate::worker::{
-    use_worker_bridge, use_worker_subscription, UseWorkerBridgeHandle, UseWorkerSubscriptionHandle,
-};
+use super::imp::StationWorker;
+use super::messages::{BridgeInput, BridgeOutput};
+use super::recv::StationReceivable;
+use super::Station;
+use crate::worker::{use_worker_bridge, UseWorkerBridgeHandle};
 
 /// Handle for the [use_station_bridge] hook.
 pub struct UseStationBridgeHandle<S>
@@ -54,7 +55,7 @@ where
 {
     /// Send an input to a station agent.
     pub fn send(&self, msg: <S::Receiver as StationReceivable>::Input) {
-        self.inner.send(msg);
+        self.inner.send(BridgeInput::Input(msg));
     }
 }
 
@@ -69,19 +70,32 @@ where
 pub fn use_station_bridge<S, F>(on_output: F) -> UseStationBridgeHandle<S>
 where
     S: 'static + Station,
-    F: Fn(<S::Receiver as StationReceivable>::Output) + 'static,
+    F: Fn(BridgeOutput<<S::Receiver as StationReceivable>::Output>) + 'static,
 {
     let bridge = use_worker_bridge::<StationWorker<S>, _>(on_output);
 
     UseStationBridgeHandle { inner: bridge }
 }
 
-/// Handle for the [use_station_subscription] hook.
+/// State handle for the [`use_station_subscription`] hook.
 pub struct UseStationSubscriptionHandle<S>
 where
     S: 'static + Station,
 {
-    inner: UseWorkerSubscriptionHandle<StationWorker<S>>,
+    bridge: UseStationBridgeHandle<S>,
+    outputs: Vec<Rc<<S::Receiver as StationReceivable>::Output>>,
+    finished: bool,
+    ctr: usize,
+}
+
+impl<S> UseStationSubscriptionHandle<S>
+where
+    S: 'static + Station,
+{
+    /// Send an input to a worker agent.
+    pub fn send(&self, msg: <S::Receiver as StationReceivable>::Input) {
+        self.bridge.send(msg);
+    }
 }
 
 impl<S> Clone for UseStationSubscriptionHandle<S>
@@ -90,41 +104,35 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            inner: self.inner.clone(),
+            bridge: self.bridge.clone(),
+            outputs: self.outputs.clone(),
+            ctr: self.ctr,
+            finished: self.finished,
         }
-    }
-}
-
-impl<S> UseStationSubscriptionHandle<S>
-where
-    S: 'static + Station,
-{
-    /// Send an input to a station agent.
-    pub fn send(&self, msg: <S::Receiver as StationReceivable>::Input) {
-        self.inner.send(msg);
     }
 }
 
 impl<S> fmt::Debug for UseStationSubscriptionHandle<S>
 where
-    S: Station,
+    S: 'static + Station,
     <S::Receiver as StationReceivable>::Output: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("UseStationSubscriptionHandle<_>")
-            .field("inner", &self.inner)
+        f.debug_struct("UseWorkerSubscriptionHandle<_>")
+            .field("bridge", &self.bridge)
+            .field("outputs", &self.outputs)
             .finish()
     }
 }
 
 impl<S> Deref for UseStationSubscriptionHandle<S>
 where
-    S: Station,
+    S: 'static + Station,
 {
     type Target = [Rc<<S::Receiver as StationReceivable>::Output>];
 
-    fn deref(&self) -> &[Rc<<S::Receiver as StationReceivable>::Output>] {
-        &*self.inner
+    fn deref(&self) -> &Self::Target {
+        &self.outputs
     }
 }
 
@@ -133,7 +141,7 @@ where
     S: 'static + Station,
 {
     fn eq(&self, rhs: &Self) -> bool {
-        self.inner == rhs.inner
+        self.bridge == rhs.bridge && self.ctr == rhs.ctr
     }
 }
 
@@ -145,7 +153,66 @@ pub fn use_station_subscription<S>() -> UseStationSubscriptionHandle<S>
 where
     S: 'static + Station,
 {
-    let sub = use_worker_subscription::<StationWorker<S>>();
+    struct Outputs<S>
+    where
+        S: Station + 'static,
+    {
+        ctr: usize,
+        inner: Vec<Rc<<S::Receiver as StationReceivable>::Output>>,
+        finished: bool,
+    }
 
-    UseStationSubscriptionHandle { inner: sub }
+    impl<S> Reducible for Outputs<S>
+    where
+        S: Station + 'static,
+    {
+        type Action = BridgeOutput<<S::Receiver as StationReceivable>::Output>;
+
+        fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
+            let mut outputs = self.inner.clone();
+
+            let mut finished = self.finished;
+
+            match action {
+                BridgeOutput::Output(m) => outputs.push(m.into()),
+                BridgeOutput::Finish => {
+                    finished = true;
+                }
+            }
+
+            Self {
+                inner: outputs,
+                ctr: self.ctr + 1,
+                finished,
+            }
+            .into()
+        }
+    }
+
+    impl<S> Default for Outputs<S>
+    where
+        S: Station + 'static,
+    {
+        fn default() -> Self {
+            Self {
+                ctr: 0,
+                inner: Vec::new(),
+                finished: false,
+            }
+        }
+    }
+
+    let outputs = use_reducer(Outputs::<S>::default);
+
+    let bridge = {
+        let outputs = outputs.clone();
+        use_station_bridge::<S, _>(move |output| outputs.dispatch(output))
+    };
+
+    UseStationSubscriptionHandle {
+        bridge,
+        outputs: outputs.inner.clone(),
+        ctr: outputs.ctr,
+        finished: outputs.finished,
+    }
 }

@@ -100,9 +100,9 @@ where
 
 static CTR: AtomicUsize = AtomicUsize::new(0);
 
-/// A Public Agent Provider.
+/// A Worker Agent Provider.
 ///
-/// This component provides its children access to a public agent.
+/// This component provides its children access to an worker agent.
 #[function_component]
 pub fn WorkerProvider<W>(props: &WorkerProviderProps) -> Html
 where

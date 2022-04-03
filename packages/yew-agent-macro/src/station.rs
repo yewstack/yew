@@ -244,7 +244,7 @@ pub fn station_impl(name: StationName, mut station_fn: StationFn) -> syn::Result
         impl #impl_generics ::yew_agent::station::Station for #station_name #ty_generics #where_clause {
             type Receiver = #recv_type;
 
-            fn start(#rx_ident: Self::Receiver) -> ::yew_agent::__vendored::futures::future::LocalBoxFuture<'static, ()> {
+            fn run(#rx_ident: Self::Receiver) -> ::yew_agent::__vendored::futures::future::LocalBoxFuture<'static, ()> {
                 #inner_fn
 
                 ::yew_agent::__vendored::futures::future::FutureExt::boxed_local(
