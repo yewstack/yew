@@ -94,5 +94,6 @@ pub use reach::Reach;
 
 #[doc(hidden)]
 pub mod __vendored {
+    pub use futures;
     pub use wasm_bindgen_futures;
 }

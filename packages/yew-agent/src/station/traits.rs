@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use std::pin::Pin;
 
 use futures::channel::mpsc;
+use futures::future::LocalBoxFuture;
+use futures::sink::SinkExt;
 use futures::stream::{FusedStream, Stream, StreamExt};
 use futures::task::{Context, Poll};
 use serde::{Deserialize, Serialize};
@@ -24,7 +26,7 @@ where
     O: Serialize + for<'de> Deserialize<'de>,
 {
     #[pin]
-    rx: mpsc::UnboundedReceiver<IoPair<Self>>,
+    rx: mpsc::Receiver<IoPair<Self>>,
 }
 
 impl<I, O> Stream for StationReceiver<I, O>
@@ -61,7 +63,7 @@ pub trait StationReceivable {
     type Output: Serialize + for<'de> Deserialize<'de>;
 
     /// Creates a StationReceiver.
-    fn new(rx: mpsc::UnboundedReceiver<IoPair<Self>>) -> Self;
+    fn new(rx: mpsc::Receiver<IoPair<Self>>) -> Self;
 }
 
 impl<I, O> StationReceivable for StationReceiver<I, O>
@@ -72,7 +74,7 @@ where
     type Input = I;
     type Output = O;
 
-    fn new(rx: mpsc::UnboundedReceiver<IoPair<Self>>) -> Self {
+    fn new(rx: mpsc::Receiver<IoPair<Self>>) -> Self {
         Self { rx }
     }
 }
@@ -83,7 +85,12 @@ pub trait Station {
     type Receiver: StationReceivable;
 
     /// Start a station.
-    fn start(recv: Self::Receiver);
+    fn start(recv: Self::Receiver) -> LocalBoxFuture<'static, ()>;
+}
+
+pub(crate) enum StationWorkerMsg {
+    LoopExited,
+    StationExited,
 }
 
 pub(crate) struct StationWorker<S>
@@ -95,27 +102,69 @@ where
     tx: mpsc::UnboundedSender<IoPair<S::Receiver>>,
 }
 
-impl<T> Worker for StationWorker<T>
+impl<S> Worker for StationWorker<S>
 where
-    T: 'static + Station,
+    S: 'static + Station,
 {
-    type Input = <T::Receiver as StationReceivable>::Input;
-    type Output = <T::Receiver as StationReceivable>::Output;
-    type Message = ();
+    type Input = <S::Receiver as StationReceivable>::Input;
+    type Output = <S::Receiver as StationReceivable>::Output;
+    type Message = StationWorkerMsg;
 
     fn create(link: WorkerScope<Self>) -> Self {
-        let (tx, rx) = mpsc::unbounded();
-        let this = Self {
+        let (tx, mut rx) = mpsc::unbounded();
+
+        {
+            let link_ = link.clone();
+
+            link.send_future(async move {
+                let mut pending_msg = None;
+
+                // We try to restart the station if it exits before the worker becomes destroyed.
+                'outer: loop {
+                    // Make 1 pair
+                    let (mut station_tx, station_rx) = mpsc::channel(1);
+
+                    let receiver = S::Receiver::new(station_rx);
+
+                    // Start a new station.
+                    link_.send_future(async move {
+                        S::start(receiver).await;
+
+                        StationWorkerMsg::StationExited
+                    });
+
+                    'inner: loop {
+                        if let Some(pending_msg) = pending_msg.take() {
+                            match station_tx.send(pending_msg).await {
+                                Ok(()) => {}
+                                Err(e) => {
+                                    // the station has disconnected itself, we need to start a new one.
+                                    if e.is_disconnected() {
+                                        break 'inner;
+                                    }
+                                }
+                            }
+                        }
+
+                        pending_msg = match rx.next().await {
+                            Some(m) => Some(m),
+                            None => {
+                                // Worker has become destoryed.
+                                break 'outer;
+                            }
+                        };
+                    }
+                }
+
+                StationWorkerMsg::LoopExited
+            });
+        }
+
+        Self {
             link,
             senders: HashMap::new(),
             tx,
-        };
-
-        let receiver = T::Receiver::new(rx);
-
-        T::start(receiver);
-
-        this
+        }
     }
 
     fn connected(&mut self, id: HandlerId) {
@@ -140,7 +189,7 @@ where
 
         self.tx
             .unbounded_send((sender, receiver))
-            .expect("station has early exited!");
+            .expect("attempting to connect after destory!");
     }
 
     fn update(&mut self, _msg: Self::Message) {}
@@ -153,5 +202,11 @@ where
 
     fn disconnected(&mut self, id: HandlerId) {
         self.senders.remove(&id);
+    }
+
+    fn destroy(&mut self) -> bool {
+        self.tx.close_channel();
+
+        false
     }
 }

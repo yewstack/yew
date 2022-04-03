@@ -2,7 +2,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
-use syn::token::{Async, Comma};
+use syn::token::Comma;
 use syn::{Attribute, FnArg, Generics, Ident, Item, ItemFn, ReturnType, Type, Visibility};
 
 #[derive(Clone)]
@@ -12,8 +12,6 @@ pub struct StationFn {
     vis: Visibility,
     attrs: Vec<Attribute>,
     name: Ident,
-    asyncness: Option<Async>,
-
     station_name: Option<Ident>,
 
     func: ItemFn,
@@ -45,7 +43,12 @@ impl Parse for StationFn {
             ));
         }
 
-        let asyncness = sig.asyncness;
+        if sig.asyncness.is_none() {
+            return Err(syn::Error::new_spanned(
+                sig.asyncness,
+                "station functions must be async",
+            ));
+        }
 
         if sig.constness.is_some() {
             return Err(syn::Error::new_spanned(
@@ -105,7 +108,6 @@ impl Parse for StationFn {
             attrs,
             name: sig.ident,
             station_name: None,
-            asyncness,
             func,
         })
     }
@@ -220,7 +222,6 @@ pub fn station_impl(name: StationName, mut station_fn: StationFn) -> syn::Result
         recv_type,
         generics,
         vis,
-        asyncness,
         ..
     } = station_fn;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
@@ -228,10 +229,7 @@ pub fn station_impl(name: StationName, mut station_fn: StationFn) -> syn::Result
 
     let rx_ident = Ident::new("rx", Span::mixed_site());
 
-    let fn_call = match asyncness {
-        Some(_) => quote! { #fn_name #fn_generics (#rx_ident).await; },
-        None => quote! { #fn_name #fn_generics (#rx_ident); },
-    };
+    let fn_call = quote! { #fn_name #fn_generics (#rx_ident).await; };
 
     let quoted = quote! {
         #(#struct_attrs)*
@@ -246,14 +244,14 @@ pub fn station_impl(name: StationName, mut station_fn: StationFn) -> syn::Result
         impl #impl_generics ::yew_agent::station::Station for #station_name #ty_generics #where_clause {
             type Receiver = #recv_type;
 
-            fn start(#rx_ident: Self::Receiver) {
+            fn start(#rx_ident: Self::Receiver) -> ::yew_agent::__vendored::futures::future::LocalBoxFuture<'static, ()> {
                 #inner_fn
 
-                ::yew_agent::__vendored::wasm_bindgen_futures::spawn_local(
+                ::yew_agent::__vendored::futures::future::FutureExt::boxed_local(
                     async move {
                         #fn_call
                     }
-                );
+                )
             }
         }
     };
