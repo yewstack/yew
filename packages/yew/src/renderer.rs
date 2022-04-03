@@ -92,3 +92,20 @@ where
         AppHandle::<ICOMP>::mount_with_props(self.root, Rc::new(self.props))
     }
 }
+
+#[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    impl<ICOMP> Renderer<ICOMP>
+    where
+        ICOMP: IntoComponent + 'static,
+    {
+        /// Hydrates the application.
+        pub fn hydrate(self) -> AppHandle<ICOMP> {
+            set_default_panic_hook();
+            AppHandle::<ICOMP>::hydrate_with_props(self.root, Rc::new(self.props))
+        }
+    }
+}

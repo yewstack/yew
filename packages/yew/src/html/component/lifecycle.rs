@@ -1,7 +1,10 @@
 //! Component lifecycle module
 
 use super::scope::{AnyScope, Scope};
+
 use super::BaseComponent;
+#[cfg(feature = "hydration")]
+use crate::html::RenderMode;
 use crate::html::{Html, RenderError};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{BaseSuspense, Suspension};
@@ -9,6 +12,8 @@ use crate::{Callback, Context, HtmlResult};
 use std::any::Any;
 use std::rc::Rc;
 
+#[cfg(feature = "hydration")]
+use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
 use crate::dom_bundle::{BSubtree, Bundle};
 #[cfg(feature = "csr")]
@@ -25,6 +30,14 @@ pub(crate) enum ComponentRenderState {
         next_sibling: NodeRef,
         node_ref: NodeRef,
     },
+    #[cfg(feature = "hydration")]
+    Hydration {
+        parent: Element,
+        next_sibling: NodeRef,
+        node_ref: NodeRef,
+        root: BSubtree,
+        fragment: Fragment,
+    },
 
     #[cfg(feature = "ssr")]
     Ssr {
@@ -38,13 +51,29 @@ impl std::fmt::Debug for ComponentRenderState {
             #[cfg(feature = "csr")]
             Self::Render {
                 ref bundle,
-                ref root,
+                root,
                 ref parent,
                 ref next_sibling,
                 ref node_ref,
             } => f
                 .debug_struct("ComponentRenderState::Render")
                 .field("bundle", bundle)
+                .field("root", root)
+                .field("parent", parent)
+                .field("next_sibling", next_sibling)
+                .field("node_ref", node_ref)
+                .finish(),
+
+            #[cfg(feature = "hydration")]
+            Self::Hydration {
+                ref fragment,
+                ref parent,
+                ref next_sibling,
+                ref node_ref,
+                ref root,
+            } => f
+                .debug_struct("ComponentRenderState::Hydration")
+                .field("fragment", fragment)
                 .field("root", root)
                 .field("parent", parent)
                 .field("next_sibling", next_sibling)
@@ -78,6 +107,18 @@ impl ComponentRenderState {
                 ..
             } => {
                 bundle.shift(&next_parent, next_next_sibling.clone());
+
+                *parent = next_parent;
+                *next_sibling = next_next_sibling;
+            }
+            #[cfg(feature = "hydration")]
+            Self::Hydration {
+                fragment,
+                parent,
+                next_sibling,
+                ..
+            } => {
+                fragment.shift(&next_parent, next_next_sibling.clone());
 
                 *parent = next_parent;
                 *next_sibling = next_next_sibling;
@@ -192,7 +233,22 @@ impl ComponentState {
         props: Rc<COMP::Properties>,
     ) -> Self {
         let comp_id = scope.id;
-        let context = Context { scope, props };
+        #[cfg(feature = "hydration")]
+        let mode = {
+            match initial_render_state {
+                ComponentRenderState::Render { .. } => RenderMode::Render,
+                ComponentRenderState::Hydration { .. } => RenderMode::Hydration,
+                #[cfg(feature = "ssr")]
+                ComponentRenderState::Ssr { .. } => RenderMode::Ssr,
+            }
+        };
+
+        let context = Context {
+            scope,
+            props,
+            #[cfg(feature = "hydration")]
+            mode,
+        };
 
         let inner = Box::new(CompStateInner {
             component: COMP::create(&context),
@@ -280,6 +336,20 @@ impl Runnable for UpdateRunner {
                             state.inner.props_changed(props)
                         }
 
+                        #[cfg(feature = "hydration")]
+                        ComponentRenderState::Hydration {
+                            ref mut node_ref,
+                            next_sibling: ref mut current_next_sibling,
+                            ..
+                        } => {
+                            // When components are updated, a new node ref could have been passed in
+                            *node_ref = next_node_ref;
+                            // When components are updated, their siblings were likely also updated
+                            *current_next_sibling = next_sibling;
+                            // Only trigger changed if props were changed
+                            state.inner.props_changed(props)
+                        }
+
                         #[cfg(feature = "ssr")]
                         ComponentRenderState::Ssr { .. } => {
                             #[cfg(debug_assertions)]
@@ -331,11 +401,24 @@ impl Runnable for DestroyRunner {
                 ComponentRenderState::Render {
                     bundle,
                     ref parent,
-                    ref root,
                     ref node_ref,
+                    ref root,
                     ..
                 } => {
                     bundle.detach(root, parent, self.parent_to_detach);
+
+                    node_ref.set(None);
+                }
+                // We need to detach the hydrate fragment if the component is not hydrated.
+                #[cfg(feature = "hydration")]
+                ComponentRenderState::Hydration {
+                    ref root,
+                    fragment,
+                    ref parent,
+                    ref node_ref,
+                    ..
+                } => {
+                    fragment.detach(root, parent, self.parent_to_detach);
 
                     node_ref.set(None);
                 }
@@ -436,6 +519,7 @@ impl RenderRunner {
                 ..
             } => {
                 let scope = state.inner.any_scope();
+
                 let new_node_ref =
                     bundle.reconcile(root, &scope, parent, next_sibling.clone(), new_root);
                 node_ref.link(new_node_ref);
@@ -451,6 +535,46 @@ impl RenderRunner {
                     }),
                     first_render,
                 );
+            }
+
+            #[cfg(feature = "hydration")]
+            ComponentRenderState::Hydration {
+                ref mut fragment,
+                ref parent,
+                ref node_ref,
+                ref next_sibling,
+                ref root,
+            } => {
+                // We schedule a "first" render to run immediately after hydration,
+                // to fix NodeRefs (first_node and next_sibling).
+                scheduler::push_component_first_render(
+                    state.comp_id,
+                    Box::new(RenderRunner {
+                        state: self.state.clone(),
+                    }),
+                );
+
+                let scope = state.inner.any_scope();
+
+                // This first node is not guaranteed to be correct here.
+                // As it may be a comment node that is removed afterwards.
+                // but we link it anyways.
+                let (node, bundle) = Bundle::hydrate(root, &scope, parent, fragment, new_root);
+
+                // We trim all text nodes before checking as it's likely these are whitespaces.
+                fragment.trim_start_text_nodes(parent);
+
+                assert!(fragment.is_empty(), "expected end of component, found node");
+
+                node_ref.link(node);
+
+                state.render_state = ComponentRenderState::Render {
+                    root: root.clone(),
+                    bundle,
+                    parent: parent.clone(),
+                    node_ref: node_ref.clone(),
+                    next_sibling: next_sibling.clone(),
+                };
             }
 
             #[cfg(feature = "ssr")]

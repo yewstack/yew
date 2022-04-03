@@ -80,7 +80,7 @@ mod feat_csr_ssr {
         with(|s| s.destroy.push(runnable));
     }
 
-    /// Push a component render and rendered [Runnable]s to be executed
+    /// Push a component render [Runnable]s to be executed
     pub(crate) fn push_component_render(component_id: usize, render: Box<dyn Runnable>) {
         with(|s| {
             s.render.insert(component_id, render);
@@ -114,6 +114,20 @@ mod feat_csr {
         });
     }
 }
+
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    pub(crate) fn push_component_first_render(component_id: usize, render: Box<dyn Runnable>) {
+        with(|s| {
+            s.render_first.insert(component_id, render);
+        });
+    }
+}
+
+#[cfg(feature = "hydration")]
+pub(crate) use feat_hydration::*;
 
 #[cfg(feature = "csr")]
 pub(crate) use feat_csr::*;

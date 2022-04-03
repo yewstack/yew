@@ -26,12 +26,13 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
+use wasm_bindgen::prelude::*;
+
 mod hooks;
 pub use hooks::*;
 
-use crate::html::Context;
-
 use crate::html::sealed::SealedBaseComponent;
+use crate::html::Context;
 
 /// This attribute creates a function component from a normal Rust function.
 ///
@@ -85,6 +86,19 @@ pub struct HookContext {
 }
 
 impl HookContext {
+    fn new(scope: AnyScope, re_render: ReRender) -> RefCell<Self> {
+        RefCell::new(HookContext {
+            effects: Vec::new(),
+            scope,
+            re_render,
+            states: Vec::new(),
+
+            counter: 0,
+            #[cfg(debug_assertions)]
+            total_hook_counter: None,
+        })
+    }
+
     pub(crate) fn next_state<T>(&mut self, initializer: impl FnOnce(ReRender) -> T) -> Rc<T>
     where
         T: 'static,
@@ -103,7 +117,7 @@ impl HookContext {
             }
         };
 
-        state.downcast().unwrap()
+        state.downcast().unwrap_throw()
     }
 
     pub(crate) fn next_effect<T>(&mut self, initializer: impl FnOnce(ReRender) -> T) -> Rc<T>
@@ -119,6 +133,59 @@ impl HookContext {
         }
 
         t
+    }
+
+    #[inline(always)]
+    fn prepare_run(&mut self) {
+        self.counter = 0;
+    }
+
+    /// asserts hook counter.
+    ///
+    /// This function asserts that the number of hooks matches for every render.
+    #[cfg(debug_assertions)]
+    fn assert_hook_context(&mut self, render_ok: bool) {
+        // Procedural Macros can catch most conditionally called hooks at compile time, but it cannot
+        // detect early return (as the return can be Err(_), Suspension).
+        match (render_ok, self.total_hook_counter) {
+            // First rendered,
+            // we store the hook counter.
+            (true, None) => {
+                self.total_hook_counter = Some(self.counter);
+            }
+            // Component is suspended before it's first rendered.
+            // We don't have a total count to compare with.
+            (false, None) => {}
+
+            // Subsequent render,
+            // we compare stored total count and current render count.
+            (true, Some(total_hook_counter)) => assert_eq!(
+                total_hook_counter, self.counter,
+                "Hooks are called conditionally."
+            ),
+
+            // Subsequent suspension,
+            // components can have less hooks called when suspended, but not more.
+            (false, Some(total_hook_counter)) => assert!(
+                self.counter <= total_hook_counter,
+                "Hooks are called conditionally."
+            ),
+        }
+    }
+
+    fn run_effects(&self) {
+        for effect in self.effects.iter() {
+            effect.rendered();
+        }
+    }
+
+    fn drain_states(&mut self) {
+        // We clear the effects as these are also references to states.
+        self.effects.clear();
+
+        for state in self.states.drain(..) {
+            drop(state);
+        }
     }
 }
 
@@ -167,21 +234,14 @@ where
     fn create(ctx: &Context<Self>) -> Self {
         let scope = AnyScope::from(ctx.link().clone());
 
+        let re_render = {
+            let link = ctx.link().clone();
+            Rc::new(move || link.send_message(()))
+        };
+
         Self {
             _never: std::marker::PhantomData::default(),
-            hook_ctx: RefCell::new(HookContext {
-                effects: Vec::new(),
-                scope,
-                re_render: {
-                    let link = ctx.link().clone();
-                    Rc::new(move || link.send_message(()))
-                },
-                states: Vec::new(),
-
-                counter: 0,
-                #[cfg(debug_assertions)]
-                total_hook_counter: None,
-            }),
+            hook_ctx: HookContext::new(scope, re_render),
         }
     }
 
@@ -195,56 +255,27 @@ where
 
     fn view(&self, ctx: &Context<Self>) -> HtmlResult {
         let props = ctx.props();
-        let mut ctx = self.hook_ctx.borrow_mut();
-        ctx.counter = 0;
+        let mut hook_ctx = self.hook_ctx.borrow_mut();
+
+        hook_ctx.prepare_run();
 
         #[allow(clippy::let_and_return)]
-        let result = T::run(&mut *ctx, props);
+        let result = T::run(&mut *hook_ctx, props);
 
         #[cfg(debug_assertions)]
-        {
-            // Procedural Macros can catch most conditionally called hooks at compile time, but it cannot
-            // detect early return (as the return can be Err(_), Suspension).
-            if result.is_err() {
-                if let Some(m) = ctx.total_hook_counter {
-                    // Suspended Components can have less hooks called when suspended, but not more.
-                    if m < ctx.counter {
-                        panic!("Hooks are called conditionally.");
-                    }
-                }
-            } else {
-                match ctx.total_hook_counter {
-                    Some(m) => {
-                        if m != ctx.counter {
-                            panic!("Hooks are called conditionally.");
-                        }
-                    }
-                    None => {
-                        ctx.total_hook_counter = Some(ctx.counter);
-                    }
-                }
-            }
-        }
+        hook_ctx.assert_hook_context(result.is_ok());
 
         result
     }
 
     fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
         let hook_ctx = self.hook_ctx.borrow();
-
-        for effect in hook_ctx.effects.iter() {
-            effect.rendered();
-        }
+        hook_ctx.run_effects();
     }
 
     fn destroy(&mut self, _ctx: &Context<Self>) {
         let mut hook_ctx = self.hook_ctx.borrow_mut();
-        // We clear the effects as these are also references to states.
-        hook_ctx.effects.clear();
-
-        for state in hook_ctx.states.drain(..) {
-            drop(state);
-        }
+        hook_ctx.drain_states();
     }
 }
 
