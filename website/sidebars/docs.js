@@ -146,7 +146,7 @@ module.exports = {
         type: "generated-index",
         title: "Miscellaneous",
       },
-      items: ["more/debugging", "more/css", "more/testing", "more/roadmap"],
+      items: ["more/debugging", "more/deployment", "more/css", "more/testing", "more/roadmap"],
     },
     {
       type: "category",
