@@ -92,9 +92,14 @@ impl<S> UseStationSubscriptionHandle<S>
 where
     S: 'static + Station,
 {
-    /// Send an input to a worker agent.
+    /// Send an input to a station agent.
     pub fn send(&self, msg: <S::Receiver as StationReceivable>::Input) {
         self.bridge.send(msg);
+    }
+
+    /// Returns whether the current stream has been finished.
+    pub fn finished(&self) -> bool {
+        self.finished
     }
 }
 
@@ -118,7 +123,7 @@ where
     <S::Receiver as StationReceivable>::Output: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("UseWorkerSubscriptionHandle<_>")
+        f.debug_struct("UseStationSubscriptionHandle<_>")
             .field("bridge", &self.bridge)
             .field("outputs", &self.outputs)
             .finish()
