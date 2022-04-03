@@ -4,7 +4,6 @@ use std::pin::Pin;
 
 use futures::channel::mpsc;
 use futures::future::LocalBoxFuture;
-use futures::sink::SinkExt;
 use futures::stream::{FusedStream, Stream, StreamExt};
 use futures::task::{Context, Poll};
 use serde::{Deserialize, Serialize};
@@ -26,7 +25,7 @@ where
     O: Serialize + for<'de> Deserialize<'de>,
 {
     #[pin]
-    rx: mpsc::Receiver<IoPair<Self>>,
+    rx: mpsc::UnboundedReceiver<IoPair<Self>>,
 }
 
 impl<I, O> Stream for StationReceiver<I, O>
@@ -63,7 +62,7 @@ pub trait StationReceivable {
     type Output: Serialize + for<'de> Deserialize<'de>;
 
     /// Creates a StationReceiver.
-    fn new(rx: mpsc::Receiver<IoPair<Self>>) -> Self;
+    fn new(rx: mpsc::UnboundedReceiver<IoPair<Self>>) -> Self;
 }
 
 impl<I, O> StationReceivable for StationReceiver<I, O>
@@ -74,7 +73,7 @@ where
     type Input = I;
     type Output = O;
 
-    fn new(rx: mpsc::Receiver<IoPair<Self>>) -> Self {
+    fn new(rx: mpsc::UnboundedReceiver<IoPair<Self>>) -> Self {
         Self { rx }
     }
 }
@@ -89,7 +88,6 @@ pub trait Station {
 }
 
 pub(crate) enum StationWorkerMsg {
-    LoopExited,
     StationExited,
 }
 
@@ -111,52 +109,15 @@ where
     type Message = StationWorkerMsg;
 
     fn create(link: WorkerScope<Self>) -> Self {
-        let (tx, mut rx) = mpsc::unbounded();
+        let (tx, rx) = mpsc::unbounded();
 
         {
-            let link_ = link.clone();
-
             link.send_future(async move {
-                let mut pending_msg = None;
+                let receiver = S::Receiver::new(rx);
 
-                // We try to restart the station if it exits before the worker becomes destroyed.
-                'outer: loop {
-                    // Make 1 pair
-                    let (mut station_tx, station_rx) = mpsc::channel(1);
+                S::start(receiver).await;
 
-                    let receiver = S::Receiver::new(station_rx);
-
-                    // Start a new station.
-                    link_.send_future(async move {
-                        S::start(receiver).await;
-
-                        StationWorkerMsg::StationExited
-                    });
-
-                    'inner: loop {
-                        if let Some(pending_msg) = pending_msg.take() {
-                            match station_tx.send(pending_msg).await {
-                                Ok(()) => {}
-                                Err(e) => {
-                                    // the station has disconnected itself, we need to start a new one.
-                                    if e.is_disconnected() {
-                                        break 'inner;
-                                    }
-                                }
-                            }
-                        }
-
-                        pending_msg = match rx.next().await {
-                            Some(m) => Some(m),
-                            None => {
-                                // Worker has become destoryed.
-                                break 'outer;
-                            }
-                        };
-                    }
-                }
-
-                StationWorkerMsg::LoopExited
+                StationWorkerMsg::StationExited
             });
         }
 
@@ -192,7 +153,13 @@ where
             .expect("attempting to connect after destory!");
     }
 
-    fn update(&mut self, _msg: Self::Message) {}
+    fn update(&mut self, msg: Self::Message) {
+        match msg {
+            Self::Message::StationExited => {
+                self.link.close();
+            }
+        }
+    }
 
     fn received(&mut self, input: Self::Input, id: HandlerId) {
         if let Some(m) = self.senders.get_mut(&id) {
