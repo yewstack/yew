@@ -301,14 +301,17 @@ impl FunctionComponent {
                     }
                 }
 
+                #[inline]
                 fn update(&mut self, _ctx: &::yew::html::Context<Self>, _msg: Self::Message) -> ::std::primitive::bool {
                     true
                 }
 
+                #[inline]
                 fn changed(&mut self, _ctx: &::yew::html::Context<Self>) -> ::std::primitive::bool {
                     true
                 }
 
+                #[inline]
                 fn view(&self, ctx: &::yew::html::Context<Self>) -> ::yew::html::HtmlResult {
                     ::yew::functional::FunctionComponent::<Self>::render(
                         &self.function_component,
@@ -316,10 +319,12 @@ impl FunctionComponent {
                     )
                 }
 
+                #[inline]
                 fn rendered(&mut self, _ctx: &::yew::html::Context<Self>, _first_render: ::std::primitive::bool) {
                     ::yew::functional::FunctionComponent::<Self>::rendered(&self.function_component)
                 }
 
+                #[inline]
                 fn destroy(&mut self, _ctx: &::yew::html::Context<Self>) {
                     ::yew::functional::FunctionComponent::<Self>::destroy(&self.function_component)
                 }
