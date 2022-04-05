@@ -233,6 +233,8 @@ impl FunctionComponent {
             where_clause.predicates.push(bound);
         }
 
+        where_clause.predicates.push(parse_quote! { Self: 'static });
+
         generics
     }
 
@@ -271,12 +273,8 @@ impl FunctionComponent {
     fn print_base_component_impl(&self) -> TokenStream {
         let component_name = self.component_name();
         let props_type = &self.props_type;
-        let mut static_comp_generics = self.create_static_component_generics();
+        let static_comp_generics = self.create_static_component_generics();
 
-        static_comp_generics
-            .make_where_clause()
-            .predicates
-            .push(parse_quote! { Self: 'static });
         let (impl_generics, ty_generics, where_clause) = static_comp_generics.split_for_impl();
 
         // TODO: replace with blanket implementation when specialisation becomes stable.
