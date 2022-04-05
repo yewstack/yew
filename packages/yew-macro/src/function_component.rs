@@ -286,18 +286,11 @@ impl FunctionComponent {
                 type Message = ();
                 type Properties = #props_type;
 
+                #[inline]
                 fn create(ctx: &::yew::html::Context<Self>) -> Self {
-                    let link = ::std::clone::Clone::clone(::yew::html::Context::<Self>::link(ctx));
-                    let scope = ::std::convert::Into::<::yew::html::AnyScope>::into(link);
-
-                    let re_render = {
-                        let link = ::std::clone::Clone::clone(::yew::html::Context::<Self>::link(ctx));
-                        ::std::rc::Rc::new(move || ::yew::html::Scope::<Self>::send_message(&link, ()))
-                    };
-
                     Self {
                         _marker: ::std::marker::PhantomData,
-                        function_component: ::yew::functional::FunctionComponent::<Self>::new(scope, re_render),
+                        function_component: ::yew::functional::FunctionComponent::<Self>::new(ctx),
                     }
                 }
 

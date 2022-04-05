@@ -19,7 +19,7 @@
 //!
 //! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/next/concepts/function-components/introduction)
 
-use crate::html::{AnyScope, HtmlResult};
+use crate::html::{AnyScope, BaseComponent, Context, HtmlResult};
 use crate::Properties;
 use std::any::Any;
 use std::cell::RefCell;
@@ -217,7 +217,17 @@ where
     T: FunctionProvider + 'static,
 {
     /// Creates a new function component.
-    pub fn new(scope: AnyScope, re_render: ReRender) -> Self {
+    pub fn new(ctx: &Context<T>) -> Self
+    where
+        T: BaseComponent<Message = ()> + FunctionProvider + 'static,
+    {
+        let scope = AnyScope::from(ctx.link().clone());
+        let re_render = {
+            let link = ctx.link().clone();
+
+            Rc::new(move || link.send_message(()))
+        };
+
         Self {
             _never: std::marker::PhantomData::default(),
             hook_ctx: HookContext::new(scope, re_render),
