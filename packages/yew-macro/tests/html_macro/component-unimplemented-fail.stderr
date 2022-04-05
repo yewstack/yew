@@ -10,10 +10,10 @@ error[E0599]: the function or associated item `new` exists for struct `VChild<Un
  --> tests/html_macro/component-unimplemented-fail.rs:6:14
   |
 3 | struct Unimplemented;
-  | --------------------- doesn't satisfy `Unimplemented: IntoComponent`
+  | --------------------- doesn't satisfy `Unimplemented: BaseComponent`
 ...
 6 |     html! { <Unimplemented /> };
   |              ^^^^^^^^^^^^^ function or associated item cannot be called on `VChild<Unimplemented>` due to unsatisfied trait bounds
   |
   = note: the following trait bounds were not satisfied:
-          `Unimplemented: IntoComponent`
+          `Unimplemented: BaseComponent`

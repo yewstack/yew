@@ -215,23 +215,3 @@ where
         Component::destroy(self, ctx)
     }
 }
-
-/// A trait that indicates a type is able to be converted into a component.
-///
-/// You may want to use this trait if you want to accept both function components and struct
-/// components as a generic parameter.
-pub trait IntoComponent {
-    /// The Component's Properties.
-    type Properties: Properties;
-
-    /// The Component Type.
-    type Component: BaseComponent<Properties = Self::Properties> + 'static;
-}
-
-impl<T> IntoComponent for T
-where
-    T: BaseComponent + 'static,
-{
-    type Properties = T::Properties;
-    type Component = T;
-}

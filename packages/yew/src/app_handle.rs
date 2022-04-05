@@ -2,7 +2,7 @@
 
 use crate::dom_bundle::BSubtree;
 use crate::html::Scoped;
-use crate::html::{IntoComponent, NodeRef, Scope};
+use crate::html::{BaseComponent, NodeRef, Scope};
 use std::ops::Deref;
 use std::rc::Rc;
 use web_sys::Element;
@@ -10,20 +10,20 @@ use web_sys::Element;
 /// An instance of an application.
 #[derive(Debug)]
 #[cfg_attr(documenting, doc(cfg(feature = "csr")))]
-pub struct AppHandle<ICOMP: IntoComponent> {
+pub struct AppHandle<COMP: BaseComponent> {
     /// `Scope` holder
-    pub(crate) scope: Scope<<ICOMP as IntoComponent>::Component>,
+    pub(crate) scope: Scope<COMP>,
 }
 
-impl<ICOMP> AppHandle<ICOMP>
+impl<COMP> AppHandle<COMP>
 where
-    ICOMP: IntoComponent,
+    COMP: BaseComponent,
 {
     /// The main entry point of a Yew program which also allows passing properties. It works
     /// similarly to the `program` function in Elm. You should provide an initial model, `update`
     /// function which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
-    pub(crate) fn mount_with_props(host: Element, props: Rc<ICOMP::Properties>) -> Self {
+    pub(crate) fn mount_with_props(host: Element, props: Rc<COMP::Properties>) -> Self {
         clear_element(&host);
         let app = Self {
             scope: Scope::new(None),
@@ -46,11 +46,11 @@ where
     }
 }
 
-impl<ICOMP> Deref for AppHandle<ICOMP>
+impl<COMP> Deref for AppHandle<COMP>
 where
-    ICOMP: IntoComponent,
+    COMP: BaseComponent,
 {
-    type Target = Scope<<ICOMP as IntoComponent>::Component>;
+    type Target = Scope<COMP>;
 
     fn deref(&self) -> &Self::Target {
         &self.scope
@@ -71,11 +71,11 @@ mod feat_hydration {
 
     use crate::dom_bundle::Fragment;
 
-    impl<ICOMP> AppHandle<ICOMP>
+    impl<COMP> AppHandle<COMP>
     where
-        ICOMP: IntoComponent,
+        COMP: BaseComponent,
     {
-        pub(crate) fn hydrate_with_props(host: Element, props: Rc<ICOMP::Properties>) -> Self {
+        pub(crate) fn hydrate_with_props(host: Element, props: Rc<COMP::Properties>) -> Self {
             let app = Self {
                 scope: Scope::new(None),
             };

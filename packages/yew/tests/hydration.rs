@@ -190,7 +190,7 @@ async fn hydration_with_suspense() {
     // still hydrating, during hydration, the server rendered result is shown.
     assert_eq!(
         result.as_str(),
-        r#"<!--<[yew::functional::FunctionComponent<hydration::hydration_with_suspense::{{closure}}::Content>]>--><div class="content-area"><div class="actual-result">0</div><button class="increase">increase</button><div class="action-area"><button class="take-a-break">Take a break!</button></div></div><!--</[yew::functional::FunctionComponent<hydration::hydration_with_suspense::{{closure}}::Content>]>-->"#
+        r#"<!--<[hydration::hydration_with_suspense::{{closure}}::Content]>--><div class="content-area"><div class="actual-result">0</div><button class="increase">increase</button><div class="action-area"><button class="take-a-break">Take a break!</button></div></div><!--</[hydration::hydration_with_suspense::{{closure}}::Content]>-->"#
     );
 
     sleep(Duration::from_millis(50)).await;
@@ -475,7 +475,7 @@ async fn hydration_nested_suspense_works() {
     let result = obtain_result();
     assert_eq!(
         result.as_str(),
-        r#"<!--<[yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::Content>]>--><div class="content-area"><div class="action-area"><button class="take-a-break">Take a break!</button></div><!--<[yew::functional::FunctionComponent<yew::suspense::component::feat_csr_ssr::Suspense>]>--><!--<[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--<?>--><!--<[yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::InnerContent>]>--><div class="content-area"><div class="action-area"><button class="take-a-break2">Take a break!</button></div></div><!--</[yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::InnerContent>]>--><!--</?>--><!--</[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--</[yew::functional::FunctionComponent<yew::suspense::component::feat_csr_ssr::Suspense>]>--></div><!--</[yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::Content>]>-->"#
+        r#"<!--<[hydration::hydration_nested_suspense_works::{{closure}}::Content]>--><div class="content-area"><div class="action-area"><button class="take-a-break">Take a break!</button></div><!--<[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--<[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--<?>--><!--<[hydration::hydration_nested_suspense_works::{{closure}}::InnerContent]>--><div class="content-area"><div class="action-area"><button class="take-a-break2">Take a break!</button></div></div><!--</[hydration::hydration_nested_suspense_works::{{closure}}::InnerContent]>--><!--</?>--><!--</[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--</[yew::suspense::component::feat_csr_ssr::Suspense]>--></div><!--</[hydration::hydration_nested_suspense_works::{{closure}}::Content]>-->"#
     );
 
     sleep(Duration::from_millis(50)).await;
@@ -484,7 +484,7 @@ async fn hydration_nested_suspense_works() {
     let result = obtain_result();
     assert_eq!(
         result.as_str(),
-        r#"<div class="content-area"><div class="action-area"><button class="take-a-break">Take a break!</button></div><!--<[yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::InnerContent>]>--><div class="content-area"><div class="action-area"><button class="take-a-break2">Take a break!</button></div></div><!--</[yew::functional::FunctionComponent<hydration::hydration_nested_suspense_works::{{closure}}::InnerContent>]>--></div>"#
+        r#"<div class="content-area"><div class="action-area"><button class="take-a-break">Take a break!</button></div><!--<[hydration::hydration_nested_suspense_works::{{closure}}::InnerContent]>--><div class="content-area"><div class="action-area"><button class="take-a-break2">Take a break!</button></div></div><!--</[hydration::hydration_nested_suspense_works::{{closure}}::InnerContent]>--></div>"#
     );
 
     sleep(Duration::from_millis(50)).await;

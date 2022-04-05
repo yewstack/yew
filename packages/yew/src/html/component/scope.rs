@@ -11,7 +11,6 @@ use super::BaseComponent;
 
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
-use crate::html::IntoComponent;
 use std::any::{Any, TypeId};
 use std::marker::PhantomData;
 use std::ops::Deref;
@@ -58,25 +57,23 @@ impl AnyScope {
     /// # Panics
     ///
     /// If the self value can't be cast into the target type.
-    pub fn downcast<ICOMP: IntoComponent>(&self) -> Scope<ICOMP::Component> {
-        self.try_downcast::<ICOMP>().unwrap()
+    pub fn downcast<COMP: BaseComponent>(&self) -> Scope<COMP> {
+        self.try_downcast::<COMP>().unwrap()
     }
 
     /// Attempts to downcast into a typed scope
     ///
     /// Returns [`None`] if the self value can't be cast into the target type.
-    pub fn try_downcast<ICOMP: IntoComponent>(&self) -> Option<Scope<ICOMP::Component>> {
-        self.typed_scope
-            .downcast_ref::<Scope<ICOMP::Component>>()
-            .cloned()
+    pub fn try_downcast<COMP: BaseComponent>(&self) -> Option<Scope<COMP>> {
+        self.typed_scope.downcast_ref::<Scope<COMP>>().cloned()
     }
 
     /// Attempts to find a parent scope of a certain type
     ///
     /// Returns [`None`] if no parent scope with the specified type was found.
-    pub fn find_parent_scope<ICOMP: IntoComponent>(&self) -> Option<Scope<ICOMP::Component>> {
+    pub fn find_parent_scope<COMP: BaseComponent>(&self) -> Option<Scope<COMP>> {
         iter::successors(Some(self), |scope| scope.get_parent())
-            .find_map(AnyScope::try_downcast::<ICOMP>)
+            .find_map(AnyScope::try_downcast::<COMP>)
     }
 
     /// Accesses a value provided by a parent `ContextProvider` component of the

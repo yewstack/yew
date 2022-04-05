@@ -301,11 +301,11 @@ impl FunctionComponent {
                     }
                 }
 
-                fn update(&mut self, _ctx: &::yew::html::Context<Self>, _msg: Self::Message) -> bool {
+                fn update(&mut self, _ctx: &::yew::html::Context<Self>, _msg: Self::Message) -> ::std::primitive::bool {
                     true
                 }
 
-                fn changed(&mut self, _ctx: &::yew::html::Context<Self>) -> bool {
+                fn changed(&mut self, _ctx: &::yew::html::Context<Self>) -> ::std::primitive::bool {
                     true
                 }
 
@@ -316,7 +316,7 @@ impl FunctionComponent {
                     )
                 }
 
-                fn rendered(&mut self, _ctx: &::yew::html::Context<Self>, _first_render: bool) {
+                fn rendered(&mut self, _ctx: &::yew::html::Context<Self>, _first_render: ::std::primitive::bool) {
                     ::yew::functional::FunctionComponent::<Self>::rendered(&self.function_component)
                 }
 
