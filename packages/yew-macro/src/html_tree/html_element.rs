@@ -381,12 +381,10 @@ impl ToTokens for HtmlElement {
                             #vtag_name,
                         );
                     }
-                    // convert to lowercase because the runtime checks rely on it.
-                    #vtag_name.to_mut().make_ascii_lowercase();
 
                     #[allow(clippy::redundant_clone, unused_braces, clippy::let_and_return)]
-                    let mut #vtag = match ::std::convert::AsRef::<::std::primitive::str>::as_ref(&#vtag_name) {
-                        "input" => {
+                    let mut #vtag = match () {
+                        _ if "input".eq_ignore_ascii_case(::std::convert::AsRef::<::std::primitive::str>::as_ref(&#vtag_name)) => {
                             ::yew::virtual_dom::VTag::__new_textarea(
                                 #value,
                                 #node_ref,
@@ -395,7 +393,7 @@ impl ToTokens for HtmlElement {
                                 #listeners,
                             )
                         }
-                        "textarea" => {
+                        _ if "textarea".eq_ignore_ascii_case(::std::convert::AsRef::<::std::primitive::str>::as_ref(&#vtag_name)) => {
                             ::yew::virtual_dom::VTag::__new_textarea(
                                 #value,
                                 #node_ref,
@@ -429,17 +427,14 @@ impl ToTokens for HtmlElement {
                     //
                     // check void element
                     if !#vtag.children().is_empty() {
-                        match #vtag.tag() {
-                            "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input"
-                                | "link" | "meta" | "param" | "source" | "track" | "wbr"
-                            => {
-                                ::std::panic!(
-                                    "a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.",
-                                    #vtag.tag(),
-                                );
-                            }
-                            _ => {}
-                        }
+                        ::std::debug_assert!(
+                            !::std::matches!(#vtag.tag().to_ascii_lowercase().as_str(),
+                                "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input"
+                                    | "link" | "meta" | "param" | "source" | "track" | "wbr"
+                            ),
+                            "a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.",
+                            #vtag.tag(),
+                        );
                     }
 
                     ::std::convert::Into::<::yew::virtual_dom::VNode>::into(#vtag)
