@@ -19,7 +19,7 @@
 //!
 //! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/next/concepts/function-components/introduction)
 
-use crate::html::{AnyScope, BaseComponent, HtmlResult};
+use crate::html::{AnyScope, HtmlResult};
 use crate::Properties;
 use std::any::Any;
 use std::cell::RefCell;
@@ -30,9 +30,6 @@ use wasm_bindgen::prelude::*;
 
 mod hooks;
 pub use hooks::*;
-
-use crate::html::sealed::SealedBaseComponent;
-use crate::html::Context;
 
 /// This attribute creates a function component from a normal Rust function.
 ///
@@ -209,52 +206,26 @@ pub trait FunctionProvider {
 /// Wrapper that allows a struct implementing [`FunctionProvider`] to be consumed as a component.
 pub struct FunctionComponent<T>
 where
-    T: FunctionProvider + 'static,
+    T: FunctionProvider,
 {
     _never: std::marker::PhantomData<T>,
     hook_ctx: RefCell<HookContext>,
 }
 
-impl<T> fmt::Debug for FunctionComponent<T>
+impl<T> FunctionComponent<T>
 where
     T: FunctionProvider + 'static,
 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("FunctionComponent<_>")
-    }
-}
-
-impl<T> BaseComponent for FunctionComponent<T>
-where
-    T: FunctionProvider + 'static,
-{
-    type Message = ();
-    type Properties = T::Properties;
-
-    fn create(ctx: &Context<Self>) -> Self {
-        let scope = AnyScope::from(ctx.link().clone());
-
-        let re_render = {
-            let link = ctx.link().clone();
-            Rc::new(move || link.send_message(()))
-        };
-
+    /// Creates a new function component.
+    pub fn new(scope: AnyScope, re_render: ReRender) -> Self {
         Self {
             _never: std::marker::PhantomData::default(),
             hook_ctx: HookContext::new(scope, re_render),
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
-        true
-    }
-
-    fn changed(&mut self, _ctx: &Context<Self>) -> bool {
-        true
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> HtmlResult {
-        let props = ctx.props();
+    /// Renders a function component.
+    pub fn render(&self, props: &T::Properties) -> HtmlResult {
         let mut hook_ctx = self.hook_ctx.borrow_mut();
 
         hook_ctx.prepare_run();
@@ -268,15 +239,24 @@ where
         result
     }
 
-    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
+    /// Run Effects of a function component.
+    pub fn rendered(&self) {
         let hook_ctx = self.hook_ctx.borrow();
         hook_ctx.run_effects();
     }
 
-    fn destroy(&mut self, _ctx: &Context<Self>) {
+    /// Destroys the function component.
+    pub fn destroy(&self) {
         let mut hook_ctx = self.hook_ctx.borrow_mut();
         hook_ctx.drain_states();
     }
 }
 
-impl<T> SealedBaseComponent for FunctionComponent<T> where T: FunctionProvider + 'static {}
+impl<T> fmt::Debug for FunctionComponent<T>
+where
+    T: FunctionProvider + 'static,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("FunctionComponent<_>")
+    }
+}
