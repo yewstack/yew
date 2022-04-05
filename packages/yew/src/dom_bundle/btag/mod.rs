@@ -845,7 +845,18 @@ mod tests {
             <@{"tExTAREa"}/>
         };
         let vtag = assert_vtag_ref(&el);
+        // textarea is a special element, so it gets normalized
         assert_eq!(vtag.tag(), "textarea");
+    }
+
+    #[test]
+    fn dynamic_tags_allow_custom_capitalization() {
+        let el = html! {
+            <@{"clipPath"}/>
+        };
+        let vtag = assert_vtag_ref(&el);
+        // no special treatment for elements not recognized e.g. clipPath
+        assert_eq!(vtag.tag(), "clipPath");
     }
 
     #[test]

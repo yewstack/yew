@@ -375,12 +375,11 @@ impl ToTokens for HtmlElement {
                     let mut #vtag_name = ::std::convert::Into::<
                         ::std::borrow::Cow::<'static, ::std::primitive::str>
                     >::into(#expr);
-                    if !#vtag_name.is_ascii() {
-                        ::std::panic!(
-                            "a dynamic tag returned a tag name containing non ASCII characters: `{}`",
-                            #vtag_name,
-                        );
-                    }
+                    ::std::debug_assert!(
+                        #vtag_name.is_ascii(),
+                        "a dynamic tag returned a tag name containing non ASCII characters: `{}`",
+                        #vtag_name,
+                    );
 
                     #[allow(clippy::redundant_clone, unused_braces, clippy::let_and_return)]
                     let mut #vtag = match () {
