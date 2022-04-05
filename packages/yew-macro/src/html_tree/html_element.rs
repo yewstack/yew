@@ -4,6 +4,7 @@ use crate::stringify::{Stringify, Value};
 use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::{Delimiter, TokenStream};
+use proc_macro_error::emit_warning;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
@@ -295,9 +296,20 @@ impl ToTokens for HtmlElement {
         };
 
         tokens.extend(match &name {
-            TagName::Lit(name) => {
-                let name_span = name.span();
-                let name = name.to_ascii_lowercase_string();
+            TagName::Lit(dashedname) => {
+                let name_span = dashedname.span();
+                let name = dashedname.to_ascii_lowercase_string();
+                if name != dashedname.to_string() {
+                    emit_warning!(
+                        dashedname.span(),
+                        format!(
+                            "The tag '{0}' is not matching its normalized form '{1}'. If you want \
+                             to keep this form, change this to a dynamic tag `@{{\"{0}\"}}`.",
+                            dashedname,
+                            name,
+                        )
+                    )
+                }
                 let node = match &*name {
                     "input" => {
                         quote! {

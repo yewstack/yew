@@ -13,5 +13,8 @@ fn main() {
     let bad_img = html! {
         <img src="img.jpeg"/>
     };
+    let misformed_tagname = html! {
+        <tExTAreA />
+    };
     compile_error!("This macro call exists to deliberately fail the compilation of the test so we can verify output of lints");
 }
