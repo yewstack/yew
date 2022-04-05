@@ -17,7 +17,7 @@ pub struct Props {
     pub callback: Callback<String, String>,
 }
 
-#[function_component(MyComponennt)]
+#[function_component(MyComponent)]
 fn my_component(props: &Props) -> Html {
     let greeting = props.callback.emit("Yew".to_string());
 
@@ -34,7 +34,7 @@ fn callback() -> Html {
         Callback::from(move |_| counter.set(*counter + 1))
     };
 
-    // This callback depends on (), so it's created only once, then MyComponennt
+    // This callback depends on (), so it's created only once, then MyComponent
     // will be rendered only once even when you click the button mutiple times.
     let callback = use_callback(
         move |name| format!("Hello, {}!", name),
