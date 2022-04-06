@@ -60,7 +60,7 @@ impl Peek<'_, Self> for HtmlDashedName {
                 if punct.as_char() == '-' {
                     let (ident, i_cursor) = p_cursor.ident()?;
                     cursor = i_cursor;
-                    extended.push((Token![-](Span::call_site()), ident));
+                    extended.push((Token![-](Span::mixed_site()), ident));
                     continue;
                 }
             }
