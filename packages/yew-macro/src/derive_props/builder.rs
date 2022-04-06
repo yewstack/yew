@@ -62,7 +62,10 @@ impl ToTokens for PropsBuilder<'_> {
             #[doc(hidden)]
             #vis trait #step_trait {}
 
-            #(impl #step_trait for #step_names {})*
+            #(
+                #[automatically_derived]
+                impl #step_trait for #step_names {}
+            )*
 
             #[doc(hidden)]
             #vis struct #builder_name #step_generics
@@ -74,6 +77,7 @@ impl ToTokens for PropsBuilder<'_> {
 
             #impl_steps
 
+            #[automatically_derived]
             impl #impl_generics #builder_name<#generic_args> #where_clause {
                 #[doc(hidden)]
                 #vis fn build(self) -> #props_name #ty_generics {
@@ -189,6 +193,7 @@ impl PropsBuilder<'_> {
             });
 
             token_stream.extend(quote! {
+                #[automatically_derived]
                 #( #extra_attrs )*
                 impl #impl_generics #builder_name<#current_step_arguments> #where_clause {
                     #(#optional_prop_fn)*
