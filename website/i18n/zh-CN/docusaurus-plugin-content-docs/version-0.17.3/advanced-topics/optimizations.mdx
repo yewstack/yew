@@ -4,7 +4,7 @@ description: 加速你的应用程序
 
 # 性能优化与最佳实践
 
-## neq\_assign
+## neq_assign
 
 当组件从它的父组件接收 props 时，`change` 方法将被调用。除了允许你更新组件的状态，还允许你返回一个布尔类型的值 `ShouldRender` 来指示组件是否应该响应 props 的更改而重新渲染自身。
 
@@ -24,6 +24,7 @@ fn change(&mut self, props: Self::Properties) -> ShouldRender {
 但是我们可以更进一步！对于任何实现了 `PartialEq` 的项，可以使用一个 trait 和一个 blanket implementation 将这六行样板代码减少到一行。
 
 {% code title="neq\_assign.rs" %}
+
 ```rust
 pub trait NeqAssign {
     fn neq_assign(&mut self, new: Self) -> ShouldRender;
@@ -44,6 +45,7 @@ fn change(&mut self, props: Self::Properties) -> ShouldRender {
     self.props.neq_assign(props)
 }
 ```
+
 {% endcode %}
 
 该 trait 称为 `NeqAssign` 是因为如果目标值和新值不相等，它将赋为新值。
@@ -60,9 +62,9 @@ fn change(&mut self, props: Self::Properties) -> ShouldRender {
 
 你不仅限在 `change` 函数中使用它。通常，在 `update` 函数中执行此操作也是有意义的，尽管性能提升在那里不太明显。
 
-## wee\_alloc
+## wee_alloc
 
-[wee\_alloc](https://github.com/rustwasm/wee_alloc) 是一个比 Rust 二进制文件中通常使用的分配器还小得多的微型分配器。用这个分配器来替代默认的分配器将使 Wasm 文件体积更小，但会牺牲速度和内存开销。
+[wee_alloc](https://github.com/rustwasm/wee_alloc) 是一个比 Rust 二进制文件中通常使用的分配器还小得多的微型分配器。用这个分配器来替代默认的分配器将使 Wasm 文件体积更小，但会牺牲速度和内存开销。
 
 对比不包含默认分配器换取的体积大小，牺牲的速度和内存开销是微不足道的。较小的文件体积意味着你的页面将加载更快，因此通常建议使用此分配器而不是默认分配器，除非你的应用程序会执行一些繁重的内存分配任务。
 
@@ -101,4 +103,3 @@ Yew 没有原生支持纯组件或者函数式组件，但是可以通过外部�
 你应该尝试让主 crate 处理路由和页面选择，将所有公用的代码移动到另一个 crate，然后为每一个页面创建一个不同的 crate，其中每个页面可能是一个不同的组件，或者只是一个产生 `Html` 的大函数。在最好的情况下，你将从重新构建所有代码到只重新构建主 crate 和一个页面的 crate。在最糟糕的情况下，当你在“公共” crate 中编辑内容时，你将回到起点：编译所有依赖此公用 crate 的代码，这可能就是除此之外的所有代码。
 
 如果你的主 crate 过于庞大，或者你想在深层嵌套的页面（例如，在另一个页面顶部渲染的页面）中快速迭代，则可以使用一个示例 crate 创建一个更简单的主页面实现并在之上渲染你正在开发的组件。
-

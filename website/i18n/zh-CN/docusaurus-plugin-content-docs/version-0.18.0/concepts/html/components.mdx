@@ -28,6 +28,7 @@ html!{
 如果组件的 `Properties` 中有 `children` 字段，则可以被传递子组件。
 
 {% code title="parent.rs" %}
+
 ```rust
 html! {
     <Container>
@@ -36,9 +37,11 @@ html! {
     </Container>
 }
 ```
+
 {% endcode %}
 
 {% code title="container.rs" %}
+
 ```rust
 pub struct Container(Props);
 
@@ -61,6 +64,7 @@ impl Component for Container {
     }
 }
 ```
+
 {% endcode %}
 
 ## 拥有 Props 的嵌套子组件
@@ -68,6 +72,7 @@ impl Component for Container {
 如果包含组件标注了 children 的类型，则可以访问和更改嵌套组件的属性。在下面的示例中，`List` 组件可以包含 `ListItem` 组件。有关此模式的真实示例，请查看 `yew-router` 的源码。有关更高级的示例，请在 yew 主仓库中查看 `nested-list` 示例代码。
 
 {% code title="parent.rs" %}
+
 ```rust
 html! {
     <List>
@@ -77,9 +82,11 @@ html! {
     </List>
 }
 ```
+
 {% endcode %}
 
 {% code title="list.rs" %}
+
 ```rust
 pub struct List(Props);
 
@@ -103,5 +110,5 @@ impl Component for List {
     }
 }
 ```
-{% endcode %}
 
+{% endcode %}

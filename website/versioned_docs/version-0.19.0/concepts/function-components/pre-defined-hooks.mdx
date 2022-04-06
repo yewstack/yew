@@ -1,6 +1,6 @@
 ---
-title: "Pre-defined Hooks"
-description: "The pre-defined Hooks that Yew comes with "
+title: 'Pre-defined Hooks'
+description: 'The pre-defined Hooks that Yew comes with '
 ---
 
 ## `use_state`
@@ -65,10 +65,11 @@ re-render when the setter receives a value that `prev_state != next_state`.
 This hook requires the state object to implement `PartialEq`.
 
 ## `use_ref`
+
 `use_ref` is used for obtaining an immutable reference to a value.
 Its state persists across renders.
 
-`use_ref` can be useful for keeping things in scope for the lifetime of the component, so long as 
+`use_ref` can be useful for keeping things in scope for the lifetime of the component, so long as
 you don't store a clone of the resulting `Rc` anywhere that outlives the component.
 
 If you need a mutable reference, consider using [`use_mut_ref`](#use_mut_ref).
@@ -81,7 +82,7 @@ use yew::{function_component, html, use_ref, use_state, Callback};
 use yew_agent::Bridged;
 
 #[function_component(UseRef)]
-fn ref_hook() -> Html { 
+fn ref_hook() -> Html {
     let greeting = use_state(|| "No one has greeted me yet!".to_owned());
 
     {
@@ -97,9 +98,10 @@ fn ref_hook() -> Html {
         </div>
     }
 }
-``` 
+```
 
 ## `use_mut_ref`
+
 `use_mut_ref` is used for obtaining a mutable reference to a value.
 Its state persists across renders.
 
@@ -150,6 +152,7 @@ fn mut_ref_hook() -> Html {
 ```
 
 ## `use_node_ref`
+
 `use_node_ref` is used for obtaining a `NodeRef` that persists across renders.
 
 When conditionally rendering elements you can use `NodeRef` in conjunction with `use_effect_with_deps`
@@ -336,6 +339,7 @@ fn effect() -> Html {
 ### `use_effect_with_deps`
 
 Sometimes, it's needed to manually define dependencies for [`use_effect`](#use_effect). In such cases, we use `use_effect_with_deps`.
+
 ```rust ,no_run
 use yew::use_effect_with_deps;
 
@@ -353,7 +357,6 @@ use_effect_with_deps(
 ## `use_context`
 
 `use_context` is used for consuming [contexts](../contexts.mdx) in function components.
-
 
 ### Example
 

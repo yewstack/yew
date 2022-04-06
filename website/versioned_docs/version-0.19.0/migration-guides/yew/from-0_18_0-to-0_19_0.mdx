@@ -1,9 +1,9 @@
 ---
-title: "From 0.18.0 to 0.19.0"
+title: 'From 0.18.0 to 0.19.0'
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
 
 `Yew 0.19.0` has changed a lot, thus this migration will not cover ALL of the changes.
 
@@ -96,14 +96,14 @@ During this update all services were removed in favor of community driven soluti
 
 Remove this entirely. `yew-services` adds a layer a abstraction which makes it easier to call external resources. This is all well and good but this layer is supposed to be specific to Yew. It would be better if an framework agnostic abstraction existed instead.
 
-- `ConsoleService`
-  Use [gloo-console](https://crates.io/crates/gloo-console) or [`weblog`](https://crates.io/crates/weblog) instead.
-- `DialogService`
-  Use [`gloo-dialogs`](https://docs.rs/gloo-dialogs/) instead.
-- `IntervalService`
-  Use [`gloo-timers`](https://docs.rs/gloo-timers/) instead.
-- `KeyboardService`
-  `on*` event handlers in yew already handle it. Using this service is even more cumbersome because it requires use of `NodeRef` in order to call any functions provided by it.
+-   `ConsoleService`
+    Use [gloo-console](https://crates.io/crates/gloo-console) or [`weblog`](https://crates.io/crates/weblog) instead.
+-   `DialogService`
+    Use [`gloo-dialogs`](https://docs.rs/gloo-dialogs/) instead.
+-   `IntervalService`
+    Use [`gloo-timers`](https://docs.rs/gloo-timers/) instead.
+-   `KeyboardService`
+    `on*` event handlers in yew already handle it. Using this service is even more cumbersome because it requires use of `NodeRef` in order to call any functions provided by it.
 
 ```rust ,ignore
 let onkeydown = Callback::from(|e| {
@@ -115,16 +115,16 @@ html! {
 }
 ```
 
-- `ResizeService`
-  Use [`gloo-events`](https://docs.rs/gloo-events) to attach the listener instead.
-- `StorageService`
-  Use [`gloo-storage`](https://docs.rs/gloo-storage/) instead.
-- `TimeoutService`
-  Use [`gloo-timers`](https://docs.rs/gloo-timers/) instead.
-- `WebSocketService`
-  Use [`wasm-sockets`](https://github.com/scratchyone/wasm-sockets) or [`reqwasm`](https://github.com/hamza1311/reqwasm) instead.
-- `FetchService`
-  Use [`reqwest`](https://crates.io/crates/reqwest) or [`reqwasm`](https://github.com/hamza1311/reqwasm) instead.
+-   `ResizeService`
+    Use [`gloo-events`](https://docs.rs/gloo-events) to attach the listener instead.
+-   `StorageService`
+    Use [`gloo-storage`](https://docs.rs/gloo-storage/) instead.
+-   `TimeoutService`
+    Use [`gloo-timers`](https://docs.rs/gloo-timers/) instead.
+-   `WebSocketService`
+    Use [`wasm-sockets`](https://github.com/scratchyone/wasm-sockets) or [`reqwasm`](https://github.com/hamza1311/reqwasm) instead.
+-   `FetchService`
+    Use [`reqwest`](https://crates.io/crates/reqwest) or [`reqwasm`](https://github.com/hamza1311/reqwasm) instead.
 
 ## New crate - yew-agent
 

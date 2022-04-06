@@ -1,10 +1,10 @@
 ---
-title: "web-sys"
-description: "The web-sys crate provides bindings for Web APIs."
+title: 'web-sys'
+description: 'The web-sys crate provides bindings for Web APIs.'
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
 
 The [`web-sys` crate](https://crates.io/crates/web-sys) provides bindings for Web APIs. This is
 procedurally generated from browser WebIDL which is why some names are so long and why some types are vague.
@@ -126,7 +126,6 @@ fn with_jscast(node_ref: NodeRef) {
   </TabItem>
 </Tabs>
 
-
 ## JavaScript example to Rust
 
 This section is to help show that any examples that use JavaScript to interact with the Web APIs
@@ -137,14 +136,15 @@ can be adapted and written using Rust with `web-sys`.
 ```js
 document.getElementById('mousemoveme').onmousemove = (e) => {
     // e = Mouse event.
-    var rect = e.target.getBoundingClientRect();
-    var x = e.clientX - rect.left; //x position within the element.
-    var y = e.clientY - rect.top;  //y position within the element.
-    console.log("Left? : " + x + " ; Top? : " + y + ".");
+    var rect = e.target.getBoundingClientRect()
+    var x = e.clientX - rect.left //x position within the element.
+    var y = e.clientY - rect.top //y position within the element.
+    console.log('Left? : ' + x + ' ; Top? : ' + y + '.')
 }
 ```
 
 ### `web-sys` example
+
 Using `web-sys` alone the above JavaSciprt example could be implemented like this:
 
 ```toml title=Cargo.toml

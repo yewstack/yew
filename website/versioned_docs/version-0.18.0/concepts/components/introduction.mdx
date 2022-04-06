@@ -1,6 +1,6 @@
 ---
-title: "Introduction"
-description: "Components and their lifecycle hooks"
+title: 'Introduction'
+description: 'Components and their lifecycle hooks'
 ---
 
 ## What are Components?
@@ -214,14 +214,15 @@ impl Component for Comp {
 ```
 
 Let's run through what happens here:
+
 1. Component is created using the `create` function.
 2. The `view` method is called so Yew knows what to render to the browser DOM.
 3. The `rendered` method is called, which schedules an update message using the `ComponentLink`.
 4. Yew finishes the post-render phase.
 5. Yew checks for scheduled events and sees the update message queue is not empty so works through
-the messages.
+   the messages.
 6. The `update` method is called which returns `true` to indicate something has changed and the
-component needs to re-render.
+   component needs to re-render.
 7. Jump back to 2.
 
 You can still schedule updates in the `rendered` method and it's often useful to do so, but

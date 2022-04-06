@@ -1,6 +1,6 @@
 ---
-title: "Introduction"
-description: "Components and their lifecycle hooks"
+title: 'Introduction'
+description: 'Components and their lifecycle hooks'
 ---
 
 ## What are Components?
@@ -19,8 +19,8 @@ in the lifecycle of a component.
 
 ### Create
 
-When a component is created, it receives properties from its parent component and is stored within 
-the `Context<Self>` thats passed down to the `create` method. The properties can be used to 
+When a component is created, it receives properties from its parent component and is stored within
+the `Context<Self>` thats passed down to the `create` method. The properties can be used to
 initialize the component's state and the "link" can be used to register callbacks or send messages to the component.
 
 ```rust
@@ -195,7 +195,7 @@ impl Component for MyComponent {
         html! {
             // impl
         }
-    } 
+    }
 
 }
 ```
@@ -251,19 +251,19 @@ impl Component for Comp {
 ```
 
 Let's run through what happens here:
+
 1. Component is created using the `create` function.
 2. The `view` method is called so Yew knows what to render to the browser DOM.
 3. The `rendered` method is called, which schedules an update message using the `Context` link.
 4. Yew finishes the post-render phase.
 5. Yew checks for scheduled events and sees the update message queue is not empty so works through
-the messages.
+   the messages.
 6. The `update` method is called which returns `true` to indicate something has changed and the
-component needs to re-render.
+   component needs to re-render.
 7. Jump back to 2.
 
 You can still schedule updates in the `rendered` method and it's often useful to do so, but
 consider how your component will terminate this loop when you do.
-
 
 ## Associated Types
 
@@ -302,4 +302,3 @@ enum Msg {
 
 All component lifecycle methods take a context object. This object provides a reference to component's scope, which
 allows sending messages to a component and the props passed to the component.
-

@@ -6,10 +6,11 @@ description: HTML 與 SVG 元件都支援
 
 ## 標籤結構
 
- 元件標籤都必須要是自封閉的標籤 `<... />` 或是跟開啟標籤對應的關閉標籤。
+元件標籤都必須要是自封閉的標籤 `<... />` 或是跟開啟標籤對應的關閉標籤。
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Open - Close-->
+
 ```rust
 html! {
   <div id="my_div"></div>
@@ -17,6 +18,7 @@ html! {
 ```
 
 <!--INVALID-->
+
 ```rust
 html! {
   <div id="my_div"> // <- 缺少關閉標籤
@@ -24,6 +26,7 @@ html! {
 ```
 
 <!--Self-Closing-->
+
 ```rust
 html! {
   <input id="my_input" />
@@ -31,11 +34,13 @@ html! {
 ```
 
 <!--INVALID-->
+
 ```rust
 html! {
   <input id="my_input"> // <- 缺少自封閉標籤語法
 }
 ```
+
 <!--END_DOCUSAURUS_CODE_TABS-->
 
 :::note
@@ -48,6 +53,7 @@ html! {
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--HTML-->
+
 ```rust
 html! {
     <div>
@@ -68,6 +74,7 @@ html! {
 ```
 
 <!--SVG-->
+
 ```rust
 html! {
     <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -87,6 +94,7 @@ html! {
     </svg>
 }
 ```
+
 <!--END_DOCUSAURUS_CODE_TABS-->
 
 ## Classes
@@ -95,6 +103,7 @@ html! {
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Literal-->
+
 ```rust
 html! {
   <div class="container"></div>
@@ -102,6 +111,7 @@ html! {
 ```
 
 <!--Multiple-->
+
 ```rust
 html! {
   <div class="container center-align"></div>
@@ -109,6 +119,7 @@ html! {
 ```
 
 <!--Interpolated-->
+
 ```rust
 html! {
   <div class={format!("{}-container", size)}></div>
@@ -116,6 +127,7 @@ html! {
 ```
 
 <!--Expression-->
+
 ```rust
 html! {
   <div class={self.classes()}></div>
@@ -123,6 +135,7 @@ html! {
 ```
 
 <!--Tuple-->
+
 ```rust
 html! {
   <div class={("class-1", "class-2")}></div>
@@ -130,11 +143,13 @@ html! {
 ```
 
 <!--Vector-->
+
 ```rust
 html! {
   <div class={vec!["class-1", "class-2"]}></div>
 }
 ```
+
 <!--END_DOCUSAURUS_CODE_TABS-->
 
 ## 監聽
@@ -143,6 +158,7 @@ html! {
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Component Handler-->
+
 ```rust
 struct MyComponent {
     link: ComponentLink<Self>,
@@ -181,6 +197,7 @@ impl Component for MyComponent {
 ```
 
 <!--Agent Handler-->
+
 ```rust
 struct MyComponent {
     worker: Dispatcher<MyWorker>,
@@ -213,6 +230,7 @@ impl Component for MyComponent {
 ```
 
 <!--Other Cases-->
+
 ```rust
 struct MyComponent;
 
@@ -242,5 +260,5 @@ impl Component for MyComponent {
     }
 }
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
 
+<!--END_DOCUSAURUS_CODE_TABS-->

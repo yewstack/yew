@@ -6,6 +6,7 @@
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Valid-->
+
 ```rust
 html! {
     <>
@@ -16,6 +17,7 @@ html! {
 ```
 
 <!--Invalid-->
+
 ```rust
 /* error: only one root html element allowed */
 
@@ -24,6 +26,7 @@ html! {
     <p></p>
 }
 ```
+
 <!--END_DOCUSAURUS_CODE_TABS-->
 
 ## Iterators
@@ -32,6 +35,7 @@ Yew 支援兩種不同的方式，從 iterator 建構 html：
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Syntax Type 1-->
+
 ```rust
 html! {
     <ul class="item-list">
@@ -41,6 +45,7 @@ html! {
 ```
 
 <!--Syntax Type 2-->
+
 ```rust
 html! {
     <ul class="item-list">
@@ -48,5 +53,5 @@ html! {
     </ul>
 }
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
 
+<!--END_DOCUSAURUS_CODE_TABS-->
