@@ -162,6 +162,7 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
                 #args_ident: (#(#input_types,)*),
             }
 
+            #[automatically_derived]
             impl #impl_generics ::yew::functional::Hook for #hook_struct_name #ty_generics #where_clause {
                 type Output = #output_type;
 
@@ -172,6 +173,7 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
                 }
             }
 
+            #[automatically_derived]
             impl #impl_generics #hook_struct_name #ty_generics #where_clause {
                 fn new(#inputs) -> Self {
                    #hook_struct_name {
