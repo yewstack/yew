@@ -141,7 +141,7 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
         quote! {
             let #boxed_inner_ident = ::std::boxed::Box::new(
                     move |#ctx_ident: &mut ::yew::functional::HookContext| #inner_fn_rt {
-                        #inner_fn_ident #call_generics (#ctx_ident, #(#input_args,)*)
+                        #inner_fn_ident (#ctx_ident, #(#input_args,)*)
                     }
                 ) as #boxed_fn_type;
 
