@@ -64,6 +64,9 @@ impl UseForceUpdate {
 ///     }
 /// }
 /// ```
+///
+/// [`use_state`]: super::use_state()
+/// [`use_reducer`]: super::use_reducer()
 pub fn use_force_update() -> impl Hook<Output = UseForceUpdate> {
     struct UseRerenderHook;
 
