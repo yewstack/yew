@@ -21,30 +21,20 @@ pub trait EventGrating {
     fn cache_key(&self) -> Option<u32>;
     fn set_cache_key(&self, key: u32);
 }
-/// TODO: remove once rustwasm/wasm-bindgen#2774 makes its way into a release
-/// the module is only to scope the usage of #[allow], so remove that as well.
-/// pub(super) can be removed, doesn't need to be pub
-#[allow(clippy::unused_unit)]
-mod external {
 
-    use super::*;
-
-    #[wasm_bindgen]
-    extern "C" {
-        // Duck-typing, not a real class on js-side. On rust-side, use impls of EventGrating below
-        pub(super) type EventTargetable;
-        #[wasm_bindgen(method, getter = __yew_subtree_id, structural)]
-        pub(super) fn subtree_id(this: &EventTargetable) -> Option<TreeId>;
-        #[wasm_bindgen(method, setter = __yew_subtree_id, structural)]
-        pub(super) fn set_subtree_id(this: &EventTargetable, id: TreeId);
-        #[wasm_bindgen(method, getter = __yew_subtree_cache_key, structural)]
-        pub(super) fn cache_key(this: &EventTargetable) -> Option<u32>;
-        #[wasm_bindgen(method, setter = __yew_subtree_cache_key, structural)]
-        pub(super) fn set_cache_key(this: &EventTargetable, key: u32);
-    }
+#[wasm_bindgen]
+extern "C" {
+    // Duck-typing, not a real class on js-side. On rust-side, use impls of EventGrating below
+    type EventTargetable;
+    #[wasm_bindgen(method, getter = __yew_subtree_id, structural)]
+    fn subtree_id(this: &EventTargetable) -> Option<TreeId>;
+    #[wasm_bindgen(method, setter = __yew_subtree_id, structural)]
+    fn set_subtree_id(this: &EventTargetable, id: TreeId);
+    #[wasm_bindgen(method, getter = __yew_subtree_cache_key, structural)]
+    fn cache_key(this: &EventTargetable) -> Option<u32>;
+    #[wasm_bindgen(method, setter = __yew_subtree_cache_key, structural)]
+    fn set_cache_key(this: &EventTargetable, key: u32);
 }
-
-use external::*;
 
 macro_rules! impl_event_grating {
     ($($t:ty);* $(;)?) => {
