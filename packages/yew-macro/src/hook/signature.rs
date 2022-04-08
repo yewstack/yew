@@ -51,12 +51,30 @@ impl HookSignature {
                 parse_quote! { -> impl #bound ::yew::functional::Hook<Output = ()> },
                 parse_quote! { () },
             ),
-            ReturnType::Type(arrow, ref return_type) => (
-                parse_quote_spanned! {
-                    return_type.span() => #arrow impl #bound ::yew::functional::Hook<Output = #return_type>
-                },
-                *return_type.clone(),
-            ),
+            ReturnType::Type(arrow, ref return_type) => {
+                if let Type::Reference(ref m) = &**return_type {
+                    if m.lifetime.is_none() {
+                        let mut return_type_ref = m.clone();
+                        return_type_ref.lifetime = parse_quote!('hook);
+
+                        let return_type_ref = Type::Reference(return_type_ref);
+
+                        return (
+                            parse_quote_spanned! {
+                                return_type.span() => #arrow impl #bound ::yew::functional::Hook<Output = #return_type_ref>
+                            },
+                            return_type_ref,
+                        );
+                    }
+                }
+
+                (
+                    parse_quote_spanned! {
+                        return_type.span() => #arrow impl #bound ::yew::functional::Hook<Output = #return_type>
+                    },
+                    *return_type.clone(),
+                )
+            }
         }
     }
 
