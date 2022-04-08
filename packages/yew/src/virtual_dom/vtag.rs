@@ -351,7 +351,7 @@ impl VTag {
     pub fn add_attribute(&mut self, key: &'static str, value: impl Into<AttrValue>) {
         self.attributes
             .get_mut_index_map()
-            .insert(key, value.into());
+            .insert(AttrValue::Static(key), value.into());
     }
 
     /// Sets attributes to a virtual node.
@@ -366,7 +366,7 @@ impl VTag {
     pub fn __macro_push_attr(&mut self, key: &'static str, value: impl IntoPropValue<AttrValue>) {
         self.attributes
             .get_mut_index_map()
-            .insert(key, value.into_prop_value());
+            .insert(AttrValue::from(key), value.into_prop_value());
     }
 
     /// Add event listener on the [VTag]'s  [Element](web_sys::Element).

@@ -86,18 +86,26 @@ impl Attributes {
     fn apply_diff_index_maps<'a, A, B>(
         el: &Element,
         // this makes it possible to diff `&'a IndexMap<_, A>` and `IndexMap<_, &'a A>`.
-        mut new_iter: impl Iterator<Item = (&'static str, &'a str)>,
-        new: &IndexMap<&'static str, A>,
-        old: &IndexMap<&'static str, B>,
+        mut new_iter: impl Iterator<Item = (&'a str, &'a str)>,
+        new: &IndexMap<impl AsRef<str>, A>,
+        old: &IndexMap<impl AsRef<str>, B>,
     ) where
         A: AsRef<str>,
         B: AsRef<str>,
     {
         let mut old_iter = old.iter();
+        let new = new
+            .iter()
+            .map(|(k, v)| (k.as_ref(), v))
+            .collect::<IndexMap<_, _>>();
+        let old = old
+            .iter()
+            .map(|(k, v)| (k.as_ref(), v))
+            .collect::<IndexMap<_, _>>();
         loop {
             match (new_iter.next(), old_iter.next()) {
                 (Some((new_key, new_value)), Some((old_key, old_value))) => {
-                    if new_key != *old_key {
+                    if new_key != old_key.as_ref() {
                         break;
                     }
                     if new_value != old_value.as_ref() {
@@ -123,6 +131,7 @@ impl Attributes {
                 // removed attributes
                 (None, Some(attr)) => {
                     for (key, _) in iter::once(attr).chain(old_iter) {
+                        let key = key.as_ref();
                         if !new.contains_key(key) {
                             Self::remove_attribute(el, key);
                         }
@@ -138,7 +147,7 @@ impl Attributes {
     /// Works with any [Attributes] variants.
     #[cold]
     fn apply_diff_as_maps<'a>(el: &Element, new: &'a Self, old: &'a Self) {
-        fn collect<'a>(src: &'a Attributes) -> HashMap<&'static str, &'a str> {
+        fn collect(src: &Attributes) -> HashMap<&str, &str> {
             use Attributes::*;
 
             match src {
@@ -148,7 +157,7 @@ impl Attributes {
                     .zip(values.iter())
                     .filter_map(|(k, v)| v.as_ref().map(|v| (*k, v.as_ref())))
                     .collect(),
-                IndexMap(m) => m.iter().map(|(k, v)| (*k, v.as_ref())).collect(),
+                IndexMap(m) => m.iter().map(|(k, v)| (k.as_ref(), v.as_ref())).collect(),
             }
         }
 
@@ -233,8 +242,8 @@ impl Apply for Attributes {
                 },
             ) if ptr_eq(new_k, old_k) => {
                 // Double zipping does not optimize well, so use asserts and unsafe instead
-                assert!(new_k.len() == new_v.len());
-                assert!(new_k.len() == old_v.len());
+                assert_eq!(new_k.len(), new_v.len());
+                assert_eq!(new_k.len(), old_v.len());
                 for i in 0..new_k.len() {
                     macro_rules! key {
                         () => {
@@ -263,8 +272,9 @@ impl Apply for Attributes {
             }
             // For VTag's constructed outside the html! macro
             (Self::IndexMap(new), Self::IndexMap(ref old)) => {
-                let new_iter = new.iter().map(|(k, v)| (*k, v.as_ref()));
+                let new_iter = new.iter().map(|(k, v)| (k.as_ref(), v.as_ref()));
                 Self::apply_diff_index_maps(el, new_iter, new, old);
+                todo!();
             }
             // Cold path. Happens only with conditional swapping and reordering of `VTag`s with the
             // same tag and no keys.
