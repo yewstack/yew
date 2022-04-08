@@ -1,11 +1,11 @@
 use super::Apply;
 use crate::dom_bundle::{test_log, BSubtree, EventDescriptor};
 use crate::virtual_dom::{Listener, Listeners};
-use ::wasm_bindgen::{prelude::wasm_bindgen, JsCast};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::rc::Rc;
+use wasm_bindgen::{prelude::wasm_bindgen, JsCast};
 use web_sys::{Element, Event, EventTarget as HtmlEventTarget};
 
 #[wasm_bindgen]
