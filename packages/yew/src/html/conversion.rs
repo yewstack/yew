@@ -7,7 +7,7 @@ use std::rc::Rc;
 pub trait ImplicitClone: Clone {}
 
 impl<T: ImplicitClone> ImplicitClone for Option<T> {}
-impl<T> ImplicitClone for Rc<T> {}
+impl<T: ?Sized> ImplicitClone for Rc<T> {}
 
 impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
