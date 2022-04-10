@@ -8,7 +8,7 @@ Yew integrates with the [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/
 uses the events from that crate. The [table below](#event-types) lists all of the `web-sys`
 events that are accepted in the `html!` macro.
 
-You can still add a [`Callback`](../components/callbacks.mdx) for an event that is not listed in the table
+You can still add a [`Callback`](concepts/components/callbacks.mdx) for an event that is not listed in the table
 below, see [Manual event listener](#manual-event-listener).
 
 ## Event Types
@@ -348,7 +348,7 @@ differs opposed to the problem at hand.
 **The Problem:**
 
 We have an `oninput` `Callback` on my `<input>` element and each time it is invoked we want to send
-an [update](../components/introduction#update) `Msg` to our component. We really want to get the value as a
+an [update](concepts/components/introduction.mdx#update) `Msg` to our component. We really want to get the value as a
 number or `f64` for rust.
 
 Our `Msg` enum looks like this:
@@ -487,7 +487,7 @@ _<sup>1</sup> As safe as anything can be when JS land is involved._
 
 ### Using `NodeRef`
 
-[`NodeRef`](../components/refs.mdx) can be used instead of querying the event given to a `Callback`.
+[`NodeRef`](concepts/components/refs.mdx) can be used instead of querying the event given to a `Callback`.
 
 ```rust
 //highlight-next-line
