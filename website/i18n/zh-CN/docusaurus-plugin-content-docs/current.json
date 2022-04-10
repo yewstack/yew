@@ -4,11 +4,11 @@
     "description": "The label for version current"
   },
   "sidebar.docs.category.Getting Started": {
-    "message": "Getting Started",
+    "message": "从零开始",
     "description": "The label for category Getting Started in sidebar docs"
   },
   "sidebar.docs.category.Concepts": {
-    "message": "Concepts",
+    "message": "核心概念",
     "description": "The label for category Concepts in sidebar docs"
   },
   "sidebar.docs.category.Concepts.link.generated-index.title": {
@@ -28,11 +28,11 @@
     "description": "The label for category Function Components in sidebar docs"
   },
   "sidebar.docs.category.Advanced topics": {
-    "message": "Advanced topics",
+    "message": "高级主题",
     "description": "The label for category Advanced topics in sidebar docs"
   },
   "sidebar.docs.category.Advanced topics.link.generated-index.title": {
-    "message": "Advanced topics",
+    "message": "高级主题",
     "description": "The generated-index page title for category Advanced topics in sidebar docs"
   },
   "sidebar.docs.category.Advanced topics.link.generated-index.description": {
@@ -40,7 +40,7 @@
     "description": "The generated-index page description for category Advanced topics in sidebar docs"
   },
   "sidebar.docs.category.More": {
-    "message": "More",
+    "message": "更多",
     "description": "The label for category More in sidebar docs"
   },
   "sidebar.docs.category.More.link.generated-index.title": {
