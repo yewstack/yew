@@ -12,7 +12,7 @@ without having to pass it down with props.
 
 ## The problem with props: "Prop Drilling"
 
-Passing [props](./function-components/properties) is a great way to pass data directly from parent to a child.
+Passing [props](./function-components/properties.mdx) is a great way to pass data directly from parent to a child.
 They become cumbersome to pass down through deeply nested component tree or when multiple components share the same data.
 A common solution to data sharing is lifting the data to a common ancestor and making the children take it as props.
 However, this can lead to cases where the prop has to go through multiple components in order to reach the component needs it.
@@ -134,13 +134,13 @@ fn App() -> Html {
 #### Function components
 
 `use_context` hook is used to consume contexts in function components.
-See [docs for use_context](function-components/hooks/use-context) to learn more.
+See [docs for use_context](function-components/hooks/use-context.mdx) to learn more.
 
 #### Struct components
 
 We have 2 options to consume contexts in struct components:
 
--   [Higher Order Components](../advanced-topics/struct-components/hoc): A higher order function component will consume the context and pass the data to the struct component which requires it.
+-   [Higher Order Components](../advanced-topics/struct-components/hoc.mdx): A higher order function component will consume the context and pass the data to the struct component which requires it.
 -   Consume context directly in struct component. See [example of struct component as a consumer](https://github.com/yewstack/yew/tree/master/examples/contexts/src/struct_component_subscriber.rs)
 
 ## Use cases
@@ -164,7 +164,7 @@ You should refactor the `Layout` component to take children as props and display
 
 Because of Rust's ownership rules, a context cannot have a method that takes `&mut self` that can be called by children.
 In order to mutate a context's value, we must combine it with a reducer. This is done by using the
-[`use_reducer`](./function_component/hooks/use_reducer) hook.
+[`use_reducer`](./function-components/hooks/use-reducer.mdx) hook.
 
 The [contexts example](https://github.com/yewstack/yew/tree/master/examples/contexts) demonstrates mutable contexts
 with the help of contexts

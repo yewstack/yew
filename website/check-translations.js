@@ -11,7 +11,7 @@ const writeTranslations = require('./write-translations.js')
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'yew-website-'))
 
-async function main() {
+async function checkWriteTranslations() {
     await new Promise((resolve) => {
         fs.cp('i18n', temp, { recursive: true }, () => {
             resolve()
@@ -25,12 +25,25 @@ async function main() {
     })
     if (result.same) {
         console.log('Translations unchanged')
+        return true;
     } else {
         console.error(
             'Translations changed, please run `npm run write-translations` to generate the stubs'
         )
+        return false;
+    }
+}
+
+async function main() {
+    let okay = true;
+    okay = okay && await checkWriteTranslations();
+
+    if (!okay) {
         process.exitCode = 1
     }
 }
 
-main().catch((e) => console.error(e))
+main().catch((e) => {
+    console.error(e);
+    process.exitCode = 1;
+})

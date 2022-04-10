@@ -13,7 +13,7 @@ The `html!` macro allows you to write HTML and SVG code declaratively. It is sim
 **Important notes**
 
 1. The `html!` macro only accepts a single root HTML node \(this obstacle is easily overcome by
-   [using fragments or iterators](../html/lists.mdx)\)
+   [using fragments or iterators](concepts/html/lists.mdx)\)
 2. An empty `html! {}` invocation is valid and will not render anything
 3. Literals must always be wrapped in quotes as well as braces (i.e.
    `html! { <p>{"Hello, World"}</p> }` is valid, but not `html! { <p>Hello, World</p> }` or
@@ -159,7 +159,7 @@ display your components.
 Currently, there are two such special props: `ref` and `key`.
 
 `ref` allows you to access and manipulate the underlying DOM node directly. See
-[Refs](../components/refs.mdx) for more details. This can be very useful if you want to interoperate with
+[Refs](concepts/components/refs.mdx) for more details. This can be very useful if you want to interoperate with
 Javascript libraries (for example, to add a map or code editor written in Javascript that would not
 be feasible to rewrite in Rust).
 

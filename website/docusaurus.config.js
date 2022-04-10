@@ -9,7 +9,7 @@ module.exports = {
         'Yew is a modern Rust framework for creating multi-threaded front-end web apps with WebAssembly.',
     url: 'https://yew.rs',
     baseUrl: '/',
-    onBrokenLinks: 'warn',
+    onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
     favicon: 'img/logo.png',
     organizationName: 'yewstack', // Usually your GitHub org/user name.

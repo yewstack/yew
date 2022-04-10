@@ -131,7 +131,7 @@ unsure what type a certain object is you can try to cast it which returns possib
 [`Option`](https://doc.rust-lang.org/std/option/enum.Option.html) and
 [`Result`](https://doc.rust-lang.org/std/result/enum.Result.html).
 
-A common example of this in [`web-sys`](wasm-bindgen/web-sys) is when you are trying to get the
+A common example of this in [`web-sys`](./web-sys.mdx) is when you are trying to get the
 target of an event, you might know what the target element is but the
 [`web_sys::Event`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html) API will always return an [`Option<web_sys::EventTarget>`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target)
 so you will need to cast it to the element type. so you can call its methods.
@@ -178,7 +178,8 @@ raise an exception.
 
 `Closure` is often used when you are working with a `js-sys` or `web-sys` API that accepts a type
 [`&js_sys::Function`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Function.html).
-An example of using a `Closure` in Yew can be found in the [Using `Closure` section](html/events#using-closure-verbose) on the [Events](html/events) page.
+An example of using a `Closure` in Yew can be found in the [Using `Closure` section](../html/events.mdx#using-closure-verbose)
+on the [Events](../html/events.mdx) page.
 
 _[`Closure` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html)._
 
@@ -187,7 +188,7 @@ _[`Closure` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bind
 The `js-sys` crate provides bindings / imports of JavaScript's standard, built-in objects, including
 their methods and properties.
 
-This does not include any web APIs as this is what [`web-sys`](wasm-bindgen/web-sys) is for!
+This does not include any web APIs as this is what [`web-sys`](./web-sys.mdx) is for!
 
 _[`js-sys` documentation](https://rustwasm.github.io/wasm-bindgen/api/js_sys/index.html)._
 
