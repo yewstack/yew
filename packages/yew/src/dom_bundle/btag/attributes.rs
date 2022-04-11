@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use std::iter;
 use std::ops::Deref;
 use web_sys::{Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
+use yew::AttrValue;
 
 impl<T: AccessValue> Apply for Value<T> {
     type Element = T;
@@ -83,15 +84,13 @@ impl Apply for InputFields {
 
 impl Attributes {
     #[cold]
-    fn apply_diff_index_maps<'a, A, B>(
+    fn apply_diff_index_maps<'a>(
         el: &Element,
         // this makes it possible to diff `&'a IndexMap<_, A>` and `IndexMap<_, &'a A>`.
         mut new_iter: impl Iterator<Item = (&'a str, &'a str)>,
-        new: &IndexMap<impl AsRef<str>, A>,
-        old: &IndexMap<impl AsRef<str>, B>,
-    ) where
-        A: AsRef<str>,
-        B: AsRef<str>,
+        new: &IndexMap<AttrValue, AttrValue>,
+        old: &IndexMap<AttrValue, AttrValue>,
+    )
     {
         let mut old_iter = old.iter();
         let new = new
@@ -273,8 +272,7 @@ impl Apply for Attributes {
             // For VTag's constructed outside the html! macro
             (Self::IndexMap(new), Self::IndexMap(ref old)) => {
                 let new_iter = new.iter().map(|(k, v)| (k.as_ref(), v.as_ref()));
-                Self::apply_diff_index_maps(el, new_iter, new, old);
-                todo!();
+                Self::apply_diff_index_maps(el, new_iter, &*new, &*old);
             }
             // Cold path. Happens only with conditional swapping and reordering of `VTag`s with the
             // same tag and no keys.
