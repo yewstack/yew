@@ -2,7 +2,6 @@ use yew::prelude::*;
 
 #[function_component(App)]
 fn app() -> Html {
-    // let state = use_state(|| Count {value : 0});
     let state = use_state(|| 0);
 
     let incr_counter = {
