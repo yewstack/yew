@@ -90,8 +90,7 @@ impl Attributes {
         mut new_iter: impl Iterator<Item = (&'a str, &'a str)>,
         new: &IndexMap<AttrValue, AttrValue>,
         old: &IndexMap<AttrValue, AttrValue>,
-    )
-    {
+    ) {
         let mut old_iter = old.iter();
         let new = new
             .iter()

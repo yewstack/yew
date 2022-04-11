@@ -58,6 +58,7 @@ pub enum AttrValue {
 impl Deref for AttrValue {
     type Target = str;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         match self {
             AttrValue::Static(s) => *s,
@@ -67,6 +68,7 @@ impl Deref for AttrValue {
 }
 
 impl Hash for AttrValue {
+    #[inline(always)]
     fn hash<H: Hasher>(&self, state: &mut H) {
         match self {
             AttrValue::Static(s) => s.hash(&mut *state),
@@ -76,24 +78,28 @@ impl Hash for AttrValue {
 }
 
 impl From<&'static str> for AttrValue {
+    #[inline(always)]
     fn from(s: &'static str) -> Self {
         AttrValue::Static(s)
     }
 }
 
 impl From<String> for AttrValue {
+    #[inline(always)]
     fn from(s: String) -> Self {
         AttrValue::Rc(Rc::from(s))
     }
 }
 
 impl From<Rc<str>> for AttrValue {
+    #[inline(always)]
     fn from(s: Rc<str>) -> Self {
         AttrValue::Rc(s)
     }
 }
 
 impl From<Cow<'static, str>> for AttrValue {
+    #[inline(always)]
     fn from(s: Cow<'static, str>) -> Self {
         match s {
             Cow::Borrowed(s) => s.into(),
@@ -112,6 +118,7 @@ impl Clone for AttrValue {
 }
 
 impl AsRef<str> for AttrValue {
+    #[inline(always)]
     fn as_ref(&self) -> &str {
         &*self
     }
@@ -127,6 +134,7 @@ impl fmt::Display for AttrValue {
 }
 
 impl PartialEq for AttrValue {
+    #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
         self.as_ref() == other.as_ref()
     }
