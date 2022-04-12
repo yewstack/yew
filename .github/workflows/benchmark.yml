@@ -9,7 +9,6 @@ on:
   pull_request_target:
     paths-ignore:
       - 'website/**'
-    types: [labeled, synchronize, opened, reopened]
 
 permissions:
   # deployments permission to deploy GitHub pages website

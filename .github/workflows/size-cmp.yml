@@ -5,6 +5,8 @@ on:
   pull_request:
     branches: [master]
     paths:
+      - .github/workflows/size-cmp.yml
+      - ci/collect_sizes.py
       - "packages/**"
       - "examples/**"
       - "Cargo.toml"
