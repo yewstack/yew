@@ -34,6 +34,7 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [boids](boids)                                     | S  | Yew port of [Boids](https://en.wikipedia.org/wiki/Boids)                                                                           |
 | [contexts](contexts)                               | F  | A technical demonstration of Context API.                                                                                          |
 | [counter](counter)                                 | S  | Simple counter which can be incremented and decremented                                                                            |
+| [counter_functional](counter_functional)           | F  | Simple counter which can be incremented and decremented made using function components                                             |
 | [dyn_create_destroy_apps](dyn_create_destroy_apps) | S  | Uses the function `start_app_in_element` and the `AppHandle` struct to dynamically create and delete Yew apps                      |
 | [file_upload](file_upload)                         | S  | Uses the `gloo::file` to read the content of user uploaded files                                                                   |
 | [function_todomvc](function_todomvc)               | F  | Implementation of [TodoMVC](http://todomvc.com/) using function components and hooks.                                              |
