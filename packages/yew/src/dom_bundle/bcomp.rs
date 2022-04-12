@@ -12,8 +12,12 @@ use web_sys::Element;
 pub(super) struct BComp {
     type_id: TypeId,
     scope: Box<dyn Scoped>,
-    node_ref: NodeRef,
+    // A internal NodeRef passed around to track this components position. This
+    // is "stable", i.e. does not change when reconciled.
     internal_ref: NodeRef,
+    // The user-passed NodeRef from VComp. Might change every time we reconcile.
+    // Gets linked to the internal ref
+    node_ref: NodeRef,
     key: Option<Key>,
 }
 
