@@ -1,6 +1,6 @@
 # Counter Example
 
-A simple example of a counter which can be increased or decreased with the press of a button implemented using functional components
+A simple example of a counter which can be increased or decreased with the press of a button implemented using function components
 
 ## Running
 
@@ -18,4 +18,4 @@ trunk serve --release
 
 ## Concepts
 
-Demonstrates the use of functional components.
+Demonstrates the use of function components.
