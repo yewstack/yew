@@ -120,6 +120,17 @@ opt-level = 'z'
 lto = true
 ```
 
+You can also gain additional benefits from experimental nightly features, avilable with nightly
+rust. To use the nightly toolchain with `trunk`, set the `RUSTUP_TOOLCHAIN="nightly"` environment
+variable. Then, you can toggle unstable rustc features in your `.cargo/config.toml`.
+
+```toml, title=".cargo/config.toml"
+[unstable]
+# Requires the rust-src component. `rustup +nightly component add rust-src`
+build-std = ["std", "panic_abort"]
+build-std-features = ["panic_immediate_abort"]
+```
+
 ### wasm-opt
 
 Further more it is possible to optimize size of `wasm` code.
