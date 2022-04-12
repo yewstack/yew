@@ -84,7 +84,7 @@ impl Apply for InputFields {
 
 impl Attributes {
     #[cold]
-    fn apply_diff_index_maps<'a>(
+    fn apply_diff_index_maps(
         el: &Element,
         new: &IndexMap<AttrValue, AttrValue>,
         old: &IndexMap<AttrValue, AttrValue>,
