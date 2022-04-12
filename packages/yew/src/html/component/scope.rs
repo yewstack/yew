@@ -457,16 +457,11 @@ mod feat_csr {
             scheduler::start();
         }
 
-        pub(crate) fn reuse(
-            &self,
-            props: Rc<COMP::Properties>,
-            node_ref: NodeRef,
-            next_sibling: NodeRef,
-        ) {
+        pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, next_sibling: NodeRef) {
             #[cfg(debug_assertions)]
             super::super::log_event(self.id, "reuse");
 
-            self.push_update(UpdateEvent::Properties(props, node_ref, next_sibling));
+            self.push_update(UpdateEvent::Properties(props, next_sibling));
         }
     }
 
