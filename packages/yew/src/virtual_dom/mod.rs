@@ -39,7 +39,7 @@ pub use self::vtag::VTag;
 pub use self::vtext::VText;
 
 use indexmap::IndexMap;
-use std::borrow::Cow;
+use std::borrow::{Borrow, Cow};
 use std::fmt::Formatter;
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
@@ -70,10 +70,7 @@ impl Deref for AttrValue {
 impl Hash for AttrValue {
     #[inline(always)]
     fn hash<H: Hasher>(&self, state: &mut H) {
-        match self {
-            AttrValue::Static(s) => s.hash(&mut *state),
-            AttrValue::Rc(s) => s.hash(&mut *state),
-        };
+        self.as_ref().hash(state);
     }
 }
 
@@ -120,6 +117,12 @@ impl Clone for AttrValue {
 impl AsRef<str> for AttrValue {
     #[inline(always)]
     fn as_ref(&self) -> &str {
+        &*self
+    }
+}
+
+impl Borrow<str> for AttrValue {
+    fn borrow(&self) -> &str {
         &*self
     }
 }

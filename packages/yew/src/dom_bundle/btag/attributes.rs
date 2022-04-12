@@ -86,27 +86,18 @@ impl Attributes {
     #[cold]
     fn apply_diff_index_maps<'a>(
         el: &Element,
-        // this makes it possible to diff `&'a IndexMap<_, A>` and `IndexMap<_, &'a A>`.
-        mut new_iter: impl Iterator<Item = (&'a str, &'a str)>,
         new: &IndexMap<AttrValue, AttrValue>,
         old: &IndexMap<AttrValue, AttrValue>,
     ) {
         let mut old_iter = old.iter();
-        let new = new
-            .iter()
-            .map(|(k, v)| (k.as_ref(), v))
-            .collect::<IndexMap<_, _>>();
-        let old = old
-            .iter()
-            .map(|(k, v)| (k.as_ref(), v))
-            .collect::<IndexMap<_, _>>();
+        let mut new_iter = new.iter();
         loop {
             match (new_iter.next(), old_iter.next()) {
                 (Some((new_key, new_value)), Some((old_key, old_value))) => {
-                    if new_key != old_key.as_ref() {
+                    if new_key != old_key {
                         break;
                     }
-                    if new_value != old_value.as_ref() {
+                    if new_value != old_value {
                         Self::set_attribute(el, new_key, new_value);
                     }
                 }
@@ -115,7 +106,7 @@ impl Attributes {
                     for (key, value) in iter::once(attr).chain(new_iter) {
                         match old.get(key) {
                             Some(old_value) => {
-                                if value != old_value.as_ref() {
+                                if value != old_value {
                                     Self::set_attribute(el, key, value);
                                 }
                             }
@@ -129,7 +120,7 @@ impl Attributes {
                 // removed attributes
                 (None, Some(attr)) => {
                     for (key, _) in iter::once(attr).chain(old_iter) {
-                        let key = key.as_ref();
+                        let key = key;
                         if !new.contains_key(key) {
                             Self::remove_attribute(el, key);
                         }
@@ -270,8 +261,7 @@ impl Apply for Attributes {
             }
             // For VTag's constructed outside the html! macro
             (Self::IndexMap(new), Self::IndexMap(ref old)) => {
-                let new_iter = new.iter().map(|(k, v)| (k.as_ref(), v.as_ref()));
-                Self::apply_diff_index_maps(el, new_iter, &*new, &*old);
+                Self::apply_diff_index_maps(el, &*new, &*old);
             }
             // Cold path. Happens only with conditional swapping and reordering of `VTag`s with the
             // same tag and no keys.
