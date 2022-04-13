@@ -11,7 +11,7 @@ mod feat_futures {
     /// A [Suspension] is created from the passed future and the result of the future
     /// is the output of the suspension.
     #[hook]
-    pub fn use_suspending_future<T, F>(f: F) -> SuspensionResult<T>
+    pub fn use_future<T, F>(f: F) -> SuspensionResult<T>
     where
         T: Clone + 'static,
         F: Future<Output = T> + 'static,
