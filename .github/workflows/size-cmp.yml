@@ -5,6 +5,8 @@ on:
   pull_request:
     branches: [master]
     paths:
+      - .github/workflows/size-cmp.yml
+      - ci/collect_sizes.py
       - "packages/**"
       - "examples/**"
       - "Cargo.toml"
@@ -30,8 +32,9 @@ jobs:
       - name: Setup toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           target: wasm32-unknown-unknown
+          components: rust-src
           override: true
           profile: minimal
 
@@ -54,6 +57,11 @@ jobs:
 
       - name: Write optimisation flags for master
         run: |
+          cat >> .cargo/config << EOF
+          [unstable]
+          build-std = ["std", "panic_abort"]
+          build-std-features = ["panic_immediate_abort"]
+          EOF
           cat >> Cargo.toml << EOF
           [profile.release]
           lto = true
@@ -65,6 +73,11 @@ jobs:
 
       - name: Write optimisation flags for pull request
         run: |
+          cat >> .cargo/config << EOF
+          [unstable]
+          build-std = ["std", "panic_abort"]
+          build-std-features = ["panic_immediate_abort"]
+          EOF
           cat >> Cargo.toml << EOF
           [profile.release]
           lto = true
@@ -77,55 +90,19 @@ jobs:
       - name: Build master examples
         run: find examples/*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
         working-directory: yew-master
+        env:
+          RUSTUP_TOOLCHAIN: nightly
 
       - name: Build pull request examples
         run: find examples/*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
         working-directory: current-pr
+        env:
+          RUSTUP_TOOLCHAIN: nightly
 
       - name: Collect size information
-        run: |
-          from typing import Dict, List, Optional
-
-          import glob
-          import os
-          import json
-
-          def find_example_sizes(parent_dir: str) -> Dict[str, int]:
-              example_sizes: Dict[str, int] = {}
-
-              for example_dir in os.listdir(f"{parent_dir}/examples"):
-                  path = f"{parent_dir}/examples/{example_dir}"
-
-                  if not os.path.isdir(path):
-                      continue
-
-                  matches = glob.glob(f"{parent_dir}/examples/{example_dir}/dist/index*.wasm")
-
-                  if not matches:
-                      continue
-
-                  path = matches[0]
-
-                  example_sizes[example_dir] = os.path.getsize(path)
-
-              return example_sizes
-
-          master_sizes = find_example_sizes("yew-master")
-          pr_sizes = find_example_sizes("current-pr")
-
-          example_names = sorted(set([*master_sizes.keys(), *pr_sizes.keys()]))
-
-          joined_sizes = [(i, [master_sizes.get(i), pr_sizes.get(i)]) for i in example_names]
-
-          size_cmp_info = {
-              "sizes": joined_sizes,
-              "issue_number": ${{ github.event.number }},
-          }
-
-          with open(".SIZE_CMP_INFO", "w+") as f:
-              f.write(json.dumps(size_cmp_info))
-
-        shell: python3 {0}
+        run: python3 current-pr/ci/collect_sizes.py
+        env:
+          ISSUE_NUMBER: ${{ github.event.number }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
