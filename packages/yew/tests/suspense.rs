@@ -15,7 +15,7 @@ use gloo::timers::future::TimeoutFuture;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{HtmlElement, HtmlTextAreaElement};
-use yew::suspense::{Suspension, SuspensionResult, use_suspending_future};
+use yew::suspense::{use_suspending_future, Suspension, SuspensionResult};
 
 #[wasm_bindgen_test]
 async fn suspense_works() {
@@ -594,10 +594,8 @@ async fn effects_not_run_when_suspended() {
     assert_eq!(*counter.borrow(), 4); // effects ran 4 times.
 }
 
-
 #[wasm_bindgen_test]
 async fn use_suspending_future_works() {
-
     #[function_component(Content)]
     fn content() -> HtmlResult {
         let _sleep_handle = use_suspending_future(async move {
@@ -634,8 +632,5 @@ async fn use_suspending_future_works() {
     TimeoutFuture::new(50).await;
 
     let result = obtain_result();
-    assert_eq!(
-        result.as_str(),
-        r#"<div>Content</div>"#
-    );
+    assert_eq!(result.as_str(), r#"<div>Content</div>"#);
 }

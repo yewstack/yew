@@ -12,9 +12,9 @@ mod feat_futures {
     /// is the output of the suspension.
     #[hook]
     pub fn use_suspending_future<T, F>(f: F) -> SuspensionResult<T>
-        where
-            T: Clone + 'static,
-            F: Future<Output = T> + 'static,
+    where
+        T: Clone + 'static,
+        F: Future<Output = T> + 'static,
     {
         let output = use_state(|| None);
 
