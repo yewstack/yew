@@ -1,74 +1,75 @@
 use wasm_bindgen::prelude::*;
-use web_sys::HtmlTextAreaElement;
+use wasm_bindgen::JsCast;
+use wasm_bindgen_futures::JsFuture;
+
 use yew::prelude::*;
+use yew::suspense::{use_future, SuspensionResult};
 
 mod bindings;
 
-pub enum Msg {
-    Payload(String),
-    AsyncPayload,
-}
-
-pub struct App {
-    payload: String,
-    // Pointless field just to have something that's been manipulated
-    debugged_payload: String,
-}
-
-impl Component for App {
-    type Message = Msg;
-    type Properties = ();
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self {
-            payload: String::default(),
-            debugged_payload: format!("{:?}", ""),
-        }
+#[function_component]
+fn Important() -> Html {
+    let msg = use_memo(|_| bindings::hello(), ());
+    html! {
+        <>
+            <h2>{"Important"}</h2>
+            <p>{msg}</p>
+        </>
     }
+}
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            Msg::Payload(payload) => {
-                if payload != self.payload {
-                    self.debugged_payload = format!("{:?}", payload);
-                    self.payload = payload;
-                    true
-                } else {
-                    false
+#[wasm_bindgen]
+extern "C" {
+    type Module;
+
+    #[wasm_bindgen(method)]
+    fn bye(this: &Module) -> String;
+}
+
+#[hook]
+fn use_do_bye() -> SuspensionResult<String> {
+    let s = use_future(|| async move {
+        // Run `trunk build`, look in the `dist/snippets/` directory for the file name.
+        // this must be the absolute url. it is the restriction of dynamic imports in JS
+        let promise =
+            bindings::import("/js_callback/snippets/js_callback-12fde9d6e52a7cb5/js/unimp.js");
+        let module = JsFuture::from(promise).await.unwrap_throw();
+        let module = module.unchecked_into::<Module>();
+        module.bye()
+    })?;
+    Ok((*s).clone())
+}
+
+#[function_component]
+fn UnImportant() -> HtmlResult {
+    let msg = use_do_bye()?;
+    Ok(html! {
+        <>
+            <h2>{"Unimportant"}</h2>
+            <p>{msg}</p>
+        </>
+    })
+}
+
+#[function_component]
+fn App() -> Html {
+    let showing_unimportant = use_state(|| false);
+
+    let show_unimportant = {
+        let showing_unimportant = showing_unimportant.clone();
+        move |_| showing_unimportant.set(true)
+    };
+    let fallback = html! {"fallback"};
+    html! {
+        <main>
+            <Important />
+            <button onclick={show_unimportant}>{"load unimportant data"}</button>
+            <Suspense {fallback}>
+                if *showing_unimportant {
+                    <UnImportant />
                 }
-            }
-            Msg::AsyncPayload => {
-                let callback = ctx.link().callback(Msg::Payload);
-                bindings::get_payload_later(Closure::once_into_js(move |payload: String| {
-                    callback.emit(payload)
-                }));
-                false
-            }
-        }
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        html! {
-            <>
-                <textarea
-                    class="code-block"
-                    oninput={ctx.link().callback(|e: InputEvent| {
-                        let input: HtmlTextAreaElement = e.target_unchecked_into();
-                        Msg::Payload(input.value())
-                    })}
-                    value={self.payload.clone()}
-                />
-                <button onclick={ctx.link().callback(|_| Msg::Payload(bindings::get_payload()))}>
-                    { "Get the payload!" }
-                </button>
-                <button onclick={ctx.link().callback(|_| Msg::AsyncPayload)} >
-                    { "Get the payload later!" }
-                </button>
-                <p class="code-block">
-                    { &self.debugged_payload }
-                </p>
-            </>
-        }
+            </Suspense>
+        </main>
     }
 }
 
