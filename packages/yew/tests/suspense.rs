@@ -598,7 +598,7 @@ async fn effects_not_run_when_suspended() {
 async fn use_suspending_future_works() {
     #[function_component(Content)]
     fn content() -> HtmlResult {
-        let _sleep_handle = use_future(async move {
+        let _sleep_handle = use_future(|| async move {
             TimeoutFuture::new(50).await;
         })?;
 
