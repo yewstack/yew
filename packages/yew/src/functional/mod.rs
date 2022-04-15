@@ -203,7 +203,15 @@ pub trait FunctionProvider {
     fn run(ctx: &mut HookContext, props: &Self::Properties) -> HtmlResult;
 }
 
-/// Wrapper that allows a struct implementing [`FunctionProvider`] to be consumed as a component.
+/// A type that interacts [`FunctionProvider`] to provide lifecycle events to be bridged to
+/// [`BaseComponent`].
+///
+/// # Note
+///
+/// Function Components should not be implemented with this type directly.
+///
+/// Use the `#[function_component]` macro instead.
+#[doc(hidden)]
 pub struct FunctionComponent<T>
 where
     T: FunctionProvider,
