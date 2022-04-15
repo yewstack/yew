@@ -1,11 +1,8 @@
-use std::ops::Deref;
-use std::rc::Rc;
+#![no_implicit_prelude]
 
-use yew::prelude::*;
-
-#[hook]
-fn use_deref_as_u32() -> impl Deref<Target = u32> {
-    Rc::new(0)
+#[::yew::prelude::hook]
+fn use_deref_as_u32() -> impl ::std::ops::Deref<Target = ::std::primitive::u32> {
+    ::std::rc::Rc::new(0)
 }
 
 fn main() {}

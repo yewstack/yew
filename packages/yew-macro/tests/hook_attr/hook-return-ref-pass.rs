@@ -1,7 +1,7 @@
-use yew::prelude::*;
+#![no_implicit_prelude]
 
-#[hook]
-fn use_str_ref(f: &str) -> &str {
+#[::yew::prelude::hook]
+fn use_str_ref(f: &::std::primitive::str) -> &::std::primitive::str {
     f
 }
 
