@@ -8,7 +8,7 @@ Yew integrates with the [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/
 uses the events from that crate. The [table below](#event-types) lists all of the `web-sys`
 events that are accepted in the `html!` macro.
 
-You can still add a [`Callback`](../components/callbacks.mdx) for an event that is not listed in the table
+You can still add a [`Callback`](../function-components/callbacks.mdx) for an event that is not listed in the table
 below, see [Manual event listener](#manual-event-listener).
 
 ## Event Types
@@ -355,7 +355,7 @@ does the cast on the target of the event. `TargetCast::target_unchecked_into` is
 
 ### Using `NodeRef`
 
-[`NodeRef`](../components/refs) can be used instead of querying the event given to a `Callback`.
+[`NodeRef`](../function-components/node-refs.mdx) can be used instead of querying the event given to a `Callback`.
 
 ```rust
 use web_sys::HtmlInputElement;
@@ -450,7 +450,7 @@ You may want to listen to an event that is not supported by Yew's `html` macro, 
 [supported events listed here](#event-types).
 
 In order to add an event listener to one of elements manually we need the help of
-[`NodeRef`](../components/refs) so that in `use_effect_with_deps` we can add a listener using the
+[`NodeRef`](../function-components/node-refs.mdx) so that in `use_effect_with_deps` we can add a listener using the
 [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/index.html) and
 [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) API.
 

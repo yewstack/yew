@@ -24,7 +24,7 @@ general Rust provides an approach to simulate inheritance in JavaScript. This is
 
 This section is going to look at a specific element and list out it's inheritance using Rust by
 calling [`Deref::deref`](https://doc.rust-lang.org/std/ops/trait.Deref.html#tymethod.deref) until
-the value is [`JsValue`](../wasm-bindgen#jsvalue):
+the value is [`JsValue`](../wasm-bindgen/introduction.mdx#jsvalue):
 
 ```rust
 use std::ops::Deref;
@@ -79,8 +79,8 @@ _[Inheritance in `web-sys` in The `wasm-bindgen` Guide](https://rustwasm.github.
 
 ## The `Node` in `NodeRef`
 
-Yew uses a [`NodeRef`](../components/refs) in order to provide a way for keeping a reference to
-a `Node` made by the [`html!`](../html/introduction.mdx) macro. The `Node` part of `NodeRef` is referring to
+Yew uses a [`NodeRef`](concepts/function-components/node-refs.mdx) in order to provide a way for keeping a reference to
+a `Node` made by the [`html!`](concepts/html/introduction.mdx) macro. The `Node` part of `NodeRef` is referring to
 [`web_sys::Node`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Node.html). The
 `NodeRef::get` method will return a `Option<Node>` value, however, most of the time in Yew you want
 to cast this value to a specific element so you can use it's specific methods. This casting
@@ -197,8 +197,8 @@ different types so that you can call it's specific methods.
 
 ### Yew example
 
-In Yew you will mostly be creating [`Callback`](../components/callbacks)s to use in the
-[`html!`](../html/introduction) macro so the example is going to use this approach instead of completely copying
+In Yew you will mostly be creating [`Callback`](concepts/function-components/callbacks.mdx)s to use in the
+[`html!`](concepts/html/introduction.mdx) macro so the example is going to use this approach instead of completely copying
 the approach above:
 
 ```toml title=Cargo.toml
@@ -242,4 +242,4 @@ html! {
 designed with Rust or even a strong type system in mind, this is where community crates come in to
 provide abstractions over `web-sys` to provide more idiomatic Rust APIs.
 
-_[External libraries page](../../more/external-libs)_
+_[External libraries page](community/external-libs)_
