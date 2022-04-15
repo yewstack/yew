@@ -147,6 +147,7 @@ module.exports = {
                 'advanced-topics/optimizations',
                 'advanced-topics/portals',
                 'advanced-topics/server-side-rendering',
+                'advanced-topics/immutable',
             ],
         },
         {
