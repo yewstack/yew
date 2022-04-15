@@ -118,7 +118,7 @@ mod feat_ssr_hydration {
         }
 
         #[cfg(feature = "hydration")]
-        pub fn name(&self) -> super::Cow<'static, str> {
+        pub fn name(&self) -> std::borrow::Cow<'static, str> {
             match self {
                 #[cfg(debug_assertions)]
                 Self::Component(m) => format!("Component({})", m).into(),
