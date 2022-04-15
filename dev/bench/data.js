@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1650055718059,
+  "lastUpdate": 1650055940646,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -13223,6 +13223,120 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 33_startup-mainthreadcost",
             "value": "218.8160000000001",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "328.7392578125",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "futursolo@users.noreply.github.com",
+            "name": "Kaede Hoshikawa",
+            "username": "futursolo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6fb547339f8bb8ad53800ff768ed406a46124109",
+          "message": "Fix some Hook edge cases (#2592)\n\n* Fix a couple edge cases.\r\n\r\n* no implicit prelude.",
+          "timestamp": "2022-04-16T01:47:04+05:00",
+          "tree_id": "d85876f5183d963de8993c7366a948ac3dd2f272",
+          "url": "https://github.com/yewstack/yew/commit/6fb547339f8bb8ad53800ff768ed406a46124109"
+        },
+        "date": 1650055938997,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "161.505",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "186.3345",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "344.2385",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "64.89349999999999",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "81.49350000000001",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "25.77",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "2828.4880000000003",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "400.5415",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "174.517",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.457233428955078",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.6948280334472656",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.7004127502441406",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.705596923828125",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.328125",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1734.6999999999998",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "26.54",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 33_startup-mainthreadcost",
+            "value": "206.772",
             "unit": ""
           },
           {
