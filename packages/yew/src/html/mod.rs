@@ -146,9 +146,9 @@ mod feat_csr {
             }
 
             let mut this = self.0.borrow_mut();
-            let existing = node_ref.0.borrow();
-            this.node = existing.node.clone();
-            this.link = existing.link.clone();
+            let mut existing = node_ref.0.borrow_mut();
+            this.node = existing.node.take();
+            this.link = existing.link.take();
         }
 
         /// Link a downstream `NodeRef`
