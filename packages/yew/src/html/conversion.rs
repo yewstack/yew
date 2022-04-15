@@ -1,9 +1,10 @@
 use super::super::callback::Callback;
 use super::{Component, NodeRef, Scope};
 use crate::virtual_dom::AttrValue;
+use implicit_clone::unsync::{IArray, IMap};
 use std::rc::Rc;
 
-pub use imut::ImplicitClone;
+pub use implicit_clone::ImplicitClone;
 
 impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
@@ -109,31 +110,31 @@ impl_into_prop!(|value: &'static str| -> AttrValue { AttrValue::Static(value) })
 impl_into_prop!(|value: String| -> AttrValue { AttrValue::Rc(Rc::from(value)) });
 impl_into_prop!(|value: Rc<str>| -> AttrValue { AttrValue::Rc(value) });
 
-impl<T: ImplicitClone + 'static> IntoPropValue<imut::IArray<T>> for &'static [T] {
-    fn into_prop_value(self) -> imut::IArray<T> {
-        imut::IArray::from(self)
+impl<T: ImplicitClone + 'static> IntoPropValue<IArray<T>> for &'static [T] {
+    fn into_prop_value(self) -> IArray<T> {
+        IArray::from(self)
     }
 }
 
-impl<T: ImplicitClone + 'static> IntoPropValue<imut::IArray<T>> for Vec<T> {
-    fn into_prop_value(self) -> imut::IArray<T> {
-        imut::IArray::from(self)
-    }
-}
-
-impl<K: Eq + std::hash::Hash + ImplicitClone + 'static, V: PartialEq + ImplicitClone + 'static>
-    IntoPropValue<imut::IMap<K, V>> for &'static [(K, V)]
-{
-    fn into_prop_value(self) -> imut::IMap<K, V> {
-        imut::IMap::from(self)
+impl<T: ImplicitClone + 'static> IntoPropValue<IArray<T>> for Vec<T> {
+    fn into_prop_value(self) -> IArray<T> {
+        IArray::from(self)
     }
 }
 
 impl<K: Eq + std::hash::Hash + ImplicitClone + 'static, V: PartialEq + ImplicitClone + 'static>
-    IntoPropValue<imut::IMap<K, V>> for indexmap::IndexMap<K, V>
+    IntoPropValue<IMap<K, V>> for &'static [(K, V)]
 {
-    fn into_prop_value(self) -> imut::IMap<K, V> {
-        imut::IMap::from(self)
+    fn into_prop_value(self) -> IMap<K, V> {
+        IMap::from(self)
+    }
+}
+
+impl<K: Eq + std::hash::Hash + ImplicitClone + 'static, V: PartialEq + ImplicitClone + 'static>
+    IntoPropValue<IMap<K, V>> for indexmap::IndexMap<K, V>
+{
+    fn into_prop_value(self) -> IMap<K, V> {
+        IMap::from(self)
     }
 }
 

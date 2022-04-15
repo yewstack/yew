@@ -281,7 +281,7 @@ mod server_renderer;
 pub mod suspense;
 pub mod utils;
 pub mod virtual_dom;
-pub use imut as immutable;
+pub use implicit_clone::unsync as immutable;
 #[cfg(feature = "ssr")]
 pub use server_renderer::*;
 

@@ -42,7 +42,7 @@ use indexmap::IndexMap;
 use std::hint::unreachable_unchecked;
 
 /// Attribute value
-pub type AttrValue = imut::IString;
+pub type AttrValue = implicit_clone::unsync::IString;
 
 #[cfg(any(feature = "ssr", feature = "hydration"))]
 mod feat_ssr_hydration {
