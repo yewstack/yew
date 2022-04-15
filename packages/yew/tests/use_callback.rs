@@ -42,7 +42,7 @@ async fn use_callback_works() {
     fn use_callback_comp() -> Html {
         let state = use_state(|| 0);
 
-        let callback = use_callback(move |name| format!("Hello, {}!", name), ());
+        let callback = use_callback(move |name, _| format!("Hello, {}!", name), ());
 
         use_effect(move || {
             if *state < 5 {
