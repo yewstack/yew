@@ -157,7 +157,7 @@ pub enum Attributes {
 
     /// IndexMap is used to provide runtime attribute deduplication in cases where the html! macro
     /// was not used to guarantee it.
-    IndexMap(IndexMap<&'static str, AttrValue>),
+    IndexMap(IndexMap<AttrValue, AttrValue>),
 }
 
 impl Attributes {
@@ -168,7 +168,7 @@ impl Attributes {
 
     /// Return iterator over attribute key-value pairs.
     /// This function is suboptimal and does not inline well. Avoid on hot paths.
-    pub fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'static str, &'a str)> + 'a> {
+    pub fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a str, &'a str)> + 'a> {
         match self {
             Self::Static(arr) => Box::new(arr.iter().map(|kv| (kv[0], kv[1] as &'a str))),
             Self::Dynamic { keys, values } => Box::new(
@@ -176,13 +176,13 @@ impl Attributes {
                     .zip(values.iter())
                     .filter_map(|(k, v)| v.as_ref().map(|v| (*k, v.as_ref()))),
             ),
-            Self::IndexMap(m) => Box::new(m.iter().map(|(k, v)| (*k, v.as_ref()))),
+            Self::IndexMap(m) => Box::new(m.iter().map(|(k, v)| (k.as_ref(), v.as_ref()))),
         }
     }
 
     /// Get a mutable reference to the underlying `IndexMap`.
     /// If the attributes are stored in the `Vec` variant, it will be converted.
-    pub fn get_mut_index_map(&mut self) -> &mut IndexMap<&'static str, AttrValue> {
+    pub fn get_mut_index_map(&mut self) -> &mut IndexMap<AttrValue, AttrValue> {
         macro_rules! unpack {
             () => {
                 match self {
@@ -196,7 +196,7 @@ impl Attributes {
         match self {
             Self::IndexMap(m) => m,
             Self::Static(arr) => {
-                *self = Self::IndexMap(arr.iter().map(|kv| (kv[0], kv[1].into())).collect());
+                *self = Self::IndexMap(arr.iter().map(|kv| (kv[0].into(), kv[1].into())).collect());
                 unpack!()
             }
             Self::Dynamic { keys, values } => {
@@ -204,7 +204,7 @@ impl Attributes {
                     std::mem::take(values)
                         .iter_mut()
                         .zip(keys.iter())
-                        .filter_map(|(v, k)| v.take().map(|v| (*k, v)))
+                        .filter_map(|(v, k)| v.take().map(|v| (AttrValue::from(*k), v)))
                         .collect(),
                 );
                 unpack!()
@@ -213,8 +213,18 @@ impl Attributes {
     }
 }
 
+impl From<IndexMap<AttrValue, AttrValue>> for Attributes {
+    fn from(v: IndexMap<AttrValue, AttrValue>) -> Self {
+        Self::IndexMap(v)
+    }
+}
+
 impl From<IndexMap<&'static str, AttrValue>> for Attributes {
     fn from(v: IndexMap<&'static str, AttrValue>) -> Self {
+        let v = v
+            .into_iter()
+            .map(|(k, v)| (AttrValue::Static(k), v))
+            .collect();
         Self::IndexMap(v)
     }
 }
