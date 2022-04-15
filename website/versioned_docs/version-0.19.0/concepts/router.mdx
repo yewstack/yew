@@ -1,5 +1,5 @@
 ---
-title: "Router"
+title: 'Router'
 description: "Yew's official router"
 ---
 
@@ -120,7 +120,6 @@ fn switch(route: &Route) -> Html {
 }
 ```
 
-
 :::note
 You can have a normal `Post` variant instead of `Post {id: String}` too. For example when `Post` is rendered
 with another router, the field can then be redundant as the other router is able to match and handle the path. See the
@@ -170,8 +169,8 @@ of `window.history` and `window.location`.
 
 You can access them using the following hooks:
 
-- `use_history`
-- `use_location`
+-   `use_history`
+-   `use_location`
 
 #### `BrowserHistory` and `BrowserLocation`
 
@@ -413,8 +412,8 @@ digraph {
 }
 -->
 
-import useBaseUrl from "@docusaurus/useBaseUrl";
-import ThemedImage from '@theme/ThemedImage';
+import useBaseUrl from '@docusaurus/useBaseUrl'
+import ThemedImage from '@theme/ThemedImage'
 
 <ThemedImage
     alt="nested router structure"
@@ -422,8 +421,8 @@ import ThemedImage from '@theme/ThemedImage';
         light: useBaseUrl('/img/nested-router-light.svg'),
         dark: useBaseUrl('/img/nested-router-dark.svg'),
     }}
-/>;
-
+/>
+;
 
 The nested `SettingsRouter` handles all urls that start with `/settings`. Additionally, it redirects urls that are not
 matched to the main `NotFound` route. So `/settings/gibberish` will redirect to `/404`.
@@ -497,4 +496,4 @@ pub fn app() -> Html {
 
 ## Relevant examples
 
-- [Router](https://github.com/yewstack/yew/tree/master/examples/router)
+-   [Router](https://github.com/yewstack/yew/tree/master/examples/router)

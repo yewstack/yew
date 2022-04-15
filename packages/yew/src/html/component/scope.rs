@@ -43,16 +43,6 @@ impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
 }
 
 impl AnyScope {
-    #[cfg(feature = "csr")]
-    #[cfg(test)]
-    pub(crate) fn test() -> Self {
-        Self {
-            type_id: TypeId::of::<()>(),
-            parent: None,
-            typed_scope: Rc::new(()),
-        }
-    }
-
     /// Returns the parent scope
     pub fn get_parent(&self) -> Option<&AnyScope> {
         self.parent.as_deref()
@@ -417,6 +407,17 @@ mod feat_csr {
     use std::cell::Ref;
     use web_sys::Element;
 
+    impl AnyScope {
+        #[cfg(test)]
+        pub(crate) fn test() -> Self {
+            Self {
+                type_id: TypeId::of::<()>(),
+                parent: None,
+                typed_scope: Rc::new(()),
+            }
+        }
+    }
+
     impl<COMP> Scope<COMP>
     where
         COMP: BaseComponent,
@@ -424,6 +425,7 @@ mod feat_csr {
         /// Mounts a component with `props` to the specified `element` in the DOM.
         pub(crate) fn mount_in_place(
             &self,
+
             root: BSubtree,
             parent: Element,
             next_sibling: NodeRef,
@@ -518,6 +520,83 @@ mod feat_csr {
     }
 }
 
+#[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    use crate::dom_bundle::{BSubtree, Fragment};
+    use crate::html::component::lifecycle::{ComponentRenderState, CreateRunner, RenderRunner};
+    use crate::html::NodeRef;
+    use crate::scheduler;
+    use crate::virtual_dom::Collectable;
+
+    use web_sys::Element;
+
+    impl<COMP> Scope<COMP>
+    where
+        COMP: BaseComponent,
+    {
+        /// Hydrates the component.
+        ///
+        /// Returns a pending NodeRef of the next sibling.
+        ///
+        /// # Note
+        ///
+        /// This method is expected to collect all the elements belongs to the current component
+        /// immediately.
+        pub(crate) fn hydrate_in_place(
+            &self,
+            root: BSubtree,
+            parent: Element,
+            fragment: &mut Fragment,
+            node_ref: NodeRef,
+            props: Rc<COMP::Properties>,
+        ) {
+            // This is very helpful to see which component is failing during hydration
+            // which means this component may not having a stable layout / differs between
+            // client-side and server-side.
+            #[cfg(all(debug_assertions, feature = "trace_hydration"))]
+            gloo::console::trace!(format!(
+                "queuing hydration of: {}(ID: {:?})",
+                std::any::type_name::<COMP>(),
+                self.id
+            ));
+
+            #[cfg(debug_assertions)]
+            let collectable = Collectable::Component(std::any::type_name::<COMP>());
+            #[cfg(not(debug_assertions))]
+            let collectable = Collectable::Component;
+
+            let fragment = Fragment::collect_between(fragment, &collectable, &parent);
+            node_ref.set(fragment.front().cloned());
+            let next_sibling = NodeRef::default();
+
+            let state = ComponentRenderState::Hydration {
+                root,
+                parent,
+                node_ref,
+                next_sibling,
+                fragment,
+            };
+
+            scheduler::push_component_create(
+                self.id,
+                Box::new(CreateRunner {
+                    initial_render_state: state,
+                    props,
+                    scope: self.clone(),
+                }),
+                Box::new(RenderRunner {
+                    state: self.state.clone(),
+                }),
+            );
+
+            // Not guaranteed to already have the scheduler started
+            scheduler::start();
+        }
+    }
+}
 #[cfg(feature = "csr")]
 pub(crate) use feat_csr::*;
 

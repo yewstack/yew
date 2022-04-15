@@ -1,5 +1,5 @@
 ---
-title: "Hooks"
+title: 'Hooks'
 slug: /concepts/function-components/hooks
 ---
 
@@ -13,10 +13,10 @@ Yew comes with a few pre-defined Hooks. You can also create your own or discover
 
 1. A hook function name always has to start with `use_`
 2. Hooks can only be used at the following locations:
-   - Top level of a function / hook.
-   - If condition inside a function / hook, given it's not already branched.
-   - Match condition inside a function / hook, given it's not already branched.
-   - Blocks inside a function / hook, given it's not already branched.
+    - Top level of a function / hook.
+    - If condition inside a function / hook, given it's not already branched.
+    - Match condition inside a function / hook, given it's not already branched.
+    - Blocks inside a function / hook, given it's not already branched.
 3. Hooks every render must be called in the same order
 
 All these rules are enforced by either compile time or run-time errors.
@@ -25,16 +25,17 @@ All these rules are enforced by either compile time or run-time errors.
 
 Yew comes with the following predefined Hooks:
 
-- [`use_state`](./use-state.mdx)
-- [`use_state_eq`](./use-state.mdx#use_state_eq)
-- [`use_memo`](./use-memo.mdx)
-- [`use_mut_ref`](./use-mut-ref.mdx)
-- [`use_node_ref`](./use-node-ref.mdx)
-- [`use_reducer`](./use-reducer.mdx)
-- [`use_reducer_eq`](./use-reducer.mdx#use_reducer_eq)
-- [`use_effect`](./use-effect.mdx)
-- [`use_effect_with_deps`](./use-effect.mdx#use_effect_with_deps)
-- [`use_context`](./use-context.mdx)
+-   [`use_state`](./use-state.mdx)
+-   [`use_state_eq`](./use-state.mdx#use_state_eq)
+-   [`use_memo`](./use-memo.mdx)
+-   [`use_callback`](./use-callback.mdx)
+-   [`use_mut_ref`](./use-mut-ref.mdx)
+-   [`use_node_ref`](./use-node-ref.mdx)
+-   [`use_reducer`](./use-reducer.mdx)
+-   [`use_reducer_eq`](./use-reducer.mdx#use_reducer_eq)
+-   [`use_effect`](./use-effect.mdx)
+-   [`use_effect_with_deps`](./use-effect.mdx#use_effect_with_deps)
+-   [`use_context`](./use-context.mdx)
 
 ### Custom Hooks
 
@@ -43,5 +44,5 @@ See the [Defining custom hooks](./custom-hooks.mdx#defining-custom-hooks) sectio
 
 ## Further reading
 
-- The React documentation has a section on [React hooks](https://reactjs.org/docs/hooks-intro.html).
-  These are not exactly the same as Yew's hooks, but the underlying concept is similar.
+-   The React documentation has a section on [React hooks](https://reactjs.org/docs/hooks-intro.html).
+    These are not exactly the same as Yew's hooks, but the underlying concept is similar.

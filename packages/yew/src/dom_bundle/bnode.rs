@@ -233,6 +233,55 @@ impl fmt::Debug for BNode {
     }
 }
 
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    use crate::dom_bundle::{Fragment, Hydratable};
+
+    impl Hydratable for VNode {
+        fn hydrate(
+            self,
+            root: &BSubtree,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut Fragment,
+        ) -> (NodeRef, Self::Bundle) {
+            match self {
+                VNode::VTag(vtag) => {
+                    let (node_ref, tag) = vtag.hydrate(root, parent_scope, parent, fragment);
+                    (node_ref, tag.into())
+                }
+                VNode::VText(vtext) => {
+                    let (node_ref, text) = vtext.hydrate(root, parent_scope, parent, fragment);
+                    (node_ref, text.into())
+                }
+                VNode::VComp(vcomp) => {
+                    let (node_ref, comp) = vcomp.hydrate(root, parent_scope, parent, fragment);
+                    (node_ref, comp.into())
+                }
+                VNode::VList(vlist) => {
+                    let (node_ref, list) = vlist.hydrate(root, parent_scope, parent, fragment);
+                    (node_ref, list.into())
+                }
+                // You cannot hydrate a VRef.
+                VNode::VRef(_) => {
+                    panic!("VRef is not hydratable. Try moving it to a component mounted after an effect.")
+                }
+                // You cannot hydrate a VPortal.
+                VNode::VPortal(_) => {
+                    panic!("VPortal is not hydratable. Try creating your portal by delaying it with use_effect.")
+                }
+                VNode::VSuspense(vsuspense) => {
+                    let (node_ref, suspense) =
+                        vsuspense.hydrate(root, parent_scope, parent, fragment);
+                    (node_ref, suspense.into())
+                }
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod layout_tests {
     use super::*;

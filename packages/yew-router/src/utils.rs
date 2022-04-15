@@ -41,6 +41,7 @@ pub fn fetch_base_url() -> Option<String> {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
     gloo::utils::window()
         .location()
@@ -51,6 +52,17 @@ pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
             url.set_search(query);
             format!("{}{}", url.pathname(), url.search())
         })
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
+    let query = query.trim();
+
+    if !query.is_empty() {
+        Some(format!("{}?{}", pathname, query))
+    } else {
+        Some(pathname.to_owned())
+    }
 }
 
 #[cfg(test)]

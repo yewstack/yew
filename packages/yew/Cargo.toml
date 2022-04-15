@@ -52,6 +52,7 @@ features = [
   "Location",
   "MouseEvent",
   "Node",
+  "NodeList",
   "PointerEvent",
   "ProgressEvent",
   "Text",
@@ -88,8 +89,10 @@ features = [
 [features]
 ssr = ["futures", "html-escape"]
 csr = []
-doc_test = ["csr", "ssr"]
-wasm_test = ["csr"]
+hydration = ["csr"]
+trace_hydration = ["hydration"]
+doc_test = ["csr", "hydration", "ssr"]
+wasm_test = ["csr", "hydration", "ssr"]
 default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]

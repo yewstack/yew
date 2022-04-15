@@ -1,6 +1,6 @@
 ---
-title: "Components"
-description: "Create complex layouts with component hierarchies"
+title: 'Components'
+description: 'Create complex layouts with component hierarchies'
 ---
 
 ## Basic
@@ -56,9 +56,9 @@ impl Component for MyComponentWithProps {
     }
 }
 
-let props = Props { 
+let props = Props {
     prop1: "Hello".to_owned(),
-    prop2: "World".to_owned(), 
+    prop2: "World".to_owned(),
 };
 
 
@@ -125,7 +125,7 @@ This base expression must occur after any individual props are passed.
 When passing a base props expression with a `children` field, the children passed in the `html!` macro overwrite the ones already present in the props.
 
 ```rust
-use yew::{Children, Component, Context, html, Html, props, Properties}; 
+use yew::{Children, Component, Context, html, Html, props, Properties};
 
 #[derive(PartialEq, Properties)]
 struct Props {
@@ -231,6 +231,7 @@ html! {
 ```
 
 ## Relevant examples
-- [Boids](https://github.com/yewstack/yew/tree/master/examples/boids)
-- [Router](https://github.com/yewstack/yew/tree/master/examples/router)
-- [Store](https://github.com/yewstack/yew/tree/master/examples/store)
+
+-   [Boids](https://github.com/yewstack/yew/tree/master/examples/boids)
+-   [Router](https://github.com/yewstack/yew/tree/master/examples/router)
+-   [Store](https://github.com/yewstack/yew/tree/master/examples/store)

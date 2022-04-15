@@ -287,6 +287,98 @@ impl BTag {
     }
 }
 
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    use crate::dom_bundle::{node_type_str, Fragment, Hydratable};
+    use web_sys::Node;
+
+    impl Hydratable for VTag {
+        fn hydrate(
+            self,
+            root: &BSubtree,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut Fragment,
+        ) -> (NodeRef, Self::Bundle) {
+            let tag_name = self.tag().to_owned();
+
+            let Self {
+                inner,
+                listeners,
+                attributes,
+                node_ref,
+                key,
+            } = self;
+
+            // We trim all text nodes as it's likely these are whitespaces.
+            fragment.trim_start_text_nodes(parent);
+
+            let node = fragment
+                .pop_front()
+                .unwrap_or_else(|| panic!("expected element of type {}, found EOF.", tag_name));
+
+            assert_eq!(
+                node.node_type(),
+                Node::ELEMENT_NODE,
+                "expected element, found node type {}.",
+                node_type_str(&node),
+            );
+            let el = node.dyn_into::<Element>().expect("expected an element.");
+
+            assert_eq!(
+                el.tag_name().to_lowercase(),
+                tag_name,
+                "expected element of kind {}, found {}.",
+                tag_name,
+                el.tag_name().to_lowercase(),
+            );
+
+            // We simply registers listeners and updates all attributes.
+            let attributes = attributes.apply(root, &el);
+            let listeners = listeners.apply(root, &el);
+
+            // For input and textarea elements, we update their value anyways.
+            let inner = match inner {
+                VTagInner::Input(f) => {
+                    let f = f.apply(root, el.unchecked_ref());
+                    BTagInner::Input(f)
+                }
+                VTagInner::Textarea { value } => {
+                    let value = value.apply(root, el.unchecked_ref());
+
+                    BTagInner::Textarea { value }
+                }
+                VTagInner::Other { children, tag } => {
+                    let mut nodes = Fragment::collect_children(&el);
+                    let (_, child_bundle) = children.hydrate(root, parent_scope, &el, &mut nodes);
+
+                    nodes.trim_start_text_nodes(parent);
+
+                    assert!(nodes.is_empty(), "expected EOF, found node.");
+
+                    BTagInner::Other { child_bundle, tag }
+                }
+            };
+
+            node_ref.set(Some((*el).clone()));
+
+            (
+                node_ref.clone(),
+                BTag {
+                    inner,
+                    listeners,
+                    attributes,
+                    reference: el,
+                    node_ref,
+                    key,
+                },
+            )
+        }
+    }
+}
+
 #[cfg(feature = "wasm_test")]
 #[cfg(test)]
 mod tests {
@@ -753,7 +845,18 @@ mod tests {
             <@{"tExTAREa"}/>
         };
         let vtag = assert_vtag_ref(&el);
+        // textarea is a special element, so it gets normalized
         assert_eq!(vtag.tag(), "textarea");
+    }
+
+    #[test]
+    fn dynamic_tags_allow_custom_capitalization() {
+        let el = html! {
+            <@{"clipPath"}/>
+        };
+        let vtag = assert_vtag_ref(&el);
+        // no special treatment for elements not recognized e.g. clipPath
+        assert_eq!(vtag.tag(), "clipPath");
     }
 
     #[test]

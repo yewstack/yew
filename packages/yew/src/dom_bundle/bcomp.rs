@@ -119,6 +119,48 @@ impl Reconcilable for VComp {
     }
 }
 
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    use crate::dom_bundle::{Fragment, Hydratable};
+
+    impl Hydratable for VComp {
+        fn hydrate(
+            self,
+            root: &BSubtree,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut Fragment,
+        ) -> (NodeRef, Self::Bundle) {
+            let VComp {
+                type_id,
+                mountable,
+                node_ref,
+                key,
+            } = self;
+
+            let scoped = mountable.hydrate(
+                root.clone(),
+                parent_scope,
+                parent.clone(),
+                fragment,
+                node_ref.clone(),
+            );
+
+            (
+                node_ref.clone(),
+                BComp {
+                    type_id,
+                    scope: scoped,
+                    node_ref,
+                    key,
+                },
+            )
+        }
+    }
+}
+
 #[cfg(feature = "wasm_test")]
 #[cfg(test)]
 mod tests {

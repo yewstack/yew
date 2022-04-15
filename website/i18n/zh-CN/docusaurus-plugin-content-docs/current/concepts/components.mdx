@@ -168,4 +168,3 @@ enum Msg {
 ```
 
 `Properties` 表示从父级传递到组件的信息。此类型必须实现 `Properties` trait（通常通过派生），并且可以指定某些属性（properties）是必需的还是可选的。创建和更新组件时使用此类型。通常的做法是在组件模块中创建一个叫做 `Props` 的结构体并将其用作组件的 `Properties` 类型。通常将“properties”缩写为“props”。由于 props 是从父组件传递下来的，因此应用程序的根组件通常有一个类型为 `()` 的 `Properties`。如果你希望为根组件指定属性（properties），请使用 `App::mount_with_props` 方法。
-

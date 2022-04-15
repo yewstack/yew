@@ -44,7 +44,7 @@ use std::hint::unreachable_unchecked;
 /// Attribute value
 pub type AttrValue = imut::IString;
 
-#[cfg(feature = "ssr")] // & feature = "hydration"
+#[cfg(any(feature = "ssr", feature = "hydration"))]
 mod feat_ssr_hydration {
     /// A collectable.
     ///
@@ -116,10 +116,21 @@ mod feat_ssr_hydration {
             w.push_str(self.end_mark());
             w.push_str("-->");
         }
+
+        #[cfg(feature = "hydration")]
+        pub fn name(&self) -> super::Cow<'static, str> {
+            match self {
+                #[cfg(debug_assertions)]
+                Self::Component(m) => format!("Component({})", m).into(),
+                #[cfg(not(debug_assertions))]
+                Self::Component => "Component".into(),
+                Self::Suspense => "Suspense".into(),
+            }
+        }
     }
 }
 
-#[cfg(feature = "ssr")]
+#[cfg(any(feature = "ssr", feature = "hydration"))]
 pub(crate) use feat_ssr_hydration::*;
 
 /// A collection of attributes for an element

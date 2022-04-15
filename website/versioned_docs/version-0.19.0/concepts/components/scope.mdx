@@ -1,11 +1,11 @@
 ---
-title: "Scope"
+title: 'Scope'
 description: "Component's Scope"
 ---
 
 ## Component's `Scope<_>` API
 
-The component "`Scope`" is the mechanism through which components are able to create callbacks and update themselves 
+The component "`Scope`" is the mechanism through which components are able to create callbacks and update themselves
 using messages. We obtain a reference to this by calling `link()` on the context object passed to the component.
 
 ### `send_message`
@@ -48,16 +48,16 @@ impl Component for Comp {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        // Create a callback that accepts some text and sends it 
+        // Create a callback that accepts some text and sends it
         // to the component as the `Msg::Text` message variant.
         // highlight-next-line
         let cb = ctx.link().callback(|text: String| Msg::Text(text));
-            
+
         // The previous line is needlessly verbose to make it clearer.
         // It can be simplified it to this:
         // highlight-next-line
         let cb = ctx.link().callback(Msg::Text);
-            
+
         // Will send `Msg::Text("Hello World!")` to the component.
         // highlight-next-line
         cb.emit("Hello World!".to_owned());

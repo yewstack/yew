@@ -10,20 +10,20 @@ cargo install wasm-bindgen-cli
 
 ## ビルド
 
-はじめに、Wasmファイルを生成するアプリをビルドしましょう。
+はじめに、Wasm ファイルを生成するアプリをビルドしましょう。
 [サンプルアプリをビルド](../build-a-sample-app.mdx)のアプリをビルドしたいとします。
 生成されたファイルのパスは`target/wasm32-unknown-unknown/debug/yew-app.wasm`にあるはずです。
-もしクレートに何か別の名前をつけた場合、Wasmファイルの名前は`yew-app.wasm`ではなく、`Cargo.toml`ファイルに
+もしクレートに何か別の名前をつけた場合、Wasm ファイルの名前は`yew-app.wasm`ではなく、`Cargo.toml`ファイルに
 `package.name`として名前をつけたものになるでしょう。
 
 ```bash
 cargo build --target wasm32-unknown-unknown
 ```
 
-次に、wasm-bindgenのCLIを動かしましょう。
-このコマンドは`--out-dir`のディレクトリにいくつかのファイルを生成し、その中にはWasmバイナリを読み込んで動かすための
-コンパイルされたWebAssemblyとJavaScriptのラッパーが入っています。
-現在のブラウザは直接WebAssemblyファイルを読み込むことができないため、代わりにJavaScript経由で読み込まれるなければならず、
+次に、wasm-bindgen の CLI を動かしましょう。
+このコマンドは`--out-dir`のディレクトリにいくつかのファイルを生成し、その中には Wasm バイナリを読み込んで動かすための
+コンパイルされた WebAssembly と JavaScript のラッパーが入っています。
+現在のブラウザは直接 WebAssembly ファイルを読み込むことができないため、代わりに JavaScript 経由で読み込まれるなければならず、
 そのためにこれらのラッパーが必要となります。
 [サンプルアプリを作る(../build-a-sample-app.mdx)の例では`static`フォルダにファイルが生成されるようにしており
 (そのために`wasm-bindgen`へ`--out-dir static`と渡す必要があります)、
@@ -36,7 +36,7 @@ wasm-bindgen --target web --out-dir static --out-name wasm target/wasm32-unknown
 ## アプリをサーブする
 
 好きなサーバーを使ってください。
-ここではシンプルなPythonのサーバーを使います。
+ここではシンプルな Python のサーバーを使います。
 
 ```bash
 python -m http.server 8000
@@ -44,8 +44,8 @@ python -m http.server 8000
 
 ## サポートされているターゲット
 
-* `wasm32-unknown-unknown`
+-   `wasm32-unknown-unknown`
 
 ## 参考ドキュメント
 
-* [The `wasm-bindgen` docs](https://rustwasm.github.io/docs/wasm-bindgen/)
+-   [The `wasm-bindgen` docs](https://rustwasm.github.io/docs/wasm-bindgen/)

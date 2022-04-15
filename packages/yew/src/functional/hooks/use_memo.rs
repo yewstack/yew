@@ -3,9 +3,35 @@ use std::rc::Rc;
 
 use crate::functional::{hook, use_state};
 
-/// Get a immutable reference to a memoized value
+/// Get a immutable reference to a memoized value.
 ///
-/// Memoization means it will only get recalculated when provided dependencies update/change
+/// Memoization means it will only get recalculated when provided dependencies update/change.
+///
+/// # Example
+///
+/// ```rust
+/// # use yew::prelude::*;
+/// #
+/// #[derive(PartialEq, Properties)]
+/// pub struct Props {
+///     pub step: usize,
+/// }
+///
+/// #[function_component(UseMemo)]
+/// fn memo(props: &Props) -> Html {
+///     // Will only get recalculated if `props.step` value changes
+///     let message = use_memo(
+///         |step| format!("{}. Do Some Expensive Calculation", step),
+///         props.step
+///     );
+///
+///     html! {
+///         <div>
+///             <span>{ (*message).clone() }</span>
+///         </div>
+///     }
+/// }
+/// ```
 #[hook]
 pub fn use_memo<T, F, D>(f: F, deps: D) -> Rc<T>
 where

@@ -58,15 +58,12 @@ impl NavigatorContext {
     }
 }
 
-/// The Router component.
+/// The base router.
 ///
-/// This provides location and navigator context to its children and switches.
-///
-/// If you are building a web application, you may want to consider using [`BrowserRouter`] instead.
-///
-/// You only need one `<Router />` for each application.
-#[function_component(Router)]
-pub fn router(props: &RouterProps) -> Html {
+/// The implementation is separated to make sure <Router /> has the same virtual dom layout as
+/// the <BrowserRouter /> and <HashRouter />.
+#[function_component(BaseRouter)]
+fn base_router(props: &RouterProps) -> Html {
     let RouterProps {
         history,
         children,
@@ -117,6 +114,20 @@ pub fn router(props: &RouterProps) -> Html {
     }
 }
 
+/// The Router component.
+///
+/// This provides location and navigator context to its children and switches.
+///
+/// If you are building a web application, you may want to consider using [`BrowserRouter`] instead.
+///
+/// You only need one `<Router />` for each application.
+#[function_component(Router)]
+pub fn router(props: &RouterProps) -> Html {
+    html! {
+        <BaseRouter ..{props.clone()} />
+    }
+}
+
 /// Props for [`BrowserRouter`] and [`HashRouter`].
 #[derive(Properties, PartialEq, Clone)]
 pub struct ConcreteRouterProps {
@@ -143,9 +154,9 @@ pub fn browser_router(props: &ConcreteRouterProps) -> Html {
     let basename = basename.map(|m| m.to_string()).or_else(base_url);
 
     html! {
-        <Router history={(*history).clone()} {basename}>
+        <BaseRouter history={(*history).clone()} {basename}>
             {children}
-        </Router>
+        </BaseRouter>
     }
 }
 
@@ -163,8 +174,8 @@ pub fn hash_router(props: &ConcreteRouterProps) -> Html {
     let history = use_state(|| AnyHistory::from(HashHistory::new()));
 
     html! {
-        <Router history={(*history).clone()} {basename}>
+        <BaseRouter history={(*history).clone()} {basename}>
             {children}
-        </Router>
+        </BaseRouter>
     }
 }

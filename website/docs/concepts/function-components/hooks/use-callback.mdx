@@ -1,0 +1,65 @@
+---
+title: 'use_callback'
+---
+
+`use_callback` is used for obtaining an immutable reference to a memoized `Callback`.
+Its state persists across renders.
+It will be recreated only if any of the dependencies values change.
+
+`use_callback` can be useful when passing callbacks to optimized child components that rely on
+PartialEq to prevent unnecessary renders.
+
+```rust
+use yew::prelude::*;
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    pub callback: Callback<String, String>,
+}
+
+#[function_component(MyComponent)]
+fn my_component(props: &Props) -> Html {
+    let greeting = props.callback.emit("Yew".to_string());
+
+    html! {
+        <>{ &greeting }</>
+    }
+}
+
+#[function_component(UseCallback)]
+fn callback() -> Html {
+    let counter = use_state(|| 0);
+    let onclick = {
+        let counter = counter.clone();
+        Callback::from(move |_| counter.set(*counter + 1))
+    };
+
+    // This callback depends on (), so it's created only once, then MyComponent
+    // will be rendered only once even when you click the button mutiple times.
+    let callback = use_callback(
+        move |name| format!("Hello, {}!", name),
+        ()
+    );
+
+    // It can also be used for events.
+    let oncallback = {
+        let counter = counter.clone();
+        use_callback(
+            move |_e| (),
+            counter
+        )
+    };
+
+    html! {
+        <div>
+            <button {onclick}>{ "Increment value" }</button>
+            <button onclick={oncallback}>{ "Callback" }</button>
+            <p>
+                <b>{ "Current value: " }</b>
+                { *counter }
+            </p>
+            <MyComponent {callback} />
+        </div>
+    }
+}
+```

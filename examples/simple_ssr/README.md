@@ -2,5 +2,16 @@
 
 This example demonstrates server-side rendering.
 
-Run `cargo run -p simple_ssr` and navigate to http://localhost:8080/ to
-view results.
+# How to run this example
+
+1. build hydration bundle
+
+`trunk build examples/simple_ssr/index.html`
+
+2. Run the server
+
+`cargo run --bin simple_ssr_server -- --dir examples/simple_ssr/dist`
+
+3. Open Browser
+
+Navigate to http://localhost:8080/ to view results.

@@ -97,7 +97,7 @@ impl Component for MyComponent {
 
 ### Update
 
-元件是可動態更新且可以註冊接收非同步的訊息。 `update()` 生命周期方法會被每個訊息呼叫。他基於訊息是什麼，來允許元件更新自己，且會決定是否需要重新渲染。 訊息可以被 HTML 元素的監聽器觸發，或被子元件、Agents、Services 或 Futures 傳送。 
+元件是可動態更新且可以註冊接收非同步的訊息。 `update()` 生命周期方法會被每個訊息呼叫。他基於訊息是什麼，來允許元件更新自己，且會決定是否需要重新渲染。 訊息可以被 HTML 元素的監聽器觸發，或被子元件、Agents、Services 或 Futures 傳送。
 
 `update()` 應用範例：
 
@@ -172,5 +172,4 @@ enum Msg {
 }
 ```
 
-`Properties` 代表要從父員件傳遞到子元件的資訊。這個型別必須實作 `Properties` trait （通常會 deriving 他）並且可以決定某個屬性是必要的屬性，或是可選的屬性。這個型別會在創建元件的時候，或是更新元件的時候被使用到。常見的實作會在你的元件模組中，建立一個叫作 `Props`  的 struct，然後把他當作元件的`Properties` 型別。通常 properties 或縮寫成 props。因為屬性是從父原件被傳下來的，所以應用程式中的根元件的 `Properties` 原則上都是 `()`。如果你希望你的根元件有特定的屬性，可以使用 `App::mount_with_props` 的方法。
-
+`Properties` 代表要從父員件傳遞到子元件的資訊。這個型別必須實作 `Properties` trait （通常會 deriving 他）並且可以決定某個屬性是必要的屬性，或是可選的屬性。這個型別會在創建元件的時候，或是更新元件的時候被使用到。常見的實作會在你的元件模組中，建立一個叫作 `Props` 的 struct，然後把他當作元件的`Properties` 型別。通常 properties 或縮寫成 props。因為屬性是從父原件被傳下來的，所以應用程式中的根元件的 `Properties` 原則上都是 `()`。如果你希望你的根元件有特定的屬性，可以使用 `App::mount_with_props` 的方法。

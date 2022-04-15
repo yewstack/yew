@@ -34,6 +34,7 @@ members = [
   "examples/two_apps",
   "examples/webgl",
   "examples/web_worker_fib",
+  "examples/ssr_router",
   "examples/suspense",
   "examples/immutable",
 

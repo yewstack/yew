@@ -6,4 +6,7 @@ fn use_some_string(a: impl ::std::convert::Into<::std::string::String>) -> ::std
     a.into()
 }
 
+#[::yew::prelude::hook]
+fn use_impl_fn<T, U>(_callback: impl ::std::prelude::rust_2021::Fn(&T) -> &U) {}
+
 fn main() {}

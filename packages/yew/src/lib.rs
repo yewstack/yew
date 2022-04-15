@@ -24,6 +24,9 @@
 //! - `tokio`: Enables future-based APIs on non-wasm32 targets with tokio runtime. (You may want to
 //! enable this if your application uses future-based APIs and it does not compile / lint on
 //! non-wasm32 targets.)
+//! - `hydration`: Enables Hydration support.
+//! - `trace_hydration`: Enables trace logging on hydration. (Implies `hydration`. You may want to enable this if you are
+//! trying to debug hydration layout mismatch.)
 //!
 //! ## Example
 //!
@@ -281,6 +284,7 @@ pub mod virtual_dom;
 pub use imut as immutable;
 #[cfg(feature = "ssr")]
 pub use server_renderer::*;
+
 #[cfg(feature = "csr")]
 mod app_handle;
 #[cfg(feature = "csr")]
@@ -318,6 +322,7 @@ pub mod prelude {
     //! # #![allow(unused_imports)]
     //! use yew::prelude::*;
     //! ```
+
     #[cfg(feature = "csr")]
     pub use crate::app_handle::AppHandle;
     pub use crate::callback::Callback;

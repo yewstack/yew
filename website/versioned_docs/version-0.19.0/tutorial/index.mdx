@@ -1,5 +1,5 @@
 ---
-title: "Tutorial"
+title: 'Tutorial'
 slug: /tutorial
 ---
 
@@ -26,14 +26,14 @@ get an overview of the talks and watch them all from one page.
 
 To get started, let's make sure we have an up-to-date development environment.
 We will need the following tools:
-- [Rust](https://www.rust-lang.org/)
-- [`trunk`](https://trunkrs.dev/)
-- `wasm32-unknown-unknown` target, the WASM compiler and build target for Rust.
+
+-   [Rust](https://www.rust-lang.org/)
+-   [`trunk`](https://trunkrs.dev/)
+-   `wasm32-unknown-unknown` target, the WASM compiler and build target for Rust.
 
 This tutorial also assumes you're already familiar with Rust. If you're new to Rust,
 the free [Rust Book](https://doc.rust-lang.org/book/ch00-00-introduction.html) offers a great starting point for
 beginners and continues to be an excellent resource even for experienced Rust developers.
-
 
 Ensure the latest version of Rust is installed by running `rustup update` or by
 [installing rust](https://www.rust-lang.org/tools/install) if you haven't already done so already.
@@ -101,11 +101,8 @@ Now, let's create an `index.html` at the root of the project.
 ```html title="index.html"
 <!DOCTYPE html>
 <html lang="en">
-<head>
-</head>
-<body>
-
-</body>
+    <head> </head>
+    <body></body>
 </html>
 ```
 
@@ -138,7 +135,7 @@ writing marking inside `html!`. It is important to note that the macro does diff
 
 1. Expressions must be wrapped in curly braces (`{ }`)
 2. There must only be one root node. If you want to have multiple elements without wrapping them in a container,
-an empty tag/fragment (`<> ... </>`) is used
+   an empty tag/fragment (`<> ... </>`) is used
 3. Elements must be closed properly.
 
 We want to build a layout that looks something like this in raw HTML:
@@ -154,7 +151,10 @@ We want to build a layout that looks something like this in raw HTML:
 </div>
 <div>
     <h3>John Doe: Building and breaking things</h3>
-    <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail">
+    <img
+        src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder"
+        alt="video thumbnail"
+    />
 </div>
 ```
 
@@ -268,6 +268,7 @@ them in multiple parts of our application without having to duplicate code or lo
 
 In fact, the `app` function we have been using so far is a component, called `App`. It is a "function component".
 There are two different types of components in Yew.
+
 1. Struct Components
 2. Function Components
 
@@ -462,12 +463,13 @@ Struct components act differently. See [the documentation](concepts/components/i
 
 In a real world application, data will usually come from an API instead of being hardcoded. Let's fetch our
 videos list from external source. For this we will need to add the following crates:
-- [`reqwasm`](https://crates.io/crates/reqwasm)
-  For making the fetch call.
-- [`serde`](https://serde.rs) with derive features
-  For de-serializing the JSON response
-- [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
-  For executing Rust Future as a Promise
+
+-   [`reqwasm`](https://crates.io/crates/reqwasm)
+    For making the fetch call.
+-   [`serde`](https://serde.rs) with derive features
+    For de-serializing the JSON response
+-   [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+    For executing Rust Future as a Promise
 
 Let's update the dependencies in `Cargo.toml` file:
 
