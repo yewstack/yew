@@ -11,10 +11,6 @@
     "message": "More",
     "description": "The title of the footer links column with title=More in the footer"
   },
-  "link.item.label.Fund Issues": {
-    "message": "Fund Issues",
-    "description": "The label of footer link with label=Fund Issues linking to https://issuehunt.io/r/yewstack/yew"
-  },
   "link.item.label.Sponsor Project": {
     "message": "Sponsor Project",
     "description": "The label of footer link with label=Sponsor Project linking to https://opencollective.com/yew"

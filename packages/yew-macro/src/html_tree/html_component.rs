@@ -166,7 +166,7 @@ impl HtmlComponent {
                 if punct.as_char() == '>' {
                     break;
                 } else if punct.as_char() == ',' {
-                    args.push_punct(Token![,](Span::call_site()))
+                    args.push_punct(Token![,](Span::mixed_site()))
                 }
             }
         }
@@ -174,9 +174,9 @@ impl HtmlComponent {
         Some((
             PathArguments::AngleBracketed(AngleBracketedGenericArguments {
                 colon2_token: None,
-                lt_token: Token![<](Span::call_site()),
+                lt_token: Token![<](Span::mixed_site()),
                 args,
-                gt_token: Token![>](Span::call_site()),
+                gt_token: Token![>](Span::mixed_site()),
             }),
             cursor,
         ))
@@ -191,7 +191,7 @@ impl HtmlComponent {
             let mut post_colons_cursor = cursor;
             if let Some(c) = Self::double_colon(post_colons_cursor) {
                 if colons_optional {
-                    leading_colon = Some(Token![::](Span::call_site()));
+                    leading_colon = Some(Token![::](Span::mixed_site()));
                 }
                 post_colons_cursor = c;
             } else if !colons_optional {

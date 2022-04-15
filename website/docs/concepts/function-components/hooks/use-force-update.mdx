@@ -1,0 +1,19 @@
+---
+title: 'use_force_update'
+---
+
+`use_force_update` is a low-level hook specialized to triggering a re-render of a function component.
+Usually, this re-render is triggered automatically by the hook holding your data, for example when
+changing the data in a handle returned from [`use_state`](./use-state).
+
+::: caution
+
+Often, using this hook means you are doing something wrong and should use one of the other hooks,
+for example [`use_reducer`](./use-reducer) is a great way to track changing data.
+
+:::
+
+Use this hook when wrapping an API that doesn't expose precise subscription events for fetched data.
+You could then, at some point, invalidate your local cache of the fetched data and trigger a re-render
+to let the normal render flow of components tell you again which data to fetch, and repopulate the
+cache accordingly.

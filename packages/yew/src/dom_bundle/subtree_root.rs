@@ -8,8 +8,7 @@ use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::rc::{Rc, Weak};
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
-use wasm_bindgen::prelude::wasm_bindgen;
-use wasm_bindgen::JsCast;
+use wasm_bindgen::{prelude::wasm_bindgen, JsCast};
 use web_sys::{Element, Event, EventTarget as HtmlEventTarget};
 
 /// DOM-Types that capture (bubbling) events. This generally includes event targets,

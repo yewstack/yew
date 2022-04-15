@@ -2,9 +2,13 @@ name: Benchmark
 
 on:
   push:
+    paths-ignore:
+      - 'website/**'
     branches:
       - master
   pull_request_target:
+    paths-ignore:
+      - 'website/**'
     types: [labeled, synchronize, opened, reopened]
 
 permissions:

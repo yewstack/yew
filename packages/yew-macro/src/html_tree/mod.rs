@@ -243,7 +243,7 @@ impl HtmlChildrenTree {
             };
         }
 
-        let vec_ident = Ident::new("__yew_v", Span::call_site());
+        let vec_ident = Ident::new("__yew_v", Span::mixed_site());
         let add_children_streams = children.iter().map(|child| {
             if let Some(node_iterator_stream) = child.to_node_iterator_stream() {
                 quote! {

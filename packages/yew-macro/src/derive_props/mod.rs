@@ -80,7 +80,7 @@ impl ToTokens for DerivePropsInput {
         } = self;
 
         // The wrapper is a new struct which wraps required props in `Option`
-        let wrapper_name = format_ident!("{}Wrapper", props_name, span = Span::call_site());
+        let wrapper_name = format_ident!("{}Wrapper", props_name, span = Span::mixed_site());
         let wrapper = PropsWrapper::new(
             &wrapper_name,
             generics,
@@ -90,8 +90,8 @@ impl ToTokens for DerivePropsInput {
         tokens.extend(wrapper.into_token_stream());
 
         // The builder will only build if all required props have been set
-        let builder_name = format_ident!("{}Builder", props_name, span = Span::call_site());
-        let builder_step = format_ident!("{}BuilderStep", props_name, span = Span::call_site());
+        let builder_name = format_ident!("{}Builder", props_name, span = Span::mixed_site());
+        let builder_step = format_ident!("{}BuilderStep", props_name, span = Span::mixed_site());
         let builder = PropsBuilder::new(
             &builder_name,
             &builder_step,

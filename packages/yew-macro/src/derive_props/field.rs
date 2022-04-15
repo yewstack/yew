@@ -191,7 +191,7 @@ impl PropField {
             Ok(PropAttr::Option)
         } else {
             let ident = named_field.ident.as_ref().unwrap();
-            let wrapped_name = format_ident!("{}_wrapper", ident, span = Span::call_site());
+            let wrapped_name = format_ident!("{}_wrapper", ident, span = Span::mixed_site());
             Ok(PropAttr::Required { wrapped_name })
         }
     }

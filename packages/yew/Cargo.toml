@@ -18,7 +18,7 @@ rust-version = "1.56.0"
 
 [dependencies]
 console_error_panic_hook = "0.1"
-gloo = "0.6"
+gloo = "0.7"
 gloo-utils = "0.1.0"
 indexmap = { version = "1", features = ["std"] }
 js-sys = "0.3"
@@ -72,7 +72,7 @@ tokio = { version = "1.15.0", features = ["rt"], optional = true }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
-gloo = { version = "0.6", features = ["futures"] }
+gloo = { version = "0.7", features = ["futures"] }
 wasm-bindgen-futures = "0.4"
 rustversion = "1"
 trybuild = "1"

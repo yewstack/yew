@@ -84,7 +84,7 @@ fn new_param_bounds(param_ident: Ident, param_bounds: Ident) -> GenericParam {
     GenericParam::Type(TypeParam {
         attrs: Vec::new(),
         ident: param_ident,
-        colon_token: Some(Token![:](Span::call_site())),
+        colon_token: Some(Token![:](Span::mixed_site())),
         bounds: param_bounds,
         eq_token: None,
         default: None,

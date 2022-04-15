@@ -1,0 +1,121 @@
+---
+title: 自定义钩子（Custom Hooks）
+description: 定义你自己的 Hooks
+---
+
+## 定义自定义钩子
+
+组件中与状态有关的逻辑可以通过创建自定义 Hooks 提取到函数中。
+
+假设我们有一个组件，它订阅了一个代理（agent）并且会显示发送给它的消息。
+
+```rust
+#[function_component(ShowMessages)]
+pub fn show_messages() -> Html {
+    let (state, set_state) = use_state(|| vec![]);
+
+    {
+        let mut state = Rc::clone(&state);
+        use_effect(move || {
+            let producer = EventBus::bridge(Callback::from(move |msg| {
+                let mut messages = (*state).clone();
+                messages.push(msg);
+                set_state(messages)
+            }));
+
+            || drop(producer)
+        });
+    }
+
+    let output = state.iter().map(|it| html! { <p>{ it }</p> });
+    html! { <div>{ for output }</div> }
+}
+```
+
+这段代码有一个问题：逻辑不能被另一个组件重用。如果我们构建另一个跟踪消息的组件，我们可以将逻辑移动到自定义钩子中，而不是复制代码。
+
+我们将首先创建一个名为`use_subscribe`的新函数。 `use_`前缀通常表示此函数是一个钩子。这个函数将不接受任何参数并返回`Rc<RefCell<Vec<String>>>` 。
+
+```rust
+fn use_subscribe() -> Rc<RefCell<Vec<String>>> {
+    // ...
+}
+```
+
+钩子的逻辑在`use_hook`的回调中。 `use_hook`指的是自定义 Hook 的处理函数。它接受 2 个参数： `hook_runner`和`initial_state_producer` 。
+
+`hook_runner`中包含了所有钩子的逻辑，它的回调的返回值又会被`use_hook`返回。 `hook_runner`需要 2 个参数：分别是对钩子和`hook_callback`它们两个的内部状态的可变引用。 而`hook_callback`同样也要 2 个参数：一个回调和一个 bool，回调接受`internal_state` ，也就是对内部状态实例的可变引用，并且会调执行实际的更改，还会返回表示`ShouldRender`的布尔值，第二个参数 bool 的用处是指示它是否在组件渲染后运行。`use_hook`的第二个参数`initial_state_producer`接受用于创建内部状态实例的回调。这里说的内部状态指的是一个实现了`Hook` trait 的结构体。
+
+现在让我们为`use_subscribe`钩子创建状态（state struct）。
+
+```rust
+/// `use_subscribe` internal state
+struct UseSubscribeState {
+    /// holds all the messages received
+    pub messages: Rc<RefCell<Vec<String>>>,
+}
+
+impl Hook for UseSubscribeState {}
+```
+
+接下来我们为`use_subscribe`添加实际逻辑。
+
+```rust
+fn use_subscribe() -> Rc<RefCell<Vec<String>>> {
+    use_hook(
+        // hook's handler. all the logic goes in here
+        |state: &mut UseSubscribeState, hook_callback| {
+            // calling other Hooks inside a hook
+            use_effect(move || {
+                let producer = EventBus::bridge(Callback::from(move |msg| {
+                    hook_callback(
+                        // where the mutations of state are performed
+                        |state| {
+                            (*state.messages).borrow_mut().deref_mut().push(msg);
+                            true // should re-render
+                        }, false // run post-render
+                    )
+                }));
+
+                || drop(producer)
+            });
+
+            // return from hook
+            state.messages.clone()
+        },
+        // initial state producer
+        || UseSubscribeState { messages: Rc::new(RefCell::new(vec![])) },
+    )
+}
+```
+
+现在我们可以使用自定义钩子了：
+
+```rust
+#[function_component(ShowMessages)]
+pub fn show_messages() -> Html {
+    let state = use_subscribe();
+    let output = state.borrow().deref().into_iter().map(|it| html! { <p>{ it }</p> });
+
+    html! { <div>{ for output }</div> }
+}
+```
+
+需要特别注意的是创建自定义钩子时`use_hook`不是必须的，它们只是用来包含其他钩子。通常应避免使用`use_hook`。
+
+```rust
+fn use_subscribe() -> Rc<Vec<String>> {
+    let (state, set_state) = use_state(Vec::new);
+
+    use_effect(move || {
+        let producer = EventBus::bridge(Callback::from(move |msg| {
+            let mut messages = (*state).clone();
+            messages.push(msg);
+            set_state(messages)
+        }));
+        || drop(producer)
+    });
+
+    state
+}
+```

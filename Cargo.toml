@@ -12,6 +12,7 @@ members = [
   "examples/boids",
   "examples/contexts",
   "examples/counter",
+  "examples/counter_functional",
   "examples/dyn_create_destroy_apps",
   "examples/file_upload",
   "examples/function_memory_game",

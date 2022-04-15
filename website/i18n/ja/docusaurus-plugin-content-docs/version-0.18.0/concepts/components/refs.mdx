@@ -3,8 +3,8 @@ title: Refs
 description: Out-of-band DOM access
 ---
 
-`ref`は、任意のHTML要素やコンポーネントの内部で、割り当てられているDOM`Element`を取得するために使用することができます。
-これは、`view` ライフサイクルメソッドの外でDOMに変更を加えるために使用できます。
+`ref`は、任意の HTML 要素やコンポーネントの内部で、割り当てられている DOM`Element`を取得するために使用することができます。
+これは、`view` ライフサイクルメソッドの外で DOM に変更を加えるために使用できます。
 
 これは、キャンバスの要素を取得したり、ページの異なるセクションにスクロールしたりするのに便利です。
 
@@ -22,4 +22,3 @@ html! {
 // In update
 let has_attributes = self.node_ref.try_into::<Element>().has_attributes();
 ```
-

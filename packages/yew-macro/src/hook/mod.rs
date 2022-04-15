@@ -141,7 +141,7 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
         quote! {
             let #boxed_inner_ident = ::std::boxed::Box::new(
                     move |#ctx_ident: &mut ::yew::functional::HookContext| #inner_fn_rt {
-                        #inner_fn_ident #call_generics (#ctx_ident, #(#input_args,)*)
+                        #inner_fn_ident (#ctx_ident, #(#input_args,)*)
                     }
                 ) as #boxed_fn_type;
 
@@ -162,6 +162,7 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
                 #args_ident: (#(#input_types,)*),
             }
 
+            #[automatically_derived]
             impl #impl_generics ::yew::functional::Hook for #hook_struct_name #ty_generics #where_clause {
                 type Output = #output_type;
 
@@ -172,6 +173,7 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
                 }
             }
 
+            #[automatically_derived]
             impl #impl_generics #hook_struct_name #ty_generics #where_clause {
                 fn new(#inputs) -> Self {
                    #hook_struct_name {

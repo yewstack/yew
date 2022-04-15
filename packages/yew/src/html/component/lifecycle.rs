@@ -305,7 +305,7 @@ pub(crate) enum UpdateEvent {
     Message,
     /// Wraps properties, node ref, and next sibling for a component
     #[cfg(feature = "csr")]
-    Properties(Rc<dyn Any>, NodeRef, NodeRef),
+    Properties(Rc<dyn Any>, NodeRef),
 }
 
 pub(crate) struct UpdateRunner {
@@ -320,16 +320,13 @@ impl Runnable for UpdateRunner {
                 UpdateEvent::Message => state.inner.flush_messages(),
 
                 #[cfg(feature = "csr")]
-                UpdateEvent::Properties(props, next_node_ref, next_sibling) => {
+                UpdateEvent::Properties(props, next_sibling) => {
                     match state.render_state {
                         #[cfg(feature = "csr")]
                         ComponentRenderState::Render {
-                            ref mut node_ref,
                             next_sibling: ref mut current_next_sibling,
                             ..
                         } => {
-                            // When components are updated, a new node ref could have been passed in
-                            *node_ref = next_node_ref;
                             // When components are updated, their siblings were likely also updated
                             *current_next_sibling = next_sibling;
                             // Only trigger changed if props were changed
@@ -338,12 +335,9 @@ impl Runnable for UpdateRunner {
 
                         #[cfg(feature = "hydration")]
                         ComponentRenderState::Hydration {
-                            ref mut node_ref,
                             next_sibling: ref mut current_next_sibling,
                             ..
                         } => {
-                            // When components are updated, a new node ref could have been passed in
-                            *node_ref = next_node_ref;
                             // When components are updated, their siblings were likely also updated
                             *current_next_sibling = next_sibling;
                             // Only trigger changed if props were changed

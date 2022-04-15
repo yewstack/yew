@@ -2,6 +2,7 @@
 title: Components
 description: Create complex layouts with component hierarchies
 ---
+
 ## 基本
 
 `Component`を実装しているあらゆる型は`html!`マクロの中で使えます:
@@ -65,12 +66,12 @@ impl Component for Container {
 これは`#[derive(Properties, Clone)]`を使うか手で`Clone`を実装すれば良いです。
 :::
 
-## Propsとネストした子コンポーネント
+## Props とネストした子コンポーネント
 
 ネストしたコンポーネントのプロパティは格納しているコンポーネントの型が子である場合はアクセス可能、または変更可能です。
 以下の例では`List`コンポーネントは`ListItem`コンポーネントをラップできています。
 実際の使用においてこのパターンの例については`yew-router`のソースコードを確認してみてください。
-より進んだ例としてはYewのメインのリポジトリにある`nested-list`を確認してみてください。
+より進んだ例としては Yew のメインのリポジトリにある`nested-list`を確認してみてください。
 
 ```rust title="parent.rs"
 html! {
@@ -105,4 +106,3 @@ impl Component for List {
     }
 }
 ```
-

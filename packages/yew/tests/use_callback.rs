@@ -19,7 +19,7 @@ async fn use_callback_works() {
         callback: Callback<String, String>,
     }
 
-    #[function_component(MyComponennt)]
+    #[function_component(MyComponent)]
     fn my_component(props: &Props) -> Html {
         let greeting = props.callback.emit("Yew".to_string());
 
@@ -54,7 +54,7 @@ async fn use_callback_works() {
 
         html! {
             <div>
-                <MyComponennt {callback} />
+                <MyComponent {callback} />
             </div>
         }
     }
