@@ -129,7 +129,7 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
         ReturnType::Type(rarrow, _) => Some(quote! { #rarrow #output_type }),
     };
 
-    let inner_fn = quote! { fn #inner_fn_ident #generics (#ctx_ident: &mut ::yew::functional::HookContext, #inputs) #inner_fn_rt #where_clause #block };
+    let inner_fn = quote! { fn #inner_fn_ident #generics (#ctx_ident: &::yew::functional::HookContext, #inputs) #inner_fn_rt #where_clause #block };
 
     let inner_type_impl = if hook_sig.needs_boxing {
         let with_output = !matches!(hook_sig.output_type, Type::ImplTrait(_),);
@@ -162,6 +162,7 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
 
         let phantom_types = hook_sig.phantom_types();
         let phantom_lifetimes = hook_sig.phantom_lifetimes();
+        let hook_lifetime = &hook_sig.hook_lifetime;
 
         quote! {
             struct #hook_struct_name #generics #where_clause {
@@ -170,10 +171,10 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
             }
 
             #[automatically_derived]
-            impl #impl_generics ::yew::functional::Hook for #hook_struct_name #ty_generics #where_clause {
+            impl #impl_generics ::yew::functional::Hook<#hook_lifetime> for #hook_struct_name #ty_generics #where_clause {
                 type Output = #output_type;
 
-                fn run(mut self, #ctx_ident: &mut ::yew::functional::HookContext) -> Self::Output {
+                fn run(mut self, #ctx_ident: &::yew::functional::HookContext) -> Self::Output {
                     let (#(#input_args,)*) = self.#args_ident;
 
                     #inner_fn_ident #call_generics (#ctx_ident, #(#input_args,)*)

@@ -1,6 +1,6 @@
 use proc_macro2::{Span, TokenStream};
 use proc_macro_error::emit_error;
-use quote::{quote, ToTokens};
+use quote::ToTokens;
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
@@ -44,11 +44,9 @@ pub struct HookSignature {
 
 impl HookSignature {
     fn rewrite_return_type(hook_lifetime: &Lifetime, rt_type: &ReturnType) -> (ReturnType, Type) {
-        let bound = quote! { #hook_lifetime + };
-
         match rt_type {
             ReturnType::Default => (
-                parse_quote! { -> impl #bound ::yew::functional::Hook<Output = ()> },
+                parse_quote! { -> impl ::yew::functional::Hook<#hook_lifetime, Output = ()> },
                 parse_quote! { () },
             ),
             ReturnType::Type(arrow, ref return_type) => {
@@ -61,7 +59,7 @@ impl HookSignature {
 
                         return (
                             parse_quote_spanned! {
-                                return_type.span() => #arrow impl #bound ::yew::functional::Hook<Output = #return_type_ref>
+                                return_type.span() => #arrow impl ::yew::functional::Hook<#hook_lifetime, Output = #return_type_ref>
                             },
                             return_type_ref,
                         );
@@ -70,7 +68,7 @@ impl HookSignature {
 
                 (
                     parse_quote_spanned! {
-                        return_type.span() => #arrow impl #bound ::yew::functional::Hook<Output = #return_type>
+                        return_type.span() => #arrow impl ::yew::functional::Hook<#hook_lifetime, Output = #return_type>
                     },
                     *return_type.clone(),
                 )

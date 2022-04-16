@@ -35,7 +35,7 @@ pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<T> {
         context: Option<(T, ContextHandle<T>)>,
     }
 
-    let scope = use_component_scope();
+    let scope = use_component_scope().clone();
 
     let val = use_state(|| -> Option<T> { None });
     let state = {

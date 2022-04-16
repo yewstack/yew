@@ -25,10 +25,12 @@ use std::any::Any;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
+use wasm_bindgen::prelude::UnwrapThrowExt;
 
-use wasm_bindgen::prelude::*;
-
+mod append_vec;
 mod hooks;
+
+use append_vec::AppendOnlyList;
 pub use hooks::*;
 
 /// This attribute creates a function component from a normal Rust function.
@@ -65,8 +67,18 @@ pub use yew_macro::hook;
 type ReRender = Rc<dyn Fn()>;
 
 /// Primitives of a Hook state.
-pub(crate) trait Effect {
-    fn rendered(&self) {}
+pub(crate) trait Effect: ToAny {
+    fn rendered(&mut self) {}
+}
+
+pub(crate) trait ToAny: Any {
+    fn as_any(&mut self) -> &mut dyn Any;
+}
+
+impl<T: Effect> ToAny for T {
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
+    }
 }
 
 /// A hook context to be passed to hooks.
@@ -74,115 +86,66 @@ pub struct HookContext {
     pub(crate) scope: AnyScope,
     re_render: ReRender,
 
-    states: Vec<Rc<dyn Any>>,
-    effects: Vec<Rc<dyn Effect>>,
-
-    counter: usize,
-    #[cfg(debug_assertions)]
-    total_hook_counter: Option<usize>,
+    states: AppendOnlyList<dyn Any>,
+    effects: AppendOnlyList<dyn Effect>,
 }
 
 impl HookContext {
     fn new(scope: AnyScope, re_render: ReRender) -> RefCell<Self> {
         RefCell::new(HookContext {
-            effects: Vec::new(),
             scope,
             re_render,
-            states: Vec::new(),
-
-            counter: 0,
-            #[cfg(debug_assertions)]
-            total_hook_counter: None,
+            states: AppendOnlyList::new(),
+            effects: AppendOnlyList::new(),
         })
     }
 
-    pub(crate) fn next_state<T>(&mut self, initializer: impl FnOnce(ReRender) -> T) -> Rc<T>
+    #[allow(clippy::mut_from_ref)]
+    pub(crate) fn next_state<T>(&self, initializer: impl FnOnce() -> T) -> &mut T
     where
         T: 'static,
     {
-        // Determine which hook position we're at and increment for the next hook
-        let hook_pos = self.counter;
-        self.counter += 1;
-
-        let state = match self.states.get(hook_pos).cloned() {
-            Some(m) => m,
-            None => {
-                let initial_state = Rc::new(initializer(self.re_render.clone()));
-                self.states.push(initial_state.clone());
-
-                initial_state
-            }
-        };
-
-        state.downcast().unwrap_throw()
+        let wrapped_init = || Box::new(initializer()) as Box<dyn Any>;
+        let state = self.states.next_state(wrapped_init);
+        state.downcast_mut().unwrap_throw()
     }
 
-    pub(crate) fn next_effect<T>(&mut self, initializer: impl FnOnce(ReRender) -> T) -> Rc<T>
+    #[allow(clippy::mut_from_ref)]
+    pub(crate) fn next_effect<T>(&self, initializer: impl FnOnce() -> T) -> &mut T
     where
         T: 'static + Effect,
     {
-        let prev_state_len = self.states.len();
-        let t = self.next_state(initializer);
-
-        // This is a new effect, we add it to effects.
-        if self.states.len() != prev_state_len {
-            self.effects.push(t.clone());
-        }
-
-        t
+        let wrapped_init = || Box::new(initializer()) as Box<dyn Effect>;
+        let effect = self.effects.next_state(wrapped_init);
+        effect.as_any().downcast_mut().unwrap_throw()
     }
 
     #[inline(always)]
     fn prepare_run(&mut self) {
-        self.counter = 0;
+        self.states.restart();
+        self.effects.restart();
     }
 
-    /// asserts hook counter.
-    ///
-    /// This function asserts that the number of hooks matches for every render.
-    #[cfg(debug_assertions)]
-    fn assert_hook_context(&mut self, render_ok: bool) {
-        // Procedural Macros can catch most conditionally called hooks at compile time, but it cannot
-        // detect early return (as the return can be Err(_), Suspension).
-        match (render_ok, self.total_hook_counter) {
-            // First rendered,
-            // we store the hook counter.
-            (true, None) => {
-                self.total_hook_counter = Some(self.counter);
-            }
-            // Component is suspended before it's first rendered.
-            // We don't have a total count to compare with.
-            (false, None) => {}
-
-            // Subsequent render,
-            // we compare stored total count and current render count.
-            (true, Some(total_hook_counter)) => assert_eq!(
-                total_hook_counter, self.counter,
-                "Hooks are called conditionally."
-            ),
-
-            // Subsequent suspension,
-            // components can have less hooks called when suspended, but not more.
-            (false, Some(total_hook_counter)) => assert!(
-                self.counter <= total_hook_counter,
-                "Hooks are called conditionally."
-            ),
-        }
-    }
-
-    fn run_effects(&self) {
-        for effect in self.effects.iter() {
-            effect.rendered();
+    fn run_effects(&mut self) {
+        for effect in self.effects.get_mut().iter_mut() {
+            effect.as_mut().rendered();
         }
     }
 
     fn drain_states(&mut self) {
         // We clear the effects as these are also references to states.
-        self.effects.clear();
+        self.effects.get_mut().clear();
 
-        for state in self.states.drain(..) {
+        // Vec doesn't guarantee the order, this does
+        for state in self.states.get_mut().drain(..) {
             drop(state);
         }
+    }
+
+    #[cfg(debug_assertions)]
+    fn assert_hook_context(&mut self, render_ok: bool) {
+        self.states.assert_hook_context(render_ok);
+        self.effects.assert_hook_context(render_ok);
     }
 }
 
@@ -259,7 +222,7 @@ where
 
     /// Run Effects of a function component.
     pub fn rendered(&self) {
-        let hook_ctx = self.hook_ctx.borrow();
+        let mut hook_ctx = self.hook_ctx.borrow_mut();
         hook_ctx.run_effects();
     }
 
