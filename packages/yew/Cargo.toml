@@ -73,6 +73,7 @@ tokio = { version = "1.15.0", features = ["rt"], optional = true }
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
 gloo = { version = "0.6", features = ["futures"] }
+gloo-net = { version = "0.2", features = ["http"] }
 wasm-bindgen-futures = "0.4"
 rustversion = "1"
 trybuild = "1"
