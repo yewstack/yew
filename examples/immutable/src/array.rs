@@ -23,7 +23,7 @@ fn folks_view(props: &FolksViewProps) -> Html {
 
 #[function_component(ArrayExample)]
 pub fn array_example() -> Html {
-    let folks = use_state(|| IArray::<IString>::default());
+    let folks = use_state(IArray::<IString>::default);
     let onkeyup = {
         let folks = folks.clone();
         Callback::from(move |e: KeyboardEvent| {
