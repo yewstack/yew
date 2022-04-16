@@ -92,41 +92,48 @@ impl<T: ?Sized> AppendOnlyList<T> {
             }
         }
     }
+
+    #[cfg(not(debug_assertions))]
+    pub fn assert_hook_context(&mut self, _render_ok: bool) {}
 }
 
 #[cfg(test)]
-#[test]
-fn append_only_list_works() {
-    // DO run this with miri enabled!
-    let mut list = AppendOnlyList::new();
-    {
-        list.next_state(|| Box::new(0));
-        list.next_state(|| Box::new(42));
+mod tests {
+    use super::*;
+
+    #[test]
+    fn append_only_list_works() {
+        // DO run this with miri enabled!
+        let mut list = AppendOnlyList::new();
+        {
+            list.next_state(|| Box::new(0));
+            list.next_state(|| Box::new(42));
+        }
+        list.assert_hook_context(false); // suspending
+        list.restart();
+        {
+            let fst = list.next_state(|| Box::new(0xbad));
+            let snd = list.next_state(|| Box::new(0xbad));
+            let thrd = list.next_state(|| {
+                //list.next_state(|| Box::new(0xdead)); // Illegal, safely panics
+                Box::new(0xbeaf)
+            });
+            assert_eq!(*fst, 0);
+            assert_eq!(*snd, 42);
+            assert_eq!(*thrd, 0xbeaf);
+            *fst = 101;
+            *snd = 202;
+            *thrd = 303;
+        }
+        list.assert_hook_context(true); // rendering okay
+        list.restart();
+        {
+            list.next_state(|| Box::new(0xbad));
+            list.next_state(|| Box::new(0xbad));
+            list.next_state(|| Box::new(0xbeaf));
+        }
+        list.assert_hook_context(true); // assert same count of hooks
+        let contents = list.get_mut().iter().map(|bi| **bi).collect::<Vec<_>>();
+        assert_eq!(contents, vec![101, 202, 303]);
     }
-    list.assert_hook_context(false); // suspending
-    list.restart();
-    {
-        let fst = list.next_state(|| Box::new(0xbad));
-        let snd = list.next_state(|| Box::new(0xbad));
-        let thrd = list.next_state(|| {
-            //list.next_state(|| Box::new(0xdead)); // Illegal, safely panics
-            Box::new(0xbeaf)
-        });
-        assert_eq!(*fst, 0);
-        assert_eq!(*snd, 42);
-        assert_eq!(*thrd, 0xbeaf);
-        *fst = 101;
-        *snd = 202;
-        *thrd = 303;
-    }
-    list.assert_hook_context(true); // rendering okay
-    list.restart();
-    {
-        list.next_state(|| Box::new(0xbad));
-        list.next_state(|| Box::new(0xbad));
-        list.next_state(|| Box::new(0xbeaf));
-    }
-    list.assert_hook_context(true); // assert same count of hooks
-    let contents = list.get_mut().iter().map(|bi| **bi).collect::<Vec<_>>();
-    assert_eq!(contents, vec![101, 202, 303]);
 }

@@ -142,7 +142,6 @@ impl HookContext {
         }
     }
 
-    #[cfg(debug_assertions)]
     fn assert_hook_context(&mut self, render_ok: bool) {
         self.states.assert_hook_context(render_ok);
         self.effects.assert_hook_context(render_ok);
@@ -214,7 +213,6 @@ where
         #[allow(clippy::let_and_return)]
         let result = T::run(&mut *hook_ctx, props);
 
-        #[cfg(debug_assertions)]
         hook_ctx.assert_hook_context(result.is_ok());
 
         result

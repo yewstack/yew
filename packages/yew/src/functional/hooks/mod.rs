@@ -40,7 +40,7 @@ pub struct BoxedHook<'hook, T> {
 
 impl<'hook, T> BoxedHook<'hook, T> {
     #[allow(missing_docs)]
-    pub fn new(inner: Box<dyn 'hook + FnOnce(&HookContext) -> T>) -> Self {
+    pub fn new(inner: Box<dyn 'hook + FnOnce(&'hook HookContext) -> T>) -> Self {
         Self { inner }
     }
 }
