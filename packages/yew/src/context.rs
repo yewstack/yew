@@ -64,15 +64,12 @@ impl<T: Clone + PartialEq> ContextProvider<T> {
 
     /// Notify all subscribed consumers and remove dropped consumers from the list.
     fn notify_consumers(&mut self) {
-        let consumers: Vec<Callback<T>> = self
-            .consumers
+        self.consumers
             .borrow()
             .iter()
-            .map(|(_, v)| v.clone())
-            .collect();
-        for consumer in consumers {
-            consumer.emit(self.context.clone());
-        }
+            .for_each(|(_, consumer)| {
+                consumer.emit(self.context.clone());
+            });
     }
 }
 
