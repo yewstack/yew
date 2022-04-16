@@ -5,7 +5,7 @@ use std::rc::Rc;
 use web_sys::Element;
 
 use crate::app_handle::AppHandle;
-use crate::html::IntoComponent;
+use crate::html::BaseComponent;
 
 thread_local! {
     static PANIC_HOOK_IS_SET: Cell<bool> = Cell::new(false);
@@ -32,28 +32,28 @@ fn set_default_panic_hook() {
 #[derive(Debug)]
 #[cfg_attr(documenting, doc(cfg(feature = "csr")))]
 #[must_use = "Renderer does nothing unless render() is called."]
-pub struct Renderer<ICOMP>
+pub struct Renderer<COMP>
 where
-    ICOMP: IntoComponent + 'static,
+    COMP: BaseComponent + 'static,
 {
     root: Element,
-    props: ICOMP::Properties,
+    props: COMP::Properties,
 }
 
-impl<ICOMP> Default for Renderer<ICOMP>
+impl<COMP> Default for Renderer<COMP>
 where
-    ICOMP: IntoComponent + 'static,
-    ICOMP::Properties: Default,
+    COMP: BaseComponent + 'static,
+    COMP::Properties: Default,
 {
     fn default() -> Self {
         Self::with_props(Default::default())
     }
 }
 
-impl<ICOMP> Renderer<ICOMP>
+impl<COMP> Renderer<COMP>
 where
-    ICOMP: IntoComponent + 'static,
-    ICOMP::Properties: Default,
+    COMP: BaseComponent + 'static,
+    COMP::Properties: Default,
 {
     /// Creates a [Renderer] that renders into the document body with default properties.
     pub fn new() -> Self {
@@ -66,12 +66,12 @@ where
     }
 }
 
-impl<ICOMP> Renderer<ICOMP>
+impl<COMP> Renderer<COMP>
 where
-    ICOMP: IntoComponent + 'static,
+    COMP: BaseComponent + 'static,
 {
     /// Creates a [Renderer] that renders into the document body with custom properties.
-    pub fn with_props(props: ICOMP::Properties) -> Self {
+    pub fn with_props(props: COMP::Properties) -> Self {
         Self::with_root_and_props(
             gloo_utils::document()
                 .body()
@@ -82,14 +82,14 @@ where
     }
 
     /// Creates a [Renderer] that renders into a custom root with custom properties.
-    pub fn with_root_and_props(root: Element, props: ICOMP::Properties) -> Self {
+    pub fn with_root_and_props(root: Element, props: COMP::Properties) -> Self {
         Self { root, props }
     }
 
     /// Renders the application.
-    pub fn render(self) -> AppHandle<ICOMP> {
+    pub fn render(self) -> AppHandle<COMP> {
         set_default_panic_hook();
-        AppHandle::<ICOMP>::mount_with_props(self.root, Rc::new(self.props))
+        AppHandle::<COMP>::mount_with_props(self.root, Rc::new(self.props))
     }
 }
 
@@ -98,14 +98,14 @@ where
 mod feat_hydration {
     use super::*;
 
-    impl<ICOMP> Renderer<ICOMP>
+    impl<COMP> Renderer<COMP>
     where
-        ICOMP: IntoComponent + 'static,
+        COMP: BaseComponent + 'static,
     {
         /// Hydrates the application.
-        pub fn hydrate(self) -> AppHandle<ICOMP> {
+        pub fn hydrate(self) -> AppHandle<COMP> {
             set_default_panic_hook();
-            AppHandle::<ICOMP>::hydrate_with_props(self.root, Rc::new(self.props))
+            AppHandle::<COMP>::hydrate_with_props(self.root, Rc::new(self.props))
         }
     }
 }

@@ -89,19 +89,13 @@ impl<COMP: BaseComponent> Context<COMP> {
     }
 }
 
-pub(crate) mod sealed {
-    /// A Sealed trait that prevents direct implementation of
-    /// [BaseComponent].
-    pub trait SealedBaseComponent {}
-}
-
 /// The common base of both function components and struct components.
 ///
 /// If you are taken here by doc links, you might be looking for [`Component`] or
 /// [`#[function_component]`](crate::functional::function_component).
 ///
 /// We provide a blanket implementation of this trait for every member that implements [`Component`].
-pub trait BaseComponent: sealed::SealedBaseComponent + Sized + 'static {
+pub trait BaseComponent: Sized + 'static {
     /// The Component's Message.
     type Message: 'static;
 
@@ -220,26 +214,4 @@ where
     fn destroy(&mut self, ctx: &Context<Self>) {
         Component::destroy(self, ctx)
     }
-}
-
-impl<T> sealed::SealedBaseComponent for T where T: Sized + Component + 'static {}
-
-/// A trait that indicates a type is able to be converted into a component.
-///
-/// You may want to use this trait if you want to accept both function components and struct
-/// components as a generic parameter.
-pub trait IntoComponent {
-    /// The Component's Properties.
-    type Properties: Properties;
-
-    /// The Component Type.
-    type Component: BaseComponent<Properties = Self::Properties> + 'static;
-}
-
-impl<T> IntoComponent for T
-where
-    T: BaseComponent + 'static,
-{
-    type Properties = T::Properties;
-    type Component = T;
 }
