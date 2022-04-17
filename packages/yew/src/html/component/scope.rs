@@ -614,9 +614,12 @@ mod feat_nightly {
         /// This method will not notify the component when the stream has been fully exhausted. If
         /// you want this feature, you can add an EOF message variant for your component and use
         /// [`StreamExt::chain`] and [`stream::once`] to chain an EOF message to the original stream.
+        /// If your stream is produced by another crate, you can use [`StreamExt::map`] to transform
+        /// the stream's item type to the component message type.
         ///
         /// [`StreamExt::chain`]: https://docs.rs/futures/latest/futures/stream/trait.StreamExt.html#method.chain
         /// [`stream::once`]: https://docs.rs/futures/latest/futures/stream/fn.once.html
+        /// [`StreamExt::map`]: https://docs.rs/futures/latest/futures/stream/trait.StreamExt.html#method.map
         pub fn send_stream<S, M>(&self, stream: S)
         where
             M: Into<COMP::Message>,
