@@ -608,6 +608,15 @@ mod feat_nightly {
         ///
         /// # Panics
         /// If the stream panics, then the promise will not resolve, and will leak.
+        ///
+        /// # Note
+        ///
+        /// This method will not notify the component when the stream has been fully exhausted. If
+        /// you want this feature, you can add an EOF message variant for your component and use
+        /// [`StreamExt::chain`] and [`stream::once`] to chain an EOF message to the original stream.
+        ///
+        /// [`StreamExt::chain`]: https://docs.rs/futures/latest/futures/stream/trait.StreamExt.html#method.chain
+        /// [`stream::once`]: https://docs.rs/futures/latest/futures/stream/fn.once.html
         pub fn send_stream<S, M>(&self, stream: S)
         where
             M: Into<COMP::Message>,
