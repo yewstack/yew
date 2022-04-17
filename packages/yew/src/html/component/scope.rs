@@ -592,6 +592,40 @@ mod feat_hydration {
 #[cfg(feature = "csr")]
 pub(crate) use feat_csr::*;
 
+#[cfg_attr(
+    documenting,
+    doc(cfg(all(feature = "nightly", any(target_arch = "wasm32", feature = "tokio"))))
+)]
+#[cfg(all(feature = "nightly", any(target_arch = "wasm32", feature = "tokio")))]
+mod feat_nightly {
+    use super::*;
+    use crate::io_coop::spawn_local;
+    use futures::{Stream, StreamExt};
+
+    impl<COMP: BaseComponent> Scope<COMP> {
+        /// This method asynchronously awaits a [Stream] that returns a series of messages and sends
+        /// them to the linked component.
+        ///
+        /// # Panics
+        /// If the stream panics, then the promise will not resolve, and will leak.
+        pub fn send_stream<S, M>(&self, stream: S)
+        where
+            M: Into<COMP::Message>,
+            S: Stream<Item = M> + 'static,
+        {
+            let link = self.clone();
+            let js_future = async move {
+                futures::pin_mut!(stream);
+                while let Some(msg) = stream.next().await {
+                    let message: COMP::Message = msg.into();
+                    link.send_message(message);
+                }
+            };
+            spawn_local(js_future);
+        }
+    }
+}
+
 #[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
 #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
 mod feat_io {
