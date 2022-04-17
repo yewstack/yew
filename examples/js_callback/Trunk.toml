@@ -1,0 +1,9 @@
+# trunk doesn't like this for some reason???
+#[[hooks]]
+#stage = "build"
+#command = "rustc ./trunk_post_build.rs"
+
+[[hooks]]
+stage = "post_build"
+command = "./trunk_post_build"
+

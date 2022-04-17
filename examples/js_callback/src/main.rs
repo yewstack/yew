@@ -4,8 +4,11 @@ use wasm_bindgen_futures::JsFuture;
 
 use yew::prelude::*;
 use yew::suspense::{use_future, SuspensionResult};
+use once_cell::sync::OnceCell;
 
 mod bindings;
+
+static WASM_BINDGEN_SNIPPETS_PATH: OnceCell<String> = OnceCell::new();
 
 #[function_component]
 fn Important() -> Html {
@@ -28,11 +31,9 @@ extern "C" {
 
 #[hook]
 fn use_do_bye() -> SuspensionResult<String> {
+    let path = WASM_BINDGEN_SNIPPETS_PATH.get().map(|path| format!("{}/js/unimp.js", path)).unwrap();
     let s = use_future(|| async move {
-        // Run `trunk build`, look in the `dist/snippets/` directory for the file name.
-        // this must be the absolute url. it is the restriction of dynamic imports in JS
-        let promise =
-            bindings::import("/js_callback/snippets/js_callback-12fde9d6e52a7cb5/js/unimp.js");
+        let promise = bindings::import(&path);
         let module = JsFuture::from(promise).await.unwrap_throw();
         let module = module.unchecked_into::<Module>();
         module.bye()
@@ -74,5 +75,7 @@ fn App() -> Html {
 }
 
 fn main() {
+    let wasm_bindgen_snippets_path = js_sys::global().unchecked_into::<bindings::Window>().wasm_bindgen_snippets_path();
+    WASM_BINDGEN_SNIPPETS_PATH.set(wasm_bindgen_snippets_path).expect("unreachable");
     yew::Renderer::<App>::new().render();
 }
