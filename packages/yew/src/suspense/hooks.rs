@@ -5,6 +5,7 @@ mod feat_futures {
     use std::fmt;
     use std::future::Future;
     use std::ops::Deref;
+    use std::rc::Rc;
 
     use yew::prelude::*;
     use yew::suspense::{Suspension, SuspensionResult};
@@ -108,7 +109,7 @@ mod feat_futures {
     #[hook]
     pub fn use_future_with_deps<F, D, T, O>(f: F, deps: D) -> SuspensionResult<UseFutureHandle<O>>
     where
-        F: FnOnce(&D) -> T,
+        F: FnOnce(Rc<D>) -> T,
         T: Future<Output = O> + 'static,
         O: 'static,
         D: PartialEq + 'static,
@@ -121,18 +122,20 @@ mod feat_futures {
         let suspension = {
             let output = output.clone();
 
-            use_memo(
+            use_memo_base(
                 move |deps| {
                     let self_id = latest_id.get().wrapping_add(1);
                     // As long as less than 2**32 futures are in flight wrapping_add is fine
                     (*latest_id).set(self_id);
-                    let task = f(deps);
-                    Suspension::from_future(async move {
+                    let deps = Rc::new(deps);
+                    let task = f(deps.clone());
+                    let suspension = Suspension::from_future(async move {
                         let result = task.await;
                         if latest_id.get() == self_id {
                             output.set(Some(result));
                         }
-                    })
+                    });
+                    (suspension, deps)
                 },
                 deps,
             )

@@ -639,17 +639,17 @@ async fn use_suspending_future_works() {
 async fn use_suspending_future_with_deps_works() {
     #[derive(PartialEq, Properties)]
     struct ContentProps {
-        result: u32,
+        delay_millis: u32,
     }
 
     #[function_component(Content)]
-    fn content(ContentProps { result }: &ContentProps) -> HtmlResult {
+    fn content(ContentProps { delay_millis }: &ContentProps) -> HtmlResult {
         let delayed_result = use_future_with_deps(
-            |&result| async move {
-                TimeoutFuture::new(50).await;
-                result
+            |delay_millis| async move {
+                TimeoutFuture::new(*delay_millis).await;
+                42
             },
-            *result,
+            *delay_millis,
         )?;
 
         Ok(html! {
@@ -666,7 +666,7 @@ async fn use_suspending_future_with_deps_works() {
         html! {
             <div id="result">
                 <Suspense {fallback}>
-                    <Content result={42} />
+                    <Content delay_millis={50} />
                 </Suspense>
             </div>
         }
