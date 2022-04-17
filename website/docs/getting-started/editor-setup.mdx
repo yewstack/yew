@@ -19,7 +19,7 @@ Using a different editor? Feel free to add instructions for your editor of choic
 
 For function components, use the following template.
 
-- (Optional) Click on Edit Variable and give `tag` a reasonable default value like "div", with double quotes.
+-   (Optional) Click on Edit Variable and give `tag` a reasonable default value like "div", with double quotes.
 
 ```rust ,ignore
 #[derive(PartialEq, Properties)]
@@ -66,22 +66,22 @@ impl Component for $NAME$ {
 
 ```json
 {
-	"New Yew function component": {
-		"prefix": "yewfc",
-		"body": [
-			"#[derive(PartialEq, Properties)]",
-			"pub struct ${1:ComponentName}Props {}",
-			"",
-			"#[function_component]",
-			"pub fn $1(props: &${1}Props) -> Html {",
+    "New Yew function component": {
+        "prefix": "yewfc",
+        "body": [
+            "#[derive(PartialEq, Properties)]",
+            "pub struct ${1:ComponentName}Props {}",
+            "",
+            "#[function_component]",
+            "pub fn $1(props: &${1}Props) -> Html {",
             "    let ${1}Props {} = props;",
-			"    html! {",
-			"        <${2:div}>$0</${2}>",
-			"    }",
-			"}"
-		],
-		"description": "Create a minimal Yew function component"
-	},
+            "    html! {",
+            "        <${2:div}>$0</${2}>",
+            "    }",
+            "}"
+        ],
+        "description": "Create a minimal Yew function component"
+    },
     "New Yew struct component": {
         "prefix": "yewsc",
         "body": [
