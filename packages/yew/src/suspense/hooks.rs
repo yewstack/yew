@@ -75,27 +75,7 @@ mod feat_futures {
         T: Future<Output = O> + 'static,
         O: 'static,
     {
-        let output = use_state(|| None);
-
-        let suspension = {
-            let output = output.clone();
-
-            use_memo(
-                move |_| {
-                    let task = init_f();
-                    Suspension::from_future(async move {
-                        output.set(Some(task.await));
-                    })
-                },
-                (),
-            )
-        };
-
-        if suspension.resumed() {
-            Ok(UseFutureHandle { inner: output })
-        } else {
-            Err((*suspension).clone())
-        }
+        use_future_with_deps(move |_| init_f(), ())
     }
 
     /// Use the result of an async computation with dependencies, suspending while waiting.
