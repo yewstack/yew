@@ -33,9 +33,11 @@ module.exports = {
                     label: 'Intro With Basic Web Technologies',
                     link: {
                         type: 'generated-index',
-                        title: 'Yew Take on Basic Web Technologies',
+                        title: "Yew's Take on Basic Web Technologies",
                         description:
-                            'Yew mostly operates on the idea of keeping everything that a reusable piece of UI may need, in one place - rust files. But also seeks to stay close to the original look of the technology. Explore further to fully grasp what we mean by these statements:',
+                            'Yew centrally operates on the idea of keeping everything that a reusable piece of UI may need' +
+                            'in one place - rust files, while also keeping the underlying technology accessible where necessary. ' +
+                            'Explore further to fully grasp what we mean by these statements:',
                     },
                     items: [
                         'concepts/basic-web-technologies/html',
@@ -71,6 +73,7 @@ module.exports = {
                                 'concepts/function-components/hooks/use-memo',
                                 'concepts/function-components/hooks/use-callback',
                                 'concepts/function-components/hooks/use-context',
+                                'concepts/function-components/hooks/use-force-update',
                                 'concepts/function-components/hooks/custom-hooks',
                             ],
                         },
@@ -100,8 +103,9 @@ module.exports = {
                     label: 'Javascript with Rust',
                     link: {
                         type: 'generated-index',
-                        title: 'wasm-bindgen',
-                        description: 'Learn about wasm-bindgen',
+                        title: 'Javascript with Rust',
+                        description:
+                            'Learn about wasm-bindgen and interacting with javascript',
                         slug: '/concepts/wasm-bindgen',
                     },
                     items: [

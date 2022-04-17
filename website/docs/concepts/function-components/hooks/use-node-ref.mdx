@@ -2,7 +2,11 @@
 title: 'use_node_ref'
 ---
 
-`use_node_ref` is used for maintaining an easy reference to the DOM element represented as a `NodeRef`. It also persists across renders.
+`use_node_ref` is used for maintaining a reference to a DOM element represented as a
+[`NodeRef`](../node-refs.mdx). It also persists across renders.
+
+The `ref` attribute can be used to attach the `NodeRef` to an HTML element. In callbacks,
+you can then get the DOM `Element` that the ref is attached to.
 
 ## Example
 
