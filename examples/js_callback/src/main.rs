@@ -2,9 +2,9 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 
+use once_cell::sync::OnceCell;
 use yew::prelude::*;
 use yew::suspense::{use_future, SuspensionResult};
-use once_cell::sync::OnceCell;
 
 mod bindings;
 
@@ -31,7 +31,10 @@ extern "C" {
 
 #[hook]
 fn use_do_bye() -> SuspensionResult<String> {
-    let path = WASM_BINDGEN_SNIPPETS_PATH.get().map(|path| format!("{}/js/unimp.js", path)).unwrap();
+    let path = WASM_BINDGEN_SNIPPETS_PATH
+        .get()
+        .map(|path| format!("{}/js/unimp.js", path))
+        .unwrap();
     let s = use_future(|| async move {
         let promise = bindings::import(&path);
         let module = JsFuture::from(promise).await.unwrap_throw();
@@ -75,7 +78,11 @@ fn App() -> Html {
 }
 
 fn main() {
-    let wasm_bindgen_snippets_path = js_sys::global().unchecked_into::<bindings::Window>().wasm_bindgen_snippets_path();
-    WASM_BINDGEN_SNIPPETS_PATH.set(wasm_bindgen_snippets_path).expect("unreachable");
+    let wasm_bindgen_snippets_path = js_sys::global()
+        .unchecked_into::<bindings::Window>()
+        .wasm_bindgen_snippets_path();
+    WASM_BINDGEN_SNIPPETS_PATH
+        .set(wasm_bindgen_snippets_path)
+        .expect("unreachable");
     yew::Renderer::<App>::new().render();
 }
