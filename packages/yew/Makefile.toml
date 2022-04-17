@@ -25,7 +25,7 @@ args = [
     "test",
     "--doc",
     "--features",
-    "doc_test,wasm_test",
+    "tokio,doc_test,wasm_test",
 ]
 
 [tasks.ssr-test]

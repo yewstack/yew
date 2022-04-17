@@ -1,8 +1,20 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::functional::{hook, use_memo, use_state};
+use crate::functional::{hook, use_state, Hook, HookContext};
 use crate::NodeRef;
+
+struct UseMutRef<F> {
+    init_fn: F,
+}
+
+impl<T: 'static, F: FnOnce() -> T> Hook for UseMutRef<F> {
+    type Output = Rc<RefCell<T>>;
+
+    fn run(self, ctx: &mut HookContext) -> Self::Output {
+        ctx.next_state(|_| RefCell::new((self.init_fn)()))
+    }
+}
 
 /// This hook is used for obtaining a mutable reference to a stateful value.
 /// Its state persists across renders.
@@ -50,12 +62,11 @@ use crate::NodeRef;
 ///     }
 /// }
 /// ```
-#[hook]
-pub fn use_mut_ref<T: 'static, F>(init_fn: F) -> Rc<RefCell<T>>
+pub fn use_mut_ref<T: 'static, F>(init_fn: F) -> impl Hook<Output = Rc<RefCell<T>>>
 where
     F: FnOnce() -> T,
 {
-    use_memo(|_| RefCell::new(init_fn()), ())
+    UseMutRef { init_fn }
 }
 
 /// This hook is used for obtaining a [`NodeRef`].
