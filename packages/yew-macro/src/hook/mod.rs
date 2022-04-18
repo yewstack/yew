@@ -181,7 +181,7 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
             impl #impl_generics ::yew::functional::Hook<#hook_lifetime> for #hook_struct_name #ty_generics #where_clause {
                 type Output = #output_type;
 
-                fn run(mut self, #ctx_ident: &::yew::functional::HookContext) -> Self::Output {
+                fn run(mut self, #ctx_ident: &#hook_lifetime ::yew::functional::HookContext) -> Self::Output {
                     let (#(#input_args,)*) = self.#args_ident;
 
                     #inner_fn_ident #call_generics (#ctx_ident, #(#input_args,)*)
