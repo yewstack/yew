@@ -17,8 +17,17 @@ extern "C" {
     pub fn hello() -> String;
 }
 
+#[wasm_bindgen]
+extern "C" {
+    pub type UnimpModule;
+
+    #[wasm_bindgen(method)]
+    pub fn bye(this: &UnimpModule) -> String;
+}
+
 #[wasm_bindgen(module = "/js/unimp.js")]
 extern "C" {
+    /// This exists so that wasm bindgen copies js/unimp.js to dist/snippets/<bin-name>-<hash>/js/uninp.js
     #[wasm_bindgen]
-    pub fn bye() -> String;
+    fn _dummy_fn_so_wasm_bindgen_copies_over_the_file();
 }

@@ -21,14 +21,6 @@ fn Important() -> Html {
     }
 }
 
-#[wasm_bindgen]
-extern "C" {
-    type Module;
-
-    #[wasm_bindgen(method)]
-    fn bye(this: &Module) -> String;
-}
-
 #[hook]
 fn use_do_bye() -> SuspensionResult<String> {
     let path = WASM_BINDGEN_SNIPPETS_PATH
@@ -38,7 +30,7 @@ fn use_do_bye() -> SuspensionResult<String> {
     let s = use_future(|| async move {
         let promise = bindings::import(&path);
         let module = JsFuture::from(promise).await.unwrap_throw();
-        let module = module.unchecked_into::<Module>();
+        let module = module.unchecked_into::<bindings::UnimpModule>();
         module.bye()
     })?;
     Ok((*s).clone())
