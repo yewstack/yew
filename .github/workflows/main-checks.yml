@@ -167,6 +167,7 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           override: true
           profile: minimal
+          components: ${{ matrix.toolchain == 'nightly' && 'miri' || '' }}
 
       - uses: Swatinem/rust-cache@v1
 
@@ -176,7 +177,12 @@ jobs:
           command: test
           args: --all-targets --workspace --exclude yew --exclude website-test
 
-
+      - name: Run miri tests
+        if: ${{ matrix.toolchain == 'nightly' }}
+        uses: actions-rs/cargo@v1
+        with:
+          command: miri
+          args: test -p yew --lib
 
   test-lints:
     name: Test lints on nightly
