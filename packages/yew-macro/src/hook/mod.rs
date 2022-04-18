@@ -129,14 +129,21 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
         ReturnType::Type(rarrow, _) => Some(quote! { #rarrow #output_type }),
     };
 
-    let inner_fn = quote! { fn #inner_fn_ident #generics (#ctx_ident: &::yew::functional::HookContext, #inputs) #inner_fn_rt #where_clause #block };
+    let hook_lifetime = &hook_sig.hook_lifetime;
+    let inner_fn = quote! {
+        fn #inner_fn_ident #generics (
+            #ctx_ident: &#hook_lifetime ::yew::functional::HookContext,
+            #inputs
+        ) #inner_fn_rt
+        #where_clause
+            #block
+    };
 
     let inner_type_impl = if hook_sig.needs_boxing {
         let with_output = !matches!(hook_sig.output_type, Type::ImplTrait(_),);
         let inner_fn_rt = with_output.then(|| &inner_fn_rt);
         let output_type = with_output.then(|| &output_type);
 
-        let hook_lifetime = &hook_sig.hook_lifetime;
         let hook_lifetime_plus = quote! { #hook_lifetime + };
 
         let boxed_inner_ident = Ident::new("boxed_inner", Span::mixed_site());
@@ -147,7 +154,7 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
         // We need boxing implementation for `impl Trait` arguments.
         quote! {
             let #boxed_inner_ident = ::std::boxed::Box::new(
-                    move |#ctx_ident: &::yew::functional::HookContext| #inner_fn_rt {
+                    move |#ctx_ident: &#hook_lifetime ::yew::functional::HookContext| #inner_fn_rt {
                         #inner_fn_ident (#ctx_ident, #(#input_args,)*)
                     }
                 ) #as_boxed_fn;
