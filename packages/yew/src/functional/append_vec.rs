@@ -1,27 +1,18 @@
 use std::cell::{Cell, UnsafeCell};
 
+/// A list of items (effects or states) that can be accessed in a serial function component.
+///
+/// The speciality is that it provides *mutable* access to the stored items, one after the other.
+/// If there are not enough items, a new one is create from a given initializer.
+///
+/// The list then allows to restart this dealing process, for the next view function run.
 pub struct AppendOnlyList<T: ?Sized> {
     state: UnsafeCell<Vec<Box<T>>>,
+    /// SAFETY: the items [0, counter) of the state have been given out as mutable borrows.
+    ///  The items [counter, ..) are not yet claimed.
     counter: Cell<usize>,
     #[cfg(debug_assertions)]
     total_counter: Option<usize>,
-}
-
-#[cfg(test)]
-#[test]
-fn assert_state_list_not_sync() {
-    struct Invalid;
-    trait AmbiguousIfImpl<A> {
-        fn some_item() {}
-    }
-
-    impl<T: ?Sized> AmbiguousIfImpl<()> for T {}
-    impl<T: ?Sized + Sync> AmbiguousIfImpl<Invalid> for T {}
-    // This will fail to compile (ambiguous impl) if T: Sync ==> StateList<T>: Sync
-    // StateList<T> should never be sync!
-    fn _assert_generically<T: Sync>() {
-        let _ = <AppendOnlyList<T> as AmbiguousIfImpl<_>>::some_item;
-    }
 }
 
 impl<T: ?Sized> AppendOnlyList<T> {
@@ -36,6 +27,7 @@ impl<T: ?Sized> AppendOnlyList<T> {
 
     #[allow(clippy::mut_from_ref)]
     pub fn next_state(&self, initializer: impl FnOnce() -> Box<T>) -> &mut T {
+        // SAFETY: there should be test-cases run under miri that verify these claims.
         // SAFETY: Because we are not Sync, we don't need to atomically increase here
         let position = self.counter.get();
         self.counter.set(position + 1);
@@ -44,10 +36,24 @@ impl<T: ?Sized> AppendOnlyList<T> {
         //  Because we assert that we don't re-enter in the initializer, this is legal
         //   to access even afterwards.
         let state = unsafe { &mut *self.state.get() };
+        // The exact rules are a bit murky to me. Technically a re-rentrant call takes
+        // a second mutable borrow to state, but then only uses it immutably before running
+        // into this assert. If this panic is caught and ignored, and control returns
+        // to the first call, the mutable borrow *might* technically have to be renewed.
         assert!(position <= state.len(), "Detected re-entrant initializer()");
+        // This hook/state is new. Run the initializer and push it. As explained above,
+        // during the initializer nobody else can modify state.
         if position == state.len() {
+            // SAFETY: this push can lead to the vec re-allocating. This is why we store
+            //  Boxes to the state. The Boxes get moved, but their contents does not, so
+            //  the &mut we gave out to earlier items are still okay.
+            // NOTE: Box is a bit special with uniqueness handling. We might have to store
+            //  the Box::into_raw form in the vec and convert it back so that no Boxes
+            //  are mutably touched during re-allocations. This would warrant a custom Drop
+            //  impl and complicate the situation.
             state.push(initializer());
         }
+        // Finally access the item
         state[position].as_mut()
     }
 
@@ -100,6 +106,31 @@ impl<T: ?Sized> AppendOnlyList<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// If it were sync, we could have multiple threads accessing it, which is not safe
+    /// The position is kept in a simple unsync Cell.
+    #[test]
+    fn assert_append_only_list_not_sync() {
+        /// Idea taken from the static_assertions crate
+        /// <U as AmbiguousIfSync<_>>::some_item is ambiguous if and only if U: Sync
+        /// ```compile_fail
+        /// let _ = <u32 as AmbiguousIfSync<_>>::some_item;
+        /// ```
+        trait AmbiguousIfSync<A> {
+            fn some_item() {}
+        }
+        impl<T: ?Sized> AmbiguousIfSync<()> for T {}
+        struct Overload;
+        impl<T: ?Sized + Sync> AmbiguousIfSync<Overload> for T {}
+
+        let _ = <AppendOnlyList<u32> as AmbiguousIfSync<_>>::some_item;
+        // This will fail to compile (ambiguous impl) if T: Sync ==> StateList<T>: Sync
+        // StateList<T> should never be sync!
+        fn _assert_generically<T: Sync>() {
+            let _ = <AppendOnlyList<T> as AmbiguousIfSync<_>>::some_item;
+            let _ = <AppendOnlyList<Box<T>> as AmbiguousIfSync<_>>::some_item;
+        }
+    }
 
     #[test]
     fn append_only_list_works() {

@@ -67,15 +67,16 @@ pub use yew_macro::hook;
 type ReRender = Rc<dyn Fn()>;
 
 /// Primitives of a Hook state.
-pub(crate) trait Effect: ToAny {
+pub(crate) trait Effect: EffectToAny {
     fn rendered(&mut self) {}
 }
-
-pub(crate) trait ToAny: Any {
+/// Upcast an effect to its Any implementation
+pub(crate) trait EffectToAny: Any {
     fn as_any(&mut self) -> &mut dyn Any;
 }
-
-impl<T: Effect> ToAny for T {
+// This blanket implementation exists only for T: Sized
+// Mentioning that bound directly in Effect would make it not object-safe
+impl<T: Effect> EffectToAny for T {
     fn as_any(&mut self) -> &mut dyn Any {
         self
     }
