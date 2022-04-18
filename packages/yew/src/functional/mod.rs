@@ -19,12 +19,15 @@
 //!
 //! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/next/concepts/function-components/introduction)
 
-use crate::html::{AnyScope, BaseComponent, Context, HtmlResult};
-use crate::Properties;
 use std::any::Any;
 use std::cell::RefCell;
 use std::fmt;
+use std::future::Future;
+use std::pin::Pin;
 use std::rc::Rc;
+
+use crate::html::{AnyScope, BaseComponent, Context, HtmlResult};
+use crate::Properties;
 
 use wasm_bindgen::prelude::*;
 
@@ -64,7 +67,13 @@ pub use yew_macro::hook;
 
 type ReRender = Rc<dyn Fn()>;
 
-/// Primitives of a Hook state.
+/// Primitives of a prepared state hook.
+pub(crate) trait PreparedState {
+    #[cfg(feature = "ssr")]
+    fn prepare(&self) -> Pin<Box<dyn Future<Output = Vec<u8>>>>;
+}
+
+/// Primitives of an effect hook.
 pub(crate) trait Effect {
     fn rendered(&self) {}
 }
@@ -76,6 +85,7 @@ pub struct HookContext {
 
     states: Vec<Rc<dyn Any>>,
     effects: Vec<Rc<dyn Effect>>,
+    prepared_states: Vec<Rc<dyn PreparedState>>,
 
     counter: usize,
     #[cfg(debug_assertions)]
@@ -85,10 +95,12 @@ pub struct HookContext {
 impl HookContext {
     fn new(scope: AnyScope, re_render: ReRender) -> RefCell<Self> {
         RefCell::new(HookContext {
-            effects: Vec::new(),
             scope,
             re_render,
+
             states: Vec::new(),
+            prepared_states: Vec::new(),
+            effects: Vec::new(),
 
             counter: 0,
             #[cfg(debug_assertions)]
@@ -127,6 +139,24 @@ impl HookContext {
         // This is a new effect, we add it to effects.
         if self.states.len() != prev_state_len {
             self.effects.push(t.clone());
+        }
+
+        t
+    }
+
+    pub(crate) fn next_prepared_state<T>(
+        &mut self,
+        initializer: impl FnOnce(ReRender, Option<&[u8]>) -> T,
+    ) -> Rc<T>
+    where
+        T: 'static + PreparedState,
+    {
+        let prev_state_len = self.states.len();
+        let t = self.next_state(move |re_render| initializer(re_render, None));
+
+        // This is a new effect, we add it to effects.
+        if self.states.len() != prev_state_len {
+            self.prepared_states.push(t.clone());
         }
 
         t
@@ -183,6 +213,32 @@ impl HookContext {
         for state in self.states.drain(..) {
             drop(state);
         }
+    }
+
+    #[cfg(not(feature = "ssr"))]
+    fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = Vec<u8>>>>> {
+        None
+    }
+
+    #[cfg(feature = "ssr")]
+    fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = Vec<u8>>>>> {
+        if self.prepared_states.is_empty() {
+            return None;
+        }
+
+        let prepared_states = self.prepared_states.clone();
+
+        Some(Box::pin(async move {
+            let mut states = Vec::with_capacity(prepared_states.len());
+
+            for state in prepared_states.iter() {
+                let state = state.prepare().await;
+
+                states.push(state);
+            }
+
+            bincode::serialize(&states).expect("failed to serialize state.")
+        }))
     }
 }
 
@@ -267,6 +323,12 @@ where
     pub fn destroy(&self) {
         let mut hook_ctx = self.hook_ctx.borrow_mut();
         hook_ctx.drain_states();
+    }
+
+    /// Prepares the server-side state.
+    pub fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = Vec<u8>>>>> {
+        let hook_ctx = self.hook_ctx.borrow();
+        hook_ctx.prepare_state()
     }
 }
 
