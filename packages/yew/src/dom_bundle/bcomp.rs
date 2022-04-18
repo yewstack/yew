@@ -264,7 +264,7 @@ mod tests {
 
     #[test]
     fn set_component_key() {
-        let test_key: Key = "test".to_string().into();
+        let test_key: Key = Key::from("test");
         let check_key = |vnode: VNode| {
             assert_eq!(vnode.key(), Some(&test_key));
         };
@@ -275,11 +275,11 @@ mod tests {
         };
         let props_2 = props.clone();
 
-        check_key(html! { <Comp key={test_key.clone()} /> });
-        check_key(html! { <Comp key={test_key.clone()} field_1=1 /> });
-        check_key(html! { <Comp field_1=1 key={test_key.clone()} /> });
-        check_key(html! { <Comp key={test_key.clone()} ..props /> });
-        check_key(html! { <Comp key={test_key.clone()} ..props_2 /> });
+        check_key(html! { <Comp key={test_key} /> });
+        check_key(html! { <Comp key={test_key} field_1=1 /> });
+        check_key(html! { <Comp field_1=1 key={test_key} /> });
+        check_key(html! { <Comp key={test_key} ..props /> });
+        check_key(html! { <Comp key={test_key} ..props_2 /> });
     }
 
     #[test]

@@ -41,7 +41,7 @@ where
         .copied()
         .zip(NUMBERS.iter().cycle().skip(32).copied())
     {
-        inputs.push(n as u128 + (n1 as u128) << 64);
+        inputs.push(n as u128 + ((n1 as u128) << 64));
     }
 
     b.iter(|| generate_keys(&NUMBERS[..]));

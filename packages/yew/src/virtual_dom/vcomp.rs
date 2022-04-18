@@ -46,7 +46,7 @@ impl Clone for VComp {
             type_id: self.type_id,
             mountable: self.mountable.copy(),
             node_ref: self.node_ref.clone(),
-            key: self.key.clone(),
+            key: self.key,
         }
     }
 }
@@ -171,7 +171,7 @@ impl<COMP: BaseComponent> Clone for VChild<COMP> {
         VChild {
             props: Rc::clone(&self.props),
             node_ref: self.node_ref.clone(),
-            key: self.key.clone(),
+            key: self.key,
         }
     }
 }
