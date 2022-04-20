@@ -540,3 +540,83 @@ async fn hydration_nested_suspense_works() {
         r#"<div class="content-area"><div class="action-area"><button class="take-a-break">Take a break!</button></div><div class="content-area"><div class="action-area"><button class="take-a-break2">Take a break!</button></div></div></div>"#
     );
 }
+
+#[wasm_bindgen_test]
+async fn hydration_node_ref_works() {
+    #[function_component(App)]
+    pub fn app() -> Html {
+        let size = use_state(|| 4);
+
+        let callback = {
+            let size = size.clone();
+            Callback::from(move |_| {
+                size.set(10);
+            })
+        };
+
+        html! {
+            <div onclick={callback}>
+                <List size={*size}/>
+            </div>
+        }
+    }
+
+    #[derive(Properties, PartialEq)]
+    struct ListProps {
+        size: u32,
+    }
+
+    #[function_component(Test1)]
+    fn test1() -> Html {
+        html! {
+            <span>{"test"}</span>
+        }
+    }
+    #[function_component(Test2)]
+    fn test2() -> Html {
+        html! {
+            <Test1/>
+        }
+    }
+
+    #[function_component(List)]
+    fn list(props: &ListProps) -> Html {
+        let elems = 0..props.size;
+
+        html! {
+            <>
+            { for elems.map(|_|
+                html! {
+                    <Test2/>
+                }
+            )}
+            </>
+        }
+    }
+
+    let s = ServerRenderer::<App>::new().render().await;
+
+    assert_eq!(
+        s,
+        "<span>test</span><span>test</span><span>test</span><span>test</span>"
+    );
+
+    gloo::utils::document()
+        .query_selector("#output")
+        .unwrap()
+        .unwrap()
+        .set_inner_html(&s);
+
+    sleep(Duration::ZERO).await;
+
+    Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+        .hydrate();
+
+    sleep(Duration::ZERO).await;
+
+    let result = obtain_result_by_id("output");
+    assert_eq!(
+        result.as_str(),
+        r#"<span>test</span><span>test</span><span>test</span><span>test</span>"#
+    );
+}
