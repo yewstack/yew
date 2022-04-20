@@ -714,8 +714,8 @@ async fn hydration_list_order_works() {
     let result = obtain_result_by_id("output");
     assert_eq!(
         result.as_str(),
-        // Until all components becomes revealled, there will be component markers.
-        // As long as there's no component markers all components has become unsuspended.
+        // Until all components become revealed, there will be component markers.
+        // As long as there's no component markers all components have become unsuspended.
         r#"<div>0</div><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div>"#
     );
 }
