@@ -204,7 +204,6 @@ mod feat_ssr {
             let state = ComponentRenderState::Ssr { sender: Some(tx) };
 
             scheduler::push_component_create(
-                self.id,
                 Box::new(CreateRunner {
                     initial_render_state: state,
                     props,
@@ -440,7 +439,6 @@ mod feat_csr {
             };
 
             scheduler::push_component_create(
-                self.id,
                 Box::new(CreateRunner {
                     initial_render_state: state,
                     props,
@@ -572,8 +570,7 @@ mod feat_hydration {
                 fragment,
             };
 
-            scheduler::push_component_create(
-                self.id,
+            scheduler::push_component_hydrate(
                 Box::new(CreateRunner {
                     initial_render_state: state,
                     props,

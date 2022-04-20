@@ -1,7 +1,7 @@
 //! This module contains a scheduler.
 
 use std::cell::RefCell;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, VecDeque};
 use std::rc::Rc;
 
 /// Alias for Rc<RefCell<T>>
@@ -25,12 +25,17 @@ struct Scheduler {
     create: Vec<Box<dyn Runnable>>,
     update: Vec<Box<dyn Runnable>>,
 
+    /// These are safe as it's not possible to schedule a child component to be rendered before a
+    /// parent becomes rendered for the first time.
+    #[cfg(feature = "hydration")]
+    hydrate_first: VecDeque<Box<dyn Runnable>>,
+    render_first: VecDeque<Box<dyn Runnable>>,
+
     /// The Binary Tree Map guarantees components with lower id (parent) is rendered first and
     /// no more than 1 render can be scheduled before a component is rendered.
     ///
     /// Parent can destroy child components but not otherwise, we can save unnecessary render by
     /// rendering parent first.
-    render_first: BTreeMap<usize, Box<dyn Runnable>>,
     render: BTreeMap<usize, Box<dyn Runnable>>,
 
     /// Binary Tree Map to guarantee children rendered are always called before parent calls
@@ -65,13 +70,12 @@ mod feat_csr_ssr {
     use super::*;
     /// Push a component creation, first render and first rendered [Runnable]s to be executed
     pub(crate) fn push_component_create(
-        component_id: usize,
         create: Box<dyn Runnable>,
         first_render: Box<dyn Runnable>,
     ) {
         with(|s| {
             s.create.push(create);
-            s.render_first.insert(component_id, first_render);
+            s.render_first.push_back(first_render);
         });
     }
 
@@ -113,15 +117,25 @@ mod feat_csr {
             }
         });
     }
+
+    pub(crate) fn push_component_first_render(render: Box<dyn Runnable>) {
+        with(|s| {
+            s.render_first.push_back(render);
+        });
+    }
 }
 
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
 
-    pub(crate) fn push_component_first_render(component_id: usize, render: Box<dyn Runnable>) {
+    pub(crate) fn push_component_hydrate(
+        create: Box<dyn Runnable>,
+        first_hydrate: Box<dyn Runnable>,
+    ) {
         with(|s| {
-            s.render_first.insert(component_id, render);
+            s.create.push(create);
+            s.hydrate_first.push_back(first_hydrate);
         });
     }
 }
@@ -210,20 +224,21 @@ impl Scheduler {
             return;
         }
 
+        // First hydrate must never be skipped and takes priority over first render.
+        //
+        // Should be processed one at time, because they can spawn more create and rendered events
+        // for their children.
+        #[cfg(feature = "hydration")]
+        if let Some(r) = self.hydrate_first.pop_front() {
+            to_run.push(r);
+        }
+
         // First render must never be skipped and takes priority over main, because it may need
         // to init `NodeRef`s
         //
         // Should be processed one at time, because they can spawn more create and rendered events
         // for their children.
-        //
-        // To be replaced with BTreeMap::pop_first once it is stable.
-        if let Some(r) = self
-            .render_first
-            .keys()
-            .next()
-            .cloned()
-            .and_then(|m| self.render_first.remove(&m))
-        {
+        if let Some(r) = self.render_first.pop_front() {
             to_run.push(r);
         }
 

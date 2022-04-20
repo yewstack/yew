@@ -11,6 +11,8 @@ use crate::suspense::{BaseSuspense, Suspension};
 use crate::{Callback, Context, HtmlResult};
 use std::any::Any;
 use std::rc::Rc;
+#[cfg(feature = "csr")]
+use std::sync::atomic::{AtomicBool, Ordering};
 
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
@@ -219,7 +221,7 @@ pub(crate) struct ComponentState {
     pub(super) render_state: ComponentRenderState,
 
     #[cfg(feature = "csr")]
-    has_rendered: bool,
+    has_rendered: Rc<AtomicBool>,
 
     suspension: Option<Suspension>,
 
@@ -261,7 +263,7 @@ impl ComponentState {
             suspension: None,
 
             #[cfg(feature = "csr")]
-            has_rendered: false,
+            has_rendered: Rc::default(),
 
             comp_id,
         }
@@ -450,15 +452,38 @@ impl RenderRunner {
 
         let comp_id = state.comp_id;
 
-        if suspension.resumed() {
-            // schedule a render immediately if suspension is resumed.
+        #[cfg(feature = "csr")]
+        let schedule_render = {
+            let has_rendered = state.has_rendered.clone();
+            move || {
+                if has_rendered.load(Ordering::Relaxed) {
+                    scheduler::push_component_render(
+                        comp_id,
+                        Box::new(RenderRunner {
+                            state: shared_state.clone(),
+                        }),
+                    );
+                } else {
+                    scheduler::push_component_first_render(Box::new(RenderRunner {
+                        state: shared_state.clone(),
+                    }));
+                }
+            }
+        };
 
+        #[cfg(not(feature = "csr"))]
+        let schedule_render = move || {
             scheduler::push_component_render(
-                state.comp_id,
+                comp_id,
                 Box::new(RenderRunner {
-                    state: shared_state,
+                    state: shared_state.clone(),
                 }),
             );
+        };
+
+        if suspension.resumed() {
+            // schedule a render immediately if suspension is resumed.
+            schedule_render();
         } else {
             // We schedule a render after current suspension is resumed.
             let comp_scope = state.inner.any_scope();
@@ -468,15 +493,7 @@ impl RenderRunner {
                 .expect("To suspend rendering, a <Suspense /> component is required.");
             let suspense = suspense_scope.get_component().unwrap();
 
-            suspension.listen(Callback::from(move |_| {
-                scheduler::push_component_render(
-                    comp_id,
-                    Box::new(RenderRunner {
-                        state: shared_state.clone(),
-                    }),
-                );
-                scheduler::start();
-            }));
+            suspension.listen(Callback::from(move |_| schedule_render()));
 
             if let Some(ref last_suspension) = state.suspension {
                 if &suspension != last_suspension {
@@ -518,8 +535,8 @@ impl RenderRunner {
                     bundle.reconcile(root, &scope, parent, next_sibling.clone(), new_root);
                 node_ref.link(new_node_ref);
 
-                let first_render = !state.has_rendered;
-                state.has_rendered = true;
+                let first_render = !state.has_rendered.load(Ordering::Relaxed);
+                state.has_rendered.store(true, Ordering::Relaxed);
 
                 scheduler::push_component_rendered(
                     state.comp_id,
@@ -541,12 +558,9 @@ impl RenderRunner {
             } => {
                 // We schedule a "first" render to run immediately after hydration,
                 // to fix NodeRefs (first_node and next_sibling).
-                scheduler::push_component_first_render(
-                    state.comp_id,
-                    Box::new(RenderRunner {
-                        state: self.state.clone(),
-                    }),
-                );
+                scheduler::push_component_first_render(Box::new(RenderRunner {
+                    state: self.state.clone(),
+                }));
 
                 let scope = state.inner.any_scope();
 
