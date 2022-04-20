@@ -18,13 +18,13 @@ exposes some types in it's public API, you will often need to add `web-sys` as a
 
 ## Inheritance in `web-sys`
 
-In the [Simulating inheritance section](../wasm-bindgen#simulating-inheritance) you can read how in
+In the [Simulating inheritance section](./wasm-bindgen.mdx#simulating-inheritance) you can read how in
 general Rust provides an approach to simulate inheritance in JavaScript. This is very important in
 `web-sys` as understanding what methods are available on a type means understanding it's inheritance.
 
 This section is going to look at a specific element and list out it's inheritance using Rust by
 calling [`Deref::deref`](https://doc.rust-lang.org/std/ops/trait.Deref.html#tymethod.deref) until
-the value is [`JsValue`](../wasm-bindgen/introduction.mdx#jsvalue):
+the value is [`JsValue`](./wasm-bindgen.mdx#jsvalue):
 
 ```rust
 use std::ops::Deref;
@@ -84,7 +84,7 @@ a `Node` made by the [`html!`](concepts/html/introduction.mdx) macro. The `Node`
 [`web_sys::Node`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Node.html). The
 `NodeRef::get` method will return a `Option<Node>` value, however, most of the time in Yew you want
 to cast this value to a specific element so you can use it's specific methods. This casting
-can be done using [`JsCast`](../wasm-bindgen#JsCast) on the `Node` value, if present, but Yew
+can be done using [`JsCast`](./wasm-bindgen.mdx#JsCast) on the `Node` value, if present, but Yew
 provides the `NodeRef::cast` method to perform this casting for convenience and so that you don't
 necessarily have to include the `wasm-bindgen` dependency for the `JsCast` trait.
 

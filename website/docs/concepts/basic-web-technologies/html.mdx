@@ -7,22 +7,16 @@ comment: 'Keep this file as short and simple as possible. Its purpose is to ease
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
-> Yew centrally operates on the idea of keeping everything that a reusable piece of
-> UI may need in one place - rust files, while also keeping the underlying technology
-> accessible where necessary.
-
-For HTML we achieve this by providing the `html!` macro:
+You can write expressions resembling HTML with the `html!` macro. Behind the scenes Yew turns
+it into rust code representing the DOM to generate.
 
 ```rust
 use yew::prelude::*;
 
-let my_header: Html = html!{
+let my_header: Html = html! {
     <img src="img_girl.jpg" alt="Girl in a jacket" width="500" height="600" />
 };
 ```
-
-The `html!` macro allows you to write html generation as if it was in a `.html` file and
-behind the scenes yew turns it into a rust expression representing the DOM to generate.
 
 Similar to format expressions, there is an easy way to embed values from the surrounding
 context into the html by applying curly brackets:
@@ -31,16 +25,16 @@ context into the html by applying curly brackets:
 use yew::prelude::*;
 
 let header_text = "Hello world".to_string();
-let header_html: Html = html!{
+let header_html: Html = html! {
     <h1>{header_text}</h1>
 };
 
 let count: usize = 5;
-let counter_html: Html = html!{
+let counter_html: Html = html! {
     <p>{"My age is: "}{count}</p>
 };
 
-let combined_html: Html = html!{
+let combined_html: Html = html! {
     <div>{header_html}{counter_html}</div>
 };
 ```

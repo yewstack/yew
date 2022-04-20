@@ -30,7 +30,7 @@ module.exports = {
             items: [
                 {
                     type: 'category',
-                    label: 'Intro With Basic Web Technologies',
+                    label: 'Using Basic Web Technologies In Yew',
                     link: {
                         type: 'generated-index',
                         title: "Yew's Take on Basic Web Technologies",
@@ -43,11 +43,13 @@ module.exports = {
                         'concepts/basic-web-technologies/html',
                         'concepts/basic-web-technologies/css',
                         'concepts/basic-web-technologies/js',
+                        'concepts/basic-web-technologies/wasm-bindgen',
+                        'concepts/basic-web-technologies/web-sys',
                     ],
                 },
                 {
                     type: 'category',
-                    label: 'Function Components',
+                    label: 'Components',
                     link: {
                         type: 'doc',
                         id: 'concepts/function-components/introduction',
@@ -96,21 +98,6 @@ module.exports = {
                         'concepts/html/lists',
                         'concepts/html/literals-and-expressions',
                         'concepts/html/conditional-rendering',
-                    ],
-                },
-                {
-                    type: 'category',
-                    label: 'Javascript with Rust',
-                    link: {
-                        type: 'generated-index',
-                        title: 'Javascript with Rust',
-                        description:
-                            'Learn about wasm-bindgen and interacting with javascript',
-                        slug: '/concepts/wasm-bindgen',
-                    },
-                    items: [
-                        'concepts/wasm-bindgen/introduction',
-                        'concepts/wasm-bindgen/web-sys',
                     ],
                 },
                 'concepts/agents',

@@ -12,15 +12,13 @@ import TabItem from '@theme/TabItem'
 > accessible where necessary.
 
 As of today, WebAssembly is not feature-complete for DOM interactions. This means even in Yew we
-sometimes rely on calling Javascript.
-What follows is an overview of the involved libraries, a detailed description can be found in the
-[Javascript with Rust](../wasm-bindgen) section.
+sometimes rely on calling Javascript. What follows is an overview of the involved libraries.
 
 ## wasm-bindgen
 
 [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) is a library and tool that enables calls to javascript from rust and back to rust from javascript.
 
-We highly recommend you take a look at their [documentation](https://rustwasm.github.io/docs/wasm-bindgen/)
+We highly recommend you take a look at their [documentation](https://rustwasm.github.io/docs/wasm-bindgen/) and our [quick guide](./wasm-bindgen.mdx).
 
 ## web-sys
 
@@ -52,4 +50,4 @@ let document = window()
 </TabItem>
 </Tabs>
 
-Once again we highly recommend you take a look at their [documentation](https://rustwasm.github.io/docs/wasm-bindgen/).
+Once again we highly recommend you take a look at their [documentation](https://rustwasm.github.io/docs/wasm-bindgen/) and our [quick guide](./web-sys.mdx).

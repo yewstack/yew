@@ -27,7 +27,13 @@ fn HelloWorld(props: &Props) -> Html {
 }
 ```
 
-## Un-pure components
+:::note
+If you have an internal pure component that makes no use of hooks and other component machinery, you can often write it instead
+as a normal function returning `Html` and avoid a bit of overhead for Yew, related to running the component lifecycle. Use
+[expression syntax](concepts/html/literals-and-expressions.mdx#expressions) to render them in `html!`.
+:::
 
-You might wonder if a component can be un-pure if it does not use any globals, since its just a function that is called every render.
+## Impure components
+
+You might wonder if a component can be impure if it does not use any globals, since its just a function that is called every render.
 This is where the next topic comes in - [hooks](./hooks)
