@@ -27,11 +27,16 @@ where
 
 /// This hook is used to manage state in a function component.
 ///
+/// This hook will always trigger a re-render upon receiving a new state. See [`use_state_eq`]
+/// if you want the component to only re-render when the new state compares unequal
+/// to the existing one.
+///
 /// # Example
+///
 /// ```rust
-/// # use yew::prelude::*;
+/// use yew::prelude::*;
 /// # use std::rc::Rc;
-/// #
+///
 /// #[function_component(UseState)]
 /// fn state() -> Html {
 ///     let counter = use_state(|| 0);
@@ -52,6 +57,21 @@ where
 ///     }
 /// }
 /// ```
+///
+/// # Caution
+///
+/// The value held in the handle will reflect the value of at the time the
+/// handle is returned by the `use_reducer`. It is possible that the handle does
+/// not dereference to an up to date value if you are moving it into a
+/// `use_effect_with_deps` hook. You can register the
+/// state to the dependents so the hook can be updated when the value changes.
+///
+/// # Tip
+///
+/// The setter function is guaranteed to be the same across the entire
+/// component lifecycle. You can safely omit the `UseStateHandle` from the
+/// dependents of `use_effect_with_deps` if you only intend to set
+/// values from within the hook.
 #[hook]
 pub fn use_state<T, F>(init_fn: F) -> UseStateHandle<T>
 where

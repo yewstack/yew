@@ -42,11 +42,14 @@ where
 ///
 /// Memoization means it will only get recalculated when provided dependencies update/change.
 ///
+/// It can be useful for keeping things in scope for the lifetime of the component,
+/// so long as you don't store a clone of the resulting `Rc` anywhere that outlives the component.
+///
 /// # Example
 ///
 /// ```rust
-/// # use yew::prelude::*;
-/// #
+/// use yew::prelude::*;
+///
 /// #[derive(PartialEq, Properties)]
 /// pub struct Props {
 ///     pub step: usize,

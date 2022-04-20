@@ -108,13 +108,16 @@ where
     }
 }
 
-/// This hook is used for hooking into the component's lifecycle.
+/// `use_effect` is used for hooking into the component's lifecycle and creating side effects.
+///
+/// The callback is called every time after the component's render has finished.
 ///
 /// # Example
+///
 /// ```rust
-/// # use yew::prelude::*;
+/// use yew::prelude::*;
 /// # use std::rc::Rc;
-/// #
+///
 /// #[function_component(UseEffect)]
 /// fn effect() -> Html {
 ///     let counter = use_state(|| 0);
@@ -151,7 +154,86 @@ where
 ///
 /// Whenever the dependencies are changed, the effect callback is called again.
 /// To detect changes, dependencies must implement `PartialEq`.
-/// Note that the destructor also runs when dependencies change.
+///
+/// # Note
+/// The destructor also runs when dependencies change.
+///
+/// # Example
+///
+/// ```rust
+/// use yew::{function_component, html, Html, Properties, use_effect_with_deps};
+/// # use gloo::console::log;
+///
+/// #[derive(Properties, PartialEq)]
+/// pub struct Props {
+///     pub is_loading: bool,
+/// }
+///
+/// #[function_component]
+/// fn HelloWorld(props: &Props) -> Html {
+///     let is_loading = props.is_loading.clone();
+///
+///     use_effect_with_deps(
+///         move |_| {
+///             log!(&" Is loading prop changed!".into());
+///             || ()
+///         },
+///         is_loading,
+///     );
+///
+///     html! { <>{"Am I loading? - "}{is_loading}</> }
+/// }
+/// ```
+///
+/// # Tips
+///
+/// ## Only on first render
+///
+/// Provide a empty tuple `()` as dependencies when you need to do something only on the first render
+/// of a component.
+///
+/// ```rust
+/// use yew::{function_component, html, Html, use_effect_with_deps};
+/// # use gloo::console::log;
+///
+/// #[function_component]
+/// fn HelloWorld() -> Html {
+///
+///     use_effect_with_deps(
+///         move |_| {
+///             log!(&"I got rendered, yay!".into());
+///             || ()
+///         },
+///         /// highlight-next-line
+///         (),
+///     );
+///
+///     html! { "Hello" }
+/// }
+/// ```
+///
+/// ## On destructing or last render
+///
+/// Use [Only on first render](#only-on-first-render) but put the code in the cleanup function.
+/// It will only get called when the component is removed from view / gets destroyed.
+///
+/// ```rust
+/// use yew::{function_component, html, Html, use_effect_with_deps};
+/// # use gloo::console::log;
+///
+/// #[function_component]
+/// fn HelloWorld() -> Html {
+///     use_effect_with_deps(
+///         move |_| {
+///             || {
+///                 log!(&"Noo dont kill me, ahhh!".into());
+///             }
+///         },
+///         (),
+///     );
+///     html! { "Hello" }
+/// }
+/// ```
 #[hook]
 pub fn use_effect_with_deps<T, F, D>(f: F, deps: T)
 where
