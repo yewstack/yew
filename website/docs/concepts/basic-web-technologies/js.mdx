@@ -7,19 +7,18 @@ comment: 'Keep this file as short and simple as possible. Its purpose is to ease
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
-> Yew mostly operates on the idea of keeping everything that a reusable piece of
-> UI may need, in one place - rust files. But also seeks to stay close to the
-> original look of the technology.
+> Yew centrally operates on the idea of keeping everything that a reusable piece of
+> UI may need in one place - rust files, while also keeping the underlying technology
+> accessible where necessary.
 
-Sadly as of today WebAssembly is not feature-complete for DOM interactions. This means even in Yew we sometimes rely on calling Javascript.
+As of today, WebAssembly is not feature-complete for DOM interactions. This means even in Yew we
+sometimes rely on calling Javascript. What follows is an overview of the involved libraries.
 
 ## wasm-bindgen
 
-[`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) is a library and tool that allows to call javascript from rust and rust from javascript.
+[`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) is a library and tool that enables calls to javascript from rust and back to rust from javascript.
 
-We highly recommend you give a look to their [documentation](https://rustwasm.github.io/docs/wasm-bindgen/)
-
-We will also expand upon this concept in the [more wasm-bindgen](../wasm-bindgen).
+We highly recommend you take a look at their [documentation](https://rustwasm.github.io/docs/wasm-bindgen/) and our [quick guide](./wasm-bindgen.mdx).
 
 ## web-sys
 
@@ -51,6 +50,4 @@ let document = window()
 </TabItem>
 </Tabs>
 
-Once again we highly recommend you give a look to their [documentation](https://rustwasm.github.io/docs/wasm-bindgen/)
-
-We will also expand upon this concept in the [more wasm-bindgen](../wasm-bindgen).
+Once again we highly recommend you take a look at their [documentation](https://rustwasm.github.io/docs/wasm-bindgen/) and our [quick guide](./web-sys.mdx).

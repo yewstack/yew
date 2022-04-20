@@ -4,7 +4,7 @@ title: 'use_reducer'
 
 `use_reducer` is an alternative to [`use_state`](./use-state). It is used to handle more complex component's state.
 
-It accepts an initial state function and returns a `UseReducerHandle` that dereferences to the state,
+It accepts an initializer function and returns a `UseReducerHandle` that dereferences to the state,
 and a dispatch function.
 The dispatch function takes one argument of type `Action`. When called, the action and current value
 are passed to the reducer function which computes a new state that is returned,
@@ -20,7 +20,7 @@ values from within the hooks.
 :::
 
 The state object returned by the initial state function is required to
-implement a `Reducible` trait which provides an `Action` type and a
+implement a `Reducible` trait which defines the associated `Action` type and a
 reducer function.
 
 This hook will always trigger a re-render upon receiving an action. See

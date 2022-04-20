@@ -6,13 +6,13 @@ title: 'State'
 
 This table can be used as a guide when deciding what state storing type fits best for your use case:
 
-| Type                                                 | Rerender when?               | Scope               |
-| ---------------------------------------------------- | ---------------------------- | ------------------- |
-| [use_state](./hooks/use-state)                       | got set                      | component instance  |
-| [use_state_eq](./hooks/use-state#use_state_eq)       | got set with diff. value     | component instance  |
-| [use_reducer](./hooks/use-reducer)                   | got reduced                  | component instance  |
-| [use_reducer_eq](./hooks/use-reducer#use_reducer_eq) | got reduced with diff. value | component instance  |
-| [use_memo](./hooks/use-memo)                         | dependencies changed         | component instance  |
-| [use_callback](./hooks/use-callback)                 | dependencies changed         | component instance  |
-| [use_mut_ref](./hooks/use-mut-ref)                   | -                            | component instance  |
-| a static global variable                             | -                            | global, used by all |
+| Hook                                                 | Type                       | Rerender when?               | Scope               |
+| ---------------------------------------------------- | -------------------------- | ---------------------------- | ------------------- |
+| [use_state](./hooks/use-state)                       | `T`                        | got set                      | component instance  |
+| [use_state_eq](./hooks/use-state#use_state_eq)       | `T: PartialEq`             | got set with diff. value     | component instance  |
+| [use_reducer](./hooks/use-reducer)                   | `T: Reducible`             | got reduced                  | component instance  |
+| [use_reducer_eq](./hooks/use-reducer#use_reducer_eq) | `T: Reducible + PartialEq` | got reduced with diff. value | component instance  |
+| [use_memo](./hooks/use-memo)                         | `Deps -> T`                | dependencies changed         | component instance  |
+| [use_callback](./hooks/use-callback)                 | `Deps -> Callback<E>`      | dependencies changed         | component instance  |
+| [use_mut_ref](./hooks/use-mut-ref)                   | `T`                        | -                            | component instance  |
+| a static global variable                             | `T`                        | -                            | global, used by all |

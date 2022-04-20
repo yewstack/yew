@@ -103,7 +103,7 @@ its own section below.
 
 _[extends section in The `wasm-bindgen` Guide](https://rustwasm.github.io/docs/wasm-bindgen/reference/attributes/on-js-imports/extends.html)_
 
-### [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
+### [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html) {#jsvalue}
 
 This is a representation of an object owned by JavaScript, this is a root catch-all type for `wasm-bindgen`.
 Any type that comes from `wasm-bindgen` is a `JsValue` and this is because JavaScript doesn't have
@@ -117,7 +117,7 @@ being imported as to whether an exception (panic) will be raised if that value i
 
 _[`JsValue` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)._
 
-### [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
+### [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html) {#JsCast}
 
 Rust has a strong type system and JavaScript...doesn't 😞. In order for Rust to maintain these
 strong types but still be convenient the WebAssembly group came up with a pretty neat trait `JsCast`.
