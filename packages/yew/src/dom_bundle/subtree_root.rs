@@ -9,7 +9,7 @@ use std::hash::{Hash, Hasher};
 use std::rc::{Rc, Weak};
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use wasm_bindgen::{prelude::wasm_bindgen, JsCast};
-use web_sys::{Element, Event, EventTarget as HtmlEventTarget};
+use web_sys::{Element, Event, EventTarget as HtmlEventTarget, ShadowRoot};
 
 /// DOM-Types that capture (bubbling) events. This generally includes event targets,
 /// but also subtree roots.
@@ -239,6 +239,13 @@ struct BrandingSearchResult {
     closest_branded_ancestor: Element,
 }
 
+fn shadow_aware_parent(el: &Element) -> Option<Element> {
+    match el.parent_element() {
+        s @ Some(_) => s,
+        None => el.parent_node()?.dyn_ref::<ShadowRoot>().map(|h| h.host()),
+    }
+}
+
 /// Deduce the subtree an element is part of. This already partially starts the bubbling
 /// process, as long as no listeners are encountered.
 /// Subtree roots are always branded with their own subtree id.
@@ -254,7 +261,7 @@ fn find_closest_branded_element(mut el: Element, do_bubble: bool) -> Option<Bran
             if let Some(tree_id) = el.subtree_id() {
                 break tree_id;
             }
-            el = el.parent_element()?;
+            el = shadow_aware_parent(&el)?;
         };
         Some(BrandingSearchResult {
             branding: responsible_tree_id,
@@ -276,7 +283,7 @@ fn start_bubbling_from(
         if !should_bubble {
             return None;
         }
-        let parent = element.parent_element()?;
+        let parent = shadow_aware_parent(element)?;
         subtree.bubble_to_inner_element(parent, true)
     })
 }
