@@ -6,7 +6,7 @@ use crate::scheduler::Shared;
 use std::cell::RefCell;
 
 #[cfg(any(feature = "csr", feature = "ssr"))]
-use super::lifecycle::{ComponentState, UpdateEvent, UpdateRunner};
+use super::lifecycle::{ComponentState, UpdateRunner};
 use super::BaseComponent;
 
 use crate::callback::Callback;
@@ -353,10 +353,9 @@ mod feat_csr_ssr {
             })
         }
 
-        pub(super) fn push_update(&self, event: UpdateEvent) {
+        pub(super) fn schedule_update(&self) {
             scheduler::push_component_update(Box::new(UpdateRunner {
                 state: self.state.clone(),
-                event,
             }));
             // Not guaranteed to already have the scheduler started
             scheduler::start();
@@ -369,7 +368,7 @@ mod feat_csr_ssr {
         {
             // We are the first message in queue, so we queue the update.
             if self.pending_messages.push(msg.into()) == 1 {
-                self.push_update(UpdateEvent::Message);
+                self.schedule_update();
             }
         }
 
@@ -382,7 +381,7 @@ mod feat_csr_ssr {
 
             // The queue was empty, so we queue the update
             if self.pending_messages.append(&mut messages) == msg_len {
-                self.push_update(UpdateEvent::Message);
+                self.schedule_update();
             }
         }
     }
@@ -396,7 +395,7 @@ mod feat_csr {
     use super::*;
     use crate::dom_bundle::{BSubtree, Bundle};
     use crate::html::component::lifecycle::{
-        ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
+        ComponentRenderState, CreateRunner, DestroyRunner, PropsUpdateRunner, RenderRunner,
     };
     use crate::html::NodeRef;
     use crate::scheduler;
@@ -461,7 +460,14 @@ mod feat_csr {
             #[cfg(debug_assertions)]
             super::super::log_event(self.id, "reuse");
 
-            self.push_update(UpdateEvent::Properties(props, node_ref, next_sibling));
+            scheduler::push_component_props_update(Box::new(PropsUpdateRunner {
+                state: self.state.clone(),
+                node_ref,
+                next_sibling,
+                props,
+            }));
+            // Not guaranteed to already have the scheduler started
+            scheduler::start();
         }
     }
 
@@ -575,7 +581,7 @@ mod feat_hydration {
                 fragment,
             };
 
-            scheduler::push_component_hydrate(
+            scheduler::push_component_create(
                 Box::new(CreateRunner {
                     initial_render_state: state,
                     props,

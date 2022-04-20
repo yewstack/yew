@@ -23,13 +23,16 @@ struct Scheduler {
     // Component queues
     destroy: Vec<Box<dyn Runnable>>,
     create: Vec<Box<dyn Runnable>>,
+
+    props_update: Vec<Box<dyn Runnable>>,
     update: Vec<Box<dyn Runnable>>,
 
     /// These are safe as it's not possible to schedule a child component to be rendered before a
     /// parent becomes rendered for the first time.
-    #[cfg(feature = "hydration")]
-    hydrate_first: VecDeque<Box<dyn Runnable>>,
     render_first: VecDeque<Box<dyn Runnable>>,
+
+    #[cfg(feature = "csr")]
+    render_priority: VecDeque<Box<dyn Runnable>>,
 
     /// The Binary Tree Map guarantees components with lower id (parent) is rendered first and
     /// no more than 1 render can be scheduled before a component is rendered.
@@ -118,30 +121,16 @@ mod feat_csr {
         });
     }
 
-    pub(crate) fn push_component_first_render(render: Box<dyn Runnable>) {
+    pub(crate) fn push_component_priority_render(render: Box<dyn Runnable>) {
         with(|s| {
-            s.render_first.push_back(render);
+            s.render_priority.push_back(render);
         });
     }
-}
 
-#[cfg(feature = "hydration")]
-mod feat_hydration {
-    use super::*;
-
-    pub(crate) fn push_component_hydrate(
-        create: Box<dyn Runnable>,
-        first_hydrate: Box<dyn Runnable>,
-    ) {
-        with(|s| {
-            s.create.push(create);
-            s.hydrate_first.push_back(first_hydrate);
-        });
+    pub(crate) fn push_component_props_update(props_update: Box<dyn Runnable>) {
+        with(|s| s.props_update.push(props_update));
     }
 }
-
-#[cfg(feature = "hydration")]
-pub(crate) use feat_hydration::*;
 
 #[cfg(feature = "csr")]
 pub(crate) use feat_csr::*;
@@ -224,15 +213,6 @@ impl Scheduler {
             return;
         }
 
-        // First hydrate must never be skipped and takes priority over first render.
-        //
-        // Should be processed one at time, because they can spawn more create and rendered events
-        // for their children.
-        #[cfg(feature = "hydration")]
-        if let Some(r) = self.hydrate_first.pop_front() {
-            to_run.push(r);
-        }
-
         // First render must never be skipped and takes priority over main, because it may need
         // to init `NodeRef`s
         //
@@ -242,10 +222,25 @@ impl Scheduler {
             to_run.push(r);
         }
 
-        // These typically do nothing and don't spawn any other events - can be batched.
-        // Should be run only after all first renders have finished.
         if !to_run.is_empty() {
             return;
+        }
+
+        to_run.append(&mut self.props_update);
+
+        // Priority rendering
+        //
+        // This is needed for certain actions.
+        // suspense revealing, hydration susequent rendering, etc.
+        #[cfg(feature = "csr")]
+        {
+            if let Some(r) = self.render_priority.pop_front() {
+                to_run.push(r);
+            }
+
+            if !to_run.is_empty() {
+                return;
+            }
         }
 
         if !self.rendered_first.is_empty() {
