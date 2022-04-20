@@ -30,11 +30,11 @@ use crate::functional::{hook, use_component_scope, use_memo, use_state};
 ///     });
 ///
 ///     html! {
-///         /// `ctx` is type `Rc<UseStateHandle<Theme>>` while we need `Theme`
-///         /// so we deref it.
-///         /// It derefs to `&Theme`, hence the clone
+///         // `ctx` is type `Rc<UseStateHandle<Theme>>` while we need `Theme`
+///         // so we deref it.
+///         // It derefs to `&Theme`, hence the clone
 ///         <ContextProvider<Theme> context={(*ctx).clone()}>
-///             /// Every child here and their children will have access to this context.
+///             // Every child here and their children will have access to this context.
 ///             <Toolbar />
 ///         </ContextProvider<Theme>>
 ///     }

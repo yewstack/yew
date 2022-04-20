@@ -175,7 +175,7 @@ where
 ///
 ///     use_effect_with_deps(
 ///         move |_| {
-///             log!(" Is loading prop changed!".into());
+///             log!(" Is loading prop changed!");
 ///             || ()
 ///         },
 ///         is_loading,
@@ -201,10 +201,9 @@ where
 ///
 ///     use_effect_with_deps(
 ///         move |_| {
-///             log!("I got rendered, yay!".into());
+///             log!("I got rendered, yay!");
 ///             || ()
 ///         },
-///         /// highlight-next-line
 ///         (),
 ///     );
 ///
@@ -226,7 +225,7 @@ where
 ///     use_effect_with_deps(
 ///         move |_| {
 ///             || {
-///                 log!("Noo dont kill me, ahhh!".into());
+///                 log!("Noo dont kill me, ahhh!");
 ///             }
 ///         },
 ///         (),
