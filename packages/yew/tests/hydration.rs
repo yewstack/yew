@@ -614,6 +614,22 @@ async fn hydration_node_ref_works() {
         result.as_str(),
         r#"<div><span>test</span><span>test</span><span>test</span><span>test</span></div>"#
     );
+
+    gloo_utils::document()
+        .query_selector("span")
+        .unwrap()
+        .unwrap()
+        .dyn_into::<HtmlElement>()
+        .unwrap()
+        .click();
+
+    sleep(Duration::ZERO).await;
+
+    let result = obtain_result_by_id("output");
+    assert_eq!(
+        result.as_str(),
+        r#"<div><span>test</span><span>test</span><span>test</span><span>test</span><span>test</span><span>test</span><span>test</span><span>test</span><span>test</span><span>test</span></div>"#
+    );
 }
 
 #[wasm_bindgen_test]
