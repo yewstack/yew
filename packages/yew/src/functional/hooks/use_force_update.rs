@@ -67,13 +67,13 @@ impl UseForceUpdate {
 ///
 /// [`use_state`]: super::use_state()
 /// [`use_reducer`]: super::use_reducer()
-pub fn use_force_update() -> impl Hook<Output = UseForceUpdate> {
+pub fn use_force_update() -> impl for<'hook> Hook<'hook, Output = UseForceUpdate> {
     struct UseRerenderHook;
 
-    impl Hook for UseRerenderHook {
+    impl<'hook> Hook<'hook> for UseRerenderHook {
         type Output = UseForceUpdate;
 
-        fn run(self, ctx: &mut HookContext) -> Self::Output {
+        fn run(self, ctx: &HookContext) -> Self::Output {
             UseForceUpdate {
                 trigger: ctx.re_render.clone(),
             }

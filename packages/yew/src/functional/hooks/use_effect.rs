@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-
 use crate::functional::{hook, Effect, Hook, HookContext};
 
 struct UseEffectBase<T, F, D>
@@ -14,28 +12,26 @@ where
     effect_changed_fn: fn(Option<&T>, Option<&T>) -> bool,
 }
 
-impl<T, F, D> Effect for RefCell<UseEffectBase<T, F, D>>
+impl<T, F, D> Effect for UseEffectBase<T, F, D>
 where
     F: FnOnce(&T) -> D + 'static,
     T: 'static,
     D: FnOnce() + 'static,
 {
-    fn rendered(&self) {
-        let mut this = self.borrow_mut();
-
-        if let Some((deps, runner)) = this.runner_with_deps.take() {
-            if !(this.effect_changed_fn)(Some(&deps), this.deps.as_ref()) {
+    fn rendered(&mut self) {
+        if let Some((deps, runner)) = self.runner_with_deps.take() {
+            if !(self.effect_changed_fn)(Some(&deps), self.deps.as_ref()) {
                 return;
             }
 
-            if let Some(de) = this.destructor.take() {
+            if let Some(de) = self.destructor.take() {
                 de();
             }
 
             let new_destructor = runner(&deps);
 
-            this.deps = Some(deps);
-            this.destructor = Some(new_destructor);
+            self.deps = Some(deps);
+            self.destructor = Some(new_destructor);
         }
     }
 }
@@ -53,11 +49,11 @@ where
     }
 }
 
-fn use_effect_base<T, D>(
+fn use_effect_base<'hook, T, D>(
     runner: impl FnOnce(&T) -> D + 'static,
     deps: T,
     effect_changed_fn: fn(Option<&T>, Option<&T>) -> bool,
-) -> impl Hook<Output = ()>
+) -> impl Hook<'hook, Output = ()>
 where
     T: 'static,
     D: FnOnce() + 'static,
@@ -73,7 +69,7 @@ where
         effect_changed_fn: fn(Option<&T>, Option<&T>) -> bool,
     }
 
-    impl<T, F, D> Hook for HookProvider<T, F, D>
+    impl<'hook, T, F, D> Hook<'hook> for HookProvider<T, F, D>
     where
         F: FnOnce(&T) -> D + 'static,
         T: 'static,
@@ -81,23 +77,23 @@ where
     {
         type Output = ();
 
-        fn run(self, ctx: &mut HookContext) -> Self::Output {
+        fn run(self, ctx: &HookContext) -> Self::Output {
             let Self {
                 runner,
                 deps,
                 effect_changed_fn,
             } = self;
 
-            let state = ctx.next_effect(|_| -> RefCell<UseEffectBase<T, F, D>> {
-                RefCell::new(UseEffectBase {
+            let state = ctx.next_effect(|| -> UseEffectBase<T, F, D> {
+                UseEffectBase {
                     runner_with_deps: None,
                     destructor: None,
                     deps: None,
                     effect_changed_fn,
-                })
+                }
             });
 
-            state.borrow_mut().runner_with_deps = Some((deps, runner));
+            state.runner_with_deps = Some((deps, runner));
         }
     }
 

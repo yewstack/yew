@@ -8,12 +8,21 @@ struct UseMutRef<F> {
     init_fn: F,
 }
 
-impl<T: 'static, F: FnOnce() -> T> Hook for UseMutRef<F> {
-    type Output = Rc<RefCell<T>>;
+impl<'hook, T: 'static, F: FnOnce() -> T> Hook<'hook> for UseMutRef<F> {
+    type Output = &'hook mut T;
 
-    fn run(self, ctx: &mut HookContext) -> Self::Output {
-        ctx.next_state(|_| RefCell::new((self.init_fn)()))
+    fn run(self, ctx: &'hook HookContext) -> Self::Output {
+        ctx.next_state(|| (self.init_fn)())
     }
+}
+
+pub(crate) fn use_mut_ref_base<T: 'static, F>(
+    init_fn: F,
+) -> impl for<'hook> Hook<'hook, Output = &'hook mut T>
+where
+    F: FnOnce() -> T,
+{
+    UseMutRef { init_fn }
 }
 
 /// This hook is used for obtaining a mutable reference to a stateful value.
@@ -62,11 +71,12 @@ impl<T: 'static, F: FnOnce() -> T> Hook for UseMutRef<F> {
 ///     }
 /// }
 /// ```
-pub fn use_mut_ref<T: 'static, F>(init_fn: F) -> impl Hook<Output = Rc<RefCell<T>>>
+#[hook]
+pub fn use_mut_ref<T: 'static, F>(init_fn: F) -> Rc<RefCell<T>>
 where
     F: FnOnce() -> T,
 {
-    UseMutRef { init_fn }
+    use_mut_ref_base(|| Rc::new(RefCell::new(init_fn()))).clone()
 }
 
 /// This hook is used for obtaining a [`NodeRef`].

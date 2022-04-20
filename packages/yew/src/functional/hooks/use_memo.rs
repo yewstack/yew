@@ -1,4 +1,4 @@
-use super::use_mut_ref;
+use super::use_mut_ref_base;
 use std::{borrow::Borrow, rc::Rc};
 
 use crate::functional::hook;
@@ -20,9 +20,8 @@ where
         memo_key: K,
         result: Rc<T>,
     }
-    let state = use_mut_ref(|| -> Option<MemoState<T, K>> { None });
+    let state = use_mut_ref_base(|| -> Option<MemoState<T, K>> { None });
 
-    let mut state = state.borrow_mut();
     match &*state {
         Some(existing) if existing.memo_key.borrow() != &deps => {
             // Drop old state if it's outdated

@@ -147,36 +147,33 @@ where
 fn use_reducer_base<'hook, T>(
     init_fn: impl 'hook + FnOnce() -> T,
     should_render_fn: fn(&T, &T) -> bool,
-) -> impl 'hook + Hook<Output = UseReducerHandle<T>>
+) -> impl Hook<'hook, Output = UseReducerHandle<T>>
 where
     T: Reducible + 'static,
 {
-    struct HookProvider<'hook, T, F>
-    where
-        T: Reducible + 'static,
-        F: 'hook + FnOnce() -> T,
-    {
+    struct HookProvider<'hook, T, F> {
         _marker: PhantomData<&'hook ()>,
 
         init_fn: F,
         should_render_fn: fn(&T, &T) -> bool,
     }
 
-    impl<'hook, T, F> Hook for HookProvider<'hook, T, F>
+    impl<'hook, T, F> Hook<'hook> for HookProvider<'hook, T, F>
     where
         T: Reducible + 'static,
-        F: 'hook + FnOnce() -> T,
+        F: FnOnce() -> T,
     {
         type Output = UseReducerHandle<T>;
 
-        fn run(self, ctx: &mut HookContext) -> Self::Output {
+        fn run(self, ctx: &HookContext) -> Self::Output {
             let Self {
                 init_fn,
                 should_render_fn,
                 ..
             } = self;
 
-            let state = ctx.next_state(move |re_render| {
+            let rerender = ctx.re_render.clone();
+            let state = ctx.next_state(move || {
                 let val = Rc::new(RefCell::new(Rc::new(init_fn())));
                 let should_render_fn = Rc::new(should_render_fn);
 
@@ -196,7 +193,7 @@ where
                         // Currently, this triggers a render immediately, so we need to release the
                         // borrowed reference first.
                         if should_render {
-                            re_render()
+                            rerender()
                         }
                     }),
                 }
