@@ -6,9 +6,12 @@
 //!
 //! Yew is a modern Rust framework for creating multi-threaded front-end web apps using WebAssembly
 //!
-//! - Features a macro for declaring interactive HTML with Rust expressions. Developers who have experience using JSX in React should feel quite at home when using Yew.
-//! - Achieves high performance by minimizing DOM API calls for each page render and by making it easy to offload processing to background web workers.
-//! - Supports JavaScript interoperability, allowing developers to leverage NPM packages and integrate with existing JavaScript applications.
+//! - Features a macro for declaring interactive HTML with Rust expressions. Developers who have
+//!   experience using JSX in React should feel quite at home when using Yew.
+//! - Achieves high performance by minimizing DOM API calls for each page render and by making it
+//!   easy to offload processing to background web workers.
+//! - Supports JavaScript interoperability, allowing developers to leverage NPM packages and
+//!   integrate with existing JavaScript applications.
 //!
 //! ### Supported Targets (Client-Side Rendering)
 //! - `wasm32-unknown-unknown`
@@ -18,14 +21,15 @@
 //! Server-Side Rendering should work on all targets when feature `ssr` is enabled.
 //!
 //! ### Supported Features:
-//! - `csr`: Enables Client-side Rendering support and [`Renderer`].
-//!   Only enable this feature if you are making a Yew application (not a library).
+//! - `csr`: Enables Client-side Rendering support and [`Renderer`]. Only enable this feature if you
+//!   are making a Yew application (not a library).
 //! - `ssr`: Enables Server-side Rendering support and [`ServerRenderer`].
 //! - `tokio`: Enables future-based APIs on non-wasm32 targets with tokio runtime. (You may want to
 //! enable this if your application uses future-based APIs and it does not compile / lint on
 //! non-wasm32 targets.)
 //! - `hydration`: Enables Hydration support.
-//! - `trace_hydration`: Enables trace logging on hydration. (Implies `hydration`. You may want to enable this if you are
+//! - `trace_hydration`: Enables trace logging on hydration. (Implies `hydration`. You may want to
+//!   enable this if you are
 //! trying to debug hydration layout mismatch.)
 //!
 //! ## Example
@@ -46,9 +50,7 @@
 //!     type Properties = ();
 //!
 //!     fn create(ctx: &Context<Self>) -> Self {
-//!         Self {
-//!             value: 0,
-//!         }
+//!         Self { value: 0 }
 //!     }
 //!
 //!     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
@@ -70,13 +72,12 @@
 //!     }
 //! }
 //!
-//!# fn dont_execute() {
+//! # fn dont_execute() {
 //! fn main() {
 //!     yew::Renderer::<App>::new().render();
 //! }
-//!# }
+//! # }
 //! ```
-//!
 
 #![deny(
     missing_docs,
@@ -91,8 +92,9 @@ extern crate self as yew;
 
 /// This macro provides a convenient way to create [`Classes`].
 ///
-/// The macro takes a list of items similar to the [`vec!`] macro and returns a [`Classes`] instance.
-/// Each item can be of any type that implements `Into<Classes>` (See the implementations on [`Classes`] to learn what types can be used).
+/// The macro takes a list of items similar to the [`vec!`] macro and returns a [`Classes`]
+/// instance. Each item can be of any type that implements `Into<Classes>` (See the
+/// implementations on [`Classes`] to learn what types can be used).
 ///
 /// # Example
 ///
@@ -100,7 +102,12 @@ extern crate self as yew;
 /// # use yew::prelude::*;
 /// # fn test() {
 /// let conditional_class = Some("my-other-class");
-/// let vec_of_classes = vec!["one-bean", "two-beans", "three-beans", "a-very-small-casserole"];
+/// let vec_of_classes = vec![
+///     "one-bean",
+///     "two-beans",
+///     "three-beans",
+///     "a-very-small-casserole",
+/// ];
 ///
 /// html! {
 ///     <div class={classes!("my-container-class", conditional_class, vec_of_classes)}>
@@ -110,7 +117,6 @@ extern crate self as yew;
 /// # }
 /// ```
 pub use yew_macro::classes;
-
 /// This macro implements JSX-like templates.
 ///
 /// This macro always returns [`Html`].
@@ -122,7 +128,6 @@ pub use yew_macro::classes;
 /// [`html_nested!`]: ./macro.html_nested.html
 /// [Yew Docs]: https://yew.rs/docs/next/concepts/html
 pub use yew_macro::html;
-
 /// This macro is similar to [`html!`], but preserves the component type instead
 /// of wrapping it in [`Html`].
 ///
@@ -141,14 +146,14 @@ pub use yew_macro::html;
 ///
 /// #[derive(Clone, Properties, PartialEq)]
 /// struct ListProps {
-///   children: ChildrenRenderer<ListItem>,
+///     children: ChildrenRenderer<ListItem>,
 /// }
 ///
 /// struct List;
 /// impl Component for List {
 /// #   type Message = ();
-///   type Properties = ListProps;
-///   // ...
+///     type Properties = ListProps;
+///     // ...
 /// #   fn create(ctx: &Context<Self>) -> Self { Self }
 /// #   fn view(&self, ctx: &Context<Self>) -> Html { unimplemented!() }
 /// }
@@ -158,18 +163,22 @@ pub use yew_macro::html;
 /// impl Component for ListItem {
 /// #   type Message = ();
 /// #   type Properties = ();
-///   // ...
+///     // ...
 /// #   fn create(ctx: &Context<Self>) -> Self { Self }
 /// #   fn view(&self, ctx: &Context<Self>) -> Html { unimplemented!() }
 /// }
 ///
 /// // Required for ChildrenRenderer
 /// impl From<VChild<ListItem>> for ListItem {
-///   fn from(child: VChild<ListItem>) -> Self { Self }
+///     fn from(child: VChild<ListItem>) -> Self {
+///         Self
+///     }
 /// }
 ///
 /// impl Into<Html> for ListItem {
-///   fn into(self) -> Html { html! { <self /> } }
+///     fn into(self) -> Html {
+///         html! { <self /> }
+///     }
 /// }
 /// // You can use `List` with nested `ListItem` components.
 /// // Using any other kind of element would result in a compile error.
@@ -205,14 +214,14 @@ pub use yew_macro::html;
 /// [`nested_list`]: https://github.com/yewstack/yew/tree/master/examples/nested_list
 /// [`ChildrenRenderer<ListItem>`]: ./html/struct.ChildrenRenderer.html
 pub use yew_macro::html_nested;
-
 /// Build [`Properties`] outside of the [`html!`] macro.
 ///
 /// It's already possible to create properties like normal Rust structs
 /// but if there are lots of optional props the end result is often needlessly verbose.
 /// This macro allows you to build properties the same way the [`html!`] macro does.
 ///
-/// The macro doesn't support special props like `ref` and `key`, they need to be set in the [`html!`] macro.
+/// The macro doesn't support special props like `ref` and `key`, they need to be set in the
+/// [`html!`] macro.
 ///
 /// You can read more about `Properties` in the [Yew Docs].
 ///
@@ -240,10 +249,15 @@ pub use yew_macro::html_nested;
 ///
 /// # fn foo() -> Html {
 /// // You can build props directly ...
-/// let props = yew::props!(Props { name: Cow::from("Minka") });
+/// let props = yew::props!(Props {
+///     name: Cow::from("Minka")
+/// });
 /// # assert_eq!(props.name, "Minka");
 /// // ... or build the associated properties of a component
-/// let props = yew::props!(MyComponent::Properties { id: 2, name: Cow::from("Lemmy") });
+/// let props = yew::props!(MyComponent::Properties {
+///     id: 2,
+///     name: Cow::from("Lemmy")
+/// });
 /// # assert_eq!(props.id, 2);
 ///
 /// // Use the Rust-like struct update syntax to create a component with the props.
@@ -260,10 +274,7 @@ pub use yew_macro::props;
 
 /// This module contains macros which implements html! macro and JSX-like templates
 pub mod macros {
-    pub use crate::classes;
-    pub use crate::html;
-    pub use crate::html_nested;
-    pub use crate::props;
+    pub use crate::{classes, html, html_nested, props};
 }
 
 pub mod callback;
@@ -295,16 +306,15 @@ pub mod tests;
 
 /// The module that contains all events available in the framework.
 pub mod events {
-    pub use crate::html::TargetCast;
-
-    #[cfg(feature = "csr")]
-    pub use crate::dom_bundle::set_event_bubbling;
-
     #[doc(no_inline)]
     pub use web_sys::{
         AnimationEvent, DragEvent, ErrorEvent, Event, FocusEvent, InputEvent, KeyboardEvent,
         MouseEvent, PointerEvent, ProgressEvent, TouchEvent, TransitionEvent, UiEvent, WheelEvent,
     };
+
+    #[cfg(feature = "csr")]
+    pub use crate::dom_bundle::set_event_bubbling;
+    pub use crate::html::TargetCast;
 }
 
 #[cfg(feature = "csr")]
@@ -327,6 +337,7 @@ pub mod prelude {
     pub use crate::callback::Callback;
     pub use crate::context::{ContextHandle, ContextProvider};
     pub use crate::events::*;
+    pub use crate::functional::*;
     pub use crate::html::{
         create_portal, BaseComponent, Children, ChildrenWithProps, Classes, Component, Context,
         Html, HtmlResult, NodeRef, Properties,
@@ -334,8 +345,6 @@ pub mod prelude {
     pub use crate::macros::{classes, html, html_nested};
     pub use crate::suspense::Suspense;
     pub use crate::virtual_dom::AttrValue;
-
-    pub use crate::functional::*;
 }
 
 pub use self::prelude::*;

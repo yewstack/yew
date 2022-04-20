@@ -6,18 +6,19 @@ mod conversion;
 mod error;
 mod listener;
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 pub use classes::*;
 pub use component::*;
 pub use conversion::*;
 pub use error::*;
 pub use listener::*;
+use wasm_bindgen::JsValue;
+use web_sys::{Element, Node};
 
 use crate::sealed::Sealed;
 use crate::virtual_dom::{VNode, VPortal};
-use std::cell::RefCell;
-use std::rc::Rc;
-use wasm_bindgen::JsValue;
-use web_sys::{Element, Node};
 
 /// A type which expected as a result of `view` function implementation.
 pub type Html = VNode;
@@ -53,7 +54,7 @@ impl IntoHtmlResult for Html {
 /// Focus an `<input>` element on mount.
 /// ```
 /// use web_sys::HtmlInputElement;
-///# use yew::prelude::*;
+/// # use yew::prelude::*;
 ///
 /// pub struct Input {
 ///     node_ref: NodeRef,
@@ -182,10 +183,10 @@ pub fn create_portal(child: Html, host: Element) -> Html {
 #[cfg(feature = "wasm_test")]
 #[cfg(test)]
 mod tests {
-    use super::*;
     use gloo_utils::document;
-
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    use super::*;
 
     wasm_bindgen_test_configure!(run_in_browser);
 

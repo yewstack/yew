@@ -2,13 +2,9 @@ use gloo::storage::{LocalStorage, Storage};
 use state::{Entry, Filter, State};
 use strum::IntoEnumIterator;
 use web_sys::HtmlInputElement as InputElement;
-use yew::{
-    classes,
-    events::{FocusEvent, KeyboardEvent},
-    html,
-    html::Scope,
-    Classes, Component, Context, Html, NodeRef, TargetCast,
-};
+use yew::events::{FocusEvent, KeyboardEvent};
+use yew::html::Scope;
+use yew::{classes, html, Classes, Component, Context, Html, NodeRef, TargetCast};
 
 mod state;
 

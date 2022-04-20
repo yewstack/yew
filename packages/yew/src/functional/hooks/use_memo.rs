@@ -1,6 +1,7 @@
-use super::use_mut_ref;
-use std::{borrow::Borrow, rc::Rc};
+use std::borrow::Borrow;
+use std::rc::Rc;
 
+use super::use_mut_ref;
 use crate::functional::hook;
 
 /// Get a immutable reference to a memoized value.
@@ -57,7 +58,7 @@ where
 ///     // Will only get recalculated if `props.step` value changes
 ///     let message = use_memo(
 ///         |step| format!("{}. Do Some Expensive Calculation", step),
-///         props.step
+///         props.step,
 ///     );
 ///
 ///     html! {

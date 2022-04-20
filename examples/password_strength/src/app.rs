@@ -22,6 +22,7 @@ impl App {
             .ok()
             .map(|estimate| estimate.score())
     }
+
     fn redout_top_row_text(&self) -> String {
         if self.password.is_empty() {
             return "Provide a password".to_string();

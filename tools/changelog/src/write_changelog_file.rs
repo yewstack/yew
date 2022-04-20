@@ -1,10 +1,8 @@
-use anyhow::Context;
-use anyhow::Result;
 use std::fs;
 use std::fs::File;
-use std::io::BufRead;
-use std::io::BufReader;
-use std::io::Write;
+use std::io::{BufRead, BufReader, Write};
+
+use anyhow::{Context, Result};
 
 pub fn write_changelog(changelog_path: &str, version_changelog: &[u8]) -> Result<()> {
     let old_changelog = File::open(changelog_path)

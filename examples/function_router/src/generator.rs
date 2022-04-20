@@ -1,6 +1,9 @@
 use lazy_static::lazy_static;
 use lipsum::MarkovChain;
-use rand::{distributions::Bernoulli, rngs::StdRng, seq::IteratorRandom, Rng, SeedableRng};
+use rand::distributions::Bernoulli;
+use rand::rngs::StdRng;
+use rand::seq::IteratorRandom;
+use rand::{Rng, SeedableRng};
 
 const KEYWORDS: &str = include_str!("../data/keywords.txt");
 const SYLLABLES: &str = include_str!("../data/syllables.txt");

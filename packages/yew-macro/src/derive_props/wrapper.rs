@@ -1,7 +1,8 @@
-use super::PropField;
 use proc_macro2::Ident;
 use quote::{quote, ToTokens};
 use syn::{Attribute, Generics};
+
+use super::PropField;
 
 pub struct PropsWrapper<'a> {
     wrapper_name: &'a Ident,

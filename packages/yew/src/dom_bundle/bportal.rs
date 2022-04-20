@@ -1,11 +1,11 @@
 //! This module contains the bundle implementation of a portal [BPortal].
 
+use web_sys::Element;
+
 use super::{test_log, BNode, BSubtree};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::{AnyScope, NodeRef};
-use crate::virtual_dom::Key;
-use crate::virtual_dom::VPortal;
-use web_sys::Element;
+use crate::virtual_dom::{Key, VPortal};
 
 /// The bundle implementation to [VPortal].
 #[derive(Debug)]
@@ -120,13 +120,13 @@ impl BPortal {
 mod layout_tests {
     extern crate self as yew;
 
+    #[cfg(feature = "wasm_test")]
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use yew::virtual_dom::VPortal;
+
     use crate::html;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
-    use yew::virtual_dom::VPortal;
-
-    #[cfg(feature = "wasm_test")]
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);

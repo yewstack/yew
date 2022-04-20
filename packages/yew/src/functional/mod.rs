@@ -2,9 +2,10 @@
 //! They consist of a single function annotated with the attribute `#[function_component]`
 //! that receives props and determines what should be rendered by returning [`Html`](crate::Html).
 //!
-//! Functions with the attribute have to return `Html` and may take a single parameter for the type of props the component should accept.
-//! The parameter type needs to be a reference to a `Properties` type (ex. `props: &MyProps`).
-//! If the function doesn't have any parameters the resulting component doesn't accept any props.
+//! Functions with the attribute have to return `Html` and may take a single parameter for the type
+//! of props the component should accept. The parameter type needs to be a reference to a
+//! `Properties` type (ex. `props: &MyProps`). If the function doesn't have any parameters the
+//! resulting component doesn't accept any props.
 //!
 //! Just mark the component with the attribute. The component will be named after the function.
 //!
@@ -19,8 +20,6 @@
 //!
 //! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/next/concepts/function-components/introduction)
 
-use crate::html::{AnyScope, BaseComponent, Context, HtmlResult};
-use crate::Properties;
 use std::any::Any;
 use std::cell::RefCell;
 use std::fmt;
@@ -28,18 +27,20 @@ use std::rc::Rc;
 
 use wasm_bindgen::prelude::*;
 
+use crate::html::{AnyScope, BaseComponent, Context, HtmlResult};
+use crate::Properties;
+
 mod hooks;
 pub use hooks::*;
-
 /// This attribute creates a function component from a normal Rust function.
 ///
-/// Functions with this attribute **must** return `Html` and can optionally take an argument for props.
-/// Note that the function only receives a reference to the props.
+/// Functions with this attribute **must** return `Html` and can optionally take an argument
+/// for props. Note that the function only receives a reference to the props.
 ///
 /// When using this attribute you need to provide a name for the component:
 /// `#[function_component(ComponentName)]`.
-/// The attribute will then automatically create a [`FunctionComponent`] with the given identifier
-/// which you can use like a normal component.
+/// The attribute will then automatically create a [`FunctionComponent`] with the given
+/// identifier which you can use like a normal component.
 ///
 /// # Example
 /// ```rust
@@ -58,7 +59,6 @@ pub use hooks::*;
 /// }
 /// ```
 pub use yew_macro::function_component;
-
 /// This attribute creates a user-defined hook from a normal Rust function.
 pub use yew_macro::hook;
 
@@ -142,8 +142,8 @@ impl HookContext {
     /// This function asserts that the number of hooks matches for every render.
     #[cfg(debug_assertions)]
     fn assert_hook_context(&mut self, render_ok: bool) {
-        // Procedural Macros can catch most conditionally called hooks at compile time, but it cannot
-        // detect early return (as the return can be Err(_), Suspension).
+        // Procedural Macros can catch most conditionally called hooks at compile time, but it
+        // cannot detect early return (as the return can be Err(_), Suspension).
         match (render_ok, self.total_hook_counter) {
             // First rendered,
             // we store the hook counter.
@@ -197,7 +197,8 @@ pub trait FunctionProvider {
     /// Properties for the Function Component.
     type Properties: Properties + PartialEq;
 
-    /// Render the component. This function returns the [`Html`](crate::Html) to be rendered for the component.
+    /// Render the component. This function returns the [`Html`](crate::Html) to be rendered for the
+    /// component.
     ///
     /// Equivalent of [`Component::view`](crate::html::Component::view).
     fn run(ctx: &mut HookContext, props: &Self::Properties) -> HtmlResult;

@@ -38,10 +38,7 @@ use crate::functional::{hook, use_memo};
 ///
 ///     // This callback depends on (), so it's created only once, then MyComponent
 ///     // will be rendered only once even when you click the button mutiple times.
-///     let callback = use_callback(
-///         move |name, _| format!("Hello, {}!", name),
-///         ()
-///     );
+///     let callback = use_callback(move |name, _| format!("Hello, {}!", name), ());
 ///
 ///     // It can also be used for events, this callback depends on `counter`.
 ///     let oncallback = {
@@ -50,7 +47,7 @@ use crate::functional::{hook, use_memo};
 ///             move |_e, counter| {
 ///                 let _ = **counter;
 ///             },
-///             counter
+///             counter,
 ///         )
 ///     };
 ///

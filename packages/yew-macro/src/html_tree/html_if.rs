@@ -1,5 +1,3 @@
-use super::{HtmlRootBraced, ToNodeIterator};
-use crate::PeekValue;
 use boolinator::Boolinator;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
@@ -7,6 +5,9 @@ use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{Expr, Token};
+
+use super::{HtmlRootBraced, ToNodeIterator};
+use crate::PeekValue;
 
 pub struct HtmlIf {
     if_token: Token![if],

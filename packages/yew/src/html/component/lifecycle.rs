@@ -1,25 +1,25 @@
 //! Component lifecycle module
 
-use super::scope::{AnyScope, Scope};
-
-use super::BaseComponent;
-#[cfg(feature = "hydration")]
-use crate::html::RenderMode;
-use crate::html::{Html, RenderError};
-use crate::scheduler::{self, Runnable, Shared};
-use crate::suspense::{BaseSuspense, Suspension};
-use crate::{Callback, Context, HtmlResult};
 use std::any::Any;
 use std::rc::Rc;
 
+#[cfg(feature = "csr")]
+use web_sys::Element;
+
+use super::scope::{AnyScope, Scope};
+use super::BaseComponent;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
 use crate::dom_bundle::{BSubtree, Bundle};
 #[cfg(feature = "csr")]
 use crate::html::NodeRef;
-#[cfg(feature = "csr")]
-use web_sys::Element;
+#[cfg(feature = "hydration")]
+use crate::html::RenderMode;
+use crate::html::{Html, RenderError};
+use crate::scheduler::{self, Runnable, Shared};
+use crate::suspense::{BaseSuspense, Suspension};
+use crate::{Callback, Context, HtmlResult};
 
 pub(crate) enum ComponentRenderState {
     #[cfg(feature = "csr")]
@@ -208,6 +208,7 @@ where
     fn as_any(&self) -> &dyn Any {
         self
     }
+
     fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
@@ -612,15 +613,16 @@ use feat_csr::*;
 mod tests {
     extern crate self as yew;
 
-    use super::*;
-    use crate::dom_bundle::BSubtree;
-    use crate::html;
-    use crate::html::*;
-    use crate::Properties;
     use std::cell::RefCell;
     use std::ops::Deref;
     use std::rc::Rc;
+
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    use super::*;
+    use crate::dom_bundle::BSubtree;
+    use crate::html::*;
+    use crate::{html, Properties};
 
     wasm_bindgen_test_configure!(run_in_browser);
 

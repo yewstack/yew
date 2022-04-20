@@ -20,7 +20,8 @@ impl<T: 'static, F: FnOnce() -> T> Hook for UseMutRef<F> {
 /// Its state persists across renders.
 ///
 /// It is important to note that you do not get notified of state changes.
-/// If you need the component to be re-rendered on state change, consider using [`use_state`](super::use_state()).
+/// If you need the component to be re-rendered on state change, consider using
+/// [`use_state`](super::use_state()).
 ///
 /// # Example
 /// ```rust
@@ -48,7 +49,7 @@ impl<T: 'static, F: FnOnce() -> T> Hook for UseMutRef<F> {
 ///
 ///     let onchange = {
 ///         let message = message.clone();
-///           Callback::from(move |e: Event| {
+///         Callback::from(move |e: Event| {
 ///             let input: HtmlInputElement = e.target_unchecked_into();
 ///             message.set(input.value())
 ///         })
@@ -124,7 +125,6 @@ where
 ///         </div>
 ///     }
 /// }
-///
 /// ```
 #[hook]
 pub fn use_node_ref() -> NodeRef {

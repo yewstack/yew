@@ -1,15 +1,18 @@
 //! Per-subtree state of apps
 
-use super::{test_log, Registry};
-use crate::virtual_dom::{Listener, ListenerKind};
-use gloo::events::{EventListener, EventListenerOptions, EventListenerPhase};
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::rc::{Rc, Weak};
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
-use wasm_bindgen::{prelude::wasm_bindgen, JsCast};
+
+use gloo::events::{EventListener, EventListenerOptions, EventListenerPhase};
+use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::JsCast;
 use web_sys::{Element, Event, EventTarget as HtmlEventTarget, ShadowRoot};
+
+use super::{test_log, Registry};
+use crate::virtual_dom::{Listener, ListenerKind};
 
 /// DOM-Types that capture (bubbling) events. This generally includes event targets,
 /// but also subtree roots.
@@ -111,7 +114,6 @@ impl From<&dyn Listener> for EventDescriptor {
 }
 
 /// Ensures event handler registration.
-//
 // Separate struct to DRY, while avoiding partial struct mutability.
 #[derive(Debug)]
 struct HostHandlers {
@@ -201,6 +203,7 @@ impl AppData {
             weak_ref: Rc::downgrade(subtree),
         });
     }
+
     fn ensure_handled(&mut self, desc: &EventDescriptor) {
         if !self.listening.insert(desc.clone()) {
             return;
@@ -342,13 +345,14 @@ impl SubtreeData {
         &'s self,
         event: &'s Event,
     ) -> Option<impl 's + Iterator<Item = (&'s SubtreeData, Element)>> {
-        // Note: the event is not necessarily indentically the same object for all installed handlers
-        // hence this cache can be unreliable. Hence the cached repsonsible_tree_id might be missing.
-        // On the other hand, due to event retargeting at shadow roots, the cache might be wrong!
-        // Keep in mind that we handle events in the capture phase, so top-down. When descending and
-        // retargeting into closed shadow-dom, the event might have been handled 'prematurely'.
-        // TODO: figure out how to prevent this and establish correct event handling for closed shadow root.
-        // Note: Other frameworks also get this wrong and dispatch such events multiple times.
+        // Note: the event is not necessarily indentically the same object for all installed
+        // handlers hence this cache can be unreliable. Hence the cached repsonsible_tree_id
+        // might be missing. On the other hand, due to event retargeting at shadow roots,
+        // the cache might be wrong! Keep in mind that we handle events in the capture
+        // phase, so top-down. When descending and retargeting into closed shadow-dom, the
+        // event might have been handled 'prematurely'. TODO: figure out how to prevent this
+        // and establish correct event handling for closed shadow root. Note: Other
+        // frameworks also get this wrong and dispatch such events multiple times.
         let event_path = event.composed_path();
         let derived_cached_key = event_path.length();
         let cached_branding = if matches!(event.cache_key(), Some(cache_key) if cache_key == derived_cached_key)
@@ -359,8 +363,8 @@ impl SubtreeData {
         };
         if matches!(cached_branding, Some(responsible_tree_id) if responsible_tree_id != self.subtree_id)
         {
-            // some other handler has determined (via this function, but other `self`) a subtree that is
-            // responsible for handling this event, and it's not this subtree.
+            // some other handler has determined (via this function, but other `self`) a subtree
+            // that is responsible for handling this event, and it's not this subtree.
             return None;
         }
         // We're tasked with finding the subtree that is reponsible with handling the event, and/or
@@ -396,8 +400,8 @@ impl SubtreeData {
         // # More details: When nesting occurs
         //
         // Event listeners are installed only on the subtree roots. Still, those roots can
-        // nest. This could lead to events getting handled multiple times. We want event handling to start
-        // at the most deeply nested subtree.
+        // nest. This could lead to events getting handled multiple times. We want event handling to
+        // start at the most deeply nested subtree.
         //
         // A nested subtree portals into an element that is controlled by the user and rendered
         // with VNode::VRef. We get the following dom nesting:
@@ -412,6 +416,7 @@ impl SubtreeData {
         //   {create_portal(<NestedTree />, #portal_target)}
         // </AppRoot>
     }
+
     /// Handle a global event firing
     fn handle(&self, desc: EventDescriptor, event: Event) {
         let run_handler = |root: &Self, el: &Element| {
@@ -430,6 +435,7 @@ impl SubtreeData {
             }
         }
     }
+
     fn add_listener(self: &Rc<Self>, desc: &EventDescriptor) {
         let this = self.clone();
         let listener = {
@@ -454,10 +460,12 @@ impl BSubtree {
         root.brand_element(host_element);
         root
     }
+
     /// Create a bundle root at the specified host element
     pub fn create_root(host_element: &HtmlEventTarget) -> Self {
         Self::do_create_root(host_element, None)
     }
+
     /// Create a bundle root at the specified host element, that is logically
     /// mounted under the specified element in this tree.
     pub fn create_subroot(&self, mount_point: Element, host_element: &HtmlEventTarget) -> Self {
@@ -467,15 +475,18 @@ impl BSubtree {
         };
         Self::do_create_root(host_element, Some(parent_information))
     }
+
     /// Ensure the event described is handled on all subtrees
     pub fn ensure_handled(&self, desc: &EventDescriptor) {
         self.0.app_data.borrow_mut().ensure_handled(desc);
     }
+
     /// Run f with access to global Registry
     #[inline]
     pub fn with_listener_registry<R>(&self, f: impl FnOnce(&mut Registry) -> R) -> R {
         f(&mut *self.0.event_registry().borrow_mut())
     }
+
     pub fn brand_element(&self, el: &dyn EventGrating) {
         el.set_subtree_id(self.0.subtree_id);
     }

@@ -1,6 +1,7 @@
-use crate::constant::Status;
 use yew::prelude::*;
 use yew::{function_component, html, Properties};
+
+use crate::constant::Status;
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {

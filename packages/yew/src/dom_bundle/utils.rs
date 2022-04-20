@@ -32,12 +32,12 @@ pub(super) use test_log;
 
 #[cfg(feature = "hydration")]
 mod feat_hydration {
-    use super::*;
-
     use std::borrow::Cow;
 
     use wasm_bindgen::JsCast;
     use web_sys::Element;
+
+    use super::*;
 
     pub(in crate::dom_bundle) fn node_type_str(node: &Node) -> Cow<'static, str> {
         match node.node_type() {

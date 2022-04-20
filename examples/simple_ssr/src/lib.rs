@@ -2,14 +2,13 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-use yew::prelude::*;
-use yew::suspense::{Suspension, SuspensionResult};
-
 #[cfg(not(target_arch = "wasm32"))]
 use tokio::task::spawn_local;
+use uuid::Uuid;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_futures::spawn_local;
+use yew::prelude::*;
+use yew::suspense::{Suspension, SuspensionResult};
 
 #[derive(Serialize, Deserialize)]
 struct UuidResponse {

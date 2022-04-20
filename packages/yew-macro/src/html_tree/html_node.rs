@@ -1,12 +1,13 @@
-use super::ToNodeIterator;
-use crate::stringify::Stringify;
-use crate::PeekValue;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
 use syn::{Expr, Lit};
+
+use super::ToNodeIterator;
+use crate::stringify::Stringify;
+use crate::PeekValue;
 
 pub enum HtmlNode {
     Literal(Box<Lit>),

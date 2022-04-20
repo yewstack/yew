@@ -1,5 +1,3 @@
-use super::{HtmlChildrenTree, TagTokens};
-use crate::{props::ComponentProps, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::Span;
 use quote::{quote, quote_spanned, ToTokens};
@@ -11,6 +9,10 @@ use syn::{
     AngleBracketedGenericArguments, GenericArgument, Path, PathArguments, PathSegment, Token, Type,
     TypePath,
 };
+
+use super::{HtmlChildrenTree, TagTokens};
+use crate::props::ComponentProps;
+use crate::PeekValue;
 
 pub struct HtmlComponent {
     ty: Type,

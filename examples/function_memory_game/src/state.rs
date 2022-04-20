@@ -1,6 +1,7 @@
+use std::rc::Rc;
+
 use gloo::storage::{LocalStorage, Storage};
 use serde::{Deserialize, Serialize};
-use std::rc::Rc;
 use yew::prelude::*;
 
 use crate::constant::{CardName, Status, KEY_BEST_SCORE};

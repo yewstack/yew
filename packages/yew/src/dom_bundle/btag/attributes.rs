@@ -1,17 +1,19 @@
+use std::collections::HashMap;
+use std::iter;
+use std::ops::Deref;
+
+use indexmap::IndexMap;
+use web_sys::{Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
+use yew::AttrValue;
+
 use super::Apply;
 use crate::dom_bundle::BSubtree;
 use crate::virtual_dom::vtag::{InputFields, Value};
 use crate::virtual_dom::Attributes;
-use indexmap::IndexMap;
-use std::collections::HashMap;
-use std::iter;
-use std::ops::Deref;
-use web_sys::{Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
-use yew::AttrValue;
 
 impl<T: AccessValue> Apply for Value<T> {
-    type Element = T;
     type Bundle = Self;
+    type Element = T;
 
     fn apply(self, _root: &BSubtree, el: &Self::Element) -> Self {
         if let Some(v) = self.deref() {
@@ -61,8 +63,8 @@ pub(super) trait AccessValue {
 }
 
 impl Apply for InputFields {
-    type Element = InputElement;
     type Bundle = Self;
+    type Element = InputElement;
 
     fn apply(mut self, root: &BSubtree, el: &Self::Element) -> Self {
         // IMPORTANT! This parameter has to be set every time
@@ -182,8 +184,8 @@ impl Attributes {
 }
 
 impl Apply for Attributes {
-    type Element = Element;
     type Bundle = Self;
+    type Element = Element;
 
     fn apply(self, _root: &BSubtree, el: &Element) -> Self {
         match &self {

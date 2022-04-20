@@ -1,12 +1,15 @@
-use super::Apply;
-use crate::dom_bundle::{test_log, BSubtree, EventDescriptor};
-use crate::virtual_dom::{Listener, Listeners};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::rc::Rc;
-use wasm_bindgen::{prelude::wasm_bindgen, JsCast};
+
+use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::JsCast;
 use web_sys::{Element, Event, EventTarget as HtmlEventTarget};
+
+use super::Apply;
+use crate::dom_bundle::{test_log, BSubtree, EventDescriptor};
+use crate::virtual_dom::{Listener, Listeners};
 
 #[wasm_bindgen]
 extern "C" {
@@ -45,8 +48,8 @@ pub(super) enum ListenerRegistration {
 }
 
 impl Apply for Listeners {
-    type Element = Element;
     type Bundle = ListenerRegistration;
+    type Element = Element;
 
     fn apply(self, root: &BSubtree, el: &Self::Element) -> ListenerRegistration {
         match self {
@@ -202,13 +205,15 @@ mod tests {
     use web_sys::{Event, EventInit, HtmlElement, MouseEvent};
     wasm_bindgen_test_configure!(run_in_browser);
 
-    use crate::{
-        create_portal, html, html::TargetCast, scheduler, virtual_dom::VNode, AppHandle, Component,
-        Context, Html, NodeRef, Properties,
-    };
     use gloo_utils::document;
     use wasm_bindgen::JsCast;
     use yew::Callback;
+
+    use crate::html::TargetCast;
+    use crate::virtual_dom::VNode;
+    use crate::{
+        create_portal, html, scheduler, AppHandle, Component, Context, Html, NodeRef, Properties,
+    };
 
     #[derive(Clone)]
     enum Message {
@@ -576,7 +581,8 @@ mod tests {
         assert_count(&el, 1);
     }
 
-    /// Here an event is being from inside a shadow root. It should only be caught exactly once on each handler
+    /// Here an event is being from inside a shadow root. It should only be caught exactly once on
+    /// each handler
     #[test]
     fn open_shadow_dom_bubbling() {
         use web_sys::{ShadowRootInit, ShadowRootMode};
