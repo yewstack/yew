@@ -3,8 +3,9 @@ use crate::context::ContextHandle;
 use crate::functional::{hook, use_component_scope, use_memo, use_state};
 
 /// Hook for consuming context values in function components.
-/// The context of the type passed as `T` is returned. If there is no such context in scope, `None` is returned.
-/// A component which calls `use_context` will re-render when the data of the context changes.
+/// The context of the type passed as `T` is returned. If there is no such context in scope, `None`
+/// is returned. A component which calls `use_context` will re-render when the data of the context
+/// changes.
 ///
 /// More information about contexts and how to define and consume them can be found on [Yew Docs](https://yew.rs).
 ///

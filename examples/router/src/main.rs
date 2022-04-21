@@ -5,10 +5,12 @@ mod components;
 mod content;
 mod generator;
 mod pages;
-use pages::{
-    author::Author, author_list::AuthorList, home::Home, page_not_found::PageNotFound, post::Post,
-    post_list::PostList,
-};
+use pages::author::Author;
+use pages::author_list::AuthorList;
+use pages::home::Home;
+use pages::page_not_found::PageNotFound;
+use pages::post::Post;
+use pages::post_list::PostList;
 use yew::html::Scope;
 
 #[derive(Routable, PartialEq, Clone, Debug)]

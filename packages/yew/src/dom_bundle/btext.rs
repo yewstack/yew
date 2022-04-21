@@ -1,12 +1,13 @@
 //! This module contains the bundle implementation of text [BText].
 
+use gloo::console;
+use gloo_utils::document;
+use web_sys::{Element, Text as TextNode};
+
 use super::{insert_node, BNode, BSubtree, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::{AttrValue, VText};
 use crate::NodeRef;
-use gloo::console;
-use gloo_utils::document;
-use web_sys::{Element, Text as TextNode};
 
 /// The bundle implementation to [VText]
 pub(super) struct BText {
@@ -91,12 +92,11 @@ impl std::fmt::Debug for BText {
 
 #[cfg(feature = "hydration")]
 mod feat_hydration {
-    use super::*;
-
+    use wasm_bindgen::JsCast;
     use web_sys::Node;
 
+    use super::*;
     use crate::dom_bundle::{Fragment, Hydratable};
-    use wasm_bindgen::JsCast;
 
     impl Hydratable for VText {
         fn hydrate(
@@ -113,8 +113,9 @@ mod feat_hydration {
                         // pop current node.
                         fragment.pop_front();
 
-                        // TODO: It may make sense to assert the text content in the text node against
-                        // the VText when #[cfg(debug_assertions)] is true, but this may be complicated.
+                        // TODO: It may make sense to assert the text content in the text node
+                        // against the VText when #[cfg(debug_assertions)]
+                        // is true, but this may be complicated.
                         // We always replace the text value for now.
                         //
                         // Please see the next comment for a detailed explanation.
@@ -131,10 +132,11 @@ mod feat_hydration {
                 }
             }
 
-            // If there are multiple text nodes placed back-to-back in SSR, it may be parsed as a single
-            // text node by browser, hence we need to add extra text nodes here if the next node is not a text node.
-            // Similarly, the value of the text node may be a combination of multiple VText vnodes.
-            // So we always need to override their values.
+            // If there are multiple text nodes placed back-to-back in SSR, it may be parsed as a
+            // single text node by browser, hence we need to add extra text nodes here
+            // if the next node is not a text node. Similarly, the value of the text
+            // node may be a combination of multiple VText vnodes. So we always need to
+            // override their values.
             self.attach(
                 root,
                 parent_scope,
@@ -153,10 +155,10 @@ mod feat_hydration {
 mod test {
     extern crate self as yew;
 
-    use crate::html;
-
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    use crate::html;
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
@@ -177,11 +179,11 @@ mod test {
 mod layout_tests {
     extern crate self as yew;
 
-    use crate::html;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
-
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    use crate::html;
+    use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);

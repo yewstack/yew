@@ -19,6 +19,16 @@ pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
 
+use std::borrow::{Borrow, Cow};
+use std::fmt;
+use std::fmt::Formatter;
+use std::hash::{Hash, Hasher};
+use std::hint::unreachable_unchecked;
+use std::ops::Deref;
+use std::rc::Rc;
+
+use indexmap::IndexMap;
+
 #[doc(inline)]
 pub use self::key::Key;
 #[doc(inline)]
@@ -37,14 +47,6 @@ pub use self::vsuspense::VSuspense;
 pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
-
-use indexmap::IndexMap;
-use std::borrow::{Borrow, Cow};
-use std::fmt::Formatter;
-use std::hash::{Hash, Hasher};
-use std::ops::Deref;
-use std::rc::Rc;
-use std::{fmt, hint::unreachable_unchecked};
 
 /// Attribute value
 #[derive(Debug)]
@@ -147,8 +149,8 @@ impl Eq for AttrValue {}
 
 impl AttrValue {
     /// Consumes the AttrValue and returns the owned String from the AttrValue whenever possible.
-    /// For AttrValue::Rc the <str> is cloned to String in case there are other Rc or Weak pointers to the
-    /// same allocation.
+    /// For AttrValue::Rc the <str> is cloned to String in case there are other Rc or Weak pointers
+    /// to the same allocation.
     pub fn into_string(self) -> String {
         match self {
             AttrValue::Static(s) => (*s).to_owned(),
@@ -223,6 +225,7 @@ mod feat_ssr_hydration {
                 Self::Suspense => "<?",
             }
         }
+
         pub fn close_start_mark(&self) -> &'static str {
             match self {
                 #[cfg(debug_assertions)]
@@ -307,7 +310,8 @@ pub enum Attributes {
         /// Attribute keys. Includes both always set and optional attribute keys.
         keys: &'static [&'static str],
 
-        /// Attribute values. Matches [keys](Attributes::Dynamic::keys). Optional attributes are designated by setting [None].
+        /// Attribute values. Matches [keys](Attributes::Dynamic::keys). Optional attributes are
+        /// designated by setting [None].
         values: Box<[Option<AttrValue>]>,
     },
 

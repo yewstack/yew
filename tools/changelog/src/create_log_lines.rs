@@ -1,7 +1,5 @@
-use anyhow::Context;
-use anyhow::Result;
-use git2::Repository;
-use git2::Sort;
+use anyhow::{Context, Result};
+use git2::{Repository, Sort};
 
 use crate::create_log_line::create_log_line;
 use crate::log_line::LogLine;

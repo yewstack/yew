@@ -2,10 +2,10 @@
 
 use std::collections::HashSet;
 use std::rc::Rc;
+use std::time::Duration;
 
 use gloo::timers::future::sleep;
 use gloo_utils::document;
-use std::time::Duration;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_test::*;
 use web_sys::HtmlElement;

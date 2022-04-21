@@ -1,13 +1,16 @@
-use crate::{non_capitalized_ascii, stringify::Stringify, Peek};
-use boolinator::Boolinator;
-use proc_macro2::Ident;
-use proc_macro2::{Span, TokenStream};
-use quote::{quote, ToTokens};
 use std::fmt;
+
+use boolinator::Boolinator;
+use proc_macro2::{Ident, Span, TokenStream};
+use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
 use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream};
-use syn::{spanned::Spanned, LitStr, Token};
+use syn::spanned::Spanned;
+use syn::{LitStr, Token};
+
+use crate::stringify::Stringify;
+use crate::{non_capitalized_ascii, Peek};
 
 #[derive(Clone, PartialEq)]
 pub struct HtmlDashedName {

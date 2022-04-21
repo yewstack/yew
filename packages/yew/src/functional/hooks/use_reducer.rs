@@ -217,10 +217,11 @@ where
 }
 
 /// This hook is an alternative to [`use_state`](super::use_state()).
-/// It is used to handle component's state and is used when complex actions needs to be performed on said state.
+/// It is used to handle component's state and is used when complex actions needs to be performed on
+/// said state.
 ///
-/// The state is expected to implement the [`Reducible`] trait which provides an `Action` type and a reducer
-/// function.
+/// The state is expected to implement the [`Reducible`] trait which provides an `Action` type and a
+/// reducer function.
 ///
 /// The state object returned by the initial state function is required to
 /// implement a `Reducible` trait which defines the associated `Action` type and a
@@ -260,7 +261,7 @@ where
 ///     fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
 ///         let next_ctr = match action {
 ///             CounterAction::Double => self.counter * 2,
-///             CounterAction::Square => self.counter.pow(2)
+///             CounterAction::Square => self.counter.pow(2),
 ///         };
 ///
 ///         Self { counter: next_ctr }.into()
@@ -272,7 +273,7 @@ where
 ///     // The use_reducer hook takes an initialization function which will be called only once.
 ///     let counter = use_reducer(CounterState::default);
 ///
-///    let double_onclick = {
+///     let double_onclick = {
 ///         let counter = counter.clone();
 ///         Callback::from(move |_| counter.dispatch(CounterAction::Double))
 ///     };

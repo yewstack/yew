@@ -1,6 +1,7 @@
 //! This module contains fragments implementation.
-use super::{Key, VNode};
 use std::ops::{Deref, DerefMut};
+
+use super::{Key, VNode};
 
 /// This struct represents a fragment of the Virtual DOM tree.
 #[derive(Clone, Debug, PartialEq)]

@@ -1,7 +1,6 @@
-use std::{
-    error::Error,
-    fmt::{self, Debug, Display, Formatter},
-};
+use std::error::Error;
+use std::fmt::{self, Debug, Display, Formatter};
+
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;

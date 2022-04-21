@@ -1,9 +1,8 @@
 use std::rc::Rc;
-use yew::prelude::*;
 
 use serde::{Deserialize, Serialize};
-use strum_macros::Display;
-use strum_macros::EnumIter;
+use strum_macros::{Display, EnumIter};
+use yew::prelude::*;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct State {

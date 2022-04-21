@@ -1,6 +1,7 @@
+use std::io::Write;
+
 use anyhow::Result;
 use semver::Version;
-use std::io::Write;
 
 use crate::yew_package::YewPackage;
 

@@ -178,6 +178,7 @@ impl App {
             </>
         }
     }
+
     fn button_view(&self, link: &Scope<Self>) -> Html {
         html! {
             <>
@@ -258,6 +259,7 @@ impl App {
             </>
         }
     }
+
     fn info_view(&self) -> Html {
         let ids = if self.persons.len() < 20 {
             self.persons

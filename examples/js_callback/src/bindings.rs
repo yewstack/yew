@@ -27,7 +27,8 @@ extern "C" {
 
 #[wasm_bindgen(module = "/js/unimp.js")]
 extern "C" {
-    /// This exists so that wasm bindgen copies js/unimp.js to dist/snippets/<bin-name>-<hash>/js/uninp.js
+    /// This exists so that wasm bindgen copies js/unimp.js to
+    /// dist/snippets/<bin-name>-<hash>/js/uninp.js
     #[wasm_bindgen]
     fn _dummy_fn_so_wasm_bindgen_copies_over_the_file();
 }

@@ -1,6 +1,7 @@
+use std::time::Duration;
+
 use gloo::timers::future::sleep;
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::functional::function_component;
 use yew::prelude::*;

@@ -1,8 +1,10 @@
-use super::{Prop, Props, SpecialProps};
-use lazy_static::lazy_static;
 use std::collections::HashSet;
+
+use lazy_static::lazy_static;
 use syn::parse::{Parse, ParseStream};
 use syn::{Expr, ExprTuple};
+
+use super::{Prop, Props, SpecialProps};
 
 pub enum ClassesForm {
     Tuple(ExprTuple),

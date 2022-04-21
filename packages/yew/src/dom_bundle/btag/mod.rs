@@ -3,20 +3,22 @@
 mod attributes;
 mod listeners;
 
+use std::borrow::Cow;
+use std::hint::unreachable_unchecked;
+use std::ops::DerefMut;
+
+use gloo::console;
+use gloo_utils::document;
+use listeners::ListenerRegistration;
 pub use listeners::Registry;
+use wasm_bindgen::JsCast;
+use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
 use super::{insert_node, BList, BNode, BSubtree, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
 use crate::NodeRef;
-use gloo::console;
-use gloo_utils::document;
-use listeners::ListenerRegistration;
-use std::ops::DerefMut;
-use std::{borrow::Cow, hint::unreachable_unchecked};
-use wasm_bindgen::JsCast;
-use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
 /// Applies contained changes to DOM [web_sys::Element]
 trait Apply {
@@ -289,10 +291,10 @@ impl BTag {
 
 #[cfg(feature = "hydration")]
 mod feat_hydration {
-    use super::*;
-
-    use crate::dom_bundle::{node_type_str, Fragment, Hydratable};
     use web_sys::Node;
+
+    use super::*;
+    use crate::dom_bundle::{node_type_str, Fragment, Hydratable};
 
     impl Hydratable for VTag {
         fn hydrate(
@@ -382,18 +384,17 @@ mod feat_hydration {
 #[cfg(feature = "wasm_test")]
 #[cfg(test)]
 mod tests {
+    use gloo_utils::document;
+    use wasm_bindgen::JsCast;
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use web_sys::HtmlInputElement as InputElement;
+
     use super::*;
     use crate::dom_bundle::{BNode, Reconcilable, ReconcileTarget};
-    use crate::html;
     use crate::html::AnyScope;
     use crate::virtual_dom::vtag::{HTML_NAMESPACE, SVG_NAMESPACE};
     use crate::virtual_dom::{AttrValue, VNode, VTag};
-    use crate::{Html, NodeRef};
-    use gloo_utils::document;
-    use wasm_bindgen::JsCast;
-    use web_sys::HtmlInputElement as InputElement;
-
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use crate::{html, Html, NodeRef};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -912,8 +913,8 @@ mod tests {
                 <div ref={&test_ref} id="after" />
             </>
         };
-        // The point of this diff is to first render the "after" div and then detach the "before" div,
-        // while both should be bound to the same node ref
+        // The point of this diff is to first render the "after" div and then detach the "before"
+        // div, while both should be bound to the same node ref
 
         let (_, mut elem) = before.attach(&root, &scope, &parent, NodeRef::default());
         after.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut elem);
@@ -934,11 +935,11 @@ mod tests {
 mod layout_tests {
     extern crate self as yew;
 
-    use crate::html;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
-
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    use crate::html;
+    use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);

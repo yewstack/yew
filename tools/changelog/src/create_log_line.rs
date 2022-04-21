@@ -1,12 +1,9 @@
-use anyhow::anyhow;
-use anyhow::Context;
-use anyhow::Result;
-use git2::Error;
-use git2::Oid;
-use git2::Repository;
+use std::sync::Mutex;
+
+use anyhow::{anyhow, Context, Result};
+use git2::{Error, Oid, Repository};
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::sync::Mutex;
 
 use crate::github_issue_labels_fetcher::GitHubIssueLabelsFetcher;
 use crate::github_user_fetcher::GitHubUsersFetcher;

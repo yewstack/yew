@@ -11,7 +11,8 @@ fn html_macro() {
 
 #[test]
 #[should_panic(
-    expected = "a dynamic tag tried to create a `<br>` tag with children. `<br>` is a void element which can't have any children."
+    expected = "a dynamic tag tried to create a `<br>` tag with children. `<br>` is a void \
+                element which can't have any children."
 )]
 fn dynamic_tags_catch_void_elements() {
     html! {

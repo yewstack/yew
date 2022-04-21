@@ -1,10 +1,12 @@
-use crate::header::{ListHeader, Props as HeaderProps};
-use crate::item::{ListItem, Props as ItemProps};
-use crate::{Hovered, WeakComponentLink};
 use std::rc::Rc;
+
 use yew::html::{ChildrenRenderer, NodeRef};
 use yew::prelude::*;
 use yew::virtual_dom::{VChild, VComp};
+
+use crate::header::{ListHeader, Props as HeaderProps};
+use crate::item::{ListItem, Props as ItemProps};
+use crate::{Hovered, WeakComponentLink};
 
 #[derive(Clone, PartialEq)]
 pub enum Variants {

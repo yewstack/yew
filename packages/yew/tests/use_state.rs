@@ -2,9 +2,10 @@
 
 mod common;
 
+use std::time::Duration;
+
 use common::obtain_result;
 use gloo::timers::future::sleep;
-use std::time::Duration;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
 

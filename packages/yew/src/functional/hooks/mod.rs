@@ -20,9 +20,9 @@ use crate::functional::{AnyScope, HookContext};
 
 /// A trait that is implemented on hooks.
 ///
-/// Hooks are defined via the [`#[hook]`](crate::functional::hook) macro. It provides rewrites to hook invocations
-/// and ensures that hooks can only be called at the top-level of a function component or a hook.
-/// Please refer to its documentation on how to implement hooks.
+/// Hooks are defined via the [`#[hook]`](crate::functional::hook) macro. It provides rewrites to
+/// hook invocations and ensures that hooks can only be called at the top-level of a function
+/// component or a hook. Please refer to its documentation on how to implement hooks.
 pub trait Hook {
     /// The return type when a hook is run.
     type Output;
