@@ -165,7 +165,7 @@ mod feat_hydration {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::dom_bundle::{Reconcilable, ReconcileTarget};
+    use crate::dom_bundle::{Bundle, Reconcilable, ReconcileTarget};
     use crate::scheduler;
     use crate::{
         html,
@@ -441,6 +441,33 @@ mod tests {
         elem.detach(&root, &parent, false);
         scheduler::start_now();
         assert!(node_ref.get().is_none());
+    }
+
+    #[test]
+    fn reset_ancestors_node_ref() {
+        let (root, scope, parent) = setup_parent();
+
+        let mut bundle = Bundle::new();
+        let node_ref_a = NodeRef::default();
+        let node_ref_b = NodeRef::default();
+        let elem = html! { <Comp ref={node_ref_a.clone()}></Comp> };
+        let node_a = bundle.reconcile(&root, &scope, &parent, NodeRef::default(), elem);
+        scheduler::start_now();
+        let node_a = node_a.get().unwrap();
+
+        assert!(node_ref_a.get().is_some(), "node_ref_a should be bound");
+
+        let elem = html! { <Comp ref={node_ref_b.clone()}></Comp> };
+        let node_b = bundle.reconcile(&root, &scope, &parent, NodeRef::default(), elem);
+        scheduler::start_now();
+        let node_b = node_b.get().unwrap();
+
+        assert_eq!(node_a, node_b, "Comp should have reused the element");
+        assert!(node_ref_b.get().is_some(), "node_ref_b should be bound");
+        assert!(
+            node_ref_a.get().is_none(),
+            "node_ref_a should have been reset when the element was reused."
+        );
     }
 }
 

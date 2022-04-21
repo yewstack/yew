@@ -329,7 +329,10 @@ impl Runnable for PropsUpdateRunner {
                     ..
                 } => {
                     // When components are updated, a new node ref could have been passed in
-                    *node_ref = next_node_ref;
+                    if *node_ref != next_node_ref {
+                        node_ref.set(None);
+                        *node_ref = next_node_ref;
+                    }
                     // When components are updated, their siblings were likely also updated
                     *current_next_sibling = next_sibling;
                     // Only trigger changed if props were changed
@@ -343,7 +346,10 @@ impl Runnable for PropsUpdateRunner {
                     ..
                 } => {
                     // When components are updated, a new node ref could have been passed in
-                    *node_ref = next_node_ref;
+                    if *node_ref != next_node_ref {
+                        node_ref.set(None);
+                        *node_ref = next_node_ref;
+                    }
                     // When components are updated, their siblings were likely also updated
                     *current_next_sibling = next_sibling;
                     // Only trigger changed if props were changed
