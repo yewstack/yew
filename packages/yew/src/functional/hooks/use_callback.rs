@@ -3,7 +3,8 @@ use std::rc::Rc;
 use crate::callback::Callback;
 use crate::functional::{hook, use_memo};
 
-/// Get a immutable reference to a memoized `Callback`.
+/// Get a immutable reference to a memoized `Callback`. Its state persists across renders.
+/// It will be recreated only if any of the dependencies changes value.
 ///
 /// Memoization means it will only get recreated when provided dependencies update/change.
 /// This is useful when passing callbacks to optimized child components that rely on

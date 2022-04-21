@@ -24,12 +24,12 @@ impl<T: 'static, F: FnOnce() -> T> Hook for UseMutRef<F> {
 ///
 /// # Example
 /// ```rust
-/// # use yew::prelude::*;
-/// # use web_sys::HtmlInputElement;
-/// # use std::rc::Rc;
-/// # use std::cell::RefCell;
-/// # use std::ops::{Deref, DerefMut};
-/// #
+/// use yew::prelude::*;
+/// use web_sys::HtmlInputElement;
+/// use std::rc::Rc;
+/// use std::cell::RefCell;
+/// use std::ops::{Deref, DerefMut};
+///
 /// #[function_component(UseRef)]
 /// fn ref_hook() -> Html {
 ///     let message = use_state(|| "".to_string());
@@ -72,16 +72,15 @@ where
 /// This hook is used for obtaining a [`NodeRef`].
 /// It persists across renders.
 ///
-/// It is important to note that you do not get notified of state changes.
+/// The `ref` attribute can be used to attach the [`NodeRef`] to an HTML element. In callbacks,
+/// you can then get the DOM `Element` that the `ref` is attached to.
 ///
 /// # Example
+///
 /// ```rust
-/// # use wasm_bindgen::{prelude::Closure, JsCast};
-/// # use yew::{
-/// #    function_component, html, use_effect_with_deps, use_node_ref,
-/// #    Html,
-/// # };
-/// # use web_sys::{Event, HtmlElement};
+/// use wasm_bindgen::{prelude::Closure, JsCast};
+/// use yew::{function_component, html, use_effect_with_deps, use_node_ref, Html};
+/// use web_sys::{Event, HtmlElement};
 ///
 /// #[function_component(UseNodeRef)]
 /// pub fn node_ref_hook() -> Html {
@@ -124,8 +123,13 @@ where
 ///         </div>
 ///     }
 /// }
-///
 /// ```
+///
+/// # Tip
+///
+/// When conditionally rendering elements you can use `NodeRef` in conjunction with `use_effect_with_deps`
+/// to perform actions each time an element is rendered and just before the component where the hook is used in is going to be removed from the
+/// DOM.
 #[hook]
 pub fn use_node_ref() -> NodeRef {
     (*use_state(NodeRef::default)).clone()
