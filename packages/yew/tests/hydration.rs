@@ -13,7 +13,7 @@ use wasm_bindgen_futures::spawn_local;
 use wasm_bindgen_test::*;
 use web_sys::{HtmlElement, HtmlTextAreaElement};
 use yew::prelude::*;
-use yew::suspense::{Suspension, SuspensionResult};
+use yew::suspense::{use_future, Suspension, SuspensionResult};
 use yew::{Renderer, ServerRenderer};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
@@ -683,13 +683,8 @@ async fn hydration_list_order_works() {
 
     #[hook]
     pub fn use_suspend() -> SuspensionResult<()> {
-        let s = use_state(|| Suspension::from_future(async {}));
-
-        if s.resumed() {
-            Ok(())
-        } else {
-            Err((*s).clone())
-        }
+        use_future(|| async {})?;
+        Ok(())
     }
 
     let s = ServerRenderer::<App>::new().render().await;
@@ -769,17 +764,10 @@ async fn hydration_suspense_no_flickering() {
 
     #[hook]
     pub fn use_suspend() -> SuspensionResult<()> {
-        let s = use_state(|| {
-            Suspension::from_future(async {
-                gloo::timers::future::sleep(std::time::Duration::from_millis(50)).await;
-            })
-        });
-
-        if s.resumed() {
-            Ok(())
-        } else {
-            Err((*s).clone())
-        }
+        use_future(|| async {
+            gloo::timers::future::sleep(std::time::Duration::from_millis(50)).await;
+        })?;
+        Ok(())
     }
 
     let s = ServerRenderer::<App>::new().render().await;
