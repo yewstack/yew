@@ -10,9 +10,9 @@ use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{BaseSuspense, Suspension};
 use crate::{Callback, Context, HtmlResult};
 use std::any::Any;
-use std::rc::Rc;
 #[cfg(feature = "csr")]
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::cell::Cell;
+use std::rc::Rc;
 
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
@@ -221,7 +221,7 @@ pub(crate) struct ComponentState {
     pub(super) render_state: ComponentRenderState,
 
     #[cfg(feature = "csr")]
-    has_rendered: Rc<AtomicBool>,
+    has_rendered: Rc<Cell<bool>>,
 
     suspension: Option<Suspension>,
 
@@ -492,7 +492,7 @@ impl RenderRunner {
         let schedule_render = {
             let has_rendered = state.has_rendered.clone();
             move || {
-                if has_rendered.load(Ordering::Relaxed) {
+                if has_rendered.get() {
                     scheduler::push_component_render(
                         comp_id,
                         Box::new(RenderRunner {
@@ -571,8 +571,8 @@ impl RenderRunner {
                     bundle.reconcile(root, &scope, parent, next_sibling.clone(), new_root);
                 node_ref.link(new_node_ref);
 
-                let first_render = !state.has_rendered.load(Ordering::Relaxed);
-                state.has_rendered.store(true, Ordering::Relaxed);
+                let first_render = !state.has_rendered.get();
+                state.has_rendered.set(true);
 
                 scheduler::push_component_rendered(
                     state.comp_id,
