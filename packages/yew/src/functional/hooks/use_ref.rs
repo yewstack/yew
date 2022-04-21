@@ -128,7 +128,7 @@ where
 /// # Tip
 ///
 /// When conditionally rendering elements you can use `NodeRef` in conjunction with `use_effect_with_deps`
-/// to perform actions each time an element is rendered before and just the component where the hook is used in is going to be removed from the
+/// to perform actions each time an element is rendered and just before the component where the hook is used in is going to be removed from the
 /// DOM.
 #[hook]
 pub fn use_node_ref() -> NodeRef {
