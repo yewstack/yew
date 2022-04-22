@@ -161,7 +161,7 @@ where
 /// # Example
 ///
 /// ```rust
-/// use yew::{function_component, html, Html, Properties, use_effect_with_deps};
+/// use yew::{function_component, html, use_effect_with_deps, Html, Properties};
 /// # use gloo::console::log;
 ///
 /// #[derive(Properties, PartialEq)]
@@ -189,16 +189,15 @@ where
 ///
 /// ## Only on first render
 ///
-/// Provide a empty tuple `()` as dependencies when you need to do something only on the first render
-/// of a component.
+/// Provide a empty tuple `()` as dependencies when you need to do something only on the first
+/// render of a component.
 ///
 /// ```rust
-/// use yew::{function_component, html, Html, use_effect_with_deps};
+/// use yew::{function_component, html, use_effect_with_deps, Html};
 /// # use gloo::console::log;
 ///
 /// #[function_component]
 /// fn HelloWorld() -> Html {
-///
 ///     use_effect_with_deps(
 ///         move |_| {
 ///             log!("I got rendered, yay!");
@@ -217,7 +216,7 @@ where
 /// It will only get called when the component is removed from view / gets destroyed.
 ///
 /// ```rust
-/// use yew::{function_component, html, Html, use_effect_with_deps};
+/// use yew::{function_component, html, use_effect_with_deps, Html};
 /// # use gloo::console::log;
 ///
 /// #[function_component]
