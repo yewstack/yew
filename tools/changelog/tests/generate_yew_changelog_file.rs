@@ -1,7 +1,6 @@
 use std::fs;
 use std::fs::File;
-use std::io::BufRead;
-use std::io::BufReader;
+use std::io::{BufRead, BufReader};
 use std::str::FromStr;
 
 use anyhow::Result;

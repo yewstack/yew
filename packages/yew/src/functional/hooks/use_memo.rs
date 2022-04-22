@@ -1,6 +1,7 @@
-use super::use_mut_ref;
-use std::{borrow::Borrow, rc::Rc};
+use std::borrow::Borrow;
+use std::rc::Rc;
 
+use super::use_mut_ref;
 use crate::functional::hook;
 
 /// Get a immutable reference to a memoized value.
@@ -42,11 +43,14 @@ where
 ///
 /// Memoization means it will only get recalculated when provided dependencies update/change.
 ///
+/// It can be useful for keeping things in scope for the lifetime of the component,
+/// so long as you don't store a clone of the resulting `Rc` anywhere that outlives the component.
+///
 /// # Example
 ///
 /// ```rust
-/// # use yew::prelude::*;
-/// #
+/// use yew::prelude::*;
+///
 /// #[derive(PartialEq, Properties)]
 /// pub struct Props {
 ///     pub step: usize,
@@ -57,7 +61,7 @@ where
 ///     // Will only get recalculated if `props.step` value changes
 ///     let message = use_memo(
 ///         |step| format!("{}. Do Some Expensive Calculation", step),
-///         props.step
+///         props.step,
 ///     );
 ///
 ///     html! {

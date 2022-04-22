@@ -1,7 +1,5 @@
-use gloo::{
-    console::{self, Timer},
-    timers::callback::{Interval, Timeout},
-};
+use gloo::console::{self, Timer};
+use gloo::timers::callback::{Interval, Timeout};
 use yew::{html, Component, Context, Html};
 
 pub enum Msg {

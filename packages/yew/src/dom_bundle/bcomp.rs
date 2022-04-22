@@ -1,12 +1,15 @@
 //! This module contains the bundle implementation of a virtual component [BComp].
 
+use std::any::TypeId;
+use std::borrow::Borrow;
+use std::fmt;
+
+use web_sys::Element;
+
 use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
 use crate::html::{AnyScope, Scoped};
 use crate::virtual_dom::{Key, VComp};
 use crate::NodeRef;
-use std::fmt;
-use std::{any::TypeId, borrow::Borrow};
-use web_sys::Element;
 
 /// A virtual component. Compare with [VComp].
 pub(super) struct BComp {
@@ -124,7 +127,6 @@ impl Reconcilable for VComp {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-
     use crate::dom_bundle::{Fragment, Hydratable};
 
     impl Hydratable for VComp {
@@ -166,20 +168,16 @@ mod feat_hydration {
 #[cfg(feature = "wasm_test")]
 #[cfg(test)]
 mod tests {
+    use std::ops::Deref;
+
+    use gloo_utils::document;
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use web_sys::{Element, Node};
+
     use super::*;
     use crate::dom_bundle::{Bundle, Reconcilable, ReconcileTarget};
-    use crate::scheduler;
-    use crate::{
-        html,
-        virtual_dom::{Key, VChild, VNode},
-        Children, Component, Context, Html, NodeRef, Properties,
-    };
-    use gloo_utils::document;
-    use std::ops::Deref;
-    use web_sys::Element;
-    use web_sys::Node;
-
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use crate::virtual_dom::{Key, VChild, VNode};
+    use crate::{html, scheduler, Children, Component, Context, Html, NodeRef, Properties};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -344,12 +342,15 @@ mod tests {
         fn create(_: &Context<Self>) -> Self {
             Self
         }
+
         fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
+
         fn changed(&mut self, _ctx: &Context<Self>) -> bool {
             unimplemented!();
         }
+
         fn view(&self, ctx: &Context<Self>) -> Html {
             let item_iter = ctx
                 .props()
@@ -391,11 +392,7 @@ mod tests {
             .collect();
         let children_renderer = Children::new(children.clone());
         let expected_html = "\
-        <ul>\
-            <li><span>a</span></li>\
-            <li><span>b</span></li>\
-            <li><span>c</span></li>\
-        </ul>";
+        <ul><li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ul>";
 
         let prop_method = html! {
             <List children={children_renderer.clone()} />
@@ -478,12 +475,12 @@ mod tests {
 mod layout_tests {
     extern crate self as yew;
 
-    use crate::html;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
-    use crate::{Children, Component, Context, Html, Properties};
     use std::marker::PhantomData;
 
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::{html, Children, Component, Context, Html, Properties};
 
     wasm_bindgen_test_configure!(run_in_browser);
 

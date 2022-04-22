@@ -1,5 +1,7 @@
-use crate::{content, generator::Generated};
 use yew::prelude::*;
+
+use crate::content;
+use crate::generator::Generated;
 
 #[derive(Clone, Debug, Eq, PartialEq, Properties)]
 pub struct Props {

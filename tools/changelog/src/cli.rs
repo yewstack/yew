@@ -1,3 +1,7 @@
+use anyhow::{bail, Result};
+use semver::Version;
+use structopt::StructOpt;
+
 use crate::create_log_lines::create_log_lines;
 use crate::get_latest_version::get_latest_version;
 use crate::new_version_level::NewVersionLevel;
@@ -6,10 +10,6 @@ use crate::write_changelog_file::write_changelog;
 use crate::write_log_lines::write_log_lines;
 use crate::write_version_changelog::write_changelog_file;
 use crate::yew_package::YewPackage;
-use anyhow::bail;
-use anyhow::Result;
-use semver::Version;
-use structopt::StructOpt;
 
 #[derive(StructOpt)]
 pub struct Cli {

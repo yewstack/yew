@@ -20,6 +20,7 @@ impl<R> RenderFn<R> {
     pub fn new(value: impl Fn(&R) -> Html + 'static) -> Self {
         Self(Rc::new(value))
     }
+
     pub fn render(&self, route: &R) -> Html {
         (self.0)(route)
     }

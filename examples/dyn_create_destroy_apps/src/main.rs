@@ -16,7 +16,8 @@ pub enum Msg {
 }
 
 pub struct App {
-    apps: Slab<(Element, AppHandle<CounterModel>)>, // Contains the spawned apps and their parent div elements
+    apps: Slab<(Element, AppHandle<CounterModel>)>, /* Contains the spawned apps and their
+                                                     * parent div elements */
     apps_container_ref: NodeRef,
 }
 

@@ -1,7 +1,8 @@
+use std::rc::Rc;
+
 use super::super::callback::Callback;
 use super::{Component, NodeRef, Scope};
 use crate::virtual_dom::AttrValue;
-use std::rc::Rc;
 
 /// Marker trait for types that the [`html!`](macro@crate::html) macro may clone implicitly.
 pub trait ImplicitClone: Clone {}

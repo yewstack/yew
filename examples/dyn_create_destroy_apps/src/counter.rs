@@ -1,4 +1,5 @@
-use gloo::{console, timers::callback::Interval};
+use gloo::console;
+use gloo::timers::callback::Interval;
 use yew::prelude::*;
 
 pub struct CounterModel {
@@ -17,7 +18,6 @@ pub enum CounterMessage {
 
 impl Component for CounterModel {
     type Message = CounterMessage;
-
     type Properties = CounterProps;
 
     fn create(ctx: &Context<Self>) -> Self {

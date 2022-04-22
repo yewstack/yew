@@ -1,12 +1,12 @@
+use std::borrow::{Borrow, Cow};
+use std::hint::unreachable_unchecked;
+use std::iter::FromIterator;
+use std::rc::Rc;
+
+use indexmap::IndexSet;
+
 use super::IntoPropValue;
 use crate::virtual_dom::AttrValue;
-use indexmap::IndexSet;
-use std::rc::Rc;
-use std::{
-    borrow::{Borrow, Cow},
-    hint::unreachable_unchecked,
-    iter::FromIterator,
-};
 
 /// A set of classes.
 ///
@@ -117,8 +117,8 @@ impl<T: Into<Classes>> FromIterator<T> for Classes {
 }
 
 impl IntoIterator for Classes {
-    type Item = Cow<'static, str>;
     type IntoIter = indexmap::set::IntoIter<Cow<'static, str>>;
+    type Item = Cow<'static, str>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.set.into_iter()

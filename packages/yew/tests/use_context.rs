@@ -2,10 +2,11 @@
 
 mod common;
 
-use common::obtain_result_by_id;
-use gloo::timers::future::sleep;
 use std::rc::Rc;
 use std::time::Duration;
+
+use common::obtain_result_by_id;
+use gloo::timers::future::sleep;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
 

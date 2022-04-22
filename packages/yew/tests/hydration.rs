@@ -6,7 +6,6 @@ use std::time::Duration;
 mod common;
 
 use common::{obtain_result, obtain_result_by_id};
-
 use gloo::timers::future::sleep;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;

@@ -1,13 +1,13 @@
-use super::{Prop, Props, SpecialProps, CHILDREN_LABEL};
+use std::convert::TryFrom;
+
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
-use std::convert::TryFrom;
-use syn::{
-    parse::{Parse, ParseStream},
-    spanned::Spanned,
-    token::Dot2,
-    Expr,
-};
+use syn::parse::{Parse, ParseStream};
+use syn::spanned::Spanned;
+use syn::token::Dot2;
+use syn::Expr;
+
+use super::{Prop, Props, SpecialProps, CHILDREN_LABEL};
 
 struct BaseExpr {
     pub dot2: Dot2,

@@ -1,13 +1,10 @@
-use reqwest::header::HeaderMap;
-use reqwest::header::ACCEPT;
-use reqwest::header::AUTHORIZATION;
-use reqwest::header::USER_AGENT;
-use serde::de::DeserializeOwned;
 use std::thread;
 use std::time::Duration;
 
 use anyhow::{bail, Result};
 use reqwest::blocking::Client;
+use reqwest::header::{HeaderMap, ACCEPT, AUTHORIZATION, USER_AGENT};
+use serde::de::DeserializeOwned;
 
 pub fn github_fetch<T: DeserializeOwned>(url: &str, token: Option<String>) -> Result<T> {
     thread::sleep(Duration::from_secs(1));

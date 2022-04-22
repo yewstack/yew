@@ -1,10 +1,10 @@
+use yew::context::ContextHandle;
+use yew::prelude::*;
+
 use crate::history::Location;
 use crate::navigator::Navigator;
 use crate::routable::Routable;
 use crate::router::{LocationContext, NavigatorContext};
-
-use yew::context::ContextHandle;
-use yew::prelude::*;
 
 /// A [`ContextHandle`] for [`add_location_listener`](RouterScopeExt::add_location_listener).
 pub struct LocationHandle {

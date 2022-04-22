@@ -1,12 +1,14 @@
-use super::generics::GenericArguments;
-use super::should_preserve_attr;
-use proc_macro2::{Ident, Span};
-use quote::{format_ident, quote, quote_spanned};
 use std::cmp::{Ord, Ordering, PartialEq, PartialOrd};
 use std::convert::TryFrom;
+
+use proc_macro2::{Ident, Span};
+use quote::{format_ident, quote, quote_spanned};
 use syn::parse::Result;
 use syn::spanned::Spanned;
 use syn::{Attribute, Error, Expr, Field, Path, Type, TypePath, Visibility};
+
+use super::generics::GenericArguments;
+use super::should_preserve_attr;
 
 #[allow(clippy::large_enum_variant)]
 #[derive(PartialEq, Eq)]

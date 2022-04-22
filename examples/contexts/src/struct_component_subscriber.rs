@@ -1,6 +1,6 @@
-use super::msg_ctx::MessageContext;
-
 use yew::prelude::*;
+
+use super::msg_ctx::MessageContext;
 
 pub enum Msg {
     MessageContextUpdated(MessageContext),
