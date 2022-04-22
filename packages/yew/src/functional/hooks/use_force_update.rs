@@ -42,10 +42,10 @@ impl UseForceUpdate {
 ///
 /// # Use-case
 ///
-/// Use this hook when wrapping an API that doesn't expose precise subscription events for fetched data.
-/// You could then, at some point, invalidate your local cache of the fetched data and trigger a re-render
-/// to let the normal render flow of components tell you again which data to fetch, and repopulate the
-/// cache accordingly.
+/// Use this hook when wrapping an API that doesn't expose precise subscription events for fetched
+/// data. You could then, at some point, invalidate your local cache of the fetched data and trigger
+/// a re-render to let the normal render flow of components tell you again which data to fetch, and
+/// repopulate the cache accordingly.
 ///
 /// A large externally managed cache, such as a app-wide cache for GraphQL data
 /// should not rerender every component whenever new data arrives, but only those where a query
@@ -56,8 +56,8 @@ impl UseForceUpdate {
 /// # Example
 ///
 /// This example implements a silly, manually updated display of the current time. The component
-/// is re-rendered every time the button is clicked. You should usually use a timeout and `use_state`
-/// to automatically trigger a re-render every second without having to use this hook.
+/// is re-rendered every time the button is clicked. You should usually use a timeout and
+/// `use_state` to automatically trigger a re-render every second without having to use this hook.
 ///
 /// ```rust
 /// use yew::prelude::*;

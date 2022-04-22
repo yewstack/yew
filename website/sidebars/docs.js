@@ -70,7 +70,6 @@ module.exports = {
                                 'concepts/function-components/hooks/custom-hooks',
                             ],
                         },
-                        'concepts/function-components/node-refs',
                         'concepts/function-components/state',
                         'concepts/function-components/communication',
                         'concepts/function-components/generics',
@@ -85,6 +84,7 @@ module.exports = {
                         'concepts/html/elements',
                         'concepts/html/events',
                         'concepts/html/classes',
+                        'concepts/html/node-refs',
                         'concepts/html/fragments',
                         'concepts/html/lists',
                         'concepts/html/literals-and-expressions',
@@ -129,6 +129,21 @@ module.exports = {
                 'advanced-topics/optimizations',
                 'advanced-topics/portals',
                 'advanced-topics/server-side-rendering',
+            ],
+        },
+        {
+            type: 'category',
+            label: 'More',
+            link: {
+                type: 'generated-index',
+                title: 'Miscellaneous',
+            },
+            items: [
+                'more/debugging',
+                'more/deployment',
+                'more/css',
+                'more/testing',
+                'more/roadmap',
             ],
         },
         {

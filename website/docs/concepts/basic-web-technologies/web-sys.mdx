@@ -79,7 +79,7 @@ _[Inheritance in `web-sys` in The `wasm-bindgen` Guide](https://rustwasm.github.
 
 ## The `Node` in `NodeRef`
 
-Yew uses a [`NodeRef`](concepts/function-components/node-refs.mdx) in order to provide a way for keeping a reference to
+Yew uses a [`NodeRef`](concepts/html/node-refs.mdx) in order to provide a way for keeping a reference to
 a `Node` made by the [`html!`](concepts/html/introduction.mdx) macro. The `Node` part of `NodeRef` is referring to
 [`web_sys::Node`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Node.html). The
 `NodeRef::get` method will return a `Option<Node>` value, however, most of the time in Yew you want
