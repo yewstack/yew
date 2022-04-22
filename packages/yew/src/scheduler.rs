@@ -1,7 +1,7 @@
 //! This module contains a scheduler.
 
 use std::cell::RefCell;
-use std::collections::{BTreeMap, VecDeque};
+use std::collections::BTreeMap;
 use std::rc::Rc;
 
 /// Alias for Rc<RefCell<T>>
@@ -27,19 +27,15 @@ struct Scheduler {
     props_update: Vec<Box<dyn Runnable>>,
     update: Vec<Box<dyn Runnable>>,
 
-    /// These are safe as it's not possible to schedule a child component to be rendered before a
-    /// parent becomes rendered for the first time.
-    render_first: VecDeque<Box<dyn Runnable>>,
-
-    #[cfg(feature = "csr")]
-    render_priority: BTreeMap<usize, Box<dyn Runnable>>,
-
     /// The Binary Tree Map guarantees components with lower id (parent) is rendered first and
     /// no more than 1 render can be scheduled before a component is rendered.
     ///
     /// Parent can destroy child components but not otherwise, we can save unnecessary render by
     /// rendering parent first.
     render: BTreeMap<usize, Box<dyn Runnable>>,
+    render_first: BTreeMap<usize, Box<dyn Runnable>>,
+    #[cfg(feature = "hydration")]
+    render_priority: BTreeMap<usize, Box<dyn Runnable>>,
 
     /// Binary Tree Map to guarantee children rendered are always called before parent calls
     rendered_first: BTreeMap<usize, Box<dyn Runnable>>,
@@ -73,12 +69,13 @@ mod feat_csr_ssr {
     use super::*;
     /// Push a component creation, first render and first rendered [Runnable]s to be executed
     pub(crate) fn push_component_create(
+        component_id: usize,
         create: Box<dyn Runnable>,
         first_render: Box<dyn Runnable>,
     ) {
         with(|s| {
             s.create.push(create);
-            s.render_first.push_back(first_render);
+            s.render_first.insert(component_id, first_render);
         });
     }
 
@@ -121,12 +118,6 @@ mod feat_csr {
         });
     }
 
-    pub(crate) fn push_component_priority_render(component_id: usize, render: Box<dyn Runnable>) {
-        with(|s| {
-            s.render_priority.insert(component_id, render);
-        });
-    }
-
     pub(crate) fn push_component_props_update(props_update: Box<dyn Runnable>) {
         with(|s| s.props_update.push(props_update));
     }
@@ -134,6 +125,20 @@ mod feat_csr {
 
 #[cfg(feature = "csr")]
 pub(crate) use feat_csr::*;
+
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    pub(crate) fn push_component_priority_render(component_id: usize, render: Box<dyn Runnable>) {
+        with(|s| {
+            s.render_priority.insert(component_id, render);
+        });
+    }
+}
+
+#[cfg(feature = "hydration")]
+pub(crate) use feat_hydration::*;
 
 /// Execute any pending [Runnable]s
 pub(crate) fn start_now() {
@@ -218,7 +223,13 @@ impl Scheduler {
         //
         // Should be processed one at time, because they can spawn more create and rendered events
         // for their children.
-        if let Some(r) = self.render_first.pop_front() {
+        if let Some(r) = self
+            .render_first
+            .keys()
+            .next()
+            .cloned()
+            .and_then(|m| self.render_first.remove(&m))
+        {
             to_run.push(r);
         }
 
@@ -232,7 +243,7 @@ impl Scheduler {
         //
         // This is needed for certain actions.
         // suspense revealing, hydration susequent rendering, etc.
-        #[cfg(feature = "csr")]
+        #[cfg(feature = "hydration")]
         {
             if let Some(r) = self
                 .render_priority

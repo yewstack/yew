@@ -37,8 +37,7 @@ impl ReconcileTarget for BComp {
     }
 
     fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
-        self.scope
-            .shift_node(next_parent.clone(), next_sibling.clone());
+        self.scope.shift_node(next_parent.clone(), next_sibling);
 
         self.node_ref.clone()
     }
