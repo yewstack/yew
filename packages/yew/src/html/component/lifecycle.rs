@@ -10,8 +10,6 @@ use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{BaseSuspense, Suspension};
 use crate::{Callback, Context, HtmlResult};
 use std::any::Any;
-#[cfg(feature = "csr")]
-use std::cell::Cell;
 use std::rc::Rc;
 
 #[cfg(feature = "hydration")]
@@ -221,7 +219,7 @@ pub(crate) struct ComponentState {
     pub(super) render_state: ComponentRenderState,
 
     #[cfg(feature = "csr")]
-    has_rendered: Rc<Cell<bool>>,
+    has_rendered: bool,
 
     suspension: Option<Suspension>,
 
@@ -263,7 +261,7 @@ impl ComponentState {
             suspension: None,
 
             #[cfg(feature = "csr")]
-            has_rendered: Rc::default(),
+            has_rendered: false,
 
             comp_id,
         }
@@ -488,38 +486,14 @@ impl RenderRunner {
 
         let comp_id = state.comp_id;
 
-        #[cfg(feature = "csr")]
-        let schedule_render = {
-            let has_rendered = state.has_rendered.clone();
-            move || {
-                if has_rendered.get() {
-                    scheduler::push_component_render(
-                        comp_id,
-                        Box::new(RenderRunner {
-                            state: shared_state.clone(),
-                        }),
-                    );
-                } else {
-                    scheduler::push_component_priority_render(Box::new(RenderRunner {
-                        state: shared_state.clone(),
-                    }));
-                }
-            }
-        };
-
-        #[cfg(not(feature = "csr"))]
-        let schedule_render = move || {
+        if suspension.resumed() {
+            // schedule a render immediately if suspension is resumed.
             scheduler::push_component_render(
                 comp_id,
                 Box::new(RenderRunner {
-                    state: shared_state.clone(),
+                    state: shared_state,
                 }),
             );
-        };
-
-        if suspension.resumed() {
-            // schedule a render immediately if suspension is resumed.
-            schedule_render();
         } else {
             // We schedule a render after current suspension is resumed.
             let comp_scope = state.inner.any_scope();
@@ -529,7 +503,15 @@ impl RenderRunner {
                 .expect("To suspend rendering, a <Suspense /> component is required.");
             let suspense = suspense_scope.get_component().unwrap();
 
-            suspension.listen(Callback::from(move |_| schedule_render()));
+            suspension.listen(Callback::from(move |_| {
+                scheduler::push_component_render(
+                    comp_id,
+                    Box::new(RenderRunner {
+                        state: shared_state.clone(),
+                    }),
+                );
+                scheduler::start();
+            }));
 
             if let Some(ref last_suspension) = state.suspension {
                 if &suspension != last_suspension {
@@ -571,8 +553,8 @@ impl RenderRunner {
                     bundle.reconcile(root, &scope, parent, next_sibling.clone(), new_root);
                 node_ref.link(new_node_ref);
 
-                let first_render = !state.has_rendered.get();
-                state.has_rendered.set(true);
+                let first_render = !state.has_rendered;
+                state.has_rendered = true;
 
                 scheduler::push_component_rendered(
                     state.comp_id,
