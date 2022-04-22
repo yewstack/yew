@@ -25,11 +25,12 @@ impl<T: 'static, F: FnOnce() -> T> Hook for UseMutRef<F> {
 ///
 /// # Example
 /// ```rust
-/// use yew::prelude::*;
-/// use web_sys::HtmlInputElement;
-/// use std::rc::Rc;
 /// use std::cell::RefCell;
 /// use std::ops::{Deref, DerefMut};
+/// use std::rc::Rc;
+///
+/// use web_sys::HtmlInputElement;
+/// use yew::prelude::*;
 ///
 /// #[function_component(UseRef)]
 /// fn ref_hook() -> Html {
@@ -79,9 +80,10 @@ where
 /// # Example
 ///
 /// ```rust
-/// use wasm_bindgen::{prelude::Closure, JsCast};
-/// use yew::{function_component, html, use_effect_with_deps, use_node_ref, Html};
+/// use wasm_bindgen::prelude::Closure;
+/// use wasm_bindgen::JsCast;
 /// use web_sys::{Event, HtmlElement};
+/// use yew::{function_component, html, use_effect_with_deps, use_node_ref, Html};
 ///
 /// #[function_component(UseNodeRef)]
 /// pub fn node_ref_hook() -> Html {
@@ -128,9 +130,9 @@ where
 ///
 /// # Tip
 ///
-/// When conditionally rendering elements you can use `NodeRef` in conjunction with `use_effect_with_deps`
-/// to perform actions each time an element is rendered and just before the component where the hook is used in is going to be removed from the
-/// DOM.
+/// When conditionally rendering elements you can use `NodeRef` in conjunction with
+/// `use_effect_with_deps` to perform actions each time an element is rendered and just before the
+/// component where the hook is used in is going to be removed from the DOM.
 #[hook]
 pub fn use_node_ref() -> NodeRef {
     (*use_state(NodeRef::default)).clone()
