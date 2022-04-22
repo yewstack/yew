@@ -824,3 +824,89 @@ async fn hydration_suspense_no_flickering() {
         r#"<div>0</div><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div>"#
     );
 }
+
+#[wasm_bindgen_test]
+async fn hydration_order_issue_nested_suspense() {
+    #[function_component(App)]
+    pub fn app() -> Html {
+        let elems = (0..10).map(|number: u32| {
+            html! {
+                <ToSuspendOrNot {number} />
+            }
+        });
+
+        html! {
+            <Suspense>
+                { for elems }
+            </Suspense>
+        }
+    }
+
+    #[derive(Properties, PartialEq)]
+    struct NumberProps {
+        number: u32,
+    }
+
+    #[function_component(Number)]
+    fn number(props: &NumberProps) -> Html {
+        html! {
+            <div>{props.number.to_string()}</div>
+        }
+    }
+
+    #[function_component(SuspendedNumber)]
+    fn suspended_number(props: &NumberProps) -> HtmlResult {
+        use_suspend()?;
+        Ok(html! {
+            <div>{props.number.to_string()}</div>
+        })
+    }
+
+    #[function_component(ToSuspendOrNot)]
+    fn suspend_or_not(props: &NumberProps) -> HtmlResult {
+        let number = props.number;
+        Ok(html! {
+            if number % 3 == 0 {
+                <Suspense>
+                    <SuspendedNumber {number} />
+                </Suspense>
+            } else {
+                <Number {number} />
+            }
+        })
+    }
+
+    #[hook]
+    pub fn use_suspend() -> SuspensionResult<()> {
+        use_future(|| async {})?;
+
+        Ok(())
+    }
+
+    let s = ServerRenderer::<App>::new().render().await;
+
+    gloo::utils::document()
+        .query_selector("#output")
+        .unwrap()
+        .unwrap()
+        .set_inner_html(&s);
+
+    sleep(Duration::ZERO).await;
+
+    Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+        .hydrate();
+
+    // Wait until all suspended components becomes revealed.
+    sleep(Duration::ZERO).await;
+    sleep(Duration::ZERO).await;
+    sleep(Duration::ZERO).await;
+    sleep(Duration::ZERO).await;
+
+    let result = obtain_result_by_id("output");
+    assert_eq!(
+        result.as_str(),
+        // Until all components become revealed, there will be component markers.
+        // As long as there's no component markers all components have become unsuspended.
+        r#"<div>0</div><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div>"#
+    );
+}

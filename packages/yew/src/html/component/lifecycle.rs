@@ -328,6 +328,7 @@ impl Runnable for PropsUpdateRunner {
                 } => {
                     // When components are updated, a new node ref could have been passed in
                     if *node_ref != next_node_ref {
+                        next_node_ref.set(node_ref.get());
                         node_ref.set(None);
                         *node_ref = next_node_ref;
                     }
@@ -345,6 +346,7 @@ impl Runnable for PropsUpdateRunner {
                 } => {
                     // When components are updated, a new node ref could have been passed in
                     if *node_ref != next_node_ref {
+                        next_node_ref.set(node_ref.get());
                         node_ref.set(None);
                         *node_ref = next_node_ref;
                     }
@@ -576,9 +578,12 @@ impl RenderRunner {
             } => {
                 // We schedule a "first" render to run immediately after hydration,
                 // to fix NodeRefs (first_node and next_sibling).
-                scheduler::push_component_priority_render(Box::new(RenderRunner {
-                    state: self.state.clone(),
-                }));
+                scheduler::push_component_priority_render(
+                    state.comp_id,
+                    Box::new(RenderRunner {
+                        state: self.state.clone(),
+                    }),
+                );
 
                 let scope = state.inner.any_scope();
 

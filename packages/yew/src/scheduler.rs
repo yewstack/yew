@@ -32,7 +32,7 @@ struct Scheduler {
     render_first: VecDeque<Box<dyn Runnable>>,
 
     #[cfg(feature = "csr")]
-    render_priority: VecDeque<Box<dyn Runnable>>,
+    render_priority: BTreeMap<usize, Box<dyn Runnable>>,
 
     /// The Binary Tree Map guarantees components with lower id (parent) is rendered first and
     /// no more than 1 render can be scheduled before a component is rendered.
@@ -121,9 +121,9 @@ mod feat_csr {
         });
     }
 
-    pub(crate) fn push_component_priority_render(render: Box<dyn Runnable>) {
+    pub(crate) fn push_component_priority_render(component_id: usize, render: Box<dyn Runnable>) {
         with(|s| {
-            s.render_priority.push_back(render);
+            s.render_priority.insert(component_id, render);
         });
     }
 
@@ -234,7 +234,13 @@ impl Scheduler {
         // suspense revealing, hydration susequent rendering, etc.
         #[cfg(feature = "csr")]
         {
-            if let Some(r) = self.render_priority.pop_front() {
+            if let Some(r) = self
+                .render_priority
+                .keys()
+                .next()
+                .cloned()
+                .and_then(|m| self.render_priority.remove(&m))
+            {
                 to_run.push(r);
             }
 
