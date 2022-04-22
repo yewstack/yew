@@ -353,7 +353,8 @@ mod feat_csr_ssr {
             })
         }
 
-        pub(super) fn schedule_update(&self) {
+        #[inline]
+        fn schedule_update(&self) {
             scheduler::push_component_update(Box::new(UpdateRunner {
                 state: self.state.clone(),
             }));
@@ -415,6 +416,22 @@ mod feat_csr {
         }
     }
 
+    fn schedule_props_update(
+        state: Shared<Option<ComponentState>>,
+        props: Rc<dyn Any>,
+        node_ref: NodeRef,
+        next_sibling: NodeRef,
+    ) {
+        scheduler::push_component_props_update(Box::new(PropsUpdateRunner {
+            state,
+            node_ref,
+            next_sibling,
+            props,
+        }));
+        // Not guaranteed to already have the scheduler started
+        scheduler::start();
+    }
+
     impl<COMP> Scope<COMP>
     where
         COMP: BaseComponent,
@@ -463,14 +480,7 @@ mod feat_csr {
             #[cfg(debug_assertions)]
             super::super::log_event(self.id, "reuse");
 
-            scheduler::push_component_props_update(Box::new(PropsUpdateRunner {
-                state: self.state.clone(),
-                node_ref,
-                next_sibling,
-                props,
-            }));
-            // Not guaranteed to already have the scheduler started
-            scheduler::start();
+            schedule_props_update(self.state.clone(), props, node_ref, next_sibling)
         }
     }
 
