@@ -223,6 +223,8 @@ impl Scheduler {
         //
         // Should be processed one at time, because they can spawn more create and rendered events
         // for their children.
+        //
+        // To be replaced with BTreeMap::pop_first once it is stable.
         if let Some(r) = self
             .render_first
             .keys()
@@ -241,8 +243,7 @@ impl Scheduler {
 
         // Priority rendering
         //
-        // This is needed for certain actions.
-        // suspense revealing, hydration susequent rendering, etc.
+        // This is needed for hydration susequent render to fix node refs.
         #[cfg(feature = "hydration")]
         {
             if let Some(r) = self
