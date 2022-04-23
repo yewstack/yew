@@ -304,6 +304,14 @@ impl VTag {
             _ => None,
         }
     }
+    
+    /// Returns the children of this [VTag]
+    pub fn into_children(self) -> VList {
+        match self.inner {
+            VTagInner::Other { children, .. } => children,
+            _ => VList::new(),
+        }
+    }
 
     /// Returns the `value` of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) or
