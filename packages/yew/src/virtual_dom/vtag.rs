@@ -304,7 +304,7 @@ impl VTag {
             _ => None,
         }
     }
-    
+
     /// Returns the children of this [VTag]
     pub fn into_children(self) -> VList {
         match self.inner {
