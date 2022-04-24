@@ -2,10 +2,11 @@ mod array;
 mod map;
 mod string;
 
+use yew::prelude::*;
+
 use self::array::*;
 use self::map::*;
 use self::string::*;
-use yew::prelude::*;
 
 #[function_component]
 fn App() -> Html {

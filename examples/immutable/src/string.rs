@@ -1,5 +1,4 @@
-use wasm_bindgen::JsCast;
-use wasm_bindgen::UnwrapThrowExt;
+use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{HtmlInputElement, InputEvent};
 use yew::immutable::*;
 use yew::prelude::*;
