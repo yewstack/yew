@@ -1,15 +1,15 @@
 //! The client-side rendering variant. This is used for client side rendering.
 
-use crate::functional::{Hook, HookContext};
-use crate::hook;
-
 use std::marker::PhantomData;
 use std::rc::Rc;
 
-use super::PreparedStateBase;
-use crate::suspense::SuspensionResult;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+
+use super::PreparedStateBase;
+use crate::functional::{Hook, HookContext};
+use crate::hook;
+use crate::suspense::SuspensionResult;
 
 /// The client-side rendering variant. This is used for client side rendering.
 #[doc(hidden)]

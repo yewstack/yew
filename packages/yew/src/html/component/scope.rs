@@ -537,7 +537,6 @@ mod feat_hydration {
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
 
-
     impl<COMP> Scope<COMP>
     where
         COMP: BaseComponent,

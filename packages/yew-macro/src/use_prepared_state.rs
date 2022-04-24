@@ -1,6 +1,5 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-
 use syn::parse::{Parse, ParseStream};
 use syn::{parse_quote, Expr, ExprClosure, ReturnType, Token, Type};
 
@@ -22,8 +21,8 @@ impl<const WITH_ASYNC_CLOSURE: bool> Parse for PreparedState<WITH_ASYNC_CLOSURE>
             ReturnType::Default => {
                 return Err(syn::Error::new_spanned(
                     &closure,
-                    "You must specify a return type for this closure.\
-                    This is used when the closure is omitted from the client side rendering bundle.",
+                    "You must specify a return type for this closure.This is used when the \
+                     closure is omitted from the client side rendering bundle.",
                 ))
             }
             ReturnType::Type(_rarrow, ty) => *ty.to_owned(),
@@ -42,7 +41,11 @@ impl<const WITH_ASYNC_CLOSURE: bool> Parse for PreparedState<WITH_ASYNC_CLOSURE>
 
         if !WITH_ASYNC_CLOSURE {
             if let Some(m) = closure.asyncness.as_ref() {
-                return Err(syn::Error::new_spanned(&m, "You need to enable feature tokio to use async closure under non-wasm32 targets."));
+                return Err(syn::Error::new_spanned(
+                    &m,
+                    "You need to enable feature tokio to use async closure under non-wasm32 \
+                     targets.",
+                ));
             }
         }
 

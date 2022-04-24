@@ -27,14 +27,13 @@ use std::future::Future;
 use std::pin::Pin;
 use std::rc::Rc;
 
-#[cfg(all(feature = "hydration", feature = "ssr"))]
-use crate::html::RenderMode;
-use crate::html::{AnyScope, BaseComponent, Context, HtmlResult};
-use crate::Properties;
-
 use wasm_bindgen::prelude::*;
 
-use crate::html::{AnyScope, BaseComponent, Context, HtmlResult};
+#[cfg(all(feature = "hydration", feature = "ssr"))]
+use crate::html::RenderMode;
+use crate::html::{
+    AnyScope, BaseComponent, Context, HtmlResult,
+};
 use crate::Properties;
 
 mod hooks;

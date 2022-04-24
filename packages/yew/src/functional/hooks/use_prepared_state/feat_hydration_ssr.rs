@@ -1,16 +1,15 @@
 //! The client-and-server-side rendering variant.
 
-use crate::functional::{Hook, HookContext};
-use crate::html::RenderMode;
-
+use std::marker::PhantomData;
 use std::rc::Rc;
 
-use super::feat_hydration;
-use super::feat_ssr;
-use crate::suspense::SuspensionResult;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use std::marker::PhantomData;
+
+use super::{feat_hydration, feat_ssr};
+use crate::functional::{Hook, HookContext};
+use crate::html::RenderMode;
+use crate::suspense::SuspensionResult;
 
 #[doc(hidden)]
 pub fn use_prepared_state<T, D, F>(f: F, deps: D) -> impl Hook<Output = Option<Rc<T>>>
@@ -56,8 +55,9 @@ where
 #[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
 #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
 mod feat_io {
-    use super::*;
     use std::future::Future;
+
+    use super::*;
 
     #[doc(hidden)]
     pub fn use_prepared_state_with_suspension<T, D, F, U>(

@@ -1,12 +1,12 @@
 //! The noop variant. This is used for client side rendering when hydration is disabled.
 
-use crate::hook;
-
 use std::rc::Rc;
 
-use crate::suspense::SuspensionResult;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+
+use crate::hook;
+use crate::suspense::SuspensionResult;
 
 #[doc(hidden)]
 #[hook]

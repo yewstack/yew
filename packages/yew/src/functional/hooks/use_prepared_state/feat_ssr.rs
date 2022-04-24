@@ -1,13 +1,13 @@
 //! The server-side rendering variant. This is used for server side rendering.
 
-use crate::functional::{use_memo, Hook, HookContext};
-
 use std::marker::PhantomData;
 use std::rc::Rc;
 
-use super::PreparedStateBase;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+
+use super::PreparedStateBase;
+use crate::functional::{use_memo, Hook, HookContext};
 
 #[doc(hidden)]
 pub fn use_prepared_state<T, D, F>(f: F, deps: D) -> impl Hook<Output = Option<Rc<T>>>
@@ -66,10 +66,9 @@ where
 #[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
 #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
 mod feat_io {
-    use super::*;
-
     use std::future::Future;
 
+    use super::*;
     use crate::functional::use_state;
     use crate::io_coop::spawn_local;
     use crate::suspense::{Suspension, SuspensionResult};

@@ -15,23 +15,8 @@ pub use feat_hydration_ssr::*;
 pub use feat_none::*;
 #[cfg(all(feature = "ssr", not(feature = "hydration")))]
 pub use feat_ssr::*;
-
-// With SSR, but no runtime available.
-#[doc(hidden)]
-#[cfg(all(feature = "ssr", not(any(target_arch = "wasm32", feature = "tokio"))))]
-pub use yew_macro::use_prepared_state_with_closure as use_prepared_state_macro;
-
-// With SSR, and runtime is available.
-#[doc(hidden)]
-#[cfg(all(feature = "ssr", any(target_arch = "wasm32", feature = "tokio")))]
-pub use yew_macro::use_prepared_state_with_closure_and_suspension as use_prepared_state_macro;
-
-// Without SSR.
-#[doc(hidden)]
-#[cfg(not(feature = "ssr",))]
-pub use yew_macro::use_prepared_state_without_closure as use_prepared_state_macro;
-
-/// Use a state prepared on the server side and its value is sent to the client side during hydration.
+/// Use a state prepared on the server side and its value is sent to the client side during
+/// hydration.
 ///
 /// The component sees the same value on the server side and client side if the component is
 /// hydrated.
@@ -39,8 +24,8 @@ pub use yew_macro::use_prepared_state_without_closure as use_prepared_state_macr
 /// It accepts a closure as the first argument and a dependency type as the second argument.
 /// It returns `Option<Rc<T>>`.
 ///
-/// During hydration, it will only return `Some(Rc<T>)` if the component is hydrated from a server-side
-/// rendering artifact and its dependency value matches.
+/// During hydration, it will only return `Some(Rc<T>)` if the component is hydrated from a
+/// server-side rendering artifact and its dependency value matches.
 ///
 /// `let state = use_prepared_state!(|deps| -> ReturnType { ... }, deps);`
 ///
@@ -87,10 +72,22 @@ pub use yew_macro::use_prepared_state_without_closure as use_prepared_state_macr
 ///
 /// # Note
 ///
-/// You MUST denote the return type of the closure with `|deps| -> ReturnType { ... }`. This type
-/// is used during client side rendering to deserialize the state prepared on the server side.
-///
+/// You MUST denote the return type of the closure with `|deps| -> ReturnType { ... }`. This
+/// type is used during client side rendering to deserialize the state prepared on the server
+/// side.
 pub use use_prepared_state_macro as use_prepared_state;
+// With SSR, but no runtime available.
+#[doc(hidden)]
+#[cfg(all(feature = "ssr", not(any(target_arch = "wasm32", feature = "tokio"))))]
+pub use yew_macro::use_prepared_state_with_closure as use_prepared_state_macro;
+// With SSR, and runtime is available.
+#[doc(hidden)]
+#[cfg(all(feature = "ssr", any(target_arch = "wasm32", feature = "tokio")))]
+pub use yew_macro::use_prepared_state_with_closure_and_suspension as use_prepared_state_macro;
+// Without SSR.
+#[doc(hidden)]
+#[cfg(not(feature = "ssr",))]
+pub use yew_macro::use_prepared_state_without_closure as use_prepared_state_macro;
 
 #[cfg(any(feature = "hydration", feature = "ssr"))]
 mod feat_any_hydration_ssr {
