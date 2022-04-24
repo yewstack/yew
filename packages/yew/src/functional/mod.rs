@@ -70,6 +70,7 @@ pub use yew_macro::hook;
 type ReRender = Rc<dyn Fn()>;
 
 /// Primitives of a prepared state hook.
+#[cfg(any(feature = "hydration", feature = "ssr"))]
 pub(crate) trait PreparedState {
     #[cfg(feature = "ssr")]
     fn prepare(&self) -> Pin<Box<dyn Future<Output = Vec<u8>>>>;

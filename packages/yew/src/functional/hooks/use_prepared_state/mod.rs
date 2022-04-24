@@ -1,14 +1,3 @@
-use crate::functional::PreparedState;
-
-#[cfg(feature = "ssr")]
-use std::future::Future;
-#[cfg(feature = "ssr")]
-use std::pin::Pin;
-use std::rc::Rc;
-
-use serde::de::DeserializeOwned;
-use serde::Serialize;
-
 #[cfg(feature = "hydration")]
 mod feat_hydration;
 #[cfg(all(feature = "hydration", feature = "ssr"))]
@@ -87,43 +76,60 @@ pub use yew_macro::use_prepared_state_without_closure as use_prepared_state_macr
 /// automatically.
 pub use use_prepared_state_macro as use_prepared_state;
 
-#[allow(dead_code)]
-struct PreparedStateBase<T, D>
-where
-    D: Serialize + DeserializeOwned + PartialEq + 'static,
-    T: Serialize + DeserializeOwned + 'static,
-{
-    state: Option<Rc<T>>,
-    deps: Option<Rc<D>>,
-}
+#[cfg(any(feature = "hydration", feature = "ssr"))]
+mod feat_any_hydration_ssr {
+    #[cfg(feature = "ssr")]
+    use std::future::Future;
+    #[cfg(feature = "ssr")]
+    use std::pin::Pin;
+    use std::rc::Rc;
 
-#[cfg(feature = "hydration")]
-impl<T, D> PreparedStateBase<T, D>
-where
-    D: Serialize + DeserializeOwned + PartialEq + 'static,
-    T: Serialize + DeserializeOwned + 'static,
-{
-    fn decode(buf: &[u8]) -> Self {
-        let (state, deps) =
-            bincode::deserialize::<(T, D)>(buf).expect("failed to deserialize state");
+    use serde::de::DeserializeOwned;
+    use serde::Serialize;
 
-        PreparedStateBase {
-            state: Some(Rc::new(state)),
-            deps: Some(Rc::new(deps)),
+    use crate::functional::PreparedState;
+
+    pub(super) struct PreparedStateBase<T, D>
+    where
+        D: Serialize + DeserializeOwned + PartialEq + 'static,
+        T: Serialize + DeserializeOwned + 'static,
+    {
+        pub state: Option<Rc<T>>,
+        #[allow(dead_code)]
+        pub deps: Option<Rc<D>>,
+    }
+
+    #[cfg(feature = "hydration")]
+    impl<T, D> PreparedStateBase<T, D>
+    where
+        D: Serialize + DeserializeOwned + PartialEq + 'static,
+        T: Serialize + DeserializeOwned + 'static,
+    {
+        pub fn decode(buf: &[u8]) -> Self {
+            let (state, deps) =
+                bincode::deserialize::<(T, D)>(buf).expect("failed to deserialize state");
+
+            PreparedStateBase {
+                state: Some(Rc::new(state)),
+                deps: Some(Rc::new(deps)),
+            }
+        }
+    }
+
+    impl<T, D> PreparedState for PreparedStateBase<T, D>
+    where
+        D: Serialize + DeserializeOwned + PartialEq + 'static,
+        T: Serialize + DeserializeOwned + 'static,
+    {
+        #[cfg(feature = "ssr")]
+        fn prepare(&self) -> Pin<Box<dyn Future<Output = Vec<u8>>>> {
+            let state = bincode::serialize(&(self.state.as_deref(), self.deps.as_deref()))
+                .expect("failed to prepare state");
+
+            Box::pin(async move { state })
         }
     }
 }
 
-impl<T, D> PreparedState for PreparedStateBase<T, D>
-where
-    D: Serialize + DeserializeOwned + PartialEq + 'static,
-    T: Serialize + DeserializeOwned + 'static,
-{
-    #[cfg(feature = "ssr")]
-    fn prepare(&self) -> Pin<Box<dyn Future<Output = Vec<u8>>>> {
-        let state = bincode::serialize(&(self.state.as_deref(), self.deps.as_deref()))
-            .expect("failed to prepare state");
-
-        Box::pin(async move { state })
-    }
-}
+#[cfg(any(feature = "hydration", feature = "ssr"))]
+use feat_any_hydration_ssr::PreparedStateBase;
