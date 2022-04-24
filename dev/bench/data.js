@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1650716010655,
+  "lastUpdate": 1650840184618,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -14477,6 +14477,120 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 33_startup-mainthreadcost",
             "value": "240.072",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "328.7392578125",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "futursolo@users.noreply.github.com",
+            "name": "Kaede Hoshikawa",
+            "username": "futursolo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2576372e267265418674e9613965ba13ec1429ea",
+          "message": "Delay Hydration second render until all assistive nodes have been removed (#2629)\n\n* Separate hydration and render queue.\r\n\r\n* Revert \"Fix issue with node refs and hydration (#2597)\"\r\n\r\nThis reverts commit 469cc341c340bd0093d9233847f523b66a18fd90.\r\n\r\n* Priority Render.\r\n\r\n* Add some tests.\r\n\r\n* Add more tests.\r\n\r\n* Add test result after click.\r\n\r\n* Fix test comment.\r\n\r\n* Fix test timing.\r\n\r\n* Restore test.\r\n\r\n* Once AtomicBool, now a Cell.\r\n\r\n* Prefer use_future.\r\n\r\n* Revealing of Suspense always happen after the component has re-rendered itself.\r\n\r\n* Shifting should register correct next_sibling.\r\n\r\n* Revert to HashMap.\r\n\r\n* cargo +nightly fmt.\r\n\r\n* Fix comment.\r\n\r\n* Optimise Code size?\r\n\r\n* Add comment if assertion fails.\r\n\r\n* Revert \"Merge branch 'hydration-4' into fc-prepared-state\"\r\n\r\nThis reverts commit 427b087d4db6b2e497ad618273655bd18ba9bd01, reversing\r\nchanges made to 109fcfaa127aefc5fa3c697e254fe2c049292be2.\r\n\r\n* Revert \"Revert \"Merge branch 'hydration-4' into fc-prepared-state\"\"\r\n\r\nThis reverts commit f1e408958d94cb13813ce75aa6f0aad06c9fa3e8.\r\n\r\n* Redo #2957.",
+          "timestamp": "2022-04-25T07:35:55+09:00",
+          "tree_id": "c04d2a4743401c698cde23cf7ed21d1cf72e78ab",
+          "url": "https://github.com/yewstack/yew/commit/2576372e267265418674e9613965ba13ec1429ea"
+        },
+        "date": 1650840183135,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "269.61",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "289.005",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "464.3335",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "93.389",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "116.125",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "35.1525",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "4135.9735",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "643.3345",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "263.6815",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.457233428955078",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.6642227172851562",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.6991310119628906",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.709381103515625",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.3276443481445312",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1738.732",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "40.648",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 33_startup-mainthreadcost",
+            "value": "314.94399999999996",
             "unit": ""
           },
           {
