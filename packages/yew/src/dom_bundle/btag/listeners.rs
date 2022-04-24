@@ -312,7 +312,7 @@ mod tests {
         M: Mixin + Properties + Default,
     {
         // Remove any existing elements
-        let body = document().body().unwrap();
+        let body = document().query_selector("#output").unwrap().unwrap();
         while let Some(child) = body.query_selector("div#testroot").unwrap() {
             body.remove_child(&child).unwrap();
         }
