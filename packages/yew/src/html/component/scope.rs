@@ -419,12 +419,10 @@ mod feat_csr {
     fn schedule_props_update(
         state: Shared<Option<ComponentState>>,
         props: Rc<dyn Any>,
-        node_ref: NodeRef,
         next_sibling: NodeRef,
     ) {
         scheduler::push_component_props_update(Box::new(PropsUpdateRunner {
             state,
-            node_ref,
             next_sibling,
             props,
         }));
@@ -471,16 +469,11 @@ mod feat_csr {
             scheduler::start();
         }
 
-        pub(crate) fn reuse(
-            &self,
-            props: Rc<COMP::Properties>,
-            node_ref: NodeRef,
-            next_sibling: NodeRef,
-        ) {
+        pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, next_sibling: NodeRef) {
             #[cfg(debug_assertions)]
             super::super::log_event(self.id, "reuse");
 
-            schedule_props_update(self.state.clone(), props, node_ref, next_sibling)
+            schedule_props_update(self.state.clone(), props, next_sibling)
         }
     }
 

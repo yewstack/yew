@@ -305,7 +305,6 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
 pub(crate) struct PropsUpdateRunner {
     pub props: Rc<dyn Any>,
     pub state: Shared<Option<ComponentState>>,
-    pub node_ref: NodeRef,
     pub next_sibling: NodeRef,
 }
 
@@ -313,7 +312,6 @@ pub(crate) struct PropsUpdateRunner {
 impl Runnable for PropsUpdateRunner {
     fn run(self: Box<Self>) {
         let Self {
-            node_ref: next_node_ref,
             next_sibling,
             props,
             state: shared_state,
@@ -323,16 +321,9 @@ impl Runnable for PropsUpdateRunner {
             let schedule_render = match state.render_state {
                 #[cfg(feature = "csr")]
                 ComponentRenderState::Render {
-                    ref mut node_ref,
                     next_sibling: ref mut current_next_sibling,
                     ..
                 } => {
-                    // When components are updated, a new node ref could have been passed in
-                    if *node_ref != next_node_ref {
-                        next_node_ref.set(node_ref.get());
-                        node_ref.set(None);
-                        *node_ref = next_node_ref;
-                    }
                     // When components are updated, their siblings were likely also updated
                     *current_next_sibling = next_sibling;
                     // Only trigger changed if props were changed
@@ -341,16 +332,9 @@ impl Runnable for PropsUpdateRunner {
 
                 #[cfg(feature = "hydration")]
                 ComponentRenderState::Hydration {
-                    ref mut node_ref,
                     next_sibling: ref mut current_next_sibling,
                     ..
                 } => {
-                    // When components are updated, a new node ref could have been passed in
-                    if *node_ref != next_node_ref {
-                        next_node_ref.set(node_ref.get());
-                        node_ref.set(None);
-                        *node_ref = next_node_ref;
-                    }
                     // When components are updated, their siblings were likely also updated
                     *current_next_sibling = next_sibling;
                     // Only trigger changed if props were changed
