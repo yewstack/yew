@@ -31,12 +31,18 @@ pub use yew_macro::use_prepared_state_with_closure_and_suspension as use_prepare
 #[cfg(not(feature = "ssr",))]
 pub use yew_macro::use_prepared_state_without_closure as use_prepared_state_macro;
 
-/// Use a state prepared on the server side and its value is sent to client side during hydration.
+/// Use a state prepared on the server side and its value is sent to the client side during hydration.
 ///
 /// The component sees the same value on the server side and client side if the component is
-/// hydrated
+/// hydrated.
 ///
-/// It accepts either of the following signatures:
+/// It accepts a closure as the first argument and a dependency type as the second argument.
+/// It returns `Option<Rc<T>>`.
+///
+/// During hydration, it will only return `Some(Rc<T>)` if the component is hydrated from a server-side
+/// rendering artifact and its dependency value matches.
+///
+/// `let state = use_prepared_state!(|deps| -> ReturnType { ... }, deps);`
 ///
 /// ```
 /// # use yew::prelude::*;
@@ -53,6 +59,8 @@ pub use yew_macro::use_prepared_state_without_closure as use_prepared_state_macr
 ///
 /// The first argument can also be an [async closure](https://github.com/rust-lang/rust/issues/62290).
 /// The hook will become a suspendible hook that returns `SuspensionResult<Option<Rc<T>>>`.
+///
+/// `let state = use_prepared_state!(async |deps| -> ReturnType { ... }, deps)?;`
 ///
 /// ```
 /// # use yew::prelude::*;
@@ -72,8 +80,16 @@ pub use yew_macro::use_prepared_state_without_closure as use_prepared_state_macr
 /// # { todo!() }
 /// ```
 ///
+/// During server-side rending a value of type T will be calculated from the first closure.
+///
 /// If the bundle is compiled without server-side rendering, the closure will be stripped
 /// automatically.
+///
+/// # Note
+///
+/// You MUST denote the return type of the closure with `|deps| -> ReturnType { ... }`. This type
+/// is used during client side rendering to deserialize the state prepared on the server side.
+///
 pub use use_prepared_state_macro as use_prepared_state;
 
 #[cfg(any(feature = "hydration", feature = "ssr"))]
