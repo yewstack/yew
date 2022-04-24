@@ -71,6 +71,8 @@ pub struct Context<COMP: BaseComponent> {
     props: Rc<COMP::Properties>,
     #[cfg(feature = "hydration")]
     mode: RenderMode,
+
+    prepared_state: Option<Vec<u8>>,
 }
 
 impl<COMP: BaseComponent> Context<COMP> {
@@ -89,6 +91,11 @@ impl<COMP: BaseComponent> Context<COMP> {
     #[cfg(feature = "hydration")]
     pub(crate) fn mode(&self) -> RenderMode {
         self.mode
+    }
+
+    /// The component's prepared state
+    pub fn prepared_state(&self) -> Option<&[u8]> {
+        self.prepared_state.as_deref()
     }
 }
 

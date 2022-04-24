@@ -63,6 +63,7 @@ features = [
   "UiEvent",
   "WheelEvent",
   "Window",
+  "HtmlScriptElement",
 ]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

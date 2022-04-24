@@ -1,3 +1,5 @@
+//! The client-side rendering variant. This is used for client side rendering.
+
 use crate::functional::{Hook, HookContext};
 use crate::hook;
 

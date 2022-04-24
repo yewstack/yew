@@ -11,9 +11,21 @@ use serde::Serialize;
 
 #[cfg(feature = "hydration")]
 mod feat_hydration;
+#[cfg(all(feature = "hydration", feature = "ssr"))]
 mod feat_hydration_ssr;
+#[cfg(not(any(feature = "hydration", feature = "ssr")))]
 mod feat_none;
+#[cfg(feature = "ssr")]
 mod feat_ssr;
+
+#[cfg(all(feature = "hydration", not(feature = "ssr")))]
+pub use feat_hydration::*;
+#[cfg(all(feature = "ssr", feature = "hydration"))]
+pub use feat_hydration_ssr::*;
+#[cfg(not(any(feature = "hydration", feature = "ssr")))]
+pub use feat_none::*;
+#[cfg(all(feature = "ssr", not(feature = "hydration")))]
+pub use feat_ssr::*;
 
 struct PreparedStateBase<T, D>
 where

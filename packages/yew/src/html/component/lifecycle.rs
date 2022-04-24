@@ -227,10 +227,11 @@ pub(crate) struct ComponentState {
 }
 
 impl ComponentState {
-    pub(crate) fn new<COMP: BaseComponent>(
+    fn new<COMP: BaseComponent>(
         initial_render_state: ComponentRenderState,
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
+        #[cfg(feature = "hydration")] prepared_state: Option<Vec<u8>>,
     ) -> Self {
         let comp_id = scope.id;
         #[cfg(feature = "hydration")]
@@ -248,6 +249,10 @@ impl ComponentState {
             props,
             #[cfg(feature = "hydration")]
             mode,
+            #[cfg(not(feature = "hydration"))]
+            prepared_state: None,
+            #[cfg(feature = "hydration")]
+            prepared_state,
         };
 
         let inner = Box::new(CompStateInner {
@@ -282,6 +287,8 @@ pub(crate) struct CreateRunner<COMP: BaseComponent> {
     pub initial_render_state: ComponentRenderState,
     pub props: Rc<COMP::Properties>,
     pub scope: Scope<COMP>,
+    #[cfg(feature = "hydration")]
+    pub prepared_state: Option<Vec<u8>>,
 }
 
 impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
@@ -295,6 +302,8 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
                 self.initial_render_state,
                 self.scope.clone(),
                 self.props,
+                #[cfg(feature = "hydration")]
+                self.prepared_state,
             ));
         }
     }

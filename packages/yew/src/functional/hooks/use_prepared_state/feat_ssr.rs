@@ -1,4 +1,6 @@
-use super::{use_memo, Hook, HookContext};
+//! The server-side rendering variant. This is used for server side rendering.
+
+use crate::functional::{use_memo, Hook, HookContext};
 
 use std::marker::PhantomData;
 use std::rc::Rc;
@@ -7,7 +9,6 @@ use super::PreparedStateBase;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-/// The server-side rendering variant. This is used for server side rendering.
 #[doc(hidden)]
 pub fn use_prepared_state<T, D, F>(f: F, deps: D) -> impl Hook<Output = Option<Rc<T>>>
 where
@@ -131,7 +132,7 @@ mod feat_io {
                 let state = result.0.clone()?;
 
                 let state = PreparedStateBase {
-                    state: Some(state.into()),
+                    state: Some(state),
                     deps: Some(deps),
                 };
 

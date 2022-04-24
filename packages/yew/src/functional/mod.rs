@@ -26,6 +26,8 @@ use std::future::Future;
 use std::pin::Pin;
 use std::rc::Rc;
 
+#[cfg(feature = "hydration")]
+use crate::html::RenderMode;
 use crate::html::{AnyScope, BaseComponent, Context, HtmlResult};
 use crate::Properties;
 
@@ -81,6 +83,8 @@ pub(crate) trait Effect {
 /// A hook context to be passed to hooks.
 pub struct HookContext {
     pub(crate) scope: AnyScope,
+    #[cfg(feature = "hydration")]
+    mode: RenderMode,
     re_render: ReRender,
 
     states: Vec<Rc<dyn Any>>,
@@ -93,10 +97,17 @@ pub struct HookContext {
 }
 
 impl HookContext {
-    fn new(scope: AnyScope, re_render: ReRender) -> RefCell<Self> {
+    fn new(
+        scope: AnyScope,
+        re_render: ReRender,
+        #[cfg(feature = "hydration")] mode: RenderMode,
+    ) -> RefCell<Self> {
         RefCell::new(HookContext {
             scope,
             re_render,
+
+            #[cfg(feature = "hydration")]
+            mode,
 
             states: Vec::new(),
             prepared_states: Vec::new(),
@@ -294,7 +305,12 @@ where
 
         Self {
             _never: std::marker::PhantomData::default(),
-            hook_ctx: HookContext::new(scope, re_render),
+            hook_ctx: HookContext::new(
+                scope,
+                re_render,
+                #[cfg(feature = "hydration")]
+                ctx.mode(),
+            ),
         }
     }
 
