@@ -2,9 +2,8 @@
 command = "cargo"
 args = ["test", "--features", "csr,ssr,hydration"]
 
-[tasks.test]
-dependencies = ["native-test"]
-# if wasm-pack is not installed, install it from https://rustwasm.github.io/wasm-pack/
+[tasks.wasm-test]
+extend = "wasm-pack-base"
 command = "wasm-pack"
 args = [
     "test",
@@ -14,6 +13,9 @@ args = [
     "--features",
     "wasm_test"
 ]
+
+[tasks.test]
+dependencies = ["native-test", "wasm-test"]
 
 [tasks.doc-test]
 clear = true

@@ -1,5 +1,5 @@
 [tasks.test]
-# if wasm-pack is not installed, install it from https://rustwasm.github.io/wasm-pack/
+extend = "wasm-pack-base"
 command = "wasm-pack"
 args = [
     "test",
