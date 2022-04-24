@@ -5,13 +5,13 @@ use syn::parse::{Parse, ParseStream};
 use syn::{parse_quote, Expr, ExprClosure, ReturnType, Token, Type};
 
 #[derive(Debug)]
-pub struct PreparedState {
+pub struct PreparedState<const WITH_ASYNC_CLOSURE: bool> {
     closure: ExprClosure,
     return_type: Type,
     deps: Expr,
 }
 
-impl Parse for PreparedState {
+impl<const WITH_ASYNC_CLOSURE: bool> Parse for PreparedState<WITH_ASYNC_CLOSURE> {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         // Reads a closure.
         let closure: ExprClosure = input.parse()?;
@@ -40,6 +40,12 @@ impl Parse for PreparedState {
             }
         }
 
+        if !WITH_ASYNC_CLOSURE {
+            if let Some(m) = closure.asyncness.as_ref() {
+                return Err(syn::Error::new_spanned(&m, "You need to enable feature tokio to use async closure under non-wasm32 targets."));
+            }
+        }
+
         Ok(Self {
             closure,
             return_type,
@@ -48,7 +54,7 @@ impl Parse for PreparedState {
     }
 }
 
-impl PreparedState {
+impl<const WITH_ASYNC_CLOSURE: bool> PreparedState<WITH_ASYNC_CLOSURE> {
     // Async closure is not stable, so we rewrite it to clsoure + async block
     pub fn rewrite_to_closure_with_async_block(&self) -> ExprClosure {
         let async_token = match &self.closure.asyncness {

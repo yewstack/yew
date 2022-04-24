@@ -89,7 +89,14 @@ pub struct HookContext {
 
     states: Vec<Rc<dyn Any>>,
     effects: Vec<Rc<dyn Effect>>,
+
+    #[cfg(any(feature = "hydration", feature = "ssr"))]
     prepared_states: Vec<Rc<dyn PreparedState>>,
+
+    #[cfg(feature = "hydration")]
+    prepared_states_data: Vec<Rc<[u8]>>,
+    #[cfg(feature = "hydration")]
+    prepared_state_counter: usize,
 
     counter: usize,
     #[cfg(debug_assertions)]
@@ -101,6 +108,7 @@ impl HookContext {
         scope: AnyScope,
         re_render: ReRender,
         #[cfg(feature = "hydration")] mode: RenderMode,
+        #[cfg(feature = "hydration")] prepared_state: Option<&[u8]>,
     ) -> RefCell<Self> {
         RefCell::new(HookContext {
             scope,
@@ -110,8 +118,22 @@ impl HookContext {
             mode,
 
             states: Vec::new(),
+
+            #[cfg(any(feature = "hydration", feature = "ssr"))]
             prepared_states: Vec::new(),
             effects: Vec::new(),
+
+            #[cfg(feature = "hydration")]
+            prepared_states_data: {
+                match prepared_state {
+                    Some(m) => bincode::deserialize::<Vec<Vec<u8>>>(m)
+                        .map(|m| m.into_iter().map(Rc::from).collect())
+                        .unwrap(),
+                    None => Vec::new(),
+                }
+            },
+            #[cfg(feature = "hydration")]
+            prepared_state_counter: 0,
 
             counter: 0,
             #[cfg(debug_assertions)]
@@ -155,6 +177,7 @@ impl HookContext {
         t
     }
 
+    #[cfg(any(feature = "hydration", feature = "ssr"))]
     pub(crate) fn next_prepared_state<T>(
         &mut self,
         initializer: impl FnOnce(ReRender, Option<&[u8]>) -> T,
@@ -162,8 +185,19 @@ impl HookContext {
     where
         T: 'static + PreparedState,
     {
+        #[cfg(not(feature = "hydration"))]
+        let prepared_state = None;
+
+        #[cfg(feature = "hydration")]
+        let prepared_state = {
+            let prepared_state_pos = self.prepared_state_counter;
+            self.prepared_state_counter += 1;
+
+            self.prepared_states_data.get(prepared_state_pos).cloned()
+        };
+
         let prev_state_len = self.states.len();
-        let t = self.next_state(move |re_render| initializer(re_render, None));
+        let t = self.next_state(move |re_render| initializer(re_render, prepared_state.as_deref()));
 
         // This is a new effect, we add it to effects.
         if self.states.len() != prev_state_len {
@@ -175,6 +209,11 @@ impl HookContext {
 
     #[inline(always)]
     fn prepare_run(&mut self) {
+        #[cfg(feature = "hydration")]
+        {
+            self.prepared_state_counter = 0;
+        }
+
         self.counter = 0;
     }
 
@@ -310,6 +349,8 @@ where
                 re_render,
                 #[cfg(feature = "hydration")]
                 ctx.mode(),
+                #[cfg(feature = "hydration")]
+                ctx.prepared_state(),
             ),
         }
     }
