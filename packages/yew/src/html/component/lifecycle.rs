@@ -168,12 +168,13 @@ where
     COMP: BaseComponent,
 {
     fn view(&self) -> HtmlResult {
-        self.component.view(&self.context)
+        let render_result = self.component.view(&self.context);
+        #[cfg(feature = "csr")]
+        self.comp_ref.set(Some(self.context.link().clone()));
+        render_result
     }
 
     fn rendered(&mut self, first_render: bool) {
-        #[cfg(feature = "csr")]
-        self.comp_ref.set(Some(self.context.link().clone()));
         self.component.rendered(&self.context, first_render)
     }
 
