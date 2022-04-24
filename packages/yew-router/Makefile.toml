@@ -1,5 +1,4 @@
 [tasks.test]
-extend = "wasm-pack-base"
 command = "wasm-pack"
 args = [
     "test",

@@ -3,7 +3,6 @@ command = "cargo"
 args = ["test", "--features", "csr,ssr,hydration"]
 
 [tasks.wasm-test]
-extend = "wasm-pack-base"
 command = "wasm-pack"
 args = [
     "test",
@@ -14,25 +13,12 @@ args = [
     "wasm_test"
 ]
 
-[tasks.test]
-dependencies = ["native-test", "wasm-test"]
-
-[tasks.doc-test]
-clear = true
-run_task = { name = ["doc-test-normal"], fork = true }
-
-[tasks.doc-test-normal]
-command = "cargo"
-args = [
-    "test",
-    "--doc",
-    "--features",
-    "tokio,doc_test,wasm_test",
-]
-
 [tasks.ssr-test]
 command = "cargo"
 args = ["test", "ssr_tests", "--features", "ssr"]
+
+[tasks.test]
+dependencies = ["native-test", "wasm-test"]
 
 [tasks.clippy-feature-soundness]
 script = '''
@@ -50,6 +36,3 @@ cargo clippy --release --features=csr -- --deny=warnings
 cargo clippy --release --features=hydration -- --deny=warnings
 cargo clippy --release --all-features --all-targets -- --deny=warnings
 '''
-
-[tasks.lint-flow]
-dependencies = ["clippy-feature-soundness"]
