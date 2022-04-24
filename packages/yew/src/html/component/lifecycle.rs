@@ -462,7 +462,6 @@ impl RenderRunner {
 
         if suspension.resumed() {
             // schedule a render immediately if suspension is resumed.
-
             scheduler::push_component_render(
                 state.comp_id,
                 Box::new(RenderRunner {

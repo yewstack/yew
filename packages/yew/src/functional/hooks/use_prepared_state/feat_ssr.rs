@@ -73,7 +73,6 @@ mod feat_io {
     use crate::io_coop::spawn_local;
     use crate::suspense::{Suspension, SuspensionResult};
 
-    /// The with suspension variant for use_prepared_state_on_server_side.
     #[doc(hidden)]
     pub fn use_prepared_state_with_suspension<T, D, F, U>(
         f: F,
