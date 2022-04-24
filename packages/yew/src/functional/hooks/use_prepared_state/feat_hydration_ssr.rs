@@ -1,6 +1,5 @@
 //! The client-and-server-side rendering variant.
 
-use std::marker::PhantomData;
 use std::rc::Rc;
 
 use serde::de::DeserializeOwned;
@@ -9,7 +8,6 @@ use serde::Serialize;
 use super::{feat_hydration, feat_ssr};
 use crate::functional::{Hook, HookContext};
 use crate::html::RenderMode;
-use crate::suspense::SuspensionResult;
 
 #[doc(hidden)]
 pub fn use_prepared_state<T, D, F>(f: F, deps: D) -> impl Hook<Output = Option<Rc<T>>>
@@ -24,7 +22,6 @@ where
         T: Serialize + DeserializeOwned + 'static,
         F: FnOnce(&D) -> T,
     {
-        _marker: PhantomData<(T, D)>,
         deps: D,
         f: F,
     }
@@ -45,11 +42,7 @@ where
         }
     }
 
-    HookProvider::<T, D, F> {
-        _marker: PhantomData,
-        deps,
-        f,
-    }
+    HookProvider::<T, D, F> { deps, f }
 }
 
 #[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
@@ -58,6 +51,7 @@ mod feat_io {
     use std::future::Future;
 
     use super::*;
+    use crate::suspense::SuspensionResult;
 
     #[doc(hidden)]
     pub fn use_prepared_state_with_suspension<T, D, F, U>(
@@ -77,7 +71,6 @@ mod feat_io {
             F: FnOnce(&D) -> U,
             U: 'static + Future<Output = T>,
         {
-            _marker: PhantomData<(T, D)>,
             deps: D,
             f: F,
         }
@@ -101,11 +94,7 @@ mod feat_io {
             }
         }
 
-        HookProvider::<T, D, F, U> {
-            _marker: PhantomData,
-            deps,
-            f,
-        }
+        HookProvider::<T, D, F, U> { deps, f }
     }
 }
 

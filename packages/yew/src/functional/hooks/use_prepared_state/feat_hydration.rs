@@ -23,7 +23,7 @@ where
         D: Serialize + DeserializeOwned + PartialEq + 'static,
         T: Serialize + DeserializeOwned + 'static,
     {
-        _marker: PhantomData<(T, D)>,
+        _marker: PhantomData<T>,
         deps: D,
     }
 
