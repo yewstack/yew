@@ -139,7 +139,7 @@ where
 {
     component: COMP,
     context: Context<COMP>,
-    #[allow(dead_code)]
+    #[allow(dead_code)] // Field is unused during ssr
     comp_ref: ErasedHtmlRef,
 }
 
@@ -150,6 +150,8 @@ where
 /// methods.
 pub(crate) trait Stateful {
     fn view(&self) -> HtmlResult;
+    #[cfg(feature = "csr")]
+    fn bind_ref(&self, first_render: bool);
     fn rendered(&mut self, first_render: bool);
     fn destroy(&mut self);
 
@@ -168,10 +170,15 @@ where
     COMP: BaseComponent,
 {
     fn view(&self) -> HtmlResult {
-        let render_result = self.component.view(&self.context);
-        #[cfg(feature = "csr")]
-        self.comp_ref.set(Some(self.context.link().clone()));
-        render_result
+        self.component.view(&self.context)
+    }
+
+    #[cfg(feature = "csr")]
+    fn bind_ref(&self, _first_render: bool) {
+        use crate::html::BindableRef;
+
+        let mut bindable_ref = BindableRef::for_ref(&self.comp_ref);
+        self.component.bind_ref(&self.context, &mut bindable_ref);
     }
 
     fn rendered(&mut self, first_render: bool) {
@@ -181,7 +188,7 @@ where
     fn destroy(&mut self) {
         self.component.destroy(&self.context);
         #[cfg(feature = "csr")]
-        self.comp_ref.set(Option::<Scope<COMP>>::None);
+        self.comp_ref.set(Option::<COMP::Reference>::None);
     }
 
     fn any_scope(&self) -> AnyScope {
@@ -202,8 +209,7 @@ where
     #[cfg(feature = "csr")]
     fn props_changed(&mut self, props: Rc<dyn Any>, next_comp_ref: ErasedHtmlRef) -> bool {
         // When components are updated, a new node ref could have been passed in
-        self.comp_ref
-            .morph_into::<Scope<COMP>, _>(next_comp_ref, || self.context.link().clone().into());
+        self.comp_ref.morph_into::<COMP::Reference>(next_comp_ref);
 
         let props = match Rc::downcast::<COMP::Properties>(props) {
             Ok(m) => m,
@@ -537,6 +543,8 @@ impl RenderRunner {
                 let first_render = !state.has_rendered;
                 state.has_rendered = true;
 
+                state.inner.bind_ref(first_render);
+
                 scheduler::push_component_rendered(
                     state.comp_id,
                     Box::new(RenderedRunner {
@@ -762,7 +770,7 @@ mod tests {
             parent,
             DomPosition::default(),
             DomPosition::default(),
-            ErasedHtmlRef::default(),
+            ComponentRef::<Comp>::default().to_erased(),
             Rc::new(props),
         );
         crate::scheduler::start_now();

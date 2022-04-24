@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use yew::html::ChildrenRenderer;
+use yew::html::{ChildrenRenderer, Scope};
 use yew::prelude::*;
 use yew::virtual_dom::{VChild, VComp};
 
@@ -66,12 +66,17 @@ pub struct List {
     inactive: bool,
 }
 
-impl Component for List {
+impl BaseComponent for List {
     type Message = Msg;
     type Properties = Props;
+    type Reference = Scope<Self>;
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self { inactive: false }
+    }
+
+    fn changed(&mut self, _ctx: &Context<Self>) -> bool {
+        true
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
@@ -83,13 +88,13 @@ impl Component for List {
         }
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> HtmlResult {
         let inactive = if self.inactive { "inactive" } else { "" };
         let onmouseover = ctx.props().on_hover.reform(|e: MouseEvent| {
             e.stop_propagation();
             Hovered::List
         });
-        html! {
+        Ok(html! {
             <div class="list-container" {onmouseover}>
                 <div class={classes!("list", inactive)}>
                     { Self::view_header(&ctx.props().children) }
@@ -98,8 +103,16 @@ impl Component for List {
                     </div>
                 </div>
             </div>
-        }
+        })
     }
+
+    fn bind_ref(&self, ctx: &Context<Self>, bindable_ref: &mut html::BindableRef<Self::Reference>) {
+        bindable_ref.bind(ctx.link().clone())
+    }
+
+    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {}
+
+    fn destroy(&mut self, _ctx: &Context<Self>) {}
 }
 
 impl List {

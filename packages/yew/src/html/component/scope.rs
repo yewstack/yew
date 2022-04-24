@@ -193,9 +193,8 @@ mod feat_ssr {
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
-    use crate::html::ErasedHtmlRef;
-    use crate::scheduler;
     use crate::virtual_dom::Collectable;
+    use crate::{scheduler, ComponentRef};
 
     impl<COMP: BaseComponent> Scope<COMP> {
         pub(crate) async fn render_to_string(
@@ -213,7 +212,7 @@ mod feat_ssr {
                     initial_render_state: state,
                     props,
                     scope: self.clone(),
-                    comp_ref: ErasedHtmlRef::default(),
+                    comp_ref: ComponentRef::<COMP>::default().to_erased(),
                 }),
                 Box::new(RenderRunner {
                     state: self.state.clone(),

@@ -16,7 +16,7 @@ pub use properties::*;
 pub(crate) use scope::Scoped;
 pub use scope::{AnyScope, Scope, SendAsMessage};
 
-use super::{ErasedStorage, Html, HtmlResult, IntoHtmlResult};
+use super::{BindableRef, ErasedStorage, Html, HtmlResult, IntoHtmlResult, NoReference};
 
 #[cfg(debug_assertions)]
 #[cfg(any(feature = "csr", feature = "ssr"))]
@@ -119,6 +119,9 @@ pub trait BaseComponent: Sized + 'static {
     /// Returns a component layout to be rendered.
     fn view(&self, ctx: &Context<Self>) -> HtmlResult;
 
+    /// Bind the ref that is exposed to other components
+    fn bind_ref(&self, ctx: &Context<Self>, bindable_ref: &mut BindableRef<Self::Reference>);
+
     /// Notified after a layout is rendered.
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool);
 
@@ -194,7 +197,7 @@ where
 {
     type Message = <T as Component>::Message;
     type Properties = <T as Component>::Properties;
-    type Reference = Scope<Self>;
+    type Reference = NoReference;
 
     fn create(ctx: &Context<Self>) -> Self {
         Component::create(ctx)
@@ -210,6 +213,10 @@ where
 
     fn view(&self, ctx: &Context<Self>) -> HtmlResult {
         Component::view(self, ctx).into_html_result()
+    }
+
+    fn bind_ref(&self, _ctx: &Context<Self>, bindable_ref: &mut BindableRef<Self::Reference>) {
+        bindable_ref.bind(NoReference)
     }
 
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {

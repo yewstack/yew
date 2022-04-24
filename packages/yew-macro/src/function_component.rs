@@ -317,6 +317,11 @@ impl FunctionComponent {
                 }
 
                 #[inline]
+                fn bind_ref(&self, _ctx: &::yew::html::Context<Self>, bindable_ref: &mut ::yew::html::BindableRef<Self::Reference>) {
+                    bindable_ref.bind(::yew::html::NoReference)
+                }
+
+                #[inline]
                 fn destroy(&mut self, _ctx: &::yew::html::Context<Self>) {
                     ::yew::functional::FunctionComponent::<Self>::destroy(&self.function_component)
                 }
