@@ -1,21 +1,20 @@
 //! Component scope module
 
-#[cfg(any(feature = "csr", feature = "ssr"))]
-use crate::scheduler::Shared;
+use std::any::{Any, TypeId};
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use std::cell::RefCell;
-
-#[cfg(any(feature = "csr", feature = "ssr"))]
-use super::lifecycle::{ComponentState, UpdateEvent, UpdateRunner};
-use super::BaseComponent;
-
-use crate::callback::Callback;
-use crate::context::{ContextHandle, ContextProvider};
-use std::any::{Any, TypeId};
 use std::marker::PhantomData;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::{fmt, iter};
+
+#[cfg(any(feature = "csr", feature = "ssr"))]
+use super::lifecycle::{ComponentState, UpdateEvent, UpdateRunner};
+use super::BaseComponent;
+use crate::callback::Callback;
+use crate::context::{ContextHandle, ContextProvider};
+#[cfg(any(feature = "csr", feature = "ssr"))]
+use crate::scheduler::Shared;
 
 /// Untyped scope used for accessing parent scope
 #[derive(Clone)]
@@ -183,14 +182,13 @@ impl<COMP: BaseComponent> Scope<COMP> {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use super::*;
-    use crate::scheduler;
     use futures::channel::oneshot;
 
+    use super::*;
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
-
+    use crate::scheduler;
     use crate::virtual_dom::Collectable;
 
     impl<COMP: BaseComponent> Scope<COMP> {
@@ -284,10 +282,11 @@ mod feat_no_csr_ssr {
 
 #[cfg(any(feature = "ssr", feature = "csr"))]
 mod feat_csr_ssr {
-    use super::*;
-    use crate::scheduler::{self, Shared};
     use std::cell::Ref;
     use std::sync::atomic::{AtomicUsize, Ordering};
+
+    use super::*;
+    use crate::scheduler::{self, Shared};
 
     #[derive(Debug)]
     pub(crate) struct MsgQueue<Msg>(Shared<Vec<Msg>>);
@@ -404,6 +403,10 @@ pub(crate) use feat_csr_ssr::*;
 
 #[cfg(feature = "csr")]
 mod feat_csr {
+    use std::cell::Ref;
+
+    use web_sys::Element;
+
     use super::*;
     use crate::dom_bundle::{BSubtree, Bundle};
     use crate::html::component::lifecycle::{
@@ -411,8 +414,6 @@ mod feat_csr {
     };
     use crate::html::NodeRef;
     use crate::scheduler;
-    use std::cell::Ref;
-    use web_sys::Element;
 
     impl AnyScope {
         #[cfg(test)]
@@ -526,16 +527,16 @@ mod feat_csr {
 #[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
 #[cfg(feature = "hydration")]
 mod feat_hydration {
-    use super::*;
+    use wasm_bindgen::JsCast;
+    use web_sys::{Element, HtmlScriptElement};
 
+    use super::*;
     use crate::dom_bundle::{BSubtree, Fragment};
     use crate::html::component::lifecycle::{ComponentRenderState, CreateRunner, RenderRunner};
     use crate::html::NodeRef;
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
 
-    use wasm_bindgen::JsCast;
-    use web_sys::{Element, HtmlScriptElement};
 
     impl<COMP> Scope<COMP>
     where
@@ -685,7 +686,8 @@ mod feat_io {
 }
 
 /// Defines a message type that can be sent to a component.
-/// Used for the return value of closure given to [Scope::batch_callback](struct.Scope.html#method.batch_callback).
+/// Used for the return value of closure given to
+/// [Scope::batch_callback](struct.Scope.html#method.batch_callback).
 pub trait SendAsMessage<COMP: BaseComponent> {
     /// Sends the message to the given component's scope.
     /// See [Scope::batch_callback](struct.Scope.html#method.batch_callback).

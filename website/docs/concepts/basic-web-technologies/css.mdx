@@ -7,16 +7,12 @@ comment: 'Keep this file as short and simple as possible. Its purpose is to ease
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
-> Yew mostly operates on the idea of keeping everything that a reusable piece of
-> UI may need, in one place - rust files. But also seeks to stay close to the
-> original look of the technology.
-
-Yew does not provide css in rs solutions natively, but helps with css by providing
-programmatic ways to interact with css classes.
+Yew does not natively provide a css in rust solution, but helps with styling by providing
+programmatic ways to interact with the html `class` attribute.
 
 ## Classes
 
-The struct `Classes` simplifies use of HTML classes:
+The `classes!` macro and associated `Classes` struct simplify the use of HTML classes:
 
 <Tabs>
   <TabItem value="Literal" label="Literal">
@@ -25,7 +21,7 @@ The struct `Classes` simplifies use of HTML classes:
 use yew::{classes, html};
 
 html! {
-    <div class={classes!("container")}></div>
+  <div class={classes!("container")}></div>
 };
 ```
 
@@ -91,7 +87,8 @@ We will expand upon this concept in [more CSS](../../more/css).
 
 ## Inline Styles
 
-Currently Yew does not provide any help with inline styles natively:
+Currently Yew does not provide any special help with inline styles specified via the `styles` attribute,
+but you can use it like any other html attribute:
 
 ```rust
 use yew::{classes, html};

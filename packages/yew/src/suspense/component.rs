@@ -15,7 +15,6 @@ pub struct SuspenseProps {
 #[cfg(any(feature = "csr", feature = "ssr"))]
 mod feat_csr_ssr {
     use super::*;
-
     #[cfg(feature = "hydration")]
     use crate::callback::Callback;
     #[cfg(feature = "hydration")]
@@ -48,8 +47,8 @@ mod feat_csr_ssr {
     }
 
     impl Component for BaseSuspense {
-        type Properties = BaseSuspenseProps;
         type Message = BaseSuspenseMsg;
+        type Properties = BaseSuspenseProps;
 
         fn create(ctx: &Context<Self>) -> Self {
             #[cfg(not(feature = "hydration"))]
@@ -171,7 +170,6 @@ pub use feat_csr_ssr::*;
 #[cfg(not(any(feature = "ssr", feature = "csr")))]
 mod feat_no_csr_ssr {
     use super::*;
-
     use crate::function_component;
 
     /// Suspend rendering and show a fallback UI until the underlying task completes.

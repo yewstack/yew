@@ -217,10 +217,18 @@ where
 }
 
 /// This hook is an alternative to [`use_state`](super::use_state()).
-/// It is used to handle component's state and is used when complex actions needs to be performed on said state.
+/// It is used to handle component's state and is used when complex actions needs to be performed on
+/// said state.
 ///
-/// The state is expected to implement the [`Reducible`] trait which provides an `Action` type and a reducer
-/// function.
+/// The state is expected to implement the [`Reducible`] trait which provides an `Action` type and a
+/// reducer function.
+///
+/// The state object returned by the initial state function is required to
+/// implement a `Reducible` trait which defines the associated `Action` type and a
+/// reducer function.
+///
+/// This hook will always trigger a re-render upon receiving an action. See
+/// [`use_reducer_eq`] if you want the component to only re-render when the state changes.
 ///
 /// # Example
 /// ```rust
@@ -253,7 +261,7 @@ where
 ///     fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
 ///         let next_ctr = match action {
 ///             CounterAction::Double => self.counter * 2,
-///             CounterAction::Square => self.counter.pow(2)
+///             CounterAction::Square => self.counter.pow(2),
 ///         };
 ///
 ///         Self { counter: next_ctr }.into()
@@ -265,7 +273,7 @@ where
 ///     // The use_reducer hook takes an initialization function which will be called only once.
 ///     let counter = use_reducer(CounterState::default);
 ///
-///    let double_onclick = {
+///     let double_onclick = {
 ///         let counter = counter.clone();
 ///         Callback::from(move |_| counter.dispatch(CounterAction::Double))
 ///     };
@@ -284,6 +292,21 @@ where
 ///     }
 /// }
 /// ```
+///
+/// # Tip
+///
+/// The dispatch function is guaranteed to be the same across the entire
+/// component lifecycle. You can safely omit the `UseReducerHandle` from the
+/// dependents of `use_effect_with_deps` if you only intend to dispatch
+/// values from within the hooks.
+///
+/// # Caution
+///
+/// The value held in the handle will reflect the value of at the time the
+/// handle is returned by the `use_reducer`. It is possible that the handle does
+/// not dereference to an up to date value if you are moving it into a
+/// `use_effect_with_deps` hook. You can register the
+/// state to the dependents so the hook can be updated when the value changes.
 #[hook]
 pub fn use_reducer<T, F>(init_fn: F) -> UseReducerHandle<T>
 where

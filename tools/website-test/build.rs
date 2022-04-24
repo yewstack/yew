@@ -1,9 +1,9 @@
-use glob::glob;
 use std::collections::HashMap;
-use std::env;
 use std::fmt::{self, Write};
-use std::fs;
 use std::path::{Path, PathBuf};
+use std::{env, fs};
+
+use glob::glob;
 
 #[derive(Debug, Default)]
 struct Level {

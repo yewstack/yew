@@ -4,8 +4,8 @@
 //! # Usage
 //!
 //! ```rust
-//! use yew::prelude::*;
 //! use yew::functional::*;
+//! use yew::prelude::*;
 //! use yew_router::prelude::*;
 //!
 //! #[derive(Debug, Clone, Copy, PartialEq, Routable)]
@@ -102,7 +102,5 @@ pub mod prelude {
     pub use crate::scope_ext::{LocationHandle, NavigatorHandle, RouterScopeExt};
     #[doc(no_inline)]
     pub use crate::Routable;
-    pub use crate::{BrowserRouter, HashRouter, Router};
-
-    pub use crate::Switch;
+    pub use crate::{BrowserRouter, HashRouter, Router, Switch};
 }

@@ -1,8 +1,9 @@
+use std::io;
+use std::io::{Read, Write};
+
 use anyhow::Result;
 use serde::Serialize;
 use serde_json::Value;
-use std::io;
-use std::io::{Read, Write};
 
 #[derive(Serialize)]
 struct GhActionBenchmark {

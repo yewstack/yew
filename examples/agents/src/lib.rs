@@ -1,6 +1,7 @@
 pub mod native_worker;
 
 use std::rc::Rc;
+
 use yew::{html, Component, Context, Html};
 use yew_agent::{Bridge, Bridged};
 

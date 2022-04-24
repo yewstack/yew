@@ -3,28 +3,64 @@ use crate::context::ContextHandle;
 use crate::functional::{hook, use_component_scope, use_memo, use_state};
 
 /// Hook for consuming context values in function components.
-/// The context of the type passed as `T` is returned. If there is no such context in scope, `None` is returned.
-/// A component which calls `use_context` will re-render when the data of the context changes.
+/// The context of the type passed as `T` is returned. If there is no such context in scope, `None`
+/// is returned. A component which calls `use_context` will re-render when the data of the context
+/// changes.
 ///
 /// More information about contexts and how to define and consume them can be found on [Yew Docs](https://yew.rs).
 ///
 /// # Example
-/// ```rust
-/// # use yew::prelude::*;
-/// # use std::rc::Rc;
 ///
-/// # #[derive(Clone, Debug, PartialEq)]
-/// # struct ThemeContext {
-/// #    foreground: String,
-/// #    background: String,
-/// # }
-/// #[function_component(ThemedButton)]
-/// pub fn themed_button() -> Html {
-///     let theme = use_context::<Rc<ThemeContext>>().expect("no ctx found");
+/// ```rust
+/// use yew::{ContextProvider, function_component, html, use_context, use_state, Html};
+///
+///
+/// /// App theme
+/// #[derive(Clone, Debug, PartialEq)]
+/// struct Theme {
+///     foreground: String,
+///     background: String,
+/// }
+///
+/// /// Main component
+/// #[function_component]
+/// pub fn App() -> Html {
+///     let ctx = use_state(|| Theme {
+///         foreground: "#000000".to_owned(),
+///         background: "#eeeeee".to_owned(),
+///     });
 ///
 ///     html! {
-///         <button style={format!("background: {}; color: {}", theme.background, theme.foreground)}>
-///             { "Click me" }
+///         // `ctx` is type `Rc<UseStateHandle<Theme>>` while we need `Theme`
+///         // so we deref it.
+///         // It derefs to `&Theme`, hence the clone
+///         <ContextProvider<Theme> context={(*ctx).clone()}>
+///             // Every child here and their children will have access to this context.
+///             <Toolbar />
+///         </ContextProvider<Theme>>
+///     }
+/// }
+///
+/// /// The toolbar.
+/// /// This component has access to the context
+/// #[function_component]
+/// pub fn Toolbar() -> Html {
+///     html! {
+///         <div>
+///             <ThemedButton />
+///         </div>
+///     }
+/// }
+///
+/// /// Button placed in `Toolbar`.
+/// /// As this component is a child of `ThemeContextProvider` in the component tree, it also has access to the context.
+/// #[function_component]
+/// pub fn ThemedButton() -> Html {
+///     let theme = use_context::<Theme>().expect("no ctx found");
+///
+///     html! {
+///         <button style={format!("background: {}; color: {};", theme.background, theme.foreground)}>
+///             { "Click me!" }
 ///         </button>
 ///     }
 /// }

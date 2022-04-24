@@ -1,6 +1,7 @@
+use std::fmt;
+
 use super::{Hook, HookContext};
 use crate::functional::ReRender;
-use std::fmt;
 
 /// A handle which can be used to force a re-render of the associated
 /// function component.
@@ -31,12 +32,22 @@ impl UseForceUpdate {
 
 /// This hook is used to manually force a function component to re-render.
 ///
+/// # Note
+///
+/// Often, using this hook means that you're doing something wrong.
 /// Try to use more specialized hooks, such as [`use_state`] and [`use_reducer`].
 /// This hook should only be used when your component depends on external state where you
 /// can't subscribe to changes, or as a low-level primitive to enable such a subscription-based
 /// approach.
 ///
-/// For example, a large externally managed cache, such as a app-wide cache for GraphQL data
+/// # Use-case
+///
+/// Use this hook when wrapping an API that doesn't expose precise subscription events for fetched
+/// data. You could then, at some point, invalidate your local cache of the fetched data and trigger
+/// a re-render to let the normal render flow of components tell you again which data to fetch, and
+/// repopulate the cache accordingly.
+///
+/// A large externally managed cache, such as a app-wide cache for GraphQL data
 /// should not rerender every component whenever new data arrives, but only those where a query
 /// changed.
 ///
@@ -45,11 +56,11 @@ impl UseForceUpdate {
 /// # Example
 ///
 /// This example implements a silly, manually updated display of the current time. The component
-/// is rerendered every time the button is clicked. You should usually use a timeout and `use_state`
-/// to automatically trigger a re-render every second without having to use this hook.
+/// is re-rendered every time the button is clicked. You should usually use a timeout and
+/// `use_state` to automatically trigger a re-render every second without having to use this hook.
 ///
 /// ```rust
-/// # use yew::prelude::*;
+/// use yew::prelude::*;
 ///
 /// #[function_component]
 /// fn ManuallyUpdatedDate() -> Html {

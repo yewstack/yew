@@ -1,8 +1,9 @@
+use std::collections::HashMap;
+use std::path::PathBuf;
+
 use clap::Parser;
 use function_router::{ServerApp, ServerAppProps};
 use once_cell::sync::Lazy;
-use std::collections::HashMap;
-use std::path::PathBuf;
 use tokio_util::task::LocalPoolHandle;
 use warp::Filter;
 

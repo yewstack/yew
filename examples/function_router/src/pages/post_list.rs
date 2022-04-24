@@ -1,8 +1,9 @@
-use crate::components::pagination::PageQuery;
-use crate::components::{pagination::Pagination, post_card::PostCard};
-use crate::Route;
 use yew::prelude::*;
 use yew_router::prelude::*;
+
+use crate::components::pagination::{PageQuery, Pagination};
+use crate::components::post_card::PostCard;
+use crate::Route;
 
 const ITEMS_PER_PAGE: u32 = 10;
 const TOTAL_PAGES: u32 = u32::MAX / ITEMS_PER_PAGE;

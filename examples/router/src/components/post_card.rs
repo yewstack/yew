@@ -1,6 +1,9 @@
-use crate::{content::PostMeta, generator::Generated, Route};
 use yew::prelude::*;
 use yew_router::components::Link;
+
+use crate::content::PostMeta;
+use crate::generator::Generated;
+use crate::Route;
 
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct Props {
@@ -19,6 +22,7 @@ impl Component for PostCard {
             post: PostMeta::generate_from_seed(ctx.props().seed),
         }
     }
+
     fn changed(&mut self, ctx: &Context<Self>) -> bool {
         self.post = PostMeta::generate_from_seed(ctx.props().seed);
         true

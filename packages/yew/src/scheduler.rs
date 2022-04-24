@@ -126,11 +126,10 @@ mod feat_hydration {
     }
 }
 
-#[cfg(feature = "hydration")]
-pub(crate) use feat_hydration::*;
-
 #[cfg(feature = "csr")]
 pub(crate) use feat_csr::*;
+#[cfg(feature = "hydration")]
+pub(crate) use feat_hydration::*;
 
 /// Execute any pending [Runnable]s
 pub(crate) fn start_now() {

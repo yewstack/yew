@@ -1,14 +1,14 @@
 //! This module contains the bundle version of a supsense [BSuspense]
 
-use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::AnyScope;
-use crate::virtual_dom::{Key, VSuspense};
-use crate::NodeRef;
 use gloo::utils::document;
 use web_sys::Element;
 
 #[cfg(feature = "hydration")]
 use super::Fragment;
+use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
+use crate::html::AnyScope;
+use crate::virtual_dom::{Key, VSuspense};
+use crate::NodeRef;
 
 #[derive(Debug)]
 enum Fallback {
@@ -194,7 +194,8 @@ impl Reconcilable for VSuspense {
             (false, None) => {
                 children.reconcile_node(root, parent_scope, parent, next_sibling, children_bundle)
             }
-            // Freshly suspended. Shift children into the detached parent, then add fallback to the DOM
+            // Freshly suspended. Shift children into the detached parent, then add fallback to the
+            // DOM
             (true, None) => {
                 children_bundle.shift(&suspense.detached_parent, NodeRef::default());
 
@@ -237,7 +238,6 @@ impl Reconcilable for VSuspense {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-
     use crate::dom_bundle::{Fragment, Hydratable};
     use crate::virtual_dom::Collectable;
 

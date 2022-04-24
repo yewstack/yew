@@ -1,11 +1,13 @@
 //! This module contains the implementation of abstract virtual node.
 
-use super::{Key, VChild, VComp, VList, VPortal, VSuspense, VTag, VText};
-use crate::html::BaseComponent;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::iter::FromIterator;
+
 use web_sys::Node;
+
+use super::{Key, VChild, VComp, VList, VPortal, VSuspense, VTag, VText};
+use crate::html::BaseComponent;
 
 /// Bind virtual element to a DOM reference.
 #[derive(Clone)]
@@ -147,9 +149,10 @@ impl PartialEq for VNode {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use futures::future::{FutureExt, LocalBoxFuture};
+
     use super::*;
     use crate::html::AnyScope;
-    use futures::future::{FutureExt, LocalBoxFuture};
 
     impl VNode {
         // Boxing is needed here, due to: https://rust-lang.github.io/async-book/07_workarounds/04_recursion.html
@@ -171,11 +174,11 @@ mod feat_ssr {
                     VNode::VList(vlist) => {
                         vlist.render_to_string(w, parent_scope, hydratable).await
                     }
-                    // We are pretty safe here as it's not possible to get a web_sys::Node without DOM
-                    // support in the first place.
+                    // We are pretty safe here as it's not possible to get a web_sys::Node without
+                    // DOM support in the first place.
                     //
-                    // The only exception would be to use `ServerRenderer` in a browser or wasm32 environment with
-                    // jsdom present.
+                    // The only exception would be to use `ServerRenderer` in a browser or wasm32
+                    // environment with jsdom present.
                     VNode::VRef(_) => {
                         panic!("VRef is not possible to be rendered in to a string.")
                     }

@@ -1,25 +1,24 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
-use super::Key;
-use crate::html::{BaseComponent, NodeRef};
 use std::any::TypeId;
 use std::fmt;
 use std::rc::Rc;
 
-#[cfg(any(feature = "ssr", feature = "csr"))]
-use crate::html::{AnyScope, Scope};
+#[cfg(feature = "ssr")]
+use futures::future::{FutureExt, LocalBoxFuture};
+#[cfg(feature = "csr")]
+use web_sys::Element;
 
+use super::Key;
 #[cfg(feature = "csr")]
 use crate::dom_bundle::BSubtree;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
 use crate::html::Scoped;
-#[cfg(feature = "csr")]
-use web_sys::Element;
-
-#[cfg(feature = "ssr")]
-use futures::future::{FutureExt, LocalBoxFuture};
+#[cfg(any(feature = "ssr", feature = "csr"))]
+use crate::html::{AnyScope, Scope};
+use crate::html::{BaseComponent, NodeRef};
 
 /// A virtual component.
 pub struct VComp {

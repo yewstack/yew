@@ -1,5 +1,4 @@
-use strum::Display;
-use strum::EnumString;
+use strum::{Display, EnumString};
 
 #[derive(Debug, Clone, EnumString, Display)]
 #[strum(serialize_all = "kebab-case")]

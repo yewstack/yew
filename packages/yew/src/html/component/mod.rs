@@ -10,15 +10,16 @@ mod marker;
 mod properties;
 mod scope;
 
-use super::{Html, HtmlResult, IntoHtmlResult};
+use std::rc::Rc;
+
 pub use children::*;
 pub use marker::*;
 pub use properties::*;
-
 #[cfg(feature = "csr")]
 pub(crate) use scope::Scoped;
 pub use scope::{AnyScope, Scope, SendAsMessage};
-use std::rc::Rc;
+
+use super::{Html, HtmlResult, IntoHtmlResult};
 
 #[cfg(debug_assertions)]
 #[cfg(any(feature = "csr", feature = "ssr"))]
@@ -104,7 +105,8 @@ impl<COMP: BaseComponent> Context<COMP> {
 /// If you are taken here by doc links, you might be looking for [`Component`] or
 /// [`#[function_component]`](crate::functional::function_component).
 ///
-/// We provide a blanket implementation of this trait for every member that implements [`Component`].
+/// We provide a blanket implementation of this trait for every member that implements
+/// [`Component`].
 pub trait BaseComponent: Sized + 'static {
     /// The Component's Message.
     type Message: 'static;
@@ -211,7 +213,6 @@ where
     T: Sized + Component + 'static,
 {
     type Message = <T as Component>::Message;
-
     type Properties = <T as Component>::Properties;
 
     fn create(ctx: &Context<Self>) -> Self {

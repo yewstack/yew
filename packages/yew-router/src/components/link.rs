@@ -7,8 +7,7 @@ use yew::virtual_dom::AttrValue;
 
 use crate::navigator::NavigatorKind;
 use crate::scope_ext::RouterScopeExt;
-use crate::utils;
-use crate::Routable;
+use crate::{utils, Routable};
 
 /// Props for [`Link`]
 #[derive(Properties, Clone, PartialEq)]

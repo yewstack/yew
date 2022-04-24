@@ -1,14 +1,16 @@
 //! This module contains the implementation of a virtual element node [VTag].
 
-use super::{AttrValue, Attributes, Key, Listener, Listeners, VList, VNode};
-use crate::html::{IntoPropValue, NodeRef};
+use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::marker::PhantomData;
 use std::mem;
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
-use std::{borrow::Cow, ops::DerefMut};
+
 use web_sys::{HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
+
+use super::{AttrValue, Attributes, Key, Listener, Listeners, VList, VNode};
+use crate::html::{IntoPropValue, NodeRef};
 
 /// SVG namespace string used for creating svg elements
 pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
@@ -27,11 +29,14 @@ impl<T> Default for Value<T> {
 }
 
 impl<T> Value<T> {
-    /// Create a new value. The caller should take care that the value is valid for the element's `value` property
+    /// Create a new value. The caller should take care that the value is valid for the element's
+    /// `value` property
     fn new(value: Option<AttrValue>) -> Self {
         Value(value, PhantomData)
     }
-    /// Set a new value. The caller should take care that the value is valid for the element's `value` property
+
+    /// Set a new value. The caller should take care that the value is valid for the element's
+    /// `value` property
     fn set(&mut self, value: Option<AttrValue>) {
         self.0 = value;
     }
@@ -39,6 +44,7 @@ impl<T> Value<T> {
 
 impl<T> Deref for Value<T> {
     type Target = Option<AttrValue>;
+
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -291,11 +297,19 @@ impl VTag {
     }
 
     /// Returns a mutable reference to the children of this [VTag], if the node can have
-    // children
+    /// children
     pub fn children_mut(&mut self) -> Option<&mut VList> {
         match &mut self.inner {
             VTagInner::Other { children, .. } => Some(children),
             _ => None,
+        }
+    }
+
+    /// Returns the children of this [VTag]
+    pub fn into_children(self) -> VList {
+        match self.inner {
+            VTagInner::Other { children, .. } => children,
+            _ => VList::new(),
         }
     }
 
@@ -414,9 +428,11 @@ impl PartialEq for VTag {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use super::*;
-    use crate::{html::AnyScope, virtual_dom::VText};
     use std::fmt::Write;
+
+    use super::*;
+    use crate::html::AnyScope;
+    use crate::virtual_dom::VText;
 
     // Elements that cannot have any child elements.
     static VOID_ELEMENTS: &[&str; 14] = &[

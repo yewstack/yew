@@ -1,8 +1,9 @@
+use yew::prelude::*;
+
 use super::header::ListHeader;
 use super::item::ListItem;
 use super::list::List;
 use super::{Hovered, WeakComponentLink};
-use yew::prelude::*;
 
 pub enum Msg {
     Hover(Hovered),

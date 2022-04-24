@@ -7,10 +7,10 @@ mod components;
 mod hooks;
 mod state;
 
-use components::{
-    entry::Entry as EntryItem, filter::Filter as FilterItem, header_input::HeaderInput,
-    info_footer::InfoFooter,
-};
+use components::entry::Entry as EntryItem;
+use components::filter::Filter as FilterItem;
+use components::header_input::HeaderInput;
+use components::info_footer::InfoFooter;
 
 const KEY: &str = "yew.functiontodomvc.self";
 
