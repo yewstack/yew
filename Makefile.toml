@@ -29,7 +29,6 @@ run_task = { name = ["lint-flow"], fork = true }
 [tasks.tests]
 category = "Testing"
 description = "Run all tests"
-dependencies = ["tests-setup"]
 env = { CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["**/examples/*", "**/packages/changelog"] }
 run_task = { name = ["test-flow", "doc-test-flow", "ssr-test", "website-test"], fork = true }
 
@@ -44,22 +43,6 @@ category = "Checks"
 workspace = true
 command = "cargo"
 args = ["clippy", "--all-targets", "--release", "--", "--deny=warnings"]
-
-[tasks.tests-setup]
-private = true
-script_runner = "@duckscript"
-script = [
-    """
-    test_flags = array --headless --firefox
-    yew_test_features = set wasm_test
-
-    yew_test_flags = array_join ${test_flags} " "
-    echo "running tests with flags: ${yew_test_flags} and features: ${yew_test_features}"
-
-    set_env YEW_TEST_FLAGS ${yew_test_flags}
-    set_env YEW_TEST_FEATURES ${yew_test_features}
-    """,
-]
 
 [tasks.test-flow]
 private = true

@@ -1,10 +1,8 @@
 [tasks.test]
-extend = "core::wasm-pack-base"
+# if wasm-pack is not installed, install it from https://rustwasm.github.io/wasm-pack/
 command = "wasm-pack"
 args = [
     "test",
-    "@@split(YEW_TEST_FLAGS, )",
-    "--",
-    "--features",
-    "${YEW_TEST_FEATURES}",
+    "--firefox",
+    "--headless",
 ]

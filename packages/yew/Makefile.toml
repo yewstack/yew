@@ -8,10 +8,11 @@ dependencies = ["native-test"]
 command = "wasm-pack"
 args = [
     "test",
-    "@@split(YEW_TEST_FLAGS, )",
+    "--firefox",
+    "--headless",
     "--",
     "--features",
-    "${YEW_TEST_FEATURES}",
+    "wasm_test"
 ]
 
 [tasks.doc-test]
