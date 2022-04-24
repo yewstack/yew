@@ -161,7 +161,7 @@ pub fn use_prepared_state_with_closure(input: TokenStream) -> TokenStream {
 
 #[proc_macro]
 pub fn use_prepared_state_with_closure_and_suspension(input: TokenStream) -> TokenStream {
-    let prepared_state = parse_macro_input!(input as PreparedState<false>);
+    let prepared_state = parse_macro_input!(input as PreparedState<true>);
     prepared_state.to_token_stream_with_closure().into()
 }
 

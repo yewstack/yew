@@ -236,7 +236,7 @@ mod feat_ssr {
 
                 w.push_str(r#"<script type="application/x-yew-comp-state">"#);
                 w.push_str(&prepared_state);
-                w.push_str(r#"</script">"#);
+                w.push_str(r#"</script>"#);
             }
 
             if hydratable {
@@ -583,6 +583,7 @@ mod feat_hydration {
             {
                 Some(m) if m.type_() == "application/x-yew-comp-state" => {
                     fragment.pop_back();
+                    parent.remove_child(&m).unwrap();
                     Some(m.text().unwrap())
                 }
                 _ => None,

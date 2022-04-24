@@ -82,6 +82,8 @@ impl<const WITH_ASYNC_CLOSURE: bool> PreparedState<WITH_ASYNC_CLOSURE> {
 
         closure.body = inner;
 
+        closure.attrs.push(parse_quote! { #[allow(unused_braces)] });
+
         closure
     }
 
@@ -92,7 +94,7 @@ impl<const WITH_ASYNC_CLOSURE: bool> PreparedState<WITH_ASYNC_CLOSURE> {
 
         match &self.closure.asyncness {
             Some(_) => quote! {
-                ::yew::functional::use_prepared_state_with_suspension::<#rt, _, _>(#closure, #deps)
+                ::yew::functional::use_prepared_state_with_suspension::<#rt, _, _, _>(#closure, #deps)
             },
             None => quote! {
                 ::yew::functional::use_prepared_state::<#rt, _, _>(#closure, #deps)

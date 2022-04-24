@@ -31,9 +31,7 @@ use wasm_bindgen::prelude::*;
 
 #[cfg(all(feature = "hydration", feature = "ssr"))]
 use crate::html::RenderMode;
-use crate::html::{
-    AnyScope, BaseComponent, Context, HtmlResult,
-};
+use crate::html::{AnyScope, BaseComponent, Context, HtmlResult};
 use crate::Properties;
 
 mod hooks;
@@ -130,7 +128,7 @@ impl HookContext {
                 match prepared_state {
                     Some(m) => m
                         .split(',')
-                        .map(|m| base64::decode_config(m, base64::STANDARD_NO_PAD).unwrap())
+                        .map(|m| base64::decode_config(m.trim(), base64::STANDARD).unwrap())
                         .map(Rc::from)
                         .collect(),
                     None => Vec::new(),
@@ -292,7 +290,7 @@ impl HookContext {
 
                 let state = state.prepare().await;
 
-                base64::encode_config_buf(&state, base64::STANDARD_NO_PAD, &mut states);
+                base64::encode_config_buf(&state, base64::STANDARD, &mut states);
             }
 
             states

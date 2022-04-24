@@ -119,12 +119,12 @@ mod feat_any_hydration_ssr {
         T: Serialize + DeserializeOwned + 'static,
     {
         pub fn decode(buf: &[u8]) -> Self {
-            let (state, deps) =
-                bincode::deserialize::<(T, D)>(buf).expect("failed to deserialize state");
+            let (state, deps) = bincode::deserialize::<(Option<T>, Option<D>)>(buf)
+                .expect("failed to deserialize state");
 
             PreparedStateBase {
-                state: Some(Rc::new(state)),
-                deps: Some(Rc::new(deps)),
+                state: state.map(Rc::new),
+                deps: deps.map(Rc::new),
             }
         }
     }
