@@ -1,9 +1,10 @@
 //! This module contains the implementation yew's virtual nodes' keys.
 
-use crate::html::ImplicitClone;
 use std::fmt::{self, Display, Formatter};
 use std::ops::Deref;
 use std::rc::Rc;
+
+use crate::html::ImplicitClone;
 
 /// Represents the (optional) key of Yew's virtual nodes.
 ///
@@ -69,11 +70,12 @@ key_impl_from_to_string!(isize);
 
 #[cfg(test)]
 mod test {
-    use crate::html;
     use std::rc::Rc;
 
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    use crate::html;
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);

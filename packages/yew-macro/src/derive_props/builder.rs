@@ -5,11 +5,12 @@
 //! properties have been set, the builder moves to the final build step which implements the
 //! `build()` method.
 
-use super::generics::{to_arguments, with_param_bounds, GenericArguments};
-use super::{DerivePropsInput, PropField};
 use proc_macro2::{Ident, Span};
 use quote::{format_ident, quote, ToTokens};
 use syn::Attribute;
+
+use super::generics::{to_arguments, with_param_bounds, GenericArguments};
+use super::{DerivePropsInput, PropField};
 
 pub struct PropsBuilder<'a> {
     builder_name: &'a Ident,

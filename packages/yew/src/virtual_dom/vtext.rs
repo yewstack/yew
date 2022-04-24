@@ -1,7 +1,8 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
-use super::AttrValue;
 use std::cmp::PartialEq;
+
+use super::AttrValue;
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)

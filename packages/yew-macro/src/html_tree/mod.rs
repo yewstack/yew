@@ -1,12 +1,12 @@
-use crate::PeekValue;
 use proc_macro2::{Delimiter, Ident, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::Token;
-use syn::{braced, token};
+use syn::{braced, token, Token};
+
+use crate::PeekValue;
 
 mod html_block;
 mod html_component;
@@ -65,9 +65,9 @@ impl Parse for HtmlTree {
 
 impl HtmlTree {
     /// Determine the [`HtmlType`] before actually parsing it.
-    /// Even though this method accepts a [`ParseStream`], it is forked and the original stream is not modified.
-    /// Once a certain `HtmlType` can be deduced for certain, the function eagerly returns with the appropriate type.
-    /// If invalid html tag, returns `None`.
+    /// Even though this method accepts a [`ParseStream`], it is forked and the original stream is
+    /// not modified. Once a certain `HtmlType` can be deduced for certain, the function eagerly
+    /// returns with the appropriate type. If invalid html tag, returns `None`.
     fn peek_html_type(input: ParseStream) -> Option<HtmlType> {
         let input = input.fork(); // do not modify original ParseStream
 
@@ -151,7 +151,8 @@ impl Parse for HtmlRoot {
             let stream: TokenStream = input.parse()?;
             Err(syn::Error::new_spanned(
                 stream,
-                "only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)",
+                "only one root html element is allowed (hint: you can wrap multiple html elements \
+                 in a fragment `<></>`)",
             ))
         } else {
             Ok(html_root)
@@ -189,9 +190,10 @@ impl ToTokens for HtmlRootVNode {
 
 /// This trait represents a type that can be unfolded into multiple html nodes.
 pub trait ToNodeIterator {
-    /// Generate a token stream which produces a value that implements IntoIterator<Item=T> where T is inferred by the compiler.
-    /// The easiest way to achieve this is to call `.into()` on each element.
-    /// If the resulting iterator only ever yields a single item this function should return None instead.
+    /// Generate a token stream which produces a value that implements IntoIterator<Item=T> where T
+    /// is inferred by the compiler. The easiest way to achieve this is to call `.into()` on
+    /// each element. If the resulting iterator only ever yields a single item this function
+    /// should return None instead.
     fn to_node_iterator_stream(&self) -> Option<TokenStream>;
 }
 
@@ -234,7 +236,8 @@ impl HtmlChildrenTree {
         let Self(children) = self;
 
         if self.only_single_node_children() {
-            // optimize for the common case where all children are single nodes (only using literal html).
+            // optimize for the common case where all children are single nodes (only using literal
+            // html).
             let children_into = children
                 .iter()
                 .map(|child| quote_spanned! {child.span()=> ::std::convert::Into::into(#child) });

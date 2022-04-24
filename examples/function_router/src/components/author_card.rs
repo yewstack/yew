@@ -1,8 +1,11 @@
 use std::rc::Rc;
 
-use crate::{content::Author, generator::Generated, Route};
 use yew::prelude::*;
 use yew_router::prelude::*;
+
+use crate::content::Author;
+use crate::generator::Generated;
+use crate::Route;
 
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct Props {

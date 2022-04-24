@@ -1,12 +1,13 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use gloo::timers::callback::{Interval, Timeout};
-use std::{cell::RefCell, rc::Rc};
 use yew::prelude::*;
 use yew::{function_component, html};
 
-use crate::components::{
-    chessboard::Chessboard, game_status_board::GameStatusBoard, score_board::ScoreBoard,
-};
-
+use crate::components::chessboard::Chessboard;
+use crate::components::game_status_board::GameStatusBoard;
+use crate::components::score_board::ScoreBoard;
 use crate::constant::Status;
 use crate::state::{Action, State};
 

@@ -1,10 +1,11 @@
-use super::{HtmlIterable, HtmlNode, ToNodeIterator};
-use crate::PeekValue;
 use proc_macro2::Delimiter;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::{braced, token};
+
+use super::{HtmlIterable, HtmlNode, ToNodeIterator};
+use crate::PeekValue;
 
 pub struct HtmlBlock {
     pub content: BlockContent,

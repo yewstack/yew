@@ -1,10 +1,10 @@
-use crate::dom_bundle::{BSubtree, Bundle};
-use crate::html::AnyScope;
-use crate::scheduler;
-use crate::virtual_dom::VNode;
-use crate::{Component, Context, Html};
 use gloo::console::log;
 use yew::NodeRef;
+
+use crate::dom_bundle::{BSubtree, Bundle};
+use crate::html::AnyScope;
+use crate::virtual_dom::VNode;
+use crate::{scheduler, Component, Context, Html};
 
 struct Comp;
 impl Component for Comp {

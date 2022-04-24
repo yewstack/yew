@@ -1,8 +1,7 @@
+use once_cell::sync::OnceCell;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
-
-use once_cell::sync::OnceCell;
 use yew::prelude::*;
 use yew::suspense::{use_future, SuspensionResult};
 

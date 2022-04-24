@@ -1,9 +1,10 @@
-use crate::agent::{Worker, WorkerInput, WorkerOutput};
 use std::rc::Rc;
 
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 use yew_agent::{Bridge, Bridged};
+
+use crate::agent::{Worker, WorkerInput, WorkerOutput};
 
 pub struct App {
     clicker_value: u32,

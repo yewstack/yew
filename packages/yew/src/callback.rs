@@ -4,9 +4,10 @@
 //! - [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
 //! - [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)
 
-use crate::html::ImplicitClone;
 use std::fmt;
 use std::rc::Rc;
+
+use crate::html::ImplicitClone;
 
 /// Universal callback wrapper.
 ///

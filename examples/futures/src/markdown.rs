@@ -107,7 +107,7 @@ pub fn render_markdown(src: &str) -> Html {
 fn make_tag(t: Tag) -> VTag {
     match t {
         Tag::Paragraph => VTag::new("p"),
-        Tag::Heading(n, _, _) => VTag::new(n.to_string()),
+        Tag::Heading(n, ..) => VTag::new(n.to_string()),
         Tag::BlockQuote => {
             let mut el = VTag::new("blockquote");
             el.add_attribute("class", "blockquote");
@@ -118,9 +118,9 @@ fn make_tag(t: Tag) -> VTag {
 
             if let CodeBlockKind::Fenced(lang) = code_block_kind {
                 // Different color schemes may be used for different code blocks,
-                // but a different library (likely js based at the moment) would be necessary to actually provide the
-                // highlighting support by locating the language classes and applying dom transforms
-                // on their contents.
+                // but a different library (likely js based at the moment) would be necessary to
+                // actually provide the highlighting support by locating the
+                // language classes and applying dom transforms on their contents.
                 match lang.as_ref() {
                     "html" => el.add_attribute("class", "html-language"),
                     "rust" => el.add_attribute("class", "rust-language"),
@@ -176,7 +176,9 @@ fn make_tag(t: Tag) -> VTag {
             }
             el
         }
-        Tag::FootnoteDefinition(ref _footnote_id) => VTag::new("span"), // Footnotes are not rendered as anything special
+        Tag::FootnoteDefinition(ref _footnote_id) => VTag::new("span"), // Footnotes are not
+        // rendered as anything
+        // special
         Tag::Strikethrough => {
             let mut el = VTag::new("span");
             el.add_attribute("class", "text-decoration-strikethrough");

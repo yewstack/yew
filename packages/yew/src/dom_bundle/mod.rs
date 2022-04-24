@@ -7,8 +7,7 @@
 
 use web_sys::Element;
 
-use crate::html::AnyScope;
-use crate::html::NodeRef;
+use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::VNode;
 
 mod bcomp;
@@ -31,23 +30,19 @@ use blist::BList;
 use bnode::BNode;
 use bportal::BPortal;
 use bsuspense::BSuspense;
-
 use btag::{BTag, Registry};
 use btext::BText;
-use subtree_root::EventDescriptor;
-use traits::{Reconcilable, ReconcileTarget};
-use utils::{insert_node, test_log};
-
-pub use subtree_root::set_event_bubbling;
-
-pub(crate) use subtree_root::BSubtree;
-
 #[cfg(feature = "hydration")]
 pub(crate) use fragment::Fragment;
+pub use subtree_root::set_event_bubbling;
+pub(crate) use subtree_root::BSubtree;
+use subtree_root::EventDescriptor;
 #[cfg(feature = "hydration")]
 use traits::Hydratable;
+use traits::{Reconcilable, ReconcileTarget};
 #[cfg(feature = "hydration")]
 use utils::node_type_str;
+use utils::{insert_node, test_log};
 
 /// A Bundle.
 ///

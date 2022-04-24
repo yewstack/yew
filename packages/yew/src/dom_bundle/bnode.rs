@@ -1,12 +1,14 @@
 //! This module contains the bundle version of an abstract node [BNode]
 
+use std::fmt;
+
+use gloo::console;
+use web_sys::{Element, Node};
+
 use super::{BComp, BList, BPortal, BSubtree, BSuspense, BTag, BText};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{Key, VNode};
-use gloo::console;
-use std::fmt;
-use web_sys::{Element, Node};
 
 /// The bundle implementation to [VNode].
 pub(super) enum BNode {
@@ -236,7 +238,6 @@ impl fmt::Debug for BNode {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-
     use crate::dom_bundle::{Fragment, Hydratable};
 
     impl Hydratable for VNode {
@@ -266,11 +267,17 @@ mod feat_hydration {
                 }
                 // You cannot hydrate a VRef.
                 VNode::VRef(_) => {
-                    panic!("VRef is not hydratable. Try moving it to a component mounted after an effect.")
+                    panic!(
+                        "VRef is not hydratable. Try moving it to a component mounted after an \
+                         effect."
+                    )
                 }
                 // You cannot hydrate a VPortal.
                 VNode::VPortal(_) => {
-                    panic!("VPortal is not hydratable. Try creating your portal by delaying it with use_effect.")
+                    panic!(
+                        "VPortal is not hydratable. Try creating your portal by delaying it with \
+                         use_effect."
+                    )
                 }
                 VNode::VSuspense(vsuspense) => {
                     let (node_ref, suspense) =
@@ -284,11 +291,11 @@ mod feat_hydration {
 
 #[cfg(test)]
 mod layout_tests {
-    use super::*;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
-
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    use super::*;
+    use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
     #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);

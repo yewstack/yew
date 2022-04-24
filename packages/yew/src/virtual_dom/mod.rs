@@ -67,6 +67,7 @@ mod feat_ssr_hydration {
                 Self::Suspense => "<?",
             }
         }
+
         pub fn close_start_mark(&self) -> &'static str {
             match self {
                 #[cfg(debug_assertions)]
@@ -151,7 +152,8 @@ pub enum Attributes {
         /// Attribute keys. Includes both always set and optional attribute keys.
         keys: &'static [&'static str],
 
-        /// Attribute values. Matches [keys](Attributes::Dynamic::keys). Optional attributes are designated by setting [None].
+        /// Attribute values. Matches [keys](Attributes::Dynamic::keys). Optional attributes are
+        /// designated by setting [None].
         values: Box<[Option<AttrValue>]>,
     },
 

@@ -1,7 +1,8 @@
-use rand::prelude::*;
 use std::cmp::min;
 use std::ops::Deref;
 use std::rc::Rc;
+
+use rand::prelude::*;
 use wasm_bindgen::prelude::*;
 use web_sys::window;
 use yew::prelude::*;

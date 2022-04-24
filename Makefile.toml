@@ -30,6 +30,7 @@ run_task = { name = ["lint", "lint-release", "tests"], fork = true }
 [tasks.lint]
 category = "Checks"
 description = "Check formatting and run Clippy"
+toolchain = "nightly"
 run_task = { name = ["lint-flow"], fork = true }
 
 [tasks.tests]

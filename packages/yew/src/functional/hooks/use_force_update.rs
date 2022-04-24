@@ -1,6 +1,7 @@
+use std::fmt;
+
 use super::{Hook, HookContext};
 use crate::functional::ReRender;
-use std::fmt;
 
 /// A handle which can be used to force a re-render of the associated
 /// function component.

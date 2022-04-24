@@ -1,8 +1,9 @@
 use proc_macro2::{Ident, Span};
+use syn::punctuated::Punctuated;
+use syn::token::Colon2;
 use syn::{
-    punctuated::Punctuated, token::Colon2, GenericArgument, GenericParam, Generics, Path,
-    PathArguments, PathSegment, Token, TraitBound, TraitBoundModifier, Type, TypeParam,
-    TypeParamBound, TypePath,
+    GenericArgument, GenericParam, Generics, Path, PathArguments, PathSegment, Token, TraitBound,
+    TraitBoundModifier, Type, TypeParam, TypeParamBound, TypePath,
 };
 
 /// Alias for a comma-separated list of `GenericArgument`
@@ -18,7 +19,8 @@ fn first_default_or_const_param_position(generics: &Generics) -> Option<usize> {
 }
 
 /// Converts `GenericParams` into `GenericArguments` and adds `type_ident` as a type arg.
-/// `type_ident` is added at the end of the existing type arguments which don't have a default value.
+/// `type_ident` is added at the end of the existing type arguments which don't have a default
+/// value.
 pub fn to_arguments(generics: &Generics, type_ident: Ident) -> GenericArguments {
     let mut args: GenericArguments = Punctuated::new();
     args.extend(generics.params.iter().map(|param| match param {

@@ -1,7 +1,3 @@
-use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
-use crate::props::{ClassesForm, ElementProps, Prop};
-use crate::stringify::{Stringify, Value};
-use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::{Delimiter, TokenStream};
 use proc_macro_error::emit_warning;
@@ -10,6 +6,11 @@ use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{Block, Expr, Ident, Lit, LitStr, Token};
+
+use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
+use crate::props::{ClassesForm, ElementProps, Prop};
+use crate::stringify::{Stringify, Value};
+use crate::{non_capitalized_ascii, Peek, PeekValue};
 
 pub struct HtmlElement {
     pub name: TagName,
@@ -55,7 +56,14 @@ impl Parse for HtmlElement {
             match name.to_ascii_lowercase_string().as_str() {
                 "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
                 | "meta" | "param" | "source" | "track" | "wbr" => {
-                    return Err(syn::Error::new_spanned(open.to_spanned(), format!("the tag `<{}>` is a void element and cannot have children (hint: rewrite this as `<{0}/>`)", name)));
+                    return Err(syn::Error::new_spanned(
+                        open.to_spanned(),
+                        format!(
+                            "the tag `<{}>` is a void element and cannot have children (hint: \
+                             rewrite this as `<{0}/>`)",
+                            name
+                        ),
+                    ));
                 }
                 _ => {}
             }
@@ -665,9 +673,10 @@ impl Parse for HtmlElementClose {
             if let TagName::Expr(name) = &name {
                 if let Some(expr) = &name.expr {
                     return Err(syn::Error::new_spanned(
-                    expr,
-                    "dynamic closing tags must not have a body (hint: replace it with just `</@>`)",
-                ));
+                        expr,
+                        "dynamic closing tags must not have a body (hint: replace it with just \
+                         `</@>`)",
+                    ));
                 }
             }
 

@@ -1,9 +1,11 @@
 //! This module defines the `ContextProvider` component.
 
+use std::cell::RefCell;
+
+use slab::Slab;
+
 use crate::html::Scope;
 use crate::{html, Callback, Children, Component, Context, Html, Properties};
-use slab::Slab;
-use std::cell::RefCell;
 
 /// Props for [`ContextProvider`]
 #[derive(Debug, Clone, PartialEq, Properties)]

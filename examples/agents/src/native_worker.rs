@@ -22,10 +22,10 @@ pub struct Worker {
 }
 
 impl yew_agent::Worker for Worker {
-    type Reach = Public<Self>;
-    type Message = Msg;
     type Input = Request;
+    type Message = Msg;
     type Output = Response;
+    type Reach = Public<Self>;
 
     fn create(link: WorkerLink<Self>) -> Self {
         let duration = 3;

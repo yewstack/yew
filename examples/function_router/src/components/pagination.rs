@@ -1,6 +1,6 @@
-use serde::Deserialize;
-use serde::Serialize;
 use std::ops::Range;
+
+use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 use yew_router::prelude::*;
 

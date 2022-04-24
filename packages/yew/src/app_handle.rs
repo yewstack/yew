@@ -1,11 +1,12 @@
 //! [AppHandle] contains the state Yew keeps to bootstrap a component in an isolated scope.
 
-use crate::dom_bundle::BSubtree;
-use crate::html::Scoped;
-use crate::html::{BaseComponent, NodeRef, Scope};
 use std::ops::Deref;
 use std::rc::Rc;
+
 use web_sys::Element;
+
+use crate::dom_bundle::BSubtree;
+use crate::html::{BaseComponent, NodeRef, Scope, Scoped};
 
 /// An instance of an application.
 #[derive(Debug)]
@@ -68,7 +69,6 @@ fn clear_element(host: &Element) {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-
     use crate::dom_bundle::Fragment;
 
     impl<COMP> AppHandle<COMP>

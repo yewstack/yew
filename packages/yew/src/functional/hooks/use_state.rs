@@ -11,6 +11,7 @@ struct UseStateReducer<T> {
 
 impl<T> Reducible for UseStateReducer<T> {
     type Action = T;
+
     fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
         Rc::new(Self { value: action })
     }
@@ -44,7 +45,6 @@ where
 ///         let counter = counter.clone();
 ///         Callback::from(move |_| counter.set(*counter + 1))
 ///     };
-///
 ///
 ///     html! {
 ///         <div>

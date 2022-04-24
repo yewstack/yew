@@ -1,8 +1,8 @@
-use crate::yew_package::YewPackage;
 use anyhow::Result;
 use git2::Repository;
-use semver::Error;
-use semver::Version;
+use semver::{Error, Version};
+
+use crate::yew_package::YewPackage;
 
 pub fn get_latest_version(package: &YewPackage) -> Result<Version> {
     let common_tag_pattern = format!("{}-v", package);
