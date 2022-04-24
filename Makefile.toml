@@ -1,7 +1,6 @@
 ######################
 #
 # public tasks:
-# * pr-flow
 # * lint
 # * lint-release
 # * tests
@@ -20,12 +19,6 @@ CARGO_MAKE_CLIPPY_ARGS = "-- --deny=warnings"
 [config.modify_core_tasks]
 private = true
 namespace = "core"
-
-[tasks.pr-flow]
-toolchain = "stable"
-category = "Checks"
-description = "Lint and test"
-run_task = { name = ["lint", "lint-release", "tests"], fork = true }
 
 [tasks.lint]
 category = "Checks"

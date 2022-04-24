@@ -176,6 +176,12 @@ jobs:
           command: test
           args: --all-targets --workspace --exclude yew --exclude website-test
 
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-targets --workspace --exclude yew --exclude website-test
+
 
 
   test-lints:

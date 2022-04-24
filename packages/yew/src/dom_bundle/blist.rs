@@ -500,7 +500,7 @@ mod feat_hydration {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "wasm_test"))]
 mod layout_tests {
     extern crate self as yew;
 
@@ -510,7 +510,6 @@ mod layout_tests {
     use crate::html;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
@@ -578,7 +577,7 @@ mod layout_tests {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "wasm_test"))]
 mod layout_tests_keys {
     extern crate self as yew;
 
@@ -590,7 +589,6 @@ mod layout_tests_keys {
     use crate::virtual_dom::VNode;
     use crate::{html, Children, Component, Context, Html, Properties};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     struct Comp {}

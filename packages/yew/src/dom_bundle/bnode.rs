@@ -289,7 +289,7 @@ mod feat_hydration {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "wasm_test"))]
 mod layout_tests {
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
@@ -297,7 +297,6 @@ mod layout_tests {
     use super::*;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
