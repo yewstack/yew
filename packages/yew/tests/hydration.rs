@@ -17,6 +17,9 @@ use yew::{Renderer, ServerRenderer};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
+// If any of the assertions fail due to a modification to hydration logic, cargo will suggest the
+// expected result and you can copy it into the test to fix it.
+
 #[wasm_bindgen_test]
 async fn hydration_works() {
     #[function_component]
