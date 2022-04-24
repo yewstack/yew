@@ -301,61 +301,83 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
     }
 }
 
-pub(crate) enum UpdateEvent {
-    /// Drain messages for a component.
-    Message,
-    /// Wraps properties, node ref, and next sibling for a component
-    #[cfg(feature = "csr")]
-    Properties(Rc<dyn Any>, NodeRef),
+#[cfg(feature = "csr")]
+pub(crate) struct PropsUpdateRunner {
+    pub props: Rc<dyn Any>,
+    pub state: Shared<Option<ComponentState>>,
+    pub next_sibling: NodeRef,
+}
+
+#[cfg(feature = "csr")]
+impl Runnable for PropsUpdateRunner {
+    fn run(self: Box<Self>) {
+        let Self {
+            next_sibling,
+            props,
+            state: shared_state,
+        } = *self;
+
+        if let Some(state) = shared_state.borrow_mut().as_mut() {
+            let schedule_render = match state.render_state {
+                #[cfg(feature = "csr")]
+                ComponentRenderState::Render {
+                    next_sibling: ref mut current_next_sibling,
+                    ..
+                } => {
+                    // When components are updated, their siblings were likely also updated
+                    *current_next_sibling = next_sibling;
+                    // Only trigger changed if props were changed
+                    state.inner.props_changed(props)
+                }
+
+                #[cfg(feature = "hydration")]
+                ComponentRenderState::Hydration {
+                    next_sibling: ref mut current_next_sibling,
+                    ..
+                } => {
+                    // When components are updated, their siblings were likely also updated
+                    *current_next_sibling = next_sibling;
+                    // Only trigger changed if props were changed
+                    state.inner.props_changed(props)
+                }
+
+                #[cfg(feature = "ssr")]
+                ComponentRenderState::Ssr { .. } => {
+                    #[cfg(debug_assertions)]
+                    panic!("properties do not change during SSR");
+
+                    #[cfg(not(debug_assertions))]
+                    false
+                }
+            };
+
+            #[cfg(debug_assertions)]
+            super::log_event(
+                state.comp_id,
+                format!("props_update(schedule_render={})", schedule_render),
+            );
+
+            if schedule_render {
+                scheduler::push_component_render(
+                    state.comp_id,
+                    Box::new(RenderRunner {
+                        state: shared_state.clone(),
+                    }),
+                );
+                // Only run from the scheduler, so no need to call `scheduler::start()`
+            }
+        };
+    }
 }
 
 pub(crate) struct UpdateRunner {
     pub state: Shared<Option<ComponentState>>,
-    pub event: UpdateEvent,
 }
 
 impl Runnable for UpdateRunner {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
-            let schedule_render = match self.event {
-                UpdateEvent::Message => state.inner.flush_messages(),
-
-                #[cfg(feature = "csr")]
-                UpdateEvent::Properties(props, next_sibling) => {
-                    match state.render_state {
-                        #[cfg(feature = "csr")]
-                        ComponentRenderState::Render {
-                            next_sibling: ref mut current_next_sibling,
-                            ..
-                        } => {
-                            // When components are updated, their siblings were likely also updated
-                            *current_next_sibling = next_sibling;
-                            // Only trigger changed if props were changed
-                            state.inner.props_changed(props)
-                        }
-
-                        #[cfg(feature = "hydration")]
-                        ComponentRenderState::Hydration {
-                            next_sibling: ref mut current_next_sibling,
-                            ..
-                        } => {
-                            // When components are updated, their siblings were likely also updated
-                            *current_next_sibling = next_sibling;
-                            // Only trigger changed if props were changed
-                            state.inner.props_changed(props)
-                        }
-
-                        #[cfg(feature = "ssr")]
-                        ComponentRenderState::Ssr { .. } => {
-                            #[cfg(debug_assertions)]
-                            panic!("properties do not change during SSR");
-
-                            #[cfg(not(debug_assertions))]
-                            false
-                        }
-                    }
-                }
-            };
+            let schedule_render = state.inner.flush_messages();
 
             #[cfg(debug_assertions)]
             super::log_event(
@@ -453,9 +475,8 @@ impl RenderRunner {
 
         if suspension.resumed() {
             // schedule a render immediately if suspension is resumed.
-
             scheduler::push_component_render(
-                state.comp_id,
+                comp_id,
                 Box::new(RenderRunner {
                     state: shared_state,
                 }),
@@ -542,7 +563,7 @@ impl RenderRunner {
             } => {
                 // We schedule a "first" render to run immediately after hydration,
                 // to fix NodeRefs (first_node and next_sibling).
-                scheduler::push_component_first_render(
+                scheduler::push_component_priority_render(
                     state.comp_id,
                     Box::new(RenderRunner {
                         state: self.state.clone(),

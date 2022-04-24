@@ -90,8 +90,6 @@ mod feat_csr_ssr {
                         return false;
                     }
 
-                    m.listen(self.link.callback(Self::Message::Resume));
-
                     self.suspensions.push(m);
 
                     true

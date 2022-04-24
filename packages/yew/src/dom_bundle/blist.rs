@@ -380,10 +380,14 @@ impl ReconcileTarget for BList {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
-        for node in self.rev_children.iter().rev() {
-            node.shift(next_parent, next_sibling.clone());
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
+        let mut next_sibling = next_sibling;
+
+        for node in self.rev_children.iter() {
+            next_sibling = node.shift(next_parent, next_sibling.clone());
         }
+
+        next_sibling
     }
 }
 
