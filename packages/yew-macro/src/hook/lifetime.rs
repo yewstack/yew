@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use syn::visit_mut::{self, VisitMut};
 use syn::{
     GenericArgument, Lifetime, ParenthesizedGenericArguments, Receiver, TypeBareFn, TypeImplTrait,
-    TypeParamBound, TypeReference,
+    TypeParamBound, TypeReference, TypeTraitObject,
 };
 
 // borrowed from the awesome async-trait crate.
@@ -13,6 +13,7 @@ pub struct CollectLifetimes {
     pub name: &'static str,
     pub default_span: Span,
 
+    pub type_trait_obj_lock: Arc<Mutex<()>>,
     pub impl_trait_lock: Arc<Mutex<()>>,
     pub impl_fn_lock: Arc<Mutex<()>>,
 }
@@ -26,12 +27,17 @@ impl CollectLifetimes {
             default_span,
 
             impl_trait_lock: Arc::default(),
+            type_trait_obj_lock: Arc::default(),
             impl_fn_lock: Arc::default(),
         }
     }
 
     fn is_impl_trait(&self) -> bool {
         self.impl_trait_lock.try_lock().is_err()
+    }
+
+    fn is_type_trait_obj(&self) -> bool {
+        self.type_trait_obj_lock.try_lock().is_err()
     }
 
     fn is_impl_fn(&self) -> bool {
@@ -102,12 +108,20 @@ impl VisitMut for CollectLifetimes {
         visit_mut::visit_type_impl_trait_mut(self, impl_trait);
     }
 
+    fn visit_type_trait_object_mut(&mut self, type_trait_obj: &mut TypeTraitObject) {
+        let type_trait_obj_lock = self.type_trait_obj_lock.clone();
+        let _locked = type_trait_obj_lock.try_lock();
+
+        visit_mut::visit_type_trait_object_mut(self, type_trait_obj);
+    }
+
     fn visit_parenthesized_generic_arguments_mut(
         &mut self,
         generic_args: &mut ParenthesizedGenericArguments,
     ) {
         let impl_fn_lock = self.impl_fn_lock.clone();
-        let _maybe_locked = self.is_impl_trait().then(|| impl_fn_lock.try_lock());
+        let _maybe_locked =
+            (self.is_impl_trait() || self.is_type_trait_obj()).then(|| impl_fn_lock.try_lock());
 
         visit_mut::visit_parenthesized_generic_arguments_mut(self, generic_args);
     }

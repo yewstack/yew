@@ -30,22 +30,26 @@ module.exports = {
             items: [
                 {
                     type: 'category',
-                    label: 'Intro With Basic Web Technologies',
+                    label: 'Using Basic Web Technologies In Yew',
                     link: {
                         type: 'generated-index',
-                        title: 'Yew Take on Basic Web Technologies',
+                        title: "Yew's Take on Basic Web Technologies",
                         description:
-                            'Yew mostly operates on the idea of keeping everything that a reusable piece of UI may need, in one place - rust files. But also seeks to stay close to the original look of the technology. Explore further to fully grasp what we mean by these statements:',
+                            'Yew centrally operates on the idea of keeping everything that a reusable piece of UI may need' +
+                            'in one place - rust files, while also keeping the underlying technology accessible where necessary. ' +
+                            'Explore further to fully grasp what we mean by these statements:',
                     },
                     items: [
                         'concepts/basic-web-technologies/html',
                         'concepts/basic-web-technologies/css',
                         'concepts/basic-web-technologies/js',
+                        'concepts/basic-web-technologies/wasm-bindgen',
+                        'concepts/basic-web-technologies/web-sys',
                     ],
                 },
                 {
                     type: 'category',
-                    label: 'Function Components',
+                    label: 'Components',
                     link: {
                         type: 'doc',
                         id: 'concepts/function-components/introduction',
@@ -63,14 +67,6 @@ module.exports = {
                                 id: 'concepts/function-components/hooks/introduction',
                             },
                             items: [
-                                'concepts/function-components/hooks/use-state',
-                                'concepts/function-components/hooks/use-reducer',
-                                'concepts/function-components/hooks/use-mut-ref',
-                                'concepts/function-components/hooks/use-node-ref',
-                                'concepts/function-components/hooks/use-effect',
-                                'concepts/function-components/hooks/use-memo',
-                                'concepts/function-components/hooks/use-callback',
-                                'concepts/function-components/hooks/use-context',
                                 'concepts/function-components/hooks/custom-hooks',
                             ],
                         },
@@ -93,20 +89,6 @@ module.exports = {
                         'concepts/html/lists',
                         'concepts/html/literals-and-expressions',
                         'concepts/html/conditional-rendering',
-                    ],
-                },
-                {
-                    type: 'category',
-                    label: 'Javascript with Rust',
-                    link: {
-                        type: 'generated-index',
-                        title: 'wasm-bindgen',
-                        description: 'Learn about wasm-bindgen',
-                        slug: '/concepts/wasm-bindgen',
-                    },
-                    items: [
-                        'concepts/wasm-bindgen/introduction',
-                        'concepts/wasm-bindgen/web-sys',
                     ],
                 },
                 'concepts/agents',

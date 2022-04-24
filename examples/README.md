@@ -6,8 +6,7 @@ The examples are built with [trunk](https://github.com/thedodd/trunk).
 You can install it with the following command:
 
 ```bash
-# at some point in the future, trunk will automatically download wasm-bindgen
-cargo install trunk wasm-bindgen-cli
+cargo install --locked trunk
 ```
 
 Running an example is as easy as running a single command:
@@ -51,7 +50,6 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [portals](portals)                                 | S  | Renders elements into out-of-tree nodes with the help of portals                                                                   |
 | [router](router)                                   | S  | The best yew blog built with `yew-router`                                                                                          |
 | [simple_ssr](simple_ssr)                           | F  | Demonstrates server-side rendering                                                                                                 |
-| [store](store)                                     | S  | Showcases the `yewtil::store` API                                                                                                  |
 | [suspense](suspense)                               | F  | This is an example that demonstrates `<Suspense />` support                                                                          |
 | [function_memory_game](function_memory_game)       | F  | Implementation of [Memory Game](https://github.com/bradlygreen/Memory-Game)                                            |
 | [timer](timer)                                     | S  | Demonstrates the use of the interval and timeout services                                                                          |

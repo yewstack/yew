@@ -2,7 +2,7 @@
 
 use crate::function_component;
 use crate::html;
-use crate::html::{ChildrenProps, Html, IntoComponent};
+use crate::html::{BaseComponent, ChildrenProps, Html};
 
 /// A Component to represent a component that does not exist in current implementation.
 ///
@@ -141,7 +141,7 @@ use crate::html::{ChildrenProps, Html, IntoComponent};
 #[function_component]
 pub fn PhantomComponent<T>(props: &ChildrenProps) -> Html
 where
-    T: IntoComponent,
+    T: BaseComponent,
 {
     html! { <>{props.children.clone()}</> }
 }

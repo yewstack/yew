@@ -4,6 +4,7 @@ use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::{
     parse_file, parse_quote, visit_mut, Attribute, Ident, ItemFn, LitStr, ReturnType, Signature,
+    Type,
 };
 
 mod body;
@@ -131,11 +132,17 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
     let inner_fn = quote! { fn #inner_fn_ident #generics (#ctx_ident: &mut ::yew::functional::HookContext, #inputs) #inner_fn_rt #where_clause #block };
 
     let inner_type_impl = if hook_sig.needs_boxing {
+        let with_output = !matches!(hook_sig.output_type, Type::ImplTrait(_),);
+        let inner_fn_rt = with_output.then(|| &inner_fn_rt);
+        let output_type = with_output.then(|| &output_type);
+
         let hook_lifetime = &hook_sig.hook_lifetime;
         let hook_lifetime_plus = quote! { #hook_lifetime + };
 
         let boxed_inner_ident = Ident::new("boxed_inner", Span::mixed_site());
         let boxed_fn_type = quote! { ::std::boxed::Box<dyn #hook_lifetime_plus ::std::ops::FnOnce(&mut ::yew::functional::HookContext) #inner_fn_rt> };
+
+        let as_boxed_fn = with_output.then(|| quote! { as #boxed_fn_type });
 
         // We need boxing implementation for `impl Trait` arguments.
         quote! {
@@ -143,7 +150,7 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
                     move |#ctx_ident: &mut ::yew::functional::HookContext| #inner_fn_rt {
                         #inner_fn_ident (#ctx_ident, #(#input_args,)*)
                     }
-                ) as #boxed_fn_type;
+                ) #as_boxed_fn;
 
             ::yew::functional::BoxedHook::<#hook_lifetime, #output_type>::new(#boxed_inner_ident)
         }

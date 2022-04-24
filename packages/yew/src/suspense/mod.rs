@@ -6,6 +6,6 @@ mod suspension;
 
 #[cfg(any(feature = "csr", feature = "ssr"))]
 pub(crate) use component::BaseSuspense;
-pub use component::Suspense;
+pub use component::{Suspense, SuspenseProps};
 pub use hooks::*;
 pub use suspension::{Suspension, SuspensionHandle, SuspensionResult};

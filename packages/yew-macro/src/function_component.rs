@@ -4,8 +4,8 @@ use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::token::{Comma, Fn};
 use syn::{
-    parse_quote_spanned, visit_mut, Attribute, Block, FnArg, Generics, Ident, Item, ItemFn,
-    ReturnType, Type, Visibility,
+    parse_quote, parse_quote_spanned, visit_mut, Attribute, Block, FnArg, Generics, Ident, Item,
+    ItemFn, LitStr, ReturnType, Type, Visibility,
 };
 
 use crate::hook::BodyRewriter;
@@ -219,8 +219,8 @@ impl FunctionComponent {
             .unwrap_or_else(|| self.name.clone())
     }
 
-    // We need to cast 'static on all generics for into component.
-    fn create_into_component_generics(&self) -> Generics {
+    // We need to cast 'static on all generics for base component.
+    fn create_static_component_generics(&self) -> Generics {
         let mut generics = self.generics.clone();
 
         let where_clause = generics.make_where_clause();
@@ -233,7 +233,157 @@ impl FunctionComponent {
             where_clause.predicates.push(bound);
         }
 
+        where_clause.predicates.push(parse_quote! { Self: 'static });
+
         generics
+    }
+
+    /// Prints the impl fn.
+    fn print_inner_fn(&self) -> TokenStream {
+        let name = self.inner_fn_ident();
+        let FunctionComponent {
+            ref fn_token,
+            ref attrs,
+            ref block,
+            ref return_type,
+            ref generics,
+            ref arg,
+            ..
+        } = self;
+        let mut block = *block.clone();
+        let (impl_generics, _ty_generics, where_clause) = generics.split_for_impl();
+
+        // We use _ctx here so if the component does not use any hooks, the usused_vars lint will not
+        // be triggered.
+        let ctx_ident = Ident::new("_ctx", Span::mixed_site());
+
+        let mut body_rewriter = BodyRewriter::new(ctx_ident.clone());
+        visit_mut::visit_block_mut(&mut body_rewriter, &mut block);
+
+        quote! {
+            #(#attrs)*
+            #fn_token #name #impl_generics (#ctx_ident: &mut ::yew::functional::HookContext, #arg) -> #return_type
+            #where_clause
+            {
+                #block
+            }
+        }
+    }
+
+    fn print_base_component_impl(&self) -> TokenStream {
+        let component_name = self.component_name();
+        let props_type = &self.props_type;
+        let static_comp_generics = self.create_static_component_generics();
+
+        let (impl_generics, ty_generics, where_clause) = static_comp_generics.split_for_impl();
+
+        // TODO: replace with blanket implementation when specialisation becomes stable.
+        quote! {
+            #[automatically_derived]
+            impl #impl_generics ::yew::html::BaseComponent for #component_name #ty_generics #where_clause {
+                type Message = ();
+                type Properties = #props_type;
+
+                #[inline]
+                fn create(ctx: &::yew::html::Context<Self>) -> Self {
+                    Self {
+                        _marker: ::std::marker::PhantomData,
+                        function_component: ::yew::functional::FunctionComponent::<Self>::new(ctx),
+                    }
+                }
+
+                #[inline]
+                fn update(&mut self, _ctx: &::yew::html::Context<Self>, _msg: Self::Message) -> ::std::primitive::bool {
+                    true
+                }
+
+                #[inline]
+                fn changed(&mut self, _ctx: &::yew::html::Context<Self>) -> ::std::primitive::bool {
+                    true
+                }
+
+                #[inline]
+                fn view(&self, ctx: &::yew::html::Context<Self>) -> ::yew::html::HtmlResult {
+                    ::yew::functional::FunctionComponent::<Self>::render(
+                        &self.function_component,
+                        ::yew::html::Context::<Self>::props(ctx)
+                    )
+                }
+
+                #[inline]
+                fn rendered(&mut self, _ctx: &::yew::html::Context<Self>, _first_render: ::std::primitive::bool) {
+                    ::yew::functional::FunctionComponent::<Self>::rendered(&self.function_component)
+                }
+
+                #[inline]
+                fn destroy(&mut self, _ctx: &::yew::html::Context<Self>) {
+                    ::yew::functional::FunctionComponent::<Self>::destroy(&self.function_component)
+                }
+            }
+        }
+    }
+
+    fn print_debug_impl(&self) -> TokenStream {
+        let component_name = self.component_name();
+        let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
+
+        let component_name_lit = LitStr::new(&format!("{}<_>", component_name), Span::mixed_site());
+
+        quote! {
+            #[automatically_derived]
+            impl #impl_generics ::std::fmt::Debug for #component_name #ty_generics #where_clause {
+                fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                    ::std::write!(f, #component_name_lit)
+                }
+            }
+        }
+    }
+
+    fn print_fn_provider_impl(&self) -> TokenStream {
+        let func = self.print_inner_fn();
+        let component_impl_attrs = self.filter_attrs_for_component_impl();
+        let component_name = self.component_name();
+        let fn_name = self.inner_fn_ident();
+        let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
+        let props_type = &self.props_type;
+        let fn_generics = ty_generics.as_turbofish();
+
+        let component_props = Ident::new("props", Span::mixed_site());
+        let ctx_ident = Ident::new("ctx", Span::mixed_site());
+
+        quote! {
+            // we cannot disable any lints here because it will be applied to the function body
+            // as well.
+            #(#component_impl_attrs)*
+            impl #impl_generics ::yew::functional::FunctionProvider for #component_name #ty_generics #where_clause {
+                type Properties = #props_type;
+
+                fn run(#ctx_ident: &mut ::yew::functional::HookContext, #component_props: &Self::Properties) -> ::yew::html::HtmlResult {
+                    #func
+
+                    ::yew::html::IntoHtmlResult::into_html_result(#fn_name #fn_generics (#ctx_ident, #component_props))
+                }
+            }
+        }
+    }
+
+    fn print_struct_def(&self) -> TokenStream {
+        let component_attrs = self.filter_attrs_for_component_struct();
+        let component_name = self.component_name();
+
+        let generics = &self.generics;
+        let (_impl_generics, _ty_generics, where_clause) = self.generics.split_for_impl();
+        let phantom_generics = self.phantom_generics();
+        let vis = &self.vis;
+
+        quote! {
+            #(#component_attrs)*
+            #[allow(unused_parens)]
+            #vis struct #component_name #generics #where_clause {
+                _marker: ::std::marker::PhantomData<(#phantom_generics)>,
+                function_component: ::yew::functional::FunctionComponent<Self>,
+            }
+        }
     }
 }
 
@@ -257,96 +407,23 @@ impl Parse for FunctionComponentName {
     }
 }
 
-fn print_fn(func_comp: &FunctionComponent) -> TokenStream {
-    let name = func_comp.inner_fn_ident();
-    let FunctionComponent {
-        ref fn_token,
-        ref attrs,
-        ref block,
-        ref return_type,
-        ref generics,
-        ref arg,
-        ..
-    } = func_comp;
-    let mut block = *block.clone();
-    let (impl_generics, _ty_generics, where_clause) = generics.split_for_impl();
-
-    // We use _ctx here so if the component does not use any hooks, the usused_vars lint will not
-    // be triggered.
-    let ctx_ident = Ident::new("_ctx", Span::mixed_site());
-
-    let mut body_rewriter = BodyRewriter::new(ctx_ident.clone());
-    visit_mut::visit_block_mut(&mut body_rewriter, &mut block);
-
-    quote! {
-        #(#attrs)*
-        #fn_token #name #impl_generics (#ctx_ident: &mut ::yew::functional::HookContext, #arg) -> #return_type
-        #where_clause
-        {
-            #block
-        }
-    }
-}
-
 pub fn function_component_impl(
     name: FunctionComponentName,
     mut component: FunctionComponent,
 ) -> syn::Result<TokenStream> {
     component.merge_component_name(name)?;
 
-    let func = print_fn(&component);
-
-    let into_comp_generics = component.create_into_component_generics();
-    let component_attrs = component.filter_attrs_for_component_struct();
-    let component_impl_attrs = component.filter_attrs_for_component_impl();
-    let phantom_generics = component.phantom_generics();
-    let component_name = component.component_name();
-    let fn_name = component.inner_fn_ident();
-
-    let FunctionComponent {
-        props_type,
-        generics,
-        vis,
-        ..
-    } = component;
-    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-    let fn_generics = ty_generics.as_turbofish();
-
-    let component_props = Ident::new("props", Span::mixed_site());
-    let ctx_ident = Ident::new("ctx", Span::mixed_site());
-
-    let into_comp_impl = {
-        let (impl_generics, ty_generics, where_clause) = into_comp_generics.split_for_impl();
-
-        quote! {
-            impl #impl_generics ::yew::html::IntoComponent for #component_name #ty_generics #where_clause {
-                type Properties = #props_type;
-                type Component = ::yew::functional::FunctionComponent<Self>;
-            }
-        }
-    };
+    let base_comp_impl = component.print_base_component_impl();
+    let debug_impl = component.print_debug_impl();
+    let provider_fn_impl = component.print_fn_provider_impl();
+    let struct_def = component.print_struct_def();
 
     let quoted = quote! {
-        #(#component_attrs)*
-        #[allow(unused_parens)]
-        #vis struct #component_name #generics #where_clause {
-            _marker: ::std::marker::PhantomData<(#phantom_generics)>,
-        }
+        #struct_def
 
-        // we cannot disable any lints here because it will be applied to the function body
-        // as well.
-        #(#component_impl_attrs)*
-        impl #impl_generics ::yew::functional::FunctionProvider for #component_name #ty_generics #where_clause {
-            type Properties = #props_type;
-
-            fn run(#ctx_ident: &mut ::yew::functional::HookContext, #component_props: &Self::Properties) -> ::yew::html::HtmlResult {
-                #func
-
-                ::yew::html::IntoHtmlResult::into_html_result(#fn_name #fn_generics (#ctx_ident, #component_props))
-            }
-        }
-
-        #into_comp_impl
+        #provider_fn_impl
+        #debug_impl
+        #base_comp_impl
     };
 
     Ok(quoted)

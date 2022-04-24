@@ -1,7 +1,10 @@
+use std::rc::Rc;
+
 use crate::callback::Callback;
 use crate::functional::{hook, use_memo};
 
-/// Get a immutable reference to a memoized `Callback`.
+/// Get a immutable reference to a memoized `Callback`. Its state persists across renders.
+/// It will be recreated only if any of the dependencies changes value.
 ///
 /// Memoization means it will only get recreated when provided dependencies update/change.
 /// This is useful when passing callbacks to optimized child components that rely on
@@ -37,15 +40,17 @@ use crate::functional::{hook, use_memo};
 ///     // This callback depends on (), so it's created only once, then MyComponent
 ///     // will be rendered only once even when you click the button mutiple times.
 ///     let callback = use_callback(
-///         move |name| format!("Hello, {}!", name),
+///         move |name, _| format!("Hello, {}!", name),
 ///         ()
 ///     );
 ///
-///     // It can also be used for events.
+///     // It can also be used for events, this callback depends on `counter`.
 ///     let oncallback = {
 ///         let counter = counter.clone();
 ///         use_callback(
-///             move |_e| (),
+///             move |_e, counter| {
+///                 let _ = **counter;
+///             },
 ///             counter
 ///         )
 ///     };
@@ -68,8 +73,18 @@ pub fn use_callback<IN, OUT, F, D>(f: F, deps: D) -> Callback<IN, OUT>
 where
     IN: 'static,
     OUT: 'static,
-    F: Fn(IN) -> OUT + 'static,
+    F: Fn(IN, &D) -> OUT + 'static,
     D: PartialEq + 'static,
 {
-    (*use_memo(move |_| Callback::from(f), deps)).clone()
+    let deps = Rc::new(deps);
+
+    (*use_memo(
+        move |deps| {
+            let deps = deps.clone();
+            let f = move |value: IN| f(value, deps.as_ref());
+            Callback::from(f)
+        },
+        deps,
+    ))
+    .clone()
 }

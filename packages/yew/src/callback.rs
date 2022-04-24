@@ -9,11 +9,7 @@ use std::fmt;
 use std::rc::Rc;
 
 /// Universal callback wrapper.
-/// <aside class="warning">
-/// Use callbacks carefully, because if you call one from the `update` loop
-/// of a `Component` (even from JS) it will delay a message until next.
-/// Callbacks should be used from JS callbacks or `setTimeout` calls.
-/// </aside>
+///
 /// An `Rc` wrapper is used to make it cloneable.
 pub struct Callback<IN, OUT = ()> {
     /// A callback which can be called multiple times

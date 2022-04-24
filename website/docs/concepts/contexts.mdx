@@ -134,7 +134,7 @@ fn App() -> Html {
 #### Function components
 
 `use_context` hook is used to consume contexts in function components.
-See [docs for use_context](function-components/hooks/use-context.mdx) to learn more.
+See [docs for use_context](https://yew-rs-api.web.app/next/yew/functional/fn.use_context.html) to learn more.
 
 #### Struct components
 
@@ -164,7 +164,7 @@ You should refactor the `Layout` component to take children as props and display
 
 Because of Rust's ownership rules, a context cannot have a method that takes `&mut self` that can be called by children.
 In order to mutate a context's value, we must combine it with a reducer. This is done by using the
-[`use_reducer`](./function-components/hooks/use-reducer.mdx) hook.
+[`use_reducer`](https://yew-rs-api.web.app/next/yew/functional/fn.use_reducer.html) hook.
 
 The [contexts example](https://github.com/yewstack/yew/tree/master/examples/contexts) demonstrates mutable contexts
 with the help of contexts
