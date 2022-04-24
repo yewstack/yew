@@ -297,11 +297,19 @@ impl VTag {
     }
 
     /// Returns a mutable reference to the children of this [VTag], if the node can have
-    // children
+    /// children
     pub fn children_mut(&mut self) -> Option<&mut VList> {
         match &mut self.inner {
             VTagInner::Other { children, .. } => Some(children),
             _ => None,
+        }
+    }
+
+    /// Returns the children of this [VTag]
+    pub fn into_children(self) -> VList {
+        match self.inner {
+            VTagInner::Other { children, .. } => children,
+            _ => VList::new(),
         }
     }
 

@@ -9,7 +9,7 @@ edition = "2021"
 yew = { path = "../../packages/yew", features = ["ssr", "hydration"] }
 reqwest = { version = "0.11.8", features = ["json"] }
 serde = { version = "1.0.132", features = ["derive"] }
-uuid = { version = "0.8.2", features = ["serde"] }
+uuid = { version = "1.0.0", features = ["serde"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4"
