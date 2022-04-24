@@ -4,7 +4,7 @@ use web_sys::Element;
 
 use super::{test_log, BNode, BSubtree};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, NodeRef};
+use crate::html::{AnyScope, DomPosition};
 use crate::virtual_dom::{Key, VPortal};
 
 /// The bundle implementation to [VPortal].
@@ -15,7 +15,7 @@ pub struct BPortal {
     /// The element under which the content is inserted.
     host: Element,
     /// The next sibling after the inserted content
-    inner_sibling: NodeRef,
+    inner_sibling: DomPosition,
     /// The inserted node
     node: Box<BNode>,
 }
@@ -26,7 +26,7 @@ impl ReconcileTarget for BPortal {
         self.node.detach(&self.inner_root, &self.host, false);
     }
 
-    fn shift(&self, _next_parent: &Element, _next_sibling: NodeRef) {
+    fn shift(&self, _next_parent: &Element, _next_sibling: DomPosition) {
         // portals have nothing in it's original place of DOM, we also do nothing.
     }
 }
@@ -39,8 +39,8 @@ impl Reconcilable for VPortal {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        host_next_sibling: NodeRef,
-    ) -> (NodeRef, Self::Bundle) {
+        host_next_sibling: DomPosition,
+    ) -> (DomPosition, Self::Bundle) {
         let Self {
             host,
             inner_sibling,
@@ -64,9 +64,9 @@ impl Reconcilable for VPortal {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         bundle: &mut BNode,
-    ) -> NodeRef {
+    ) -> DomPosition {
         match bundle {
             BNode::Portal(portal) => {
                 self.reconcile(root, parent_scope, parent, next_sibling, portal)
@@ -80,9 +80,9 @@ impl Reconcilable for VPortal {
         _root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         portal: &mut Self::Bundle,
-    ) -> NodeRef {
+    ) -> DomPosition {
         let Self {
             host,
             inner_sibling,

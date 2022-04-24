@@ -16,16 +16,16 @@ use crate::dom_bundle::BSubtree;
 use crate::dom_bundle::Fragment;
 #[cfg(any(feature = "ssr", feature = "csr"))]
 use crate::html::{AnyScope, Scope};
-use crate::html::{BaseComponent, ErasedComponentRef};
+use crate::html::{BaseComponent, ErasedHtmlRef};
 #[cfg(any(feature = "hydration", feature = "csr"))]
-use crate::html::{NodeRef, Scoped};
+use crate::html::{DomPosition, Scoped};
 use crate::ComponentRef;
 
 /// A virtual component.
 pub struct VComp {
     pub(crate) type_id: TypeId,
     pub(crate) mountable: Box<dyn Mountable>,
-    pub(crate) comp_ref: ErasedComponentRef,
+    pub(crate) comp_ref: ErasedHtmlRef,
     pub(crate) key: Option<Key>,
 }
 
@@ -58,19 +58,19 @@ pub(crate) trait Mountable {
     fn mount(
         self: Box<Self>,
         root: &BSubtree,
-        node_ref: NodeRef,
-        comp_ref: ErasedComponentRef,
+        node_ref: DomPosition,
+        comp_ref: ErasedHtmlRef,
         parent_scope: &AnyScope,
         parent: Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
     ) -> Box<dyn Scoped>;
 
     #[cfg(feature = "csr")]
     fn reuse(
         self: Box<Self>,
-        comp_ref: ErasedComponentRef,
+        comp_ref: ErasedHtmlRef,
         scope: &dyn Scoped,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
     );
 
     #[cfg(feature = "ssr")]
@@ -88,8 +88,8 @@ pub(crate) trait Mountable {
         parent_scope: &AnyScope,
         parent: Element,
         fragment: &mut Fragment,
-        node_ref: NodeRef,
-        comp_ref: ErasedComponentRef,
+        node_ref: DomPosition,
+        comp_ref: ErasedHtmlRef,
     ) -> Box<dyn Scoped>;
 }
 
@@ -115,11 +115,11 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     fn mount(
         self: Box<Self>,
         root: &BSubtree,
-        node_ref: NodeRef,
-        comp_ref: ErasedComponentRef,
+        node_ref: DomPosition,
+        comp_ref: ErasedHtmlRef,
         parent_scope: &AnyScope,
         parent: Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
         scope.mount_in_place(
@@ -137,9 +137,9 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     #[cfg(feature = "csr")]
     fn reuse(
         self: Box<Self>,
-        comp_ref: ErasedComponentRef,
+        comp_ref: ErasedHtmlRef,
         scope: &dyn Scoped,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
     ) {
         let scope: Scope<COMP> = scope.to_any().downcast::<COMP>();
         scope.reuse(self.props, comp_ref, next_sibling);
@@ -168,8 +168,8 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         parent_scope: &AnyScope,
         parent: Element,
         fragment: &mut Fragment,
-        node_ref: NodeRef,
-        comp_ref: ErasedComponentRef,
+        node_ref: DomPosition,
+        comp_ref: ErasedHtmlRef,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
         scope.hydrate_in_place(root, parent, fragment, node_ref, comp_ref, self.props);

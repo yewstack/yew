@@ -6,9 +6,8 @@ use web_sys::Element;
 #[cfg(feature = "hydration")]
 use super::Fragment;
 use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::AnyScope;
+use crate::html::{AnyScope, DomPosition};
 use crate::virtual_dom::{Key, VSuspense};
-use crate::NodeRef;
 
 #[derive(Debug)]
 enum Fallback {
@@ -60,7 +59,7 @@ impl ReconcileTarget for BSuspense {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) {
         match self.fallback.as_ref() {
             Some(Fallback::Bundle(bundle)) => {
                 bundle.shift(next_parent, next_sibling);
@@ -84,8 +83,8 @@ impl Reconcilable for VSuspense {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
-    ) -> (NodeRef, Self::Bundle) {
+        next_sibling: DomPosition,
+    ) -> (DomPosition, Self::Bundle) {
         let VSuspense {
             children,
             fallback,
@@ -100,7 +99,7 @@ impl Reconcilable for VSuspense {
         // tree while rendering fallback UI into the original place where children resides in.
         if suspended {
             let (_child_ref, children_bundle) =
-                children.attach(root, parent_scope, &detached_parent, NodeRef::default());
+                children.attach(root, parent_scope, &detached_parent, DomPosition::default());
             let (fallback_ref, fallback) =
                 fallback.attach(root, parent_scope, parent, next_sibling);
             (
@@ -132,9 +131,9 @@ impl Reconcilable for VSuspense {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         bundle: &mut BNode,
-    ) -> NodeRef {
+    ) -> DomPosition {
         match bundle {
             // We only preserve the child state if they are the same suspense.
             BNode::Suspense(m) if m.key == self.key => {
@@ -149,9 +148,9 @@ impl Reconcilable for VSuspense {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         suspense: &mut Self::Bundle,
-    ) -> NodeRef {
+    ) -> DomPosition {
         let VSuspense {
             children,
             fallback: vfallback,
@@ -171,7 +170,7 @@ impl Reconcilable for VSuspense {
                     root,
                     parent_scope,
                     &suspense.detached_parent,
-                    NodeRef::default(),
+                    DomPosition::default(),
                     children_bundle,
                 );
 
@@ -181,7 +180,7 @@ impl Reconcilable for VSuspense {
                     }
                     #[cfg(feature = "hydration")]
                     Fallback::Fragment(fragment) => {
-                        let node_ref = NodeRef::default();
+                        let node_ref = DomPosition::default();
                         match fragment.front().cloned() {
                             Some(m) => node_ref.set(Some(m)),
                             None => node_ref.link(next_sibling),
@@ -197,13 +196,13 @@ impl Reconcilable for VSuspense {
             // Freshly suspended. Shift children into the detached parent, then add fallback to the
             // DOM
             (true, None) => {
-                children_bundle.shift(&suspense.detached_parent, NodeRef::default());
+                children_bundle.shift(&suspense.detached_parent, DomPosition::default());
 
                 children.reconcile_node(
                     root,
                     parent_scope,
                     &suspense.detached_parent,
-                    NodeRef::default(),
+                    DomPosition::default(),
                     children_bundle,
                 );
                 // first render of fallback
@@ -248,7 +247,7 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
-        ) -> (NodeRef, Self::Bundle) {
+        ) -> (DomPosition, Self::Bundle) {
             let detached_parent = document()
                 .create_element("div")
                 .expect("failed to create detached element");
@@ -274,7 +273,7 @@ mod feat_hydration {
             let node_ref = fallback_fragment
                 .front()
                 .cloned()
-                .map(NodeRef::new)
+                .map(DomPosition::new)
                 .unwrap_or_default();
 
             (

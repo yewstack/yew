@@ -1,7 +1,7 @@
 use web_sys::Element;
 
 use super::{BNode, BSubtree};
-use crate::html::{AnyScope, NodeRef};
+use crate::html::{AnyScope, DomPosition};
 
 /// A Reconcile Target.
 ///
@@ -16,7 +16,7 @@ pub(super) trait ReconcileTarget {
     /// Move elements from one parent to another parent.
     /// This is for example used by `VSuspense` to preserve component state without detaching
     /// (which destroys component state).
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef);
+    fn shift(&self, next_parent: &Element, next_sibling: DomPosition);
 }
 
 /// This trait provides features to update a tree by calculating a difference against another tree.
@@ -38,8 +38,8 @@ pub(super) trait Reconcilable {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
-    ) -> (NodeRef, Self::Bundle);
+        next_sibling: DomPosition,
+    ) -> (DomPosition, Self::Bundle);
 
     /// Scoped diff apply to other tree.
     ///
@@ -61,18 +61,18 @@ pub(super) trait Reconcilable {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         bundle: &mut BNode,
-    ) -> NodeRef;
+    ) -> DomPosition;
 
     fn reconcile(
         self,
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         bundle: &mut Self::Bundle,
-    ) -> NodeRef;
+    ) -> DomPosition;
 
     /// Replace an existing bundle by attaching self and detaching the existing one
     fn replace(
@@ -81,9 +81,9 @@ pub(super) trait Reconcilable {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         bundle: &mut BNode,
-    ) -> NodeRef
+    ) -> DomPosition
     where
         Self: Sized,
         Self::Bundle: Into<BNode>,
@@ -114,7 +114,7 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
-        ) -> (NodeRef, Self::Bundle);
+        ) -> (DomPosition, Self::Bundle);
     }
 }
 

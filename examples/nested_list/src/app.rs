@@ -22,8 +22,8 @@ impl Component for App {
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
             hovered: Hovered::None,
-            list_link: ComponentRef::new(),
-            sub_list_link: ComponentRef::new(),
+            list_link: HtmlRef::new(),
+            sub_list_link: HtmlRef::new(),
         }
     }
 

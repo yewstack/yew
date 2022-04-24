@@ -283,6 +283,7 @@ impl FunctionComponent {
             impl #impl_generics ::yew::html::BaseComponent for #component_name #ty_generics #where_clause {
                 type Message = ();
                 type Properties = #props_type;
+                type Reference = ::yew::html::NoReference;
 
                 #[inline]
                 fn create(ctx: &::yew::html::Context<Self>) -> Self {

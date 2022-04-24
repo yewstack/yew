@@ -6,7 +6,7 @@ use std::rc::Rc;
 use web_sys::Element;
 
 use crate::dom_bundle::BSubtree;
-use crate::html::{BaseComponent, ErasedComponentRef, NodeRef, Scope, Scoped};
+use crate::html::{BaseComponent, DomPosition, ErasedHtmlRef, Scope, Scoped};
 
 /// An instance of an application.
 #[derive(Debug)]
@@ -33,9 +33,9 @@ where
         app.scope.mount_in_place(
             hosting_root,
             host,
-            NodeRef::default(),
-            NodeRef::default(),
-            ErasedComponentRef::default(),
+            DomPosition::default(),
+            DomPosition::default(),
+            ErasedHtmlRef::default(),
             props,
         );
 
@@ -88,8 +88,8 @@ mod feat_hydration {
                 hosting_root,
                 host.clone(),
                 &mut fragment,
-                NodeRef::default(),
-                ErasedComponentRef::default(),
+                DomPosition::default(),
+                ErasedHtmlRef::default(),
                 props,
             );
 

@@ -7,17 +7,16 @@ use std::fmt;
 use web_sys::Element;
 
 use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, Scoped};
+use crate::html::{AnyScope, DomPosition, Scoped};
 use crate::virtual_dom::{Key, VComp};
-use crate::NodeRef;
 
 /// A virtual component. Compare with [VComp].
 pub(super) struct BComp {
     type_id: TypeId,
     scope: Box<dyn Scoped>,
-    // A internal NodeRef passed around to track this components position. This
+    // A internal DomPosition passed around to track this components position. This
     // is "stable", i.e. does not change when reconciled.
-    internal_ref: NodeRef,
+    internal_ref: DomPosition,
     key: Option<Key>,
 }
 
@@ -41,7 +40,7 @@ impl ReconcileTarget for BComp {
         self.scope.destroy_boxed(parent_to_detach);
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) {
         self.scope.shift_node(next_parent.clone(), next_sibling);
     }
 }
@@ -54,15 +53,15 @@ impl Reconcilable for VComp {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
-    ) -> (NodeRef, Self::Bundle) {
+        next_sibling: DomPosition,
+    ) -> (DomPosition, Self::Bundle) {
         let VComp {
             type_id,
             mountable,
             comp_ref,
             key,
         } = self;
-        let internal_ref = NodeRef::default();
+        let internal_ref = DomPosition::default();
         let scope = mountable.mount(
             root,
             internal_ref.clone(),
@@ -88,9 +87,9 @@ impl Reconcilable for VComp {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         bundle: &mut BNode,
-    ) -> NodeRef {
+    ) -> DomPosition {
         match bundle {
             // If the existing bundle is the same type, reuse it and update its properties
             BNode::Comp(ref mut bcomp)
@@ -107,9 +106,9 @@ impl Reconcilable for VComp {
         _root: &BSubtree,
         _parent_scope: &AnyScope,
         _parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         bcomp: &mut Self::Bundle,
-    ) -> NodeRef {
+    ) -> DomPosition {
         let VComp {
             mountable,
             comp_ref,
@@ -135,14 +134,14 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
-        ) -> (NodeRef, Self::Bundle) {
+        ) -> (DomPosition, Self::Bundle) {
             let VComp {
                 type_id,
                 mountable,
                 comp_ref,
                 key,
             } = self;
-            let internal_ref = NodeRef::default();
+            let internal_ref = DomPosition::default();
 
             let scoped = mountable.hydrate(
                 root.clone(),
@@ -176,11 +175,9 @@ mod tests {
 
     use super::*;
     use crate::dom_bundle::{Bundle, Reconcilable, ReconcileTarget};
-    use crate::html::ErasedComponentRef;
+    use crate::html::{ErasedHtmlRef, HtmlRef};
     use crate::virtual_dom::{Key, VChild, VNode};
-    use crate::{
-        html, scheduler, Children, Component, ComponentRef, Context, Html, NodeRef, Properties,
-    };
+    use crate::{html, scheduler, Children, Component, Context, Html, Properties};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -216,12 +213,12 @@ mod tests {
         let (root, scope, parent) = setup_parent();
 
         let comp = html! { <Comp></Comp> };
-        let (_, mut bundle) = comp.attach(&root, &scope, &parent, NodeRef::default());
+        let (_, mut bundle) = comp.attach(&root, &scope, &parent, DomPosition::default());
         scheduler::start_now();
 
         for _ in 0..10000 {
             let node = html! { <Comp></Comp> };
-            node.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut bundle);
+            node.reconcile_node(&root, &scope, &parent, DomPosition::default(), &mut bundle);
             scheduler::start_now();
         }
     }
@@ -276,8 +273,8 @@ mod tests {
 
     #[test]
     fn set_component_node_ref() {
-        let test_node_ref = ComponentRef::new();
-        let internal_node_ref = <ErasedComponentRef as From<_>>::from(Some(test_node_ref.clone()));
+        let test_node_ref = HtmlRef::new();
+        let internal_node_ref = <ErasedHtmlRef as From<_>>::from(Some(test_node_ref.clone()));
         let check_node_ref = |vnode: VNode| {
             let vcomp = match vnode {
                 VNode::VComp(vcomp) => vcomp,
@@ -380,7 +377,7 @@ mod tests {
         // clear parent
         parent.set_inner_html("");
 
-        node.attach(root, scope, parent, NodeRef::default());
+        node.attach(root, scope, parent, DomPosition::default());
         scheduler::start_now();
         parent.inner_html()
     }
@@ -434,9 +431,9 @@ mod tests {
     fn reset_node_ref() {
         let (root, scope, parent) = setup_parent();
 
-        let node_ref = ComponentRef::default();
+        let node_ref = HtmlRef::default();
         let elem = html! { <Comp ref={&node_ref}></Comp> };
-        let (_, elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
+        let (_, elem) = elem.attach(&root, &scope, &parent, DomPosition::default());
         scheduler::start_now();
         assert!(node_ref.get().is_some());
         elem.detach(&root, &parent, false);
@@ -449,17 +446,17 @@ mod tests {
         let (root, scope, parent) = setup_parent();
 
         let mut bundle = Bundle::new();
-        let node_ref_a = ComponentRef::default();
-        let node_ref_b = ComponentRef::default();
+        let node_ref_a = HtmlRef::default();
+        let node_ref_b = HtmlRef::default();
         let elem = html! { <Comp ref={&node_ref_a}></Comp> };
-        let node_a = bundle.reconcile(&root, &scope, &parent, NodeRef::default(), elem);
+        let node_a = bundle.reconcile(&root, &scope, &parent, DomPosition::default(), elem);
         scheduler::start_now();
         let node_a = node_a.get().unwrap();
 
         assert!(node_ref_a.get().is_some(), "node_ref_a should be bound");
 
         let elem = html! { <Comp ref={&node_ref_b}></Comp> };
-        let node_b = bundle.reconcile(&root, &scope, &parent, NodeRef::default(), elem);
+        let node_b = bundle.reconcile(&root, &scope, &parent, DomPosition::default(), elem);
         scheduler::start_now();
         let node_b = node_b.get().unwrap();
 

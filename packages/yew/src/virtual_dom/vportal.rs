@@ -3,14 +3,14 @@
 use web_sys::{Element, Node};
 
 use super::VNode;
-use crate::html::NodeRef;
+use crate::html::DomPosition;
 
 #[derive(Debug, Clone)]
 pub struct VPortal {
     /// The element under which the content is inserted.
     pub host: Element,
     /// The next sibling after the inserted content. Most be a child of `host`.
-    pub inner_sibling: NodeRef,
+    pub inner_sibling: DomPosition,
     /// The inserted node
     pub node: Box<VNode>,
 }
@@ -20,7 +20,7 @@ impl VPortal {
     pub fn new(content: VNode, host: Element) -> Self {
         Self {
             host,
-            inner_sibling: NodeRef::default(),
+            inner_sibling: DomPosition::default(),
             node: Box::new(content),
         }
     }
@@ -32,7 +32,7 @@ impl VPortal {
         Self {
             host,
             inner_sibling: {
-                let sib_ref = NodeRef::default();
+                let sib_ref = DomPosition::default();
                 sib_ref.set(inner_sibling);
                 sib_ref
             },

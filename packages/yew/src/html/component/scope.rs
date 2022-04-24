@@ -52,6 +52,11 @@ impl AnyScope {
     }
 
     /// Attempts to downcast into a typed scope
+    pub(crate) fn try_downcast_ref<COMP: BaseComponent>(&self) -> Option<&Scope<COMP>> {
+        self.typed_scope.downcast_ref::<Scope<COMP>>()
+    }
+
+    /// Attempts to downcast into a typed scope
     ///
     /// # Panics
     ///
@@ -64,7 +69,7 @@ impl AnyScope {
     ///
     /// Returns [`None`] if the self value can't be cast into the target type.
     pub fn try_downcast<COMP: BaseComponent>(&self) -> Option<Scope<COMP>> {
-        self.typed_scope.downcast_ref::<Scope<COMP>>().cloned()
+        self.try_downcast_ref().cloned()
     }
 
     /// Attempts to find a parent scope of a certain type
@@ -188,7 +193,7 @@ mod feat_ssr {
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
-    use crate::html::ErasedComponentRef;
+    use crate::html::ErasedHtmlRef;
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
 
@@ -208,7 +213,7 @@ mod feat_ssr {
                     initial_render_state: state,
                     props,
                     scope: self.clone(),
-                    comp_ref: ErasedComponentRef::default(),
+                    comp_ref: ErasedHtmlRef::default(),
                 }),
                 Box::new(RenderRunner {
                     state: self.state.clone(),
@@ -404,7 +409,7 @@ mod feat_csr {
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
-    use crate::html::{ErasedComponentRef, NodeRef};
+    use crate::html::{DomPosition, ErasedHtmlRef};
     use crate::scheduler;
 
     impl AnyScope {
@@ -428,9 +433,9 @@ mod feat_csr {
 
             root: BSubtree,
             parent: Element,
-            next_sibling: NodeRef,
-            node_ref: NodeRef,
-            comp_ref: ErasedComponentRef,
+            next_sibling: DomPosition,
+            node_ref: DomPosition,
+            comp_ref: ErasedHtmlRef,
             props: Rc<COMP::Properties>,
         ) {
             let bundle = Bundle::new();
@@ -462,8 +467,8 @@ mod feat_csr {
         pub(crate) fn reuse(
             &self,
             props: Rc<COMP::Properties>,
-            comp_ref: ErasedComponentRef,
-            next_sibling: NodeRef,
+            comp_ref: ErasedHtmlRef,
+            next_sibling: DomPosition,
         ) {
             #[cfg(debug_assertions)]
             super::super::log_event(self.id, "reuse");
@@ -477,7 +482,7 @@ mod feat_csr {
         /// Get the render state if it hasn't already been destroyed
         fn render_state(&self) -> Option<Ref<'_, ComponentRenderState>>;
         /// Shift the node associated with this scope to a new place
-        fn shift_node(&self, parent: Element, next_sibling: NodeRef);
+        fn shift_node(&self, parent: Element, next_sibling: DomPosition);
         /// Process an event to destroy a component
         fn destroy(self, parent_to_detach: bool);
         fn destroy_boxed(self: Box<Self>, parent_to_detach: bool);
@@ -513,7 +518,7 @@ mod feat_csr {
             self.destroy(parent_to_detach)
         }
 
-        fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
+        fn shift_node(&self, parent: Element, next_sibling: DomPosition) {
             let mut state_ref = self.state.borrow_mut();
             if let Some(render_state) = state_ref.as_mut() {
                 render_state.render_state.shift(parent, next_sibling)
@@ -530,7 +535,7 @@ mod feat_hydration {
     use super::*;
     use crate::dom_bundle::{BSubtree, Fragment};
     use crate::html::component::lifecycle::{ComponentRenderState, CreateRunner, RenderRunner};
-    use crate::html::{ErasedComponentRef, NodeRef};
+    use crate::html::{DomPosition, ErasedHtmlRef};
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
 
@@ -551,8 +556,8 @@ mod feat_hydration {
             root: BSubtree,
             parent: Element,
             fragment: &mut Fragment,
-            node_ref: NodeRef,
-            comp_ref: ErasedComponentRef,
+            node_ref: DomPosition,
+            comp_ref: ErasedHtmlRef,
             props: Rc<COMP::Properties>,
         ) {
             // This is very helpful to see which component is failing during hydration
@@ -572,7 +577,7 @@ mod feat_hydration {
 
             let fragment = Fragment::collect_between(fragment, &collectable, &parent);
             node_ref.set(fragment.front().cloned());
-            let next_sibling = NodeRef::default();
+            let next_sibling = DomPosition::default();
 
             let state = ComponentRenderState::Hydration {
                 root,

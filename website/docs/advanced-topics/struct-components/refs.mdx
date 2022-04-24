@@ -65,7 +65,7 @@ impl Component for Light {
 #[function_component]
 fn Room() -> Html {
     // highlight-next-line
-    let light_ref: ComponentRef<Light> = use_component_ref();
+    let light_ref: ComponentRef<Light> = use_html_ref();
     let on_toggle = {
         let light_ref = light_ref.clone();
         Callback::from(move |_| {

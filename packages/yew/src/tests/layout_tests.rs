@@ -1,8 +1,7 @@
 use gloo::console::log;
-use yew::NodeRef;
 
 use crate::dom_bundle::{BSubtree, Bundle};
-use crate::html::AnyScope;
+use crate::html::{AnyScope, DomPosition};
 use crate::virtual_dom::VNode;
 use crate::{scheduler, Component, Context, Html};
 
@@ -45,7 +44,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     parent_element.append_child(&end_node).unwrap();
 
     // Tests each layout independently
-    let next_sibling = NodeRef::new(end_node.into());
+    let next_sibling = DomPosition::new(end_node.into());
     for layout in layouts.iter() {
         // Apply the layout
         let vnode = layout.node.clone();

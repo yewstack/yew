@@ -2,7 +2,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::functional::{hook, use_state, Hook, HookContext};
-use crate::{Component, ComponentRef, NodeRef};
+use crate::html::{ErasedStorage, HtmlRef};
+use crate::NodeRef;
 
 struct UseMutRef<F> {
     init_fn: F,
@@ -138,10 +139,10 @@ pub fn use_node_ref() -> NodeRef {
     (*use_state(NodeRef::default)).clone()
 }
 
-/// This hook is used for obtaining a [`ComponentRef`].
+/// This hook is used for obtaining a [`HtmlRef`].
 /// The reference persists across renders, but a rerender is not triggered if the underlying ref
 /// changes.
 #[hook]
-pub fn use_component_ref<COMP: Component>() -> ComponentRef<COMP> {
-    (*use_state(ComponentRef::default)).clone()
+pub fn use_html_ref<T: 'static + ErasedStorage>() -> HtmlRef<T> {
+    (*use_state(HtmlRef::default)).clone()
 }

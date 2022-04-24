@@ -1,9 +1,9 @@
 use std::rc::Rc;
 
 use super::super::callback::Callback;
-use super::{NodeRef, Scope};
+use super::{ErasedStorage, HtmlRef, Scope};
 use crate::virtual_dom::AttrValue;
-use crate::{BaseComponent, ComponentRef};
+use crate::BaseComponent;
 
 /// Marker trait for types that the [`html!`](macro@crate::html) macro may clone implicitly.
 pub trait ImplicitClone: Clone {}
@@ -11,8 +11,7 @@ pub trait ImplicitClone: Clone {}
 impl<T: ImplicitClone> ImplicitClone for Option<T> {}
 impl<T: ?Sized> ImplicitClone for Rc<T> {}
 
-impl ImplicitClone for NodeRef {}
-impl<Comp: BaseComponent> ImplicitClone for ComponentRef<Comp> {}
+impl<T: ErasedStorage> ImplicitClone for HtmlRef<T> {}
 impl<Comp: BaseComponent> ImplicitClone for Scope<Comp> {}
 // TODO there are still a few missing
 

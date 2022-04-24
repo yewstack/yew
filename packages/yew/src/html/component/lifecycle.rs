@@ -13,10 +13,10 @@ use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
 use crate::dom_bundle::{BSubtree, Bundle};
 #[cfg(feature = "csr")]
-use crate::html::NodeRef;
+use crate::html::DomPosition;
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
-use crate::html::{ErasedComponentRef, Html, RenderError};
+use crate::html::{ErasedHtmlRef, Html, RenderError};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{BaseSuspense, Suspension};
 use crate::{Callback, Context, HtmlResult};
@@ -27,14 +27,14 @@ pub(crate) enum ComponentRenderState {
         bundle: Bundle,
         root: BSubtree,
         parent: Element,
-        next_sibling: NodeRef,
-        node_ref: NodeRef,
+        next_sibling: DomPosition,
+        node_ref: DomPosition,
     },
     #[cfg(feature = "hydration")]
     Hydration {
         parent: Element,
-        next_sibling: NodeRef,
-        node_ref: NodeRef,
+        next_sibling: DomPosition,
+        node_ref: DomPosition,
         root: BSubtree,
         fragment: Fragment,
     },
@@ -97,7 +97,7 @@ impl std::fmt::Debug for ComponentRenderState {
 
 #[cfg(feature = "csr")]
 impl ComponentRenderState {
-    pub(crate) fn shift(&mut self, next_parent: Element, next_next_sibling: NodeRef) {
+    pub(crate) fn shift(&mut self, next_parent: Element, next_next_sibling: DomPosition) {
         match self {
             #[cfg(feature = "csr")]
             Self::Render {
@@ -140,7 +140,7 @@ where
     component: COMP,
     context: Context<COMP>,
     #[allow(dead_code)]
-    comp_ref: ErasedComponentRef,
+    comp_ref: ErasedHtmlRef,
 }
 
 /// A trait to provide common,
@@ -157,7 +157,7 @@ pub(crate) trait Stateful {
 
     fn flush_messages(&mut self) -> bool;
     #[cfg(feature = "csr")]
-    fn props_changed(&mut self, props: Rc<dyn Any>, comp_ref: ErasedComponentRef) -> bool;
+    fn props_changed(&mut self, props: Rc<dyn Any>, comp_ref: ErasedHtmlRef) -> bool;
 
     fn as_any(&self) -> &dyn Any;
     fn as_any_mut(&mut self) -> &mut dyn Any;
@@ -173,14 +173,14 @@ where
 
     fn rendered(&mut self, first_render: bool) {
         #[cfg(feature = "csr")]
-        self.comp_ref.set(Some(self.any_scope()));
+        self.comp_ref.set(Some(self.context.link().clone()));
         self.component.rendered(&self.context, first_render)
     }
 
     fn destroy(&mut self) {
         self.component.destroy(&self.context);
         #[cfg(feature = "csr")]
-        self.comp_ref.set(None);
+        self.comp_ref.set(Option::<Scope<COMP>>::None);
     }
 
     fn any_scope(&self) -> AnyScope {
@@ -199,10 +199,10 @@ where
     }
 
     #[cfg(feature = "csr")]
-    fn props_changed(&mut self, props: Rc<dyn Any>, next_comp_ref: ErasedComponentRef) -> bool {
+    fn props_changed(&mut self, props: Rc<dyn Any>, next_comp_ref: ErasedHtmlRef) -> bool {
         // When components are updated, a new node ref could have been passed in
         self.comp_ref
-            .morph_into(next_comp_ref, || self.context.link().clone().into());
+            .morph_into::<Scope<COMP>, _>(next_comp_ref, || self.context.link().clone().into());
 
         let props = match Rc::downcast::<COMP::Properties>(props) {
             Ok(m) => m,
@@ -244,7 +244,7 @@ impl ComponentState {
         initial_render_state: ComponentRenderState,
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
-        comp_ref: ErasedComponentRef,
+        comp_ref: ErasedHtmlRef,
     ) -> Self {
         let comp_id = scope.id;
         #[cfg(feature = "hydration")]
@@ -297,7 +297,7 @@ pub(crate) struct CreateRunner<COMP: BaseComponent> {
     pub initial_render_state: ComponentRenderState,
     pub props: Rc<COMP::Properties>,
     pub scope: Scope<COMP>,
-    pub comp_ref: ErasedComponentRef,
+    pub comp_ref: ErasedHtmlRef,
 }
 
 impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
@@ -322,7 +322,7 @@ pub(crate) enum UpdateEvent {
     Message,
     /// Wraps properties, node ref, and next sibling for a component
     #[cfg(feature = "csr")]
-    Properties(Rc<dyn Any>, ErasedComponentRef, NodeRef),
+    Properties(Rc<dyn Any>, ErasedHtmlRef, DomPosition),
 }
 
 pub(crate) struct UpdateRunner {
@@ -759,9 +759,9 @@ mod tests {
         scope.mount_in_place(
             root,
             parent,
-            NodeRef::default(),
-            NodeRef::default(),
-            ErasedComponentRef::default(),
+            DomPosition::default(),
+            DomPosition::default(),
+            ErasedHtmlRef::default(),
             Rc::new(props),
         );
         crate::scheduler::start_now();

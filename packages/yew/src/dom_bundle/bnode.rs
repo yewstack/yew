@@ -7,7 +7,7 @@ use web_sys::{Element, Node};
 
 use super::{BComp, BList, BPortal, BSubtree, BSuspense, BTag, BText};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, NodeRef};
+use crate::html::{AnyScope, DomPosition};
 use crate::virtual_dom::{Key, VNode};
 
 /// The bundle implementation to [VNode].
@@ -62,7 +62,7 @@ impl ReconcileTarget for BNode {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) {
         match self {
             Self::Tag(ref vtag) => vtag.shift(next_parent, next_sibling),
             Self::Text(ref btext) => btext.shift(next_parent, next_sibling),
@@ -87,8 +87,8 @@ impl Reconcilable for VNode {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
-    ) -> (NodeRef, Self::Bundle) {
+        next_sibling: DomPosition,
+    ) -> (DomPosition, Self::Bundle) {
         match self {
             VNode::VTag(vtag) => {
                 let (node_ref, tag) = vtag.attach(root, parent_scope, parent, next_sibling);
@@ -108,7 +108,7 @@ impl Reconcilable for VNode {
             }
             VNode::VRef(node) => {
                 super::insert_node(&node, parent, next_sibling.get().as_ref());
-                (NodeRef::new(node.clone()), BNode::Ref(node))
+                (DomPosition::new(node.clone()), BNode::Ref(node))
             }
             VNode::VPortal(vportal) => {
                 let (node_ref, portal) = vportal.attach(root, parent_scope, parent, next_sibling);
@@ -127,9 +127,9 @@ impl Reconcilable for VNode {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         bundle: &mut BNode,
-    ) -> NodeRef {
+    ) -> DomPosition {
         self.reconcile(root, parent_scope, parent, next_sibling, bundle)
     }
 
@@ -138,9 +138,9 @@ impl Reconcilable for VNode {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         bundle: &mut BNode,
-    ) -> NodeRef {
+    ) -> DomPosition {
         match self {
             VNode::VTag(vtag) => {
                 vtag.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
@@ -167,7 +167,7 @@ impl Reconcilable for VNode {
                         );
                     }
                 };
-                NodeRef::new(node)
+                DomPosition::new(node)
             }
             VNode::VPortal(vportal) => {
                 vportal.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
@@ -247,7 +247,7 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
-        ) -> (NodeRef, Self::Bundle) {
+        ) -> (DomPosition, Self::Bundle) {
             match self {
                 VNode::VTag(vtag) => {
                     let (node_ref, tag) = vtag.hydrate(root, parent_scope, parent, fragment);

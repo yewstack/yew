@@ -9,7 +9,7 @@ use web_sys::Element;
 
 use super::{test_log, BNode, BSubtree};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, NodeRef};
+use crate::html::{AnyScope, DomPosition};
 use crate::virtual_dom::{Key, VList, VNode, VText};
 
 /// This struct represents a mounted [VList]
@@ -36,7 +36,7 @@ struct NodeWriter<'s> {
     root: &'s BSubtree,
     parent_scope: &'s AnyScope,
     parent: &'s Element,
-    next_sibling: NodeRef,
+    next_sibling: DomPosition,
 }
 
 impl<'s> NodeWriter<'s> {
@@ -148,10 +148,10 @@ impl BList {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         lefts: Vec<VNode>,
         rights: &mut Vec<BNode>,
-    ) -> NodeRef {
+    ) -> DomPosition {
         let mut writer = NodeWriter {
             root,
             parent_scope,
@@ -189,10 +189,10 @@ impl BList {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         left_vdoms: Vec<VNode>,
         rev_bundles: &mut Vec<BNode>,
-    ) -> NodeRef {
+    ) -> DomPosition {
         macro_rules! key {
             ($v:expr) => {
                 $v.key().expect("unkeyed child in fully keyed list")
@@ -380,7 +380,7 @@ impl ReconcileTarget for BList {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) {
         for node in self.rev_children.iter().rev() {
             node.shift(next_parent, next_sibling.clone());
         }
@@ -395,8 +395,8 @@ impl Reconcilable for VList {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
-    ) -> (NodeRef, Self::Bundle) {
+        next_sibling: DomPosition,
+    ) -> (DomPosition, Self::Bundle) {
         let mut self_ = BList::new();
         let node_ref = self.reconcile(root, parent_scope, parent, next_sibling, &mut self_);
         (node_ref, self_)
@@ -407,9 +407,9 @@ impl Reconcilable for VList {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         bundle: &mut BNode,
-    ) -> NodeRef {
+    ) -> DomPosition {
         // 'Forcefully' pretend the existing node is a list. Creates a
         // singleton list if it isn't already.
         let blist = bundle.make_list();
@@ -421,9 +421,9 @@ impl Reconcilable for VList {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         blist: &mut BList,
-    ) -> NodeRef {
+    ) -> DomPosition {
         // Here, we will try to diff the previous list elements with the new
         // ones we want to insert. For that, we will use two lists:
         //  - lefts: new elements to render in the DOM
@@ -472,8 +472,8 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
-        ) -> (NodeRef, Self::Bundle) {
-            let node_ref = NodeRef::default();
+        ) -> (DomPosition, Self::Bundle) {
+            let node_ref = DomPosition::default();
             let mut children = Vec::with_capacity(self.children.len());
 
             for (index, child) in self.children.into_iter().enumerate() {

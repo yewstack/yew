@@ -5,9 +5,8 @@ use gloo_utils::document;
 use web_sys::{Element, Text as TextNode};
 
 use super::{insert_node, BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::AnyScope;
+use crate::html::{AnyScope, DomPosition};
 use crate::virtual_dom::{AttrValue, VText};
-use crate::NodeRef;
 
 /// The bundle implementation to [VText]
 pub(super) struct BText {
@@ -26,7 +25,7 @@ impl ReconcileTarget for BText {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) {
         let node = &self.text_node;
 
         next_parent
@@ -43,12 +42,12 @@ impl Reconcilable for VText {
         _root: &BSubtree,
         _parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
-    ) -> (NodeRef, Self::Bundle) {
+        next_sibling: DomPosition,
+    ) -> (DomPosition, Self::Bundle) {
         let Self { text } = self;
         let text_node = document().create_text_node(&text);
         insert_node(&text_node, parent, next_sibling.get().as_ref());
-        let node_ref = NodeRef::new(text_node.clone().into());
+        let node_ref = DomPosition::new(text_node.clone().into());
         (node_ref, BText { text, text_node })
     }
 
@@ -58,9 +57,9 @@ impl Reconcilable for VText {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         bundle: &mut BNode,
-    ) -> NodeRef {
+    ) -> DomPosition {
         match bundle {
             BNode::Text(btext) => self.reconcile(root, parent_scope, parent, next_sibling, btext),
             _ => self.replace(root, parent_scope, parent, next_sibling, bundle),
@@ -72,15 +71,15 @@ impl Reconcilable for VText {
         _root: &BSubtree,
         _parent_scope: &AnyScope,
         _parent: &Element,
-        _next_sibling: NodeRef,
+        _next_sibling: DomPosition,
         btext: &mut Self::Bundle,
-    ) -> NodeRef {
+    ) -> DomPosition {
         let Self { text } = self;
         let ancestor_text = std::mem::replace(&mut btext.text, text);
         if btext.text != ancestor_text {
             btext.text_node.set_node_value(Some(&btext.text));
         }
-        NodeRef::new(btext.text_node.clone().into())
+        DomPosition::new(btext.text_node.clone().into())
     }
 }
 
@@ -105,7 +104,7 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
-        ) -> (NodeRef, Self::Bundle) {
+        ) -> (DomPosition, Self::Bundle) {
             if let Some(m) = fragment.front().cloned() {
                 // better safe than sorry.
                 if m.node_type() == Node::TEXT_NODE {
@@ -122,7 +121,7 @@ mod feat_hydration {
                         m.set_node_value(Some(self.text.as_ref()));
 
                         return (
-                            NodeRef::new(m.clone().into()),
+                            DomPosition::new(m.clone().into()),
                             BText {
                                 text: self.text,
                                 text_node: m,
@@ -144,7 +143,7 @@ mod feat_hydration {
                 fragment
                     .front()
                     .cloned()
-                    .map(NodeRef::new)
+                    .map(DomPosition::new)
                     .unwrap_or_default(),
             )
         }

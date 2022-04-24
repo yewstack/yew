@@ -16,7 +16,7 @@ pub use properties::*;
 pub(crate) use scope::Scoped;
 pub use scope::{AnyScope, Scope, SendAsMessage};
 
-use super::{Html, HtmlResult, IntoHtmlResult};
+use super::{ErasedStorage, Html, HtmlResult, IntoHtmlResult};
 
 #[cfg(debug_assertions)]
 #[cfg(any(feature = "csr", feature = "ssr"))]
@@ -103,6 +103,9 @@ pub trait BaseComponent: Sized + 'static {
 
     /// The Component's Properties.
     type Properties: Properties;
+
+    /// The Component's Reference type.
+    type Reference: ErasedStorage;
 
     /// Creates a component.
     fn create(ctx: &Context<Self>) -> Self;
@@ -191,6 +194,7 @@ where
 {
     type Message = <T as Component>::Message;
     type Properties = <T as Component>::Properties;
+    type Reference = Scope<Self>;
 
     fn create(ctx: &Context<Self>) -> Self {
         Component::create(ctx)

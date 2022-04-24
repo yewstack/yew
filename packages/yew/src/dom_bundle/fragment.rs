@@ -4,7 +4,7 @@ use std::ops::{Deref, DerefMut};
 use web_sys::{Element, Node};
 
 use super::BSubtree;
-use crate::html::NodeRef;
+use crate::html::DomPosition;
 use crate::virtual_dom::Collectable;
 
 /// A Hydration Fragment
@@ -156,7 +156,7 @@ impl Fragment {
     }
 
     /// Shift current Fragment into a different position in the dom.
-    pub fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+    pub fn shift(&self, next_parent: &Element, next_sibling: DomPosition) {
         for node in self.iter() {
             next_parent
                 .insert_before(node, next_sibling.get().as_ref())
