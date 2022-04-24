@@ -17,7 +17,7 @@ use crate::dom_bundle::Fragment;
 #[cfg(any(feature = "ssr", feature = "csr"))]
 use crate::html::{AnyScope, Scope};
 use crate::html::{BaseComponent, ErasedHtmlRef};
-#[cfg(any(feature = "hydration", feature = "csr"))]
+#[cfg(any(feature = "csr"))]
 use crate::html::{DomPosition, Scoped};
 use crate::ComponentRef;
 
