@@ -216,7 +216,7 @@ where
     }
 
     fn bind_ref(&self, _ctx: &Context<Self>, bindable_ref: &mut BindableRef<Self::Reference>) {
-        bindable_ref.bind(NoReference)
+        bindable_ref.fake_bind()
     }
 
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {

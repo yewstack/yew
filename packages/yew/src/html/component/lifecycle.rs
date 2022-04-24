@@ -16,7 +16,7 @@ use crate::dom_bundle::{BSubtree, Bundle};
 use crate::html::DomPosition;
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
-use crate::html::{ErasedHtmlRef, Html, RenderError};
+use crate::html::{ErasedHtmlRef, ErasedStorage, Html, RenderError};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{BaseSuspense, Suspension};
 use crate::{Callback, Context, HtmlResult};
@@ -188,7 +188,8 @@ where
     fn destroy(&mut self) {
         self.component.destroy(&self.context);
         #[cfg(feature = "csr")]
-        self.comp_ref.set(Option::<COMP::Reference>::None);
+        self.comp_ref
+            .set_erased(Option::<<COMP::Reference as ErasedStorage>::Erased>::None);
     }
 
     fn any_scope(&self) -> AnyScope {

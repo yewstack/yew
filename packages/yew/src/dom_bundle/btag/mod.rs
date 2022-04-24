@@ -90,7 +90,7 @@ impl ReconcileTarget for BTag {
         // Only unset the ref if it still belongs to our node. This problem does not exist
         // for components, since the scheduler runs destroy events before updates.
         if self.node_ref.to_unerased::<Node>().get().as_ref() == Some(&node) {
-            self.node_ref.set(Option::<Node>::None);
+            self.node_ref.set_erased(Option::<Node>::None);
         }
     }
 
@@ -141,7 +141,7 @@ impl Reconcilable for VTag {
         };
         let node_ref = node_ref.to_erased();
 
-        node_ref.set::<Node>(Some(el.clone().into()));
+        node_ref.set_erased::<Node>(Some(el.clone().into()));
         (
             DomPosition::new(el.clone().into()),
             BTag {
@@ -232,9 +232,9 @@ impl Reconcilable for VTag {
         if tag.node_ref != next_node_ref {
             // See the comment in `detach` why we don't unconditionally set to None here
             if tag.node_ref.to_unerased::<Node>().get().as_ref() == Some(&el) {
-                tag.node_ref.set(Option::<Node>::None);
+                tag.node_ref.set_erased(Option::<Node>::None);
             }
-            next_node_ref.set(Some(el.clone()));
+            next_node_ref.set_erased(Some(el.clone()));
             tag.node_ref = next_node_ref;
         }
 
@@ -371,7 +371,7 @@ mod feat_hydration {
 
             let el_node: Node = el.clone().into();
             let node_ref = node_ref.to_erased();
-            node_ref.set::<Node>(Some(el_node.clone()));
+            node_ref.set_erased::<Node>(Some(el_node.clone()));
 
             (
                 DomPosition::new(el_node),

@@ -113,8 +113,10 @@ fn erased_eq(left: &Rc<dyn ErasedRef>, right: &Rc<dyn ErasedRef>) -> bool {
     std::ptr::eq(thin_left, thin_right)
 }
 
-fn get_erased_ref<E: 'static>(storage: &Rc<dyn ErasedRef>) -> Ref<'_, Option<E>> {
-    storage.downcast_inner::<E>().binding.borrow()
+fn get_erased_ref<E: 'static>(storage: &Rc<dyn ErasedRef>) -> Option<Ref<'_, E>> {
+    let erased_ref = storage.downcast_inner::<E>().binding.borrow();
+    erased_ref.as_ref()?; // TODO: use Ref::filter_map if that becomes stable
+    Some(Ref::map(erased_ref, |erased| erased.as_ref().unwrap()))
 }
 
 /// Wrapped reference to another component for later use in lifecycle methods.
@@ -232,11 +234,8 @@ impl<T: ErasedStorage> HtmlRef<T> {
 
     /// Get the referenced value, if it is bound
     pub fn get_ref(&self) -> Option<impl '_ + Deref<Target = T>> {
-        let erased_ref = get_erased_ref::<T::Erased>(&self.inner);
-        erased_ref.as_ref()?; // TODO: use Ref::filter_map if that becomes stable
-        Some(Ref::map(erased_ref, |erased| {
-            T::downcast_ref(erased.as_ref().unwrap())
-        }))
+        let erased_ref = get_erased_ref::<T::Erased>(&self.inner)?;
+        Some(Ref::map(erased_ref, T::downcast_ref))
     }
 
     /// Get the referenced value, if the HtmlRef is bound
@@ -293,12 +292,14 @@ impl ErasedHtmlRef {
         }
     }
 
+    pub(crate) fn set_erased<E: 'static>(&self, next_erased: Option<E>) {
+        let inner = self.0.downcast_inner::<E>();
+        *inner.binding.borrow_mut() = next_erased;
+    }
+
     /// Place a Scope in a reference for later use
     pub(crate) fn set<T: ErasedStorage>(&self, next_ref: Option<T>) {
-        let next_ref = next_ref.map(|r| r.upcast());
-        let inner = self.0.downcast::<T>();
-        let mut this = inner.binding.borrow_mut();
-        *this = next_ref;
+        self.set_erased(next_ref.map(|r| r.upcast()));
     }
 
     /// `self` should be bound. Then, behave like
@@ -384,5 +385,12 @@ impl<T: ErasedStorage> BindableRef<T> {
     /// Bind a value to the reference
     pub fn bind(&mut self, value: T) {
         self.inner.set::<T>(Some(value))
+    }
+}
+
+#[doc(hidden)]
+impl BindableRef<NoReference> {
+    pub fn fake_bind(&mut self) {
+        self.inner.set_erased(Some(()))
     }
 }
