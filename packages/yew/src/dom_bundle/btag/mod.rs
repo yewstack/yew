@@ -1038,7 +1038,11 @@ mod tests_without_browser {
                     <div class="foo" />
                 }
             },
-            html! { <div class="foo" /> },
+            html! {
+                <>
+                    <div class="foo" />
+                </>
+            },
         );
         assert_eq!(
             html! {
@@ -1049,7 +1053,7 @@ mod tests_without_browser {
                 }
             },
             html! {
-                <div class="bar" />
+                <><div class="bar" /></>
             },
         );
         assert_eq!(
@@ -1058,7 +1062,9 @@ mod tests_without_browser {
                     <div class="foo" />
                 }
             },
-            html! {},
+            html! {
+                <></>
+            },
         );
 
         // non-root tests
@@ -1072,7 +1078,7 @@ mod tests_without_browser {
             },
             html! {
                 <div>
-                    <div class="foo" />
+                    <><div class="foo" /></>
                 </div>
             },
         );
@@ -1088,7 +1094,7 @@ mod tests_without_browser {
             },
             html! {
                 <div>
-                    <div class="bar" />
+                    <><div class="bar" /></>
                 </div>
             },
         );
@@ -1118,7 +1124,11 @@ mod tests_without_browser {
                     <div class={class} />
                 }
             },
-            html! { <div class="foo" /> },
+            html! {
+                <>
+                    <div class={Some("foo")} />
+                </>
+            },
         );
         assert_eq!(
             html! {
@@ -1128,7 +1138,11 @@ mod tests_without_browser {
                     <div class="bar" />
                 }
             },
-            html! { <div class="bar" /> },
+            html! {
+                <>
+                    <div class="bar" />
+                </>
+            },
         );
         assert_eq!(
             html! {
@@ -1136,7 +1150,9 @@ mod tests_without_browser {
                     <div class={class} />
                 }
             },
-            html! {},
+            html! {
+                <></>
+            },
         );
 
         // non-root tests
@@ -1148,7 +1164,13 @@ mod tests_without_browser {
                     }
                 </div>
             },
-            html! { <div><div class="foo" /></div> },
+            html! {
+                <div>
+                    <>
+                        <div class={Some("foo")} />
+                    </>
+                </div>
+            },
         );
         assert_eq!(
             html! {
@@ -1160,7 +1182,13 @@ mod tests_without_browser {
                     }
                 </div>
             },
-            html! { <div><div class="bar" /></div> },
+            html! {
+                <div>
+                    <>
+                        <div class="bar" />
+                    </>
+                </div>
+            },
         );
         assert_eq!(
             html! {
