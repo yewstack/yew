@@ -26,7 +26,7 @@ use std::future::Future;
 use std::pin::Pin;
 use std::rc::Rc;
 
-#[cfg(feature = "hydration")]
+#[cfg(all(feature = "hydration", feature = "ssr"))]
 use crate::html::RenderMode;
 use crate::html::{AnyScope, BaseComponent, Context, HtmlResult};
 use crate::Properties;
@@ -84,7 +84,7 @@ pub(crate) trait Effect {
 /// A hook context to be passed to hooks.
 pub struct HookContext {
     pub(crate) scope: AnyScope,
-    #[cfg(feature = "hydration")]
+    #[cfg(all(feature = "hydration", feature = "ssr"))]
     mode: RenderMode,
     re_render: ReRender,
 
@@ -108,14 +108,14 @@ impl HookContext {
     fn new(
         scope: AnyScope,
         re_render: ReRender,
-        #[cfg(feature = "hydration")] mode: RenderMode,
-        #[cfg(feature = "hydration")] prepared_state: Option<&[u8]>,
+        #[cfg(all(feature = "hydration", feature = "ssr"))] mode: RenderMode,
+        #[cfg(feature = "hydration")] prepared_state: Option<&str>,
     ) -> RefCell<Self> {
         RefCell::new(HookContext {
             scope,
             re_render,
 
-            #[cfg(feature = "hydration")]
+            #[cfg(all(feature = "hydration", feature = "ssr"))]
             mode,
 
             states: Vec::new(),
@@ -127,9 +127,11 @@ impl HookContext {
             #[cfg(feature = "hydration")]
             prepared_states_data: {
                 match prepared_state {
-                    Some(m) => bincode::deserialize::<Vec<Vec<u8>>>(m)
-                        .map(|m| m.into_iter().map(Rc::from).collect())
-                        .unwrap(),
+                    Some(m) => m
+                        .split(',')
+                        .map(|m| base64::decode_config(m, base64::STANDARD_NO_PAD).unwrap())
+                        .map(Rc::from)
+                        .collect(),
                     None => Vec::new(),
                 }
             },
@@ -187,7 +189,7 @@ impl HookContext {
         T: 'static + PreparedState,
     {
         #[cfg(not(feature = "hydration"))]
-        let prepared_state = None;
+        let prepared_state = Option::<Rc<[u8]>>::None;
 
         #[cfg(feature = "hydration")]
         let prepared_state = {
@@ -267,12 +269,12 @@ impl HookContext {
     }
 
     #[cfg(not(feature = "ssr"))]
-    fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = Vec<u8>>>>> {
+    fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = String>>>> {
         None
     }
 
     #[cfg(feature = "ssr")]
-    fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = Vec<u8>>>>> {
+    fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = String>>>> {
         if self.prepared_states.is_empty() {
             return None;
         }
@@ -280,15 +282,19 @@ impl HookContext {
         let prepared_states = self.prepared_states.clone();
 
         Some(Box::pin(async move {
-            let mut states = Vec::with_capacity(prepared_states.len());
+            let mut states = "".to_string();
 
             for state in prepared_states.iter() {
+                if !states.is_empty() {
+                    states.push(',');
+                }
+
                 let state = state.prepare().await;
 
-                states.push(state);
+                base64::encode_config_buf(&state, base64::STANDARD_NO_PAD, &mut states);
             }
 
-            bincode::serialize(&states).expect("failed to serialize state.")
+            states
         }))
     }
 }
@@ -348,7 +354,7 @@ where
             hook_ctx: HookContext::new(
                 scope,
                 re_render,
-                #[cfg(feature = "hydration")]
+                #[cfg(all(feature = "hydration", feature = "ssr"))]
                 ctx.mode(),
                 #[cfg(feature = "hydration")]
                 ctx.prepared_state(),
@@ -384,7 +390,7 @@ where
     }
 
     /// Prepares the server-side state.
-    pub fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = Vec<u8>>>>> {
+    pub fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = String>>>> {
         let hook_ctx = self.hook_ctx.borrow();
         hook_ctx.prepare_state()
     }

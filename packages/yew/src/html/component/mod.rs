@@ -72,7 +72,7 @@ pub struct Context<COMP: BaseComponent> {
     #[cfg(feature = "hydration")]
     mode: RenderMode,
 
-    prepared_state: Option<Vec<u8>>,
+    prepared_state: Option<String>,
 }
 
 impl<COMP: BaseComponent> Context<COMP> {
@@ -94,7 +94,7 @@ impl<COMP: BaseComponent> Context<COMP> {
     }
 
     /// The component's prepared state
-    pub fn prepared_state(&self) -> Option<&[u8]> {
+    pub fn prepared_state(&self) -> Option<&str> {
         self.prepared_state.as_deref()
     }
 }
@@ -131,7 +131,7 @@ pub trait BaseComponent: Sized + 'static {
     fn destroy(&mut self, ctx: &Context<Self>);
 
     /// Prepares the server-side state.
-    fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = Vec<u8>>>>>;
+    fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = String>>>>;
 }
 
 /// Components are the basic building blocks of the UI in a Yew app. Each Component
@@ -191,6 +191,16 @@ pub trait Component: Sized + 'static {
     #[allow(unused_variables)]
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {}
 
+    /// Prepares the state during server side rendering.
+    ///
+    /// This state will be sent to the client side and is available via `ctx.prepared_state()`.
+    ///
+    /// This method is only called during server-side rendering after the component has been
+    /// rendered.
+    fn prepare_state(&self) -> Option<String> {
+        None
+    }
+
     /// Called right before a Component is unmounted.
     #[allow(unused_variables)]
     fn destroy(&mut self, ctx: &Context<Self>) {}
@@ -228,7 +238,8 @@ where
         Component::destroy(self, ctx)
     }
 
-    fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = Vec<u8>>>>> {
-        None
+    fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = String>>>> {
+        Component::prepare_state(self)
+            .map(|m| Box::pin(async move { m }) as Pin<Box<dyn Future<Output = String>>>)
     }
 }

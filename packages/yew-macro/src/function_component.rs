@@ -321,7 +321,7 @@ impl FunctionComponent {
                 }
 
                 #[inline]
-                fn prepare_state(&self) -> ::std::option::Option<::std::pin::Pin<::std::boxed::Box<dyn ::std::future::Future<Output = ::std::vec::Vec<::std::primitive::u8>>>>> {
+                fn prepare_state(&self) -> ::std::option::Option<::std::pin::Pin<::std::boxed::Box<dyn ::std::future::Future<Output = ::std::string::String>>>> {
                     ::yew::functional::FunctionComponent::<Self>::prepare_state(&self.function_component)
                 }
             }

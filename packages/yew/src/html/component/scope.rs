@@ -237,7 +237,7 @@ mod feat_ssr {
                 let prepared_state = prepare_state.await;
 
                 w.push_str(r#"<script type="application/x-yew-comp-state">"#);
-                w.push_str(&base64::encode(prepared_state));
+                w.push_str(&prepared_state);
                 w.push_str(r#"</script">"#);
             }
 
@@ -432,7 +432,6 @@ mod feat_csr {
         /// Mounts a component with `props` to the specified `element` in the DOM.
         pub(crate) fn mount_in_place(
             &self,
-
             root: BSubtree,
             parent: Element,
             next_sibling: NodeRef,
@@ -584,7 +583,7 @@ mod feat_hydration {
             {
                 Some(m) if m.type_() == "application/x-yew-comp-state" => {
                     fragment.pop_back();
-                    Some(base64::decode(m.text().unwrap()).unwrap())
+                    Some(m.text().unwrap())
                 }
                 _ => None,
             };

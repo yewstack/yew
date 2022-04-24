@@ -231,7 +231,7 @@ impl ComponentState {
         initial_render_state: ComponentRenderState,
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
-        #[cfg(feature = "hydration")] prepared_state: Option<Vec<u8>>,
+        #[cfg(feature = "hydration")] prepared_state: Option<String>,
     ) -> Self {
         let comp_id = scope.id;
         #[cfg(feature = "hydration")]
@@ -288,7 +288,7 @@ pub(crate) struct CreateRunner<COMP: BaseComponent> {
     pub props: Rc<COMP::Properties>,
     pub scope: Scope<COMP>,
     #[cfg(feature = "hydration")]
-    pub prepared_state: Option<Vec<u8>>,
+    pub prepared_state: Option<String>,
 }
 
 impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
