@@ -15,11 +15,6 @@ use crate::NodeRef;
 pub(super) struct BComp {
     type_id: TypeId,
     scope: Box<dyn Scoped>,
-    // A internal NodeRef passed around to track this components position. This
-    // is "stable", i.e. does not change when reconciled.
-    internal_ref: NodeRef,
-    // The user-passed NodeRef from VComp. Might change every time we reconcile.
-    // Gets linked to the internal ref
     node_ref: NodeRef,
     key: Option<Key>,
 }
@@ -44,8 +39,10 @@ impl ReconcileTarget for BComp {
         self.scope.destroy_boxed(parent_to_detach);
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
         self.scope.shift_node(next_parent.clone(), next_sibling);
+
+        self.node_ref.clone()
     }
 }
 
@@ -65,23 +62,20 @@ impl Reconcilable for VComp {
             node_ref,
             key,
         } = self;
-        let internal_ref = NodeRef::default();
-        node_ref.link(internal_ref.clone());
 
         let scope = mountable.mount(
             root,
-            internal_ref.clone(),
+            node_ref.clone(),
             parent_scope,
             parent.to_owned(),
             next_sibling,
         );
 
         (
-            internal_ref.clone(),
+            node_ref.clone(),
             BComp {
                 type_id,
                 node_ref,
-                internal_ref,
                 key,
                 scope,
             },
@@ -123,10 +117,10 @@ impl Reconcilable for VComp {
         } = self;
 
         bcomp.key = key;
-        let old_ref = std::mem::replace(&mut bcomp.node_ref, node_ref);
+        let old_ref = std::mem::replace(&mut bcomp.node_ref, node_ref.clone());
         bcomp.node_ref.reuse(old_ref);
-        mountable.reuse(bcomp.scope.borrow(), next_sibling);
-        bcomp.internal_ref.clone()
+        mountable.reuse(node_ref.clone(), bcomp.scope.borrow(), next_sibling);
+        node_ref
     }
 }
 
@@ -149,24 +143,21 @@ mod feat_hydration {
                 node_ref,
                 key,
             } = self;
-            let internal_ref = NodeRef::default();
-            node_ref.link(internal_ref.clone());
 
             let scoped = mountable.hydrate(
                 root.clone(),
                 parent_scope,
                 parent.clone(),
                 fragment,
-                internal_ref.clone(),
+                node_ref.clone(),
             );
 
             (
-                internal_ref.clone(),
+                node_ref.clone(),
                 BComp {
                     type_id,
                     scope: scoped,
                     node_ref,
-                    internal_ref,
                     key,
                 },
             )
