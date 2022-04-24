@@ -23,8 +23,6 @@ struct Scheduler {
     // Component queues
     destroy: Vec<Box<dyn Runnable>>,
     create: Vec<Box<dyn Runnable>>,
-
-    props_update: Vec<Box<dyn Runnable>>,
     update: Vec<Box<dyn Runnable>>,
 
     /// The Binary Tree Map guarantees components with lower id (parent) is rendered first and
@@ -32,10 +30,8 @@ struct Scheduler {
     ///
     /// Parent can destroy child components but not otherwise, we can save unnecessary render by
     /// rendering parent first.
-    render: BTreeMap<usize, Box<dyn Runnable>>,
     render_first: BTreeMap<usize, Box<dyn Runnable>>,
-    #[cfg(feature = "hydration")]
-    render_priority: BTreeMap<usize, Box<dyn Runnable>>,
+    render: BTreeMap<usize, Box<dyn Runnable>>,
 
     /// Binary Tree Map to guarantee children rendered are always called before parent calls
     rendered_first: BTreeMap<usize, Box<dyn Runnable>>,
@@ -117,26 +113,21 @@ mod feat_csr {
             }
         });
     }
-
-    pub(crate) fn push_component_props_update(props_update: Box<dyn Runnable>) {
-        with(|s| s.props_update.push(props_update));
-    }
 }
-
-#[cfg(feature = "csr")]
-pub(crate) use feat_csr::*;
 
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
 
-    pub(crate) fn push_component_priority_render(component_id: usize, render: Box<dyn Runnable>) {
+    pub(crate) fn push_component_first_render(component_id: usize, render: Box<dyn Runnable>) {
         with(|s| {
-            s.render_priority.insert(component_id, render);
+            s.render_first.insert(component_id, render);
         });
     }
 }
 
+#[cfg(feature = "csr")]
+pub(crate) use feat_csr::*;
 #[cfg(feature = "hydration")]
 pub(crate) use feat_hydration::*;
 
@@ -235,30 +226,10 @@ impl Scheduler {
             to_run.push(r);
         }
 
+        // These typically do nothing and don't spawn any other events - can be batched.
+        // Should be run only after all first renders have finished.
         if !to_run.is_empty() {
             return;
-        }
-
-        to_run.append(&mut self.props_update);
-
-        // Priority rendering
-        //
-        // This is needed for hydration susequent render to fix node refs.
-        #[cfg(feature = "hydration")]
-        {
-            if let Some(r) = self
-                .render_priority
-                .keys()
-                .next()
-                .cloned()
-                .and_then(|m| self.render_priority.remove(&m))
-            {
-                to_run.push(r);
-            }
-
-            if !to_run.is_empty() {
-                return;
-            }
         }
 
         if !self.rendered_first.is_empty() {

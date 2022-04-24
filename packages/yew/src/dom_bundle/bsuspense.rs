@@ -60,12 +60,18 @@ impl ReconcileTarget for BSuspense {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
         match self.fallback.as_ref() {
-            Some(Fallback::Bundle(bundle)) => bundle.shift(next_parent, next_sibling),
+            Some(Fallback::Bundle(bundle)) => {
+                bundle.shift(next_parent, next_sibling);
+            }
             #[cfg(feature = "hydration")]
-            Some(Fallback::Fragment(fragment)) => fragment.shift(next_parent, next_sibling),
-            None => self.children_bundle.shift(next_parent, next_sibling),
+            Some(Fallback::Fragment(fragment)) => {
+                fragment.shift(next_parent, next_sibling);
+            }
+            None => {
+                self.children_bundle.shift(next_parent, next_sibling);
+            }
         }
     }
 }

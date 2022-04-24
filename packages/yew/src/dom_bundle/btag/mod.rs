@@ -94,12 +94,10 @@ impl ReconcileTarget for BTag {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
         next_parent
             .insert_before(&self.reference, next_sibling.get().as_ref())
             .unwrap();
-
-        self.node_ref.clone()
     }
 }
 

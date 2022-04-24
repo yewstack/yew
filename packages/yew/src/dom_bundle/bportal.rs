@@ -26,10 +26,8 @@ impl ReconcileTarget for BPortal {
         self.node.detach(&self.inner_root, &self.host, false);
     }
 
-    fn shift(&self, _next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
+    fn shift(&self, _next_parent: &Element, _next_sibling: NodeRef) {
         // portals have nothing in it's original place of DOM, we also do nothing.
-
-        next_sibling
     }
 }
 

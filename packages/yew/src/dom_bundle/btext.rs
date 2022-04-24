@@ -26,14 +26,12 @@ impl ReconcileTarget for BText {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
         let node = &self.text_node;
 
         next_parent
             .insert_before(node, next_sibling.get().as_ref())
             .unwrap();
-
-        NodeRef::new(self.text_node.clone().into())
     }
 }
 
