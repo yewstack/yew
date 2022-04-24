@@ -1,10 +1,11 @@
+use std::rc::Rc;
+
+use implicit_clone::unsync::{IArray, IMap};
+pub use implicit_clone::ImplicitClone;
+
 use super::super::callback::Callback;
 use super::{Component, NodeRef, Scope};
 use crate::virtual_dom::AttrValue;
-use implicit_clone::unsync::{IArray, IMap};
-use std::rc::Rc;
-
-pub use implicit_clone::ImplicitClone;
 
 impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}

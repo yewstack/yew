@@ -19,6 +19,10 @@ pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
 
+use std::hint::unreachable_unchecked;
+
+use indexmap::IndexMap;
+
 #[doc(inline)]
 pub use self::key::Key;
 #[doc(inline)]
@@ -37,9 +41,6 @@ pub use self::vsuspense::VSuspense;
 pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
-
-use indexmap::IndexMap;
-use std::hint::unreachable_unchecked;
 
 /// Attribute value
 pub type AttrValue = implicit_clone::unsync::IString;
