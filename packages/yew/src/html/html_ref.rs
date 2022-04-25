@@ -78,6 +78,7 @@ impl dyn ErasedRef {
             .expect("the correct inner ref-type")
     }
 
+    #[cfg(feature = "csr")]
     fn downcast<T: ErasedStorage>(&self) -> &RefState<T::Erased> {
         self.downcast_inner()
     }
@@ -125,14 +126,16 @@ fn get_erased_ref<E: 'static>(storage: &Rc<dyn ErasedRef>) -> Option<Ref<'_, E>>
 /// Send messages to a child component
 /// ```
 /// # use yew::prelude::*;
+/// use yew::html::{BindableRef, Scope};
 ///
 /// struct MessageHolder {
 ///     msg: String,
 /// }
 ///
-/// impl Component for MessageHolder {
+/// impl BaseComponent for MessageHolder {
 ///     type Message = String;
 ///     type Properties = ();
+///     type Reference = Scope<Self>;
 ///
 ///     fn create(_ctx: &Context<Self>) -> Self {
 ///         Self {
@@ -140,14 +143,26 @@ fn get_erased_ref<E: 'static>(storage: &Rc<dyn ErasedRef>) -> Option<Ref<'_, E>>
 ///         }
 ///     }
 ///
+///     fn bind_ref(&self, ctx: &Context<Self>, bindable_ref: &mut BindableRef<Self::Reference>) {
+///         bindable_ref.bind(ctx.link().clone());
+///     }
+///
+///     fn changed(&mut self, _ctx: &Context<Self>) -> bool {
+///         true
+///     }
+///
 ///     fn update(&mut self, _ctx: &Context<Self>, message: Self::Message) -> bool {
 ///         self.msg = message;
 ///         true
 ///     }
 ///
-///     fn view(&self, _ctx: &Context<Self>) -> Html {
-///         html! { <span>{&self.msg}</span> }
+///     fn view(&self, _ctx: &Context<Self>) -> HtmlResult {
+///         Ok(html! { <span>{&self.msg}</span> })
 ///     }
+///
+///     fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {}
+///
+///     fn destroy(&mut self, _ctx: &Context<Self>) {}
 /// }
 ///
 /// pub struct Controller {
