@@ -62,7 +62,7 @@ impl ReconcileTarget for BNode {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) {
+    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
         match self {
             Self::Tag(ref vtag) => vtag.shift(next_parent, next_sibling),
             Self::Text(ref btext) => btext.shift(next_parent, next_sibling),
@@ -72,6 +72,8 @@ impl ReconcileTarget for BNode {
                 next_parent
                     .insert_before(node, next_sibling.get().as_ref())
                     .unwrap();
+
+                DomPosition::new(node.clone())
             }
             Self::Portal(ref vportal) => vportal.shift(next_parent, next_sibling),
             Self::Suspense(ref vsuspense) => vsuspense.shift(next_parent, next_sibling),

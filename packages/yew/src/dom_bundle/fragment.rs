@@ -156,11 +156,16 @@ impl Fragment {
     }
 
     /// Shift current Fragment into a different position in the dom.
-    pub fn shift(&self, next_parent: &Element, next_sibling: DomPosition) {
+    pub fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
         for node in self.iter() {
             next_parent
                 .insert_before(node, next_sibling.get().as_ref())
                 .unwrap();
         }
+
+        self.front()
+            .cloned()
+            .map(DomPosition::new)
+            .unwrap_or(next_sibling)
     }
 }

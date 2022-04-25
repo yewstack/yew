@@ -94,10 +94,12 @@ impl ReconcileTarget for BTag {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) {
+    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
         next_parent
             .insert_before(&self.reference, next_sibling.get().as_ref())
             .unwrap();
+
+        DomPosition::new(self.reference.clone().into())
     }
 }
 

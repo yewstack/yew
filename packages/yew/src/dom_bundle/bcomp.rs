@@ -40,8 +40,10 @@ impl ReconcileTarget for BComp {
         self.scope.destroy_boxed(parent_to_detach);
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) {
+    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
         self.scope.shift_node(next_parent.clone(), next_sibling);
+
+        self.internal_ref.clone()
     }
 }
 
