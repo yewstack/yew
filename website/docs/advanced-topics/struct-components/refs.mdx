@@ -21,6 +21,7 @@ is contained inside the `Light` component, and the `Room` ties this together by 
 
 ```rust
 use yew::prelude::*;
+use yew::html::{Scope, BindableRef};
 
 #[derive(PartialEq, Properties)]
 struct SwitchProps {
@@ -42,12 +43,21 @@ struct Light {
     is_on: bool,
 }
 
-impl Component for Light {
+impl BaseComponent for Light {
     type Properties = ();
     type Message = LightMessage;
+    type Reference = Scope<Self>;
 
     fn create(_ctx: &Context<Self>) -> Self {
         Light { is_on: true }
+    }
+
+    fn changed(&mut self, _ctx: &Context<Self>) -> bool {
+        true
+    }
+
+    fn bind_ref(&self, ctx: &Context<Self>, bindable_ref: &mut html::BindableRef<Self::Reference>) {
+        bindable_ref.bind(ctx.link().clone())
     }
 
     fn update(&mut self, _ctx: &Context<Self>, LightMessage::Toggle: LightMessage) -> bool {
@@ -55,11 +65,15 @@ impl Component for Light {
         true
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
-        html! {
+    fn view(&self, _ctx: &Context<Self>) -> HtmlResult {
+        Ok(html! {
             <div class={classes!["light", self.is_on.then(|| "on")]} />
-        }
+        })
     }
+
+    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {}
+
+    fn destroy(&mut self, _ctx: &Context<Self>) {}
 }
 
 #[function_component]
