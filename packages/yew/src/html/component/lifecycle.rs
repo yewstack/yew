@@ -16,7 +16,7 @@ use crate::dom_bundle::{BSubtree, Bundle};
 use crate::html::DomPosition;
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
-use crate::html::{ErasedHtmlRef, Html, RenderError};
+use crate::html::{BindableRef, ErasedHtmlRef, Html, RenderError};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{BaseSuspense, Suspension};
 use crate::{Callback, Context, HtmlResult};
@@ -150,8 +150,6 @@ where
 /// methods.
 pub(crate) trait Stateful {
     fn view(&self) -> HtmlResult;
-    #[cfg(feature = "csr")]
-    fn bind_ref(&self, first_render: bool);
     fn rendered(&mut self, first_render: bool);
     fn destroy(&mut self);
 
@@ -171,14 +169,6 @@ where
 {
     fn view(&self) -> HtmlResult {
         self.component.view(&self.context)
-    }
-
-    #[cfg(feature = "csr")]
-    fn bind_ref(&self, _first_render: bool) {
-        use crate::html::BindableRef;
-
-        let mut bindable_ref = BindableRef::for_ref(&self.comp_ref);
-        self.component.bind_ref(&self.context, &mut bindable_ref);
     }
 
     fn rendered(&mut self, first_render: bool) {
@@ -272,8 +262,9 @@ impl ComponentState {
             mode,
         };
 
+        let bindable_ref = BindableRef::for_ref(&comp_ref);
         let inner = Box::new(CompStateInner {
-            component: COMP::create(&context),
+            component: COMP::create(&context, bindable_ref),
             context,
             comp_ref,
         });
@@ -567,8 +558,6 @@ impl RenderRunner {
 
                 let first_render = !state.has_rendered;
                 state.has_rendered = true;
-
-                state.inner.bind_ref(first_render);
 
                 scheduler::push_component_rendered(
                     state.comp_id,

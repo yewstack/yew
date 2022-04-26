@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use wasm_bindgen::JsValue;
 use web_sys::Node;
 
 #[derive(Default, Clone)]
@@ -34,12 +33,6 @@ impl DomPosition {
     pub fn get(&self) -> Option<Node> {
         let inner = self.0.borrow();
         inner.node.clone().or_else(|| inner.link.as_ref()?.get())
-    }
-
-    /// Try converting the node reference into another form
-    pub fn cast<INTO: AsRef<Node> + From<JsValue>>(&self) -> Option<INTO> {
-        let node = self.get();
-        node.map(Into::into).map(INTO::from)
     }
 
     /// Place a Node in a reference for later use

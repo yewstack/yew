@@ -89,7 +89,7 @@ impl ReconcileTarget for BTag {
         // It could be that the ref was already reused when rendering another element.
         // Only unset the ref if it still belongs to our node. This problem does not exist
         // for components, since the scheduler runs destroy events before updates.
-        if self.node_ref.to_unerased::<Node>().get().as_ref() == Some(&node) {
+        if self.node_ref.get_node().as_ref() == Some(&node) {
             self.node_ref.set_erased(Option::<Node>::None);
         }
     }
@@ -233,7 +233,7 @@ impl Reconcilable for VTag {
         let next_node_ref = self.node_ref.to_erased();
         if tag.node_ref != next_node_ref {
             // See the comment in `detach` why we don't unconditionally set to None here
-            if tag.node_ref.to_unerased::<Node>().get().as_ref() == Some(&el) {
+            if tag.node_ref.get_node().as_ref() == Some(&el) {
                 tag.node_ref.set_erased(Option::<Node>::None);
             }
             next_node_ref.set_erased(Some(el.clone()));

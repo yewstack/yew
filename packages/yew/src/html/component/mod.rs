@@ -108,7 +108,7 @@ pub trait BaseComponent: Sized + 'static {
     type Reference: ErasedStorage;
 
     /// Creates a component.
-    fn create(ctx: &Context<Self>) -> Self;
+    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<Self::Reference>) -> Self;
 
     /// Updates component's internal state.
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool;
@@ -118,9 +118,6 @@ pub trait BaseComponent: Sized + 'static {
 
     /// Returns a component layout to be rendered.
     fn view(&self, ctx: &Context<Self>) -> HtmlResult;
-
-    /// Bind the ref that is exposed to other components
-    fn bind_ref(&self, ctx: &Context<Self>, bindable_ref: &mut BindableRef<Self::Reference>);
 
     /// Notified after a layout is rendered.
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool);
@@ -199,7 +196,8 @@ where
     type Properties = <T as Component>::Properties;
     type Reference = NoReference;
 
-    fn create(ctx: &Context<Self>) -> Self {
+    fn create(ctx: &Context<Self>, _bindable_ref: BindableRef<NoReference>) -> Self {
+        // bindable_ref.fake_bind();
         Component::create(ctx)
     }
 
@@ -213,10 +211,6 @@ where
 
     fn view(&self, ctx: &Context<Self>) -> HtmlResult {
         Component::view(self, ctx).into_html_result()
-    }
-
-    fn bind_ref(&self, _ctx: &Context<Self>, bindable_ref: &mut BindableRef<Self::Reference>) {
-        bindable_ref.fake_bind()
     }
 
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {

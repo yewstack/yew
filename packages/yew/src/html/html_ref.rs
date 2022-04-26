@@ -67,6 +67,16 @@ impl ErasedStorage for NoReference {
     }
 }
 
+struct RefState<E> {
+    binding: RefCell<Option<E>>,
+}
+
+impl<E: fmt::Debug> fmt::Debug for RefState<E> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.binding.fmt(f)
+    }
+}
+
 trait ErasedRef: fmt::Debug {
     fn as_any(&self) -> &dyn Any;
 }
@@ -77,32 +87,9 @@ impl dyn ErasedRef {
             .downcast_ref()
             .expect("the correct inner ref-type")
     }
-
-    #[cfg(feature = "csr")]
-    fn downcast<T: ErasedStorage>(&self) -> &RefState<T::Erased> {
-        self.downcast_inner()
-    }
 }
 
-struct RefState<T> {
-    binding: RefCell<Option<T>>,
-}
-
-impl<T> Default for RefState<T> {
-    fn default() -> Self {
-        Self {
-            binding: Default::default(),
-        }
-    }
-}
-
-impl<T: 'static + fmt::Debug> fmt::Debug for RefState<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.binding.fmt(f)
-    }
-}
-
-impl<T: 'static + fmt::Debug> ErasedRef for RefState<T> {
+impl<E: 'static + fmt::Debug> ErasedRef for RefState<E> {
     fn as_any(&self) -> &dyn Any {
         self
     }
@@ -137,14 +124,11 @@ fn get_erased_ref<E: 'static>(storage: &Rc<dyn ErasedRef>) -> Option<Ref<'_, E>>
 ///     type Properties = ();
 ///     type Reference = Scope<Self>;
 ///
-///     fn create(_ctx: &Context<Self>) -> Self {
+///     fn create(ctx: &Context<Self>, bindable_ref: BindableRef<Self::Reference>) -> Self {
+///         bindable_ref.bind(ctx.link().clone());
 ///         Self {
 ///             msg: "waiting...".to_string(),
 ///         }
-///     }
-///
-///     fn bind_ref(&self, ctx: &Context<Self>, bindable_ref: &mut BindableRef<Self::Reference>) {
-///         bindable_ref.bind(ctx.link().clone());
 ///     }
 ///
 ///     fn changed(&mut self, _ctx: &Context<Self>) -> bool {
@@ -222,7 +206,9 @@ impl<T: ErasedStorage> Clone for HtmlRef<T> {
 
 impl<T: ErasedStorage> Default for HtmlRef<T> {
     fn default() -> Self {
-        let inner: Rc<RefState<T::Erased>> = Rc::default();
+        let inner: Rc<RefState<T::Erased>> = Rc::new(RefState {
+            binding: RefCell::new(None),
+        });
         Self {
             inner,
             _phantom: PhantomData,
@@ -242,11 +228,6 @@ impl<T: ErasedStorage> HtmlRef<T> {
         Self::default()
     }
 
-    #[cfg(any(feature = "csr", feature = "ssr"))]
-    pub(crate) fn to_erased(&self) -> ErasedHtmlRef {
-        Some(self.clone()).into()
-    }
-
     /// Get the referenced value, if it is bound
     pub fn get_ref(&self) -> Option<impl '_ + Deref<Target = T>> {
         let erased_ref = get_erased_ref::<T::Erased>(&self.inner)?;
@@ -259,6 +240,11 @@ impl<T: ErasedStorage> HtmlRef<T> {
         T: Clone,
     {
         Some(self.get_ref()?.clone())
+    }
+
+    #[cfg(any(feature = "csr", feature = "ssr"))]
+    pub(crate) fn to_erased(&self) -> ErasedHtmlRef {
+        Some(self.clone()).into()
     }
 }
 
@@ -277,6 +263,7 @@ impl NodeRef {
 pub(crate) struct ErasedHtmlRef(Rc<dyn ErasedRef>);
 
 impl<T: ErasedStorage> From<Option<HtmlRef<T>>> for ErasedHtmlRef {
+    #[inline]
     fn from(user_ref: Option<HtmlRef<T>>) -> Self {
         Self(user_ref.unwrap_or_default().inner)
     }
@@ -297,16 +284,6 @@ impl PartialEq for ErasedHtmlRef {
 }
 
 impl ErasedHtmlRef {
-    /// Upcast an erased html ref. Using a wrong type will cause a panic later when accessing the
-    /// value!
-    #[cfg(feature = "csr")]
-    pub(crate) fn to_unerased<T: ErasedStorage>(&self) -> HtmlRef<T> {
-        HtmlRef {
-            inner: self.0.clone(),
-            _phantom: PhantomData,
-        }
-    }
-
     pub(crate) fn set_erased<E: 'static>(&self, next_erased: Option<E>) {
         let inner = self.0.downcast_inner::<E>();
         *inner.binding.borrow_mut() = next_erased;
@@ -315,6 +292,17 @@ impl ErasedHtmlRef {
     /// Place a Scope in a reference for later use
     pub(crate) fn set<T: ErasedStorage>(&self, next_ref: Option<T>) {
         self.set_erased(next_ref.map(|r| r.upcast()));
+    }
+
+    #[cfg(feature = "csr")]
+    fn morph_erased<E: 'static>(&mut self, next: Self) {
+        if self == &next {
+            return;
+        }
+        let old = std::mem::replace(&mut self.0, next.0);
+        let old = old.downcast_inner::<E>();
+        let new = self.0.downcast_inner::<E>();
+        *new.binding.borrow_mut() = old.binding.borrow_mut().take();
     }
 
     /// `self` should be bound. Then, behave like
@@ -326,13 +314,13 @@ impl ErasedHtmlRef {
     /// but avoid to call `get_scope` when possible
     #[cfg(feature = "csr")]
     pub(crate) fn morph_into<T: ErasedStorage>(&mut self, next: Self) {
-        if self == &next {
-            return;
-        }
-        let old = std::mem::replace(&mut self.0, next.0);
-        let old = old.downcast::<T>();
-        let new = self.0.downcast::<T>();
-        *new.binding.borrow_mut() = old.binding.borrow_mut().take();
+        self.morph_erased::<T::Erased>(next)
+    }
+
+    /// Get the underlying node from an erased NodeRef.
+    #[cfg(feature = "csr")]
+    pub(crate) fn get_node(&self) -> Option<Node> {
+        Some(get_erased_ref::<Node>(&self.0)?.clone())
     }
 }
 
@@ -398,14 +386,14 @@ impl<T: ErasedStorage> BindableRef<T> {
     }
 
     /// Bind a value to the reference
-    pub fn bind(&mut self, value: T) {
+    pub fn bind(self, value: T) {
         self.inner.set::<T>(Some(value))
     }
 }
 
 #[doc(hidden)]
 impl BindableRef<NoReference> {
-    pub fn fake_bind(&mut self) {
+    pub fn fake_bind(self) {
         self.inner.set_erased(Some(()))
     }
 }

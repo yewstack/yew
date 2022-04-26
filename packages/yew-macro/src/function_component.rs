@@ -286,7 +286,7 @@ impl FunctionComponent {
                 type Reference = ::yew::html::NoReference;
 
                 #[inline]
-                fn create(ctx: &::yew::html::Context<Self>) -> Self {
+                fn create(ctx: &::yew::html::Context<Self>, _bindable_ref: ::yew::html::BindableRef<::yew::html::NoReference>) -> Self {
                     Self {
                         _marker: ::std::marker::PhantomData,
                         function_component: ::yew::functional::FunctionComponent::<Self>::new(ctx),
@@ -314,11 +314,6 @@ impl FunctionComponent {
                 #[inline]
                 fn rendered(&mut self, _ctx: &::yew::html::Context<Self>, _first_render: ::std::primitive::bool) {
                     ::yew::functional::FunctionComponent::<Self>::rendered(&self.function_component)
-                }
-
-                #[inline]
-                fn bind_ref(&self, _ctx: &::yew::html::Context<Self>, bindable_ref: &mut ::yew::html::BindableRef<Self::Reference>) {
-                    bindable_ref.bind(::yew::html::NoReference)
                 }
 
                 #[inline]

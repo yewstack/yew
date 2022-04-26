@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use yew::html::{ChildrenRenderer, Scope};
+use yew::html::{BindableRef, ChildrenRenderer, Scope};
 use yew::prelude::*;
 use yew::virtual_dom::{VChild, VComp};
 
@@ -71,7 +71,8 @@ impl BaseComponent for List {
     type Properties = Props;
     type Reference = Scope<Self>;
 
-    fn create(_ctx: &Context<Self>) -> Self {
+    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<Self::Reference>) -> Self {
+        bindable_ref.bind(ctx.link().clone());
         Self { inactive: false }
     }
 
@@ -104,10 +105,6 @@ impl BaseComponent for List {
                 </div>
             </div>
         })
-    }
-
-    fn bind_ref(&self, ctx: &Context<Self>, bindable_ref: &mut html::BindableRef<Self::Reference>) {
-        bindable_ref.bind(ctx.link().clone())
     }
 
     fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {}
