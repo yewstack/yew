@@ -369,6 +369,7 @@ pub struct BindableRef<T: ErasedStorage> {
 }
 
 impl<T: ErasedStorage> BindableRef<T> {
+    #[cfg(any(feature = "ssr", feature = "csr"))]
     pub(crate) fn for_ref(inner: &ErasedHtmlRef) -> Self {
         Self {
             inner: inner.clone(),
