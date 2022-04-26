@@ -196,8 +196,8 @@ where
     type Properties = <T as Component>::Properties;
     type Reference = NoReference;
 
-    fn create(ctx: &Context<Self>, _bindable_ref: BindableRef<NoReference>) -> Self {
-        // bindable_ref.fake_bind();
+    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<NoReference>) -> Self {
+        bindable_ref.fake_bind();
         Component::create(ctx)
     }
 

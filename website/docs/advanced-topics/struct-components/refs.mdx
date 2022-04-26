@@ -48,16 +48,13 @@ impl BaseComponent for Light {
     type Message = LightMessage;
     type Reference = Scope<Self>;
 
-    fn create(_ctx: &Context<Self>) -> Self {
+    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<Self::Reference>) -> Self {
+        bindable_ref.bind(ctx.link().clone());
         Light { is_on: true }
     }
 
     fn changed(&mut self, _ctx: &Context<Self>) -> bool {
         true
-    }
-
-    fn bind_ref(&self, ctx: &Context<Self>, bindable_ref: &mut html::BindableRef<Self::Reference>) {
-        bindable_ref.bind(ctx.link().clone())
     }
 
     fn update(&mut self, _ctx: &Context<Self>, LightMessage::Toggle: LightMessage) -> bool {
