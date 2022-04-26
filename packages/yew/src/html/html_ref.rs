@@ -17,7 +17,7 @@ pub trait ErasedStorage {
     /// the associated retrieval and storage methods. If you don't care about these intricacies,
     /// using `type Erased = Self` is often a good choice, making the implementations of trait
     /// methods trivial.
-    type Erased: 'static + fmt::Debug;
+    type Erased: 'static;
     /// Upcast self into the stored, erased, value.
     fn upcast(self) -> Self::Erased;
     /// Downcast a reference to the erased value into the original value type.
@@ -71,13 +71,7 @@ struct RefState<E> {
     binding: RefCell<Option<E>>,
 }
 
-impl<E: fmt::Debug> fmt::Debug for RefState<E> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.binding.fmt(f)
-    }
-}
-
-trait ErasedRef: fmt::Debug {
+trait ErasedRef {
     fn as_any(&self) -> &dyn Any;
 }
 
@@ -89,7 +83,7 @@ impl dyn ErasedRef {
     }
 }
 
-impl<E: 'static + fmt::Debug> ErasedRef for RefState<E> {
+impl<E: 'static> ErasedRef for RefState<E> {
     fn as_any(&self) -> &dyn Any {
         self
     }
@@ -189,9 +183,9 @@ pub struct HtmlRef<T: ErasedStorage> {
     _phantom: PhantomData<T>,
 }
 
-impl<T: ErasedStorage> std::fmt::Debug for HtmlRef<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("HtmlRef").field("ref", &self.inner).finish()
+impl<T: ErasedStorage> fmt::Debug for HtmlRef<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("HtmlRef").finish_non_exhaustive()
     }
 }
 
@@ -269,11 +263,9 @@ impl<T: ErasedStorage> From<Option<HtmlRef<T>>> for ErasedHtmlRef {
     }
 }
 
-impl std::fmt::Debug for ErasedHtmlRef {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ErasedHtmlRef")
-            .field("user_ref", &self.0)
-            .finish()
+impl fmt::Debug for ErasedHtmlRef {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ErasedHtmlRef").finish_non_exhaustive()
     }
 }
 
