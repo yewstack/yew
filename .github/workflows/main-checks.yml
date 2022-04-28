@@ -126,28 +126,17 @@ jobs:
           profile: minimal
 
       - uses: browser-actions/setup-geckodriver@latest
-      - uses: nanasess/setup-chromedriver@v1
+      - run: |
+          geckodriver --version
+          echo ""
+          which geckodriver
 
       - uses: Swatinem/rust-cache@v1
 
-      - name: Install wasm-bindgen-cli
-        shell: bash
-        run: |
-          if [ ! -f "Cargo.lock" ]; then
-            cargo fetch
-          fi
-          VERSION=`cargo pkgid --frozen wasm-bindgen | cut -d ":" -f 3`
-          cargo install --version $VERSION wasm-bindgen-cli
+      - run: |
+          cargo install wasm-bindgen-cli
 
-      - name: debug
-        run: |
-          geckodriver --version
-          echo ""
-          which geckodriver          
-          chromedriver --version
-          echo ""
-          which chromedriver
-          echo ""
+      - run: |
           wasm-bindgen --version
           echo ""
           which wasm-bindgen
@@ -155,14 +144,12 @@ jobs:
       - name: Run tests - yew
         run: |
           cd packages/yew
-          CHROMEDRIVER=$(which chromedriver) cargo test --features wasm_test --target wasm32-unknown-unknown
-          GECKODRIVER=$(which geckodriver) cargo test --features wasm_test --target wasm32-unknown-unknown
+          cargo test --features wasm_test --target wasm32-unknown-unknown
 
       - name: Run tests - yew-router
         run: |
           cd packages/yew-router
-          CHROMEDRIVER=$(which chromedriver) cargo test --target wasm32-unknown-unknown
-          GECKODRIVER=$(which geckodriver) cargo test --target wasm32-unknown-unknown
+          cargo test --target wasm32-unknown-unknown
 
   unit_tests:
     name: Unit Tests on ${{ matrix.toolchain }}
@@ -198,7 +185,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -p yew --features "csr,ssr,hydration,tokio"
+          args: -p yew --features "csr,ssr,hydration"
 
   test-lints:
     name: Test lints on nightly
