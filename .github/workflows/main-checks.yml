@@ -136,8 +136,7 @@ jobs:
           if [ ! -f "Cargo.lock" ]; then
             cargo fetch
           fi
-          VERSION=`cargo run -p find-wasm-bindgen-version --quiet --release`
-          echo $VERSION
+          VERSION=`cargo pkgid --frozen wasm-bindgen | cut -d ":" -f 3`
           cargo install --version $VERSION wasm-bindgen-cli
 
       - name: debug
