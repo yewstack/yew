@@ -126,17 +126,24 @@ jobs:
           profile: minimal
 
       - uses: browser-actions/setup-geckodriver@latest
-      - run: |
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: |
+          if [ ! -f "Cargo.lock" ]; then
+            cargo fetch
+          fi
+          VERSION=`cargo run -p find-wasm-bindgen-version --quiet --release`
+          echo $VERSION
+          cargo install --version $VERSION wasm-bindgen-cli
+
+      - name: debug
+        run: |
           geckodriver --version
           echo ""
           which geckodriver
-
-      - uses: Swatinem/rust-cache@v1
-
-      - run: |
-          cargo install wasm-bindgen-cli
-
-      - run: |
+          echo ""
           wasm-bindgen --version
           echo ""
           which wasm-bindgen
