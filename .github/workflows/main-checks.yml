@@ -87,7 +87,6 @@ jobs:
           sudo apt-get install aspell
           ci/spellcheck.sh list
 
-
       - name: Run doctest
         uses: actions-rs/cargo@v1
         with:
@@ -105,8 +104,6 @@ jobs:
         with:
           command: test
           args: --doc --features doc_test --features wasm_test
-
-
 
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
@@ -133,7 +130,6 @@ jobs:
           version: "latest"
 
       - uses: Swatinem/rust-cache@v1
-
 
       - name: Run tests - yew
         run: |
@@ -170,13 +166,17 @@ jobs:
 
       - uses: Swatinem/rust-cache@v1
 
-      - name: Run tests
+      - name: Run native tests
         uses: actions-rs/cargo@v1
         with:
           command: test
           args: --all-targets --workspace --exclude yew --exclude website-test
 
-
+      - name: Run native tests for yew
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p yew --features "csr,ssr,hydration"
 
   test-lints:
     name: Test lints on nightly
@@ -191,7 +191,6 @@ jobs:
           profile: minimal
 
       - uses: Swatinem/rust-cache@v1
-
 
       - name: Run tests
         uses: actions-rs/cargo@v1

@@ -118,7 +118,7 @@ impl BPortal {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "wasm_test"))]
 mod layout_tests {
     extern crate self as yew;
 
@@ -130,7 +130,6 @@ mod layout_tests {
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
