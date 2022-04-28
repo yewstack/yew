@@ -42,7 +42,6 @@ members = [
   "tools/benchmark-struct",
   "tools/benchmark-hooks",
   "tools/changelog",
-  "tools/find-wasm-bindgen-version",
   "tools/process-benchmark-results",
   "tools/website-test",
 ]
