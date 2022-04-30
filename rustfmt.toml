@@ -1,3 +1,5 @@
+edition = "2021"
+
 format_code_in_doc_comments = true
 wrap_comments = true
 comment_width = 100 # same as default max_width

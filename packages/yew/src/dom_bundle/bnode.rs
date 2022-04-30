@@ -62,7 +62,7 @@ impl ReconcileTarget for BNode {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
         match self {
             Self::Tag(ref vtag) => vtag.shift(next_parent, next_sibling),
             Self::Text(ref btext) => btext.shift(next_parent, next_sibling),
@@ -72,6 +72,8 @@ impl ReconcileTarget for BNode {
                 next_parent
                     .insert_before(node, next_sibling.get().as_ref())
                     .unwrap();
+
+                NodeRef::new(node.clone())
             }
             Self::Portal(ref vportal) => vportal.shift(next_parent, next_sibling),
             Self::Suspense(ref vsuspense) => vsuspense.shift(next_parent, next_sibling),
@@ -289,7 +291,7 @@ mod feat_hydration {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "wasm_test"))]
 mod layout_tests {
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
@@ -297,7 +299,6 @@ mod layout_tests {
     use super::*;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]

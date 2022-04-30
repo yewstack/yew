@@ -380,10 +380,14 @@ impl ReconcileTarget for BList {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
-        for node in self.rev_children.iter().rev() {
-            node.shift(next_parent, next_sibling.clone());
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
+        let mut next_sibling = next_sibling;
+
+        for node in self.rev_children.iter() {
+            next_sibling = node.shift(next_parent, next_sibling.clone());
         }
+
+        next_sibling
     }
 }
 
@@ -500,7 +504,7 @@ mod feat_hydration {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "wasm_test"))]
 mod layout_tests {
     extern crate self as yew;
 
@@ -510,7 +514,6 @@ mod layout_tests {
     use crate::html;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
@@ -578,7 +581,7 @@ mod layout_tests {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "wasm_test"))]
 mod layout_tests_keys {
     extern crate self as yew;
 
@@ -590,7 +593,6 @@ mod layout_tests_keys {
     use crate::virtual_dom::VNode;
     use crate::{html, Children, Component, Context, Html, Properties};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     struct Comp {}

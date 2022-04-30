@@ -87,7 +87,6 @@ jobs:
           sudo apt-get install aspell
           ci/spellcheck.sh list
 
-
       - name: Run doctest
         uses: actions-rs/cargo@v1
         with:
@@ -105,8 +104,6 @@ jobs:
         with:
           command: test
           args: --doc --features doc_test --features wasm_test
-
-
 
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
@@ -128,23 +125,44 @@ jobs:
           override: true
           profile: minimal
 
-      - uses: jetli/wasm-pack-action@v0.3.0
-        with:
-          version: "latest"
+      - uses: browser-actions/setup-geckodriver@latest
+      - uses: nanasess/setup-chromedriver@v1
 
       - uses: Swatinem/rust-cache@v1
 
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: |
+          if [ ! -f "Cargo.lock" ]; then
+            cargo fetch
+          fi
+          VERSION=`cargo pkgid --frozen wasm-bindgen | cut -d ":" -f 3`
+          cargo install --version $VERSION wasm-bindgen-cli
+
+      - name: debug
+        run: |
+          geckodriver --version
+          echo ""
+          which geckodriver          
+          chromedriver --version
+          echo ""
+          which chromedriver
+          echo ""
+          wasm-bindgen --version
+          echo ""
+          which wasm-bindgen
 
       - name: Run tests - yew
         run: |
           cd packages/yew
-          wasm-pack test --chrome --firefox --headless -- --features "wasm_test"
+          CHROMEDRIVER=$(which chromedriver) cargo test --features wasm_test --target wasm32-unknown-unknown
+          GECKODRIVER=$(which geckodriver) cargo test --features wasm_test --target wasm32-unknown-unknown
 
       - name: Run tests - yew-router
         run: |
           cd packages/yew-router
-          wasm-pack test --chrome --firefox --headless
-
+          CHROMEDRIVER=$(which chromedriver) cargo test --target wasm32-unknown-unknown
+          GECKODRIVER=$(which geckodriver) cargo test --target wasm32-unknown-unknown
 
   unit_tests:
     name: Unit Tests on ${{ matrix.toolchain }}
@@ -170,13 +188,17 @@ jobs:
 
       - uses: Swatinem/rust-cache@v1
 
-      - name: Run tests
+      - name: Run native tests
         uses: actions-rs/cargo@v1
         with:
           command: test
           args: --all-targets --workspace --exclude yew --exclude website-test
 
-
+      - name: Run native tests for yew
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p yew --features "csr,ssr,hydration,tokio"
 
   test-lints:
     name: Test lints on nightly
@@ -191,7 +213,6 @@ jobs:
           profile: minimal
 
       - uses: Swatinem/rust-cache@v1
-
 
       - name: Run tests
         uses: actions-rs/cargo@v1
