@@ -104,7 +104,6 @@ mod feat_any_hydration_ssr {
         T: Serialize + DeserializeOwned + 'static,
     {
         pub state: Option<Rc<T>>,
-        #[allow(dead_code)]
         pub deps: Option<Rc<D>>,
     }
 
