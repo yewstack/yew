@@ -31,7 +31,8 @@ pub use feat_ssr::*;
 ///
 /// ```
 /// # use yew::prelude::*;
-/// # use serde::{Serialize, DeserializeOwned};
+/// # use serde::de::DeserializeOwned;
+/// # use serde::Serialize;
 /// # use std::rc::Rc;
 /// #[hook]
 /// pub fn use_transitive_state<T, D, F>(f: F, deps: D) -> Option<Rc<T>>

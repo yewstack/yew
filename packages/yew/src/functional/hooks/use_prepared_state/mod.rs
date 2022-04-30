@@ -31,7 +31,8 @@ pub use feat_ssr::*;
 ///
 /// ```
 /// # use yew::prelude::*;
-/// # use serde::{Serialize, DeserializeOwned};
+/// # use serde::de::DeserializeOwned;
+/// # use serde::Serialize;
 /// # use std::rc::Rc;
 /// #[hook]
 /// pub fn use_prepared_state<T, D, F>(f: F, deps: D) -> Option<Rc<T>>
@@ -49,14 +50,16 @@ pub use feat_ssr::*;
 ///
 /// ```
 /// # use yew::prelude::*;
-/// # use serde::{Serialize, DeserializeOwned};
+/// # use serde::de::DeserializeOwned;
+/// # use serde::Serialize;
+/// # use yew::suspense::SuspensionResult;
 /// # use std::rc::Rc;
 /// # use std::future::Future;
 /// #[hook]
 /// pub fn use_prepared_state<T, D, F, U>(
 ///         f: F,
 ///         deps: D,
-///     ) -> impl Hook<Output = SuspensionResult<Option<Rc<T>>>>
+///     ) -> SuspensionResult<Option<Rc<T>>>
 ///     where
 ///         D: Serialize + DeserializeOwned + PartialEq + 'static,
 ///         T: Serialize + DeserializeOwned + 'static,
