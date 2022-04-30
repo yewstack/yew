@@ -250,8 +250,6 @@ impl ComponentState {
             props,
             #[cfg(feature = "hydration")]
             mode,
-            #[cfg(not(feature = "hydration"))]
-            prepared_state: None,
             #[cfg(feature = "hydration")]
             prepared_state,
         };

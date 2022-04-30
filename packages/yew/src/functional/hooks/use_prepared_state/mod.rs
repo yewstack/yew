@@ -93,6 +93,7 @@ pub use yew_macro::use_prepared_state_without_closure as use_prepared_state_macr
 mod feat_any_hydration_ssr {
     use std::rc::Rc;
 
+    use base64ct::{Base64, Encoding};
     use serde::de::DeserializeOwned;
     use serde::Serialize;
 
@@ -114,7 +115,7 @@ mod feat_any_hydration_ssr {
         T: Serialize + DeserializeOwned + 'static,
     {
         pub fn decode(s: &str) -> Self {
-            let buf = base64::decode(s).unwrap();
+            let buf = Base64::decode_vec(s).unwrap();
 
             let (state, deps) = bincode::deserialize::<(Option<T>, Option<D>)>(&buf)
                 .expect("failed to deserialize state");
@@ -136,7 +137,7 @@ mod feat_any_hydration_ssr {
             let state = bincode::serialize(&(self.state.as_deref(), self.deps.as_deref()))
                 .expect("failed to prepare state");
 
-            base64::encode(&state)
+            Base64::encode_string(&state)
         }
     }
 }

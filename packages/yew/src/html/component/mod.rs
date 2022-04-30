@@ -70,6 +70,7 @@ pub struct Context<COMP: BaseComponent> {
     #[cfg(feature = "hydration")]
     mode: RenderMode,
 
+    #[cfg(feature = "hydration")]
     prepared_state: Option<String>,
 }
 
@@ -93,7 +94,13 @@ impl<COMP: BaseComponent> Context<COMP> {
 
     /// The component's prepared state
     pub fn prepared_state(&self) -> Option<&str> {
-        self.prepared_state.as_deref()
+        #[cfg(not(feature = "hydration"))]
+        let state = None;
+
+        #[cfg(feature = "hydration")]
+        let state = self.prepared_state.as_deref();
+
+        state
     }
 }
 

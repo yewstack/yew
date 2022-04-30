@@ -3,6 +3,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use base64ct::{Base64, Encoding};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -30,7 +31,7 @@ where
 
         let state = bincode::serialize(&(&state, &self.deps)).expect("failed to prepare state");
 
-        base64::encode(&state)
+        Base64::encode_string(&state)
     }
 }
 
