@@ -41,7 +41,6 @@ where
         children,
         disabled,
         query,
-        ..
     } = props.clone();
 
     let navigator = use_navigator().expect_throw("failed to get navigator");
