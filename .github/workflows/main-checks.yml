@@ -95,7 +95,8 @@ jobs:
           override: true
           profile: minimal
 
-      - run: |
+      - name: Build wasm-bindgen-test-runner
+        run: |
           cd wasm-bindgen
           cargo build -p wasm-bindgen-cli --bin wasm-bindgen-test-runner --release
           cp target/release/wasm-bindgen-test-runner ~/.cargo/bin/wasm-bindgen-test-runner
@@ -162,19 +163,6 @@ jobs:
           fi
           VERSION=`cargo pkgid --frozen wasm-bindgen | cut -d ":" -f 3`
           cargo install --version $VERSION wasm-bindgen-cli
-
-      - name: debug
-        run: |
-          geckodriver --version
-          echo ""
-          which geckodriver          
-          chromedriver --version
-          echo ""
-          which chromedriver
-          echo ""
-          wasm-bindgen --version
-          echo ""
-          which wasm-bindgen
 
       - name: Run tests - yew
         run: |
