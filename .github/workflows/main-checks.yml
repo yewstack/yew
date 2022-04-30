@@ -82,6 +82,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          path: "./wasm-bindgen"
+          ref: respect-rustdoc-tmp-paths
+          repository: hamza1311/wasm-bindgen
+
+      - uses: Swatinem/rust-cache@v1
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+
+      - run: |
+          cd wasm-bindgen
+          cargo build -p wasm-bindgen-cli --bin wasm-bindgen-test-runner --release
+          cp target/release/wasm-bindgen-test-runner ~/.cargo/bin/wasm-bindgen-test-runner
+
+      - uses: actions/checkout@v2
+        with:
+          path: "./yew"
+
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -91,35 +113,21 @@ jobs:
 
       - uses: browser-actions/setup-geckodriver@latest
       - uses: nanasess/setup-chromedriver@v1
-
-      - uses: Swatinem/rust-cache@v1
-
-      - name: Install wasm-bindgen-cli
-        shell: bash
-        run: |
-          if [ ! -f "Cargo.lock" ]; then
-            cargo fetch
-          fi
-          VERSION=`cargo pkgid --frozen wasm-bindgen | cut -d ":" -f 3`
-          cargo install --version $VERSION wasm-bindgen-cli
-
-      - name: Run doctest
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --doc --workspace --exclude yew --exclude website-test --target wasm32-unknown-unknown
+#
+#      - name: Run doctest
+#        run: |
+#          cd yew
+#          cargo test --doc --workspace --exclude yew --exclude website-test --target wasm32-unknown-unknown
 
       - name: Run website code snippet tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p website-test --target wasm32-unknown-unknown
+        run: |
+          cd yew
+          cargo test -p website-test --target wasm32-unknown-unknown
 
       - name: Run doctest - yew with features
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --doc --features doc_test --features wasm_test --target wasm32-unknown-unknown
+        run: |
+          cd yew
+          cargo test --doc --features doc_test --target wasm32-unknown-unknown
 
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
@@ -154,6 +162,19 @@ jobs:
           fi
           VERSION=`cargo pkgid --frozen wasm-bindgen | cut -d ":" -f 3`
           cargo install --version $VERSION wasm-bindgen-cli
+
+      - name: debug
+        run: |
+          geckodriver --version
+          echo ""
+          which geckodriver          
+          chromedriver --version
+          echo ""
+          which chromedriver
+          echo ""
+          wasm-bindgen --version
+          echo ""
+          which wasm-bindgen
 
       - name: Run tests - yew
         run: |
@@ -201,7 +222,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -p yew --features "csr,ssr,hydration"
+          args: -p yew --features "csr,ssr,hydration,tokio"
 
   test-lints:
     name: Test lints on nightly
