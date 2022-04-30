@@ -1,3 +1,4 @@
+#![cfg(target_arch = "wasm32")]
 #![cfg(feature = "hydration")]
 
 use std::time::Duration;
