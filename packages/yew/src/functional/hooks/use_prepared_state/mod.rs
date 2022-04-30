@@ -1,9 +1,9 @@
 #[cfg(feature = "hydration")]
-mod feat_hydration;
+pub(super) mod feat_hydration;
 #[cfg(all(feature = "hydration", feature = "ssr"))]
 mod feat_hydration_ssr;
 #[cfg(not(any(feature = "hydration", feature = "ssr")))]
-mod feat_none;
+pub(super) mod feat_none;
 #[cfg(feature = "ssr")]
 mod feat_ssr;
 
@@ -86,15 +86,11 @@ pub use yew_macro::use_prepared_state_with_closure as use_prepared_state_macro;
 pub use yew_macro::use_prepared_state_with_closure_and_suspension as use_prepared_state_macro;
 // Without SSR.
 #[doc(hidden)]
-#[cfg(not(feature = "ssr",))]
+#[cfg(not(feature = "ssr"))]
 pub use yew_macro::use_prepared_state_without_closure as use_prepared_state_macro;
 
 #[cfg(any(feature = "hydration", feature = "ssr"))]
 mod feat_any_hydration_ssr {
-    #[cfg(feature = "ssr")]
-    use std::future::Future;
-    #[cfg(feature = "ssr")]
-    use std::pin::Pin;
     use std::rc::Rc;
 
     use serde::de::DeserializeOwned;
@@ -118,8 +114,10 @@ mod feat_any_hydration_ssr {
         D: Serialize + DeserializeOwned + PartialEq + 'static,
         T: Serialize + DeserializeOwned + 'static,
     {
-        pub fn decode(buf: &[u8]) -> Self {
-            let (state, deps) = bincode::deserialize::<(Option<T>, Option<D>)>(buf)
+        pub fn decode(s: &str) -> Self {
+            let buf = base64::decode(s).unwrap();
+
+            let (state, deps) = bincode::deserialize::<(Option<T>, Option<D>)>(&buf)
                 .expect("failed to deserialize state");
 
             PreparedStateBase {
@@ -135,11 +133,11 @@ mod feat_any_hydration_ssr {
         T: Serialize + DeserializeOwned + 'static,
     {
         #[cfg(feature = "ssr")]
-        fn prepare(&self) -> Pin<Box<dyn Future<Output = Vec<u8>>>> {
+        fn prepare(&self) -> String {
             let state = bincode::serialize(&(self.state.as_deref(), self.deps.as_deref()))
                 .expect("failed to prepare state");
 
-            Box::pin(async move { state })
+            base64::encode(&state)
         }
     }
 }

@@ -23,8 +23,6 @@
 use std::any::Any;
 use std::cell::RefCell;
 use std::fmt;
-use std::future::Future;
-use std::pin::Pin;
 use std::rc::Rc;
 
 use wasm_bindgen::prelude::*;
@@ -72,7 +70,7 @@ type ReRender = Rc<dyn Fn()>;
 #[cfg(any(feature = "hydration", feature = "ssr"))]
 pub(crate) trait PreparedState {
     #[cfg(feature = "ssr")]
-    fn prepare(&self) -> Pin<Box<dyn Future<Output = Vec<u8>>>>;
+    fn prepare(&self) -> String;
 }
 
 /// Primitives of an effect hook.
@@ -94,7 +92,7 @@ pub struct HookContext {
     prepared_states: Vec<Rc<dyn PreparedState>>,
 
     #[cfg(feature = "hydration")]
-    prepared_states_data: Vec<Rc<[u8]>>,
+    prepared_states_data: Vec<Rc<str>>,
     #[cfg(feature = "hydration")]
     prepared_state_counter: usize,
 
@@ -126,11 +124,7 @@ impl HookContext {
             #[cfg(feature = "hydration")]
             prepared_states_data: {
                 match prepared_state {
-                    Some(m) => m
-                        .split(',')
-                        .map(|m| base64::decode_config(m.trim(), base64::STANDARD).unwrap())
-                        .map(Rc::from)
-                        .collect(),
+                    Some(m) => m.split(',').map(Rc::from).collect(),
                     None => Vec::new(),
                 }
             },
@@ -182,13 +176,13 @@ impl HookContext {
     #[cfg(any(feature = "hydration", feature = "ssr"))]
     pub(crate) fn next_prepared_state<T>(
         &mut self,
-        initializer: impl FnOnce(ReRender, Option<&[u8]>) -> T,
+        initializer: impl FnOnce(ReRender, Option<&str>) -> T,
     ) -> Rc<T>
     where
         T: 'static + PreparedState,
     {
         #[cfg(not(feature = "hydration"))]
-        let prepared_state = Option::<Rc<[u8]>>::None;
+        let prepared_state = Option::<Rc<str>>::None;
 
         #[cfg(feature = "hydration")]
         let prepared_state = {
@@ -268,33 +262,26 @@ impl HookContext {
     }
 
     #[cfg(not(feature = "ssr"))]
-    fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = String>>>> {
+    fn prepare_state(&self) -> Option<String> {
         None
     }
 
     #[cfg(feature = "ssr")]
-    fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = String>>>> {
+    fn prepare_state(&self) -> Option<String> {
         if self.prepared_states.is_empty() {
             return None;
         }
 
         let prepared_states = self.prepared_states.clone();
 
-        Some(Box::pin(async move {
-            let mut states = "".to_string();
+        let mut states = Vec::new();
 
-            for state in prepared_states.iter() {
-                if !states.is_empty() {
-                    states.push(',');
-                }
+        for state in prepared_states.iter() {
+            let state = state.prepare();
+            states.push(state);
+        }
 
-                let state = state.prepare().await;
-
-                base64::encode_config_buf(&state, base64::STANDARD, &mut states);
-            }
-
-            states
-        }))
+        Some(states.join(","))
     }
 }
 
@@ -390,7 +377,7 @@ where
     }
 
     /// Prepares the server-side state.
-    pub fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = String>>>> {
+    pub fn prepare_state(&self) -> Option<String> {
         let hook_ctx = self.hook_ctx.borrow();
         hook_ctx.prepare_state()
     }

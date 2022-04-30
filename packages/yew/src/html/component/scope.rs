@@ -231,9 +231,7 @@ mod feat_ssr {
             let self_any_scope = AnyScope::from(self.clone());
             html.render_to_string(w, &self_any_scope, hydratable).await;
 
-            if let Some(prepare_state) = self.get_component().unwrap().prepare_state() {
-                let prepared_state = prepare_state.await;
-
+            if let Some(prepared_state) = self.get_component().unwrap().prepare_state() {
                 w.push_str(r#"<script type="application/x-yew-comp-state">"#);
                 w.push_str(&prepared_state);
                 w.push_str(r#"</script>"#);

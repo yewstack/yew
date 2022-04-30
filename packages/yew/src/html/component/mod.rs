@@ -1,8 +1,5 @@
 //! Components wrapped with context including properties, state, and link
 
-use std::future::Future;
-use std::pin::Pin;
-
 mod children;
 #[cfg(any(feature = "csr", feature = "ssr"))]
 mod lifecycle;
@@ -133,7 +130,7 @@ pub trait BaseComponent: Sized + 'static {
     fn destroy(&mut self, ctx: &Context<Self>);
 
     /// Prepares the server-side state.
-    fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = String>>>>;
+    fn prepare_state(&self) -> Option<String>;
 }
 
 /// Components are the basic building blocks of the UI in a Yew app. Each Component
@@ -239,8 +236,7 @@ where
         Component::destroy(self, ctx)
     }
 
-    fn prepare_state(&self) -> Option<Pin<Box<dyn Future<Output = String>>>> {
+    fn prepare_state(&self) -> Option<String> {
         Component::prepare_state(self)
-            .map(|m| Box::pin(async move { m }) as Pin<Box<dyn Future<Output = String>>>)
     }
 }

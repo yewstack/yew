@@ -7,6 +7,7 @@ mod use_prepared_state;
 mod use_reducer;
 mod use_ref;
 mod use_state;
+mod use_transitive_state;
 
 pub use use_callback::*;
 pub use use_context::*;
@@ -17,6 +18,7 @@ pub use use_prepared_state::*;
 pub use use_reducer::*;
 pub use use_ref::*;
 pub use use_state::*;
+pub use use_transitive_state::*;
 
 use crate::functional::{AnyScope, HookContext};
 
