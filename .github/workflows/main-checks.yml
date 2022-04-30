@@ -113,11 +113,11 @@ jobs:
 
       - uses: browser-actions/setup-geckodriver@latest
       - uses: nanasess/setup-chromedriver@v1
-#
-#      - name: Run doctest
-#        run: |
-#          cd yew
-#          cargo test --doc --workspace --exclude yew --exclude website-test --target wasm32-unknown-unknown
+
+      - name: Run doctest
+        run: |
+          cd yew
+          cargo test --doc --workspace --exclude yew --exclude changelog --exclude website-test --target wasm32-unknown-unknown
 
       - name: Run website code snippet tests
         run: |
@@ -127,7 +127,7 @@ jobs:
       - name: Run doctest - yew with features
         run: |
           cd yew
-          cargo test --doc --features doc_test --target wasm32-unknown-unknown
+          cargo test -p yew --doc --features doc_test --target wasm32-unknown-unknown
 
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
