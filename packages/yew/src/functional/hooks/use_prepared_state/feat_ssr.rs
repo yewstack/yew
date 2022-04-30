@@ -113,11 +113,13 @@ mod feat_io {
                     let result = result.clone();
                     use_state(move || {
                         let state_f = f(&deps);
+
                         spawn_local(async move {
                             let state = state_f.await;
                             result.set((Ok(Rc::new(state)), None));
                         })
-                    });
+                    })
+                    .run(ctx);
                 }
 
                 let state = result.0.clone()?;
