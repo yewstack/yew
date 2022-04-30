@@ -89,7 +89,19 @@ jobs:
           override: true
           profile: minimal
 
+      - uses: browser-actions/setup-geckodriver@latest
+      - uses: nanasess/setup-chromedriver@v1
+
       - uses: Swatinem/rust-cache@v1
+
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: |
+          if [ ! -f "Cargo.lock" ]; then
+            cargo fetch
+          fi
+          VERSION=`cargo pkgid --frozen wasm-bindgen | cut -d ":" -f 3`
+          cargo install --version $VERSION wasm-bindgen-cli
 
       - name: Run doctest
         uses: actions-rs/cargo@v1
@@ -142,19 +154,6 @@ jobs:
           fi
           VERSION=`cargo pkgid --frozen wasm-bindgen | cut -d ":" -f 3`
           cargo install --version $VERSION wasm-bindgen-cli
-
-      - name: debug
-        run: |
-          geckodriver --version
-          echo ""
-          which geckodriver          
-          chromedriver --version
-          echo ""
-          which chromedriver
-          echo ""
-          wasm-bindgen --version
-          echo ""
-          which wasm-bindgen
 
       - name: Run tests - yew
         run: |
