@@ -39,8 +39,8 @@ fn App() -> Html {
     html! {<div>{"Hello, World!"}</div>}
 }
 
-#[tokio::main]
-async fn main() {
+// #[tokio::main]
+async fn no_main() {
     let renderer = ServerRenderer::<App>::new();
 
     let rendered = renderer.render().await;
