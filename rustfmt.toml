@@ -12,4 +12,3 @@ group_imports = "StdExternalCrate"
 imports_granularity = "Module"
 reorder_impl_items = true
 use_field_init_shorthand = true
-edition = "2021"
