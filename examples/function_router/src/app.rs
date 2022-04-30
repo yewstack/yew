@@ -37,7 +37,7 @@ pub fn App() -> Html {
             <Nav />
 
             <main>
-                <Switch<Route> render={Switch::render(switch)} />
+                <Switch<Route> render={switch} />
             </main>
             <footer class="footer">
                 <div class="content has-text-centered">
@@ -71,7 +71,7 @@ pub fn ServerApp(props: &ServerAppProps) -> Html {
             <Nav />
 
             <main>
-                <Switch<Route> render={Switch::render(switch)} />
+                <Switch<Route> render={switch} />
             </main>
             <footer class="footer">
                 <div class="content has-text-centered">
@@ -87,8 +87,8 @@ pub fn ServerApp(props: &ServerAppProps) -> Html {
     }
 }
 
-fn switch(routes: &Route) -> Html {
-    match routes.clone() {
+fn switch(routes: Route) -> Html {
+    match routes {
         Route::Post { id } => {
             html! { <Post seed={id} /> }
         }

@@ -1,7 +1,6 @@
 //! The [`Switch`] Component.
 
 use std::marker::PhantomData;
-use std::rc::Rc;
 
 use gloo::console;
 use wasm_bindgen::UnwrapThrowExt;
@@ -10,36 +9,6 @@ use yew::prelude::*;
 use crate::prelude::*;
 use crate::scope_ext::LocationHandle;
 
-/// Wraps `Rc` around `Fn` so it can be passed as a prop.
-pub struct RenderFn<R>(Rc<dyn Fn(&R) -> Html>);
-
-impl<R> RenderFn<R> {
-    /// Creates a new [`RenderFn`]
-    ///
-    /// It is recommended that you use [`Switch::render`] instead
-    pub fn new(value: impl Fn(&R) -> Html + 'static) -> Self {
-        Self(Rc::new(value))
-    }
-
-    pub fn render(&self, route: &R) -> Html {
-        (self.0)(route)
-    }
-}
-
-impl<T> Clone for RenderFn<T> {
-    fn clone(&self) -> Self {
-        Self(Rc::clone(&self.0))
-    }
-}
-
-impl<T> PartialEq for RenderFn<T> {
-    fn eq(&self, other: &Self) -> bool {
-        // https://github.com/rust-lang/rust-clippy/issues/6524
-        #[allow(clippy::vtable_address_comparisons)]
-        Rc::ptr_eq(&self.0, &other.0)
-    }
-}
-
 /// Props for [`Switch`]
 #[derive(Properties, PartialEq, Clone)]
 pub struct SwitchProps<R>
@@ -47,7 +16,7 @@ where
     R: Routable,
 {
     /// Callback which returns [`Html`] to be rendered for the current route.
-    pub render: RenderFn<R>,
+    pub render: Callback<R, Html>,
     #[prop_or_default]
     pub pathname: Option<String>,
 }
@@ -103,8 +72,8 @@ where
             .and_then(|p| R::recognize(p))
             .or_else(|| ctx.link().route::<R>());
 
-        let children = match &route {
-            Some(ref route) => (ctx.props().render.0)(route),
+        let children = match route {
+            Some(route) => ctx.props().render.emit(route),
             None => {
                 console::warn!("no route matched");
                 Html::default()
@@ -112,18 +81,5 @@ where
         };
 
         html! {<>{children}</>}
-    }
-}
-
-impl<R> Switch<R>
-where
-    R: Routable + Clone + 'static,
-{
-    /// Creates a [`RenderFn`].
-    pub fn render<F>(func: F) -> RenderFn<R>
-    where
-        F: Fn(&R) -> Html + 'static,
-    {
-        RenderFn::new(func)
     }
 }

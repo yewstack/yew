@@ -79,7 +79,7 @@ pub mod utils;
 
 pub use routable::{AnyRoute, Routable};
 pub use router::{BrowserRouter, HashRouter, Router};
-pub use switch::{RenderFn, Switch};
+pub use switch::Switch;
 
 pub mod history {
     //! A module that provides universal session history and location information.
