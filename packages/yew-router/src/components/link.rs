@@ -1,12 +1,10 @@
-use std::marker::PhantomData;
-
 use serde::Serialize;
 use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
 use yew::virtual_dom::AttrValue;
 
 use crate::navigator::NavigatorKind;
-use crate::scope_ext::RouterScopeExt;
+use crate::prelude::*;
 use crate::{utils, Routable};
 
 /// Props for [`Link`]
@@ -31,96 +29,70 @@ where
 }
 
 /// A wrapper around `<a>` tag to be used with [`Router`](crate::Router)
-pub struct Link<R, Q = ()>
+#[function_component]
+pub fn Link<R, Q = ()>(props: &LinkProps<R, Q>) -> Html
 where
     R: Routable + 'static,
     Q: Clone + PartialEq + Serialize + 'static,
 {
-    _route: PhantomData<R>,
-    _query: PhantomData<Q>,
-}
+    let LinkProps {
+        classes,
+        to,
+        children,
+        disabled,
+        query,
+        ..
+    } = props.clone();
 
-pub enum Msg {
-    OnClick,
-}
+    let navigator = use_navigator().expect_throw("failed to get navigator");
 
-impl<R, Q> Component for Link<R, Q>
-where
-    R: Routable + 'static,
-    Q: Clone + PartialEq + Serialize + 'static,
-{
-    type Message = Msg;
-    type Properties = LinkProps<R, Q>;
+    let onclick = {
+        use_callback(
+            |e: MouseEvent, (navigator, to, query)| {
+                e.prevent_default();
 
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self {
-            _route: PhantomData,
-            _query: PhantomData,
-        }
-    }
-
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            Msg::OnClick => {
-                let LinkProps { to, query, .. } = ctx.props();
-                let navigator = ctx
-                    .link()
-                    .navigator()
-                    .expect_throw("failed to get navigator");
                 match query {
                     None => {
                         navigator.push(to.clone());
                     }
-                    Some(data) => {
+                    Some(ref data) => {
                         navigator
                             .push_with_query(to.clone(), data.clone())
                             .expect_throw("failed push history with query");
                     }
-                };
-                false
-            }
-        }
-    }
+                }
+            },
+            (navigator.clone(), to.clone(), query.clone()),
+        )
+    };
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let LinkProps {
-            classes,
-            to,
-            query,
-            children,
-            disabled,
-            ..
-        } = ctx.props().clone();
-        let onclick = ctx.link().callback(|e: MouseEvent| {
-            e.prevent_default();
-            Msg::OnClick
-        });
+    let href: AttrValue = {
+        (*use_memo(
+            |(to, query, navigator)| {
+                let pathname = navigator.route_to_url(to.to_owned());
+                let path = query
+                    .clone()
+                    .and_then(|query| serde_urlencoded::to_string(query).ok())
+                    .and_then(|query| utils::compose_path(&pathname, &query))
+                    .unwrap_or_else(|| pathname.to_string());
 
-        let navigator = ctx
-            .link()
-            .navigator()
-            .expect_throw("failed to get navigator");
-        let href: AttrValue = {
-            let pathname = navigator.route_to_url(to);
-            let path = query
-                .and_then(|query| serde_urlencoded::to_string(query).ok())
-                .and_then(|query| utils::compose_path(&pathname, &query))
-                .unwrap_or_else(|| pathname.to_string());
+                AttrValue::from(match navigator.kind() {
+                    NavigatorKind::Hash => format!("#{}", path),
+                    _ => path,
+                })
+            },
+            (to, query, navigator),
+        ))
+        .clone()
+    };
 
-            match navigator.kind() {
-                NavigatorKind::Hash => format!("#{}", path),
-                _ => path,
-            }
-            .into()
-        };
-        html! {
-            <a class={classes}
-                {href}
-                {onclick}
-                {disabled}
-            >
-                { children }
-            </a>
-        }
+    html! {
+        <a class={classes}
+            {href}
+            {onclick}
+            {disabled}
+        >
+            { children }
+        </a>
     }
 }
