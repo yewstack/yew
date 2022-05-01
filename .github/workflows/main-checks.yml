@@ -81,12 +81,6 @@ jobs:
     name: Documentation Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-        with:
-          path: "./wasm-bindgen"
-          ref: respect-rustdoc-tmp-paths
-          repository: hamza1311/wasm-bindgen
-
       - uses: Swatinem/rust-cache@v1
 
       - uses: actions-rs/toolchain@v1
@@ -95,15 +89,10 @@ jobs:
           override: true
           profile: minimal
 
-      - name: Build wasm-bindgen-test-runner
-        run: |
-          cd wasm-bindgen
-          cargo build -p wasm-bindgen-cli --bin wasm-bindgen-test-runner --release
-          cp target/release/wasm-bindgen-test-runner ~/.cargo/bin/wasm-bindgen-test-runner
+      - name: Install wasm-bindgen-test-runner
+        run: cargo install --git https://github.com/hamza1311/wasm-bindgen --branch respect-rustdoc-tmp-paths wasm-bindgen-cli
 
       - uses: actions/checkout@v2
-        with:
-          path: "./yew"
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -116,19 +105,22 @@ jobs:
       - uses: nanasess/setup-chromedriver@v1
 
       - name: Run doctest
-        run: |
-          cd yew
-          cargo test --doc --workspace --exclude yew --exclude changelog --exclude website-test --target wasm32-unknown-unknown
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --doc --workspace --exclude yew --exclude changelog --exclude website-test --target wasm32-unknown-unknown
 
       - name: Run website code snippet tests
-        run: |
-          cd yew
-          cargo test -p website-test --target wasm32-unknown-unknown
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p website-test --target wasm32-unknown-unknown
 
       - name: Run doctest - yew with features
-        run: |
-          cd yew
-          cargo test -p yew --doc --features doc_test --target wasm32-unknown-unknown
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p yew --doc --features doc_test --target wasm32-unknown-unknown
 
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
