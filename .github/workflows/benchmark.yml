@@ -64,7 +64,6 @@ jobs:
         with:
           repository: krausest/js-framework-benchmark
           path: "./js-framework-benchmark"
-          ref: 8c5d6bfc7675950c0241c33dc5b539b562e53010
 
       - uses: actions-rs/toolchain@v1
         with:
