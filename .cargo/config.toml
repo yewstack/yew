@@ -3,3 +3,4 @@ runner = 'wasm-bindgen-test-runner'
 
 [unstable]
 doctest-xcompile = true
+# [unstable] must be the last section -- ci/write-optimisation-flags.sh relies on it

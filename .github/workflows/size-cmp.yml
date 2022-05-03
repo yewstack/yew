@@ -56,35 +56,11 @@ jobs:
           version: 'latest'
 
       - name: Write optimisation flags for master
-        run: |
-          cat >> .cargo/config << EOF
-          [unstable]
-          build-std = ["std", "panic_abort"]
-          build-std-features = ["panic_immediate_abort"]
-          EOF
-          cat >> Cargo.toml << EOF
-          [profile.release]
-          lto = true
-          codegen-units = 1
-          panic = "abort"
-          opt-level = "z"
-          EOF
+        run: ./ci/write-optimisation-flags.sh
         working-directory: yew-master
 
       - name: Write optimisation flags for pull request
-        run: |
-          cat >> .cargo/config << EOF
-          [unstable]
-          build-std = ["std", "panic_abort"]
-          build-std-features = ["panic_immediate_abort"]
-          EOF
-          cat >> Cargo.toml << EOF
-          [profile.release]
-          lto = true
-          codegen-units = 1
-          panic = "abort"
-          opt-level = "z"
-          EOF
+        run: ./ci/write-optimisation-flags.sh
         working-directory: current-pr
 
       - name: Build master examples
