@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::iter;
 use std::ops::Deref;
 
 use indexmap::IndexMap;
@@ -91,45 +90,20 @@ impl Attributes {
         new: &IndexMap<AttrValue, AttrValue>,
         old: &IndexMap<AttrValue, AttrValue>,
     ) {
-        let mut old_iter = old.iter();
-        let mut new_iter = new.iter();
-        loop {
-            match (new_iter.next(), old_iter.next()) {
-                (Some((new_key, new_value)), Some((old_key, old_value))) => {
-                    if new_key != old_key {
-                        break;
-                    }
-                    if new_value != old_value {
-                        Self::set_attribute(el, new_key, new_value);
+        for (key, value) in new.iter() {
+            match old.get(key) {
+                Some(old_value) => {
+                    if value != old_value {
+                        Self::set_attribute(el, key, value);
                     }
                 }
-                // new attributes
-                (Some(attr), None) => {
-                    for (key, value) in iter::once(attr).chain(new_iter) {
-                        match old.get(key) {
-                            Some(old_value) => {
-                                if value != old_value {
-                                    Self::set_attribute(el, key, value);
-                                }
-                            }
-                            None => {
-                                Self::set_attribute(el, key, value);
-                            }
-                        }
-                    }
-                    break;
-                }
-                // removed attributes
-                (None, Some(attr)) => {
-                    for (key, _) in iter::once(attr).chain(old_iter) {
-                        let key = key;
-                        if !new.contains_key(key) {
-                            Self::remove_attribute(el, key);
-                        }
-                    }
-                    break;
-                }
-                (None, None) => break,
+                None => Self::set_attribute(el, key, value),
+            }
+        }
+
+        for (key, _value) in old.iter() {
+            if !new.contains_key(key) {
+                Self::remove_attribute(el, key);
             }
         }
     }
