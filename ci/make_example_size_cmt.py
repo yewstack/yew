@@ -73,9 +73,9 @@ def main() -> None:
 
     lines.append("")
     lines.append("</details>")
+    lines.append("")
 
     if significant_lines:
-        lines.append("")
 
         if len(significant_lines) == 1:
             lines.append("⚠️ The following example has changed its size significantly:")
@@ -88,6 +88,9 @@ def main() -> None:
         lines.append(header)
         lines.append(sep)
         lines.extend(significant_lines)
+
+    else:
+        lines.append("✅ None of the examples has changed their size significantly.")
 
     output = "\n".join(lines)
 
