@@ -1,40 +1,47 @@
 from typing import Dict, List, Optional
+from pathlib import Path
 
 import glob
 import os
 import json
 
-def find_example_sizes(parent_dir: str) -> Dict[str, int]:
+
+def find_example_sizes(parent_dir: Path) -> Dict[str, int]:
     example_sizes: Dict[str, int] = {}
 
-    for example_dir in os.listdir(f"{parent_dir}/examples"):
-        path = f"{parent_dir}/examples/{example_dir}"
+    for example_dir in (parent_dir / "examples").iterdir():
 
-        if not os.path.isdir(path):
+        if not example_dir.is_dir():
+            print(f"{example_dir} is not a directory.")
             continue
 
-        matches = glob.glob(f"{parent_dir}/examples/{example_dir}/dist/index*.wasm")
+        try:
+            wasm_path = next(example_dir.glob("dist/*.wasm"))
 
-        if not matches:
+        except StopIteration:
             continue
 
-        path = matches[0]
-
-        example_sizes[example_dir] = os.path.getsize(path)
+        example_sizes[example_dir.name] = wasm_path.stat().st_size
 
     return example_sizes
 
-master_sizes = find_example_sizes("yew-master")
-pr_sizes = find_example_sizes("current-pr")
 
-example_names = sorted(set([*master_sizes.keys(), *pr_sizes.keys()]))
+def main() -> None:
+    master_sizes = find_example_sizes(Path("yew-master"))
+    pr_sizes = find_example_sizes(Path("current-pr"))
 
-joined_sizes = [(i, [master_sizes.get(i), pr_sizes.get(i)]) for i in example_names]
+    example_names = sorted(set([*master_sizes.keys(), *pr_sizes.keys()]))
 
-size_cmp_info = {
-    "sizes": joined_sizes,
-    "issue_number": os.environ["ISSUE_NUMBER"],
-}
+    joined_sizes = [(i, [master_sizes.get(i), pr_sizes.get(i)]) for i in example_names]
 
-with open(".SIZE_CMP_INFO", "w+") as f:
-    f.write(json.dumps(size_cmp_info))
+    size_cmp_info = {
+        "sizes": joined_sizes,
+        "issue_number": os.environ["ISSUE_NUMBER"],
+    }
+
+    with open(".SIZE_CMP_INFO", "w+") as f:
+        f.write(json.dumps(size_cmp_info, indent=4))
+
+
+if __name__ == "__main__":
+    main()
