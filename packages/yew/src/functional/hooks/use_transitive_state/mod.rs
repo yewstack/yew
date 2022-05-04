@@ -20,22 +20,25 @@ pub use feat_ssr::*;
 /// This value is created after the server-side rendering artifact is created.
 ///
 /// It accepts a closure as the first argument and a dependency type as the second argument.
-/// It returns `Option<Rc<T>>`.
+/// It returns `SuspensionResult<Option<Rc<T>>>`.
 ///
-/// It will always return `None` during server-side rendering.
+/// It will always return `Ok(None)` during server-side rendering.
 ///
-/// During hydration, it will only return `Some(Rc<T>)` if the component is hydrated from a
+/// During hydration, it will only return `Ok(Some(Rc<T>))` if the component is hydrated from a
 /// server-side rendering artifact and its dependency value matches.
 ///
 /// `let state = use_transitive_state!(|deps| -> ReturnType { ... }, deps);`
+///
+/// It has the following function signature:
 ///
 /// ```
 /// # use yew::prelude::*;
 /// # use serde::de::DeserializeOwned;
 /// # use serde::Serialize;
 /// # use std::rc::Rc;
+/// # use yew::suspense::SuspensionResult;
 /// #[hook]
-/// pub fn use_transitive_state<T, D, F>(f: F, deps: D) -> Option<Rc<T>>
+/// pub fn use_transitive_state<T, D, F>(f: F, deps: D) -> SuspensionResult<Option<Rc<T>>>
 /// where
 ///     D: Serialize + DeserializeOwned + PartialEq + 'static,
 ///     T: Serialize + DeserializeOwned + 'static,

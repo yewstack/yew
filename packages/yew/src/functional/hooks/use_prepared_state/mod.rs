@@ -22,12 +22,12 @@ pub use feat_ssr::*;
 /// hydrated.
 ///
 /// It accepts a closure as the first argument and a dependency type as the second argument.
-/// It returns `Option<Rc<T>>`.
+/// It returns `SuspensionResult<Option<Rc<T>>>`.
 ///
-/// During hydration, it will only return `Some(Rc<T>)` if the component is hydrated from a
+/// During hydration, it will only return `Ok(Some(Rc<T>))` if the component is hydrated from a
 /// server-side rendering artifact and its dependency value matches.
 ///
-/// `let state = use_prepared_state!(|deps| -> ReturnType { ... }, deps);`
+/// `let state = use_prepared_state!(|deps| -> ReturnType { ... }, deps)?;`
 ///
 /// It has the following signature:
 ///
@@ -47,9 +47,10 @@ pub use feat_ssr::*;
 /// ```
 ///
 /// The first argument can also be an [async closure](https://github.com/rust-lang/rust/issues/62290).
-/// The hook will become a suspendible hook that returns `SuspensionResult<Option<Rc<T>>>`.
 ///
 /// `let state = use_prepared_state!(async |deps| -> ReturnType { ... }, deps)?;`
+///
+/// When accepting an async closure, it has the following signature:
 ///
 /// ```
 /// # use yew::prelude::*;
@@ -71,7 +72,8 @@ pub use feat_ssr::*;
 /// # { todo!() }
 /// ```
 ///
-/// During server-side rending a value of type T will be calculated from the first closure.
+/// During server-side rendering, a value of type `T` will be calculated from the first
+/// closure.
 ///
 /// If the bundle is compiled without server-side rendering, the closure will be stripped
 /// automatically.
@@ -81,6 +83,10 @@ pub use feat_ssr::*;
 /// You MUST denote the return type of the closure with `|deps| -> ReturnType { ... }`. This
 /// type is used during client side rendering to deserialize the state prepared on the server
 /// side.
+///
+/// Whilst async closure is an unstable feature, the procedural macro will rewrite this to a
+/// closure that returns an async block automatically. You can use this hook with async closure
+/// in stable Rust.
 #[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
 pub use use_prepared_state_macro as use_prepared_state;
 // With SSR.
