@@ -29,7 +29,7 @@ def format_diff_size(
     if diff == 0:
         return ("0", False)
 
-    diff_percent = master_size / diff
+    diff_percent = diff / master_size
 
     return (f"{diff / 1024:+.3f}({diff_percent:+.3%})", abs(diff_percent) > 0.01)
 
