@@ -7,6 +7,7 @@ struct UuidResponse {
     uuid: Uuid,
 }
 
+#[cfg(feature = "ssr")]
 async fn fetch_uuid() -> Uuid {
     // reqwest works for both non-wasm and wasm targets.
     let resp = reqwest::get("https://httpbin.org/uuid").await.unwrap();

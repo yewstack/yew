@@ -7,13 +7,29 @@ use gloo_utils::window;
 use js_sys::Uint8Array;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use wasm_bindgen::JsCast;
+use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 
 use super::PreparedStateBase;
 use crate::functional::{use_state, Hook, HookContext};
 use crate::io_coop::spawn_local;
 use crate::suspense::{Suspension, SuspensionResult};
+
+async fn decode_base64(s: &str) -> Result<Vec<u8>, JsValue> {
+    let fetch_promise = window().fetch_with_str(s);
+
+    let content_promise = JsFuture::from(fetch_promise)
+        .await
+        .and_then(|m| m.dyn_into::<web_sys::Response>())
+        .and_then(|m| m.array_buffer())?;
+
+    let content_array = JsFuture::from(content_promise)
+        .await
+        .as_ref()
+        .map(Uint8Array::new)?;
+
+    Ok(content_array.to_vec())
+}
 
 #[doc(hidden)]
 pub fn use_prepared_state<T, D>(deps: D) -> impl Hook<Output = SuspensionResult<Option<Rc<T>>>>
@@ -54,25 +70,14 @@ where
                         let buf = format!("data:application/octet-binary;base64,{}", buf);
 
                         spawn_local(async move {
-                            let fetch_promise = window().fetch_with_str(&buf);
-
-                            let content_promise = JsFuture::from(fetch_promise)
+                            let buf = decode_base64(&buf)
                                 .await
-                                .and_then(|m| m.dyn_into::<web_sys::Response>())
-                                .and_then(|m| m.array_buffer())
-                                .expect("failed to decode prepared state");
+                                .expect("failed to deserialize state");
 
-                            let content_array = JsFuture::from(content_promise)
-                                .await
-                                .as_ref()
-                                .map(Uint8Array::new)
-                                .expect("failed to decode prepared state");
-
-                            let (state, deps) = bincode::deserialize::<(Option<T>, Option<D>)>(
-                                &content_array.to_vec(),
-                            )
-                            .map(|(state, deps)| (state.map(Rc::new), deps.map(Rc::new)))
-                            .expect("failed to deserialize state");
+                            let (state, deps) =
+                                bincode::deserialize::<(Option<T>, Option<D>)>(&buf)
+                                    .map(|(state, deps)| (state.map(Rc::new), deps.map(Rc::new)))
+                                    .expect("failed to deserialize state");
 
                             data.set((Ok((state, deps)), None));
                         });

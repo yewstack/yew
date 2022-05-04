@@ -95,9 +95,9 @@ pub use yew_macro::use_prepared_state_without_closure as use_prepared_state_macr
 #[cfg(any(feature = "hydration", feature = "ssr"))]
 mod feat_any_hydration_ssr {
     use std::marker::PhantomData;
+    #[cfg(feature = "ssr")]
     use std::rc::Rc;
 
-    use base64ct::{Base64, Encoding};
     use serde::de::DeserializeOwned;
     use serde::Serialize;
 
@@ -124,6 +124,8 @@ mod feat_any_hydration_ssr {
     {
         #[cfg(feature = "ssr")]
         fn prepare(&self) -> String {
+            use base64ct::{Base64, Encoding};
+
             let state = bincode::serialize(&(self.state.as_deref(), self.deps.as_deref()))
                 .expect("failed to prepare state");
 
