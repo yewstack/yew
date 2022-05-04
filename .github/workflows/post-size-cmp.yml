@@ -13,6 +13,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Download Repository
+        uses: actions/checkout@v2
+
       - if: github.event.workflow_run.event == 'pull_request'
         name: Download Artifact
         uses: Legit-Labs/action-download-artifact@v2
@@ -22,9 +25,6 @@ jobs:
           run_id: ${{ github.event.workflow_run.id }}
           name: size-cmp-info
           path: "size-cmp-info/"
-
-      - name: Download Repository
-        uses: actions/checkout@v2
 
       - name: Make pull request comment
         run: python3 ci/make_example_size_cmt.py
