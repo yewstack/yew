@@ -16,7 +16,7 @@ def find_example_sizes(parent_dir: Path) -> Dict[str, int]:
             continue
 
         try:
-            wasm_path = next(example_dir.glob("dist/*.wasm"))
+            wasm_path = next((example_dir / "dist").glob(f"{example_dir.name}*.wasm"))
 
         except StopIteration:
             continue
