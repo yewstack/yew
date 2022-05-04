@@ -1,3 +1,6 @@
+//! Snapshot testing of Yew components
+//!
+//! This tests must be run in browser and thus require the `csr` feature to be enabled
 use gloo::console::log;
 
 use crate::dom_bundle::{BSubtree, Bundle};

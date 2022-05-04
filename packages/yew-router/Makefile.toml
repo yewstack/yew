@@ -1,10 +1,7 @@
 [tasks.test]
-extend = "core::wasm-pack-base"
 command = "wasm-pack"
 args = [
     "test",
-    "@@split(YEW_TEST_FLAGS, )",
-    "--",
-    "--features",
-    "${YEW_TEST_FEATURES}",
+    "--firefox",
+    "--headless",
 ]

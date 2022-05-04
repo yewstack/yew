@@ -4,9 +4,6 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Shrey Somaiya", "Zac Kologlu"]
 
-[lib]
-crate-type = ["cdylib"]
-
 [dependencies]
 yew = { path = "../../packages/yew", features = ["csr"] }
 yew-agent = { path = "../../packages/yew-agent" }

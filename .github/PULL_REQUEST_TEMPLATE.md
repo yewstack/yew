@@ -8,7 +8,6 @@ Fixes #0000 <!-- replace with issue number or remove if not applicable -->
 
 <!-- For further details, please read CONTRIBUTING.md -->
 
-- [ ] I have run `cargo make pr-flow`
 - [ ] I have reviewed my own code
 - [ ] I have added tests
   <!-- If this is a bug fix, these tests will fail if the bug is present (to stop it from cropping up again) -->
