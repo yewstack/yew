@@ -157,19 +157,13 @@ pub fn hook(attr: TokenStream, item: TokenStream) -> proc_macro::TokenStream {
 
 #[proc_macro]
 pub fn use_prepared_state_with_closure(input: TokenStream) -> TokenStream {
-    let prepared_state = parse_macro_input!(input as PreparedState<false>);
-    prepared_state.to_token_stream_with_closure().into()
-}
-
-#[proc_macro]
-pub fn use_prepared_state_with_closure_and_suspension(input: TokenStream) -> TokenStream {
-    let prepared_state = parse_macro_input!(input as PreparedState<true>);
+    let prepared_state = parse_macro_input!(input as PreparedState);
     prepared_state.to_token_stream_with_closure().into()
 }
 
 #[proc_macro]
 pub fn use_prepared_state_without_closure(input: TokenStream) -> TokenStream {
-    let prepared_state = parse_macro_input!(input as PreparedState<true>);
+    let prepared_state = parse_macro_input!(input as PreparedState);
     prepared_state.to_token_stream_without_closure().into()
 }
 

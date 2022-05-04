@@ -1,15 +1,22 @@
 //! The server-side rendering variant. This is used for server side rendering.
 
+use std::future::Future;
+use std::marker::PhantomData;
 use std::rc::Rc;
 
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use super::PreparedStateBase;
-use crate::functional::{use_memo, Hook, HookContext};
+use crate::functional::{use_memo, use_state, Hook, HookContext};
+use crate::io_coop::spawn_local;
+use crate::suspense::{Suspension, SuspensionResult};
 
 #[doc(hidden)]
-pub fn use_prepared_state<T, D, F>(f: F, deps: D) -> impl Hook<Output = Option<Rc<T>>>
+pub fn use_prepared_state<T, D, F>(
+    f: F,
+    deps: D,
+) -> impl Hook<Output = SuspensionResult<Option<Rc<T>>>>
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,
     T: Serialize + DeserializeOwned + 'static,
@@ -31,7 +38,7 @@ where
         T: Serialize + DeserializeOwned + 'static,
         F: FnOnce(&D) -> T,
     {
-        type Output = Option<Rc<T>>;
+        type Output = SuspensionResult<Option<Rc<T>>>;
 
         fn run(self, ctx: &mut HookContext) -> Self::Output {
             let f = self.f;
@@ -45,101 +52,92 @@ where
             let state = PreparedStateBase {
                 state: Some(state),
                 deps: Some(deps),
+                #[cfg(feature = "hydration")]
+                has_buf: true,
+                _marker: PhantomData,
             };
 
             let state =
                 ctx.next_prepared_state(|_re_render, _| -> PreparedStateBase<T, D> { state });
 
-            state.state.clone()
+            Ok(state.state.clone())
         }
     }
 
     HookProvider::<T, D, F> { deps, f }
 }
 
-#[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
-#[cfg(any(target_arch = "wasm32", feature = "tokio"))]
-mod feat_io {
-    use std::future::Future;
-
-    use super::*;
-    use crate::functional::use_state;
-    use crate::io_coop::spawn_local;
-    use crate::suspense::{Suspension, SuspensionResult};
-
-    #[doc(hidden)]
-    pub fn use_prepared_state_with_suspension<T, D, F, U>(
-        f: F,
-        deps: D,
-    ) -> impl Hook<Output = SuspensionResult<Option<Rc<T>>>>
+#[doc(hidden)]
+pub fn use_prepared_state_with_suspension<T, D, F, U>(
+    f: F,
+    deps: D,
+) -> impl Hook<Output = SuspensionResult<Option<Rc<T>>>>
+where
+    D: Serialize + DeserializeOwned + PartialEq + 'static,
+    T: Serialize + DeserializeOwned + 'static,
+    F: FnOnce(&D) -> U,
+    U: 'static + Future<Output = T>,
+{
+    struct HookProvider<T, D, F, U>
     where
         D: Serialize + DeserializeOwned + PartialEq + 'static,
         T: Serialize + DeserializeOwned + 'static,
         F: FnOnce(&D) -> U,
         U: 'static + Future<Output = T>,
     {
-        struct HookProvider<T, D, F, U>
-        where
-            D: Serialize + DeserializeOwned + PartialEq + 'static,
-            T: Serialize + DeserializeOwned + 'static,
-            F: FnOnce(&D) -> U,
-            U: 'static + Future<Output = T>,
-        {
-            deps: D,
-            f: F,
-        }
+        deps: D,
+        f: F,
+    }
 
-        impl<T, D, F, U> Hook for HookProvider<T, D, F, U>
-        where
-            D: Serialize + DeserializeOwned + PartialEq + 'static,
-            T: Serialize + DeserializeOwned + 'static,
-            F: FnOnce(&D) -> U,
-            U: 'static + Future<Output = T>,
-        {
-            type Output = SuspensionResult<Option<Rc<T>>>;
+    impl<T, D, F, U> Hook for HookProvider<T, D, F, U>
+    where
+        D: Serialize + DeserializeOwned + PartialEq + 'static,
+        T: Serialize + DeserializeOwned + 'static,
+        F: FnOnce(&D) -> U,
+        U: 'static + Future<Output = T>,
+    {
+        type Output = SuspensionResult<Option<Rc<T>>>;
 
-            fn run(self, ctx: &mut HookContext) -> Self::Output {
-                let f = self.f;
-                let deps = Rc::new(self.deps);
+        fn run(self, ctx: &mut HookContext) -> Self::Output {
+            let f = self.f;
+            let deps = Rc::new(self.deps);
 
-                let result = use_state(|| {
-                    let (s, handle) = Suspension::new();
-                    (Err(s), Some(handle))
+            let result = use_state(|| {
+                let (s, handle) = Suspension::new();
+                (Err(s), Some(handle))
+            })
+            .run(ctx);
+
+            {
+                let deps = deps.clone();
+                let result = result.clone();
+                use_state(move || {
+                    let state_f = f(&deps);
+
+                    spawn_local(async move {
+                        let state = state_f.await;
+                        result.set((Ok(Rc::new(state)), None));
+                    })
                 })
                 .run(ctx);
-
-                {
-                    let deps = deps.clone();
-                    let result = result.clone();
-                    use_state(move || {
-                        let state_f = f(&deps);
-
-                        spawn_local(async move {
-                            let state = state_f.await;
-                            result.set((Ok(Rc::new(state)), None));
-                        })
-                    })
-                    .run(ctx);
-                }
-
-                let state = result.0.clone()?;
-
-                let state = PreparedStateBase {
-                    state: Some(state),
-                    deps: Some(deps),
-                };
-
-                let state =
-                    ctx.next_prepared_state(|_re_render, _| -> PreparedStateBase<T, D> { state });
-
-                Ok(state.state.clone())
             }
+
+            let state = result.0.clone()?;
+
+            let state = PreparedStateBase {
+                state: Some(state),
+                deps: Some(deps),
+                #[cfg(feature = "hydration")]
+                has_buf: true,
+                _marker: PhantomData,
+            };
+
+            let state =
+                ctx.next_prepared_state(|_re_render, _| -> PreparedStateBase<T, D> { state });
+
+            Ok(state.state.clone())
         }
-
-        HookProvider::<T, D, F, U> { deps, f }
     }
-}
 
-#[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
-#[cfg(any(target_arch = "wasm32", feature = "tokio"))]
-pub use feat_io::*;
+    HookProvider::<T, D, F, U> { deps, f }
+}

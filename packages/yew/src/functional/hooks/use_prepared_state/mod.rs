@@ -29,13 +29,16 @@ pub use feat_ssr::*;
 ///
 /// `let state = use_prepared_state!(|deps| -> ReturnType { ... }, deps);`
 ///
+/// It has the following signature:
+///
 /// ```
 /// # use yew::prelude::*;
 /// # use serde::de::DeserializeOwned;
 /// # use serde::Serialize;
 /// # use std::rc::Rc;
+/// # use yew::suspense::SuspensionResult;
 /// #[hook]
-/// pub fn use_prepared_state<T, D, F>(f: F, deps: D) -> Option<Rc<T>>
+/// pub fn use_prepared_state<T, D, F>(f: F, deps: D) -> SuspensionResult<Option<Rc<T>>>
 /// where
 ///     D: Serialize + DeserializeOwned + PartialEq + 'static,
 ///     T: Serialize + DeserializeOwned + 'static,
@@ -78,15 +81,12 @@ pub use feat_ssr::*;
 /// You MUST denote the return type of the closure with `|deps| -> ReturnType { ... }`. This
 /// type is used during client side rendering to deserialize the state prepared on the server
 /// side.
+#[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
 pub use use_prepared_state_macro as use_prepared_state;
-// With SSR, but no runtime available.
+// With SSR.
 #[doc(hidden)]
-#[cfg(all(feature = "ssr", not(any(target_arch = "wasm32", feature = "tokio"))))]
+#[cfg(feature = "ssr")]
 pub use yew_macro::use_prepared_state_with_closure as use_prepared_state_macro;
-// With SSR, and runtime is available.
-#[doc(hidden)]
-#[cfg(all(feature = "ssr", any(target_arch = "wasm32", feature = "tokio")))]
-pub use yew_macro::use_prepared_state_with_closure_and_suspension as use_prepared_state_macro;
 // Without SSR.
 #[doc(hidden)]
 #[cfg(not(feature = "ssr"))]
@@ -94,6 +94,7 @@ pub use yew_macro::use_prepared_state_without_closure as use_prepared_state_macr
 
 #[cfg(any(feature = "hydration", feature = "ssr"))]
 mod feat_any_hydration_ssr {
+    use std::marker::PhantomData;
     use std::rc::Rc;
 
     use base64ct::{Base64, Encoding};
@@ -107,27 +108,13 @@ mod feat_any_hydration_ssr {
         D: Serialize + DeserializeOwned + PartialEq + 'static,
         T: Serialize + DeserializeOwned + 'static,
     {
+        #[cfg(feature = "ssr")]
         pub state: Option<Rc<T>>,
+        #[cfg(feature = "ssr")]
         pub deps: Option<Rc<D>>,
-    }
-
-    #[cfg(feature = "hydration")]
-    impl<T, D> PreparedStateBase<T, D>
-    where
-        D: Serialize + DeserializeOwned + PartialEq + 'static,
-        T: Serialize + DeserializeOwned + 'static,
-    {
-        pub fn decode(s: &str) -> Self {
-            let buf = Base64::decode_vec(s).unwrap();
-
-            let (state, deps) = bincode::deserialize::<(Option<T>, Option<D>)>(&buf)
-                .expect("failed to deserialize state");
-
-            PreparedStateBase {
-                state: state.map(Rc::new),
-                deps: deps.map(Rc::new),
-            }
-        }
+        #[cfg(feature = "hydration")]
+        pub has_buf: bool,
+        pub _marker: PhantomData<(T, D)>,
     }
 
     impl<T, D> PreparedState for PreparedStateBase<T, D>

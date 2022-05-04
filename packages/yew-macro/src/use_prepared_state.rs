@@ -4,13 +4,13 @@ use syn::parse::{Parse, ParseStream};
 use syn::{parse_quote, Expr, ExprClosure, ReturnType, Token, Type};
 
 #[derive(Debug)]
-pub struct PreparedState<const WITH_ASYNC_CLOSURE: bool> {
+pub struct PreparedState {
     closure: ExprClosure,
     return_type: Type,
     deps: Expr,
 }
 
-impl<const WITH_ASYNC_CLOSURE: bool> Parse for PreparedState<WITH_ASYNC_CLOSURE> {
+impl Parse for PreparedState {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         // Reads a closure.
         let closure: ExprClosure = input.parse()?;
@@ -39,16 +39,6 @@ impl<const WITH_ASYNC_CLOSURE: bool> Parse for PreparedState<WITH_ASYNC_CLOSURE>
             }
         }
 
-        if !WITH_ASYNC_CLOSURE {
-            if let Some(m) = closure.asyncness.as_ref() {
-                return Err(syn::Error::new_spanned(
-                    &m,
-                    "You need to enable feature tokio to use async closure under non-wasm32 \
-                     targets.",
-                ));
-            }
-        }
-
         Ok(Self {
             closure,
             return_type,
@@ -57,7 +47,7 @@ impl<const WITH_ASYNC_CLOSURE: bool> Parse for PreparedState<WITH_ASYNC_CLOSURE>
     }
 }
 
-impl<const WITH_ASYNC_CLOSURE: bool> PreparedState<WITH_ASYNC_CLOSURE> {
+impl PreparedState {
     // Async closure is not stable, so we rewrite it to clsoure + async block
     pub fn rewrite_to_closure_with_async_block(&self) -> ExprClosure {
         let async_token = match &self.closure.asyncness {
@@ -109,13 +99,8 @@ impl<const WITH_ASYNC_CLOSURE: bool> PreparedState<WITH_ASYNC_CLOSURE> {
         let deps = &self.deps;
         let rt = &self.return_type;
 
-        match &self.closure.asyncness {
-            Some(_) => quote! {
-                ::yew::functional::use_prepared_state_with_suspension::<#rt, _>(#deps)
-            },
-            None => quote! {
-                ::yew::functional::use_prepared_state::<#rt, _>(#deps)
-            },
+        quote! {
+            ::yew::functional::use_prepared_state::<#rt, _>(#deps)
         }
     }
 }

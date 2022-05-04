@@ -8,9 +8,13 @@ use serde::Serialize;
 use super::{feat_hydration, feat_ssr};
 use crate::functional::{Hook, HookContext};
 use crate::html::RenderMode;
+use crate::suspense::SuspensionResult;
 
 #[doc(hidden)]
-pub fn use_transitive_state<T, D, F>(f: F, deps: D) -> impl Hook<Output = Option<Rc<T>>>
+pub fn use_transitive_state<T, D, F>(
+    f: F,
+    deps: D,
+) -> impl Hook<Output = SuspensionResult<Option<Rc<T>>>>
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,
     T: Serialize + DeserializeOwned + 'static,
@@ -32,7 +36,7 @@ where
         T: Serialize + DeserializeOwned + 'static,
         F: 'static + FnOnce(&D) -> T,
     {
-        type Output = Option<Rc<T>>;
+        type Output = SuspensionResult<Option<Rc<T>>>;
 
         fn run(self, ctx: &mut HookContext) -> Self::Output {
             match ctx.mode {

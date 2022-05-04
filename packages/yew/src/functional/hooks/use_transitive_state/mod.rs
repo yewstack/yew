@@ -51,6 +51,7 @@ pub use feat_ssr::*;
 /// You MUST denote the return type of the closure with `|deps| -> ReturnType { ... }`. This
 /// type is used during client side rendering to deserialize the state prepared on the server
 /// side.
+#[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
 pub use use_transitive_state_macro as use_transitive_state;
 // With SSR.
 #[doc(hidden)]
