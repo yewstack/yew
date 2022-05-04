@@ -1,27 +1,14 @@
-# Web Worker Demo
+# Web Worker Fib
 
-Calculate fibbonnaci value of a number in the worker thread,
-without blocking the main thread.
+[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fweb_worker_fib)](https://examples.yew.rs/web_worker_fib)
 
-You can access a live version here:
+Calculate fibrillation value of a number in the worker thread, without blocking the main thread.
 
-# Running this example
+## Concepts
 
-do `./build.sh && ./serve.sh`
+The example illustrates how to use `gloo-worker` to send tasks to a worker thread in a Yew application.
 
-## notes
-
-This example is NOT built with [trunk](https://github.com/thedodd/trunk).
-Multi-threading in yew does not currently build with Trunk, due to issues described in the [multi_thread](/examples/multi_thread/README.md) example.
-
-Instead the example is built with [`wasm-pack`](https://rustwasm.github.io/wasm-pack/) directly.
-
-To build, run `./build.sh`.
-You can then serve the build, with `./serve.sh`.
-
-This example uses python3 as a server, any alternative will work.
-
-# Thanks to
+## Thanks to
 
 - [insou22](https://github.com/insou22) for writing up the demo.
 - [https://github.com/yvt/img2text](https://github.com/yvt/img2text) -- for how to make web workers compile in wasm
