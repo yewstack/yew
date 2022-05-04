@@ -25,7 +25,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets -- -D warnings
+          args: --all-targets --all-features -- -D warnings
 
       - name: Lint feature soundness
         run: |
@@ -51,12 +51,11 @@ jobs:
 
       - uses: Swatinem/rust-cache@v1
 
-
       - name: Run clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --release -- -D warnings
+          args: --all-targets --all-features --release -- -D warnings
 
       - name: Lint feature soundness
         run: |
@@ -143,7 +142,7 @@ jobs:
         run: |
           geckodriver --version
           echo ""
-          which geckodriver          
+          which geckodriver
           chromedriver --version
           echo ""
           which chromedriver
@@ -192,7 +191,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-targets --workspace --exclude yew --exclude website-test
+          args: --all-targets --workspace --exclude yew --exclude website-test --exclude ssr_router --exclude simple_ssr
 
       - name: Run native tests for yew
         uses: actions-rs/cargo@v1
