@@ -15,13 +15,18 @@ def find_example_sizes(parent_dir: Path) -> Dict[str, int]:
             print(f"{example_dir} is not a directory.")
             continue
 
-        try:
-            wasm_path = next((example_dir / "dist").glob(f"{example_dir.name}*.wasm"))
+        total_size = 0
 
-        except StopIteration:
-            continue
+        # For examples with multiple bundles, we add them together.
+        for bundle in (example_dir / "dist").glob(f"*.wasm"):
+            size = bundle.stat().st_size
 
-        example_sizes[example_dir.name] = wasm_path.stat().st_size
+            print(f"{bundle} has a size of {size}.")
+
+            total_size += size
+
+        if total_size > 0:
+            example_sizes[example_dir.name] = total_size
 
     return example_sizes
 
