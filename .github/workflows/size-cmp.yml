@@ -6,7 +6,7 @@ on:
     branches: [master]
     paths:
       - .github/workflows/size-cmp.yml
-      - ci/collect_sizes.py
+      - "ci/**"
       - "packages/**"
       - "examples/**"
       - "Cargo.toml"

@@ -23,6 +23,6 @@ for path in examples/*; do
     cd "$path"
     dist_dir="$output/$example"
 
-    echo trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL_PREFIX$example"
+    trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL_PREFIX$example"
   )
 done
