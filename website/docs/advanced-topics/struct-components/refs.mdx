@@ -53,10 +53,6 @@ impl BaseComponent for Light {
         Light { is_on: true }
     }
 
-    fn changed(&mut self, _ctx: &Context<Self>) -> bool {
-        true
-    }
-
     fn update(&mut self, _ctx: &Context<Self>, LightMessage::Toggle: LightMessage) -> bool {
         self.is_on = !self.is_on;
         true
@@ -67,10 +63,6 @@ impl BaseComponent for Light {
             <div class={classes!["light", self.is_on.then(|| "on")]} />
         })
     }
-
-    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {}
-
-    fn destroy(&mut self, _ctx: &Context<Self>) {}
 }
 
 #[function_component]

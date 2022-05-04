@@ -76,10 +76,6 @@ impl BaseComponent for List {
         Self { inactive: false }
     }
 
-    fn changed(&mut self, _ctx: &Context<Self>) -> bool {
-        true
-    }
-
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::HeaderClick => {
@@ -106,10 +102,6 @@ impl BaseComponent for List {
             </div>
         })
     }
-
-    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {}
-
-    fn destroy(&mut self, _ctx: &Context<Self>) {}
 }
 
 impl List {

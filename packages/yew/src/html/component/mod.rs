@@ -113,19 +113,27 @@ pub trait BaseComponent: Sized + 'static {
     fn create(ctx: &Context<Self>, bindable_ref: BindableRef<Self::Reference>) -> Self;
 
     /// Updates component's internal state.
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool;
+    #[allow(unused_variables)]
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        false
+    }
 
     /// React to changes of component properties.
-    fn changed(&mut self, ctx: &Context<Self>) -> bool;
+    #[allow(unused_variables)]
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+        true
+    }
 
     /// Returns a component layout to be rendered.
     fn view(&self, ctx: &Context<Self>) -> HtmlResult;
 
     /// Notified after a layout is rendered.
-    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool);
+    #[allow(unused_variables)]
+    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {}
 
     /// Notified before a component is destroyed.
-    fn destroy(&mut self, ctx: &Context<Self>);
+    #[allow(unused_variables)]
+    fn destroy(&mut self, ctx: &Context<Self>) {}
 }
 
 /// Components are the basic building blocks of the UI in a Yew app. Each Component
