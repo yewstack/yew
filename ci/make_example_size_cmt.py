@@ -4,8 +4,8 @@ import os
 import json
 
 
-header = "| examples | master (KB) | pull request (KB) | diff |"
-sep = "| --- | --- | --- | --- | "
+header = "| examples | master (KB) | pull request (KB) | diff (KB) | diff (%) |"
+sep = "| --- | --- | --- | --- | --- |"
 
 
 def format_size(size: Optional[int]) -> str:
@@ -20,18 +20,18 @@ def format_size(size: Optional[int]) -> str:
 
 def format_diff_size(
     master_size: Optional[int], pr_size: Optional[int]
-) -> Tuple[str, bool]:
+) -> Tuple[str, str, bool]:
     if master_size is None or pr_size is None:
-        return ("N/A", False)
+        return ("N/A", "N/A", False)
 
     diff = pr_size - master_size
 
     if diff == 0:
-        return ("0", False)
+        return ("0", "0.000%", False)
 
     diff_percent = diff / master_size
 
-    return (f"{diff / 1024:+.3f}({diff_percent:+.3%})", abs(diff_percent) > 0.01)
+    return (f"{diff / 1024:+.3f}", f"{diff_percent:+.3%}", abs(diff_percent) >= 0.01)
 
 
 def main() -> None:
@@ -47,6 +47,7 @@ def main() -> None:
     lines.append("### Size Comparison")
     lines.append("")
     lines.append("<details>")
+    lines.append("")
     lines.append(header)
     lines.append(sep)
 
@@ -56,9 +57,14 @@ def main() -> None:
         master_size_str = format_size(master_size)
         pr_size_str = format_size(pr_size)
 
-        (diff_str, diff_significant) = format_diff_size(master_size, pr_size)
+        (diff_str, diff_percent, diff_significant) = format_diff_size(
+            master_size, pr_size
+        )
 
-        line_str = f"| {i} | {master_size_str} | {pr_size_str} | {diff_str} |"
+        line_str = (
+            f"| {i} | {master_size_str} | {pr_size_str} | "
+            f"{diff_str} | {diff_percent} |"
+        )
 
         lines.append(line_str)
 
@@ -70,7 +76,13 @@ def main() -> None:
 
     if significant_lines:
         lines.append("")
-        lines.append("⚠️ The following examples have changed their size significantly:")
+
+        if len(significant_lines) == 1:
+            lines.append("⚠️ The following example has changed its size significantly:")
+        else:
+            lines.append(
+                "⚠️ The following examples have changed their size significantly:"
+            )
         lines.append("")
 
         lines.append(header)
