@@ -54,7 +54,7 @@ pub struct NavigatorHandle {
 ///                 ctx.link()
 ///                     .navigator()
 ///                     .expect_throw("failed to get navigator.")
-///                     .push(ctx.props().to.clone());
+///                     .push(&ctx.props().to);
 ///                 false
 ///             }
 ///         }

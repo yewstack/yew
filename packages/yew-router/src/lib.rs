@@ -23,7 +23,7 @@
 //! fn secure() -> Html {
 //!     let navigator = use_navigator().unwrap();
 //!
-//!     let onclick_callback = Callback::from(move |_| navigator.push(Route::Home));
+//!     let onclick_callback = Callback::from(move |_| navigator.push(&Route::Home));
 //!     html! {
 //!         <div>
 //!             <h1>{ "Secure" }</h1>

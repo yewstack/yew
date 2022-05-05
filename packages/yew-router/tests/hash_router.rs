@@ -55,8 +55,8 @@ fn component() -> Html {
         let replace_route = Callback::from(move |_| {
             navigator_clone
                 .replace_with_query(
-                    Routes::No { id: 2 },
-                    Query {
+                    &Routes::No { id: 2 },
+                    &Query {
                         foo: "bar".to_string(),
                     },
                 )
@@ -67,8 +67,8 @@ fn component() -> Html {
         let push_route = Callback::from(move |_| {
             navigator_clone
                 .push_with_query(
-                    Routes::No { id: 3 },
-                    Query {
+                    &Routes::No { id: 3 },
+                    &Query {
                         foo: "baz".to_string(),
                     },
                 )
