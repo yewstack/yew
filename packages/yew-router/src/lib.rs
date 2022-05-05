@@ -36,12 +36,12 @@
 //! fn app() -> Html {
 //!     html! {
 //!         <BrowserRouter>
-//!             <Switch<Route> render={Switch::render(switch)} />
+//!             <Switch<Route> render={switch} />
 //!         </BrowserRouter>
 //!     }
 //! }
 //!
-//! fn switch(routes: &Route) -> Html {
+//! fn switch(routes: Route) -> Html {
 //!     match routes {
 //!         Route::Home => html! { <h1>{ "Home" }</h1> },
 //!         Route::Secure => html! {

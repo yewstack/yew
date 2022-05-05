@@ -30,10 +30,14 @@ pub struct NavigatorHandle {
 /// # use wasm_bindgen::UnwrapThrowExt;
 /// # use yew::prelude::*;
 /// # use yew_router::prelude::*;
-/// # use yew_router::components::{LinkProps, Msg};
+/// # use yew_router::components::LinkProps;
 /// #
 /// # pub struct Link<R: Routable + 'static> {
 /// #     _data: PhantomData<R>,
+/// # }
+/// #
+/// # pub enum Msg {
+/// #     OnClick,
 /// # }
 /// #
 /// impl<R: Routable + 'static> Component for Link<R> {
