@@ -72,7 +72,7 @@ where
         let mut path = query
             .and_then(|query| serde_urlencoded::to_string(query).ok())
             .and_then(|query| utils::compose_path(&pathname, &query))
-            .unwrap_or_else(|| pathname.to_string());
+            .unwrap_or_else(|| pathname.into_owned());
 
         if navigator.kind() == NavigatorKind::Hash {
             path.insert(0, '#');

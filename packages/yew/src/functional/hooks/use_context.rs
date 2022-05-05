@@ -1,6 +1,10 @@
+use std::cell::RefCell;
+use std::marker::PhantomData;
+use std::rc::Rc;
+
 use crate::callback::Callback;
 use crate::context::ContextHandle;
-use crate::functional::{hook, use_component_scope, use_memo, use_state};
+use crate::functional::{Hook, HookContext};
 
 /// Hook for consuming context values in function components.
 /// The context of the type passed as `T` is returned. If there is no such context in scope, `None`
@@ -65,29 +69,53 @@ use crate::functional::{hook, use_component_scope, use_memo, use_state};
 ///     }
 /// }
 /// ```
-#[hook]
-pub fn use_context<T: Clone + PartialEq + 'static>() -> Option<T> {
-    struct UseContext<T: Clone + PartialEq + 'static> {
-        context: Option<(T, ContextHandle<T>)>,
+pub fn use_context<T: Clone + PartialEq + 'static>() -> impl Hook<Output = Option<T>> {
+    struct HookProvider<T: Clone + PartialEq + 'static> {
+        _marker: PhantomData<T>,
     }
 
-    let scope = use_component_scope();
+    struct UseContext<T: Clone + PartialEq + 'static> {
+        _handle: Option<ContextHandle<T>>,
+        value: Rc<RefCell<Option<T>>>,
+    }
 
-    let val = use_state(|| -> Option<T> { None });
-    let state = {
-        let val_dispatcher = val.setter();
-        use_memo(
-            move |_| UseContext {
-                context: scope.context::<T>(Callback::from(move |m| {
-                    val_dispatcher.clone().set(Some(m));
-                })),
-            },
-            (),
-        )
-    };
+    impl<T> Hook for HookProvider<T>
+    where
+        T: Clone + PartialEq + 'static,
+    {
+        type Output = Option<T>;
 
-    // we fallback to initial value if it was not updated.
-    (*val)
-        .clone()
-        .or_else(move || state.context.as_ref().map(|m| m.0.clone()))
+        fn run(self, ctx: &mut HookContext) -> Self::Output {
+            let scope = ctx.scope.clone();
+
+            let state = ctx.next_state(move |re_render| -> UseContext<T> {
+                let value_cell: Rc<RefCell<Option<T>>> = Rc::default();
+
+                let (init_value, handle) = {
+                    let value_cell = value_cell.clone();
+
+                    scope.context(Callback::from(move |m| {
+                        *(value_cell.borrow_mut()) = Some(m);
+                        re_render()
+                    }))
+                }
+                .map(|(value, handle)| (Some(value), Some(handle)))
+                .unwrap_or((None, None));
+
+                *(value_cell.borrow_mut()) = init_value;
+
+                UseContext {
+                    _handle: handle,
+                    value: value_cell,
+                }
+            });
+
+            let value = state.value.borrow();
+            value.clone()
+        }
+    }
+
+    HookProvider {
+        _marker: PhantomData,
+    }
 }
