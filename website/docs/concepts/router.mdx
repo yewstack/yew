@@ -80,7 +80,7 @@ fn secure() -> Html {
     }
 }
 
-fn switch(routes: &Route) -> Html {
+fn switch(routes: Route) -> Html {
     match routes {
         Route::Home => html! { <h1>{ "Home" }</h1> },
         Route::Secure => html! {
@@ -94,7 +94,7 @@ fn switch(routes: &Route) -> Html {
 fn app() -> Html {
     html! {
         <BrowserRouter>
-            <Switch<Route> render={Switch::render(switch)} />
+            <Switch<Route> render={switch} />
         </BrowserRouter>
     }
 }
@@ -455,17 +455,17 @@ enum SettingsRoute {
     NotFound,
 }
 
-fn switch_main(route: &MainRoute) -> Html {
+fn switch_main(route: MainRoute) -> Html {
     match route {
         MainRoute::Home => html! {<h1>{"Home"}</h1>},
         MainRoute::News => html! {<h1>{"News"}</h1>},
         MainRoute::Contact => html! {<h1>{"Contact"}</h1>},
-        MainRoute::SettingsRoot | MainRoute::Settings => html! { <Switch<SettingsRoute> render={Switch::render(switch_settings)} /> },
+        MainRoute::SettingsRoot | MainRoute::Settings => html! { <Switch<SettingsRoute> render={switch_settings} /> },
         MainRoute::NotFound => html! {<h1>{"Not Found"}</h1>},
     }
 }
 
-fn switch_settings(route: &SettingsRoute) -> Html {
+fn switch_settings(route: SettingsRoute) -> Html {
     match route {
         SettingsRoute::Profile => html! {<h1>{"Profile"}</h1>},
         SettingsRoute::Friends => html! {<h1>{"Friends"}</h1>},
@@ -478,7 +478,7 @@ fn switch_settings(route: &SettingsRoute) -> Html {
 pub fn app() -> Html {
     html! {
         <BrowserRouter>
-            <Switch<MainRoute> render={Switch::render(switch_main)} />
+            <Switch<MainRoute> render={switch_main} />
         </BrowserRouter>
     }
 }
