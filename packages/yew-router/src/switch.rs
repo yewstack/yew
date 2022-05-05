@@ -38,13 +38,11 @@ where
         .and_then(|p| R::recognize(p))
         .or(route);
 
-    let children = match route {
+    match route {
         Some(route) => props.render.emit(route),
         None => {
             console::warn!("no route matched");
             Html::default()
         }
-    };
-
-    html! {<>{children}</>}
+    }
 }
