@@ -21,7 +21,7 @@ where
 
     let target_route = props.to.clone();
     use_effect(move || {
-        history.push(target_route.clone());
+        history.push(&target_route);
 
         || {}
     });

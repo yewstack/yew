@@ -46,43 +46,39 @@ where
     let navigator = use_navigator().expect_throw("failed to get navigator");
 
     let onclick = {
-        use_callback(
-            |e: MouseEvent, (navigator, to, query)| {
-                e.prevent_default();
+        let navigator = navigator.clone();
+        let to = to.clone();
+        let query = query.clone();
 
-                match query {
-                    None => {
-                        navigator.push(to.clone());
-                    }
-                    Some(ref data) => {
-                        navigator
-                            .push_with_query(to.clone(), data.clone())
-                            .expect_throw("failed push history with query");
-                    }
+        Callback::from(move |e: MouseEvent| {
+            e.prevent_default();
+
+            match query {
+                None => {
+                    navigator.push(&to);
                 }
-            },
-            (navigator.clone(), to.clone(), query.clone()),
-        )
+                Some(ref data) => {
+                    navigator
+                        .push_with_query(&to, data)
+                        .expect_throw("failed push history with query");
+                }
+            }
+        })
     };
 
-    let href: AttrValue = {
-        (*use_memo(
-            |(to, query, navigator)| {
-                let pathname = navigator.route_to_url(to.to_owned());
-                let path = query
-                    .clone()
-                    .and_then(|query| serde_urlencoded::to_string(query).ok())
-                    .and_then(|query| utils::compose_path(&pathname, &query))
-                    .unwrap_or_else(|| pathname.to_string());
+    let href = {
+        let route_s = to.to_path();
+        let pathname = navigator.prefix_basename(&route_s);
+        let mut path = query
+            .and_then(|query| serde_urlencoded::to_string(query).ok())
+            .and_then(|query| utils::compose_path(&pathname, &query))
+            .unwrap_or_else(|| pathname.to_string());
 
-                AttrValue::from(match navigator.kind() {
-                    NavigatorKind::Hash => format!("#{}", path),
-                    _ => path,
-                })
-            },
-            (to, query, navigator),
-        ))
-        .clone()
+        if navigator.kind() == NavigatorKind::Hash {
+            path.insert(0, '#');
+        }
+
+        AttrValue::from(path)
     };
 
     html! {
