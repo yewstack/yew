@@ -322,53 +322,46 @@ impl Runnable for PropsUpdateRunner {
         } = *self;
 
         if let Some(state) = shared_state.borrow_mut().as_mut() {
-            let next_sibling_changed = match next_sibling {
-                Some(next_sibling) => {
-                    match state.render_state {
-                        #[cfg(feature = "csr")]
-                        ComponentRenderState::Render {
-                            next_sibling: ref mut current_next_sibling,
-                            ..
-                        } => {
-                            let changed = current_next_sibling.get() != next_sibling.get();
-                            // When components are updated, their siblings were likely also updated
-                            *current_next_sibling = next_sibling;
+            if let Some(next_sibling) = next_sibling {
+                match state.render_state {
+                    #[cfg(feature = "csr")]
+                    ComponentRenderState::Render {
+                        next_sibling: ref mut current_next_sibling,
+                        ref parent,
+                        ref bundle,
+                        ..
+                    } => {
+                        bundle.shift(parent, next_sibling.clone());
+                        // When components are updated, their siblings were likely also updated
+                        *current_next_sibling = next_sibling;
+                    }
 
-                            changed
-                        }
+                    #[cfg(feature = "hydration")]
+                    ComponentRenderState::Hydration {
+                        next_sibling: ref mut current_next_sibling,
+                        ref parent,
+                        ref fragment,
+                        ..
+                    } => {
+                        fragment.shift(parent, next_sibling.clone());
+                        // When components are updated, their siblings were likely also updated
+                        *current_next_sibling = next_sibling;
+                    }
 
-                        #[cfg(feature = "hydration")]
-                        ComponentRenderState::Hydration {
-                            next_sibling: ref mut current_next_sibling,
-                            ..
-                        } => {
-                            let changed = current_next_sibling.get() != next_sibling.get();
-
-                            // When components are updated, their siblings were likely also updated
-                            *current_next_sibling = next_sibling;
-
-                            changed
-                        }
-
-                        #[cfg(feature = "ssr")]
-                        ComponentRenderState::Ssr { .. } => {
-                            #[cfg(debug_assertions)]
-                            panic!("properties do not change during SSR");
-
-                            #[cfg(not(debug_assertions))]
-                            false
-                        }
+                    #[cfg(feature = "ssr")]
+                    ComponentRenderState::Ssr { .. } => {
+                        #[cfg(debug_assertions)]
+                        panic!("properties do not change during SSR");
                     }
                 }
-                None => false,
-            };
+            }
 
             // Only trigger changed if props were changed / next sibling has changed.
             let schedule_render = if state.has_rendered {
-                state.inner.props_changed(props) || next_sibling_changed
+                state.inner.props_changed(props)
             } else {
                 state.pending_props = Some(props);
-                next_sibling_changed
+                false
             };
 
             #[cfg(debug_assertions)]
