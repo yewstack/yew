@@ -423,7 +423,7 @@ mod feat_csr {
     ) {
         scheduler::push_component_props_update(Box::new(PropsUpdateRunner {
             state,
-            next_sibling,
+            next_sibling: Some(next_sibling),
             props,
         }));
         // Not guaranteed to already have the scheduler started
