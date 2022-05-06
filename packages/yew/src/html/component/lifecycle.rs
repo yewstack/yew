@@ -198,7 +198,7 @@ where
         };
 
         if self.context.props != props {
-            self.context.props = Rc::clone(&props);
+            self.context.props = props;
             self.component.changed(&self.context)
         } else {
             false
@@ -322,46 +322,62 @@ impl Runnable for PropsUpdateRunner {
         } = *self;
 
         if let Some(state) = shared_state.borrow_mut().as_mut() {
-            if let Some(next_sibling) = next_sibling {
-                match state.render_state {
-                    #[cfg(feature = "csr")]
-                    ComponentRenderState::Render {
-                        next_sibling: ref mut current_next_sibling,
-                        ..
-                    } => {
-                        // When components are updated, their siblings were likely also updated
-                        *current_next_sibling = next_sibling;
-                    }
+            let next_sibling_changed = match next_sibling {
+                Some(next_sibling) => {
+                    match state.render_state {
+                        #[cfg(feature = "csr")]
+                        ComponentRenderState::Render {
+                            next_sibling: ref mut current_next_sibling,
+                            ..
+                        } => {
+                            let changed = current_next_sibling.get() != next_sibling.get();
+                            // When components are updated, their siblings were likely also updated
+                            *current_next_sibling = next_sibling;
 
-                    #[cfg(feature = "hydration")]
-                    ComponentRenderState::Hydration {
-                        next_sibling: ref mut current_next_sibling,
-                        ..
-                    } => {
-                        // When components are updated, their siblings were likely also updated
-                        *current_next_sibling = next_sibling;
-                    }
+                            changed
+                        }
 
-                    #[cfg(feature = "ssr")]
-                    ComponentRenderState::Ssr { .. } => {
-                        #[cfg(debug_assertions)]
-                        panic!("properties do not change during SSR");
+                        #[cfg(feature = "hydration")]
+                        ComponentRenderState::Hydration {
+                            next_sibling: ref mut current_next_sibling,
+                            ..
+                        } => {
+                            let changed = current_next_sibling.get() != next_sibling.get();
+
+                            // When components are updated, their siblings were likely also updated
+                            *current_next_sibling = next_sibling;
+
+                            changed
+                        }
+
+                        #[cfg(feature = "ssr")]
+                        ComponentRenderState::Ssr { .. } => {
+                            #[cfg(debug_assertions)]
+                            panic!("properties do not change during SSR");
+
+                            #[cfg(not(debug_assertions))]
+                            false
+                        }
                     }
                 }
-            }
+                None => false,
+            };
 
-            // Only trigger changed if props were changed and the component has rendered.
+            // Only trigger changed if props were changed / next sibling has changed.
             let schedule_render = if state.has_rendered {
-                state.inner.props_changed(props)
+                state.inner.props_changed(props) || next_sibling_changed
             } else {
                 state.pending_props = Some(props);
-                true
+                next_sibling_changed
             };
 
             #[cfg(debug_assertions)]
             super::log_event(
                 state.comp_id,
-                format!("props_update(schedule_render={})", schedule_render),
+                format!(
+                    "props_update(has_rendered={} schedule_render={})",
+                    state.has_rendered, schedule_render
+                ),
             );
 
             if schedule_render {
