@@ -27,7 +27,7 @@ use std::rc::Rc;
 
 use wasm_bindgen::prelude::*;
 
-use crate::html::{AnyScope, BaseComponent, Context, HtmlResult};
+use crate::html::{AnyScope, BaseComponent, BindableRef, Context, HtmlResult};
 use crate::Properties;
 
 mod hooks;
@@ -226,7 +226,7 @@ where
     T: FunctionProvider + 'static,
 {
     /// Creates a new function component.
-    pub fn new(ctx: &Context<T>) -> Self
+    pub fn new(ctx: &Context<T>, _bindable_ref: BindableRef<T::Reference>) -> Self
     where
         T: BaseComponent<Message = ()> + FunctionProvider + 'static,
     {
