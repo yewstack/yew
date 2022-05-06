@@ -50,13 +50,13 @@ fn no(props: &NoProps) -> Html {
 fn component() -> Html {
     let navigator = use_navigator().unwrap();
 
-    let switch = Switch::render(move |routes| {
+    let switch = move |routes| {
         let navigator_clone = navigator.clone();
         let replace_route = Callback::from(move |_| {
             navigator_clone
                 .replace_with_query(
-                    Routes::No { id: 2 },
-                    Query {
+                    &Routes::No { id: 2 },
+                    &Query {
                         foo: "bar".to_string(),
                     },
                 )
@@ -67,8 +67,8 @@ fn component() -> Html {
         let push_route = Callback::from(move |_| {
             navigator_clone
                 .push_with_query(
-                    Routes::No { id: 3 },
-                    Query {
+                    &Routes::No { id: 3 },
+                    &Query {
                         foo: "baz".to_string(),
                     },
                 )
@@ -84,13 +84,13 @@ fn component() -> Html {
             },
             Routes::No { id } => html! {
                 <>
-                    <No id={*id} />
+                    <No id={id} />
                     <button onclick={push_route}>{"push a route"}</button>
                 </>
             },
             Routes::NotFound => html! { <div id="result">{"404"}</div> },
         }
-    });
+    };
 
     html! {
         <Switch<Routes> render={switch} />
