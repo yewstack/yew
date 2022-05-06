@@ -97,6 +97,15 @@ impl<COMP: BaseComponent> Context<COMP> {
 ///
 /// We provide a blanket implementation of this trait for every member that implements
 /// [`Component`].
+///
+/// # Warning
+///
+/// This trait may be subject to heavy changes between versions and is not intended for direct
+/// implementation.
+///
+/// You should used the [`Component`] trait or the
+/// [`#[function_component]`](crate::functional::function_component) macro to define your
+/// components.
 pub trait BaseComponent: Sized + 'static {
     /// The Component's Message.
     type Message: 'static;

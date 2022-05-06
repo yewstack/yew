@@ -323,6 +323,9 @@ impl Runnable for PropsUpdateRunner {
 
         if let Some(state) = shared_state.borrow_mut().as_mut() {
             if let Some(next_sibling) = next_sibling {
+                // When components are updated, their siblings were likely also updated
+                // We also need to shift the bundle so next sibling will be synced to child
+                // components.
                 match state.render_state {
                     #[cfg(feature = "csr")]
                     ComponentRenderState::Render {
@@ -332,7 +335,6 @@ impl Runnable for PropsUpdateRunner {
                         ..
                     } => {
                         bundle.shift(parent, next_sibling.clone());
-                        // When components are updated, their siblings were likely also updated
                         *current_next_sibling = next_sibling;
                     }
 
@@ -344,7 +346,6 @@ impl Runnable for PropsUpdateRunner {
                         ..
                     } => {
                         fragment.shift(parent, next_sibling.clone());
-                        // When components are updated, their siblings were likely also updated
                         *current_next_sibling = next_sibling;
                     }
 
@@ -357,11 +358,12 @@ impl Runnable for PropsUpdateRunner {
             }
 
             // Only trigger changed if props were changed / next sibling has changed.
-            let schedule_render = if state.has_rendered {
-                state.inner.props_changed(props)
-            } else {
-                state.pending_props = Some(props);
-                false
+            let schedule_render = match state.has_rendered {
+                true => state.inner.props_changed(props),
+                false => {
+                    state.pending_props = Some(props);
+                    false
+                }
             };
 
             #[cfg(debug_assertions)]
