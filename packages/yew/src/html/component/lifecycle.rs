@@ -12,11 +12,11 @@ use super::BaseComponent;
 use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
 use crate::dom_bundle::{BSubtree, Bundle};
-#[cfg(feature = "csr")]
-use crate::html::DomPosition;
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
 use crate::html::{BindableRef, ErasedHtmlRef, Html, RenderError};
+#[cfg(feature = "csr")]
+use crate::html::{DomPosition, ErasedStorage};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{BaseSuspense, Suspension};
 use crate::{Callback, Context, HtmlResult};
@@ -200,7 +200,8 @@ where
     #[cfg(feature = "csr")]
     fn props_changed(&mut self, props: Rc<dyn Any>, next_comp_ref: ErasedHtmlRef) -> bool {
         // When components are updated, a new node ref could have been passed in
-        self.comp_ref.morph_into::<COMP::Reference>(next_comp_ref);
+        self.comp_ref
+            .morph_erased::<<COMP::Reference as ErasedStorage>::Erased>(next_comp_ref);
 
         let props = match Rc::downcast::<COMP::Properties>(props) {
             Ok(m) => m,

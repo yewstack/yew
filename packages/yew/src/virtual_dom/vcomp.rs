@@ -243,9 +243,13 @@ impl VComp {
     where
         COMP: BaseComponent,
     {
+        let comp_ref = match comp_ref {
+            Some(comp_ref) => comp_ref.into(),
+            None => ErasedHtmlRef::unbound::<COMP::Reference>(),
+        };
         VComp {
             type_id: TypeId::of::<COMP>(),
-            comp_ref: comp_ref.into(),
+            comp_ref,
             mountable: Box::new(PropsWrapper::<COMP>::new(props)),
             key,
         }

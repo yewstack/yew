@@ -11,6 +11,10 @@ use web_sys::Node;
 use super::{AnyScope, Scope};
 use crate::BaseComponent;
 
+/// Use this type as the [`BaseComponent::Reference`] type when a component can not be referenced.
+#[derive(Debug, Clone)]
+pub struct NoReference;
+
 /// Trait for types that can be referenced with a [`HtmlRef`].
 pub trait ErasedStorage {
     /// The type that is actually stored in the ref. This indirection exists to limit code size of
@@ -52,10 +56,6 @@ impl ErasedStorage for Node {
     }
 }
 
-/// Use this type as the [`BaseComponent::Reference`] type when a component can not be referenced.
-#[derive(Debug, Clone)]
-pub struct NoReference;
-
 impl ErasedStorage for NoReference {
     type Erased = ();
 
@@ -71,34 +71,34 @@ struct RefState<E> {
     binding: RefCell<Option<E>>,
 }
 
-trait ErasedRef {
+trait ErasedRefState {
     fn as_any(&self) -> &dyn Any;
 }
 
-impl dyn ErasedRef {
+impl dyn ErasedRefState {
+    fn erased_eq(self: &Rc<Self>, right: &Rc<Self>) -> bool {
+        let thin_left = Rc::as_ptr(self) as *const ();
+        let thin_right = Rc::as_ptr(right) as *const ();
+        std::ptr::eq(thin_left, thin_right)
+    }
+
     fn downcast_inner<E: 'static>(&self) -> &RefState<E> {
         self.as_any()
             .downcast_ref()
             .expect("the correct inner ref-type")
     }
-}
 
-impl<E: 'static> ErasedRef for RefState<E> {
-    fn as_any(&self) -> &dyn Any {
-        self
+    fn get_erased_ref<'s, E: 'static>(self: &'s Rc<Self>) -> Option<Ref<'s, E>> {
+        let erased_ref = self.downcast_inner::<E>().binding.borrow();
+        erased_ref.as_ref()?; // TODO: use Ref::filter_map if that becomes stable
+        Some(Ref::map(erased_ref, |erased| erased.as_ref().unwrap()))
     }
 }
 
-fn erased_eq(left: &Rc<dyn ErasedRef>, right: &Rc<dyn ErasedRef>) -> bool {
-    let thin_left = Rc::as_ptr(left) as *const ();
-    let thin_right = Rc::as_ptr(right) as *const ();
-    std::ptr::eq(thin_left, thin_right)
-}
-
-fn get_erased_ref<E: 'static>(storage: &Rc<dyn ErasedRef>) -> Option<Ref<'_, E>> {
-    let erased_ref = storage.downcast_inner::<E>().binding.borrow();
-    erased_ref.as_ref()?; // TODO: use Ref::filter_map if that becomes stable
-    Some(Ref::map(erased_ref, |erased| erased.as_ref().unwrap()))
+impl<E: 'static> ErasedRefState for RefState<E> {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
 }
 
 /// Wrapped reference to another component for later use in lifecycle methods.
@@ -179,7 +179,7 @@ fn get_erased_ref<E: 'static>(storage: &Rc<dyn ErasedRef>) -> Option<Ref<'_, E>>
 /// ## Relevant examples
 /// - [`nested_list`](https://github.com/yewstack/yew/tree/master/examples/nested_list)
 pub struct HtmlRef<T: ErasedStorage> {
-    inner: Rc<dyn ErasedRef>,
+    inner: Rc<dyn ErasedRefState>,
     _phantom: PhantomData<T>,
 }
 
@@ -212,7 +212,7 @@ impl<T: ErasedStorage> Default for HtmlRef<T> {
 
 impl<T: ErasedStorage> PartialEq for HtmlRef<T> {
     fn eq(&self, othr: &Self) -> bool {
-        erased_eq(&self.inner, &othr.inner)
+        self.inner.erased_eq(&othr.inner)
     }
 }
 
@@ -224,7 +224,7 @@ impl<T: ErasedStorage> HtmlRef<T> {
 
     /// Get the referenced value, if it is bound
     pub fn get_ref(&self) -> Option<impl '_ + Deref<Target = T>> {
-        let erased_ref = get_erased_ref::<T::Erased>(&self.inner)?;
+        let erased_ref = self.inner.get_erased_ref::<T::Erased>()?;
         Some(Ref::map(erased_ref, T::downcast_ref))
     }
 
@@ -236,17 +236,9 @@ impl<T: ErasedStorage> HtmlRef<T> {
         Some(self.get_ref()?.clone())
     }
 
-    #[cfg(any(feature = "csr", feature = "ssr"))]
+    #[cfg(any(feature = "csr"))]
     pub(crate) fn to_erased(&self) -> ErasedHtmlRef {
-        Some(self.clone()).into()
-    }
-}
-
-impl NodeRef {
-    /// Try converting the node reference into another form
-    pub fn cast<INTO: AsRef<Node> + From<JsValue>>(&self) -> Option<INTO> {
-        let node = self.get();
-        node.map(Into::into).map(INTO::from)
+        self.clone().into()
     }
 }
 
@@ -254,12 +246,12 @@ impl NodeRef {
 /// The type-id is currently not stored, so be careful that the contained scope always has
 /// the correct component type.
 #[derive(Clone)]
-pub(crate) struct ErasedHtmlRef(Rc<dyn ErasedRef>);
+pub(crate) struct ErasedHtmlRef(Rc<dyn ErasedRefState>);
 
-impl<T: ErasedStorage> From<Option<HtmlRef<T>>> for ErasedHtmlRef {
+impl<T: ErasedStorage> From<HtmlRef<T>> for ErasedHtmlRef {
     #[inline]
-    fn from(user_ref: Option<HtmlRef<T>>) -> Self {
-        Self(user_ref.unwrap_or_default().inner)
+    fn from(user_ref: HtmlRef<T>) -> Self {
+        Self(user_ref.inner)
     }
 }
 
@@ -271,23 +263,23 @@ impl fmt::Debug for ErasedHtmlRef {
 
 impl PartialEq for ErasedHtmlRef {
     fn eq(&self, other: &Self) -> bool {
-        erased_eq(&self.0, &other.0)
+        self.0.erased_eq(&other.0)
     }
 }
 
 impl ErasedHtmlRef {
+    // Create an ErasedHtmlRef where the user is not interested in the value
+    pub(crate) fn unbound<T: ErasedStorage>() -> Self {
+        HtmlRef::<T>::default().into()
+    }
+
     pub(crate) fn set_erased<E: 'static>(&self, next_erased: Option<E>) {
         let inner = self.0.downcast_inner::<E>();
         *inner.binding.borrow_mut() = next_erased;
     }
 
-    /// Place a Scope in a reference for later use
-    pub(crate) fn set<T: ErasedStorage>(&self, next_ref: Option<T>) {
-        self.set_erased(next_ref.map(|r| r.upcast()));
-    }
-
-    #[cfg(feature = "csr")]
-    fn morph_erased<E: 'static>(&mut self, next: Self) {
+    /// `self = next`, but also transfer the contained reference from self to next.
+    pub fn morph_erased<E: 'static>(&mut self, next: Self) {
         if self == &next {
             return;
         }
@@ -297,22 +289,10 @@ impl ErasedHtmlRef {
         *new.binding.borrow_mut() = old.binding.borrow_mut().take();
     }
 
-    /// `self` should be bound. Then, behave like
-    /// ```ignore
-    /// let scope = self."take"().unwrap_or_else(get_scope);
-    /// next.set(Some(scope));
-    /// *self = next;
-    /// ```
-    /// but avoid to call `get_scope` when possible
-    #[cfg(feature = "csr")]
-    pub(crate) fn morph_into<T: ErasedStorage>(&mut self, next: Self) {
-        self.morph_erased::<T::Erased>(next)
-    }
-
-    /// Get the underlying node from an erased NodeRef.
+    /// Get the underlying node from an erased HtmlRef.
     #[cfg(feature = "csr")]
     pub(crate) fn get_node(&self) -> Option<Node> {
-        Some(get_erased_ref::<Node>(&self.0)?.clone())
+        Some(self.0.get_erased_ref::<Node>()?.clone())
     }
 }
 
@@ -361,6 +341,14 @@ pub type ComponentRef<COMP> = HtmlRef<<COMP as BaseComponent>::Reference>;
 /// - [Node Refs](https://github.com/yewstack/yew/tree/master/examples/node_refs)
 pub type NodeRef = HtmlRef<Node>;
 
+impl NodeRef {
+    /// Try converting the node reference into another form
+    pub fn cast<INTO: AsRef<Node> + From<JsValue>>(&self) -> Option<INTO> {
+        let node = self.get();
+        node.map(Into::into).map(INTO::from)
+    }
+}
+
 /// A ref that can be bound to. See also [`Component::bind_ref`].
 #[derive(Debug)]
 pub struct BindableRef<T: ErasedStorage> {
@@ -379,7 +367,7 @@ impl<T: ErasedStorage> BindableRef<T> {
 
     /// Bind a value to the reference
     pub fn bind(self, value: T) {
-        self.inner.set::<T>(Some(value))
+        self.inner.set_erased::<T::Erased>(Some(value.upcast()))
     }
 }
 
