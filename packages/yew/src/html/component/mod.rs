@@ -98,8 +98,41 @@ impl<COMP: BaseComponent> Context<COMP> {
 /// [`#[function_component]`](crate::functional::function_component).
 ///
 /// We provide a blanket implementation of this trait for every member that implements
-/// [`Component`].
+/// [`Component`] or [`ComponentWithRef`].
 pub trait BaseComponent: Sized + 'static {
+    /// The Component's Message.
+    type Message: 'static;
+
+    /// The Component's Properties.
+    type Properties: Properties;
+
+    /// The Component's Reference type.
+    type Reference: ErasedStorage;
+
+    /// Creates a component.
+    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<Self::Reference>) -> Self;
+
+    /// Updates component's internal state.
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool;
+
+    /// React to changes of component properties.
+    fn changed(&mut self, ctx: &Context<Self>) -> bool;
+
+    /// Returns a component layout to be rendered.
+    fn view(&self, ctx: &Context<Self>) -> HtmlResult;
+
+    /// Notified after a layout is rendered.
+    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool);
+
+    /// Notified before a component is destroyed.
+    fn destroy(&mut self, ctx: &Context<Self>);
+}
+
+/// A struct [`Component`] that additionally can have a `ref` attribute.
+///
+/// We provide a blanket implementation of this trait for every member that implements
+/// [`Component`].
+pub trait ComponentWithRef: Sized + 'static {
     /// The Component's Message.
     type Message: 'static;
 
@@ -198,7 +231,7 @@ pub trait Component: Sized + 'static {
     fn destroy(&mut self, ctx: &Context<Self>) {}
 }
 
-impl<T> BaseComponent for T
+impl<T> ComponentWithRef for T
 where
     T: Sized + Component + 'static,
 {
@@ -229,5 +262,38 @@ where
 
     fn destroy(&mut self, ctx: &Context<Self>) {
         Component::destroy(self, ctx)
+    }
+}
+
+impl<T> BaseComponent for T
+where
+    T: Sized + ComponentWithRef + 'static,
+{
+    type Message = <T as ComponentWithRef>::Message;
+    type Properties = <T as ComponentWithRef>::Properties;
+    type Reference = <T as ComponentWithRef>::Reference;
+
+    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<Self::Reference>) -> Self {
+        ComponentWithRef::create(ctx, bindable_ref)
+    }
+
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        ComponentWithRef::update(self, ctx, msg)
+    }
+
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+        ComponentWithRef::changed(self, ctx)
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> HtmlResult {
+        ComponentWithRef::view(self, ctx).into_html_result()
+    }
+
+    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
+        ComponentWithRef::rendered(self, ctx, first_render)
+    }
+
+    fn destroy(&mut self, ctx: &Context<Self>) {
+        ComponentWithRef::destroy(self, ctx)
     }
 }

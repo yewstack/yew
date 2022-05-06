@@ -113,7 +113,7 @@ fn get_erased_ref<E: 'static>(storage: &Rc<dyn ErasedRef>) -> Option<Ref<'_, E>>
 ///     msg: String,
 /// }
 ///
-/// impl BaseComponent for MessageHolder {
+/// impl ComponentWithRef for MessageHolder {
 ///     type Message = String;
 ///     type Properties = ();
 ///     type Reference = Scope<Self>;

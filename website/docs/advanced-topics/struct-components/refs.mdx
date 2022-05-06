@@ -43,7 +43,7 @@ struct Light {
     is_on: bool,
 }
 
-impl BaseComponent for Light {
+impl ComponentWithRef for Light {
     type Properties = ();
     type Message = LightMessage;
     type Reference = Scope<Self>;

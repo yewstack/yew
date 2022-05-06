@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use yew::html::{BindableRef, ChildrenRenderer, Scope};
+use yew::html::{BindableRef, ChildrenRenderer, ComponentWithRef, Scope};
 use yew::prelude::*;
 use yew::virtual_dom::{VChild, VComp};
 
@@ -66,7 +66,7 @@ pub struct List {
     inactive: bool,
 }
 
-impl BaseComponent for List {
+impl ComponentWithRef for List {
     type Message = Msg;
     type Properties = Props;
     type Reference = Scope<Self>;
