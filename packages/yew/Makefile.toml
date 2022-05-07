@@ -9,8 +9,7 @@ args = [
     "--firefox",
     "--headless",
     "--",
-    "--features",
-    "csr,hydration,ssr"
+    "--all-features",
 ]
 
 [tasks.ssr-test]
