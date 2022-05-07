@@ -403,6 +403,7 @@ mod feat_csr_ssr {
             }
         }
 
+        #[inline]
         pub(super) fn arch_get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
             self.state.try_borrow().ok().and_then(|state_ref| {
                 state_ref.as_ref()?;
@@ -425,6 +426,7 @@ mod feat_csr_ssr {
             scheduler::start();
         }
 
+        #[inline]
         pub(super) fn arch_send_message<T>(&self, msg: T)
         where
             T: Into<COMP::Message>,
@@ -435,6 +437,7 @@ mod feat_csr_ssr {
             }
         }
 
+        #[inline]
         pub(super) fn arch_send_message_batch(&self, mut messages: Vec<COMP::Message>) {
             let msg_len = messages.len();
 
