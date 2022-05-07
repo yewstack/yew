@@ -159,8 +159,8 @@ jobs:
       - name: Run tests - yew
         run: |
           cd packages/yew
-          CHROMEDRIVER=$(which chromedriver) cargo test --all-features --target wasm32-unknown-unknown
-          GECKODRIVER=$(which geckodriver) cargo test --all-features --target wasm32-unknown-unknown
+          CHROMEDRIVER=$(which chromedriver) cargo test --features csr,hydration,ssr --target wasm32-unknown-unknown
+          GECKODRIVER=$(which geckodriver) cargo test --features csr,hydration,ssr --target wasm32-unknown-unknown
 
       - name: Run tests - yew-router
         run: |

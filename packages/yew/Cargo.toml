@@ -87,7 +87,9 @@ features = [
 ]
 
 [features]
-ssr = ["futures", "html-escape"]
+# TODO: `dep:` syntax only supported with MSRV 1.60, would be more precise
+# tokio = ["dep:tokio"]
+ssr = ["futures", "html-escape"] # dep:html-escape
 csr = []
 hydration = ["csr"]
 default = []
