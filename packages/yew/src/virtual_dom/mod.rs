@@ -208,6 +208,7 @@ mod feat_ssr_hydration {
     type ComponentName = &'static str;
     #[cfg(not(debug_assertions))]
     type ComponentName = ();
+
     /// A collectable.
     ///
     /// This indicates a kind that can be collected from fragment to be processed at a later time
@@ -217,6 +218,14 @@ mod feat_ssr_hydration {
     }
 
     impl Collectable {
+        pub fn for_component<T: 'static>() -> Self {
+            #[cfg(debug_assertions)]
+            let comp_name = std::any::type_name::<T>();
+            #[cfg(not(debug_assertions))]
+            let comp_name = ();
+            Self::Component(comp_name)
+        }
+
         pub fn open_start_mark(&self) -> &'static str {
             match self {
                 Self::Component(_) => "<[",

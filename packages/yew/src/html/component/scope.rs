@@ -289,11 +289,7 @@ mod feat_ssr {
             );
             scheduler::start();
 
-            #[cfg(debug_assertions)]
-            let collectable = Collectable::Component(std::any::type_name::<COMP>());
-
-            #[cfg(not(debug_assertions))]
-            let collectable = Collectable::Component;
+            let collectable = Collectable::for_component::<COMP>();
 
             if hydratable {
                 collectable.write_open_tag(w);
@@ -632,10 +628,7 @@ mod feat_hydration {
                 format!("hydration(type = {})", std::any::type_name::<COMP>()),
             );
 
-            #[cfg(debug_assertions)]
-            let collectable = Collectable::Component(std::any::type_name::<COMP>());
-            #[cfg(not(debug_assertions))]
-            let collectable = Collectable::Component;
+            let collectable = Collectable::for_component::<COMP>();
 
             let fragment = Fragment::collect_between(fragment, &collectable, &parent);
             node_ref.set(fragment.front().cloned());
