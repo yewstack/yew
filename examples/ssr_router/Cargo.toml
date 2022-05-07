@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-yew = { path = "../../packages/yew", features = ["ssr", "hydration", "trace_hydration"] }
+yew = { path = "../../packages/yew", features = ["ssr", "hydration"] }
 function_router = { path = "../function_router" }
 log = "0.4"
 

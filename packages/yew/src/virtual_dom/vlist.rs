@@ -113,7 +113,8 @@ mod feat_ssr {
     }
 }
 
-#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(test)]
 mod ssr_tests {
     use tokio::test;
 

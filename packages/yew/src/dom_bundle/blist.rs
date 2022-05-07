@@ -504,11 +504,11 @@ mod feat_hydration {
     }
 }
 
-#[cfg(all(test, feature = "wasm_test"))]
+#[cfg(target_arch = "wasm32")]
+#[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use crate::html;
@@ -581,11 +581,11 @@ mod layout_tests {
     }
 }
 
-#[cfg(all(test, feature = "wasm_test"))]
+#[cfg(target_arch = "wasm32")]
+#[cfg(test)]
 mod layout_tests_keys {
     extern crate self as yew;
 
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use web_sys::Node;
 
