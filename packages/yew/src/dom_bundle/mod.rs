@@ -34,19 +34,6 @@ pub use subtree_root::{set_event_bubbling, BSubtree};
 use traits::{Reconcilable, ReconcileTarget};
 use utils::{insert_node, test_log};
 
-#[cfg(feature = "hydration")]
-#[path = "."]
-mod feat_hydration {
-    #[path = "./fragment.rs"]
-    mod fragment;
-    pub use fragment::Fragment;
-
-    pub(super) use super::traits::Hydratable;
-    pub(super) use super::utils::node_type_str;
-}
-#[cfg(feature = "hydration")]
-pub(crate) use feat_hydration::*;
-
 /// A Bundle.
 ///
 /// Each component holds a bundle that represents a realised layout, designated by a [VNode].
@@ -87,16 +74,28 @@ impl Bundle {
 }
 
 #[cfg(feature = "hydration")]
-impl Bundle {
-    /// Creates a bundle by hydrating a virtual dom layout.
-    pub fn hydrate(
-        root: &BSubtree,
-        parent_scope: &AnyScope,
-        parent: &Element,
-        fragment: &mut Fragment,
-        node: VNode,
-    ) -> (NodeRef, Self) {
-        let (node_ref, bundle) = node.hydrate(root, parent_scope, parent, fragment);
-        (node_ref, Self(bundle))
+#[path = "."]
+mod feat_hydration {
+    pub(super) use super::traits::Hydratable;
+    pub(super) use super::utils::node_type_str;
+    #[path = "./fragment.rs"]
+    mod fragment;
+    pub use fragment::Fragment;
+
+    use super::*;
+    impl Bundle {
+        /// Creates a bundle by hydrating a virtual dom layout.
+        pub fn hydrate(
+            root: &BSubtree,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut Fragment,
+            node: VNode,
+        ) -> (NodeRef, Self) {
+            let (node_ref, bundle) = node.hydrate(root, parent_scope, parent, fragment);
+            (node_ref, Self(bundle))
+        }
     }
 }
+#[cfg(feature = "hydration")]
+pub(crate) use feat_hydration::*;
