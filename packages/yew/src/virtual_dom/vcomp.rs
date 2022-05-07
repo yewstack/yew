@@ -4,7 +4,20 @@ use std::any::TypeId;
 use std::fmt;
 use std::rc::Rc;
 
+#[cfg(feature = "ssr")]
+use futures::future::{FutureExt, LocalBoxFuture};
+#[cfg(feature = "csr")]
+use web_sys::Element;
+
 use super::Key;
+#[cfg(feature = "csr")]
+use crate::dom_bundle::BSubtree;
+#[cfg(feature = "hydration")]
+use crate::dom_bundle::Fragment;
+#[cfg(feature = "csr")]
+use crate::html::Scoped;
+#[cfg(any(feature = "ssr", feature = "csr"))]
+use crate::html::{AnyScope, Scope};
 use crate::html::{BaseComponent, NodeRef};
 
 /// A virtual component.
@@ -37,12 +50,39 @@ impl Clone for VComp {
     }
 }
 
-// Used as a substitute trait when features are not enabled
-pub(crate) trait _Empty {}
-impl<T: ?Sized> _Empty for T {}
-
-pub(crate) trait Mountable: MountableCsr + MountableHydrate + MountableSsr {
+pub(crate) trait Mountable {
     fn copy(&self) -> Box<dyn Mountable>;
+
+    #[cfg(feature = "csr")]
+    fn mount(
+        self: Box<Self>,
+        root: &BSubtree,
+        node_ref: NodeRef,
+        parent_scope: &AnyScope,
+        parent: Element,
+        next_sibling: NodeRef,
+    ) -> Box<dyn Scoped>;
+
+    #[cfg(feature = "csr")]
+    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef);
+
+    #[cfg(feature = "ssr")]
+    fn render_to_string<'a>(
+        &'a self,
+        w: &'a mut String,
+        parent_scope: &'a AnyScope,
+        hydratable: bool,
+    ) -> LocalBoxFuture<'a, ()>;
+
+    #[cfg(feature = "hydration")]
+    fn hydrate(
+        self: Box<Self>,
+        root: BSubtree,
+        parent_scope: &AnyScope,
+        parent: Element,
+        fragment: &mut Fragment,
+        node_ref: NodeRef,
+    ) -> Box<dyn Scoped>;
 }
 
 pub(crate) struct PropsWrapper<COMP: BaseComponent> {
@@ -61,6 +101,58 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
             props: Rc::clone(&self.props),
         };
         Box::new(wrapper)
+    }
+
+    #[cfg(feature = "csr")]
+    fn mount(
+        self: Box<Self>,
+        root: &BSubtree,
+        node_ref: NodeRef,
+        parent_scope: &AnyScope,
+        parent: Element,
+        next_sibling: NodeRef,
+    ) -> Box<dyn Scoped> {
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+        scope.mount_in_place(root.clone(), parent, next_sibling, node_ref, self.props);
+
+        Box::new(scope)
+    }
+
+    #[cfg(feature = "csr")]
+    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef) {
+        let scope: Scope<COMP> = scope.to_any().downcast::<COMP>();
+        scope.reuse(self.props, next_sibling);
+    }
+
+    #[cfg(feature = "ssr")]
+    fn render_to_string<'a>(
+        &'a self,
+        w: &'a mut String,
+        parent_scope: &'a AnyScope,
+        hydratable: bool,
+    ) -> LocalBoxFuture<'a, ()> {
+        async move {
+            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+            scope
+                .render_to_string(w, self.props.clone(), hydratable)
+                .await;
+        }
+        .boxed_local()
+    }
+
+    #[cfg(feature = "hydration")]
+    fn hydrate(
+        self: Box<Self>,
+        root: BSubtree,
+        parent_scope: &AnyScope,
+        parent: Element,
+        fragment: &mut Fragment,
+        node_ref: NodeRef,
+    ) -> Box<dyn Scoped> {
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+        scope.hydrate_in_place(root, parent, fragment, node_ref, self.props);
+
+        Box::new(scope)
     }
 }
 
@@ -142,99 +234,10 @@ impl<COMP: BaseComponent> fmt::Debug for VChild<COMP> {
     }
 }
 
-#[cfg(feature = "csr")]
-mod feat_csr {
-    use web_sys::Element;
-
-    use super::*;
-    use crate::dom_bundle::BSubtree;
-    use crate::html::{AnyScope, Scope, Scoped};
-
-    pub(crate) trait MountableCsr {
-        fn mount(
-            self: Box<Self>,
-            root: &BSubtree,
-            node_ref: NodeRef,
-            parent_scope: &AnyScope,
-            parent: Element,
-            next_sibling: NodeRef,
-        ) -> Box<dyn Scoped>;
-
-        fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef);
-    }
-
-    impl<COMP: BaseComponent> MountableCsr for PropsWrapper<COMP> {
-        fn mount(
-            self: Box<Self>,
-            root: &BSubtree,
-            node_ref: NodeRef,
-            parent_scope: &AnyScope,
-            parent: Element,
-            next_sibling: NodeRef,
-        ) -> Box<dyn Scoped> {
-            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-            scope.mount_in_place(root.clone(), parent, next_sibling, node_ref, self.props);
-
-            Box::new(scope)
-        }
-
-        fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef) {
-            let scope: Scope<COMP> = scope.to_any().downcast::<COMP>();
-            scope.reuse(self.props, next_sibling);
-        }
-    }
-}
-#[cfg(not(feature = "csr"))]
-pub(crate) use _Empty as MountableCsr;
-#[cfg(feature = "csr")]
-pub(crate) use feat_csr::MountableCsr;
-
-#[cfg(feature = "hydration")]
-mod feat_hydration {
-    use web_sys::Element;
-
-    use super::*;
-    use crate::dom_bundle::{BSubtree, Fragment};
-    use crate::html::{AnyScope, Scope, Scoped};
-
-    pub(crate) trait MountableHydrate {
-        fn hydrate(
-            self: Box<Self>,
-            root: BSubtree,
-            parent_scope: &AnyScope,
-            parent: Element,
-            fragment: &mut Fragment,
-            node_ref: NodeRef,
-        ) -> Box<dyn Scoped>;
-    }
-
-    impl<COMP: BaseComponent> MountableHydrate for PropsWrapper<COMP> {
-        fn hydrate(
-            self: Box<Self>,
-            root: BSubtree,
-            parent_scope: &AnyScope,
-            parent: Element,
-            fragment: &mut Fragment,
-            node_ref: NodeRef,
-        ) -> Box<dyn Scoped> {
-            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-            scope.hydrate_in_place(root, parent, fragment, node_ref, self.props);
-
-            Box::new(scope)
-        }
-    }
-}
-#[cfg(not(feature = "hydration"))]
-pub(crate) use _Empty as MountableHydrate;
-#[cfg(feature = "hydration")]
-pub(crate) use feat_hydration::MountableHydrate;
-
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::future::{FutureExt, LocalBoxFuture};
-
     use super::*;
-    use crate::html::{AnyScope, Scope};
+    use crate::html::AnyScope;
 
     impl VComp {
         pub(crate) async fn render_to_string(
@@ -249,40 +252,9 @@ mod feat_ssr {
                 .await;
         }
     }
-
-    pub(crate) trait MountableSsr {
-        fn render_to_string<'a>(
-            &'a self,
-            w: &'a mut String,
-            parent_scope: &'a AnyScope,
-            hydratable: bool,
-        ) -> LocalBoxFuture<'a, ()>;
-    }
-
-    impl<COMP: BaseComponent> MountableSsr for PropsWrapper<COMP> {
-        fn render_to_string<'a>(
-            &'a self,
-            w: &'a mut String,
-            parent_scope: &'a AnyScope,
-            hydratable: bool,
-        ) -> LocalBoxFuture<'a, ()> {
-            async move {
-                let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-                scope
-                    .render_to_string(w, self.props.clone(), hydratable)
-                    .await;
-            }
-            .boxed_local()
-        }
-    }
 }
-#[cfg(not(feature = "ssr"))]
-pub(crate) use _Empty as MountableSsr;
-#[cfg(feature = "ssr")]
-pub(crate) use feat_ssr::MountableSsr;
 
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(test)]
+#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
 mod ssr_tests {
     use tokio::test;
 
