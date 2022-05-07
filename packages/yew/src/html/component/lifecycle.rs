@@ -400,8 +400,6 @@ impl Runnable for UpdateRunner {
 
 pub(crate) struct DestroyRunner {
     pub state: Shared<Option<ComponentState>>,
-
-    #[cfg(feature = "csr")]
     pub parent_to_detach: bool,
 }
 
@@ -441,7 +439,9 @@ impl Runnable for DestroyRunner {
                 }
 
                 #[cfg(feature = "ssr")]
-                ComponentRenderState::Ssr { .. } => {}
+                ComponentRenderState::Ssr { .. } => {
+                    let _ = self.parent_to_detach;
+                }
             }
         }
     }
@@ -629,7 +629,7 @@ mod feat_csr {
 #[cfg(feature = "csr")]
 use feat_csr::*;
 
-#[cfg(feature = "wasm_test")]
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
     extern crate self as yew;
@@ -686,7 +686,7 @@ mod tests {
     struct Props {
         lifecycle: Rc<RefCell<Vec<String>>>,
         #[allow(dead_code)]
-        #[cfg(feature = "wasm_test")]
+        #[cfg(target_arch = "wasm32")]
         create_message: Option<bool>,
         update_message: RefCell<Option<bool>>,
         view_message: RefCell<Option<bool>>,
@@ -703,7 +703,7 @@ mod tests {
 
         fn create(ctx: &Context<Self>) -> Self {
             ctx.props().lifecycle.borrow_mut().push("create".into());
-            #[cfg(feature = "wasm_test")]
+            #[cfg(target_arch = "wasm32")]
             if let Some(msg) = ctx.props().create_message {
                 ctx.link().send_message(msg);
             }
@@ -790,7 +790,7 @@ mod tests {
         test_lifecycle(
             Props {
                 lifecycle: lifecycle.clone(),
-                #[cfg(feature = "wasm_test")]
+                #[cfg(target_arch = "wasm32")]
                 create_message: Some(false),
                 ..Props::default()
             },
@@ -871,7 +871,7 @@ mod tests {
         test_lifecycle(
             Props {
                 lifecycle,
-                #[cfg(feature = "wasm_test")]
+                #[cfg(target_arch = "wasm32")]
                 create_message: Some(true),
                 update_message: RefCell::new(Some(true)),
                 ..Props::default()

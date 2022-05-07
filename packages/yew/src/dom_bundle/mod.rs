@@ -19,9 +19,6 @@ mod btag;
 mod btext;
 mod subtree_root;
 
-#[cfg(feature = "hydration")]
-mod fragment;
-
 mod traits;
 mod utils;
 
@@ -32,16 +29,9 @@ use bportal::BPortal;
 use bsuspense::BSuspense;
 use btag::{BTag, Registry};
 use btext::BText;
-#[cfg(feature = "hydration")]
-pub(crate) use fragment::Fragment;
-pub use subtree_root::set_event_bubbling;
-pub(crate) use subtree_root::BSubtree;
 use subtree_root::EventDescriptor;
-#[cfg(feature = "hydration")]
-use traits::Hydratable;
+pub use subtree_root::{set_event_bubbling, BSubtree};
 use traits::{Reconcilable, ReconcileTarget};
-#[cfg(feature = "hydration")]
-use utils::node_type_str;
 use utils::{insert_node, test_log};
 
 /// A Bundle.
@@ -84,9 +74,15 @@ impl Bundle {
 }
 
 #[cfg(feature = "hydration")]
+#[path = "."]
 mod feat_hydration {
-    use super::*;
+    pub(super) use super::traits::Hydratable;
+    pub(super) use super::utils::node_type_str;
+    #[path = "./fragment.rs"]
+    mod fragment;
+    pub use fragment::Fragment;
 
+    use super::*;
     impl Bundle {
         /// Creates a bundle by hydrating a virtual dom layout.
         pub fn hydrate(
@@ -101,3 +97,5 @@ mod feat_hydration {
         }
     }
 }
+#[cfg(feature = "hydration")]
+pub(crate) use feat_hydration::*;

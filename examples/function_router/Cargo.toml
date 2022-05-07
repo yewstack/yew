@@ -19,5 +19,6 @@ instant = { version = "0.1", features = ["wasm-bindgen"] }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2", features = ["js"] }
 
-[features]
-csr = ["yew/csr"]
+[[bin]]
+name = "function_router"
+required-features = ["yew/csr"]

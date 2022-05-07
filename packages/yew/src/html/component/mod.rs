@@ -21,6 +21,9 @@ use super::{Html, HtmlResult, IntoHtmlResult};
 #[cfg(debug_assertions)]
 #[cfg(any(feature = "csr", feature = "ssr"))]
 mod feat_csr_ssr {
+    use wasm_bindgen::prelude::wasm_bindgen;
+    use wasm_bindgen::JsValue;
+
     thread_local! {
          static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<usize, Vec<String>>>
             = Default::default();
@@ -37,13 +40,16 @@ mod feat_csr_ssr {
     }
 
     /// Get [Component] event log from lifecycle debugging registry
-    #[allow(dead_code)]
-    pub(crate) fn get_event_log(comp_id: usize) -> Vec<String> {
+    #[wasm_bindgen(js_name = "yewGetEventLog")]
+    pub fn _get_event_log(comp_id: usize) -> Option<Vec<JsValue>> {
         EVENT_HISTORY.with(|h| {
-            h.borrow()
-                .get(&comp_id)
-                .map(|l| (*l).clone())
-                .unwrap_or_default()
+            Some(
+                h.borrow()
+                    .get(&comp_id)?
+                    .iter()
+                    .map(|l| (*l).clone().into())
+                    .collect(),
+            )
         })
     }
 }

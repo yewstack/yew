@@ -176,7 +176,7 @@ mod feat_hydration {
     }
 }
 
-#[cfg(feature = "wasm_test")]
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
     use std::ops::Deref;
@@ -481,7 +481,7 @@ mod tests {
     }
 }
 
-#[cfg(feature = "wasm_test")]
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;

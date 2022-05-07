@@ -10,7 +10,7 @@ args = [
     "--headless",
     "--",
     "--features",
-    "wasm_test"
+    "csr,hydration,ssr",
 ]
 
 [tasks.ssr-test]
@@ -18,6 +18,7 @@ command = "cargo"
 args = ["test", "ssr_tests", "--features", "ssr"]
 
 [tasks.test]
+args = ["test", "--all-targets", "--all-features"]
 dependencies = ["native-test", "wasm-test"]
 
 [tasks.clippy-feature-soundness]

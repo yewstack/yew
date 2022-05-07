@@ -29,8 +29,8 @@ fn set_default_panic_hook() {
 /// The Yew Renderer.
 ///
 /// This is the main entry point of a Yew application.
-#[derive(Debug)]
 #[cfg_attr(documenting, doc(cfg(feature = "csr")))]
+#[derive(Debug)]
 #[must_use = "Renderer does nothing unless render() is called."]
 pub struct Renderer<COMP>
 where

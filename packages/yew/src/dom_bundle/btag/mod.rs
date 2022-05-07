@@ -265,13 +265,13 @@ impl BTag {
         self.key.as_ref()
     }
 
-    #[cfg(feature = "wasm_test")]
+    #[cfg(target_arch = "wasm32")]
     #[cfg(test)]
     fn reference(&self) -> &Element {
         &self.reference
     }
 
-    #[cfg(feature = "wasm_test")]
+    #[cfg(target_arch = "wasm32")]
     #[cfg(test)]
     fn children(&self) -> &[BNode] {
         match &self.inner {
@@ -280,7 +280,7 @@ impl BTag {
         }
     }
 
-    #[cfg(feature = "wasm_test")]
+    #[cfg(target_arch = "wasm32")]
     #[cfg(test)]
     fn tag(&self) -> &str {
         match &self.inner {
@@ -383,7 +383,7 @@ mod feat_hydration {
     }
 }
 
-#[cfg(feature = "wasm_test")]
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
     use gloo_utils::document;
@@ -975,11 +975,11 @@ mod tests {
     }
 }
 
-#[cfg(all(test, feature = "wasm_test"))]
+#[cfg(target_arch = "wasm32")]
+#[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use crate::html;

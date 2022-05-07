@@ -26,7 +26,7 @@ fn app_content() -> HtmlResult {
         })
     };
 
-    let on_take_a_break = Callback::from(move |_| (resleep.clone())());
+    let on_take_a_break = Callback::from(move |_| resleep());
 
     Ok(html! {
         <div class="content-area">
