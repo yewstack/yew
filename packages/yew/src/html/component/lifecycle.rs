@@ -439,7 +439,9 @@ impl Runnable for DestroyRunner {
                 }
 
                 #[cfg(feature = "ssr")]
-                ComponentRenderState::Ssr { .. } => {}
+                ComponentRenderState::Ssr { .. } => {
+                    let _ = self.parent_to_detach;
+                }
             }
         }
     }
