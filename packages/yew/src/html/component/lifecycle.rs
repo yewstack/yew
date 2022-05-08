@@ -307,7 +307,7 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
 
 #[cfg(feature = "csr")]
 pub(crate) struct PropsUpdateRunner {
-    pub props: Rc<dyn Any>,
+    pub props: Option<Rc<dyn Any>>,
     pub state: Shared<Option<ComponentState>>,
     pub next_sibling: Option<NodeRef>,
 }
@@ -358,12 +358,20 @@ impl Runnable for PropsUpdateRunner {
             }
 
             // Only trigger changed if props were changed / next sibling has changed.
-            let schedule_render = match state.has_rendered {
-                true => state.inner.props_changed(props),
-                false => {
-                    state.pending_props = Some(props);
-                    false
+            let schedule_render = if let Some(props) = props.or_else(|| state.pending_props.take())
+            {
+                match state.has_rendered {
+                    true => {
+                        state.pending_props = None;
+                        state.inner.props_changed(props)
+                    }
+                    false => {
+                        state.pending_props = Some(props);
+                        false
+                    }
                 }
+            } else {
+                false
             };
 
             #[cfg(debug_assertions)]
@@ -640,9 +648,9 @@ mod feat_csr {
                     state.inner.rendered(self.first_render);
                 }
 
-                if let Some(m) = state.pending_props.take() {
+                if state.pending_props.is_some() {
                     scheduler::push_component_props_update(Box::new(PropsUpdateRunner {
-                        props: m,
+                        props: None,
                         state: self.state.clone(),
                         next_sibling: None,
                     }));
