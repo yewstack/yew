@@ -5,6 +5,7 @@ on: pull_request_target
 jobs:
   auto-approve:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
     steps:
       - name: Check if organization member
         id: is_organization_member
