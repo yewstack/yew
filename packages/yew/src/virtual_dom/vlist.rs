@@ -32,6 +32,7 @@ impl Deref for VList {
 /// Mutable children of a [VList].
 ///
 /// This struct has a `DerefMut` implementations into [`Vec<VNode>`](std::vec::Vec).
+/// Prefer to use immutable access, since this re-checks if all nodes have keys when dropped.
 pub struct ChildrenMut<'a> {
     children: &'a mut Vec<VNode>,
     fully_keyed: &'a mut bool,
@@ -110,16 +111,6 @@ impl VList {
             children: &mut self.children,
             fully_keyed: &mut self.fully_keyed,
         }
-    }
-
-    /// Recheck, if the all the children have keys.
-    ///
-    /// Run this, after modifying the child list that contained only keyed children prior to the
-    /// mutable dereference.
-    pub fn recheck_fully_keyed(&mut self) {
-        let mut iter = self.children_mut();
-        let _ = iter.deref_mut(); // pretend we access it
-        drop(iter); // The drop implementation will do the check
     }
 }
 
