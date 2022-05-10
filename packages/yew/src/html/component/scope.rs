@@ -133,6 +133,9 @@ impl<COMP: BaseComponent> Scope<COMP> {
 
     /// Creates a `Callback` which will send a message to the linked
     /// component's update method when invoked.
+    ///
+    /// If your callback function returns a [Future],
+    /// use [`callback_future`](Scope::callback_future) instead.
     pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
     where
         M: Into<COMP::Message>,
