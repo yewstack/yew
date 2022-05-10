@@ -31,40 +31,39 @@ impl Deref for VList {
 
 /// Mutable children of a [VList].
 ///
-/// This struct has Deref implementations into [`Vec<VNode>`](std::vec::Vec).
+/// This struct has a `DerefMut` implementations into [`Vec<VNode>`](std::vec::Vec).
 pub struct ChildrenMut<'a> {
-    vlist: &'a mut VList,
+    children: &'a mut Vec<VNode>,
+    fully_keyed: &'a mut bool,
 }
 
 impl<'a> Deref for ChildrenMut<'a> {
     type Target = Vec<VNode>;
 
     fn deref(&self) -> &Self::Target {
-        &self.vlist.children
+        self.children
     }
 }
 
 impl<'a> DerefMut for ChildrenMut<'a> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        self.vlist.fully_keyed = false;
-        &mut self.vlist.children
+        *self.fully_keyed = false;
+        self.children
     }
 }
 
 impl<'a> Drop for ChildrenMut<'a> {
     fn drop(&mut self) {
-        if !self.vlist.fully_keyed {
+        if !*self.fully_keyed {
             // Caller might have changed the keys of the VList or add unkeyed children.
-            self.vlist.recheck_fully_keyed();
+            *self.fully_keyed = self.children.iter().all(|ch| ch.has_key());
         }
     }
 }
 
 impl<'a> std::fmt::Debug for ChildrenMut<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("ChildrenMut")
-            .field(&self.vlist.children)
-            .finish()
+        f.debug_tuple("ChildrenMut").field(&self.children).finish()
     }
 }
 
@@ -107,7 +106,10 @@ impl VList {
 
     /// Get a mutable list of children in this vlist.
     pub fn children_mut(&mut self) -> ChildrenMut<'_> {
-        ChildrenMut { vlist: self }
+        ChildrenMut {
+            children: &mut self.children,
+            fully_keyed: &mut self.fully_keyed,
+        }
     }
 
     /// Recheck, if the all the children have keys.
@@ -115,7 +117,9 @@ impl VList {
     /// Run this, after modifying the child list that contained only keyed children prior to the
     /// mutable dereference.
     pub fn recheck_fully_keyed(&mut self) {
-        self.fully_keyed = self.children.iter().all(|ch| ch.has_key());
+        let mut iter = self.children_mut();
+        let _ = iter.deref_mut(); // pretend we access it
+        drop(iter); // The drop implementation will do the check
     }
 }
 
