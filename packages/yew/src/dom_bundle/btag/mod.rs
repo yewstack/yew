@@ -383,32 +383,10 @@ mod feat_hydration {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
-    use gloo_utils::document;
-    use wasm_bindgen::JsCast;
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-    use web_sys::HtmlInputElement as InputElement;
-
-    use super::*;
-    use crate::dom_bundle::{BNode, Reconcilable, ReconcileTarget};
-    use crate::html::AnyScope;
-    use crate::virtual_dom::vtag::{HTML_NAMESPACE, SVG_NAMESPACE};
     use crate::virtual_dom::{AttrValue, VNode, VTag};
-    use crate::{html, Html, NodeRef};
-
-    wasm_bindgen_test_configure!(run_in_browser);
-
-    fn setup_parent() -> (BSubtree, AnyScope, Element) {
-        let scope = AnyScope::test();
-        let parent = document().create_element("div").unwrap();
-        let root = BSubtree::create_root(&parent);
-
-        document().body().unwrap().append_child(&parent).unwrap();
-
-        (root, scope, parent)
-    }
+    use crate::{html, NodeRef};
 
     #[test]
     fn it_compares_tags() {
@@ -559,13 +537,6 @@ mod tests {
         panic!("should be vtag");
     }
 
-    fn assert_btag_ref(node: &BNode) -> &BTag {
-        if let BNode::Tag(vtag) = node {
-            return vtag;
-        }
-        panic!("should be btag");
-    }
-
     fn assert_vtag_ref(node: &VNode) -> &VTag {
         if let VNode::VTag(vtag) = node {
             return vtag;
@@ -573,43 +544,21 @@ mod tests {
         panic!("should be vtag");
     }
 
-    fn assert_btag_mut(node: &mut BNode) -> &mut BTag {
-        if let BNode::Tag(btag) = node {
-            return btag;
-        }
-        panic!("should be btag");
-    }
-
-    fn assert_namespace(vtag: &BTag, namespace: &'static str) {
-        assert_eq!(vtag.reference().namespace_uri().unwrap(), namespace);
-    }
-
     #[test]
-    fn supports_svg() {
-        let (root, scope, parent) = setup_parent();
-        let document = web_sys::window().unwrap().document().unwrap();
-
-        let namespace = SVG_NAMESPACE;
-        let namespace = Some(namespace);
-        let svg_el = document.create_element_ns(namespace, "svg").unwrap();
-
-        let g_node = html! { <g class="segment"></g> };
+    fn html_generates_vtags() {
+        let node_ref = NodeRef::default();
+        let elem = html! { <div ref={&node_ref}></div> };
+        assert_vtag(elem);
+        let expected = "not_changed_value";
+        let elem = html! { <input value={expected} /> };
+        assert_vtag(elem);
         let path_node = html! { <path></path> };
         let svg_node = html! { <svg>{path_node}</svg> };
-
-        let svg_tag = assert_vtag(svg_node);
-        let (_, svg_tag) = svg_tag.attach(&root, &scope, &parent, NodeRef::default());
-        assert_namespace(&svg_tag, SVG_NAMESPACE);
-        let path_tag = assert_btag_ref(svg_tag.children().get(0).unwrap());
-        assert_namespace(path_tag, SVG_NAMESPACE);
-
-        let g_tag = assert_vtag(g_node.clone());
-        let (_, g_tag) = g_tag.attach(&root, &scope, &parent, NodeRef::default());
-        assert_namespace(&g_tag, HTML_NAMESPACE);
-
-        let g_tag = assert_vtag(g_node);
-        let (_, g_tag) = g_tag.attach(&root, &scope, &svg_el, NodeRef::default());
-        assert_namespace(&g_tag, SVG_NAMESPACE);
+        assert_vtag(svg_node);
+        let g_node = html! { <g class="segment"></g> };
+        assert_vtag(g_node);
+        let next_elem = html! { <input value={expected} /> };
+        assert_vtag(next_elem);
     }
 
     #[test]
@@ -703,124 +652,6 @@ mod tests {
     }
 
     #[test]
-    fn it_does_not_set_missing_class_name() {
-        let (root, scope, parent) = setup_parent();
-
-        let elem = html! { <div></div> };
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
-        let vtag = assert_btag_mut(&mut elem);
-        // test if the className has not been set
-        assert!(!vtag.reference().has_attribute("class"));
-    }
-
-    fn test_set_class_name(gen_html: impl FnOnce() -> Html) {
-        let (root, scope, parent) = setup_parent();
-
-        let elem = gen_html();
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
-        let vtag = assert_btag_mut(&mut elem);
-        // test if the className has been set
-        assert!(vtag.reference().has_attribute("class"));
-    }
-
-    #[test]
-    fn it_sets_class_name_static() {
-        test_set_class_name(|| html! { <div class="ferris the crab"></div> });
-    }
-
-    #[test]
-    fn it_sets_class_name_dynamic() {
-        test_set_class_name(|| html! { <div class={"ferris the crab".to_owned()}></div> });
-    }
-
-    #[test]
-    fn controlled_input_synced() {
-        let (root, scope, parent) = setup_parent();
-
-        let expected = "not_changed_value";
-
-        // Initial state
-        let elem = html! { <input value={expected} /> };
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
-        let vtag = assert_btag_ref(&elem);
-
-        // User input
-        let input_ref = &vtag.reference();
-        let input = input_ref.dyn_ref::<InputElement>();
-        input.unwrap().set_value("User input");
-
-        let next_elem = html! { <input value={expected} /> };
-        let elem_vtag = assert_vtag(next_elem);
-
-        // Sync happens here
-        elem_vtag.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut elem);
-        let vtag = assert_btag_ref(&elem);
-
-        // Get new current value of the input element
-        let input_ref = &vtag.reference();
-        let input = input_ref.dyn_ref::<InputElement>().unwrap();
-
-        let current_value = input.value();
-
-        // check whether not changed virtual dom value has been set to the input element
-        assert_eq!(current_value, expected);
-    }
-
-    #[test]
-    fn uncontrolled_input_unsynced() {
-        let (root, scope, parent) = setup_parent();
-
-        // Initial state
-        let elem = html! { <input /> };
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
-        let vtag = assert_btag_ref(&elem);
-
-        // User input
-        let input_ref = &vtag.reference();
-        let input = input_ref.dyn_ref::<InputElement>();
-        input.unwrap().set_value("User input");
-
-        let next_elem = html! { <input /> };
-        let elem_vtag = assert_vtag(next_elem);
-
-        // Value should not be refreshed
-        elem_vtag.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut elem);
-        let vtag = assert_btag_ref(&elem);
-
-        // Get user value of the input element
-        let input_ref = &vtag.reference();
-        let input = input_ref.dyn_ref::<InputElement>().unwrap();
-
-        let current_value = input.value();
-
-        // check whether not changed virtual dom value has been set to the input element
-        assert_eq!(current_value, "User input");
-
-        // Need to remove the element to clean up the dirty state of the DOM. Failing this causes
-        // event listener tests to fail.
-        parent.remove();
-    }
-
-    #[test]
-    fn dynamic_tags_work() {
-        let (root, scope, parent) = setup_parent();
-
-        let elem = html! { <@{
-            let mut builder = String::new();
-            builder.push('a');
-            builder
-        }/> };
-
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
-        let vtag = assert_btag_mut(&mut elem);
-        // make sure the new tag name is used internally
-        assert_eq!(vtag.tag(), "a");
-
-        // Element.tagName is always in the canonical upper-case form.
-        assert_eq!(vtag.reference().tag_name(), "A");
-    }
-
-    #[test]
     fn dynamic_tags_handle_value_attribute() {
         let div_el = html! {
             <@{"div"} value="Hello"/>
@@ -861,218 +692,6 @@ mod tests {
         // no special treatment for elements not recognized e.g. clipPath
         assert_eq!(vtag.tag(), "clipPath");
     }
-
-    #[test]
-    fn reset_node_ref() {
-        let (root, scope, parent) = setup_parent();
-
-        let node_ref = NodeRef::default();
-        let elem: VNode = html! { <div ref={node_ref.clone()}></div> };
-        assert_vtag_ref(&elem);
-        let (_, elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
-        assert_eq!(node_ref.get(), parent.first_child());
-        elem.detach(&root, &parent, false);
-        assert!(node_ref.get().is_none());
-    }
-
-    #[test]
-    fn vtag_reuse_should_reset_ancestors_node_ref() {
-        let (root, scope, parent) = setup_parent();
-
-        let node_ref_a = NodeRef::default();
-        let elem_a = html! { <div id="a" ref={node_ref_a.clone()} /> };
-        let (_, mut elem) = elem_a.attach(&root, &scope, &parent, NodeRef::default());
-
-        // save the Node to check later that it has been reused.
-        let node_a = node_ref_a.get().unwrap();
-
-        let node_ref_b = NodeRef::default();
-        let elem_b = html! { <div id="b" ref={node_ref_b.clone()} /> };
-        elem_b.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut elem);
-
-        let node_b = node_ref_b.get().unwrap();
-
-        assert_eq!(node_a, node_b, "VTag should have reused the element");
-        assert!(
-            node_ref_a.get().is_none(),
-            "node_ref_a should have been reset when the element was reused."
-        );
-    }
-
-    #[test]
-    fn vtag_should_not_touch_newly_bound_refs() {
-        let (root, scope, parent) = setup_parent();
-
-        let test_ref = NodeRef::default();
-        let before = html! {
-            <>
-                <div ref={&test_ref} id="before" />
-            </>
-        };
-        let after = html! {
-            <>
-                <h6 />
-                <div ref={&test_ref} id="after" />
-            </>
-        };
-        // The point of this diff is to first render the "after" div and then detach the "before"
-        // div, while both should be bound to the same node ref
-
-        let (_, mut elem) = before.attach(&root, &scope, &parent, NodeRef::default());
-        after.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut elem);
-
-        assert_eq!(
-            test_ref
-                .get()
-                .unwrap()
-                .dyn_ref::<web_sys::Element>()
-                .unwrap()
-                .outer_html(),
-            "<div id=\"after\"></div>"
-        );
-    }
-
-    // test for bug: https://github.com/yewstack/yew/pull/2653
-    #[test]
-    fn test_index_map_attribute_diff() {
-        let (root, scope, parent) = setup_parent();
-
-        let test_ref = NodeRef::default();
-
-        // We want to test appy_diff with Attributes::IndexMap, so we
-        // need to create the VTag manually
-
-        // Create <div disabled="disabled" tabindex="0">
-        let mut vtag = VTag::new("div");
-        vtag.node_ref = test_ref.clone();
-        vtag.add_attribute("disabled", "disabled");
-        vtag.add_attribute("tabindex", "0");
-
-        let elem = VNode::VTag(Box::new(vtag));
-
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
-
-        // Create <div tabindex="0"> (removed first attribute "disabled")
-        let mut vtag = VTag::new("div");
-        vtag.node_ref = test_ref.clone();
-        vtag.add_attribute("tabindex", "0");
-        let next_elem = VNode::VTag(Box::new(vtag));
-        let elem_vtag = assert_vtag(next_elem);
-
-        // Sync happens here
-        // this should remove the the "disabled" attribute
-        elem_vtag.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut elem);
-
-        assert_eq!(
-            test_ref
-                .get()
-                .unwrap()
-                .dyn_ref::<web_sys::Element>()
-                .unwrap()
-                .outer_html(),
-            "<div tabindex=\"0\"></div>"
-        )
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-#[cfg(test)]
-mod layout_tests {
-    extern crate self as yew;
-
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
-    use crate::html;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
-
-    wasm_bindgen_test_configure!(run_in_browser);
-
-    #[test]
-    fn diff() {
-        let layout1 = TestLayout {
-            name: "1",
-            node: html! {
-                <ul>
-                    <li>
-                        {"a"}
-                    </li>
-                    <li>
-                        {"b"}
-                    </li>
-                </ul>
-            },
-            expected: "<ul><li>a</li><li>b</li></ul>",
-        };
-
-        let layout2 = TestLayout {
-            name: "2",
-            node: html! {
-                <ul>
-                    <li>
-                        {"a"}
-                    </li>
-                    <li>
-                        {"b"}
-                    </li>
-                    <li>
-                        {"d"}
-                    </li>
-                </ul>
-            },
-            expected: "<ul><li>a</li><li>b</li><li>d</li></ul>",
-        };
-
-        let layout3 = TestLayout {
-            name: "3",
-            node: html! {
-                <ul>
-                    <li>
-                        {"a"}
-                    </li>
-                    <li>
-                        {"b"}
-                    </li>
-                    <li>
-                        {"c"}
-                    </li>
-                    <li>
-                        {"d"}
-                    </li>
-                </ul>
-            },
-            expected: "<ul><li>a</li><li>b</li><li>c</li><li>d</li></ul>",
-        };
-
-        let layout4 = TestLayout {
-            name: "4",
-            node: html! {
-                <ul>
-                    <li>
-                        <>
-                            {"a"}
-                        </>
-                    </li>
-                    <li>
-                        {"b"}
-                        <li>
-                            {"c"}
-                        </li>
-                        <li>
-                            {"d"}
-                        </li>
-                    </li>
-                </ul>
-            },
-            expected: "<ul><li>a</li><li>b<li>c</li><li>d</li></li></ul>",
-        };
-
-        diff_layouts(vec![layout1, layout2, layout3, layout4]);
-    }
-}
-
-#[cfg(test)]
-mod tests_without_browser {
-    use crate::html;
 
     #[test]
     fn html_if_bool() {
@@ -1244,5 +863,344 @@ mod tests_without_browser {
             },
             html! { <div><></></div> },
         );
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+#[cfg(test)]
+mod layout_tests {
+    extern crate self as yew;
+
+    use gloo_utils::document;
+    use wasm_bindgen::JsCast;
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use web_sys::HtmlInputElement as InputElement;
+
+    use super::BTag;
+    use crate::dom_bundle::BNode;
+    use crate::tests::{TestCase, TestRunner};
+    use crate::virtual_dom::vtag::{HTML_NAMESPACE, SVG_NAMESPACE};
+    use crate::virtual_dom::{VNode, VTag};
+    use crate::{html, Html, NodeRef};
+
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    fn assert_btag_ref(node: &BNode) -> &BTag {
+        if let BNode::Tag(vtag) = node {
+            return vtag;
+        }
+        panic!("should be btag");
+    }
+
+    fn assert_namespace(vtag: &BTag, namespace: &'static str) {
+        assert_eq!(vtag.reference().namespace_uri().unwrap(), namespace);
+    }
+
+    #[test]
+    async fn diff() {
+        let mut runner = TestRunner::new();
+
+        runner
+            .step("1")
+            .render(html! {
+                <ul>
+                    <li>
+                        {"a"}
+                    </li>
+                    <li>
+                        {"b"}
+                    </li>
+                </ul>
+            })
+            .await
+            .assert_inner_html("<ul><li>a</li><li>b</li></ul>");
+
+        runner
+            .step("2")
+            .render(html! {
+                <ul>
+                    <li>
+                        {"a"}
+                    </li>
+                    <li>
+                        {"b"}
+                    </li>
+                    <li>
+                        {"d"}
+                    </li>
+                </ul>
+            })
+            .await
+            .assert_inner_html("<ul><li>a</li><li>b</li><li>d</li></ul>");
+
+        runner
+            .step("3")
+            .render(html! {
+                <ul>
+                    <li>
+                        {"a"}
+                    </li>
+                    <li>
+                        {"b"}
+                    </li>
+                    <li>
+                        {"c"}
+                    </li>
+                    <li>
+                        {"d"}
+                    </li>
+                </ul>
+            })
+            .await
+            .assert_inner_html("<ul><li>a</li><li>b</li><li>c</li><li>d</li></ul>");
+
+        runner
+            .step("4")
+            .render(html! {
+                <ul>
+                    <li>
+                        <>
+                            {"a"}
+                        </>
+                    </li>
+                    <li>
+                        {"b"}
+                        <li>
+                            {"c"}
+                        </li>
+                        <li>
+                            {"d"}
+                        </li>
+                    </li>
+                </ul>
+            })
+            .await
+            .assert_inner_html("<ul><li>a</li><li>b<li>c</li><li>d</li></li></ul>");
+
+        runner.run_replayable_tests().await;
+    }
+
+    #[test]
+    async fn supports_svg() {
+        let mut trun = TestRunner::new();
+
+        let svg_node = html! { <svg><path></path></svg> };
+        let mut render = trun.render(svg_node).await;
+        let svg_tag = assert_btag_ref(&render.bundle().as_node());
+        assert_namespace(&svg_tag, SVG_NAMESPACE);
+        let path_tag = assert_btag_ref(svg_tag.children().get(0).unwrap());
+        assert_namespace(path_tag, SVG_NAMESPACE);
+        drop(render);
+
+        let g_node = html! { <g class="segment"></g> };
+        let mut render = trun.render(g_node.clone()).await;
+        let g_tag = assert_btag_ref(&render.bundle().as_node());
+        assert_namespace(&g_tag, HTML_NAMESPACE);
+        drop(render);
+
+        let svg_parent = document()
+            .create_element_ns(Some(SVG_NAMESPACE), "svg")
+            .unwrap();
+        let mut trun = TestRunner::new_in(svg_parent);
+        let mut render = trun.render(g_node).await;
+        let g_tag = assert_btag_ref(&render.bundle().as_node());
+        assert_namespace(&g_tag, SVG_NAMESPACE);
+    }
+
+    #[test]
+    async fn it_does_not_set_missing_class_name() {
+        let mut trun = TestRunner::new();
+
+        let elem = html! { <div></div> };
+        let mut render = trun.render(elem).await;
+        let vtag = assert_btag_ref(&render.bundle().as_node());
+        // test if the className has not been set
+        assert!(!vtag.reference().has_attribute("class"));
+    }
+
+    async fn test_set_class_name(elem: Html) {
+        let mut trun = TestRunner::new();
+
+        let mut render = trun.render(elem).await;
+        let vtag = assert_btag_ref(&render.bundle().as_node());
+        // test if the className has been set
+        assert!(vtag.reference().has_attribute("class"));
+    }
+
+    #[test]
+    async fn it_sets_class_name_static() {
+        test_set_class_name(html! { <div class="ferris the crab"></div> }).await;
+    }
+
+    #[test]
+    async fn it_sets_class_name_dynamic() {
+        test_set_class_name(html! { <div class={"ferris the crab".to_owned()}></div> }).await;
+    }
+
+    #[test]
+    async fn controlled_input_synced() {
+        let mut trun = TestRunner::new();
+        let input_ref = NodeRef::default();
+        let expected = "not_changed_value";
+
+        // Initial state
+        let elem = html! { <input ref={&input_ref} value={expected} /> };
+        trun.render(elem).await;
+        input_ref
+            .cast::<InputElement>()
+            .unwrap()
+            .set_value("User input");
+
+        let elem = html! { <input ref={&input_ref} value={expected} /> };
+        trun.render(elem).await;
+        // Get new current value of the input element
+        let current_value = input_ref.cast::<InputElement>().unwrap().value();
+        // check whether not changed virtual dom value has been set to the input element
+        assert_eq!(current_value, expected);
+    }
+
+    #[test]
+    async fn uncontrolled_input_unsynced() {
+        let mut trun = TestRunner::new();
+        let input_ref = NodeRef::default();
+
+        // Initial state
+        let elem = html! { <input ref={&input_ref} /> };
+        trun.render(elem).await;
+        input_ref
+            .cast::<InputElement>()
+            .unwrap()
+            .set_value("User input");
+
+        let elem = html! { <input ref={&input_ref} /> };
+        trun.render(elem).await;
+        let current_value = input_ref.cast::<InputElement>().unwrap().value();
+        // check whether not changed virtual dom value has been set to the input element
+        assert_eq!(current_value, "User input");
+    }
+
+    #[test]
+    async fn dynamic_tags_work() {
+        let mut trun = TestRunner::new();
+
+        let elem = html! { <@{
+            let mut builder = String::new();
+            builder.push('a');
+            builder
+        } /> };
+        let mut render = trun.render(elem).await;
+        let vtag = assert_btag_ref(&render.bundle().as_node());
+
+        // make sure the new tag name is used internally
+        assert_eq!(vtag.tag(), "a");
+
+        // Element.tagName is always in the canonical upper-case form.
+        assert_eq!(vtag.reference().tag_name(), "A");
+    }
+
+    #[test]
+    async fn reset_node_ref() {
+        let mut trun = TestRunner::new();
+        let node_ref = NodeRef::default();
+
+        let elem = html! { <div ref={node_ref.clone()}></div> };
+        let mut render = trun.render(elem).await;
+        assert_eq!(node_ref.get(), render.parent().first_child());
+        drop(render);
+
+        trun.render(Html::default()).await;
+        assert!(node_ref.get().is_none());
+    }
+
+    #[test]
+    async fn vtag_reuse_should_reset_ancestors_node_ref() {
+        let mut trun = TestRunner::new();
+        let node_ref_a = NodeRef::default();
+        let node_ref_b = NodeRef::default();
+
+        let elem_a = html! { <div id="a" ref={node_ref_a.clone()} /> };
+        trun.render(elem_a).await;
+
+        // save the Node to check later that it has been reused.
+        let node_a = node_ref_a.get().unwrap();
+
+        let elem_b = html! { <div id="b" ref={node_ref_b.clone()} /> };
+        trun.render(elem_b).await;
+
+        let node_b = node_ref_b.get().unwrap();
+
+        assert_eq!(node_a, node_b, "VTag should have reused the element");
+        assert!(
+            node_ref_a.get().is_none(),
+            "node_ref_a should have been reset when the element was reused."
+        );
+    }
+
+    #[test]
+    async fn vtag_should_not_touch_newly_bound_refs() {
+        let mut trun = TestRunner::new();
+        let test_ref = NodeRef::default();
+
+        trun.render(html! {
+            <>
+                <div ref={&test_ref} id="before" />
+            </>
+        })
+        .await;
+        trun.render(html! {
+            <>
+                <h6 />
+                <div ref={&test_ref} id="after" />
+            </>
+        })
+        .await;
+        // The point of this diff is that internally, it will first render the "after" div and
+        // _then_ detach the "before" div, while both should be bound to the same node ref
+        assert_eq!(
+            test_ref
+                .get()
+                .unwrap()
+                .dyn_ref::<web_sys::Element>()
+                .unwrap()
+                .outer_html(),
+            "<div id=\"after\"></div>"
+        );
+    }
+
+    // test for bug: https://github.com/yewstack/yew/pull/2653
+    #[test]
+    async fn test_index_map_attribute_diff() {
+        let mut runner = TestRunner::new();
+        let test_ref = NodeRef::default();
+
+        // We want to test appy_diff with Attributes::IndexMap, so we
+        // need to create the VTag manually
+
+        // Create <div disabled="disabled" tabindex="0">
+        let mut vtag = VTag::new("div");
+        vtag.node_ref = test_ref.clone();
+        vtag.add_attribute("disabled", "disabled");
+        vtag.add_attribute("tabindex", "0");
+
+        runner.render(VNode::VTag(Box::new(vtag))).await;
+
+        // Create <div tabindex="0"> (removed first attribute "disabled")
+        let mut vtag = VTag::new("div");
+        vtag.node_ref = test_ref.clone();
+        vtag.add_attribute("tabindex", "0");
+
+        // Sync happens here
+        // this should remove the the "disabled" attribute
+        runner.render(VNode::VTag(Box::new(vtag))).await;
+
+        assert_eq!(
+            test_ref
+                .get()
+                .unwrap()
+                .dyn_ref::<web_sys::Element>()
+                .unwrap()
+                .outer_html(),
+            "<div tabindex=\"0\"></div>"
+        )
     }
 }

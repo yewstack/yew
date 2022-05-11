@@ -71,6 +71,11 @@ impl Bundle {
     pub fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool) {
         self.0.detach(root, parent, parent_to_detach);
     }
+
+    #[cfg(all(test, target_arch = "wasm32"))]
+    pub(self) fn as_node(&self) -> &BNode {
+        &self.0
+    }
 }
 
 #[cfg(feature = "hydration")]

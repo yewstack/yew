@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::pin::Pin;
 
 use futures::Future;
-use web_sys::{Document, Element, Text};
+use web_sys::{Element, Text};
 
 use crate::dom_bundle::{BSubtree, Bundle};
 use crate::html::AnyScope;
@@ -17,7 +17,6 @@ struct ReplayableLayout {
 
 pub struct TestRunner {
     // Information needed for running the test
-    _document: Document,
     scope: AnyScope,
     parent: Element,
     root: BSubtree,
@@ -81,16 +80,20 @@ impl<'s> TestContext for TestStep<'s> {
 impl TestRunner {
     pub fn new() -> Self {
         let document = gloo_utils::document();
-        let scope: AnyScope = AnyScope::test();
         let parent = document.create_element("div").unwrap();
+        Self::new_in(parent)
+    }
+
+    pub fn new_in(parent: Element) -> Self {
+        let scope: AnyScope = AnyScope::test();
         let root = BSubtree::create_root(&parent);
 
+        let document = gloo_utils::document();
         let end_node = document.create_text_node("END");
         parent.append_child(&end_node).unwrap();
         let bundle = Bundle::new();
 
         Self {
-            _document: document,
             scope,
             parent,
             root,
@@ -122,6 +125,7 @@ impl TestRunner {
         self.full_layouts.push(replayable);
     }
 
+    #[track_caller]
     pub async fn run_replayable_tests(&mut self) {
         let layouts = std::mem::take(&mut self.full_layouts);
 
@@ -164,6 +168,17 @@ pub struct TestableState<'s> {
 }
 
 impl<'s> TestableState<'s> {
+    pub fn parent(&mut self) -> Element {
+        self.is_simple = false;
+        self.context.as_runner().parent.clone()
+    }
+
+    pub(crate) fn bundle(&mut self) -> &Bundle {
+        self.is_simple = false;
+        &self.context.as_runner().bundle
+    }
+
+    #[track_caller]
     pub fn assert_inner_html(&mut self, expected: &'static str) {
         self.full_layout = Some(expected);
         let runner = self.context.as_runner();
@@ -224,6 +239,7 @@ impl<T: TestContext> TestCase for T {
 }
 
 impl<'s> Drop for TestStep<'s> {
+    #[track_caller]
     fn drop(&mut self) {
         let runner = self.context.as_runner_mut();
         runner.reconcile(Html::default());
