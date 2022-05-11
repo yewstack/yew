@@ -1,4 +1,10 @@
+//! Testflow based testing of Yew components.
+//!
+//! This has to be run in the browser, and have the `csr` feature enabled.
+
 use std::borrow::Cow;
+use std::fmt;
+use std::panic::Location;
 use std::pin::Pin;
 
 use futures::Future;
@@ -16,6 +22,9 @@ struct ReplayableLayout {
     _expected: Cow<'static, str>,
 }
 
+/// The test runner controls a piece of the DOM on which your components are mounted.
+///
+/// You can then define sub-steps and test various properties of the result of rendering.
 pub struct TestRunner {
     // Information needed for running the test
     scope: AnyScope,
@@ -23,15 +32,26 @@ pub struct TestRunner {
     root: BSubtree,
     _end_node: Text,
     end_position: NodeRef,
+    location: &'static Location<'static>,
     // Changing over the course of the test
     bundle: Bundle,
     // Collect a database of fully-specified layouts we can re-test again later
     full_layouts: Vec<ReplayableLayout>,
+    unnamed_test_count: usize,
+}
+
+impl fmt::Debug for TestRunner {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("TestRunner").finish_non_exhaustive()
+    }
 }
 
 trait TestContext {
+    // Get the underlying runner
     fn as_runner(&self) -> &TestRunner;
+    // Get the underlying runner, mutably
     fn as_runner_mut(&mut self) -> &mut TestRunner;
+    // Get the name of the current context
     fn name(&self) -> &str;
 }
 
@@ -49,9 +69,22 @@ impl TestContext for TestRunner {
     }
 }
 
+/// A substep of a flow based test.
+///
+/// You can recursively create more substeps, or render and test properties.
+/// Borrows from the [`TestRunner`], since you can't run multiples tests on the same piece of DOM
+/// concurrently.
 pub struct TestStep<'s> {
     name: String,
     context: &'s mut dyn TestContext,
+}
+
+impl<'s> fmt::Debug for TestStep<'s> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("TestStep")
+            .field("name", &self.name())
+            .finish_non_exhaustive()
+    }
 }
 
 impl<'s> TestContext for TestStep<'s> {
@@ -69,6 +102,8 @@ impl<'s> TestContext for TestStep<'s> {
 }
 
 impl TestRunner {
+    /// Create a new context in which to run tests in the document body.
+    #[track_caller]
     pub fn new() -> Self {
         let document = gloo_utils::document();
         let parent = document.create_element("div").unwrap();
@@ -76,6 +111,8 @@ impl TestRunner {
         Self::new_in(parent)
     }
 
+    /// Create a new context in which to run tests, under the passed parent in the DOM.
+    #[track_caller]
     pub fn new_in(parent: Element) -> Self {
         let scope: AnyScope = AnyScope::test();
         let root = BSubtree::create_root(&parent);
@@ -91,8 +128,10 @@ impl TestRunner {
             root,
             end_position: NodeRef::new(end_node.clone().into()),
             _end_node: end_node,
+            location: Location::caller(),
             bundle,
             full_layouts: vec![],
+            unnamed_test_count: 0,
         }
     }
 
@@ -117,6 +156,9 @@ impl TestRunner {
         self.full_layouts.push(replayable);
     }
 
+    /// Re-apply "simple" test cases that have been passed in the various stages of the runner.
+    /// This is a simple way to cross-test the interaction between deterministic layouts by trying
+    /// different orders and how they get reconciled.
     #[track_caller]
     pub async fn run_replayable_tests(&mut self) {
         let layouts = std::mem::take(&mut self.full_layouts);
@@ -151,6 +193,16 @@ impl TestRunner {
     }
 }
 
+impl Default for TestRunner {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Access to the dom state after rendering a specific html.
+///
+/// Test properties and inspect the dom while you have one of these in sope.
+/// Borrows the context, so that you don't accidentally override the dom state with another test.
 pub struct TestableState<'s> {
     context: &'s mut dyn TestContext,
     name: String,
@@ -158,17 +210,32 @@ pub struct TestableState<'s> {
     full_layout: Option<&'static str>,
 }
 
+impl<'s> fmt::Debug for TestableState<'s> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("TestableState")
+            .field("name", &self.name)
+            .finish_non_exhaustive()
+    }
+}
+
 impl<'s> TestableState<'s> {
+    /// Retrieve the parent element under which the test has been mounted.
+    ///
+    /// Allows directly interacting with dom API, but marks this as a non-"simple" test case.
     pub fn parent(&mut self) -> Element {
         self.generating_html = None;
         self.context.as_runner().parent.clone()
     }
 
+    #[cfg(target_arch = "wasm32")]
     pub(crate) fn bundle(&mut self) -> &Bundle {
         self.generating_html = None;
         &self.context.as_runner().bundle
     }
 
+    /// Test against an exactly given inner html that is supposedly render.
+    ///
+    /// Marks this test case as a "simple" test that can be replayed.
     #[track_caller]
     pub fn assert_inner_html(&mut self, expected: &'static str) {
         self.full_layout = Some(expected);
@@ -260,7 +327,7 @@ impl<TC: TestContext> TestCase for TC {
 }
 
 impl<'s> Drop for TestStep<'s> {
-    #[track_caller]
+    // Not #[track_caller], since that always points to ptr::mod.rs drop glue
     fn drop(&mut self) {
         let runner = self.context.as_runner_mut();
         runner.reconcile(Html::default());
@@ -277,6 +344,10 @@ impl<'s> Drop for TestStep<'s> {
 
 impl<'s> Drop for TestableState<'s> {
     fn drop(&mut self) {
+        if self.name.is_empty() {
+            let runner = self.context.as_runner_mut();
+            runner.unnamed_test_count += 1;
+        }
         if let Some(html) = self.generating_html.take() {
             if let Some(full_layout) = self.full_layout.take() {
                 let saved_layout = ReplayableLayout {
@@ -288,6 +359,20 @@ impl<'s> Drop for TestableState<'s> {
                     .as_runner_mut()
                     .push_replayable_test(saved_layout);
             }
+        }
+    }
+}
+
+impl Drop for TestRunner {
+    fn drop(&mut self) {
+        if self.unnamed_test_count > 0 {
+            gloo::console::log!(format!(
+                "[{}:{}:{}] {} unnamed layouts ... ok",
+                self.location.file(),
+                self.location.line(),
+                self.location.column(),
+                self.unnamed_test_count
+            ));
         }
     }
 }

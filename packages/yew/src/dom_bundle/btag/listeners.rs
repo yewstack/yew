@@ -311,6 +311,7 @@ mod tests {
         scheduler::start_now();
     }
 
+    #[track_caller]
     async fn init(inner: Html) -> (Scope<Comp>, NodeRef) {
         let mut runner = TestRunner::new();
         let el = NodeRef::default();
