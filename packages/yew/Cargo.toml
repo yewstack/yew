@@ -14,7 +14,7 @@ keywords = ["web", "webasm", "javascript"]
 categories = ["gui", "wasm", "web-programming"]
 description = "A framework for making client-side single-page apps"
 readme = "../../README.md"
-rust-version = "1.56.0"
+rust-version = "1.60.0"
 
 [dependencies]
 console_error_panic_hook = "0.1"
@@ -70,6 +70,9 @@ wasm-bindgen-futures = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1.15.0", features = ["rt"], optional = true }
+num_cpus = { version = "1.13", optional = true }
+tokio-util = { version = "0.7", features = ["rt"], optional = true }
+once_cell = "1"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
@@ -87,9 +90,8 @@ features = [
 ]
 
 [features]
-# TODO: `dep:` syntax only supported with MSRV 1.60, would be more precise
-# tokio = ["dep:tokio"]
-ssr = ["futures", "html-escape"] # dep:html-escape
+tokio = ["dep:tokio", "dep:num_cpus", "dep:tokio-util"]
+ssr = ["dep:futures", "dep:html-escape"]
 csr = []
 hydration = ["csr"]
 default = []

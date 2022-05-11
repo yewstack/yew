@@ -1,5 +1,3 @@
-//! This module contains the implementation of abstract virtual node.
-
 use std::cmp::PartialEq;
 use std::fmt;
 use std::iter::FromIterator;
@@ -149,12 +147,24 @@ impl PartialEq for VNode {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use std::borrow::Cow;
+
+    use futures::channel::mpsc::UnboundedSender;
     use futures::future::{FutureExt, LocalBoxFuture};
 
     use super::*;
     use crate::html::AnyScope;
 
     impl VNode {
+        pub(crate) async fn render_into_stream<'a>(
+            &'a self,
+            tx: &'a mut UnboundedSender<Cow<'static, str>>,
+            parent_scope: &'a AnyScope,
+            hydratable: bool,
+        ) {
+            let _tx = tx;
+        }
+
         // Boxing is needed here, due to: https://rust-lang.github.io/async-book/07_workarounds/04_recursion.html
         pub(crate) fn render_to_string<'a>(
             &'a self,

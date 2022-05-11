@@ -247,36 +247,6 @@ mod feat_ssr_hydration {
             }
         }
 
-        #[cfg(feature = "ssr")]
-        pub fn write_open_tag(&self, w: &mut String) {
-            w.push_str("<!--");
-            w.push_str(self.open_start_mark());
-
-            #[cfg(debug_assertions)]
-            match self {
-                Self::Component(type_name) => w.push_str(type_name),
-                Self::Suspense => {}
-            }
-
-            w.push_str(self.end_mark());
-            w.push_str("-->");
-        }
-
-        #[cfg(feature = "ssr")]
-        pub fn write_close_tag(&self, w: &mut String) {
-            w.push_str("<!--");
-            w.push_str(self.close_start_mark());
-
-            #[cfg(debug_assertions)]
-            match self {
-                Self::Component(type_name) => w.push_str(type_name),
-                Self::Suspense => {}
-            }
-
-            w.push_str(self.end_mark());
-            w.push_str("-->");
-        }
-
         #[cfg(feature = "hydration")]
         pub fn name(&self) -> super::Cow<'static, str> {
             match self {
@@ -292,6 +262,77 @@ mod feat_ssr_hydration {
 
 #[cfg(any(feature = "ssr", feature = "hydration"))]
 pub(crate) use feat_ssr_hydration::*;
+
+#[cfg(feature = "ssr")]
+mod feat_ssr {
+    use std::borrow::Cow;
+
+    use futures::channel::mpsc::UnboundedSender;
+
+    use super::*;
+
+    impl Collectable {
+        pub fn write_open_tag(&self, w: &mut String) {
+            w.push_str("<!--");
+            w.push_str(self.open_start_mark());
+
+            #[cfg(debug_assertions)]
+            match self {
+                Self::Component(type_name) => w.push_str(type_name),
+                Self::Suspense => {}
+            }
+
+            w.push_str(self.end_mark());
+            w.push_str("-->");
+        }
+
+        pub fn write_close_tag(&self, w: &mut String) {
+            w.push_str("<!--");
+            w.push_str(self.close_start_mark());
+
+            #[cfg(debug_assertions)]
+            match self {
+                Self::Component(type_name) => w.push_str(type_name),
+                Self::Suspense => {}
+            }
+
+            w.push_str(self.end_mark());
+            w.push_str("-->");
+        }
+
+        pub fn write_open_tag_(&self, tx: &mut UnboundedSender<Cow<'static, str>>) {
+            let _ = tx.start_send(Cow::Borrowed("<!--"));
+            let _ = tx.start_send(Cow::Borrowed(self.open_start_mark()));
+
+            #[cfg(debug_assertions)]
+            match self {
+                Self::Component(type_name) => {
+                    let _ = tx.start_send(Cow::Borrowed(type_name));
+                }
+                Self::Suspense => {}
+            }
+
+            let _ = tx.start_send(Cow::Borrowed(self.end_mark()));
+            let _ = tx.start_send(Cow::Borrowed("-->"));
+        }
+
+        pub fn write_close_tag_(&self, tx: &mut UnboundedSender<Cow<'static, str>>) {
+            let _ = tx.start_send(Cow::Borrowed("<!--"));
+            let _ = tx.start_send(Cow::Borrowed(self.close_start_mark()));
+
+            #[cfg(debug_assertions)]
+            match self {
+                Self::Component(type_name) => {
+                    let _ = tx.start_send(Cow::Borrowed(type_name));
+                }
+                Self::Suspense => {}
+            }
+
+            let _ = tx.start_send(Cow::Borrowed(self.end_mark()));
+            let _ = tx.start_send(Cow::Borrowed("-->"));
+        }
+    }
+}
 
 /// A collection of attributes for an element
 #[derive(PartialEq, Eq, Clone, Debug)]
