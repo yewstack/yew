@@ -512,72 +512,74 @@ mod layout_tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use crate::html;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::{TestCase, TestRunner};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
-    fn diff() {
-        let layout1 = TestLayout {
-            name: "1",
-            node: html! {
-                <>
-                    {"a"}
-                    {"b"}
-                    <>
-                        {"c"}
-                        {"d"}
-                    </>
-                    {"e"}
-                </>
-            },
-            expected: "abcde",
-        };
+    async fn diff() {
+        let mut runner = TestRunner::new();
 
-        let layout2 = TestLayout {
-            name: "2",
-            node: html! {
+        let mut step = runner.step("1");
+        step.render(html! {
+            <>
+                {"a"}
+                {"b"}
                 <>
-                    {"a"}
-                    {"b"}
-                    <></>
-                    {"e"}
-                    {"f"}
+                    {"c"}
+                    {"d"}
                 </>
-            },
-            expected: "abef",
-        };
+                {"e"}
+            </>
+        })
+        .await
+        .assert_inner_html("abcde");
+        step.finish();
 
-        let layout3 = TestLayout {
-            name: "3",
-            node: html! {
+        let mut step = runner.step("2");
+        step.render(html! {
+            <>
+                {"a"}
+                {"b"}
+                <></>
+                {"e"}
+                {"f"}
+            </>
+        })
+        .await
+        .assert_inner_html("abef");
+        step.finish();
+
+        let mut step = runner.step("3");
+        step.render(html! {
+            <>
+                {"a"}
+                <></>
+                {"b"}
+                {"e"}
+            </>
+        })
+        .await
+        .assert_inner_html("abe");
+        step.finish();
+
+        let mut step = runner.step("4");
+        step.render(html! {
+            <>
+                {"a"}
                 <>
-                    {"a"}
-                    <></>
-                    {"b"}
-                    {"e"}
+                    {"c"}
+                    {"d"}
                 </>
-            },
-            expected: "abe",
-        };
+                {"b"}
+                {"e"}
+            </>
+        })
+        .await
+        .assert_inner_html("acdbe");
+        step.finish();
 
-        let layout4 = TestLayout {
-            name: "4",
-            node: html! {
-                <>
-                    {"a"}
-                    <>
-                        {"c"}
-                        {"d"}
-                    </>
-                    {"b"}
-                    {"e"}
-                </>
-            },
-            expected: "acdbe",
-        };
-
-        diff_layouts(vec![layout1, layout2, layout3, layout4]);
+        runner.run_replayable_tests().await;
     }
 }
 
@@ -589,10 +591,9 @@ mod layout_tests_keys {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use web_sys::Node;
 
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::{TestCase, TestRunner};
     use crate::virtual_dom::VNode;
     use crate::{html, Children, Component, Context, Html, Properties};
-
     wasm_bindgen_test_configure!(run_in_browser);
 
     struct Comp {}
@@ -646,13 +647,13 @@ mod layout_tests_keys {
     }
 
     #[test]
-    fn diff() {
-        let mut layouts = vec![];
+    async fn diff() {
+        let mut runner = TestRunner::new();
 
         let vref_node: Node = gloo_utils::document().create_element("i").unwrap().into();
-        layouts.push(TestLayout {
-            name: "All VNode types as children",
-            node: html! {
+        runner
+            .step("All VNode types as children")
+            .render(html! {
                 <>
                     {"a"}
                     <span key="vtag"></span>
@@ -665,782 +666,726 @@ mod layout_tests_keys {
                     </>
                     {VNode::VRef(vref_node)}
                 </>
-            },
-            expected: "a<span></span>cd<p>0</p>foobar<i></i>",
-        });
+            })
+            .await
+            .assert_inner_html("a<span></span>cd<p>0</p>foobar<i></i>");
 
-        layouts.extend(vec![
-            TestLayout {
-                name: "Inserting into VList first child - before",
-                node: html! {
-                    <>
-                        <key="VList">
-                            <i key="i"></i>
-                        </>
-                        <p key="p"></p>
+        let mut step = runner.step("Inserting into VList first child");
+        step.step("before")
+            .render(html! {
+                <>
+                    <key="VList">
+                        <i key="i"></i>
                     </>
-                },
-                expected: "<i></i><p></p>",
-            },
-            TestLayout {
-                name: "Inserting into VList first child - after",
-                node: html! {
-                    <>
-                        <key="VList">
-                            <i key="i"></i>
-                            <e key="e"></e>
-                        </>
-                        <p key="p"></p>
-                    </>
-                },
-                expected: "<i></i><e></e><p></p>",
-            },
-        ]);
-
-        layouts.extend(vec![
-            TestLayout {
-                name: "No matches - before",
-                node: html! {
-                    <>
+                    <p key="p"></p>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><p></p>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <key="VList">
                         <i key="i"></i>
                         <e key="e"></e>
                     </>
-                },
-                expected: "<i></i><e></e>",
-            },
-            TestLayout {
-                name: "No matches - after",
-                node: html! {
-                    <>
+                    <p key="p"></p>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p>");
+        step.finish();
+
+        let mut step = runner.step("No matches");
+        step.step("before")
+            .render(html! {
+                <>
+                    <i key="i"></i>
+                    <e key="e"></e>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <a key="a"></a>
+                    <p key="p"></p>
+                </>
+            })
+            .await
+            .assert_inner_html("<a></a><p></p>");
+        step.finish();
+
+        let mut step = runner.step("Append");
+        step.step("before")
+            .render(html! {
+                <>
+                    <i key="i"></i>
+                    <e key="e"></e>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <i key="i"></i>
+                    <e key="e"></e>
+                    <p key="p"></p>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p>");
+        step.finish();
+
+        let mut step = runner.step("Prepend");
+        step.step("before")
+            .render(html! {
+                <>
+                    <i key="i"></i>
+                    <e key="e"></e>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <p key="p"></p>
+                    <i key="i"></i>
+                    <e key="e"></e>
+                </>
+            })
+            .await
+            .assert_inner_html("<p></p><i></i><e></e>");
+        step.finish();
+
+        let mut step = runner.step("Delete first");
+        step.step("before")
+            .render(html! {
+                <>
+                    <i key="i"></i>
+                    <e key="e"></e>
+                    <p key="p"></p>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <e key="e"></e>
+                    <p key="p"></p>
+                </>
+            })
+            .await
+            .assert_inner_html("<e></e><p></p>");
+        step.finish();
+
+        let mut step = runner.step("Delete last");
+        step.step("before")
+            .render(html! {
+                <>
+                    <i key="i"></i>
+                    <e key="e"></e>
+                    <p key="p"></p>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <i key="i"></i>
+                    <e key="e"></e>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e>");
+        step.finish();
+
+        let mut step = runner.step("Delete last and change node type");
+        step.step("before")
+            .render(html! {
+                <>
+                    <i key="i"></i>
+                    <e key="e"></e>
+                    <p key="p"></p>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <List key="i"><i/></List>
+                    <List key="e"><e/></List>
+                    <List key="a"><a/></List>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><a></a>");
+        step.finish();
+
+        let mut step = runner.step("Delete middle");
+        step.step("before")
+            .render(html! {
+                <>
+                    <i key="i"></i>
+                    <e key="e"></e>
+                    <p key="p"></p>
+                    <a key="a"></a>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p><a></a>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <i key="i"></i>
+                    <e key="e2"></e>
+                    <p key="p2"></p>
+                    <a key="a"></a>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p><a></a>");
+        step.finish();
+
+        let mut step = runner.step("Delete middle and change node type");
+        step.step("before")
+            .render(html! {
+                <>
+                    <i key="i"></i>
+                    <e key="e"></e>
+                    <p key="p"></p>
+                    <a key="a"></a>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p><a></a>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <List key="i2"><i/></List>
+                    <e key="e"></e>
+                    <List key="p"><p/></List>
+                    <List key="a2"><a/></List>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p><a></a>");
+        step.finish();
+
+        let mut step = runner.step("Reverse");
+        step.step("before")
+            .render(html! {
+                <>
+                    <i key="i"></i>
+                    <e key="e"></e>
+                    <p key="p"></p>
+                    <u key="u"></u>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p><u></u>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <u key="u"></u>
+                    <p key="p"></p>
+                    <e key="e"></e>
+                    <i key="i"></i>
+                </>
+            })
+            .await
+            .assert_inner_html("<u></u><p></p><e></e><i></i>");
+        step.finish();
+
+        let mut step = runner.step("Reverse and change node type");
+        step.step("before")
+            .render(html! {
+                <>
+                    <i key="i"></i>
+                    <key="i1"></>
+                    <key="i2"></>
+                    <key="i3"></>
+                    <e key="e"></e>
+                    <key="yo">
+                        <p key="p"></p>
+                    </>
+                    <u key="u"></u>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p><u></u>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <List key="u"><u/></List>
+                    <List key="p"><p/></List>
+                    <List key="e"><e/></List>
+                    <List key="i"><i/></List>
+                </>
+            })
+            .await
+            .assert_inner_html("<u></u><p></p><e></e><i></i>");
+        step.finish();
+
+        let mut step = runner.step("Swap 1&2");
+        step.step("before")
+            .render(html! {
+                <>
+                    <i key="1"></i>
+                    <e key="2"></e>
+                    <p key="3"></p>
+                    <a key="4"></a>
+                    <u key="5"></u>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p><a></a><u></u>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <e key="2"></e>
+                    <i key="1"></i>
+                    <p key="3"></p>
+                    <a key="4"></a>
+                    <u key="5"></u>
+                </>
+            })
+            .await
+            .assert_inner_html("<e></e><i></i><p></p><a></a><u></u>");
+        step.finish();
+
+        let mut step = runner.step("Swap 1&2 and change node type");
+        step.step("before")
+            .render(html! {
+                <>
+                    <i key="1"></i>
+                    <e key="2"></e>
+                    <p key="3"></p>
+                    <a key="4"></a>
+                    <u key="5"></u>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p><a></a><u></u>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <List key="2"><e/></List>
+                    <List key="1"><i/></List>
+                    <List key="3"><p/></List>
+                    <List key="4"><a/></List>
+                    <List key="5"><u/></List>
+                </>
+            })
+            .await
+            .assert_inner_html("<e></e><i></i><p></p><a></a><u></u>");
+        step.finish();
+
+        let mut step = runner.step("Fragment list");
+        step.step("before")
+            .render(html! {
+                <>
+                    <key="1">
+                        <e key="e"></e>
+                        <p key="p"></p>
                         <a key="a"></a>
-                        <p key="p"></p>
-                    </>
-                },
-                expected: "<a></a><p></p>",
-            },
-        ]);
-
-        layouts.extend(vec![
-            TestLayout {
-                name: "Append - before",
-                node: html! {
-                    <>
-                        <i key="i"></i>
-                        <e key="e"></e>
-                    </>
-                },
-                expected: "<i></i><e></e>",
-            },
-            TestLayout {
-                name: "Append - after",
-                node: html! {
-                    <>
-                        <i key="i"></i>
-                        <e key="e"></e>
-                        <p key="p"></p>
-                    </>
-                },
-                expected: "<i></i><e></e><p></p>",
-            },
-        ]);
-
-        layouts.extend(vec![
-            TestLayout {
-                name: "Prepend - before",
-                node: html! {
-                    <>
-                        <i key="i"></i>
-                        <e key="e"></e>
-                    </>
-                },
-                expected: "<i></i><e></e>",
-            },
-            TestLayout {
-                name: "Prepend - after",
-                node: html! {
-                    <>
-                        <p key="p"></p>
-                        <i key="i"></i>
-                        <e key="e"></e>
-                    </>
-                },
-                expected: "<p></p><i></i><e></e>",
-            },
-        ]);
-
-        layouts.extend(vec![
-            TestLayout {
-                name: "Delete first - before",
-                node: html! {
-                    <>
-                        <i key="i"></i>
-                        <e key="e"></e>
-                        <p key="p"></p>
-                    </>
-                },
-                expected: "<i></i><e></e><p></p>",
-            },
-            TestLayout {
-                name: "Delete first - after",
-                node: html! {
-                    <>
-                        <e key="e"></e>
-                        <p key="p"></p>
-                    </>
-                },
-                expected: "<e></e><p></p>",
-            },
-        ]);
-
-        layouts.extend(vec![
-            TestLayout {
-                name: "Delete last - before",
-                node: html! {
-                    <>
-                        <i key="i"></i>
-                        <e key="e"></e>
-                        <p key="p"></p>
-                    </>
-                },
-                expected: "<i></i><e></e><p></p>",
-            },
-            TestLayout {
-                name: "Delete last - after",
-                node: html! {
-                    <>
-                        <i key="i"></i>
-                        <e key="e"></e>
-                    </>
-                },
-                expected: "<i></i><e></e>",
-            },
-        ]);
-
-        layouts.extend(vec![
-            TestLayout {
-                name: "Delete last and change node type - before",
-                node: html! {
-                    <>
-                        <i key="i"></i>
-                        <e key="e"></e>
-                        <p key="p"></p>
-                    </>
-                },
-                expected: "<i></i><e></e><p></p>",
-            },
-            TestLayout {
-                name: "Delete last - after",
-                node: html! {
-                    <>
-                        <List key="i"><i/></List>
-                        <List key="e"><e/></List>
-                        <List key="a"><a/></List>
-                    </>
-                },
-                expected: "<i></i><e></e><a></a>",
-            },
-        ]);
-
-        layouts.extend(vec![
-            TestLayout {
-                name: "Delete middle - before",
-                node: html! {
-                    <>
-                        <i key="i"></i>
-                        <e key="e"></e>
-                        <p key="p"></p>
-                        <a key="a"></a>
-                    </>
-                },
-                expected: "<i></i><e></e><p></p><a></a>",
-            },
-            TestLayout {
-                name: "Delete middle - after",
-                node: html! {
-                    <>
-                        <i key="i"></i>
-                        <e key="e2"></e>
-                        <p key="p2"></p>
-                        <a key="a"></a>
-                    </>
-                },
-                expected: "<i></i><e></e><p></p><a></a>",
-            },
-        ]);
-
-        layouts.extend(vec![
-            TestLayout {
-                name: "Delete middle and change node type - before",
-                node: html! {
-                    <>
-                        <i key="i"></i>
-                        <e key="e"></e>
-                        <p key="p"></p>
-                        <a key="a"></a>
-                    </>
-                },
-                expected: "<i></i><e></e><p></p><a></a>",
-            },
-            TestLayout {
-                name: "Delete middle and change node type- after",
-                node: html! {
-                    <>
-                        <List key="i2"><i/></List>
-                        <e key="e"></e>
-                        <List key="p"><p/></List>
-                        <List key="a2"><a/></List>
-                    </>
-                },
-                expected: "<i></i><e></e><p></p><a></a>",
-            },
-        ]);
-
-        layouts.extend(vec![
-            TestLayout {
-                name: "Reverse - before",
-                node: html! {
-                    <>
-                        <i key="i"></i>
-                        <e key="e"></e>
-                        <p key="p"></p>
                         <u key="u"></u>
                     </>
-                },
-                expected: "<i></i><e></e><p></p><u></u>",
-            },
-            TestLayout {
-                name: "Reverse - after",
-                node: html! {
-                    <>
-                        <u key="u"></u>
+                    <key="2">
+                        <e key="e"></e>
                         <p key="p"></p>
-                        <e key="e"></e>
-                        <i key="i"></i>
-                    </>
-                },
-                expected: "<u></u><p></p><e></e><i></i>",
-            },
-        ]);
-
-        layouts.extend(vec![
-            TestLayout {
-                name: "Reverse and change node type - before",
-                node: html! {
-                    <>
-                        <i key="i"></i>
-                        <key="i1"></>
-                        <key="i2"></>
-                        <key="i3"></>
-                        <e key="e"></e>
-                        <key="yo">
-                            <p key="p"></p>
-                        </>
+                        <a key="a"></a>
                         <u key="u"></u>
                     </>
-                },
-                expected: "<i></i><e></e><p></p><u></u>",
-            },
-            TestLayout {
-                name: "Reverse and change node type - after",
-                node: html! {
-                    <>
-                        <List key="u"><u/></List>
-                        <List key="p"><p/></List>
-                        <List key="e"><e/></List>
-                        <List key="i"><i/></List>
+                </>
+            })
+            .await
+            .assert_inner_html("<e></e><p></p><a></a><u></u><e></e><p></p><a></a><u></u>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <e key="1"></e>
+                    <key="2">
+                        <p key="p"></p>
+                        <i key="i"></i>
                     </>
-                },
-                expected: "<u></u><p></p><e></e><i></i>",
-            },
-        ]);
+                </>
+            })
+            .await
+            .assert_inner_html("<e></e><p></p><i></i>");
+        step.finish();
 
-        layouts.extend(vec![
-            TestLayout {
-                name: "Swap 1&2 - before",
-                node: html! {
-                    <>
-                        <i key="1"></i>
-                        <e key="2"></e>
-                        <p key="3"></p>
-                        <a key="4"></a>
-                        <u key="5"></u>
-                    </>
-                },
-                expected: "<i></i><e></e><p></p><a></a><u></u>",
-            },
-            TestLayout {
-                name: "Swap 1&2 - after",
-                node: html! {
-                    <>
-                        <e key="2"></e>
-                        <i key="1"></i>
-                        <p key="3"></p>
-                        <a key="4"></a>
-                        <u key="5"></u>
-                    </>
-                },
-                expected: "<e></e><i></i><p></p><a></a><u></u>",
-            },
-        ]);
+        let mut step = runner.step("Swap 4&5");
+        step.step("before")
+            .render(html! {
+                <>
+                    <i key="1"></i>
+                    <e key="2"></e>
+                    <p key="3"></p>
+                    <a key="4"></a>
+                    <u key="5"></u>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p><a></a><u></u>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <i key="1"></i>
+                    <e key="2"></e>
+                    <p key="3"></p>
+                    <u key="5"></u>
+                    <a key="4"></a>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p><u></u><a></a>");
+        step.finish();
 
-        layouts.extend(vec![
-            TestLayout {
-                name: "Swap 1&2 and change node type - before",
-                node: html! {
-                    <>
-                        <i key="1"></i>
-                        <e key="2"></e>
-                        <p key="3"></p>
-                        <a key="4"></a>
-                        <u key="5"></u>
-                    </>
-                },
-                expected: "<i></i><e></e><p></p><a></a><u></u>",
-            },
-            TestLayout {
-                name: "Swap 1&2 and change node type - after",
-                node: html! {
-                    <>
-                        <List key="2"><e/></List>
-                        <List key="1"><i/></List>
-                        <List key="3"><p/></List>
-                        <List key="4"><a/></List>
-                        <List key="5"><u/></List>
-                    </>
-                },
-                expected: "<e></e><i></i><p></p><a></a><u></u>",
-            },
-        ]);
+        let mut step = runner.step("Swap 1&5");
+        step.step("before")
+            .render(html! {
+                <>
+                    <i key="1"></i>
+                    <e key="2"></e>
+                    <p key="3"></p>
+                    <a key="4"></a>
+                    <u key="5"></u>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p><a></a><u></u>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <u key="5"></u>
+                    <e key="2"></e>
+                    <p key="3"></p>
+                    <a key="4"></a>
+                    <i key="1"></i>
+                </>
+            })
+            .await
+            .assert_inner_html("<u></u><e></e><p></p><a></a><i></i>");
+        step.finish();
 
-        layouts.extend(vec![
-            TestLayout {
-                name: "test - before",
-                node: html! {
-                    <>
-                        <key="1">
-                            <e key="e"></e>
-                            <p key="p"></p>
-                            <a key="a"></a>
-                            <u key="u"></u>
-                        </>
-                        <key="2">
-                            <e key="e"></e>
-                            <p key="p"></p>
-                            <a key="a"></a>
-                            <u key="u"></u>
-                        </>
-                    </>
-                },
-                expected: "<e></e><p></p><a></a><u></u><e></e><p></p><a></a><u></u>",
-            },
-            TestLayout {
-                name: "Swap 4&5 - after",
-                node: html! {
-                    <>
-                        <e key="1"></e>
-                        <key="2">
-                            <p key="p"></p>
-                            <i key="i"></i>
-                        </>
-                    </>
-                },
-                expected: "<e></e><p></p><i></i>",
-            },
-        ]);
+        let mut step = runner.step("Move 2 after 4");
+        step.step("before")
+            .render(html! {
+                <>
+                    <i key="1"></i>
+                    <e key="2"></e>
+                    <p key="3"></p>
+                    <a key="4"></a>
+                    <u key="5"></u>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p><a></a><u></u>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <i key="1"></i>
+                    <p key="3"></p>
+                    <a key="4"></a>
+                    <e key="2"></e>
+                    <u key="5"></u>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><p></p><a></a><e></e><u></u>");
+        step.finish();
 
-        layouts.extend(vec![
-            TestLayout {
-                name: "Swap 4&5 - before",
-                node: html! {
-                    <>
-                        <i key="1"></i>
-                        <e key="2"></e>
-                        <p key="3"></p>
-                        <a key="4"></a>
-                        <u key="5"></u>
-                    </>
-                },
-                expected: "<i></i><e></e><p></p><a></a><u></u>",
-            },
-            TestLayout {
-                name: "Swap 4&5 - after",
-                node: html! {
-                    <>
-                        <i key="1"></i>
-                        <e key="2"></e>
-                        <p key="3"></p>
-                        <u key="5"></u>
-                        <a key="4"></a>
-                    </>
-                },
-                expected: "<i></i><e></e><p></p><u></u><a></a>",
-            },
-        ]);
+        let mut step = runner.step("Swap 1,2 <-> 3,4");
+        step.step("before")
+            .render(html! {
+                <>
+                    <i key="1"></i>
+                    <e key="2"></e>
+                    <p key="3"></p>
+                    <a key="4"></a>
+                    <u key="5"></u>
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p><a></a><u></u>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <p key="3"></p>
+                    <a key="4"></a>
+                    <i key="1"></i>
+                    <e key="2"></e>
+                    <u key="5"></u>
+                </>
+            })
+            .await
+            .assert_inner_html("<p></p><a></a><i></i><e></e><u></u>");
+        step.finish();
 
-        layouts.extend(vec![
-            TestLayout {
-                name: "Swap 1&5 - before",
-                node: html! {
-                    <>
-                        <i key="1"></i>
-                        <e key="2"></e>
-                        <p key="3"></p>
-                        <a key="4"></a>
-                        <u key="5"></u>
+        let mut step = runner.step("Swap lists");
+        step.step("before")
+            .render(html! {
+                <>
+                    <key="1">
+                        <i></i>
+                        <e></e>
                     </>
-                },
-                expected: "<i></i><e></e><p></p><a></a><u></u>",
-            },
-            TestLayout {
-                name: "Swap 1&5 - after",
-                node: html! {
-                    <>
-                        <u key="5"></u>
-                        <e key="2"></e>
-                        <p key="3"></p>
-                        <a key="4"></a>
-                        <i key="1"></i>
+                    <key="2">
+                        <a></a>
+                        <u></u>
                     </>
-                },
-                expected: "<u></u><e></e><p></p><a></a><i></i>",
-            },
-        ]);
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><a></a><u></u>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <key="2">
+                        <a></a>
+                        <u></u>
+                    </>
+                    <key="1">
+                        <i></i>
+                        <e></e>
+                    </>
+                </>
+            })
+            .await
+            .assert_inner_html("<a></a><u></u><i></i><e></e>");
+        step.finish();
 
-        layouts.extend(vec![
-            TestLayout {
-                name: "Move 2 after 4 - before",
-                node: html! {
-                    <>
-                        <i key="1"></i>
-                        <e key="2"></e>
-                        <p key="3"></p>
-                        <a key="4"></a>
-                        <u key="5"></u>
+        let mut step = runner.step("Swap lists with in-between");
+        step.step("before")
+            .render(html! {
+                <>
+                    <key="1">
+                        <i></i>
+                        <e></e>
                     </>
-                },
-                expected: "<i></i><e></e><p></p><a></a><u></u>",
-            },
-            TestLayout {
-                name: "Move 2 after 4 - after",
-                node: html! {
-                    <>
-                        <i key="1"></i>
-                        <p key="3"></p>
-                        <a key="4"></a>
-                        <e key="2"></e>
-                        <u key="5"></u>
+                    <p key="between"></p>
+                    <key="2">
+                        <a></a>
+                        <u></u>
                     </>
-                },
-                expected: "<i></i><p></p><a></a><e></e><u></u>",
-            },
-        ]);
+                </>
+            })
+            .await
+            .assert_inner_html("<i></i><e></e><p></p><a></a><u></u>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <key="2">
+                        <a></a>
+                        <u></u>
+                    </>
+                    <p key="between"></p>
+                    <key="1">
+                        <i></i>
+                        <e></e>
+                    </>
+                </>
+            })
+            .await
+            .assert_inner_html("<a></a><u></u><p></p><i></i><e></e>");
+        step.finish();
 
-        layouts.extend(vec![
-            TestLayout {
-                name: "Swap 1,2 <-> 3,4 - before",
-                node: html! {
-                    <>
-                        <i key="1"></i>
-                        <e key="2"></e>
-                        <p key="3"></p>
-                        <a key="4"></a>
-                        <u key="5"></u>
-                    </>
-                },
-                expected: "<i></i><e></e><p></p><a></a><u></u>",
-            },
-            TestLayout {
-                name: "Swap 1,2 <-> 3,4 - after",
-                node: html! {
-                    <>
-                        <p key="3"></p>
-                        <a key="4"></a>
-                        <i key="1"></i>
-                        <e key="2"></e>
-                        <u key="5"></u>
-                    </>
-                },
-                expected: "<p></p><a></a><i></i><e></e><u></u>",
-            },
-        ]);
+        let mut step = runner.step("Insert VComp front");
+        step.step("before")
+            .render(html! {
+                <>
+                    <u key=1></u>
+                    <a key=2></a>
+                </>
+            })
+            .await
+            .assert_inner_html("<u></u><a></a>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <Comp id=0 key="comp"/>
+                    <u key=1></u>
+                    <a key=2></a>
+                </>
+            })
+            .await
+            .assert_inner_html("<p>0</p><u></u><a></a>");
+        step.finish();
 
-        layouts.extend(vec![
-            TestLayout {
-                name: "Swap lists - before",
-                node: html! {
-                    <>
-                        <key="1">
-                            <i></i>
-                            <e></e>
-                        </>
-                        <key="2">
-                            <a></a>
-                            <u></u>
-                        </>
-                    </>
-                },
-                expected: "<i></i><e></e><a></a><u></u>",
-            },
-            TestLayout {
-                name: "Swap lists - after",
-                node: html! {
-                    <>
-                        <key="2">
-                            <a></a>
-                            <u></u>
-                        </>
-                        <key="1">
-                            <i></i>
-                            <e></e>
-                        </>
-                    </>
-                },
-                expected: "<a></a><u></u><i></i><e></e>",
-            },
-        ]);
+        let mut step = runner.step("Insert VComp middle");
+        step.step("before")
+            .render(html! {
+                <>
+                    <u key=1></u>
+                    <a key=2></a>
+                </>
+            })
+            .await
+            .assert_inner_html("<u></u><a></a>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <u key=1></u>
+                    <Comp id=0 key="comp"/>
+                    <a key=2></a>
+                </>
+            })
+            .await
+            .assert_inner_html("<u></u><p>0</p><a></a>");
+        step.finish();
 
-        layouts.extend(vec![
-            TestLayout {
-                name: "Swap lists with in-between - before",
-                node: html! {
-                    <>
-                        <key="1">
-                            <i></i>
-                            <e></e>
-                        </>
-                        <p key="between"></p>
-                        <key="2">
-                            <a></a>
-                            <u></u>
-                        </>
-                    </>
-                },
-                expected: "<i></i><e></e><p></p><a></a><u></u>",
-            },
-            TestLayout {
-                name: "Swap lists with in-between - after",
-                node: html! {
-                    <>
-                        <key="2">
-                            <a></a>
-                            <u></u>
-                        </>
-                        <p key="between"></p>
-                        <key="1">
-                            <i></i>
-                            <e></e>
-                        </>
-                    </>
-                },
-                expected: "<a></a><u></u><p></p><i></i><e></e>",
-            },
-        ]);
+        let mut step = runner.step("Insert VComp back");
+        step.step("before")
+            .render(html! {
+                <>
+                    <u key=1></u>
+                    <a key=2></a>
+                </>
+            })
+            .await
+            .assert_inner_html("<u></u><a></a>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <u key=1></u>
+                    <a key=2></a>
+                    <Comp id=0 key="comp"/>
+                </>
+            })
+            .await
+            .assert_inner_html("<u></u><a></a><p>0</p>");
+        step.finish();
 
-        layouts.extend(vec![
-            TestLayout {
-                name: "Insert VComp front - before",
-                node: html! {
-                    <>
-                        <u key=1></u>
-                        <a key=2></a>
-                    </>
-                },
-                expected: "<u></u><a></a>",
-            },
-            TestLayout {
-                name: "Insert VComp front - after",
-                node: html! {
-                    <>
-                        <Comp id=0 key="comp"/>
-                        <u key=1></u>
-                        <a key=2></a>
-                    </>
-                },
-                expected: "<p>0</p><u></u><a></a>",
-            },
-        ]);
+        let mut step = runner.step("Reverse VComp children");
+        step.step("before")
+            .render(html! {
+                <>
+                    <Comp id=1 key="comp-1"/>
+                    <Comp id=2 key="comp-2"/>
+                    <Comp id=3 key="comp-3"/>
+                </>
+            })
+            .await
+            .assert_inner_html("<p>1</p><p>2</p><p>3</p>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <Comp id=3 key="comp-3"/>
+                    <Comp id=2 key="comp-2"/>
+                    <Comp id=1 key="comp-1"/>
+                </>
+            })
+            .await
+            .assert_inner_html("<p>3</p><p>2</p><p>1</p>");
+        step.finish();
 
-        layouts.extend(vec![
-            TestLayout {
-                name: "Insert VComp middle - before",
-                node: html! {
-                    <>
-                        <u key=1></u>
-                        <a key=2></a>
-                    </>
-                },
-                expected: "<u></u><a></a>",
-            },
-            TestLayout {
-                name: "Insert VComp middle - after",
-                node: html! {
-                    <>
-                        <u key=1></u>
-                        <Comp id=0 key="comp"/>
-                        <a key=2></a>
-                    </>
-                },
-                expected: "<u></u><p>0</p><a></a>",
-            },
-        ]);
+        let mut step = runner.step("Reverse VComp children with children");
+        step.step("before")
+            .render(html! {
+                <>
+                    <List key="comp-1"><p>{"11"}</p><p>{"12"}</p></List>
+                    <List key="comp-2"><p>{"21"}</p><p>{"22"}</p></List>
+                    <List key="comp-3"><p>{"31"}</p><p>{"32"}</p></List>
+                </>
+            })
+            .await
+            .assert_inner_html("<p>11</p><p>12</p><p>21</p><p>22</p><p>31</p><p>32</p>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <List key="comp-3"><p>{"31"}</p><p>{"32"}</p></List>
+                    <List key="comp-2"><p>{"21"}</p><p>{"22"}</p></List>
+                    <List key="comp-1"><p>{"11"}</p><p>{"12"}</p></List>
+                </>
+            })
+            .await
+            .assert_inner_html("<p>31</p><p>32</p><p>21</p><p>22</p><p>11</p><p>12</p>");
+        step.finish();
 
-        layouts.extend(vec![
-            TestLayout {
-                name: "Insert VComp back - before",
-                node: html! {
-                    <>
-                        <u key=1></u>
-                        <a key=2></a>
-                    </>
-                },
-                expected: "<u></u><a></a>",
-            },
-            TestLayout {
-                name: "Insert VComp back - after",
-                node: html! {
-                    <>
-                        <u key=1></u>
-                        <a key=2></a>
-                        <Comp id=0 key="comp"/>
-                    </>
-                },
-                expected: "<u></u><a></a><p>0</p>",
-            },
-        ]);
-
-        layouts.extend(vec![
-            TestLayout {
-                name: "Reverse VComp children - before",
-                node: html! {
-                    <>
-                        <Comp id=1 key="comp-1"/>
-                        <Comp id=2 key="comp-2"/>
-                        <Comp id=3 key="comp-3"/>
-                    </>
-                },
-                expected: "<p>1</p><p>2</p><p>3</p>",
-            },
-            TestLayout {
-                name: "Reverse VComp children - after",
-                node: html! {
-                    <>
-                        <Comp id=3 key="comp-3"/>
-                        <Comp id=2 key="comp-2"/>
-                        <Comp id=1 key="comp-1"/>
-                    </>
-                },
-                expected: "<p>3</p><p>2</p><p>1</p>",
-            },
-        ]);
-
-        layouts.extend(vec![
-            TestLayout {
-                name: "Reverse VComp children with children - before",
-                node: html! {
-                    <>
-                        <List key="comp-1"><p>{"11"}</p><p>{"12"}</p></List>
-                        <List key="comp-2"><p>{"21"}</p><p>{"22"}</p></List>
-                        <List key="comp-3"><p>{"31"}</p><p>{"32"}</p></List>
-                    </>
-                },
-                expected: "<p>11</p><p>12</p><p>21</p><p>22</p><p>31</p><p>32</p>",
-            },
-            TestLayout {
-                name: "Reverse VComp children with children - after",
-                node: html! {
-                    <>
-                        <List key="comp-3"><p>{"31"}</p><p>{"32"}</p></List>
-                        <List key="comp-2"><p>{"21"}</p><p>{"22"}</p></List>
-                        <List key="comp-1"><p>{"11"}</p><p>{"12"}</p></List>
-                    </>
-                },
-                expected: "<p>31</p><p>32</p><p>21</p><p>22</p><p>11</p><p>12</p>",
-            },
-        ]);
-
-        layouts.extend(vec![
-            TestLayout {
-                name: "Complex component update - before",
-                node: html! {
-                    <List>
-                        <Comp id=1 key="comp-1"/>
-                        <Comp id=2 key="comp-2"/>
+        let mut step = runner.step("Complex component update");
+        step.step("before")
+            .render(html! {
+                <List>
+                    <Comp id=1 key="comp-1"/>
+                    <Comp id=2 key="comp-2"/>
+                </List>
+            })
+            .await
+            .assert_inner_html("<p>1</p><p>2</p>");
+        step.step("after")
+            .render(html! {
+                <List>
+                    <List key="comp-1">
+                        <Comp id=1 />
                     </List>
-                },
-                expected: "<p>1</p><p>2</p>",
-            },
-            TestLayout {
-                name: "Complex component update - after",
-                node: html! {
-                    <List>
-                        <List key="comp-1">
-                            <Comp id=1 />
-                        </List>
-                        <List key="comp-2">
-                            <p>{"2"}</p>
-                        </List>
+                    <List key="comp-2">
+                        <p>{"2"}</p>
                     </List>
-                },
-                expected: "<p>1</p><p>2</p>",
-            },
-        ]);
+                </List>
+            })
+            .await
+            .assert_inner_html("<p>1</p><p>2</p>");
+        step.finish();
 
-        layouts.extend(vec![
-            TestLayout {
-                name: "Reorder VComp children with children - before",
-                node: html! {
-                    <>
-                        <List key="comp-1"><p>{"1"}</p></List>
-                        <List key="comp-3"><p>{"3"}</p></List>
-                        <List key="comp-5"><p>{"5"}</p></List>
-                        <List key="comp-2"><p>{"2"}</p></List>
-                        <List key="comp-4"><p>{"4"}</p></List>
-                        <List key="comp-6"><p>{"6"}</p></List>
-                    </>
-                },
-                expected: "<p>1</p><p>3</p><p>5</p><p>2</p><p>4</p><p>6</p>",
-            },
-            TestLayout {
-                name: "Reorder VComp children with children - after",
-                node: html! {
-                    <>
-                        <Comp id=6 key="comp-6"/>
-                        <Comp id=5 key="comp-5"/>
-                        <Comp id=4 key="comp-4"/>
-                        <Comp id=3 key="comp-3"/>
-                        <Comp id=2 key="comp-2"/>
-                        <Comp id=1 key="comp-1"/>
-                    </>
-                },
-                expected: "<p>6</p><p>5</p><p>4</p><p>3</p><p>2</p><p>1</p>",
-            },
-        ]);
+        let mut step = runner.step("Reorder VComp children with children");
+        step.step("before")
+            .render(html! {
+                <>
+                    <List key="comp-1"><p>{"1"}</p></List>
+                    <List key="comp-3"><p>{"3"}</p></List>
+                    <List key="comp-5"><p>{"5"}</p></List>
+                    <List key="comp-2"><p>{"2"}</p></List>
+                    <List key="comp-4"><p>{"4"}</p></List>
+                    <List key="comp-6"><p>{"6"}</p></List>
+                </>
+            })
+            .await
+            .assert_inner_html("<p>1</p><p>3</p><p>5</p><p>2</p><p>4</p><p>6</p>");
+        step.step("after")
+            .render(html! {
+                <>
+                    <Comp id=6 key="comp-6"/>
+                    <Comp id=5 key="comp-5"/>
+                    <Comp id=4 key="comp-4"/>
+                    <Comp id=3 key="comp-3"/>
+                    <Comp id=2 key="comp-2"/>
+                    <Comp id=1 key="comp-1"/>
+                </>
+            })
+            .await
+            .assert_inner_html("<p>6</p><p>5</p><p>4</p><p>3</p><p>2</p><p>1</p>");
+        step.finish();
 
-        layouts.extend(vec![
-            TestLayout {
-                name: "Replace and reorder components - before",
-                node: html! {
-                    <List>
-                        <List key="comp-1"><p>{"1"}</p></List>
-                        <List key="comp-2"><p>{"2"}</p></List>
-                        <List key="comp-3"><p>{"3"}</p></List>
-                    </List>
-                },
-                expected: "<p>1</p><p>2</p><p>3</p>",
-            },
-            TestLayout {
-                name: "Replace and reorder components - after",
-                node: html! {
-                    <List>
-                        <Comp id=3 key="comp-3" />
-                        <Comp id=2 key="comp-2" />
-                        <Comp id=1 key="comp-1" />
-                    </List>
-                },
-                expected: "<p>3</p><p>2</p><p>1</p>",
-            },
-        ]);
+        let mut step = runner.step("Replace and reorder components");
+        step.step("before")
+            .render(html! {
+                <List>
+                    <List key="comp-1"><p>{"1"}</p></List>
+                    <List key="comp-2"><p>{"2"}</p></List>
+                    <List key="comp-3"><p>{"3"}</p></List>
+                </List>
+            })
+            .await
+            .assert_inner_html("<p>1</p><p>2</p><p>3</p>");
+        step.step("after")
+            .render(html! {
+                <List>
+                    <Comp id=3 key="comp-3" />
+                    <Comp id=2 key="comp-2" />
+                    <Comp id=1 key="comp-1" />
+                </List>
+            })
+            .await
+            .assert_inner_html("<p>3</p><p>2</p><p>1</p>");
+        step.finish();
 
-        diff_layouts(layouts);
+        runner.run_replayable_tests().await;
     }
 }
