@@ -29,13 +29,42 @@ impl Deref for VList {
     }
 }
 
-impl DerefMut for VList {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        // Caller might change the keys of the VList or add unkeyed children.
-        // Defensively assume they will.
-        self.fully_keyed = false;
+/// Mutable children of a [VList].
+///
+/// This struct has a `DerefMut` implementations into [`Vec<VNode>`](std::vec::Vec).
+/// Prefer to use immutable access, since this re-checks if all nodes have keys when dropped.
+pub struct ChildrenMut<'a> {
+    children: &'a mut Vec<VNode>,
+    fully_keyed: &'a mut bool,
+}
 
-        &mut self.children
+impl<'a> Deref for ChildrenMut<'a> {
+    type Target = Vec<VNode>;
+
+    fn deref(&self) -> &Self::Target {
+        self.children
+    }
+}
+
+impl<'a> DerefMut for ChildrenMut<'a> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        *self.fully_keyed = false;
+        self.children
+    }
+}
+
+impl<'a> Drop for ChildrenMut<'a> {
+    fn drop(&mut self) {
+        if !*self.fully_keyed {
+            // Caller might have changed the keys of the VList or add unkeyed children.
+            *self.fully_keyed = self.children.iter().all(|ch| ch.has_key());
+        }
+    }
+}
+
+impl<'a> std::fmt::Debug for ChildrenMut<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("ChildrenMut").field(&self.children).finish()
     }
 }
 
@@ -76,12 +105,42 @@ impl VList {
         }
     }
 
-    /// Recheck, if the all the children have keys.
-    ///
-    /// Run this, after modifying the child list that contained only keyed children prior to the
-    /// mutable dereference.
-    pub fn recheck_fully_keyed(&mut self) {
-        self.fully_keyed = self.children.iter().all(|ch| ch.has_key());
+    /// Get a mutable list of children in this vlist.
+    pub fn children_mut(&mut self) -> ChildrenMut<'_> {
+        ChildrenMut {
+            children: &mut self.children,
+            fully_keyed: &mut self.fully_keyed,
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::virtual_dom::{VTag, VText};
+
+    #[test]
+    fn mutably_change_children() {
+        let mut vlist = VList::new();
+        assert!(vlist.fully_keyed, "should start fully keyed");
+        // add a child that is keyed
+        let mut children = vlist.children_mut();
+        children.push(VNode::VTag({
+            let mut tag = VTag::new("a");
+            tag.key = Some(42u32.into());
+            Box::new(tag)
+        }));
+        drop(children);
+        assert!(vlist.fully_keyed, "should still be fully keyed");
+        assert_eq!(vlist.len(), 1, "should contain 1 child");
+        // now add a child that is not keyed
+        let mut children = vlist.children_mut();
+        children.push(VNode::VText(VText::new("lorem ipsum")));
+        drop(children);
+        assert!(
+            !vlist.fully_keyed,
+            "should not be fully keyed, text tags have no key"
+        );
     }
 }
 
