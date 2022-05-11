@@ -5,8 +5,9 @@ use futures::Future;
 use web_sys::{Element, Text};
 
 use crate::dom_bundle::{BSubtree, Bundle};
-use crate::html::AnyScope;
-use crate::{scheduler, Html, NodeRef};
+use crate::html::{AnyScope, Scope};
+use crate::virtual_dom::VChild;
+use crate::{scheduler, BaseComponent, Html, NodeRef};
 
 #[derive(Debug)]
 struct ReplayableLayout {
@@ -31,7 +32,6 @@ pub struct TestRunner {
 trait TestContext {
     fn as_runner(&self) -> &TestRunner;
     fn as_runner_mut(&mut self) -> &mut TestRunner;
-    fn wrap_html(&self, html: Html) -> Html;
     fn name(&self) -> &str;
 }
 
@@ -44,10 +44,6 @@ impl TestContext for TestRunner {
         self
     }
 
-    fn wrap_html(&self, html: Html) -> Html {
-        html
-    }
-
     fn name(&self) -> &str {
         ""
     }
@@ -56,7 +52,6 @@ impl TestContext for TestRunner {
 pub struct TestStep<'s> {
     name: String,
     context: &'s mut dyn TestContext,
-    wrap_html: Box<dyn 's + Fn(Html) -> Html>,
 }
 
 impl<'s> TestContext for TestStep<'s> {
@@ -68,10 +63,6 @@ impl<'s> TestContext for TestStep<'s> {
         self.context.as_runner_mut()
     }
 
-    fn wrap_html(&self, html: Html) -> Html {
-        (self.wrap_html)(html)
-    }
-
     fn name(&self) -> &str {
         &self.name
     }
@@ -81,6 +72,7 @@ impl TestRunner {
     pub fn new() -> Self {
         let document = gloo_utils::document();
         let parent = document.create_element("div").unwrap();
+        document.body().unwrap().append_child(&parent).unwrap();
         Self::new_in(parent)
     }
 
@@ -162,19 +154,18 @@ impl TestRunner {
 pub struct TestableState<'s> {
     context: &'s mut dyn TestContext,
     name: String,
-    html: Html,
-    is_simple: bool,
+    generating_html: Option<Html>,
     full_layout: Option<&'static str>,
 }
 
 impl<'s> TestableState<'s> {
     pub fn parent(&mut self) -> Element {
-        self.is_simple = false;
+        self.generating_html = None;
         self.context.as_runner().parent.clone()
     }
 
     pub(crate) fn bundle(&mut self) -> &Bundle {
-        self.is_simple = false;
+        self.generating_html = None;
         &self.context.as_runner().bundle
     }
 
@@ -198,10 +189,14 @@ pub trait TestCase {
         &'s mut self,
         html: Html,
     ) -> Pin<Box<dyn 's + Future<Output = TestableState<'_>>>>;
+    fn render_app<'s, T: BaseComponent>(
+        &'s mut self,
+        html: VChild<T>,
+    ) -> Pin<Box<dyn 's + Future<Output = (TestableState<'_>, Scope<T>)>>>;
     fn finish(self);
 }
 
-impl<T: TestContext> TestCase for T {
+impl<TC: TestContext> TestCase for TC {
     fn step(&mut self, name: &'static str) -> TestStep<'_> {
         let name = if self.name().is_empty() {
             name.to_owned()
@@ -211,7 +206,6 @@ impl<T: TestContext> TestCase for T {
         TestStep {
             name,
             context: self,
-            wrap_html: Box::new(|html| html),
         }
     }
 
@@ -219,20 +213,47 @@ impl<T: TestContext> TestCase for T {
         &'s mut self,
         html: Html,
     ) -> Pin<Box<dyn 's + Future<Output = TestableState<'_>>>> {
-        async fn then_impl<T: TestContext>(self_: &mut T, html: Html) -> TestableState<'_> {
-            let html = self_.wrap_html(html);
+        async fn render_impl<TC: TestContext>(self_: &mut TC, html: Html) -> TestableState<'_> {
             let name = self_.name().to_owned();
             let runner = self_.as_runner_mut();
             runner.apply(html.clone()).await;
             TestableState {
                 context: self_,
                 name,
-                html,
-                is_simple: true,
+                generating_html: Some(html),
                 full_layout: None,
             }
         }
-        Box::pin(then_impl(self, html))
+        Box::pin(render_impl(self, html))
+    }
+
+    fn render_app<'s, T: BaseComponent>(
+        &'s mut self,
+        html: VChild<T>,
+    ) -> Pin<Box<dyn 's + Future<Output = (TestableState<'s>, Scope<T>)>>> {
+        async fn render_app_impl<TC: TestContext, T: BaseComponent>(
+            self_: &mut TC,
+            html: VChild<T>,
+        ) -> (TestableState<'_>, Scope<T>) {
+            let name = self_.name().to_owned();
+            let runner = self_.as_runner_mut();
+            let scope = runner.bundle.reconcile_vchild(
+                &runner.root,
+                &runner.scope,
+                &runner.parent,
+                runner.end_position.clone(),
+                html,
+            );
+            scheduler::start_now();
+            let state = TestableState {
+                context: self_,
+                name,
+                generating_html: None,
+                full_layout: None,
+            };
+            (state, scope)
+        }
+        Box::pin(render_app_impl(self, html))
     }
 
     fn finish(self) {}
@@ -256,11 +277,11 @@ impl<'s> Drop for TestStep<'s> {
 
 impl<'s> Drop for TestableState<'s> {
     fn drop(&mut self) {
-        if self.is_simple {
-            if let Some(full_layout) = self.full_layout {
+        if let Some(html) = self.generating_html.take() {
+            if let Some(full_layout) = self.full_layout.take() {
                 let saved_layout = ReplayableLayout {
                     _name: self.context.name().to_owned(),
-                    _html: std::mem::take(&mut self.html),
+                    _html: html,
                     _expected: full_layout.into(),
                 };
                 self.context

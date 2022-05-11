@@ -7,8 +7,9 @@
 
 use web_sys::Element;
 
-use crate::html::{AnyScope, NodeRef};
-use crate::virtual_dom::VNode;
+use crate::html::{AnyScope, NodeRef, Scope};
+use crate::virtual_dom::{VChild, VNode};
+use crate::BaseComponent;
 
 mod bcomp;
 mod blist;
@@ -53,6 +54,23 @@ impl Bundle {
     /// Shifts the bundle into a different position.
     pub fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
         self.0.shift(next_parent, next_sibling);
+    }
+
+    /// Apply a VChild and return a Scope to the mounted component
+    pub fn reconcile_vchild<T: BaseComponent>(
+        &mut self,
+        root: &BSubtree,
+        parent_scope: &AnyScope,
+        parent: &Element,
+        next_sibling: NodeRef,
+        next_node: VChild<T>,
+    ) -> Scope<T> {
+        self.reconcile(root, parent_scope, parent, next_sibling, next_node.into());
+        let vcomp = match self.0 {
+            BNode::Comp(ref bcomp) => bcomp,
+            _ => unreachable!("just mounted a component"),
+        };
+        vcomp.scope().downcast::<T>()
     }
 
     /// Applies a virtual dom layout to current bundle.

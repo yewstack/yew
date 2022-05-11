@@ -29,6 +29,11 @@ impl BComp {
     pub fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
+
+    /// Get the scope of the underlying component
+    pub fn scope(&self) -> AnyScope {
+        self.scope.to_any()
+    }
 }
 
 impl fmt::Debug for BComp {
