@@ -900,78 +900,74 @@ mod layout_tests {
     async fn diff() {
         let mut trun = TestRunner::new();
 
-        trun.step("1")
-            .render(html! {
-                <ul>
-                    <li>
-                        {"a"}
-                    </li>
-                    <li>
-                        {"b"}
-                    </li>
-                </ul>
-            })
-            .await
-            .assert_inner_html("<ul><li>a</li><li>b</li></ul>");
+        trun.render(html! {
+            <ul>
+                <li>
+                    {"a"}
+                </li>
+                <li>
+                    {"b"}
+                </li>
+            </ul>
+        })
+        .await
+        .assert_inner_html("<ul><li>a</li><li>b</li></ul>");
 
-        trun.step("2")
-            .render(html! {
-                <ul>
-                    <li>
-                        {"a"}
-                    </li>
-                    <li>
-                        {"b"}
-                    </li>
-                    <li>
-                        {"d"}
-                    </li>
-                </ul>
-            })
-            .await
-            .assert_inner_html("<ul><li>a</li><li>b</li><li>d</li></ul>");
+        trun.render(html! {
+            <ul>
+                <li>
+                    {"a"}
+                </li>
+                <li>
+                    {"b"}
+                </li>
+                <li>
+                    {"d"}
+                </li>
+            </ul>
+        })
+        .await
+        .assert_inner_html("<ul><li>a</li><li>b</li><li>d</li></ul>");
 
-        trun.step("3")
-            .render(html! {
-                <ul>
-                    <li>
+        trun.render(html! {
+            <ul>
+                <li>
+                    {"a"}
+                </li>
+                <li>
+                    {"b"}
+                </li>
+                <li>
+                    {"c"}
+                </li>
+                <li>
+                    {"d"}
+                </li>
+            </ul>
+        })
+        .await
+        .assert_inner_html("<ul><li>a</li><li>b</li><li>c</li><li>d</li></ul>");
+
+        trun.render(html! {
+            <ul>
+                <li>
+                    <>
                         {"a"}
-                    </li>
-                    <li>
-                        {"b"}
-                    </li>
+                    </>
+                </li>
+                <li>
+                    {"b"}
                     <li>
                         {"c"}
                     </li>
                     <li>
                         {"d"}
                     </li>
-                </ul>
-            })
-            .await
-            .assert_inner_html("<ul><li>a</li><li>b</li><li>c</li><li>d</li></ul>");
-
-        trun.step("4")
-            .render(html! {
-                <ul>
-                    <li>
-                        <>
-                            {"a"}
-                        </>
-                    </li>
-                    <li>
-                        {"b"}
-                        <li>
-                            {"c"}
-                        </li>
-                        <li>
-                            {"d"}
-                        </li>
-                    </li>
-                </ul>
-            })
-            .await
-            .assert_inner_html("<ul><li>a</li><li>b<li>c</li><li>d</li></li></ul>");
+                </li>
+            </ul>
+        })
+        .await
+        .assert_inner_html("<ul><li>a</li><li>b<li>c</li><li>d</li></li></ul>");
 
         trun.run_replayable_tests().await;
     }

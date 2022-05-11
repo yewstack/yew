@@ -121,29 +121,25 @@ impl BPortal {
 #[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod layout_tests {
-    extern crate self as yew;
-
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-    use yew::virtual_dom::VPortal;
 
     use crate::html;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
-    use crate::virtual_dom::VNode;
+    use crate::tests::{TestCase, TestRunner};
+    use crate::virtual_dom::{VNode, VPortal};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
-    fn diff() {
-        let mut layouts = vec![];
+    async fn diff() {
+        let mut trun = TestRunner::new();
         let first_target = gloo_utils::document().create_element("i").unwrap();
         let second_target = gloo_utils::document().create_element("o").unwrap();
         let target_with_child = gloo_utils::document().create_element("i").unwrap();
         let target_child = gloo_utils::document().create_element("s").unwrap();
         target_with_child.append_child(&target_child).unwrap();
 
-        layouts.push(TestLayout {
-            name: "Portal - first target",
-            node: html! {
+        trun.step("Portal - first target")
+            .render(html! {
                 <div>
                     {VNode::VRef(first_target.clone().into())}
                     {VNode::VRef(second_target.clone().into())}
@@ -153,12 +149,11 @@ mod layout_tests {
                     ))}
                     {"AFTER"}
                 </div>
-            },
-            expected: "<div><i>PORTAL</i><o></o>AFTER</div>",
-        });
-        layouts.push(TestLayout {
-            name: "Portal - second target",
-            node: html! {
+            })
+            .await
+            .assert_inner_html("<div><i>PORTAL</i><o></o>AFTER</div>");
+        trun.step("Portal - second target")
+            .render(html! {
                 <div>
                     {VNode::VRef(first_target.clone().into())}
                     {VNode::VRef(second_target.clone().into())}
@@ -168,24 +163,22 @@ mod layout_tests {
                     ))}
                     {"AFTER"}
                 </div>
-            },
-            expected: "<div><i></i><o>PORTAL</o>AFTER</div>",
-        });
-        layouts.push(TestLayout {
-            name: "Portal - replaced by text",
-            node: html! {
+            })
+            .await
+            .assert_inner_html("<div><i></i><o>PORTAL</o>AFTER</div>");
+        trun.step("Portal - replaced by text")
+            .render(html! {
                 <div>
                     {VNode::VRef(first_target.clone().into())}
                     {VNode::VRef(second_target.clone().into())}
                     {"FOO"}
                     {"AFTER"}
                 </div>
-            },
-            expected: "<div><i></i><o></o>FOOAFTER</div>",
-        });
-        layouts.push(TestLayout {
-            name: "Portal - next sibling",
-            node: html! {
+            })
+            .await
+            .assert_inner_html("<div><i></i><o></o>FOOAFTER</div>");
+        trun.step("Portal - next sibling")
+            .render(html! {
                 <div>
                     {VNode::VRef(target_with_child.clone().into())}
                     {VNode::VPortal(VPortal::new_before(
@@ -194,10 +187,10 @@ mod layout_tests {
                         Some(target_child.clone().into()),
                     ))}
                 </div>
-            },
-            expected: "<div><i>PORTAL<s></s></i></div>",
-        });
+            })
+            .await
+            .assert_inner_html("<div><i>PORTAL<s></s></i></div>");
 
-        diff_layouts(layouts)
+        trun.run_replayable_tests().await;
     }
 }

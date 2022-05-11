@@ -293,7 +293,7 @@ mod tests {
 
     #[hook]
     fn use_test_context() -> TestContext {
-        yew::use_context::<TestContext>().unwrap()
+        use_context::<TestContext>().unwrap()
     }
 
     #[track_caller]

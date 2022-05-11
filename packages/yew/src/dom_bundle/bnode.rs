@@ -297,28 +297,22 @@ mod layout_tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use super::*;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::{TestCase, TestRunner};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
-    fn diff() {
+    async fn diff() {
+        let mut trun = TestRunner::new();
         let document = gloo_utils::document();
-        let vref_node_1 = VNode::VRef(document.create_element("i").unwrap().into());
-        let vref_node_2 = VNode::VRef(document.create_element("b").unwrap().into());
 
-        let layout1 = TestLayout {
-            name: "1",
-            node: vref_node_1,
-            expected: "<i></i>",
-        };
+        trun.render(VNode::VRef(document.create_element("i").unwrap().into()))
+            .await
+            .assert_inner_html("<i></i>");
+        trun.render(VNode::VRef(document.create_element("b").unwrap().into()))
+            .await
+            .assert_inner_html("<b></b>");
 
-        let layout2 = TestLayout {
-            name: "2",
-            node: vref_node_2,
-            expected: "<b></b>",
-        };
-
-        diff_layouts(vec![layout1, layout2]);
+        trun.run_replayable_tests().await;
     }
 }

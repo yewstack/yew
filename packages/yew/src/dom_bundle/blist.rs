@@ -520,8 +520,7 @@ mod layout_tests {
     async fn diff() {
         let mut trun = TestRunner::new();
 
-        let mut step = trun.step("1");
-        step.render(html! {
+        trun.render(html! {
             <>
                 {"a"}
                 {"b"}
@@ -534,10 +533,8 @@ mod layout_tests {
         })
         .await
         .assert_inner_html("abcde");
-        step.finish();
 
-        let mut step = trun.step("2");
-        step.render(html! {
+        trun.render(html! {
             <>
                 {"a"}
                 {"b"}
@@ -548,10 +545,8 @@ mod layout_tests {
         })
         .await
         .assert_inner_html("abef");
-        step.finish();
 
-        let mut step = trun.step("3");
-        step.render(html! {
+        trun.render(html! {
             <>
                 {"a"}
                 <></>
@@ -561,10 +556,8 @@ mod layout_tests {
         })
         .await
         .assert_inner_html("abe");
-        step.finish();
 
-        let mut step = trun.step("4");
-        step.render(html! {
+        trun.render(html! {
             <>
                 {"a"}
                 <>
@@ -577,7 +570,6 @@ mod layout_tests {
         })
         .await
         .assert_inner_html("acdbe");
-        step.finish();
 
         trun.run_replayable_tests().await;
     }

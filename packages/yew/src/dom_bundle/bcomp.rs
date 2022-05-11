@@ -538,199 +538,187 @@ mod layout_tests {
     async fn diff() {
         let mut trun = TestRunner::new();
 
-        trun.step("1")
-            .render(html! {
-                <Comp<A>>
-                    <Comp<B>></Comp<B>>
-                    {"C"}
-                </Comp<A>>
-            })
-            .await
-            .assert_inner_html("C");
+        trun.render(html! {
+            <Comp<A>>
+                <Comp<B>></Comp<B>>
+                {"C"}
+            </Comp<A>>
+        })
+        .await
+        .assert_inner_html("C");
 
-        trun.step("2")
-            .render(html! {
-                <Comp<A>>
-                    {"A"}
-                </Comp<A>>
-            })
-            .await
-            .assert_inner_html("A");
+        trun.render(html! {
+            <Comp<A>>
+                {"A"}
+            </Comp<A>>
+        })
+        .await
+        .assert_inner_html("A");
 
-        trun.step("3")
-            .render(html! {
-                <Comp<B>>
-                    <Comp<A>></Comp<A>>
+        trun.render(html! {
+            <Comp<B>>
+                <Comp<A>></Comp<A>>
+                {"B"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("B");
+
+        trun.render(html! {
+            <Comp<B>>
+                <Comp<A>>{"A"}</Comp<A>>
+                {"B"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("AB");
+
+        trun.render(html! {
+            <Comp<B>>
+                <>
+                    <Comp<A>>
+                        {"A"}
+                    </Comp<A>>
+                </>
+                {"B"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("AB");
+
+        trun.render(html! {
+            <Comp<B>>
+                <>
+                    <Comp<A>>
+                        {"A"}
+                    </Comp<A>>
                     {"B"}
-                </Comp<B>>
-            })
-            .await
-            .assert_inner_html("B");
+                </>
+                {"C"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("ABC");
 
-        trun.step("4")
-            .render(html! {
-                <Comp<B>>
-                    <Comp<A>>{"A"}</Comp<A>>
-                    {"B"}
-                </Comp<B>>
-            })
-            .await
-            .assert_inner_html("AB");
-
-        trun.step("5")
-            .render(html! {
-                <Comp<B>>
-                    <>
-                        <Comp<A>>
-                            {"A"}
-                        </Comp<A>>
-                    </>
-                    {"B"}
-                </Comp<B>>
-            })
-            .await
-            .assert_inner_html("AB");
-
-        trun.step("6")
-            .render(html! {
-                <Comp<B>>
-                    <>
-                        <Comp<A>>
-                            {"A"}
-                        </Comp<A>>
+        trun.render(html! {
+            <Comp<B>>
+                <>
+                    <Comp<A>>
+                        {"A"}
+                    </Comp<A>>
+                    <Comp<A>>
                         {"B"}
-                    </>
-                    {"C"}
-                </Comp<B>>
-            })
-            .await
-            .assert_inner_html("ABC");
+                    </Comp<A>>
+                </>
+                {"C"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("ABC");
 
-        trun.step("7")
-            .render(html! {
-                <Comp<B>>
-                    <>
-                        <Comp<A>>
-                            {"A"}
-                        </Comp<A>>
+        trun.render(html! {
+            <Comp<B>>
+                <>
+                    <Comp<A>>
+                        {"A"}
+                    </Comp<A>>
+                    <Comp<A>>
                         <Comp<A>>
                             {"B"}
                         </Comp<A>>
-                    </>
-                    {"C"}
-                </Comp<B>>
-            })
-            .await
-            .assert_inner_html("ABC");
+                    </Comp<A>>
+                </>
+                {"C"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("ABC");
 
-        trun.step("8")
-            .render(html! {
-                <Comp<B>>
+        trun.render(html! {
+            <Comp<B>>
+                <>
                     <>
+                        {"A"}
+                    </>
+                    <Comp<A>>
+                        <Comp<A>>
+                            {"B"}
+                        </Comp<A>>
+                    </Comp<A>>
+                </>
+                {"C"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("ABC");
+
+        trun.render(html! {
+            <Comp<B>>
+                <>
+                    <Comp<A>>
                         <Comp<A>>
                             {"A"}
                         </Comp<A>>
-                        <Comp<A>>
-                            <Comp<A>>
-                                {"B"}
-                            </Comp<A>>
-                        </Comp<A>>
-                    </>
-                    {"C"}
-                </Comp<B>>
-            })
-            .await
-            .assert_inner_html("ABC");
-
-        trun.step("9")
-            .render(html! {
-                <Comp<B>>
+                    </Comp<A>>
                     <>
-                        <>
-                            {"A"}
-                        </>
-                        <Comp<A>>
-                            <Comp<A>>
-                                {"B"}
-                            </Comp<A>>
-                        </Comp<A>>
+                        {"B"}
                     </>
-                    {"C"}
-                </Comp<B>>
-            })
-            .await
-            .assert_inner_html("ABC");
+                </>
+                {"C"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("ABC");
 
-        trun.step("10")
-            .render(html! {
-                <Comp<B>>
+        trun.render(html! {
+            <Comp<B>>
+                <>
                     <>
                         <Comp<A>>
                             <Comp<A>>
                                 {"A"}
                             </Comp<A>>
-                        </Comp<A>>
-                        <>
                             {"B"}
-                        </>
+                        </Comp<A>>
                     </>
-                    {"C"}
-                </Comp<B>>
-            })
-            .await
-            .assert_inner_html("ABC");
+                </>
+                {"C"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("ABC");
 
-        trun.step("11")
-            .render(html! {
-                <Comp<B>>
+        trun.render(html! {
+            <Comp<B>>
+                <>
+                    <Comp<A>></Comp<A>>
                     <>
-                        <>
-                            <Comp<A>>
+                        <Comp<A>>
+                            <>
                                 <Comp<A>>
                                     {"A"}
                                 </Comp<A>>
-                                {"B"}
-                            </Comp<A>>
-                        </>
-                    </>
-                    {"C"}
-                </Comp<B>>
-            })
-            .await
-            .assert_inner_html("ABC");
-
-        trun.step("12")
-            .render(html! {
-                <Comp<B>>
-                    <>
-                        <Comp<A>></Comp<A>>
-                        <>
-                            <Comp<A>>
-                                <>
-                                    <Comp<A>>
-                                        {"A"}
-                                    </Comp<A>>
+                                <></>
+                                <Comp<A>>
+                                    <Comp<A>></Comp<A>>
                                     <></>
-                                    <Comp<A>>
-                                        <Comp<A>></Comp<A>>
-                                        <></>
-                                        {"B"}
-                                        <></>
-                                        <Comp<A>></Comp<A>>
-                                    </Comp<A>>
-                                </>
-                            </Comp<A>>
-                            <></>
-                        </>
-                        <Comp<A>></Comp<A>>
+                                    {"B"}
+                                    <></>
+                                    <Comp<A>></Comp<A>>
+                                </Comp<A>>
+                            </>
+                        </Comp<A>>
+                        <></>
                     </>
-                    {"C"}
                     <Comp<A>></Comp<A>>
-                    <></>
-                </Comp<B>>
-            })
-            .await
-            .assert_inner_html("ABC");
+                </>
+                {"C"}
+                <Comp<A>></Comp<A>>
+                <></>
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("ABC");
 
         trun.run_replayable_tests().await;
     }
