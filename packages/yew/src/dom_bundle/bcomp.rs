@@ -531,10 +531,9 @@ mod layout_tests {
 
     #[test]
     async fn diff() {
-        let mut runner = TestRunner::new();
+        let mut trun = TestRunner::new();
 
-        runner
-            .step("1")
+        trun.step("1")
             .render(html! {
                 <Comp<A>>
                     <Comp<B>></Comp<B>>
@@ -544,8 +543,7 @@ mod layout_tests {
             .await
             .assert_inner_html("C");
 
-        runner
-            .step("2")
+        trun.step("2")
             .render(html! {
                 <Comp<A>>
                     {"A"}
@@ -554,8 +552,7 @@ mod layout_tests {
             .await
             .assert_inner_html("A");
 
-        runner
-            .step("3")
+        trun.step("3")
             .render(html! {
                 <Comp<B>>
                     <Comp<A>></Comp<A>>
@@ -565,8 +562,7 @@ mod layout_tests {
             .await
             .assert_inner_html("B");
 
-        runner
-            .step("4")
+        trun.step("4")
             .render(html! {
                 <Comp<B>>
                     <Comp<A>>{"A"}</Comp<A>>
@@ -576,8 +572,7 @@ mod layout_tests {
             .await
             .assert_inner_html("AB");
 
-        runner
-            .step("5")
+        trun.step("5")
             .render(html! {
                 <Comp<B>>
                     <>
@@ -591,8 +586,7 @@ mod layout_tests {
             .await
             .assert_inner_html("AB");
 
-        runner
-            .step("6")
+        trun.step("6")
             .render(html! {
                 <Comp<B>>
                     <>
@@ -607,8 +601,7 @@ mod layout_tests {
             .await
             .assert_inner_html("ABC");
 
-        runner
-            .step("7")
+        trun.step("7")
             .render(html! {
                 <Comp<B>>
                     <>
@@ -625,8 +618,7 @@ mod layout_tests {
             .await
             .assert_inner_html("ABC");
 
-        runner
-            .step("8")
+        trun.step("8")
             .render(html! {
                 <Comp<B>>
                     <>
@@ -645,8 +637,7 @@ mod layout_tests {
             .await
             .assert_inner_html("ABC");
 
-        runner
-            .step("9")
+        trun.step("9")
             .render(html! {
                 <Comp<B>>
                     <>
@@ -665,8 +656,7 @@ mod layout_tests {
             .await
             .assert_inner_html("ABC");
 
-        runner
-            .step("10")
+        trun.step("10")
             .render(html! {
                 <Comp<B>>
                     <>
@@ -685,8 +675,7 @@ mod layout_tests {
             .await
             .assert_inner_html("ABC");
 
-        runner
-            .step("11")
+        trun.step("11")
             .render(html! {
                 <Comp<B>>
                     <>
@@ -705,8 +694,7 @@ mod layout_tests {
             .await
             .assert_inner_html("ABC");
 
-        runner
-            .step("12")
+        trun.step("12")
             .render(html! {
                 <Comp<B>>
                     <>
@@ -739,7 +727,7 @@ mod layout_tests {
             .await
             .assert_inner_html("ABC");
 
-        runner.run_replayable_tests().await;
+        trun.run_replayable_tests().await;
     }
 
     #[test]
@@ -767,10 +755,9 @@ mod layout_tests {
                 }
             }
         }
-        let mut runner = TestRunner::new();
+        let mut trun = TestRunner::new();
 
-        runner
-            .step("Component with children")
+        trun.step("Component with children")
             .render(html! {
                 <ComponentWithChildren>
                     if true {

@@ -898,10 +898,9 @@ mod layout_tests {
 
     #[test]
     async fn diff() {
-        let mut runner = TestRunner::new();
+        let mut trun = TestRunner::new();
 
-        runner
-            .step("1")
+        trun.step("1")
             .render(html! {
                 <ul>
                     <li>
@@ -915,8 +914,7 @@ mod layout_tests {
             .await
             .assert_inner_html("<ul><li>a</li><li>b</li></ul>");
 
-        runner
-            .step("2")
+        trun.step("2")
             .render(html! {
                 <ul>
                     <li>
@@ -933,8 +931,7 @@ mod layout_tests {
             .await
             .assert_inner_html("<ul><li>a</li><li>b</li><li>d</li></ul>");
 
-        runner
-            .step("3")
+        trun.step("3")
             .render(html! {
                 <ul>
                     <li>
@@ -954,8 +951,7 @@ mod layout_tests {
             .await
             .assert_inner_html("<ul><li>a</li><li>b</li><li>c</li><li>d</li></ul>");
 
-        runner
-            .step("4")
+        trun.step("4")
             .render(html! {
                 <ul>
                     <li>
@@ -977,7 +973,7 @@ mod layout_tests {
             .await
             .assert_inner_html("<ul><li>a</li><li>b<li>c</li><li>d</li></li></ul>");
 
-        runner.run_replayable_tests().await;
+        trun.run_replayable_tests().await;
     }
 
     #[test]
@@ -1170,7 +1166,7 @@ mod layout_tests {
     // test for bug: https://github.com/yewstack/yew/pull/2653
     #[test]
     async fn test_index_map_attribute_diff() {
-        let mut runner = TestRunner::new();
+        let mut trun = TestRunner::new();
         let test_ref = NodeRef::default();
 
         // We want to test appy_diff with Attributes::IndexMap, so we
@@ -1182,7 +1178,7 @@ mod layout_tests {
         vtag.add_attribute("disabled", "disabled");
         vtag.add_attribute("tabindex", "0");
 
-        runner.render(VNode::VTag(Box::new(vtag))).await;
+        trun.render(VNode::VTag(Box::new(vtag))).await;
 
         // Create <div tabindex="0"> (removed first attribute "disabled")
         let mut vtag = VTag::new("div");
@@ -1191,7 +1187,7 @@ mod layout_tests {
 
         // Sync happens here
         // this should remove the the "disabled" attribute
-        runner.render(VNode::VTag(Box::new(vtag))).await;
+        trun.render(VNode::VTag(Box::new(vtag))).await;
 
         assert_eq!(
             test_ref

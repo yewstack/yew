@@ -518,9 +518,9 @@ mod layout_tests {
 
     #[test]
     async fn diff() {
-        let mut runner = TestRunner::new();
+        let mut trun = TestRunner::new();
 
-        let mut step = runner.step("1");
+        let mut step = trun.step("1");
         step.render(html! {
             <>
                 {"a"}
@@ -536,7 +536,7 @@ mod layout_tests {
         .assert_inner_html("abcde");
         step.finish();
 
-        let mut step = runner.step("2");
+        let mut step = trun.step("2");
         step.render(html! {
             <>
                 {"a"}
@@ -550,7 +550,7 @@ mod layout_tests {
         .assert_inner_html("abef");
         step.finish();
 
-        let mut step = runner.step("3");
+        let mut step = trun.step("3");
         step.render(html! {
             <>
                 {"a"}
@@ -563,7 +563,7 @@ mod layout_tests {
         .assert_inner_html("abe");
         step.finish();
 
-        let mut step = runner.step("4");
+        let mut step = trun.step("4");
         step.render(html! {
             <>
                 {"a"}
@@ -579,7 +579,7 @@ mod layout_tests {
         .assert_inner_html("acdbe");
         step.finish();
 
-        runner.run_replayable_tests().await;
+        trun.run_replayable_tests().await;
     }
 }
 
@@ -648,11 +648,10 @@ mod layout_tests_keys {
 
     #[test]
     async fn diff() {
-        let mut runner = TestRunner::new();
+        let mut trun = TestRunner::new();
 
         let vref_node: Node = gloo_utils::document().create_element("i").unwrap().into();
-        runner
-            .step("All VNode types as children")
+        trun.step("All VNode types as children")
             .render(html! {
                 <>
                     {"a"}
@@ -670,7 +669,7 @@ mod layout_tests_keys {
             .await
             .assert_inner_html("a<span></span>cd<p>0</p>foobar<i></i>");
 
-        let mut step = runner.step("Inserting into VList first child");
+        let mut step = trun.step("Inserting into VList first child");
         step.step("before")
             .render(html! {
                 <>
@@ -696,7 +695,7 @@ mod layout_tests_keys {
             .assert_inner_html("<i></i><e></e><p></p>");
         step.finish();
 
-        let mut step = runner.step("No matches");
+        let mut step = trun.step("No matches");
         step.step("before")
             .render(html! {
                 <>
@@ -717,7 +716,7 @@ mod layout_tests_keys {
             .assert_inner_html("<a></a><p></p>");
         step.finish();
 
-        let mut step = runner.step("Append");
+        let mut step = trun.step("Append");
         step.step("before")
             .render(html! {
                 <>
@@ -739,7 +738,7 @@ mod layout_tests_keys {
             .assert_inner_html("<i></i><e></e><p></p>");
         step.finish();
 
-        let mut step = runner.step("Prepend");
+        let mut step = trun.step("Prepend");
         step.step("before")
             .render(html! {
                 <>
@@ -761,7 +760,7 @@ mod layout_tests_keys {
             .assert_inner_html("<p></p><i></i><e></e>");
         step.finish();
 
-        let mut step = runner.step("Delete first");
+        let mut step = trun.step("Delete first");
         step.step("before")
             .render(html! {
                 <>
@@ -783,7 +782,7 @@ mod layout_tests_keys {
             .assert_inner_html("<e></e><p></p>");
         step.finish();
 
-        let mut step = runner.step("Delete last");
+        let mut step = trun.step("Delete last");
         step.step("before")
             .render(html! {
                 <>
@@ -805,7 +804,7 @@ mod layout_tests_keys {
             .assert_inner_html("<i></i><e></e>");
         step.finish();
 
-        let mut step = runner.step("Delete last and change node type");
+        let mut step = trun.step("Delete last and change node type");
         step.step("before")
             .render(html! {
                 <>
@@ -828,7 +827,7 @@ mod layout_tests_keys {
             .assert_inner_html("<i></i><e></e><a></a>");
         step.finish();
 
-        let mut step = runner.step("Delete middle");
+        let mut step = trun.step("Delete middle");
         step.step("before")
             .render(html! {
                 <>
@@ -853,7 +852,7 @@ mod layout_tests_keys {
             .assert_inner_html("<i></i><e></e><p></p><a></a>");
         step.finish();
 
-        let mut step = runner.step("Delete middle and change node type");
+        let mut step = trun.step("Delete middle and change node type");
         step.step("before")
             .render(html! {
                 <>
@@ -878,7 +877,7 @@ mod layout_tests_keys {
             .assert_inner_html("<i></i><e></e><p></p><a></a>");
         step.finish();
 
-        let mut step = runner.step("Reverse");
+        let mut step = trun.step("Reverse");
         step.step("before")
             .render(html! {
                 <>
@@ -903,7 +902,7 @@ mod layout_tests_keys {
             .assert_inner_html("<u></u><p></p><e></e><i></i>");
         step.finish();
 
-        let mut step = runner.step("Reverse and change node type");
+        let mut step = trun.step("Reverse and change node type");
         step.step("before")
             .render(html! {
                 <>
@@ -933,7 +932,7 @@ mod layout_tests_keys {
             .assert_inner_html("<u></u><p></p><e></e><i></i>");
         step.finish();
 
-        let mut step = runner.step("Swap 1&2");
+        let mut step = trun.step("Swap 1&2");
         step.step("before")
             .render(html! {
                 <>
@@ -960,7 +959,7 @@ mod layout_tests_keys {
             .assert_inner_html("<e></e><i></i><p></p><a></a><u></u>");
         step.finish();
 
-        let mut step = runner.step("Swap 1&2 and change node type");
+        let mut step = trun.step("Swap 1&2 and change node type");
         step.step("before")
             .render(html! {
                 <>
@@ -987,7 +986,7 @@ mod layout_tests_keys {
             .assert_inner_html("<e></e><i></i><p></p><a></a><u></u>");
         step.finish();
 
-        let mut step = runner.step("Fragment list");
+        let mut step = trun.step("Fragment list");
         step.step("before")
             .render(html! {
                 <>
@@ -1021,7 +1020,7 @@ mod layout_tests_keys {
             .assert_inner_html("<e></e><p></p><i></i>");
         step.finish();
 
-        let mut step = runner.step("Swap 4&5");
+        let mut step = trun.step("Swap 4&5");
         step.step("before")
             .render(html! {
                 <>
@@ -1048,7 +1047,7 @@ mod layout_tests_keys {
             .assert_inner_html("<i></i><e></e><p></p><u></u><a></a>");
         step.finish();
 
-        let mut step = runner.step("Swap 1&5");
+        let mut step = trun.step("Swap 1&5");
         step.step("before")
             .render(html! {
                 <>
@@ -1075,7 +1074,7 @@ mod layout_tests_keys {
             .assert_inner_html("<u></u><e></e><p></p><a></a><i></i>");
         step.finish();
 
-        let mut step = runner.step("Move 2 after 4");
+        let mut step = trun.step("Move 2 after 4");
         step.step("before")
             .render(html! {
                 <>
@@ -1102,7 +1101,7 @@ mod layout_tests_keys {
             .assert_inner_html("<i></i><p></p><a></a><e></e><u></u>");
         step.finish();
 
-        let mut step = runner.step("Swap 1,2 <-> 3,4");
+        let mut step = trun.step("Swap 1,2 <-> 3,4");
         step.step("before")
             .render(html! {
                 <>
@@ -1129,7 +1128,7 @@ mod layout_tests_keys {
             .assert_inner_html("<p></p><a></a><i></i><e></e><u></u>");
         step.finish();
 
-        let mut step = runner.step("Swap lists");
+        let mut step = trun.step("Swap lists");
         step.step("before")
             .render(html! {
                 <>
@@ -1162,7 +1161,7 @@ mod layout_tests_keys {
             .assert_inner_html("<a></a><u></u><i></i><e></e>");
         step.finish();
 
-        let mut step = runner.step("Swap lists with in-between");
+        let mut step = trun.step("Swap lists with in-between");
         step.step("before")
             .render(html! {
                 <>
@@ -1197,7 +1196,7 @@ mod layout_tests_keys {
             .assert_inner_html("<a></a><u></u><p></p><i></i><e></e>");
         step.finish();
 
-        let mut step = runner.step("Insert VComp front");
+        let mut step = trun.step("Insert VComp front");
         step.step("before")
             .render(html! {
                 <>
@@ -1219,7 +1218,7 @@ mod layout_tests_keys {
             .assert_inner_html("<p>0</p><u></u><a></a>");
         step.finish();
 
-        let mut step = runner.step("Insert VComp middle");
+        let mut step = trun.step("Insert VComp middle");
         step.step("before")
             .render(html! {
                 <>
@@ -1241,7 +1240,7 @@ mod layout_tests_keys {
             .assert_inner_html("<u></u><p>0</p><a></a>");
         step.finish();
 
-        let mut step = runner.step("Insert VComp back");
+        let mut step = trun.step("Insert VComp back");
         step.step("before")
             .render(html! {
                 <>
@@ -1263,7 +1262,7 @@ mod layout_tests_keys {
             .assert_inner_html("<u></u><a></a><p>0</p>");
         step.finish();
 
-        let mut step = runner.step("Reverse VComp children");
+        let mut step = trun.step("Reverse VComp children");
         step.step("before")
             .render(html! {
                 <>
@@ -1286,7 +1285,7 @@ mod layout_tests_keys {
             .assert_inner_html("<p>3</p><p>2</p><p>1</p>");
         step.finish();
 
-        let mut step = runner.step("Reverse VComp children with children");
+        let mut step = trun.step("Reverse VComp children with children");
         step.step("before")
             .render(html! {
                 <>
@@ -1309,7 +1308,7 @@ mod layout_tests_keys {
             .assert_inner_html("<p>31</p><p>32</p><p>21</p><p>22</p><p>11</p><p>12</p>");
         step.finish();
 
-        let mut step = runner.step("Complex component update");
+        let mut step = trun.step("Complex component update");
         step.step("before")
             .render(html! {
                 <List>
@@ -1334,7 +1333,7 @@ mod layout_tests_keys {
             .assert_inner_html("<p>1</p><p>2</p>");
         step.finish();
 
-        let mut step = runner.step("Reorder VComp children with children");
+        let mut step = trun.step("Reorder VComp children with children");
         step.step("before")
             .render(html! {
                 <>
@@ -1363,7 +1362,7 @@ mod layout_tests_keys {
             .assert_inner_html("<p>6</p><p>5</p><p>4</p><p>3</p><p>2</p><p>1</p>");
         step.finish();
 
-        let mut step = runner.step("Replace and reorder components");
+        let mut step = trun.step("Replace and reorder components");
         step.step("before")
             .render(html! {
                 <List>
@@ -1386,6 +1385,6 @@ mod layout_tests_keys {
             .assert_inner_html("<p>3</p><p>2</p><p>1</p>");
         step.finish();
 
-        runner.run_replayable_tests().await;
+        trun.run_replayable_tests().await;
     }
 }
