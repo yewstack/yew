@@ -18,7 +18,7 @@ export default function DefaultNavbarItem(props) {
     if (props.label === API_BUTTON) {
         const href =
             version === 'next'
-                ? 'https://yew-rs-api.web.app/next/yew'
+                ? 'https://api.yew.rs/next/yew'
                 : `https://docs.rs/yew/${version}`
         return <OriginalNavbarItem {...props} href={href} />
     }
