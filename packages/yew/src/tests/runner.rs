@@ -47,7 +47,10 @@ impl fmt::Debug for TestRunner {
     }
 }
 
-trait TestContext {
+/// Internal helper for things that can be more-or-less treated as a [TestRunner].
+///
+/// Automatically gets an implementation of [TestCase].
+pub trait TestContext {
     // Get the underlying runner
     fn as_runner(&self) -> &TestRunner;
     // Get the underlying runner, mutably
