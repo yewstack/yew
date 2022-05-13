@@ -3,19 +3,17 @@
 mod common;
 
 use std::ops::DerefMut;
-use std::time::Duration;
 
-use common::obtain_result;
-use gloo::timers::future::sleep;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
+use yew::tests::{TestCase, TestRunner};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
 async fn use_ref_works() {
-    #[function_component(UseRefComponent)]
-    fn use_ref_comp() -> Html {
+    #[function_component]
+    fn UseRefComponent() -> Html {
         let ref_example = use_mut_ref(|| 0);
         *ref_example.borrow_mut().deref_mut() += 1;
         let counter = use_state(|| 0);
@@ -23,20 +21,17 @@ async fn use_ref_works() {
             counter.set(*counter + 1)
         }
         html! {
-            <div>
-                {"The test output is: "}
-                <div id="result">{*ref_example.borrow_mut().deref_mut() > 4}</div>
-                {"\n"}
-            </div>
+            <>
+                {"The test result is: "}
+                { *ref_example.borrow_mut().deref_mut() > 4 }
+            </>
         }
     }
 
-    yew::Renderer::<UseRefComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
-    )
-    .render();
-    sleep(Duration::ZERO).await;
-
-    let result = obtain_result();
-    assert_eq!(result.as_str(), "true");
+    TestRunner::new()
+        .render(html! {
+            <UseRefComponent />
+        })
+        .await
+        .assert_inner_html("The test result is: true");
 }

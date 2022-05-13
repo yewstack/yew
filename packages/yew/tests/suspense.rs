@@ -2,7 +2,7 @@
 
 mod common;
 
-use common::{obtain_result, use_trigger, TriggerBus};
+use common::{use_trigger, TriggerBus};
 use wasm_bindgen_test::*;
 use yew::prelude::*;
 
@@ -11,7 +11,6 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use gloo::timers::future::TimeoutFuture;
 use web_sys::HtmlElement;
 use yew::suspense::{use_future, use_future_with_deps};
 use yew::tests::{TestCase, TestRunner};

@@ -4,19 +4,16 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 mod common;
 
-use std::time::Duration;
-
-use common::obtain_result;
-use gloo::timers::future::sleep;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
+use yew::tests::{TestCase, TestRunner};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
 async fn use_memo_works() {
-    #[function_component(UseMemoComponent)]
-    fn use_memo_comp() -> Html {
+    #[function_component]
+    fn UseMemoComponent() -> Html {
         let state = use_state(|| 0);
 
         let memoed_val = use_memo(
@@ -41,21 +38,17 @@ async fn use_memo_works() {
         });
 
         html! {
-            <div>
-                {"The test output is: "}
-                <div id="result">{*memoed_val}</div>
-                {"\n"}
-            </div>
+            <>
+                { "The test result is: " }
+                { *memoed_val }
+            </>
         }
     }
 
-    yew::Renderer::<UseMemoComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
-    )
-    .render();
-
-    sleep(Duration::ZERO).await;
-
-    let result = obtain_result();
-    assert_eq!(result.as_str(), "true");
+    TestRunner::new()
+        .render(html! {
+            <UseMemoComponent />
+        })
+        .await
+        .assert_inner_html("The test result is: true");
 }

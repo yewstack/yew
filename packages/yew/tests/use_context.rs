@@ -9,6 +9,7 @@ use common::obtain_result_by_id;
 use gloo::timers::future::sleep;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
+use yew::tests::{TestCase, TestRunner};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -64,15 +65,12 @@ async fn use_context_scoping_works() {
         }
     }
 
-    yew::Renderer::<UseContextComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
-    )
-    .render();
-
-    sleep(Duration::ZERO).await;
-
-    let result: String = obtain_result_by_id("result");
-    assert_eq!("correct", result);
+    let mut trun = TestRunner::new();
+    trun.render(html! {
+        <UseContextComponent />
+    })
+    .await
+    .assert_inner_html(r#"<div><div>ignored</div><div>ignored</div><div id="result">correct</div><div>ignored</div><div></div></div>"#);
 }
 
 #[wasm_bindgen_test]
@@ -147,12 +145,11 @@ async fn use_context_works_with_multiple_types() {
         }
     }
 
-    yew::Renderer::<TestComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
-    )
-    .render();
-
-    sleep(Duration::ZERO).await;
+    TestRunner::new()
+        .render(html! {
+            <TestComponent />
+        })
+        .await;
 }
 
 #[wasm_bindgen_test]

@@ -4,12 +4,10 @@ mod common;
 
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
-use std::time::Duration;
 
-use common::obtain_result;
-use gloo::timers::future::sleep;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
+use yew::tests::{TestCase, TestRunner};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -35,8 +33,8 @@ async fn use_effect_destroys_on_component_drop() {
         }
     }
 
-    #[function_component(UseEffectComponent)]
-    fn use_effect_comp(props: &FunctionProps) -> Html {
+    #[function_component]
+    fn UseEffectComponent(props: &FunctionProps) -> Html {
         let effect_called = props.effect_called.clone();
         let destroy_called = props.destroy_called.clone();
         use_effect_with_deps(
@@ -50,8 +48,8 @@ async fn use_effect_destroys_on_component_drop() {
         html! {}
     }
 
-    #[function_component(UseEffectWrapperComponent)]
-    fn use_effect_wrapper_comp(props: &WrapperProps) -> Html {
+    #[function_component]
+    fn UseEffectWrapperComponent(props: &WrapperProps) -> Html {
         let show = use_state(|| true);
         if *show {
             let effect_called: Rc<dyn Fn()> = { Rc::new(move || show.set(false)) };
@@ -67,23 +65,21 @@ async fn use_effect_destroys_on_component_drop() {
 
     let destroy_counter = Rc::new(std::cell::RefCell::new(0));
     let destroy_counter_c = destroy_counter.clone();
-    yew::Renderer::<UseEffectWrapperComponent>::with_root_and_props(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
-        WrapperProps {
-            destroy_called: Rc::new(move || *destroy_counter_c.borrow_mut().deref_mut() += 1),
-        },
-    )
-    .render();
-
-    sleep(Duration::ZERO).await;
+    TestRunner::new()
+        .render(html! {
+            <UseEffectWrapperComponent destroy_called={
+                Rc::new(move || *destroy_counter_c.borrow_mut().deref_mut() += 1) as Rc<dyn Fn()>
+            } />
+        })
+        .await;
 
     assert_eq!(1, *destroy_counter.borrow().deref());
 }
 
 #[wasm_bindgen_test]
 async fn use_effect_works_many_times() {
-    #[function_component(UseEffectComponent)]
-    fn use_effect_comp() -> Html {
+    #[function_component]
+    fn UseEffectComponent() -> Html {
         let counter = use_state(|| 0);
         let counter_clone = counter.clone();
 
@@ -98,22 +94,19 @@ async fn use_effect_works_many_times() {
         );
 
         html! {
-            <div>
-                { "The test result is" }
-                <div id="result">{ *counter }</div>
-                { "\n" }
-            </div>
+            <>
+                { "The test result is: " }
+                { *counter }
+            </>
         }
     }
 
-    yew::Renderer::<UseEffectComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
-    )
-    .render();
-
-    sleep(Duration::ZERO).await;
-    let result = obtain_result();
-    assert_eq!(result.as_str(), "4");
+    TestRunner::new()
+        .render(html! {
+            <UseEffectComponent />
+        })
+        .await
+        .assert_inner_html("The test result is: 4");
 }
 
 #[wasm_bindgen_test]
@@ -132,23 +125,19 @@ async fn use_effect_works_once() {
         );
 
         html! {
-            <div>
-                { "The test result is" }
-                <div id="result">{ *counter }</div>
-                { "\n" }
-            </div>
+            <>
+                { "The test result is: " }
+                { *counter }
+            </>
         }
     }
 
-    yew::Renderer::<UseEffectComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
-    )
-    .render();
-    sleep(Duration::ZERO).await;
-
-    let result = obtain_result();
-
-    assert_eq!(result.as_str(), "1");
+    TestRunner::new()
+        .render(html! {
+            <UseEffectComponent />
+        })
+        .await
+        .assert_inner_html("The test result is: 1");
 }
 
 #[wasm_bindgen_test]
@@ -180,21 +169,19 @@ async fn use_effect_refires_on_dependency_change() {
             arg,
         );
         html! {
-            <div>
-                {"The test result is"}
-                <div id="result">{*number_ref.borrow_mut().deref_mut()}{*number_ref2.borrow_mut().deref_mut()}</div>
-                {"\n"}
-            </div>
+            <>
+                { "The test result is: " }
+                { *number_ref.borrow_mut().deref_mut() }
+                { ";" }
+                { *number_ref2.borrow_mut().deref_mut() }
+            </>
         }
     }
 
-    yew::Renderer::<UseEffectComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
-    )
-    .render();
-
-    sleep(Duration::ZERO).await;
-    let result: String = obtain_result();
-
-    assert_eq!(result.as_str(), "11");
+    TestRunner::new()
+        .render(html! {
+            <UseEffectComponent />
+        })
+        .await
+        .assert_inner_html("The test result is: 1;1");
 }

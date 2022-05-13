@@ -2,12 +2,9 @@
 
 mod common;
 
-use std::time::Duration;
-
-use common::obtain_result;
-use gloo::timers::future::sleep;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
+use yew::tests::{TestCase, TestRunner};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -20,23 +17,15 @@ async fn props_are_passed() {
 
     #[function_component]
     fn PropsComponent(props: &PropsPassedFunctionProps) -> Html {
-        assert_eq!(&props.value, "props");
         html! {
-            <div id="result">
-                {"done"}
-            </div>
+            {&props.value}
         }
     }
 
-    yew::Renderer::<PropsComponent>::with_root_and_props(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
-        PropsPassedFunctionProps {
-            value: "props".to_string(),
-        },
-    )
-    .render();
-
-    sleep(Duration::ZERO).await;
-    let result = obtain_result();
-    assert_eq!(result.as_str(), "done");
+    TestRunner::new()
+        .render(html! {
+            <PropsComponent value="props123" />
+        })
+        .await
+        .assert_inner_html("props123");
 }

@@ -10,6 +10,7 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen_test::*;
 use web_sys::HtmlElement;
 use yew::prelude::*;
+use yew::tests::{TestCase, TestRunner};
 
 mod common;
 
@@ -35,8 +36,8 @@ impl Reducible for CounterState {
 
 #[wasm_bindgen_test]
 async fn use_reducer_works() {
-    #[function_component(UseReducerComponent)]
-    fn use_reducer_comp() -> Html {
+    #[function_component]
+    fn UseReducerComponent() -> Html {
         let counter = use_reducer(|| CounterState { counter: 10 });
 
         let counter_clone = counter.clone();
@@ -48,22 +49,19 @@ async fn use_reducer_works() {
             (),
         );
         html! {
-            <div>
-                {"The test result is"}
-                <div id="result">{counter.counter}</div>
-                {"\n"}
-            </div>
+            <>
+                { "The test result is: " }
+                { counter.counter }
+            </>
         }
     }
 
-    yew::Renderer::<UseReducerComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
-    )
-    .render();
-    sleep(Duration::ZERO).await;
-    let result = obtain_result();
-
-    assert_eq!(result.as_str(), "11");
+    TestRunner::new()
+        .render(html! {
+            <UseReducerComponent />
+        })
+        .await
+        .assert_inner_html("The test result is: 11");
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -83,8 +81,8 @@ impl Reducible for ContentState {
 
 #[wasm_bindgen_test]
 async fn use_reducer_eq_works() {
-    #[function_component(UseReducerComponent)]
-    fn use_reducer_comp() -> Html {
+    #[function_component]
+    fn UseReducerComponent() -> Html {
         let content = use_reducer_eq(|| ContentState {
             content: HashSet::default(),
         });
