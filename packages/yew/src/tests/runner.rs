@@ -4,11 +4,13 @@
 
 use std::borrow::Cow;
 use std::fmt;
+use std::future::Future;
 use std::panic::Location;
 use std::pin::Pin;
+use std::time::Duration;
 
-use futures::Future;
-use web_sys::{Element, Text};
+use gloo::timers::future::sleep;
+use web_sys::Element;
 
 use crate::dom_bundle::{BSubtree, Bundle};
 use crate::html::{AnyScope, Scope};
@@ -17,9 +19,9 @@ use crate::{scheduler, BaseComponent, Html, NodeRef};
 
 #[derive(Debug)]
 struct ReplayableLayout {
-    _name: String,
-    _html: Html,
-    _expected: Cow<'static, str>,
+    name: String,
+    html: Html,
+    expected: Cow<'static, str>,
 }
 
 /// The test runner controls a piece of the DOM on which your components are mounted.
@@ -30,7 +32,6 @@ pub struct TestRunner {
     scope: AnyScope,
     parent: Element,
     root: BSubtree,
-    _end_node: Text,
     end_position: NodeRef,
     location: &'static Location<'static>,
     // Changing over the course of the test
@@ -117,17 +118,13 @@ impl TestRunner {
         let scope: AnyScope = AnyScope::test();
         let root = BSubtree::create_root(&parent);
 
-        let document = gloo_utils::document();
-        let end_node = document.create_text_node("END");
-        parent.append_child(&end_node).unwrap();
         let bundle = Bundle::new();
 
         Self {
             scope,
             parent,
             root,
-            end_position: NodeRef::new(end_node.clone().into()),
-            _end_node: end_node,
+            end_position: NodeRef::default(),
             location: Location::caller(),
             bundle,
             full_layouts: vec![],
@@ -164,22 +161,22 @@ impl TestRunner {
         let layouts = std::mem::take(&mut self.full_layouts);
 
         for test in layouts.iter() {
-            self.apply(test._html.clone()).await;
+            self.apply(test.html.clone()).await;
             assert_eq!(
                 self.parent.inner_html(),
-                format!("{}END", test._expected),
+                test.expected,
                 "Sequential apply failed for layout '{}'",
-                test._name,
+                test.name,
             );
         }
 
         for test in layouts.into_iter().rev() {
-            self.apply(test._html.clone()).await;
+            self.apply(test.html.clone()).await;
             assert_eq!(
                 self.parent.inner_html(),
-                format!("{}END", test._expected),
+                test.expected,
                 "Sequential detach failed for layout '{}'",
-                test._name,
+                test.name,
             );
         }
 
@@ -187,7 +184,7 @@ impl TestRunner {
         scheduler::start_now();
         assert_eq!(
             self.parent.inner_html(),
-            "END",
+            "",
             "Sequential detach failed for last layout",
         );
     }
@@ -227,7 +224,7 @@ impl<'s> TestableState<'s> {
         self.context.as_runner().parent.clone()
     }
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(test, target_arch = "wasm32"))]
     pub(crate) fn bundle(&mut self) -> &Bundle {
         self.generating_html = None;
         &self.context.as_runner().bundle
@@ -242,24 +239,92 @@ impl<'s> TestableState<'s> {
         let runner = self.context.as_runner();
         let inner_html = runner.parent.inner_html();
         assert_eq!(
-            inner_html,
-            format!("{}END", expected),
+            inner_html, expected,
             "Independent attach failed for layout '{}'",
             self.name,
         );
     }
 }
 
+#[cfg(all(feature = "ssr", feature = "hydration"))]
+mod feat_ssr_hydrate {
+    use super::*;
+    use crate::dom_bundle::Fragment;
+    use crate::{function_component, html, Properties};
+
+    #[derive(PartialEq, Properties)]
+    pub struct HydrateWrapperProps {
+        pub inner: Html,
+    }
+    #[function_component]
+    pub fn HydrateWrapper(HydrateWrapperProps { inner }: &HydrateWrapperProps) -> Html {
+        inner.clone()
+    }
+
+    /// Access to the dom state, just before hydration occurs.
+    pub struct HydratableState<'s> {
+        pub(super) context: &'s mut dyn TestContext,
+        pub(super) name: String,
+        pub(super) html: Html,
+    }
+
+    impl<'s> fmt::Debug for HydratableState<'s> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.debug_struct("HydratableState").finish_non_exhaustive()
+        }
+    }
+
+    impl<'s> HydratableState<'s> {
+        /// Hydrate the application now, and wait for it to render
+        pub async fn hydrate(self) -> TestableState<'s> {
+            let runner = self.context.as_runner_mut();
+            // Hydrate the component into place
+            let mut fragment = Fragment::collect_children(&runner.parent);
+            let (_, bundle) = Bundle::hydrate(
+                &runner.root,
+                &runner.scope,
+                &runner.parent,
+                &mut fragment,
+                html! {
+                    <HydrateWrapper inner={self.html} />
+                },
+            );
+            runner.bundle = bundle;
+            // Flush lifecycles, then return
+            scheduler::start_now();
+            TestableState {
+                context: self.context,
+                name: self.name,
+                generating_html: None,
+                full_layout: None,
+            }
+        }
+    }
+}
+#[cfg(all(feature = "ssr", feature = "hydration"))]
+pub use feat_ssr_hydrate::HydratableState;
+#[cfg(all(feature = "ssr", feature = "hydration"))]
+use feat_ssr_hydrate::*;
+/// Common methods to [TestRunner] and [TestStep]
 pub trait TestCase {
+    /// Enter a sub-step of the test case
     fn step(&mut self, name: &'static str) -> TestStep<'_>;
-    fn render<'s>(
-        &'s mut self,
+    /// Wait for dom events and lifecycle events to be committed to the dom
+    fn process_events(&mut self) -> Pin<Box<dyn '_ + Future<Output = TestableState<'_>>>>;
+    /// Pretend that `html` was rendered by the server and prepare the dom to hydrate it
+    #[cfg(all(feature = "ssr", feature = "hydration"))]
+    fn prepare_hydrate(
+        &mut self,
         html: Html,
-    ) -> Pin<Box<dyn 's + Future<Output = TestableState<'_>>>>;
-    fn render_app<'s, T: BaseComponent>(
-        &'s mut self,
+    ) -> Pin<Box<dyn '_ + Future<Output = HydratableState<'_>>>>;
+    /// Await some html to render
+    fn render(&mut self, html: Html) -> Pin<Box<dyn '_ + Future<Output = TestableState<'_>>>>;
+    /// Await some component to render, returning a testable state and the scope handle to it.
+    fn render_app<T: BaseComponent>(
+        &mut self,
         html: VChild<T>,
-    ) -> Pin<Box<dyn 's + Future<Output = (TestableState<'_>, Scope<T>)>>>;
+    ) -> Pin<Box<dyn '_ + Future<Output = (TestableState<'_>, Scope<T>)>>>;
+    /// Alias for dropping the [TestCase].
     fn finish(self);
 }
 
@@ -276,11 +341,53 @@ impl<TC: TestContext> TestCase for TC {
         }
     }
 
-    fn render<'s>(
-        &'s mut self,
+    fn process_events(&mut self) -> Pin<Box<dyn '_ + Future<Output = TestableState<'_>>>> {
+        async fn process_events_impl(self_: &mut dyn TestContext) -> TestableState<'_> {
+            sleep(Duration::ZERO).await; // Wait for the next tick
+            scheduler::start_now();
+            let name = self_.name().to_owned();
+            TestableState {
+                context: self_,
+                name,
+                generating_html: None,
+                full_layout: None,
+            }
+        }
+        Box::pin(process_events_impl(self))
+    }
+
+    #[cfg(all(feature = "ssr", feature = "hydration"))]
+    fn prepare_hydrate(
+        &mut self,
         html: Html,
-    ) -> Pin<Box<dyn 's + Future<Output = TestableState<'_>>>> {
-        async fn render_impl<TC: TestContext>(self_: &mut TC, html: Html) -> TestableState<'_> {
+    ) -> Pin<Box<dyn '_ + Future<Output = HydratableState<'_>>>> {
+        use yew::ServerRenderer;
+
+        async fn prepare_hydrate_impl(
+            self_: &mut dyn TestContext,
+            inner: Html,
+        ) -> HydratableState<'_> {
+            // First, render the component with ssr rendering
+            let rendered = ServerRenderer::<HydrateWrapper>::with_props(HydrateWrapperProps {
+                inner: inner.clone(),
+            })
+            .render()
+            .await;
+            // Clear the parent, and replace it with ssr rendering result
+            let runner = self_.as_runner_mut();
+            runner.reconcile(Html::default());
+            runner.parent.set_inner_html(&rendered);
+            HydratableState {
+                name: self_.name().to_owned(),
+                context: self_,
+                html: inner,
+            }
+        }
+        Box::pin(prepare_hydrate_impl(self, html))
+    }
+
+    fn render(&mut self, html: Html) -> Pin<Box<dyn '_ + Future<Output = TestableState<'_>>>> {
+        async fn render_impl(self_: &mut dyn TestContext, html: Html) -> TestableState<'_> {
             let name = self_.name().to_owned();
             let runner = self_.as_runner_mut();
             runner.apply(html.clone()).await;
@@ -294,12 +401,12 @@ impl<TC: TestContext> TestCase for TC {
         Box::pin(render_impl(self, html))
     }
 
-    fn render_app<'s, T: BaseComponent>(
-        &'s mut self,
+    fn render_app<T: BaseComponent>(
+        &mut self,
         html: VChild<T>,
-    ) -> Pin<Box<dyn 's + Future<Output = (TestableState<'s>, Scope<T>)>>> {
-        async fn render_app_impl<TC: TestContext, T: BaseComponent>(
-            self_: &mut TC,
+    ) -> Pin<Box<dyn '_ + Future<Output = (TestableState<'_>, Scope<T>)>>> {
+        async fn render_app_impl<T: BaseComponent>(
+            self_: &mut dyn TestContext,
             html: VChild<T>,
         ) -> (TestableState<'_>, Scope<T>) {
             let name = self_.name().to_owned();
@@ -334,7 +441,7 @@ impl<'s> Drop for TestStep<'s> {
         scheduler::start_now();
         assert_eq!(
             runner.parent.inner_html(),
-            "END",
+            "",
             "Independent detach failed for layout '{}'",
             self.name(),
         );
@@ -351,9 +458,9 @@ impl<'s> Drop for TestableState<'s> {
         if let Some(html) = self.generating_html.take() {
             if let Some(full_layout) = self.full_layout.take() {
                 let saved_layout = ReplayableLayout {
-                    _name: self.context.name().to_owned(),
-                    _html: html,
-                    _expected: full_layout.into(),
+                    name: self.context.name().to_owned(),
+                    html,
+                    expected: full_layout.into(),
                 };
                 self.context
                     .as_runner_mut()

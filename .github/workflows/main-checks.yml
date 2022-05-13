@@ -33,6 +33,7 @@ jobs:
           cargo clippy --features=ssr -- --deny=warnings
           cargo clippy --features=csr -- --deny=warnings
           cargo clippy --features=hydration -- --deny=warnings
+          cargo clippy --features=test_runner -- --deny=warnings
           cargo clippy --all-features --all-targets -- --deny=warnings
         working-directory: packages/yew
 
@@ -64,6 +65,7 @@ jobs:
           cargo clippy --release --features=ssr -- --deny=warnings
           cargo clippy --release --features=csr -- --deny=warnings
           cargo clippy --release --features=hydration -- --deny=warnings
+          cargo clippy --release --features=test_runner -- --deny=warnings
           cargo clippy --release --all-features --all-targets -- --deny=warnings
         working-directory: packages/yew
 
@@ -159,8 +161,8 @@ jobs:
       - name: Run tests - yew
         run: |
           cd packages/yew
-          CHROMEDRIVER=$(which chromedriver) cargo test --features csr,hydration,ssr --target wasm32-unknown-unknown
-          GECKODRIVER=$(which geckodriver) cargo test --features csr,hydration,ssr --target wasm32-unknown-unknown
+          CHROMEDRIVER=$(which chromedriver) cargo test --features test_runner,hydration,ssr --target wasm32-unknown-unknown
+          GECKODRIVER=$(which geckodriver) cargo test --features test_runner,hydration,ssr --target wasm32-unknown-unknown
 
       - name: Run tests - yew-router
         run: |
@@ -202,7 +204,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -p yew --features "csr,ssr,hydration,tokio"
+          args: -p yew --all-features
 
   test-lints:
     name: Test lints on nightly
