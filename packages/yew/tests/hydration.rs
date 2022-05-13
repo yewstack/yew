@@ -71,7 +71,7 @@ async fn hydration_with_suspense() {
 
     #[function_component]
     fn Content(props: &TriggerProps) -> HtmlResult {
-        let resleep = use_trigger(true, &props.trigger)?;
+        let resleep = use_trigger(&props.trigger)?;
 
         let value = use_state(|| 0);
 
@@ -153,7 +153,7 @@ async fn hydration_with_suspense_not_suspended_at_start() {
 
     #[function_component]
     fn Content(ContentProps { trigger, break_ref }: &ContentProps) -> HtmlResult {
-        let resleep = use_trigger(false, trigger)?;
+        let resleep = use_trigger(trigger)?;
 
         let value = use_state(|| "I am writing a long story...".to_string());
 
@@ -226,7 +226,7 @@ async fn hydration_nested_suspense_works() {
 
     #[function_component]
     fn InnerContent(props: &NestedProps) -> HtmlResult {
-        let resleep = use_trigger(true, &props.inner_trigger)?;
+        let resleep = use_trigger(&props.inner_trigger)?;
         let on_take_a_break = Callback::from(move |_: MouseEvent| resleep());
 
         Ok(html! {
@@ -240,7 +240,7 @@ async fn hydration_nested_suspense_works() {
 
     #[function_component]
     fn Content(props: &NestedProps) -> HtmlResult {
-        let resleep = use_trigger(true, &props.outer_trigger)?;
+        let resleep = use_trigger(&props.outer_trigger)?;
         let on_take_a_break = Callback::from(move |_: MouseEvent| resleep());
         let fallback = html! {<div>{"wait...(inner)"}</div>};
 
@@ -398,7 +398,7 @@ fn Number(props: &NumberProps) -> Html {
 
 #[hook]
 pub fn use_suspend(trigger: &TriggerBus) -> SuspensionResult<()> {
-    let _ = use_trigger(true, trigger)?;
+    let _ = use_trigger(trigger)?;
     Ok(())
 }
 
@@ -482,7 +482,7 @@ async fn hydration_suspense_no_flickering() {
     }
     #[function_component]
     fn SuspendedNumber(props: &NumberProps) -> HtmlResult {
-        let _ = use_trigger(true, &props.busses.inner_bus)?;
+        use_suspend(&props.busses.inner_bus)?;
 
         Ok(html! {
             <Number ..{props.clone()}/>
@@ -490,7 +490,7 @@ async fn hydration_suspense_no_flickering() {
     }
     #[function_component]
     fn Suspended(props: &SuspendProps) -> HtmlResult {
-        let _ = use_trigger(true, &props.outer_bus)?;
+        use_suspend(&props.outer_bus)?;
 
         Ok(html! {
             { for (0..10).map(|number|
