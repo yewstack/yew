@@ -9,7 +9,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1"
 chrono = "0.4"
-git2 = "=0.14.2" # see https://github.com/rust-lang/git2-rs/issues/838 fixed with MSRV 1.60
+git2 = "=0.14.4" # see https://github.com/rust-lang/git2-rs/issues/838 fixed with MSRV 1.60
 regex = "1"
 reqwest = { version = "0.11", features = ["blocking", "json"] }
 serde = { version = "1", features = ["derive"] }
