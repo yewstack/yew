@@ -28,9 +28,6 @@
 //! enable this if your application uses future-based APIs and it does not compile / lint on
 //! non-wasm32 targets.)
 //! - `hydration`: Enables Hydration support.
-//! - `trace_hydration`: Enables trace logging on hydration. (Implies `hydration`. You may want to
-//!   enable this if you are
-//! trying to debug hydration layout mismatch.)
 //!
 //! ## Example
 //!
@@ -279,7 +276,6 @@ pub mod macros {
 
 pub mod callback;
 pub mod context;
-#[cfg_attr(documenting, doc(cfg(feature = "csr")))]
 #[cfg(feature = "csr")]
 mod dom_bundle;
 pub mod functional;

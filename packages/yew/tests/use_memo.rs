@@ -1,4 +1,4 @@
-#![cfg(feature = "wasm_test")]
+#![cfg(target_arch = "wasm32")]
 
 use std::sync::atomic::{AtomicBool, Ordering};
 

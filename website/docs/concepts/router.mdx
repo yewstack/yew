@@ -71,7 +71,7 @@ enum Route {
 fn secure() -> Html {
     let navigator = use_navigator().unwrap();
 
-    let onclick = Callback::from(move |_| navigator.push(Route::Home));
+    let onclick = Callback::from(move |_| navigator.push(&Route::Home));
     html! {
         <div>
             <h1>{ "Secure" }</h1>
@@ -80,7 +80,7 @@ fn secure() -> Html {
     }
 }
 
-fn switch(routes: &Route) -> Html {
+fn switch(routes: Route) -> Html {
     match routes {
         Route::Home => html! { <h1>{ "Home" }</h1> },
         Route::Secure => html! {
@@ -94,7 +94,7 @@ fn switch(routes: &Route) -> Html {
 fn app() -> Html {
     html! {
         <BrowserRouter>
-            <Switch<Route> render={Switch::render(switch)} />
+            <Switch<Route> render={switch} />
         </BrowserRouter>
     }
 }
@@ -206,7 +206,7 @@ Here's how to implement a button that navigates to the `Home` route when clicked
 #[function_component(MyComponent)]
 pub fn my_component() -> Html {
     let navigator = use_navigator().unwrap();
-    let onclick = Callback::from(move |_| navigator.push(Route::Home));
+    let onclick = Callback::from(move |_| navigator.push(&Route::Home));
 
     html! {
         <>
@@ -239,7 +239,7 @@ pub fn nav_items() -> Html {
 
     let go_home_button = {
         let navigator = navigator.clone();
-        let onclick = Callback::from(move |_| navigator.push(Route::Home));
+        let onclick = Callback::from(move |_| navigator.push(&Route::Home));
         html! {
             <button {onclick}>{"click to go home"}</button>
         }
@@ -247,14 +247,14 @@ pub fn nav_items() -> Html {
 
     let go_to_first_post_button = {
         let navigator = navigator.clone();
-        let onclick = Callback::from(move |_| navigator.push(Route::Post { id: "first-post".to_string() }));
+        let onclick = Callback::from(move |_| navigator.push(&Route::Post { id: "first-post".to_string() }));
         html! {
             <button {onclick}>{"click to go the first post"}</button>
         }
     };
 
     let go_to_secure_button = {
-        let onclick = Callback::from(move |_| navigator.push(Route::Secure));
+        let onclick = Callback::from(move |_| navigator.push(&Route::Secure));
         html! {
             <button {onclick}>{"click to go to secure"}</button>
         }
@@ -278,7 +278,7 @@ identical with the function component case. Here's an example of a view function
 ```rust ,ignore
 fn view(&self, ctx: &Context<Self>) -> Html {
     let navigator = ctx.link().navigator().unwrap();
-    let onclick = Callback::from(move |_| navigator.push(MainRoute::Home));
+    let onclick = Callback::from(move |_| navigator.push(&MainRoute::Home));
     html!{
         <button {onclick}>{"Go Home"}</button>
     }
@@ -455,17 +455,17 @@ enum SettingsRoute {
     NotFound,
 }
 
-fn switch_main(route: &MainRoute) -> Html {
+fn switch_main(route: MainRoute) -> Html {
     match route {
         MainRoute::Home => html! {<h1>{"Home"}</h1>},
         MainRoute::News => html! {<h1>{"News"}</h1>},
         MainRoute::Contact => html! {<h1>{"Contact"}</h1>},
-        MainRoute::SettingsRoot | MainRoute::Settings => html! { <Switch<SettingsRoute> render={Switch::render(switch_settings)} /> },
+        MainRoute::SettingsRoot | MainRoute::Settings => html! { <Switch<SettingsRoute> render={switch_settings} /> },
         MainRoute::NotFound => html! {<h1>{"Not Found"}</h1>},
     }
 }
 
-fn switch_settings(route: &SettingsRoute) -> Html {
+fn switch_settings(route: SettingsRoute) -> Html {
     match route {
         SettingsRoute::Profile => html! {<h1>{"Profile"}</h1>},
         SettingsRoute::Friends => html! {<h1>{"Friends"}</h1>},
@@ -478,7 +478,7 @@ fn switch_settings(route: &SettingsRoute) -> Html {
 pub fn app() -> Html {
     html! {
         <BrowserRouter>
-            <Switch<MainRoute> render={Switch::render(switch_main)} />
+            <Switch<MainRoute> render={switch_main} />
         </BrowserRouter>
     }
 }

@@ -167,7 +167,7 @@ mod feat_hydration {
     }
 }
 
-#[cfg(feature = "wasm_test")]
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
 
@@ -276,7 +276,7 @@ mod tests {
     #[test]
     fn set_component_node_ref() {
         let test_node_ref = HtmlRef::new();
-        let internal_node_ref = <ErasedHtmlRef as From<_>>::from(Some(test_node_ref.clone()));
+        let internal_node_ref = <ErasedHtmlRef as From<_>>::from(test_node_ref.clone());
         let check_node_ref = |vnode: VNode| {
             let vcomp = match vnode {
                 VNode::VComp(vcomp) => vcomp,
@@ -471,7 +471,7 @@ mod tests {
     }
 }
 
-#[cfg(feature = "wasm_test")]
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;

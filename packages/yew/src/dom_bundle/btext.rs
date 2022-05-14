@@ -156,12 +156,12 @@ mod feat_hydration {
 mod test {
     extern crate self as yew;
 
-    #[cfg(feature = "wasm_test")]
+    #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use crate::html;
 
-    #[cfg(feature = "wasm_test")]
+    #[cfg(target_arch = "wasm32")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
@@ -176,11 +176,11 @@ mod test {
     }
 }
 
-#[cfg(all(test, feature = "wasm_test"))]
+#[cfg(target_arch = "wasm32")]
+#[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use crate::html;

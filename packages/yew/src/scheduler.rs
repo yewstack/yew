@@ -34,7 +34,6 @@ struct Scheduler {
     /// rendering parent first.
     render: BTreeMap<usize, Box<dyn Runnable>>,
     render_first: BTreeMap<usize, Box<dyn Runnable>>,
-    #[cfg(feature = "hydration")]
     render_priority: BTreeMap<usize, Box<dyn Runnable>>,
 
     /// Binary Tree Map to guarantee children rendered are always called before parent calls
@@ -165,38 +164,31 @@ pub(crate) fn start_now() {
 }
 
 #[cfg(target_arch = "wasm32")]
-mod target_wasm {
-    use super::*;
+mod arch {
     use crate::io_coop::spawn_local;
 
     /// We delay the start of the scheduler to the end of the micro task queue.
     /// So any messages that needs to be queued can be queued.
     pub(crate) fn start() {
         spawn_local(async {
-            start_now();
+            super::start_now();
         });
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-pub(crate) use target_wasm::*;
-
 #[cfg(not(target_arch = "wasm32"))]
-mod target_native {
-    use super::*;
-
+mod arch {
     // Delayed rendering is not very useful in the context of server-side rendering.
     // There are no event listeners or other high priority events that need to be
     // processed and we risk of having a future un-finished.
     // Until scheduler is future-capable which means we can join inside a future,
     // it can remain synchronous.
     pub(crate) fn start() {
-        start_now();
+        super::start_now();
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use target_native::*;
+pub(crate) use arch::*;
 
 impl Scheduler {
     /// Fill vector with tasks to be executed according to Runnable type execution priority
@@ -244,21 +236,15 @@ impl Scheduler {
         // Priority rendering
         //
         // This is needed for hydration susequent render to fix node refs.
-        #[cfg(feature = "hydration")]
+        if let Some(r) = self
+            .render_priority
+            .keys()
+            .next()
+            .cloned()
+            .and_then(|m| self.render_priority.remove(&m))
         {
-            if let Some(r) = self
-                .render_priority
-                .keys()
-                .next()
-                .cloned()
-                .and_then(|m| self.render_priority.remove(&m))
-            {
-                to_run.push(r);
-            }
-
-            if !to_run.is_empty() {
-                return;
-            }
+            to_run.push(r);
+            return;
         }
 
         if !self.rendered_first.is_empty() {

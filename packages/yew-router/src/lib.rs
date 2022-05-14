@@ -23,7 +23,7 @@
 //! fn secure() -> Html {
 //!     let navigator = use_navigator().unwrap();
 //!
-//!     let onclick_callback = Callback::from(move |_| navigator.push(Route::Home));
+//!     let onclick_callback = Callback::from(move |_| navigator.push(&Route::Home));
 //!     html! {
 //!         <div>
 //!             <h1>{ "Secure" }</h1>
@@ -36,12 +36,12 @@
 //! fn app() -> Html {
 //!     html! {
 //!         <BrowserRouter>
-//!             <Switch<Route> render={Switch::render(switch)} />
+//!             <Switch<Route> render={switch} />
 //!         </BrowserRouter>
 //!     }
 //! }
 //!
-//! fn switch(routes: &Route) -> Html {
+//! fn switch(routes: Route) -> Html {
 //!     match routes {
 //!         Route::Home => html! { <h1>{ "Home" }</h1> },
 //!         Route::Secure => html! {
@@ -79,7 +79,7 @@ pub mod utils;
 
 pub use routable::{AnyRoute, Routable};
 pub use router::{BrowserRouter, HashRouter, Router};
-pub use switch::{RenderFn, Switch};
+pub use switch::Switch;
 
 pub mod history {
     //! A module that provides universal session history and location information.

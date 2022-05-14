@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-yew = { path = "../../packages/yew", features = ["ssr", "hydration", "trace_hydration"] }
+yew = { path = "../../packages/yew", features = ["ssr", "hydration"] }
 function_router = { path = "../function_router" }
 log = "0.4"
 
@@ -16,7 +16,9 @@ wasm-logger = "0.2"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1.15.0", features = ["full"] }
-warp = "0.3"
+axum = "0.5"
+tower = { version = "0.4", features = ["make"] }
+tower-http = { version = "0.3", features = ["fs"] }
 env_logger = "0.9"
 num_cpus = "1.13"
 tokio-util = { version = "0.7", features = ["rt"] }

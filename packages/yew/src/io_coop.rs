@@ -1,15 +1,12 @@
 //! module that provides io compatibility over browser tasks and other async io tasks (e.g.: tokio)
 
 #[cfg(target_arch = "wasm32")]
-mod io_wasm_bindgen {
+mod arch {
     pub use wasm_bindgen_futures::spawn_local;
 }
 
-#[cfg(target_arch = "wasm32")]
-pub(crate) use io_wasm_bindgen::*;
-
-#[cfg(all(not(target_arch = "wasm32"), feature = "tokio"))]
-mod io_tokio {
+#[cfg(not(target_arch = "wasm32"))]
+mod arch {
     use std::future::Future;
 
     // spawn_local in tokio is more powerful, but we need to adjust the function signature to match
@@ -19,9 +16,17 @@ mod io_tokio {
     where
         F: Future<Output = ()> + 'static,
     {
-        tokio::task::spawn_local(f);
+        #[cfg(feature = "tokio")]
+        ::tokio::task::spawn_local(f);
+        #[cfg(not(feature = "tokio"))]
+        {
+            let _ = f;
+            panic!(
+                r#"No scheduler configured for this platform, features related to async can't be used.
+                Either compile with `target_arch = "wasm32", or enable the `tokio` feature."#
+            );
+        }
     }
 }
 
-#[cfg(all(not(target_arch = "wasm32"), feature = "tokio"))]
-pub(crate) use io_tokio::*;
+pub(crate) use arch::*;

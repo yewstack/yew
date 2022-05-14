@@ -118,11 +118,11 @@ impl BPortal {
     }
 }
 
-#[cfg(all(test, feature = "wasm_test"))]
+#[cfg(target_arch = "wasm32")]
+#[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use yew::virtual_dom::VPortal;
 

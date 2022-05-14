@@ -16,7 +16,7 @@ pub use use_reducer::*;
 pub use use_ref::*;
 pub use use_state::*;
 
-use crate::functional::{AnyScope, HookContext};
+use crate::functional::HookContext;
 
 /// A trait that is implemented on hooks.
 ///
@@ -51,18 +51,4 @@ impl<T> Hook for BoxedHook<'_, T> {
     fn run(self, ctx: &mut HookContext) -> Self::Output {
         (self.inner)(ctx)
     }
-}
-
-pub(crate) fn use_component_scope() -> impl Hook<Output = AnyScope> {
-    struct HookProvider {}
-
-    impl Hook for HookProvider {
-        type Output = AnyScope;
-
-        fn run(self, ctx: &mut HookContext) -> Self::Output {
-            ctx.scope.clone()
-        }
-    }
-
-    HookProvider {}
 }

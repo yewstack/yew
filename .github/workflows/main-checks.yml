@@ -120,7 +120,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -p yew --doc --features doc_test --target wasm32-unknown-unknown
+          args: -p yew --doc --all-features --target wasm32-unknown-unknown
 
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
@@ -159,8 +159,8 @@ jobs:
       - name: Run tests - yew
         run: |
           cd packages/yew
-          CHROMEDRIVER=$(which chromedriver) cargo test --features wasm_test --target wasm32-unknown-unknown
-          GECKODRIVER=$(which geckodriver) cargo test --features wasm_test --target wasm32-unknown-unknown
+          CHROMEDRIVER=$(which chromedriver) cargo test --features csr,hydration,ssr --target wasm32-unknown-unknown
+          GECKODRIVER=$(which geckodriver) cargo test --features csr,hydration,ssr --target wasm32-unknown-unknown
 
       - name: Run tests - yew-router
         run: |
