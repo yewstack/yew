@@ -123,6 +123,13 @@ impl<T> PartialEq for HtmlRef<T> {
     }
 }
 
+fn make_setter<T: 'static>() -> Setter {
+    |value: &mut dyn Any, inner_place: &mut dyn Any| {
+        *inner_place.downcast_mut::<Option<T>>().unwrap() =
+            value.downcast_mut::<Option<T>>().unwrap().take();
+    }
+}
+
 impl<T: 'static> HtmlRef<T> {
     /// Create a new, unbound HtmlRef
     pub fn new() -> Self {
@@ -147,22 +154,19 @@ impl<T: 'static> HtmlRef<T> {
     pub(crate) fn to_erased(&self) -> ErasedHtmlRef {
         ErasedHtmlRef {
             place: self.inner.clone() as Rc<RefCell<dyn Any>>,
-            setter: Rc::new(|next_value, inner| {
-                *inner.downcast_mut::<Option<T>>().unwrap() =
-                    next_value.downcast_mut::<Option<T>>().unwrap().take();
-            }),
+            setter: make_setter::<T>(),
         }
     }
 }
 
-type Setter = dyn Fn(&mut dyn Any, &mut dyn Any);
+type Setter = fn(&mut dyn Any, &mut dyn Any);
 /// Internal form of a `HtmlRef`, erasing the component type.
 /// The type-id is currently not stored, so be careful that the contained scope always has
 /// the correct component type.
 #[derive(Clone)]
 pub(crate) struct ErasedHtmlRef {
     place: Rc<RefCell<dyn Any>>,
-    setter: Rc<Setter>,
+    setter: Setter,
 }
 
 impl fmt::Debug for ErasedHtmlRef {
@@ -227,8 +231,7 @@ impl ErasedHtmlRef {
 
     #[cfg(any(feature = "csr", feature = "ssr"))]
     pub(crate) fn debug_assert_bound<T: 'static>(&self) {
-        #[cfg(debug_assertions)]
-        assert!(
+        debug_assert!(
             (*self.place.borrow()).type_id() == std::any::TypeId::of::<Option<NoReference>>()
                 || self.place.borrow().downcast_ref::<Option<T>>().is_some(),
             "Expected that the component ref is bound by the time it has rendered. Did you forget \
