@@ -289,6 +289,10 @@ impl ErasedHtmlRef {
         *new.binding.borrow_mut() = old.binding.borrow_mut().take();
     }
 
+    pub(crate) fn debug_assert_bound<E: 'static>(&self) {
+        debug_assert!(self.0.downcast_inner::<E>().binding.borrow().is_some())
+    }
+
     /// Get the underlying node from an erased HtmlRef.
     #[cfg(feature = "csr")]
     pub(crate) fn get_node(&self) -> Option<Node> {

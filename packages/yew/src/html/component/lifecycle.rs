@@ -172,7 +172,9 @@ where
     }
 
     fn rendered(&mut self, first_render: bool) {
-        self.component.rendered(&self.context, first_render)
+        self.component.rendered(&self.context, first_render);
+        self.comp_ref
+            .debug_assert_bound::<<COMP::Reference as crate::html::ErasedStorage>::Erased>();
     }
 
     fn destroy(&mut self) {
