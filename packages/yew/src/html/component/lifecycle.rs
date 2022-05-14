@@ -139,8 +139,6 @@ where
 {
     component: COMP,
     context: Context<COMP>,
-    #[allow(dead_code)] // Field is unused during ssr
-    comp_ref: ErasedHtmlRef,
 }
 
 /// A trait to provide common,
@@ -150,14 +148,14 @@ where
 /// methods.
 pub(crate) trait Stateful {
     fn view(&self) -> HtmlResult;
-    fn rendered(&mut self, first_render: bool);
-    fn destroy(&mut self);
+    fn rendered(&mut self, first_render: bool, comp_ref: &ErasedHtmlRef);
+    fn destroy(&mut self, comp_ref: &ErasedHtmlRef);
 
     fn any_scope(&self) -> AnyScope;
 
     fn flush_messages(&mut self) -> bool;
     #[cfg(feature = "csr")]
-    fn props_changed(&mut self, props: Rc<dyn Any>, comp_ref: ErasedHtmlRef) -> bool;
+    fn props_changed(&mut self, props: Rc<dyn Any>) -> bool;
 
     fn as_any(&self) -> &dyn Any;
     fn as_any_mut(&mut self) -> &mut dyn Any;
@@ -171,15 +169,15 @@ where
         self.component.view(&self.context)
     }
 
-    fn rendered(&mut self, first_render: bool) {
+    fn rendered(&mut self, first_render: bool, comp_ref: &ErasedHtmlRef) {
         self.component.rendered(&self.context, first_render);
-        self.comp_ref.debug_assert_bound::<COMP::Reference>();
+        comp_ref.debug_assert_bound::<COMP::Reference>();
     }
 
-    fn destroy(&mut self) {
+    fn destroy(&mut self, comp_ref: &ErasedHtmlRef) {
         self.component.destroy(&self.context);
         #[cfg(feature = "csr")]
-        self.comp_ref.unset_erased::<COMP::Reference>();
+        comp_ref.unset_erased::<COMP::Reference>();
     }
 
     fn any_scope(&self) -> AnyScope {
@@ -198,10 +196,7 @@ where
     }
 
     #[cfg(feature = "csr")]
-    fn props_changed(&mut self, props: Rc<dyn Any>, next_comp_ref: ErasedHtmlRef) -> bool {
-        // When components are updated, a new node ref could have been passed in
-        self.comp_ref.morph_erased(next_comp_ref);
-
+    fn props_changed(&mut self, props: Rc<dyn Any>) -> bool {
         let props = match Rc::downcast::<COMP::Properties>(props) {
             Ok(m) => m,
             _ => return false,
@@ -226,8 +221,9 @@ where
 
 pub(crate) struct ComponentState {
     pub(super) inner: Box<dyn Stateful>,
-
     pub(super) render_state: ComponentRenderState,
+    #[allow(dead_code)] // Field is unused during ssr
+    comp_ref: ErasedHtmlRef,
 
     #[cfg(feature = "csr")]
     has_rendered: bool,
@@ -266,13 +262,13 @@ impl ComponentState {
         let inner = Box::new(CompStateInner {
             component: COMP::create(&context, bindable_ref),
             context,
-            comp_ref,
         });
 
         Self {
             inner,
             render_state: initial_render_state,
             suspension: None,
+            comp_ref,
 
             #[cfg(feature = "csr")]
             has_rendered: false,
@@ -343,8 +339,10 @@ impl Runnable for PropsUpdateRunner {
                 } => {
                     // When components are updated, their siblings were likely also updated
                     *current_next_sibling = next_sibling;
+                    // When components are updated, a new node ref could have been passed in
+                    state.comp_ref.morph_erased(comp_ref);
                     // Only trigger changed if props were changed
-                    state.inner.props_changed(props, comp_ref)
+                    state.inner.props_changed(props)
                 }
 
                 #[cfg(feature = "hydration")]
@@ -354,8 +352,10 @@ impl Runnable for PropsUpdateRunner {
                 } => {
                     // When components are updated, their siblings were likely also updated
                     *current_next_sibling = next_sibling;
+                    // When components are updated, a new node ref could have been passed in
+                    state.comp_ref.morph_erased(comp_ref);
                     // Only trigger changed if props were changed
-                    state.inner.props_changed(props, comp_ref)
+                    state.inner.props_changed(props)
                 }
 
                 #[cfg(feature = "ssr")]
@@ -426,7 +426,7 @@ impl Runnable for DestroyRunner {
             #[cfg(debug_assertions)]
             super::log_event(state.comp_id, "destroy");
 
-            state.inner.destroy();
+            state.inner.destroy(&state.comp_ref);
 
             match state.render_state {
                 #[cfg(feature = "csr")]
@@ -635,7 +635,7 @@ mod feat_csr {
                 super::super::log_event(state.comp_id, "rendered");
 
                 if state.suspension.is_none() {
-                    state.inner.rendered(self.first_render);
+                    state.inner.rendered(self.first_render, &state.comp_ref);
                 }
             }
         }
