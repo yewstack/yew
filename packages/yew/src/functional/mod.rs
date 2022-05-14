@@ -27,8 +27,7 @@ use std::rc::Rc;
 
 use wasm_bindgen::prelude::*;
 
-use crate::html::{AnyScope, BaseComponent, BindableRef, Context, HtmlResult};
-use crate::Properties;
+use crate::html::{AnyScope, BaseComponent, BindableRef, Context, ErasedHtmlRef, HtmlResult};
 
 mod hooks;
 pub use hooks::*;
@@ -73,6 +72,7 @@ pub(crate) trait Effect {
 pub struct HookContext {
     pub(crate) scope: AnyScope,
     re_render: ReRender,
+    comp_ref: ErasedHtmlRef,
 
     states: Vec<Rc<dyn Any>>,
     effects: Vec<Rc<dyn Effect>>,
@@ -83,12 +83,13 @@ pub struct HookContext {
 }
 
 impl HookContext {
-    fn new(scope: AnyScope, re_render: ReRender) -> RefCell<Self> {
+    fn new(scope: AnyScope, re_render: ReRender, comp_ref: ErasedHtmlRef) -> RefCell<Self> {
         RefCell::new(HookContext {
             effects: Vec::new(),
             scope,
             re_render,
             states: Vec::new(),
+            comp_ref,
 
             counter: 0,
             #[cfg(debug_assertions)]
@@ -193,15 +194,16 @@ impl fmt::Debug for HookContext {
 }
 
 /// Trait that allows a struct to act as Function Component.
-pub trait FunctionProvider {
-    /// Properties for the Function Component.
-    type Properties: Properties + PartialEq;
-
+pub trait FunctionProvider: BaseComponent<Message = ()> {
     /// Render the component. This function returns the [`Html`](crate::Html) to be rendered for the
     /// component.
     ///
     /// Equivalent of [`Component::view`](crate::html::Component::view).
-    fn run(ctx: &mut HookContext, props: &Self::Properties) -> HtmlResult;
+    fn run(
+        ctx: &mut HookContext,
+        props: &Self::Properties,
+        bindable_ref: BindableRef<Self::Reference>,
+    ) -> HtmlResult;
 }
 
 /// A type that interacts [`FunctionProvider`] to provide lifecycle events to be bridged to
@@ -213,23 +215,17 @@ pub trait FunctionProvider {
 ///
 /// Use the `#[function_component]` macro instead.
 #[doc(hidden)]
-pub struct FunctionComponent<T>
-where
-    T: FunctionProvider,
-{
+pub struct FunctionComponent<T> {
     _never: std::marker::PhantomData<T>,
     hook_ctx: RefCell<HookContext>,
 }
 
 impl<T> FunctionComponent<T>
 where
-    T: FunctionProvider + 'static,
+    T: FunctionProvider,
 {
     /// Creates a new function component.
-    pub fn new(ctx: &Context<T>, _bindable_ref: BindableRef<T::Reference>) -> Self
-    where
-        T: BaseComponent<Message = ()> + FunctionProvider + 'static,
-    {
+    pub fn new(ctx: &Context<T>, bindable_ref: BindableRef<T::Reference>) -> Self {
         let scope = AnyScope::from(ctx.link().clone());
         let re_render = {
             let link = ctx.link().clone();
@@ -239,7 +235,7 @@ where
 
         Self {
             _never: std::marker::PhantomData::default(),
-            hook_ctx: HookContext::new(scope, re_render),
+            hook_ctx: HookContext::new(scope, re_render, bindable_ref.forward().to_erased()),
         }
     }
 
@@ -249,8 +245,9 @@ where
 
         hook_ctx.prepare_run();
 
+        let bindable_ref = BindableRef::for_ref(&hook_ctx.comp_ref);
         #[allow(clippy::let_and_return)]
-        let result = T::run(&mut *hook_ctx, props);
+        let result = T::run(&mut *hook_ctx, props, bindable_ref);
 
         #[cfg(debug_assertions)]
         hook_ctx.assert_hook_context(result.is_ok());
@@ -273,7 +270,7 @@ where
 
 impl<T> fmt::Debug for FunctionComponent<T>
 where
-    T: FunctionProvider + 'static,
+    T: FunctionProvider,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("FunctionComponent<_>")

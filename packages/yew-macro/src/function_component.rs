@@ -348,23 +348,27 @@ impl FunctionComponent {
         let component_impl_attrs = self.filter_attrs_for_component_impl();
         let component_name = self.component_name();
         let fn_name = self.inner_fn_ident();
-        let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
-        let props_type = &self.props_type;
+        let static_comp_generics = self.create_static_component_generics();
+        let (impl_generics, ty_generics, where_clause) = static_comp_generics.split_for_impl();
         let fn_generics = ty_generics.as_turbofish();
 
         let component_props = Ident::new("props", Span::mixed_site());
         let ctx_ident = Ident::new("ctx", Span::mixed_site());
+        let bindable_ref = Ident::new("_bindable_ref", Span::mixed_site());
 
         quote! {
             // we cannot disable any lints here because it will be applied to the function body
             // as well.
             #(#component_impl_attrs)*
             impl #impl_generics ::yew::functional::FunctionProvider for #component_name #ty_generics #where_clause {
-                type Properties = #props_type;
-
-                fn run(#ctx_ident: &mut ::yew::functional::HookContext, #component_props: &Self::Properties) -> ::yew::html::HtmlResult {
+                fn run(
+                    #ctx_ident: &mut ::yew::functional::HookContext,
+                    #component_props: &<Self as ::yew::html::BaseComponent>::Properties,
+                    #bindable_ref: ::yew::html::BindableRef<<Self as ::yew::html::BaseComponent>::Reference>,
+                ) -> ::yew::html::HtmlResult {
                     #func
 
+                    #bindable_ref.fake_bind();
                     ::yew::html::IntoHtmlResult::into_html_result(#fn_name #fn_generics (#ctx_ident, #component_props))
                 }
             }

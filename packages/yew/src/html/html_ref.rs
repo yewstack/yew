@@ -236,7 +236,6 @@ impl<T: ErasedStorage> HtmlRef<T> {
         Some(self.get_ref()?.clone())
     }
 
-    #[cfg(any(feature = "csr"))]
     pub(crate) fn to_erased(&self) -> ErasedHtmlRef {
         self.clone().into()
     }
@@ -279,6 +278,7 @@ impl ErasedHtmlRef {
     }
 
     /// `self = next`, but also transfer the contained reference from self to next.
+    #[cfg(feature = "csr")]
     pub fn morph_erased<E: 'static>(&mut self, next: Self) {
         if self == &next {
             return;
@@ -289,8 +289,13 @@ impl ErasedHtmlRef {
         *new.binding.borrow_mut() = old.binding.borrow_mut().take();
     }
 
+    #[cfg(any(feature = "csr", feature = "ssr"))]
     pub(crate) fn debug_assert_bound<E: 'static>(&self) {
-        debug_assert!(self.0.downcast_inner::<E>().binding.borrow().is_some())
+        debug_assert!(
+            self.0.downcast_inner::<E>().binding.borrow().is_some(),
+            "Expected that the component ref is bound by the time it has rendered. Did you forget \
+             to bind it to a child?"
+        );
     }
 
     /// Get the underlying node from an erased HtmlRef.
@@ -361,7 +366,6 @@ pub struct BindableRef<T: ErasedStorage> {
 }
 
 impl<T: ErasedStorage> BindableRef<T> {
-    #[cfg(any(feature = "ssr", feature = "csr"))]
     pub(crate) fn for_ref(inner: &ErasedHtmlRef) -> Self {
         Self {
             inner: inner.clone(),
@@ -372,6 +376,14 @@ impl<T: ErasedStorage> BindableRef<T> {
     /// Bind a value to the reference
     pub fn bind(self, value: T) {
         self.inner.set_erased::<T::Erased>(Some(value.upcast()))
+    }
+
+    /// Prepare to forward the reference to a nested component or element
+    pub fn forward(self) -> HtmlRef<T> {
+        HtmlRef {
+            inner: self.inner.0,
+            _phantom: PhantomData,
+        }
     }
 }
 
