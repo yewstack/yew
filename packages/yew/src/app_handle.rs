@@ -6,7 +6,8 @@ use std::rc::Rc;
 use web_sys::Element;
 
 use crate::dom_bundle::BSubtree;
-use crate::html::{BaseComponent, DomPosition, ErasedHtmlRef, Scope, Scoped};
+use crate::html::{BaseComponent, DomPosition, Scope, Scoped};
+use crate::ComponentRef;
 
 /// An instance of an application.
 #[cfg_attr(documenting, doc(cfg(feature = "csr")))]
@@ -35,7 +36,7 @@ where
             host,
             DomPosition::default(),
             DomPosition::default(),
-            ErasedHtmlRef::unbound::<COMP::Reference>(),
+            ComponentRef::<COMP>::unbound_erased(),
             props,
         );
 
@@ -89,7 +90,7 @@ mod feat_hydration {
                 host.clone(),
                 &mut fragment,
                 DomPosition::default(),
-                ErasedHtmlRef::unbound::<COMP::Reference>(),
+                ComponentRef::<COMP>::unbound_erased(),
                 props,
             );
 

@@ -245,7 +245,7 @@ impl VComp {
     {
         let comp_ref = match comp_ref {
             Some(comp_ref) => comp_ref.to_erased(),
-            None => ErasedHtmlRef::unbound::<COMP::Reference>(),
+            None => ComponentRef::<COMP>::unbound_erased(),
         };
         VComp {
             type_id: TypeId::of::<COMP>(),

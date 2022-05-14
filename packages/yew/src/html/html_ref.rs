@@ -157,6 +157,11 @@ impl<T: 'static> HtmlRef<T> {
             setter: make_setter::<T>(),
         }
     }
+
+    // Create an ErasedHtmlRef where the user is not interested in the value
+    pub(crate) fn unbound_erased() -> ErasedHtmlRef {
+        Self::default().to_erased()
+    }
 }
 
 type Setter = fn(&mut dyn Any, &mut dyn Any);
@@ -182,11 +187,6 @@ impl PartialEq for ErasedHtmlRef {
 }
 
 impl ErasedHtmlRef {
-    // Create an ErasedHtmlRef where the user is not interested in the value
-    pub(crate) fn unbound<T: 'static>() -> Self {
-        HtmlRef::<T>::default().to_erased()
-    }
-
     pub(crate) fn set_erased<T: 'static>(&self, next_erased: T) {
         self.debug_assert_internal_type::<T>();
         let mut place = Some(next_erased);
