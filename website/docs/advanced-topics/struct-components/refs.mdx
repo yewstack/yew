@@ -5,92 +5,22 @@ description: 'Out-of-band DOM access'
 
 The `ref` keyword can be used on elements and struct components. See the page about [`NodeRef`](../../concepts/html/node-refs)
 for its usage on elements. When used on a component, the ref does not bind a DOM `Element`. Instead,
-the `ComponentRef` contains a reference to the `Scope` of the child, bound when the child is rendered.
+the referenced `Component` binds arbitrary data when it is rendered, for example a `Scope` to itself.
 
-The `ComponentRef` can then be used to send messages to the attached component, which are handdled in the `update`
-lifecycle method to perform side-effects or cause a rerender. Note that `ComponentRef<_>` is generically typed
-and receives the type of the referenced component as argument.
+The `ComponentRef` can subsequently be used to interact with the bound value. Sticking with the example of binding a `Scope`, one can
+send messages to the attached component, which are handled in its `update` lifecycle method to perform side-effects or cause
+a rerender. Note that `ComponentRef<_>` is generically typed and receives the type of the referenced component as argument.
 
-By capturing a reference to the `Scope`, instead of a specific element inside the ref-ed component, component implementations
-are more modular. If you want to expose specific elements, for example the `<input>` element of a styled button, you should
-add a property of type `NodeRef` and bind the ref you receive from your components' parent to an element in the `html!`.
+Components can also forward the reference, to bind to a nested child, either another component or an element. For example, a component
+wrapping an `<input>` element could forward references to that html element. In this way, components can modularly change
+their internal structure without breaking consuming components.
 
-A full example can be given by an externally controlled "light switch". Note that the state of the light
+A full example is given by an externally controlled "light switch". Note that the state of the light
 is contained inside the `Light` component, and the `Room` ties this together by sending a message to the
 `Light` in the callback passed to the `Switch`.
 
-```rust
-use yew::prelude::*;
-use yew::html::{Scope, BindableRef};
-
-#[derive(PartialEq, Properties)]
-struct SwitchProps {
-    on_toggle: Callback<MouseEvent>,
-}
-
-#[function_component]
-fn Switch(SwitchProps { on_toggle }: &SwitchProps) -> Html {
-    html! {
-        <button onclick={on_toggle}>{"Switch"}</button>
-    }
-}
-
-enum LightMessage {
-    Toggle,
-}
-
-struct Light {
-    is_on: bool,
-}
-
-impl ComponentWithRef for Light {
-    type Properties = ();
-    type Message = LightMessage;
-    type Reference = Scope<Self>;
-
-    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<Self::Reference>) -> Self {
-        bindable_ref.bind(ctx.link().clone());
-        Light { is_on: true }
-    }
-
-    fn update(&mut self, _ctx: &Context<Self>, LightMessage::Toggle: LightMessage) -> bool {
-        self.is_on = !self.is_on;
-        true
-    }
-
-    fn view(&self, _ctx: &Context<Self>) -> HtmlResult {
-        Ok(html! {
-            <div class={classes!["light", self.is_on.then(|| "on")]} />
-        })
-    }
-}
-
-#[function_component]
-fn Room() -> Html {
-    // highlight-next-line
-    let light_ref: ComponentRef<Light> = use_html_ref();
-    let on_toggle = {
-        let light_ref = light_ref.clone();
-        Callback::from(move |_| {
-            // highlight-start
-            light_ref
-                .get()
-                .expect("a light to have rendered")
-                .send_message(LightMessage::Toggle)
-            // highlight-end
-        })
-    };
-    html! {
-        <>
-            // highlight-next-line
-            <Light ref={&light_ref} />
-            <Switch {on_toggle} />
-        </>
-    }
-}
-```
-
 ## Relevant examples
 
+-   [Light Switch](https://github.com/yewstack/yew/tree/master/examples/light_switch)
 -   [Node Refs](https://github.com/yewstack/yew/tree/master/examples/node_refs)
 -   [Nested List](https://github.com/yewstack/yew/tree/master/examples/nested_list)

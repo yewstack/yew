@@ -22,6 +22,7 @@ members = [
   "examples/inner_html",
   "examples/js_callback",
   "examples/keyed_list",
+  "examples/light_switch",
   "examples/mount_point",
   "examples/nested_list",
   "examples/node_refs",

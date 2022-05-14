@@ -1,0 +1,64 @@
+.switchlabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  margin: 2px;
+}
+
+.switch input {
+  display: none;
+}
+
+.switch .drive {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 34px;
+  display: flex;
+}
+
+.switch .pin {
+  height: 26px;
+  width: 26px;
+  background-color: white;
+  border-radius: 50%;
+  margin: 4px;
+}
+
+.drive .buffer {
+  transition: flex .1s;
+}
+
+.switch input:checked + .drive {
+  background-color: #2196F3;
+}
+
+.switch input:checked + .drive .buffer {
+  flex: 1;
+}
+
+.switch input:focus + .drive {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+.light {
+  min-height: 400px;
+  background-color: #404040;
+}
+
+.light.on {
+  background-color: rgb(242, 245, 53);
+}
