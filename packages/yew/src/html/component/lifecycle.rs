@@ -12,11 +12,11 @@ use super::BaseComponent;
 use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
 use crate::dom_bundle::{BSubtree, Bundle};
+#[cfg(feature = "csr")]
+use crate::html::DomPosition;
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
 use crate::html::{BindableRef, ErasedHtmlRef, Html, RenderError};
-#[cfg(feature = "csr")]
-use crate::html::{DomPosition, ErasedStorage};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{BaseSuspense, Suspension};
 use crate::{Callback, Context, HtmlResult};
@@ -173,15 +173,13 @@ where
 
     fn rendered(&mut self, first_render: bool) {
         self.component.rendered(&self.context, first_render);
-        self.comp_ref
-            .debug_assert_bound::<<COMP::Reference as crate::html::ErasedStorage>::Erased>();
+        self.comp_ref.debug_assert_bound::<COMP::Reference>();
     }
 
     fn destroy(&mut self) {
         self.component.destroy(&self.context);
         #[cfg(feature = "csr")]
-        self.comp_ref
-            .set_erased(Option::<<COMP::Reference as crate::html::ErasedStorage>::Erased>::None);
+        self.comp_ref.unset_erased::<COMP::Reference>();
     }
 
     fn any_scope(&self) -> AnyScope {
@@ -202,8 +200,7 @@ where
     #[cfg(feature = "csr")]
     fn props_changed(&mut self, props: Rc<dyn Any>, next_comp_ref: ErasedHtmlRef) -> bool {
         // When components are updated, a new node ref could have been passed in
-        self.comp_ref
-            .morph_erased::<<COMP::Reference as ErasedStorage>::Erased>(next_comp_ref);
+        self.comp_ref.morph_erased(next_comp_ref);
 
         let props = match Rc::downcast::<COMP::Properties>(props) {
             Ok(m) => m,

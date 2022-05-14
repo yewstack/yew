@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::functional::{hook, use_state, Hook, HookContext};
-use crate::html::{ErasedStorage, HtmlRef};
+use crate::html::HtmlRef;
 use crate::NodeRef;
 
 struct UseMutRef<F> {
@@ -143,6 +143,6 @@ pub fn use_node_ref() -> NodeRef {
 /// The reference persists across renders, but a rerender is not triggered if the underlying ref
 /// changes.
 #[hook]
-pub fn use_html_ref<T: 'static + ErasedStorage>() -> HtmlRef<T> {
+pub fn use_html_ref<T: 'static>() -> HtmlRef<T> {
     (*use_state(HtmlRef::default)).clone()
 }

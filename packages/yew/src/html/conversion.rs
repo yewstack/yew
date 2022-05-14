@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use super::super::callback::Callback;
-use super::{ErasedStorage, HtmlRef, Scope};
+use super::{HtmlRef, Scope};
 use crate::virtual_dom::AttrValue;
 use crate::BaseComponent;
 
@@ -11,7 +11,7 @@ pub trait ImplicitClone: Clone {}
 impl<T: ImplicitClone> ImplicitClone for Option<T> {}
 impl<T: ?Sized> ImplicitClone for Rc<T> {}
 
-impl<T: ErasedStorage> ImplicitClone for HtmlRef<T> {}
+impl<T> ImplicitClone for HtmlRef<T> {}
 impl<Comp: BaseComponent> ImplicitClone for Scope<Comp> {}
 // TODO there are still a few missing
 

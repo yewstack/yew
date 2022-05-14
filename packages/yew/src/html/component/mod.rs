@@ -16,7 +16,7 @@ pub use properties::*;
 pub(crate) use scope::Scoped;
 pub use scope::{AnyScope, Scope, SendAsMessage};
 
-use super::{BindableRef, ErasedStorage, Html, HtmlResult, IntoHtmlResult, NoReference};
+use super::{BindableRef, Html, HtmlResult, IntoHtmlResult, NoReference};
 
 #[cfg(debug_assertions)]
 #[cfg(any(feature = "csr", feature = "ssr"))]
@@ -111,7 +111,7 @@ pub trait BaseComponent: Sized + 'static {
     type Properties: Properties;
 
     /// The Component's Reference type.
-    type Reference: ErasedStorage;
+    type Reference: 'static;
 
     /// Creates a component.
     fn create(ctx: &Context<Self>, bindable_ref: BindableRef<Self::Reference>) -> Self;
@@ -144,7 +144,7 @@ pub trait ComponentWithRef: Sized + 'static {
     type Properties: Properties;
 
     /// The Component's Reference type.
-    type Reference: ErasedStorage;
+    type Reference: 'static;
 
     /// Creates a component.
     fn create(ctx: &Context<Self>, bindable_ref: BindableRef<Self::Reference>) -> Self;

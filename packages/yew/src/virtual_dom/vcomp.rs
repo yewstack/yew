@@ -244,7 +244,7 @@ impl VComp {
         COMP: BaseComponent,
     {
         let comp_ref = match comp_ref {
-            Some(comp_ref) => comp_ref.into(),
+            Some(comp_ref) => comp_ref.to_erased(),
             None => ErasedHtmlRef::unbound::<COMP::Reference>(),
         };
         VComp {

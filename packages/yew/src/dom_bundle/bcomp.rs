@@ -177,7 +177,7 @@ mod tests {
 
     use super::*;
     use crate::dom_bundle::{Bundle, Reconcilable, ReconcileTarget};
-    use crate::html::{ErasedHtmlRef, HtmlRef};
+    use crate::html::HtmlRef;
     use crate::virtual_dom::{Key, VChild, VNode};
     use crate::{html, scheduler, Children, Component, Context, Html, Properties};
 
@@ -276,7 +276,7 @@ mod tests {
     #[test]
     fn set_component_node_ref() {
         let test_node_ref = HtmlRef::new();
-        let internal_node_ref = <ErasedHtmlRef as From<_>>::from(test_node_ref.clone());
+        let internal_node_ref = test_node_ref.clone().to_erased();
         let check_node_ref = |vnode: VNode| {
             let vcomp = match vnode {
                 VNode::VComp(vcomp) => vcomp,
