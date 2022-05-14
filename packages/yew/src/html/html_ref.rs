@@ -12,7 +12,7 @@ use crate::BaseComponent;
 
 /// Use this type as the [`BaseComponent::Reference`] type when a component can not be referenced.
 #[derive(Debug, Clone)]
-pub struct NoReference;
+pub enum NoReference {}
 
 /// Wrapped reference to another component for later use in lifecycle methods.
 ///
@@ -229,7 +229,8 @@ impl ErasedHtmlRef {
     pub(crate) fn debug_assert_bound<T: 'static>(&self) {
         #[cfg(debug_assertions)]
         assert!(
-            self.place.borrow().downcast_ref::<Option<T>>().is_some(),
+            (*self.place.borrow()).type_id() == std::any::TypeId::of::<Option<NoReference>>()
+                || self.place.borrow().downcast_ref::<Option<T>>().is_some(),
             "Expected that the component ref is bound by the time it has rendered. Did you forget \
              to bind it to a child?"
         );
@@ -320,6 +321,9 @@ impl<T: 'static> BindableRef<T> {
     pub fn forward(self) -> HtmlRef<T> {
         // A downcast Rc<RefCell<dyn Any>> --> Rc<RefCell<Option<T>>>
         self.inner.debug_assert_internal_type::<T>();
+        // SAFETY: we debug assert that the type is the same. We revert the following unsizing
+        // coercion:
+        let _sanity_check_unsizes = |rc: Rc<RefCell<Option<T>>>| -> Rc<RefCell<dyn Any>> { rc };
         let inner = unsafe {
             let raw: *const RefCell<dyn Any> = Rc::into_raw(self.inner.place.clone());
             Rc::from_raw(raw as *const RefCell<Option<T>>)
@@ -331,6 +335,8 @@ impl<T: 'static> BindableRef<T> {
 #[doc(hidden)]
 impl BindableRef<NoReference> {
     pub fn fake_bind(self) {
-        self.inner.set_erased(NoReference)
+        let this = self.inner;
+        this.debug_assert_internal_type::<NoReference>();
+        // no value to bind though!
     }
 }

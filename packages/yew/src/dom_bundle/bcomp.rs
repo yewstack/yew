@@ -177,9 +177,12 @@ mod tests {
 
     use super::*;
     use crate::dom_bundle::{Bundle, Reconcilable, ReconcileTarget};
-    use crate::html::HtmlRef;
+    use crate::html::{BindableRef, HtmlRef};
     use crate::virtual_dom::{Key, VChild, VNode};
-    use crate::{html, scheduler, Children, Component, Context, Html, Properties};
+    use crate::{
+        html, scheduler, Children, Component, ComponentWithRef, Context, Html, HtmlResult,
+        Properties,
+    };
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -193,11 +196,13 @@ mod tests {
         field_2: u32,
     }
 
-    impl Component for Comp {
+    impl ComponentWithRef for Comp {
         type Message = ();
         type Properties = Props;
+        type Reference = ();
 
-        fn create(_: &Context<Self>) -> Self {
+        fn create(_: &Context<Self>, bindable_ref: BindableRef<()>) -> Self {
+            bindable_ref.bind(());
             Comp
         }
 
@@ -205,8 +210,8 @@ mod tests {
             unimplemented!();
         }
 
-        fn view(&self, _ctx: &Context<Self>) -> Html {
-            html! { <div/> }
+        fn view(&self, _ctx: &Context<Self>) -> HtmlResult {
+            Ok(html! { <div/> })
         }
     }
 
