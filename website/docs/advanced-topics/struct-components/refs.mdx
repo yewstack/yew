@@ -20,6 +20,7 @@ reference in your `html!`. The referenced component can `bind` a value in its cr
 
 ```rust
 use yew::prelude::*;
+use yew::html::BindableRef;
 
 struct Example;
 
@@ -31,11 +32,11 @@ impl ComponentWithRef for Example {
 
     fn create(_ctx: &Context<Self>, bindable_ref: BindableRef<'_, Self::Reference>) -> Self {
         // highlight-next-line
-        bindable_ref.bind("My first bound value");
+        bindable_ref.bind("My first bound value".to_string());
         Self
     }
 
-    fn view(_ctx: &Context<Self>) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <p>{"Unimportant content"}</p>
         }
@@ -43,10 +44,10 @@ impl ComponentWithRef for Example {
 }
 
 // highlight-start
-let comp_ref = ComponentRef<Example>::new();
+let comp_ref = ComponentRef::<Example>::new();
 html! {
     <Example ref={&comp_ref} />
-}
+};
 // highlight-end
 ```
 
