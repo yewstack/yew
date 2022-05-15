@@ -210,8 +210,8 @@ mod tests {
             unimplemented!();
         }
 
-        fn view(&self, _ctx: &Context<Self>) -> HtmlResult {
-            Ok(html! { <div/> })
+        fn view(&self, _ctx: &Context<Self>) -> Html {
+            html! { <div/> }
         }
     }
 

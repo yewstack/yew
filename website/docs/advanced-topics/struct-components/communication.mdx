@@ -1,0 +1,16 @@
+---
+title: 'Communication with struct components'
+---
+
+You can communicate with struct components that implement the `ComponentWithRef` trait. Alike HTML elements,
+such components can be referenced with the special `ref` attribute, except the reference does not bind
+an `NodeRef` but a [Component Ref](advanced-topics/struct-components/refs.mdx).
+
+A `ComponentRef` can be passed to siblings elements, forwarded from grand-parent or shared in other ways,
+e.g. also with callbacks. If a component binds its own scope, this allows other components to send messages
+to it, enabling inter-communication.
+
+## Relevant examples
+
+-   [Light Switch](https://github.com/yewstack/yew/tree/master/examples/light_switch)
+-   [Nested List](https://github.com/yewstack/yew/tree/master/examples/nested_list)

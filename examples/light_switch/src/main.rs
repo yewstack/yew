@@ -45,10 +45,10 @@ impl ComponentWithRef for Light {
         true
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> HtmlResult {
-        Ok(html! {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
             <div class={classes!["light", self.is_on.then(|| "on")]} />
-        })
+        }
     }
 }
 

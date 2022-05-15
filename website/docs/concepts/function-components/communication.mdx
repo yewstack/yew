@@ -4,8 +4,15 @@ title: 'Communication between components'
 
 ## Parent to child messaging
 
-Pass data as [props](./properties) that cause a rerender, this is the way to pass messages to children.
+Passing down new data as [props](./properties.mdx) to a child component will cause the child to rerender,
+which can be understood as idempotent messages.
 
 ## Child to parent messaging
 
-Pass down a callback via props, that the child on an event can call. [Example](callbacks#passing-callbacks-as-props)
+A child can communicate with its parent, if it is passed down a suitable callback via its own props.
+[Example](./callbacks.mdx#passing-callbacks-as-props)
+
+## Communicating with struct components
+
+[Struct components](advanced-topics/struct-components/introduction.mdx) have their own section about
+[communicating with them](advanced-topics/struct-components/communication.mdx).

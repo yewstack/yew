@@ -47,8 +47,8 @@ pub enum NoReference {}
 ///         true
 ///     }
 ///
-///     fn view(&self, _ctx: &Context<Self>) -> HtmlResult {
-///         Ok(html! { <span>{&self.msg}</span> })
+///     fn view(&self, _ctx: &Context<Self>) -> Html {
+///         html! { <span>{&self.msg}</span> }
 ///     }
 ///
 ///     fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {}
@@ -90,6 +90,7 @@ pub enum NoReference {}
 /// }
 /// ```
 /// ## Relevant examples
+/// - [`light_switch`](https://github.com/yewstack/yew/tree/master/examples/light_switch)
 /// - [`nested_list`](https://github.com/yewstack/yew/tree/master/examples/nested_list)
 pub struct HtmlRef<T> {
     inner: Rc<RefCell<Option<T>>>,
@@ -300,7 +301,9 @@ impl NodeRef {
     }
 }
 
-/// A ref that can be bound to. See also [`Component::bind_ref`].
+/// A ref that can be bound to, See also [`ComponentWithRef::create`].
+///
+/// [`ComponentWithRef::create`]: crate::html::ComponentWithRef::create
 #[derive(Debug)]
 pub struct BindableRef<'b, T> {
     inner: &'b ErasedHtmlRef,

@@ -146,29 +146,37 @@ pub trait ComponentWithRef: Sized + 'static {
     /// The Component's Reference type.
     type Reference: 'static;
 
-    /// Creates a component.
+    /// Creates a component that can be referenced with the `ref` attribute.
     fn create(ctx: &Context<Self>, bindable_ref: BindableRef<'_, Self::Reference>) -> Self;
 
-    /// Updates component's internal state.
+    /// Called when a new message is sent to the component via its scope.
+    ///
+    /// See [`Component::update`].
     #[allow(unused_variables)]
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         false
     }
 
-    /// React to changes of component properties.
+    /// Called when properties passed to the component change.
+    ///
+    /// See [`Component::changed`].
     #[allow(unused_variables)]
     fn changed(&mut self, ctx: &Context<Self>) -> bool {
         true
     }
 
     /// Returns a component layout to be rendered.
-    fn view(&self, ctx: &Context<Self>) -> HtmlResult;
+    ///
+    /// See [`Component::view`].
+    fn view(&self, ctx: &Context<Self>) -> Html;
 
     /// Notified after a layout is rendered.
+    ///
+    /// See [`Component::rendered`].
     #[allow(unused_variables)]
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {}
 
-    /// Notified before a component is destroyed.
+    /// Called right before a Component is unmounted.
     #[allow(unused_variables)]
     fn destroy(&mut self, ctx: &Context<Self>) {}
 }
@@ -204,7 +212,7 @@ pub trait Component: Sized + 'static {
         false
     }
 
-    /// Called when properties passed to the component change
+    /// Called when properties passed to the component change.
     ///
     /// Returned bool indicates whether to render this Component after changed.
     #[allow(unused_variables)]
@@ -256,8 +264,8 @@ where
         Component::changed(self, ctx)
     }
 
-    fn view(&self, ctx: &Context<Self>) -> HtmlResult {
-        Component::view(self, ctx).into_html_result()
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        Component::view(self, ctx)
     }
 
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {

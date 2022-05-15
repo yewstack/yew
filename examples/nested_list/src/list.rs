@@ -85,13 +85,13 @@ impl ComponentWithRef for List {
         }
     }
 
-    fn view(&self, ctx: &Context<Self>) -> HtmlResult {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let inactive = if self.inactive { "inactive" } else { "" };
         let onmouseover = ctx.props().on_hover.reform(|e: MouseEvent| {
             e.stop_propagation();
             Hovered::List
         });
-        Ok(html! {
+        html! {
             <div class="list-container" {onmouseover}>
                 <div class={classes!("list", inactive)}>
                     { Self::view_header(&ctx.props().children) }
@@ -100,7 +100,7 @@ impl ComponentWithRef for List {
                     </div>
                 </div>
             </div>
-        })
+        }
     }
 }
 

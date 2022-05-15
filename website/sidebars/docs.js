@@ -122,6 +122,7 @@ module.exports = {
                         'advanced-topics/struct-components/callbacks',
                         'advanced-topics/struct-components/properties',
                         'advanced-topics/struct-components/refs',
+                        'advanced-topics/struct-components/communication',
                         'advanced-topics/struct-components/hoc',
                     ],
                 },
