@@ -174,10 +174,10 @@ where
         comp_ref.debug_assert_bound::<COMP::Reference>();
     }
 
-    fn destroy(&mut self, comp_ref: &ErasedHtmlRef) {
+    fn destroy(&mut self, _comp_ref: &ErasedHtmlRef) {
         self.component.destroy(&self.context);
         #[cfg(feature = "csr")]
-        comp_ref.unset_erased::<COMP::Reference>();
+        _comp_ref.unset_erased::<COMP::Reference>();
     }
 
     fn any_scope(&self) -> AnyScope {
