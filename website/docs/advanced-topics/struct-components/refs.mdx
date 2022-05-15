@@ -7,8 +7,8 @@ The `ref` keyword can be used on elements and struct components. See the page ab
 for its usage on elements. When used on a component, the ref does not bind a DOM `Node`. Instead,
 the referenced `Component` binds data when it is rendered, for example a [`Scope`] to itself.
 
-[`NodeRef`]: concepts/html/node-refs.mdx
-[`Scope`]: advanced-topics/struct-components/scope.mdx
+[`noderef`]: concepts/html/node-refs.mdx
+[`scope`]: advanced-topics/struct-components/scope.mdx
 
 Components need to implement the `ComponentWithRef` trait instead of the `Component` trait to be referenceable
 and specify the associated `type Reference`.

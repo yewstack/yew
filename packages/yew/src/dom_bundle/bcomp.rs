@@ -180,8 +180,7 @@ mod tests {
     use crate::html::{BindableRef, HtmlRef};
     use crate::virtual_dom::{Key, VChild, VNode};
     use crate::{
-        html, scheduler, Children, Component, ComponentWithRef, Context, Html, HtmlResult,
-        Properties,
+        html, scheduler, Children, Component, ComponentWithRef, Context, Html, Properties,
     };
 
     wasm_bindgen_test_configure!(run_in_browser);

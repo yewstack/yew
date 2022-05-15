@@ -949,7 +949,7 @@ mod tests {
 
         // Create <div disabled="disabled" tabindex="0">
         let mut vtag = VTag::new("div");
-        vtag.node_ref = test_ref.clone();
+        vtag.node_ref = test_ref.clone().to_erased();
         vtag.add_attribute("disabled", "disabled");
         vtag.add_attribute("tabindex", "0");
 
@@ -959,7 +959,7 @@ mod tests {
 
         // Create <div tabindex="0"> (removed first attribute "disabled")
         let mut vtag = VTag::new("div");
-        vtag.node_ref = test_ref.clone();
+        vtag.node_ref = test_ref.clone().to_erased();
         vtag.add_attribute("tabindex", "0");
         let next_elem = VNode::VTag(Box::new(vtag));
         let elem_vtag = assert_vtag(next_elem);
