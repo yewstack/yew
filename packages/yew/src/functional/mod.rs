@@ -72,7 +72,6 @@ pub(crate) trait Effect {
 pub struct HookContext {
     pub(crate) scope: AnyScope,
     re_render: ReRender,
-    comp_ref: ErasedHtmlRef,
 
     states: Vec<Rc<dyn Any>>,
     effects: Vec<Rc<dyn Effect>>,
@@ -83,13 +82,12 @@ pub struct HookContext {
 }
 
 impl HookContext {
-    fn new(scope: AnyScope, re_render: ReRender, comp_ref: ErasedHtmlRef) -> RefCell<Self> {
+    fn new(scope: AnyScope, re_render: ReRender) -> RefCell<Self> {
         RefCell::new(HookContext {
             effects: Vec::new(),
             scope,
             re_render,
             states: Vec::new(),
-            comp_ref,
 
             counter: 0,
             #[cfg(debug_assertions)]
@@ -202,7 +200,7 @@ pub trait FunctionProvider: BaseComponent<Message = ()> {
     fn run(
         ctx: &mut HookContext,
         props: &Self::Properties,
-        bindable_ref: BindableRef<Self::Reference>,
+        bindable_ref: BindableRef<'_, Self::Reference>,
     ) -> HtmlResult;
 }
 
@@ -218,6 +216,7 @@ pub trait FunctionProvider: BaseComponent<Message = ()> {
 pub struct FunctionComponent<T> {
     _never: std::marker::PhantomData<T>,
     hook_ctx: RefCell<HookContext>,
+    bindable_ref: ErasedHtmlRef,
 }
 
 impl<T> FunctionComponent<T>
@@ -225,7 +224,7 @@ where
     T: FunctionProvider,
 {
     /// Creates a new function component.
-    pub fn new(ctx: &Context<T>, bindable_ref: BindableRef<T::Reference>) -> Self {
+    pub fn new(ctx: &Context<T>, bindable_ref: BindableRef<'_, T::Reference>) -> Self {
         let scope = AnyScope::from(ctx.link().clone());
         let re_render = {
             let link = ctx.link().clone();
@@ -235,7 +234,8 @@ where
 
         Self {
             _never: std::marker::PhantomData::default(),
-            hook_ctx: HookContext::new(scope, re_render, bindable_ref.forward().to_erased()),
+            hook_ctx: HookContext::new(scope, re_render),
+            bindable_ref: bindable_ref.forward().to_erased(),
         }
     }
 
@@ -245,7 +245,7 @@ where
 
         hook_ctx.prepare_run();
 
-        let bindable_ref = BindableRef::for_ref(&hook_ctx.comp_ref);
+        let bindable_ref = BindableRef::for_ref(&self.bindable_ref);
         #[allow(clippy::let_and_return)]
         let result = T::run(&mut *hook_ctx, props, bindable_ref);
 

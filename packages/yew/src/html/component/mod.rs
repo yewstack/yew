@@ -114,7 +114,7 @@ pub trait BaseComponent: Sized + 'static {
     type Reference: 'static;
 
     /// Creates a component.
-    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<Self::Reference>) -> Self;
+    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<'_, Self::Reference>) -> Self;
 
     /// Updates component's internal state.
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool;
@@ -147,7 +147,7 @@ pub trait ComponentWithRef: Sized + 'static {
     type Reference: 'static;
 
     /// Creates a component.
-    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<Self::Reference>) -> Self;
+    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<'_, Self::Reference>) -> Self;
 
     /// Updates component's internal state.
     #[allow(unused_variables)]
@@ -243,7 +243,7 @@ where
     type Properties = <T as Component>::Properties;
     type Reference = NoReference;
 
-    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<NoReference>) -> Self {
+    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<'_, NoReference>) -> Self {
         bindable_ref.fake_bind();
         Component::create(ctx)
     }
@@ -277,7 +277,7 @@ where
     type Properties = <T as ComponentWithRef>::Properties;
     type Reference = <T as ComponentWithRef>::Reference;
 
-    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<Self::Reference>) -> Self {
+    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<'_, Self::Reference>) -> Self {
         ComponentWithRef::create(ctx, bindable_ref)
     }
 

@@ -71,7 +71,7 @@ impl ComponentWithRef for List {
     type Properties = Props;
     type Reference = Scope<Self>;
 
-    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<Self::Reference>) -> Self {
+    fn create(ctx: &Context<Self>, bindable_ref: BindableRef<'_, Self::Reference>) -> Self {
         bindable_ref.bind(ctx.link().clone());
         Self { inactive: false }
     }

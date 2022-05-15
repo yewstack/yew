@@ -201,7 +201,7 @@ mod tests {
         type Properties = Props;
         type Reference = ();
 
-        fn create(_: &Context<Self>, bindable_ref: BindableRef<()>) -> Self {
+        fn create(_: &Context<Self>, bindable_ref: BindableRef<'_, ()>) -> Self {
             bindable_ref.bind(());
             Comp
         }

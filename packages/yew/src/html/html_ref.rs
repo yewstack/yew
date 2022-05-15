@@ -31,7 +31,7 @@ pub enum NoReference {}
 ///     type Properties = ();
 ///     type Reference = Scope<Self>;
 ///
-///     fn create(ctx: &Context<Self>, bindable_ref: BindableRef<Self::Reference>) -> Self {
+///     fn create(ctx: &Context<Self>, bindable_ref: BindableRef<'_, Self::Reference>) -> Self {
 ///         bindable_ref.bind(ctx.link().clone());
 ///         Self {
 ///             msg: "waiting...".to_string(),
@@ -302,15 +302,15 @@ impl NodeRef {
 
 /// A ref that can be bound to. See also [`Component::bind_ref`].
 #[derive(Debug)]
-pub struct BindableRef<T> {
-    inner: ErasedHtmlRef,
+pub struct BindableRef<'b, T> {
+    inner: &'b ErasedHtmlRef,
     _phantom: PhantomData<T>,
 }
 
-impl<T: 'static> BindableRef<T> {
-    pub(crate) fn for_ref(inner: &ErasedHtmlRef) -> Self {
+impl<'b, T: 'static> BindableRef<'b, T> {
+    pub(crate) fn for_ref(inner: &'b ErasedHtmlRef) -> Self {
         Self {
-            inner: inner.clone(),
+            inner,
             _phantom: PhantomData,
         }
     }
@@ -336,7 +336,7 @@ impl<T: 'static> BindableRef<T> {
 }
 
 #[doc(hidden)]
-impl BindableRef<NoReference> {
+impl<'r> BindableRef<'r, NoReference> {
     pub fn fake_bind(self) {
         let this = self.inner;
         this.debug_assert_internal_type::<NoReference>();
