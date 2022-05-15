@@ -10,7 +10,7 @@ use std::rc::Rc;
 use web_sys::{HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
 
 use super::{AttrValue, Attributes, Key, Listener, Listeners, VList, VNode};
-use crate::html::{IntoPropValue, NodeRef};
+use crate::html::{ErasedHtmlRef, IntoPropValue, NodeRef};
 
 /// SVG namespace string used for creating svg elements
 pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
@@ -124,7 +124,8 @@ pub struct VTag {
     /// List of attached listeners.
     pub(crate) listeners: Listeners,
     /// A node reference used for DOM access in Component lifecycle methods
-    pub node_ref: NodeRef,
+    #[cfg_attr(not(feature = "csr"), allow(dead_code))]
+    pub(crate) node_ref: ErasedHtmlRef,
     /// List of attributes.
     pub attributes: Attributes,
     pub key: Option<Key>,
@@ -254,7 +255,7 @@ impl VTag {
             inner,
             attributes,
             listeners,
-            node_ref,
+            node_ref: node_ref.to_erased(),
             key,
         }
     }

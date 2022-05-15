@@ -152,6 +152,7 @@ impl<T: 'static> HtmlRef<T> {
         Some(self.get_ref()?.clone())
     }
 
+    #[inline]
     pub(crate) fn to_erased(&self) -> ErasedHtmlRef {
         ErasedHtmlRef {
             place: self.inner.clone() as Rc<RefCell<dyn Any>>,

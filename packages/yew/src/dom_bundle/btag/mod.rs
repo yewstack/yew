@@ -141,7 +141,6 @@ impl Reconcilable for VTag {
                 BTagInner::Other { child_bundle, tag }
             }
         };
-        let node_ref = node_ref.to_erased();
 
         node_ref.set_erased::<Node>(el.clone().into());
         (
@@ -230,7 +229,7 @@ impl Reconcilable for VTag {
         tag.key = self.key;
         let el: Node = el.clone().into();
 
-        let next_node_ref = self.node_ref.to_erased();
+        let next_node_ref = self.node_ref;
         if tag.node_ref != next_node_ref {
             // See the comment in `detach` why we don't unconditionally set to None here
             if tag.node_ref.get_node().as_ref() == Some(&el) {
@@ -372,7 +371,6 @@ mod feat_hydration {
             };
 
             let el_node: Node = el.clone().into();
-            let node_ref = node_ref.to_erased();
             node_ref.set_erased::<Node>(el_node.clone());
 
             (
