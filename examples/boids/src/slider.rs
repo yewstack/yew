@@ -1,8 +1,9 @@
 use std::cell::Cell;
 
-use web_sys::HtmlInputElement;
+use gloo::console::console;
+use web_sys::{console, HtmlInputElement};
 use yew::events::InputEvent;
-use yew::{html, Callback, Component, Context, Html, Properties, TargetCast};
+use yew::{html, AttrValue, Callback, Component, Context, Html, Properties, TargetCast};
 
 thread_local! {
     static SLIDER_ID: Cell<usize> = Cell::default();
@@ -41,7 +42,7 @@ impl Component for Slider {
     }
 
     fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
-        unimplemented!()
+        true
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
@@ -79,10 +80,11 @@ impl Component for Slider {
             <div class="slider">
                 <label for={id.clone()} class="slider__label">{ label }</label>
                 <input type="range"
-                    {id}
-                    class="slider__input"
-                    min={min.to_string()} max={max.to_string()} step={step.to_string()}
-                    {oninput}
+                 value={ value.to_string() }
+                 {id}
+                 class="slider__input"
+                 min={min.to_string()} max={max.to_string()} step={step.to_string()}
+                 {oninput}
                 />
                 <span class="slider__value">{ display_value }</span>
             </div>
