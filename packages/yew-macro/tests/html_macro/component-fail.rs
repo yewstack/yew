@@ -118,7 +118,18 @@ fn compile_fail() {
     html! { <Child {std::f64::consts::PI} /> };
     html! { <Child {7 + 6} /> };
     html! { <Child {children.len()} /> };
+}
 
+#[derive(Clone, Properties, PartialEq)]
+pub struct HtmlInPropsProperties {
+    pub header: ::yew::Html,
+}
+#[function_component]
+fn HtmlInProps(props: &HtmlInPropsProperties) -> Html { let _ = (); unimplemented!() }
+
+fn not_expressions() {
+    html! { <HtmlInProps header={macro_rules! declare { }} /> };
+    html! { <HtmlInProps header={format!("ending with semi");} /> };
 }
 
 fn main() {}

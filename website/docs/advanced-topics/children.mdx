@@ -241,9 +241,9 @@ pub fn render_page(with_sidebar: bool) -> Html {
     if with_sidebar {
         // Page with sidebar
         html! {
-            <Page sidebar={{html_nested! {
+            <Page sidebar={html_nested! {
                 <PageSideBar />
-            }}} />
+            }} />
         }
     } else {
         // Page without sidebar
