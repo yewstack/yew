@@ -54,12 +54,10 @@ pub fn render_markdown(src: &str) -> Html {
                     top = pre;
                 } else if let Tag::Table(aligns) = tag {
                     if let Some(top_children) = top.children_mut() {
-                        for r in top_children.children_mut().iter_mut() {
+                        for r in top_children.iter_mut() {
                             if let VNode::VTag(ref mut vtag) = r {
                                 if let Some(vtag_children) = vtag.children_mut() {
-                                    for (i, c) in
-                                        vtag_children.children_mut().iter_mut().enumerate()
-                                    {
+                                    for (i, c) in vtag_children.iter_mut().enumerate() {
                                         if let VNode::VTag(ref mut vtag) = c {
                                             match aligns[i] {
                                                 Alignment::None => {}
@@ -75,7 +73,7 @@ pub fn render_markdown(src: &str) -> Html {
                     }
                 } else if let Tag::TableHead = tag {
                     if let Some(top_children) = top.children_mut() {
-                        for c in top_children.children_mut().iter_mut() {
+                        for c in top_children.iter_mut() {
                             if let VNode::VTag(ref mut vtag) = c {
                                 // TODO
                                 //                            vtag.tag = "th".into();
