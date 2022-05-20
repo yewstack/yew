@@ -139,6 +139,11 @@ build-std-features = ["panic_immediate_abort"]
 [`build-std`]: https://doc.rust-lang.org/cargo/reference/unstable.html#build-std
 [`build-std-features`]: https://doc.rust-lang.org/cargo/reference/unstable.html#build-std-features
 
+:::caution
+The nightly rust compiler can contain bugs, such as [this one](https://github.com/yewstack/yew/issues/2696),
+that require occasional attention and tweaking. Use these experimental options with care.
+:::
+
 ### wasm-opt
 
 Further more it is possible to optimize size of `wasm` code.
