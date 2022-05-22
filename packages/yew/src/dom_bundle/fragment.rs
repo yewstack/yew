@@ -3,13 +3,13 @@ use std::ops::{Deref, DerefMut};
 
 use web_sys::{Element, Node};
 
-use super::BSubtree;
+use crate::dom_bundle::BSubtree;
 use crate::html::NodeRef;
 use crate::virtual_dom::Collectable;
 
 /// A Hydration Fragment
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
-pub(crate) struct Fragment(VecDeque<Node>);
+pub struct Fragment(VecDeque<Node>);
 
 impl Deref for Fragment {
     type Target = VecDeque<Node>;

@@ -265,13 +265,13 @@ impl BTag {
         self.key.as_ref()
     }
 
-    #[cfg(feature = "wasm_test")]
+    #[cfg(target_arch = "wasm32")]
     #[cfg(test)]
     fn reference(&self) -> &Element {
         &self.reference
     }
 
-    #[cfg(feature = "wasm_test")]
+    #[cfg(target_arch = "wasm32")]
     #[cfg(test)]
     fn children(&self) -> &[BNode] {
         match &self.inner {
@@ -280,7 +280,7 @@ impl BTag {
         }
     }
 
-    #[cfg(feature = "wasm_test")]
+    #[cfg(target_arch = "wasm32")]
     #[cfg(test)]
     fn tag(&self) -> &str {
         match &self.inner {
@@ -383,7 +383,7 @@ mod feat_hydration {
     }
 }
 
-#[cfg(feature = "wasm_test")]
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
     use gloo_utils::document;
@@ -931,13 +931,55 @@ mod tests {
             "<div id=\"after\"></div>"
         );
     }
+
+    // test for bug: https://github.com/yewstack/yew/pull/2653
+    #[test]
+    fn test_index_map_attribute_diff() {
+        let (root, scope, parent) = setup_parent();
+
+        let test_ref = NodeRef::default();
+
+        // We want to test appy_diff with Attributes::IndexMap, so we
+        // need to create the VTag manually
+
+        // Create <div disabled="disabled" tabindex="0">
+        let mut vtag = VTag::new("div");
+        vtag.node_ref = test_ref.clone();
+        vtag.add_attribute("disabled", "disabled");
+        vtag.add_attribute("tabindex", "0");
+
+        let elem = VNode::VTag(Box::new(vtag));
+
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
+
+        // Create <div tabindex="0"> (removed first attribute "disabled")
+        let mut vtag = VTag::new("div");
+        vtag.node_ref = test_ref.clone();
+        vtag.add_attribute("tabindex", "0");
+        let next_elem = VNode::VTag(Box::new(vtag));
+        let elem_vtag = assert_vtag(next_elem);
+
+        // Sync happens here
+        // this should remove the the "disabled" attribute
+        elem_vtag.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut elem);
+
+        assert_eq!(
+            test_ref
+                .get()
+                .unwrap()
+                .dyn_ref::<web_sys::Element>()
+                .unwrap()
+                .outer_html(),
+            "<div tabindex=\"0\"></div>"
+        )
+    }
 }
 
-#[cfg(all(test, feature = "wasm_test"))]
+#[cfg(target_arch = "wasm32")]
+#[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use crate::html;

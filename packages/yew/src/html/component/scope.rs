@@ -1,18 +1,18 @@
 //! Component scope module
 
 use std::any::{Any, TypeId};
-#[cfg(any(feature = "csr", feature = "ssr"))]
-use std::cell::RefCell;
+use std::future::Future;
 use std::marker::PhantomData;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::{fmt, iter};
 
 #[cfg(any(feature = "csr", feature = "ssr"))]
-use super::lifecycle::{ComponentState, UpdateRunner};
+use super::lifecycle::ComponentState;
 use super::BaseComponent;
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
+use crate::io_coop::spawn_local;
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use crate::scheduler::Shared;
 
@@ -133,6 +133,9 @@ impl<COMP: BaseComponent> Scope<COMP> {
 
     /// Creates a `Callback` which will send a message to the linked
     /// component's update method when invoked.
+    ///
+    /// If your callback function returns a [Future],
+    /// use [`callback_future`](Scope::callback_future) instead.
     pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
     where
         M: Into<COMP::Message>,
@@ -178,6 +181,81 @@ impl<COMP: BaseComponent> Scope<COMP> {
     ) -> Option<(T, ContextHandle<T>)> {
         AnyScope::from(self.clone()).context(callback)
     }
+
+    /// This method asynchronously awaits a [Future] that returns a message and sends it
+    /// to the linked component.
+    ///
+    /// # Panics
+    /// If the future panics, then the promise will not resolve, and will leak.
+    pub fn send_future<Fut, Msg>(&self, future: Fut)
+    where
+        Msg: Into<COMP::Message>,
+        Fut: Future<Output = Msg> + 'static,
+    {
+        let link = self.clone();
+        spawn_local(async move {
+            let message: COMP::Message = future.await.into();
+            link.send_message(message);
+        });
+    }
+
+    /// This method creates a [`Callback`] which, when emitted, asynchronously awaits the
+    /// message returned from the passed function before sending it to the linked component.
+    ///
+    /// # Panics
+    /// If the future panics, then the promise will not resolve, and will leak.
+    pub fn callback_future<F, Fut, IN, Msg>(&self, function: F) -> Callback<IN>
+    where
+        Msg: Into<COMP::Message>,
+        Fut: Future<Output = Msg> + 'static,
+        F: Fn(IN) -> Fut + 'static,
+    {
+        let link = self.clone();
+
+        let closure = move |input: IN| {
+            link.send_future(function(input));
+        };
+
+        closure.into()
+    }
+
+    /// Asynchronously send a batch of messages to a component. This asynchronously awaits the
+    /// passed [Future], before sending the message batch to the linked component.
+    ///
+    /// # Panics
+    /// If the future panics, then the promise will not resolve, and will leak.
+    pub fn send_future_batch<Fut>(&self, future: Fut)
+    where
+        Fut: Future + 'static,
+        Fut::Output: SendAsMessage<COMP>,
+    {
+        let link = self.clone();
+        let js_future = async move {
+            future.await.send(&link);
+        };
+        spawn_local(js_future);
+    }
+
+    /// Returns the linked component if available
+    pub fn get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
+        self.arch_get_component()
+    }
+
+    /// Send a message to the component.
+    pub fn send_message<T>(&self, msg: T)
+    where
+        T: Into<COMP::Message>,
+    {
+        self.arch_send_message(msg)
+    }
+
+    /// Send a batch of messages to the component.
+    ///
+    /// This is slightly more efficient than calling [`send_message`](Self::send_message)
+    /// in a loop.
+    pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
+        self.arch_send_message_batch(messages)
+    }
 }
 
 #[cfg(feature = "ssr")]
@@ -216,11 +294,7 @@ mod feat_ssr {
             );
             scheduler::start();
 
-            #[cfg(debug_assertions)]
-            let collectable = Collectable::Component(std::any::type_name::<COMP>());
-
-            #[cfg(not(debug_assertions))]
-            let collectable = Collectable::Component;
+            let collectable = Collectable::for_component::<COMP>();
 
             if hydratable {
                 collectable.write_open_tag(w);
@@ -243,8 +317,6 @@ mod feat_ssr {
 
             scheduler::push_component_destroy(Box::new(DestroyRunner {
                 state: self.state.clone(),
-
-                #[cfg(feature = "csr")]
                 parent_to_detach: false,
             }));
             scheduler::start();
@@ -258,32 +330,27 @@ mod feat_no_csr_ssr {
 
     // Skeleton code to provide public methods when no renderer are enabled.
     impl<COMP: BaseComponent> Scope<COMP> {
-        /// Returns the linked component if available
-        pub fn get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
+        pub(super) fn arch_get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
             Option::<&COMP>::None
         }
 
-        /// Send a message to the component.
-        pub fn send_message<T>(&self, _msg: T)
+        pub(super) fn arch_send_message<T>(&self, _msg: T)
         where
             T: Into<COMP::Message>,
         {
         }
 
-        /// Send a batch of messages to the component.
-        ///
-        /// This is slightly more efficient than calling [`send_message`](Self::send_message)
-        /// in a loop.
-        pub fn send_message_batch(&self, _messages: Vec<COMP::Message>) {}
+        pub(super) fn arch_send_message_batch(&self, _messages: Vec<COMP::Message>) {}
     }
 }
 
 #[cfg(any(feature = "ssr", feature = "csr"))]
 mod feat_csr_ssr {
-    use std::cell::Ref;
+    use std::cell::{Ref, RefCell};
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     use super::*;
+    use crate::html::component::lifecycle::UpdateRunner;
     use crate::scheduler::{self, Shared};
 
     #[derive(Debug)]
@@ -347,8 +414,8 @@ mod feat_csr_ssr {
             }
         }
 
-        /// Returns the linked component if available
-        pub fn get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
+        #[inline]
+        pub(super) fn arch_get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
             self.state.try_borrow().ok().and_then(|state_ref| {
                 state_ref.as_ref()?;
                 // TODO: Replace unwrap with Ref::filter_map once it becomes stable.
@@ -370,8 +437,8 @@ mod feat_csr_ssr {
             scheduler::start();
         }
 
-        /// Send a message to the component.
-        pub fn send_message<T>(&self, msg: T)
+        #[inline]
+        pub(super) fn arch_send_message<T>(&self, msg: T)
         where
             T: Into<COMP::Message>,
         {
@@ -381,11 +448,8 @@ mod feat_csr_ssr {
             }
         }
 
-        /// Send a batch of messages to the component.
-        ///
-        /// This is slightly more efficient than calling [`send_message`](Self::send_message)
-        /// in a loop.
-        pub fn send_message_batch(&self, mut messages: Vec<COMP::Message>) {
+        #[inline]
+        pub(super) fn arch_send_message_batch(&self, mut messages: Vec<COMP::Message>) {
             let msg_len = messages.len();
 
             // The queue was empty, so we queue the update
@@ -535,6 +599,8 @@ mod feat_csr {
         }
     }
 }
+#[cfg(feature = "csr")]
+pub(crate) use feat_csr::*;
 
 #[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
 #[cfg(feature = "hydration")]
@@ -572,17 +638,13 @@ mod feat_hydration {
             // This is very helpful to see which component is failing during hydration
             // which means this component may not having a stable layout / differs between
             // client-side and server-side.
-            #[cfg(all(debug_assertions, feature = "trace_hydration"))]
-            gloo::console::trace!(format!(
-                "queuing hydration of: {}(ID: {:?})",
-                std::any::type_name::<COMP>(),
-                self.id
-            ));
-
             #[cfg(debug_assertions)]
-            let collectable = Collectable::Component(std::any::type_name::<COMP>());
-            #[cfg(not(debug_assertions))]
-            let collectable = Collectable::Component;
+            super::super::log_event(
+                self.id,
+                format!("hydration(type = {})", std::any::type_name::<COMP>()),
+            );
+
+            let collectable = Collectable::for_component::<COMP>();
 
             let mut fragment = Fragment::collect_between(fragment, &collectable, &parent);
             node_ref.set(fragment.front().cloned());
@@ -624,75 +686,6 @@ mod feat_hydration {
 
             // Not guaranteed to already have the scheduler started
             scheduler::start();
-        }
-    }
-}
-#[cfg(feature = "csr")]
-pub(crate) use feat_csr::*;
-
-#[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
-#[cfg(any(target_arch = "wasm32", feature = "tokio"))]
-mod feat_io {
-    use std::future::Future;
-
-    use super::*;
-    use crate::io_coop::spawn_local;
-
-    impl<COMP: BaseComponent> Scope<COMP> {
-        /// This method creates a [`Callback`] which, when emitted, asynchronously awaits the
-        /// message returned from the passed function before sending it to the linked component.
-        ///
-        /// # Panics
-        /// If the future panics, then the promise will not resolve, and will leak.
-        pub fn callback_future<FN, FU, IN, M>(&self, function: FN) -> Callback<IN>
-        where
-            M: Into<COMP::Message>,
-            FU: Future<Output = M> + 'static,
-            FN: Fn(IN) -> FU + 'static,
-        {
-            let link = self.clone();
-
-            let closure = move |input: IN| {
-                let future: FU = function(input);
-                link.send_future(future);
-            };
-
-            closure.into()
-        }
-
-        /// This method asynchronously awaits a [Future] that returns a message and sends it
-        /// to the linked component.
-        ///
-        /// # Panics
-        /// If the future panics, then the promise will not resolve, and will leak.
-        pub fn send_future<F, M>(&self, future: F)
-        where
-            M: Into<COMP::Message>,
-            F: Future<Output = M> + 'static,
-        {
-            let link = self.clone();
-            let js_future = async move {
-                let message: COMP::Message = future.await.into();
-                link.send_message(message);
-            };
-            spawn_local(js_future);
-        }
-
-        /// Asynchronously send a batch of messages to a component. This asynchronously awaits the
-        /// passed [Future], before sending the message batch to the linked component.
-        ///
-        /// # Panics
-        /// If the future panics, then the promise will not resolve, and will leak.
-        pub fn send_future_batch<F>(&self, future: F)
-        where
-            F: Future + 'static,
-            F::Output: SendAsMessage<COMP>,
-        {
-            let link = self.clone();
-            let js_future = async move {
-                future.await.send(&link);
-            };
-            spawn_local(js_future);
         }
     }
 }
