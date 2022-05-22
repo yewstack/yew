@@ -92,7 +92,7 @@ features = [
 # tokio = ["dep:tokio"]
 ssr = ["futures", "html-escape", "base64ct", "bincode"] # dep:html-escape
 csr = []
-hydration = ["csr"]
+hydration = ["csr", "bincode"]
 default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
