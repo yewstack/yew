@@ -450,16 +450,25 @@ mod feat_ssr {
             hydratable: bool,
         ) {
             // Preallocate a String that is big enough for most elements.
-            let mut start_tag = String::with_capacity(50);
+            let mut start_tag = String::with_capacity(64);
             start_tag.push('<');
             start_tag.push_str(self.tag());
 
             let write_attr = |w: &mut String, name: &str, val: Option<&str>| {
-                write!(w, " {}", name).unwrap();
-
-                if let Some(m) = val {
-                    write!(w, "=\"{}\"", html_escape::encode_double_quoted_attribute(m)).unwrap();
+                match val {
+                    Some(val) => {
+                        write!(
+                            w,
+                            "{}=\"{}\"",
+                            name,
+                            html_escape::encode_double_quoted_attribute(val)
+                        )
+                    }
+                    None => {
+                        write!(w, " {}", name)
+                    }
                 }
+                .unwrap();
             };
 
             if let VTagInner::Input(_) = self.inner {

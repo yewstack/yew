@@ -160,8 +160,13 @@ mod feat_ssr {
             parent_scope: &'a AnyScope,
             hydratable: bool,
         ) -> LocalBoxFuture<'a, ()> {
-            async move {
-                match self {
+            async fn render_into_stream_(
+                this: &VNode,
+                tx: &mut UnboundedSender<String>,
+                parent_scope: &AnyScope,
+                hydratable: bool,
+            ) {
+                match this {
                     VNode::VTag(vtag) => {
                         vtag.render_into_stream(tx, parent_scope, hydratable).await
                     }
@@ -191,7 +196,9 @@ mod feat_ssr {
                     }
                 }
             }
-            .boxed_local()
+
+            async move { render_into_stream_(self, tx, parent_scope, hydratable).await }
+                .boxed_local()
         }
     }
 }

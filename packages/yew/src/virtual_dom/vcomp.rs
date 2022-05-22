@@ -243,6 +243,7 @@ mod feat_ssr {
     use crate::html::AnyScope;
 
     impl VComp {
+        #[inline]
         pub(crate) async fn render_into_stream(
             &self,
             tx: &mut UnboundedSender<String>,
