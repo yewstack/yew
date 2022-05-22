@@ -165,7 +165,7 @@ pub(crate) fn start_now() {
 
 #[cfg(target_arch = "wasm32")]
 mod arch {
-    use crate::io_coop::spawn_local;
+    use crate::platform::spawn_local;
 
     /// We delay the start of the scheduler to the end of the micro task queue.
     /// So any messages that needs to be queued can be queued.

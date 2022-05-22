@@ -149,7 +149,7 @@ mod feat_ssr {
     use std::borrow::Cow;
 
     use futures::channel::mpsc::{self, UnboundedSender};
-    use futures::stream::StreamExt;
+    use futures::stream::{FuturesOrdered, StreamExt};
 
     use super::*;
     use crate::html::AnyScope;
@@ -182,19 +182,25 @@ mod feat_ssr {
             hydratable: bool,
         ) {
             // Concurrently render all children.
-            for fragment in futures::future::join_all(self.children.iter().map(|m| async move {
-                let (mut tx, rx) = mpsc::unbounded();
+            let mut children_f: FuturesOrdered<_> = self
+                .children
+                .iter()
+                .map(|m| async move {
+                    let (mut inner_tx, inner_rx) = mpsc::unbounded();
 
-                m.render_into_stream(&mut tx, parent_scope, hydratable)
-                    .await;
+                    m.render_into_stream(&mut inner_tx, parent_scope, hydratable)
+                        .await;
 
-                let s: String = rx.collect().await;
+                    drop(inner_tx);
 
-                s
-            }))
-            .await
-            {
-                let _ = tx.unbounded_send(fragment.into());
+                    let s: String = inner_rx.collect().await;
+
+                    s
+                })
+                .collect();
+
+            while let Some(m) = children_f.next().await {
+                let _ = tx.unbounded_send(m.into());
             }
         }
     }

@@ -156,7 +156,7 @@ mod feat_ssr {
     use crate::html::AnyScope;
 
     impl VNode {
-        pub(crate) async fn render_into_stream<'a>(
+        pub(crate) fn render_into_stream<'a>(
             &'a self,
             tx: &'a mut UnboundedSender<Cow<'static, str>>,
             parent_scope: &'a AnyScope,
@@ -189,45 +189,6 @@ mod feat_ssr {
                     VNode::VSuspense(vsuspense) => {
                         vsuspense
                             .render_into_stream(tx, parent_scope, hydratable)
-                            .await
-                    }
-                }
-            }
-            .boxed_local()
-        }
-
-        // Boxing is needed here, due to: https://rust-lang.github.io/async-book/07_workarounds/04_recursion.html
-        pub(crate) fn render_to_string<'a>(
-            &'a self,
-            w: &'a mut String,
-            parent_scope: &'a AnyScope,
-            hydratable: bool,
-        ) -> LocalBoxFuture<'a, ()> {
-            async move {
-                match self {
-                    VNode::VTag(vtag) => vtag.render_to_string(w, parent_scope, hydratable).await,
-                    VNode::VText(vtext) => {
-                        vtext.render_to_string(w, parent_scope, hydratable).await
-                    }
-                    VNode::VComp(vcomp) => {
-                        vcomp.render_to_string(w, parent_scope, hydratable).await
-                    }
-                    VNode::VList(vlist) => {
-                        vlist.render_to_string(w, parent_scope, hydratable).await
-                    }
-                    // We are pretty safe here as it's not possible to get a web_sys::Node without
-                    // DOM support in the first place.
-                    //
-                    // The only exception would be to use `ServerRenderer` in a browser or wasm32
-                    // environment with jsdom present.
-                    VNode::VRef(_) => {
-                        panic!("VRef is not possible to be rendered in to a string.")
-                    }
-                    // Portals are not rendered.
-                    VNode::VPortal(_) => {}
-                    VNode::VSuspense(vsuspense) => {
-                        vsuspense
-                            .render_to_string(w, parent_scope, hydratable)
                             .await
                     }
                 }

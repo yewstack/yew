@@ -7,6 +7,8 @@ use std::future::Future;
 mod arch {
     pub(super) use wasm_bindgen_futures::spawn_local;
 
+    use super::*;
+
     pub(super) async fn run_pinned<F, Fut>(create_task: F) -> Fut::Output
     where
         F: FnOnce() -> Fut,
@@ -67,6 +69,8 @@ mod arch {
         Fut: Future + 'static,
         Fut::Output: Send + 'static,
     {
+        let _ = create_task;
+
         panic!(
             r#"No runtime configured for this platform, features that requires task spawning can't be used.
                 Either compile with `target_arch = "wasm32", or enable the `tokio` feature."#

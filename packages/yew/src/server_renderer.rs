@@ -4,7 +4,7 @@ use futures::channel::mpsc;
 use futures::stream::{Stream, StreamExt};
 
 use crate::html::{BaseComponent, Scope};
-use crate::platform::run_pinned;
+use crate::platform::{run_pinned, spawn_local};
 
 /// A Yew Server-side Renderer that renders on the current thread.
 #[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
@@ -81,13 +81,17 @@ where
     }
 
     /// Renders Yew Applications into a string Stream
+    // Whilst not required to be async here, this function is async to keep the same function
+    // signature as the ServerRenderer.
     pub async fn render_streamed(self) -> impl Stream<Item = Cow<'static, str>> {
         let (mut tx, rx) = mpsc::unbounded::<Cow<'static, str>>();
 
         let scope = Scope::<COMP>::new(None);
-        scope
-            .render_streamed(&mut tx, self.props.into(), self.hydratable)
-            .await;
+        spawn_local(async move {
+            scope
+                .render_streamed(&mut tx, self.props.into(), self.hydratable)
+                .await;
+        });
 
         rx
     }

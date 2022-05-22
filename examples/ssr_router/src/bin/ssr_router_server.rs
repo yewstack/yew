@@ -1,16 +1,18 @@
 use std::collections::HashMap;
+use std::convert::Infallible;
 use std::path::PathBuf;
 
-use axum::body::Body;
+use axum::body::{Body, StreamBody};
 use axum::error_handling::HandleError;
 use axum::extract::Query;
 use axum::handler::Handler;
 use axum::http::{Request, StatusCode};
-use axum::response::Html;
+use axum::response::IntoResponse;
 use axum::routing::get;
 use axum::{Extension, Router};
 use clap::Parser;
 use function_router::{ServerApp, ServerAppProps};
+use futures::stream::{self, StreamExt};
 use tower::ServiceExt;
 use tower_http::services::ServeDir;
 
@@ -23,21 +25,21 @@ struct Opt {
 }
 
 async fn render(
-    Extension(index_html_s): Extension<String>,
+    Extension((index_html_before, index_html_after)): Extension<(String, String)>,
     url: Request<Body>,
     Query(queries): Query<HashMap<String, String>>,
-) -> Html<String> {
+) -> impl IntoResponse {
     let url = url.uri().to_string();
 
     let server_app_props = ServerAppProps { url, queries };
-
     let renderer = yew::ServerRenderer::<ServerApp>::with_props(server_app_props);
 
-    let content = renderer.render().await;
-
-    // Good enough for an example, but developers should avoid the replace and extra allocation
-    // here in an actual app.
-    Html(index_html_s.replace("<body>", &format!("<body>{}", content)))
+    StreamBody::new(
+        stream::once(async move { index_html_before })
+            .chain(renderer.render_streamed().await.map(|m| m.into_owned()))
+            .chain(stream::once(async move { index_html_after }))
+            .map(Result::<_, Infallible>::Ok),
+    )
 }
 
 #[tokio::main]
@@ -50,6 +52,12 @@ async fn main() {
         .await
         .expect("failed to read index.html");
 
+    let (index_html_before, index_html_after) = index_html_s.split_once("<body>").unwrap();
+    let mut index_html_before = index_html_before.to_owned();
+    index_html_before.push_str("<body>");
+
+    let index_html_after = index_html_after.to_owned();
+
     let handle_error = |e| async move {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -60,13 +68,22 @@ async fn main() {
     let app = Router::new()
         .route("/api/test", get(|| async move { "Hello World" }))
         // needed because https://github.com/tower-rs/tower-http/issues/262
-        .route("/", get(render))
+        .route(
+            "/",
+            get(render.layer(Extension((
+                index_html_before.clone(),
+                index_html_after.clone(),
+            )))),
+        )
         .fallback(HandleError::new(
             ServeDir::new(opts.dir)
                 .append_index_html_on_directories(false)
                 .fallback(
                     render
-                        .layer(Extension(index_html_s))
+                        .layer(Extension((
+                            index_html_before.clone(),
+                            index_html_after.clone(),
+                        )))
                         .into_service()
                         .map_err(|err| -> std::io::Error { match err {} }),
                 ),
