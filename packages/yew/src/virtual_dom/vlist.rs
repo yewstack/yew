@@ -146,6 +146,11 @@ mod test {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use std::borrow::Cow;
+
+    use futures::channel::mpsc::{self, UnboundedSender};
+    use futures::stream::StreamExt;
+
     use super::*;
     use crate::html::AnyScope;
 
@@ -167,6 +172,29 @@ mod feat_ssr {
             .await
             {
                 w.push_str(&fragment)
+            }
+        }
+
+        pub(crate) async fn render_into_stream<'a>(
+            &'a self,
+            tx: &'a mut UnboundedSender<Cow<'static, str>>,
+            parent_scope: &'a AnyScope,
+            hydratable: bool,
+        ) {
+            // Concurrently render all children.
+            for fragment in futures::future::join_all(self.children.iter().map(|m| async move {
+                let (mut tx, rx) = mpsc::unbounded();
+
+                m.render_into_stream(&mut tx, parent_scope, hydratable)
+                    .await;
+
+                let s: String = rx.collect().await;
+
+                s
+            }))
+            .await
+            {
+                let _ = tx.unbounded_send(fragment.into());
             }
         }
     }

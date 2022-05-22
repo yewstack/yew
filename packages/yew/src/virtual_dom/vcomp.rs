@@ -1,9 +1,13 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
 use std::any::TypeId;
+#[cfg(feature = "ssr")]
+use std::borrow::Cow;
 use std::fmt;
 use std::rc::Rc;
 
+#[cfg(feature = "ssr")]
+use futures::channel::mpsc::UnboundedSender;
 #[cfg(feature = "ssr")]
 use futures::future::{FutureExt, LocalBoxFuture};
 #[cfg(feature = "csr")]
@@ -83,6 +87,14 @@ pub(crate) trait Mountable {
         fragment: &mut Fragment,
         node_ref: NodeRef,
     ) -> Box<dyn Scoped>;
+
+    #[cfg(feature = "ssr")]
+    fn render_into_stream<'a>(
+        &'a self,
+        w: &'a mut UnboundedSender<Cow<'static, str>>,
+        parent_scope: &'a AnyScope,
+        hydratable: bool,
+    ) -> LocalBoxFuture<'a, ()>;
 }
 
 pub(crate) struct PropsWrapper<COMP: BaseComponent> {
@@ -135,6 +147,22 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
             let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
             scope
                 .render_to_string(w, self.props.clone(), hydratable)
+                .await;
+        }
+        .boxed_local()
+    }
+
+    #[cfg(feature = "ssr")]
+    fn render_into_stream<'a>(
+        &'a self,
+        tx: &'a mut UnboundedSender<Cow<'static, str>>,
+        parent_scope: &'a AnyScope,
+        hydratable: bool,
+    ) -> LocalBoxFuture<'a, ()> {
+        async move {
+            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+            scope
+                .render_streamed(tx, self.props.clone(), hydratable)
                 .await;
         }
         .boxed_local()
@@ -249,6 +277,18 @@ mod feat_ssr {
             self.mountable
                 .as_ref()
                 .render_to_string(w, parent_scope, hydratable)
+                .await;
+        }
+
+        pub(crate) async fn render_into_stream<'a>(
+            &'a self,
+            tx: &'a mut UnboundedSender<Cow<'static, str>>,
+            parent_scope: &'a AnyScope,
+            hydratable: bool,
+        ) {
+            self.mountable
+                .as_ref()
+                .render_into_stream(tx, parent_scope, hydratable)
                 .await;
         }
     }

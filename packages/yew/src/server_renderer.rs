@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use futures::channel::mpsc;
-use futures::stream::Stream;
+use futures::stream::{Stream, StreamExt};
 
 use crate::html::{BaseComponent, Scope};
 use crate::platform::run_pinned;
@@ -73,13 +73,14 @@ where
 
     /// Renders Yew Application to a String.
     pub async fn render_to_string(self, w: &mut String) {
-        let scope = Scope::<COMP>::new(None);
-        scope
-            .render_to_string(w, self.props.into(), self.hydratable)
-            .await;
+        let mut s = self.render_streamed().await;
+
+        while let Some(m) = s.next().await {
+            w.push_str(&m);
+        }
     }
 
-    /// Renders Yew Applications with a Stream
+    /// Renders Yew Applications into a string Stream
     pub async fn render_streamed(self) -> impl Stream<Item = Cow<'static, str>> {
         let (mut tx, rx) = mpsc::unbounded::<Cow<'static, str>>();
 
@@ -156,12 +157,30 @@ where
 
     /// Renders Yew Application.
     pub async fn render(self) -> String {
+        let mut s = String::new();
+
+        self.render_to_string(&mut s).await;
+
+        s
+    }
+
+    /// Renders Yew Application to a String.
+    pub async fn render_to_string(self, w: &mut String) {
+        let mut s = self.render_streamed().await;
+
+        while let Some(m) = s.next().await {
+            w.push_str(&m);
+        }
+    }
+
+    /// Renders Yew Applications into a string Stream.
+    pub async fn render_streamed(self) -> impl Stream<Item = Cow<'static, str>> {
         let Self { props, hydratable } = self;
 
         run_pinned(move || async move {
             LocalServerRenderer::<COMP>::with_props(props)
                 .hydratable(hydratable)
-                .render()
+                .render_streamed()
                 .await
         })
         .await

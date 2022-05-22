@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use yew::prelude::*;
-use yew::virtual_dom::AttrValue;
 use yew_router::history::{AnyHistory, History, MemoryHistory};
 use yew_router::prelude::*;
 
@@ -55,7 +54,7 @@ pub fn App() -> Html {
 
 #[derive(Properties, PartialEq, Debug)]
 pub struct ServerAppProps {
-    pub url: AttrValue,
+    pub url: String,
     pub queries: HashMap<String, String>,
 }
 

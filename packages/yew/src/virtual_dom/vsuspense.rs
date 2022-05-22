@@ -26,6 +26,10 @@ impl VSuspense {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use std::borrow::Cow;
+
+    use futures::channel::mpsc::UnboundedSender;
+
     use super::*;
     use crate::html::AnyScope;
     use crate::virtual_dom::Collectable;
@@ -50,6 +54,28 @@ mod feat_ssr {
 
             if hydratable {
                 collectable.write_close_tag(w);
+            }
+        }
+
+        pub(crate) async fn render_into_stream<'a>(
+            &'a self,
+            tx: &'a mut UnboundedSender<Cow<'static, str>>,
+            parent_scope: &'a AnyScope,
+            hydratable: bool,
+        ) {
+            let collectable = Collectable::Suspense;
+
+            if hydratable {
+                collectable.write_open_tag_(tx);
+            }
+
+            // always render children on the server side.
+            self.children
+                .render_into_stream(tx, parent_scope, hydratable)
+                .await;
+
+            if hydratable {
+                collectable.write_close_tag_(tx);
             }
         }
     }

@@ -11,13 +11,8 @@ use axum::routing::get;
 use axum::{Extension, Router};
 use clap::Parser;
 use function_router::{ServerApp, ServerAppProps};
-use once_cell::sync::Lazy;
-use tokio_util::task::LocalPoolHandle;
 use tower::ServiceExt;
 use tower_http::services::ServeDir;
-
-// We spawn a local pool that is as big as the number of cpu threads.
-static LOCAL_POOL: Lazy<LocalPoolHandle> = Lazy::new(|| LocalPoolHandle::new(num_cpus::get()));
 
 /// A basic example
 #[derive(Parser, Debug)]
@@ -34,19 +29,11 @@ async fn render(
 ) -> Html<String> {
     let url = url.uri().to_string();
 
-    let content = LOCAL_POOL
-        .spawn_pinned(move || async move {
-            let server_app_props = ServerAppProps {
-                url: url.into(),
-                queries,
-            };
+    let server_app_props = ServerAppProps { url, queries };
 
-            let renderer = yew::ServerRenderer::<ServerApp>::with_props(server_app_props);
+    let renderer = yew::ServerRenderer::<ServerApp>::with_props(server_app_props);
 
-            renderer.render().await
-        })
-        .await
-        .expect("the task has failed.");
+    let content = renderer.render().await;
 
     // Good enough for an example, but developers should avoid the replace and extra allocation
     // here in an actual app.

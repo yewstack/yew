@@ -430,6 +430,8 @@ impl PartialEq for VTag {
 mod feat_ssr {
     use std::fmt::Write;
 
+    use futures::channel::mpsc::UnboundedSender;
+
     use super::*;
     use crate::html::AnyScope;
     use crate::virtual_dom::VText;
@@ -441,6 +443,70 @@ mod feat_ssr {
     ];
 
     impl VTag {
+        pub(crate) async fn render_into_stream<'a>(
+            &'a self,
+            tx: &'a mut UnboundedSender<Cow<'static, str>>,
+            parent_scope: &'a AnyScope,
+            hydratable: bool,
+        ) {
+            let mut start_tag = "<".to_string();
+            start_tag.push_str(self.tag());
+
+            let write_attr = |w: &mut String, name: &str, val: Option<&str>| {
+                write!(w, " {}", name).unwrap();
+
+                if let Some(m) = val {
+                    write!(w, "=\"{}\"", html_escape::encode_double_quoted_attribute(m)).unwrap();
+                }
+            };
+
+            if let VTagInner::Input(_) = self.inner {
+                if let Some(m) = self.value() {
+                    write_attr(&mut start_tag, "value", Some(m));
+                }
+
+                if self.checked() {
+                    write_attr(&mut start_tag, "checked", None);
+                }
+            }
+
+            for (k, v) in self.attributes.iter() {
+                write_attr(&mut start_tag, k, Some(v));
+            }
+
+            start_tag.push('>');
+            let _ = tx.unbounded_send(start_tag.into());
+
+            match self.inner {
+                VTagInner::Input(_) => {}
+                VTagInner::Textarea { .. } => {
+                    if let Some(m) = self.value() {
+                        VText::new(m.to_owned())
+                            .render_into_stream(tx, parent_scope, hydratable)
+                            .await;
+                    }
+
+                    let _ = tx.unbounded_send("</textarea>".into());
+                }
+                VTagInner::Other {
+                    ref tag,
+                    ref children,
+                    ..
+                } => {
+                    if !VOID_ELEMENTS.contains(&tag.as_ref()) {
+                        children
+                            .render_into_stream(tx, parent_scope, hydratable)
+                            .await;
+
+                        let _ = tx.unbounded_send(format!("</{}>", tag).into());
+                    } else {
+                        // We don't write children of void elements nor closing tags.
+                        debug_assert!(children.is_empty(), "{} cannot have any children!", tag);
+                    }
+                }
+            }
+        }
+
         pub(crate) async fn render_to_string(
             &self,
             w: &mut String,

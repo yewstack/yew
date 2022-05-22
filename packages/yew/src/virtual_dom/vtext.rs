@@ -34,6 +34,10 @@ impl PartialEq for VText {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use std::borrow::Cow;
+
+    use futures::channel::mpsc::UnboundedSender;
+
     use super::*;
     use crate::html::AnyScope;
 
@@ -45,6 +49,18 @@ mod feat_ssr {
             _hydratable: bool,
         ) {
             html_escape::encode_text_to_string(&self.text, w);
+        }
+
+        pub(crate) async fn render_into_stream<'a>(
+            &'a self,
+            tx: &'a mut UnboundedSender<Cow<'static, str>>,
+            _parent_scope: &'a AnyScope,
+            _hydratable: bool,
+        ) {
+            let mut s = String::with_capacity(self.text.len());
+            html_escape::encode_text_to_string(&self.text, &mut s);
+
+            let _ = tx.unbounded_send(s.into());
         }
     }
 }
