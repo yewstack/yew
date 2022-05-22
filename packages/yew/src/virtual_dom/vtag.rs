@@ -452,13 +452,14 @@ mod feat_ssr {
             let write_attr = |w: &mut BufWriter, name: &str, val: Option<&str>| match val {
                 Some(val) => w.write(
                     format!(
-                        "{}=\"{}\"",
+                        " {}=\"{}\"",
                         name,
                         html_escape::encode_double_quoted_attribute(val)
                     )
                     .into(),
                 ),
                 None => {
+                    w.write(" ".into());
                     w.write(name.into());
                 }
             };
