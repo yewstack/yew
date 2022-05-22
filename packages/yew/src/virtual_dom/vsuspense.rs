@@ -35,28 +35,6 @@ mod feat_ssr {
     use crate::virtual_dom::Collectable;
 
     impl VSuspense {
-        pub(crate) async fn render_to_string(
-            &self,
-            w: &mut String,
-            parent_scope: &AnyScope,
-            hydratable: bool,
-        ) {
-            let collectable = Collectable::Suspense;
-
-            if hydratable {
-                collectable.write_open_tag(w);
-            }
-
-            // always render children on the server side.
-            self.children
-                .render_to_string(w, parent_scope, hydratable)
-                .await;
-
-            if hydratable {
-                collectable.write_close_tag(w);
-            }
-        }
-
         pub(crate) async fn render_into_stream<'a>(
             &'a self,
             tx: &'a mut UnboundedSender<Cow<'static, str>>,

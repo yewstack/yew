@@ -89,7 +89,7 @@ where
         let scope = Scope::<COMP>::new(None);
         spawn_local(async move {
             scope
-                .render_streamed(&mut tx, self.props.into(), self.hydratable)
+                .render_into_stream(&mut tx, self.props.into(), self.hydratable)
                 .await;
         });
 

@@ -155,26 +155,6 @@ mod feat_ssr {
     use crate::html::AnyScope;
 
     impl VList {
-        pub(crate) async fn render_to_string(
-            &self,
-            w: &mut String,
-            parent_scope: &AnyScope,
-            hydratable: bool,
-        ) {
-            // Concurrently render all children.
-            for fragment in futures::future::join_all(self.children.iter().map(|m| async move {
-                let mut w = String::new();
-
-                m.render_to_string(&mut w, parent_scope, hydratable).await;
-
-                w
-            }))
-            .await
-            {
-                w.push_str(&fragment)
-            }
-        }
-
         pub(crate) async fn render_into_stream<'a>(
             &'a self,
             tx: &'a mut UnboundedSender<Cow<'static, str>>,

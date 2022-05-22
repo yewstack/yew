@@ -71,9 +71,9 @@ pub(crate) trait Mountable {
     fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef);
 
     #[cfg(feature = "ssr")]
-    fn render_to_string<'a>(
+    fn render_into_stream<'a>(
         &'a self,
-        w: &'a mut String,
+        w: &'a mut UnboundedSender<Cow<'static, str>>,
         parent_scope: &'a AnyScope,
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()>;
@@ -87,14 +87,6 @@ pub(crate) trait Mountable {
         fragment: &mut Fragment,
         node_ref: NodeRef,
     ) -> Box<dyn Scoped>;
-
-    #[cfg(feature = "ssr")]
-    fn render_into_stream<'a>(
-        &'a self,
-        w: &'a mut UnboundedSender<Cow<'static, str>>,
-        parent_scope: &'a AnyScope,
-        hydratable: bool,
-    ) -> LocalBoxFuture<'a, ()>;
 }
 
 pub(crate) struct PropsWrapper<COMP: BaseComponent> {
@@ -137,22 +129,6 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     }
 
     #[cfg(feature = "ssr")]
-    fn render_to_string<'a>(
-        &'a self,
-        w: &'a mut String,
-        parent_scope: &'a AnyScope,
-        hydratable: bool,
-    ) -> LocalBoxFuture<'a, ()> {
-        async move {
-            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-            scope
-                .render_to_string(w, self.props.clone(), hydratable)
-                .await;
-        }
-        .boxed_local()
-    }
-
-    #[cfg(feature = "ssr")]
     fn render_into_stream<'a>(
         &'a self,
         tx: &'a mut UnboundedSender<Cow<'static, str>>,
@@ -162,7 +138,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         async move {
             let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
             scope
-                .render_streamed(tx, self.props.clone(), hydratable)
+                .render_into_stream(tx, self.props.clone(), hydratable)
                 .await;
         }
         .boxed_local()
@@ -268,18 +244,6 @@ mod feat_ssr {
     use crate::html::AnyScope;
 
     impl VComp {
-        pub(crate) async fn render_to_string(
-            &self,
-            w: &mut String,
-            parent_scope: &AnyScope,
-            hydratable: bool,
-        ) {
-            self.mountable
-                .as_ref()
-                .render_to_string(w, parent_scope, hydratable)
-                .await;
-        }
-
         pub(crate) async fn render_into_stream<'a>(
             &'a self,
             tx: &'a mut UnboundedSender<Cow<'static, str>>,

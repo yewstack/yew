@@ -1,13 +1,13 @@
+use std::error::Error;
 use std::path::PathBuf;
 
+use bytes::Bytes;
 use clap::Parser;
-use once_cell::sync::Lazy;
+use futures::stream::{self, Stream, StreamExt};
 use simple_ssr::App;
-use tokio_util::task::LocalPoolHandle;
 use warp::Filter;
 
-// We spawn a local pool that is as big as the number of cpu threads.
-static LOCAL_POOL: Lazy<LocalPoolHandle> = Lazy::new(|| LocalPoolHandle::new(num_cpus::get()));
+type BoxedError = Box<dyn Error + Send + Sync + 'static>;
 
 /// A basic example
 #[derive(Parser, Debug)]
@@ -17,19 +17,18 @@ struct Opt {
     dir: PathBuf,
 }
 
-async fn render(index_html_s: &str) -> String {
-    let content = LOCAL_POOL
-        .spawn_pinned(move || async move {
-            let renderer = yew::ServerRenderer::<App>::new();
+async fn render(
+    index_html_before: String,
+    index_html_after: String,
+) -> Box<dyn Stream<Item = Result<Bytes, BoxedError>> + Send> {
+    let renderer = yew::ServerRenderer::<App>::new();
 
-            renderer.render().await
-        })
-        .await
-        .expect("the task has failed.");
-
-    // Good enough for an example, but developers should avoid the replace and extra allocation
-    // here in an actual app.
-    index_html_s.replace("<body>", &format!("<body>{}", content))
+    Box::new(
+        stream::once(async move { index_html_before })
+            .chain(renderer.render_streamed().await.map(|m| m.into_owned()))
+            .chain(stream::once(async move { index_html_after }))
+            .map(|m| Result::<_, BoxedError>::Ok(m.into())),
+    )
 }
 
 #[tokio::main]
@@ -40,10 +39,16 @@ async fn main() {
         .await
         .expect("failed to read index.html");
 
-    let html = warp::path::end().then(move || {
-        let index_html_s = index_html_s.clone();
+    let (index_html_before, index_html_after) = index_html_s.split_once("<body>").unwrap();
+    let mut index_html_before = index_html_before.to_owned();
+    index_html_before.push_str("<body>");
+    let index_html_after = index_html_after.to_owned();
 
-        async move { warp::reply::html(render(&index_html_s).await) }
+    let html = warp::path::end().then(move || {
+        let index_html_before = index_html_before.clone();
+        let index_html_after = index_html_after.clone();
+
+        async move { warp::reply::html(render(index_html_before, index_html_after).await) }
     });
 
     let routes = html.or(warp::fs::dir(opts.dir));

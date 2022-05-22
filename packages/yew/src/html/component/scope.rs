@@ -273,7 +273,7 @@ mod feat_ssr {
     use crate::virtual_dom::Collectable;
 
     impl<COMP: BaseComponent> Scope<COMP> {
-        pub(crate) async fn render_streamed(
+        pub(crate) async fn render_into_stream(
             &self,
             tx: &mut UnboundedSender<Cow<'static, str>>,
             props: Rc<COMP::Properties>,
@@ -311,50 +311,6 @@ mod feat_ssr {
 
             if hydratable {
                 collectable.write_close_tag_(tx);
-            }
-
-            scheduler::push_component_destroy(Box::new(DestroyRunner {
-                state: self.state.clone(),
-                parent_to_detach: false,
-            }));
-            scheduler::start();
-        }
-
-        pub(crate) async fn render_to_string(
-            self,
-            w: &mut String,
-            props: Rc<COMP::Properties>,
-            hydratable: bool,
-        ) {
-            let (tx, rx) = oneshot::channel();
-            let state = ComponentRenderState::Ssr { sender: Some(tx) };
-
-            scheduler::push_component_create(
-                self.id,
-                Box::new(CreateRunner {
-                    initial_render_state: state,
-                    props,
-                    scope: self.clone(),
-                }),
-                Box::new(RenderRunner {
-                    state: self.state.clone(),
-                }),
-            );
-            scheduler::start();
-
-            let collectable = Collectable::for_component::<COMP>();
-
-            if hydratable {
-                collectable.write_open_tag(w);
-            }
-
-            let html = rx.await.unwrap();
-
-            let self_any_scope = AnyScope::from(self.clone());
-            html.render_to_string(w, &self_any_scope, hydratable).await;
-
-            if hydratable {
-                collectable.write_close_tag(w);
             }
 
             scheduler::push_component_destroy(Box::new(DestroyRunner {

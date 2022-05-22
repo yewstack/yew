@@ -506,66 +506,6 @@ mod feat_ssr {
                 }
             }
         }
-
-        pub(crate) async fn render_to_string(
-            &self,
-            w: &mut String,
-            parent_scope: &AnyScope,
-            hydratable: bool,
-        ) {
-            write!(w, "<{}", self.tag()).unwrap();
-
-            let write_attr = |w: &mut String, name: &str, val: Option<&str>| {
-                write!(w, " {}", name).unwrap();
-
-                if let Some(m) = val {
-                    write!(w, "=\"{}\"", html_escape::encode_double_quoted_attribute(m)).unwrap();
-                }
-            };
-
-            if let VTagInner::Input(_) = self.inner {
-                if let Some(m) = self.value() {
-                    write_attr(w, "value", Some(m));
-                }
-
-                if self.checked() {
-                    write_attr(w, "checked", None);
-                }
-            }
-
-            for (k, v) in self.attributes.iter() {
-                write_attr(w, k, Some(v));
-            }
-
-            write!(w, ">").unwrap();
-
-            match self.inner {
-                VTagInner::Input(_) => {}
-                VTagInner::Textarea { .. } => {
-                    if let Some(m) = self.value() {
-                        VText::new(m.to_owned())
-                            .render_to_string(w, parent_scope, hydratable)
-                            .await;
-                    }
-
-                    w.push_str("</textarea>");
-                }
-                VTagInner::Other {
-                    ref tag,
-                    ref children,
-                    ..
-                } => {
-                    if !VOID_ELEMENTS.contains(&tag.as_ref()) {
-                        children.render_to_string(w, parent_scope, hydratable).await;
-
-                        write!(w, "</{}>", tag).unwrap();
-                    } else {
-                        // We don't write children of void elements nor closing tags.
-                        debug_assert!(children.is_empty(), "{} cannot have any children!", tag);
-                    }
-                }
-            }
-        }
     }
 }
 
