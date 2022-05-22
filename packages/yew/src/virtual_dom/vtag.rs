@@ -449,7 +449,9 @@ mod feat_ssr {
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
-            let mut start_tag = "<".to_string();
+            // Preallocate a String that is big enough for most elements.
+            let mut start_tag = String::with_capacity(50);
+            start_tag.push('<');
             start_tag.push_str(self.tag());
 
             let write_attr = |w: &mut String, name: &str, val: Option<&str>| {

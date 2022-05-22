@@ -133,8 +133,9 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         parent_scope: &'a AnyScope,
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()> {
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+
         async move {
-            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
             scope
                 .render_into_stream(tx, self.props.clone(), hydratable)
                 .await;

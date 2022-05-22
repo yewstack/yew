@@ -159,8 +159,20 @@ mod feat_ssr {
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
+            if self.children.len() < 2 {
+                match self.children.first() {
+                    Some(m) => {
+                        m.render_into_stream(tx, parent_scope, hydratable).await;
+                    }
+
+                    None => {}
+                }
+
+                return;
+            }
+
             // Concurrently render all children.
-            let children: FuturesOrdered<_> = self
+            let mut children: FuturesOrdered<_> = self
                 .children
                 .iter()
                 .map(|m| async move {
@@ -168,14 +180,12 @@ mod feat_ssr {
 
                     m.render_into_stream(&mut tx, parent_scope, hydratable)
                         .await;
-
                     drop(tx);
 
-                    rx
+                    let s: String = rx.collect().await;
+                    s
                 })
                 .collect();
-            let mut children = children.flatten();
-
             while let Some(m) = children.next().await {
                 let _ = tx.unbounded_send(m);
             }
