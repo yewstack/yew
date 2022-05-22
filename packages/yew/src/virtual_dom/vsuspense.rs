@@ -44,7 +44,7 @@ mod feat_ssr {
             let collectable = Collectable::Suspense;
 
             if hydratable {
-                collectable.write_open_tag_(tx);
+                collectable.write_open_tag(tx);
             }
 
             // always render children on the server side.
@@ -53,7 +53,7 @@ mod feat_ssr {
                 .await;
 
             if hydratable {
-                collectable.write_close_tag_(tx);
+                collectable.write_close_tag(tx);
             }
         }
     }

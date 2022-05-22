@@ -272,7 +272,10 @@ mod feat_ssr {
     use super::*;
 
     impl Collectable {
-        pub fn write_open_tag(&self, w: &mut String) {
+        pub fn write_open_tag(&self, tx: &mut UnboundedSender<Cow<'static, str>>) {
+            // <!--<[]>-->
+            let mut w = String::with_capacity(11);
+
             w.push_str("<!--");
             w.push_str(self.open_start_mark());
 
@@ -284,9 +287,13 @@ mod feat_ssr {
 
             w.push_str(self.end_mark());
             w.push_str("-->");
+
+            let _ = tx.unbounded_send(w.into());
         }
 
-        pub fn write_close_tag(&self, w: &mut String) {
+        pub fn write_close_tag(&self, tx: &mut UnboundedSender<Cow<'static, str>>) {
+            // <!--</[]>-->
+            let mut w = String::with_capacity(12);
             w.push_str("<!--");
             w.push_str(self.close_start_mark());
 
@@ -298,38 +305,8 @@ mod feat_ssr {
 
             w.push_str(self.end_mark());
             w.push_str("-->");
-        }
 
-        pub fn write_open_tag_(&self, tx: &mut UnboundedSender<Cow<'static, str>>) {
-            let _ = tx.start_send(Cow::Borrowed("<!--"));
-            let _ = tx.start_send(Cow::Borrowed(self.open_start_mark()));
-
-            #[cfg(debug_assertions)]
-            match self {
-                Self::Component(type_name) => {
-                    let _ = tx.start_send(Cow::Borrowed(type_name));
-                }
-                Self::Suspense => {}
-            }
-
-            let _ = tx.start_send(Cow::Borrowed(self.end_mark()));
-            let _ = tx.start_send(Cow::Borrowed("-->"));
-        }
-
-        pub fn write_close_tag_(&self, tx: &mut UnboundedSender<Cow<'static, str>>) {
-            let _ = tx.start_send(Cow::Borrowed("<!--"));
-            let _ = tx.start_send(Cow::Borrowed(self.close_start_mark()));
-
-            #[cfg(debug_assertions)]
-            match self {
-                Self::Component(type_name) => {
-                    let _ = tx.start_send(Cow::Borrowed(type_name));
-                }
-                Self::Suspense => {}
-            }
-
-            let _ = tx.start_send(Cow::Borrowed(self.end_mark()));
-            let _ = tx.start_send(Cow::Borrowed("-->"));
+            let _ = tx.unbounded_send(w.into());
         }
     }
 }

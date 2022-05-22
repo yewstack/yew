@@ -300,7 +300,7 @@ mod feat_ssr {
             let collectable = Collectable::for_component::<COMP>();
 
             if hydratable {
-                collectable.write_open_tag_(tx);
+                collectable.write_open_tag(tx);
             }
 
             let html = html_rx.await.unwrap();
@@ -310,7 +310,7 @@ mod feat_ssr {
                 .await;
 
             if hydratable {
-                collectable.write_close_tag_(tx);
+                collectable.write_close_tag(tx);
             }
 
             scheduler::push_component_destroy(Box::new(DestroyRunner {
