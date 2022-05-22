@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use futures::channel::mpsc;
 use futures::stream::{Stream, StreamExt};
 
@@ -83,8 +81,8 @@ where
     /// Renders Yew Applications into a string Stream
     // Whilst not required to be async here, this function is async to keep the same function
     // signature as the ServerRenderer.
-    pub async fn render_streamed(self) -> impl Stream<Item = Cow<'static, str>> {
-        let (mut tx, rx) = mpsc::unbounded::<Cow<'static, str>>();
+    pub async fn render_streamed(self) -> impl Stream<Item = String> {
+        let (mut tx, rx) = mpsc::unbounded::<String>();
 
         let scope = Scope::<COMP>::new(None);
         spawn_local(async move {
@@ -178,7 +176,7 @@ where
     }
 
     /// Renders Yew Applications into a string Stream.
-    pub async fn render_streamed(self) -> impl Stream<Item = Cow<'static, str>> {
+    pub async fn render_streamed(self) -> impl Stream<Item = String> {
         let Self { props, hydratable } = self;
 
         run_pinned(move || async move {

@@ -1,8 +1,6 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
 use std::any::TypeId;
-#[cfg(feature = "ssr")]
-use std::borrow::Cow;
 use std::fmt;
 use std::rc::Rc;
 
@@ -73,7 +71,7 @@ pub(crate) trait Mountable {
     #[cfg(feature = "ssr")]
     fn render_into_stream<'a>(
         &'a self,
-        w: &'a mut UnboundedSender<Cow<'static, str>>,
+        w: &'a mut UnboundedSender<String>,
         parent_scope: &'a AnyScope,
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()>;
@@ -131,7 +129,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     #[cfg(feature = "ssr")]
     fn render_into_stream<'a>(
         &'a self,
-        tx: &'a mut UnboundedSender<Cow<'static, str>>,
+        tx: &'a mut UnboundedSender<String>,
         parent_scope: &'a AnyScope,
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()> {
@@ -244,10 +242,10 @@ mod feat_ssr {
     use crate::html::AnyScope;
 
     impl VComp {
-        pub(crate) async fn render_into_stream<'a>(
-            &'a self,
-            tx: &'a mut UnboundedSender<Cow<'static, str>>,
-            parent_scope: &'a AnyScope,
+        pub(crate) async fn render_into_stream(
+            &self,
+            tx: &mut UnboundedSender<String>,
+            parent_scope: &AnyScope,
             hydratable: bool,
         ) {
             self.mountable

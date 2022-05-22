@@ -265,14 +265,12 @@ pub(crate) use feat_ssr_hydration::*;
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use std::borrow::Cow;
-
     use futures::channel::mpsc::UnboundedSender;
 
     use super::*;
 
     impl Collectable {
-        pub fn write_open_tag(&self, tx: &mut UnboundedSender<Cow<'static, str>>) {
+        pub fn write_open_tag(&self, tx: &mut UnboundedSender<String>) {
             // <!--<[]>-->
             let mut w = String::with_capacity(11);
 
@@ -288,10 +286,10 @@ mod feat_ssr {
             w.push_str(self.end_mark());
             w.push_str("-->");
 
-            let _ = tx.unbounded_send(w.into());
+            let _ = tx.unbounded_send(w);
         }
 
-        pub fn write_close_tag(&self, tx: &mut UnboundedSender<Cow<'static, str>>) {
+        pub fn write_close_tag(&self, tx: &mut UnboundedSender<String>) {
             // <!--</[]>-->
             let mut w = String::with_capacity(12);
             w.push_str("<!--");
@@ -306,7 +304,7 @@ mod feat_ssr {
             w.push_str(self.end_mark());
             w.push_str("-->");
 
-            let _ = tx.unbounded_send(w.into());
+            let _ = tx.unbounded_send(w);
         }
     }
 }

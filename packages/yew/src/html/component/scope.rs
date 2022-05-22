@@ -260,8 +260,6 @@ impl<COMP: BaseComponent> Scope<COMP> {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use std::borrow::Cow;
-
     use futures::channel::mpsc::UnboundedSender;
     use futures::channel::oneshot;
 
@@ -275,7 +273,7 @@ mod feat_ssr {
     impl<COMP: BaseComponent> Scope<COMP> {
         pub(crate) async fn render_into_stream(
             &self,
-            tx: &mut UnboundedSender<Cow<'static, str>>,
+            tx: &mut UnboundedSender<String>,
             props: Rc<COMP::Properties>,
             hydratable: bool,
         ) {

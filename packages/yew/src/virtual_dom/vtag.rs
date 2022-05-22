@@ -443,10 +443,10 @@ mod feat_ssr {
     ];
 
     impl VTag {
-        pub(crate) async fn render_into_stream<'a>(
-            &'a self,
-            tx: &'a mut UnboundedSender<Cow<'static, str>>,
-            parent_scope: &'a AnyScope,
+        pub(crate) async fn render_into_stream(
+            &self,
+            tx: &mut UnboundedSender<String>,
+            parent_scope: &AnyScope,
             hydratable: bool,
         ) {
             let mut start_tag = "<".to_string();
@@ -475,7 +475,7 @@ mod feat_ssr {
             }
 
             start_tag.push('>');
-            let _ = tx.unbounded_send(start_tag.into());
+            let _ = tx.unbounded_send(start_tag);
 
             match self.inner {
                 VTagInner::Input(_) => {}
@@ -498,7 +498,7 @@ mod feat_ssr {
                             .render_into_stream(tx, parent_scope, hydratable)
                             .await;
 
-                        let _ = tx.unbounded_send(format!("</{}>", tag).into());
+                        let _ = tx.unbounded_send(format!("</{}>", tag));
                     } else {
                         // We don't write children of void elements nor closing tags.
                         debug_assert!(children.is_empty(), "{} cannot have any children!", tag);

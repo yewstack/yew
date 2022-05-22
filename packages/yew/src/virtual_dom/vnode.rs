@@ -147,8 +147,6 @@ impl PartialEq for VNode {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use std::borrow::Cow;
-
     use futures::channel::mpsc::UnboundedSender;
     use futures::future::{FutureExt, LocalBoxFuture};
 
@@ -158,7 +156,7 @@ mod feat_ssr {
     impl VNode {
         pub(crate) fn render_into_stream<'a>(
             &'a self,
-            tx: &'a mut UnboundedSender<Cow<'static, str>>,
+            tx: &'a mut UnboundedSender<String>,
             parent_scope: &'a AnyScope,
             hydratable: bool,
         ) -> LocalBoxFuture<'a, ()> {

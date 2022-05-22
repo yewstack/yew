@@ -146,8 +146,6 @@ mod test {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use std::borrow::Cow;
-
     use futures::channel::mpsc::{self, UnboundedSender};
     use futures::stream::{FuturesOrdered, StreamExt};
 
@@ -155,32 +153,31 @@ mod feat_ssr {
     use crate::html::AnyScope;
 
     impl VList {
-        pub(crate) async fn render_into_stream<'a>(
-            &'a self,
-            tx: &'a mut UnboundedSender<Cow<'static, str>>,
-            parent_scope: &'a AnyScope,
+        pub(crate) async fn render_into_stream(
+            &self,
+            tx: &mut UnboundedSender<String>,
+            parent_scope: &AnyScope,
             hydratable: bool,
         ) {
             // Concurrently render all children.
-            let mut children_f: FuturesOrdered<_> = self
+            let children: FuturesOrdered<_> = self
                 .children
                 .iter()
                 .map(|m| async move {
-                    let (mut inner_tx, inner_rx) = mpsc::unbounded();
+                    let (mut tx, rx) = mpsc::unbounded();
 
-                    m.render_into_stream(&mut inner_tx, parent_scope, hydratable)
+                    m.render_into_stream(&mut tx, parent_scope, hydratable)
                         .await;
 
-                    drop(inner_tx);
+                    drop(tx);
 
-                    let s: String = inner_rx.collect().await;
-
-                    s
+                    rx
                 })
                 .collect();
+            let mut children = children.flatten();
 
-            while let Some(m) = children_f.next().await {
-                let _ = tx.unbounded_send(m.into());
+            while let Some(m) = children.next().await {
+                let _ = tx.unbounded_send(m);
             }
         }
     }

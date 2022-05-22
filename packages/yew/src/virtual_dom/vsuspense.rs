@@ -26,8 +26,6 @@ impl VSuspense {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use std::borrow::Cow;
-
     use futures::channel::mpsc::UnboundedSender;
 
     use super::*;
@@ -35,10 +33,10 @@ mod feat_ssr {
     use crate::virtual_dom::Collectable;
 
     impl VSuspense {
-        pub(crate) async fn render_into_stream<'a>(
-            &'a self,
-            tx: &'a mut UnboundedSender<Cow<'static, str>>,
-            parent_scope: &'a AnyScope,
+        pub(crate) async fn render_into_stream(
+            &self,
+            tx: &mut UnboundedSender<String>,
+            parent_scope: &AnyScope,
             hydratable: bool,
         ) {
             let collectable = Collectable::Suspense;
