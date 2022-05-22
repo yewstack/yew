@@ -146,23 +146,23 @@ mod test {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::channel::mpsc::{self, UnboundedSender};
     use futures::stream::{FuturesOrdered, StreamExt};
 
     use super::*;
     use crate::html::AnyScope;
+    use crate::server_renderer::BufWriter;
 
     impl VList {
         pub(crate) async fn render_into_stream(
             &self,
-            tx: &mut UnboundedSender<String>,
+            w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
             if self.children.len() < 2 {
                 match self.children.first() {
                     Some(m) => {
-                        m.render_into_stream(tx, parent_scope, hydratable).await;
+                        m.render_into_stream(w, parent_scope, hydratable).await;
                     }
 
                     None => {}
@@ -176,18 +176,19 @@ mod feat_ssr {
                 .children
                 .iter()
                 .map(|m| async move {
-                    let (mut tx, rx) = mpsc::unbounded();
+                    let (mut w, rx) = BufWriter::new();
 
-                    m.render_into_stream(&mut tx, parent_scope, hydratable)
-                        .await;
-                    drop(tx);
+                    m.render_into_stream(&mut w, parent_scope, hydratable).await;
+                    drop(w);
 
-                    let s: String = rx.collect().await;
-                    s
+                    rx
                 })
                 .collect();
-            while let Some(m) = children.next().await {
-                let _ = tx.unbounded_send(m);
+
+            while let Some(mut rx) = children.next().await {
+                while let Some(next_chunk) = rx.next().await {
+                    w.write(next_chunk.into());
+                }
             }
         }
     }

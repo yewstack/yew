@@ -26,32 +26,31 @@ impl VSuspense {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::channel::mpsc::UnboundedSender;
-
     use super::*;
     use crate::html::AnyScope;
+    use crate::server_renderer::BufWriter;
     use crate::virtual_dom::Collectable;
 
     impl VSuspense {
         pub(crate) async fn render_into_stream(
             &self,
-            tx: &mut UnboundedSender<String>,
+            w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
             let collectable = Collectable::Suspense;
 
             if hydratable {
-                collectable.write_open_tag(tx);
+                collectable.write_open_tag(w);
             }
 
             // always render children on the server side.
             self.children
-                .render_into_stream(tx, parent_scope, hydratable)
+                .render_into_stream(w, parent_scope, hydratable)
                 .await;
 
             if hydratable {
-                collectable.write_close_tag(tx);
+                collectable.write_close_tag(w);
             }
         }
     }

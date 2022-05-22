@@ -34,22 +34,22 @@ impl PartialEq for VText {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::channel::mpsc::UnboundedSender;
 
     use super::*;
     use crate::html::AnyScope;
+    use crate::server_renderer::BufWriter;
 
     impl VText {
         pub(crate) async fn render_into_stream(
             &self,
-            tx: &mut UnboundedSender<String>,
+            w: &mut BufWriter,
             _parent_scope: &AnyScope,
             _hydratable: bool,
         ) {
             let mut s = String::with_capacity(self.text.len());
             html_escape::encode_text_to_string(&self.text, &mut s);
 
-            let _ = tx.unbounded_send(s);
+            w.write(s.into());
         }
     }
 }

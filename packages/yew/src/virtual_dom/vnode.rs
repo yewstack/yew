@@ -147,37 +147,35 @@ impl PartialEq for VNode {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::channel::mpsc::UnboundedSender;
     use futures::future::{FutureExt, LocalBoxFuture};
 
     use super::*;
     use crate::html::AnyScope;
+    use crate::server_renderer::BufWriter;
 
     impl VNode {
         pub(crate) fn render_into_stream<'a>(
             &'a self,
-            tx: &'a mut UnboundedSender<String>,
+            w: &'a mut BufWriter,
             parent_scope: &'a AnyScope,
             hydratable: bool,
         ) -> LocalBoxFuture<'a, ()> {
             async fn render_into_stream_(
                 this: &VNode,
-                tx: &mut UnboundedSender<String>,
+                w: &mut BufWriter,
                 parent_scope: &AnyScope,
                 hydratable: bool,
             ) {
                 match this {
-                    VNode::VTag(vtag) => {
-                        vtag.render_into_stream(tx, parent_scope, hydratable).await
-                    }
+                    VNode::VTag(vtag) => vtag.render_into_stream(w, parent_scope, hydratable).await,
                     VNode::VText(vtext) => {
-                        vtext.render_into_stream(tx, parent_scope, hydratable).await
+                        vtext.render_into_stream(w, parent_scope, hydratable).await
                     }
                     VNode::VComp(vcomp) => {
-                        vcomp.render_into_stream(tx, parent_scope, hydratable).await
+                        vcomp.render_into_stream(w, parent_scope, hydratable).await
                     }
                     VNode::VList(vlist) => {
-                        vlist.render_into_stream(tx, parent_scope, hydratable).await
+                        vlist.render_into_stream(w, parent_scope, hydratable).await
                     }
                     // We are pretty safe here as it's not possible to get a web_sys::Node without
                     // DOM support in the first place.
@@ -191,13 +189,13 @@ mod feat_ssr {
                     VNode::VPortal(_) => {}
                     VNode::VSuspense(vsuspense) => {
                         vsuspense
-                            .render_into_stream(tx, parent_scope, hydratable)
+                            .render_into_stream(w, parent_scope, hydratable)
                             .await
                     }
                 }
             }
 
-            async move { render_into_stream_(self, tx, parent_scope, hydratable).await }
+            async move { render_into_stream_(self, w, parent_scope, hydratable).await }
                 .boxed_local()
         }
     }

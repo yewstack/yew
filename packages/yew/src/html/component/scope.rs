@@ -260,7 +260,6 @@ impl<COMP: BaseComponent> Scope<COMP> {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::channel::mpsc::UnboundedSender;
     use futures::channel::oneshot;
 
     use super::*;
@@ -268,19 +267,18 @@ mod feat_ssr {
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
     use crate::scheduler;
+    use crate::server_renderer::BufWriter;
     use crate::virtual_dom::Collectable;
 
     impl<COMP: BaseComponent> Scope<COMP> {
         pub(crate) async fn render_into_stream(
             &self,
-            tx: &mut UnboundedSender<String>,
+            w: &mut BufWriter,
             props: Rc<COMP::Properties>,
             hydratable: bool,
         ) {
-            let (html_tx, html_rx) = oneshot::channel();
-            let state = ComponentRenderState::Ssr {
-                sender: Some(html_tx),
-            };
+            let (tx, rx) = oneshot::channel();
+            let state = ComponentRenderState::Ssr { sender: Some(tx) };
 
             scheduler::push_component_create(
                 self.id,
@@ -298,17 +296,17 @@ mod feat_ssr {
             let collectable = Collectable::for_component::<COMP>();
 
             if hydratable {
-                collectable.write_open_tag(tx);
+                collectable.write_open_tag(w);
             }
 
-            let html = html_rx.await.unwrap();
+            let html = rx.await.unwrap();
 
             let self_any_scope = AnyScope::from(self.clone());
-            html.render_into_stream(tx, &self_any_scope, hydratable)
+            html.render_into_stream(w, &self_any_scope, hydratable)
                 .await;
 
             if hydratable {
-                collectable.write_close_tag(tx);
+                collectable.write_close_tag(w);
             }
 
             scheduler::push_component_destroy(Box::new(DestroyRunner {

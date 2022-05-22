@@ -428,12 +428,9 @@ impl PartialEq for VTag {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use std::fmt::Write;
-
-    use futures::channel::mpsc::UnboundedSender;
-
     use super::*;
     use crate::html::AnyScope;
+    use crate::server_renderer::BufWriter;
     use crate::virtual_dom::VText;
 
     // Elements that cannot have any child elements.
@@ -445,59 +442,53 @@ mod feat_ssr {
     impl VTag {
         pub(crate) async fn render_into_stream(
             &self,
-            tx: &mut UnboundedSender<String>,
+            w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
-            // Preallocate a String that is big enough for most elements.
-            let mut start_tag = String::with_capacity(64);
-            start_tag.push('<');
-            start_tag.push_str(self.tag());
+            w.write("<".into());
+            w.write(self.tag().into());
 
-            let write_attr = |w: &mut String, name: &str, val: Option<&str>| {
-                match val {
-                    Some(val) => {
-                        write!(
-                            w,
-                            "{}=\"{}\"",
-                            name,
-                            html_escape::encode_double_quoted_attribute(val)
-                        )
-                    }
-                    None => {
-                        write!(w, " {}", name)
-                    }
+            let write_attr = |w: &mut BufWriter, name: &str, val: Option<&str>| match val {
+                Some(val) => w.write(
+                    format!(
+                        "{}=\"{}\"",
+                        name,
+                        html_escape::encode_double_quoted_attribute(val)
+                    )
+                    .into(),
+                ),
+                None => {
+                    w.write(name.into());
                 }
-                .unwrap();
             };
 
             if let VTagInner::Input(_) = self.inner {
                 if let Some(m) = self.value() {
-                    write_attr(&mut start_tag, "value", Some(m));
+                    write_attr(w, "value", Some(m));
                 }
 
                 if self.checked() {
-                    write_attr(&mut start_tag, "checked", None);
+                    write_attr(w, "checked", None);
                 }
             }
 
             for (k, v) in self.attributes.iter() {
-                write_attr(&mut start_tag, k, Some(v));
+                write_attr(w, k, Some(v));
             }
 
-            start_tag.push('>');
-            let _ = tx.unbounded_send(start_tag);
+            w.write(">".into());
 
             match self.inner {
                 VTagInner::Input(_) => {}
                 VTagInner::Textarea { .. } => {
                     if let Some(m) = self.value() {
                         VText::new(m.to_owned())
-                            .render_into_stream(tx, parent_scope, hydratable)
+                            .render_into_stream(w, parent_scope, hydratable)
                             .await;
                     }
 
-                    let _ = tx.unbounded_send("</textarea>".into());
+                    w.write("</textarea>".into());
                 }
                 VTagInner::Other {
                     ref tag,
@@ -506,10 +497,10 @@ mod feat_ssr {
                 } => {
                     if !VOID_ELEMENTS.contains(&tag.as_ref()) {
                         children
-                            .render_into_stream(tx, parent_scope, hydratable)
+                            .render_into_stream(w, parent_scope, hydratable)
                             .await;
 
-                        let _ = tx.unbounded_send(format!("</{}>", tag));
+                        w.write(format!("</{}>", tag).into());
                     } else {
                         // We don't write children of void elements nor closing tags.
                         debug_assert!(children.is_empty(), "{} cannot have any children!", tag);

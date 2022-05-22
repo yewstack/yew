@@ -265,46 +265,36 @@ pub(crate) use feat_ssr_hydration::*;
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::channel::mpsc::UnboundedSender;
-
     use super::*;
+    use crate::server_renderer::BufWriter;
 
     impl Collectable {
-        pub fn write_open_tag(&self, tx: &mut UnboundedSender<String>) {
-            // <!--<[]>-->
-            let mut w = String::with_capacity(11);
-
-            w.push_str("<!--");
-            w.push_str(self.open_start_mark());
+        pub(crate) fn write_open_tag(&self, w: &mut BufWriter) {
+            w.write("<!--".into());
+            w.write(self.open_start_mark().into());
 
             #[cfg(debug_assertions)]
             match self {
-                Self::Component(type_name) => w.push_str(type_name),
+                Self::Component(type_name) => w.write((*type_name).into()),
                 Self::Suspense => {}
             }
 
-            w.push_str(self.end_mark());
-            w.push_str("-->");
-
-            let _ = tx.unbounded_send(w);
+            w.write(self.end_mark().into());
+            w.write("-->".into());
         }
 
-        pub fn write_close_tag(&self, tx: &mut UnboundedSender<String>) {
-            // <!--</[]>-->
-            let mut w = String::with_capacity(12);
-            w.push_str("<!--");
-            w.push_str(self.close_start_mark());
+        pub(crate) fn write_close_tag(&self, w: &mut BufWriter) {
+            w.write("<!--".into());
+            w.write(self.close_start_mark().into());
 
             #[cfg(debug_assertions)]
             match self {
-                Self::Component(type_name) => w.push_str(type_name),
+                Self::Component(type_name) => w.write((*type_name).into()),
                 Self::Suspense => {}
             }
 
-            w.push_str(self.end_mark());
-            w.push_str("-->");
-
-            let _ = tx.unbounded_send(w);
+            w.write(self.end_mark().into());
+            w.write("-->".into());
         }
     }
 }

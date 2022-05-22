@@ -1,8 +1,65 @@
-use futures::channel::mpsc;
+use std::borrow::Cow;
+
+use futures::channel::mpsc::{self, UnboundedSender};
 use futures::stream::{Stream, StreamExt};
 
 use crate::html::{BaseComponent, Scope};
 use crate::platform::{run_pinned, spawn_local};
+
+pub(crate) struct BufWriter {
+    buf: String,
+    tx: UnboundedSender<String>,
+}
+
+impl BufWriter {
+    pub fn new() -> (Self, impl Stream<Item = String>) {
+        let (tx, rx) = mpsc::unbounded::<String>();
+
+        let this = Self {
+            buf: String::with_capacity(4096),
+            tx,
+        };
+
+        (this, rx)
+    }
+
+    /// Writes a string into the buffer, optionally drains the buffer.
+    pub fn write(&mut self, s: Cow<'_, str>) {
+        if s.len() > 4096 {
+            // if the next chunk is more than 4096, we drain the buffer and the next
+            // chunk.
+            if !self.buf.is_empty() {
+                let mut buf = String::with_capacity(4096);
+                std::mem::swap(&mut buf, &mut self.buf);
+                let _ = self.tx.unbounded_send(buf);
+            }
+
+            let _ = self.tx.unbounded_send(s.into_owned());
+        } else if self.buf.len() + s.len() < 4096 {
+            // The length of current chunk and the next part is less than 4096, we push
+            // it on to the buffer.
+            self.buf.push_str(&s);
+        } else {
+            // The length of current chunk and the next part is more than 4096, we send
+            // the current buffer and make the next chunk the new buffer.
+            let mut buf = s.into_owned();
+
+            buf.reserve(4096);
+            std::mem::swap(&mut buf, &mut self.buf);
+            let _ = self.tx.unbounded_send(buf);
+        }
+    }
+}
+
+impl Drop for BufWriter {
+    fn drop(&mut self) {
+        if !self.buf.is_empty() {
+            let mut buf = "".to_string();
+            std::mem::swap(&mut buf, &mut self.buf);
+            let _ = self.tx.unbounded_send(buf);
+        }
+    }
+}
 
 /// A Yew Server-side Renderer that renders on the current thread.
 #[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
@@ -82,12 +139,12 @@ where
     // Whilst not required to be async here, this function is async to keep the same function
     // signature as the ServerRenderer.
     pub async fn render_stream(self) -> impl Stream<Item = String> {
-        let (mut tx, rx) = mpsc::unbounded::<String>();
+        let (mut w, rx) = BufWriter::new();
 
         let scope = Scope::<COMP>::new(None);
         spawn_local(async move {
             scope
-                .render_into_stream(&mut tx, self.props.into(), self.hydratable)
+                .render_into_stream(&mut w, self.props.into(), self.hydratable)
                 .await;
         });
 

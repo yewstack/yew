@@ -5,8 +5,6 @@ use std::fmt;
 use std::rc::Rc;
 
 #[cfg(feature = "ssr")]
-use futures::channel::mpsc::UnboundedSender;
-#[cfg(feature = "ssr")]
 use futures::future::{FutureExt, LocalBoxFuture};
 #[cfg(feature = "csr")]
 use web_sys::Element;
@@ -21,6 +19,8 @@ use crate::html::Scoped;
 #[cfg(any(feature = "ssr", feature = "csr"))]
 use crate::html::{AnyScope, Scope};
 use crate::html::{BaseComponent, NodeRef};
+#[cfg(feature = "ssr")]
+use crate::server_renderer::BufWriter;
 
 /// A virtual component.
 pub struct VComp {
@@ -71,7 +71,7 @@ pub(crate) trait Mountable {
     #[cfg(feature = "ssr")]
     fn render_into_stream<'a>(
         &'a self,
-        w: &'a mut UnboundedSender<String>,
+        w: &'a mut BufWriter,
         parent_scope: &'a AnyScope,
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()>;
@@ -129,7 +129,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     #[cfg(feature = "ssr")]
     fn render_into_stream<'a>(
         &'a self,
-        tx: &'a mut UnboundedSender<String>,
+        w: &'a mut BufWriter,
         parent_scope: &'a AnyScope,
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()> {
@@ -137,7 +137,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
 
         async move {
             scope
-                .render_into_stream(tx, self.props.clone(), hydratable)
+                .render_into_stream(w, self.props.clone(), hydratable)
                 .await;
         }
         .boxed_local()
@@ -246,13 +246,13 @@ mod feat_ssr {
         #[inline]
         pub(crate) async fn render_into_stream(
             &self,
-            tx: &mut UnboundedSender<String>,
+            w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
             self.mountable
                 .as_ref()
-                .render_into_stream(tx, parent_scope, hydratable)
+                .render_into_stream(w, parent_scope, hydratable)
                 .await;
         }
     }
