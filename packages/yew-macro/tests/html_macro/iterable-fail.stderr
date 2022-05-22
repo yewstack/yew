@@ -5,24 +5,25 @@ error: expected an expression after the keyword `for`
   |             ^^^
 
 error[E0277]: `()` is not an iterator
-   --> tests/html_macro/iterable-fail.rs:5:17
-    |
-5   |     html! { for () };
-    |                 ^^ `()` is not an iterator
-    |
-    = help: the trait `Iterator` is not implemented for `()`
-    = note: required because of the requirements on the impl of `IntoIterator` for `()`
-note: required by `into_iter`
+ --> tests/html_macro/iterable-fail.rs:5:17
+  |
+5 |     html! { for () };
+  |                 ^^ `()` is not an iterator
+  |
+  = help: the trait `Iterator` is not implemented for `()`
+  = note: required because of the requirements on the impl of `IntoIterator` for `()`
 
 error[E0277]: `()` is not an iterator
-   --> tests/html_macro/iterable-fail.rs:6:17
-    |
-6   |     html! { for {()} };
-    |                 ^^^^ `()` is not an iterator
-    |
-    = help: the trait `Iterator` is not implemented for `()`
-    = note: required because of the requirements on the impl of `IntoIterator` for `()`
-note: required by `into_iter`
+ --> tests/html_macro/iterable-fail.rs:6:17
+  |
+6 |     html! { for {()} };
+  |                 ^--^
+  |                 ||
+  |                 |this tail expression is of type `_`
+  |                 `()` is not an iterator
+  |
+  = help: the trait `Iterator` is not implemented for `()`
+  = note: required because of the requirements on the impl of `IntoIterator` for `()`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
     --> tests/html_macro/iterable-fail.rs:7:17

@@ -160,10 +160,10 @@ error: expected identifier, found keyword `type`
 71 |     html! { <Child type=0 /> };
    |                    ^^^^ expected identifier, found keyword
    |
-help: you can escape reserved keywords to use them as identifiers
+help: escape `type` to use it as an identifier
    |
 71 |     html! { <Child r#type=0 /> };
-   |                    ~~~~~~
+   |                    ++
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
   --> tests/html_macro/component-fail.rs:72:24
@@ -333,33 +333,55 @@ error[E0277]: the trait bound `(): IntoPropValue<String>` is not satisfied
   --> tests/html_macro/component-fail.rs:77:33
    |
 77 |     html! { <Child int=1 string={} /> };
-   |                                 ^^ the trait `IntoPropValue<String>` is not implemented for `()`
+   |                          ------ ^^ the trait `IntoPropValue<String>` is not implemented for `()`
+   |                          |
+   |                          required by a bound introduced by this call
+   |
+note: required by a bound in `ChildPropertiesBuilder::<ChildPropertiesBuilderStepPropsBuilder>::string`
+  --> tests/html_macro/component-fail.rs:4:17
+   |
+4  | #[derive(Clone, Properties, PartialEq)]
+   |                 ^^^^^^^^^^ required by this bound in `ChildPropertiesBuilder::<ChildPropertiesBuilderStepPropsBuilder>::string`
+...
+7  |     pub string: String,
+   |         ------ required by a bound in this
+   = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfied
   --> tests/html_macro/component-fail.rs:78:33
    |
 78 |     html! { <Child int=1 string=3 /> };
-   |                                 ^ the trait `IntoPropValue<String>` is not implemented for `{integer}`
+   |                          ------ ^ the trait `IntoPropValue<String>` is not implemented for `{integer}`
+   |                          |
+   |                          required by a bound introduced by this call
    |
-   = help: the following implementations were found:
-             <&'static str as IntoPropValue<AttrValue>>
-             <&'static str as IntoPropValue<Classes>>
-             <&'static str as IntoPropValue<Option<AttrValue>>>
-             <&'static str as IntoPropValue<Option<String>>>
-           and 18 others
+note: required by a bound in `ChildPropertiesBuilder::<ChildPropertiesBuilderStepPropsBuilder>::string`
+  --> tests/html_macro/component-fail.rs:4:17
+   |
+4  | #[derive(Clone, Properties, PartialEq)]
+   |                 ^^^^^^^^^^ required by this bound in `ChildPropertiesBuilder::<ChildPropertiesBuilderStepPropsBuilder>::string`
+...
+7  |     pub string: String,
+   |         ------ required by a bound in this
+   = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfied
   --> tests/html_macro/component-fail.rs:79:34
    |
 79 |     html! { <Child int=1 string={3} /> };
-   |                                  ^ the trait `IntoPropValue<String>` is not implemented for `{integer}`
+   |                          ------  ^ the trait `IntoPropValue<String>` is not implemented for `{integer}`
+   |                          |
+   |                          required by a bound introduced by this call
    |
-   = help: the following implementations were found:
-             <&'static str as IntoPropValue<AttrValue>>
-             <&'static str as IntoPropValue<Classes>>
-             <&'static str as IntoPropValue<Option<AttrValue>>>
-             <&'static str as IntoPropValue<Option<String>>>
-           and 18 others
+note: required by a bound in `ChildPropertiesBuilder::<ChildPropertiesBuilderStepPropsBuilder>::string`
+  --> tests/html_macro/component-fail.rs:4:17
+   |
+4  | #[derive(Clone, Properties, PartialEq)]
+   |                 ^^^^^^^^^^ required by this bound in `ChildPropertiesBuilder::<ChildPropertiesBuilderStepPropsBuilder>::string`
+...
+7  |     pub string: String,
+   |         ------ required by a bound in this
+   = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0308]: mismatched types
   --> tests/html_macro/component-fail.rs:80:31
@@ -371,7 +393,19 @@ error[E0277]: the trait bound `u32: IntoPropValue<i32>` is not satisfied
   --> tests/html_macro/component-fail.rs:82:24
    |
 82 |     html! { <Child int=0u32 /> };
-   |                        ^^^^ the trait `IntoPropValue<i32>` is not implemented for `u32`
+   |                    --- ^^^^ the trait `IntoPropValue<i32>` is not implemented for `u32`
+   |                    |
+   |                    required by a bound introduced by this call
+   |
+note: required by a bound in `ChildPropertiesBuilder::<ChildPropertiesBuilderStep_missing_required_prop_int>::int`
+  --> tests/html_macro/component-fail.rs:4:17
+   |
+4  | #[derive(Clone, Properties, PartialEq)]
+   |                 ^^^^^^^^^^ required by this bound in `ChildPropertiesBuilder::<ChildPropertiesBuilderStep_missing_required_prop_int>::int`
+...
+8  |     pub int: i32,
+   |         --- required by a bound in this
+   = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `string` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
   --> tests/html_macro/component-fail.rs:83:20
@@ -441,7 +475,6 @@ error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VText>` is 
     |                               ^^^^^^^^^^^^^ the trait `From<yew::virtual_dom::VText>` is not implemented for `VChild<Child>`
     |
     = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `yew::virtual_dom::VText`
-note: required by `into`
 
 error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
    --> tests/html_macro/component-fail.rs:102:29
@@ -450,7 +483,6 @@ error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
     |                             ^ the trait `From<VNode>` is not implemented for `VChild<Child>`
     |
     = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
-note: required by `into`
 
 error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
    --> tests/html_macro/component-fail.rs:103:30
@@ -459,4 +491,3 @@ error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
     |                              ^^^^^ the trait `From<VNode>` is not implemented for `VChild<Child>`
     |
     = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
-note: required by `into`

@@ -41,25 +41,27 @@ error[E0425]: cannot find value `invalid` in this scope
   |             ^^^^^^^ not found in this scope
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-   --> tests/html_macro/node-fail.rs:6:13
-    |
-6   |     html! { () };
-    |             ^^ `()` cannot be formatted with the default formatter
-    |
-    = help: the trait `std::fmt::Display` is not implemented for `()`
-    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-    = note: required because of the requirements on the impl of `ToString` for `()`
-    = note: required because of the requirements on the impl of `From<()>` for `VNode`
-note: required by `from`
+ --> tests/html_macro/node-fail.rs:6:5
+  |
+6 |     html! { () };
+  |     ^^^^^^^^^^^^ `()` cannot be formatted with the default formatter
+  |
+  = help: the trait `std::fmt::Display` is not implemented for `()`
+  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+  = note: required because of the requirements on the impl of `ToString` for `()`
+  = note: required because of the requirements on the impl of `From<()>` for `VNode`
+  = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-   --> tests/html_macro/node-fail.rs:17:9
-    |
-17  |         not_node()
-    |         ^^^^^^^^^^ `()` cannot be formatted with the default formatter
-    |
-    = help: the trait `std::fmt::Display` is not implemented for `()`
-    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
-    = note: required because of the requirements on the impl of `ToString` for `()`
-    = note: required because of the requirements on the impl of `From<()>` for `VNode`
-note: required by `from`
+  --> tests/html_macro/node-fail.rs:16:5
+   |
+16 | /     html! {
+17 | |         not_node()
+18 | |     };
+   | |_____^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `ToString` for `()`
+   = note: required because of the requirements on the impl of `From<()>` for `VNode`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)

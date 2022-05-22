@@ -29,16 +29,27 @@ error[E0277]: the trait bound `Comp<MissingTypeBounds>: yew::BaseComponent` is n
              <Comp<P> as yew::BaseComponent>
 
 error[E0599]: the function or associated item `new` exists for struct `VChild<Comp<MissingTypeBounds>>`, but its trait bounds were not satisfied
-  --> tests/function_component_attr/generic-props-fail.rs:27:14
-   |
-8  | #[function_component(Comp)]
-   | --------------------------- doesn't satisfy `Comp<MissingTypeBounds>: yew::BaseComponent`
+   --> tests/function_component_attr/generic-props-fail.rs:27:14
+    |
+8   | #[function_component(Comp)]
+    | --------------------------- doesn't satisfy `Comp<MissingTypeBounds>: yew::BaseComponent`
 ...
-27 |     html! { <Comp<MissingTypeBounds> /> };
-   |              ^^^^ function or associated item cannot be called on `VChild<Comp<MissingTypeBounds>>` due to unsatisfied trait bounds
-   |
-   = note: the following trait bounds were not satisfied:
-           `Comp<MissingTypeBounds>: yew::BaseComponent`
+27  |     html! { <Comp<MissingTypeBounds> /> };
+    |              ^^^^ function or associated item cannot be called on `VChild<Comp<MissingTypeBounds>>` due to unsatisfied trait bounds
+    |
+    = note: the following trait bounds were not satisfied:
+            `Comp<MissingTypeBounds>: yew::BaseComponent`
+note: the following trait must be implemented
+   --> $WORKSPACE/packages/yew/src/html/component/mod.rs
+    |
+    | / pub trait BaseComponent: Sized + 'static {
+    | |     /// The Component's Message.
+    | |     type Message: 'static;
+    | |
+...   |
+    | |     fn destroy(&mut self, ctx: &Context<Self>);
+    | | }
+    | |_^
 
 error[E0277]: the trait bound `MissingTypeBounds: yew::Properties` is not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:27:14
