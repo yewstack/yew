@@ -4,7 +4,13 @@
       "target": "website",
       "public": "website/build/",
       "cleanUrls": true,
-      "redirects": []
+      "redirects": [],
+      "rewrites": [
+        {
+          "source": "/api/**",
+          "dynamicLinks": true
+        }
+      ]
     },
     {
       "target": "api",

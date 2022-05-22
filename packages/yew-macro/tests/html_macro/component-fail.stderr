@@ -255,6 +255,18 @@ error: missing label for property value. If trying to use the shorthand property
 120 |     html! { <Child {children.len()} /> };
     |                     ^^^^^^^^^^^^^^
 
+error: only an expression may be assigned as a property
+   --> tests/html_macro/component-fail.rs:131:34
+    |
+131 |     html! { <HtmlInProps header={macro_rules! declare { }} /> };
+    |                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: only an expression may be assigned as a property. Consider removing this semicolon
+   --> tests/html_macro/component-fail.rs:132:61
+    |
+132 |     html! { <HtmlInProps header={format!("ending with semi");} /> };
+    |                                                             ^
+
 error[E0425]: cannot find value `blah` in this scope
   --> tests/html_macro/component-fail.rs:68:22
    |

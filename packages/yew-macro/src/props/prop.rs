@@ -120,6 +120,15 @@ fn strip_braces(block: ExprBlock) -> syn::Result<Expr> {
             let stmt = stmts.remove(0);
             match stmt {
                 Stmt::Expr(expr) => Ok(expr),
+                // See issue #2267, we want to parse macro invocations as expressions
+                Stmt::Item(syn::Item::Macro(mac))
+                    if mac.ident.is_none() && mac.semi_token.is_none() =>
+                {
+                    Ok(Expr::Macro(syn::ExprMacro {
+                        attrs: mac.attrs,
+                        mac: mac.mac,
+                    }))
+                }
                 Stmt::Semi(_expr, semi) => Err(syn::Error::new_spanned(
                     semi,
                     "only an expression may be assigned as a property. Consider removing this \
