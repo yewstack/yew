@@ -5,8 +5,9 @@ use std::rc::Rc;
 
 use web_sys::Element;
 
-use crate::dom_bundle::BSubtree;
+use crate::dom_bundle::{BSubtree, Bundle};
 use crate::html::{BaseComponent, NodeRef, Scope, Scoped};
+use crate::virtual_dom::VChild;
 
 /// An instance of an application.
 #[cfg_attr(documenting, doc(cfg(feature = "csr")))]
@@ -26,19 +27,21 @@ where
     /// will render the model to a virtual DOM tree.
     pub(crate) fn mount_with_props(host: Element, props: Rc<COMP::Properties>) -> Self {
         clear_element(&host);
-        let app = Self {
-            scope: Scope::new(None),
-        };
+        let mut bundle = Bundle::new();
+        let parent_scope = Scope::<COMP>::new(None).to_any();
         let hosting_root = BSubtree::create_root(&host);
-        app.scope.mount_in_place(
-            hosting_root,
-            host,
+        let scope = bundle.reconcile_vchild(
+            &hosting_root,
+            &parent_scope,
+            &host,
             NodeRef::default(),
-            NodeRef::default(),
-            props,
+            VChild {
+                props,
+                node_ref: NodeRef::default(),
+                key: None,
+            },
         );
-
-        app
+        Self { scope }
     }
 
     /// Schedule the app for destruction

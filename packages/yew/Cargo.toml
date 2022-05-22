@@ -72,9 +72,10 @@ wasm-bindgen-futures = "0.4"
 tokio = { version = "1.15.0", features = ["rt"], optional = true }
 
 [dev-dependencies]
-wasm-bindgen-test = "0.3"
+futures = { version = "0.3" }
 gloo = { version = "0.7", features = ["futures"] }
 gloo-net = { version = "0.2", features = ["http"] }
+wasm-bindgen-test = "0.3"
 wasm-bindgen-futures = "0.4"
 rustversion = "1"
 trybuild = "1"
@@ -92,6 +93,7 @@ features = [
 ssr = ["futures", "html-escape"] # dep:html-escape
 csr = []
 hydration = ["csr"]
+test_runner = ["csr"]
 default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]

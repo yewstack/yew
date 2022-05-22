@@ -161,8 +161,8 @@ pub struct VChild<COMP: BaseComponent> {
     /// The component properties
     pub props: Rc<COMP::Properties>,
     /// Reference to the mounted node
-    node_ref: NodeRef,
-    key: Option<Key>,
+    pub(crate) node_ref: NodeRef,
+    pub(crate) key: Option<Key>,
 }
 
 impl<COMP: BaseComponent> Clone for VChild<COMP> {

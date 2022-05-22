@@ -29,6 +29,11 @@ impl BComp {
     pub fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
+
+    /// Get the scope of the underlying component
+    pub fn scope(&self) -> AnyScope {
+        self.scope.to_any()
+    }
 }
 
 impl fmt::Debug for BComp {
@@ -490,7 +495,7 @@ mod layout_tests {
 
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::{TestCase, TestRunner};
     use crate::{html, Children, Component, Context, Html, Properties};
 
     wasm_bindgen_test_configure!(run_in_browser);
@@ -530,221 +535,196 @@ mod layout_tests {
     struct B;
 
     #[test]
-    fn diff() {
-        let layout1 = TestLayout {
-            name: "1",
-            node: html! {
-                <Comp<A>>
-                    <Comp<B>></Comp<B>>
-                    {"C"}
-                </Comp<A>>
-            },
-            expected: "C",
-        };
+    async fn diff() {
+        let mut trun = TestRunner::new();
 
-        let layout2 = TestLayout {
-            name: "2",
-            node: html! {
-                <Comp<A>>
-                    {"A"}
-                </Comp<A>>
-            },
-            expected: "A",
-        };
+        trun.render(html! {
+            <Comp<A>>
+                <Comp<B>></Comp<B>>
+                {"C"}
+            </Comp<A>>
+        })
+        .await
+        .assert_inner_html("C");
 
-        let layout3 = TestLayout {
-            name: "3",
-            node: html! {
-                <Comp<B>>
-                    <Comp<A>></Comp<A>>
+        trun.render(html! {
+            <Comp<A>>
+                {"A"}
+            </Comp<A>>
+        })
+        .await
+        .assert_inner_html("A");
+
+        trun.render(html! {
+            <Comp<B>>
+                <Comp<A>></Comp<A>>
+                {"B"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("B");
+
+        trun.render(html! {
+            <Comp<B>>
+                <Comp<A>>{"A"}</Comp<A>>
+                {"B"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("AB");
+
+        trun.render(html! {
+            <Comp<B>>
+                <>
+                    <Comp<A>>
+                        {"A"}
+                    </Comp<A>>
+                </>
+                {"B"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("AB");
+
+        trun.render(html! {
+            <Comp<B>>
+                <>
+                    <Comp<A>>
+                        {"A"}
+                    </Comp<A>>
                     {"B"}
-                </Comp<B>>
-            },
-            expected: "B",
-        };
+                </>
+                {"C"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("ABC");
 
-        let layout4 = TestLayout {
-            name: "4",
-            node: html! {
-                <Comp<B>>
-                    <Comp<A>>{"A"}</Comp<A>>
-                    {"B"}
-                </Comp<B>>
-            },
-            expected: "AB",
-        };
-
-        let layout5 = TestLayout {
-            name: "5",
-            node: html! {
-                <Comp<B>>
-                    <>
-                        <Comp<A>>
-                            {"A"}
-                        </Comp<A>>
-                    </>
-                    {"B"}
-                </Comp<B>>
-            },
-            expected: "AB",
-        };
-
-        let layout6 = TestLayout {
-            name: "6",
-            node: html! {
-                <Comp<B>>
-                    <>
-                        <Comp<A>>
-                            {"A"}
-                        </Comp<A>>
+        trun.render(html! {
+            <Comp<B>>
+                <>
+                    <Comp<A>>
+                        {"A"}
+                    </Comp<A>>
+                    <Comp<A>>
                         {"B"}
-                    </>
-                    {"C"}
-                </Comp<B>>
-            },
-            expected: "ABC",
-        };
+                    </Comp<A>>
+                </>
+                {"C"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("ABC");
 
-        let layout7 = TestLayout {
-            name: "7",
-            node: html! {
-                <Comp<B>>
-                    <>
-                        <Comp<A>>
-                            {"A"}
-                        </Comp<A>>
+        trun.render(html! {
+            <Comp<B>>
+                <>
+                    <Comp<A>>
+                        {"A"}
+                    </Comp<A>>
+                    <Comp<A>>
                         <Comp<A>>
                             {"B"}
                         </Comp<A>>
-                    </>
-                    {"C"}
-                </Comp<B>>
-            },
-            expected: "ABC",
-        };
+                    </Comp<A>>
+                </>
+                {"C"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("ABC");
 
-        let layout8 = TestLayout {
-            name: "8",
-            node: html! {
-                <Comp<B>>
+        trun.render(html! {
+            <Comp<B>>
+                <>
                     <>
+                        {"A"}
+                    </>
+                    <Comp<A>>
+                        <Comp<A>>
+                            {"B"}
+                        </Comp<A>>
+                    </Comp<A>>
+                </>
+                {"C"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("ABC");
+
+        trun.render(html! {
+            <Comp<B>>
+                <>
+                    <Comp<A>>
                         <Comp<A>>
                             {"A"}
                         </Comp<A>>
-                        <Comp<A>>
-                            <Comp<A>>
-                                {"B"}
-                            </Comp<A>>
-                        </Comp<A>>
-                    </>
-                    {"C"}
-                </Comp<B>>
-            },
-            expected: "ABC",
-        };
-
-        let layout9 = TestLayout {
-            name: "9",
-            node: html! {
-                <Comp<B>>
+                    </Comp<A>>
                     <>
-                        <>
-                            {"A"}
-                        </>
-                        <Comp<A>>
-                            <Comp<A>>
-                                {"B"}
-                            </Comp<A>>
-                        </Comp<A>>
+                        {"B"}
                     </>
-                    {"C"}
-                </Comp<B>>
-            },
-            expected: "ABC",
-        };
+                </>
+                {"C"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("ABC");
 
-        let layout10 = TestLayout {
-            name: "10",
-            node: html! {
-                <Comp<B>>
+        trun.render(html! {
+            <Comp<B>>
+                <>
                     <>
                         <Comp<A>>
                             <Comp<A>>
                                 {"A"}
                             </Comp<A>>
-                        </Comp<A>>
-                        <>
                             {"B"}
-                        </>
+                        </Comp<A>>
                     </>
-                    {"C"}
-                </Comp<B>>
-            },
-            expected: "ABC",
-        };
+                </>
+                {"C"}
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("ABC");
 
-        let layout11 = TestLayout {
-            name: "11",
-            node: html! {
-                <Comp<B>>
+        trun.render(html! {
+            <Comp<B>>
+                <>
+                    <Comp<A>></Comp<A>>
                     <>
-                        <>
-                            <Comp<A>>
+                        <Comp<A>>
+                            <>
                                 <Comp<A>>
                                     {"A"}
                                 </Comp<A>>
-                                {"B"}
-                            </Comp<A>>
-                        </>
-                    </>
-                    {"C"}
-                </Comp<B>>
-            },
-            expected: "ABC",
-        };
-
-        let layout12 = TestLayout {
-            name: "12",
-            node: html! {
-                <Comp<B>>
-                    <>
-                        <Comp<A>></Comp<A>>
-                        <>
-                            <Comp<A>>
-                                <>
-                                    <Comp<A>>
-                                        {"A"}
-                                    </Comp<A>>
+                                <></>
+                                <Comp<A>>
+                                    <Comp<A>></Comp<A>>
                                     <></>
-                                    <Comp<A>>
-                                        <Comp<A>></Comp<A>>
-                                        <></>
-                                        {"B"}
-                                        <></>
-                                        <Comp<A>></Comp<A>>
-                                    </Comp<A>>
-                                </>
-                            </Comp<A>>
-                            <></>
-                        </>
-                        <Comp<A>></Comp<A>>
+                                    {"B"}
+                                    <></>
+                                    <Comp<A>></Comp<A>>
+                                </Comp<A>>
+                            </>
+                        </Comp<A>>
+                        <></>
                     </>
-                    {"C"}
                     <Comp<A>></Comp<A>>
-                    <></>
-                </Comp<B>>
-            },
-            expected: "ABC",
-        };
+                </>
+                {"C"}
+                <Comp<A>></Comp<A>>
+                <></>
+            </Comp<B>>
+        })
+        .await
+        .assert_inner_html("ABC");
 
-        diff_layouts(vec![
-            layout1, layout2, layout3, layout4, layout5, layout6, layout7, layout8, layout9,
-            layout10, layout11, layout12,
-        ]);
+        trun.run_replayable_tests().await;
     }
 
     #[test]
-    fn component_with_children() {
+    async fn component_with_children() {
         #[derive(Properties, PartialEq)]
         struct Props {
             children: Children,
@@ -768,10 +748,10 @@ mod layout_tests {
                 }
             }
         }
+        let mut trun = TestRunner::new();
 
-        let layout = TestLayout {
-            name: "13",
-            node: html! {
+        trun.step("Component with children")
+            .render(html! {
                 <ComponentWithChildren>
                     if true {
                         <span>{ "hello" }</span>
@@ -781,10 +761,8 @@ mod layout_tests {
                         <span>{ "world" }</span>
                     }
                 </ComponentWithChildren>
-            },
-            expected: "<ul><li><span>hello</span><span>world</span></li></ul>",
-        };
-
-        diff_layouts(vec![layout]);
+            })
+            .await
+            .assert_inner_html("<ul><li><span>hello</span><span>world</span></li></ul>");
     }
 }

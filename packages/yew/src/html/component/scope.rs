@@ -156,9 +156,15 @@ impl<COMP: BaseComponent> Scope<COMP> {
     /// `Option` and `Vec` nicely. `Option` can be used when dealing with a callback that
     /// might not need to send an update.
     ///
-    /// ```ignore
-    /// link.batch_callback(|_| vec![Msg::A, Msg::B]);
-    /// link.batch_callback(|_| Some(Msg::A));
+    /// ```
+    /// # use yew::prelude::*;
+    /// # use yew::html::Scope;
+    /// # enum Msg { A, B };
+    /// # fn mock<T: Component<Message = Msg>>(link: &Scope<T>) {
+    /// use web_sys::MouseEvent;
+    /// link.batch_callback(|_: MouseEvent| vec![Msg::A, Msg::B]);
+    /// link.batch_callback(|_: MouseEvent| Some(Msg::A));
+    /// # }
     /// ```
     pub fn batch_callback<F, IN, OUT>(&self, function: F) -> Callback<IN>
     where
@@ -470,7 +476,7 @@ mod feat_csr {
     use crate::scheduler;
 
     impl AnyScope {
-        #[cfg(test)]
+        #[cfg(any(feature = "test_runner"))]
         pub(crate) fn test() -> Self {
             Self {
                 type_id: TypeId::of::<()>(),

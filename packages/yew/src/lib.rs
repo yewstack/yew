@@ -28,6 +28,7 @@
 //! enable this if your application uses future-based APIs and it does not compile / lint on
 //! non-wasm32 targets.)
 //! - `hydration`: Enables Hydration support.
+//! - `test_runner`: Enable the [`tests`] module for testing your components
 //!
 //! ## Example
 //!
@@ -296,8 +297,8 @@ mod app_handle;
 #[cfg(feature = "csr")]
 mod renderer;
 
-#[cfg(feature = "csr")]
-#[cfg(test)]
+#[cfg(feature = "test_runner")]
+#[cfg_attr(documenting, doc(cfg(feature = "test_runner")))]
 pub mod tests;
 
 /// The module that contains all events available in the framework.

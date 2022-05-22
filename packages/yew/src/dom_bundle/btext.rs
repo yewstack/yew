@@ -185,46 +185,33 @@ mod layout_tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use crate::html;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::{TestCase, TestRunner};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
-    fn diff() {
-        let layout1 = TestLayout {
-            name: "1",
-            node: html! { "a" },
-            expected: "a",
-        };
+    async fn diff() {
+        let mut trun = TestRunner::new();
 
-        let layout2 = TestLayout {
-            name: "2",
-            node: html! { "b" },
-            expected: "b",
-        };
+        trun.render(html! { "a" }).await.assert_inner_html("a");
+        trun.render(html! { "b" }).await.assert_inner_html("b");
+        trun.render(html! {
+            <>
+                {"a"}
+                {"b"}
+            </>
+        })
+        .await
+        .assert_inner_html("ab");
+        trun.render(html! {
+            <>
+                {"b"}
+                {"a"}
+            </>
+        })
+        .await
+        .assert_inner_html("ba");
 
-        let layout3 = TestLayout {
-            name: "3",
-            node: html! {
-                <>
-                    {"a"}
-                    {"b"}
-                </>
-            },
-            expected: "ab",
-        };
-
-        let layout4 = TestLayout {
-            name: "4",
-            node: html! {
-                <>
-                    {"b"}
-                    {"a"}
-                </>
-            },
-            expected: "ba",
-        };
-
-        diff_layouts(vec![layout1, layout2, layout3, layout4]);
+        trun.run_replayable_tests().await;
     }
 }
