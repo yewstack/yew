@@ -1,5 +1,5 @@
-//! module that provides io compatibility over browser tasks and other asyncio runtimes (e.g.:
-//! tokio)
+//! This module provides io compatibility over browser tasks and other asyncio runtimes (e.g.:
+//! tokio).
 
 use std::future::Future;
 
@@ -36,7 +36,7 @@ mod arch {
         use tokio_util::task::LocalPoolHandle;
 
         static POOL_HANDLE: Lazy<LocalPoolHandle> =
-            Lazy::new(|| LocalPoolHandle::new(num_cpus::get()));
+            Lazy::new(|| LocalPoolHandle::new(num_cpus::get() * 2));
 
         POOL_HANDLE
             .spawn_pinned(create_task)

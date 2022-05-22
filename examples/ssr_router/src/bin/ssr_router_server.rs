@@ -36,7 +36,7 @@ async fn render(
 
     StreamBody::new(
         stream::once(async move { index_html_before })
-            .chain(renderer.render_streamed().await)
+            .chain(renderer.render_stream().await)
             .chain(stream::once(async move { index_html_after }))
             .map(Result::<_, Infallible>::Ok),
     )
