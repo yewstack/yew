@@ -32,11 +32,12 @@ pub use feat_ssr::*;
 /// It has the following function signature:
 ///
 /// ```
-/// # use yew::prelude::*;
 /// # use serde::de::DeserializeOwned;
 /// # use serde::Serialize;
 /// # use std::rc::Rc;
-/// # use yew::suspense::SuspensionResult;
+/// use yew::prelude::*;
+/// use yew::suspense::SuspensionResult;
+///
 /// #[hook]
 /// pub fn use_transitive_state<T, D, F>(f: F, deps: D) -> SuspensionResult<Option<Rc<T>>>
 /// where

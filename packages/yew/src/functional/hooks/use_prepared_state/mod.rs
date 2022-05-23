@@ -32,11 +32,12 @@ pub use feat_ssr::*;
 /// It has the following signature:
 ///
 /// ```
-/// # use yew::prelude::*;
 /// # use serde::de::DeserializeOwned;
 /// # use serde::Serialize;
 /// # use std::rc::Rc;
-/// # use yew::suspense::SuspensionResult;
+/// use yew::prelude::*;
+/// use yew::suspense::SuspensionResult;
+///
 /// #[hook]
 /// pub fn use_prepared_state<T, D, F>(f: F, deps: D) -> SuspensionResult<Option<Rc<T>>>
 /// where
@@ -53,12 +54,13 @@ pub use feat_ssr::*;
 /// When accepting an async closure, it has the following signature:
 ///
 /// ```
-/// # use yew::prelude::*;
 /// # use serde::de::DeserializeOwned;
 /// # use serde::Serialize;
-/// # use yew::suspense::SuspensionResult;
 /// # use std::rc::Rc;
 /// # use std::future::Future;
+/// use yew::prelude::*;
+/// use yew::suspense::SuspensionResult;
+///
 /// #[hook]
 /// pub fn use_prepared_state<T, D, F, U>(
 ///         f: F,
