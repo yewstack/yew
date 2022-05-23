@@ -13,11 +13,19 @@ pub struct PreparedState {
 impl Parse for PreparedState {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         // Reads a closure.
-        let closure: ExprClosure = input.parse()?;
+        let expr: Expr = input.parse()?;
 
-        input
-            .parse::<Token![,]>()
-            .map_err(|e| syn::Error::new(e.span(), "expected a second argument as dependency"))?;
+        let closure = match expr {
+            Expr::Closure(m) => m,
+            other => return Err(syn::Error::new_spanned(other, "expected closure")),
+        };
+
+        input.parse::<Token![,]>().map_err(|e| {
+            syn::Error::new(
+                e.span(),
+                "this hook takes 2 arguments but 1 argument was supplied",
+            )
+        })?;
 
         let return_type = match &closure.output {
             ReturnType::Default => {
