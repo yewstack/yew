@@ -32,6 +32,7 @@ html-escape = { version = "0.2.9", optional = true }
 base64ct = { version = "1.5.0", features = ["std"], optional = true }
 bincode = { version = "1.3.3", optional = true }
 serde = { version = "1", features = ["derive"] }
+wasm-bindgen-futures = "0.4"
 
 [dependencies.web-sys]
 version = "0.3"
@@ -66,11 +67,6 @@ features = [
   "Window",
   "HtmlScriptElement",
 ]
-
- [target.'cfg(target_arch = "wasm32")'.dependencies]
- # we move it here so no promise-based spawn_local can present for
- # non-wasm32 targets.
- wasm-bindgen-futures = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1.15.0", features = ["rt"], optional = true }
