@@ -158,6 +158,9 @@ pub(crate) trait Stateful {
 
     fn as_any(&self) -> &dyn Any;
     fn as_any_mut(&mut self) -> &mut dyn Any;
+
+    #[cfg(feature = "hydration")]
+    fn mode(&self) -> RenderMode;
 }
 
 impl<COMP> Stateful for CompStateInner<COMP>
@@ -178,6 +181,11 @@ where
 
     fn any_scope(&self) -> AnyScope {
         self.context.link().clone().into()
+    }
+
+    #[cfg(feature = "hydration")]
+    fn mode(&self) -> RenderMode {
+        self.context.mode
     }
 
     fn flush_messages(&mut self) -> bool {
@@ -221,7 +229,7 @@ pub(crate) struct ComponentState {
 
     #[cfg(feature = "csr")]
     has_rendered: bool,
-    #[cfg(feature = "csr")]
+    #[cfg(feature = "hydration")]
     pending_props: Option<Rc<dyn Any>>,
 
     suspension: Option<Suspension>,
@@ -265,7 +273,7 @@ impl ComponentState {
 
             #[cfg(feature = "csr")]
             has_rendered: false,
-            #[cfg(feature = "csr")]
+            #[cfg(feature = "hydration")]
             pending_props: None,
 
             comp_id,
@@ -357,21 +365,42 @@ impl Runnable for PropsUpdateRunner {
                 }
             }
 
-            // Only trigger changed if props were changed / next sibling has changed.
-            let schedule_render = if let Some(props) = props.or_else(|| state.pending_props.take())
-            {
-                match state.has_rendered {
-                    true => {
-                        state.pending_props = None;
-                        state.inner.props_changed(props)
-                    }
-                    false => {
-                        state.pending_props = Some(props);
+            let should_render = |props: Option<Rc<dyn Any>>, state: &mut ComponentState| -> bool {
+                props.map(|m| state.inner.props_changed(m)).unwrap_or(false)
+            };
+
+            #[cfg(feature = "hydration")]
+            let should_render_hydration =
+                |props: Option<Rc<dyn Any>>, state: &mut ComponentState| -> bool {
+                    if let Some(props) = props.or_else(|| state.pending_props.take()) {
+                        match state.has_rendered {
+                            true => {
+                                state.pending_props = None;
+                                state.inner.props_changed(props)
+                            }
+                            false => {
+                                state.pending_props = Some(props);
+                                false
+                            }
+                        }
+                    } else {
                         false
                     }
+                };
+
+            // Only trigger changed if props were changed / next sibling has changed.
+            let schedule_render = {
+                #[cfg(feature = "hydration")]
+                {
+                    if state.inner.mode() == RenderMode::Hydration {
+                        should_render_hydration(props, state)
+                    } else {
+                        should_render(props, state)
+                    }
                 }
-            } else {
-                false
+
+                #[cfg(not(feature = "hydration"))]
+                should_render(props, state)
             };
 
             #[cfg(debug_assertions)]
@@ -648,6 +677,7 @@ mod feat_csr {
                     state.inner.rendered(self.first_render);
                 }
 
+                #[cfg(feature = "hydration")]
                 if state.pending_props.is_some() {
                     scheduler::push_component_props_update(Box::new(PropsUpdateRunner {
                         props: None,
