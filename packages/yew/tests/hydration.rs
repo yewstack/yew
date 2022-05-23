@@ -1,6 +1,7 @@
 #![cfg(feature = "hydration")]
 #![cfg(target_arch = "wasm32")]
 
+use std::ops::Range;
 use std::rc::Rc;
 use std::time::Duration;
 
@@ -768,7 +769,7 @@ async fn hydration_suspense_no_flickering() {
     #[hook]
     pub fn use_suspend() -> SuspensionResult<()> {
         use_future(|| async {
-            gloo::timers::future::sleep(std::time::Duration::from_millis(50)).await;
+            gloo::timers::future::sleep(std::time::Duration::from_millis(200)).await;
         })?;
         Ok(())
     }
@@ -795,21 +796,21 @@ async fn hydration_suspense_no_flickering() {
         // outer still suspended.
         r#"<!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Suspended]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>0</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>1</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>2</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>3</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>4</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>5</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>6</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>7</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>8</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>9</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Suspended]>-->"#
     );
-    sleep(Duration::from_millis(26)).await;
+    sleep(Duration::from_millis(103)).await;
 
     let result = obtain_result_by_id("output");
     assert_eq!(
         result.as_str(),
         r#"<!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Suspended]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>0</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>1</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>2</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>3</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>4</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>5</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>6</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>7</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>8</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>9</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Suspended]>-->"#
     );
-    sleep(Duration::from_millis(26)).await;
+    sleep(Duration::from_millis(103)).await;
 
     let result = obtain_result_by_id("output");
     assert_eq!(
         result.as_str(),
         r#"<!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Suspended]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>0</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>1</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>2</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>3</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>4</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>5</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>6</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>7</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>8</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>9</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Suspended]>-->"#
     );
-    sleep(Duration::from_millis(26)).await;
+    sleep(Duration::from_millis(103)).await;
 
     let result = obtain_result_by_id("output");
     assert_eq!(
@@ -818,7 +819,7 @@ async fn hydration_suspense_no_flickering() {
         r#"<!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Suspended]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>0</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>1</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>2</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>3</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>4</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>5</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>6</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>7</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>8</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--<[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><div>9</div><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Number]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::SuspendedNumber]>--><!--</[hydration::hydration_suspense_no_flickering::{{closure}}::Suspended]>-->"#
     );
 
-    sleep(Duration::from_millis(26)).await;
+    sleep(Duration::from_millis(103)).await;
 
     let result = obtain_result_by_id("output");
     assert_eq!(
@@ -834,7 +835,7 @@ async fn hydration_order_issue_nested_suspense() {
     pub fn app() -> Html {
         let elems = (0..10).map(|number: u32| {
             html! {
-                <ToSuspendOrNot {number} />
+                <ToSuspendOrNot {number} key={number} />
             }
         });
 
@@ -912,4 +913,67 @@ async fn hydration_order_issue_nested_suspense() {
         // As long as there's no component markers all components have become unsuspended.
         r#"<div>0</div><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div>"#
     );
+}
+
+#[wasm_bindgen_test]
+async fn hydration_props_blocked_until_hydrated() {
+    #[function_component(App)]
+    pub fn app() -> Html {
+        let range = use_state(|| 0u32..2);
+        {
+            let range = range.clone();
+            use_effect_with_deps(
+                move |_| {
+                    range.set(0..3);
+                    || ()
+                },
+                (),
+            );
+        }
+
+        html! {
+            <Suspense>
+                <ToSuspend range={(*range).clone()}/>
+            </Suspense>
+        }
+    }
+
+    #[derive(Properties, PartialEq)]
+    struct ToSuspendProps {
+        range: Range<u32>,
+    }
+
+    #[function_component(ToSuspend)]
+    fn to_suspend(ToSuspendProps { range }: &ToSuspendProps) -> HtmlResult {
+        use_suspend(Duration::from_millis(100))?;
+        Ok(html! {
+            { for range.clone().map(|i|
+                html!{ <div key={i}>{i}</div> }
+            )}
+        })
+    }
+
+    #[hook]
+    pub fn use_suspend(_dur: Duration) -> SuspensionResult<()> {
+        yew::suspense::use_future(|| async move {
+            sleep(_dur).await;
+        })?;
+
+        Ok(())
+    }
+
+    let s = ServerRenderer::<App>::new().render().await;
+
+    let output_element = gloo::utils::document()
+        .query_selector("#output")
+        .unwrap()
+        .unwrap();
+
+    output_element.set_inner_html(&s);
+
+    Renderer::<App>::with_root(output_element).hydrate();
+    sleep(Duration::from_millis(150)).await;
+
+    let result = obtain_result_by_id("output");
+    assert_eq!(result.as_str(), r#"<div>0</div><div>1</div><div>2</div>"#);
 }
