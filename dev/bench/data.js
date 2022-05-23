@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1653104827511,
+  "lastUpdate": 1653349039957,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -17099,6 +17099,120 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 33_startup-mainthreadcost",
             "value": "322.53999999999996",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "331.59765625",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "futursolo@users.noreply.github.com",
+            "name": "Kaede Hoshikawa",
+            "username": "futursolo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "027ab6af8ba1a65b7d110568f25aafd16222619f",
+          "message": "Block props update during hydration (#2665)\n\n* Delay props.\r\n\r\n* Fix next sibling change not synced.\r\n\r\n* Use shifting instead.\r\n\r\n* Update docs, minor adjustments.\r\n\r\n* More predictable props update.\r\n\r\n* Delay longer.\r\n\r\n* Only delay props during hydration.",
+          "timestamp": "2022-05-24T08:29:13+09:00",
+          "tree_id": "d3ab619ec5afe1f7dd7415e913a9e3895ad9318d",
+          "url": "https://github.com/yewstack/yew/commit/027ab6af8ba1a65b7d110568f25aafd16222619f"
+        },
+        "date": 1653349037565,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "204.1505",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "210.018",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "421.48",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "85.28450000000001",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "108.018",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "35.575",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "3420.9745000000003",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "482.12",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "205.782",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.4598236083984375",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.6948318481445312",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.7120361328125",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.7175521850585938",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.3321037292480469",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1732.672",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "31.40799999999999",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 33_startup-mainthreadcost",
+            "value": "261.19199999999995",
             "unit": ""
           },
           {
