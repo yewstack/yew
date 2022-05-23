@@ -3,19 +3,22 @@
 use std::marker::PhantomData;
 use std::rc::Rc;
 
-use gloo_utils::window;
-use js_sys::Uint8Array;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use wasm_bindgen::{JsCast, JsValue};
-use wasm_bindgen_futures::JsFuture;
+use wasm_bindgen::JsValue;
 
 use super::PreparedStateBase;
 use crate::functional::{use_state, Hook, HookContext};
 use crate::io_coop::spawn_local;
 use crate::suspense::{Suspension, SuspensionResult};
 
+#[cfg(target_arch = "wasm32")]
 async fn decode_base64(s: &str) -> Result<Vec<u8>, JsValue> {
+    use gloo_utils::window;
+    use js_sys::Uint8Array;
+    use wasm_bindgen::JsCast;
+    use wasm_bindgen_futures::JsFuture;
+
     let fetch_promise = window().fetch_with_str(s);
 
     let content_promise = JsFuture::from(fetch_promise)
@@ -29,6 +32,11 @@ async fn decode_base64(s: &str) -> Result<Vec<u8>, JsValue> {
         .map(Uint8Array::new)?;
 
     Ok(content_array.to_vec())
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+async fn decode_base64(_s: &str) -> Result<Vec<u8>, JsValue> {
+    unreachable!("this function is not callable under non-wasm targets!");
 }
 
 #[doc(hidden)]
