@@ -10,7 +10,7 @@ error: You must specify a return type for this closure. This is used when the cl
 8 |     use_prepared_state_with_closure!(|_| { todo!() }, 123)?;
   |                                      ^^^^^^^^^^^^^^^
 
-error: expected `,`
+error: expected a second argument as dependency
   --> tests/hook_macro/use_prepared_state-fail.rs:10:5
    |
 10 |     use_prepared_state_with_closure!(|_| -> u32 { todo!() })?;
@@ -18,7 +18,7 @@ error: expected `,`
    |
    = note: this error originates in the macro `use_prepared_state_with_closure` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: expected `,`
+error: expected a second argument as dependency
   --> tests/hook_macro/use_prepared_state-fail.rs:12:5
    |
 12 |     use_prepared_state_with_closure!(async |_| -> u32 { todo!() })?;
@@ -38,7 +38,7 @@ error: You must specify a return type for this closure. This is used when the cl
 21 |     use_prepared_state_without_closure!(|_| { todo!() }, 123)?;
    |                                         ^^^^^^^^^^^^^^^
 
-error: expected `,`
+error: expected a second argument as dependency
   --> tests/hook_macro/use_prepared_state-fail.rs:23:5
    |
 23 |     use_prepared_state_without_closure!(|_| -> u32 { todo!() })?;
@@ -46,7 +46,7 @@ error: expected `,`
    |
    = note: this error originates in the macro `use_prepared_state_without_closure` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: expected `,`
+error: expected a second argument as dependency
   --> tests/hook_macro/use_prepared_state-fail.rs:25:5
    |
 25 |     use_prepared_state_without_closure!(async |_| -> u32 { todo!() })?;

@@ -15,7 +15,9 @@ impl Parse for PreparedState {
         // Reads a closure.
         let closure: ExprClosure = input.parse()?;
 
-        input.parse::<Token![,]>()?;
+        input
+            .parse::<Token![,]>()
+            .map_err(|e| syn::Error::new(e.span(), "expected a second argument as dependency"))?;
 
         let return_type = match &closure.output {
             ReturnType::Default => {

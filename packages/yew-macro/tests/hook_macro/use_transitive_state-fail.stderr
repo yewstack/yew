@@ -10,7 +10,7 @@ error: You must specify a return type for this closure. This is used when the cl
 8 |     use_transitive_state_with_closure!(|_| { todo!() }, 123)?;
   |                                        ^^^^^^^^^^^^^^^
 
-error: expected `,`
+error: expected a second argument as dependency
   --> tests/hook_macro/use_transitive_state-fail.rs:10:5
    |
 10 |     use_transitive_state_with_closure!(|_| -> u32 { todo!() })?;
@@ -30,7 +30,7 @@ error: You must specify a return type for this closure. This is used when the cl
 19 |     use_transitive_state_without_closure!(|_| { todo!() }, 123)?;
    |                                           ^^^^^^^^^^^^^^^
 
-error: expected `,`
+error: expected a second argument as dependency
   --> tests/hook_macro/use_transitive_state-fail.rs:21:5
    |
 21 |     use_transitive_state_without_closure!(|_| -> u32 { todo!() })?;
