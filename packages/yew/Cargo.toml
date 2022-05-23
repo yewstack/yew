@@ -68,9 +68,9 @@ features = [
 ]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
- # we move it here so no promise-based spawn_local can present for
- # non-wasm32 targets.
- wasm-bindgen-futures = "0.4"
+# we move it here so no promise-based spawn_local can present for
+# non-wasm32 targets.
+wasm-bindgen-futures = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1.15.0", features = ["rt"], optional = true }
