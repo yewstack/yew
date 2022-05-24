@@ -308,9 +308,9 @@ mod feat_ssr {
                 .await;
 
             if let Some(prepared_state) = self.get_component().unwrap().prepare_state() {
-                w.push_str(r#"<script type="application/x-yew-comp-state">"#);
-                w.push_str(&prepared_state);
-                w.push_str(r#"</script>"#);
+                w.write(r#"<script type="application/x-yew-comp-state">"#.into());
+                w.write(prepared_state.into());
+                w.write(r#"</script>"#.into());
             }
 
             if hydratable {

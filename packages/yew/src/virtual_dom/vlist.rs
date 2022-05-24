@@ -171,12 +171,14 @@ mod feat_ssr {
                 return;
             }
 
+            let buf_capacity = w.capacity();
+
             // Concurrently render all children.
             let mut children: FuturesOrdered<_> = self
                 .children
                 .iter()
                 .map(|m| async move {
-                    let (mut w, rx) = BufWriter::new();
+                    let (mut w, rx) = BufWriter::with_capacity(buf_capacity);
 
                     m.render_into_stream(&mut w, parent_scope, hydratable).await;
                     drop(w);
