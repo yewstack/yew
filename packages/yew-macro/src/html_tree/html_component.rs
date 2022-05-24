@@ -99,7 +99,7 @@ impl ToTokens for HtmlComponent {
         } = self;
 
         let ty_span = ty.span().resolved_at(Span::call_site());
-        let props_ty = quote_spanned!(ty.span()=> <#ty as ::yew::html::BaseComponent>::Properties);
+        let props_ty = quote_spanned!(ty_span=> <#ty as ::yew::html::BaseComponent>::Properties);
         let children_renderer = if children.is_empty() {
             None
         } else {
@@ -110,14 +110,14 @@ impl ToTokens for HtmlComponent {
         let special_props = props.special();
         let node_ref = if let Some(node_ref) = &special_props.node_ref {
             let value = &node_ref.value;
-            quote_spanned! {value.span()=> #value }
+            quote! { #value }
         } else {
             quote! { <::yew::html::NodeRef as ::std::default::Default>::default() }
         };
 
         let key = if let Some(key) = &special_props.key {
             let value = &key.value;
-            quote_spanned! {value.span()=>
+            quote_spanned! {value.span().resolved_at(Span::call_site())=>
                 #[allow(clippy::useless_conversion)]
                 Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#value))
             }
