@@ -10,7 +10,7 @@ This example demonstrates server-side rendering.
 
 2. Run the server
 
-`cargo run --bin simple_ssr_server -- --dir examples/simple_ssr/dist`
+`cargo run --features=ssr --bin simple_ssr_server -- --dir examples/simple_ssr/dist`
 
 3. Open Browser
 

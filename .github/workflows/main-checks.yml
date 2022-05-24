@@ -25,7 +25,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets -- -D warnings
+          args: --all-targets --all-features -- -D warnings
 
       - name: Lint feature soundness
         run: |
@@ -51,12 +51,11 @@ jobs:
 
       - uses: Swatinem/rust-cache@v1
 
-
       - name: Run clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --release -- -D warnings
+          args: --all-targets --all-features --release -- -D warnings
 
       - name: Lint feature soundness
         run: |
@@ -108,7 +107,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --doc --workspace --exclude yew --exclude changelog --exclude website-test --target wasm32-unknown-unknown
+          args: --doc --workspace --exclude yew --exclude changelog --exclude website-test --exclude ssr_router --exclude simple_ssr --target wasm32-unknown-unknown
 
       - name: Run website code snippet tests
         uses: actions-rs/cargo@v1
@@ -196,7 +195,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-targets --workspace --exclude yew --exclude website-test
+          args: --all-targets --workspace --exclude yew --exclude website-test --exclude ssr_router --exclude simple_ssr
 
       - name: Run native tests for yew
         uses: actions-rs/cargo@v1
