@@ -444,6 +444,7 @@ impl Reconcilable for VList {
             self.add_child(VText::new("").into());
         }
 
+        let fully_keyed = self.fully_keyed();
         let lefts = self.children;
         let rights = &mut blist.rev_children;
         test_log!("lefts: {:?}", lefts);
@@ -452,12 +453,12 @@ impl Reconcilable for VList {
         if let Some(additional) = lefts.len().checked_sub(rights.len()) {
             rights.reserve_exact(additional);
         }
-        let first = if self.fully_keyed && blist.fully_keyed {
+        let first = if fully_keyed && blist.fully_keyed {
             BList::apply_keyed(root, parent_scope, parent, next_sibling, lefts, rights)
         } else {
             BList::apply_unkeyed(root, parent_scope, parent, next_sibling, lefts, rights)
         };
-        blist.fully_keyed = self.fully_keyed;
+        blist.fully_keyed = fully_keyed;
         blist.key = self.key;
         test_log!("result: {:?}", rights);
         first
@@ -478,9 +479,11 @@ mod feat_hydration {
             fragment: &mut Fragment,
         ) -> (NodeRef, Self::Bundle) {
             let node_ref = NodeRef::default();
-            let mut children = Vec::with_capacity(self.children.len());
+            let fully_keyed = self.fully_keyed();
+            let vchildren = self.children;
+            let mut children = Vec::with_capacity(vchildren.len());
 
-            for (index, child) in self.children.into_iter().enumerate() {
+            for (index, child) in vchildren.into_iter().enumerate() {
                 let (child_node_ref, child) = child.hydrate(root, parent_scope, parent, fragment);
 
                 if index == 0 {
@@ -496,7 +499,7 @@ mod feat_hydration {
                 node_ref,
                 BList {
                     rev_children: children,
-                    fully_keyed: self.fully_keyed,
+                    fully_keyed,
                     key: self.key,
                 },
             )
