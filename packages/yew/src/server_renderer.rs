@@ -6,7 +6,8 @@ use futures::stream::{Stream, StreamExt};
 use crate::html::{BaseComponent, Scope};
 use crate::platform::{run_pinned, spawn_local};
 
-const DEFAULT_BUF_SIZE: usize = 4 * 1024;
+// Same as std::io::BufWriter and futures::io::BufWriter.
+const DEFAULT_BUF_SIZE: usize = 8 * 1024;
 
 /// A [`futures::io::BufWriter`], but operates over string and yields into a Stream.
 pub(crate) struct BufWriter {
