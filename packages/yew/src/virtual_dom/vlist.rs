@@ -3,7 +3,7 @@ use std::ops::{Deref, DerefMut};
 
 use super::{Key, VNode};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 enum FullyKeyedState {
     KnownFullyKeyed,
     KnownMissingKeys,
@@ -95,7 +95,7 @@ impl VList {
     /// Recheck, if the all the children have keys.
     ///
     /// You can run this, after modifying the child list through the [DerefMut] implementation of
-    /// [VList], to precompute this internal
+    /// [VList], to precompute an internally kept flag, which speeds up reconciliation later.
     pub fn recheck_fully_keyed(&mut self) {
         self.fully_keyed = if self.fully_keyed() {
             FullyKeyedState::KnownFullyKeyed
