@@ -449,18 +449,14 @@ mod feat_ssr {
             w.write("<".into());
             w.write(self.tag().into());
 
-            let write_attr = |w: &mut BufWriter, name: &str, val: Option<&str>| match val {
-                Some(val) => w.write(
-                    format!(
-                        " {}=\"{}\"",
-                        name,
-                        html_escape::encode_double_quoted_attribute(val)
-                    )
-                    .into(),
-                ),
-                None => {
-                    w.write(" ".into());
-                    w.write(name.into());
+            let write_attr = |w: &mut BufWriter, name: &str, val: Option<&str>| {
+                w.write(" ".into());
+                w.write(name.into());
+
+                if let Some(m) = val {
+                    w.write("=\"".into());
+                    w.write(html_escape::encode_double_quoted_attribute(m));
+                    w.write("\"".into());
                 }
             };
 
@@ -501,7 +497,9 @@ mod feat_ssr {
                             .render_into_stream(w, parent_scope, hydratable)
                             .await;
 
-                        w.write(format!("</{}>", tag).into());
+                        w.write(Cow::Borrowed("</"));
+                        w.write(Cow::Borrowed(tag));
+                        w.write(Cow::Borrowed(">"));
                     } else {
                         // We don't write children of void elements nor closing tags.
                         debug_assert!(children.is_empty(), "{} cannot have any children!", tag);

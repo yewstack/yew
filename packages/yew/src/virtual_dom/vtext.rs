@@ -46,10 +46,8 @@ mod feat_ssr {
             _parent_scope: &AnyScope,
             _hydratable: bool,
         ) {
-            let mut s = String::with_capacity(self.text.len());
-            html_escape::encode_text_to_string(&self.text, &mut s);
-
-            w.write(s.into());
+            let s = html_escape::encode_text(&self.text);
+            w.write(s);
         }
     }
 }
