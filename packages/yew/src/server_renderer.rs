@@ -6,8 +6,9 @@ use futures::stream::{Stream, StreamExt};
 use crate::html::{BaseComponent, Scope};
 use crate::platform::{run_pinned, spawn_local};
 
-const DEFAULT_BUF_SIZE: usize = 8 * 1024;
+const DEFAULT_BUF_SIZE: usize = 4 * 1024;
 
+/// A [`futures::io::BufWriter`], but operates over string and yields into a Stream.
 pub(crate) struct BufWriter {
     buf: String,
     tx: UnboundedSender<String>,
@@ -27,15 +28,15 @@ impl BufWriter {
         (this, rx)
     }
 
-    pub fn capacity(&self) -> usize {
+    pub const fn capacity(&self) -> usize {
         self.capacity
     }
 
     /// Writes a string into the buffer, optionally drains the buffer.
     pub fn write(&mut self, s: Cow<'_, str>) {
-        if s.len() > 4096 {
-            // if the next chunk is more than buffer size, we drain the buffer and the next
-            // chunk.
+        if s.len() > self.capacity {
+            // if the next part is more than buffer size, we drain the buffer and the next
+            // part.
             if !self.buf.is_empty() {
                 let mut buf = String::with_capacity(self.capacity);
                 std::mem::swap(&mut buf, &mut self.buf);
@@ -47,7 +48,7 @@ impl BufWriter {
             // There is enough capacity, we push it on to the buffer.
             self.buf.push_str(&s);
         } else {
-            // The length of current chunk and the next part is more than 4096, we send
+            // The next part is not going to fit into the buffer, we send
             // the current buffer and make a new buffer.
             let mut buf = String::with_capacity(self.capacity);
             buf.push_str(&s);
