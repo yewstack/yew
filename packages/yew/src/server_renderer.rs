@@ -29,7 +29,8 @@ impl BufWriter {
         (this, rx)
     }
 
-    pub const fn capacity(&self) -> usize {
+    #[inline]
+    pub fn capacity(&self) -> usize {
         self.capacity
     }
 
