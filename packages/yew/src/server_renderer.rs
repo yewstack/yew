@@ -35,16 +35,15 @@ impl BufWriter {
             }
 
             let _ = self.tx.unbounded_send(s.into_owned());
-        } else if self.buf.len() + s.len() < 4096 {
-            // The length of current chunk and the next part is less than 4096, we push
-            // it on to the buffer.
+        } else if self.buf.capacity() >= s.len() {
+            // There is enough capacity, we push it on to the buffer.
             self.buf.push_str(&s);
         } else {
             // The length of current chunk and the next part is more than 4096, we send
-            // the current buffer and make the next chunk the new buffer.
-            let mut buf = s.into_owned();
+            // the current buffer and make a new buffer.
+            let mut buf = String::with_capacity(4096);
+            buf.push_str(&s);
 
-            buf.reserve(4096);
             std::mem::swap(&mut buf, &mut self.buf);
             let _ = self.tx.unbounded_send(buf);
         }
