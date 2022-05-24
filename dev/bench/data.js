@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1653349039957,
+  "lastUpdate": 1653367355236,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -17213,6 +17213,120 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 33_startup-mainthreadcost",
             "value": "261.19199999999995",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "331.59765625",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "futursolo@users.noreply.github.com",
+            "name": "Kaede Hoshikawa",
+            "username": "futursolo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b29b4535b7abbb50e9a1decb1a8f95970bf951b0",
+          "message": "`use_prepared_state` & `use_transitive_state` (#2650)\n\n* Some initial implementation.\r\n\r\n* Read prepared state during hydration.\r\n\r\n* Decode each state with bincode.\r\n\r\n* Feature gate prepared state.\r\n\r\n* Update documentation.\r\n\r\n* Switch from base64 to String.\r\n\r\n* cargo +nightly fmt.\r\n\r\n* Fix test.\r\n\r\n* Add some tests.\r\n\r\n* Minor adjustments.\r\n\r\n* Remove unused marker.\r\n\r\n* Update example.\r\n\r\n* Add use_transitive_state.\r\n\r\n* Remove unused dead code notation.\r\n\r\n* Opt for better code size.\r\n\r\n* Add tests for use_transitive_state.\r\n\r\n* Fix cargo fmt.\r\n\r\n* Fix rustdoc.\r\n\r\n* Asynchronously decode data during hydration.\r\n\r\n* Fix feature flags.\r\n\r\n* Fix docs.\r\n\r\n* Feature flags on ssr_router.\r\n\r\n* Adjust workflow to reflect feature flags.\r\n\r\n* Fix features.\r\n\r\n* Restore wasm-bindgen-futures to be wasm32 only.\r\n\r\n* Revert wasm-bindgen-futures.\r\n\r\n* Second attempt to remove wasm-bindgen-futures.\r\n\r\n* Remove spaces as well.\r\n\r\n* Address reviews.\r\n\r\n* Better diagnostic message.\r\n\r\n* Update diagnostic messages.",
+          "timestamp": "2022-05-24T13:35:16+09:00",
+          "tree_id": "cfe53d1afbb8bcc5e07f68235f0fac7f46c3ed7b",
+          "url": "https://github.com/yewstack/yew/commit/b29b4535b7abbb50e9a1decb1a8f95970bf951b0"
+        },
+        "date": 1653367353272,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "174.806",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "191.269",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "426.5925",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "60.132",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "86.7955",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "29.3165",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "3261.5505000000003",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "453.2165",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "227.5145",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.4553260803222656",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.695892333984375",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.7000389099121094",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.7169876098632812",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.3335952758789062",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1837.6659999999997",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "38.636",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 33_startup-mainthreadcost",
+            "value": "268.2079999999999",
             "unit": ""
           },
           {
