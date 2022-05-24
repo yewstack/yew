@@ -47,7 +47,7 @@ note: the following trait must be implemented
     | |     type Message: 'static;
     | |
 ...   |
-    | |     fn destroy(&mut self, ctx: &Context<Self>);
+    | |     fn prepare_state(&self) -> Option<String>;
     | | }
     | |_^
 

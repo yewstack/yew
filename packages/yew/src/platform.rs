@@ -87,9 +87,13 @@ where
     arch::spawn_local(f);
 }
 
-/// Runs a task with it pinned onto a worker thread.
+/// Runs a task with it pinned onto a local worker thread.
 ///
 /// This can be used to execute non-Send futures without blocking the current thread.
+///
+/// It maintains an internal thread pool dedicated to executing local futures.
+///
+/// [`spawn_local`] is available with tasks executed with `run_pinned`.
 #[inline(always)]
 pub async fn run_pinned<F, Fut>(create_task: F) -> Fut::Output
 where

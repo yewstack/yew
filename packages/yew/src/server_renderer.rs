@@ -175,9 +175,8 @@ where
 
 /// A Yew Server-side Renderer.
 ///
-/// For runtimes with multi-threading support,
-/// Yew manages a default worker pool with the number of worker thread equal to the CPU running
-/// cores. You may override the spawning logic with
+/// The renderer spawns the rendering task with [`run_pinned`] which maintains an internal worker
+/// pool.
 #[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
 #[derive(Debug)]
 pub struct ServerRenderer<COMP>
