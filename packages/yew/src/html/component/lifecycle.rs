@@ -158,6 +158,9 @@ pub(crate) trait Stateful {
 
     fn as_any(&self) -> &dyn Any;
     fn as_any_mut(&mut self) -> &mut dyn Any;
+
+    #[cfg(feature = "hydration")]
+    fn mode(&self) -> RenderMode;
 }
 
 impl<COMP> Stateful for CompStateInner<COMP>
@@ -180,6 +183,11 @@ where
         self.context.link().clone().into()
     }
 
+    #[cfg(feature = "hydration")]
+    fn mode(&self) -> RenderMode {
+        self.context.mode
+    }
+
     fn flush_messages(&mut self) -> bool {
         self.context
             .link()
@@ -198,7 +206,7 @@ where
         };
 
         if self.context.props != props {
-            self.context.props = Rc::clone(&props);
+            self.context.props = props;
             self.component.changed(&self.context)
         } else {
             false
@@ -221,6 +229,8 @@ pub(crate) struct ComponentState {
 
     #[cfg(feature = "csr")]
     has_rendered: bool,
+    #[cfg(feature = "hydration")]
+    pending_props: Option<Rc<dyn Any>>,
 
     suspension: Option<Suspension>,
 
@@ -228,10 +238,11 @@ pub(crate) struct ComponentState {
 }
 
 impl ComponentState {
-    pub(crate) fn new<COMP: BaseComponent>(
+    fn new<COMP: BaseComponent>(
         initial_render_state: ComponentRenderState,
         scope: Scope<COMP>,
         props: Rc<COMP::Properties>,
+        #[cfg(feature = "hydration")] prepared_state: Option<String>,
     ) -> Self {
         let comp_id = scope.id;
         #[cfg(feature = "hydration")]
@@ -249,6 +260,8 @@ impl ComponentState {
             props,
             #[cfg(feature = "hydration")]
             mode,
+            #[cfg(feature = "hydration")]
+            prepared_state,
         };
 
         let inner = Box::new(CompStateInner {
@@ -263,6 +276,8 @@ impl ComponentState {
 
             #[cfg(feature = "csr")]
             has_rendered: false,
+            #[cfg(feature = "hydration")]
+            pending_props: None,
 
             comp_id,
         }
@@ -283,6 +298,8 @@ pub(crate) struct CreateRunner<COMP: BaseComponent> {
     pub initial_render_state: ComponentRenderState,
     pub props: Rc<COMP::Properties>,
     pub scope: Scope<COMP>,
+    #[cfg(feature = "hydration")]
+    pub prepared_state: Option<String>,
 }
 
 impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
@@ -296,6 +313,8 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
                 self.initial_render_state,
                 self.scope.clone(),
                 self.props,
+                #[cfg(feature = "hydration")]
+                self.prepared_state,
             ));
         }
     }
@@ -303,9 +322,9 @@ impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
 
 #[cfg(feature = "csr")]
 pub(crate) struct PropsUpdateRunner {
-    pub props: Rc<dyn Any>,
+    pub props: Option<Rc<dyn Any>>,
     pub state: Shared<Option<ComponentState>>,
-    pub next_sibling: NodeRef,
+    pub next_sibling: Option<NodeRef>,
 }
 
 #[cfg(feature = "csr")]
@@ -318,43 +337,86 @@ impl Runnable for PropsUpdateRunner {
         } = *self;
 
         if let Some(state) = shared_state.borrow_mut().as_mut() {
-            let schedule_render = match state.render_state {
-                #[cfg(feature = "csr")]
-                ComponentRenderState::Render {
-                    next_sibling: ref mut current_next_sibling,
-                    ..
-                } => {
-                    // When components are updated, their siblings were likely also updated
-                    *current_next_sibling = next_sibling;
-                    // Only trigger changed if props were changed
-                    state.inner.props_changed(props)
-                }
+            if let Some(next_sibling) = next_sibling {
+                // When components are updated, their siblings were likely also updated
+                // We also need to shift the bundle so next sibling will be synced to child
+                // components.
+                match state.render_state {
+                    #[cfg(feature = "csr")]
+                    ComponentRenderState::Render {
+                        next_sibling: ref mut current_next_sibling,
+                        ref parent,
+                        ref bundle,
+                        ..
+                    } => {
+                        bundle.shift(parent, next_sibling.clone());
+                        *current_next_sibling = next_sibling;
+                    }
 
+                    #[cfg(feature = "hydration")]
+                    ComponentRenderState::Hydration {
+                        next_sibling: ref mut current_next_sibling,
+                        ref parent,
+                        ref fragment,
+                        ..
+                    } => {
+                        fragment.shift(parent, next_sibling.clone());
+                        *current_next_sibling = next_sibling;
+                    }
+
+                    #[cfg(feature = "ssr")]
+                    ComponentRenderState::Ssr { .. } => {
+                        #[cfg(debug_assertions)]
+                        panic!("properties do not change during SSR");
+                    }
+                }
+            }
+
+            let should_render = |props: Option<Rc<dyn Any>>, state: &mut ComponentState| -> bool {
+                props.map(|m| state.inner.props_changed(m)).unwrap_or(false)
+            };
+
+            #[cfg(feature = "hydration")]
+            let should_render_hydration =
+                |props: Option<Rc<dyn Any>>, state: &mut ComponentState| -> bool {
+                    if let Some(props) = props.or_else(|| state.pending_props.take()) {
+                        match state.has_rendered {
+                            true => {
+                                state.pending_props = None;
+                                state.inner.props_changed(props)
+                            }
+                            false => {
+                                state.pending_props = Some(props);
+                                false
+                            }
+                        }
+                    } else {
+                        false
+                    }
+                };
+
+            // Only trigger changed if props were changed / next sibling has changed.
+            let schedule_render = {
                 #[cfg(feature = "hydration")]
-                ComponentRenderState::Hydration {
-                    next_sibling: ref mut current_next_sibling,
-                    ..
-                } => {
-                    // When components are updated, their siblings were likely also updated
-                    *current_next_sibling = next_sibling;
-                    // Only trigger changed if props were changed
-                    state.inner.props_changed(props)
+                {
+                    if state.inner.mode() == RenderMode::Hydration {
+                        should_render_hydration(props, state)
+                    } else {
+                        should_render(props, state)
+                    }
                 }
 
-                #[cfg(feature = "ssr")]
-                ComponentRenderState::Ssr { .. } => {
-                    #[cfg(debug_assertions)]
-                    panic!("properties do not change during SSR");
-
-                    #[cfg(not(debug_assertions))]
-                    false
-                }
+                #[cfg(not(feature = "hydration"))]
+                should_render(props, state)
             };
 
             #[cfg(debug_assertions)]
             super::log_event(
                 state.comp_id,
-                format!("props_update(schedule_render={})", schedule_render),
+                format!(
+                    "props_update(has_rendered={} schedule_render={})",
+                    state.has_rendered, schedule_render
+                ),
             );
 
             if schedule_render {
@@ -620,6 +682,15 @@ mod feat_csr {
 
                 if state.suspension.is_none() {
                     state.inner.rendered(self.first_render);
+                }
+
+                #[cfg(feature = "hydration")]
+                if state.pending_props.is_some() {
+                    scheduler::push_component_props_update(Box::new(PropsUpdateRunner {
+                        props: None,
+                        state: self.state.clone(),
+                        next_sibling: None,
+                    }));
                 }
             }
         }

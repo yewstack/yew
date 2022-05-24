@@ -3,18 +3,30 @@ mod use_context;
 mod use_effect;
 mod use_force_update;
 mod use_memo;
+#[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
+#[cfg(any(target_arch = "wasm32", feature = "tokio"))]
+mod use_prepared_state;
 mod use_reducer;
 mod use_ref;
 mod use_state;
+#[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
+#[cfg(any(target_arch = "wasm32", feature = "tokio"))]
+mod use_transitive_state;
 
 pub use use_callback::*;
 pub use use_context::*;
 pub use use_effect::*;
 pub use use_force_update::*;
 pub use use_memo::*;
+#[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
+#[cfg(any(target_arch = "wasm32", feature = "tokio"))]
+pub use use_prepared_state::*;
 pub use use_reducer::*;
 pub use use_ref::*;
 pub use use_state::*;
+#[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
+#[cfg(any(target_arch = "wasm32", feature = "tokio"))]
+pub use use_transitive_state::*;
 
 use crate::functional::HookContext;
 

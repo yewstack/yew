@@ -286,6 +286,8 @@ mod feat_ssr {
                     initial_render_state: state,
                     props,
                     scope: self.clone(),
+                    #[cfg(feature = "hydration")]
+                    prepared_state: None,
                 }),
                 Box::new(RenderRunner {
                     state: self.state.clone(),
@@ -304,6 +306,12 @@ mod feat_ssr {
             let self_any_scope = AnyScope::from(self.clone());
             html.render_into_stream(w, &self_any_scope, hydratable)
                 .await;
+
+            if let Some(prepared_state) = self.get_component().unwrap().prepare_state() {
+                w.push_str(r#"<script type="application/x-yew-comp-state">"#);
+                w.push_str(&prepared_state);
+                w.push_str(r#"</script>"#);
+            }
 
             if hydratable {
                 collectable.write_close_tag(w);
@@ -489,8 +497,8 @@ mod feat_csr {
     ) {
         scheduler::push_component_props_update(Box::new(PropsUpdateRunner {
             state,
-            next_sibling,
-            props,
+            next_sibling: Some(next_sibling),
+            props: Some(props),
         }));
         // Not guaranteed to already have the scheduler started
         scheduler::start();
@@ -503,7 +511,6 @@ mod feat_csr {
         /// Mounts a component with `props` to the specified `element` in the DOM.
         pub(crate) fn mount_in_place(
             &self,
-
             root: BSubtree,
             parent: Element,
             next_sibling: NodeRef,
@@ -526,6 +533,8 @@ mod feat_csr {
                     initial_render_state: state,
                     props,
                     scope: self.clone(),
+                    #[cfg(feature = "hydration")]
+                    prepared_state: None,
                 }),
                 Box::new(RenderRunner {
                     state: self.state.clone(),
@@ -598,7 +607,8 @@ pub(crate) use feat_csr::*;
 #[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
 #[cfg(feature = "hydration")]
 mod feat_hydration {
-    use web_sys::Element;
+    use wasm_bindgen::JsCast;
+    use web_sys::{Element, HtmlScriptElement};
 
     use super::*;
     use crate::dom_bundle::{BSubtree, Fragment};
@@ -638,9 +648,22 @@ mod feat_hydration {
 
             let collectable = Collectable::for_component::<COMP>();
 
-            let fragment = Fragment::collect_between(fragment, &collectable, &parent);
+            let mut fragment = Fragment::collect_between(fragment, &collectable, &parent);
             node_ref.set(fragment.front().cloned());
             let next_sibling = NodeRef::default();
+
+            let prepared_state = match fragment
+                .back()
+                .cloned()
+                .and_then(|m| m.dyn_into::<HtmlScriptElement>().ok())
+            {
+                Some(m) if m.type_() == "application/x-yew-comp-state" => {
+                    fragment.pop_back();
+                    parent.remove_child(&m).unwrap();
+                    Some(m.text().unwrap())
+                }
+                _ => None,
+            };
 
             let state = ComponentRenderState::Hydration {
                 root,
@@ -656,6 +679,7 @@ mod feat_hydration {
                     initial_render_state: state,
                     props,
                     scope: self.clone(),
+                    prepared_state,
                 }),
                 Box::new(RenderRunner {
                     state: self.state.clone(),

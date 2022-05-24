@@ -319,6 +319,11 @@ impl FunctionComponent {
                 fn destroy(&mut self, _ctx: &::yew::html::Context<Self>) {
                     ::yew::functional::FunctionComponent::<Self>::destroy(&self.function_component)
                 }
+
+                #[inline]
+                fn prepare_state(&self) -> ::std::option::Option<::std::string::String> {
+                    ::yew::functional::FunctionComponent::<Self>::prepare_state(&self.function_component)
+                }
             }
         }
     }

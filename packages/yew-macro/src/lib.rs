@@ -53,6 +53,8 @@ mod hook;
 mod html_tree;
 mod props;
 mod stringify;
+mod use_prepared_state;
+mod use_transitive_state;
 
 use derive_props::DerivePropsInput;
 use function_component::{function_component_impl, FunctionComponent, FunctionComponentName};
@@ -62,6 +64,8 @@ use proc_macro::TokenStream;
 use quote::ToTokens;
 use syn::buffer::Cursor;
 use syn::parse_macro_input;
+use use_prepared_state::PreparedState;
+use use_transitive_state::TransitiveState;
 
 trait Peek<'a, T> {
     fn peek(cursor: Cursor<'a>) -> Option<(T, Cursor<'a>)>;
@@ -149,4 +153,28 @@ pub fn hook(attr: TokenStream, item: TokenStream) -> proc_macro::TokenStream {
     hook_impl(item)
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
+}
+
+#[proc_macro]
+pub fn use_prepared_state_with_closure(input: TokenStream) -> TokenStream {
+    let prepared_state = parse_macro_input!(input as PreparedState);
+    prepared_state.to_token_stream_with_closure().into()
+}
+
+#[proc_macro]
+pub fn use_prepared_state_without_closure(input: TokenStream) -> TokenStream {
+    let prepared_state = parse_macro_input!(input as PreparedState);
+    prepared_state.to_token_stream_without_closure().into()
+}
+
+#[proc_macro]
+pub fn use_transitive_state_with_closure(input: TokenStream) -> TokenStream {
+    let transitive_state = parse_macro_input!(input as TransitiveState);
+    transitive_state.to_token_stream_with_closure().into()
+}
+
+#[proc_macro]
+pub fn use_transitive_state_without_closure(input: TokenStream) -> TokenStream {
+    let transitive_state = parse_macro_input!(input as TransitiveState);
+    transitive_state.to_token_stream_without_closure().into()
 }

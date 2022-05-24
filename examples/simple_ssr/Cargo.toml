@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-yew = { path = "../../packages/yew", features = ["ssr", "hydration"] }
+yew = { path = "../../packages/yew" }
 reqwest = { version = "0.11.8", features = ["json"] }
 serde = { version = "1.0.132", features = ["derive"] }
 uuid = { version = "1.0.0", features = ["serde"] }
@@ -22,3 +22,7 @@ log = "0.4"
 tokio = { version = "1.15.0", features = ["full"] }
 warp = "0.3"
 clap = { version = "3.1.7", features = ["derive"] }
+
+[features]
+hydration = ["yew/hydration"]
+ssr = ["yew/ssr", "yew/tokio"]

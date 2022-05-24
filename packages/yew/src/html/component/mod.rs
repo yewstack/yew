@@ -75,6 +75,9 @@ pub struct Context<COMP: BaseComponent> {
     props: Rc<COMP::Properties>,
     #[cfg(feature = "hydration")]
     mode: RenderMode,
+
+    #[cfg(feature = "hydration")]
+    prepared_state: Option<String>,
 }
 
 impl<COMP: BaseComponent> Context<COMP> {
@@ -94,6 +97,17 @@ impl<COMP: BaseComponent> Context<COMP> {
     pub(crate) fn mode(&self) -> RenderMode {
         self.mode
     }
+
+    /// The component's prepared state
+    pub fn prepared_state(&self) -> Option<&str> {
+        #[cfg(not(feature = "hydration"))]
+        let state = None;
+
+        #[cfg(feature = "hydration")]
+        let state = self.prepared_state.as_deref();
+
+        state
+    }
 }
 
 /// The common base of both function components and struct components.
@@ -103,6 +117,15 @@ impl<COMP: BaseComponent> Context<COMP> {
 ///
 /// We provide a blanket implementation of this trait for every member that implements
 /// [`Component`].
+///
+/// # Warning
+///
+/// This trait may be subject to heavy changes between versions and is not intended for direct
+/// implementation.
+///
+/// You should used the [`Component`] trait or the
+/// [`#[function_component]`](crate::functional::function_component) macro to define your
+/// components.
 pub trait BaseComponent: Sized + 'static {
     /// The Component's Message.
     type Message: 'static;
@@ -127,6 +150,9 @@ pub trait BaseComponent: Sized + 'static {
 
     /// Notified before a component is destroyed.
     fn destroy(&mut self, ctx: &Context<Self>);
+
+    /// Prepares the server-side state.
+    fn prepare_state(&self) -> Option<String>;
 }
 
 /// Components are the basic building blocks of the UI in a Yew app. Each Component
@@ -186,6 +212,16 @@ pub trait Component: Sized + 'static {
     #[allow(unused_variables)]
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {}
 
+    /// Prepares the state during server side rendering.
+    ///
+    /// This state will be sent to the client side and is available via `ctx.prepared_state()`.
+    ///
+    /// This method is only called during server-side rendering after the component has been
+    /// rendered.
+    fn prepare_state(&self) -> Option<String> {
+        None
+    }
+
     /// Called right before a Component is unmounted.
     #[allow(unused_variables)]
     fn destroy(&mut self, ctx: &Context<Self>) {}
@@ -220,5 +256,9 @@ where
 
     fn destroy(&mut self, ctx: &Context<Self>) {
         Component::destroy(self, ctx)
+    }
+
+    fn prepare_state(&self) -> Option<String> {
+        Component::prepare_state(self)
     }
 }
