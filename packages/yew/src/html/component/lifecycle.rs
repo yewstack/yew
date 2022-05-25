@@ -345,11 +345,8 @@ impl Runnable for PropsUpdateRunner {
                     #[cfg(feature = "csr")]
                     ComponentRenderState::Render {
                         next_sibling: ref mut current_next_sibling,
-                        ref parent,
-                        ref bundle,
                         ..
                     } => {
-                        bundle.shift(parent, next_sibling.clone());
                         *current_next_sibling = next_sibling;
                     }
 
