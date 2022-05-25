@@ -1,5 +1,5 @@
 use boolinator::Boolinator;
-use proc_macro2::{Delimiter, TokenStream};
+use proc_macro2::{Delimiter, Span, TokenStream};
 use proc_macro_error::emit_warning;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
@@ -123,7 +123,7 @@ impl ToTokens for HtmlElement {
             .as_ref()
             .map(|attr| {
                 let value = &attr.value;
-                quote_spanned! {value.span()=>
+                quote_spanned! {value.span().resolved_at(Span::call_site())=>
                     ::yew::html::IntoPropValue::<::yew::html::NodeRef>
                     ::into_prop_value(#value)
                 }
@@ -133,7 +133,7 @@ impl ToTokens for HtmlElement {
             .as_ref()
             .map(|attr| {
                 let value = attr.value.optimize_literals();
-                quote_spanned! {value.span()=>
+                quote_spanned! {value.span().resolved_at(Span::call_site())=>
                     ::std::option::Option::Some(
                         ::std::convert::Into::<::yew::virtual_dom::Key>::into(#value)
                     )
@@ -174,15 +174,17 @@ impl ToTokens for HtmlElement {
                                 #key
                             }}),
                         },
-                        expr => Value::Dynamic(quote_spanned! {expr.span()=>
-                            if #expr {
-                                ::std::option::Option::Some(
-                                    ::yew::virtual_dom::AttrValue::Static(#key)
-                                )
-                            } else {
-                                ::std::option::Option::None
-                            }
-                        }),
+                        expr => Value::Dynamic(
+                            quote_spanned! {expr.span().resolved_at(Span::call_site())=>
+                                if #expr {
+                                    ::std::option::Option::Some(
+                                        ::yew::virtual_dom::AttrValue::Static(#key)
+                                    )
+                                } else {
+                                    ::std::option::Option::None
+                                }
+                            },
+                        ),
                     },
                 ))
             });

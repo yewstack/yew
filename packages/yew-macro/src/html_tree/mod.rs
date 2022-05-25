@@ -181,10 +181,12 @@ impl Parse for HtmlRootVNode {
 impl ToTokens for HtmlRootVNode {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let new_tokens = self.0.to_token_stream();
-        tokens.extend(quote! {{
-            #[allow(clippy::useless_conversion)]
-            <::yew::virtual_dom::VNode as ::std::convert::From<_>>::from(#new_tokens)
-        }});
+        tokens.extend(
+            quote_spanned! {self.0.span().resolved_at(Span::mixed_site())=> {
+                #[allow(clippy::useless_conversion)]
+                <::yew::virtual_dom::VNode as ::std::convert::From<_>>::from(#new_tokens)
+            }},
+        );
     }
 }
 
