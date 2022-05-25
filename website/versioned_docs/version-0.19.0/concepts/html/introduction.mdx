@@ -16,6 +16,7 @@ The `html!` macro allows you to write HTML and SVG code declaratively. It is sim
    [using fragments or iterators](./../html/lists.mdx)\)
 2. An empty `html! {}` invocation is valid and will not render anything
 3. Literals must always be quoted and wrapped in braces: `html! { "Hello, World" }`
+4. The `html!` macro will make all tag names lowercase. To use uppercase characters (which are required for some SVG elements) you must use [`VTag::new`](https://docs.rs/yew/latest/yew/virtual_dom/struct.VTag.html#method.new) to create elements directly and add [attributes](https://docs.rs/yew/latest/yew/virtual_dom/struct.VTag.html#method.add_attribute) and [children](https://docs.rs/yew/latest/yew/virtual_dom/struct.VTag.html#method.add_child) manually instead of using the macro. There is a more ergonomic solution to this in Yew Next.
 
 :::note
 The `html!` macro can reach the default recursion limit of the compiler. If you encounter compilation errors, add an attribute like `#![recursion_limit="1024"]` in the crate root to overcome the problem.
@@ -112,6 +113,12 @@ html! {
   </TabItem>
   <TabItem value="SVG" label="SVG">
 
+:::caution
+The `html!` macro will convert all tag names to lowercase but some SVG elements require uppercase characters.
+
+See above for a workaround.
+:::
+
 ```rust
 use yew::html;
 
@@ -119,17 +126,11 @@ html! {
     <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M60.5776 13.8268L51.8673 42.6431L77.7475 37.331L60.5776 13.8268Z" fill="#DEB819"/>
         <path d="M108.361 94.9937L138.708 90.686L115.342 69.8642" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-        <g filter="url(#filter0_d)">
+        <g>
             <circle cx="75.3326" cy="73.4918" r="55" fill="#FDD630"/>
             <circle cx="75.3326" cy="73.4918" r="52.5" stroke="black" stroke-width="5"/>
         </g>
         <circle cx="71" cy="99" r="5" fill="white" fill-opacity="0.75" stroke="black" stroke-width="3"/>
-        <defs>
-            <filter id="filter0_d" x="16.3326" y="18.4918" width="118" height="118" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-                <feGaussianBlur stdDeviation="2"/>
-                <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
-            </filter>
-        </defs>
     </svg>
 };
 ```
