@@ -40,7 +40,7 @@ where
         type Output = SuspensionResult<Option<Rc<T>>>;
 
         fn run(self, ctx: &mut HookContext) -> Self::Output {
-            match ctx.mode {
+            match ctx.creation_mode {
                 RenderMode::Ssr => feat_ssr::use_prepared_state(self.f, self.deps).run(ctx),
                 _ => feat_hydration::use_prepared_state(self.deps).run(ctx),
             }
@@ -82,7 +82,7 @@ where
         type Output = SuspensionResult<Option<Rc<T>>>;
 
         fn run(self, ctx: &mut HookContext) -> Self::Output {
-            match ctx.mode {
+            match ctx.creation_mode {
                 RenderMode::Ssr => {
                     feat_ssr::use_prepared_state_with_suspension(self.f, self.deps).run(ctx)
                 }

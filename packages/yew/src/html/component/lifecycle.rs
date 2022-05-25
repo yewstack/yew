@@ -160,7 +160,7 @@ pub(crate) trait Stateful {
     fn as_any_mut(&mut self) -> &mut dyn Any;
 
     #[cfg(feature = "hydration")]
-    fn mode(&self) -> RenderMode;
+    fn creation_mode(&self) -> RenderMode;
 }
 
 impl<COMP> Stateful for CompStateInner<COMP>
@@ -184,8 +184,8 @@ where
     }
 
     #[cfg(feature = "hydration")]
-    fn mode(&self) -> RenderMode {
-        self.context.mode
+    fn creation_mode(&self) -> RenderMode {
+        self.context.creation_mode()
     }
 
     fn flush_messages(&mut self) -> bool {
@@ -246,7 +246,7 @@ impl ComponentState {
     ) -> Self {
         let comp_id = scope.id;
         #[cfg(feature = "hydration")]
-        let mode = {
+        let creation_mode = {
             match initial_render_state {
                 ComponentRenderState::Render { .. } => RenderMode::Render,
                 ComponentRenderState::Hydration { .. } => RenderMode::Hydration,
@@ -259,7 +259,7 @@ impl ComponentState {
             scope,
             props,
             #[cfg(feature = "hydration")]
-            mode,
+            creation_mode,
             #[cfg(feature = "hydration")]
             prepared_state,
         };
@@ -396,7 +396,7 @@ impl Runnable for PropsUpdateRunner {
             let schedule_render = {
                 #[cfg(feature = "hydration")]
                 {
-                    if state.inner.mode() == RenderMode::Hydration {
+                    if state.inner.creation_mode() == RenderMode::Hydration {
                         should_render_hydration(props, state)
                     } else {
                         should_render(props, state)

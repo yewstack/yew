@@ -85,7 +85,7 @@ pub struct HookContext {
     pub(crate) scope: AnyScope,
     #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
     #[cfg(all(feature = "hydration", feature = "ssr"))]
-    mode: RenderMode,
+    creation_mode: RenderMode,
     re_render: ReRender,
 
     states: Vec<Rc<dyn Any>>,
@@ -113,7 +113,7 @@ impl HookContext {
         re_render: ReRender,
         #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
         #[cfg(all(feature = "hydration", feature = "ssr"))]
-        mode: RenderMode,
+        creation_mode: RenderMode,
         #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
         #[cfg(feature = "hydration")]
         prepared_state: Option<&str>,
@@ -124,7 +124,7 @@ impl HookContext {
 
             #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
             #[cfg(all(feature = "hydration", feature = "ssr"))]
-            mode,
+            creation_mode,
 
             states: Vec::new(),
 
@@ -363,7 +363,7 @@ where
                 re_render,
                 #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
                 #[cfg(all(feature = "hydration", feature = "ssr"))]
-                ctx.mode(),
+                ctx.creation_mode(),
                 #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
                 #[cfg(feature = "hydration")]
                 ctx.prepared_state(),
