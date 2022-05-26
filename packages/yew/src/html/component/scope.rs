@@ -512,15 +512,15 @@ mod feat_csr {
             root: BSubtree,
             parent: Element,
             next_sibling: NodeRef,
-            node_ref: NodeRef,
+            internal_ref: NodeRef,
             props: Rc<COMP::Properties>,
         ) {
             let bundle = Bundle::new();
-            node_ref.link(next_sibling.clone());
+            internal_ref.link(next_sibling.clone());
             let state = ComponentRenderState::Render {
                 bundle,
                 root,
-                node_ref,
+                internal_ref,
                 parent,
                 next_sibling,
             };
@@ -632,7 +632,7 @@ mod feat_hydration {
             root: BSubtree,
             parent: Element,
             fragment: &mut Fragment,
-            node_ref: NodeRef,
+            internal_ref: NodeRef,
             props: Rc<COMP::Properties>,
         ) {
             // This is very helpful to see which component is failing during hydration
@@ -647,8 +647,12 @@ mod feat_hydration {
             let collectable = Collectable::for_component::<COMP>();
 
             let mut fragment = Fragment::collect_between(fragment, &collectable, &parent);
-            node_ref.set(fragment.front().cloned());
-            let next_sibling = NodeRef::default();
+            let front = fragment.front().cloned();
+            debug_assert!(
+                front.is_some(),
+                "at least one collected node in component fragment"
+            );
+            internal_ref.set(front);
 
             let prepared_state = match fragment
                 .back()
@@ -664,10 +668,10 @@ mod feat_hydration {
             };
 
             let state = ComponentRenderState::Hydration {
-                root,
                 parent,
-                node_ref,
-                next_sibling,
+                root,
+                internal_ref,
+                next_sibling: NodeRef::default(),
                 fragment,
             };
 

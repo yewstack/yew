@@ -174,14 +174,10 @@ impl Reconcilable for VSuspense {
                         vfallback.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
                     }
                     #[cfg(feature = "hydration")]
-                    Fallback::Fragment(fragment) => {
-                        let node_ref = NodeRef::default();
-                        match fragment.front().cloned() {
-                            Some(m) => node_ref.set(Some(m)),
-                            None => node_ref.link(next_sibling),
-                        }
-                        node_ref
-                    }
+                    Fallback::Fragment(fragment) => match fragment.front().cloned() {
+                        Some(m) => NodeRef::new(m),
+                        None => next_sibling,
+                    },
                 }
             }
             // Not suspended, just reconcile the children into the DOM
@@ -256,6 +252,8 @@ mod feat_hydration {
                 detached_parent.append_child(node).unwrap();
             }
 
+            // Even if initially suspended, these children correspond to the first non-suspended
+            // content Refer to VSuspense::render_to_string
             let (_, children_bundle) =
                 self.children
                     .hydrate(root, parent_scope, &detached_parent, &mut nodes);
