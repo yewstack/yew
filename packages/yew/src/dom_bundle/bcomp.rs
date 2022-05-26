@@ -47,7 +47,7 @@ impl ReconcileTarget for BComp {
     fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
         self.scope.shift_node(next_parent.clone(), next_sibling);
 
-        self.node_ref.clone()
+        self.internal_ref.clone()
     }
 }
 
@@ -72,9 +72,9 @@ impl Reconcilable for VComp {
 
         let scope = mountable.mount(
             root,
-            internal_ref.clone(),
             parent_scope,
             parent.to_owned(),
+            internal_ref.clone(),
             next_sibling,
         );
 
@@ -158,8 +158,8 @@ mod feat_hydration {
                 root.clone(),
                 parent_scope,
                 parent.clone(),
-                fragment,
                 internal_ref.clone(),
+                fragment,
             );
 
             (
