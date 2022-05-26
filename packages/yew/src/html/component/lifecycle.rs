@@ -353,11 +353,8 @@ impl Runnable for PropsUpdateRunner {
                     #[cfg(feature = "hydration")]
                     ComponentRenderState::Hydration {
                         next_sibling: ref mut current_next_sibling,
-                        ref parent,
-                        ref fragment,
                         ..
                     } => {
-                        fragment.shift(parent, next_sibling.clone());
                         *current_next_sibling = next_sibling;
                     }
 
