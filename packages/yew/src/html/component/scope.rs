@@ -671,7 +671,7 @@ mod feat_hydration {
                 parent,
                 root,
                 internal_ref,
-                next_sibling: NodeRef::default(),
+                next_sibling: NodeRef::new_debug_trapped(),
                 fragment,
             };
 

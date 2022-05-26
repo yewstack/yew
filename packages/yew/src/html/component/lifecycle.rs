@@ -592,6 +592,9 @@ impl RenderRunner {
             } => {
                 let scope = state.inner.any_scope();
 
+                #[cfg(feature = "hydration")]
+                next_sibling.debug_assert_not_trapped();
+
                 let new_node_ref =
                     bundle.reconcile(root, &scope, parent, next_sibling.clone(), new_root);
                 internal_ref.link(new_node_ref);
