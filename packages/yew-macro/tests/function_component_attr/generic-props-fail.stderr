@@ -18,6 +18,7 @@ error[E0599]: no method named `build` found for struct `PropsBuilder<PropsBuilde
    |
    = note: the method was found for
            - `PropsBuilder<PropsBuilderStepPropsBuilder>`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `Comp<MissingTypeBounds>: yew::BaseComponent` is not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:27:14
@@ -27,6 +28,7 @@ error[E0277]: the trait bound `Comp<MissingTypeBounds>: yew::BaseComponent` is n
    |
    = help: the following implementations were found:
              <Comp<P> as yew::BaseComponent>
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: the function or associated item `new` exists for struct `VChild<Comp<MissingTypeBounds>>`, but its trait bounds were not satisfied
    --> tests/function_component_attr/generic-props-fail.rs:27:14
@@ -50,6 +52,7 @@ note: the following trait must be implemented
     | |     fn prepare_state(&self) -> Option<String>;
     | | }
     | |_^
+    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `MissingTypeBounds: yew::Properties` is not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:27:14
@@ -65,6 +68,7 @@ note: required by a bound in `Comp`
 ...
 11 |     P: Properties + PartialEq,
    |        ^^^^^^^^^^ required by this bound in `Comp`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0107]: missing generics for struct `Comp`
   --> tests/function_component_attr/generic-props-fail.rs:30:14

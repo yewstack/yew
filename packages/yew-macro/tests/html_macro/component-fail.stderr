@@ -290,15 +290,6 @@ error[E0308]: mismatched types
    = note: expected struct `ChildProperties`
               found struct `std::ops::Range<_>`
 
-error[E0308]: mismatched types
-  --> tests/html_macro/component-fail.rs:53:14
-   |
-53 |     html! { <Child ..p1 ..p2 /> };
-   |              ^^^^^ expected struct `ChildProperties`, found struct `std::ops::Range`
-   |
-   = note: expected struct `ChildProperties`
-              found struct `std::ops::Range<_>`
-
 error[E0609]: no field `value` on type `ChildProperties`
   --> tests/html_macro/component-fail.rs:69:20
    |
@@ -438,6 +429,7 @@ error[E0609]: no field `children` on type `ChildProperties`
    |              ^^^^^ unknown field
    |
    = note: available fields are: `string`, `int`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `children` found for struct `ChildPropertiesBuilder` in the current scope
   --> tests/html_macro/component-fail.rs:87:14
@@ -447,6 +439,8 @@ error[E0599]: no method named `children` found for struct `ChildPropertiesBuilde
 ...
 87 |     html! { <Child>{ "Not allowed" }</Child> };
    |              ^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
+   |
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0609]: no field `children` on type `ChildProperties`
   --> tests/html_macro/component-fail.rs:94:10
@@ -455,6 +449,7 @@ error[E0609]: no field `children` on type `ChildProperties`
    |          ^^^^^ unknown field
    |
    = note: available fields are: `string`, `int`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
   --> tests/html_macro/component-fail.rs:99:14
@@ -467,6 +462,7 @@ error[E0599]: no method named `build` found for struct `ChildContainerProperties
    |
    = note: the method was found for
            - `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStepPropsBuilder>`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
    --> tests/html_macro/component-fail.rs:100:14
@@ -479,6 +475,7 @@ error[E0599]: no method named `build` found for struct `ChildContainerProperties
     |
     = note: the method was found for
             - `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStepPropsBuilder>`
+    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VText>` is not satisfied
    --> tests/html_macro/component-fail.rs:101:31
