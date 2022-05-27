@@ -1,36 +1,25 @@
 [tasks.native-test]
 command = "cargo"
-toolchain = "1.56"
-args = ["test", "native_"]
+args = ["test", "--features", "csr,ssr,hydration"]
 
-[tasks.test]
-dependencies = ["native-test"]
-extend = "core::wasm-pack-base"
+[tasks.wasm-test]
 command = "wasm-pack"
 args = [
     "test",
-    "@@split(YEW_TEST_FLAGS, )",
+    "--firefox",
+    "--headless",
     "--",
     "--features",
-    "${YEW_TEST_FEATURES}",
-]
-
-[tasks.doc-test]
-clear = true
-run_task = { name = ["doc-test-normal"], fork = true }
-
-[tasks.doc-test-normal]
-command = "cargo"
-args = [
-    "test",
-    "--doc",
-    "--features",
-    "tokio,doc_test,wasm_test",
+    "csr,hydration,ssr",
 ]
 
 [tasks.ssr-test]
 command = "cargo"
 args = ["test", "ssr_tests", "--features", "ssr"]
+
+[tasks.test]
+args = ["test", "--all-targets", "--all-features"]
+dependencies = ["native-test", "wasm-test"]
 
 [tasks.clippy-feature-soundness]
 script = '''
@@ -48,6 +37,3 @@ cargo clippy --release --features=csr -- --deny=warnings
 cargo clippy --release --features=hydration -- --deny=warnings
 cargo clippy --release --all-features --all-targets -- --deny=warnings
 '''
-
-[tasks.lint-flow]
-dependencies = ["clippy-feature-soundness"]

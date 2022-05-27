@@ -10,5 +10,5 @@ updates:
   - package-ecosystem: "npm"
     directory: "/website"
     schedule:
-      interval: "daily"
+      interval: "monthly"
     target-branch: "master"

@@ -25,7 +25,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets -- -D warnings
+          args: --all-targets --all-features -- -D warnings
 
       - name: Lint feature soundness
         run: |
@@ -51,12 +51,11 @@ jobs:
 
       - uses: Swatinem/rust-cache@v1
 
-
       - name: Run clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --release -- -D warnings
+          args: --all-targets --all-features --release -- -D warnings
 
       - name: Lint feature soundness
         run: |
@@ -67,46 +66,60 @@ jobs:
           cargo clippy --release --all-features --all-targets -- --deny=warnings
         working-directory: packages/yew
 
-
-  doc_tests:
-    name: Documentation Tests
+  spell_check:
+    name: spellcheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: wasm32-unknown-unknown
-          override: true
-          profile: minimal
-
-      - uses: Swatinem/rust-cache@v1
-
       - name: Check spelling
         run: |
           sudo apt-get install aspell
           ci/spellcheck.sh list
 
+  doc_tests:
+    name: Documentation Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: Swatinem/rust-cache@v1
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+
+      - name: Install wasm-bindgen-test-runner
+        run: cargo install --git https://github.com/hamza1311/wasm-bindgen --branch respect-rustdoc-tmp-paths wasm-bindgen-cli
+
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          target: wasm32-unknown-unknown
+          override: true
+          profile: minimal
+
+      - uses: browser-actions/setup-geckodriver@latest
+      - uses: nanasess/setup-chromedriver@v1
 
       - name: Run doctest
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --doc
+          args: --doc --workspace --exclude yew --exclude changelog --exclude website-test --exclude ssr_router --exclude simple_ssr --target wasm32-unknown-unknown
 
       - name: Run website code snippet tests
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -p website-test
+          args: -p website-test --target wasm32-unknown-unknown
 
       - name: Run doctest - yew with features
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --doc --features doc_test --features wasm_test
-
-
+          args: -p yew --doc --all-features --target wasm32-unknown-unknown
 
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
@@ -128,23 +141,31 @@ jobs:
           override: true
           profile: minimal
 
-      - uses: jetli/wasm-pack-action@v0.3.0
-        with:
-          version: "latest"
+      - uses: browser-actions/setup-geckodriver@latest
+      - uses: nanasess/setup-chromedriver@v1
 
       - uses: Swatinem/rust-cache@v1
 
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: |
+          if [ ! -f "Cargo.lock" ]; then
+            cargo fetch
+          fi
+          VERSION=`cargo pkgid --frozen wasm-bindgen | cut -d ":" -f 3`
+          cargo install --version $VERSION wasm-bindgen-cli
 
       - name: Run tests - yew
         run: |
           cd packages/yew
-          wasm-pack test --chrome --firefox --headless -- --features "wasm_test"
+          CHROMEDRIVER=$(which chromedriver) cargo test --features csr,hydration,ssr --target wasm32-unknown-unknown
+          GECKODRIVER=$(which geckodriver) cargo test --features csr,hydration,ssr --target wasm32-unknown-unknown
 
       - name: Run tests - yew-router
         run: |
           cd packages/yew-router
-          wasm-pack test --chrome --firefox --headless
-
+          CHROMEDRIVER=$(which chromedriver) cargo test --target wasm32-unknown-unknown
+          GECKODRIVER=$(which geckodriver) cargo test --target wasm32-unknown-unknown
 
   unit_tests:
     name: Unit Tests on ${{ matrix.toolchain }}
@@ -170,13 +191,17 @@ jobs:
 
       - uses: Swatinem/rust-cache@v1
 
-      - name: Run tests
+      - name: Run native tests
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-targets --workspace --exclude yew --exclude website-test
+          args: --all-targets --workspace --exclude yew --exclude website-test --exclude ssr_router --exclude simple_ssr
 
-
+      - name: Run native tests for yew
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p yew --features "csr,ssr,hydration,tokio"
 
   test-lints:
     name: Test lints on nightly
@@ -191,7 +216,6 @@ jobs:
           profile: minimal
 
       - uses: Swatinem/rust-cache@v1
-
 
       - name: Run tests
         uses: actions-rs/cargo@v1

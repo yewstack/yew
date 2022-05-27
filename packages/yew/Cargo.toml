@@ -30,6 +30,9 @@ thiserror = "1.0"
 futures = { version = "0.3", optional = true }
 html-escape = { version = "0.2.9", optional = true }
 implicit-clone = { version = "0.2", features = ["map"] }
+base64ct = { version = "1.5.0", features = ["std"], optional = true }
+bincode = { version = "1.3.3", optional = true }
+serde = { version = "1", features = ["derive"] }
 
 [dependencies.web-sys]
 version = "0.3"
@@ -62,6 +65,7 @@ features = [
   "UiEvent",
   "WheelEvent",
   "Window",
+  "HtmlScriptElement",
 ]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -88,17 +92,16 @@ features = [
 ]
 
 [features]
-ssr = ["futures", "html-escape"]
+# TODO: `dep:` syntax only supported with MSRV 1.60, would be more precise
+# tokio = ["dep:tokio"]
+ssr = ["futures", "html-escape", "base64ct", "bincode"] # dep:html-escape
 csr = []
-hydration = ["csr"]
-trace_hydration = ["hydration"]
-doc_test = ["csr", "hydration", "ssr"]
-wasm_test = ["csr", "hydration", "ssr"]
+hydration = ["csr", "bincode"]
 default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1.15.0", features = ["full"] }
 
 [package.metadata.docs.rs]
-features = ["doc_test"]
+all-features = true
 rustdoc-args = ["--cfg", "documenting"]

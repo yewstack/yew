@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
@@ -50,8 +50,9 @@ impl ComponentProps {
     }
 
     fn prop_validation_tokens(&self, props_ty: impl ToTokens, has_children: bool) -> TokenStream {
+        let props_ident = Ident::new("__yew_props", props_ty.span());
         let check_children = if has_children {
-            Some(quote_spanned! {props_ty.span()=> __yew_props.children; })
+            Some(quote_spanned! {props_ty.span()=> #props_ident.children; })
         } else {
             None
         };
@@ -59,7 +60,11 @@ impl ComponentProps {
         let check_props: TokenStream = self
             .props
             .iter()
-            .map(|Prop { label, .. }| quote_spanned! ( label.span()=> __yew_props.#label; ))
+            .map(|Prop { label, .. }| {
+                quote_spanned! {
+                    Span::call_site().located_at(label.span())=> #props_ident.#label;
+                }
+            })
             .chain(self.base_expr.iter().map(|expr| {
                 quote_spanned! {props_ty.span()=>
                     let _: #props_ty = #expr;
@@ -70,7 +75,7 @@ impl ComponentProps {
         quote_spanned! {props_ty.span()=>
             #[allow(clippy::no_effect)]
             if false {
-                let _ = |__yew_props: #props_ty| {
+                let _ = |#props_ident: #props_ty| {
                     #check_children
                     #check_props
                 };
@@ -110,7 +115,7 @@ impl ComponentProps {
             Some(expr) => {
                 let ident = Ident::new("__yew_props", props_ty.span());
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
-                    quote_spanned! {value.span()=>
+                    quote_spanned! {value.span().resolved_at(Span::call_site())=>
                         #ident.#label = ::yew::html::IntoPropValue::into_prop_value(#value);
                     }
                 });
@@ -121,7 +126,7 @@ impl ComponentProps {
                 });
 
                 quote! {
-                    let mut #ident = #expr;
+                    let mut #ident: #props_ty = #expr;
                     #(#set_props)*
                     #set_children
                     #ident

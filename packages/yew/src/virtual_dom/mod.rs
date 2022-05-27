@@ -47,44 +47,45 @@ pub type AttrValue = implicit_clone::unsync::IString;
 
 #[cfg(any(feature = "ssr", feature = "hydration"))]
 mod feat_ssr_hydration {
+    #[cfg(debug_assertions)]
+    type ComponentName = &'static str;
+    #[cfg(not(debug_assertions))]
+    type ComponentName = ();
+
     /// A collectable.
     ///
     /// This indicates a kind that can be collected from fragment to be processed at a later time
-    pub(crate) enum Collectable {
-        #[cfg(debug_assertions)]
-        Component(&'static str),
-        #[cfg(not(debug_assertions))]
-        Component,
+    pub enum Collectable {
+        Component(ComponentName),
         Suspense,
     }
 
     impl Collectable {
+        pub fn for_component<T: 'static>() -> Self {
+            #[cfg(debug_assertions)]
+            let comp_name = std::any::type_name::<T>();
+            #[cfg(not(debug_assertions))]
+            let comp_name = ();
+            Self::Component(comp_name)
+        }
+
         pub fn open_start_mark(&self) -> &'static str {
             match self {
-                #[cfg(debug_assertions)]
                 Self::Component(_) => "<[",
-                #[cfg(not(debug_assertions))]
-                Self::Component => "<[",
                 Self::Suspense => "<?",
             }
         }
 
         pub fn close_start_mark(&self) -> &'static str {
             match self {
-                #[cfg(debug_assertions)]
                 Self::Component(_) => "</[",
-                #[cfg(not(debug_assertions))]
-                Self::Component => "</[",
                 Self::Suspense => "</?",
             }
         }
 
         pub fn end_mark(&self) -> &'static str {
             match self {
-                #[cfg(debug_assertions)]
                 Self::Component(_) => "]>",
-                #[cfg(not(debug_assertions))]
-                Self::Component => "]>",
                 Self::Suspense => ">",
             }
         }
@@ -125,7 +126,7 @@ mod feat_ssr_hydration {
                 #[cfg(debug_assertions)]
                 Self::Component(m) => format!("Component({})", m).into(),
                 #[cfg(not(debug_assertions))]
-                Self::Component => "Component".into(),
+                Self::Component(_) => "Component".into(),
                 Self::Suspense => "Suspense".into(),
             }
         }

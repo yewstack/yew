@@ -13,13 +13,13 @@ pub(super) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&N
     };
 }
 
-#[cfg(all(test, feature = "wasm_test", verbose_tests))]
+#[cfg(all(test, target_arch = "wasm32", verbose_tests))]
 macro_rules! test_log {
     ($fmt:literal, $($arg:expr),* $(,)?) => {
         ::wasm_bindgen_test::console_log!(concat!("\t  ", $fmt), $($arg),*);
     };
 }
-#[cfg(not(all(test, feature = "wasm_test", verbose_tests)))]
+#[cfg(not(all(test, target_arch = "wasm32", verbose_tests)))]
 macro_rules! test_log {
     ($fmt:literal, $($arg:expr),* $(,)?) => {
         // Only type-check the format expression, do not run any side effects

@@ -26,12 +26,14 @@ impl ReconcileTarget for BText {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
         let node = &self.text_node;
 
         next_parent
             .insert_before(node, next_sibling.get().as_ref())
             .unwrap();
+
+        NodeRef::new(self.text_node.clone().into())
     }
 }
 
@@ -155,12 +157,12 @@ mod feat_hydration {
 mod test {
     extern crate self as yew;
 
-    #[cfg(feature = "wasm_test")]
+    #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use crate::html;
 
-    #[cfg(feature = "wasm_test")]
+    #[cfg(target_arch = "wasm32")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
@@ -175,17 +177,16 @@ mod test {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use crate::html;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]

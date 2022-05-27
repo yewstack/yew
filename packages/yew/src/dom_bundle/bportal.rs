@@ -26,8 +26,10 @@ impl ReconcileTarget for BPortal {
         self.node.detach(&self.inner_root, &self.host, false);
     }
 
-    fn shift(&self, _next_parent: &Element, _next_sibling: NodeRef) {
+    fn shift(&self, _next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
         // portals have nothing in it's original place of DOM, we also do nothing.
+
+        next_sibling
     }
 }
 
@@ -116,11 +118,11 @@ impl BPortal {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use yew::virtual_dom::VPortal;
 
@@ -128,7 +130,6 @@ mod layout_tests {
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]

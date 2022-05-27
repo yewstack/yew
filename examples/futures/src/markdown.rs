@@ -53,31 +53,32 @@ pub fn render_markdown(src: &str) -> Html {
                     pre.add_child(top.into());
                     top = pre;
                 } else if let Tag::Table(aligns) = tag {
-                    for r in top.children_mut().iter_mut().flat_map(|ch| ch.iter_mut()) {
-                        if let VNode::VTag(ref mut vtag) = r {
-                            for (i, c) in vtag
-                                .children_mut()
-                                .iter_mut()
-                                .flat_map(|ch| ch.iter_mut())
-                                .enumerate()
-                            {
-                                if let VNode::VTag(ref mut vtag) = c {
-                                    match aligns[i] {
-                                        Alignment::None => {}
-                                        Alignment::Left => add_class(vtag, "text-left"),
-                                        Alignment::Center => add_class(vtag, "text-center"),
-                                        Alignment::Right => add_class(vtag, "text-right"),
+                    if let Some(top_children) = top.children_mut() {
+                        for r in top_children.iter_mut() {
+                            if let VNode::VTag(ref mut vtag) = r {
+                                if let Some(vtag_children) = vtag.children_mut() {
+                                    for (i, c) in vtag_children.iter_mut().enumerate() {
+                                        if let VNode::VTag(ref mut vtag) = c {
+                                            match aligns[i] {
+                                                Alignment::None => {}
+                                                Alignment::Left => add_class(vtag, "text-left"),
+                                                Alignment::Center => add_class(vtag, "text-center"),
+                                                Alignment::Right => add_class(vtag, "text-right"),
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 } else if let Tag::TableHead = tag {
-                    for c in top.children_mut().iter_mut().flat_map(|ch| ch.iter_mut()) {
-                        if let VNode::VTag(ref mut vtag) = c {
-                            // TODO
-                            //                            vtag.tag = "th".into();
-                            vtag.add_attribute("scope", "col");
+                    if let Some(top_children) = top.children_mut() {
+                        for c in top_children.iter_mut() {
+                            if let VNode::VTag(ref mut vtag) = c {
+                                // TODO
+                                //                            vtag.tag = "th".into();
+                                vtag.add_attribute("scope", "col");
+                            }
                         }
                     }
                 }

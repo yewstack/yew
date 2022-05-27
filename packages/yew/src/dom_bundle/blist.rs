@@ -380,10 +380,14 @@ impl ReconcileTarget for BList {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
-        for node in self.rev_children.iter().rev() {
-            node.shift(next_parent, next_sibling.clone());
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
+        let mut next_sibling = next_sibling;
+
+        for node in self.rev_children.iter() {
+            next_sibling = node.shift(next_parent, next_sibling.clone());
         }
+
+        next_sibling
     }
 }
 
@@ -440,6 +444,7 @@ impl Reconcilable for VList {
             self.add_child(VText::new("").into());
         }
 
+        let fully_keyed = self.fully_keyed();
         let lefts = self.children;
         let rights = &mut blist.rev_children;
         test_log!("lefts: {:?}", lefts);
@@ -448,12 +453,12 @@ impl Reconcilable for VList {
         if let Some(additional) = lefts.len().checked_sub(rights.len()) {
             rights.reserve_exact(additional);
         }
-        let first = if self.fully_keyed && blist.fully_keyed {
+        let first = if fully_keyed && blist.fully_keyed {
             BList::apply_keyed(root, parent_scope, parent, next_sibling, lefts, rights)
         } else {
             BList::apply_unkeyed(root, parent_scope, parent, next_sibling, lefts, rights)
         };
-        blist.fully_keyed = self.fully_keyed;
+        blist.fully_keyed = fully_keyed;
         blist.key = self.key;
         test_log!("result: {:?}", rights);
         first
@@ -474,9 +479,11 @@ mod feat_hydration {
             fragment: &mut Fragment,
         ) -> (NodeRef, Self::Bundle) {
             let node_ref = NodeRef::default();
-            let mut children = Vec::with_capacity(self.children.len());
+            let fully_keyed = self.fully_keyed();
+            let vchildren = self.children;
+            let mut children = Vec::with_capacity(vchildren.len());
 
-            for (index, child) in self.children.into_iter().enumerate() {
+            for (index, child) in vchildren.into_iter().enumerate() {
                 let (child_node_ref, child) = child.hydrate(root, parent_scope, parent, fragment);
 
                 if index == 0 {
@@ -492,7 +499,7 @@ mod feat_hydration {
                 node_ref,
                 BList {
                     rev_children: children,
-                    fully_keyed: self.fully_keyed,
+                    fully_keyed,
                     key: self.key,
                 },
             )
@@ -500,17 +507,16 @@ mod feat_hydration {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use crate::html;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
@@ -578,11 +584,11 @@ mod layout_tests {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod layout_tests_keys {
     extern crate self as yew;
 
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use web_sys::Node;
 
@@ -590,7 +596,6 @@ mod layout_tests_keys {
     use crate::virtual_dom::VNode;
     use crate::{html, Children, Component, Context, Html, Properties};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     struct Comp {}

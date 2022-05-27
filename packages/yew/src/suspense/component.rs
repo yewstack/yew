@@ -15,10 +15,6 @@ pub struct SuspenseProps {
 #[cfg(any(feature = "csr", feature = "ssr"))]
 mod feat_csr_ssr {
     use super::*;
-    #[cfg(feature = "hydration")]
-    use crate::callback::Callback;
-    #[cfg(feature = "hydration")]
-    use crate::html::RenderMode;
     use crate::html::{Children, Component, Context, Html, Scope};
     use crate::suspense::Suspension;
     #[cfg(feature = "hydration")]
@@ -57,6 +53,9 @@ mod feat_csr_ssr {
             // We create a suspension to block suspense until its rendered method is notified.
             #[cfg(feature = "hydration")]
             let (suspensions, hydration_handle) = {
+                use crate::callback::Callback;
+                use crate::html::RenderMode;
+
                 match ctx.mode() {
                     RenderMode::Hydration => {
                         let link = ctx.link().clone();
@@ -89,8 +88,6 @@ mod feat_csr_ssr {
                     if m.resumed() {
                         return false;
                     }
-
-                    m.listen(self.link.callback(Self::Message::Resume));
 
                     self.suspensions.push(m);
 

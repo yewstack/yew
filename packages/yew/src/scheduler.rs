@@ -23,6 +23,8 @@ struct Scheduler {
     // Component queues
     destroy: Vec<Box<dyn Runnable>>,
     create: Vec<Box<dyn Runnable>>,
+
+    props_update: Vec<Box<dyn Runnable>>,
     update: Vec<Box<dyn Runnable>>,
 
     /// The Binary Tree Map guarantees components with lower id (parent) is rendered first and
@@ -30,8 +32,9 @@ struct Scheduler {
     ///
     /// Parent can destroy child components but not otherwise, we can save unnecessary render by
     /// rendering parent first.
-    render_first: BTreeMap<usize, Box<dyn Runnable>>,
     render: BTreeMap<usize, Box<dyn Runnable>>,
+    render_first: BTreeMap<usize, Box<dyn Runnable>>,
+    render_priority: BTreeMap<usize, Box<dyn Runnable>>,
 
     /// Binary Tree Map to guarantee children rendered are always called before parent calls
     rendered_first: BTreeMap<usize, Box<dyn Runnable>>,
@@ -113,21 +116,26 @@ mod feat_csr {
             }
         });
     }
-}
 
-#[cfg(feature = "hydration")]
-mod feat_hydration {
-    use super::*;
-
-    pub(crate) fn push_component_first_render(component_id: usize, render: Box<dyn Runnable>) {
-        with(|s| {
-            s.render_first.insert(component_id, render);
-        });
+    pub(crate) fn push_component_props_update(props_update: Box<dyn Runnable>) {
+        with(|s| s.props_update.push(props_update));
     }
 }
 
 #[cfg(feature = "csr")]
 pub(crate) use feat_csr::*;
+
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    pub(crate) fn push_component_priority_render(component_id: usize, render: Box<dyn Runnable>) {
+        with(|s| {
+            s.render_priority.insert(component_id, render);
+        });
+    }
+}
+
 #[cfg(feature = "hydration")]
 pub(crate) use feat_hydration::*;
 
@@ -156,38 +164,31 @@ pub(crate) fn start_now() {
 }
 
 #[cfg(target_arch = "wasm32")]
-mod target_wasm {
-    use super::*;
+mod arch {
     use crate::io_coop::spawn_local;
 
     /// We delay the start of the scheduler to the end of the micro task queue.
     /// So any messages that needs to be queued can be queued.
     pub(crate) fn start() {
         spawn_local(async {
-            start_now();
+            super::start_now();
         });
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-pub(crate) use target_wasm::*;
-
 #[cfg(not(target_arch = "wasm32"))]
-mod target_native {
-    use super::*;
-
+mod arch {
     // Delayed rendering is not very useful in the context of server-side rendering.
     // There are no event listeners or other high priority events that need to be
     // processed and we risk of having a future un-finished.
     // Until scheduler is future-capable which means we can join inside a future,
     // it can remain synchronous.
     pub(crate) fn start() {
-        start_now();
+        super::start_now();
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use target_native::*;
+pub(crate) use arch::*;
 
 impl Scheduler {
     /// Fill vector with tasks to be executed according to Runnable type execution priority
@@ -226,9 +227,23 @@ impl Scheduler {
             to_run.push(r);
         }
 
-        // These typically do nothing and don't spawn any other events - can be batched.
-        // Should be run only after all first renders have finished.
         if !to_run.is_empty() {
+            return;
+        }
+
+        to_run.append(&mut self.props_update);
+
+        // Priority rendering
+        //
+        // This is needed for hydration susequent render to fix node refs.
+        if let Some(r) = self
+            .render_priority
+            .keys()
+            .next()
+            .cloned()
+            .and_then(|m| self.render_priority.remove(&m))
+        {
+            to_run.push(r);
             return;
         }
 

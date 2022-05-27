@@ -3,16 +3,29 @@ use std::ops::{Deref, DerefMut};
 
 use super::{Key, VNode};
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum FullyKeyedState {
+    KnownFullyKeyed,
+    KnownMissingKeys,
+    Unknown,
+}
+
 /// This struct represents a fragment of the Virtual DOM tree.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct VList {
     /// The list of child [VNode]s
     pub(crate) children: Vec<VNode>,
 
     /// All [VNode]s in the VList have keys
-    pub(crate) fully_keyed: bool,
+    fully_keyed: FullyKeyedState,
 
     pub key: Option<Key>,
+}
+
+impl PartialEq for VList {
+    fn eq(&self, other: &Self) -> bool {
+        self.children == other.children && self.key == other.key
+    }
 }
 
 impl Default for VList {
@@ -31,10 +44,7 @@ impl Deref for VList {
 
 impl DerefMut for VList {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        // Caller might change the keys of the VList or add unkeyed children.
-        // Defensively assume they will.
-        self.fully_keyed = false;
-
+        self.fully_keyed = FullyKeyedState::Unknown;
         &mut self.children
     }
 }
@@ -45,23 +55,29 @@ impl VList {
         Self {
             children: Vec::new(),
             key: None,
-            fully_keyed: true,
+            fully_keyed: FullyKeyedState::KnownFullyKeyed,
         }
     }
 
     /// Creates a new [VList] instance with children.
     pub fn with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
-        VList {
-            fully_keyed: children.iter().all(|ch| ch.has_key()),
+        let mut vlist = VList {
+            fully_keyed: FullyKeyedState::Unknown,
             children,
             key,
-        }
+        };
+        vlist.fully_keyed = if vlist.fully_keyed() {
+            FullyKeyedState::KnownFullyKeyed
+        } else {
+            FullyKeyedState::KnownMissingKeys
+        };
+        vlist
     }
 
     /// Add [VNode] child.
     pub fn add_child(&mut self, child: VNode) {
-        if self.fully_keyed && !child.has_key() {
-            self.fully_keyed = false;
+        if self.fully_keyed == FullyKeyedState::KnownFullyKeyed && !child.has_key() {
+            self.fully_keyed = FullyKeyedState::KnownMissingKeys;
         }
         self.children.push(child);
     }
@@ -78,10 +94,63 @@ impl VList {
 
     /// Recheck, if the all the children have keys.
     ///
-    /// Run this, after modifying the child list that contained only keyed children prior to the
-    /// mutable dereference.
+    /// You can run this, after modifying the child list through the [DerefMut] implementation of
+    /// [VList], to precompute an internally kept flag, which speeds up reconciliation later.
     pub fn recheck_fully_keyed(&mut self) {
-        self.fully_keyed = self.children.iter().all(|ch| ch.has_key());
+        self.fully_keyed = if self.fully_keyed() {
+            FullyKeyedState::KnownFullyKeyed
+        } else {
+            FullyKeyedState::KnownMissingKeys
+        };
+    }
+
+    pub(crate) fn fully_keyed(&self) -> bool {
+        match self.fully_keyed {
+            FullyKeyedState::KnownFullyKeyed => true,
+            FullyKeyedState::KnownMissingKeys => false,
+            FullyKeyedState::Unknown => self.children.iter().all(|c| c.has_key()),
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::virtual_dom::{VTag, VText};
+
+    #[test]
+    fn mutably_change_children() {
+        let mut vlist = VList::new();
+        assert_eq!(
+            vlist.fully_keyed,
+            FullyKeyedState::KnownFullyKeyed,
+            "should start fully keyed"
+        );
+        // add a child that is keyed
+        vlist.add_child(VNode::VTag({
+            let mut tag = VTag::new("a");
+            tag.key = Some(42u32.into());
+            tag.into()
+        }));
+        assert_eq!(
+            vlist.fully_keyed,
+            FullyKeyedState::KnownFullyKeyed,
+            "should still be fully keyed"
+        );
+        assert_eq!(vlist.len(), 1, "should contain 1 child");
+        // now add a child that is not keyed
+        vlist.add_child(VNode::VText(VText::new("lorem ipsum")));
+        assert_eq!(
+            vlist.fully_keyed,
+            FullyKeyedState::KnownMissingKeys,
+            "should not be fully keyed, text tags have no key"
+        );
+        let _: &mut [VNode] = &mut vlist; // Use deref mut
+        assert_eq!(
+            vlist.fully_keyed,
+            FullyKeyedState::Unknown,
+            "key state should be unknown, since it was potentially modified through children"
+        );
     }
 }
 
@@ -113,7 +182,8 @@ mod feat_ssr {
     }
 }
 
-#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(test)]
 mod ssr_tests {
     use tokio::test;
 

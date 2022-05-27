@@ -12,7 +12,7 @@ of the function router example.
 
 2. Run the server
 
-`cargo run --bin ssr_router_server -- --dir examples/ssr_router/dist`
+`cargo run --features=ssr --bin ssr_router_server -- --dir examples/ssr_router/dist`
 
 3. Open Browser
 
