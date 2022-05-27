@@ -39,13 +39,30 @@ impl BufWriter {
         if s.len() > self.capacity {
             // if the next part is more than buffer size, we drain the buffer and the next
             // part.
-            if !self.buf.is_empty() {
-                let mut buf = String::with_capacity(self.capacity);
-                std::mem::swap(&mut buf, &mut self.buf);
-                let _ = self.tx.unbounded_send(buf);
-            }
 
-            let _ = self.tx.unbounded_send(s.into_owned());
+            match s {
+                // When the next part is borrowed, we push it onto the current buffer and send the
+                // buffer.
+                Cow::Borrowed(s) => {
+                    let mut buf = String::with_capacity(self.capacity);
+                    std::mem::swap(&mut buf, &mut self.buf);
+
+                    buf.push_str(s);
+
+                    let _ = self.tx.unbounded_send(buf);
+                }
+
+                // When the next part is owned, we send both the buffer and the next part.
+                Cow::Owned(s) => {
+                    if !self.buf.is_empty() {
+                        let mut buf = String::with_capacity(self.capacity);
+                        std::mem::swap(&mut buf, &mut self.buf);
+                        let _ = self.tx.unbounded_send(buf);
+                    }
+
+                    let _ = self.tx.unbounded_send(s);
+                }
+            }
         } else if self.buf.capacity() >= s.len() {
             // There is enough capacity, we push it on to the buffer.
             self.buf.push_str(&s);
