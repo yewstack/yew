@@ -109,7 +109,7 @@ impl ComponentRenderState {
                 bundle.shift(&next_parent, next_next_sibling.clone());
 
                 *parent = next_parent;
-                *next_sibling = next_next_sibling;
+                next_sibling.link(next_next_sibling);
             }
             #[cfg(feature = "hydration")]
             Self::Hydration {
@@ -121,7 +121,7 @@ impl ComponentRenderState {
                 fragment.shift(&next_parent, next_next_sibling.clone());
 
                 *parent = next_parent;
-                *next_sibling = next_next_sibling;
+                next_sibling.link(next_next_sibling);
             }
 
             #[cfg(feature = "ssr")]
@@ -344,18 +344,18 @@ impl Runnable for PropsUpdateRunner {
                 match state.render_state {
                     #[cfg(feature = "csr")]
                     ComponentRenderState::Render {
-                        next_sibling: ref mut current_next_sibling,
+                        next_sibling: ref current_next_sibling,
                         ..
                     } => {
-                        *current_next_sibling = next_sibling;
+                        current_next_sibling.link(next_sibling);
                     }
 
                     #[cfg(feature = "hydration")]
                     ComponentRenderState::Hydration {
-                        next_sibling: ref mut current_next_sibling,
+                        next_sibling: ref current_next_sibling,
                         ..
                     } => {
-                        *current_next_sibling = next_sibling;
+                        current_next_sibling.link(next_sibling);
                     }
 
                     #[cfg(feature = "ssr")]

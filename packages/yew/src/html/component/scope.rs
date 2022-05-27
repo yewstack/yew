@@ -517,12 +517,14 @@ mod feat_csr {
         ) {
             let bundle = Bundle::new();
             internal_ref.link(next_sibling.clone());
+            let stable_next_sibling = NodeRef::default();
+            stable_next_sibling.link(next_sibling);
             let state = ComponentRenderState::Render {
                 bundle,
                 root,
                 internal_ref,
                 parent,
-                next_sibling,
+                next_sibling: stable_next_sibling,
             };
 
             scheduler::push_component_create(
