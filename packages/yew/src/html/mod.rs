@@ -184,6 +184,7 @@ mod feat_hydration {
 
     impl NodeRef {
         // A new "placeholder" node ref that should not be accessed
+        #[inline]
         pub(crate) fn new_debug_trapped() -> Self {
             #[cfg(debug_assertions)]
             {

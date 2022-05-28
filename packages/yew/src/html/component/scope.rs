@@ -649,12 +649,14 @@ mod feat_hydration {
             let collectable = Collectable::for_component::<COMP>();
 
             let mut fragment = Fragment::collect_between(fragment, &collectable, &parent);
-            let front = fragment.front().cloned();
-            debug_assert!(
-                front.is_some(),
-                "at least one collected node in component fragment"
-            );
-            internal_ref.set(front);
+            match fragment.front().cloned() {
+                front @ Some(_) => internal_ref.set(front),
+                None =>
+                {
+                    #[cfg(debug_assertions)]
+                    internal_ref.link(NodeRef::new_debug_trapped())
+                }
+            }
 
             let prepared_state = match fragment
                 .back()

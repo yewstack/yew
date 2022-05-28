@@ -977,3 +977,54 @@ async fn hydration_props_blocked_until_hydrated() {
     let result = obtain_result_by_id("output");
     assert_eq!(result.as_str(), r#"<div>0</div><div>1</div><div>2</div>"#);
 }
+
+#[wasm_bindgen_test]
+async fn hydrate_empty() {
+    #[function_component]
+    fn Updating() -> Html {
+        let trigger = use_state(|| false);
+        {
+            let trigger = trigger.clone();
+            use_effect_with_deps(
+                move |_| {
+                    trigger.set(true);
+                    || {}
+                },
+                (),
+            );
+        }
+        if *trigger {
+            html! { <div>{"after"}</div> }
+        } else {
+            html! { <div>{"before"}</div> }
+        }
+    }
+    #[function_component]
+    fn Empty() -> Html {
+        html! { <></> }
+    }
+    #[function_component]
+    fn App() -> Html {
+        html! {
+            <>
+                <Updating />
+                <Empty />
+                <Updating />
+            </>
+        }
+    }
+    let s = ServerRenderer::<App>::new().render().await;
+
+    let output_element = gloo::utils::document()
+        .query_selector("#output")
+        .unwrap()
+        .unwrap();
+
+    output_element.set_inner_html(&s);
+
+    Renderer::<App>::with_root(output_element).hydrate();
+    sleep(Duration::from_millis(50)).await;
+
+    let result = obtain_result_by_id("output");
+    assert_eq!(result.as_str(), r#"<div>after</div><div>after</div>"#);
+}
