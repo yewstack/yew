@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1653476895088,
+  "lastUpdate": 1653890157342,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -17560,6 +17560,120 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 34_startup-totalbytes",
             "value": "331.59765625",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "WorldSEnder@users.noreply.github.com",
+            "name": "WorldSEnder",
+            "username": "WorldSEnder"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cb5a609e0897d3c79a07aa2f5c2b377a8e54c12a",
+          "message": "Dont shift on normal props updates (#2705)\n\n* don't shift on normal props updates\r\n\r\nwould remove focus from elements and fire other\r\ndom mutation events we don't need or want\r\n\r\n* rename mode -> creation_mode\r\n\r\nit's not updated when the component finishes hydration\r\n\r\n* rename node_ref to internal_ref for consistency\r\n\r\n* fix the bug, should return internal_ref as node_ref gets unset during reconciliation\r\n\r\n* also no need to shift during hydration props update\r\n\r\n* debug: encode hydration invariant\r\n\r\n* fix: next_sibling of descendents not updated\r\n\r\n* add test case for regression\r\n\r\n* address review and add one more test",
+          "timestamp": "2022-05-30T07:47:19+02:00",
+          "tree_id": "c291846a805a19a28053b8a9ed9528f8f94d17bb",
+          "url": "https://github.com/yewstack/yew/commit/cb5a609e0897d3c79a07aa2f5c2b377a8e54c12a"
+        },
+        "date": 1653890155968,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "219.516",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "239.8205",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "405.939",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "65.65199999999999",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "94.7",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "31.4405",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "3731.136",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "552.394",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "231.599",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.4598236083984375",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.6962394714355469",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.6990509033203125",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.713054656982422",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.332916259765625",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1877.7999999999995",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "36.812",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 33_startup-mainthreadcost",
+            "value": "281.10400000000004",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "331.595703125",
             "unit": ""
           }
         ]
