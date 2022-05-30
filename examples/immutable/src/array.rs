@@ -1,6 +1,6 @@
+use implicit_clone::unsync::*;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{HtmlInputElement, KeyboardEvent};
-use yew::immutable::*;
 use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
