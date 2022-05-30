@@ -172,6 +172,43 @@ mod feat_csr {
     }
 }
 
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    #[cfg(debug_assertions)]
+    thread_local! {
+        // A special marker element that should not be referenced
+        static TRAP: Node = gloo::utils::document().create_element("div").unwrap().into();
+    }
+
+    impl NodeRef {
+        // A new "placeholder" node ref that should not be accessed
+        #[inline]
+        pub(crate) fn new_debug_trapped() -> Self {
+            #[cfg(debug_assertions)]
+            {
+                Self::new(TRAP.with(|trap| trap.clone()))
+            }
+            #[cfg(not(debug_assertions))]
+            {
+                Self::default()
+            }
+        }
+
+        #[inline]
+        pub(crate) fn debug_assert_not_trapped(&self) {
+            #[cfg(debug_assertions)]
+            TRAP.with(|trap| {
+                assert!(
+                    self.get().as_ref() != Some(trap),
+                    "should not use a trapped node ref"
+                )
+            })
+        }
+    }
+}
+
 /// Render children into a DOM node that exists outside the hierarchy of the parent
 /// component.
 /// ## Relevant examples

@@ -28,15 +28,15 @@ pub(crate) enum ComponentRenderState {
         root: BSubtree,
         parent: Element,
         next_sibling: NodeRef,
-        node_ref: NodeRef,
+        internal_ref: NodeRef,
     },
     #[cfg(feature = "hydration")]
     Hydration {
+        fragment: Fragment,
+        root: BSubtree,
         parent: Element,
         next_sibling: NodeRef,
-        node_ref: NodeRef,
-        root: BSubtree,
-        fragment: Fragment,
+        internal_ref: NodeRef,
     },
 
     #[cfg(feature = "ssr")]
@@ -54,14 +54,14 @@ impl std::fmt::Debug for ComponentRenderState {
                 root,
                 ref parent,
                 ref next_sibling,
-                ref node_ref,
+                ref internal_ref,
             } => f
                 .debug_struct("ComponentRenderState::Render")
                 .field("bundle", bundle)
                 .field("root", root)
                 .field("parent", parent)
                 .field("next_sibling", next_sibling)
-                .field("node_ref", node_ref)
+                .field("internal_ref", internal_ref)
                 .finish(),
 
             #[cfg(feature = "hydration")]
@@ -69,7 +69,7 @@ impl std::fmt::Debug for ComponentRenderState {
                 ref fragment,
                 ref parent,
                 ref next_sibling,
-                ref node_ref,
+                ref internal_ref,
                 ref root,
             } => f
                 .debug_struct("ComponentRenderState::Hydration")
@@ -77,7 +77,7 @@ impl std::fmt::Debug for ComponentRenderState {
                 .field("root", root)
                 .field("parent", parent)
                 .field("next_sibling", next_sibling)
-                .field("node_ref", node_ref)
+                .field("internal_ref", internal_ref)
                 .finish(),
 
             #[cfg(feature = "ssr")]
@@ -109,7 +109,7 @@ impl ComponentRenderState {
                 bundle.shift(&next_parent, next_next_sibling.clone());
 
                 *parent = next_parent;
-                *next_sibling = next_next_sibling;
+                next_sibling.link(next_next_sibling);
             }
             #[cfg(feature = "hydration")]
             Self::Hydration {
@@ -121,7 +121,7 @@ impl ComponentRenderState {
                 fragment.shift(&next_parent, next_next_sibling.clone());
 
                 *parent = next_parent;
-                *next_sibling = next_next_sibling;
+                next_sibling.link(next_next_sibling);
             }
 
             #[cfg(feature = "ssr")]
@@ -160,7 +160,7 @@ pub(crate) trait Stateful {
     fn as_any_mut(&mut self) -> &mut dyn Any;
 
     #[cfg(feature = "hydration")]
-    fn mode(&self) -> RenderMode;
+    fn creation_mode(&self) -> RenderMode;
 }
 
 impl<COMP> Stateful for CompStateInner<COMP>
@@ -184,8 +184,8 @@ where
     }
 
     #[cfg(feature = "hydration")]
-    fn mode(&self) -> RenderMode {
-        self.context.mode
+    fn creation_mode(&self) -> RenderMode {
+        self.context.creation_mode()
     }
 
     fn flush_messages(&mut self) -> bool {
@@ -246,7 +246,7 @@ impl ComponentState {
     ) -> Self {
         let comp_id = scope.id;
         #[cfg(feature = "hydration")]
-        let mode = {
+        let creation_mode = {
             match initial_render_state {
                 ComponentRenderState::Render { .. } => RenderMode::Render,
                 ComponentRenderState::Hydration { .. } => RenderMode::Hydration,
@@ -259,7 +259,7 @@ impl ComponentState {
             scope,
             props,
             #[cfg(feature = "hydration")]
-            mode,
+            creation_mode,
             #[cfg(feature = "hydration")]
             prepared_state,
         };
@@ -344,24 +344,18 @@ impl Runnable for PropsUpdateRunner {
                 match state.render_state {
                     #[cfg(feature = "csr")]
                     ComponentRenderState::Render {
-                        next_sibling: ref mut current_next_sibling,
-                        ref parent,
-                        ref bundle,
+                        next_sibling: ref current_next_sibling,
                         ..
                     } => {
-                        bundle.shift(parent, next_sibling.clone());
-                        *current_next_sibling = next_sibling;
+                        current_next_sibling.link(next_sibling);
                     }
 
                     #[cfg(feature = "hydration")]
                     ComponentRenderState::Hydration {
-                        next_sibling: ref mut current_next_sibling,
-                        ref parent,
-                        ref fragment,
+                        next_sibling: ref current_next_sibling,
                         ..
                     } => {
-                        fragment.shift(parent, next_sibling.clone());
-                        *current_next_sibling = next_sibling;
+                        current_next_sibling.link(next_sibling);
                     }
 
                     #[cfg(feature = "ssr")]
@@ -399,7 +393,7 @@ impl Runnable for PropsUpdateRunner {
             let schedule_render = {
                 #[cfg(feature = "hydration")]
                 {
-                    if state.inner.mode() == RenderMode::Hydration {
+                    if state.inner.creation_mode() == RenderMode::Hydration {
                         should_render_hydration(props, state)
                     } else {
                         should_render(props, state)
@@ -478,13 +472,13 @@ impl Runnable for DestroyRunner {
                 ComponentRenderState::Render {
                     bundle,
                     ref parent,
-                    ref node_ref,
+                    ref internal_ref,
                     ref root,
                     ..
                 } => {
                     bundle.detach(root, parent, self.parent_to_detach);
 
-                    node_ref.set(None);
+                    internal_ref.set(None);
                 }
                 // We need to detach the hydrate fragment if the component is not hydrated.
                 #[cfg(feature = "hydration")]
@@ -492,12 +486,12 @@ impl Runnable for DestroyRunner {
                     ref root,
                     fragment,
                     ref parent,
-                    ref node_ref,
+                    ref internal_ref,
                     ..
                 } => {
                     fragment.detach(root, parent, self.parent_to_detach);
 
-                    node_ref.set(None);
+                    internal_ref.set(None);
                 }
 
                 #[cfg(feature = "ssr")]
@@ -593,14 +587,17 @@ impl RenderRunner {
                 ref parent,
                 ref root,
                 ref next_sibling,
-                ref node_ref,
+                ref internal_ref,
                 ..
             } => {
                 let scope = state.inner.any_scope();
 
+                #[cfg(feature = "hydration")]
+                next_sibling.debug_assert_not_trapped();
+
                 let new_node_ref =
                     bundle.reconcile(root, &scope, parent, next_sibling.clone(), new_root);
-                node_ref.link(new_node_ref);
+                internal_ref.link(new_node_ref);
 
                 let first_render = !state.has_rendered;
                 state.has_rendered = true;
@@ -619,7 +616,7 @@ impl RenderRunner {
             ComponentRenderState::Hydration {
                 ref mut fragment,
                 ref parent,
-                ref node_ref,
+                ref internal_ref,
                 ref next_sibling,
                 ref root,
             } => {
@@ -644,13 +641,13 @@ impl RenderRunner {
 
                 assert!(fragment.is_empty(), "expected end of component, found node");
 
-                node_ref.link(node);
+                internal_ref.link(node);
 
                 state.render_state = ComponentRenderState::Render {
                     root: root.clone(),
                     bundle,
                     parent: parent.clone(),
-                    node_ref: node_ref.clone(),
+                    internal_ref: internal_ref.clone(),
                     next_sibling: next_sibling.clone(),
                 };
             }
