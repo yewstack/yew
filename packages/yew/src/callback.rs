@@ -69,14 +69,14 @@ impl<IN> Default for Callback<IN> {
 impl<IN: 'static, OUT: 'static> Callback<IN, OUT> {
     /// Creates a new callback from another callback and a function
     /// That when emited will call that function and will emit the original callback
-    pub fn reform<F, T>(&self, func: F) -> Callback<T>
+    pub fn reform<F, T>(&self, func: F) -> Callback<T, OUT>
     where
         F: Fn(T) -> IN + 'static,
     {
         let this = self.clone();
         let func = move |input| {
             let output = func(input);
-            this.emit(output);
+            this.emit(output)
         };
         Callback::from(func)
     }
