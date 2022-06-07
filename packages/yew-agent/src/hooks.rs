@@ -30,6 +30,38 @@ where
 ///
 /// Takes a callback as the only argument. The callback will be updated on every render to make
 /// sure captured values (if any) are up to date.
+///
+/// # Examples
+///
+/// ```
+/// use yew::prelude::*;
+/// use yew_agent::use_bridge; 
+///
+/// #[function_component(UseBridge)]
+/// fn bridge() -> Html {
+///     
+///     let counter = use_state(|| 0);
+///
+///     // a scoped block to clone the state in
+///     {
+///         let counter = counter.clone();
+///         // response will be your agent's Output type
+///         let bridge = use_bridge(move |response| {
+///             match response {
+///                 WorkerResponseType::IncrementCounter => {
+///                     counter.set(*counter + 1);
+///                 } 
+///             }
+///         });
+///     }
+///
+///     html! {
+///         <div>
+///             {counter}
+///         </div>
+///     }
+/// }
+/// ```
 #[hook]
 pub fn use_bridge<T, F>(on_output: F) -> UseBridgeHandle<T>
 where
