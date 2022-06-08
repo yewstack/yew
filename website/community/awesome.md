@@ -9,7 +9,7 @@ description: 'Community projects built using yew'
 -   [webapp.rs](https://github.com/saschagrunert/webapp.rs) - A web application completely written in Rust, frontend is built with Yew.
 -   [Rust-Full-Stack](https://github.com/steadylearner/Rust-Full-Stack) - Easily testable and working Rust codes with blog posts to explain them.
 -   [Bucket Questions](https://github.com/hgzimmerman/BucketQuestions) - A webapp written entirely in Rust for a dumb party game.
--   [web-view todomvc desktop app](https://github.com/Extrawurst/rust-webview-todomvc-yew) - Demo how to use yew for a todomvc that compiles to WebAssembly and is bundled as a lightweight(~2mb) desktop app by [web-view](https://github.com/Boscop/web-view), as an alternative to Electron, [web-view](https://github.com/Boscop/web-view) also has a [demo](https://github.com/Boscop/web-view/tree/master/examples#todo-yew).
+-   [web-view todomvc desktop app](https://github.com/Extrawurst/rust-webview-todomvc-yew) - Demo how to use yew for a todomvc that compiles to WebAssembly and is bundled as a lightweight(~2mb) desktop app by [web-view](https://github.com/Boscop/web-view), as an alternative to Electron, [web-view](https://github.com/Boscop/web-view) also has a [demo](https://github.com/Boscop/web-view/tree/master/webview-examples/examples#todo-yew).
 -   [yew-react-example](https://github.com/hobofan/yew-react-example) - This project shows how to create a web app using a React component inside a Yew component.
 -   [Kirk](https://github.com/stkevintan/Kirk) - Just A Rust WebAssembly Blog.
 -   [rust-async-wasm-demo](https://github.com/extraymond/rust-async-wasm-demo) - Toy project to learn Rust and async that can be deployed to the web.
@@ -36,7 +36,7 @@ description: 'Community projects built using yew'
 -   [wasm-2048](https://github.com/dev-family/wasm-2048) - 2048 game implemented with Rust and Yew and compiled to Wasm.
 -   [website-wasm](https://github.com/kamiyaa/website-wasm) - My personal website written in Rust via Yew/Wasm.
 -   [KeyPress](https://github.com/rayylee/keypress) - A Rust WebAssembly Website example for practising english for chinese.
--   [yew-train-ticket](https://github.com/anthhub/yew-train-ticket) - A Rust WebAssembly [Webapp](http://118.190.37.169:8002) example basing Yew newest hooks and functional API, the code style is extremely like React Function Component.
+-   [yew-train-ticket](https://github.com/anthhub/yew-train-ticket) - A Rust WebAssembly Webapp example basing Yew newest hooks and functional API, the code style is extremely like React Function Component.
 -   [yew-d3-example](https://github.com/i-schuetz/yew-d3-example) - Showing a d3 chart with Yew.
 -   [Oxfeed](https://github.com/sanpii/oxfeed) - A feed reader written in Rust with a Yew frontend.
 -   [Flow.er](https://github.com/LighghtEeloo/flow.er) - A notebook app integrated with todo lists utility. Developed with Rust, WebAssembly, Yew and Trunk.
@@ -113,16 +113,6 @@ description: 'Community projects built using yew'
 ## Articles
 
 -   [Let's Build a Rust Frontend with Yew](https://dev.to/deciduously/lets-build-a-rust-frontend-with-yew---part-1-3k2o)
--   [How to use Rust Yew](https://www.steadylearner.com/blog/read/How-to-use-Rust-Yew)
--   [How to use a modal in Rust](https://www.steadylearner.com/blog/read/How-to-use-a-modal-in-Rust)
--   [How to use routers in Rust Frontend](https://www.steadylearner.com/blog/read/How-to-use-routers-in-Rust-Frontend)
--   [How to modulize your Rust Frontend](https://www.steadylearner.com/blog/read/How-to-modulize-your-Rust-Frontend)
--   [How to use NPM packages with Rust Frontend](https://www.steadylearner.com/blog/read/How-to-use-NPM-packages-with-Rust-Frontend)
--   [How to use markdown with Rust Frontend](https://www.steadylearner.com/blog/read/How-to-use-markdown-with-Rust-Frontend)
--   [Fullstack Rust with Yew](https://www.steadylearner.com/blog/read/Fullstack-Rust-with-Yew)
--   [How to write Full Stack Rust code](https://www.steadylearner.com/blog/read/How-to-write-Full-Stack-Rust-code)
--   [How to render a YouTube vlog with Rust Yew fetch API](https://www.steadylearner.com/blog/read/How-to-render-a-YouTube-vlog-with-Rust-Yew-fetch-API)
--   [How to render blog posts with Rust Yew mounted API](https://www.steadylearner.com/blog/read/How-to-render-blog-posts-with-Rust-Yew-mounted-API)
 -   [A Web Application completely in Rust](https://medium.com/@saschagrunert/a-web-application-completely-in-rust-6f6bdb6c4471)
 -   [Yew - Rust & WebAsse-frontend framework](https://sudonull.com/post/11627-Yew-Rust-WebAsse-frontend-framework)
 -   [Create a desktop app in Rust using Tauri and Yew](https://dev.to/stevepryde/create-a-desktop-app-in-rust-using-tauri-and-yew-2bhe)
