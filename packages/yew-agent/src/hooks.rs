@@ -39,18 +39,15 @@ where
 ///
 /// #[function_component(UseBridge)]
 /// fn bridge() -> Html {
-///     
 ///     let counter = use_state(|| 0);
 ///
 ///     // a scoped block to clone the state in
 ///     {
 ///         let counter = counter.clone();
 ///         // response will be your agent's Output type
-///         let bridge = use_bridge(move |response| {
-///             match response {
-///                 WorkerResponseType::IncrementCounter => {
-///                     counter.set(*counter + 1);
-///                 }
+///         let bridge = use_bridge(move |response| match response {
+///             WorkerResponseType::IncrementCounter => {
+///                 counter.set(*counter + 1);
 ///             }
 ///         });
 ///     }
