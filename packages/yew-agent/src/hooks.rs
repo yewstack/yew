@@ -54,7 +54,7 @@ where
 ///
 ///     html! {
 ///         <div>
-///             {counter}
+///             {*counter}
 ///         </div>
 ///     }
 /// }
