@@ -35,7 +35,7 @@ where
 ///
 /// ```
 /// use yew::prelude::*;
-/// use yew_agent::use_bridge; 
+/// use yew_agent::use_bridge;
 ///
 /// #[function_component(UseBridge)]
 /// fn bridge() -> Html {
@@ -50,7 +50,7 @@ where
 ///             match response {
 ///                 WorkerResponseType::IncrementCounter => {
 ///                     counter.set(*counter + 1);
-///                 } 
+///                 }
 ///             }
 ///         });
 ///     }
