@@ -279,17 +279,6 @@ error[E0425]: cannot find value `props` in this scope
 69 |     html! { <Child value=1 ..props /> };
    |                              ^^^^^ not found in this scope
 
-error[E0308]: mismatched types
-  --> tests/html_macro/component-fail.rs:53:22
-   |
-53 |     html! { <Child ..p1 ..p2 /> };
-   |              -----   ^^^^^^^ expected struct `ChildProperties`, found struct `std::ops::Range`
-   |              |
-   |              expected due to this
-   |
-   = note: expected struct `ChildProperties`
-              found struct `std::ops::Range<_>`
-
 error[E0609]: no field `value` on type `ChildProperties`
   --> tests/html_macro/component-fail.rs:69:20
    |
@@ -306,6 +295,43 @@ error[E0609]: no field `r#type` on type `ChildProperties`
    |
    = note: available fields are: `string`, `int`
 
+error[E0609]: no field `unknown` on type `ChildProperties`
+  --> tests/html_macro/component-fail.rs:74:20
+   |
+74 |     html! { <Child unknown="unknown" /> };
+   |                    ^^^^^^^ unknown field
+   |
+   = note: available fields are: `string`, `int`
+
+error[E0609]: no field `children` on type `ChildProperties`
+  --> tests/html_macro/component-fail.rs:87:14
+   |
+87 |     html! { <Child>{ "Not allowed" }</Child> };
+   |              ^^^^^ unknown field
+   |
+   = note: available fields are: `string`, `int`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0609]: no field `children` on type `ChildProperties`
+  --> tests/html_macro/component-fail.rs:94:10
+   |
+94 |         <Child ..ChildProperties { string: "hello".to_owned(), int: 5 }>
+   |          ^^^^^ unknown field
+   |
+   = note: available fields are: `string`, `int`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+  --> tests/html_macro/component-fail.rs:53:22
+   |
+53 |     html! { <Child ..p1 ..p2 /> };
+   |              -----   ^^^^^^^ expected struct `ChildProperties`, found struct `std::ops::Range`
+   |              |
+   |              expected due to this
+   |
+   = note: expected struct `ChildProperties`
+              found struct `std::ops::Range<_>`
+
 error[E0599]: no method named `r#type` found for struct `ChildPropertiesBuilder` in the current scope
   --> tests/html_macro/component-fail.rs:71:20
    |
@@ -314,14 +340,6 @@ error[E0599]: no method named `r#type` found for struct `ChildPropertiesBuilder`
 ...
 71 |     html! { <Child type=0 /> };
    |                    ^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
-
-error[E0609]: no field `unknown` on type `ChildProperties`
-  --> tests/html_macro/component-fail.rs:74:20
-   |
-74 |     html! { <Child unknown="unknown" /> };
-   |                    ^^^^^^^ unknown field
-   |
-   = note: available fields are: `string`, `int`
 
 error[E0599]: no method named `unknown` found for struct `ChildPropertiesBuilder` in the current scope
   --> tests/html_macro/component-fail.rs:74:20
@@ -388,15 +406,6 @@ error[E0599]: no method named `string` found for struct `ChildPropertiesBuilder<
    = note: the method was found for
            - `ChildPropertiesBuilder<ChildPropertiesBuilderStepPropsBuilder>`
 
-error[E0609]: no field `children` on type `ChildProperties`
-  --> tests/html_macro/component-fail.rs:87:14
-   |
-87 |     html! { <Child>{ "Not allowed" }</Child> };
-   |              ^^^^^ unknown field
-   |
-   = note: available fields are: `string`, `int`
-   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
-
 error[E0599]: no method named `children` found for struct `ChildPropertiesBuilder` in the current scope
   --> tests/html_macro/component-fail.rs:87:14
    |
@@ -406,15 +415,6 @@ error[E0599]: no method named `children` found for struct `ChildPropertiesBuilde
 87 |     html! { <Child>{ "Not allowed" }</Child> };
    |              ^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
    |
-   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error[E0609]: no field `children` on type `ChildProperties`
-  --> tests/html_macro/component-fail.rs:94:10
-   |
-94 |         <Child ..ChildProperties { string: "hello".to_owned(), int: 5 }>
-   |          ^^^^^ unknown field
-   |
-   = note: available fields are: `string`, `int`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope

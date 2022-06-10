@@ -7,7 +7,6 @@ use syn::parse::Result;
 use syn::spanned::Spanned;
 use syn::{Attribute, Error, Expr, Field, Path, Type, TypePath, Visibility};
 
-use super::generics::GenericArguments;
 use super::should_preserve_attr;
 
 #[allow(clippy::large_enum_variant)]
@@ -121,41 +120,30 @@ impl PropField {
     }
 
     /// Each field is set using a builder method
-    pub fn to_build_step_fn(
-        &self,
-        builder_name: &Ident,
-        generic_arguments: &GenericArguments,
-        vis: &Visibility,
-    ) -> proc_macro2::TokenStream {
+    pub fn to_build_step_fn(&self, vis: &Visibility) -> proc_macro2::TokenStream {
         let Self { name, ty, attr, .. } = self;
         let build_fn = match attr {
             PropAttr::Required { wrapped_name } => {
                 quote! {
                     #[doc(hidden)]
-                    #vis fn #name(mut self, value: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
+                    #vis fn #name(&mut self, value: impl ::yew::html::IntoPropValue<#ty>) {
                         self.wrapped.#wrapped_name = ::std::option::Option::Some(value.into_prop_value());
-                        #builder_name {
-                            wrapped: self.wrapped,
-                            _marker: ::std::marker::PhantomData,
-                        }
                     }
                 }
             }
             PropAttr::Option => {
                 quote! {
                     #[doc(hidden)]
-                    #vis fn #name(mut self, value: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
+                    #vis fn #name(&mut self, value: impl ::yew::html::IntoPropValue<#ty>) {
                         self.wrapped.#name = value.into_prop_value();
-                        self
                     }
                 }
             }
             _ => {
                 quote! {
                     #[doc(hidden)]
-                    #vis fn #name(mut self, value: impl ::yew::html::IntoPropValue<#ty>) -> #builder_name<#generic_arguments> {
+                    #vis fn #name(&mut self, value: impl ::yew::html::IntoPropValue<#ty>) {
                         self.wrapped.#name = ::std::option::Option::Some(value.into_prop_value());
-                        self
                     }
                 }
             }

@@ -92,10 +92,10 @@ impl ToTokens for DerivePropsInput {
 
         // The builder will only build if all required props have been set
         let builder_name = format_ident!("{}Builder", props_name, span = Span::mixed_site());
-        let builder_step = format_ident!("{}BuilderStep", props_name, span = Span::mixed_site());
+        let prefix = format_ident!("{}BuilderStep", props_name, span = Span::mixed_site());
         let builder = PropsBuilder::new(
             &builder_name,
-            &builder_step,
+            &prefix,
             self,
             &wrapper_name,
             &self.preserved_attrs,
@@ -112,7 +112,6 @@ impl ToTokens for DerivePropsInput {
                 fn builder() -> Self::Builder {
                     #builder_name {
                         wrapped: ::std::boxed::Box::new(::std::default::Default::default()),
-                        _marker: ::std::marker::PhantomData,
                     }
                 }
             }

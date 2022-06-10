@@ -52,7 +52,9 @@ impl ComponentProps {
     fn prop_validation_tokens(&self, props_ty: impl ToTokens, has_children: bool) -> TokenStream {
         let props_ident = Ident::new("__yew_props", props_ty.span());
         let check_children = if has_children {
-            Some(quote_spanned! {props_ty.span()=> #props_ident.children; })
+            Some(quote_spanned! {props_ty.span()=>
+                let _ = #props_ident.children;
+            })
         } else {
             None
         };
@@ -61,25 +63,19 @@ impl ComponentProps {
             .props
             .iter()
             .map(|Prop { label, .. }| {
-                quote_spanned! {
-                    Span::call_site().located_at(label.span())=> #props_ident.#label;
+                quote_spanned! {Span::call_site().located_at(label.span())=>
+                    let _ = #props_ident.#label;
                 }
             })
-            .chain(self.base_expr.iter().map(|expr| {
-                quote_spanned! {props_ty.span()=>
-                    let _: #props_ty = #expr;
-                }
-            }))
             .collect();
 
         quote_spanned! {props_ty.span()=>
-            #[allow(clippy::no_effect)]
-            if false {
+            const __YEW_PROPS_CHECK: () = {
                 let _ = |#props_ident: #props_ty| {
                     #check_children
                     #check_props
                 };
-            }
+            };
         }
     }
 
@@ -91,23 +87,28 @@ impl ComponentProps {
         let validate_props = self.prop_validation_tokens(&props_ty, children_renderer.is_some());
         let build_props = match &self.base_expr {
             None => {
+                let ident = Ident::new("__yew_props", props_ty.span());
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
                     quote_spanned! {value.span()=>
-                        .#label(#value)
+                        #ident.#label(#value);
                     }
                 });
 
                 let set_children = children_renderer.map(|children| {
                     quote_spanned! {props_ty.span()=>
-                        .children(#children)
+                        #ident.children(#children);
                     }
                 });
 
-                quote_spanned! {props_ty.span()=>
-                    <#props_ty as ::yew::html::Properties>::builder()
-                        #(#set_props)*
-                        #set_children
-                        .build()
+                let init_builder = quote_spanned! {props_ty.span()=>
+                    let mut #ident = <#props_ty as ::yew::html::Properties>::builder();
+                };
+
+                quote! {
+                    #init_builder
+                    #( #set_props )*
+                    #set_children
+                    #ident.build()
                 }
             }
             // Builder pattern is unnecessary in this case, since the base expression guarantees
@@ -124,9 +125,12 @@ impl ComponentProps {
                         #ident.children = #children;
                     }
                 });
+                let init_base = quote_spanned! {expr.span().resolved_at(Span::call_site())=>
+                    let mut #ident: #props_ty = #expr;
+                };
 
                 quote! {
-                    let mut #ident: #props_ty = #expr;
+                    #init_base
                     #(#set_props)*
                     #set_children
                     #ident
