@@ -54,11 +54,9 @@ Make use of `AttrValue` which is our custom type for attribute values instead of
 ## Example
 
 ```rust
-use yew::{
-    Properties,
-    /// Importing the AttrValue from virtual_dom
-    virtual_dom::AttrValue,
-};
+use yew::Properties;
+/// Importing the AttrValue from virtual_dom
+use yew::virtual_dom::AttrValue;
 
 #[derive(Clone, PartialEq)]
 pub enum LinkColor {
@@ -132,10 +130,11 @@ pub struct LinkProps {
 }
 
 impl LinkProps {
+    /// Notice that this function receives href and text as String
+    /// We can use `AttrValue::from` to convert it to a `AttrValue`
     pub fn new_link_with_size(href: String, text: String, size: u32) -> Self {
         // highlight-start
         props! {LinkProps {
-            /// The `AttrValue::from` method allows us to convert the String to a `AttrValue`
             href: AttrValue::from(href),
             text: AttrValue::from(text),
             size,
