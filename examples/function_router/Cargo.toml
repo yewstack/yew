@@ -5,7 +5,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-lipsum = "=0.8.0" # pinned for mgeisler/lipsum#83
+lipsum = "=0.8.2" # pinned for mgeisler/lipsum#83
 log = "0.4"
 rand = { version = "0.8", features = ["small_rng"] }
 yew = { path = "../../packages/yew" }
