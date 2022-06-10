@@ -57,7 +57,7 @@ impl Component for App {
                 self.email_error.clear();
                 self.password_error.clear();
 
-                if !(email_value.contains("@") && email_value.contains(".")) {
+                if !(email_value.contains('@') && email_value.contains('.')) {
                     self.email_error.push_str("Invalid email.")
                 }
                 if password_value.len() < 8 {
