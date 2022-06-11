@@ -18,6 +18,11 @@ pub trait Buildable {
     fn build(this: Self) -> Self::Output;
 }
 
+/// Dummy struct targeted by assertions that all props were set
+#[doc(hidden)]
+#[derive(Debug)]
+pub struct AssertAllProps;
+
 /// Builder for when a component has no properties
 #[derive(Debug, PartialEq)]
 #[doc(hidden)]

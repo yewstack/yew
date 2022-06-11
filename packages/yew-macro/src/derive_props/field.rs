@@ -122,28 +122,44 @@ impl PropField {
     /// Each field is set using a builder method
     pub fn to_build_step_fn(&self, vis: &Visibility) -> proc_macro2::TokenStream {
         let Self { name, ty, attr, .. } = self;
+        let token_ty = Ident::new("__YewTokenTy", Span::mixed_site());
         let build_fn = match attr {
             PropAttr::Required { wrapped_name } => {
                 quote! {
                     #[doc(hidden)]
-                    #vis fn #name(&mut self, value: impl ::yew::html::IntoPropValue<#ty>) {
+                    #vis fn #name<#token_ty>(
+                        &mut self,
+                        token: #token_ty,
+                        value: impl ::yew::html::IntoPropValue<#ty>,
+                    ) -> #token_ty {
                         self.wrapped.#wrapped_name = ::std::option::Option::Some(value.into_prop_value());
+                        token
                     }
                 }
             }
             PropAttr::Option => {
                 quote! {
                     #[doc(hidden)]
-                    #vis fn #name(&mut self, value: impl ::yew::html::IntoPropValue<#ty>) {
+                    #vis fn #name<#token_ty>(
+                        &mut self,
+                        token: #token_ty,
+                        value: impl ::yew::html::IntoPropValue<#ty>,
+                    ) -> #token_ty {
                         self.wrapped.#name = value.into_prop_value();
+                        token
                     }
                 }
             }
             _ => {
                 quote! {
                     #[doc(hidden)]
-                    #vis fn #name(&mut self, value: impl ::yew::html::IntoPropValue<#ty>) {
+                    #vis fn #name<#token_ty>(
+                        &mut self,
+                        token: #token_ty,
+                        value: impl ::yew::html::IntoPropValue<#ty>,
+                    ) -> #token_ty {
                         self.wrapped.#name = ::std::option::Option::Some(value.into_prop_value());
+                        token
                     }
                 }
             }

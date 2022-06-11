@@ -79,29 +79,6 @@ impl ComponentProps {
         }
     }
 
-    fn validate_required_props_tokens(
-        &self,
-        props_ty: impl ToTokens,
-        has_children: bool,
-    ) -> TokenStream {
-        let token_ident = Ident::new("__yew_required_props_token", Span::mixed_site());
-        let check_props = self.props.iter().map(|Prop { .. }| {
-            quote! {
-                let #token_ident = #token_ident;
-            }
-        });
-        let check_children = has_children.then(|| {
-            quote! {
-                let #token_ident = #token_ident;
-            }
-        });
-        quote_spanned! {props_ty.span()=>
-            let mut #token_ident = ();
-            #( #check_props )*
-            #check_children
-        }
-    }
-
     pub fn build_properties_tokens<CR: ToTokens>(
         &self,
         props_ty: impl ToTokens,
@@ -111,20 +88,21 @@ impl ComponentProps {
         let validate_props = self.prop_validation_tokens(&props_ty, has_children);
         let build_props = match &self.base_expr {
             None => {
-                let all_props_set = self.validate_required_props_tokens(&props_ty, has_children);
                 let ident = Ident::new("__yew_props", props_ty.span());
+                let token_ident = Ident::new("__yew_required_props_token", Span::mixed_site());
 
                 let init_builder = quote_spanned! {props_ty.span()=>
                     let mut #ident = <#props_ty as ::yew::html::Properties>::builder();
+                    let #token_ident = ::yew::html::AssertAllProps;
                 };
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
                     quote_spanned! {value.span()=>
-                        #ident.#label(#value);
+                        let #token_ident = #ident.#label(#token_ident, #value);
                     }
                 });
                 let set_children = children_renderer.map(|children| {
                     quote_spanned! {props_ty.span()=>
-                        #ident.children(#children);
+                        let #token_ident = #ident.children(#token_ident, #children);
                     }
                 });
                 let build_builder = quote_spanned! {props_ty.span()=>
@@ -135,7 +113,6 @@ impl ComponentProps {
                     #init_builder
                     #( #set_props )*
                     #set_children
-                    #all_props_set
                     #build_builder
                 }
             }
