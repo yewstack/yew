@@ -11,6 +11,13 @@ pub trait Properties: PartialEq {
     fn builder() -> Self::Builder;
 }
 
+/// Trait finishing the builder and verifying all props were set
+#[doc(hidden)]
+pub trait Buildable {
+    type Output;
+    fn build(this: Self) -> Self::Output;
+}
+
 /// Builder for when a component has no properties
 #[derive(Debug, PartialEq)]
 #[doc(hidden)]
@@ -24,7 +31,9 @@ impl Properties for () {
     }
 }
 
-impl EmptyBuilder {
+impl Buildable for EmptyBuilder {
+    type Output = ();
+
     /// Build empty properties
-    pub fn build(self) {}
+    fn build(_: Self) {}
 }

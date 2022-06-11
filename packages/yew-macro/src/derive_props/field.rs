@@ -57,27 +57,27 @@ impl PropField {
         let setter = match &self.attr {
             PropAttr::Required { wrapped_name } => {
                 quote! {
-                    #name: ::std::option::Option::unwrap(self.wrapped.#wrapped_name),
+                    #name: ::std::option::Option::unwrap(this.wrapped.#wrapped_name),
                 }
             }
             PropAttr::Option => {
                 quote! {
-                    #name: self.wrapped.#name,
+                    #name: this.wrapped.#name,
                 }
             }
             PropAttr::PropOr(value) => {
                 quote_spanned! {value.span()=>
-                    #name: ::std::option::Option::unwrap_or(self.wrapped.#name, #value),
+                    #name: ::std::option::Option::unwrap_or(this.wrapped.#name, #value),
                 }
             }
             PropAttr::PropOrElse(func) => {
                 quote_spanned! {func.span()=>
-                    #name: ::std::option::Option::unwrap_or_else(self.wrapped.#name, #func),
+                    #name: ::std::option::Option::unwrap_or_else(this.wrapped.#name, #func),
                 }
             }
             PropAttr::PropOrDefault => {
                 quote! {
-                    #name: ::std::option::Option::unwrap_or_default(self.wrapped.#name),
+                    #name: ::std::option::Option::unwrap_or_default(this.wrapped.#name),
                 }
             }
         };

@@ -79,36 +79,64 @@ impl ComponentProps {
         }
     }
 
+    fn validate_required_props_tokens(
+        &self,
+        props_ty: impl ToTokens,
+        has_children: bool,
+    ) -> TokenStream {
+        let token_ident = Ident::new("__yew_required_props_token", Span::mixed_site());
+        let check_props = self.props.iter().map(|Prop { .. }| {
+            quote! {
+                let #token_ident = #token_ident;
+            }
+        });
+        let check_children = has_children.then(|| {
+            quote! {
+                let #token_ident = #token_ident;
+            }
+        });
+        quote_spanned! {props_ty.span()=>
+            let mut #token_ident = ();
+            #( #check_props )*
+            #check_children
+        }
+    }
+
     pub fn build_properties_tokens<CR: ToTokens>(
         &self,
         props_ty: impl ToTokens,
         children_renderer: Option<CR>,
     ) -> TokenStream {
-        let validate_props = self.prop_validation_tokens(&props_ty, children_renderer.is_some());
+        let has_children = children_renderer.is_some();
+        let validate_props = self.prop_validation_tokens(&props_ty, has_children);
         let build_props = match &self.base_expr {
             None => {
+                let all_props_set = self.validate_required_props_tokens(&props_ty, has_children);
                 let ident = Ident::new("__yew_props", props_ty.span());
+
+                let init_builder = quote_spanned! {props_ty.span()=>
+                    let mut #ident = <#props_ty as ::yew::html::Properties>::builder();
+                };
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
                     quote_spanned! {value.span()=>
                         #ident.#label(#value);
                     }
                 });
-
                 let set_children = children_renderer.map(|children| {
                     quote_spanned! {props_ty.span()=>
                         #ident.children(#children);
                     }
                 });
-
-                let init_builder = quote_spanned! {props_ty.span()=>
-                    let mut #ident = <#props_ty as ::yew::html::Properties>::builder();
+                let build_builder = quote_spanned! {props_ty.span()=>
+                    ::yew::html::Buildable::build(#ident)
                 };
 
                 quote! {
                     #init_builder
                     #( #set_props )*
                     #set_children
-                    #ident.build()
+                    #all_props_set
+                    #build_builder
                 }
             }
             // Builder pattern is unnecessary in this case, since the base expression guarantees

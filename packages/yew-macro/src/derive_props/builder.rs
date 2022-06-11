@@ -61,9 +61,9 @@ impl ToTokens for PropsBuilder<'_> {
             #impl_steps
 
             #[automatically_derived]
-            impl #impl_generics #builder_name<#generic_args> #where_clause {
-                #[doc(hidden)]
-                #vis fn build(self) -> #props_name #ty_generics {
+            impl #impl_generics ::yew::html::Buildable for #builder_name<#generic_args> #where_clause {
+                type Output = #props_name #ty_generics;
+                fn build(this: Self) -> Self::Output {
                     #props_name #turbofish_generics {
                         #(#set_fields)*
                     }
