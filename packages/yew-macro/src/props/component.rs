@@ -105,8 +105,9 @@ impl ComponentProps {
                         let #token_ident = #ident.children(#token_ident, #children);
                     }
                 });
-                let build_builder = quote_spanned! {props_ty.span()=>
-                    ::yew::html::Buildable::build(#ident)
+                // let finished_build = Ident::new("finish_build", Span::mixed_site());
+                let build_builder = quote_spanned! {props_ty.span().resolved_at(Span::mixed_site())=>
+                    ::yew::html::finish_build(#ident, #token_ident)
                 };
 
                 quote! {

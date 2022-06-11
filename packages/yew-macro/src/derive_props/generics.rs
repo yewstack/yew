@@ -5,6 +5,24 @@ use syn::{GenericArgument, GenericParam, Generics, Path, Token, Type, TypePath};
 /// Alias for a comma-separated list of `GenericArgument`
 pub type GenericArguments = Punctuated<GenericArgument, Token![,]>;
 
+/// Finds the index of the first generic param with a default value or a const generic.
+fn first_default_or_const_param_position(generics: &Generics) -> Option<usize> {
+    generics.params.iter().position(|param| match param {
+        GenericParam::Type(param) => param.default.is_some(),
+        GenericParam::Const(_) => true,
+        _ => false,
+    })
+}
+
+/// Push a type GenericParam into a Generics
+pub fn push_type_param(generics: &mut Generics, type_param: GenericParam) {
+    if let Some(idx) = first_default_or_const_param_position(generics) {
+        generics.params.insert(idx, type_param)
+    } else {
+        generics.params.push(type_param)
+    }
+}
+
 /// Converts `GenericParams` into `GenericArguments`.
 pub fn to_arguments(generics: &Generics) -> GenericArguments {
     let mut args: GenericArguments = Punctuated::new();
