@@ -16,6 +16,19 @@ pub(crate) struct BufWriter {
     capacity: usize,
 }
 
+// Implementation Notes:
+//
+// When jemalloc is used, performance of the BufWriter is related to the number of allocations
+// instead of the amount of memory that is allocated.
+//
+// A bytes::Bytes-based implementation is also tested, and yielded a similar performance.
+//
+// Having a String-based buffer avoids `unsafe { str::from_utf8_unchecked(..) }` or performance
+// penalty by `str::from_utf8(..)` when converting back to String when text based content is needed
+// (e.g.: post-processing).
+//
+// `Bytes::from` can be used to convert a `String` to `Bytes` if the web server asks for an
+// `impl Stream<Item = Bytes>`. This conversion incurs no memory allocation.
 impl BufWriter {
     pub fn with_capacity(capacity: usize) -> (Self, impl Stream<Item = String>) {
         let (tx, rx) = mpsc::unbounded::<String>();
@@ -34,46 +47,34 @@ impl BufWriter {
         self.capacity
     }
 
+    fn drain(&mut self) {
+        let _ = self.tx.unbounded_send(self.buf.drain(..).collect());
+        self.buf.reserve(self.capacity);
+    }
+
     /// Writes a string into the buffer, optionally drains the buffer.
     pub fn write(&mut self, s: Cow<'_, str>) {
-        if s.len() > self.capacity {
-            // if the next part is more than buffer size, we drain the buffer and the next
-            // part.
+        if self.buf.capacity() < s.len() {
+            // There isn't enough capacity, we drain the buffer.
+            self.drain();
+        }
 
-            match s {
-                // When the next part is borrowed, we push it onto the current buffer and send the
-                // buffer.
-                Cow::Borrowed(s) => {
-                    let mut buf = String::with_capacity(self.capacity);
-                    std::mem::swap(&mut buf, &mut self.buf);
-
-                    buf.push_str(s);
-
-                    let _ = self.tx.unbounded_send(buf);
-                }
-
-                // When the next part is owned, we send both the buffer and the next part.
-                Cow::Owned(s) => {
-                    if !self.buf.is_empty() {
-                        let mut buf = String::with_capacity(self.capacity);
-                        std::mem::swap(&mut buf, &mut self.buf);
-                        let _ = self.tx.unbounded_send(buf);
-                    }
-
-                    let _ = self.tx.unbounded_send(s);
-                }
-            }
-        } else if self.buf.capacity() >= s.len() {
-            // There is enough capacity, we push it on to the buffer.
+        // It's important to check self.buf.capacity() >= s.len():
+        //
+        // 1. self.buf.reserve() may choose to over reserve than capacity.
+        // 2. When self.buf.capacity() == s.len(), the previous buffer is not drained. So it needs
+        //    to push onto the buffer instead of sending.
+        if self.buf.capacity() >= s.len() {
+            // The next part is going to fit into the buffer, we push it onto the buffer.
             self.buf.push_str(&s);
         } else {
-            // The next part is not going to fit into the buffer, we send
-            // the current buffer and make a new buffer.
-            let mut buf = String::with_capacity(self.capacity);
-            buf.push_str(&s);
+            // if the next part is more than buffer size, we send the next part.
 
-            std::mem::swap(&mut buf, &mut self.buf);
-            let _ = self.tx.unbounded_send(buf);
+            // We don't need to drain the buffer here as the self.buf.capacity() only changes if
+            // the buffer was drained. If the buffer capacity didn't change, then it means
+            // self.buf.capacity() > s.len() which will be guaranteed to be matched by
+            // self.buf.capacity() >= s.len().
+            let _ = self.tx.unbounded_send(s.into_owned());
         }
     }
 }
@@ -81,7 +82,7 @@ impl BufWriter {
 impl Drop for BufWriter {
     fn drop(&mut self) {
         if !self.buf.is_empty() {
-            let mut buf = "".to_string();
+            let mut buf = String::new();
             std::mem::swap(&mut buf, &mut self.buf);
             let _ = self.tx.unbounded_send(buf);
         }
