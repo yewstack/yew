@@ -7,7 +7,7 @@ pub enum Msg {
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub on_hover: Callback<()>,
-    pub placeholder: String,
+    pub placeholder: AttrValue,
 }
 
 pub struct InputComponent;
