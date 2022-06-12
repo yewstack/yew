@@ -41,22 +41,18 @@ help: add missing generic argument
 30 |     html! { <Comp<P> /> };
    |              ~~~~~~~
 
-error[E0277]: the trait bound `AssertAllProps: HasAllProps<Props, _>` is not satisfied
-  --> tests/function_component_attr/generic-props-fail.rs:22:5
+error[E0277]: the trait bound `AssertAllProps: HasProp<a, _>` is not satisfied
+  --> tests/function_component_attr/generic-props-fail.rs:22:14
    |
 22 |     html! { <Comp<Props> /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^ expected an implementor of trait `HasAllProps<Props, _>`
+   |              ^^^^ the trait `HasProp<a, _>` is not implemented for `AssertAllProps`
    |
 note: required because of the requirements on the impl of `HasAllProps<Props, (_,)>` for `CheckPropsAll<AssertAllProps>`
   --> tests/function_component_attr/generic-props-fail.rs:3:17
    |
 3  | #[derive(Clone, Properties, PartialEq)]
    |                 ^^^^^^^^^^
-note: required by a bound in `finish_build`
-  --> $WORKSPACE/packages/yew/src/html/component/properties.rs
-   |
-   |     B::WrappedTok: HasAllProps<B::Output, How>,
-   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `finish_build`
+   = note: required because of the requirements on the impl of `AllPropsFrom<AssertAllProps, PropsBuilder, (_,)>` for `AssertAllProps`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: the function or associated item `new` exists for struct `VChild<Comp<MissingTypeBounds>>`, but its trait bounds were not satisfied

@@ -394,22 +394,18 @@ error[E0277]: the trait bound `u32: IntoPropValue<i32>` is not satisfied
 82 |     html! { <Child int=0u32 /> };
    |                        ^^^^ the trait `IntoPropValue<i32>` is not implemented for `u32`
 
-error[E0277]: the trait bound `AssertAllProps: HasAllProps<ChildProperties, _>` is not satisfied
-  --> tests/html_macro/component-fail.rs:83:5
+error[E0277]: the trait bound `AssertAllProps: HasProp<int, _>` is not satisfied
+  --> tests/html_macro/component-fail.rs:83:14
    |
 83 |     html! { <Child string="abc" /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected an implementor of trait `HasAllProps<ChildProperties, _>`
+   |              ^^^^^ the trait `HasProp<int, _>` is not implemented for `AssertAllProps`
    |
 note: required because of the requirements on the impl of `HasAllProps<ChildProperties, (_,)>` for `CheckChildPropertiesAll<AssertAllProps>`
   --> tests/html_macro/component-fail.rs:4:17
    |
 4  | #[derive(Clone, Properties, PartialEq)]
    |                 ^^^^^^^^^^
-note: required by a bound in `finish_build`
-  --> $WORKSPACE/packages/yew/src/html/component/properties.rs
-   |
-   |     B::WrappedTok: HasAllProps<B::Output, How>,
-   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `finish_build`
+   = note: required because of the requirements on the impl of `AllPropsFrom<AssertAllProps, ChildPropertiesBuilder, (_,)>` for `AssertAllProps`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `children` found for struct `ChildPropertiesBuilder` in the current scope
@@ -423,40 +419,32 @@ error[E0599]: no method named `children` found for struct `ChildPropertiesBuilde
    |
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `AssertAllProps: HasAllProps<ChildContainerProperties, _>` is not satisfied
-  --> tests/html_macro/component-fail.rs:99:5
+error[E0277]: the trait bound `AssertAllProps: HasProp<_ChildContainerProperties::children, _>` is not satisfied
+  --> tests/html_macro/component-fail.rs:99:14
    |
 99 |     html! { <ChildContainer /> };
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected an implementor of trait `HasAllProps<ChildContainerProperties, _>`
+   |              ^^^^^^^^^^^^^^ the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`
    |
 note: required because of the requirements on the impl of `HasAllProps<ChildContainerProperties, (_,)>` for `CheckChildContainerPropertiesAll<AssertAllProps>`
   --> tests/html_macro/component-fail.rs:24:17
    |
 24 | #[derive(Clone, Properties, PartialEq)]
    |                 ^^^^^^^^^^
-note: required by a bound in `finish_build`
-  --> $WORKSPACE/packages/yew/src/html/component/properties.rs
-   |
-   |     B::WrappedTok: HasAllProps<B::Output, How>,
-   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `finish_build`
+   = note: required because of the requirements on the impl of `AllPropsFrom<AssertAllProps, ChildContainerPropertiesBuilder, (_,)>` for `AssertAllProps`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `AssertAllProps: HasAllProps<ChildContainerProperties, _>` is not satisfied
-   --> tests/html_macro/component-fail.rs:100:5
+error[E0277]: the trait bound `AssertAllProps: HasProp<_ChildContainerProperties::children, _>` is not satisfied
+   --> tests/html_macro/component-fail.rs:100:14
     |
 100 |     html! { <ChildContainer></ChildContainer> };
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected an implementor of trait `HasAllProps<ChildContainerProperties, _>`
+    |              ^^^^^^^^^^^^^^ the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`
     |
 note: required because of the requirements on the impl of `HasAllProps<ChildContainerProperties, (_,)>` for `CheckChildContainerPropertiesAll<AssertAllProps>`
    --> tests/html_macro/component-fail.rs:24:17
     |
 24  | #[derive(Clone, Properties, PartialEq)]
     |                 ^^^^^^^^^^
-note: required by a bound in `finish_build`
-   --> $WORKSPACE/packages/yew/src/html/component/properties.rs
-    |
-    |     B::WrappedTok: HasAllProps<B::Output, How>,
-    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `finish_build`
+    = note: required because of the requirements on the impl of `AllPropsFrom<AssertAllProps, ChildContainerPropertiesBuilder, (_,)>` for `AssertAllProps`
     = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VText>` is not satisfied

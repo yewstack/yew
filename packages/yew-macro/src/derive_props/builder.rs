@@ -106,7 +106,7 @@ impl PropsBuilder<'_> {
         let assert_impl_generics = assert_impl_generics;
         let (impl_generics, _, where_clause) = assert_impl_generics.split_for_impl();
 
-        let props_mod_name = format_ident!("{}_props", props_name, span = Span::mixed_site());
+        let props_mod_name = format_ident!("_{}", props_name, span = Span::mixed_site());
         let mut check_impl_generics = assert_impl_generics.clone();
         let mut check_args = vec![];
         let mut check_props = proc_macro2::TokenStream::new();

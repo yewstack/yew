@@ -88,26 +88,28 @@ impl ComponentProps {
         let validate_props = self.prop_validation_tokens(&props_ty, has_children);
         let build_props = match &self.base_expr {
             None => {
-                let ident = Ident::new("__yew_props", props_ty.span());
-                let token_ident = Ident::new("__yew_required_props_token", Span::mixed_site());
+                let builder_ident = Ident::new("__yew_props", props_ty.span());
+                let token_ident = Ident::new(
+                    "__yew_required_props_token",
+                    props_ty.span().resolved_at(Span::mixed_site()),
+                );
 
                 let init_builder = quote_spanned! {props_ty.span()=>
-                    let mut #ident = <#props_ty as ::yew::html::Properties>::builder();
+                    let mut #builder_ident = <#props_ty as ::yew::html::Properties>::builder();
                     let #token_ident = ::yew::html::AssertAllProps;
                 };
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
                     quote_spanned! {value.span()=>
-                        let #token_ident = #ident.#label(#token_ident, #value);
+                        let #token_ident = #builder_ident.#label(#token_ident, #value);
                     }
                 });
                 let set_children = children_renderer.map(|children| {
                     quote_spanned! {props_ty.span()=>
-                        let #token_ident = #ident.children(#token_ident, #children);
+                        let #token_ident = #builder_ident.children(#token_ident, #children);
                     }
                 });
-                // let finished_build = Ident::new("finish_build", Span::mixed_site());
-                let build_builder = quote_spanned! {props_ty.span().resolved_at(Span::mixed_site())=>
-                    ::yew::html::finish_build(#ident, #token_ident)
+                let build_builder = quote_spanned! {props_ty.span()=>
+                    ::yew::html::Buildable::pre_build(#builder_ident, &#token_ident).build()
                 };
 
                 quote! {

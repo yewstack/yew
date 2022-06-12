@@ -21,18 +21,45 @@ pub trait HasAllProps<P, How> {}
 
 /// Trait finishing the builder and verifying all props were set
 #[doc(hidden)]
-pub trait Buildable<Tok> {
+pub trait Buildable<Token: ?Sized> {
     type Output;
     type WrappedTok;
+    fn pre_build(builder: Self, _: &Token) -> PreBuild<Token, Self>
+    where
+        Self: Sized,
+    {
+        PreBuild {
+            builder,
+            _token: std::marker::PhantomData,
+        }
+    }
     fn build(this: Self) -> Self::Output;
+}
+#[doc(hidden)]
+#[derive(Debug)]
+pub struct PreBuild<Token: ?Sized, B> {
+    _token: std::marker::PhantomData<Token>,
+    builder: B,
+}
+
+impl<Token, B: Buildable<Token>> PreBuild<Token, B> {
+    #[doc(hidden)]
+    pub fn build<How>(self) -> B::Output
+    where
+        Token: AllPropsFrom<Token, B, How>,
+    {
+        B::build(self.builder)
+    }
 }
 
 #[doc(hidden)]
-pub fn finish_build<T, B: Buildable<T>, How>(builder: B, _: T) -> B::Output
+pub trait AllPropsFrom<Token, B: Buildable<Token>, How> {}
+
+impl<Token, B, How> AllPropsFrom<Token, B, How> for Token
 where
+    B: Buildable<Token>,
     B::WrappedTok: HasAllProps<B::Output, How>,
 {
-    B::build(builder)
 }
 
 /// Dummy struct targeted by assertions that all props were set
