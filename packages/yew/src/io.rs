@@ -28,6 +28,13 @@ pub(crate) struct BufWriter {
 //
 // `Bytes::from` can be used to convert a `String` to `Bytes` if the web server asks for an
 // `impl Stream<Item = Bytes>`. This conversion incurs no memory allocation.
+//
+// Yielding the output with a Stream provides a couple advantages:
+//
+// 1. All children of a VList can be rendered concurrently.
+// 2. If a fixed buffer is used, the rendering process can become blocked if the buffer is filled
+//    up. Using a stream avoids this side effect and allows the renderer to finish rendering without
+//    being pulled.
 impl BufWriter {
     pub fn with_capacity(capacity: usize) -> (Self, impl Stream<Item = String>) {
         let (tx, rx) = mpsc::unbounded::<String>();
