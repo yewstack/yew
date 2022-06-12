@@ -52,7 +52,7 @@ note: required because of the requirements on the impl of `HasAllProps<Props, (_
    |
 3  | #[derive(Clone, Properties, PartialEq)]
    |                 ^^^^^^^^^^
-   = note: required because of the requirements on the impl of `AllPropsFrom<AssertAllProps, PropsBuilder, (_,)>` for `AssertAllProps`
+   = note: required because of the requirements on the impl of `AllPropsFor<PropsBuilder, (_,)>` for `AssertAllProps`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: the function or associated item `new` exists for struct `VChild<Comp<MissingTypeBounds>>`, but its trait bounds were not satisfied

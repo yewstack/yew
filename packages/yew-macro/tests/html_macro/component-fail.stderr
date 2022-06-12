@@ -405,7 +405,7 @@ note: required because of the requirements on the impl of `HasAllProps<ChildProp
    |
 4  | #[derive(Clone, Properties, PartialEq)]
    |                 ^^^^^^^^^^
-   = note: required because of the requirements on the impl of `AllPropsFrom<AssertAllProps, ChildPropertiesBuilder, (_,)>` for `AssertAllProps`
+   = note: required because of the requirements on the impl of `AllPropsFor<ChildPropertiesBuilder, (_,)>` for `AssertAllProps`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `children` found for struct `ChildPropertiesBuilder` in the current scope
@@ -430,7 +430,7 @@ note: required because of the requirements on the impl of `HasAllProps<ChildCont
    |
 24 | #[derive(Clone, Properties, PartialEq)]
    |                 ^^^^^^^^^^
-   = note: required because of the requirements on the impl of `AllPropsFrom<AssertAllProps, ChildContainerPropertiesBuilder, (_,)>` for `AssertAllProps`
+   = note: required because of the requirements on the impl of `AllPropsFor<ChildContainerPropertiesBuilder, (_,)>` for `AssertAllProps`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `AssertAllProps: HasProp<_ChildContainerProperties::children, _>` is not satisfied
@@ -444,7 +444,7 @@ note: required because of the requirements on the impl of `HasAllProps<ChildCont
     |
 24  | #[derive(Clone, Properties, PartialEq)]
     |                 ^^^^^^^^^^
-    = note: required because of the requirements on the impl of `AllPropsFrom<AssertAllProps, ChildContainerPropertiesBuilder, (_,)>` for `AssertAllProps`
+    = note: required because of the requirements on the impl of `AllPropsFor<ChildContainerPropertiesBuilder, (_,)>` for `AssertAllProps`
     = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VText>` is not satisfied

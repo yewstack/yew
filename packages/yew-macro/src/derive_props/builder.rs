@@ -156,7 +156,7 @@ impl PropsBuilder<'_> {
             #[automatically_derived]
             impl #impl_generics ::yew::html::Buildable< #token_arg > for #builder_name<#generic_args> #where_clause {
                 type Output = #props_name #ty_generics;
-                type WrappedTok = #check_all_props_name< #token_arg >;
+                type WrappedToken = #check_all_props_name< #token_arg >;
                 fn build(this: Self) -> Self::Output {
                     #props_name #turbofish_generics {
                         #(#set_fields)*

@@ -109,7 +109,7 @@ impl ComponentProps {
                     }
                 });
                 let build_builder = quote_spanned! {props_ty.span()=>
-                    ::yew::html::Buildable::pre_build(#builder_ident, &#token_ident).build()
+                    ::yew::html::Buildable::prepare_build(#builder_ident, &#token_ident).build()
                 };
 
                 quote! {
