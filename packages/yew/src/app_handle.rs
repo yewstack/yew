@@ -88,8 +88,10 @@ mod feat_hydration {
                 host.clone(),
                 &mut fragment,
                 NodeRef::default(),
-                props,
+                Rc::clone(&props),
             );
+            #[cfg(debug_assertions)] // Fix trapped next_sibling at the root
+            app.scope.reuse(props, NodeRef::default());
 
             // We remove all remaining nodes, this mimics the clear_element behaviour in
             // mount_with_props.

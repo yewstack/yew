@@ -59,9 +59,9 @@ pub(crate) trait Mountable {
     fn mount(
         self: Box<Self>,
         root: &BSubtree,
-        node_ref: NodeRef,
         parent_scope: &AnyScope,
         parent: Element,
+        internal_ref: NodeRef,
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped>;
 
@@ -82,8 +82,8 @@ pub(crate) trait Mountable {
         root: BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
+        internal_ref: NodeRef,
         fragment: &mut Fragment,
-        node_ref: NodeRef,
     ) -> Box<dyn Scoped>;
 }
 
@@ -109,13 +109,13 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     fn mount(
         self: Box<Self>,
         root: &BSubtree,
-        node_ref: NodeRef,
         parent_scope: &AnyScope,
         parent: Element,
+        internal_ref: NodeRef,
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        scope.mount_in_place(root.clone(), parent, next_sibling, node_ref, self.props);
+        scope.mount_in_place(root.clone(), parent, next_sibling, internal_ref, self.props);
 
         Box::new(scope)
     }
@@ -149,11 +149,11 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         root: BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
+        internal_ref: NodeRef,
         fragment: &mut Fragment,
-        node_ref: NodeRef,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        scope.hydrate_in_place(root, parent, fragment, node_ref, self.props);
+        scope.hydrate_in_place(root, parent, fragment, internal_ref, self.props);
 
         Box::new(scope)
     }

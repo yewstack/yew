@@ -56,7 +56,7 @@ mod feat_csr_ssr {
                 use crate::callback::Callback;
                 use crate::html::RenderMode;
 
-                match ctx.mode() {
+                match ctx.creation_mode() {
                     RenderMode::Hydration => {
                         let link = ctx.link().clone();
                         let (s, handle) = Suspension::new();
