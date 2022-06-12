@@ -289,6 +289,9 @@ pub mod virtual_dom;
 #[cfg(feature = "ssr")]
 pub use server_renderer::*;
 
+#[cfg(feature = "ssr")]
+mod io;
+
 #[cfg(feature = "csr")]
 mod app_handle;
 #[cfg(feature = "csr")]

@@ -266,7 +266,7 @@ pub(crate) use feat_ssr_hydration::*;
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
-    use crate::server_renderer::BufWriter;
+    use crate::io::BufWriter;
 
     impl Collectable {
         pub(crate) fn write_open_tag(&self, w: &mut BufWriter) {

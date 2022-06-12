@@ -266,8 +266,8 @@ mod feat_ssr {
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
+    use crate::io::BufWriter;
     use crate::scheduler;
-    use crate::server_renderer::BufWriter;
     use crate::virtual_dom::Collectable;
 
     impl<COMP: BaseComponent> Scope<COMP> {
@@ -277,6 +277,10 @@ mod feat_ssr {
             props: Rc<COMP::Properties>,
             hydratable: bool,
         ) {
+            // Rust's Future implementation is stack-allocated and incurs zero runtime-cost.
+            //
+            // If the content of this channel is ready before it is awaited, it is
+            // similar to taking the value from a mutex lock.
             let (tx, rx) = oneshot::channel();
             let state = ComponentRenderState::Ssr { sender: Some(tx) };
 
