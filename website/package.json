@@ -50,8 +50,8 @@
         "@types/react": "^17.0.43",
         "@types/react-helmet": "^6.1.5",
         "@types/react-router-dom": "^5.3.3",
-        "@typescript-eslint/eslint-plugin": "^5.27.0",
-        "@typescript-eslint/parser": "^5.27.0",
+        "@typescript-eslint/eslint-plugin": "^5.27.1",
+        "@typescript-eslint/parser": "^5.27.1",
         "dir-compare": "^4.0.0",
         "prettier": "2.6.2",
         "typescript": "^4.6.2"
