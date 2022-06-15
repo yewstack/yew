@@ -1,5 +1,6 @@
-use crate::Hovered;
 use yew::prelude::*;
+
+use crate::Hovered;
 
 #[derive(PartialEq, Clone, Properties)]
 pub struct Props {

@@ -1,18 +1,20 @@
 //! This module contains fragments bundles, a [BList]
-use super::{test_log, BNode};
-use crate::dom_bundle::{DomBundle, Reconcilable};
-use crate::html::{AnyScope, NodeRef};
-use crate::virtual_dom::{Key, VList, VNode, VText};
 use std::borrow::Borrow;
 use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::hash::Hash;
 use std::ops::Deref;
+
 use web_sys::Element;
+
+use super::{test_log, BNode, BSubtree};
+use crate::dom_bundle::{Reconcilable, ReconcileTarget};
+use crate::html::{AnyScope, NodeRef};
+use crate::virtual_dom::{Key, VList, VNode, VText};
 
 /// This struct represents a mounted [VList]
 #[derive(Debug)]
-pub struct BList {
+pub(super) struct BList {
     /// The reverse (render order) list of child [BNode]s
     rev_children: Vec<BNode>,
     /// All [BNode]s in the BList have keys
@@ -31,6 +33,7 @@ impl Deref for BList {
 /// Helper struct, that keeps the position where the next element is to be placed at
 #[derive(Clone)]
 struct NodeWriter<'s> {
+    root: &'s BSubtree,
     parent_scope: &'s AnyScope,
     parent: &'s Element,
     next_sibling: NodeRef,
@@ -45,7 +48,8 @@ impl<'s> NodeWriter<'s> {
             self.parent.outer_html(),
             self.next_sibling
         );
-        let (next, bundle) = node.attach(self.parent_scope, self.parent, self.next_sibling);
+        let (next, bundle) =
+            node.attach(self.root, self.parent_scope, self.parent, self.next_sibling);
         test_log!("  next_position: {:?}", next);
         (
             Self {
@@ -70,7 +74,13 @@ impl<'s> NodeWriter<'s> {
             self.next_sibling
         );
         // Advance the next sibling reference (from right to left)
-        let next = node.reconcile_node(self.parent_scope, self.parent, self.next_sibling, bundle);
+        let next = node.reconcile_node(
+            self.root,
+            self.parent_scope,
+            self.parent,
+            self.next_sibling,
+            bundle,
+        );
         test_log!("  next_position: {:?}", next);
         Self {
             next_sibling: next,
@@ -120,7 +130,7 @@ impl BNode {
 
 impl BList {
     /// Create a new empty [BList]
-    pub(super) const fn new() -> BList {
+    pub const fn new() -> BList {
         BList {
             rev_children: vec![],
             fully_keyed: true,
@@ -129,12 +139,13 @@ impl BList {
     }
 
     /// Get the key of the underlying fragment
-    pub(super) fn key(&self) -> Option<&Key> {
+    pub fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
 
     /// Diff and patch unkeyed child lists
     fn apply_unkeyed(
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -142,6 +153,7 @@ impl BList {
         rights: &mut Vec<BNode>,
     ) -> NodeRef {
         let mut writer = NodeWriter {
+            root,
             parent_scope,
             parent,
             next_sibling,
@@ -151,7 +163,7 @@ impl BList {
         if lefts.len() < rights.len() {
             for r in rights.drain(lefts.len()..) {
                 test_log!("removing: {:?}", r);
-                r.detach(parent, false);
+                r.detach(root, parent, false);
             }
         }
 
@@ -174,6 +186,7 @@ impl BList {
     /// Optimized for node addition or removal from either end of the list and small changes in the
     /// middle.
     fn apply_keyed(
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -204,6 +217,7 @@ impl BList {
         if matching_len_end == std::cmp::min(left_vdoms.len(), rev_bundles.len()) {
             // No key changes
             return Self::apply_unkeyed(
+                root,
                 parent_scope,
                 parent,
                 next_sibling,
@@ -215,6 +229,7 @@ impl BList {
         // We partially drain the new vnodes in several steps.
         let mut lefts = left_vdoms;
         let mut writer = NodeWriter {
+            root,
             parent_scope,
             parent,
             next_sibling,
@@ -229,8 +244,8 @@ impl BList {
             writer = writer.patch(l, r);
         }
 
-        // Step 2. Diff matching children in the middle, that is between the first and last key mismatch
-        // Find first key mismatch from the front
+        // Step 2. Diff matching children in the middle, that is between the first and last key
+        // mismatch Find first key mismatch from the front
         let matching_len_start = matching_len(
             lefts.iter().map(|v| key!(v)),
             rev_bundles.iter().map(|v| key!(v)).rev(),
@@ -251,14 +266,15 @@ impl BList {
         // The goal is to shift as few nodes as possible.
 
         // We handle runs of in-order nodes. When we encounter one out-of-order, we decide whether:
-        // - to shift all nodes in the current run to the position after the node before of the run, or to
+        // - to shift all nodes in the current run to the position after the node before of the run,
+        //   or to
         // - "commit" to the current run, shift all nodes before the end of the run that we might
         //   encounter in the future, and then start a new run.
         // Example of a run:
         //               barrier_idx --v                   v-- end_idx
         // spliced_middle  [ ... , M , N , C , D , E , F , G , ... ] (original element order)
-        //                                 ^---^-----------^ the nodes that are part of the current run
-        //                           v start_writer
+        //                                 ^---^-----------^ the nodes that are part of the current
+        // run                           v start_writer
         // replacements    [ ... , M , C , D , G ]                   (new element order)
         //                             ^-- start_idx
         let mut barrier_idx = 0; // nodes from spliced_middle[..barrier_idx] are shifted unconditionally
@@ -279,13 +295,16 @@ impl BList {
                 if let Some(KeyedEntry(idx, _)) = ancestor {
                     // If there are only few runs, this is a cold path
                     if idx < run.end_idx {
-                        // Have to decide whether to shift or commit the current run. A few calculations:
-                        // A perfect estimate of the amount of nodes we have to shift if we move this run:
+                        // Have to decide whether to shift or commit the current run. A few
+                        // calculations: A perfect estimate of the amount of
+                        // nodes we have to shift if we move this run:
                         let run_length = replacements.len() - run.start_idx;
-                        // A very crude estimate of the amount of nodes we will have to shift if we commit the run:
-                        // Note nodes of the current run should not be counted here!
+                        // A very crude estimate of the amount of nodes we will have to shift if we
+                        // commit the run: Note nodes of the current run
+                        // should not be counted here!
                         let estimated_skipped_nodes = run.end_idx - idx.max(barrier_idx);
-                        // double run_length to counteract that the run is part of the estimated_skipped_nodes
+                        // double run_length to counteract that the run is part of the
+                        // estimated_skipped_nodes
                         if 2 * run_length > estimated_skipped_nodes {
                             // less work to commit to this run
                             barrier_idx = 1 + run.end_idx;
@@ -305,7 +324,8 @@ impl BList {
                     // We know that idx >= run.end_idx, so this node doesn't need to shift
                     Some(run) => run.end_idx = idx,
                     None => match idx.cmp(&barrier_idx) {
-                        // peep hole optimization, don't start a run as the element is already where it should be
+                        // peep hole optimization, don't start a run as the element is already where
+                        // it should be
                         Ordering::Equal => barrier_idx += 1,
                         // shift the node unconditionally, don't start a run
                         Ordering::Less => writer.shift(&mut r_bundle),
@@ -336,7 +356,7 @@ impl BList {
         // Step 2.3. Remove any extra rights
         for KeyedEntry(_, r) in spare_bundles.drain() {
             test_log!("removing: {:?}", r);
-            r.detach(parent, false);
+            r.detach(root, parent, false);
         }
 
         // Step 3. Diff matching children at the start
@@ -353,17 +373,21 @@ impl BList {
     }
 }
 
-impl DomBundle for BList {
-    fn detach(self, parent: &Element, parent_to_detach: bool) {
+impl ReconcileTarget for BList {
+    fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool) {
         for child in self.rev_children.into_iter() {
-            child.detach(parent, parent_to_detach);
+            child.detach(root, parent, parent_to_detach);
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
-        for node in self.rev_children.iter().rev() {
-            node.shift(next_parent, next_sibling.clone());
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
+        let mut next_sibling = next_sibling;
+
+        for node in self.rev_children.iter() {
+            next_sibling = node.shift(next_parent, next_sibling.clone());
         }
+
+        next_sibling
     }
 }
 
@@ -372,30 +396,33 @@ impl Reconcilable for VList {
 
     fn attach(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
         let mut self_ = BList::new();
-        let node_ref = self.reconcile(parent_scope, parent, next_sibling, &mut self_);
+        let node_ref = self.reconcile(root, parent_scope, parent, next_sibling, &mut self_);
         (node_ref, self_)
     }
 
     fn reconcile_node(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
     ) -> NodeRef {
-        // 'Forcefully' create a pretend the existing node is a list. Creates a
+        // 'Forcefully' pretend the existing node is a list. Creates a
         // singleton list if it isn't already.
         let blist = bundle.make_list();
-        self.reconcile(parent_scope, parent, next_sibling, blist)
+        self.reconcile(root, parent_scope, parent, next_sibling, blist)
     }
 
     fn reconcile(
         mut self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -417,6 +444,7 @@ impl Reconcilable for VList {
             self.add_child(VText::new("").into());
         }
 
+        let fully_keyed = self.fully_keyed();
         let lefts = self.children;
         let rights = &mut blist.rev_children;
         test_log!("lefts: {:?}", lefts);
@@ -425,29 +453,70 @@ impl Reconcilable for VList {
         if let Some(additional) = lefts.len().checked_sub(rights.len()) {
             rights.reserve_exact(additional);
         }
-        let first = if self.fully_keyed && blist.fully_keyed {
-            BList::apply_keyed(parent_scope, parent, next_sibling, lefts, rights)
+        let first = if fully_keyed && blist.fully_keyed {
+            BList::apply_keyed(root, parent_scope, parent, next_sibling, lefts, rights)
         } else {
-            BList::apply_unkeyed(parent_scope, parent, next_sibling, lefts, rights)
+            BList::apply_unkeyed(root, parent_scope, parent, next_sibling, lefts, rights)
         };
-        blist.fully_keyed = self.fully_keyed;
+        blist.fully_keyed = fully_keyed;
         blist.key = self.key;
         test_log!("result: {:?}", rights);
         first
     }
 }
 
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+    use crate::dom_bundle::{Fragment, Hydratable};
+
+    impl Hydratable for VList {
+        fn hydrate(
+            self,
+            root: &BSubtree,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut Fragment,
+        ) -> (NodeRef, Self::Bundle) {
+            let node_ref = NodeRef::default();
+            let fully_keyed = self.fully_keyed();
+            let vchildren = self.children;
+            let mut children = Vec::with_capacity(vchildren.len());
+
+            for (index, child) in vchildren.into_iter().enumerate() {
+                let (child_node_ref, child) = child.hydrate(root, parent_scope, parent, fragment);
+
+                if index == 0 {
+                    node_ref.link(child_node_ref);
+                }
+
+                children.push(child);
+            }
+
+            children.reverse();
+
+            (
+                node_ref,
+                BList {
+                    rev_children: children,
+                    fully_keyed,
+                    key: self.key,
+                },
+            )
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
     use crate::html;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
-    #[cfg(feature = "wasm_test")]
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
@@ -515,20 +584,18 @@ mod layout_tests {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod layout_tests_keys {
     extern crate self as yew;
 
-    use crate::html;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
-    use crate::virtual_dom::VNode;
-    use crate::{Children, Component, Context, Html, Properties};
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use web_sys::Node;
 
-    #[cfg(feature = "wasm_test")]
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::virtual_dom::VNode;
+    use crate::{html, Children, Component, Context, Html, Properties};
 
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     struct Comp {}

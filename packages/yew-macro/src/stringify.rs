@@ -1,11 +1,11 @@
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
 use quote::{quote_spanned, ToTokens};
 use syn::spanned::Spanned;
 use syn::{Expr, Lit, LitStr};
 
 /// Stringify a value at runtime.
 fn stringify_at_runtime(src: impl ToTokens) -> TokenStream {
-    quote_spanned! {src.span()=>
+    quote_spanned! {src.span().resolved_at(Span::call_site())=>
         ::std::convert::Into::<::yew::virtual_dom::AttrValue>::into(#src)
     }
 }

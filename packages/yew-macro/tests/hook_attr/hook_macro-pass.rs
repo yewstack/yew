@@ -1,8 +1,9 @@
-use yew::prelude::*;
+#![no_implicit_prelude]
 
-#[hook]
-pub fn use_some_macro_inner(val: &str) -> String {
-    use_state(|| val.to_owned()).to_string()
+#[::yew::functional::hook]
+pub fn use_some_macro_inner(val: &str) -> ::std::string::String {
+    let state = ::yew::functional::use_state(|| ::std::borrow::ToOwned::to_owned(val));
+    ::std::string::ToString::to_string(&*state)
 }
 
 macro_rules! use_some_macro {
@@ -14,12 +15,12 @@ macro_rules! use_some_macro {
     };
 }
 
-#[function_component]
-fn Comp() -> Html {
+#[::yew::functional::function_component]
+fn Comp() -> ::yew::Html {
     let a = use_some_macro!();
     let b = use_some_macro!("b");
 
-    html! {
+    ::yew::html! {
         <div>{a}{b}</div>
     }
 }

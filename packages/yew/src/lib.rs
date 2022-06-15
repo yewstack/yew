@@ -6,9 +6,12 @@
 //!
 //! Yew is a modern Rust framework for creating multi-threaded front-end web apps using WebAssembly
 //!
-//! - Features a macro for declaring interactive HTML with Rust expressions. Developers who have experience using JSX in React should feel quite at home when using Yew.
-//! - Achieves high performance by minimizing DOM API calls for each page render and by making it easy to offload processing to background web workers.
-//! - Supports JavaScript interoperability, allowing developers to leverage NPM packages and integrate with existing JavaScript applications.
+//! - Features a macro for declaring interactive HTML with Rust expressions. Developers who have
+//!   experience using JSX in React should feel quite at home when using Yew.
+//! - Achieves high performance by minimizing DOM API calls for each page render and by making it
+//!   easy to offload processing to background web workers.
+//! - Supports JavaScript interoperability, allowing developers to leverage NPM packages and
+//!   integrate with existing JavaScript applications.
 //!
 //! ### Supported Targets (Client-Side Rendering)
 //! - `wasm32-unknown-unknown`
@@ -18,10 +21,13 @@
 //! Server-Side Rendering should work on all targets when feature `ssr` is enabled.
 //!
 //! ### Supported Features:
+//! - `csr`: Enables Client-side Rendering support and [`Renderer`]. Only enable this feature if you
+//!   are making a Yew application (not a library).
 //! - `ssr`: Enables Server-side Rendering support and [`ServerRenderer`].
 //! - `tokio`: Enables future-based APIs on non-wasm32 targets with tokio runtime. (You may want to
 //! enable this if your application uses future-based APIs and it does not compile / lint on
 //! non-wasm32 targets.)
+//! - `hydration`: Enables Hydration support.
 //!
 //! ## Example
 //!
@@ -41,9 +47,7 @@
 //!     type Properties = ();
 //!
 //!     fn create(ctx: &Context<Self>) -> Self {
-//!         Self {
-//!             value: 0,
-//!         }
+//!         Self { value: 0 }
 //!     }
 //!
 //!     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
@@ -65,13 +69,12 @@
 //!     }
 //! }
 //!
-//!# fn dont_execute() {
+//! # fn dont_execute() {
 //! fn main() {
-//!     yew::start_app::<App>();
+//!     yew::Renderer::<App>::new().render();
 //! }
-//!# }
+//! # }
 //! ```
-//!
 
 #![deny(
     missing_docs,
@@ -84,12 +87,11 @@
 #![recursion_limit = "512"]
 extern crate self as yew;
 
-use std::{cell::Cell, panic::PanicInfo};
-
 /// This macro provides a convenient way to create [`Classes`].
 ///
-/// The macro takes a list of items similar to the [`vec!`] macro and returns a [`Classes`] instance.
-/// Each item can be of any type that implements `Into<Classes>` (See the implementations on [`Classes`] to learn what types can be used).
+/// The macro takes a list of items similar to the [`vec!`] macro and returns a [`Classes`]
+/// instance. Each item can be of any type that implements `Into<Classes>` (See the
+/// implementations on [`Classes`] to learn what types can be used).
 ///
 /// # Example
 ///
@@ -97,7 +99,12 @@ use std::{cell::Cell, panic::PanicInfo};
 /// # use yew::prelude::*;
 /// # fn test() {
 /// let conditional_class = Some("my-other-class");
-/// let vec_of_classes = vec!["one-bean", "two-beans", "three-beans", "a-very-small-casserole"];
+/// let vec_of_classes = vec![
+///     "one-bean",
+///     "two-beans",
+///     "three-beans",
+///     "a-very-small-casserole",
+/// ];
 ///
 /// html! {
 ///     <div class={classes!("my-container-class", conditional_class, vec_of_classes)}>
@@ -107,7 +114,6 @@ use std::{cell::Cell, panic::PanicInfo};
 /// # }
 /// ```
 pub use yew_macro::classes;
-
 /// This macro implements JSX-like templates.
 ///
 /// This macro always returns [`Html`].
@@ -119,7 +125,6 @@ pub use yew_macro::classes;
 /// [`html_nested!`]: ./macro.html_nested.html
 /// [Yew Docs]: https://yew.rs/docs/next/concepts/html
 pub use yew_macro::html;
-
 /// This macro is similar to [`html!`], but preserves the component type instead
 /// of wrapping it in [`Html`].
 ///
@@ -138,14 +143,14 @@ pub use yew_macro::html;
 ///
 /// #[derive(Clone, Properties, PartialEq)]
 /// struct ListProps {
-///   children: ChildrenRenderer<ListItem>,
+///     children: ChildrenRenderer<ListItem>,
 /// }
 ///
 /// struct List;
 /// impl Component for List {
 /// #   type Message = ();
-///   type Properties = ListProps;
-///   // ...
+///     type Properties = ListProps;
+///     // ...
 /// #   fn create(ctx: &Context<Self>) -> Self { Self }
 /// #   fn view(&self, ctx: &Context<Self>) -> Html { unimplemented!() }
 /// }
@@ -155,18 +160,22 @@ pub use yew_macro::html;
 /// impl Component for ListItem {
 /// #   type Message = ();
 /// #   type Properties = ();
-///   // ...
+///     // ...
 /// #   fn create(ctx: &Context<Self>) -> Self { Self }
 /// #   fn view(&self, ctx: &Context<Self>) -> Html { unimplemented!() }
 /// }
 ///
 /// // Required for ChildrenRenderer
 /// impl From<VChild<ListItem>> for ListItem {
-///   fn from(child: VChild<ListItem>) -> Self { Self }
+///     fn from(child: VChild<ListItem>) -> Self {
+///         Self
+///     }
 /// }
 ///
 /// impl Into<Html> for ListItem {
-///   fn into(self) -> Html { html! { <self /> } }
+///     fn into(self) -> Html {
+///         html! { <self /> }
+///     }
 /// }
 /// // You can use `List` with nested `ListItem` components.
 /// // Using any other kind of element would result in a compile error.
@@ -202,14 +211,14 @@ pub use yew_macro::html;
 /// [`nested_list`]: https://github.com/yewstack/yew/tree/master/examples/nested_list
 /// [`ChildrenRenderer<ListItem>`]: ./html/struct.ChildrenRenderer.html
 pub use yew_macro::html_nested;
-
 /// Build [`Properties`] outside of the [`html!`] macro.
 ///
 /// It's already possible to create properties like normal Rust structs
 /// but if there are lots of optional props the end result is often needlessly verbose.
 /// This macro allows you to build properties the same way the [`html!`] macro does.
 ///
-/// The macro doesn't support special props like `ref` and `key`, they need to be set in the [`html!`] macro.
+/// The macro doesn't support special props like `ref` and `key`, they need to be set in the
+/// [`html!`] macro.
 ///
 /// You can read more about `Properties` in the [Yew Docs].
 ///
@@ -237,10 +246,15 @@ pub use yew_macro::html_nested;
 ///
 /// # fn foo() -> Html {
 /// // You can build props directly ...
-/// let props = yew::props!(Props { name: Cow::from("Minka") });
+/// let props = yew::props!(Props {
+///     name: Cow::from("Minka")
+/// });
 /// # assert_eq!(props.name, "Minka");
 /// // ... or build the associated properties of a component
-/// let props = yew::props!(MyComponent::Properties { id: 2, name: Cow::from("Lemmy") });
+/// let props = yew::props!(MyComponent::Properties {
+///     id: 2,
+///     name: Cow::from("Lemmy")
+/// });
 /// # assert_eq!(props.id, 2);
 ///
 /// // Use the Rust-like struct update syntax to create a component with the props.
@@ -257,14 +271,12 @@ pub use yew_macro::props;
 
 /// This module contains macros which implements html! macro and JSX-like templates
 pub mod macros {
-    pub use crate::classes;
-    pub use crate::html;
-    pub use crate::html_nested;
-    pub use crate::props;
+    pub use crate::{classes, html, html_nested, props};
 }
 
 pub mod callback;
 pub mod context;
+#[cfg(feature = "csr")]
 mod dom_bundle;
 pub mod functional;
 pub mod html;
@@ -279,118 +291,56 @@ pub mod virtual_dom;
 #[cfg(feature = "ssr")]
 pub use server_renderer::*;
 
+#[cfg(feature = "csr")]
+mod app_handle;
+#[cfg(feature = "csr")]
+mod renderer;
+
+#[cfg(feature = "csr")]
 #[cfg(test)]
-pub mod tests {
-    pub use crate::dom_bundle::layout_tests;
-}
+pub mod tests;
 
 /// The module that contains all events available in the framework.
 pub mod events {
-    pub use crate::html::TargetCast;
-
-    pub use crate::dom_bundle::set_event_bubbling;
-
     #[doc(no_inline)]
     pub use web_sys::{
         AnimationEvent, DragEvent, ErrorEvent, Event, FocusEvent, InputEvent, KeyboardEvent,
         MouseEvent, PointerEvent, ProgressEvent, TouchEvent, TransitionEvent, UiEvent, WheelEvent,
     };
+
+    #[cfg(feature = "csr")]
+    pub use crate::dom_bundle::set_event_bubbling;
+    pub use crate::html::TargetCast;
 }
 
-pub use crate::dom_bundle::AppHandle;
-use web_sys::Element;
+#[cfg(feature = "csr")]
+pub use crate::app_handle::AppHandle;
+#[cfg(feature = "csr")]
+pub use crate::renderer::{set_custom_panic_hook, Renderer};
 
-use crate::html::IntoComponent;
-
-thread_local! {
-    static PANIC_HOOK_IS_SET: Cell<bool> = Cell::new(false);
-}
-
-/// Set a custom panic hook.
-/// Unless a panic hook is set through this function, Yew will
-/// overwrite any existing panic hook when one of the `start_app*` functions are called.
-pub fn set_custom_panic_hook(hook: Box<dyn Fn(&PanicInfo<'_>) + Sync + Send + 'static>) {
-    std::panic::set_hook(hook);
-    PANIC_HOOK_IS_SET.with(|hook_is_set| hook_is_set.set(true));
-}
-
-fn set_default_panic_hook() {
-    if !PANIC_HOOK_IS_SET.with(|hook_is_set| hook_is_set.replace(true)) {
-        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-    }
-}
-
-/// The main entry point of a Yew application.
-/// If you would like to pass props, use the `start_app_with_props_in_element` method.
-pub fn start_app_in_element<ICOMP>(element: Element) -> AppHandle<ICOMP>
-where
-    ICOMP: IntoComponent,
-    ICOMP::Properties: Default,
-{
-    start_app_with_props_in_element(element, ICOMP::Properties::default())
-}
-
-/// Starts an yew app mounted to the body of the document.
-/// Alias to start_app_in_element(Body)
-pub fn start_app<ICOMP>() -> AppHandle<ICOMP>
-where
-    ICOMP: IntoComponent,
-    ICOMP::Properties: Default,
-{
-    start_app_with_props(ICOMP::Properties::default())
-}
-
-/// The main entry point of a Yew application. This function does the
-/// same as `start_app_in_element(...)` but allows to start an Yew application with properties.
-pub fn start_app_with_props_in_element<ICOMP>(
-    element: Element,
-    props: ICOMP::Properties,
-) -> AppHandle<ICOMP>
-where
-    ICOMP: IntoComponent,
-{
-    set_default_panic_hook();
-    AppHandle::<ICOMP>::mount_with_props(element, Rc::new(props))
-}
-
-/// The main entry point of a Yew application.
-/// This function does the same as `start_app(...)` but allows to start an Yew application with properties.
-pub fn start_app_with_props<ICOMP>(props: ICOMP::Properties) -> AppHandle<ICOMP>
-where
-    ICOMP: IntoComponent,
-{
-    start_app_with_props_in_element(
-        gloo_utils::document()
-            .body()
-            .expect("no body node found")
-            .into(),
-        props,
-    )
-}
-
-/// The Yew Prelude
-///
-/// The purpose of this module is to alleviate imports of many common types:
-///
-/// ```
-/// # #![allow(unused_imports)]
-/// use yew::prelude::*;
-/// ```
 pub mod prelude {
+    //! The Yew Prelude
+    //!
+    //! The purpose of this module is to alleviate imports of many common types:
+    //!
+    //! ```
+    //! # #![allow(unused_imports)]
+    //! use yew::prelude::*;
+    //! ```
+
+    #[cfg(feature = "csr")]
+    pub use crate::app_handle::AppHandle;
     pub use crate::callback::Callback;
     pub use crate::context::{ContextHandle, ContextProvider};
-    pub use crate::dom_bundle::AppHandle;
     pub use crate::events::*;
+    pub use crate::functional::*;
     pub use crate::html::{
         create_portal, BaseComponent, Children, ChildrenWithProps, Classes, Component, Context,
-        Html, HtmlResult, IntoComponent, NodeRef, Properties,
+        Html, HtmlResult, NodeRef, Properties,
     };
     pub use crate::macros::{classes, html, html_nested};
     pub use crate::suspense::Suspense;
     pub use crate::virtual_dom::AttrValue;
-
-    pub use crate::functional::*;
 }
 
 pub use self::prelude::*;
-use std::rc::Rc;

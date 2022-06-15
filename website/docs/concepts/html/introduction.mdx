@@ -1,12 +1,12 @@
 ---
-title: "HTML"
+title: 'HTML'
 sidebar_label: Introduction
-description: "The procedural macro for generating HTML and SVG"
+description: 'The procedural macro for generating HTML and SVG'
 slug: /concepts/html
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
 
 The `html!` macro allows you to write HTML and SVG code declaratively. It is similar to JSX
 (an extension to JavaScript which allows you to write HTML-like code inside of JavaScript).
@@ -14,9 +14,10 @@ The `html!` macro allows you to write HTML and SVG code declaratively. It is sim
 **Important notes**
 
 1. The `html!` macro only accepts one root html node (you can counteract this by using
-    [fragments](./fragments.mdx) or [iterators](./../html/lists.mdx))
+   [fragments](./fragments.mdx) or [iterators](./../html/lists.mdx))
 2. An empty `html! {}` invocation is valid and will not render anything
 3. Literals must always be quoted and wrapped in braces: `html! { <p>{ "Hello, World" }</p> }`
+4. The `html!` macro will make all tag names lower case. To use upper case characters (which are required for some SVG elements) use [dynamic tag names](concepts/html/elements.mdx#dynamic-tag-names): `html! { <@{"myTag"}></@> }`
 
 :::note
 The `html!` macro can reach the default recursion limit of the compiler. If you encounter compilation errors,
@@ -33,7 +34,7 @@ Tags must either self-close `<... />` or have a corresponding end tag for each s
   <TabItem value="Open - Close" label="Open - Close" default>
 
 ```rust
-use yew::html;
+use yew::prelude::*;
 
 html! {
   <div id="my_div"></div>
@@ -44,7 +45,7 @@ html! {
   <TabItem value="Invalid" label="Invalid">
 
 ```rust ,compile_fail
-use yew::html;
+use yew::prelude::*;
 
 html! {
   <div id="my_div"> // <- MISSING CLOSE TAG
@@ -58,7 +59,7 @@ html! {
   <TabItem value="Self-closing" label="Self-closing">
 
 ```rust
-use yew::html;
+use yew::prelude::*;
 
 html! {
   <input id="my_input" />
@@ -69,7 +70,7 @@ html! {
   <TabItem value="Invalid" label="Invalid">
 
 ```rust ,compile_fail
-use yew::html;
+use yew::prelude::*;
 
 html! {
   <input id="my_input"> // <- MISSING SELF-CLOSE
@@ -91,7 +92,7 @@ Create complex nested HTML and SVG layouts with ease:
   <TabItem value="HTML" label="HTML">
 
 ```rust
-use yew::html;
+use yew::prelude::*;
 
 html! {
     <div>
@@ -115,7 +116,7 @@ html! {
   <TabItem value="SVG" label="SVG">
 
 ```rust
-use yew::html;
+use yew::prelude::*;
 
 html! {
     <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -128,8 +129,8 @@ html! {
         <circle cx="71" cy="99" r="5" fill="white" fill-opacity="0.75" stroke="black" stroke-width="3"/>
         <defs>
             <filter id="filter0_d" x="16.3326" y="18.4918" width="118" height="118" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-                <feGaussianBlur stdDeviation="2"/>
-                <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+                <@{"feGaussianBlur"} stdDeviation="2"/>
+                <@{"feColorMatrix"} in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
             </filter>
         </defs>
     </svg>
@@ -155,7 +156,7 @@ free to [chime in on this issue](https://github.com/yewstack/yew/issues/1334).
 There are special properties which don't directly influence the DOM but instead act as instructions to Yew's virtual DOM.
 Currently, there are two such special props: `ref` and `key`.
 
-`ref` allows you to access and manipulate the underlying DOM node directly. See [Refs](../components/refs) for more details.
+`ref` allows you to access and manipulate the underlying DOM node directly. See [Refs](../function-components/node-refs.mdx) for more details.
 
 `key` on the other hand gives an element a unique identifier which Yew can use for optimization purposes.
 
@@ -166,10 +167,10 @@ Read more at [Lists](./html/lists)
 ## Conditional Rendering
 
 Markup can be rendered conditonally by using Rust's conditional structures. ' +
-    'Currently only `if` and `if let` are supported.
+'Currently only `if` and `if let` are supported.
 
 ```rust
-use yew::html;
+use yew::prelude::*;
 
 html! {
   if true {
@@ -179,5 +180,5 @@ html! {
 ```
 
 :::info
-Read more at [Conditonal Rendering](./html/conditional-rendering)
+Read more at [Conditonal Rendering](./conditional-rendering.mdx)
 :::

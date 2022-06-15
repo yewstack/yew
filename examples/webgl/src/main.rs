@@ -73,8 +73,8 @@ impl Component for App {
                 request_animation_frame(move |time| link.send_message(Msg::Render(time)))
             };
 
-            // A reference to the handle must be stored, otherwise it is dropped and the render won't
-            // occur.
+            // A reference to the handle must be stored, otherwise it is dropped and the render
+            // won't occur.
             self._render_loop = Some(handle);
         }
     }
@@ -134,5 +134,5 @@ impl App {
 }
 
 fn main() {
-    yew::start_app::<App>();
+    yew::Renderer::<App>::new().render();
 }

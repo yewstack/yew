@@ -1,6 +1,6 @@
+use std::io::{stdout, Write};
+
 use anyhow::Result;
-use std::io::stdout;
-use std::io::Write;
 
 pub fn stdout_tag_description_changelog(fixes_logs: &[u8], features_logs: &[u8]) -> Result<()> {
     let mut tag_changelog = Vec::new();

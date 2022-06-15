@@ -1,14 +1,16 @@
-use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
-use crate::props::{ClassesForm, ElementProps, Prop};
-use crate::stringify::{Stringify, Value};
-use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
-use proc_macro2::{Delimiter, TokenStream};
+use proc_macro2::{Delimiter, Span, TokenStream};
+use proc_macro_error::emit_warning;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{Block, Expr, Ident, Lit, LitStr, Token};
+
+use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
+use crate::props::{ClassesForm, ElementProps, Prop};
+use crate::stringify::{Stringify, Value};
+use crate::{non_capitalized_ascii, Peek, PeekValue};
 
 pub struct HtmlElement {
     pub name: TagName,
@@ -54,7 +56,14 @@ impl Parse for HtmlElement {
             match name.to_ascii_lowercase_string().as_str() {
                 "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
                 | "meta" | "param" | "source" | "track" | "wbr" => {
-                    return Err(syn::Error::new_spanned(open.to_spanned(), format!("the tag `<{}>` is a void element and cannot have children (hint: rewrite this as `<{0}/>`)", name)));
+                    return Err(syn::Error::new_spanned(
+                        open.to_spanned(),
+                        format!(
+                            "the tag `<{}>` is a void element and cannot have children (hint: \
+                             rewrite this as `<{0}/>`)",
+                            name
+                        ),
+                    ));
                 }
                 _ => {}
             }
@@ -114,7 +123,7 @@ impl ToTokens for HtmlElement {
             .as_ref()
             .map(|attr| {
                 let value = &attr.value;
-                quote_spanned! {value.span()=>
+                quote_spanned! {value.span().resolved_at(Span::call_site())=>
                     ::yew::html::IntoPropValue::<::yew::html::NodeRef>
                     ::into_prop_value(#value)
                 }
@@ -124,7 +133,7 @@ impl ToTokens for HtmlElement {
             .as_ref()
             .map(|attr| {
                 let value = attr.value.optimize_literals();
-                quote_spanned! {value.span()=>
+                quote_spanned! {value.span().resolved_at(Span::call_site())=>
                     ::std::option::Option::Some(
                         ::std::convert::Into::<::yew::virtual_dom::Key>::into(#value)
                     )
@@ -165,15 +174,17 @@ impl ToTokens for HtmlElement {
                                 #key
                             }}),
                         },
-                        expr => Value::Dynamic(quote_spanned! {expr.span()=>
-                            if #expr {
-                                ::std::option::Option::Some(
-                                    ::yew::virtual_dom::AttrValue::Static(#key)
-                                )
-                            } else {
-                                ::std::option::Option::None
-                            }
-                        }),
+                        expr => Value::Dynamic(
+                            quote_spanned! {expr.span().resolved_at(Span::call_site())=>
+                                if #expr {
+                                    ::std::option::Option::Some(
+                                        ::yew::virtual_dom::AttrValue::Static(#key)
+                                    )
+                                } else {
+                                    ::std::option::Option::None
+                                }
+                            },
+                        ),
                     },
                 ))
             });
@@ -295,9 +306,20 @@ impl ToTokens for HtmlElement {
         };
 
         tokens.extend(match &name {
-            TagName::Lit(name) => {
-                let name_span = name.span();
-                let name = name.to_ascii_lowercase_string();
+            TagName::Lit(dashedname) => {
+                let name_span = dashedname.span();
+                let name = dashedname.to_ascii_lowercase_string();
+                if name != dashedname.to_string() {
+                    emit_warning!(
+                        dashedname.span(),
+                        format!(
+                            "The tag '{0}' is not matching its normalized form '{1}'. If you want \
+                             to keep this form, change this to a dynamic tag `@{{\"{0}\"}}`.",
+                            dashedname,
+                            name,
+                        )
+                    )
+                }
                 let node = match &*name {
                     "input" => {
                         quote! {
@@ -375,18 +397,15 @@ impl ToTokens for HtmlElement {
                     let mut #vtag_name = ::std::convert::Into::<
                         ::std::borrow::Cow::<'static, ::std::primitive::str>
                     >::into(#expr);
-                    if !#vtag_name.is_ascii() {
-                        ::std::panic!(
-                            "a dynamic tag returned a tag name containing non ASCII characters: `{}`",
-                            #vtag_name,
-                        );
-                    }
-                    // convert to lowercase because the runtime checks rely on it.
-                    #vtag_name.to_mut().make_ascii_lowercase();
+                    ::std::debug_assert!(
+                        #vtag_name.is_ascii(),
+                        "a dynamic tag returned a tag name containing non ASCII characters: `{}`",
+                        #vtag_name,
+                    );
 
                     #[allow(clippy::redundant_clone, unused_braces, clippy::let_and_return)]
-                    let mut #vtag = match ::std::convert::AsRef::<::std::primitive::str>::as_ref(&#vtag_name) {
-                        "input" => {
+                    let mut #vtag = match () {
+                        _ if "input".eq_ignore_ascii_case(::std::convert::AsRef::<::std::primitive::str>::as_ref(&#vtag_name)) => {
                             ::yew::virtual_dom::VTag::__new_textarea(
                                 #value,
                                 #node_ref,
@@ -395,7 +414,7 @@ impl ToTokens for HtmlElement {
                                 #listeners,
                             )
                         }
-                        "textarea" => {
+                        _ if "textarea".eq_ignore_ascii_case(::std::convert::AsRef::<::std::primitive::str>::as_ref(&#vtag_name)) => {
                             ::yew::virtual_dom::VTag::__new_textarea(
                                 #value,
                                 #node_ref,
@@ -429,17 +448,14 @@ impl ToTokens for HtmlElement {
                     //
                     // check void element
                     if !#vtag.children().is_empty() {
-                        match #vtag.tag() {
-                            "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input"
-                                | "link" | "meta" | "param" | "source" | "track" | "wbr"
-                            => {
-                                ::std::panic!(
-                                    "a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.",
-                                    #vtag.tag(),
-                                );
-                            }
-                            _ => {}
-                        }
+                        ::std::debug_assert!(
+                            !::std::matches!(#vtag.tag().to_ascii_lowercase().as_str(),
+                                "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input"
+                                    | "link" | "meta" | "param" | "source" | "track" | "wbr"
+                            ),
+                            "a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.",
+                            #vtag.tag(),
+                        );
                     }
 
                     ::std::convert::Into::<::yew::virtual_dom::VNode>::into(#vtag)
@@ -659,9 +675,10 @@ impl Parse for HtmlElementClose {
             if let TagName::Expr(name) = &name {
                 if let Some(expr) = &name.expr {
                     return Err(syn::Error::new_spanned(
-                    expr,
-                    "dynamic closing tags must not have a body (hint: replace it with just `</@>`)",
-                ));
+                        expr,
+                        "dynamic closing tags must not have a body (hint: replace it with just \
+                         `</@>`)",
+                    ));
                 }
             }
 

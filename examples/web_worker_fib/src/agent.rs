@@ -16,10 +16,10 @@ pub struct WorkerOutput {
 }
 
 impl yew_agent::Worker for Worker {
-    type Reach = Public<Self>;
-    type Message = ();
     type Input = WorkerInput;
+    type Message = ();
     type Output = WorkerOutput;
+    type Reach = Public<Self>;
 
     fn create(link: WorkerLink<Self>) -> Self {
         Self { link }
@@ -50,6 +50,6 @@ impl yew_agent::Worker for Worker {
     }
 
     fn name_of_resource() -> &'static str {
-        "wasm.js"
+        "worker.js"
     }
 }

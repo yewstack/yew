@@ -1,21 +1,22 @@
 //! This module contains the bundle implementation of text [BText].
 
-use super::{insert_node, BNode, DomBundle, Reconcilable};
-use crate::html::AnyScope;
-use crate::virtual_dom::{AttrValue, VText};
-use crate::NodeRef;
 use gloo::console;
 use gloo_utils::document;
 use web_sys::{Element, Text as TextNode};
 
+use super::{insert_node, BNode, BSubtree, Reconcilable, ReconcileTarget};
+use crate::html::AnyScope;
+use crate::virtual_dom::{AttrValue, VText};
+use crate::NodeRef;
+
 /// The bundle implementation to [VText]
-pub struct BText {
+pub(super) struct BText {
     text: AttrValue,
     text_node: TextNode,
 }
 
-impl DomBundle for BText {
-    fn detach(self, parent: &Element, parent_to_detach: bool) {
+impl ReconcileTarget for BText {
+    fn detach(self, _root: &BSubtree, parent: &Element, parent_to_detach: bool) {
         if !parent_to_detach {
             let result = parent.remove_child(&self.text_node);
 
@@ -25,12 +26,14 @@ impl DomBundle for BText {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
         let node = &self.text_node;
 
         next_parent
             .insert_before(node, next_sibling.get().as_ref())
             .unwrap();
+
+        NodeRef::new(self.text_node.clone().into())
     }
 }
 
@@ -39,6 +42,7 @@ impl Reconcilable for VText {
 
     fn attach(
         self,
+        _root: &BSubtree,
         _parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -53,18 +57,21 @@ impl Reconcilable for VText {
     /// Renders virtual node over existing `TextNode`, but only if value of text has changed.
     fn reconcile_node(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
     ) -> NodeRef {
         match bundle {
-            BNode::Text(btext) => self.reconcile(parent_scope, parent, next_sibling, btext),
-            _ => self.replace(parent_scope, parent, next_sibling, bundle),
+            BNode::Text(btext) => self.reconcile(root, parent_scope, parent, next_sibling, btext),
+            _ => self.replace(root, parent_scope, parent, next_sibling, bundle),
         }
     }
+
     fn reconcile(
         self,
+        _root: &BSubtree,
         _parent_scope: &AnyScope,
         _parent: &Element,
         _next_sibling: NodeRef,
@@ -81,7 +88,68 @@ impl Reconcilable for VText {
 
 impl std::fmt::Debug for BText {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "BText {{ text: \"{}\" }}", self.text)
+        f.debug_struct("BText").field("text", &self.text).finish()
+    }
+}
+
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use wasm_bindgen::JsCast;
+    use web_sys::Node;
+
+    use super::*;
+    use crate::dom_bundle::{Fragment, Hydratable};
+
+    impl Hydratable for VText {
+        fn hydrate(
+            self,
+            root: &BSubtree,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut Fragment,
+        ) -> (NodeRef, Self::Bundle) {
+            if let Some(m) = fragment.front().cloned() {
+                // better safe than sorry.
+                if m.node_type() == Node::TEXT_NODE {
+                    if let Ok(m) = m.dyn_into::<TextNode>() {
+                        // pop current node.
+                        fragment.pop_front();
+
+                        // TODO: It may make sense to assert the text content in the text node
+                        // against the VText when #[cfg(debug_assertions)]
+                        // is true, but this may be complicated.
+                        // We always replace the text value for now.
+                        //
+                        // Please see the next comment for a detailed explanation.
+                        m.set_node_value(Some(self.text.as_ref()));
+
+                        return (
+                            NodeRef::new(m.clone().into()),
+                            BText {
+                                text: self.text,
+                                text_node: m,
+                            },
+                        );
+                    }
+                }
+            }
+
+            // If there are multiple text nodes placed back-to-back in SSR, it may be parsed as a
+            // single text node by browser, hence we need to add extra text nodes here
+            // if the next node is not a text node. Similarly, the value of the text
+            // node may be a combination of multiple VText vnodes. So we always need to
+            // override their values.
+            self.attach(
+                root,
+                parent_scope,
+                parent,
+                fragment
+                    .front()
+                    .cloned()
+                    .map(NodeRef::new)
+                    .unwrap_or_default(),
+            )
+        }
     }
 }
 
@@ -89,12 +157,12 @@ impl std::fmt::Debug for BText {
 mod test {
     extern crate self as yew;
 
-    use crate::html;
-
-    #[cfg(feature = "wasm_test")]
+    #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
-    #[cfg(feature = "wasm_test")]
+    use crate::html;
+
+    #[cfg(target_arch = "wasm32")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
@@ -109,17 +177,16 @@ mod test {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
     use crate::html;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
-    #[cfg(feature = "wasm_test")]
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]

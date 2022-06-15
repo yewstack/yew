@@ -6,19 +6,19 @@ mod conversion;
 mod error;
 mod listener;
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 pub use classes::*;
-pub(crate) use component::sealed;
 pub use component::*;
 pub use conversion::*;
 pub use error::*;
 pub use listener::*;
+use wasm_bindgen::JsValue;
+use web_sys::{Element, Node};
 
 use crate::sealed::Sealed;
 use crate::virtual_dom::{VNode, VPortal};
-use std::cell::RefCell;
-use std::rc::Rc;
-use wasm_bindgen::JsValue;
-use web_sys::{Element, Node};
 
 /// A type which expected as a result of `view` function implementation.
 pub type Html = VNode;
@@ -54,7 +54,7 @@ impl IntoHtmlResult for Html {
 /// Focus an `<input>` element on mount.
 /// ```
 /// use web_sys::HtmlInputElement;
-///# use yew::prelude::*;
+/// # use yew::prelude::*;
 ///
 /// pub struct Input {
 ///     node_ref: NodeRef,
@@ -125,43 +125,87 @@ impl NodeRef {
         node.map(Into::into).map(INTO::from)
     }
 
-    /// Wrap an existing `Node` in a `NodeRef`
-    pub(crate) fn new(node: Node) -> Self {
-        let node_ref = NodeRef::default();
-        node_ref.set(Some(node));
-        node_ref
-    }
-
     /// Place a Node in a reference for later use
     pub(crate) fn set(&self, node: Option<Node>) {
         let mut this = self.0.borrow_mut();
         this.node = node;
         this.link = None;
     }
+}
 
-    /// Link a downstream `NodeRef`
-    pub(crate) fn link(&self, node_ref: Self) {
-        // Avoid circular references
-        if self == &node_ref {
-            return;
+#[cfg(feature = "csr")]
+mod feat_csr {
+    use super::*;
+
+    impl NodeRef {
+        /// Reuse an existing `NodeRef`
+        pub(crate) fn reuse(&self, node_ref: Self) {
+            // Avoid circular references
+            if self == &node_ref {
+                return;
+            }
+
+            let mut this = self.0.borrow_mut();
+            let mut existing = node_ref.0.borrow_mut();
+            this.node = existing.node.take();
+            this.link = existing.link.take();
         }
 
-        let mut this = self.0.borrow_mut();
-        this.node = None;
-        this.link = Some(node_ref);
+        /// Link a downstream `NodeRef`
+        pub(crate) fn link(&self, node_ref: Self) {
+            // Avoid circular references
+            if self == &node_ref {
+                return;
+            }
+
+            let mut this = self.0.borrow_mut();
+            this.node = None;
+            this.link = Some(node_ref);
+        }
+
+        /// Wrap an existing `Node` in a `NodeRef`
+        pub(crate) fn new(node: Node) -> Self {
+            let node_ref = NodeRef::default();
+            node_ref.set(Some(node));
+            node_ref
+        }
+    }
+}
+
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    #[cfg(debug_assertions)]
+    thread_local! {
+        // A special marker element that should not be referenced
+        static TRAP: Node = gloo::utils::document().create_element("div").unwrap().into();
     }
 
-    /// Reuse an existing `NodeRef`
-    pub(crate) fn reuse(&self, node_ref: Self) {
-        // Avoid circular references
-        if self == &node_ref {
-            return;
+    impl NodeRef {
+        // A new "placeholder" node ref that should not be accessed
+        #[inline]
+        pub(crate) fn new_debug_trapped() -> Self {
+            #[cfg(debug_assertions)]
+            {
+                Self::new(TRAP.with(|trap| trap.clone()))
+            }
+            #[cfg(not(debug_assertions))]
+            {
+                Self::default()
+            }
         }
 
-        let mut this = self.0.borrow_mut();
-        let existing = node_ref.0.borrow();
-        this.node = existing.node.clone();
-        this.link = existing.link.clone();
+        #[inline]
+        pub(crate) fn debug_assert_not_trapped(&self) {
+            #[cfg(debug_assertions)]
+            TRAP.with(|trap| {
+                assert!(
+                    self.get().as_ref() != Some(trap),
+                    "should not use a trapped node ref"
+                )
+            })
+        }
     }
 }
 
@@ -173,15 +217,14 @@ pub fn create_portal(child: Html, host: Element) -> Html {
     VNode::VPortal(VPortal::new(child, host))
 }
 
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
-    use super::*;
     use gloo_utils::document;
-
-    #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
-    #[cfg(feature = "wasm_test")]
+    use super::*;
+
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]

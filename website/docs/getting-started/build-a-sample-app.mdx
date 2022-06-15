@@ -1,10 +1,11 @@
 ---
-title: "Build a sample app"
+title: 'Build a sample app'
 ---
 
-## Using a starter template
+Once you have the environment ready, you can either choose to use a starter template that contains
+the boilerplate needed for a basic Yew app or manually set up a small project.
 
-Once you have the environment ready, you can use the starter template to create the boilerplate needed for a basic Yew app.
+## Using a starter template
 
 Install [`cargo-generate`](https://github.com/cargo-generate/cargo-generate) by following their installation instructions
 then run the following command:
@@ -51,12 +52,25 @@ Add `yew` to the list of dependencies.
 [package]
 name = "yew-app"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-# you can check the latest version here: https://crates.io/crates/yew
-yew = "0.19"
+# this is the development version of Yew
+yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
 ```
+
+:::info
+
+You only need feature `csr` if you are building an application.
+It will enable the `Renderer` and all client-side rendering related code.
+
+If you are making a library, do not enable this feature as it will pull in
+client-side rendering logic into the server-side rendering bundle.
+
+If you need the Renderer for testing or examples, you should enable it
+in the `dev-dependencies` instead.
+
+:::
 
 #### Update main.rs
 
@@ -64,9 +78,9 @@ We need to generate a template which sets up a root Component called `App` which
 that updates its value when clicked. Replace the contents of `src/main.rs` with the following code.
 
 :::note
-The call to `yew::start_app::<App>()` inside the `main` function starts your application and mounts
+The call to `yew::Renderer::<App>::new().render()` inside the `main` function starts your application and mounts
 it to the page's `<body>` tag. If you would like to start your application with any dynamic
-properties, you can instead use `yew::start_app_with_props::<App>(..)`.
+properties, you can instead use `yew::Renderer::<App>::with_props(..).render()`.
 :::
 
 ```rust ,no_run, title=main.rs
@@ -92,7 +106,7 @@ fn App() -> Html {
 }
 
 fn main() {
-    yew::start_app::<App>();
+    yew::Renderer::<App>::new().render();
 }
 ```
 
@@ -103,10 +117,10 @@ Finally, add an `index.html` file in the root directory of your app.
 ```html , title=index.html
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Yew App</title>
-  </head>
+    <head>
+        <meta charset="utf-8" />
+        <title>Yew App</title>
+    </head>
 </html>
 ```
 

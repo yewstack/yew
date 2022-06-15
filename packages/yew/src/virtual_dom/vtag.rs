@@ -1,14 +1,16 @@
 //! This module contains the implementation of a virtual element node [VTag].
 
-use super::{AttrValue, Attributes, Key, Listener, Listeners, VList, VNode};
-use crate::html::{IntoPropValue, NodeRef};
+use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::marker::PhantomData;
 use std::mem;
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
-use std::{borrow::Cow, ops::DerefMut};
+
 use web_sys::{HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
+
+use super::{AttrValue, Attributes, Key, Listener, Listeners, VList, VNode};
+use crate::html::{IntoPropValue, NodeRef};
 
 /// SVG namespace string used for creating svg elements
 pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
@@ -27,11 +29,14 @@ impl<T> Default for Value<T> {
 }
 
 impl<T> Value<T> {
-    /// Create a new value. The caller should take care that the value is valid for the element's `value` property
+    /// Create a new value. The caller should take care that the value is valid for the element's
+    /// `value` property
     fn new(value: Option<AttrValue>) -> Self {
         Value(value, PhantomData)
     }
-    /// Set a new value. The caller should take care that the value is valid for the element's `value` property
+
+    /// Set a new value. The caller should take care that the value is valid for the element's
+    /// `value` property
     fn set(&mut self, value: Option<AttrValue>) {
         self.0 = value;
     }
@@ -39,6 +44,7 @@ impl<T> Value<T> {
 
 impl<T> Deref for Value<T> {
     type Target = Option<AttrValue>;
+
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -291,11 +297,19 @@ impl VTag {
     }
 
     /// Returns a mutable reference to the children of this [VTag], if the node can have
-    // children
+    /// children
     pub fn children_mut(&mut self) -> Option<&mut VList> {
         match &mut self.inner {
             VTagInner::Other { children, .. } => Some(children),
             _ => None,
+        }
+    }
+
+    /// Returns the children of this [VTag]
+    pub fn into_children(self) -> VList {
+        match self.inner {
+            VTagInner::Other { children, .. } => children,
+            _ => VList::new(),
         }
     }
 
@@ -351,7 +365,7 @@ impl VTag {
     pub fn add_attribute(&mut self, key: &'static str, value: impl Into<AttrValue>) {
         self.attributes
             .get_mut_index_map()
-            .insert(key, value.into());
+            .insert(AttrValue::Static(key), value.into());
     }
 
     /// Sets attributes to a virtual node.
@@ -366,7 +380,7 @@ impl VTag {
     pub fn __macro_push_attr(&mut self, key: &'static str, value: impl IntoPropValue<AttrValue>) {
         self.attributes
             .get_mut_index_map()
-            .insert(key, value.into_prop_value());
+            .insert(AttrValue::from(key), value.into_prop_value());
     }
 
     /// Add event listener on the [VTag]'s  [Element](web_sys::Element).
@@ -414,12 +428,25 @@ impl PartialEq for VTag {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use super::*;
-    use crate::{html::AnyScope, virtual_dom::VText};
     use std::fmt::Write;
 
+    use super::*;
+    use crate::html::AnyScope;
+    use crate::virtual_dom::VText;
+
+    // Elements that cannot have any child elements.
+    static VOID_ELEMENTS: &[&str; 14] = &[
+        "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param",
+        "source", "track", "wbr",
+    ];
+
     impl VTag {
-        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+        pub(crate) async fn render_to_string(
+            &self,
+            w: &mut String,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+        ) {
             write!(w, "<{}", self.tag()).unwrap();
 
             let write_attr = |w: &mut String, name: &str, val: Option<&str>| {
@@ -450,7 +477,9 @@ mod feat_ssr {
                 VTagInner::Input(_) => {}
                 VTagInner::Textarea { .. } => {
                     if let Some(m) = self.value() {
-                        VText::new(m.to_owned()).render_to_string(w).await;
+                        VText::new(m.to_owned())
+                            .render_to_string(w, parent_scope, hydratable)
+                            .await;
                     }
 
                     w.push_str("</textarea>");
@@ -460,16 +489,22 @@ mod feat_ssr {
                     ref children,
                     ..
                 } => {
-                    children.render_to_string(w, parent_scope).await;
+                    if !VOID_ELEMENTS.contains(&tag.as_ref()) {
+                        children.render_to_string(w, parent_scope, hydratable).await;
 
-                    write!(w, "</{}>", tag).unwrap();
+                        write!(w, "</{}>", tag).unwrap();
+                    } else {
+                        // We don't write children of void elements nor closing tags.
+                        debug_assert!(children.is_empty(), "{} cannot have any children!", tag);
+                    }
                 }
             }
         }
     }
 }
 
-#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(test)]
 mod ssr_tests {
     use tokio::test;
 
@@ -483,9 +518,10 @@ mod ssr_tests {
             html! { <div></div> }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, "<div></div>");
     }
@@ -497,9 +533,10 @@ mod ssr_tests {
             html! { <div class="abc"></div> }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, r#"<div class="abc"></div>"#);
     }
@@ -511,9 +548,10 @@ mod ssr_tests {
             html! { <div>{"Hello!"}</div> }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, r#"<div>Hello!</div>"#);
     }
@@ -525,9 +563,10 @@ mod ssr_tests {
             html! { <div>{"Hello!"}<input value="abc" type="text" /></div> }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, r#"<div>Hello!<input value="abc" type="text"></div>"#);
     }
@@ -539,9 +578,10 @@ mod ssr_tests {
             html! { <textarea value="teststring" /> }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(s, r#"<textarea>teststring</textarea>"#);
     }

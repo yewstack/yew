@@ -1,14 +1,24 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
-use super::Key;
-use crate::dom_bundle::{Mountable, PropsWrapper};
-use crate::html::{BaseComponent, IntoComponent, NodeRef};
 use std::any::TypeId;
 use std::fmt;
 use std::rc::Rc;
 
-#[cfg(debug_assertions)]
-thread_local! {}
+#[cfg(feature = "ssr")]
+use futures::future::{FutureExt, LocalBoxFuture};
+#[cfg(feature = "csr")]
+use web_sys::Element;
+
+use super::Key;
+#[cfg(feature = "csr")]
+use crate::dom_bundle::BSubtree;
+#[cfg(feature = "hydration")]
+use crate::dom_bundle::Fragment;
+#[cfg(feature = "csr")]
+use crate::html::Scoped;
+#[cfg(any(feature = "ssr", feature = "csr"))]
+use crate::html::{AnyScope, Scope};
+use crate::html::{BaseComponent, NodeRef};
 
 /// A virtual component.
 pub struct VComp {
@@ -40,16 +50,122 @@ impl Clone for VComp {
     }
 }
 
+pub(crate) trait Mountable {
+    fn copy(&self) -> Box<dyn Mountable>;
+
+    #[cfg(feature = "csr")]
+    fn mount(
+        self: Box<Self>,
+        root: &BSubtree,
+        parent_scope: &AnyScope,
+        parent: Element,
+        internal_ref: NodeRef,
+        next_sibling: NodeRef,
+    ) -> Box<dyn Scoped>;
+
+    #[cfg(feature = "csr")]
+    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef);
+
+    #[cfg(feature = "ssr")]
+    fn render_to_string<'a>(
+        &'a self,
+        w: &'a mut String,
+        parent_scope: &'a AnyScope,
+        hydratable: bool,
+    ) -> LocalBoxFuture<'a, ()>;
+
+    #[cfg(feature = "hydration")]
+    fn hydrate(
+        self: Box<Self>,
+        root: BSubtree,
+        parent_scope: &AnyScope,
+        parent: Element,
+        internal_ref: NodeRef,
+        fragment: &mut Fragment,
+    ) -> Box<dyn Scoped>;
+}
+
+pub(crate) struct PropsWrapper<COMP: BaseComponent> {
+    props: Rc<COMP::Properties>,
+}
+
+impl<COMP: BaseComponent> PropsWrapper<COMP> {
+    pub fn new(props: Rc<COMP::Properties>) -> Self {
+        Self { props }
+    }
+}
+
+impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
+    fn copy(&self) -> Box<dyn Mountable> {
+        let wrapper: PropsWrapper<COMP> = PropsWrapper {
+            props: Rc::clone(&self.props),
+        };
+        Box::new(wrapper)
+    }
+
+    #[cfg(feature = "csr")]
+    fn mount(
+        self: Box<Self>,
+        root: &BSubtree,
+        parent_scope: &AnyScope,
+        parent: Element,
+        internal_ref: NodeRef,
+        next_sibling: NodeRef,
+    ) -> Box<dyn Scoped> {
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+        scope.mount_in_place(root.clone(), parent, next_sibling, internal_ref, self.props);
+
+        Box::new(scope)
+    }
+
+    #[cfg(feature = "csr")]
+    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef) {
+        let scope: Scope<COMP> = scope.to_any().downcast::<COMP>();
+        scope.reuse(self.props, next_sibling);
+    }
+
+    #[cfg(feature = "ssr")]
+    fn render_to_string<'a>(
+        &'a self,
+        w: &'a mut String,
+        parent_scope: &'a AnyScope,
+        hydratable: bool,
+    ) -> LocalBoxFuture<'a, ()> {
+        async move {
+            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+            scope
+                .render_to_string(w, self.props.clone(), hydratable)
+                .await;
+        }
+        .boxed_local()
+    }
+
+    #[cfg(feature = "hydration")]
+    fn hydrate(
+        self: Box<Self>,
+        root: BSubtree,
+        parent_scope: &AnyScope,
+        parent: Element,
+        internal_ref: NodeRef,
+        fragment: &mut Fragment,
+    ) -> Box<dyn Scoped> {
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+        scope.hydrate_in_place(root, parent, fragment, internal_ref, self.props);
+
+        Box::new(scope)
+    }
+}
+
 /// A virtual child component.
-pub struct VChild<ICOMP: IntoComponent> {
+pub struct VChild<COMP: BaseComponent> {
     /// The component properties
-    pub props: Rc<ICOMP::Properties>,
+    pub props: Rc<COMP::Properties>,
     /// Reference to the mounted node
     node_ref: NodeRef,
     key: Option<Key>,
 }
 
-impl<ICOMP: IntoComponent> Clone for VChild<ICOMP> {
+impl<COMP: BaseComponent> Clone for VChild<COMP> {
     fn clone(&self) -> Self {
         VChild {
             props: Rc::clone(&self.props),
@@ -59,21 +175,21 @@ impl<ICOMP: IntoComponent> Clone for VChild<ICOMP> {
     }
 }
 
-impl<ICOMP: IntoComponent> PartialEq for VChild<ICOMP>
+impl<COMP: BaseComponent> PartialEq for VChild<COMP>
 where
-    ICOMP::Properties: PartialEq,
+    COMP::Properties: PartialEq,
 {
-    fn eq(&self, other: &VChild<ICOMP>) -> bool {
+    fn eq(&self, other: &VChild<COMP>) -> bool {
         self.props == other.props
     }
 }
 
-impl<ICOMP> VChild<ICOMP>
+impl<COMP> VChild<COMP>
 where
-    ICOMP: IntoComponent,
+    COMP: BaseComponent,
 {
     /// Creates a child component that can be accessed and modified by its parent.
-    pub fn new(props: ICOMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self {
+    pub fn new(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self {
         Self {
             props: Rc::new(props),
             node_ref,
@@ -82,25 +198,25 @@ where
     }
 }
 
-impl<ICOMP> From<VChild<ICOMP>> for VComp
+impl<COMP> From<VChild<COMP>> for VComp
 where
-    ICOMP: IntoComponent,
+    COMP: BaseComponent,
 {
-    fn from(vchild: VChild<ICOMP>) -> Self {
-        VComp::new::<ICOMP>(vchild.props, vchild.node_ref, vchild.key)
+    fn from(vchild: VChild<COMP>) -> Self {
+        VComp::new::<COMP>(vchild.props, vchild.node_ref, vchild.key)
     }
 }
 
 impl VComp {
     /// Creates a new `VComp` instance.
-    pub fn new<ICOMP>(props: Rc<ICOMP::Properties>, node_ref: NodeRef, key: Option<Key>) -> Self
+    pub fn new<COMP>(props: Rc<COMP::Properties>, node_ref: NodeRef, key: Option<Key>) -> Self
     where
-        ICOMP: IntoComponent,
+        COMP: BaseComponent,
     {
         VComp {
-            type_id: TypeId::of::<ICOMP::Component>(),
+            type_id: TypeId::of::<COMP>(),
             node_ref,
-            mountable: Box::new(PropsWrapper::<ICOMP::Component>::new(props)),
+            mountable: Box::new(PropsWrapper::<COMP>::new(props)),
             key,
         }
     }
@@ -124,10 +240,15 @@ mod feat_ssr {
     use crate::html::AnyScope;
 
     impl VComp {
-        pub(crate) async fn render_to_string(&self, w: &mut String, parent_scope: &AnyScope) {
+        pub(crate) async fn render_to_string(
+            &self,
+            w: &mut String,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+        ) {
             self.mountable
                 .as_ref()
-                .render_to_string(w, parent_scope)
+                .render_to_string(w, parent_scope, hydratable)
                 .await;
         }
     }
@@ -163,9 +284,10 @@ mod ssr_tests {
             }
         }
 
-        let renderer = ServerRenderer::<Comp>::new();
-
-        let s = renderer.render().await;
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
         assert_eq!(
             s,

@@ -1,5 +1,3 @@
-use super::{HtmlChildrenTree, TagTokens};
-use crate::{props::ComponentProps, PeekValue};
 use boolinator::Boolinator;
 use proc_macro2::Span;
 use quote::{quote, quote_spanned, ToTokens};
@@ -12,10 +10,15 @@ use syn::{
     TypePath,
 };
 
+use super::{HtmlChildrenTree, TagTokens};
+use crate::props::ComponentProps;
+use crate::PeekValue;
+
 pub struct HtmlComponent {
     ty: Type,
     props: ComponentProps,
     children: HtmlChildrenTree,
+    close: Option<HtmlComponentClose>,
 }
 
 impl PeekValue<()> for HtmlComponent {
@@ -45,6 +48,7 @@ impl Parse for HtmlComponent {
                 ty: open.ty,
                 props: open.props,
                 children: HtmlChildrenTree::new(),
+                close: None,
             });
         }
 
@@ -65,7 +69,7 @@ impl Parse for HtmlComponent {
             children.parse_child(input)?;
         }
 
-        input.parse::<HtmlComponentClose>()?;
+        let close = input.parse::<HtmlComponentClose>()?;
 
         if !children.is_empty() {
             if let Some(children_prop) = open.props.children() {
@@ -80,6 +84,7 @@ impl Parse for HtmlComponent {
             ty: open.ty,
             props: open.props,
             children,
+            close: Some(close),
         })
     }
 }
@@ -90,9 +95,11 @@ impl ToTokens for HtmlComponent {
             ty,
             props,
             children,
+            close,
         } = self;
 
-        let props_ty = quote_spanned!(ty.span()=> <#ty as ::yew::html::IntoComponent>::Properties);
+        let ty_span = ty.span().resolved_at(Span::call_site());
+        let props_ty = quote_spanned!(ty_span=> <#ty as ::yew::html::BaseComponent>::Properties);
         let children_renderer = if children.is_empty() {
             None
         } else {
@@ -103,23 +110,32 @@ impl ToTokens for HtmlComponent {
         let special_props = props.special();
         let node_ref = if let Some(node_ref) = &special_props.node_ref {
             let value = &node_ref.value;
-            quote_spanned! {value.span()=> #value }
+            quote! { #value }
         } else {
             quote! { <::yew::html::NodeRef as ::std::default::Default>::default() }
         };
 
         let key = if let Some(key) = &special_props.key {
             let value = &key.value;
-            quote_spanned! {value.span()=>
+            quote_spanned! {value.span().resolved_at(Span::call_site())=>
                 #[allow(clippy::useless_conversion)]
                 Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#value))
             }
         } else {
             quote! { ::std::option::Option::None }
         };
+        let use_close_tag = if let Some(close) = close {
+            let close_ty = &close.ty;
+            quote_spanned! {close_ty.span()=>
+                let _ = |_:#close_ty| {};
+            }
+        } else {
+            Default::default()
+        };
 
-        tokens.extend(quote_spanned! {ty.span()=>
+        tokens.extend(quote_spanned! {ty_span=>
             {
+                #use_close_tag
                 let __yew_props = #build_props;
                 ::yew::virtual_dom::VChild::<#ty>::new(__yew_props, #node_ref, #key)
             }
@@ -166,7 +182,7 @@ impl HtmlComponent {
                 if punct.as_char() == '>' {
                     break;
                 } else if punct.as_char() == ',' {
-                    args.push_punct(Token![,](Span::call_site()))
+                    args.push_punct(Token![,](Span::mixed_site()))
                 }
             }
         }
@@ -174,9 +190,9 @@ impl HtmlComponent {
         Some((
             PathArguments::AngleBracketed(AngleBracketedGenericArguments {
                 colon2_token: None,
-                lt_token: Token![<](Span::call_site()),
+                lt_token: Token![<](Span::mixed_site()),
                 args,
-                gt_token: Token![>](Span::call_site()),
+                gt_token: Token![>](Span::mixed_site()),
             }),
             cursor,
         ))
@@ -191,7 +207,7 @@ impl HtmlComponent {
             let mut post_colons_cursor = cursor;
             if let Some(c) = Self::double_colon(post_colons_cursor) {
                 if colons_optional {
-                    leading_colon = Some(Token![::](Span::call_site()));
+                    leading_colon = Some(Token![::](Span::mixed_site()));
                 }
                 post_colons_cursor = c;
             } else if !colons_optional {
@@ -266,7 +282,7 @@ impl Parse for HtmlComponentOpen {
 
 struct HtmlComponentClose {
     tag: TagTokens,
-    _ty: Type,
+    ty: Type,
 }
 impl HtmlComponentClose {
     fn to_spanned(&self) -> impl ToTokens {
@@ -294,7 +310,7 @@ impl Parse for HtmlComponentClose {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         TagTokens::parse_end_content(input, |input, tag| {
             let ty = input.parse()?;
-            Ok(Self { tag, _ty: ty })
+            Ok(Self { tag, ty })
         })
     }
 }

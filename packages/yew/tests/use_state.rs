@@ -1,8 +1,11 @@
+#![cfg(target_arch = "wasm32")]
+
 mod common;
+
+use std::time::Duration;
 
 use common::obtain_result;
 use gloo::timers::future::sleep;
-use std::time::Duration;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
 
@@ -25,9 +28,10 @@ async fn use_state_works() {
         }
     }
 
-    yew::start_app_in_element::<UseComponent>(
+    yew::Renderer::<UseComponent>::with_root(
         gloo_utils::document().get_element_by_id("output").unwrap(),
-    );
+    )
+    .render();
     sleep(Duration::ZERO).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "5");
@@ -67,9 +71,10 @@ async fn multiple_use_state_setters() {
         }
     }
 
-    yew::start_app_in_element::<UseComponent>(
+    yew::Renderer::<UseComponent>::with_root(
         gloo_utils::document().get_element_by_id("output").unwrap(),
-    );
+    )
+    .render();
     sleep(Duration::ZERO).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "11");
@@ -95,9 +100,10 @@ async fn use_state_eq_works() {
         }
     }
 
-    yew::start_app_in_element::<UseComponent>(
+    yew::Renderer::<UseComponent>::with_root(
         gloo_utils::document().get_element_by_id("output").unwrap(),
-    );
+    )
+    .render();
     sleep(Duration::ZERO).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "1");

@@ -1,6 +1,7 @@
+use std::time::Duration;
+
 use gloo::timers::future::sleep;
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::functional::function_component;
 use yew::prelude::*;
@@ -93,7 +94,7 @@ async fn link_in_browser_router() {
     let div = gloo::utils::document().create_element("div").unwrap();
     let _ = div.set_attribute("id", "browser-router");
     let _ = gloo::utils::body().append_child(&div);
-    yew::start_app_in_element::<RootForBrowserRouter>(div);
+    yew::Renderer::<RootForBrowserRouter>::with_root(div).render();
 
     sleep(Duration::ZERO).await;
 
@@ -128,7 +129,7 @@ async fn link_with_basename() {
     let div = gloo::utils::document().create_element("div").unwrap();
     let _ = div.set_attribute("id", "with-basename");
     let _ = gloo::utils::body().append_child(&div);
-    yew::start_app_in_element::<RootForBasename>(div);
+    yew::Renderer::<RootForBasename>::with_root(div).render();
 
     sleep(Duration::ZERO).await;
 
@@ -166,7 +167,7 @@ async fn link_in_hash_router() {
     let div = gloo::utils::document().create_element("div").unwrap();
     let _ = div.set_attribute("id", "hash-router");
     let _ = gloo::utils::body().append_child(&div);
-    yew::start_app_in_element::<RootForHashRouter>(div);
+    yew::Renderer::<RootForHashRouter>::with_root(div).render();
 
     sleep(Duration::ZERO).await;
 

@@ -1,77 +1,79 @@
+use once_cell::sync::OnceCell;
 use wasm_bindgen::prelude::*;
-use web_sys::HtmlTextAreaElement;
+use wasm_bindgen::JsCast;
+use wasm_bindgen_futures::JsFuture;
 use yew::prelude::*;
+use yew::suspense::{use_future, SuspensionResult};
 
 mod bindings;
 
-pub enum Msg {
-    Payload(String),
-    AsyncPayload,
-}
+static WASM_BINDGEN_SNIPPETS_PATH: OnceCell<String> = OnceCell::new();
 
-pub struct App {
-    payload: String,
-    // Pointless field just to have something that's been manipulated
-    debugged_payload: String,
-}
-
-impl Component for App {
-    type Message = Msg;
-    type Properties = ();
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self {
-            payload: String::default(),
-            debugged_payload: format!("{:?}", ""),
-        }
+#[function_component]
+fn Important() -> Html {
+    let msg = use_memo(|_| bindings::hello(), ());
+    html! {
+        <>
+            <h2>{"Important"}</h2>
+            <p>{msg}</p>
+        </>
     }
+}
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            Msg::Payload(payload) => {
-                if payload != self.payload {
-                    self.debugged_payload = format!("{:?}", payload);
-                    self.payload = payload;
-                    true
-                } else {
-                    false
+#[hook]
+fn use_do_bye() -> SuspensionResult<String> {
+    let path = WASM_BINDGEN_SNIPPETS_PATH
+        .get()
+        .map(|path| format!("{}/js/unimp.js", path))
+        .unwrap();
+    let s = use_future(|| async move {
+        let promise = bindings::import(&path);
+        let module = JsFuture::from(promise).await.unwrap_throw();
+        let module = module.unchecked_into::<bindings::UnimpModule>();
+        module.bye()
+    })?;
+    Ok((*s).clone())
+}
+
+#[function_component]
+fn UnImportant() -> HtmlResult {
+    let msg = use_do_bye()?;
+    Ok(html! {
+        <>
+            <h2>{"Unimportant"}</h2>
+            <p>{msg}</p>
+        </>
+    })
+}
+
+#[function_component]
+fn App() -> Html {
+    let showing_unimportant = use_state(|| false);
+
+    let show_unimportant = {
+        let showing_unimportant = showing_unimportant.clone();
+        move |_| showing_unimportant.set(true)
+    };
+    let fallback = html! {"fallback"};
+    html! {
+        <main>
+            <Important />
+            <button onclick={show_unimportant}>{"load unimportant data"}</button>
+            <Suspense {fallback}>
+                if *showing_unimportant {
+                    <UnImportant />
                 }
-            }
-            Msg::AsyncPayload => {
-                let callback = ctx.link().callback(Msg::Payload);
-                bindings::get_payload_later(Closure::once_into_js(move |payload: String| {
-                    callback.emit(payload)
-                }));
-                false
-            }
-        }
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        html! {
-            <>
-                <textarea
-                    class="code-block"
-                    oninput={ctx.link().callback(|e: InputEvent| {
-                        let input: HtmlTextAreaElement = e.target_unchecked_into();
-                        Msg::Payload(input.value())
-                    })}
-                    value={self.payload.clone()}
-                />
-                <button onclick={ctx.link().callback(|_| Msg::Payload(bindings::get_payload()))}>
-                    { "Get the payload!" }
-                </button>
-                <button onclick={ctx.link().callback(|_| Msg::AsyncPayload)} >
-                    { "Get the payload later!" }
-                </button>
-                <p class="code-block">
-                    { &self.debugged_payload }
-                </p>
-            </>
-        }
+            </Suspense>
+        </main>
     }
 }
 
 fn main() {
-    yew::start_app::<App>();
+    let wasm_bindgen_snippets_path = js_sys::global()
+        .unchecked_into::<bindings::Window>()
+        .wasm_bindgen_snippets_path();
+    WASM_BINDGEN_SNIPPETS_PATH
+        .set(wasm_bindgen_snippets_path)
+        .expect("unreachable");
+    yew::Renderer::<App>::new().render();
 }

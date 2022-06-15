@@ -1,14 +1,21 @@
 ---
-title: "Node Refs"
-description: "Out-of-band DOM access"
+title: 'Node Refs'
+description: 'Out-of-band DOM access'
 ---
 
-The `ref` keyword can be used inside of any HTML element or component to get the DOM `Element` that
-the item is attached to. This can be used to make changes to the DOM outside of the `view` lifecycle
-method.
+The `ref` attribute can be used to attach the `NodeRef` to an HTML element. In callbacks,
+you can then get the DOM `Element` that the ref is attached to. This can be used to make
+changes to the DOM outside of the `view` lifecycle method, retrieve the value of an `<input>`
+and other direct interactions with the DOM via the javascript API.
 
 This is useful for getting ahold of canvas elements, or scrolling to different sections of a page.
 
-## Example
+:::caution
+Do not manually modify the DOM tree that is rendered by Yew. Treat the `NodeRef` as a read-only
+access, if you are unsure.
+:::
 
-See [use_node_ref hook](./hooks/use-node-ref)
+## Further Reading
+
+-   [use_node_ref hook](https://yew-rs-api.web.app/next/yew/functional/fn.use_node_ref.html)
+-   [`node_refs` example](https://github.com/yewstack/yew/tree/master/examples/node_refs)

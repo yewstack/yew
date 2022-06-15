@@ -1,8 +1,8 @@
 use yew::{function_component, html, Html, Properties};
 
-use crate::components::{
-    score_board_best_score::BestScore, score_board_logo::Logo, score_board_progress::GameProgress,
-};
+use crate::components::score_board_best_score::BestScore;
+use crate::components::score_board_logo::Logo;
+use crate::components::score_board_progress::GameProgress;
 
 #[derive(PartialEq, Properties, Clone)]
 pub struct Props {

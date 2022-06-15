@@ -1,24 +1,27 @@
+use std::collections::HashMap;
+use std::ops::Deref;
+
+use indexmap::IndexMap;
+use web_sys::{Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
+use yew::AttrValue;
+
 use super::Apply;
+use crate::dom_bundle::BSubtree;
 use crate::virtual_dom::vtag::{InputFields, Value};
 use crate::virtual_dom::Attributes;
-use indexmap::IndexMap;
-use std::collections::HashMap;
-use std::iter;
-use std::ops::Deref;
-use web_sys::{Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
 
 impl<T: AccessValue> Apply for Value<T> {
-    type Element = T;
     type Bundle = Self;
+    type Element = T;
 
-    fn apply(self, el: &Self::Element) -> Self {
+    fn apply(self, _root: &BSubtree, el: &Self::Element) -> Self {
         if let Some(v) = self.deref() {
             el.set_value(v);
         }
         self
     }
 
-    fn apply_diff(self, el: &Self::Element, bundle: &mut Self) {
+    fn apply_diff(self, _root: &BSubtree, el: &Self::Element, bundle: &mut Self) {
         match (self.deref(), (*bundle).deref()) {
             (Some(new), Some(_)) => {
                 // Refresh value from the DOM. It might have changed.
@@ -53,82 +56,54 @@ macro_rules! impl_access_value {
 impl_access_value! {InputElement TextAreaElement}
 
 /// Able to have its value read or set
-pub trait AccessValue {
+pub(super) trait AccessValue {
     fn value(&self) -> String;
     fn set_value(&self, v: &str);
 }
 
 impl Apply for InputFields {
-    type Element = InputElement;
     type Bundle = Self;
+    type Element = InputElement;
 
-    fn apply(mut self, el: &Self::Element) -> Self {
+    fn apply(mut self, root: &BSubtree, el: &Self::Element) -> Self {
         // IMPORTANT! This parameter has to be set every time
         // to prevent strange behaviour in the browser when the DOM changes
         el.set_checked(self.checked);
 
-        self.value = self.value.apply(el);
+        self.value = self.value.apply(root, el);
         self
     }
 
-    fn apply_diff(self, el: &Self::Element, bundle: &mut Self) {
+    fn apply_diff(self, root: &BSubtree, el: &Self::Element, bundle: &mut Self) {
         // IMPORTANT! This parameter has to be set every time
         // to prevent strange behaviour in the browser when the DOM changes
         el.set_checked(self.checked);
 
-        self.value.apply_diff(el, &mut bundle.value);
+        self.value.apply_diff(root, el, &mut bundle.value);
     }
 }
 
 impl Attributes {
     #[cold]
-    fn apply_diff_index_maps<'a, A, B>(
+    fn apply_diff_index_maps(
         el: &Element,
-        // this makes it possible to diff `&'a IndexMap<_, A>` and `IndexMap<_, &'a A>`.
-        mut new_iter: impl Iterator<Item = (&'static str, &'a str)>,
-        new: &IndexMap<&'static str, A>,
-        old: &IndexMap<&'static str, B>,
-    ) where
-        A: AsRef<str>,
-        B: AsRef<str>,
-    {
-        let mut old_iter = old.iter();
-        loop {
-            match (new_iter.next(), old_iter.next()) {
-                (Some((new_key, new_value)), Some((old_key, old_value))) => {
-                    if new_key != *old_key {
-                        break;
-                    }
-                    if new_value != old_value.as_ref() {
-                        Self::set_attribute(el, new_key, new_value);
+        new: &IndexMap<AttrValue, AttrValue>,
+        old: &IndexMap<AttrValue, AttrValue>,
+    ) {
+        for (key, value) in new.iter() {
+            match old.get(key) {
+                Some(old_value) => {
+                    if value != old_value {
+                        Self::set_attribute(el, key, value);
                     }
                 }
-                // new attributes
-                (Some(attr), None) => {
-                    for (key, value) in iter::once(attr).chain(new_iter) {
-                        match old.get(key) {
-                            Some(old_value) => {
-                                if value != old_value.as_ref() {
-                                    Self::set_attribute(el, key, value);
-                                }
-                            }
-                            None => {
-                                Self::set_attribute(el, key, value);
-                            }
-                        }
-                    }
-                    break;
-                }
-                // removed attributes
-                (None, Some(attr)) => {
-                    for (key, _) in iter::once(attr).chain(old_iter) {
-                        if !new.contains_key(key) {
-                            Self::remove_attribute(el, key);
-                        }
-                    }
-                    break;
-                }
-                (None, None) => break,
+                None => Self::set_attribute(el, key, value),
+            }
+        }
+
+        for (key, _value) in old.iter() {
+            if !new.contains_key(key) {
+                Self::remove_attribute(el, key);
             }
         }
     }
@@ -137,7 +112,7 @@ impl Attributes {
     /// Works with any [Attributes] variants.
     #[cold]
     fn apply_diff_as_maps<'a>(el: &Element, new: &'a Self, old: &'a Self) {
-        fn collect<'a>(src: &'a Attributes) -> HashMap<&'static str, &'a str> {
+        fn collect(src: &Attributes) -> HashMap<&str, &str> {
             use Attributes::*;
 
             match src {
@@ -147,7 +122,7 @@ impl Attributes {
                     .zip(values.iter())
                     .filter_map(|(k, v)| v.as_ref().map(|v| (*k, v.as_ref())))
                     .collect(),
-                IndexMap(m) => m.iter().map(|(k, v)| (*k, v.as_ref())).collect(),
+                IndexMap(m) => m.iter().map(|(k, v)| (k.as_ref(), v.as_ref())).collect(),
             }
         }
 
@@ -183,10 +158,10 @@ impl Attributes {
 }
 
 impl Apply for Attributes {
-    type Element = Element;
     type Bundle = Self;
+    type Element = Element;
 
-    fn apply(self, el: &Element) -> Self {
+    fn apply(self, _root: &BSubtree, el: &Element) -> Self {
         match &self {
             Self::Static(arr) => {
                 for kv in arr.iter() {
@@ -209,7 +184,7 @@ impl Apply for Attributes {
         self
     }
 
-    fn apply_diff(self, el: &Element, bundle: &mut Self) {
+    fn apply_diff(self, _root: &BSubtree, el: &Element, bundle: &mut Self) {
         #[inline]
         fn ptr_eq<T>(a: &[T], b: &[T]) -> bool {
             std::ptr::eq(a, b)
@@ -232,8 +207,8 @@ impl Apply for Attributes {
                 },
             ) if ptr_eq(new_k, old_k) => {
                 // Double zipping does not optimize well, so use asserts and unsafe instead
-                assert!(new_k.len() == new_v.len());
-                assert!(new_k.len() == old_v.len());
+                assert_eq!(new_k.len(), new_v.len());
+                assert_eq!(new_k.len(), old_v.len());
                 for i in 0..new_k.len() {
                     macro_rules! key {
                         () => {
@@ -262,8 +237,7 @@ impl Apply for Attributes {
             }
             // For VTag's constructed outside the html! macro
             (Self::IndexMap(new), Self::IndexMap(ref old)) => {
-                let new_iter = new.iter().map(|(k, v)| (*k, v.as_ref()));
-                Self::apply_diff_index_maps(el, new_iter, new, old);
+                Self::apply_diff_index_maps(el, &*new, &*old);
             }
             // Cold path. Happens only with conditional swapping and reordering of `VTag`s with the
             // same tag and no keys.

@@ -15,6 +15,7 @@ on:
 
 jobs:
   build:
+    name: Build Website
     runs-on: ubuntu-latest
     env:
       PR_INFO_FILE: ".PR_INFO"
@@ -26,10 +27,19 @@ jobs:
         with:
           node-version: "16"
 
-      - name: Check Translations
+      - name: Install dependencies
         run: |
           cd website
           npm install
+
+      - name: Run prettier
+        run: |
+          cd website
+          npm run fmt
+
+      - name: Check Translations
+        run: |
+          cd website
           npm run check-translations
 
       - name: Build

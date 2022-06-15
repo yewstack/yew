@@ -1,3 +1,5 @@
+#![cfg(target_arch = "wasm32")]
+
 mod common;
 
 use common::obtain_result;
@@ -13,7 +15,7 @@ use gloo::timers::future::TimeoutFuture;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{HtmlElement, HtmlTextAreaElement};
-use yew::suspense::{Suspension, SuspensionResult};
+use yew::suspense::{use_future, use_future_with_deps, Suspension, SuspensionResult};
 
 #[wasm_bindgen_test]
 async fn suspense_works() {
@@ -95,7 +97,8 @@ async fn suspense_works() {
         }
     }
 
-    yew::start_app_in_element::<App>(gloo_utils::document().get_element_by_id("output").unwrap());
+    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+        .render();
 
     TimeoutFuture::new(10).await;
     let result = obtain_result();
@@ -244,7 +247,8 @@ async fn suspense_not_suspended_at_start() {
         }
     }
 
-    yew::start_app_in_element::<App>(gloo_utils::document().get_element_by_id("output").unwrap());
+    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+        .render();
 
     TimeoutFuture::new(10).await;
 
@@ -362,7 +366,8 @@ async fn suspense_nested_suspense_works() {
         }
     }
 
-    yew::start_app_in_element::<App>(gloo_utils::document().get_element_by_id("output").unwrap());
+    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+        .render();
 
     TimeoutFuture::new(10).await;
     let result = obtain_result();
@@ -517,10 +522,11 @@ async fn effects_not_run_when_suspended() {
         counter: counter.clone(),
     };
 
-    yew::start_app_with_props_in_element::<App>(
+    yew::Renderer::<App>::with_root_and_props(
         gloo_utils::document().get_element_by_id("output").unwrap(),
         props,
-    );
+    )
+    .render();
 
     TimeoutFuture::new(10).await;
     let result = obtain_result();
@@ -586,4 +592,95 @@ async fn effects_not_run_when_suspended() {
         r#"<div class="content-area"><div class="actual-result">2</div><button class="increase">increase</button><div class="action-area"><button class="take-a-break">Take a break!</button></div></div>"#
     );
     assert_eq!(*counter.borrow(), 4); // effects ran 4 times.
+}
+
+#[wasm_bindgen_test]
+async fn use_suspending_future_works() {
+    #[function_component(Content)]
+    fn content() -> HtmlResult {
+        let _sleep_handle = use_future(|| async move {
+            TimeoutFuture::new(50).await;
+        })?;
+
+        Ok(html! {
+            <div>
+                {"Content"}
+            </div>
+        })
+    }
+
+    #[function_component(App)]
+    fn app() -> Html {
+        let fallback = html! {<div>{"wait..."}</div>};
+
+        html! {
+            <div id="result">
+                <Suspense {fallback}>
+                    <Content />
+                </Suspense>
+            </div>
+        }
+    }
+
+    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+        .render();
+
+    TimeoutFuture::new(10).await;
+    let result = obtain_result();
+    assert_eq!(result.as_str(), "<div>wait...</div>");
+
+    TimeoutFuture::new(50).await;
+
+    let result = obtain_result();
+    assert_eq!(result.as_str(), r#"<div>Content</div>"#);
+}
+
+#[wasm_bindgen_test]
+async fn use_suspending_future_with_deps_works() {
+    #[derive(PartialEq, Properties)]
+    struct ContentProps {
+        delay_millis: u32,
+    }
+
+    #[function_component(Content)]
+    fn content(ContentProps { delay_millis }: &ContentProps) -> HtmlResult {
+        let delayed_result = use_future_with_deps(
+            |delay_millis| async move {
+                TimeoutFuture::new(*delay_millis).await;
+                42
+            },
+            *delay_millis,
+        )?;
+
+        Ok(html! {
+            <div>
+                {*delayed_result}
+            </div>
+        })
+    }
+
+    #[function_component(App)]
+    fn app() -> Html {
+        let fallback = html! {<div>{"wait..."}</div>};
+
+        html! {
+            <div id="result">
+                <Suspense {fallback}>
+                    <Content delay_millis={50} />
+                </Suspense>
+            </div>
+        }
+    }
+
+    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+        .render();
+
+    TimeoutFuture::new(10).await;
+    let result = obtain_result();
+    assert_eq!(result.as_str(), "<div>wait...</div>");
+
+    TimeoutFuture::new(50).await;
+
+    let result = obtain_result();
+    assert_eq!(result.as_str(), r#"<div>42</div>"#);
 }

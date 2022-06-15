@@ -6,6 +6,7 @@
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--有效-->
+
 ```rust
 html! {
     <>
@@ -16,6 +17,7 @@ html! {
 ```
 
 <!--无效-->
+
 ```rust
 /* 错误：只允许一个 html 根元素 */
 
@@ -24,6 +26,7 @@ html! {
     <p></p>
 }
 ```
+
 <!--END_DOCUSAURUS_CODE_TABS-->
 
 ## 迭代器
@@ -32,6 +35,7 @@ Yew 支持两种从迭代器构建 html 的语法：
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--语法类型 1-->
+
 ```rust
 html! {
     <ul class="item-list">
@@ -41,6 +45,7 @@ html! {
 ```
 
 <!--语法类型 2-->
+
 ```rust
 html! {
     <ul class="item-list">
@@ -48,5 +53,5 @@ html! {
     </ul>
 }
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
 
+<!--END_DOCUSAURUS_CODE_TABS-->

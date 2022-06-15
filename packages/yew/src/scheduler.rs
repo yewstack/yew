@@ -1,7 +1,7 @@
 //! This module contains a scheduler.
 
 use std::cell::RefCell;
-use std::collections::{hash_map::Entry, HashMap, VecDeque};
+use std::collections::BTreeMap;
 use std::rc::Rc;
 
 /// Alias for Rc<RefCell<T>>
@@ -23,13 +23,22 @@ struct Scheduler {
     // Component queues
     destroy: Vec<Box<dyn Runnable>>,
     create: Vec<Box<dyn Runnable>>,
-    update: Vec<Box<dyn Runnable>>,
-    render_first: VecDeque<Box<dyn Runnable>>,
-    render: RenderScheduler,
 
-    /// Stacks to ensure child calls are always before parent calls
-    rendered_first: Vec<Box<dyn Runnable>>,
-    rendered: RenderedScheduler,
+    props_update: Vec<Box<dyn Runnable>>,
+    update: Vec<Box<dyn Runnable>>,
+
+    /// The Binary Tree Map guarantees components with lower id (parent) is rendered first and
+    /// no more than 1 render can be scheduled before a component is rendered.
+    ///
+    /// Parent can destroy child components but not otherwise, we can save unnecessary render by
+    /// rendering parent first.
+    render: BTreeMap<usize, Box<dyn Runnable>>,
+    render_first: BTreeMap<usize, Box<dyn Runnable>>,
+    render_priority: BTreeMap<usize, Box<dyn Runnable>>,
+
+    /// Binary Tree Map to guarantee children rendered are always called before parent calls
+    rendered_first: BTreeMap<usize, Box<dyn Runnable>>,
+    rendered: BTreeMap<usize, Box<dyn Runnable>>,
 }
 
 /// Execute closure with a mutable reference to the scheduler
@@ -54,49 +63,81 @@ pub fn push(runnable: Box<dyn Runnable>) {
     start();
 }
 
-/// Push a component creation, first render and first rendered [Runnable]s to be executed
-pub(crate) fn push_component_create(
-    create: impl Runnable + 'static,
-    first_render: impl Runnable + 'static,
-) {
-    with(|s| {
-        s.create.push(Box::new(create));
-        s.render_first.push_back(Box::new(first_render));
-    });
+#[cfg(any(feature = "ssr", feature = "csr"))]
+mod feat_csr_ssr {
+    use super::*;
+    /// Push a component creation, first render and first rendered [Runnable]s to be executed
+    pub(crate) fn push_component_create(
+        component_id: usize,
+        create: Box<dyn Runnable>,
+        first_render: Box<dyn Runnable>,
+    ) {
+        with(|s| {
+            s.create.push(create);
+            s.render_first.insert(component_id, first_render);
+        });
+    }
+
+    /// Push a component destruction [Runnable] to be executed
+    pub(crate) fn push_component_destroy(runnable: Box<dyn Runnable>) {
+        with(|s| s.destroy.push(runnable));
+    }
+
+    /// Push a component render [Runnable]s to be executed
+    pub(crate) fn push_component_render(component_id: usize, render: Box<dyn Runnable>) {
+        with(|s| {
+            s.render.insert(component_id, render);
+        });
+    }
+
+    /// Push a component update [Runnable] to be executed
+    pub(crate) fn push_component_update(runnable: Box<dyn Runnable>) {
+        with(|s| s.update.push(runnable));
+    }
 }
 
-/// Push a component destruction [Runnable] to be executed
-pub(crate) fn push_component_destroy(runnable: impl Runnable + 'static) {
-    with(|s| s.destroy.push(Box::new(runnable)));
+#[cfg(any(feature = "ssr", feature = "csr"))]
+pub(crate) use feat_csr_ssr::*;
+
+#[cfg(feature = "csr")]
+mod feat_csr {
+    use super::*;
+
+    pub(crate) fn push_component_rendered(
+        component_id: usize,
+        rendered: Box<dyn Runnable>,
+        first_render: bool,
+    ) {
+        with(|s| {
+            if first_render {
+                s.rendered_first.insert(component_id, rendered);
+            } else {
+                s.rendered.insert(component_id, rendered);
+            }
+        });
+    }
+
+    pub(crate) fn push_component_props_update(props_update: Box<dyn Runnable>) {
+        with(|s| s.props_update.push(props_update));
+    }
 }
 
-/// Push a component render and rendered [Runnable]s to be executed
-pub(crate) fn push_component_render(component_id: usize, render: impl Runnable + 'static) {
-    with(|s| {
-        s.render.schedule(component_id, Box::new(render));
-    });
+#[cfg(feature = "csr")]
+pub(crate) use feat_csr::*;
+
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+
+    pub(crate) fn push_component_priority_render(component_id: usize, render: Box<dyn Runnable>) {
+        with(|s| {
+            s.render_priority.insert(component_id, render);
+        });
+    }
 }
 
-pub(crate) fn push_component_rendered(
-    component_id: usize,
-    rendered: impl Runnable + 'static,
-    first_render: bool,
-) {
-    with(|s| {
-        let rendered = Box::new(rendered);
-
-        if first_render {
-            s.rendered_first.push(rendered);
-        } else {
-            s.rendered.schedule(component_id, rendered);
-        }
-    });
-}
-
-/// Push a component update [Runnable] to be executed
-pub(crate) fn push_component_update(runnable: impl Runnable + 'static) {
-    with(|s| s.update.push(Box::new(runnable)));
-}
+#[cfg(feature = "hydration")]
+pub(crate) use feat_hydration::*;
 
 /// Execute any pending [Runnable]s
 pub(crate) fn start_now() {
@@ -123,38 +164,31 @@ pub(crate) fn start_now() {
 }
 
 #[cfg(target_arch = "wasm32")]
-mod target_wasm {
-    use super::*;
+mod arch {
     use crate::io_coop::spawn_local;
 
     /// We delay the start of the scheduler to the end of the micro task queue.
     /// So any messages that needs to be queued can be queued.
     pub(crate) fn start() {
         spawn_local(async {
-            start_now();
+            super::start_now();
         });
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-pub(crate) use target_wasm::*;
-
 #[cfg(not(target_arch = "wasm32"))]
-mod target_native {
-    use super::*;
-
+mod arch {
     // Delayed rendering is not very useful in the context of server-side rendering.
     // There are no event listeners or other high priority events that need to be
     // processed and we risk of having a future un-finished.
     // Until scheduler is future-capable which means we can join inside a future,
     // it can remain synchronous.
     pub(crate) fn start() {
-        start_now();
+        super::start_now();
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use target_native::*;
+pub(crate) use arch::*;
 
 impl Scheduler {
     /// Fill vector with tasks to be executed according to Runnable type execution priority
@@ -170,21 +204,54 @@ impl Scheduler {
         // Create events can be batched, as they are typically just for object creation
         to_run.append(&mut self.create);
 
-        // First render must never be skipped and takes priority over main, because it may need
-        // to init `NodeRef`s
-        //
-        // Should be processed one at time, because they can spawn more create and rendered events
-        // for their children.
-        if let Some(r) = self.render_first.pop_front() {
-            to_run.push(r);
-        }
-
         // These typically do nothing and don't spawn any other events - can be batched.
         // Should be run only after all first renders have finished.
         if !to_run.is_empty() {
             return;
         }
-        to_run.extend(self.rendered_first.drain(..).rev());
+
+        // First render must never be skipped and takes priority over main, because it may need
+        // to init `NodeRef`s
+        //
+        // Should be processed one at time, because they can spawn more create and rendered events
+        // for their children.
+        //
+        // To be replaced with BTreeMap::pop_first once it is stable.
+        if let Some(r) = self
+            .render_first
+            .keys()
+            .next()
+            .cloned()
+            .and_then(|m| self.render_first.remove(&m))
+        {
+            to_run.push(r);
+        }
+
+        if !to_run.is_empty() {
+            return;
+        }
+
+        to_run.append(&mut self.props_update);
+
+        // Priority rendering
+        //
+        // This is needed for hydration susequent render to fix node refs.
+        if let Some(r) = self
+            .render_priority
+            .keys()
+            .next()
+            .cloned()
+            .and_then(|m| self.render_priority.remove(&m))
+        {
+            to_run.push(r);
+            return;
+        }
+
+        if !self.rendered_first.is_empty() {
+            let rendered_first = std::mem::take(&mut self.rendered_first);
+            // Children rendered lifecycle happen before parents.
+            to_run.extend(rendered_first.into_values().rev());
+        }
 
         // Updates are after the first render to ensure we always have the entire child tree
         // rendered, once an update is processed.
@@ -202,7 +269,17 @@ impl Scheduler {
         if !to_run.is_empty() {
             return;
         }
-        if let Some(r) = self.render.pop() {
+
+        // To be replaced with BTreeMap::pop_first once it is stable.
+        // Should be processed one at time, because they can spawn more create and rendered events
+        // for their children.
+        if let Some(r) = self
+            .render
+            .keys()
+            .next()
+            .cloned()
+            .and_then(|m| self.render.remove(&m))
+        {
             to_run.push(r);
         }
 
@@ -211,91 +288,11 @@ impl Scheduler {
         if !to_run.is_empty() {
             return;
         }
-        self.rendered.drain_into(to_run);
-    }
-}
 
-/// Task to be executed for specific component
-struct QueueTask {
-    /// Tasks in the queue to skip for this component
-    skip: usize,
-
-    /// Runnable to execute
-    runnable: Box<dyn Runnable>,
-}
-
-/// Scheduler for non-first component renders with deduplication
-#[derive(Default)]
-struct RenderScheduler {
-    /// Task registry by component ID
-    tasks: HashMap<usize, QueueTask>,
-
-    /// Task queue by component ID
-    queue: VecDeque<usize>,
-}
-
-impl RenderScheduler {
-    /// Schedule render task execution
-    fn schedule(&mut self, component_id: usize, runnable: Box<dyn Runnable>) {
-        self.queue.push_back(component_id);
-        match self.tasks.entry(component_id) {
-            Entry::Vacant(e) => {
-                e.insert(QueueTask { skip: 0, runnable });
-            }
-            Entry::Occupied(mut e) => {
-                let v = e.get_mut();
-                v.skip += 1;
-
-                // Technically the 2 runners should be functionally identical, but might as well
-                // overwrite it for good measure, accounting for future changes. We have it here
-                // anyway.
-                v.runnable = runnable;
-            }
-        }
-    }
-
-    /// Try to pop a task from the queue, if any
-    fn pop(&mut self) -> Option<Box<dyn Runnable>> {
-        while let Some(id) = self.queue.pop_front() {
-            match self.tasks.entry(id) {
-                Entry::Occupied(mut e) => {
-                    let v = e.get_mut();
-                    if v.skip == 0 {
-                        return Some(e.remove().runnable);
-                    }
-                    v.skip -= 1;
-                }
-                Entry::Vacant(_) => (),
-            }
-        }
-        None
-    }
-}
-
-/// Deduplicating scheduler for component rendered calls with deduplication
-#[derive(Default)]
-struct RenderedScheduler {
-    /// Task registry by component ID
-    tasks: HashMap<usize, Box<dyn Runnable>>,
-
-    /// Task stack by component ID
-    stack: Vec<usize>,
-}
-
-impl RenderedScheduler {
-    /// Schedule rendered task execution
-    fn schedule(&mut self, component_id: usize, runnable: Box<dyn Runnable>) {
-        if self.tasks.insert(component_id, runnable).is_none() {
-            self.stack.push(component_id);
-        }
-    }
-
-    /// Drain all tasks into `dst`, if any
-    fn drain_into(&mut self, dst: &mut Vec<Box<dyn Runnable>>) {
-        for id in self.stack.drain(..).rev() {
-            if let Some(t) = self.tasks.remove(&id) {
-                dst.push(t);
-            }
+        if !self.rendered.is_empty() {
+            let rendered = std::mem::take(&mut self.rendered);
+            // Children rendered lifecycle happen before parents.
+            to_run.extend(rendered.into_values().rev());
         }
     }
 }

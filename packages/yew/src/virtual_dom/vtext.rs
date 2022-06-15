@@ -1,7 +1,8 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
-use super::AttrValue;
 use std::cmp::PartialEq;
+
+use super::AttrValue;
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -34,28 +35,40 @@ impl PartialEq for VText {
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
+    use crate::html::AnyScope;
 
     impl VText {
-        pub(crate) async fn render_to_string(&self, w: &mut String) {
+        pub(crate) async fn render_to_string(
+            &self,
+            w: &mut String,
+            _parent_scope: &AnyScope,
+            _hydratable: bool,
+        ) {
             html_escape::encode_text_to_string(&self.text, w);
         }
     }
 }
 
-#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(test)]
 mod ssr_tests {
     use tokio::test;
 
-    use super::*;
+    use crate::prelude::*;
+    use crate::ServerRenderer;
 
     #[test]
     async fn test_simple_str() {
-        let vtext = VText::new("abc");
+        #[function_component]
+        fn Comp() -> Html {
+            html! { "abc" }
+        }
 
-        let mut s = String::new();
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
 
-        vtext.render_to_string(&mut s).await;
-
-        assert_eq!("abc", s.as_str());
+        assert_eq!(s, r#"abc"#);
     }
 }

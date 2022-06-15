@@ -1,5 +1,6 @@
-use crate::state::Filter as FilterEnum;
 use yew::prelude::*;
+
+use crate::state::Filter as FilterEnum;
 
 #[derive(PartialEq, Properties)]
 pub struct FilterProps {

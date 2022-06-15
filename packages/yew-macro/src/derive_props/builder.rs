@@ -5,11 +5,12 @@
 //! properties have been set, the builder moves to the final build step which implements the
 //! `build()` method.
 
-use super::generics::{to_arguments, with_param_bounds, GenericArguments};
-use super::{DerivePropsInput, PropField};
 use proc_macro2::{Ident, Span};
 use quote::{format_ident, quote, ToTokens};
 use syn::Attribute;
+
+use super::generics::{to_arguments, with_param_bounds, GenericArguments};
+use super::{DerivePropsInput, PropField};
 
 pub struct PropsBuilder<'a> {
     builder_name: &'a Ident,
@@ -48,7 +49,7 @@ impl ToTokens for PropsBuilder<'_> {
 
         // Each builder step implements the `BuilderStep` trait and `step_generics` is used to
         // enforce that.
-        let step_generic_param = Ident::new("YEW_PROPS_BUILDER_STEP", Span::call_site());
+        let step_generic_param = Ident::new("YEW_PROPS_BUILDER_STEP", Span::mixed_site());
         let step_generics =
             with_param_bounds(generics, step_generic_param.clone(), (*step_trait).clone());
 
@@ -62,7 +63,10 @@ impl ToTokens for PropsBuilder<'_> {
             #[doc(hidden)]
             #vis trait #step_trait {}
 
-            #(impl #step_trait for #step_names {})*
+            #(
+                #[automatically_derived]
+                impl #step_trait for #step_names {}
+            )*
 
             #[doc(hidden)]
             #vis struct #builder_name #step_generics
@@ -74,6 +78,7 @@ impl ToTokens for PropsBuilder<'_> {
 
             #impl_steps
 
+            #[automatically_derived]
             impl #impl_generics #builder_name<#generic_args> #where_clause {
                 #[doc(hidden)]
                 #vis fn build(self) -> #props_name #ty_generics {
@@ -189,6 +194,7 @@ impl PropsBuilder<'_> {
             });
 
             token_stream.extend(quote! {
+                #[automatically_derived]
                 #( #extra_attrs )*
                 impl #impl_generics #builder_name<#current_step_arguments> #where_clause {
                     #(#optional_prop_fn)*

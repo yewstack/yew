@@ -4,16 +4,13 @@
 //! - [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
 //! - [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)
 
-use crate::html::ImplicitClone;
 use std::fmt;
 use std::rc::Rc;
 
+use crate::html::ImplicitClone;
+
 /// Universal callback wrapper.
-/// <aside class="warning">
-/// Use callbacks carefully, because if you call one from the `update` loop
-/// of a `Component` (even from JS) it will delay a message until next.
-/// Callbacks should be used from JS callbacks or `setTimeout` calls.
-/// </aside>
+///
 /// An `Rc` wrapper is used to make it cloneable.
 pub struct Callback<IN, OUT = ()> {
     /// A callback which can be called multiple times
@@ -72,14 +69,14 @@ impl<IN> Default for Callback<IN> {
 impl<IN: 'static, OUT: 'static> Callback<IN, OUT> {
     /// Creates a new callback from another callback and a function
     /// That when emited will call that function and will emit the original callback
-    pub fn reform<F, T>(&self, func: F) -> Callback<T>
+    pub fn reform<F, T>(&self, func: F) -> Callback<T, OUT>
     where
         F: Fn(T) -> IN + 'static,
     {
         let this = self.clone();
         let func = move |input| {
             let output = func(input);
-            this.emit(output);
+            this.emit(output)
         };
         Callback::from(func)
     }

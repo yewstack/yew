@@ -1,9 +1,12 @@
+#![cfg(target_arch = "wasm32")]
+
 mod common;
+
+use std::rc::Rc;
+use std::time::Duration;
 
 use common::obtain_result_by_id;
 use gloo::timers::future::sleep;
-use std::rc::Rc;
-use std::time::Duration;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
 
@@ -61,9 +64,10 @@ async fn use_context_scoping_works() {
         }
     }
 
-    yew::start_app_in_element::<UseContextComponent>(
+    yew::Renderer::<UseContextComponent>::with_root(
         gloo_utils::document().get_element_by_id("output").unwrap(),
-    );
+    )
+    .render();
 
     sleep(Duration::ZERO).await;
 
@@ -143,9 +147,10 @@ async fn use_context_works_with_multiple_types() {
         }
     }
 
-    yew::start_app_in_element::<TestComponent>(
+    yew::Renderer::<TestComponent>::with_root(
         gloo_utils::document().get_element_by_id("output").unwrap(),
-    );
+    )
+    .render();
 
     sleep(Duration::ZERO).await;
 }
@@ -242,9 +247,10 @@ async fn use_context_update_works() {
         }
     }
 
-    yew::start_app_in_element::<TestComponent>(
+    yew::Renderer::<TestComponent>::with_root(
         gloo_utils::document().get_element_by_id("output").unwrap(),
-    );
+    )
+    .render();
 
     sleep(Duration::ZERO).await;
 

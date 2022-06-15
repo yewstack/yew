@@ -1,10 +1,10 @@
+use yew::context::ContextHandle;
+use yew::prelude::*;
+
 use crate::history::Location;
 use crate::navigator::Navigator;
 use crate::routable::Routable;
 use crate::router::{LocationContext, NavigatorContext};
-
-use yew::context::ContextHandle;
-use yew::prelude::*;
 
 /// A [`ContextHandle`] for [`add_location_listener`](RouterScopeExt::add_location_listener).
 pub struct LocationHandle {
@@ -30,10 +30,14 @@ pub struct NavigatorHandle {
 /// # use wasm_bindgen::UnwrapThrowExt;
 /// # use yew::prelude::*;
 /// # use yew_router::prelude::*;
-/// # use yew_router::components::{LinkProps, Msg};
+/// # use yew_router::components::LinkProps;
 /// #
 /// # pub struct Link<R: Routable + 'static> {
 /// #     _data: PhantomData<R>,
+/// # }
+/// #
+/// # pub enum Msg {
+/// #     OnClick,
 /// # }
 /// #
 /// impl<R: Routable + 'static> Component for Link<R> {
@@ -50,7 +54,7 @@ pub struct NavigatorHandle {
 ///                 ctx.link()
 ///                     .navigator()
 ///                     .expect_throw("failed to get navigator.")
-///                     .push(ctx.props().to.clone());
+///                     .push(&ctx.props().to);
 ///                 false
 ///             }
 ///         }

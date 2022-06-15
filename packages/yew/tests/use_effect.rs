@@ -1,10 +1,13 @@
+#![cfg(target_arch = "wasm32")]
+
 mod common;
 
-use common::obtain_result;
-use gloo::timers::future::sleep;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use std::time::Duration;
+
+use common::obtain_result;
+use gloo::timers::future::sleep;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
 
@@ -64,12 +67,13 @@ async fn use_effect_destroys_on_component_drop() {
 
     let destroy_counter = Rc::new(std::cell::RefCell::new(0));
     let destroy_counter_c = destroy_counter.clone();
-    yew::start_app_with_props_in_element::<UseEffectWrapperComponent>(
+    yew::Renderer::<UseEffectWrapperComponent>::with_root_and_props(
         gloo_utils::document().get_element_by_id("output").unwrap(),
         WrapperProps {
             destroy_called: Rc::new(move || *destroy_counter_c.borrow_mut().deref_mut() += 1),
         },
-    );
+    )
+    .render();
 
     sleep(Duration::ZERO).await;
 
@@ -102,9 +106,10 @@ async fn use_effect_works_many_times() {
         }
     }
 
-    yew::start_app_in_element::<UseEffectComponent>(
+    yew::Renderer::<UseEffectComponent>::with_root(
         gloo_utils::document().get_element_by_id("output").unwrap(),
-    );
+    )
+    .render();
 
     sleep(Duration::ZERO).await;
     let result = obtain_result();
@@ -135,9 +140,10 @@ async fn use_effect_works_once() {
         }
     }
 
-    yew::start_app_in_element::<UseEffectComponent>(
+    yew::Renderer::<UseEffectComponent>::with_root(
         gloo_utils::document().get_element_by_id("output").unwrap(),
-    );
+    )
+    .render();
     sleep(Duration::ZERO).await;
 
     let result = obtain_result();
@@ -182,9 +188,10 @@ async fn use_effect_refires_on_dependency_change() {
         }
     }
 
-    yew::start_app_in_element::<UseEffectComponent>(
+    yew::Renderer::<UseEffectComponent>::with_root(
         gloo_utils::document().get_element_by_id("output").unwrap(),
-    );
+    )
+    .render();
 
     sleep(Duration::ZERO).await;
     let result: String = obtain_result();

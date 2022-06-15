@@ -1,0 +1,14 @@
+edition = "2021"
+
+format_code_in_doc_comments = true
+wrap_comments = true
+comment_width = 100 # same as default max_width
+normalize_doc_attributes = true
+normalize_comments = true
+
+condense_wildcard_suffixes = true
+format_strings = true
+group_imports = "StdExternalCrate"
+imports_granularity = "Module"
+reorder_impl_items = true
+use_field_init_shorthand = true

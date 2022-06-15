@@ -43,6 +43,8 @@ pub struct ContainerProperties {
     pub int: ::std::primitive::i32,
     #[prop_or_default]
     pub children: ::yew::Children,
+    #[prop_or_default]
+    pub header: ::yew::Html,
 }
 
 pub struct Container;
@@ -273,6 +275,9 @@ fn compile_pass() {
             <Container int=1 children={::yew::html::ChildrenRenderer::new(
                 ::std::vec![::yew::html!{ "::std::string::String" }]
             )} />
+            <Container int=1 header={::yew::html!{
+                <Child int=2 />
+            }} />
         </>
     };
 

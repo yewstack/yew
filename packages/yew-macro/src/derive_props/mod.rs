@@ -3,11 +3,12 @@ mod field;
 mod generics;
 mod wrapper;
 
+use std::convert::TryInto;
+
 use builder::PropsBuilder;
 use field::PropField;
 use proc_macro2::{Ident, Span};
 use quote::{format_ident, quote, ToTokens};
-use std::convert::TryInto;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::{Attribute, DeriveInput, Generics, Visibility};
 use wrapper::PropsWrapper;
@@ -23,10 +24,10 @@ pub struct DerivePropsInput {
 /// Some attributes on the original struct are to be preserved and added to the builder struct,
 /// in order to avoid warnings (sometimes reported as errors) in the output.
 fn should_preserve_attr(attr: &Attribute) -> bool {
-    // #[cfg(...)]: does not usually appear in macro inputs, but rust-analyzer seems to generate it sometimes.
-    //              If not preserved, results in "no-such-field" errors generating the field setter for `build`
-    // #[allow(...)]: silences warnings from clippy, such as dead_code etc.
-    // #[deny(...)]: enable additional warnings from clippy
+    // #[cfg(...)]: does not usually appear in macro inputs, but rust-analyzer seems to generate it
+    // sometimes.              If not preserved, results in "no-such-field" errors generating
+    // the field setter for `build` #[allow(...)]: silences warnings from clippy, such as
+    // dead_code etc. #[deny(...)]: enable additional warnings from clippy
     let path = &attr.path;
     path.is_ident("allow") || path.is_ident("deny") || path.is_ident("cfg")
 }
@@ -80,7 +81,7 @@ impl ToTokens for DerivePropsInput {
         } = self;
 
         // The wrapper is a new struct which wraps required props in `Option`
-        let wrapper_name = format_ident!("{}Wrapper", props_name, span = Span::call_site());
+        let wrapper_name = format_ident!("{}Wrapper", props_name, span = Span::mixed_site());
         let wrapper = PropsWrapper::new(
             &wrapper_name,
             generics,
@@ -90,8 +91,8 @@ impl ToTokens for DerivePropsInput {
         tokens.extend(wrapper.into_token_stream());
 
         // The builder will only build if all required props have been set
-        let builder_name = format_ident!("{}Builder", props_name, span = Span::call_site());
-        let builder_step = format_ident!("{}BuilderStep", props_name, span = Span::call_site());
+        let builder_name = format_ident!("{}Builder", props_name, span = Span::mixed_site());
+        let builder_step = format_ident!("{}BuilderStep", props_name, span = Span::mixed_site());
         let builder = PropsBuilder::new(
             &builder_name,
             &builder_step,

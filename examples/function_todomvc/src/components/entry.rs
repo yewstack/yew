@@ -1,8 +1,9 @@
-use crate::hooks::use_bool_toggle::use_bool_toggle;
-use crate::state::Entry as Item;
 use web_sys::{HtmlInputElement, MouseEvent};
 use yew::events::{Event, FocusEvent, KeyboardEvent};
 use yew::prelude::*;
+
+use crate::hooks::use_bool_toggle::use_bool_toggle;
+use crate::state::Entry as Item;
 
 #[derive(PartialEq, Properties, Clone)]
 pub struct EntryProps {

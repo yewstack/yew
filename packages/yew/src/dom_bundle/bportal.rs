@@ -1,16 +1,17 @@
 //! This module contains the bundle implementation of a portal [BPortal].
 
-use super::test_log;
-use super::BNode;
-use crate::dom_bundle::{DomBundle, Reconcilable};
-use crate::html::{AnyScope, NodeRef};
-use crate::virtual_dom::Key;
-use crate::virtual_dom::VPortal;
 use web_sys::Element;
+
+use super::{test_log, BNode, BSubtree};
+use crate::dom_bundle::{Reconcilable, ReconcileTarget};
+use crate::html::{AnyScope, NodeRef};
+use crate::virtual_dom::{Key, VPortal};
 
 /// The bundle implementation to [VPortal].
 #[derive(Debug)]
 pub struct BPortal {
+    // The inner root
+    inner_root: BSubtree,
     /// The element under which the content is inserted.
     host: Element,
     /// The next sibling after the inserted content
@@ -19,15 +20,16 @@ pub struct BPortal {
     node: Box<BNode>,
 }
 
-impl DomBundle for BPortal {
-    fn detach(self, _: &Element, _parent_to_detach: bool) {
-        test_log!("Detaching portal from host{:?}", self.host.outer_html());
-        self.node.detach(&self.host, false);
-        test_log!("Detached portal from host{:?}", self.host.outer_html());
+impl ReconcileTarget for BPortal {
+    fn detach(self, _root: &BSubtree, _parent: &Element, _parent_to_detach: bool) {
+        test_log!("Detaching portal from host",);
+        self.node.detach(&self.inner_root, &self.host, false);
     }
 
-    fn shift(&self, _next_parent: &Element, _next_sibling: NodeRef) {
+    fn shift(&self, _next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
         // portals have nothing in it's original place of DOM, we also do nothing.
+
+        next_sibling
     }
 }
 
@@ -36,8 +38,9 @@ impl Reconcilable for VPortal {
 
     fn attach(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
-        _parent: &Element,
+        parent: &Element,
         host_next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
         let Self {
@@ -45,10 +48,12 @@ impl Reconcilable for VPortal {
             inner_sibling,
             node,
         } = self;
-        let (_, inner) = node.attach(parent_scope, &host, inner_sibling.clone());
+        let inner_root = root.create_subroot(parent.clone(), &host);
+        let (_, inner) = node.attach(&inner_root, parent_scope, &host, inner_sibling.clone());
         (
             host_next_sibling,
             BPortal {
+                inner_root,
                 host,
                 node: Box::new(inner),
                 inner_sibling,
@@ -58,19 +63,23 @@ impl Reconcilable for VPortal {
 
     fn reconcile_node(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
     ) -> NodeRef {
         match bundle {
-            BNode::Portal(portal) => self.reconcile(parent_scope, parent, next_sibling, portal),
-            _ => self.replace(parent_scope, parent, next_sibling, bundle),
+            BNode::Portal(portal) => {
+                self.reconcile(root, parent_scope, parent, next_sibling, portal)
+            }
+            _ => self.replace(root, parent_scope, parent, next_sibling, bundle),
         }
     }
 
     fn reconcile(
         self,
+        _root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
@@ -88,35 +97,39 @@ impl Reconcilable for VPortal {
         if old_host != portal.host || old_inner_sibling != portal.inner_sibling {
             // Remount the inner node somewhere else instead of diffing
             // Move the node, but keep the state
-            portal
-                .node
-                .shift(&portal.host, portal.inner_sibling.clone());
+            let inner_sibling = portal.inner_sibling.clone();
+            portal.node.shift(&portal.host, inner_sibling);
         }
-        node.reconcile_node(parent_scope, parent, next_sibling.clone(), &mut portal.node);
+        node.reconcile_node(
+            &portal.inner_root,
+            parent_scope,
+            parent,
+            next_sibling.clone(),
+            &mut portal.node,
+        );
         next_sibling
     }
 }
 
 impl BPortal {
     /// Get the key of the underlying portal
-    pub(super) fn key(&self) -> Option<&Key> {
+    pub fn key(&self) -> Option<&Key> {
         self.node.key()
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use yew::virtual_dom::VPortal;
+
     use crate::html;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
-    use yew::virtual_dom::VPortal;
 
-    #[cfg(feature = "wasm_test")]
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]

@@ -1,5 +1,6 @@
-use proc_macro_error::emit_error;
 use std::sync::{Arc, Mutex};
+
+use proc_macro_error::emit_error;
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{

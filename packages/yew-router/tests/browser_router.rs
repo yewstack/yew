@@ -1,6 +1,7 @@
+use std::time::Duration;
+
 use gloo::timers::future::sleep;
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::functional::function_component;
 use yew::prelude::*;
@@ -49,13 +50,13 @@ fn no(props: &NoProps) -> Html {
 fn component() -> Html {
     let navigator = use_navigator().unwrap();
 
-    let switch = Switch::render(move |routes| {
+    let switch = move |routes| {
         let navigator_clone = navigator.clone();
         let replace_route = Callback::from(move |_| {
             navigator_clone
                 .replace_with_query(
-                    Routes::No { id: 2 },
-                    Query {
+                    &Routes::No { id: 2 },
+                    &Query {
                         foo: "bar".to_string(),
                     },
                 )
@@ -66,8 +67,8 @@ fn component() -> Html {
         let push_route = Callback::from(move |_| {
             navigator_clone
                 .push_with_query(
-                    Routes::No { id: 3 },
-                    Query {
+                    &Routes::No { id: 3 },
+                    &Query {
                         foo: "baz".to_string(),
                     },
                 )
@@ -83,13 +84,13 @@ fn component() -> Html {
             },
             Routes::No { id } => html! {
                 <>
-                    <No id={*id} />
+                    <No id={id} />
                     <button onclick={push_route}>{"push a route"}</button>
                 </>
             },
             Routes::NotFound => html! { <div id="result">{"404"}</div> },
         }
-    });
+    };
 
     html! {
         <Switch<Routes> render={switch} />
@@ -115,7 +116,8 @@ fn root() -> Html {
 // - 404 redirects
 #[test]
 async fn router_works() {
-    yew::start_app_in_element::<Root>(gloo::utils::document().get_element_by_id("output").unwrap());
+    yew::Renderer::<Root>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .render();
 
     sleep(Duration::ZERO).await;
 

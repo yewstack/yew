@@ -1,5 +1,6 @@
-use rand::prelude::*;
 use std::cmp::min;
+
+use rand::prelude::*;
 use wasm_bindgen::prelude::*;
 use web_sys::window;
 use yew::prelude::*;
@@ -189,8 +190,8 @@ pub struct JumbotronProps {
 pub struct Jumbotron {}
 
 impl Component for Jumbotron {
-    type Properties = JumbotronProps;
     type Message = ();
+    type Properties = JumbotronProps;
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {}
@@ -245,8 +246,8 @@ struct Row {
 }
 
 impl Component for Row {
-    type Properties = RowProps;
     type Message = ();
+    type Properties = RowProps;
 
     fn create(ctx: &Context<Self>) -> Self {
         let id = ctx.props().data.id;

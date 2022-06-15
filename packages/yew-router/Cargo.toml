@@ -11,16 +11,13 @@ description = "A router implementation for the Yew framework"
 repository = "https://github.com/yewstack/yew"
 rust-version = "1.56.0"
 
-[features]
-wasm_test = []
-
 [dependencies]
 yew = { version = "0.19.3", path = "../yew", default-features= false }
 yew-router-macro = { version = "0.16.0", path = "../yew-router-macro" }
 
 wasm-bindgen = "0.2"
 js-sys = "0.3"
-gloo = { version = "0.6", features = ["futures"] }
+gloo = { version = "0.7", features = ["futures"] }
 route-recognizer = "0.3"
 serde = "1"
 serde_urlencoded = "0.7.1"
@@ -36,6 +33,7 @@ features = [
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
 serde = { version = "1", features = ["derive"] }
+yew = { version = "0.19.3", path = "../yew", features = ["csr"] }
 
 [dev-dependencies.web-sys]
 version = "0.3"

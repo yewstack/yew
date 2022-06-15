@@ -1,15 +1,17 @@
 //! This module contains the bundle version of an abstract node [BNode]
 
-use super::{BComp, BList, BPortal, BSuspense, BTag, BText};
-use crate::dom_bundle::{DomBundle, Reconcilable};
-use crate::html::{AnyScope, NodeRef};
-use crate::virtual_dom::{Key, VNode};
-use gloo::console;
 use std::fmt;
+
+use gloo::console;
 use web_sys::{Element, Node};
 
+use super::{BComp, BList, BPortal, BSubtree, BSuspense, BTag, BText};
+use crate::dom_bundle::{Reconcilable, ReconcileTarget};
+use crate::html::{AnyScope, NodeRef};
+use crate::virtual_dom::{Key, VNode};
+
 /// The bundle implementation to [VNode].
-pub enum BNode {
+pub(super) enum BNode {
     /// A bind between `VTag` and `Element`.
     Tag(Box<BTag>),
     /// A bind between `VText` and `TextNode`.
@@ -28,7 +30,7 @@ pub enum BNode {
 
 impl BNode {
     /// Get the key of the underlying node
-    pub(super) fn key(&self) -> Option<&Key> {
+    pub fn key(&self) -> Option<&Key> {
         match self {
             Self::Comp(bsusp) => bsusp.key(),
             Self::List(blist) => blist.key(),
@@ -41,26 +43,26 @@ impl BNode {
     }
 }
 
-impl DomBundle for BNode {
+impl ReconcileTarget for BNode {
     /// Remove VNode from parent.
-    fn detach(self, parent: &Element, parent_to_detach: bool) {
+    fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool) {
         match self {
-            Self::Tag(vtag) => vtag.detach(parent, parent_to_detach),
-            Self::Text(btext) => btext.detach(parent, parent_to_detach),
-            Self::Comp(bsusp) => bsusp.detach(parent, parent_to_detach),
-            Self::List(blist) => blist.detach(parent, parent_to_detach),
+            Self::Tag(vtag) => vtag.detach(root, parent, parent_to_detach),
+            Self::Text(btext) => btext.detach(root, parent, parent_to_detach),
+            Self::Comp(bsusp) => bsusp.detach(root, parent, parent_to_detach),
+            Self::List(blist) => blist.detach(root, parent, parent_to_detach),
             Self::Ref(ref node) => {
                 // Always remove user-defined nodes to clear possible parent references of them
                 if parent.remove_child(node).is_err() {
                     console::warn!("Node not found to remove VRef");
                 }
             }
-            Self::Portal(bportal) => bportal.detach(parent, parent_to_detach),
-            Self::Suspense(bsusp) => bsusp.detach(parent, parent_to_detach),
+            Self::Portal(bportal) => bportal.detach(root, parent, parent_to_detach),
+            Self::Suspense(bsusp) => bsusp.detach(root, parent, parent_to_detach),
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
         match self {
             Self::Tag(ref vtag) => vtag.shift(next_parent, next_sibling),
             Self::Text(ref btext) => btext.shift(next_parent, next_sibling),
@@ -70,6 +72,8 @@ impl DomBundle for BNode {
                 next_parent
                     .insert_before(node, next_sibling.get().as_ref())
                     .unwrap();
+
+                NodeRef::new(node.clone())
             }
             Self::Portal(ref vportal) => vportal.shift(next_parent, next_sibling),
             Self::Suspense(ref vsuspense) => vsuspense.shift(next_parent, next_sibling),
@@ -82,25 +86,26 @@ impl Reconcilable for VNode {
 
     fn attach(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
         match self {
             VNode::VTag(vtag) => {
-                let (node_ref, tag) = vtag.attach(parent_scope, parent, next_sibling);
+                let (node_ref, tag) = vtag.attach(root, parent_scope, parent, next_sibling);
                 (node_ref, tag.into())
             }
             VNode::VText(vtext) => {
-                let (node_ref, text) = vtext.attach(parent_scope, parent, next_sibling);
+                let (node_ref, text) = vtext.attach(root, parent_scope, parent, next_sibling);
                 (node_ref, text.into())
             }
             VNode::VComp(vcomp) => {
-                let (node_ref, comp) = vcomp.attach(parent_scope, parent, next_sibling);
+                let (node_ref, comp) = vcomp.attach(root, parent_scope, parent, next_sibling);
                 (node_ref, comp.into())
             }
             VNode::VList(vlist) => {
-                let (node_ref, list) = vlist.attach(parent_scope, parent, next_sibling);
+                let (node_ref, list) = vlist.attach(root, parent_scope, parent, next_sibling);
                 (node_ref, list.into())
             }
             VNode::VRef(node) => {
@@ -108,11 +113,12 @@ impl Reconcilable for VNode {
                 (NodeRef::new(node.clone()), BNode::Ref(node))
             }
             VNode::VPortal(vportal) => {
-                let (node_ref, portal) = vportal.attach(parent_scope, parent, next_sibling);
+                let (node_ref, portal) = vportal.attach(root, parent_scope, parent, next_sibling);
                 (node_ref, portal.into())
             }
             VNode::VSuspense(vsuspsense) => {
-                let (node_ref, suspsense) = vsuspsense.attach(parent_scope, parent, next_sibling);
+                let (node_ref, suspsense) =
+                    vsuspsense.attach(root, parent_scope, parent, next_sibling);
                 (node_ref, suspsense.into())
             }
         }
@@ -120,31 +126,42 @@ impl Reconcilable for VNode {
 
     fn reconcile_node(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
     ) -> NodeRef {
-        self.reconcile(parent_scope, parent, next_sibling, bundle)
+        self.reconcile(root, parent_scope, parent, next_sibling, bundle)
     }
 
     fn reconcile(
         self,
+        root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
     ) -> NodeRef {
         match self {
-            VNode::VTag(vtag) => vtag.reconcile_node(parent_scope, parent, next_sibling, bundle),
-            VNode::VText(vtext) => vtext.reconcile_node(parent_scope, parent, next_sibling, bundle),
-            VNode::VComp(vcomp) => vcomp.reconcile_node(parent_scope, parent, next_sibling, bundle),
-            VNode::VList(vlist) => vlist.reconcile_node(parent_scope, parent, next_sibling, bundle),
+            VNode::VTag(vtag) => {
+                vtag.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
+            }
+            VNode::VText(vtext) => {
+                vtext.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
+            }
+            VNode::VComp(vcomp) => {
+                vcomp.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
+            }
+            VNode::VList(vlist) => {
+                vlist.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
+            }
             VNode::VRef(node) => {
                 let _existing = match bundle {
                     BNode::Ref(ref n) if &node == n => n,
                     _ => {
                         return VNode::VRef(node).replace(
+                            root,
                             parent_scope,
                             parent,
                             next_sibling,
@@ -155,10 +172,10 @@ impl Reconcilable for VNode {
                 NodeRef::new(node)
             }
             VNode::VPortal(vportal) => {
-                vportal.reconcile_node(parent_scope, parent, next_sibling, bundle)
+                vportal.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
             }
             VNode::VSuspense(vsuspsense) => {
-                vsuspsense.reconcile_node(parent_scope, parent, next_sibling, bundle)
+                vsuspsense.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
             }
         }
     }
@@ -220,15 +237,68 @@ impl fmt::Debug for BNode {
     }
 }
 
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+    use crate::dom_bundle::{Fragment, Hydratable};
+
+    impl Hydratable for VNode {
+        fn hydrate(
+            self,
+            root: &BSubtree,
+            parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut Fragment,
+        ) -> (NodeRef, Self::Bundle) {
+            match self {
+                VNode::VTag(vtag) => {
+                    let (node_ref, tag) = vtag.hydrate(root, parent_scope, parent, fragment);
+                    (node_ref, tag.into())
+                }
+                VNode::VText(vtext) => {
+                    let (node_ref, text) = vtext.hydrate(root, parent_scope, parent, fragment);
+                    (node_ref, text.into())
+                }
+                VNode::VComp(vcomp) => {
+                    let (node_ref, comp) = vcomp.hydrate(root, parent_scope, parent, fragment);
+                    (node_ref, comp.into())
+                }
+                VNode::VList(vlist) => {
+                    let (node_ref, list) = vlist.hydrate(root, parent_scope, parent, fragment);
+                    (node_ref, list.into())
+                }
+                // You cannot hydrate a VRef.
+                VNode::VRef(_) => {
+                    panic!(
+                        "VRef is not hydratable. Try moving it to a component mounted after an \
+                         effect."
+                    )
+                }
+                // You cannot hydrate a VPortal.
+                VNode::VPortal(_) => {
+                    panic!(
+                        "VPortal is not hydratable. Try creating your portal by delaying it with \
+                         use_effect."
+                    )
+                }
+                VNode::VSuspense(vsuspense) => {
+                    let (node_ref, suspense) =
+                        vsuspense.hydrate(root, parent_scope, parent, fragment);
+                    (node_ref, suspense.into())
+                }
+            }
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod layout_tests {
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
     use super::*;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
-    #[cfg(feature = "wasm_test")]
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]

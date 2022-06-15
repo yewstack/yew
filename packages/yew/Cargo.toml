@@ -18,7 +18,7 @@ rust-version = "1.56.0"
 
 [dependencies]
 console_error_panic_hook = "0.1"
-gloo = "0.6"
+gloo = "0.7"
 gloo-utils = "0.1.0"
 indexmap = { version = "1", features = ["std"] }
 js-sys = "0.3"
@@ -29,6 +29,9 @@ thiserror = "1.0"
 
 futures = { version = "0.3", optional = true }
 html-escape = { version = "0.2.9", optional = true }
+base64ct = { version = "1.5.0", features = ["std"], optional = true }
+bincode = { version = "1.3.3", optional = true }
+serde = { version = "1", features = ["derive"] }
 
 [dependencies.web-sys]
 version = "0.3"
@@ -51,14 +54,17 @@ features = [
   "Location",
   "MouseEvent",
   "Node",
+  "NodeList",
   "PointerEvent",
   "ProgressEvent",
+  "ShadowRoot",
   "Text",
   "TouchEvent",
   "TransitionEvent",
   "UiEvent",
   "WheelEvent",
   "Window",
+  "HtmlScriptElement",
 ]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -71,20 +77,30 @@ tokio = { version = "1.15.0", features = ["rt"], optional = true }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
-gloo = { version = "0.6", features = ["futures"] }
+gloo = { version = "0.7", features = ["futures"] }
+gloo-net = { version = "0.2", features = ["http"] }
 wasm-bindgen-futures = "0.4"
 rustversion = "1"
 trybuild = "1"
 
+[dev-dependencies.web-sys]
+version = "0.3"
+features = [
+  "ShadowRootInit",
+  "ShadowRootMode",
+]
+
 [features]
-doc_test = []
-wasm_test = []
-ssr = ["futures", "html-escape"]
+# TODO: `dep:` syntax only supported with MSRV 1.60, would be more precise
+# tokio = ["dep:tokio"]
+ssr = ["futures", "html-escape", "base64ct", "bincode"] # dep:html-escape
+csr = []
+hydration = ["csr", "bincode"]
 default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1.15.0", features = ["full"] }
 
 [package.metadata.docs.rs]
-features = ["doc_test", "ssr"]
+all-features = true
 rustdoc-args = ["--cfg", "documenting"]

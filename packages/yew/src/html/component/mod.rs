@@ -1,52 +1,71 @@
 //! Components wrapped with context including properties, state, and link
 
 mod children;
+#[cfg(any(feature = "csr", feature = "ssr"))]
 mod lifecycle;
+mod marker;
 mod properties;
 mod scope;
 
-use super::{Html, HtmlResult, IntoHtmlResult};
-pub use children::*;
-pub use properties::*;
-pub use scope::{AnyScope, Scope, SendAsMessage};
 use std::rc::Rc;
-#[cfg(debug_assertions)]
-use std::sync::atomic::{AtomicUsize, Ordering};
+
+pub use children::*;
+pub use marker::*;
+pub use properties::*;
+#[cfg(feature = "csr")]
+pub(crate) use scope::Scoped;
+pub use scope::{AnyScope, Scope, SendAsMessage};
+
+use super::{Html, HtmlResult, IntoHtmlResult};
 
 #[cfg(debug_assertions)]
-thread_local! {
-     static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<usize, Vec<String>>>
-        = Default::default();
-    static COMP_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
+#[cfg(any(feature = "csr", feature = "ssr"))]
+mod feat_csr_ssr {
+    use wasm_bindgen::prelude::wasm_bindgen;
+    use wasm_bindgen::JsValue;
+
+    thread_local! {
+         static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<usize, Vec<String>>>
+            = Default::default();
+    }
+
+    /// Push [Component] event to lifecycle debugging registry
+    pub(crate) fn log_event(comp_id: usize, event: impl ToString) {
+        EVENT_HISTORY.with(|h| {
+            h.borrow_mut()
+                .entry(comp_id)
+                .or_default()
+                .push(event.to_string())
+        });
+    }
+
+    /// Get [Component] event log from lifecycle debugging registry
+    #[wasm_bindgen(js_name = "yewGetEventLog")]
+    pub fn _get_event_log(comp_id: usize) -> Option<Vec<JsValue>> {
+        EVENT_HISTORY.with(|h| {
+            Some(
+                h.borrow()
+                    .get(&comp_id)?
+                    .iter()
+                    .map(|l| (*l).clone().into())
+                    .collect(),
+            )
+        })
+    }
 }
 
-/// Push [Component] event to lifecycle debugging registry
-#[cfg(debug_assertions)]
-pub(crate) fn log_event(vcomp_id: usize, event: impl ToString) {
-    EVENT_HISTORY.with(|h| {
-        h.borrow_mut()
-            .entry(vcomp_id)
-            .or_default()
-            .push(event.to_string())
-    });
-}
-
-/// Get [Component] event log from lifecycle debugging registry
-#[cfg(debug_assertions)]
-#[allow(dead_code)]
-pub(crate) fn get_event_log(vcomp_id: usize) -> Vec<String> {
-    EVENT_HISTORY.with(|h| {
-        h.borrow()
-            .get(&vcomp_id)
-            .map(|l| (*l).clone())
-            .unwrap_or_default()
-    })
+#[cfg(feature = "hydration")]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) enum RenderMode {
+    Hydration,
+    Render,
+    #[cfg(feature = "ssr")]
+    Ssr,
 }
 
 #[cfg(debug_assertions)]
-pub(crate) fn next_id() -> usize {
-    COMP_ID_COUNTER.with(|m| m.fetch_add(1, Ordering::Relaxed))
-}
+#[cfg(any(feature = "csr", feature = "ssr"))]
+pub(crate) use feat_csr_ssr::*;
 
 /// The [`Component`]'s context. This contains component's [`Scope`] and and props and
 /// is passed to every lifecycle method.
@@ -54,6 +73,11 @@ pub(crate) fn next_id() -> usize {
 pub struct Context<COMP: BaseComponent> {
     scope: Scope<COMP>,
     props: Rc<COMP::Properties>,
+    #[cfg(feature = "hydration")]
+    creation_mode: RenderMode,
+
+    #[cfg(feature = "hydration")]
+    prepared_state: Option<String>,
 }
 
 impl<COMP: BaseComponent> Context<COMP> {
@@ -68,12 +92,22 @@ impl<COMP: BaseComponent> Context<COMP> {
     pub fn props(&self) -> &COMP::Properties {
         &*self.props
     }
-}
 
-pub(crate) mod sealed {
-    /// A Sealed trait that prevents direct implementation of
-    /// [BaseComponent].
-    pub trait SealedBaseComponent {}
+    #[cfg(feature = "hydration")]
+    pub(crate) fn creation_mode(&self) -> RenderMode {
+        self.creation_mode
+    }
+
+    /// The component's prepared state
+    pub fn prepared_state(&self) -> Option<&str> {
+        #[cfg(not(feature = "hydration"))]
+        let state = None;
+
+        #[cfg(feature = "hydration")]
+        let state = self.prepared_state.as_deref();
+
+        state
+    }
 }
 
 /// The common base of both function components and struct components.
@@ -81,8 +115,18 @@ pub(crate) mod sealed {
 /// If you are taken here by doc links, you might be looking for [`Component`] or
 /// [`#[function_component]`](crate::functional::function_component).
 ///
-/// We provide a blanket implementation of this trait for every member that implements [`Component`].
-pub trait BaseComponent: sealed::SealedBaseComponent + Sized + 'static {
+/// We provide a blanket implementation of this trait for every member that implements
+/// [`Component`].
+///
+/// # Warning
+///
+/// This trait may be subject to heavy changes between versions and is not intended for direct
+/// implementation.
+///
+/// You should used the [`Component`] trait or the
+/// [`#[function_component]`](crate::functional::function_component) macro to define your
+/// components.
+pub trait BaseComponent: Sized + 'static {
     /// The Component's Message.
     type Message: 'static;
 
@@ -106,6 +150,9 @@ pub trait BaseComponent: sealed::SealedBaseComponent + Sized + 'static {
 
     /// Notified before a component is destroyed.
     fn destroy(&mut self, ctx: &Context<Self>);
+
+    /// Prepares the server-side state.
+    fn prepare_state(&self) -> Option<String>;
 }
 
 /// Components are the basic building blocks of the UI in a Yew app. Each Component
@@ -165,6 +212,16 @@ pub trait Component: Sized + 'static {
     #[allow(unused_variables)]
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {}
 
+    /// Prepares the state during server side rendering.
+    ///
+    /// This state will be sent to the client side and is available via `ctx.prepared_state()`.
+    ///
+    /// This method is only called during server-side rendering after the component has been
+    /// rendered.
+    fn prepare_state(&self) -> Option<String> {
+        None
+    }
+
     /// Called right before a Component is unmounted.
     #[allow(unused_variables)]
     fn destroy(&mut self, ctx: &Context<Self>) {}
@@ -175,7 +232,6 @@ where
     T: Sized + Component + 'static,
 {
     type Message = <T as Component>::Message;
-
     type Properties = <T as Component>::Properties;
 
     fn create(ctx: &Context<Self>) -> Self {
@@ -201,26 +257,8 @@ where
     fn destroy(&mut self, ctx: &Context<Self>) {
         Component::destroy(self, ctx)
     }
-}
 
-impl<T> sealed::SealedBaseComponent for T where T: Sized + Component + 'static {}
-
-/// A trait that indicates a type is able to be converted into a component.
-///
-/// You may want to use this trait if you want to accept both function components and struct
-/// components as a generic parameter.
-pub trait IntoComponent {
-    /// The Component's Properties.
-    type Properties: Properties;
-
-    /// The Component Type.
-    type Component: BaseComponent<Properties = Self::Properties> + 'static;
-}
-
-impl<T> IntoComponent for T
-where
-    T: BaseComponent + 'static,
-{
-    type Properties = T::Properties;
-    type Component = T;
+    fn prepare_state(&self) -> Option<String> {
+        Component::prepare_state(self)
+    }
 }

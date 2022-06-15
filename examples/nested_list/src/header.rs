@@ -1,6 +1,7 @@
+use yew::prelude::*;
+
 use super::list::{List, Msg as ListMsg};
 use super::{Hovered, WeakComponentLink};
-use yew::prelude::*;
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct Props {

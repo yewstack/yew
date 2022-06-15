@@ -1,11 +1,17 @@
+use std::collections::HashMap;
+
 use yew::prelude::*;
+use yew::virtual_dom::AttrValue;
+use yew_router::history::{AnyHistory, History, MemoryHistory};
 use yew_router::prelude::*;
 
 use crate::components::nav::Nav;
-use crate::pages::{
-    author::Author, author_list::AuthorList, home::Home, page_not_found::PageNotFound, post::Post,
-    post_list::PostList,
-};
+use crate::pages::author::Author;
+use crate::pages::author_list::AuthorList;
+use crate::pages::home::Home;
+use crate::pages::page_not_found::PageNotFound;
+use crate::pages::post::Post;
+use crate::pages::post_list::PostList;
 
 #[derive(Routable, PartialEq, Clone, Debug)]
 pub enum Route {
@@ -31,7 +37,7 @@ pub fn App() -> Html {
             <Nav />
 
             <main>
-                <Switch<Route> render={Switch::render(switch)} />
+                <Switch<Route> render={switch} />
             </main>
             <footer class="footer">
                 <div class="content has-text-centered">
@@ -47,55 +53,42 @@ pub fn App() -> Html {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-mod arch_native {
-    use super::*;
+#[derive(Properties, PartialEq, Debug)]
+pub struct ServerAppProps {
+    pub url: AttrValue,
+    pub queries: HashMap<String, String>,
+}
 
-    use yew::virtual_dom::AttrValue;
-    use yew_router::history::{AnyHistory, History, MemoryHistory};
+#[function_component]
+pub fn ServerApp(props: &ServerAppProps) -> Html {
+    let history = AnyHistory::from(MemoryHistory::new());
+    history
+        .push_with_query(&*props.url, &props.queries)
+        .unwrap();
 
-    use std::collections::HashMap;
+    html! {
+        <Router history={history}>
+            <Nav />
 
-    #[derive(Properties, PartialEq, Debug)]
-    pub struct ServerAppProps {
-        pub url: AttrValue,
-        pub queries: HashMap<String, String>,
-    }
-
-    #[function_component]
-    pub fn ServerApp(props: &ServerAppProps) -> Html {
-        let history = AnyHistory::from(MemoryHistory::new());
-        history
-            .push_with_query(&*props.url, &props.queries)
-            .unwrap();
-
-        html! {
-            <Router history={history}>
-                <Nav />
-
-                <main>
-                    <Switch<Route> render={Switch::render(switch)} />
-                </main>
-                <footer class="footer">
-                    <div class="content has-text-centered">
-                        { "Powered by " }
-                        <a href="https://yew.rs">{ "Yew" }</a>
-                        { " using " }
-                        <a href="https://bulma.io">{ "Bulma" }</a>
-                        { " and images from " }
-                        <a href="https://unsplash.com">{ "Unsplash" }</a>
-                    </div>
-                </footer>
-            </Router>
-        }
+            <main>
+                <Switch<Route> render={switch} />
+            </main>
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    { "Powered by " }
+                    <a href="https://yew.rs">{ "Yew" }</a>
+                    { " using " }
+                    <a href="https://bulma.io">{ "Bulma" }</a>
+                    { " and images from " }
+                    <a href="https://unsplash.com">{ "Unsplash" }</a>
+                </div>
+            </footer>
+        </Router>
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-pub use arch_native::*;
-
-fn switch(routes: &Route) -> Html {
-    match routes.clone() {
+fn switch(routes: Route) -> Html {
+    match routes {
         Route::Post { id } => {
             html! { <Post seed={id} /> }
         }

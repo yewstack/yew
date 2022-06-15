@@ -18,27 +18,30 @@ error[E0599]: no method named `build` found for struct `PropsBuilder<PropsBuilde
    |
    = note: the method was found for
            - `PropsBuilder<PropsBuilderStepPropsBuilder>`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `Comp<MissingTypeBounds>: IntoComponent` is not satisfied
+error[E0277]: the trait bound `Comp<MissingTypeBounds>: yew::BaseComponent` is not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:27:14
    |
 27 |     html! { <Comp<MissingTypeBounds> /> };
-   |              ^^^^ the trait `IntoComponent` is not implemented for `Comp<MissingTypeBounds>`
+   |              ^^^^ the trait `yew::BaseComponent` is not implemented for `Comp<MissingTypeBounds>`
    |
    = help: the following implementations were found:
-             <Comp<P> as IntoComponent>
+             <Comp<P> as yew::BaseComponent>
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: the function or associated item `new` exists for struct `VChild<Comp<MissingTypeBounds>>`, but its trait bounds were not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:27:14
    |
 8  | #[function_component(Comp)]
-   | --------------------------- doesn't satisfy `Comp<MissingTypeBounds>: IntoComponent`
+   | --------------------------- doesn't satisfy `Comp<MissingTypeBounds>: yew::BaseComponent`
 ...
 27 |     html! { <Comp<MissingTypeBounds> /> };
    |              ^^^^ function or associated item cannot be called on `VChild<Comp<MissingTypeBounds>>` due to unsatisfied trait bounds
    |
    = note: the following trait bounds were not satisfied:
-           `Comp<MissingTypeBounds>: IntoComponent`
+           `Comp<MissingTypeBounds>: yew::BaseComponent`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `MissingTypeBounds: yew::Properties` is not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:27:14
@@ -54,6 +57,7 @@ note: required by a bound in `Comp`
 ...
 11 |     P: Properties + PartialEq,
    |        ^^^^^^^^^^ required by this bound in `Comp`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0107]: missing generics for struct `Comp`
   --> tests/function_component_attr/generic-props-fail.rs:30:14

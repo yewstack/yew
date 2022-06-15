@@ -1,6 +1,6 @@
-use yew::prelude::*;
+#![no_implicit_prelude]
 
-#[hook]
+#[::yew::functional::hook]
 fn use_as_is<'a>(input: &'a ()) -> &'a () {
     input
 }

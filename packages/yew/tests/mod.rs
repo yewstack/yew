@@ -1,8 +1,11 @@
+#![cfg(target_arch = "wasm32")]
+
 mod common;
+
+use std::time::Duration;
 
 use common::obtain_result;
 use gloo::timers::future::sleep;
-use std::time::Duration;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
 
@@ -25,12 +28,13 @@ async fn props_are_passed() {
         }
     }
 
-    yew::start_app_with_props_in_element::<PropsComponent>(
+    yew::Renderer::<PropsComponent>::with_root_and_props(
         gloo_utils::document().get_element_by_id("output").unwrap(),
         PropsPassedFunctionProps {
             value: "props".to_string(),
         },
-    );
+    )
+    .render();
 
     sleep(Duration::ZERO).await;
     let result = obtain_result();

@@ -4,10 +4,9 @@
 use proc_macro_error::emit_warning;
 use syn::spanned::Spanned;
 
+use super::html_element::{HtmlElement, TagName};
+use super::HtmlTree;
 use crate::props::{ElementProps, Prop};
-
-use super::html_element::TagName;
-use super::{html_element::HtmlElement, HtmlTree};
 
 /// Lints HTML elements to check if they are well formed. If the element is not well-formed, then
 /// use `proc-macro-error` (and the `emit_warning!` macro) to produce a warning. At present, these
@@ -100,7 +99,7 @@ impl Lint for ImgAltLint {
                 emit_warning!(
                     quote::quote! {#tag_name}.span(),
                     "All `<img>` tags should have an `alt` attribute which provides a \
-                        human-readable description "
+                     human-readable description "
                 )
             }
         }

@@ -1,6 +1,8 @@
-use crate::components::{author_card::AuthorCard, progress_delay::ProgressDelay};
 use rand::{distributions, Rng};
 use yew::prelude::*;
+
+use crate::components::author_card::AuthorCard;
+use crate::components::progress_delay::ProgressDelay;
 
 /// Amount of milliseconds to wait before showing the next set of authors.
 const CAROUSEL_DELAY_MS: u64 = 15000;

@@ -1,12 +1,13 @@
 ---
-title: "Contexts"
+title: 'Contexts'
 sidebar_label: Contexts
-description: "Using contexts to pass data within application"
+description: 'Using contexts to pass data within application'
 ---
 
-Generally data is passed down the component tree using props but that becomes tedious for values such as 
-user preferences, authentication information etc. Consider the following example which passes down the 
+Generally data is passed down the component tree using props but that becomes tedious for values such as
+user preferences, authentication information etc. Consider the following example which passes down the
 theme using props:
+
 ```rust
 use yew::{html, Children, Component, Context, Html, Properties};
 
@@ -75,7 +76,7 @@ html! {
 };
 ```
 
-Passing down data like this isn't ideal for something like a theme which needs to be available everywhere. 
+Passing down data like this isn't ideal for something like a theme which needs to be available everywhere.
 This is where contexts come in.
 
 Contexts provide a way to share data between components without passing them down explicitly as props.
@@ -85,6 +86,7 @@ They make data available to all components in the tree.
 
 In order to use contexts, we need a struct which defines what data is to be passed.
 For the above use-case, consider the following struct:
+
 ```rust
 #[derive(Clone, Debug, PartialEq)]
 struct Theme {
@@ -131,8 +133,8 @@ impl Component for ContextDemo {
             .expect("context to be set");
         html! {
             <button style={format!(
-                    "background: {}; color: {};", 
-                    theme.background, 
+                    "background: {}; color: {};",
+                    theme.background,
                     theme.foreground
                 )}
             >
@@ -145,5 +147,5 @@ impl Component for ContextDemo {
 
 #### Function components
 
-`use_context` hook is used to consume contexts in function components. 
+`use_context` hook is used to consume contexts in function components.
 See [docs for use_context](function-components/pre-defined-hooks.mdx#use_context) to learn more.

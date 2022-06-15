@@ -9,10 +9,10 @@ members = [
   "packages/yew-router-macro",
 
   # Examples
-  "examples/agents",
   "examples/boids",
   "examples/contexts",
   "examples/counter",
+  "examples/counter_functional",
   "examples/dyn_create_destroy_apps",
   "examples/file_upload",
   "examples/function_memory_game",
@@ -35,12 +35,13 @@ members = [
   "examples/two_apps",
   "examples/webgl",
   "examples/web_worker_fib",
+  "examples/ssr_router",
   "examples/suspense",
 
   # Tools
-  "tools/changelog",
-  "tools/process-benchmark-results",
   "tools/benchmark-struct",
   "tools/benchmark-hooks",
+  "tools/changelog",
+  "tools/process-benchmark-results",
   "tools/website-test",
 ]

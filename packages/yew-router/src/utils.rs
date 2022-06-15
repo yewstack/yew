@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+
 use wasm_bindgen::JsCast;
 
 pub(crate) fn strip_slash_suffix(path: &str) -> &str {
@@ -10,8 +11,8 @@ thread_local! {
     static BASE_URL: RefCell<Option<String>> = RefCell::new(None);
 }
 
-// This exists so we can cache the base url. It costs us a `to_string` call instead of a DOM API call.
-// Considering base urls are generally short, it *should* be less expensive.
+// This exists so we can cache the base url. It costs us a `to_string` call instead of a DOM API
+// call. Considering base urls are generally short, it *should* be less expensive.
 pub fn base_url() -> Option<String> {
     BASE_URL_LOADED.call_once(|| {
         BASE_URL.with(|val| {
@@ -41,6 +42,7 @@ pub fn fetch_base_url() -> Option<String> {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
     gloo::utils::window()
         .location()
@@ -51,6 +53,17 @@ pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
             url.set_search(query);
             format!("{}{}", url.pathname(), url.search())
         })
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
+    let query = query.trim();
+
+    if !query.is_empty() {
+        Some(format!("{}?{}", pathname, query))
+    } else {
+        Some(pathname.to_owned())
+    }
 }
 
 #[cfg(test)]

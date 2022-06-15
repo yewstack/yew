@@ -15,13 +15,13 @@ description: ComponentLink 和 Callbacks.
 
 同时向组件发送多条消息。这与`send_message`类似，但如果任何消息导致`update`方法返回`true` ，则组件将在处理完所有消息后重新渲染。
 
-如果给定的vector为空，则此函数不执行任何操作。
+如果给定的 vector 为空，则此函数不执行任何操作。
 
 ### callback
 
 创建一个回调，该回调将在执行时向组件发送消息。 实际上，它会 将闭包返回的结果传递给`send_message` 。
 
-有一种不同的方法叫做`callback_once` ，它接受`FnOnce`而不是`Fn` 。但是，您应该小心使用它，因为如果这个方法执行多次，其回调将会引发panic。
+有一种不同的方法叫做`callback_once` ，它接受`FnOnce`而不是`Fn` 。但是，您应该小心使用它，因为如果这个方法执行多次，其回调将会引发 panic。
 
 ```rust
 // 创建一个回调来接收文本，并且将文本作为`Msg::Text`消息变量发送给组件。
@@ -49,7 +49,7 @@ cb.emit("Hello World!".to_owned());
 
 ## Callbacks
 
-*（这部分可能会独立成为一小章。）*
+_（这部分可能会独立成为一小章。）_
 
 Callbacks 用于与 Yew 中的 services，agents 和父组件进行通信。它们仅仅是个 `Fn`，并由`Rc` 包裹，这将允许他们被克隆。
 
@@ -84,5 +84,5 @@ html! {
 
 ## 相关例子
 
-- [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
-- [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)
+-   [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
+-   [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)

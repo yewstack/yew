@@ -1,12 +1,14 @@
-use super::generics::GenericArguments;
-use super::should_preserve_attr;
-use proc_macro2::{Ident, Span};
-use quote::{format_ident, quote, quote_spanned};
 use std::cmp::{Ord, Ordering, PartialEq, PartialOrd};
 use std::convert::TryFrom;
+
+use proc_macro2::{Ident, Span};
+use quote::{format_ident, quote, quote_spanned};
 use syn::parse::Result;
 use syn::spanned::Spanned;
 use syn::{Attribute, Error, Expr, Field, Path, Type, TypePath, Visibility};
+
+use super::generics::GenericArguments;
+use super::should_preserve_attr;
 
 #[allow(clippy::large_enum_variant)]
 #[derive(PartialEq, Eq)]
@@ -191,7 +193,7 @@ impl PropField {
             Ok(PropAttr::Option)
         } else {
             let ident = named_field.ident.as_ref().unwrap();
-            let wrapped_name = format_ident!("{}_wrapper", ident, span = Span::call_site());
+            let wrapped_name = format_ident!("{}_wrapper", ident, span = Span::mixed_site());
             Ok(PropAttr::Required { wrapped_name })
         }
     }
