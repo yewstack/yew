@@ -85,6 +85,8 @@ pub mod station;
 pub mod task;
 pub mod worker;
 
+/// A procedural macro to create reactor agents.
+pub use yew_agent_macro::reactor;
 /// A procedural macro to create station agents.
 pub use yew_agent_macro::station;
 
@@ -94,6 +96,5 @@ pub use reach::Reach;
 
 #[doc(hidden)]
 pub mod __vendored {
-    pub use futures;
-    pub use wasm_bindgen_futures;
+    pub use {futures, wasm_bindgen_futures};
 }

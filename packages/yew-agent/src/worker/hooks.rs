@@ -5,7 +5,6 @@ use std::ops::Deref;
 use std::rc::Rc;
 
 use wasm_bindgen::prelude::*;
-
 use yew::prelude::*;
 
 use crate::worker::provider::WorkerProviderState;
@@ -69,7 +68,8 @@ where
 ///
 /// Takes a callback as the argument.
 ///
-/// The callback will be updated on every render to make sure captured values (if any) are up to date.
+/// The callback will be updated on every render to make sure captured values (if any) are up to
+/// date.
 #[hook]
 pub fn use_worker_bridge<T, F>(on_output: F) -> UseWorkerBridgeHandle<T>
 where

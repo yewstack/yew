@@ -7,8 +7,8 @@ use crate::agent_fn::{AgentFn, AgentFnType, AgentName};
 pub struct ReactorFn {}
 
 impl AgentFnType for ReactorFn {
-    type RecvType = (Type, Type);
     type OutputType = ();
+    type RecvType = (Type, Type);
 
     fn attr_name() -> &'static str {
         "reactor"
@@ -17,6 +17,7 @@ impl AgentFnType for ReactorFn {
     fn agent_type_name() -> &'static str {
         "reactor"
     }
+
     fn agent_type_name_plural() -> &'static str {
         "reactors"
     }

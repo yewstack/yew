@@ -66,7 +66,8 @@ where
 ///
 /// Takes a callback as the argument.
 ///
-/// The callback will be updated on every render to make sure captured values (if any) are up to date.
+/// The callback will be updated on every render to make sure captured values (if any) are up to
+/// date.
 #[hook]
 pub fn use_reactor_bridge<R, F>(on_output: F) -> UseReactorBridgeHandle<R>
 where

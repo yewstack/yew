@@ -65,7 +65,8 @@ where
 ///
 /// Takes a callback as the argument.
 ///
-/// The callback will be updated on every render to make sure captured values (if any) are up to date.
+/// The callback will be updated on every render to make sure captured values (if any) are up to
+/// date.
 #[hook]
 pub fn use_station_bridge<S, F>(on_output: F) -> UseStationBridgeHandle<S>
 where
