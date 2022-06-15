@@ -7,6 +7,7 @@ use wasm_bindgen_futures::spawn_local;
 use super::messages::{BridgeInput, BridgeOutput};
 use super::recv::{IoPair, StationReceivable};
 use super::Station;
+use crate::reactor::{ReactorReceivable, ReactorReceiver, ReactorSendable, ReactorSender};
 use crate::worker::{HandlerId, Worker, WorkerScope};
 
 pub(crate) enum StationWorkerMsg {
@@ -17,7 +18,6 @@ pub(crate) struct StationWorker<S>
 where
     S: 'static + Station,
 {
-    link: WorkerScope<Self>,
     senders: HashMap<HandlerId, mpsc::UnboundedSender<<S::Receiver as StationReceivable>::Input>>,
     tx: mpsc::UnboundedSender<IoPair<S::Receiver>>,
     closing: bool,
@@ -28,14 +28,14 @@ where
     S: 'static + Station,
 {
     type Input = BridgeInput<<S::Receiver as StationReceivable>::Input>;
-    type Output = BridgeOutput<<S::Receiver as StationReceivable>::Output>;
     type Message = StationWorkerMsg;
+    type Output = BridgeOutput<<S::Receiver as StationReceivable>::Output>;
 
-    fn create(link: WorkerScope<Self>) -> Self {
+    fn create(scope: &WorkerScope<Self>) -> Self {
         let (tx, rx) = mpsc::unbounded();
 
         {
-            link.send_future(async move {
+            scope.send_future(async move {
                 let receiver = S::Receiver::new(rx);
 
                 S::run(receiver).await;
@@ -45,23 +45,22 @@ where
         }
 
         Self {
-            link,
             senders: HashMap::new(),
             tx,
             closing: false,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) {
+    fn update(&mut self, scope: &WorkerScope<Self>, msg: Self::Message) {
         match msg {
             Self::Message::StationExited => {
                 assert!(self.closing, "station agent closed before it should do so");
-                self.link.close();
+                scope.close();
             }
         }
     }
 
-    fn received(&mut self, input: Self::Input, id: HandlerId) {
+    fn received(&mut self, scope: &WorkerScope<Self>, input: Self::Input, id: HandlerId) {
         match input {
             // We don't expose any bridge unless they send start message.
             Self::Input::Start => {
@@ -73,7 +72,7 @@ where
 
                 let sender = {
                     let (tx, mut rx) = mpsc::unbounded();
-                    let link = self.link.clone();
+                    let link = scope.clone();
 
                     spawn_local(async move {
                         while let Some(m) = rx.next().await {
@@ -86,7 +85,7 @@ where
                 };
 
                 self.tx
-                    .unbounded_send((sender, receiver))
+                    .unbounded_send((ReactorSender::new(sender), ReactorReceiver::new(receiver)))
                     .expect("attempting to connect after destory!");
             }
 
@@ -98,11 +97,11 @@ where
         }
     }
 
-    fn disconnected(&mut self, id: HandlerId) {
+    fn disconnected(&mut self, _scope: &WorkerScope<Self>, id: HandlerId) {
         self.senders.remove(&id);
     }
 
-    fn destroy(&mut self) -> bool {
+    fn destroy(&mut self, _scope: &WorkerScope<Self>) -> bool {
         self.tx.close_channel();
         self.closing = true;
 

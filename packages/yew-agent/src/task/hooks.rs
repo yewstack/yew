@@ -3,13 +3,12 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use yew::prelude::*;
-use yew::suspense::{Suspension, SuspensionResult};
-
 use futures::channel::oneshot;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::throw_str;
 use wasm_bindgen_futures::spawn_local;
+use yew::prelude::*;
+use yew::suspense::{Suspension, SuspensionResult};
 
 use super::traits::{Task, TaskWorker};
 use crate::worker::{use_worker_bridge, UseWorkerBridgeHandle};

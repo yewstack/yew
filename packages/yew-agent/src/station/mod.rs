@@ -7,7 +7,7 @@
 //! The station receiver is a stream that produces output sender - input receiver pairs. Each pair
 //! will be connected to a bridge. When the bridge disconnects, the output receiver will be closed.
 //!
-//! When a station receives a destroy message, the station receiver will be closed.
+//! When all bridges connected to a station is dropped, the station receiver will be closed.
 //!
 //! # Example
 //!

@@ -1,10 +1,10 @@
-use pin_project::pin_project;
 use std::pin::Pin;
 
 use futures::channel::mpsc;
 use futures::channel::mpsc::TrySendError;
 use futures::stream::{FusedStream, Stream};
 use futures::task::{Context, Poll};
+use pin_project::pin_project;
 use serde::{Deserialize, Serialize};
 
 /// A receiver for reactors.
@@ -23,6 +23,7 @@ where
     I: Serialize + for<'de> Deserialize<'de>,
 {
     type Item = I;
+
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.project();
         this.rx.poll_next(cx)
@@ -49,6 +50,9 @@ pub trait ReactorReceivable {
 
     /// Creates a ReactorReceiver.
     fn new(rx: mpsc::UnboundedReceiver<Self::Input>) -> Self;
+
+    /// Creates a ReactorReceiver from an existing ReactorReceiver.
+    fn transmute(rx: ReactorReceiver<Self::Input>) -> Self;
 }
 
 impl<I> ReactorReceivable for ReactorReceiver<I>
@@ -59,6 +63,10 @@ where
 
     fn new(rx: mpsc::UnboundedReceiver<I>) -> Self {
         Self { rx }
+    }
+
+    fn transmute(rx: ReactorReceiver<Self::Input>) -> Self {
+        Self { rx: rx.rx }
     }
 }
 
@@ -97,8 +105,11 @@ pub trait ReactorSendable {
     /// The output message type.
     type Output: Serialize + for<'de> Deserialize<'de>;
 
-    /// Creates a ReactorReceiver.
+    /// Creates a ReactorSender.
     fn new(tx: mpsc::UnboundedSender<Self::Output>) -> Self;
+
+    /// Creates a ReactorSender from an existing ReactorSender.
+    fn transmute(tx: ReactorSender<Self::Output>) -> Self;
 }
 
 impl<O> ReactorSendable for ReactorSender<O>
@@ -109,5 +120,9 @@ where
 
     fn new(tx: mpsc::UnboundedSender<O>) -> Self {
         Self { tx }
+    }
+
+    fn transmute(tx: ReactorSender<Self::Output>) -> Self {
+        Self { tx: tx.tx }
     }
 }

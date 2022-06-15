@@ -1,6 +1,5 @@
 use futures::channel::oneshot;
-use futures::future::join_all;
-use futures::future::LocalBoxFuture;
+use futures::future::{join_all, LocalBoxFuture};
 use futures::stream::StreamExt;
 use wasm_bindgen_futures::spawn_local;
 
@@ -31,11 +30,10 @@ pub(crate) async fn reactor_station<R>(
     let mut futures = Vec::new();
 
     while let Some((tx, rx)) = rx.next().await {
-        let (tx, rx) = (R::Sender::new(tx), R::Receiver::new(rx));
         let (on_finish, notify_finished) = oneshot::channel();
 
         spawn_local(async move {
-            R::run(tx, rx).await;
+            R::run(R::Sender::transmute(tx), R::Receiver::transmute(rx)).await;
             let _result = on_finish.send(());
         });
 

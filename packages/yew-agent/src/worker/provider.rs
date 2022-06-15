@@ -23,7 +23,7 @@ pub struct WorkerProviderProps {
     ///
     /// The agent will be spawned when the first time a hook requests a bridge.
     ///
-    /// Does not effect private agents.
+    /// Does not affect private agents.
     ///
     /// Default: `true`
     #[prop_or(true)]
@@ -49,7 +49,7 @@ impl<W> WorkerProviderState<W>
 where
     W: Worker,
 {
-    /// Creates a bridge, uses "fork" for public
+    /// Creates a bridge, uses "fork" for public agents.
     pub fn create_bridge<F>(&self, cb: F) -> WorkerBridge<W>
     where
         F: 'static + Fn(W::Output),

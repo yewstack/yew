@@ -6,9 +6,11 @@ use futures::task::{Context, Poll};
 use pin_project::pin_project;
 use serde::{Deserialize, Serialize};
 
+use crate::reactor::{ReactorReceiver, ReactorSender};
+
 pub(crate) type IoPair<R> = (
-    mpsc::UnboundedSender<<R as StationReceivable>::Output>,
-    mpsc::UnboundedReceiver<<R as StationReceivable>::Input>,
+    ReactorSender<<R as StationReceivable>::Output>,
+    ReactorReceiver<<R as StationReceivable>::Input>,
 );
 
 /// A receiver for stations.
@@ -29,6 +31,7 @@ where
     O: Serialize + for<'de> Deserialize<'de>,
 {
     type Item = IoPair<Self>;
+
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.project();
         this.rx.poll_next(cx)

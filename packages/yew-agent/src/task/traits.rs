@@ -23,7 +23,6 @@ where
     T: 'static + Task,
 {
     _marker: PhantomData<T>,
-    link: WorkerScope<Self>,
 }
 
 impl<T> Worker for TaskWorker<T>
@@ -31,26 +30,25 @@ where
     T: 'static + Task,
 {
     type Input = (usize, T::Input);
-    type Output = (usize, T::Output);
     type Message = ();
+    type Output = (usize, T::Output);
 
-    fn create(link: WorkerScope<Self>) -> Self {
+    fn create(_scope: &WorkerScope<Self>) -> Self {
         Self {
             _marker: PhantomData,
-            link,
         }
     }
 
-    fn update(&mut self, _msg: Self::Message) {}
+    fn update(&mut self, _scope: &WorkerScope<Self>, _msg: Self::Message) {}
 
-    fn received(&mut self, input: Self::Input, handler_id: HandlerId) {
+    fn received(&mut self, scope: &WorkerScope<Self>, input: Self::Input, handler_id: HandlerId) {
         let task_id = input.0;
 
         let respond = {
-            let link = self.link.clone();
+            let scope = scope.clone();
 
             Box::new(move |output| {
-                link.respond(handler_id, (task_id, output));
+                scope.respond(handler_id, (task_id, output));
             })
         };
 
