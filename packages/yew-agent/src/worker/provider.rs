@@ -4,7 +4,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use yew::prelude::*;
 
-use super::{Spawnable, Worker, WorkerBridge};
+use super::{Bincode, Codec, Spawnable, Worker, WorkerBridge};
 use crate::reach::Reach;
 
 /// Properties for [WorkerProvider].
@@ -104,9 +104,10 @@ static CTR: AtomicUsize = AtomicUsize::new(0);
 ///
 /// This component provides its children access to an worker agent.
 #[function_component]
-pub fn WorkerProvider<W>(props: &WorkerProviderProps) -> Html
+pub fn WorkerProvider<W, CODEC = Bincode>(props: &WorkerProviderProps) -> Html
 where
     W: Worker,
+    CODEC: Codec,
 {
     let WorkerProviderProps {
         children,
@@ -120,7 +121,9 @@ where
             let ctr = CTR.fetch_add(1, Ordering::SeqCst);
 
             let held_bridge = if props.reach == Reach::Public && !props.lazy {
-                Rc::new(RefCell::new(Some(W::spawner().spawn(&props.path))))
+                Rc::new(RefCell::new(Some(
+                    W::spawner().encoding::<CODEC>().spawn(&props.path),
+                )))
             } else {
                 Rc::default()
             };

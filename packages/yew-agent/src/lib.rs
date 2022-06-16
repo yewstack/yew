@@ -23,7 +23,7 @@
 //!
 //! ### Private
 //!
-//! Each time a bridge is created with the `use_bridge`, a new instance
+//! Each time a bridge is created, a new instance
 //! of agent is spawned. This allows parallel computing between agents.
 //!
 //! ### Public

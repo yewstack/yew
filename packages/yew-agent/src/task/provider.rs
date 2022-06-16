@@ -1,13 +1,14 @@
 use yew::prelude::*;
 
 use super::traits::{Task, TaskWorker};
-use crate::worker::{WorkerProvider, WorkerProviderProps};
+use crate::worker::{Bincode, Codec, WorkerProvider, WorkerProviderProps};
 
 /// The task provider.
 #[function_component]
-pub fn TaskProvider<T>(props: &WorkerProviderProps) -> Html
+pub fn TaskProvider<T, CODEC = Bincode>(props: &WorkerProviderProps) -> Html
 where
     T: 'static + Task,
+    CODEC: Codec + 'static,
 {
     let WorkerProviderProps {
         children,
@@ -17,8 +18,8 @@ where
     } = props.clone();
 
     html! {
-        <WorkerProvider<TaskWorker<T>> {lazy} {path} {reach}>
+        <WorkerProvider<TaskWorker<T>, CODEC> {lazy} {path} {reach}>
             {children}
-        </WorkerProvider<TaskWorker<T>>>
+        </WorkerProvider<TaskWorker<T>, CODEC>>
     }
 }

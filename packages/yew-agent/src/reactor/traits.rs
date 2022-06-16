@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt;
 
 use futures::channel::mpsc;
 use futures::future::LocalBoxFuture;
@@ -7,7 +8,10 @@ use wasm_bindgen_futures::spawn_local;
 
 use super::messages::{BridgeInput, BridgeOutput};
 use super::tx_rx::{ReactorReceivable, ReactorSendable};
-use crate::worker::{HandlerId, Worker, WorkerDestroyHandle, WorkerScope};
+use crate::worker::{
+    Bincode, Codec, HandlerId, Registrable, Worker, WorkerDestroyHandle, WorkerRegistrar,
+    WorkerScope,
+};
 
 /// A reactor agent.
 pub trait Reactor {
@@ -18,6 +22,56 @@ pub trait Reactor {
 
     /// Runs a reactor agent.
     fn run(tx: Self::Sender, rx: Self::Receiver) -> LocalBoxFuture<'static, ()>;
+
+    /// Creates a registrar for the current reactor agent.
+    fn registrar() -> ReactorRegistrar<Self>
+    where
+        Self: Sized,
+    {
+        ReactorRegistrar {
+            inner: ReactorWorker::<Self>::registrar(),
+        }
+    }
+}
+
+/// A registrar for reactor agents.
+pub struct ReactorRegistrar<R, CODEC = Bincode>
+where
+    R: Reactor + 'static,
+    CODEC: Codec + 'static,
+{
+    inner: WorkerRegistrar<ReactorWorker<R>, CODEC>,
+}
+
+impl<R, CODEC> ReactorRegistrar<R, CODEC>
+where
+    R: Reactor + 'static,
+    CODEC: Codec + 'static,
+{
+    /// Sets the encoding.
+    pub fn encoding<C>(&self) -> ReactorRegistrar<R, C>
+    where
+        C: Codec + 'static,
+    {
+        ReactorRegistrar {
+            inner: self.inner.encoding::<C>(),
+        }
+    }
+
+    /// Registers the agent.
+    pub fn register(&self) {
+        self.inner.register()
+    }
+}
+
+impl<R, CODEC> fmt::Debug for ReactorRegistrar<R, CODEC>
+where
+    R: Reactor + 'static,
+    CODEC: Codec + 'static,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ReactorRegistrar<_>").finish()
+    }
 }
 
 pub(crate) enum ReactorWorkerMsg {

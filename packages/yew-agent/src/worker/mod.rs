@@ -7,7 +7,8 @@ mod provider;
 
 #[doc(inline)]
 pub use gloo_worker::{
-    HandlerId, Spawnable, Worker, WorkerBridge, WorkerDestroyHandle, WorkerScope, WorkerSpawner,
+    Bincode, Codec, HandlerId, Registrable, Spawnable, Worker, WorkerBridge, WorkerDestroyHandle,
+    WorkerRegistrar, WorkerScope, WorkerSpawner,
 };
 pub use hooks::{
     use_worker_bridge, use_worker_subscription, UseWorkerBridgeHandle, UseWorkerSubscriptionHandle,

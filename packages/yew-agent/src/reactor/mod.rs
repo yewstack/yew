@@ -47,5 +47,5 @@ pub use hooks::{
 };
 pub use messages::BridgeOutput;
 pub use provider::ReactorProvider;
-pub use traits::Reactor;
+pub use traits::{Reactor, ReactorRegistrar};
 pub use tx_rx::{ReactorReceivable, ReactorReceiver, ReactorSendable, ReactorSender};

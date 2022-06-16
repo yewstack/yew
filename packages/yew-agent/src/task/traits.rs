@@ -1,15 +1,19 @@
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
+use std::fmt;
 use std::marker::PhantomData;
 
 use futures::future::LocalBoxFuture;
 use serde::{Deserialize, Serialize};
 
-use crate::worker::{HandlerId, Worker, WorkerDestroyHandle, WorkerScope};
+use crate::worker::{
+    Bincode, Codec, HandlerId, Registrable, Worker, WorkerDestroyHandle, WorkerRegistrar,
+    WorkerScope,
+};
 
 /// A task agent.
 ///
-/// For this kind of agent, each input will receive 1 response.
+/// For this kind of agent, each input will receive 1 output.
 pub trait Task: Sized {
     /// The Input Message.
     type Input: Serialize + for<'de> Deserialize<'de>;
@@ -18,6 +22,56 @@ pub trait Task: Sized {
 
     /// Runs a task.
     fn run(input: Self::Input) -> LocalBoxFuture<'static, Self::Output>;
+
+    /// Creates a registrar for the current task agent.
+    fn registrar() -> TaskRegistrar<Self>
+    where
+        Self: Sized,
+    {
+        TaskRegistrar {
+            inner: TaskWorker::<Self>::registrar(),
+        }
+    }
+}
+
+/// A registrar for task agents.
+pub struct TaskRegistrar<T, CODEC = Bincode>
+where
+    T: Task + 'static,
+    CODEC: Codec + 'static,
+{
+    inner: WorkerRegistrar<TaskWorker<T>, CODEC>,
+}
+
+impl<T, CODEC> TaskRegistrar<T, CODEC>
+where
+    T: Task + 'static,
+    CODEC: Codec + 'static,
+{
+    /// Sets the encoding.
+    pub fn encoding<C>(&self) -> TaskRegistrar<T, C>
+    where
+        C: Codec + 'static,
+    {
+        TaskRegistrar {
+            inner: self.inner.encoding::<C>(),
+        }
+    }
+
+    /// Registers the agent.
+    pub fn register(&self) {
+        self.inner.register()
+    }
+}
+
+impl<T, CODEC> fmt::Debug for TaskRegistrar<T, CODEC>
+where
+    T: Task + 'static,
+    CODEC: Codec + 'static,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("TaskRegistrar<_>").finish()
+    }
 }
 
 pub(crate) enum TaskWorkerMsg<T>

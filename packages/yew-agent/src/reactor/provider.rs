@@ -1,13 +1,14 @@
 use yew::prelude::*;
 
 use super::traits::{Reactor, ReactorWorker};
-use crate::worker::{WorkerProvider, WorkerProviderProps};
+use crate::worker::{Bincode, Codec, WorkerProvider, WorkerProviderProps};
 
 /// The reactor provider.
 #[function_component]
-pub fn ReactorProvider<R>(props: &WorkerProviderProps) -> Html
+pub fn ReactorProvider<R, CODEC = Bincode>(props: &WorkerProviderProps) -> Html
 where
     R: 'static + Reactor,
+    CODEC: Codec + 'static,
 {
     let WorkerProviderProps {
         children,
@@ -17,8 +18,8 @@ where
     } = props.clone();
 
     html! {
-        <WorkerProvider<ReactorWorker<R>> {lazy} {path} {reach}>
+        <WorkerProvider<ReactorWorker<R>, CODEC> {lazy} {path} {reach}>
             {children}
-        </WorkerProvider<ReactorWorker<R>>>
+        </WorkerProvider<ReactorWorker<R>, CODEC>>
     }
 }
