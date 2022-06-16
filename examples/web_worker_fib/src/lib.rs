@@ -8,13 +8,13 @@ use web_sys::HtmlInputElement;
 use yew::prelude::*;
 use yew_agent::task::{use_task, TaskProvider};
 
-use crate::agent::FibonacciAgent;
+use crate::agent::FibonacciTask;
 
 #[function_component]
 fn Main() -> Html {
     let input_value = use_state_eq(|| 44);
     let output = use_state(|| "Try out some fibonacci calculations!".to_string());
-    let fib_agent = use_task::<FibonacciAgent>();
+    let fib_task = use_task::<FibonacciTask>();
 
     let clicker_value = use_state_eq(|| 0);
 
@@ -22,7 +22,7 @@ fn Main() -> Html {
         let input_value = *input_value;
         let output = output.clone();
         move |_e: MouseEvent| {
-            let fib_agent = fib_agent.clone();
+            let fib_agent = fib_task.clone();
             let output = output.clone();
 
             spawn_local(async move {
@@ -73,8 +73,8 @@ fn Main() -> Html {
 #[function_component]
 pub fn App() -> Html {
     html! {
-        <TaskProvider<FibonacciAgent> path="/worker.js">
+        <TaskProvider<FibonacciTask> path="/worker.js">
             <Main />
-        </TaskProvider<FibonacciAgent>>
+        </TaskProvider<FibonacciTask>>
     }
 }

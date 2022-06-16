@@ -1,6 +1,6 @@
 use yew_agent::task::Task;
-use yew_worker_fib::agent::FibonacciAgent;
+use yew_worker_fib::agent::FibonacciTask;
 
 fn main() {
-    FibonacciAgent::registrar().register();
+    FibonacciTask::registrar().register();
 }
