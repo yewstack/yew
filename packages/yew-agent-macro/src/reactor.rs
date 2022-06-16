@@ -103,6 +103,14 @@ pub fn reactor_impl(name: AgentName, mut agent_fn: AgentFn<ReactorFn>) -> syn::R
                 )
             }
         }
+
+        impl #impl_generics ::yew_agent::Registrable for #reactor_name #ty_generics #where_clause {
+            type Registrar = ::yew_agent::reactor::ReactorRegistrar<Self>;
+
+            fn registrar() -> Self::Registrar {
+                ::yew_agent::reactor::ReactorRegistrar::<Self>::new()
+            }
+        }
     };
 
     Ok(quoted)

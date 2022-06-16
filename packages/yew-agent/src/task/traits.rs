@@ -5,10 +5,8 @@ use std::marker::PhantomData;
 use futures::future::LocalBoxFuture;
 use serde::{Deserialize, Serialize};
 
-use crate::worker::{
-    Bincode, Codec, HandlerId, Registrable, Worker, WorkerDestroyHandle, WorkerRegistrar,
-    WorkerScope,
-};
+use crate::worker::{HandlerId, Worker, WorkerDestroyHandle, WorkerRegistrar, WorkerScope};
+use crate::{Bincode, Codec, Registrable};
 
 /// A task agent.
 ///
@@ -21,16 +19,6 @@ pub trait Task: Sized {
 
     /// Runs a task.
     fn run(input: Self::Input) -> LocalBoxFuture<'static, Self::Output>;
-
-    /// Creates a registrar for the current task agent.
-    fn registrar() -> TaskRegistrar<Self>
-    where
-        Self: Sized,
-    {
-        TaskRegistrar {
-            inner: TaskWorker::<Self>::registrar(),
-        }
-    }
 }
 
 /// A registrar for task agents.
@@ -47,6 +35,13 @@ where
     T: Task + 'static,
     CODEC: Codec + 'static,
 {
+    /// Creates a new Task Registrar.
+    pub fn new() -> TaskRegistrar<T> {
+        TaskRegistrar {
+            inner: TaskWorker::<T>::registrar(),
+        }
+    }
+
     /// Sets the encoding.
     pub fn encoding<C>(&self) -> TaskRegistrar<T, C>
     where

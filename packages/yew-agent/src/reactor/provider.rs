@@ -1,7 +1,8 @@
 use yew::prelude::*;
 
 use super::traits::{Reactor, ReactorWorker};
-use crate::worker::{Bincode, Codec, WorkerProvider, WorkerProviderProps};
+use crate::worker::{WorkerProvider, WorkerProviderProps};
+use crate::{Bincode, Codec};
 
 /// The reactor provider.
 #[function_component]

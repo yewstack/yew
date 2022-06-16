@@ -8,10 +8,8 @@ use wasm_bindgen_futures::spawn_local;
 
 use super::messages::{BridgeInput, BridgeOutput};
 use super::tx_rx::{ReactorReceivable, ReactorSendable};
-use crate::worker::{
-    Bincode, Codec, HandlerId, Registrable, Worker, WorkerDestroyHandle, WorkerRegistrar,
-    WorkerScope,
-};
+use crate::worker::{HandlerId, Worker, WorkerDestroyHandle, WorkerRegistrar, WorkerScope};
+use crate::{Bincode, Codec, Registrable};
 
 /// A reactor agent.
 pub trait Reactor {
@@ -22,16 +20,6 @@ pub trait Reactor {
 
     /// Runs a reactor agent.
     fn run(tx: Self::Sender, rx: Self::Receiver) -> LocalBoxFuture<'static, ()>;
-
-    /// Creates a registrar for the current reactor agent.
-    fn registrar() -> ReactorRegistrar<Self>
-    where
-        Self: Sized,
-    {
-        ReactorRegistrar {
-            inner: ReactorWorker::<Self>::registrar(),
-        }
-    }
 }
 
 /// A registrar for reactor agents.
@@ -48,6 +36,13 @@ where
     R: Reactor + 'static,
     CODEC: Codec + 'static,
 {
+    /// Creates a new Reactor Registrar.
+    pub fn new() -> ReactorRegistrar<R> {
+        ReactorRegistrar {
+            inner: ReactorWorker::<R>::registrar(),
+        }
+    }
+
     /// Sets the encoding.
     pub fn encoding<C>(&self) -> ReactorRegistrar<R, C>
     where

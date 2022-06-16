@@ -95,6 +95,14 @@ pub fn task_impl(name: AgentName, mut agent_fn: AgentFn<TaskFn>) -> syn::Result<
                 )
             }
         }
+
+        impl #impl_generics ::yew_agent::Registrable for #task_name #ty_generics #where_clause {
+            type Registrar = ::yew_agent::task::TaskRegistrar<Self>;
+
+            fn registrar() -> Self::Registrar {
+                ::yew_agent::task::TaskRegistrar::<Self>::new()
+            }
+        }
     };
 
     Ok(quoted)

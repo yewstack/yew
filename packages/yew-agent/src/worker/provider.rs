@@ -4,8 +4,9 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use yew::prelude::*;
 
-use super::{Bincode, Codec, Spawnable, Worker, WorkerBridge};
+use super::{Worker, WorkerBridge};
 use crate::reach::Reach;
+use crate::{Bincode, Codec, Spawnable};
 
 /// Properties for [WorkerProvider].
 #[derive(Debug, Properties, PartialEq, Clone)]

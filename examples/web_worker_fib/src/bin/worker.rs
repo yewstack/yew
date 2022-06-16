@@ -1,4 +1,4 @@
-use yew_agent::task::Task;
+use yew_agent::Registrable;
 use yew_worker_fib::agent::FibonacciTask;
 
 fn main() {

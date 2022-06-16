@@ -78,6 +78,8 @@ pub mod reactor;
 pub mod task;
 pub mod worker;
 
+#[doc(inline)]
+pub use gloo_worker::{Bincode, Codec, Registrable, Spawnable};
 /// A procedural macro to create reactor agents.
 pub use yew_agent_macro::reactor;
 /// A procedural macro to create task agents.
