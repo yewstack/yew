@@ -37,6 +37,11 @@ where
 /// use yew::prelude::*;
 /// use yew_agent::use_bridge;
 ///
+/// // This would usually live in the same file as your worker
+/// enum WorkerResponseType {
+///     IncrementCounter,
+/// };
+///
 /// #[function_component(UseBridge)]
 /// fn bridge() -> Html {
 ///     let counter = use_state(|| 0);
