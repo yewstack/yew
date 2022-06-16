@@ -74,7 +74,7 @@ pub struct Context<COMP: BaseComponent> {
     scope: Scope<COMP>,
     props: Rc<COMP::Properties>,
     #[cfg(feature = "hydration")]
-    mode: RenderMode,
+    creation_mode: RenderMode,
 
     #[cfg(feature = "hydration")]
     prepared_state: Option<String>,
@@ -94,8 +94,8 @@ impl<COMP: BaseComponent> Context<COMP> {
     }
 
     #[cfg(feature = "hydration")]
-    pub(crate) fn mode(&self) -> RenderMode {
-        self.mode
+    pub(crate) fn creation_mode(&self) -> RenderMode {
+        self.creation_mode
     }
 
     /// The component's prepared state
