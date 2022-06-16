@@ -4,34 +4,34 @@
 //!
 //! There're a couple kinds of agents:
 //!
-//! ### Task
+//! #### Task
 //!
 //! A kind of agent that for each input, a single output is expected.
 //!
-//! ### Reactor
+//! #### Reactor
 //!
 //! A kind of agent that can send many inputs and receive many outputs over a single bridge.
 //!
-//! ### Worker
+//! #### Worker
 //!
 //! The low-level implementation of agents that provides an actor model and communicates with
-//! bridges.
+//! multiple bridges.
 //!
 //! ## Reachability
 //!
 //! When an agent is spawned, each agent is associated with a reachability.
 //!
-//! ### Private
+//! #### Private
 //!
 //! Each time a bridge is created, a new instance
 //! of agent is spawned. This allows parallel computing between agents.
 //!
-//! ### Public
+//! #### Public
 //!
-//! Public agents are shared among all children of a [WorkerProvider].
+//! Public agents are shared among all children of a provider.
 //! Only 1 instance will be spawned for each public agents provider.
 //!
-//! ## Provider
+//! ### Provider
 //!
 //! Each Agent requires a provider to provide communications and maintain bridges.
 //! All hooks must be called within a provider.
@@ -40,7 +40,7 @@
 //!
 //! Hooks provides means to communicate with agent instances.
 //!
-//! ### Bridge
+//! #### Bridge
 //!
 //! See: [`use_worker_bridge`](worker::use_worker_bridge),
 //! [`use_reactor_bridge`](reactor::use_reactor_bridge)
@@ -48,7 +48,7 @@
 //! A bridge takes a callback to receive outputs from agents
 //! and provides a handle to send inputs to agents.
 //!
-//! ### Subscription
+//! #### Subscription
 //!
 //! See: [`use_worker_subscription`](worker::use_worker_subscription),
 //! [`use_reactor_subscription`](reactor::use_reactor_subscription)
@@ -56,7 +56,7 @@
 //! Similar to bridges, a subscription produces a handle to send inputs to agents. However, instead
 //! of notifying the receiver with a callback, it collect all outputs into a slice.
 //!
-//! ### Task
+//! #### Task
 //!
 //! See: [`use_task`](task::use_task), [`use_memorized_task`](task::use_memorized_task)
 //!

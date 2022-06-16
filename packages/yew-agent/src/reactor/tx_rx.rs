@@ -1,7 +1,8 @@
 use std::pin::Pin;
 
 use futures::channel::mpsc;
-use futures::channel::mpsc::TrySendError;
+use futures::channel::mpsc::{SendError, TrySendError};
+use futures::sink::Sink;
 use futures::stream::{FusedStream, Stream};
 use futures::task::{Context, Poll};
 use pin_project::pin_project;
@@ -50,9 +51,6 @@ pub trait ReactorReceivable {
 
     /// Creates a ReactorReceiver.
     fn new(rx: mpsc::UnboundedReceiver<Self::Input>) -> Self;
-
-    /// Creates a ReactorReceiver from an existing ReactorReceiver.
-    fn transmute(rx: ReactorReceiver<Self::Input>) -> Self;
 }
 
 impl<I> ReactorReceivable for ReactorReceiver<I>
@@ -63,10 +61,6 @@ where
 
     fn new(rx: mpsc::UnboundedReceiver<I>) -> Self {
         Self { rx }
-    }
-
-    fn transmute(rx: ReactorReceiver<Self::Input>) -> Self {
-        Self { rx: rx.rx }
     }
 }
 
@@ -100,6 +94,29 @@ where
     }
 }
 
+impl<O> Sink<O> for &'_ ReactorSender<O>
+where
+    O: Serialize + for<'de> Deserialize<'de>,
+{
+    type Error = SendError;
+
+    fn poll_ready(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        Pin::new(&mut &self.tx).poll_ready(cx)
+    }
+
+    fn start_send(self: Pin<&mut Self>, item: O) -> Result<(), Self::Error> {
+        Pin::new(&mut &self.tx).start_send(item)
+    }
+
+    fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        Pin::new(&mut &self.tx).poll_flush(cx)
+    }
+
+    fn poll_close(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        Pin::new(&mut &self.tx).poll_close(cx)
+    }
+}
+
 /// A trait to extract output type from [ReactorSender].
 pub trait ReactorSendable {
     /// The output message type.
@@ -107,9 +124,6 @@ pub trait ReactorSendable {
 
     /// Creates a ReactorSender.
     fn new(tx: mpsc::UnboundedSender<Self::Output>) -> Self;
-
-    /// Creates a ReactorSender from an existing ReactorSender.
-    fn transmute(tx: ReactorSender<Self::Output>) -> Self;
 }
 
 impl<O> ReactorSendable for ReactorSender<O>
@@ -120,9 +134,5 @@ where
 
     fn new(tx: mpsc::UnboundedSender<O>) -> Self {
         Self { tx }
-    }
-
-    fn transmute(tx: ReactorSender<Self::Output>) -> Self {
-        Self { tx: tx.tx }
     }
 }

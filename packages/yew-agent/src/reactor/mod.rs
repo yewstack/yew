@@ -5,7 +5,7 @@
 //! and a [ReactorSender] as arguments.
 //!
 //! The reactor receiver is a stream that produces inputs from the bridge. The reactor sender is a
-//! type that implements a send method to send outputs to the connected bridge.
+//! sink that implements an additional send method to send outputs to the connected bridge.
 //! When the bridge disconnects, the output sender and input receiver will be closed.
 //!
 //! # Example
