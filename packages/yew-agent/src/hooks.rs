@@ -34,13 +34,39 @@ where
 /// # Examples
 ///
 /// ```
+/// use serde::{Deserialize, Serialize};
 /// use yew::prelude::*;
-/// use yew_agent::use_bridge;
+/// use yew_agent::{use_bridge, UseBridgeHandle};
 ///
 /// // This would usually live in the same file as your worker
-/// enum WorkerResponseType {
+/// #[derive(Serialize, Deserialize)]
+/// pub enum WorkerResponseType {
 ///     IncrementCounter,
 /// };
+///
+/// # use yew_agent::{HandlerId, Public, WorkerLink};
+/// # pub struct Worker {
+/// #   pub link: WorkerLink<Self>,
+/// # }
+///
+/// # impl yew_agent::Worker for Worker {
+/// #   type Input = ();
+/// #   type Output = WorkerResponseType;
+/// #   type Reach = Public<Self>;
+/// #   type Message = ();
+/// #
+/// #   fn create(link: WorkerLink<Self>) -> Self {
+/// #       Worker { link }
+/// #   }
+/// #
+/// #   fn update(&mut self, _msg: Self::Message) {
+/// #       // do nothing
+/// #   }
+/// #
+/// #   fn handle_input(&mut self, _msg: Self::Input, id: HandlerId) {
+/// #       self.link.respond(id, WorkerResponseType::IncrementCounter);
+/// #   }
+/// # }
 ///
 /// #[function_component(UseBridge)]
 /// fn bridge() -> Html {
@@ -50,7 +76,8 @@ where
 ///     {
 ///         let counter = counter.clone();
 ///         // response will be your agent's Output type
-///         let bridge = use_bridge(move |response| match response {
+///         // Worker type is the agent you want to bridge to
+///         let bridge: UseBridgeHandle<Worker> = use_bridge(move |response| match response {
 ///             WorkerResponseType::IncrementCounter => {
 ///                 counter.set(*counter + 1);
 ///             }
