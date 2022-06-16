@@ -80,6 +80,8 @@ pub mod worker;
 
 /// A procedural macro to create reactor agents.
 pub use yew_agent_macro::reactor;
+/// A procedural macro to create task agents.
+pub use yew_agent_macro::task;
 
 mod reach;
 

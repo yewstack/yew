@@ -1,25 +1,25 @@
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::{Ident, ReturnType, Signature, Type};
+use syn::{parse_quote, Ident, ReturnType, Signature, Type};
 
 use crate::agent_fn::{AgentFn, AgentFnType, AgentName};
 
-pub struct StationFn {}
+pub struct TaskFn {}
 
-impl AgentFnType for StationFn {
-    type OutputType = ();
+impl AgentFnType for TaskFn {
+    type OutputType = Type;
     type RecvType = Type;
 
     fn attr_name() -> &'static str {
-        "station"
+        "task"
     }
 
     fn agent_type_name() -> &'static str {
-        "station"
+        "task"
     }
 
     fn agent_type_name_plural() -> &'static str {
-        "stations"
+        "tasks"
     }
 
     fn parse_recv_type(sig: &Signature) -> syn::Result<Self::RecvType> {
@@ -36,57 +36,56 @@ impl AgentFnType for StationFn {
     }
 
     fn parse_output_type(sig: &Signature) -> syn::Result<Self::OutputType> {
-        match &sig.output {
-            ReturnType::Default => {}
-            ReturnType::Type(_, ty) => {
-                return Err(syn::Error::new_spanned(
-                    ty,
-                    "station functions cannot return any value",
-                ))
+        let ty = match &sig.output {
+            ReturnType::Default => {
+                parse_quote! { () }
             }
-        }
+            ReturnType::Type(_, ty) => *ty.clone(),
+        };
 
-        Ok(())
+        Ok(ty)
     }
 }
 
-pub fn station_impl(name: AgentName, mut agent_fn: AgentFn<StationFn>) -> syn::Result<TokenStream> {
+pub fn task_impl(name: AgentName, mut agent_fn: AgentFn<TaskFn>) -> syn::Result<TokenStream> {
     agent_fn.merge_agent_name(name)?;
 
     let struct_attrs = agent_fn.filter_attrs_for_agent_struct();
-    let station_impl_attrs = agent_fn.filter_attrs_for_agent_impl();
+    let task_impl_attrs = agent_fn.filter_attrs_for_agent_impl();
     let phantom_generics = agent_fn.phantom_generics();
-    let station_name = agent_fn.agent_name();
+    let task_name = agent_fn.agent_name();
     let fn_name = agent_fn.inner_fn_ident();
     let inner_fn = agent_fn.print_inner_fn();
 
     let AgentFn {
-        recv_type,
+        recv_type: input_type,
         generics,
+        output_type,
         vis,
         ..
     } = agent_fn;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let fn_generics = ty_generics.as_turbofish();
 
-    let rx_ident = Ident::new("rx", Span::mixed_site());
+    let in_ident = Ident::new("input", Span::mixed_site());
 
-    let fn_call = quote! { #fn_name #fn_generics (#rx_ident).await; };
+    let fn_call = quote! { #fn_name #fn_generics (#in_ident).await };
 
     let quoted = quote! {
         #(#struct_attrs)*
         #[allow(unused_parens)]
-        #vis struct #station_name #generics #where_clause {
+        #vis struct #task_name #generics #where_clause {
             _marker: ::std::marker::PhantomData<(#phantom_generics)>,
         }
 
         // we cannot disable any lints here because it will be applied to the function body
         // as well.
-        #(#station_impl_attrs)*
-        impl #impl_generics ::yew_agent::station::Station for #station_name #ty_generics #where_clause {
-            type Receiver = #recv_type;
+        #(#task_impl_attrs)*
+        impl #impl_generics ::yew_agent::task::Task for #task_name #ty_generics #where_clause {
+            type Input = #input_type;
+            type Output = #output_type;
 
-            fn run(#rx_ident: Self::Receiver) -> ::yew_agent::__vendored::futures::future::LocalBoxFuture<'static, ()> {
+            fn run(#in_ident: Self::Input) -> ::yew_agent::__vendored::futures::future::LocalBoxFuture<'static, Self::Output> {
                 #inner_fn
 
                 ::yew_agent::__vendored::futures::future::FutureExt::boxed_local(
