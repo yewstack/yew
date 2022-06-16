@@ -1,5 +1,4 @@
-use std::collections::hash_map::Entry;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::fmt;
 use std::marker::PhantomData;
 
@@ -74,15 +73,17 @@ where
     }
 }
 
+#[derive(PartialEq, Eq, Hash)]
+pub(crate) struct TaskId {
+    handler_id: HandlerId,
+    raw_task_id: usize,
+}
+
 pub(crate) enum TaskWorkerMsg<T>
 where
     T: Task,
 {
-    TaskFinished {
-        handler_id: HandlerId,
-        output: T::Output,
-        task_id: usize,
-    },
+    TaskFinished { task_id: TaskId, output: T::Output },
 }
 
 pub(crate) struct TaskWorker<T>
@@ -90,7 +91,7 @@ where
     T: 'static + Task,
 {
     _marker: PhantomData<T>,
-    task_ids: HashMap<HandlerId, HashSet<usize>>,
+    task_ids: HashSet<TaskId>,
     destruct_handle: Option<WorkerDestroyHandle<Self>>,
 }
 
@@ -111,25 +112,16 @@ where
     }
 
     fn update(&mut self, scope: &WorkerScope<Self>, msg: Self::Message) {
-        let TaskWorkerMsg::TaskFinished {
+        let TaskWorkerMsg::TaskFinished { task_id, output } = msg;
+
+        self.task_ids.remove(&task_id);
+
+        let TaskId {
+            raw_task_id,
             handler_id,
-            task_id,
-            output,
-        } = msg;
+        } = task_id;
 
-        let handler_empty = if let Some(m) = self.task_ids.get_mut(&handler_id) {
-            m.remove(&task_id);
-
-            m.is_empty()
-        } else {
-            false
-        };
-
-        scope.respond(handler_id, (task_id, output));
-
-        if handler_empty {
-            self.task_ids.remove(&handler_id);
-        }
+        scope.respond(handler_id, (raw_task_id, output));
 
         if self.task_ids.is_empty() {
             self.destruct_handle = None;
@@ -137,27 +129,17 @@ where
     }
 
     fn received(&mut self, scope: &WorkerScope<Self>, input: Self::Input, handler_id: HandlerId) {
-        let (task_id, input) = input;
+        let (raw_task_id, input) = input;
 
-        match self.task_ids.entry(handler_id) {
-            Entry::Occupied(mut m) => {
-                m.get_mut().insert(task_id);
-            }
-            Entry::Vacant(m) => {
-                let mut set = HashSet::new();
-                set.insert(task_id);
-                m.insert(set);
-            }
-        }
+        let task_id = TaskId {
+            handler_id,
+            raw_task_id,
+        };
 
         scope.send_future(async move {
             let output = T::run(input).await;
 
-            TaskWorkerMsg::TaskFinished {
-                handler_id,
-                task_id,
-                output,
-            }
+            TaskWorkerMsg::TaskFinished { task_id, output }
         });
     }
 
