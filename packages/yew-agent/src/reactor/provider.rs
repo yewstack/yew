@@ -1,8 +1,7 @@
 use yew::prelude::*;
 
-use super::traits::{Reactor, ReactorStation};
-use crate::station::StationProvider;
-use crate::worker::WorkerProviderProps;
+use super::traits::{Reactor, ReactorWorker};
+use crate::worker::{WorkerProvider, WorkerProviderProps};
 
 /// The reactor provider.
 #[function_component]
@@ -18,8 +17,8 @@ where
     } = props.clone();
 
     html! {
-        <StationProvider<ReactorStation<R>> {lazy} {path} {reach}>
+        <WorkerProvider<ReactorWorker<R>> {lazy} {path} {reach}>
             {children}
-        </StationProvider<ReactorStation<R>>>
+        </WorkerProvider<ReactorWorker<R>>>
     }
 }

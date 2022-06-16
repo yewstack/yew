@@ -4,19 +4,17 @@ use std::rc::Rc;
 
 use yew::prelude::*;
 
-use super::traits::{Reactor, ReactorStation};
+use super::messages::{BridgeInput, BridgeOutput};
+use super::traits::{Reactor, ReactorWorker};
 use super::tx_rx::{ReactorReceivable, ReactorSendable};
-use crate::station::{
-    use_station_bridge, use_station_subscription, BridgeOutput, UseStationBridgeHandle,
-    UseStationSubscriptionHandle,
-};
+use crate::worker::{use_worker_bridge, UseWorkerBridgeHandle};
 
 /// Handle for the [use_reactor_bridge] hook.
 pub struct UseReactorBridgeHandle<R>
 where
     R: 'static + Reactor,
 {
-    inner: UseStationBridgeHandle<ReactorStation<R>>,
+    inner: UseWorkerBridgeHandle<ReactorWorker<R>>,
 }
 
 impl<R> fmt::Debug for UseReactorBridgeHandle<R>
@@ -47,7 +45,7 @@ where
 {
     /// Send an input to a reactor agent.
     pub fn send(&self, msg: <R::Receiver as ReactorReceivable>::Input) {
-        self.inner.send(msg);
+        self.inner.send(BridgeInput::Input(msg));
     }
 }
 
@@ -74,28 +72,29 @@ where
     R: 'static + Reactor,
     F: Fn(BridgeOutput<<R::Sender as ReactorSendable>::Output>) + 'static,
 {
-    let bridge = use_station_bridge::<ReactorStation<R>, _>(on_output);
+    let bridge = use_worker_bridge::<ReactorWorker<R>, _>(on_output);
+
+    {
+        let bridge = bridge.clone();
+
+        use_effect(move || {
+            bridge.send(BridgeInput::Start);
+            || {}
+        });
+    }
 
     UseReactorBridgeHandle { inner: bridge }
 }
 
-/// Handle for the [use_reactor_subscription] hook.
+/// State handle for the [`use_reactor_subscription`] hook.
 pub struct UseReactorSubscriptionHandle<R>
 where
     R: 'static + Reactor,
 {
-    inner: UseStationSubscriptionHandle<ReactorStation<R>>,
-}
-
-impl<R> Clone for UseReactorSubscriptionHandle<R>
-where
-    R: 'static + Reactor,
-{
-    fn clone(&self) -> Self {
-        Self {
-            inner: self.inner.clone(),
-        }
-    }
+    bridge: UseReactorBridgeHandle<R>,
+    outputs: Vec<Rc<<R::Sender as ReactorSendable>::Output>>,
+    finished: bool,
+    ctr: usize,
 }
 
 impl<R> UseReactorSubscriptionHandle<R>
@@ -104,44 +103,59 @@ where
 {
     /// Send an input to a reactor agent.
     pub fn send(&self, msg: <R::Receiver as ReactorReceivable>::Input) {
-        self.inner.send(msg);
+        self.bridge.send(msg);
     }
 
     /// Returns whether the current bridge has received a finish message.
     pub fn finished(&self) -> bool {
-        self.inner.finished()
+        self.finished
+    }
+}
+
+impl<R> Clone for UseReactorSubscriptionHandle<R>
+where
+    R: 'static + Reactor,
+{
+    fn clone(&self) -> Self {
+        Self {
+            bridge: self.bridge.clone(),
+            outputs: self.outputs.clone(),
+            ctr: self.ctr,
+            finished: self.finished,
+        }
     }
 }
 
 impl<R> fmt::Debug for UseReactorSubscriptionHandle<R>
 where
-    R: Reactor,
+    R: 'static + Reactor,
     <R::Sender as ReactorSendable>::Output: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("UseReactorSubscriptionHandle<_>")
-            .field("inner", &self.inner)
+            .field("bridge", &self.bridge)
+            .field("outputs", &self.outputs)
             .finish()
     }
 }
 
 impl<R> Deref for UseReactorSubscriptionHandle<R>
 where
-    R: Reactor,
+    R: 'static + Reactor,
 {
     type Target = [Rc<<R::Sender as ReactorSendable>::Output>];
 
-    fn deref(&self) -> &[Rc<<R::Sender as ReactorSendable>::Output>] {
-        &*self.inner
+    fn deref(&self) -> &Self::Target {
+        &self.outputs
     }
 }
 
 impl<R> PartialEq for UseReactorSubscriptionHandle<R>
 where
-    R: Reactor,
+    R: 'static + Reactor,
 {
     fn eq(&self, rhs: &Self) -> bool {
-        self.inner == rhs.inner
+        self.bridge == rhs.bridge && self.ctr == rhs.ctr
     }
 }
 
@@ -153,7 +167,66 @@ pub fn use_reactor_subscription<R>() -> UseReactorSubscriptionHandle<R>
 where
     R: 'static + Reactor,
 {
-    let sub = use_station_subscription::<ReactorStation<R>>();
+    struct Outputs<R>
+    where
+        R: Reactor + 'static,
+    {
+        ctr: usize,
+        inner: Vec<Rc<<R::Sender as ReactorSendable>::Output>>,
+        finished: bool,
+    }
 
-    UseReactorSubscriptionHandle { inner: sub }
+    impl<R> Reducible for Outputs<R>
+    where
+        R: Reactor + 'static,
+    {
+        type Action = BridgeOutput<<R::Sender as ReactorSendable>::Output>;
+
+        fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
+            let mut outputs = self.inner.clone();
+
+            let mut finished = self.finished;
+
+            match action {
+                BridgeOutput::Output(m) => outputs.push(m.into()),
+                BridgeOutput::Finish => {
+                    finished = true;
+                }
+            }
+
+            Self {
+                inner: outputs,
+                ctr: self.ctr + 1,
+                finished,
+            }
+            .into()
+        }
+    }
+
+    impl<R> Default for Outputs<R>
+    where
+        R: Reactor + 'static,
+    {
+        fn default() -> Self {
+            Self {
+                ctr: 0,
+                inner: Vec::new(),
+                finished: false,
+            }
+        }
+    }
+
+    let outputs = use_reducer(Outputs::<R>::default);
+
+    let bridge = {
+        let outputs = outputs.clone();
+        use_reactor_bridge::<R, _>(move |output| outputs.dispatch(output))
+    };
+
+    UseReactorSubscriptionHandle {
+        bridge,
+        outputs: outputs.inner.clone(),
+        ctr: outputs.ctr,
+        finished: outputs.finished,
+    }
 }

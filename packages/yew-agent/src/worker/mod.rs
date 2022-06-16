@@ -6,7 +6,9 @@ mod hooks;
 mod provider;
 
 #[doc(inline)]
-pub use gloo_worker::{HandlerId, Spawnable, Worker, WorkerBridge, WorkerScope, WorkerSpawner};
+pub use gloo_worker::{
+    HandlerId, Spawnable, Worker, WorkerBridge, WorkerDestroyHandle, WorkerScope, WorkerSpawner,
+};
 pub use hooks::{
     use_worker_bridge, use_worker_subscription, UseWorkerBridgeHandle, UseWorkerSubscriptionHandle,
 };

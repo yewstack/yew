@@ -20,6 +20,6 @@ where
 {
     /// An output message has been received.
     Output(O),
-    /// Station has its output sender for current bridge.
+    /// Reactor for current bridge has exited.
     Finish,
 }

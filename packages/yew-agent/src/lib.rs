@@ -12,10 +12,6 @@
 //!
 //! A kind of agent that can send many inputs and receive many outputs over a single bridge.
 //!
-//! ### Station
-//!
-//! A kind of agent that can receive many inputs and send many outputs over multiple bridges.
-//!
 //! ### Worker
 //!
 //! The low-level implementation of agents that provides an actor model and communicates with
@@ -47,7 +43,6 @@
 //! ### Bridge
 //!
 //! See: [`use_worker_bridge`](worker::use_worker_bridge),
-//! [`use_station_bridge`](station::use_station_bridge),
 //! [`use_reactor_bridge`](reactor::use_reactor_bridge)
 //!
 //! A bridge takes a callback to receive outputs from agents
@@ -56,7 +51,6 @@
 //! ### Subscription
 //!
 //! See: [`use_worker_subscription`](worker::use_worker_subscription),
-//! [`use_station_subscription`](station::use_station_subscription),
 //! [`use_reactor_subscription`](reactor::use_reactor_subscription)
 //!
 //! Similar to bridges, a subscription produces a handle to send inputs to agents. However, instead
@@ -81,14 +75,11 @@
 extern crate self as yew_agent;
 
 pub mod reactor;
-pub mod station;
 pub mod task;
 pub mod worker;
 
 /// A procedural macro to create reactor agents.
 pub use yew_agent_macro::reactor;
-/// A procedural macro to create station agents.
-pub use yew_agent_macro::station;
 
 mod reach;
 
