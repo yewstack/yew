@@ -246,11 +246,11 @@ error[E0308]: mismatched types
 40 |     html! { <option selected=1 /> };
    |                              ^ expected `bool`, found integer
 
-error[E0277]: the trait bound `(): IntoPropValue<Option<IString>>` is not satisfied
+error[E0277]: the trait bound `(): IntoPropValue<Option<implicit_clone::unsync::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:43:26
    |
 43 |     html! { <input type={()} /> };
-   |                          ^^ the trait `IntoPropValue<Option<IString>>` is not implemented for `()`
+   |                          ^^ the trait `IntoPropValue<Option<implicit_clone::unsync::IString>>` is not implemented for `()`
    |
 note: required by `into_prop_value`
   --> $WORKSPACE/packages/yew/src/html/conversion.rs
@@ -258,11 +258,11 @@ note: required by `into_prop_value`
    |     fn into_prop_value(self) -> T;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error[E0277]: the trait bound `(): IntoPropValue<Option<IString>>` is not satisfied
+error[E0277]: the trait bound `(): IntoPropValue<Option<implicit_clone::unsync::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:44:27
    |
 44 |     html! { <input value={()} /> };
-   |                           ^^ the trait `IntoPropValue<Option<IString>>` is not implemented for `()`
+   |                           ^^ the trait `IntoPropValue<Option<implicit_clone::unsync::IString>>` is not implemented for `()`
    |
 note: required by `into_prop_value`
   --> $WORKSPACE/packages/yew/src/html/conversion.rs
@@ -270,11 +270,11 @@ note: required by `into_prop_value`
    |     fn into_prop_value(self) -> T;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error[E0277]: the trait bound `(): IntoPropValue<Option<IString>>` is not satisfied
+error[E0277]: the trait bound `(): IntoPropValue<Option<implicit_clone::unsync::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:45:22
    |
 45 |     html! { <a href={()} /> };
-   |                      ^^ the trait `IntoPropValue<Option<IString>>` is not implemented for `()`
+   |                      ^^ the trait `IntoPropValue<Option<implicit_clone::unsync::IString>>` is not implemented for `()`
    |
 note: required by `into_prop_value`
   --> $WORKSPACE/packages/yew/src/html/conversion.rs
@@ -282,11 +282,11 @@ note: required by `into_prop_value`
    |     fn into_prop_value(self) -> T;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error[E0277]: the trait bound `NotToString: IntoPropValue<Option<IString>>` is not satisfied
+error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone::unsync::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:46:28
    |
 46 |     html! { <input string={NotToString} /> };
-   |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<IString>>` is not implemented for `NotToString`
+   |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<implicit_clone::unsync::IString>>` is not implemented for `NotToString`
    |
 note: required by `into_prop_value`
   --> $WORKSPACE/packages/yew/src/html/conversion.rs
@@ -294,36 +294,36 @@ note: required by `into_prop_value`
    |     fn into_prop_value(self) -> T;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<IString>>` is not satisfied
+error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<implicit_clone::unsync::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:47:23
    |
 47 |     html! { <a media={Some(NotToString)} /> };
-   |                       ^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<IString>>` is not implemented for `Option<NotToString>`
+   |                       ^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<Option<implicit_clone::unsync::IString>>` is not implemented for `Option<NotToString>`
    |
    = help: the following implementations were found:
-             <Option<&'static str> as IntoPropValue<Option<IString>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
+             <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
-             <Option<String> as IntoPropValue<Option<IString>>>
-             <Option<std::rc::Rc<str>> as IntoPropValue<Option<IString>>>
+             <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
+             <Option<String> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
 note: required by `into_prop_value`
   --> $WORKSPACE/packages/yew/src/html/conversion.rs
    |
    |     fn into_prop_value(self) -> T;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<IString>>` is not satisfied
+error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_clone::unsync::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:48:22
    |
 48 |     html! { <a href={Some(5)} /> };
-   |                      ^^^^^^^ the trait `IntoPropValue<Option<IString>>` is not implemented for `Option<{integer}>`
+   |                      ^^^^^^^ the trait `IntoPropValue<Option<implicit_clone::unsync::IString>>` is not implemented for `Option<{integer}>`
    |
    = help: the following implementations were found:
-             <Option<&'static str> as IntoPropValue<Option<IString>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
+             <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
-             <Option<String> as IntoPropValue<Option<IString>>>
-             <Option<std::rc::Rc<str>> as IntoPropValue<Option<IString>>>
+             <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
+             <Option<String> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
 note: required by `into_prop_value`
   --> $WORKSPACE/packages/yew/src/html/conversion.rs
    |
@@ -416,11 +416,11 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
    |                         ^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `Option<yew::NodeRef>`
    |
    = help: the following implementations were found:
-             <Option<&'static str> as IntoPropValue<Option<IString>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
+             <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
-             <Option<String> as IntoPropValue<Option<IString>>>
-             <Option<std::rc::Rc<str>> as IntoPropValue<Option<IString>>>
+             <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
+             <Option<String> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
 note: required by `into_prop_value`
   --> $WORKSPACE/packages/yew/src/html/conversion.rs
    |
@@ -451,11 +451,11 @@ note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
     | |_^ required by this bound in `yew::html::onclick::Wrapper::__macro_new`
     = note: this error originates in the macro `impl_action` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `NotToString: IntoPropValue<Option<IString>>` is not satisfied
+error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone::unsync::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:60:28
    |
 60 |     html! { <input string={NotToString} /> };
-   |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<IString>>` is not implemented for `NotToString`
+   |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<implicit_clone::unsync::IString>>` is not implemented for `NotToString`
    |
 note: required by `into_prop_value`
   --> $WORKSPACE/packages/yew/src/html/conversion.rs
