@@ -111,3 +111,15 @@ pub fn use_force_update() -> impl Hook<Output = UseForceUpdate> {
 
     UseRerenderHook
 }
+
+#[cfg(all(test, feature = "nightly"))]
+mod nightly_test {
+    use yew::prelude::*;
+
+    #[function_component]
+    fn ManuallyUpdatedDate() -> Html {
+        let trigger = use_force_update();
+        let _ = move || { trigger() };
+        html! {}
+    }
+}

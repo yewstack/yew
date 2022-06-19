@@ -363,3 +363,55 @@ where
 {
     use_reducer_base(init_fn, T::ne)
 }
+
+#[cfg(all(test, feature = "nightly"))]
+mod nightly_test {
+    use yew::prelude::*;
+    use std::rc::Rc;
+
+    /// reducer's Action
+    enum CounterAction {
+        Double,
+    }
+
+    /// reducer's State
+    struct CounterState {
+        counter: i32,
+    }
+
+    impl Default for CounterState {
+        fn default() -> Self {
+            Self { counter: 1 }
+        }
+    }
+
+    impl Reducible for CounterState {
+        /// Reducer Action Type
+        type Action = CounterAction;
+
+        /// Reducer Function
+        fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
+            let next_ctr = match action {
+                CounterAction::Double => self.counter * 2,
+            };
+
+            Self { counter: next_ctr }.into()
+        }
+    }
+
+    #[function_component(UseReducer)]
+    fn reducer() -> Html {
+        // The use_reducer hook takes an initialization function which will be called only once.
+        let counter = use_reducer(CounterState::default);
+
+        let double_onclick = {
+            let counter = counter.clone();
+            Callback::from(move |_| counter(CounterAction::Double))
+        };
+
+        html! {
+            <div>{ counter.counter }</div>
+            <button onclick={double_onclick}>{ "Double" }</button>
+        }
+    }
+}
