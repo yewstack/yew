@@ -119,7 +119,7 @@ mod nightly_test {
     #[function_component]
     fn ManuallyUpdatedDate() -> Html {
         let trigger = use_force_update();
-        let _ = move || { trigger() };
+        let _ = move || trigger();
         html! {}
     }
 }

@@ -95,14 +95,13 @@ where
     }
 }
 
-
 #[cfg(feature = "nightly")]
 mod feat_nightly {
     use super::*;
 
     impl<T> FnOnce<(T::Action,)> for UseReducerHandle<T>
-        where
-            T: Reducible,
+    where
+        T: Reducible,
     {
         type Output = ();
 
@@ -112,8 +111,8 @@ mod feat_nightly {
     }
 
     impl<T> FnMut<(T::Action,)> for UseReducerHandle<T>
-        where
-            T: Reducible,
+    where
+        T: Reducible,
     {
         extern "rust-call" fn call_mut(&mut self, args: (T::Action,)) -> Self::Output {
             self.dispatch(args.0)
@@ -121,8 +120,8 @@ mod feat_nightly {
     }
 
     impl<T> Fn<(T::Action,)> for UseReducerHandle<T>
-        where
-            T: Reducible,
+    where
+        T: Reducible,
     {
         extern "rust-call" fn call(&self, args: (T::Action,)) -> Self::Output {
             self.dispatch(args.0)
@@ -366,8 +365,9 @@ where
 
 #[cfg(all(test, feature = "nightly"))]
 mod nightly_test {
-    use yew::prelude::*;
     use std::rc::Rc;
+
+    use yew::prelude::*;
 
     /// reducer's Action
     enum CounterAction {
@@ -410,8 +410,10 @@ mod nightly_test {
         };
 
         html! {
-            <div>{ counter.counter }</div>
-            <button onclick={double_onclick}>{ "Double" }</button>
+            <>
+                <div>{ counter.counter }</div>
+                <button onclick={double_onclick}>{ "Double" }</button>
+            </>
         }
     }
 }
