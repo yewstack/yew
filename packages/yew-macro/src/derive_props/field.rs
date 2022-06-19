@@ -39,12 +39,12 @@ impl PropField {
 
     /// This check name is descriptive to help a developer realize they missed a required prop
     fn to_check_name(&self, props_name: &Ident) -> Ident {
-        format_ident!("Has{}{}", props_name, self.name, span = Span::mixed_site(),)
+        format_ident!("Has{}{}", props_name, self.name, span = Span::mixed_site())
     }
 
     /// This check name is descriptive to help a developer realize they missed a required prop
     fn to_check_arg_name(&self, props_name: &Ident) -> GenericParam {
-        let ident = format_ident!("How{}{}", props_name, self.name, span = Span::mixed_site(),);
+        let ident = format_ident!("How{}{}", props_name, self.name, span = Span::mixed_site());
         GenericParam::Type(ident.into())
     }
 

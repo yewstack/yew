@@ -11,7 +11,8 @@ pub trait Properties: PartialEq {
     fn builder() -> Self::Builder;
 }
 
-mod macro_export {
+#[doc(hidden)]
+mod __macro {
     /// A marker trait to ensure that the builder has received a specific required prop.
     /// For each required impl in a property, we generate:
     /// - a struct with the name of the prop, which takes the place of `P`.
@@ -29,6 +30,8 @@ mod macro_export {
     /// A marker trait to ensure that the builder has received all required props.
     /// For each struct deriving [`Properties`], an impl is generated, requiring `HasProp<p>` for
     /// all properties marked as required as a bound on the impl.
+    ///
+    /// [`Properties`]: super::Properties
     pub trait HasAllProps<P, How> {}
 
     /// Trait finishing the builder and verifying all props were set.
@@ -113,4 +116,4 @@ mod macro_export {
 }
 
 #[doc(hidden)]
-pub use macro_export::{AllPropsFor, AssertAllProps, Buildable, HasAllProps, HasProp};
+pub use __macro::{AllPropsFor, AssertAllProps, Buildable, HasAllProps, HasProp};
