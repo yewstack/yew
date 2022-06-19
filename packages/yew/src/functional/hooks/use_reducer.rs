@@ -95,6 +95,41 @@ where
     }
 }
 
+
+#[cfg(feature = "nightly")]
+mod feat_nightly {
+    use super::*;
+
+    impl<T> FnOnce<(T::Action,)> for UseReducerHandle<T>
+        where
+            T: Reducible,
+    {
+        type Output = ();
+
+        extern "rust-call" fn call_once(self, args: (T::Action,)) -> Self::Output {
+            self.dispatch(args.0)
+        }
+    }
+
+    impl<T> FnMut<(T::Action,)> for UseReducerHandle<T>
+        where
+            T: Reducible,
+    {
+        extern "rust-call" fn call_mut(&mut self, args: (T::Action,)) -> Self::Output {
+            self.dispatch(args.0)
+        }
+    }
+
+    impl<T> Fn<(T::Action,)> for UseReducerHandle<T>
+        where
+            T: Reducible,
+    {
+        extern "rust-call" fn call(&self, args: (T::Action,)) -> Self::Output {
+            self.dispatch(args.0)
+        }
+    }
+}
+
 /// Dispatcher handle for [`use_reducer`] and [`use_reducer_eq`] hook
 pub struct UseReducerDispatcher<T>
 where

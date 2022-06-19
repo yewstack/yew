@@ -23,12 +23,30 @@ impl UseForceUpdate {
     }
 }
 
-// #![feature(fn_traits)] // required nightly feature to make UseForceUpdate callable directly
-// impl Fn<()> for UseForceUpdate {
-//     extern "rust-call" fn call(&self, _args: ()) {
-//         self.force_update()
-//     }
-// }
+#[cfg(feature = "nightly")]
+mod feat_nightly {
+    use super::*;
+
+    impl FnOnce<()> for UseForceUpdate {
+        type Output = ();
+
+        extern "rust-call" fn call_once(self, _args: ()) -> Self::Output {
+            self.force_update()
+        }
+    }
+
+    impl FnMut<()> for UseForceUpdate {
+        extern "rust-call" fn call_mut(&mut self, _args: ()) -> Self::Output {
+            self.force_update()
+        }
+    }
+
+    impl Fn<()> for UseForceUpdate {
+        extern "rust-call" fn call(&self, _args: ()) -> Self::Output {
+            self.force_update()
+        }
+    }
+}
 
 /// This hook is used to manually force a function component to re-render.
 ///
