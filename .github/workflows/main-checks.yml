@@ -130,7 +130,7 @@ jobs:
       matrix:
         toolchain:
           # anyway to dynamically grep the MSRV from Cargo.toml?
-          - 1.56.0 # MSRV
+          - 1.56.1 # MSRV
           - stable
 
     steps:
@@ -175,7 +175,7 @@ jobs:
       matrix:
         toolchain:
           # anyway to dynamically grep the MSRV from Cargo.toml?
-          - 1.56.0 # MSRV
+          - 1.56.1 # MSRV
           - stable
           - nightly
 
