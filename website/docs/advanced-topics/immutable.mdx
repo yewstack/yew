@@ -10,7 +10,7 @@ to update a value, you must instantiate a new value.
 
 ## Why using immutable types?
 
-In a React-like framework, properties are propagated from ancestors to
+Properties, like in React, are propagated from ancestors to
 children. This means that the properties must live when each component is
 updated. This is why properties should —ideally— be cheap to clone. In order to
 achieve this we usually wrap things in `Rc`.
