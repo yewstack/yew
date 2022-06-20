@@ -47,11 +47,16 @@ only when they change.
 Internally properties are reference counted. This means that only a pointer is passed down the component tree for props.
 It saves us from the cost of having to clone the entire props, which might be expensive.
 
+:::tip
+Make use of `AttrValue` which is our custom type for attribute values instead of defining them as String or another similar type.
+:::
+
 ## Example
 
 ```rust
-use std::rc::Rc;
 use yew::Properties;
+/// Importing the AttrValue from virtual_dom
+use yew::virtual_dom::AttrValue;
 
 #[derive(Clone, PartialEq)]
 pub enum LinkColor {
@@ -69,8 +74,9 @@ fn create_default_link_color() -> LinkColor {
 #[derive(Properties, PartialEq)]
 pub struct LinkProps {
     /// The link must have a target.
-    href: String,
-    text: String,
+    href: AttrValue,
+    /// Also notice that we're using AttrValue instead of String
+    text: AttrValue,
     /// Color of the link. Defaults to `Blue`.
     #[prop_or_else(create_default_link_color)]
     color: LinkColor,
@@ -91,8 +97,7 @@ The macro uses the same syntax as a struct expression except that you can't use 
 The type path can either point to the props directly (`path::to::Props`) or the associated properties of a component (`MyComp::Properties`).
 
 ```rust
-use std::rc::Rc;
-use yew::{props, Properties};
+use yew::{props, Properties, virtual_dom::AttrValue};
 
 #[derive(Clone, PartialEq)]
 pub enum LinkColor {
@@ -110,8 +115,9 @@ fn create_default_link_color() -> LinkColor {
 #[derive(Properties, PartialEq)]
 pub struct LinkProps {
     /// The link must have a target.
-    href: String,
-    text: Rc<String>,
+    href: AttrValue,
+    /// Also notice that we're using AttrValue instead of String
+    text: AttrValue,
     /// Color of the link. Defaults to `Blue`.
     #[prop_or_else(create_default_link_color)]
     color: LinkColor,
@@ -124,11 +130,13 @@ pub struct LinkProps {
 }
 
 impl LinkProps {
+    /// Notice that this function receives href and text as String
+    /// We can use `AttrValue::from` to convert it to a `AttrValue`
     pub fn new_link_with_size(href: String, text: String, size: u32) -> Self {
         // highlight-start
         props! {LinkProps {
-            href,
-            text: Rc::from(text),
+            href: AttrValue::from(href),
+            text: AttrValue::from(text),
             size,
         }}
         // highlight-end
