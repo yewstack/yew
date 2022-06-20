@@ -79,7 +79,7 @@ pub mod task;
 pub mod worker;
 
 #[doc(inline)]
-pub use gloo_worker::{Bincode, Codec, Registrable, Spawnable};
+pub use gloo_worker::{Bincode, Codec, Registrable};
 /// A procedural macro to create reactor agents.
 pub use yew_agent_macro::reactor;
 /// A procedural macro to create task agents.
@@ -110,5 +110,5 @@ pub mod prelude {
         use_worker_bridge, use_worker_subscription, UseWorkerBridgeHandle,
         UseWorkerSubscriptionHandle,
     };
-    pub use crate::{Registrable, Spawnable};
+    pub use crate::Registrable;
 }

@@ -27,6 +27,13 @@ where
     pub fn send(&self, msg: T::Input) {
         self.inner.send(msg);
     }
+
+    /// Reset the bridge.
+    ///
+    /// Disconnect the old bridge and re-connects the agent with a new bridge.
+    pub fn reset() {
+        todo!()
+    }
 }
 
 impl<T> Clone for UseWorkerBridgeHandle<T>
