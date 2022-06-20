@@ -95,40 +95,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
-mod feat_nightly {
-    use super::*;
-
-    impl<T> FnOnce<(T::Action,)> for UseReducerHandle<T>
-    where
-        T: Reducible,
-    {
-        type Output = ();
-
-        extern "rust-call" fn call_once(self, args: (T::Action,)) -> Self::Output {
-            self.dispatch(args.0)
-        }
-    }
-
-    impl<T> FnMut<(T::Action,)> for UseReducerHandle<T>
-    where
-        T: Reducible,
-    {
-        extern "rust-call" fn call_mut(&mut self, args: (T::Action,)) -> Self::Output {
-            self.dispatch(args.0)
-        }
-    }
-
-    impl<T> Fn<(T::Action,)> for UseReducerHandle<T>
-    where
-        T: Reducible,
-    {
-        extern "rust-call" fn call(&self, args: (T::Action,)) -> Self::Output {
-            self.dispatch(args.0)
-        }
-    }
-}
-
 /// Dispatcher handle for [`use_reducer`] and [`use_reducer_eq`] hook
 pub struct UseReducerDispatcher<T>
 where
@@ -361,59 +327,4 @@ where
     F: FnOnce() -> T,
 {
     use_reducer_base(init_fn, T::ne)
-}
-
-#[cfg(all(test, feature = "nightly"))]
-mod nightly_test {
-    use std::rc::Rc;
-
-    use yew::prelude::*;
-
-    /// reducer's Action
-    enum CounterAction {
-        Double,
-    }
-
-    /// reducer's State
-    struct CounterState {
-        counter: i32,
-    }
-
-    impl Default for CounterState {
-        fn default() -> Self {
-            Self { counter: 1 }
-        }
-    }
-
-    impl Reducible for CounterState {
-        /// Reducer Action Type
-        type Action = CounterAction;
-
-        /// Reducer Function
-        fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
-            let next_ctr = match action {
-                CounterAction::Double => self.counter * 2,
-            };
-
-            Self { counter: next_ctr }.into()
-        }
-    }
-
-    #[function_component(UseReducer)]
-    fn reducer() -> Html {
-        // The use_reducer hook takes an initialization function which will be called only once.
-        let counter = use_reducer(CounterState::default);
-
-        let double_onclick = {
-            let counter = counter.clone();
-            Callback::from(move |_| counter(CounterAction::Double))
-        };
-
-        html! {
-            <>
-                <div>{ counter.counter }</div>
-                <button onclick={double_onclick}>{ "Double" }</button>
-            </>
-        }
-    }
 }
