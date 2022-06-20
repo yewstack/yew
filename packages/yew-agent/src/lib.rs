@@ -94,3 +94,21 @@ pub use reach::Reach;
 pub mod __vendored {
     pub use {futures, wasm_bindgen_futures};
 }
+
+pub mod prelude {
+    //! Prelude module to be imported when working with `yew-agent`.
+    //!
+    //! This module re-exports the frequently used types from the crate.
+    pub use crate::reach::Reach;
+    pub use crate::reactor::{
+        use_reactor_bridge, use_reactor_subscription, ReactorOutput, UseReactorBridgeHandle,
+        UseReactorSubscriptionHandle,
+    };
+    pub use crate::scope_ext::{AgentScopeExt, ReactorBridgeHandle, WorkerBridgeHandle};
+    pub use crate::task::{use_memorized_task, use_task, UseTaskHandle};
+    pub use crate::worker::{
+        use_worker_bridge, use_worker_subscription, UseWorkerBridgeHandle,
+        UseWorkerSubscriptionHandle,
+    };
+    pub use crate::{Registrable, Spawnable};
+}
