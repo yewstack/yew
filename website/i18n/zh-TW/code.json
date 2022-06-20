@@ -191,10 +191,6 @@
     "message": "On this page",
     "description": "The label used by the button on the collapsible TOC component"
   },
-  "theme.tags.tagsPageTitle": {
-    "message": "Tags",
-    "description": "The title of the tag list page"
-  },
   "theme.blog.post.readMoreLabel": {
     "message": "Read more about {title}",
     "description": "The ARIA label for the link to full blog posts from excerpts"
@@ -221,5 +217,43 @@
   "theme.navbar.mobileLanguageDropdown.label": {
     "message": "Languages",
     "description": "The label for the mobile language switcher dropdown"
+  },
+  "theme.docs.breadcrumbs.home": {
+    "message": "主頁面",
+    "description": "The ARIA label for the home page in the breadcrumbs"
+  },
+  "theme.docs.breadcrumbs.navAriaLabel": {
+    "message": "頁面路徑",
+    "description": "The ARIA label for the breadcrumbs"
+  },
+  "theme.CodeBlock.wordWrapToggle": {
+    "message": "切換自動換行",
+    "description": "The title attribute for toggle word wrapping button of code block lines"
+  },
+  "theme.SearchBar.noResultsText": {
+    "message": "No results"
+  },
+  "theme.SearchBar.seeAll": {
+    "message": "See all results"
+  },
+  "theme.SearchBar.label": {
+    "message": "Search",
+    "description": "The ARIA label and placeholder for search button"
+  },
+  "theme.SearchPage.existingResultsTitle": {
+    "message": "Search results for \"{query}\"",
+    "description": "The search page title for non-empty query"
+  },
+  "theme.SearchPage.emptyResultsTitle": {
+    "message": "Search the documentation",
+    "description": "The search page title for empty query"
+  },
+  "theme.SearchPage.documentsFound.plurals": {
+    "message": "1 document found|{count} documents found",
+    "description": "Pluralized label for \"{count} documents found\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+  },
+  "theme.SearchPage.noResultsText": {
+    "message": "No documents were found",
+    "description": "The paragraph for empty search result"
   }
 }

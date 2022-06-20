@@ -227,6 +227,10 @@ fn Case2() -> Html {
 Internally properties are reference counted. This means that only a shared pointer is passed down the component tree for props.
 It saves us from the cost of having to clone the entire props, which might be expensive.
 
+:::tip
+Make use of `AttrValue` which is our custom type for attribute values instead of defining them as String or another similar type.
+:::
+
 ## Props macro
 
 The `yew::props!` macro allows you to build properties the same way the `html!` macro does it.
@@ -235,12 +239,12 @@ The macro uses the same syntax as a struct expression except that you can't use 
 The type path can either point to the props directly (`path::to::Props`) or the associated properties of a component (`MyComp::Properties`).
 
 ```rust
-use yew::{function_component, html, Html, Properties, props};
+use yew::{function_component, html, Html, Properties, props, virtual_dom::AttrValue};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
-    #[prop_or("Bob".to_string())]
-    pub name: String,
+    #[prop_or(AttrValue::from("Bob"))]
+    pub name: AttrValue,
 }
 
 #[function_component]
