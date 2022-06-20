@@ -2,11 +2,12 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+use gloo_worker::Spawnable;
 use yew::prelude::*;
 
 use super::{Worker, WorkerBridge};
 use crate::reach::Reach;
-use crate::{Bincode, Codec, Spawnable};
+use crate::{Bincode, Codec};
 
 /// Properties for [WorkerProvider].
 #[derive(Debug, Properties, PartialEq, Clone)]

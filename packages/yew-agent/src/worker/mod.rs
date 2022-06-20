@@ -5,6 +5,7 @@
 mod hooks;
 mod provider;
 
+pub(crate) use gloo_worker::WorkerBridge;
 #[doc(inline)]
 pub use gloo_worker::{HandlerId, Worker, WorkerDestroyHandle, WorkerRegistrar, WorkerScope};
 pub use hooks::{
