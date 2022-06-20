@@ -13,4 +13,5 @@ pub use gloo_worker::{
 pub use hooks::{
     use_worker_bridge, use_worker_subscription, UseWorkerBridgeHandle, UseWorkerSubscriptionHandle,
 };
+pub(crate) use provider::WorkerProviderState;
 pub use provider::{WorkerProvider, WorkerProviderProps};

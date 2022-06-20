@@ -1,13 +1,18 @@
 //! This module contains extensions to the component scope for agent access.
 
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+use wasm_bindgen::UnwrapThrowExt;
 use yew::html::Scope;
 use yew::prelude::*;
 
 use crate::reactor::{
     Reactor, ReactorInput, ReactorOutput, ReactorReceivable, ReactorSendable, ReactorWorker,
 };
-use crate::task::Task;
-use crate::worker::{Worker, WorkerBridge};
+use crate::task::{Task, TaskWorker};
+use crate::worker::{Worker, WorkerBridge, WorkerProviderState};
 
 /// A Worker Bridge Handle.
 #[derive(Debug)]
@@ -108,7 +113,7 @@ pub trait AgentScopeExt {
     /// Bridges to a Worker Agent.
     fn bridge_worker<W>(&self, callback: Callback<W::Output>) -> WorkerBridgeHandle<W>
     where
-        W: Worker;
+        W: Worker + 'static;
 
     /// Bridges to a Reactor Agent.
     fn bridge_reactor<R>(
@@ -116,13 +121,13 @@ pub trait AgentScopeExt {
         callback: Callback<ReactorOutput<<R::Sender as ReactorSendable>::Output>>,
     ) -> ReactorBridgeHandle<R>
     where
-        R: Reactor,
+        R: Reactor + 'static,
         <R::Sender as ReactorSendable>::Output: 'static;
 
     /// Runs a task in a Task Agent.
-    fn run_task<T>(&self, callback: Callback<T::Output>)
+    fn run_task<T>(&self, input: T::Input, callback: Callback<T::Output>)
     where
-        T: Task;
+        T: Task + 'static;
 }
 
 impl<COMP> AgentScopeExt for Scope<COMP>
@@ -133,7 +138,13 @@ where
     where
         W: Worker,
     {
-        todo!()
+        let inner = self
+            .context::<WorkerProviderState<W>>((|_| {}).into())
+            .expect_throw("failed to bridge to agent.")
+            .0
+            .create_bridge(move |m| callback.emit(m));
+
+        WorkerBridgeHandle { inner }
     }
 
     fn bridge_reactor<R>(
@@ -144,13 +155,40 @@ where
         R: Reactor,
         <R::Sender as ReactorSendable>::Output: 'static,
     {
-        todo!()
+        let inner = self.bridge_worker::<ReactorWorker<R>>(callback).inner;
+
+        ReactorBridgeHandle { inner }
     }
 
-    fn run_task<T>(&self, callback: Callback<T::Output>)
+    fn run_task<T>(&self, input: T::Input, callback: Callback<T::Output>)
     where
-        T: Task,
+        T: Task + 'static,
     {
-        todo!()
+        thread_local! {
+            static CTR: AtomicUsize = AtomicUsize::new(0);
+        }
+
+        let task_ctr = CTR.with(|m| m.fetch_add(1, Ordering::Relaxed));
+
+        let hold_bridge = Rc::new(RefCell::new(None));
+
+        let bridge = {
+            let hold_bridge = hold_bridge.clone();
+            self.bridge_worker::<TaskWorker<T>>(
+                (move |(_, output)| {
+                    let hold_bridge = hold_bridge.clone();
+
+                    callback.emit(output);
+
+                    // Release bridge after output is emitted.
+                    *hold_bridge.borrow_mut() = None;
+                })
+                .into(),
+            )
+        };
+
+        bridge.send((task_ctr, input));
+
+        *hold_bridge.borrow_mut() = Some(bridge);
     }
 }

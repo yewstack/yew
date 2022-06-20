@@ -35,7 +35,7 @@ pub struct WorkerProviderProps {
     pub children: Children,
 }
 
-pub(super) struct WorkerProviderState<W>
+pub(crate) struct WorkerProviderState<W>
 where
     W: Worker,
 {
