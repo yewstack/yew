@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// The Bridge Input.
 #[derive(Serialize, Deserialize)]
-pub(crate) enum BridgeInput<I>
+pub(crate) enum ReactorInput<I>
 where
     I: 'static,
 {
@@ -14,7 +14,7 @@ where
 
 /// The Bridge Output.
 #[derive(Debug, Serialize, Deserialize)]
-pub enum BridgeOutput<O>
+pub enum ReactorOutput<O>
 where
     O: 'static,
 {

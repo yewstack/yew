@@ -86,6 +86,7 @@ pub use yew_agent_macro::reactor;
 pub use yew_agent_macro::task;
 
 mod reach;
+pub mod scope_ext;
 
 pub use reach::Reach;
 

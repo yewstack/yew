@@ -45,7 +45,9 @@ pub use hooks::{
     use_reactor_bridge, use_reactor_subscription, UseReactorBridgeHandle,
     UseReactorSubscriptionHandle,
 };
-pub use messages::BridgeOutput;
+pub(crate) use messages::ReactorInput;
+pub use messages::ReactorOutput;
 pub use provider::ReactorProvider;
+pub(crate) use traits::ReactorWorker;
 pub use traits::{Reactor, ReactorRegistrar};
 pub use tx_rx::{ReactorReceivable, ReactorReceiver, ReactorSendable, ReactorSender};

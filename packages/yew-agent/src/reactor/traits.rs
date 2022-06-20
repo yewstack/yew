@@ -6,7 +6,7 @@ use futures::future::LocalBoxFuture;
 use futures::stream::StreamExt;
 use wasm_bindgen_futures::spawn_local;
 
-use super::messages::{BridgeInput, BridgeOutput};
+use super::messages::{ReactorInput, ReactorOutput};
 use super::tx_rx::{ReactorReceivable, ReactorSendable};
 use crate::worker::{HandlerId, Worker, WorkerDestroyHandle, WorkerRegistrar, WorkerScope};
 use crate::{Bincode, Codec, Registrable};
@@ -85,9 +85,9 @@ impl<R> Worker for ReactorWorker<R>
 where
     R: 'static + Reactor,
 {
-    type Input = BridgeInput<<R::Receiver as ReactorReceivable>::Input>;
+    type Input = ReactorInput<<R::Receiver as ReactorReceivable>::Input>;
     type Message = ReactorWorkerMsg;
-    type Output = BridgeOutput<<R::Sender as ReactorSendable>::Output>;
+    type Output = ReactorOutput<<R::Sender as ReactorSendable>::Output>;
 
     fn create(_scope: &WorkerScope<Self>) -> Self {
         Self {
@@ -125,10 +125,10 @@ where
 
                     spawn_local(async move {
                         while let Some(m) = rx.next().await {
-                            scope.respond(id, BridgeOutput::Output(m));
+                            scope.respond(id, ReactorOutput::Output(m));
                         }
 
-                        scope.respond(id, BridgeOutput::Finish);
+                        scope.respond(id, ReactorOutput::Finish);
                     });
 
                     R::Sender::new(tx)

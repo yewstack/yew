@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use yew::prelude::*;
 
-use super::messages::{BridgeInput, BridgeOutput};
+use super::messages::{ReactorInput, ReactorOutput};
 use super::traits::{Reactor, ReactorWorker};
 use super::tx_rx::{ReactorReceivable, ReactorSendable};
 use crate::worker::{use_worker_bridge, UseWorkerBridgeHandle};
@@ -45,7 +45,7 @@ where
 {
     /// Send an input to a reactor agent.
     pub fn send(&self, msg: <R::Receiver as ReactorReceivable>::Input) {
-        self.inner.send(BridgeInput::Input(msg));
+        self.inner.send(ReactorInput::Input(msg));
     }
 }
 
@@ -70,7 +70,7 @@ where
 pub fn use_reactor_bridge<R, F>(on_output: F) -> UseReactorBridgeHandle<R>
 where
     R: 'static + Reactor,
-    F: Fn(BridgeOutput<<R::Sender as ReactorSendable>::Output>) + 'static,
+    F: Fn(ReactorOutput<<R::Sender as ReactorSendable>::Output>) + 'static,
 {
     let bridge = use_worker_bridge::<ReactorWorker<R>, _>(on_output);
 
@@ -78,7 +78,7 @@ where
         let bridge = bridge.clone();
 
         use_effect(move || {
-            bridge.send(BridgeInput::Start);
+            bridge.send(ReactorInput::Start);
             || {}
         });
     }
@@ -180,7 +180,7 @@ where
     where
         R: Reactor + 'static,
     {
-        type Action = BridgeOutput<<R::Sender as ReactorSendable>::Output>;
+        type Action = ReactorOutput<<R::Sender as ReactorSendable>::Output>;
 
         fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
             let mut outputs = self.inner.clone();
@@ -188,8 +188,8 @@ where
             let mut finished = self.finished;
 
             match action {
-                BridgeOutput::Output(m) => outputs.push(m.into()),
-                BridgeOutput::Finish => {
+                ReactorOutput::Output(m) => outputs.push(m.into()),
+                ReactorOutput::Finish => {
                     finished = true;
                 }
             }
