@@ -9,7 +9,7 @@ including: all entries, entered text and chosen filter.
 
 ## Concepts
 
-- Uses [`gloo_storage`](https://gloo-rs.web.app/docs/storage) to persist the state
+- Uses [`gloo_storage`](https://docs.rs/gloo-storage/latest/gloo_storage/) to persist the state
 - [`Refs`] are used to manipulate DOM elements after they're rendered (to automatically focus input fields for instance)
 
 ## Improvements
