@@ -1,45 +1,11 @@
 error[E0412]: cannot find type `INVALID` in this scope
   --> tests/function_component_attr/generic-props-fail.rs:25:19
    |
-25 |     html! { <Comp<INVALID> /> };
-   |                   ^^^^^^^ not found in this scope
-
-error[E0412]: cannot find type `INVALID` in this scope
-  --> tests/function_component_attr/generic-props-fail.rs:25:19
-   |
 20 | fn compile_fail() {
    |                - help: you might be missing a type parameter: `<INVALID>`
 ...
 25 |     html! { <Comp<INVALID> /> };
    |                   ^^^^^^^ not found in this scope
-
-error[E0277]: the trait bound `Comp<MissingTypeBounds>: yew::BaseComponent` is not satisfied
-  --> tests/function_component_attr/generic-props-fail.rs:27:14
-   |
-27 |     html! { <Comp<MissingTypeBounds> /> };
-   |              ^^^^ the trait `yew::BaseComponent` is not implemented for `Comp<MissingTypeBounds>`
-   |
-   = help: the following implementations were found:
-             <Comp<P> as yew::BaseComponent>
-   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error[E0107]: missing generics for struct `Comp`
-  --> tests/function_component_attr/generic-props-fail.rs:30:14
-   |
-30 |     html! { <Comp /> };
-   |              ^^^^ expected 1 generic argument
-   |
-note: struct defined here, with 1 generic parameter: `P`
-  --> tests/function_component_attr/generic-props-fail.rs:8:22
-   |
-8  | #[function_component(Comp)]
-   |                      ^^^^
-9  | fn comp<P>(_props: &P) -> Html
-   |         -
-help: add missing generic argument
-   |
-30 |     html! { <Comp<P> /> };
-   |              ~~~~~~~
 
 error[E0277]: the trait bound `AssertAllProps: HasProp<a, _>` is not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:22:14
@@ -53,6 +19,16 @@ note: required because of the requirements on the impl of `HasAllProps<Props, (_
 3  | #[derive(Clone, Properties, PartialEq)]
    |                 ^^^^^^^^^^
    = note: required because of the requirements on the impl of `AllPropsFor<PropsBuilder, (_,)>` for `AssertAllProps`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `Comp<MissingTypeBounds>: yew::BaseComponent` is not satisfied
+  --> tests/function_component_attr/generic-props-fail.rs:27:14
+   |
+27 |     html! { <Comp<MissingTypeBounds> /> };
+   |              ^^^^ the trait `yew::BaseComponent` is not implemented for `Comp<MissingTypeBounds>`
+   |
+   = help: the following implementations were found:
+             <Comp<P> as yew::BaseComponent>
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: the function or associated item `new` exists for struct `VChild<Comp<MissingTypeBounds>>`, but its trait bounds were not satisfied
@@ -83,3 +59,21 @@ note: required by a bound in `Comp`
 11 |     P: Properties + PartialEq,
    |        ^^^^^^^^^^ required by this bound in `Comp`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0107]: missing generics for struct `Comp`
+  --> tests/function_component_attr/generic-props-fail.rs:30:14
+   |
+30 |     html! { <Comp /> };
+   |              ^^^^ expected 1 generic argument
+   |
+note: struct defined here, with 1 generic parameter: `P`
+  --> tests/function_component_attr/generic-props-fail.rs:8:22
+   |
+8  | #[function_component(Comp)]
+   |                      ^^^^
+9  | fn comp<P>(_props: &P) -> Html
+   |         -
+help: add missing generic argument
+   |
+30 |     html! { <Comp<P> /> };
+   |              ~~~~~~~

@@ -70,7 +70,8 @@ impl ComponentProps {
             .collect();
 
         quote_spanned! {props_ty.span()=>
-            const __YEW_PROPS_CHECK: () = {
+            #[allow(clippy::no_effect)]
+            if false {
                 let _ = |#props_ident: #props_ty| {
                     #check_children
                     #check_props
