@@ -55,60 +55,6 @@ where
 /// An extension to [`Scope`](yew::html::Scope) that provides communication mechanism to agents.
 ///
 /// You can access them on `ctx.link()`
-///
-/// # Example
-///
-/// Below is an example of the implementation of the [`Link`](crate::components::Link) component.
-///
-/// ```
-/// # use std::marker::PhantomData;
-/// # use wasm_bindgen::UnwrapThrowExt;
-/// # use yew::prelude::*;
-/// # use yew_agent::AgentScopeExt;
-/// #
-/// # pub struct Link<R: Routable + 'static> {
-/// #     _data: PhantomData<R>,
-/// # }
-/// #
-/// # pub enum Msg {
-/// #     OnClick,
-/// # }
-/// #
-/// impl<R: Routable + 'static> Component for Link<R> {
-///     type Message = Msg;
-///     type Properties = LinkProps<R>;
-///
-///     fn create(_ctx: &Context<Self>) -> Self {
-///         Self { _data: PhantomData }
-///     }
-///
-///     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-///         match msg {
-///             Msg::OnClick => {
-///                 ctx.link()
-///                     .navigator()
-///                     .expect_throw("failed to get navigator.")
-///                     .push(&ctx.props().to);
-///                 false
-///             }
-///         }
-///     }
-///
-///     fn view(&self, ctx: &Context<Self>) -> Html {
-///         html! {
-///             <a class={ctx.props().classes.clone()}
-///                 href={ctx.props().to.to_path()}
-///                 onclick={ctx.link().callback(|e: MouseEvent| {
-///                     e.prevent_default();
-///                     Msg::OnClick
-///                 })}
-///             >
-///                 { ctx.props().children.clone() }
-///             </a>
-///         }
-///     }
-/// }
-/// ```
 pub trait AgentScopeExt {
     /// Bridges to a Worker Agent.
     fn bridge_worker<W>(&self, callback: Callback<W::Output>) -> WorkerBridgeHandle<W>
