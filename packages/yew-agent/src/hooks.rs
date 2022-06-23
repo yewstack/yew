@@ -43,31 +43,32 @@ where
 /// pub enum WorkerResponseType {
 ///     IncrementCounter,
 /// };
+/// # mod my_worker_mod {
+/// #   use yew_agent::{HandlerId, Public, WorkerLink};
+/// #   pub struct Worker {
+/// #       pub link: WorkerLink<Self>,
+/// #   }
 ///
-/// # use yew_agent::{HandlerId, Public, WorkerLink};
-/// # pub struct Worker {
-/// #   pub link: WorkerLink<Self>,
+/// #   impl yew_agent::Worker for Worker {
+/// #       type Input = ();
+/// #       type Output = WorkerResponseType;
+/// #       type Reach = Public<Self>;
+/// #       type Message = ();
+/// #
+/// #       fn create(link: WorkerLink<Self>) -> Self {
+/// #           Worker { link }
+/// #       }
+/// #
+/// #       fn update(&mut self, _msg: Self::Message) {
+/// #           // do nothing
+/// #       }
+/// #
+/// #       fn handle_input(&mut self, _msg: Self::Input, id: HandlerId) {
+/// #           self.link.respond(id, WorkerResponseType::IncrementCounter);
+/// #       }
+/// #   }
 /// # }
-///
-/// # impl yew_agent::Worker for Worker {
-/// #   type Input = ();
-/// #   type Output = WorkerResponseType;
-/// #   type Reach = Public<Self>;
-/// #   type Message = ();
-/// #
-/// #   fn create(link: WorkerLink<Self>) -> Self {
-/// #       Worker { link }
-/// #   }
-/// #
-/// #   fn update(&mut self, _msg: Self::Message) {
-/// #       // do nothing
-/// #   }
-/// #
-/// #   fn handle_input(&mut self, _msg: Self::Input, id: HandlerId) {
-/// #       self.link.respond(id, WorkerResponseType::IncrementCounter);
-/// #   }
-/// # }
-///
+/// use my_worker_mod::MyWorker; // note that <MyWorker as yew_agent::Worker>::Output == WorkerResponseType
 /// #[function_component(UseBridge)]
 /// fn bridge() -> Html {
 ///     let counter = use_state(|| 0);
@@ -75,9 +76,8 @@ where
 ///     // a scoped block to clone the state in
 ///     {
 ///         let counter = counter.clone();
-///         // response will be your agent's Output type
-///         // Worker type is the agent you want to bridge to
-///         let bridge: UseBridgeHandle<Worker> = use_bridge(move |response| match response {
+///         // response will be of type MyWorker::Output, i.e. WorkerResponseType
+///         let bridge: UseBridgeHandle<MyWorker> = use_bridge(move |response| match response {
 ///             WorkerResponseType::IncrementCounter => {
 ///                 counter.set(*counter + 1);
 ///             }
