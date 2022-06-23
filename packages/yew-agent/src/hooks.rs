@@ -45,6 +45,7 @@ where
 /// };
 /// # mod my_worker_mod {
 /// #   use yew_agent::{HandlerId, Public, WorkerLink};
+/// #   use super::WorkerResponseType;
 /// #   pub struct Worker {
 /// #       pub link: WorkerLink<Self>,
 /// #   }
