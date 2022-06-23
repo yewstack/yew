@@ -34,6 +34,7 @@ where
 /// # Examples
 ///
 /// ```
+/// # mod example {
 /// use serde::{Deserialize, Serialize};
 /// use yew::prelude::*;
 /// use yew_agent::{use_bridge, UseBridgeHandle};
@@ -57,7 +58,7 @@ where
 /// #       type Message = ();
 /// #
 /// #       fn create(link: WorkerLink<Self>) -> Self {
-/// #           Worker { link }
+/// #           MyWorker { link }
 /// #       }
 /// #
 /// #       fn update(&mut self, _msg: Self::Message) {
@@ -91,6 +92,7 @@ where
 ///         </div>
 ///     }
 /// }
+/// # }
 /// ```
 #[hook]
 pub fn use_bridge<T, F>(on_output: F) -> UseBridgeHandle<T>
