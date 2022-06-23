@@ -46,11 +46,11 @@ where
 /// # mod my_worker_mod {
 /// #   use yew_agent::{HandlerId, Public, WorkerLink};
 /// #   use super::WorkerResponseType;
-/// #   pub struct Worker {
+/// #   pub struct MyWorker {
 /// #       pub link: WorkerLink<Self>,
 /// #   }
 ///
-/// #   impl yew_agent::Worker for Worker {
+/// #   impl yew_agent::Worker for MyWorker {
 /// #       type Input = ();
 /// #       type Output = WorkerResponseType;
 /// #       type Reach = Public<Self>;
