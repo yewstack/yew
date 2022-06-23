@@ -71,4 +71,13 @@ fn pass_build_prop() {
     ::yew::props!(BuildProp { build: 5 });
 }
 
+#[derive(::yew::Properties, ::std::cmp::PartialEq)]
+struct GenericProps<T: ::std::cmp::PartialEq> {
+    item: T,
+}
+
+fn pass_generic_props<T: ::std::cmp::PartialEq>(the_item: T) {
+    ::yew::props!(GenericProps<T> { item: the_item });
+}
+
 fn main() {}

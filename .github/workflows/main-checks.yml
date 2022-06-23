@@ -135,6 +135,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
+        # for wasm-bindgen-cli, always use stable rust
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.toolchain }}
           target: wasm32-unknown-unknown
@@ -153,7 +159,7 @@ jobs:
             cargo fetch
           fi
           VERSION=`cargo pkgid --frozen wasm-bindgen | cut -d ":" -f 3`
-          cargo install --version $VERSION wasm-bindgen-cli
+          cargo +stable install --version $VERSION wasm-bindgen-cli
 
       - name: Run tests - yew
         run: |
