@@ -6,7 +6,7 @@ Calculate fibrillation value of a number in the worker thread, without blocking 
 
 ## Concepts
 
-The example illustrates how to use `gloo-worker` to send tasks to a worker thread in a Yew application.
+The example illustrates how to use `yew-agent` to send tasks to a worker thread in a Yew application.
 
 ## Thanks to
 
