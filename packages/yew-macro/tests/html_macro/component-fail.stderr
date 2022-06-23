@@ -313,7 +313,7 @@ error[E0599]: no method named `r#type` found for struct `ChildPropertiesBuilder`
    |                 ---------- method `r#type` not found for this
 ...
 71 |     html! { <Child type=0 /> };
-   |                    ^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
+   |                    ^^^^ method not found in `ChildPropertiesBuilder`
 
 error[E0609]: no field `unknown` on type `ChildProperties`
   --> tests/html_macro/component-fail.rs:74:20
@@ -330,7 +330,7 @@ error[E0599]: no method named `unknown` found for struct `ChildPropertiesBuilder
    |                 ---------- method `unknown` not found for this
 ...
 74 |     html! { <Child unknown="unknown" /> };
-   |                    ^^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
+   |                    ^^^^^^^ method not found in `ChildPropertiesBuilder`
 
 error[E0277]: the trait bound `(): IntoPropValue<String>` is not satisfied
   --> tests/html_macro/component-fail.rs:77:33
@@ -340,11 +340,11 @@ error[E0277]: the trait bound `(): IntoPropValue<String>` is not satisfied
    |                          |
    |                          required by a bound introduced by this call
    |
-note: required by a bound in `ChildPropertiesBuilder::<ChildPropertiesBuilderStepPropsBuilder>::string`
+note: required by a bound in `ChildPropertiesBuilder::string`
   --> tests/html_macro/component-fail.rs:4:17
    |
 4  | #[derive(Clone, Properties, PartialEq)]
-   |                 ^^^^^^^^^^ required by this bound in `ChildPropertiesBuilder::<ChildPropertiesBuilderStepPropsBuilder>::string`
+   |                 ^^^^^^^^^^ required by this bound in `ChildPropertiesBuilder::string`
 ...
 7  |     pub string: String,
    |         ------ required by a bound in this
@@ -358,11 +358,11 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
    |                          |
    |                          required by a bound introduced by this call
    |
-note: required by a bound in `ChildPropertiesBuilder::<ChildPropertiesBuilderStepPropsBuilder>::string`
+note: required by a bound in `ChildPropertiesBuilder::string`
   --> tests/html_macro/component-fail.rs:4:17
    |
 4  | #[derive(Clone, Properties, PartialEq)]
-   |                 ^^^^^^^^^^ required by this bound in `ChildPropertiesBuilder::<ChildPropertiesBuilderStepPropsBuilder>::string`
+   |                 ^^^^^^^^^^ required by this bound in `ChildPropertiesBuilder::string`
 ...
 7  |     pub string: String,
    |         ------ required by a bound in this
@@ -376,11 +376,11 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
    |                          |
    |                          required by a bound introduced by this call
    |
-note: required by a bound in `ChildPropertiesBuilder::<ChildPropertiesBuilderStepPropsBuilder>::string`
+note: required by a bound in `ChildPropertiesBuilder::string`
   --> tests/html_macro/component-fail.rs:4:17
    |
 4  | #[derive(Clone, Properties, PartialEq)]
-   |                 ^^^^^^^^^^ required by this bound in `ChildPropertiesBuilder::<ChildPropertiesBuilderStepPropsBuilder>::string`
+   |                 ^^^^^^^^^^ required by this bound in `ChildPropertiesBuilder::string`
 ...
 7  |     pub string: String,
    |         ------ required by a bound in this
@@ -400,27 +400,34 @@ error[E0277]: the trait bound `u32: IntoPropValue<i32>` is not satisfied
    |                    |
    |                    required by a bound introduced by this call
    |
-note: required by a bound in `ChildPropertiesBuilder::<ChildPropertiesBuilderStep_missing_required_prop_int>::int`
+note: required by a bound in `ChildPropertiesBuilder::int`
   --> tests/html_macro/component-fail.rs:4:17
    |
 4  | #[derive(Clone, Properties, PartialEq)]
-   |                 ^^^^^^^^^^ required by this bound in `ChildPropertiesBuilder::<ChildPropertiesBuilderStep_missing_required_prop_int>::int`
+   |                 ^^^^^^^^^^ required by this bound in `ChildPropertiesBuilder::int`
 ...
 8  |     pub int: i32,
    |         --- required by a bound in this
    = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0599]: no method named `string` found for struct `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>` in the current scope
-  --> tests/html_macro/component-fail.rs:83:20
+error[E0277]: the trait bound `AssertAllProps: HasProp<int, _>` is not satisfied
+  --> tests/html_macro/component-fail.rs:83:14
+   |
+83 |     html! { <Child string="abc" /> };
+   |              ^^^^^ the trait `HasProp<int, _>` is not implemented for `AssertAllProps`
+   |
+note: required because of the requirements on the impl of `HasAllProps<ChildProperties, (_,)>` for `CheckChildPropertiesAll<AssertAllProps>`
+  --> tests/html_macro/component-fail.rs:4:17
    |
 4  | #[derive(Clone, Properties, PartialEq)]
-   |                 ---------- method `string` not found for this
-...
-83 |     html! { <Child string="abc" /> };
-   |                    ^^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
+   |                 ^^^^^^^^^^
+   = note: required because of the requirements on the impl of `AllPropsFor<ChildPropertiesBuilder, (_,)>` for `AssertAllProps`
+note: required by a bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
+  --> $WORKSPACE/packages/yew/src/html/component/properties.rs
    |
-   = note: the method was found for
-           - `ChildPropertiesBuilder<ChildPropertiesBuilderStepPropsBuilder>`
+   |             Token: AllPropsFor<B, How>,
+   |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0609]: no field `children` on type `ChildProperties`
   --> tests/html_macro/component-fail.rs:87:14
@@ -438,7 +445,7 @@ error[E0599]: no method named `children` found for struct `ChildPropertiesBuilde
    |                 ---------- method `children` not found for this
 ...
 87 |     html! { <Child>{ "Not allowed" }</Child> };
-   |              ^^^^^ method not found in `ChildPropertiesBuilder<ChildPropertiesBuilderStep_missing_required_prop_int>`
+   |              ^^^^^ method not found in `ChildPropertiesBuilder`
    |
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
@@ -451,30 +458,42 @@ error[E0609]: no field `children` on type `ChildProperties`
    = note: available fields are: `string`, `int`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
+error[E0277]: the trait bound `AssertAllProps: HasProp<_ChildContainerProperties::children, _>` is not satisfied
   --> tests/html_macro/component-fail.rs:99:14
    |
-24 | #[derive(Clone, Properties, PartialEq)]
-   |                 ---------- method `build` not found for this
-...
 99 |     html! { <ChildContainer /> };
-   |              ^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
+   |              ^^^^^^^^^^^^^^ the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`
    |
-   = note: the method was found for
-           - `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStepPropsBuilder>`
+note: required because of the requirements on the impl of `HasAllProps<ChildContainerProperties, (_,)>` for `CheckChildContainerPropertiesAll<AssertAllProps>`
+  --> tests/html_macro/component-fail.rs:24:17
+   |
+24 | #[derive(Clone, Properties, PartialEq)]
+   |                 ^^^^^^^^^^
+   = note: required because of the requirements on the impl of `AllPropsFor<ChildContainerPropertiesBuilder, (_,)>` for `AssertAllProps`
+note: required by a bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
+  --> $WORKSPACE/packages/yew/src/html/component/properties.rs
+   |
+   |             Token: AllPropsFor<B, How>,
+   |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0599]: no method named `build` found for struct `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>` in the current scope
+error[E0277]: the trait bound `AssertAllProps: HasProp<_ChildContainerProperties::children, _>` is not satisfied
    --> tests/html_macro/component-fail.rs:100:14
     |
-24  | #[derive(Clone, Properties, PartialEq)]
-    |                 ---------- method `build` not found for this
-...
 100 |     html! { <ChildContainer></ChildContainer> };
-    |              ^^^^^^^^^^^^^^ method not found in `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStep_missing_required_prop_children>`
+    |              ^^^^^^^^^^^^^^ the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`
     |
-    = note: the method was found for
-            - `ChildContainerPropertiesBuilder<ChildContainerPropertiesBuilderStepPropsBuilder>`
+note: required because of the requirements on the impl of `HasAllProps<ChildContainerProperties, (_,)>` for `CheckChildContainerPropertiesAll<AssertAllProps>`
+   --> tests/html_macro/component-fail.rs:24:17
+    |
+24  | #[derive(Clone, Properties, PartialEq)]
+    |                 ^^^^^^^^^^
+    = note: required because of the requirements on the impl of `AllPropsFor<ChildContainerPropertiesBuilder, (_,)>` for `AssertAllProps`
+note: required by a bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
+   --> $WORKSPACE/packages/yew/src/html/component/properties.rs
+    |
+    |             Token: AllPropsFor<B, How>,
+    |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
     = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VText>` is not satisfied

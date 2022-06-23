@@ -45,10 +45,8 @@ mod t1 {
     }
 
     fn optional_prop_generics_should_work() {
-        use ::yew::Properties;
-
-        Props::<::std::primitive::bool>::builder().build();
-        Props::<::std::primitive::bool>::builder().value(true).build();
+        ::yew::props! { Props::<::std::primitive::bool> { } };
+        ::yew::props! { Props::<::std::primitive::bool> { value: true } };
     }
 }
 
@@ -61,9 +59,7 @@ mod t2 {
     }
 
     fn required_prop_generics_should_work() {
-        use ::yew::Properties;
-
-        Props::<Value>::builder().value(Value).build();
+        ::yew::props! { Props::<Value> { value: Value } };
     }
 }
 
@@ -76,10 +72,8 @@ mod t3 {
     }
 
     fn order_is_alphabetized() {
-        use ::yew::Properties;
-
-        Props::builder().b(1).build();
-        Props::builder().a(1).b(2).build();
+        ::yew::props! { Props { b: 1 } };
+        ::yew::props! { Props { a: 1, b: 2 } };
     }
 }
 
@@ -94,10 +88,8 @@ mod t4 {
     }
 
     fn optional_prop_generics_should_work() {
-        use ::yew::Properties;
-
-        Props::<::std::primitive::bool>::builder().build();
-        Props::<::std::primitive::bool>::builder().value(true).build();
+        ::yew::props! { Props::<::std::primitive::bool> { } };
+        ::yew::props! { Props::<::std::primitive::bool> { value: true } };
     }
 }
 
@@ -114,13 +106,10 @@ mod t5 {
 
     fn optional_prop_generics_with_lifetime_should_work() {
         use ::std::{convert::From, string::String};
-        use ::yew::Properties;
 
-        Props::<String>::builder().value(&String::from("")).build();
-        Props::<String>::builder()
-            .static_value("")
-            .value(&String::from(""))
-            .build();
+        let borrowed_value = &String::from("");
+        ::yew::props! { Props::<String> { value: borrowed_value, } };
+        ::yew::props! { Props::<String> { static_value: "", value: borrowed_value, } };
     }
 }
 
@@ -135,11 +124,8 @@ mod t6 {
 
     fn required_prop_generics_with_where_clause_should_work() {
         use ::std::{convert::From, result::Result::Ok, string::String};
-        use ::yew::Properties;
 
-        Props::<String>::builder()
-            .value(Ok(String::from("")))
-            .build();
+        ::yew::props! { Props::<String> { value: Ok(String::from("")) } };
     }
 }
 
@@ -158,11 +144,10 @@ mod t7 {
 
     fn prop_or_value_should_work() {
         use ::std::assert_eq;
-        use ::yew::Properties;
 
-        let props = Props::builder().build();
+        let props = ::yew::props! { Props { } };
         assert_eq!(props.value, Foo::One);
-        Props::builder().value(Foo::Two).build();
+        ::yew::props! { Props { value: Foo::Two } };
     }
 }
 
@@ -175,11 +160,10 @@ mod t8 {
 
     fn prop_or_else_closure_should_work() {
         use ::std::assert_eq;
-        use ::yew::Properties;
 
-        let props = Props::builder().build();
+        let props = ::yew::props! { Props { } };
         assert_eq!(props.value, 123);
-        Props::builder().value(123).build();
+        ::yew::props! { Props { value: 123 } };
     }
 }
 
@@ -203,11 +187,10 @@ mod t9 {
 
     fn prop_or_else_function_with_generics_should_work() {
         use ::std::{assert_eq, result::Result::Ok};
-        use ::yew::Properties;
 
-        let props = Props::<::std::primitive::i32>::builder().build();
+        let props = ::yew::props! { Props::<::std::primitive::i32> { } };
         assert_eq!(props.value, Ok(123));
-        Props::<i32>::builder().value(Ok(456)).build();
+        ::yew::props! { Props::<::std::primitive::i32> { value: Ok(456) } };
     }
 }
 
@@ -244,10 +227,8 @@ mod t12 {
     }
 
     fn optional_prop_generics_should_work() {
-        use ::yew::Properties;
-
-        Props::<::std::primitive::bool>::builder().build();
-        Props::<::std::primitive::bool>::builder().value(true).build();
+        ::yew::props! { Props::<::std::primitive::bool> { } };
+        ::yew::props! { Props::<::std::primitive::bool> { value: true } };
     }
 }
 

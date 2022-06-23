@@ -7,17 +7,23 @@ error[E0412]: cannot find type `INVALID` in this scope
 25 |     html! { <Comp<INVALID> /> };
    |                   ^^^^^^^ not found in this scope
 
-error[E0599]: no method named `build` found for struct `PropsBuilder<PropsBuilderStep_missing_required_prop_a>` in the current scope
+error[E0277]: the trait bound `AssertAllProps: HasProp<a, _>` is not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:22:14
    |
-3  | #[derive(Clone, Properties, PartialEq)]
-   |                 ---------- method `build` not found for this
-...
 22 |     html! { <Comp<Props> /> };
-   |              ^^^^ method not found in `PropsBuilder<PropsBuilderStep_missing_required_prop_a>`
+   |              ^^^^ the trait `HasProp<a, _>` is not implemented for `AssertAllProps`
    |
-   = note: the method was found for
-           - `PropsBuilder<PropsBuilderStepPropsBuilder>`
+note: required because of the requirements on the impl of `HasAllProps<Props, (_,)>` for `CheckPropsAll<AssertAllProps>`
+  --> tests/function_component_attr/generic-props-fail.rs:3:17
+   |
+3  | #[derive(Clone, Properties, PartialEq)]
+   |                 ^^^^^^^^^^
+   = note: required because of the requirements on the impl of `AllPropsFor<PropsBuilder, (_,)>` for `AssertAllProps`
+note: required by a bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
+  --> $WORKSPACE/packages/yew/src/html/component/properties.rs
+   |
+   |             Token: AllPropsFor<B, How>,
+   |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `Comp<MissingTypeBounds>: yew::BaseComponent` is not satisfied
