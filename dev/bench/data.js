@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1655844157157,
+  "lastUpdate": 1655976671890,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -18581,6 +18581,120 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 33_startup-mainthreadcost",
             "value": "256.5160000000001",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "332.2724609375",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "WorldSEnder@users.noreply.github.com",
+            "name": "WorldSEnder",
+            "username": "WorldSEnder"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cda74c464b3d6c22c8f33becbc8d9b0fe62817b1",
+          "message": "Fix generic props structs (#2746)\n\n* fixup of generic props structs\r\n\r\n* fix build errors from msrv 1.57 on time crate\r\n\r\n* build wasm-bindgen-cli with cargo +stable",
+          "timestamp": "2022-06-23T11:21:52+02:00",
+          "tree_id": "a5c4ba561ed9204ddee09486f767d363b9316298",
+          "url": "https://github.com/yewstack/yew/commit/cda74c464b3d6c22c8f33becbc8d9b0fe62817b1"
+        },
+        "date": 1655976669973,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "257.76599999999996",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "255.9495",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "459.083",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "63.2075",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "99.751",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "34.5025",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "4121.818499999999",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "603.499",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "270.89",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.4694786071777344",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.6627883911132812",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.6987571716308594",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.7159767150878906",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.3301353454589844",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1736.3159999999998",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "52.604",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 33_startup-mainthreadcost",
+            "value": "322.724",
             "unit": ""
           },
           {
