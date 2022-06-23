@@ -47,6 +47,13 @@ where
     pub fn send(&self, msg: <R::Receiver as ReactorReceivable>::Input) {
         self.inner.send(ReactorInput::Input(msg));
     }
+
+    /// Reset the bridge.
+    ///
+    /// Disconnect the old bridge and re-connects the agent with a new bridge.
+    pub fn reset() {
+        todo!()
+    }
 }
 
 impl<R> PartialEq for UseReactorBridgeHandle<R>
@@ -109,6 +116,14 @@ where
     /// Returns whether the current bridge has received a finish message.
     pub fn finished(&self) -> bool {
         self.finished
+    }
+
+    /// Reset the subscription.
+    ///
+    /// This disconnects the old bridge and re-connects the agent with a new bridge.
+    /// Existing outputs stored in the subscription will also be cleared.
+    pub fn reset() {
+        todo!()
     }
 }
 

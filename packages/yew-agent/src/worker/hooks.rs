@@ -131,6 +131,14 @@ where
     pub fn send(&self, msg: T::Input) {
         self.bridge.send(msg);
     }
+
+    /// Reset the subscription.
+    ///
+    /// This disconnects the old bridge and re-connects the agent with a new bridge.
+    /// Existing outputs stored in the subscription will also be cleared.
+    pub fn reset() {
+        todo!()
+    }
 }
 
 impl<T> Clone for UseWorkerSubscriptionHandle<T>
