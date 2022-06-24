@@ -65,7 +65,7 @@ impl Parse for ElementProps {
 }
 
 static BOOLEAN_SET: Lazy<HashSet<&'static str>> = Lazy::new(|| {
-    vec![
+    [
         // Living Standard
         // From: https://html.spec.whatwg.org/#attributes-3
         // where `Value` = Boolean attribute
@@ -95,12 +95,11 @@ static BOOLEAN_SET: Lazy<HashSet<&'static str>> = Lazy::new(|| {
         "selected",
         "truespeed",
     ]
-    .into_iter()
-    .collect()
+    .into()
 });
 
 static LISTENER_SET: Lazy<HashSet<&'static str>> = Lazy::new(|| {
-    vec![
+    [
         // Living Standard
         // From: https://html.spec.whatwg.org/multipage/webappapis.html#globaleventhandlers
         "onabort",
@@ -206,6 +205,5 @@ static LISTENER_SET: Lazy<HashSet<&'static str>> = Lazy::new(|| {
         "ontransitionrun",
         "ontransitionstart",
     ]
-    .into_iter()
-    .collect()
+    .into()
 });
