@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
+use clap::Parser;
 use semver::Version;
-use structopt::StructOpt;
 
 use crate::create_log_lines::create_log_lines;
 use crate::get_latest_version::get_latest_version;
@@ -11,7 +11,7 @@ use crate::write_log_lines::write_log_lines;
 use crate::write_version_changelog::write_changelog_file;
 use crate::yew_package::YewPackage;
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 pub struct Cli {
     /// package to generate changelog for
     pub package: YewPackage,
@@ -23,23 +23,23 @@ pub struct Cli {
     pub from: Option<String>,
 
     /// To commit. (ex. commit hash or for tags "refs/tags/yew-v0.19.3")
-    #[structopt(short = "r", long, default_value = "HEAD")]
+    #[clap(short = 'r', long, default_value = "HEAD")]
     pub to: String,
 
     /// Path to changelog file
-    #[structopt(short = "f", long, default_value = "CHANGELOG.md")]
+    #[clap(short = 'f', long, default_value = "CHANGELOG.md")]
     pub changelog_path: String,
 
     /// Skip writing changelog file
-    #[structopt(short, long)]
+    #[clap(short, long)]
     pub skip_file_write: bool,
 
     /// Skip getting the next version
-    #[structopt(short = "b", long)]
+    #[clap(short = 'b', long)]
     pub skip_get_bump_version: bool,
 
     /// Github token
-    #[structopt(short = "t", long)]
+    #[clap(short = 't', long)]
     pub token: Option<String>,
 }
 
