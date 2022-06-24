@@ -1,7 +1,7 @@
 use futures::stream::{Stream, StreamExt};
 
 use crate::html::{BaseComponent, Scope};
-use crate::io::{BufWriter, DEFAULT_BUF_SIZE};
+use crate::io::{self, DEFAULT_BUF_SIZE};
 use crate::platform::{run_pinned, spawn_local};
 
 /// A Yew Server-side Renderer that renders on the current thread.
@@ -93,7 +93,7 @@ where
     // Whilst not required to be async here, this function is async to keep the same function
     // signature as the ServerRenderer.
     pub async fn render_stream(self) -> impl Stream<Item = String> {
-        let (mut w, rx) = BufWriter::with_capacity(self.capacity);
+        let (mut w, r) = io::buffer(self.capacity);
 
         let scope = Scope::<COMP>::new(None);
         spawn_local(async move {
@@ -102,7 +102,7 @@ where
                 .await;
         });
 
-        rx
+        r
     }
 }
 

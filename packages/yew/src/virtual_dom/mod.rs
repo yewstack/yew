@@ -52,6 +52,8 @@ mod feat_ssr_hydration {
     #[cfg(not(debug_assertions))]
     type ComponentName = ();
 
+    use std::borrow::Cow;
+
     /// A collectable.
     ///
     /// This indicates a kind that can be collected from fragment to be processed at a later time
@@ -91,7 +93,7 @@ mod feat_ssr_hydration {
         }
 
         #[cfg(feature = "hydration")]
-        pub fn name(&self) -> super::Cow<'static, str> {
+        pub fn name(&self) -> Cow<'static, str> {
             match self {
                 #[cfg(debug_assertions)]
                 Self::Component(m) => format!("Component({})", m).into(),

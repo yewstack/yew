@@ -15,39 +15,41 @@ pub(crate) struct BufWriter {
     capacity: usize,
 }
 
+/// Creates a Buffer pair.
+pub(crate) fn buffer(capacity: usize) -> (BufWriter, impl Stream<Item = String>) {
+    let (tx, rx) = mpsc::unbounded::<String>();
+
+    let tx = BufWriter {
+        buf: String::with_capacity(capacity),
+        tx,
+        capacity,
+    };
+
+    (tx, rx)
+}
+
 // Implementation Notes:
 //
-// When jemalloc is used, performance of the BufWriter is related to the number of allocations
+// When jemalloc is used and a reasonable buffer is chosen,
+// performance of this buffer is related to the number of allocations
 // instead of the amount of memory that is allocated.
 //
-// A bytes::Bytes-based implementation is also tested, and yielded a similar performance.
+// A Bytes-based implementation is also tested, and yielded a similar performance to String-based
+// buffer.
 //
-// Having a String-based buffer avoids `unsafe { str::from_utf8_unchecked(..) }` or performance
-// penalty by `str::from_utf8(..)` when converting back to String when text based content is needed
-// (e.g.: post-processing).
+// Having a String-based buffer avoids unsafe / cost of conversion between String and Bytes
+// when text based content is needed (e.g.: post-processing).
 //
-// `Bytes::from` can be used to convert a `String` to `Bytes` if the web server asks for an
+// `Bytes::from` can be used to convert a `String` to `Bytes` if web server asks for an
 // `impl Stream<Item = Bytes>`. This conversion incurs no memory allocation.
 //
 // Yielding the output with a Stream provides a couple advantages:
 //
-// 1. All children of a VList can be rendered concurrently.
-// 2. If a fixed buffer is used, the rendering process can become blocked if the buffer is filled
-//    up. Using a stream avoids this side effect and allows the renderer to finish rendering without
-//    being pulled.
+// 1. All child components of a VList can have their own buffer and be rendered concurrently.
+// 2. If a fixed buffer is used, the rendering process can become blocked if the buffer is filled.
+//    Using a stream avoids this side effect and allows the renderer to finish rendering
+//    without being actively polled.
 impl BufWriter {
-    pub fn with_capacity(capacity: usize) -> (Self, impl Stream<Item = String>) {
-        let (tx, rx) = mpsc::unbounded::<String>();
-
-        let this = Self {
-            buf: String::with_capacity(capacity),
-            tx,
-            capacity,
-        };
-
-        (this, rx)
-    }
-
     #[inline]
     pub fn capacity(&self) -> usize {
         self.capacity
