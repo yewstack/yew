@@ -121,7 +121,7 @@ module.exports = {
     },
     i18n: {
         defaultLocale: 'en',
-        locales: ['en', 'ja', 'zh-CN', 'zh-TW'],
+        locales: ['en', 'ja', 'zh-Hans', 'zh-Hant'],
     },
     plugins: [
         'content-pages',
