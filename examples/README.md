@@ -38,6 +38,7 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [function_todomvc](function_todomvc)               | F  | Implementation of [TodoMVC](http://todomvc.com/) using function components and hooks.                                              |
 | [futures](futures)                                 | S  | Demonstrates how you can use futures and async code with Yew. Features a Markdown renderer.                                        |
 | [game_of_life](game_of_life)                       | S  | Implementation of [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)                                   |
+| [immutable](immutable)                             | SF | Using immutable types in components.                                                                                               |
 | [inner_html](inner_html)                           | S  | Embeds an external document as raw HTML by manually managing the element                                                           |
 | [js_callback](js_callback)                         | F  | Interacts with JavaScript code                                                                                                     |
 | [keyed_list](keyed_list)                           | S  | Demonstrates how to use keys to improve the performance of lists                                                                   |

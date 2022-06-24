@@ -36,6 +36,7 @@ members = [
   "examples/web_worker_fib",
   "examples/ssr_router",
   "examples/suspense",
+  "examples/immutable",
 
   # Tools
   "tools/benchmark-struct",
