@@ -6,3 +6,6 @@ contact_links:
   - name: Feature proposal
     url: https://github.com/yewstack/yew/discussions/categories/ideas
     about: Start a discussion for a feature you would like to see
+  - name: Issue with the Playground?
+    url: https://github.com/yewstack/yew-playground/issues/new
+    about: Open an issue on the yew-playground repository
