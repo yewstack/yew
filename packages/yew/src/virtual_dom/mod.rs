@@ -52,6 +52,7 @@ mod feat_ssr_hydration {
     #[cfg(not(debug_assertions))]
     type ComponentName = ();
 
+    #[cfg(feature = "hydration")]
     use std::borrow::Cow;
 
     /// A collectable.
