@@ -1,9 +1,52 @@
+use std::fmt;
+
 use super::{Hook, HookContext};
 use crate::functional::ReRender;
 
 /// A handle which can be used to force a re-render of the associated
 /// function component.
-type UseForceUpdateHandle = ReRender;
+#[derive(Clone)]
+pub struct UseForceUpdate {
+    trigger: ReRender,
+}
+
+impl fmt::Debug for UseForceUpdate {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("UseForceUpdate").finish()
+    }
+}
+
+impl UseForceUpdate {
+    /// Trigger an unconditional re-render of the associated function component
+    pub fn force_update(&self) {
+        (self.trigger)()
+    }
+}
+
+#[cfg(feature = "nightly")]
+mod feat_nightly {
+    use super::*;
+
+    impl FnOnce<()> for UseForceUpdate {
+        type Output = ();
+
+        extern "rust-call" fn call_once(self, _args: ()) -> Self::Output {
+            self.force_update()
+        }
+    }
+
+    impl FnMut<()> for UseForceUpdate {
+        extern "rust-call" fn call_mut(&mut self, _args: ()) -> Self::Output {
+            self.force_update()
+        }
+    }
+
+    impl Fn<()> for UseForceUpdate {
+        extern "rust-call" fn call(&self, _args: ()) -> Self::Output {
+            self.force_update()
+        }
+    }
+}
 
 /// This hook is used to manually force a function component to re-render.
 ///
@@ -53,16 +96,30 @@ type UseForceUpdateHandle = ReRender;
 ///
 /// [`use_state`]: super::use_state()
 /// [`use_reducer`]: super::use_reducer()
-pub fn use_force_update() -> impl Hook<Output = UseForceUpdateHandle> {
+pub fn use_force_update() -> impl Hook<Output = UseForceUpdate> {
     struct UseRerenderHook;
 
     impl Hook for UseRerenderHook {
-        type Output = UseForceUpdateHandle;
+        type Output = UseForceUpdate;
 
         fn run(self, ctx: &mut HookContext) -> Self::Output {
-            ctx.re_render.clone()
+            UseForceUpdate {
+                trigger: ctx.re_render.clone(),
+            }
         }
     }
 
     UseRerenderHook
+}
+
+#[cfg(all(test, feature = "nightly"))]
+mod nightly_test {
+    use yew::prelude::*;
+
+    #[function_component]
+    fn ManuallyUpdatedDate() -> Html {
+        let trigger = use_force_update();
+        let _ = move || trigger();
+        html! {}
+    }
 }
