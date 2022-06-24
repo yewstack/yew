@@ -2,19 +2,18 @@ use std::sync::Mutex;
 
 use anyhow::{anyhow, Context, Result};
 use git2::{Error, Oid, Repository};
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::github_issue_labels_fetcher::GitHubIssueLabelsFetcher;
 use crate::github_user_fetcher::GitHubUsersFetcher;
 use crate::log_line::LogLine;
 
-lazy_static! {
-    static ref REGEX_FOR_ISSUE_ID_CAPTURE: Regex = Regex::new(r"\s*\(#(\d+)\)").unwrap();
-    static ref GITHUB_USERS_FETCHER: Mutex<GitHubUsersFetcher> = Default::default();
-    static ref GITHUB_ISSUE_LABELS_FETCHER: Mutex<GitHubIssueLabelsFetcher> = Default::default();
-    static ref PACKAGE_LABELS: Vec<String> = vec![];
-}
+static REGEX_FOR_ISSUE_ID_CAPTURE: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"\s*\(#(\d+)\)").unwrap());
+static GITHUB_USERS_FETCHER: Lazy<Mutex<GitHubUsersFetcher>> = Lazy::new(Default::default);
+static GITHUB_ISSUE_LABELS_FETCHER: Lazy<Mutex<GitHubIssueLabelsFetcher>> =
+    Lazy::new(Default::default);
 
 pub fn create_log_line(
     repo: &Repository,
