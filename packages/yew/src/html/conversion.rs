@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
 use super::super::callback::Callback;
-use super::{Children, Component, NodeRef, Scope};
-use crate::virtual_dom::{AttrValue, VNode};
+use super::{BaseComponent, Children, ChildrenRenderer, Component, NodeRef, Scope};
+use crate::virtual_dom::{AttrValue, VChild, VNode};
 
 /// Marker trait for types that the [`html!`](macro@crate::html) macro may clone implicitly.
 pub trait ImplicitClone: Clone {}
@@ -95,6 +95,66 @@ where
     #[inline]
     fn into_prop_value(self) -> Option<Callback<I, O>> {
         self.map(Callback::from)
+    }
+}
+
+impl<T> IntoPropValue<ChildrenRenderer<VChild<T>>> for VChild<T>
+where
+    T: BaseComponent,
+{
+    #[inline]
+    fn into_prop_value(self) -> ChildrenRenderer<VChild<T>> {
+        ChildrenRenderer::new(vec![self])
+    }
+}
+
+impl<T> IntoPropValue<Option<ChildrenRenderer<VChild<T>>>> for VChild<T>
+where
+    T: BaseComponent,
+{
+    #[inline]
+    fn into_prop_value(self) -> Option<ChildrenRenderer<VChild<T>>> {
+        Some(ChildrenRenderer::new(vec![self]))
+    }
+}
+
+impl<T> IntoPropValue<Option<ChildrenRenderer<VChild<T>>>> for Option<VChild<T>>
+where
+    T: BaseComponent,
+{
+    #[inline]
+    fn into_prop_value(self) -> Option<ChildrenRenderer<VChild<T>>> {
+        self.map(|m| ChildrenRenderer::new(vec![m]))
+    }
+}
+
+impl<T> IntoPropValue<ChildrenRenderer<VChild<T>>> for Vec<VChild<T>>
+where
+    T: BaseComponent,
+{
+    #[inline]
+    fn into_prop_value(self) -> ChildrenRenderer<VChild<T>> {
+        ChildrenRenderer::new(self)
+    }
+}
+
+impl<T> IntoPropValue<Option<ChildrenRenderer<VChild<T>>>> for Vec<VChild<T>>
+where
+    T: BaseComponent,
+{
+    #[inline]
+    fn into_prop_value(self) -> Option<ChildrenRenderer<VChild<T>>> {
+        Some(ChildrenRenderer::new(self))
+    }
+}
+
+impl<T> IntoPropValue<Option<ChildrenRenderer<VChild<T>>>> for Option<Vec<VChild<T>>>
+where
+    T: BaseComponent,
+{
+    #[inline]
+    fn into_prop_value(self) -> Option<ChildrenRenderer<VChild<T>>> {
+        self.map(ChildrenRenderer::new)
     }
 }
 
@@ -196,6 +256,59 @@ mod test {
 
         let header = html! { <div>{"header"}</div> };
         let footer = html! { <div>{"footer"}</div> };
+        let children = html! { <div>{"main"}</div> };
+
+        let _ = html! {
+            <App {header} {footer}>
+                {children}
+            </App>
+        };
+    }
+
+    #[test]
+    fn test_vchild_to_children_with_props_compiles() {
+        use crate::prelude::*;
+
+        #[function_component]
+        pub fn Comp() -> Html {
+            Html::default()
+        }
+
+        #[derive(Clone, Debug, PartialEq, Properties)]
+        pub struct Props {
+            #[prop_or_default]
+            pub header: ChildrenWithProps<Comp>,
+            #[prop_or_default]
+            pub children: Children,
+            #[prop_or_default]
+            pub footer: ChildrenWithProps<Comp>,
+        }
+
+        #[function_component]
+        pub fn App(props: &Props) -> Html {
+            let Props {
+                header,
+                children,
+                footer,
+            } = props.clone();
+
+            html! {
+                <div>
+                    <header>
+                        {header}
+                    </header>
+                    <main>
+                        {children}
+                    </main>
+                    <footer>
+                        {footer}
+                    </footer>
+                </div>
+            }
+        }
+
+        let header = VChild::new((), NodeRef::default(), None);
+        let footer = html_nested! { <Comp /> };
         let children = html! { <div>{"main"}</div> };
 
         let _ = html! {
