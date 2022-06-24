@@ -52,7 +52,9 @@ impl ComponentProps {
     fn prop_validation_tokens(&self, props_ty: impl ToTokens, has_children: bool) -> TokenStream {
         let props_ident = Ident::new("__yew_props", props_ty.span());
         let check_children = if has_children {
-            Some(quote_spanned! {props_ty.span()=> #props_ident.children; })
+            Some(quote_spanned! {props_ty.span()=>
+                let _ = #props_ident.children;
+            })
         } else {
             None
         };
@@ -61,15 +63,10 @@ impl ComponentProps {
             .props
             .iter()
             .map(|Prop { label, .. }| {
-                quote_spanned! {
-                    Span::call_site().located_at(label.span())=> #props_ident.#label;
+                quote_spanned! {Span::call_site().located_at(label.span())=>
+                    let _ = #props_ident.#label;
                 }
             })
-            .chain(self.base_expr.iter().map(|expr| {
-                quote_spanned! {props_ty.span()=>
-                    let _: #props_ty = #expr;
-                }
-            }))
             .collect();
 
         quote_spanned! {props_ty.span()=>
@@ -79,7 +76,7 @@ impl ComponentProps {
                     #check_children
                     #check_props
                 };
-            }
+            };
         }
     }
 
@@ -88,26 +85,39 @@ impl ComponentProps {
         props_ty: impl ToTokens,
         children_renderer: Option<CR>,
     ) -> TokenStream {
-        let validate_props = self.prop_validation_tokens(&props_ty, children_renderer.is_some());
+        let has_children = children_renderer.is_some();
+        let validate_props = self.prop_validation_tokens(&props_ty, has_children);
         let build_props = match &self.base_expr {
             None => {
+                let builder_ident = Ident::new("__yew_props", props_ty.span());
+                let token_ident = Ident::new(
+                    "__yew_required_props_token",
+                    props_ty.span().resolved_at(Span::mixed_site()),
+                );
+
+                let init_builder = quote_spanned! {props_ty.span()=>
+                    let mut #builder_ident = <#props_ty as ::yew::html::Properties>::builder();
+                    let #token_ident = ::yew::html::AssertAllProps;
+                };
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
                     quote_spanned! {value.span()=>
-                        .#label(#value)
+                        let #token_ident = #builder_ident.#label(#token_ident, #value);
                     }
                 });
-
                 let set_children = children_renderer.map(|children| {
                     quote_spanned! {props_ty.span()=>
-                        .children(#children)
+                        let #token_ident = #builder_ident.children(#token_ident, #children);
                     }
                 });
+                let build_builder = quote_spanned! {props_ty.span()=>
+                    ::yew::html::Buildable::prepare_build(#builder_ident, &#token_ident).build()
+                };
 
-                quote_spanned! {props_ty.span()=>
-                    <#props_ty as ::yew::html::Properties>::builder()
-                        #(#set_props)*
-                        #set_children
-                        .build()
+                quote! {
+                    #init_builder
+                    #( #set_props )*
+                    #set_children
+                    #build_builder
                 }
             }
             // Builder pattern is unnecessary in this case, since the base expression guarantees
@@ -124,9 +134,12 @@ impl ComponentProps {
                         #ident.children = #children;
                     }
                 });
+                let init_base = quote_spanned! {expr.span().resolved_at(Span::call_site())=>
+                    let mut #ident: #props_ty = #expr;
+                };
 
                 quote! {
-                    let mut #ident: #props_ty = #expr;
+                    #init_base
                     #(#set_props)*
                     #set_children
                     #ident

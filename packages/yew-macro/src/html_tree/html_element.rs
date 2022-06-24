@@ -387,6 +387,18 @@ impl ToTokens for HtmlElement {
                     }}
                 });
 
+                #[cfg(feature = "nightly")]
+                let invalid_void_tag_msg_start = {
+                    let span = vtag.span().unwrap();
+                    let source_file = span.source_file().path();
+                    let source_file = source_file.display();
+                    let start = span.start();
+                    format!("[{}:{}:{}] ", source_file, start.line, start.column)
+                };
+
+                #[cfg(not(feature = "nightly"))]
+                let invalid_void_tag_msg_start = "";
+
                 // this way we get a nice error message (with the correct span) when the expression
                 // doesn't return a valid value
                 quote_spanned! {expr.span()=> {
@@ -442,10 +454,6 @@ impl ToTokens for HtmlElement {
                     // These are the runtime-checks exclusive to dynamic tags.
                     // For literal tags this is already done at compile-time.
                     //
-                    // When Span::source_file Span::start get stabilised or yew-macro introduces a
-                    // nightly feature flag we should expand the panic message to contain the exact
-                    // location of the dynamic tag.
-                    //
                     // check void element
                     if !#vtag.children().is_empty() {
                         ::std::debug_assert!(
@@ -453,7 +461,7 @@ impl ToTokens for HtmlElement {
                                 "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input"
                                     | "link" | "meta" | "param" | "source" | "track" | "wbr"
                             ),
-                            "a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.",
+                            concat!(#invalid_void_tag_msg_start, "a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children."),
                             #vtag.tag(),
                         );
                     }

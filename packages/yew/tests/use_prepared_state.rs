@@ -1,5 +1,6 @@
 #![cfg(target_arch = "wasm32")]
 #![cfg(feature = "hydration")]
+#![cfg_attr(feature = "nightly", feature(async_closure))]
 
 use std::time::Duration;
 
@@ -67,7 +68,7 @@ async fn use_prepared_state_works() {
 async fn use_prepared_state_with_suspension_works() {
     #[function_component]
     fn Comp() -> HtmlResult {
-        let ctr = use_prepared_state!(async |_| -> u32 { 12345 }, ())?.unwrap_or_default();
+        let ctr = use_prepared_state!(async move |_| -> u32 { 12345 }, ())?.unwrap_or_default();
 
         Ok(html! {
             <div>

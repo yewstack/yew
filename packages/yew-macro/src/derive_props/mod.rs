@@ -13,6 +13,8 @@ use syn::parse::{Parse, ParseStream, Result};
 use syn::{Attribute, DeriveInput, Generics, Visibility};
 use wrapper::PropsWrapper;
 
+use self::generics::to_arguments;
+
 pub struct DerivePropsInput {
     vis: Visibility,
     generics: Generics,
@@ -92,27 +94,27 @@ impl ToTokens for DerivePropsInput {
 
         // The builder will only build if all required props have been set
         let builder_name = format_ident!("{}Builder", props_name, span = Span::mixed_site());
-        let builder_step = format_ident!("{}BuilderStep", props_name, span = Span::mixed_site());
+        let check_all_props_name =
+            format_ident!("Check{}All", props_name, span = Span::mixed_site());
         let builder = PropsBuilder::new(
             &builder_name,
-            &builder_step,
             self,
             &wrapper_name,
+            &check_all_props_name,
             &self.preserved_attrs,
         );
-        let builder_generic_args = builder.first_step_generic_args();
+        let generic_args = to_arguments(generics);
         tokens.extend(builder.into_token_stream());
 
         // The properties trait has a `builder` method which creates the props builder
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         let properties = quote! {
             impl #impl_generics ::yew::html::Properties for #props_name #ty_generics #where_clause {
-                type Builder = #builder_name<#builder_generic_args>;
+                type Builder = #builder_name<#generic_args>;
 
                 fn builder() -> Self::Builder {
                     #builder_name {
                         wrapped: ::std::boxed::Box::new(::std::default::Default::default()),
-                        _marker: ::std::marker::PhantomData,
                     }
                 }
             }
