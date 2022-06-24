@@ -345,11 +345,11 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
    |                                 ^ the trait `IntoPropValue<String>` is not implemented for `{integer}`
    |
    = help: the following implementations were found:
-             <&'static str as IntoPropValue<AttrValue>>
+             <&'static [(K, V)] as IntoPropValue<implicit_clone::unsync::IMap<K, V>>>
+             <&'static [T] as IntoPropValue<implicit_clone::unsync::IArray<T>>>
              <&'static str as IntoPropValue<Classes>>
-             <&'static str as IntoPropValue<Option<AttrValue>>>
              <&'static str as IntoPropValue<Option<String>>>
-           and 27 others
+           and 31 others
 
 error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfied
   --> tests/html_macro/component-fail.rs:79:34
@@ -358,11 +358,11 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
    |                                  ^ the trait `IntoPropValue<String>` is not implemented for `{integer}`
    |
    = help: the following implementations were found:
-             <&'static str as IntoPropValue<AttrValue>>
+             <&'static [(K, V)] as IntoPropValue<implicit_clone::unsync::IMap<K, V>>>
+             <&'static [T] as IntoPropValue<implicit_clone::unsync::IArray<T>>>
              <&'static str as IntoPropValue<Classes>>
-             <&'static str as IntoPropValue<Option<AttrValue>>>
              <&'static str as IntoPropValue<Option<String>>>
-           and 27 others
+           and 31 others
 
 error[E0308]: mismatched types
   --> tests/html_macro/component-fail.rs:80:31
