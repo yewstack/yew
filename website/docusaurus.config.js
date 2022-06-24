@@ -60,6 +60,11 @@ module.exports = {
                     label: 'Blog',
                 },
                 {
+                    href: 'https://play.yew.rs/',
+                    position: 'right',
+                    label: 'Playground',
+                },
+                {
                     href: 'https://docs.rs/yew',
                     position: 'right',
                     label: API_BUTTON,
