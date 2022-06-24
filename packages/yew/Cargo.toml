@@ -96,6 +96,7 @@ features = [
 ssr = ["futures", "html-escape", "base64ct", "bincode"] # dep:html-escape
 csr = []
 hydration = ["csr", "bincode"]
+nightly = ["yew-macro/nightly"]
 default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]

@@ -35,3 +35,4 @@ yew = { path = "../yew" }
 
 [features]
 lints = []
+nightly = []

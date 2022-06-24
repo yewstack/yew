@@ -25,7 +25,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --all-features -- -D warnings
+          args: --all-targets --features "csr,ssr,hydration" -- -D warnings
 
       - name: Lint feature soundness
         run: |
@@ -33,7 +33,7 @@ jobs:
           cargo clippy --features=ssr -- --deny=warnings
           cargo clippy --features=csr -- --deny=warnings
           cargo clippy --features=hydration -- --deny=warnings
-          cargo clippy --all-features --all-targets -- --deny=warnings
+          cargo clippy --features "csr,ssr,hydration,tokio" --all-targets -- --deny=warnings
         working-directory: packages/yew
 
 
@@ -55,7 +55,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --all-features --release -- -D warnings
+          args: --all-targets --features "csr,ssr,hydration" --release -- -D warnings
 
       - name: Lint feature soundness
         run: |
@@ -63,7 +63,7 @@ jobs:
           cargo clippy --release --features=ssr -- --deny=warnings
           cargo clippy --release --features=csr -- --deny=warnings
           cargo clippy --release --features=hydration -- --deny=warnings
-          cargo clippy --release --all-features --all-targets -- --deny=warnings
+          cargo clippy --release --features "csr,ssr,hydration,tokio" --all-targets -- --deny=warnings
         working-directory: packages/yew
 
   spell_check:
