@@ -6,17 +6,17 @@ use crate::functional::ReRender;
 /// A handle which can be used to force a re-render of the associated
 /// function component.
 #[derive(Clone)]
-pub struct UseForceUpdate {
+pub struct UseForceUpdateHandle {
     trigger: ReRender,
 }
 
-impl fmt::Debug for UseForceUpdate {
+impl fmt::Debug for UseForceUpdateHandle {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("UseForceUpdate").finish()
     }
 }
 
-impl UseForceUpdate {
+impl UseForceUpdateHandle {
     /// Trigger an unconditional re-render of the associated function component
     pub fn force_update(&self) {
         (self.trigger)()
@@ -27,7 +27,7 @@ impl UseForceUpdate {
 mod feat_nightly {
     use super::*;
 
-    impl FnOnce<()> for UseForceUpdate {
+    impl FnOnce<()> for UseForceUpdateHandle {
         type Output = ();
 
         extern "rust-call" fn call_once(self, _args: ()) -> Self::Output {
@@ -35,13 +35,13 @@ mod feat_nightly {
         }
     }
 
-    impl FnMut<()> for UseForceUpdate {
+    impl FnMut<()> for UseForceUpdateHandle {
         extern "rust-call" fn call_mut(&mut self, _args: ()) -> Self::Output {
             self.force_update()
         }
     }
 
-    impl Fn<()> for UseForceUpdate {
+    impl Fn<()> for UseForceUpdateHandle {
         extern "rust-call" fn call(&self, _args: ()) -> Self::Output {
             self.force_update()
         }
@@ -96,14 +96,14 @@ mod feat_nightly {
 ///
 /// [`use_state`]: super::use_state()
 /// [`use_reducer`]: super::use_reducer()
-pub fn use_force_update() -> impl Hook<Output = UseForceUpdate> {
+pub fn use_force_update() -> impl Hook<Output =UseForceUpdateHandle> {
     struct UseRerenderHook;
 
     impl Hook for UseRerenderHook {
-        type Output = UseForceUpdate;
+        type Output = UseForceUpdateHandle;
 
         fn run(self, ctx: &mut HookContext) -> Self::Output {
-            UseForceUpdate {
+            UseForceUpdateHandle {
                 trigger: ctx.re_render.clone(),
             }
         }
