@@ -1,7 +1,7 @@
 use anyhow::Result;
 use changelog::Cli;
-use structopt::StructOpt;
+use clap::Parser;
 
 fn main() -> Result<()> {
-    Cli::from_args().run()
+    Cli::parse().run()
 }

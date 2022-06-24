@@ -98,6 +98,7 @@ tokio = ["dep:tokio", "dep:num_cpus", "dep:tokio-util"]
 ssr = ["dep:futures", "dep:html-escape", "dep:base64ct", "dep:bincode"]
 csr = []
 hydration = ["csr", "dep:bincode"]
+nightly = ["yew-macro/nightly"]
 default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
