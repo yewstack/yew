@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
 use super::super::callback::Callback;
-use super::{Component, NodeRef, Scope};
-use crate::virtual_dom::AttrValue;
+use super::{Children, Component, NodeRef, Scope};
+use crate::virtual_dom::{AttrValue, VNode};
 
 /// Marker trait for types that the [`html!`](macro@crate::html) macro may clone implicitly.
 pub trait ImplicitClone: Clone {}
@@ -40,6 +40,7 @@ impl<T> IntoPropValue<T> for T {
         self
     }
 }
+
 impl<T> IntoPropValue<T> for &T
 where
     T: ImplicitClone,
@@ -56,6 +57,7 @@ impl<T> IntoPropValue<Option<T>> for T {
         Some(self)
     }
 }
+
 impl<T> IntoPropValue<Option<T>> for &T
 where
     T: ImplicitClone,
@@ -70,6 +72,7 @@ impl<I, O, F> IntoPropValue<Callback<I, O>> for F
 where
     F: 'static + Fn(I) -> O,
 {
+    #[inline]
     fn into_prop_value(self) -> Callback<I, O> {
         Callback::from(self)
     }
@@ -79,6 +82,7 @@ impl<I, O, F> IntoPropValue<Option<Callback<I, O>>> for F
 where
     F: 'static + Fn(I) -> O,
 {
+    #[inline]
     fn into_prop_value(self) -> Option<Callback<I, O>> {
         Some(Callback::from(self))
     }
@@ -88,8 +92,9 @@ impl<I, O, F> IntoPropValue<Option<Callback<I, O>>> for Option<F>
 where
     F: 'static + Fn(I) -> O,
 {
+    #[inline]
     fn into_prop_value(self) -> Option<Callback<I, O>> {
-        self.map(|f| Callback::from(f))
+        self.map(Callback::from)
     }
 }
 
@@ -127,6 +132,7 @@ impl_into_prop!(|value: &'static str| -> String { value.to_owned() });
 impl_into_prop!(|value: &'static str| -> AttrValue { AttrValue::Static(value) });
 impl_into_prop!(|value: String| -> AttrValue { AttrValue::Rc(Rc::from(value)) });
 impl_into_prop!(|value: Rc<str>| -> AttrValue { AttrValue::Rc(value) });
+impl_into_prop!(|value: VNode| -> Children { Children::new(vec![value]) });
 
 #[cfg(test)]
 mod test {
@@ -149,5 +155,53 @@ mod test {
         let _: Callback<String, String> = (|s: String| s).into_prop_value();
         let _: Option<Callback<String, String>> = (|s: String| s).into_prop_value();
         let _: Option<Callback<String, String>> = Some(|s: String| s).into_prop_value();
+    }
+
+    #[test]
+    fn test_html_to_children_compiles() {
+        use crate::prelude::*;
+
+        #[derive(Clone, Debug, PartialEq, Properties)]
+        pub struct Props {
+            #[prop_or_default]
+            pub header: Children,
+            #[prop_or_default]
+            pub children: Children,
+            #[prop_or_default]
+            pub footer: Children,
+        }
+
+        #[function_component]
+        pub fn App(props: &Props) -> Html {
+            let Props {
+                header,
+                children,
+                footer,
+            } = props.clone();
+
+            html! {
+                <div>
+                    <header>
+                        {header}
+                    </header>
+                    <main>
+                        {children}
+                    </main>
+                    <footer>
+                        {footer}
+                    </footer>
+                </div>
+            }
+        }
+
+        let header = html! { <div>{"header"}</div> };
+        let footer = html! { <div>{"footer"}</div> };
+        let children = html! { <div>{"main"}</div> };
+
+        let _ = html! {
+            <App {header} {footer}>
+                {children}
+            </App>
+        };
     }
 }
