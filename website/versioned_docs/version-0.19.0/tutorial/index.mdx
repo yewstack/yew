@@ -483,7 +483,6 @@ Update the `Video` struct to derive the `Deserialize` trait:
 ```rust ,ignore {2-3, 5-6}
 use yew::prelude::*;
 + use serde::Deserialize;
-+ use reqwasm::http::Request;
 
 - #[derive(Clone, PartialEq)]
 + #[derive(Clone, PartialEq, Deserialize)]
@@ -498,6 +497,8 @@ struct Video {
 Now as the last step, we need to update our `App` component to make the fetch request instead of using hardcoded data
 
 ```rust ,ignore {3-23,32-33}
++ use reqwasm::http::Request;
+
 #[function_component(App)]
 fn app() -> Html {
 -    let videos = vec![
