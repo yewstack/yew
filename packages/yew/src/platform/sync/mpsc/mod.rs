@@ -1,4 +1,4 @@
-//! A multi-producer, single-receiver channel;
+//! A multi-producer, single-receiver channel.
 
 use std::error::Error;
 use std::fmt;
