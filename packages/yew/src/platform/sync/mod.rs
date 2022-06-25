@@ -1,4 +1,5 @@
-//! A module that provides task synchronization primitives.
+//! A module that provides task synchronisation primitives.
 
+#[doc(inline)]
+pub use tokio::sync::oneshot;
 pub mod mpsc;
-pub use futures::channel::oneshot;

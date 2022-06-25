@@ -32,17 +32,16 @@ use std::future::Future;
 #[cfg(feature = "ssr")]
 pub(crate) mod io;
 
-#[cfg(feature = "ssr")]
-pub(crate) mod sync;
+pub mod sync;
 
 #[cfg(not(any(feature = "tokio", target_arch = "wasm32")))]
-#[path = "rt_none/mod.rs"]
+#[path = "rt_none.rs"]
 mod imp;
 #[cfg(all(not(target_arch = "wasm32"), feature = "tokio"))]
-#[path = "rt_tokio/mod.rs"]
+#[path = "rt_tokio.rs"]
 mod imp;
 #[cfg(target_arch = "wasm32")]
-#[path = "rt_wasm_bindgen/mod.rs"]
+#[path = "rt_wasm_bindgen.rs"]
 mod imp;
 
 /// Spawns a task on current thread.

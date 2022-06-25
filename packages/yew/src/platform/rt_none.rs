@@ -1,8 +1,5 @@
 use std::future::Future;
 
-#[cfg(feature = "ssr")]
-pub(crate) mod sync;
-
 #[inline(always)]
 pub(super) fn spawn_local<F>(_f: F)
 where
