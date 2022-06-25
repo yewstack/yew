@@ -1,3 +1,5 @@
+use std::future::Future;
+
 #[cfg(feature = "ssr")]
 pub(crate) mod sync;
 

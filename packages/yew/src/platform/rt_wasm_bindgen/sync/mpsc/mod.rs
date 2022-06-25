@@ -1,4 +1,3 @@
-use std::marker::PhantomData;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
@@ -29,12 +28,10 @@ impl<T> Clone for UnboundedSender<T> {
 }
 
 pub(crate) fn unbounded<T>() -> (UnboundedSender<T>, UnboundedReceiver<T>) {
-    let (inner_tx, inner_rx) = imp::unbounded_channel();
+    let (inner_tx, inner_rx) = imp::unbounded();
 
     let tx = UnboundedSender { inner: inner_tx };
-    let rx = UnboundedReceiver {
-        inner: UnboundedReceiverStream::new(inner_rx),
-    };
+    let rx = UnboundedReceiver { inner: inner_rx };
 
     (tx, rx)
 }
