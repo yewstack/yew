@@ -1,3 +1,5 @@
+//! This module contains the implementation of abstract virtual node.
+
 use std::cmp::PartialEq;
 use std::fmt;
 use std::iter::FromIterator;
