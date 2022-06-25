@@ -20,6 +20,12 @@
 //! expensive CPU-bounded task, it should be spawned with a `Send`-aware spawning mechanism provided
 //! by the native runtime, `std::thread::spawn` or `yew-agent` and communicates with the application
 //! using channels or agent bridges.
+//!
+//! Yew's ServerRenderer can also be executed in applications using the `async-std` runtime.
+//! Rendering tasks will enter Yew runtime and be executed with `tokio`. When the rendering task
+//! finishes, the result is returned to the `async-std` runtime. This process is transparent to the
+//! future that executes the renderer. The Yew application still needs to use `tokio`'s timer, IO
+//! and task synchronisation primitives.
 
 use std::future::Future;
 
@@ -27,13 +33,13 @@ use std::future::Future;
 pub(crate) mod sync;
 
 #[cfg(not(any(feature = "tokio", target_arch = "wasm32")))]
-#[path = "rt_null/mod.rs"]
+#[path = "rt_none.rs"]
 mod imp;
 #[cfg(all(not(target_arch = "wasm32"), feature = "tokio"))]
-#[path = "rt_tokio/mod.rs"]
+#[path = "rt_tokio.rs"]
 mod imp;
 #[cfg(target_arch = "wasm32")]
-#[path = "rt_wasm_bindgen/mod.rs"]
+#[path = "rt_wasm_bindgen.rs"]
 mod imp;
 
 /// Spawns a task on current thread.

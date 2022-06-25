@@ -26,7 +26,7 @@ slab = "0.4"
 wasm-bindgen = "0.2"
 yew-macro = { version = "^0.19.0", path = "../yew-macro" }
 thiserror = "1.0"
-
+tokio = "1.15.0"
 futures = { version = "0.3", optional = true }
 html-escape = { version = "0.2.9", optional = true }
 implicit-clone = { version = "0.2", features = ["map"] }
@@ -75,7 +75,6 @@ features = [
 wasm-bindgen-futures = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1.15.0", features = ["rt"], optional = true }
 num_cpus = { version = "1.13", optional = true }
 tokio-util = { version = "0.7", features = ["rt"], optional = true }
 once_cell = "1"
@@ -97,8 +96,8 @@ features = [
 ]
 
 [features]
-tokio = ["dep:tokio", "dep:num_cpus", "dep:tokio-util", "dep:tokio-stream"]
-ssr = ["dep:futures", "dep:html-escape", "dep:base64ct", "dep:bincode", "dep:pin-project"]
+tokio = ["tokio/rt", "dep:num_cpus", "dep:tokio-util"]
+ssr = ["tokio/sync", "dep:tokio-stream", "dep:futures", "dep:html-escape", "dep:base64ct", "dep:bincode", "dep:pin-project"]
 csr = []
 hydration = ["csr", "dep:bincode"]
 nightly = ["yew-macro/nightly"]

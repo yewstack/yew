@@ -106,8 +106,10 @@ where
 
 /// A Yew Server-side Renderer.
 ///
-/// The renderer spawns the rendering task with [`run_pinned`] which maintains an internal worker
-/// pool.
+/// This renderer spawns the rendering task to an internal worker pool and receives result when
+/// the rendering process has finished.
+///
+/// See [`yew::platform`] for more information.
 #[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
 #[derive(Debug)]
 pub struct ServerRenderer<COMP>
