@@ -33,6 +33,8 @@ base64ct = { version = "1.5.0", features = ["std"], optional = true }
 bincode = { version = "1.3.3", optional = true }
 serde = { version = "1", features = ["derive"] }
 pin-project = { version = "1.0.10", optional = true }
+tokio = { version = "1.19", features = ["sync"] }
+tokio-stream = "0.1.9"
 
 [dependencies.web-sys]
 version = "0.3"
@@ -74,8 +76,6 @@ features = [
 wasm-bindgen-futures = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1.15.0", features = ["rt"], optional = true }
-tokio-stream = { version = "0.1.9", optional = true }
 num_cpus = { version = "1.13", optional = true }
 tokio-util = { version = "0.7", features = ["rt"], optional = true }
 once_cell = "1"
@@ -96,7 +96,7 @@ features = [
 ]
 
 [features]
-tokio = ["dep:tokio", "dep:num_cpus", "dep:tokio-util", "dep:tokio-stream"]
+tokio = ["tokio/rt", "dep:num_cpus", "dep:tokio-util"]
 ssr = ["dep:futures", "dep:html-escape", "dep:base64ct", "dep:bincode", "dep:pin-project"]
 csr = []
 hydration = ["csr", "dep:bincode"]
@@ -104,7 +104,7 @@ nightly = ["yew-macro/nightly"]
 default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-tokio = { version = "1.15.0", features = ["full"] }
+tokio = { version = "1.19", features = ["io-util", "io-std", "macros", "parking_lot", "rt", "rt-multi-thread", "sync", "time"] }
 
 [package.metadata.docs.rs]
 all-features = true
