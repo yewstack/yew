@@ -1,4 +1,4 @@
-//! This module contains types for I/O funtionality.
+//! This module contains types for I/O functionality.
 
 use std::borrow::Cow;
 
