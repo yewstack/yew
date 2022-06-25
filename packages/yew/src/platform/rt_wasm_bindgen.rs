@@ -1,3 +1,4 @@
+#[cfg(feature = "ssr")]
 use std::future::Future;
 
 pub(super) use wasm_bindgen_futures::spawn_local;

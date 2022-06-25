@@ -1,5 +1,3 @@
-//! Tokio Implementation
-
 use std::future::Future;
 
 #[cfg(feature = "ssr")]
