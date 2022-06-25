@@ -3,6 +3,9 @@
 use std::future::Future;
 
 #[cfg(feature = "ssr")]
+pub(crate) mod sync;
+
+#[cfg(feature = "ssr")]
 pub(super) async fn run_pinned<F, Fut>(create_task: F) -> Fut::Output
 where
     F: FnOnce() -> Fut,
