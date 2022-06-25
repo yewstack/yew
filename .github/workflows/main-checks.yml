@@ -28,7 +28,7 @@ jobs:
           args: --all-targets --features "csr,ssr,hydration,tokio" -- -D warnings
 
       - name: Lint feature soundness
-        run: bash ci/feature-soundness.sh
+        run: bash ../../ci/feature-soundness.sh
         working-directory: packages/yew
 
 
@@ -53,7 +53,7 @@ jobs:
           args: --all-targets --features "csr,ssr,hydration,tokio" --release -- -D warnings
 
       - name: Lint feature soundness
-        run: bash ci/feature-soundness-release.sh
+        run: bash ../../ci/feature-soundness-release.sh
         working-directory: packages/yew
 
   spell_check:
