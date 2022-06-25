@@ -27,6 +27,7 @@ impl<T> Clone for UnboundedSender<T> {
     }
 }
 
+#[inline]
 pub(crate) fn unbounded<T>() -> (UnboundedSender<T>, UnboundedReceiver<T>) {
     let (inner_tx, inner_rx) = imp::unbounded();
 
@@ -37,6 +38,7 @@ pub(crate) fn unbounded<T>() -> (UnboundedSender<T>, UnboundedReceiver<T>) {
 }
 
 impl<T> UnboundedSender<T> {
+    #[inline]
     pub fn send(&self, value: T) -> Result<(), SendError<T>> {
         self.inner
             .unbounded_send(value)
@@ -47,11 +49,13 @@ impl<T> UnboundedSender<T> {
 impl<T> Stream for UnboundedReceiver<T> {
     type Item = T;
 
+    #[inline]
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.project();
         this.inner.poll_next(cx)
     }
 
+    #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.inner.size_hint()
     }

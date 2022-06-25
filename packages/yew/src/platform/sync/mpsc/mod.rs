@@ -45,6 +45,7 @@ impl<T> Clone for UnboundedSender<T> {
 }
 
 /// Creates an unbounded channel.
+#[inline]
 pub fn unbounded<T>() -> (UnboundedSender<T>, UnboundedReceiver<T>) {
     let (inner_tx, inner_rx) = imp::unbounded();
 
