@@ -1,5 +1,8 @@
 //! This module contains types for I/O functionality.
 
+// This module remains private until impl trait type alias becomes available so
+// `BufReader` can be produced with an existential type.
+
 use std::borrow::Cow;
 
 use futures::stream::Stream;

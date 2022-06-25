@@ -160,7 +160,7 @@ mod feat_ssr {
 
     use super::*;
     use crate::html::AnyScope;
-    use crate::io::{self, BufWriter};
+    use crate::platform::io::{self, BufWriter};
 
     impl VList {
         pub(crate) async fn render_into_stream(

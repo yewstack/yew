@@ -1,7 +1,7 @@
 use futures::stream::{Stream, StreamExt};
 
 use crate::html::{BaseComponent, Scope};
-use crate::io::{self, DEFAULT_BUF_SIZE};
+use crate::platform::io::{self, DEFAULT_BUF_SIZE};
 use crate::platform::{run_pinned, spawn_local};
 
 /// A Yew Server-side Renderer that renders on the current thread.

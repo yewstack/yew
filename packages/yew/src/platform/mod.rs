@@ -30,7 +30,9 @@
 use std::future::Future;
 
 #[cfg(feature = "ssr")]
-pub(crate) mod sync;
+pub(crate) mod io;
+
+pub mod sync;
 
 #[cfg(not(any(feature = "tokio", target_arch = "wasm32")))]
 #[path = "rt_none.rs"]

@@ -264,7 +264,7 @@ mod feat_ssr {
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
-    use crate::io::BufWriter;
+    use crate::platform::io::BufWriter;
     use crate::platform::sync::oneshot;
     use crate::scheduler;
     use crate::virtual_dom::Collectable;

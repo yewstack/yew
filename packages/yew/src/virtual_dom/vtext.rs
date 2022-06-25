@@ -37,7 +37,7 @@ mod feat_ssr {
 
     use super::*;
     use crate::html::AnyScope;
-    use crate::io::BufWriter;
+    use crate::platform::io::BufWriter;
 
     impl VText {
         pub(crate) async fn render_into_stream(

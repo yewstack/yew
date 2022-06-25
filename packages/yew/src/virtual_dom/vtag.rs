@@ -430,7 +430,7 @@ impl PartialEq for VTag {
 mod feat_ssr {
     use super::*;
     use crate::html::AnyScope;
-    use crate::io::BufWriter;
+    use crate::platform::io::BufWriter;
     use crate::virtual_dom::VText;
 
     // Elements that cannot have any child elements.
