@@ -1,6 +1,6 @@
 //! This module contains types for I/O functionality.
 
-// This module remains private until impl trait type alias becomes available so
+// This module should remain private until impl trait type alias becomes available so
 // `BufReader` can be produced with an existential type.
 
 use std::borrow::Cow;
@@ -34,7 +34,7 @@ pub(crate) fn buffer(capacity: usize) -> (BufWriter, impl Stream<Item = String>)
 
 // Implementation Notes:
 //
-// When jemalloc is used and a reasonable buffer is chosen,
+// When jemalloc is used and a reasonable buffer length is chosen,
 // performance of this buffer is related to the number of allocations
 // instead of the amount of memory that is allocated.
 //
