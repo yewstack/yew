@@ -33,6 +33,7 @@ implicit-clone = { version = "0.2", features = ["map"] }
 base64ct = { version = "1.5.0", features = ["std"], optional = true }
 bincode = { version = "1.3.3", optional = true }
 serde = { version = "1", features = ["derive"] }
+pin-project = { version = "1.0.10", optional = true }
 
 [dependencies.web-sys]
 version = "0.3"
@@ -78,6 +79,7 @@ tokio = { version = "1.15.0", features = ["rt"], optional = true }
 num_cpus = { version = "1.13", optional = true }
 tokio-util = { version = "0.7", features = ["rt"], optional = true }
 once_cell = "1"
+tokio-stream = { version = "0.1.9", optional = true }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
@@ -95,8 +97,8 @@ features = [
 ]
 
 [features]
-tokio = ["dep:tokio", "dep:num_cpus", "dep:tokio-util"]
-ssr = ["dep:futures", "dep:html-escape", "dep:base64ct", "dep:bincode"]
+tokio = ["dep:tokio", "dep:num_cpus", "dep:tokio-util", "dep:tokio-stream"]
+ssr = ["dep:futures", "dep:html-escape", "dep:base64ct", "dep:bincode", "dep:pin-project"]
 csr = []
 hydration = ["csr", "dep:bincode"]
 nightly = ["yew-macro/nightly"]

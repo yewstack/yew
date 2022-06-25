@@ -169,37 +169,33 @@ mod feat_ssr {
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
-            if self.children.len() < 2 {
-                match self.children.first() {
-                    Some(m) => {
-                        m.render_into_stream(w, parent_scope, hydratable).await;
-                    }
-
-                    None => {}
+            match &self.children[..] {
+                [] => {}
+                [child] => {
+                    child.render_into_stream(w, parent_scope, hydratable).await;
                 }
+                _ => {
+                    let buf_capacity = w.capacity();
 
-                return;
-            }
+                    // Concurrently render all children.
+                    let mut children: FuturesOrdered<_> = self
+                        .children
+                        .iter()
+                        .map(|m| async move {
+                            let (mut w, r) = io::buffer(buf_capacity);
 
-            let buf_capacity = w.capacity();
+                            m.render_into_stream(&mut w, parent_scope, hydratable).await;
+                            drop(w);
 
-            // Concurrently render all children.
-            let mut children: FuturesOrdered<_> = self
-                .children
-                .iter()
-                .map(|m| async move {
-                    let (mut w, r) = io::buffer(buf_capacity);
+                            r
+                        })
+                        .collect();
 
-                    m.render_into_stream(&mut w, parent_scope, hydratable).await;
-                    drop(w);
-
-                    r
-                })
-                .collect();
-
-            while let Some(mut r) = children.next().await {
-                while let Some(next_chunk) = r.next().await {
-                    w.write(next_chunk.into());
+                    while let Some(mut r) = children.next().await {
+                        while let Some(next_chunk) = r.next().await {
+                            w.write(next_chunk.into());
+                        }
+                    }
                 }
             }
         }

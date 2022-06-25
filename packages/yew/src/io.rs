@@ -2,8 +2,9 @@
 
 use std::borrow::Cow;
 
-use futures::channel::mpsc::{self, UnboundedSender};
 use futures::stream::Stream;
+
+use crate::platform::sync::mpsc::{self, UnboundedSender};
 
 // Same as std::io::BufWriter and futures::io::BufWriter.
 pub(crate) const DEFAULT_BUF_SIZE: usize = 8 * 1024;
@@ -56,7 +57,7 @@ impl BufWriter {
     }
 
     fn drain(&mut self) {
-        let _ = self.tx.unbounded_send(self.buf.drain(..).collect());
+        let _ = self.tx.send(self.buf.drain(..).collect());
         self.buf.reserve(self.capacity);
     }
 
@@ -82,7 +83,7 @@ impl BufWriter {
             // the buffer was drained. If the buffer capacity didn't change, then it means
             // self.buf.capacity() > s.len() which will be guaranteed to be matched by
             // self.buf.capacity() >= s.len().
-            let _ = self.tx.unbounded_send(s.into_owned());
+            let _ = self.tx.send(s.into_owned());
         }
     }
 }
@@ -92,7 +93,7 @@ impl Drop for BufWriter {
         if !self.buf.is_empty() {
             let mut buf = String::new();
             std::mem::swap(&mut buf, &mut self.buf);
-            let _ = self.tx.unbounded_send(buf);
+            let _ = self.tx.send(buf);
         }
     }
 }

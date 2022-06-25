@@ -82,7 +82,7 @@ where
 
     /// Renders Yew Application to a String.
     pub async fn render_to_string(self, w: &mut String) {
-        let mut s = self.render_stream().await;
+        let mut s = self.render_stream();
 
         while let Some(m) = s.next().await {
             w.push_str(&m);
@@ -90,9 +90,7 @@ where
     }
 
     /// Renders Yew Applications into a string Stream
-    // Whilst not required to be async here, this function is async to keep the same function
-    // signature as the ServerRenderer.
-    pub async fn render_stream(self) -> impl Stream<Item = String> {
+    pub fn render_stream(self) -> impl Stream<Item = String> {
         let (mut w, r) = io::buffer(self.capacity);
 
         let scope = Scope::<COMP>::new(None);
@@ -197,7 +195,12 @@ where
     }
 
     /// Renders Yew Applications into a string Stream.
+    ///
+    /// # Note
+    ///
+    /// Unlike [`LocalServerRenderer::render_stream`], this method is `async fn`.
     pub async fn render_stream(self) -> impl Stream<Item = String> {
+        // We use run_pinned to switch to our runtime.
         run_pinned(move || async move {
             let Self {
                 props,
@@ -209,7 +212,6 @@ where
                 .hydratable(hydratable)
                 .capacity(capacity)
                 .render_stream()
-                .await
         })
         .await
     }

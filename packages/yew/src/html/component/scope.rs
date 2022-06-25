@@ -260,13 +260,12 @@ impl<COMP: BaseComponent> Scope<COMP> {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::channel::oneshot;
-
     use super::*;
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
     use crate::io::BufWriter;
+    use crate::platform::sync::oneshot;
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
 
