@@ -45,6 +45,10 @@ mod imp;
 mod imp;
 
 /// Spawns a task on current thread.
+///
+/// # Panics
+///
+/// This function will panic when not being executed from within a Yew Application.
 #[inline(always)]
 pub fn spawn_local<F>(f: F)
 where
