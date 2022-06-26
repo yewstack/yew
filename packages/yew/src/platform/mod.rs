@@ -1,31 +1,44 @@
-//! This module provides io compatibility over browser tasks and other asyncio runtimes (e.g.:
-//! tokio).
+//! Compatibility between JavaScript Runtime and Native Runtimes.
 //!
-//! Yew implements a single-threaded runtime that executes `!Send` futures. When your application
-//! starts with `yew::Renderer` or is rendered by `yew::ServerRenderer`, it is executed within the
-//! Yew runtime. The renderer will select a worker thread from the internal worker
-//! pool of Yew runtime. All tasks spawned with `spawn_local` will run on the same worker thread as
-//! the rendering thread the renderer has selected. When the renderer runs in a WebAssembly target,
-//! all tasks will be scheduled on the main thread.
+//! When designing components and libraries that works on both WebAssembly targets backed by
+//! JavaScript Runtime and non-WebAssembly targets with Native Runtimes. Developers usually face
+//! challenges that requires applying multiple feature flags throughout their application:
 //!
-//! Yew runtime is implemented with native runtimes depending on the target platform and can use
+//! 1. Select I/O and timers that works with the target runtime.
+//! 2. Native Runtimes usually require `Send` futures and WebAssembly usually use `!Send`
+//! primitives for better performance during Client-side Rendering.
+//!
+//! To alleviate these issues, Yew implements a single-threaded runtime that executes `?Send`
+//! (`Send` or `!Send`) futures. When your application starts with `yew::Renderer` or is rendered by
+//! `yew::ServerRenderer`, it is executed within the Yew runtime. On systems with multi-threading
+//! support, it spawns multiple independent runtimes in a worker pool proportional to the CPU
+//! core number. The renderer will randomly select a worker thread from the internal pool. All tasks
+//! spawned with `spawn_local` in the application will run on the same thread as the
+//! rendering thread the renderer has selected. When the renderer runs in a WebAssembly target, all
+//! tasks will be scheduled on the main thread.
+//!
+//! This runtime is designed in favour of IO-bounded workload with similar runtime cost. It produces
+//! better performance by pinning tasks to a single worker thread. However, this means that if a
+//! worker thread is back-logged, other threads will not be able to "help" by running tasks
+//! scheduled on the busy thread. When you have a CPU-bounded task where CPU time is significantly
+//! more expensive than rendering tasks, it should be spawned with a dedicated thread or
+//! `yew-agent` and communicates with the application using channels or agent bridges.
+//!
+//! # Runtime Backend
+//!
+//! Yew runtime is implemented with different runtimes depending on the target platform and can use
 //! all features (timers / IO / task synchronisation) from the selected native runtime:
 //!
 //! - `wasm-bindgen-futures` (WebAssembly targets)
 //! - `tokio` (non-WebAssembly targets)
 //!
-//! Yew runtime alleviates the implementation requirement of `Send` futures when running with
-//! multi-threaded runtimes like `tokio` and `!Send` futures on WebAssembly platforms and produces
-//! good performance when the workload is IO-bounded and have similar runtime cost. When you have an
-//! expensive CPU-bounded task, it should be spawned with a `Send`-aware spawning mechanism provided
-//! by the native runtime, `std::thread::spawn` or `yew-agent` and communicates with the application
-//! using channels or agent bridges.
+//! # Compatibility with other async runtimes
 //!
-//! Yew's ServerRenderer can also be executed in applications using the `async-std` runtime.
-//! Rendering tasks will enter Yew runtime and be executed with `tokio`. When the rendering task
-//! finishes, the result is returned to the `async-std` runtime. This process is transparent to the
-//! future that executes the renderer. The Yew application still needs to use `tokio`'s timer, IO
-//! and task synchronisation primitives.
+//! Yew's ServerRenderer can also be executed in applications using other async runtimes(e.g.:
+//! `async-std`). Rendering tasks will enter Yew runtime and be executed with `tokio`. When the
+//! rendering task finishes, the result is returned to the original runtime. This process is
+//! transparent to the future that executes the renderer. The Yew application still needs to use
+//! `tokio`'s timer, IO and task synchronisation primitives.
 
 use std::future::Future;
 
