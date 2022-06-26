@@ -1,4 +1,5 @@
 use gloo_console as console;
+use gloo::timers::callback::Interval;
 use js_sys::Date;
 use yew::{html, Component, Context, Html};
 
@@ -6,10 +7,14 @@ use yew::{html, Component, Context, Html};
 pub enum Msg {
     Increment,
     Decrement,
+    HoldDown,
+    HoldUp,
+    DropInterval,
 }
 
 pub struct App {
     value: i64, // This will store the counter value
+    interval: Option<Interval>, // Option<T> because we will cancel it via None
 }
 
 impl Component for App {
@@ -17,7 +22,7 @@ impl Component for App {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Self { value: 0 }
+        Self { value: 0, interval: None }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
@@ -32,6 +37,35 @@ impl Component for App {
                 console::log!("minus one");
                 true
             }
+            Msg::HoldDown => {
+                console::log!("hold down");
+                let interval = {
+                    let link = _ctx.link().clone();
+                    Interval::new(200, move|| {
+                        link.send_message(Msg::Decrement)
+                    })
+                };
+                self.interval = Some(interval);
+                true
+            }
+            Msg::HoldUp => {
+                console::log!("hold up");
+                let interval = {
+                    let link = _ctx.link().clone();
+                    Interval::new(200, move || {
+                        link.send_message(Msg::Increment)
+                    })
+                };
+                self.interval = Some(interval);
+                true
+            }
+            Msg::DropInterval => {
+                console::log!("drop interval");
+                if self.interval.is_some() {
+                    self.interval = None; // This will cancel our interval
+                }
+                false
+            }
         }
     }
 
@@ -39,9 +73,12 @@ impl Component for App {
         html! {
             <div>
                 <div class="panel">
-                    // A button to send the Increment message
-                    <button class="button" onclick={ctx.link().callback(|_| Msg::Increment)}>
-                        { "+1" }
+                    // A button to send HoldDown message
+                    <button
+                        onmousedown={ctx.link().callback(|_| Msg::HoldDown)}
+                        onmouseup={ctx.link().callback(|_| Msg::DropInterval)}
+                    >
+                        { "<<" }
                     </button>
 
                     // A button to send the Decrement message
@@ -49,9 +86,22 @@ impl Component for App {
                         { "-1" }
                     </button>
 
+                    // A button to send the Increment message
+                    <button class="button" onclick={ctx.link().callback(|_| Msg::Increment)}>
+                        { "+1" }
+                    </button>
+
                     // A button to send two Increment messages
                     <button onclick={ctx.link().batch_callback(|_| vec![Msg::Increment, Msg::Increment])}>
                         { "+1, +1" }
+                    </button>
+
+                    // A button to send HoldUp message
+                    <button
+                        onmousedown={ctx.link().callback(|_| Msg::HoldUp)}
+                        onmouseup={ctx.link().callback(|_| Msg::DropInterval)}
+                    >
+                        { ">>" }
                     </button>
 
                 </div>
