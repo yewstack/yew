@@ -26,9 +26,9 @@
     <span> | </span>
     <a href="https://yew.rs/docs/more/roadmap">Roadmap</a>
     <span> | </span>
-    <a href="https://yew.rs/zh-CN">简体中文文档</a>
+    <a href="https://yew.rs/zh-Hans">简体中文文档</a>
     <span> | </span>
-    <a href="https://yew.rs/zh-TW">繁體中文文檔</a>
+    <a href="https://yew.rs/zh-Hant">繁體中文文檔</a>
     <span> | </span>
     <a href="https://yew.rs/ja">ドキュメント</a>
   </h4>
