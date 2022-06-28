@@ -72,8 +72,6 @@ async fn main() {
 
     let app = Router::new()
         .route("/api/test", get(|| async move { "Hello World" }))
-        // needed because https://github.com/tower-rs/tower-http/issues/262
-        .route("/", get(render))
         .fallback(HandleError::new(
             ServeDir::new(opts.dir)
                 .append_index_html_on_directories(false)
