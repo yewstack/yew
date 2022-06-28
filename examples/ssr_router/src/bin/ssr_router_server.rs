@@ -31,8 +31,10 @@ async fn render(
 ) -> impl IntoResponse {
     let url = url.uri().to_string();
 
-    let server_app_props = ServerAppProps { url, queries };
-    let renderer = yew::ServerRenderer::<ServerApp>::with_props(server_app_props);
+    let renderer = yew::ServerRenderer::<ServerApp>::with_props(move || ServerAppProps {
+        url: url.into(),
+        queries,
+    });
 
     StreamBody::new(
         stream::once(async move { index_html_before })

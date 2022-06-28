@@ -1,3 +1,5 @@
+use std::fmt;
+
 use futures::stream::{Stream, StreamExt};
 
 use crate::html::{BaseComponent, Scope};
@@ -111,31 +113,38 @@ where
 ///
 /// See [`yew::platform`] for more information.
 #[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
-#[derive(Debug)]
 pub struct ServerRenderer<COMP>
 where
     COMP: BaseComponent,
-    COMP::Properties: Send,
 {
-    props: COMP::Properties,
+    create_props: Box<dyn Send + FnOnce() -> COMP::Properties>,
     hydratable: bool,
     capacity: usize,
+}
+
+impl<COMP> fmt::Debug for ServerRenderer<COMP>
+where
+    COMP: BaseComponent,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("ServerRenderer<_>")
+    }
 }
 
 impl<COMP> Default for ServerRenderer<COMP>
 where
     COMP: BaseComponent,
-    COMP::Properties: Default + Send,
+    COMP::Properties: Default,
 {
     fn default() -> Self {
-        Self::with_props(COMP::Properties::default())
+        Self::with_props(Default::default)
     }
 }
 
 impl<COMP> ServerRenderer<COMP>
 where
     COMP: BaseComponent,
-    COMP::Properties: Default + Send,
+    COMP::Properties: Default,
 {
     /// Creates a [ServerRenderer] with default properties.
     pub fn new() -> Self {
@@ -146,12 +155,19 @@ where
 impl<COMP> ServerRenderer<COMP>
 where
     COMP: BaseComponent,
-    COMP::Properties: Send,
 {
     /// Creates a [ServerRenderer] with custom properties.
-    pub fn with_props(props: COMP::Properties) -> Self {
+    ///
+    /// # Note
+    ///
+    /// The properties does not have to implement `Send`.
+    /// However, the function to create properties needs to be `Send`.
+    pub fn with_props<F>(create_props: F) -> Self
+    where
+        F: 'static + Send + FnOnce() -> COMP::Properties,
+    {
         Self {
-            props,
+            create_props: Box::new(create_props),
             hydratable: true,
             capacity: DEFAULT_BUF_SIZE,
         }
@@ -205,10 +221,12 @@ where
         // We use run_pinned to switch to our runtime.
         run_pinned(move || async move {
             let Self {
-                props,
+                create_props,
                 hydratable,
                 capacity,
             } = self;
+
+            let props = create_props();
 
             LocalServerRenderer::<COMP>::with_props(props)
                 .hydratable(hydratable)

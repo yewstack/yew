@@ -54,7 +54,7 @@ pub fn App() -> Html {
 
 #[derive(Properties, PartialEq, Debug)]
 pub struct ServerAppProps {
-    pub url: String,
+    pub url: AttrValue,
     pub queries: HashMap<String, String>,
 }
 
