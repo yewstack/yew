@@ -1,17 +1,39 @@
-use gloo_render::{request_animation_frame, AnimationFrame};
-use wasm_bindgen::JsCast;
-use web_sys::{HtmlCanvasElement, WebGlRenderingContext as GL};
+use web_sys::{HtmlCanvasElement, WebGlRenderingContext as GL, window};
 use yew::html::Scope;
 use yew::{html, Component, Context, Html, NodeRef};
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
+
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::sync::Arc;
+
+
+#[wasm_bindgen]
+extern "C" {
+    // Use `js_namespace` here to bind `console.log(..)` instead of just
+    // `log(..)`
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+
+    // The `console.log` is quite polymorphic, so we can bind it with multiple
+    // signatures. Note that we need to use `js_name` to ensure we always call
+    // `log` in JS.
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_u32(a: u32);
+
+    // Multiple arguments too!
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_many(a: &str, b: &str);
+}
 
 pub enum Msg {
     Render(f64),
 }
 
 pub struct App {
-    gl: Option<GL>,
+    gl: Option<Rc<GL>>,
     node_ref: NodeRef,
-    _render_loop: Option<AnimationFrame>,
 }
 
 impl Component for App {
@@ -22,7 +44,6 @@ impl Component for App {
         Self {
             gl: None,
             node_ref: NodeRef::default(),
-            _render_loop: None,
         }
     }
 
@@ -33,7 +54,7 @@ impl Component for App {
                 // it into it's own function rather than keeping it inline in the update match
                 // case. This also allows for updating other UI elements that may be rendered in
                 // the DOM like a framerate counter, or other overlaid textual elements.
-                self.render_gl(timestamp, ctx.link());
+                // self.render_gl(ctx.link());
                 false
             }
         }
@@ -59,31 +80,25 @@ impl Component for App {
             .dyn_into()
             .unwrap();
 
-        self.gl = Some(gl);
+        self.gl = Some(Rc::new(gl));
 
-        // In a more complex use-case, there will be additional WebGL initialization that should be
-        // done here, such as enabling or disabling depth testing, depth functions, face
-        // culling etc.
-
-        if first_render {
-            // The callback to request animation frame is passed a time value which can be used for
-            // rendering motion independent of the framerate which may vary.
-            let handle = {
-                let link = ctx.link().clone();
-                request_animation_frame(move |time| link.send_message(Msg::Render(time)))
-            };
-
-            // A reference to the handle must be stored, otherwise it is dropped and the render
-            // won't occur.
-            self._render_loop = Some(handle);
-        }
+        self.render_gl(ctx.link());
     }
 }
 
 impl App {
-    fn render_gl(&mut self, timestamp: f64, link: &Scope<Self>) {
+
+    fn request_animation_frame(f: &Closure<dyn FnMut()>) {
+        window().unwrap()
+            .request_animation_frame(f.as_ref().unchecked_ref())
+            .expect("should register `requestAnimationFrame` OK");
+    }
+
+    fn render_gl(&mut self, link: &Scope<Self>) {
         let gl = self.gl.as_ref().expect("GL Context not initialized!");
 
+        let mut timestamp = 0.0;
+        log("This shouldn't repeat every frame.");
         let vert_code = include_str!("./basic.vert");
         let frag_code = include_str!("./basic.frag");
 
@@ -122,14 +137,20 @@ impl App {
         gl.uniform1f(time.as_ref(), timestamp as f32);
 
         gl.draw_arrays(GL::TRIANGLES, 0, 6);
+        let gl = gl.clone();
 
-        let handle = {
-            let link = link.clone();
-            request_animation_frame(move |time| link.send_message(Msg::Render(time)))
-        };
+        let f = Rc::new(RefCell::new(None));
+        let g = f.clone();
+        *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
+            log("This should repeat every frame.");
+            timestamp+= 20.0;
+            let time = gl.get_uniform_location(&shader_program, "u_time");
+            gl.uniform1f(time.as_ref(), timestamp as f32);
+            gl.draw_arrays(GL::TRIANGLES, 0, 6);
+            App::request_animation_frame(f.borrow().as_ref().unwrap());
+        }) as Box<dyn FnMut()>));
 
-        // A reference to the new handle must be retained for the next render to run.
-        self._render_loop = Some(handle);
+        App::request_animation_frame(g.borrow().as_ref().unwrap());
     }
 }
 
