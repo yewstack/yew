@@ -83,10 +83,10 @@ impl BufWriter {
         } else {
             // if the next part is more than buffer size, we send the next part.
 
-            // We don't need to drain the buffer here as the self.buf.capacity() only changes if
-            // the buffer was drained. If the buffer capacity didn't change, then it means
-            // self.buf.capacity() > s.len() which will be guaranteed to be matched by
-            // self.buf.capacity() >= s.len().
+            // We don't need to drain the buffer here as the result of self.has_capacity_of() only
+            // changes if the buffer was drained. If the buffer capacity didn't change,
+            // then it means self.has_capacity_of() has returned true the first time which will be
+            // guaranteed to be matched by the left hand side of this implementation.
             let _ = self.tx.send(s.into_owned());
         }
     }
