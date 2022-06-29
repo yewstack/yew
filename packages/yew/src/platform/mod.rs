@@ -47,14 +47,14 @@ pub(crate) mod io;
 
 pub mod sync;
 
-#[cfg(not(any(feature = "tokio", target_arch = "wasm32")))]
-#[path = "rt_none.rs"]
+#[cfg(target_arch = "wasm32")]
+#[path = "rt_wasm_bindgen.rs"]
 mod imp;
 #[cfg(all(not(target_arch = "wasm32"), feature = "tokio"))]
 #[path = "rt_tokio.rs"]
 mod imp;
-#[cfg(target_arch = "wasm32")]
-#[path = "rt_wasm_bindgen.rs"]
+#[cfg(all(not(target_arch = "wasm32"), not(feature = "tokio")))]
+#[path = "rt_none.rs"]
 mod imp;
 
 /// Spawns a task on current thread.
