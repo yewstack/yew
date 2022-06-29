@@ -37,18 +37,14 @@ impl Component for App {
         // Once rendered, store references for the canvas and GL context. These can be used for
         // resizing the rendering area when the window or canvas element are resized, as well as
         // for making GL calls.
-
         let canvas = self.node_ref.cast::<HtmlCanvasElement>().unwrap();
-
         let gl: GL = canvas
             .get_context("webgl")
             .unwrap()
             .unwrap()
             .dyn_into()
             .unwrap();
-
         self.gl = Some(Rc::new(gl));
-
         self.render_gl(ctx.link());
     }
 }
@@ -110,6 +106,7 @@ impl App {
 
         let f = Rc::new(RefCell::new(None));
         let g = f.clone();
+
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
             log!("This should repeat every frame.");
             timestamp+= 20.0;
@@ -117,11 +114,9 @@ impl App {
             gl.uniform1f(time.as_ref(), timestamp as f32);
             gl.draw_arrays(GL::TRIANGLES, 0, 6);
             App::request_animation_frame(f.borrow().as_ref().unwrap());
-
         }) as Box<dyn FnMut()>));
 
         App::request_animation_frame(g.borrow().as_ref().unwrap());
-
     }
 }
 
