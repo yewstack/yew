@@ -6,30 +6,10 @@ use wasm_bindgen::JsCast;
 
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::sync::Arc;
 
+use gloo_console::log;
 
-#[wasm_bindgen]
-extern "C" {
-    // Use `js_namespace` here to bind `console.log(..)` instead of just
-    // `log(..)`
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-
-    // The `console.log` is quite polymorphic, so we can bind it with multiple
-    // signatures. Note that we need to use `js_name` to ensure we always call
-    // `log` in JS.
-    #[wasm_bindgen(js_namespace = console, js_name = log)]
-    fn log_u32(a: u32);
-
-    // Multiple arguments too!
-    #[wasm_bindgen(js_namespace = console, js_name = log)]
-    fn log_many(a: &str, b: &str);
-}
-
-pub enum Msg {
-    Render(f64),
-}
+pub enum Msg {}
 
 pub struct App {
     gl: Option<Rc<GL>>,
@@ -44,19 +24,6 @@ impl Component for App {
         Self {
             gl: None,
             node_ref: NodeRef::default(),
-        }
-    }
-
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            Msg::Render(timestamp) => {
-                // Render functions are likely to get quite large, so it is good practice to split
-                // it into it's own function rather than keeping it inline in the update match
-                // case. This also allows for updating other UI elements that may be rendered in
-                // the DOM like a framerate counter, or other overlaid textual elements.
-                // self.render_gl(ctx.link());
-                false
-            }
         }
     }
 
@@ -95,10 +62,12 @@ impl App {
     }
 
     fn render_gl(&mut self, link: &Scope<Self>) {
+        log!("This shouldn't repeat every frame.");
+        
         let gl = self.gl.as_ref().expect("GL Context not initialized!");
 
         let mut timestamp = 0.0;
-        log("This shouldn't repeat every frame.");
+
         let vert_code = include_str!("./basic.vert");
         let frag_code = include_str!("./basic.frag");
 
@@ -142,15 +111,21 @@ impl App {
         let f = Rc::new(RefCell::new(None));
         let g = f.clone();
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-            log("This should repeat every frame.");
+            log!("This should repeat every frame.");
             timestamp+= 20.0;
             let time = gl.get_uniform_location(&shader_program, "u_time");
             gl.uniform1f(time.as_ref(), timestamp as f32);
             gl.draw_arrays(GL::TRIANGLES, 0, 6);
             App::request_animation_frame(f.borrow().as_ref().unwrap());
+            // This line below fails:
+            // gloo_render::request_animation_frame(g.borrow().as_ref().unwrap().as_ref().unchecked_ref());
         }) as Box<dyn FnMut()>));
 
         App::request_animation_frame(g.borrow().as_ref().unwrap());
+
+        // Both of these lines below fail.
+        // gloo_render::request_animation_frame(g.borrow().as_ref().unwrap());
+        // gloo_render::request_animation_frame(g.borrow().as_ref().unwrap().as_ref().unchecked_ref());
     }
 }
 
