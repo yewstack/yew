@@ -11,6 +11,7 @@ use gloo_console::log;
 
 pub enum Msg {}
 
+// Wrap gl in Rc (Arc for multi-threaded) so it can be injected into the render-loop closure.
 pub struct App {
     gl: Option<Rc<GL>>,
     node_ref: NodeRef,
@@ -102,6 +103,11 @@ impl App {
         gl.uniform1f(time.as_ref(), timestamp as f32);
 
         gl.draw_arrays(GL::TRIANGLES, 0, 6);
+
+        // Gloo-render's request_animation_frame has this extra closure 
+        // wrapping logic running every frame, unnecessary cost.
+        // Here constructing the wrapped closure just once.
+
         let gl = gl.clone();
 
         let f = Rc::new(RefCell::new(None));
