@@ -117,15 +117,11 @@ impl App {
             gl.uniform1f(time.as_ref(), timestamp as f32);
             gl.draw_arrays(GL::TRIANGLES, 0, 6);
             App::request_animation_frame(f.borrow().as_ref().unwrap());
-            // This line below fails:
-            // gloo_render::request_animation_frame(g.borrow().as_ref().unwrap().as_ref().unchecked_ref());
+
         }) as Box<dyn FnMut()>));
 
         App::request_animation_frame(g.borrow().as_ref().unwrap());
 
-        // Both of these lines below fail.
-        // gloo_render::request_animation_frame(g.borrow().as_ref().unwrap());
-        // gloo_render::request_animation_frame(g.borrow().as_ref().unwrap().as_ref().unchecked_ref());
     }
 }
 
