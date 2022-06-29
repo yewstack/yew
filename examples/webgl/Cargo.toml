@@ -6,10 +6,11 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
+gloo-console = "0.2.1"
 js-sys = "0.3"
 wasm-bindgen = "0.2"
 yew = { path = "../../packages/yew", features = ["csr"] }
-gloo-console = "0.2.1"
+
 
 [dependencies.web-sys]
 version = "0.3"

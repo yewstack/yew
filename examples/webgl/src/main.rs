@@ -33,7 +33,7 @@ impl Component for App {
         }
     }
 
-    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
+    fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
         // Once rendered, store references for the canvas and GL context. These can be used for
         // resizing the rendering area when the window or canvas element are resized, as well as
         // for making GL calls.
@@ -57,8 +57,8 @@ impl App {
             .expect("should register `requestAnimationFrame` OK");
     }
 
-    fn render_gl(&mut self, link: &Scope<Self>) {
-        log!("This shouldn't repeat every frame.");
+    fn render_gl(&mut self, _link: &Scope<Self>) {
+        log!("This should log only once -- not once per frame");
         
         let gl = self.gl.as_ref().expect("GL Context not initialized!");
 
