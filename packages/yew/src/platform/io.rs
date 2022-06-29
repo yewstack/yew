@@ -64,19 +64,20 @@ impl BufWriter {
         self.buf.reserve(self.capacity);
     }
 
+    /// Returns `True` if the internal buffer has capacity to fit a string of certain length.
+    #[inline]
+    fn has_capacity_of(&self, next_part_len: usize) -> bool {
+        self.buf.capacity() >= self.buf.len() + next_part_len
+    }
+
     /// Writes a string into the buffer, optionally drains the buffer.
     pub fn write(&mut self, s: Cow<'_, str>) {
-        if self.buf.capacity() < s.len() {
+        if !self.has_capacity_of(s.len()) {
             // There isn't enough capacity, we drain the buffer.
             self.drain();
         }
 
-        // It's important to check self.buf.capacity() >= s.len():
-        //
-        // 1. self.buf.reserve() may choose to over reserve than capacity.
-        // 2. When self.buf.capacity() == s.len(), the previous buffer is not drained. So it needs
-        //    to push onto the buffer instead of sending.
-        if self.buf.capacity() >= s.len() {
+        if self.has_capacity_of(s.len()) {
             // The next part is going to fit into the buffer, we push it onto the buffer.
             self.buf.push_str(&s);
         } else {
