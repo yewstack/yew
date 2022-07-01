@@ -41,8 +41,15 @@ members = [
   # Tools
   "tools/benchmark-struct",
   "tools/benchmark-hooks",
+  "tools/benchmark-ssr",
   "tools/changelog",
   "tools/process-benchmark-results",
   "tools/website-test",
 ]
 resolver = "2"
+
+[profile.bench]
+lto = true
+codegen-units = 1
+panic = "abort"
+opt-level = 3
