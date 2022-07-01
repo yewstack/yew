@@ -51,8 +51,8 @@ where
     /// Reset the bridge.
     ///
     /// Disconnect the old bridge and re-connects the agent with a new bridge.
-    pub fn reset() {
-        todo!()
+    pub fn reset(&self) {
+        self.inner.reset();
     }
 }
 
@@ -122,8 +122,8 @@ where
     ///
     /// This disconnects the old bridge and re-connects the agent with a new bridge.
     /// Existing outputs stored in the subscription will also be cleared.
-    pub fn reset() {
-        todo!()
+    pub fn reset(&self) {
+        self.bridge.reset();
     }
 }
 
@@ -182,6 +182,14 @@ pub fn use_reactor_subscription<R>() -> UseReactorSubscriptionHandle<R>
 where
     R: 'static + Reactor,
 {
+    enum OutputsAction<R>
+    where
+        R: Reactor + 'static,
+    {
+        Output(ReactorOutput<<R::Sender as ReactorSendable>::Output>),
+        Reset,
+    }
+
     struct Outputs<R>
     where
         R: Reactor + 'static,
@@ -195,7 +203,7 @@ where
     where
         R: Reactor + 'static,
     {
-        type Action = ReactorOutput<<R::Sender as ReactorSendable>::Output>;
+        type Action = OutputsAction<R>;
 
         fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
             let mut outputs = self.inner.clone();
@@ -203,9 +211,17 @@ where
             let mut finished = self.finished;
 
             match action {
-                ReactorOutput::Output(m) => outputs.push(m.into()),
-                ReactorOutput::Finish => {
+                OutputsAction::Output(ReactorOutput::Output(m)) => outputs.push(m.into()),
+                OutputsAction::Output(ReactorOutput::Finish) => {
                     finished = true;
+                }
+                OutputsAction::Reset => {
+                    return Self {
+                        inner: Vec::new(),
+                        ctr: self.ctr + 1,
+                        finished: false,
+                    }
+                    .into();
                 }
             }
 
@@ -235,8 +251,20 @@ where
 
     let bridge = {
         let outputs = outputs.clone();
-        use_reactor_bridge::<R, _>(move |output| outputs.dispatch(output))
+        use_reactor_bridge::<R, _>(move |output| outputs.dispatch(OutputsAction::Output(output)))
     };
+
+    {
+        let outputs = outputs.clone();
+        use_effect_with_deps(
+            move |_| {
+                outputs.dispatch(OutputsAction::Reset);
+
+                || {}
+            },
+            bridge.clone(),
+        );
+    }
 
     UseReactorSubscriptionHandle {
         bridge,
