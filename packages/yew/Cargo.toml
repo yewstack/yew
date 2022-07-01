@@ -18,7 +18,7 @@ rust-version = "1.60.0"
 
 [dependencies]
 console_error_panic_hook = "0.1"
-gloo = "0.7"
+gloo = "0.8"
 gloo-utils = "0.1.0"
 indexmap = { version = "1", features = ["std"] }
 js-sys = "0.3"
@@ -81,7 +81,7 @@ once_cell = "1"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
-gloo = { version = "0.7", features = ["futures"] }
+gloo = { version = "0.8", features = ["futures"] }
 gloo-net = { version = "0.2", features = ["http"] }
 wasm-bindgen-futures = "0.4"
 rustversion = "1"

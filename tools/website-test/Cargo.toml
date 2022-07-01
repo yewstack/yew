@@ -11,7 +11,7 @@ yew-agent = { path = "../../packages/yew-agent/" }
 [dev-dependencies]
 boolinator = "2.4"
 derive_more = "0.99"
-gloo = "0.7"
+gloo = "0.8"
 js-sys = "0.3"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
