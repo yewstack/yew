@@ -428,10 +428,9 @@ impl PartialEq for VTag {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use std::fmt::Write;
-
     use super::*;
     use crate::html::AnyScope;
+    use crate::platform::io::BufWriter;
     use crate::virtual_dom::VText;
 
     // Elements that cannot have any child elements.
@@ -441,19 +440,23 @@ mod feat_ssr {
     ];
 
     impl VTag {
-        pub(crate) async fn render_to_string(
+        pub(crate) async fn render_into_stream(
             &self,
-            w: &mut String,
+            w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
-            write!(w, "<{}", self.tag()).unwrap();
+            w.write("<".into());
+            w.write(self.tag().into());
 
-            let write_attr = |w: &mut String, name: &str, val: Option<&str>| {
-                write!(w, " {}", name).unwrap();
+            let write_attr = |w: &mut BufWriter, name: &str, val: Option<&str>| {
+                w.write(" ".into());
+                w.write(name.into());
 
                 if let Some(m) = val {
-                    write!(w, "=\"{}\"", html_escape::encode_double_quoted_attribute(m)).unwrap();
+                    w.write("=\"".into());
+                    w.write(html_escape::encode_double_quoted_attribute(m));
+                    w.write("\"".into());
                 }
             };
 
@@ -471,18 +474,18 @@ mod feat_ssr {
                 write_attr(w, k, Some(v));
             }
 
-            write!(w, ">").unwrap();
+            w.write(">".into());
 
             match self.inner {
                 VTagInner::Input(_) => {}
                 VTagInner::Textarea { .. } => {
                     if let Some(m) = self.value() {
                         VText::new(m.to_owned())
-                            .render_to_string(w, parent_scope, hydratable)
+                            .render_into_stream(w, parent_scope, hydratable)
                             .await;
                     }
 
-                    w.push_str("</textarea>");
+                    w.write("</textarea>".into());
                 }
                 VTagInner::Other {
                     ref tag,
@@ -490,9 +493,13 @@ mod feat_ssr {
                     ..
                 } => {
                     if !VOID_ELEMENTS.contains(&tag.as_ref()) {
-                        children.render_to_string(w, parent_scope, hydratable).await;
+                        children
+                            .render_into_stream(w, parent_scope, hydratable)
+                            .await;
 
-                        write!(w, "</{}>", tag).unwrap();
+                        w.write(Cow::Borrowed("</"));
+                        w.write(Cow::Borrowed(tag));
+                        w.write(Cow::Borrowed(">"));
                     } else {
                         // We don't write children of void elements nor closing tags.
                         debug_assert!(children.is_empty(), "{} cannot have any children!", tag);
@@ -504,6 +511,7 @@ mod feat_ssr {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "ssr")]
 #[cfg(test)]
 mod ssr_tests {
     use tokio::test;

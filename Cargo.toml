@@ -37,6 +37,7 @@ members = [
   "examples/web_worker_fib",
   "examples/ssr_router",
   "examples/suspense",
+  "examples/immutable",
 
   # Tools
   "tools/benchmark-struct",
@@ -45,3 +46,4 @@ members = [
   "tools/process-benchmark-results",
   "tools/website-test",
 ]
+resolver = "2"

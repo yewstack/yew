@@ -18,7 +18,7 @@ async fn fetch_uuid() -> Uuid {
 
 #[function_component]
 fn Content() -> HtmlResult {
-    let uuid = use_prepared_state!(async |_| -> Uuid { fetch_uuid().await }, ())?.unwrap();
+    let uuid = use_prepared_state!(async move |_| -> Uuid { fetch_uuid().await }, ())?.unwrap();
 
     Ok(html! {
         <div>{"Random UUID: "}{uuid}</div>

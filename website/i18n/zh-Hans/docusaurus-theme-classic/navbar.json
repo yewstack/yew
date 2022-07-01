@@ -26,5 +26,9 @@
   "item.label.Blog": {
     "message": "Blog",
     "description": "Navbar item with label Blog"
+  },
+  "item.label.Playground": {
+    "message": "Playground",
+    "description": "Navbar item with label Playground"
   }
 }

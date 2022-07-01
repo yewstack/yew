@@ -10,6 +10,8 @@ yew = { path = "../../packages/yew" }
 reqwest = { version = "0.11.8", features = ["json"] }
 serde = { version = "1.0.132", features = ["derive"] }
 uuid = { version = "1.0.0", features = ["serde"] }
+futures = "0.3"
+bytes = "1.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4"
@@ -19,9 +21,6 @@ log = "0.4"
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1.15.0", features = ["full"] }
 warp = "0.3"
-num_cpus = "1.13"
-tokio-util = { version = "0.7", features = ["rt"] }
-once_cell = "1.5"
 clap = { version = "3.1.7", features = ["derive"] }
 
 [features]
