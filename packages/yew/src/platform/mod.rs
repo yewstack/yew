@@ -114,6 +114,36 @@ impl RuntimeBuilder {
     }
 }
 
+/// A Yew runtime that runs on the current thread.
+#[derive(Debug)]
+pub struct LocalRuntime {
+    inner: imp::LocalRuntime,
+}
+
+impl LocalRuntime {
+    /// Creates a new LocalRuntime.
+    pub fn new() -> Result<Self> {
+        Ok(Self {
+            inner: imp::LocalRuntime::new()?,
+        })
+    }
+
+    /// Runs a Future until completion with current thread blocked.
+    ///
+    /// # Panic
+    ///
+    /// This method will panic if it is called from within a runtime.
+    /// If the runtime backend is `wasm-bindgen`, a runtime is started before passing through the
+    /// WebAssembly boundary and this method will always panic.
+    pub fn block_on<F>(&self, f: F) -> F::Output
+    where
+        F: Future + 'static,
+        F::Output: 'static,
+    {
+        self.inner.block_on(f)
+    }
+}
+
 /// The Yew Runtime.
 #[derive(Debug, Clone, Default)]
 pub struct Runtime {
@@ -121,6 +151,11 @@ pub struct Runtime {
 }
 
 impl Runtime {
+    /// Creates a Builder to create a runtime.
+    pub fn builder() -> RuntimeBuilder {
+        RuntimeBuilder::new()
+    }
+
     /// Runs a task with it pinned to a worker thread.
     ///
     /// This can be used to execute non-Send futures without blocking the current thread.

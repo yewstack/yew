@@ -2,6 +2,8 @@ use std::future::Future;
 use std::io;
 
 use once_cell::sync::Lazy;
+use tokio::runtime::{Builder as TokioRuntimeBuilder, Runtime as TokioRuntime};
+use tokio::task::LocalSet;
 use tokio_util::task::LocalPoolHandle;
 
 pub(crate) static DEFAULT_RUNTIME_SIZE: Lazy<usize> = Lazy::new(|| num_cpus::get() * 2);
@@ -46,5 +48,30 @@ impl Runtime {
             .spawn_pinned(create_task)
             .await
             .expect("future has panicked!")
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct LocalRuntime {
+    local_set: LocalSet,
+    rt: TokioRuntime,
+}
+
+impl LocalRuntime {
+    pub fn new() -> io::Result<Self> {
+        Ok(Self {
+            local_set: LocalSet::new(),
+            rt: TokioRuntimeBuilder::new_current_thread()
+                .enable_all()
+                .build()?,
+        })
+    }
+
+    pub fn block_on<F>(&self, f: F) -> F::Output
+    where
+        F: Future + 'static,
+        F::Output: 'static,
+    {
+        self.local_set.block_on(&self.rt, f)
     }
 }

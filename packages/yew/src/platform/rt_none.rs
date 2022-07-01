@@ -41,3 +41,20 @@ impl Runtime {
         panic!("{}", NO_RUNTIME_NOTICE);
     }
 }
+
+#[derive(Debug, Clone)]
+pub(crate) struct LocalRuntime {}
+
+impl LocalRuntime {
+    pub fn new() -> io::Result<Self> {
+        panic!("{}", NO_RUNTIME_NOTICE);
+    }
+
+    pub fn block_on<F>(&self, _f: F) -> F::Output
+    where
+        F: Future + 'static,
+        F::Output: 'static,
+    {
+        panic!("{}", NO_RUNTIME_NOTICE);
+    }
+}
