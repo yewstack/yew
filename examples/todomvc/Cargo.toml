@@ -11,7 +11,7 @@ strum_macros = "0.24"
 serde = "1"
 serde_derive = "1"
 yew = { path = "../../packages/yew", features = ["csr"] }
-gloo = "0.7"
+gloo = "0.8"
 
 [dependencies.web-sys]
 version = "0.3"

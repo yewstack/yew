@@ -12,7 +12,7 @@ getrandom = { version = "0.2", features = ["js"] }
 rand = "0.8"
 serde = { version = "1.0", features = ["derive"] }
 yew = { path = "../../packages/yew", features = ["csr"] }
-gloo = "0.7"
+gloo = "0.8"
 
 [dependencies.web-sys]
 version = "0.3"
