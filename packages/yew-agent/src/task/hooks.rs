@@ -91,8 +91,22 @@ where
 pub fn use_memorized_task<T>(input: T::Input) -> SuspensionResult<Rc<T::Output>>
 where
     T: Task + 'static,
-    T::Input: Clone + PartialEq,
+    T::Input: Send + Clone + PartialEq + 'static,
 {
+    #[cfg(feature = "ssr")]
+    {
+        let input = input.clone();
+        let input2 = input.clone();
+        let prepared_task_output = use_prepared_state!(
+            async move |_| -> T::Output { T::run(input2.clone()).await },
+            input
+        )?;
+
+        if let Some(m) = prepared_task_output {
+            return Ok(m);
+        }
+    }
+
     let task_runner = use_task::<T>();
     let suspension_state = use_state(|| {
         let (suspension, handle) = Suspension::new();
