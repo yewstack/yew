@@ -202,7 +202,7 @@ mod tests {
     use std::marker::PhantomData;
 
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-    use web_sys::{Event, EventInit, HtmlElement, MouseEvent, FocusEvent};
+    use web_sys::{Event, EventInit, FocusEvent, HtmlElement, MouseEvent};
     wasm_bindgen_test_configure!(run_in_browser);
 
     use gloo_utils::document;
@@ -565,7 +565,12 @@ mod tests {
         let (_, el) = init::<NonBubbling>();
 
         assert_count(&el, 0);
-        el.get().unwrap().dyn_into::<HtmlElement>().unwrap().focus().unwrap();
+        el.get()
+            .unwrap()
+            .dyn_into::<HtmlElement>()
+            .unwrap()
+            .focus()
+            .unwrap();
         scheduler::start_now();
         assert_count(&el, 1);
     }
