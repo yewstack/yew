@@ -41,7 +41,7 @@ pub(crate) enum ComponentRenderState {
 
     #[cfg(feature = "ssr")]
     Ssr {
-        sender: Option<futures::channel::oneshot::Sender<Html>>,
+        sender: Option<crate::platform::sync::oneshot::Sender<Html>>,
     },
 }
 

@@ -19,6 +19,8 @@ use crate::html::Scoped;
 #[cfg(any(feature = "ssr", feature = "csr"))]
 use crate::html::{AnyScope, Scope};
 use crate::html::{BaseComponent, NodeRef};
+#[cfg(feature = "ssr")]
+use crate::platform::io::BufWriter;
 
 /// A virtual component.
 pub struct VComp {
@@ -67,9 +69,9 @@ pub(crate) trait Mountable {
     fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef);
 
     #[cfg(feature = "ssr")]
-    fn render_to_string<'a>(
+    fn render_into_stream<'a>(
         &'a self,
-        w: &'a mut String,
+        w: &'a mut BufWriter,
         parent_scope: &'a AnyScope,
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()>;
@@ -125,16 +127,17 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     }
 
     #[cfg(feature = "ssr")]
-    fn render_to_string<'a>(
+    fn render_into_stream<'a>(
         &'a self,
-        w: &'a mut String,
+        w: &'a mut BufWriter,
         parent_scope: &'a AnyScope,
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()> {
+        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+
         async move {
-            let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
             scope
-                .render_to_string(w, self.props.clone(), hydratable)
+                .render_into_stream(w, self.props.clone(), hydratable)
                 .await;
         }
         .boxed_local()
@@ -240,15 +243,16 @@ mod feat_ssr {
     use crate::html::AnyScope;
 
     impl VComp {
-        pub(crate) async fn render_to_string(
+        #[inline]
+        pub(crate) async fn render_into_stream(
             &self,
-            w: &mut String,
+            w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
             self.mountable
                 .as_ref()
-                .render_to_string(w, parent_scope, hydratable)
+                .render_into_stream(w, parent_scope, hydratable)
                 .await;
         }
     }

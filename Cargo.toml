@@ -45,3 +45,4 @@ members = [
   "tools/process-benchmark-results",
   "tools/website-test",
 ]
+resolver = "2"

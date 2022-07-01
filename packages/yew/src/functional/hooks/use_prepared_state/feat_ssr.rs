@@ -9,7 +9,7 @@ use serde::Serialize;
 
 use super::PreparedStateBase;
 use crate::functional::{use_memo, use_state, Hook, HookContext};
-use crate::io_coop::spawn_local;
+use crate::platform::spawn_local;
 use crate::suspense::{Suspension, SuspensionResult};
 
 #[doc(hidden)]

@@ -52,6 +52,9 @@ mod feat_ssr_hydration {
     #[cfg(not(debug_assertions))]
     type ComponentName = ();
 
+    #[cfg(feature = "hydration")]
+    use std::borrow::Cow;
+
     /// A collectable.
     ///
     /// This indicates a kind that can be collected from fragment to be processed at a later time
@@ -90,38 +93,8 @@ mod feat_ssr_hydration {
             }
         }
 
-        #[cfg(feature = "ssr")]
-        pub fn write_open_tag(&self, w: &mut String) {
-            w.push_str("<!--");
-            w.push_str(self.open_start_mark());
-
-            #[cfg(debug_assertions)]
-            match self {
-                Self::Component(type_name) => w.push_str(type_name),
-                Self::Suspense => {}
-            }
-
-            w.push_str(self.end_mark());
-            w.push_str("-->");
-        }
-
-        #[cfg(feature = "ssr")]
-        pub fn write_close_tag(&self, w: &mut String) {
-            w.push_str("<!--");
-            w.push_str(self.close_start_mark());
-
-            #[cfg(debug_assertions)]
-            match self {
-                Self::Component(type_name) => w.push_str(type_name),
-                Self::Suspense => {}
-            }
-
-            w.push_str(self.end_mark());
-            w.push_str("-->");
-        }
-
         #[cfg(feature = "hydration")]
-        pub fn name(&self) -> std::borrow::Cow<'static, str> {
+        pub fn name(&self) -> Cow<'static, str> {
             match self {
                 #[cfg(debug_assertions)]
                 Self::Component(m) => format!("Component({})", m).into(),
@@ -135,6 +108,42 @@ mod feat_ssr_hydration {
 
 #[cfg(any(feature = "ssr", feature = "hydration"))]
 pub(crate) use feat_ssr_hydration::*;
+
+#[cfg(feature = "ssr")]
+mod feat_ssr {
+    use super::*;
+    use crate::platform::io::BufWriter;
+
+    impl Collectable {
+        pub(crate) fn write_open_tag(&self, w: &mut BufWriter) {
+            w.write("<!--".into());
+            w.write(self.open_start_mark().into());
+
+            #[cfg(debug_assertions)]
+            match self {
+                Self::Component(type_name) => w.write((*type_name).into()),
+                Self::Suspense => {}
+            }
+
+            w.write(self.end_mark().into());
+            w.write("-->".into());
+        }
+
+        pub(crate) fn write_close_tag(&self, w: &mut BufWriter) {
+            w.write("<!--".into());
+            w.write(self.close_start_mark().into());
+
+            #[cfg(debug_assertions)]
+            match self {
+                Self::Component(type_name) => w.write((*type_name).into()),
+                Self::Suspense => {}
+            }
+
+            w.write(self.end_mark().into());
+            w.write("-->".into());
+        }
+    }
+}
 
 /// A collection of attributes for an element
 #[derive(PartialEq, Eq, Clone, Debug)]

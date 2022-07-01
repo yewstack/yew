@@ -156,33 +156,54 @@ mod test {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use futures::stream::{FuturesOrdered, StreamExt};
+
     use super::*;
     use crate::html::AnyScope;
+    use crate::platform::io::{self, BufWriter};
 
     impl VList {
-        pub(crate) async fn render_to_string(
+        pub(crate) async fn render_into_stream(
             &self,
-            w: &mut String,
+            w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
-            // Concurrently render all children.
-            for fragment in futures::future::join_all(self.children.iter().map(|m| async move {
-                let mut w = String::new();
+            match &self.children[..] {
+                [] => {}
+                [child] => {
+                    child.render_into_stream(w, parent_scope, hydratable).await;
+                }
+                _ => {
+                    let buf_capacity = w.capacity();
 
-                m.render_to_string(&mut w, parent_scope, hydratable).await;
+                    // Concurrently render all children.
+                    let mut children: FuturesOrdered<_> = self
+                        .children
+                        .iter()
+                        .map(|m| async move {
+                            let (mut w, r) = io::buffer(buf_capacity);
 
-                w
-            }))
-            .await
-            {
-                w.push_str(&fragment)
+                            m.render_into_stream(&mut w, parent_scope, hydratable).await;
+                            drop(w);
+
+                            r
+                        })
+                        .collect();
+
+                    while let Some(mut r) = children.next().await {
+                        while let Some(next_chunk) = r.next().await {
+                            w.write(next_chunk.into());
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "ssr")]
 #[cfg(test)]
 mod ssr_tests {
     use tokio::test;

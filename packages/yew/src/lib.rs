@@ -28,9 +28,7 @@
 //! - `csr`: Enables Client-side Rendering support and [`Renderer`]. Only enable this feature if you
 //!   are making a Yew application (not a library).
 //! - `ssr`: Enables Server-side Rendering support and [`ServerRenderer`].
-//! - `tokio`: Enables future-based APIs on non-wasm32 targets with tokio runtime. (You may want to
-//! enable this if your application uses future-based APIs and it does not compile / lint on
-//! non-wasm32 targets.)
+//! - `tokio`: Enables future-based APIs on non-wasm32 targets with tokio runtime.
 //! - `hydration`: Enables Hydration support.
 //!
 //! ## Example
@@ -284,7 +282,7 @@ pub mod context;
 mod dom_bundle;
 pub mod functional;
 pub mod html;
-mod io_coop;
+pub mod platform;
 pub mod scheduler;
 mod sealed;
 #[cfg(feature = "ssr")]

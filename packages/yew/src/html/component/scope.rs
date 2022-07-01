@@ -12,7 +12,7 @@ use super::lifecycle::ComponentState;
 use super::BaseComponent;
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
-use crate::io_coop::spawn_local;
+use crate::platform::spawn_local;
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use crate::scheduler::Shared;
 
@@ -260,22 +260,26 @@ impl<COMP: BaseComponent> Scope<COMP> {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::channel::oneshot;
-
     use super::*;
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
+    use crate::platform::io::BufWriter;
+    use crate::platform::sync::oneshot;
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
 
     impl<COMP: BaseComponent> Scope<COMP> {
-        pub(crate) async fn render_to_string(
-            self,
-            w: &mut String,
+        pub(crate) async fn render_into_stream(
+            &self,
+            w: &mut BufWriter,
             props: Rc<COMP::Properties>,
             hydratable: bool,
         ) {
+            // Rust's Future implementation is stack-allocated and incurs zero runtime-cost.
+            //
+            // If the content of this channel is ready before it is awaited, it is
+            // similar to taking the value from a mutex lock.
             let (tx, rx) = oneshot::channel();
             let state = ComponentRenderState::Ssr { sender: Some(tx) };
 
@@ -303,12 +307,13 @@ mod feat_ssr {
             let html = rx.await.unwrap();
 
             let self_any_scope = AnyScope::from(self.clone());
-            html.render_to_string(w, &self_any_scope, hydratable).await;
+            html.render_into_stream(w, &self_any_scope, hydratable)
+                .await;
 
             if let Some(prepared_state) = self.get_component().unwrap().prepare_state() {
-                w.push_str(r#"<script type="application/x-yew-comp-state">"#);
-                w.push_str(&prepared_state);
-                w.push_str(r#"</script>"#);
+                w.write(r#"<script type="application/x-yew-comp-state">"#.into());
+                w.write(prepared_state.into());
+                w.write(r#"</script>"#.into());
             }
 
             if hydratable {

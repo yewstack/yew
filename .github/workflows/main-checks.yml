@@ -25,15 +25,10 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --features "csr,ssr,hydration" -- -D warnings
+          args: --all-targets --features "csr,ssr,hydration,tokio" -- -D warnings
 
       - name: Lint feature soundness
-        run: |
-          cargo clippy -- --deny=warnings
-          cargo clippy --features=ssr -- --deny=warnings
-          cargo clippy --features=csr -- --deny=warnings
-          cargo clippy --features=hydration -- --deny=warnings
-          cargo clippy --features "csr,ssr,hydration,tokio" --all-targets -- --deny=warnings
+        run: bash ../../ci/feature-soundness.sh
         working-directory: packages/yew
 
 
@@ -55,15 +50,10 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --features "csr,ssr,hydration" --release -- -D warnings
+          args: --all-targets --features "csr,ssr,hydration,tokio" --release -- -D warnings
 
       - name: Lint feature soundness
-        run: |
-          cargo clippy --release -- --deny=warnings
-          cargo clippy --release --features=ssr -- --deny=warnings
-          cargo clippy --release --features=csr -- --deny=warnings
-          cargo clippy --release --features=hydration -- --deny=warnings
-          cargo clippy --release --features "csr,ssr,hydration,tokio" --all-targets -- --deny=warnings
+        run: bash ../../ci/feature-soundness-release.sh
         working-directory: packages/yew
 
   spell_check:
@@ -129,7 +119,7 @@ jobs:
       matrix:
         toolchain:
           # anyway to dynamically grep the MSRV from Cargo.toml?
-          - 1.56.1 # MSRV
+          - 1.60.0 # MSRV
           - stable
 
     steps:
@@ -180,7 +170,7 @@ jobs:
       matrix:
         toolchain:
           # anyway to dynamically grep the MSRV from Cargo.toml?
-          - 1.56.1 # MSRV
+          - 1.60.0 # MSRV
           - stable
           - nightly
 

@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use yew::prelude::*;
-use yew::virtual_dom::AttrValue;
 use yew_router::history::{AnyHistory, History, MemoryHistory};
 use yew_router::prelude::*;
 
