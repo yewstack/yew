@@ -7,6 +7,15 @@ use crate::platform::io::{self, DEFAULT_BUF_SIZE};
 use crate::platform::{spawn_local, Runtime};
 
 /// A Yew Server-side Renderer that renders on the current thread.
+///
+/// # Note
+///
+/// This renderer does not spawn its own runtime and can only be used when:
+///
+/// - `wasm-bindgen` is selected as the backend of Yew runtime.
+/// - running within `actix_rt`.
+/// - running within a [`LocalRuntime`](crate::platform::LocalRuntime).
+/// - running within a tokio [`LocalSet`](tokio::task::LocalSet).
 #[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
 #[derive(Debug)]
 pub struct LocalServerRenderer<COMP>
