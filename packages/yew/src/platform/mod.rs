@@ -41,20 +41,22 @@
 //! `tokio`'s timer, IO and task synchronisation primitives.
 
 use std::future::Future;
+use std::io::Result;
 
 #[cfg(feature = "ssr")]
 pub(crate) mod io;
 
 pub mod sync;
+pub mod time;
 
 #[cfg(target_arch = "wasm32")]
-#[path = "rt_wasm_bindgen.rs"]
+#[path = "rt_wasm_bindgen/mod.rs"]
 mod imp;
 #[cfg(all(not(target_arch = "wasm32"), feature = "tokio"))]
-#[path = "rt_tokio.rs"]
+#[path = "rt_tokio/mod.rs"]
 mod imp;
 #[cfg(all(not(target_arch = "wasm32"), not(feature = "tokio")))]
-#[path = "rt_none.rs"]
+#[path = "rt_none/mod.rs"]
 mod imp;
 
 /// Spawns a task on current thread.
@@ -70,21 +72,103 @@ where
     imp::spawn_local(f);
 }
 
-/// Runs a task with it pinned onto a local worker thread.
-///
-/// This can be used to execute non-Send futures without blocking the current thread.
-///
-/// It maintains an internal thread pool dedicated to executing local futures.
-///
-/// [`spawn_local`] is available with tasks executed with `run_pinned`.
-#[inline(always)]
-#[cfg(feature = "ssr")]
-pub(crate) async fn run_pinned<F, Fut>(create_task: F) -> Fut::Output
-where
-    F: FnOnce() -> Fut,
-    F: Send + 'static,
-    Fut: Future + 'static,
-    Fut::Output: Send + 'static,
-{
-    imp::run_pinned(create_task).await
+/// A Runtime Builder.
+#[derive(Debug)]
+pub struct RuntimeBuilder {
+    worker_threads: usize,
+}
+
+impl Default for RuntimeBuilder {
+    fn default() -> Self {
+        Self {
+            worker_threads: imp::get_default_runtime_size(),
+        }
+    }
+}
+
+impl RuntimeBuilder {
+    /// Creates a new Runtime Builder.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Sets the number of worker threads the Runtime will use.
+    ///
+    /// # Default
+    ///
+    /// The default number of worker threads is double the number of available CPU cores.
+    ///
+    /// # Note
+    ///
+    /// This setting has no effect if current platform has no thread support (e.g.: WebAssembly).
+    pub fn worker_threads(&mut self, val: usize) -> &mut Self {
+        self.worker_threads = val;
+
+        self
+    }
+
+    /// Creates a Runtime.
+    pub fn build(&mut self) -> Result<Runtime> {
+        Ok(Runtime {
+            inner: imp::Runtime::new(self.worker_threads)?,
+        })
+    }
+}
+
+/// A Yew runtime that runs on the current thread.
+#[derive(Debug)]
+pub struct LocalRuntime {
+    inner: imp::LocalRuntime,
+}
+
+impl LocalRuntime {
+    /// Creates a new LocalRuntime.
+    pub fn new() -> Result<Self> {
+        Ok(Self {
+            inner: imp::LocalRuntime::new()?,
+        })
+    }
+
+    /// Runs a Future until completion with current thread blocked.
+    ///
+    /// # Panic
+    ///
+    /// This method will panic if it is called from within a runtime.
+    /// If the runtime backend is `wasm-bindgen`, a runtime is started before passing through the
+    /// WebAssembly boundary and this method will always panic.
+    pub fn block_on<F>(&self, f: F) -> F::Output
+    where
+        F: Future + 'static,
+        F::Output: 'static,
+    {
+        self.inner.block_on(f)
+    }
+}
+
+/// The Yew Runtime.
+#[derive(Debug, Clone, Default)]
+pub struct Runtime {
+    inner: imp::Runtime,
+}
+
+impl Runtime {
+    /// Creates a Builder to create a runtime.
+    pub fn builder() -> RuntimeBuilder {
+        RuntimeBuilder::new()
+    }
+
+    /// Runs a task with it pinned to a worker thread.
+    ///
+    /// This can be used to execute non-Send futures without blocking the current thread.
+    ///
+    /// [`spawn_local`] is available with tasks executed with `run_pinned`.
+    pub async fn run_pinned<F, Fut>(&self, create_task: F) -> Fut::Output
+    where
+        F: FnOnce() -> Fut,
+        F: Send + 'static,
+        Fut: Future + 'static,
+        Fut::Output: Send + 'static,
+    {
+        self.inner.run_pinned(create_task).await
+    }
 }

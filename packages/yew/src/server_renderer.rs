@@ -4,9 +4,18 @@ use futures::stream::{Stream, StreamExt};
 
 use crate::html::{BaseComponent, Scope};
 use crate::platform::io::{self, DEFAULT_BUF_SIZE};
-use crate::platform::{run_pinned, spawn_local};
+use crate::platform::{spawn_local, Runtime};
 
 /// A Yew Server-side Renderer that renders on the current thread.
+///
+/// # Note
+///
+/// This renderer does not spawn its own runtime and can only be used when:
+///
+/// - `wasm-bindgen` is selected as the backend of Yew runtime.
+/// - running within `actix_rt`.
+/// - running within a [`LocalRuntime`](crate::platform::LocalRuntime).
+/// - running within a tokio [`LocalSet`](tokio::task::LocalSet).
 #[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
 #[derive(Debug)]
 pub struct LocalServerRenderer<COMP>
@@ -120,6 +129,7 @@ where
     create_props: Box<dyn Send + FnOnce() -> COMP::Properties>,
     hydratable: bool,
     capacity: usize,
+    rt: Option<Runtime>,
 }
 
 impl<COMP> fmt::Debug for ServerRenderer<COMP>
@@ -170,7 +180,15 @@ where
             create_props: Box::new(create_props),
             hydratable: true,
             capacity: DEFAULT_BUF_SIZE,
+            rt: None,
         }
+    }
+
+    /// Sets the runtime the ServerRenderer will run the rendering task with.
+    pub fn with_runtime(mut self, rt: Runtime) -> Self {
+        self.rt = Some(rt);
+
+        self
     }
 
     /// Sets the capacity of renderer buffer.
@@ -218,14 +236,17 @@ where
     ///
     /// Unlike [`LocalServerRenderer::render_stream`], this method is `async fn`.
     pub async fn render_stream(self) -> impl Stream<Item = String> {
-        // We use run_pinned to switch to our runtime.
-        run_pinned(move || async move {
-            let Self {
-                create_props,
-                hydratable,
-                capacity,
-            } = self;
+        let Self {
+            create_props,
+            hydratable,
+            capacity,
+            rt,
+        } = self;
 
+        let rt = rt.unwrap_or_default();
+
+        // We use run_pinned to switch to our runtime.
+        rt.run_pinned(move || async move {
             let props = create_props();
 
             LocalServerRenderer::<COMP>::with_props(props)

@@ -60,6 +60,9 @@ impl BufWriter {
     }
 
     fn drain(&mut self) {
+        if self.buf.is_empty() {
+            return;
+        }
         let _ = self.tx.send(self.buf.drain(..).collect());
         self.buf.reserve(self.capacity);
     }
