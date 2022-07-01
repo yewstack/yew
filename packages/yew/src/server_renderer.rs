@@ -129,7 +129,7 @@ where
     create_props: Box<dyn Send + FnOnce() -> COMP::Properties>,
     hydratable: bool,
     capacity: usize,
-    rt: Runtime,
+    rt: Option<Runtime>,
 }
 
 impl<COMP> fmt::Debug for ServerRenderer<COMP>
@@ -180,13 +180,13 @@ where
             create_props: Box::new(create_props),
             hydratable: true,
             capacity: DEFAULT_BUF_SIZE,
-            rt: Runtime::default(),
+            rt: None,
         }
     }
 
     /// Sets the runtime the ServerRenderer will run the rendering task with.
     pub fn with_runtime(mut self, rt: Runtime) -> Self {
-        self.rt = rt;
+        self.rt = Some(rt);
 
         self
     }
@@ -242,6 +242,8 @@ where
             capacity,
             rt,
         } = self;
+
+        let rt = rt.unwrap_or_default();
 
         // We use run_pinned to switch to our runtime.
         rt.run_pinned(move || async move {
