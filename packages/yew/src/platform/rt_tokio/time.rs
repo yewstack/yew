@@ -4,6 +4,7 @@ use std::time::Duration;
 use futures::stream::{Stream, StreamExt};
 use tokio_stream::wrappers::IntervalStream;
 
+#[inline]
 pub(crate) fn sleep(dur: Duration) -> impl Future<Output = ()> {
     tokio::time::sleep(dur)
 }

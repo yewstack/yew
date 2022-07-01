@@ -1,5 +1,6 @@
 //! Utilities for bridging time and tasks.
 
+use std::future::Future;
 use std::time::Duration;
 
 use futures::Stream;
@@ -12,16 +13,18 @@ use crate::platform::imp::time as imp;
 ///
 /// On some platforms, if the prodvided duration cannot be converted to u32 in milliseconds, this
 /// function will panic.
-pub async fn sleep(dur: Duration) {
-    imp::sleep(dur).await;
+#[inline(always)]
+pub fn sleep(dur: Duration) -> impl Future<Output = ()> {
+    imp::sleep(dur)
 }
 
-/// Creates a Stream that yields an item for after every period has elapsed.
+/// Creates a Stream that yields an item after every period has elapsed.
 ///
 /// # Panic
 ///
 /// On some platforms, if the prodvided period cannot be converted to u32 in milliseconds, this
 /// function will panic.
+#[inline(always)]
 pub fn interval(period: Duration) -> impl Stream<Item = ()> {
     imp::interval(period)
 }
