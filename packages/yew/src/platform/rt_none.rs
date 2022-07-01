@@ -1,9 +1,9 @@
 use std::future::Future;
 use std::io;
 
-use once_cell::sync::Lazy;
-
-pub(crate) static DEFAULT_RUNTIME_SIZE: Lazy<usize> = Lazy::new(|| 0);
+pub(crate) fn get_default_runtime_size() -> usize {
+    0
+}
 
 pub static NO_RUNTIME_NOTICE: &str = r#"No runtime configured for this platform, \
     features that requires task spawning can't be used. \

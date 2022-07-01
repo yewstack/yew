@@ -6,7 +6,11 @@ use tokio::runtime::{Builder as TokioRuntimeBuilder, Runtime as TokioRuntime};
 use tokio::task::LocalSet;
 use tokio_util::task::LocalPoolHandle;
 
-pub(crate) static DEFAULT_RUNTIME_SIZE: Lazy<usize> = Lazy::new(|| num_cpus::get() * 2);
+pub(crate) fn get_default_runtime_size() -> usize {
+    pub(crate) static DEFAULT_RUNTIME_SIZE: Lazy<usize> = Lazy::new(|| num_cpus::get() * 2);
+
+    *DEFAULT_RUNTIME_SIZE
+}
 
 #[inline(always)]
 pub(super) fn spawn_local<F>(f: F)
@@ -23,8 +27,9 @@ pub(crate) struct Runtime {
 
 impl Default for Runtime {
     fn default() -> Self {
-        static DEFAULT_RT: Lazy<Runtime> =
-            Lazy::new(|| Runtime::new(*DEFAULT_RUNTIME_SIZE).expect("failed to create runtime."));
+        static DEFAULT_RT: Lazy<Runtime> = Lazy::new(|| {
+            Runtime::new(get_default_runtime_size()).expect("failed to create runtime.")
+        });
 
         DEFAULT_RT.clone()
     }

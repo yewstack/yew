@@ -80,7 +80,7 @@ pub struct RuntimeBuilder {
 impl Default for RuntimeBuilder {
     fn default() -> Self {
         Self {
-            worker_threads: *imp::DEFAULT_RUNTIME_SIZE,
+            worker_threads: imp::get_default_runtime_size(),
         }
     }
 }

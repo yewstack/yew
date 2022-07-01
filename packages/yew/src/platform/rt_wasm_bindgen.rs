@@ -1,9 +1,9 @@
 #[cfg(feature = "ssr")]
 use std::future::Future;
 
-use once_cell::sync::Lazy;
-
-pub(crate) static DEFAULT_RUNTIME_SIZE: Lazy<usize> = Lazy::new(|| 0);
+pub(crate) fn get_default_runtime_size() -> usize {
+    0
+}
 
 pub(super) use wasm_bindgen_futures::spawn_local;
 
@@ -31,7 +31,7 @@ pub(crate) struct LocalRuntime {}
 
 impl LocalRuntime {
     pub fn new() -> io::Result<Self> {
-        panic!("{}", NO_RUNTIME_NOTICE);
+        Ok(Self {})
     }
 
     pub fn block_on<F>(&self, _f: F) -> F::Output
