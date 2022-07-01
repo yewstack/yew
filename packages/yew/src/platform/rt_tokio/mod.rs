@@ -6,6 +6,8 @@ use tokio::runtime::{Builder as TokioRuntimeBuilder, Runtime as TokioRuntime};
 use tokio::task::LocalSet;
 use tokio_util::task::LocalPoolHandle;
 
+pub(crate) mod time;
+
 pub(crate) fn get_default_runtime_size() -> usize {
     pub(crate) static DEFAULT_RUNTIME_SIZE: Lazy<usize> = Lazy::new(|| num_cpus::get() * 2);
 

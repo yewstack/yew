@@ -1,6 +1,8 @@
 #[cfg(feature = "ssr")]
 use std::future::Future;
 
+pub(crate) mod time;
+
 pub(crate) fn get_default_runtime_size() -> usize {
     0
 }
