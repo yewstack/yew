@@ -10,7 +10,8 @@ rust-version = "1.60.0"
 
 [dependencies]
 yew = { version = "0.19.3", path = "../yew" }
-gloo-worker = { git = "https://github.com/rustwasm/gloo", features = ["futures"] }
+gloo = { version = "0.8", features = ["futures"] }
+gloo-worker = { version = "0.2", features = ["futures"] }
 wasm-bindgen = "0.2"
 serde = { version = "1", features = ["derive"] }
 futures = "0.3"

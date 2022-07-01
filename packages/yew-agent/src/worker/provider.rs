@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use gloo_worker::Spawnable;
+use gloo::worker::Spawnable;
 use yew::prelude::*;
 
 use super::{Worker, WorkerBridge};
