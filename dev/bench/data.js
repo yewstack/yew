@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1656528703829,
+  "lastUpdate": 1656668155221,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -19612,6 +19612,120 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 34_startup-totalbytes",
             "value": "332.279296875",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "futursolo@users.noreply.github.com",
+            "name": "Kaede Hoshikawa",
+            "username": "futursolo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7f5eb3890c8a7a2d27724cac3ae0926781215bd7",
+          "message": "Streamed SSR Response (#2697)\n\n* yew::platform?\n\n* Stream Response.\n\n* Migrate example\n\n* Remove old implementation.\n\n* Remove extra implementation.\n\n* Prefer String instead of Cow.\n\n* Fix MSRV.\n\n* Fix trybuild.\n\n* Optimise Memory Allocation.\n\n* More optimisation.\n\n* BufWriter.\n\n* Fix tests.\n\n* Optimise BufWriter.\n\n* Remove more allocations.\n\n* Allow setting of buffer capacity.\n\n* Fix capacity size.\n\n* Fix capacity size.\n\n* Remove unneeded const notation.\n\n* Fix macro tests.\n\n* Slightly optimises BufWriter committing logic.\n\n* Optimise Implementation.\n\n* Move BufWriter to a separate file.\n\n* Additional Implementation Note.\n\n* Adjust API so it matches `std::channel::mpsc::channel`.\n\n* Fix feature soundness.\n\n* Make a compatibility layer on channels.\n\n* Fix clippy.\n\n* Fix feature soundness.\n\n* Fix CI.\n\n* Inlining.\n\n* Add documentation.\n\n* Punctuation.\n\n* Switch to tokio channel.\n\n* Remvoe pin-project.\n\n* Fix feature soundness.\n\n* Typo.\n\n* Move io to platform.\n\n* Tokio does not compile.\n\n* Fix workflow.\n\n* Restore wrongly removed docs.\n\n* Does tokio work?\n\n* Switch back to tokio.\n\n* Remove pin-project.\n\n* Use cargo resolver 2.\n\n* Add panic notice.\n\n* Update documentation.\n\n* Properties does not have to be send.\n\n* Fix capacity checking as pointed in the review.\n\n* Implementation order.\n\n* Update note.",
+          "timestamp": "2022-07-01T14:26:12+05:00",
+          "tree_id": "fcf39b553debb78c23843613fdba2f8b5bf62ad8",
+          "url": "https://github.com/yewstack/yew/commit/7f5eb3890c8a7a2d27724cac3ae0926781215bd7"
+        },
+        "date": 1656668153381,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "240.894",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "242.5255",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "473.7425",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "59.5085",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "107.4905",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "39.696",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "4316.2185",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "611.3205",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "267.925",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.4705047607421875",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.6596336364746094",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.7008514404296875",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.7180442810058594",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.3314285278320312",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1886.36",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "38.291999999999994",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 33_startup-mainthreadcost",
+            "value": "300.35999999999996",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "332.146484375",
             "unit": ""
           }
         ]
