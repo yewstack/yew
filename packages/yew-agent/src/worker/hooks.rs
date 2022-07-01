@@ -10,13 +10,29 @@ use yew::prelude::*;
 use crate::worker::provider::WorkerProviderState;
 use crate::worker::{Worker, WorkerBridge};
 
+#[derive(Default)]
+struct UseBridgeCounter {
+    inner: usize,
+}
+
+impl Reducible for UseBridgeCounter {
+    type Action = ();
+
+    fn reduce(self: Rc<Self>, _: Self::Action) -> Rc<Self> {
+        Self {
+            inner: self.inner + 1,
+        }
+        .into()
+    }
+}
+
 /// State handle for the [`use_worker_bridge`] hook.
 pub struct UseWorkerBridgeHandle<T>
 where
     T: Worker,
 {
     inner: WorkerBridge<T>,
-    state: WorkerProviderState<T>,
+    ctr: UseReducerDispatcher<UseBridgeCounter>,
 }
 
 impl<T> UseWorkerBridgeHandle<T>
@@ -31,8 +47,8 @@ where
     /// Reset the bridge.
     ///
     /// Disconnect the old bridge and re-connects the agent with a new bridge.
-    pub fn reset() {
-        todo!()
+    pub fn reset(&self) {
+        self.ctr.dispatch(());
     }
 }
 
@@ -43,7 +59,7 @@ where
     fn clone(&self) -> Self {
         Self {
             inner: self.inner.clone(),
-            state: self.state.clone(),
+            ctr: self.ctr.clone(),
         }
     }
 }
@@ -55,7 +71,6 @@ where
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("UseWorkerBridgeHandle<_>")
             .field("inner", &self.inner)
-            .field("state", &"_")
             .finish()
     }
 }
@@ -65,7 +80,7 @@ where
     T: Worker,
 {
     fn eq(&self, rhs: &Self) -> bool {
-        self.state == rhs.state && self.inner == rhs.inner
+        self.inner == rhs.inner
     }
 }
 
@@ -147,6 +162,8 @@ where
     T: Worker,
     F: Fn(T::Output) + 'static,
 {
+    let ctr = use_reducer(UseBridgeCounter::default);
+
     let worker_state = use_context::<WorkerProviderState<T>>()
         .expect_throw("cannot find a provider for current agent.");
 
@@ -162,18 +179,18 @@ where
     }
 
     let bridge = use_memo(
-        |state| {
+        |(state, _ctr)| {
             state.create_bridge(move |output| {
                 let on_output = on_output_ref.borrow().clone();
                 on_output(output);
             })
         },
-        worker_state.clone(),
+        (worker_state, ctr.inner),
     );
 
     UseWorkerBridgeHandle {
         inner: (*bridge).clone(),
-        state: worker_state,
+        ctr: ctr.dispatcher(),
     }
 }
 
@@ -200,8 +217,8 @@ where
     ///
     /// This disconnects the old bridge and re-connects the agent with a new bridge.
     /// Existing outputs stored in the subscription will also be cleared.
-    pub fn reset() {
-        todo!()
+    pub fn reset(&self) {
+        self.bridge.reset();
     }
 }
 
@@ -259,24 +276,38 @@ pub fn use_worker_subscription<T>() -> UseWorkerSubscriptionHandle<T>
 where
     T: Worker,
 {
+    enum OutputsAction<T> {
+        Push(Rc<T>),
+        Reset,
+    }
+
     struct Outputs<T> {
         ctr: usize,
         inner: Vec<Rc<T>>,
     }
 
     impl<T> Reducible for Outputs<T> {
-        type Action = Rc<T>;
+        type Action = OutputsAction<T>;
 
         fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
-            let mut outputs = self.inner.clone();
+            match action {
+                Self::Action::Push(m) => {
+                    let mut outputs = self.inner.clone();
 
-            outputs.push(action);
+                    outputs.push(m);
 
-            Self {
-                inner: outputs,
-                ctr: self.ctr + 1,
+                    Self {
+                        inner: outputs,
+                        ctr: self.ctr + 1,
+                    }
+                    .into()
+                }
+                Self::Action::Reset => Self {
+                    inner: Vec::new(),
+                    ctr: self.ctr + 1,
+                }
+                .into(),
             }
-            .into()
         }
     }
 
@@ -293,8 +324,22 @@ where
 
     let bridge = {
         let outputs = outputs.clone();
-        use_worker_bridge::<T, _>(move |output| outputs.dispatch(Rc::new(output)))
+        use_worker_bridge::<T, _>(move |output| {
+            outputs.dispatch(OutputsAction::Push(Rc::new(output)))
+        })
     };
+
+    {
+        let outputs_dispatcher = outputs.dispatcher();
+        use_effect_with_deps(
+            move |_| {
+                outputs_dispatcher.dispatch(OutputsAction::Reset);
+
+                || {}
+            },
+            bridge.clone(),
+        );
+    }
 
     UseWorkerSubscriptionHandle {
         bridge,

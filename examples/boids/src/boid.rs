@@ -1,3 +1,4 @@
+use std::fmt::Write;
 use std::iter;
 
 use rand::Rng;
@@ -129,7 +130,7 @@ impl Boid {
         let mut points = String::new();
         for offset in iter_shape_points(self.radius, self.velocity.angle()) {
             let Vector2D { x, y } = self.position + offset;
-            points.push_str(&format!("{:.2},{:.2} ", x, y));
+            write!(points, "{:.2},{:.2} ", x, y).expect("failed to write!");
         }
 
         html! { <polygon {points} fill={color} /> }

@@ -6,6 +6,7 @@ edition = "2021"
 readme = "../../README.md"
 description = "Agents for Yew"
 license = "MIT OR Apache-2.0"
+rust-version = "1.60.0"
 
 [dependencies]
 yew = { version = "0.19.3", path = "../yew" }
