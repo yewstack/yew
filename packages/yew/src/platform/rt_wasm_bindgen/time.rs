@@ -2,6 +2,7 @@ use std::future::Future;
 use std::time::Duration;
 
 use futures::stream::Stream;
+use wasm_bindgen::UnwrapThrowExt;
 
 pub(crate) fn sleep(dur: Duration) -> impl Future<Output = ()> {
     gloo::timers::future::sleep(dur)

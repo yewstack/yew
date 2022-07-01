@@ -1,5 +1,5 @@
-#[cfg(feature = "ssr")]
 use std::future::Future;
+use std::io;
 
 pub(crate) mod time;
 
