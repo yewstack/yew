@@ -2,7 +2,6 @@
 
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::sync::atomic::{AtomicUsize, Ordering};
 
 use wasm_bindgen::UnwrapThrowExt;
 use yew::html::Scope;
@@ -110,18 +109,12 @@ where
     where
         T: Task + 'static,
     {
-        thread_local! {
-            static CTR: AtomicUsize = AtomicUsize::new(0);
-        }
-
-        let task_ctr = CTR.with(|m| m.fetch_add(1, Ordering::Relaxed));
-
         let hold_bridge = Rc::new(RefCell::new(None));
 
         let bridge = {
             let hold_bridge = hold_bridge.clone();
             self.bridge_worker::<TaskWorker<T>>(
-                (move |(_, output)| {
+                (move |output| {
                     let hold_bridge = hold_bridge.clone();
 
                     callback.emit(output);
@@ -133,7 +126,7 @@ where
             )
         };
 
-        bridge.send((task_ctr, input));
+        bridge.send(input);
 
         *hold_bridge.borrow_mut() = Some(bridge);
     }

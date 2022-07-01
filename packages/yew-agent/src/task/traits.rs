@@ -68,17 +68,14 @@ where
     }
 }
 
-#[derive(PartialEq, Eq, Hash)]
-pub(crate) struct TaskId {
-    handler_id: HandlerId,
-    raw_task_id: usize,
-}
-
 pub(crate) enum TaskWorkerMsg<T>
 where
     T: Task,
 {
-    TaskFinished { task_id: TaskId, output: T::Output },
+    TaskFinished {
+        handler_id: HandlerId,
+        output: T::Output,
+    },
 }
 
 pub(crate) struct TaskWorker<T>
@@ -86,7 +83,7 @@ where
     T: 'static + Task,
 {
     _marker: PhantomData<T>,
-    task_ids: HashSet<TaskId>,
+    task_ids: HashSet<HandlerId>,
     destruct_handle: Option<WorkerDestroyHandle<Self>>,
 }
 
@@ -94,9 +91,9 @@ impl<T> Worker for TaskWorker<T>
 where
     T: 'static + Task,
 {
-    type Input = (usize, T::Input);
+    type Input = T::Input;
     type Message = TaskWorkerMsg<T>;
-    type Output = (usize, T::Output);
+    type Output = T::Output;
 
     fn create(_scope: &WorkerScope<Self>) -> Self {
         Self {
@@ -107,16 +104,11 @@ where
     }
 
     fn update(&mut self, scope: &WorkerScope<Self>, msg: Self::Message) {
-        let TaskWorkerMsg::TaskFinished { task_id, output } = msg;
+        let TaskWorkerMsg::TaskFinished { handler_id, output } = msg;
 
-        self.task_ids.remove(&task_id);
+        self.task_ids.remove(&handler_id);
 
-        let TaskId {
-            raw_task_id,
-            handler_id,
-        } = task_id;
-
-        scope.respond(handler_id, (raw_task_id, output));
+        scope.respond(handler_id, output);
 
         if self.task_ids.is_empty() {
             self.destruct_handle = None;
@@ -124,17 +116,10 @@ where
     }
 
     fn received(&mut self, scope: &WorkerScope<Self>, input: Self::Input, handler_id: HandlerId) {
-        let (raw_task_id, input) = input;
-
-        let task_id = TaskId {
-            handler_id,
-            raw_task_id,
-        };
-
         scope.send_future(async move {
             let output = T::run(input).await;
 
-            TaskWorkerMsg::TaskFinished { task_id, output }
+            TaskWorkerMsg::TaskFinished { handler_id, output }
         });
     }
 

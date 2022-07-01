@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::fmt;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -45,6 +46,15 @@ where
     reach: Reach,
     lazy: bool,
     held_bridge: Rc<RefCell<Option<WorkerBridge<W>>>>,
+}
+
+impl<W> fmt::Debug for WorkerProviderState<W>
+where
+    W: Worker,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "WorkerProviderState<_>")
+    }
 }
 
 impl<W> WorkerProviderState<W>
