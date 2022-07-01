@@ -1,24 +1,10 @@
 use std::future::Future;
+use std::io;
 
-#[cfg(feature = "ssr")]
-pub(super) async fn run_pinned<F, Fut>(create_task: F) -> Fut::Output
-where
-    F: FnOnce() -> Fut,
-    F: Send + 'static,
-    Fut: Future + 'static,
-    Fut::Output: Send + 'static,
-{
-    use once_cell::sync::Lazy;
-    use tokio_util::task::LocalPoolHandle;
+use once_cell::sync::Lazy;
+use tokio_util::task::LocalPoolHandle;
 
-    static POOL_HANDLE: Lazy<LocalPoolHandle> =
-        Lazy::new(|| LocalPoolHandle::new(num_cpus::get() * 2));
-
-    POOL_HANDLE
-        .spawn_pinned(create_task)
-        .await
-        .expect("future has panicked!")
-}
+pub(crate) static DEFAULT_RUNTIME_SIZE: Lazy<usize> = Lazy::new(|| num_cpus::get() * 2);
 
 #[inline(always)]
 pub(super) fn spawn_local<F>(f: F)
@@ -26,4 +12,39 @@ where
     F: Future<Output = ()> + 'static,
 {
     tokio::task::spawn_local(f);
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct Runtime {
+    pool: LocalPoolHandle,
+}
+
+impl Default for Runtime {
+    fn default() -> Self {
+        static DEFAULT_RT: Lazy<Runtime> =
+            Lazy::new(|| Runtime::new(*DEFAULT_RUNTIME_SIZE).expect("failed to create runtime."));
+
+        DEFAULT_RT.clone()
+    }
+}
+
+impl Runtime {
+    pub fn new(size: usize) -> io::Result<Self> {
+        Ok(Self {
+            pool: LocalPoolHandle::new(size),
+        })
+    }
+
+    pub(super) async fn run_pinned<F, Fut>(&self, create_task: F) -> Fut::Output
+    where
+        F: FnOnce() -> Fut,
+        F: Send + 'static,
+        Fut: Future + 'static,
+        Fut::Output: Send + 'static,
+    {
+        self.pool
+            .spawn_pinned(create_task)
+            .await
+            .expect("future has panicked!")
+    }
 }

@@ -41,6 +41,7 @@
 //! `tokio`'s timer, IO and task synchronisation primitives.
 
 use std::future::Future;
+use std::io::Result;
 
 #[cfg(feature = "ssr")]
 pub(crate) mod io;
@@ -70,21 +71,68 @@ where
     imp::spawn_local(f);
 }
 
-/// Runs a task with it pinned onto a local worker thread.
-///
-/// This can be used to execute non-Send futures without blocking the current thread.
-///
-/// It maintains an internal thread pool dedicated to executing local futures.
-///
-/// [`spawn_local`] is available with tasks executed with `run_pinned`.
-#[inline(always)]
-#[cfg(feature = "ssr")]
-pub(crate) async fn run_pinned<F, Fut>(create_task: F) -> Fut::Output
-where
-    F: FnOnce() -> Fut,
-    F: Send + 'static,
-    Fut: Future + 'static,
-    Fut::Output: Send + 'static,
-{
-    imp::run_pinned(create_task).await
+/// A Runtime Builder.
+#[derive(Debug)]
+pub struct RuntimeBuilder {
+    worker_threads: usize,
+}
+
+impl Default for RuntimeBuilder {
+    fn default() -> Self {
+        Self {
+            worker_threads: *imp::DEFAULT_RUNTIME_SIZE,
+        }
+    }
+}
+
+impl RuntimeBuilder {
+    /// Creates a new Runtime Builder.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Sets the number of worker threads the Runtime will use.
+    ///
+    /// # Default
+    ///
+    /// The default number of worker threads is double the number of available CPU cores.
+    ///
+    /// # Note
+    ///
+    /// This setting has no effect if current platform has no thread support (e.g.: WebAssembly).
+    pub fn worker_threads(&mut self, val: usize) -> &mut Self {
+        self.worker_threads = val;
+
+        self
+    }
+
+    /// Creates a Runtime.
+    pub fn build(&mut self) -> Result<Runtime> {
+        Ok(Runtime {
+            inner: imp::Runtime::new(self.worker_threads)?,
+        })
+    }
+}
+
+/// The Yew Runtime.
+#[derive(Debug, Clone, Default)]
+pub struct Runtime {
+    inner: imp::Runtime,
+}
+
+impl Runtime {
+    /// Runs a task with it pinned to a worker thread.
+    ///
+    /// This can be used to execute non-Send futures without blocking the current thread.
+    ///
+    /// [`spawn_local`] is available with tasks executed with `run_pinned`.
+    pub async fn run_pinned<F, Fut>(&self, create_task: F) -> Fut::Output
+    where
+        F: FnOnce() -> Fut,
+        F: Send + 'static,
+        Fut: Future + 'static,
+        Fut::Output: Send + 'static,
+    {
+        self.inner.run_pinned(create_task).await
+    }
 }
