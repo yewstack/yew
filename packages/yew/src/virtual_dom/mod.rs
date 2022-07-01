@@ -50,7 +50,7 @@ mod feat_ssr_hydration {
     #[cfg(debug_assertions)]
     type ComponentName = &'static str;
     #[cfg(not(debug_assertions))]
-    type ComponentName = ();
+    type ComponentName = std::marker::PhantomData<()>;
 
     #[cfg(feature = "hydration")]
     use std::borrow::Cow;
@@ -68,7 +68,7 @@ mod feat_ssr_hydration {
             #[cfg(debug_assertions)]
             let comp_name = std::any::type_name::<T>();
             #[cfg(not(debug_assertions))]
-            let comp_name = ();
+            let comp_name = std::marker::PhantomData;
             Self::Component(comp_name)
         }
 

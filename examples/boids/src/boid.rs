@@ -130,7 +130,9 @@ impl Boid {
         let mut points = String::new();
         for offset in iter_shape_points(self.radius, self.velocity.angle()) {
             let Vector2D { x, y } = self.position + offset;
-            write!(points, "{:.2},{:.2} ", x, y).expect("failed to write!");
+
+            // Write to string will never fail.
+            let _ = write!(points, "{:.2},{:.2} ", x, y);
         }
 
         html! { <polygon {points} fill={color} /> }
