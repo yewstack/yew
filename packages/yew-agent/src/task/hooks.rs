@@ -96,9 +96,8 @@ where
     #[cfg(feature = "ssr")]
     {
         let input = input.clone();
-        let input2 = input.clone();
         let prepared_task_output = use_prepared_state!(
-            async move |_| -> T::Output { T::run(input2.clone()).await },
+            async |input| -> T::Output { T::run((*input).clone()).await },
             input
         )?;
 
