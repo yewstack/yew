@@ -123,8 +123,16 @@ where
 
     let (handle, result) = (*suspension_state).clone();
 
+    let has_prepared_output = prepared_output.is_some();
+
     use_effect_with_deps(
-        move |(task_runner, input)| {
+        move |(task_runner, input, has_prepared_output)| {
+            let destructor = || {};
+
+            if *has_prepared_output {
+                return destructor;
+            }
+
             let task_runner = task_runner.clone();
             let input = input.clone();
             spawn_local(async move {
@@ -136,10 +144,14 @@ where
                     m.resume();
                 }
             });
-            || {}
+
+            destructor
         },
-        (task_runner, input),
+        (task_runner, input, has_prepared_output),
     );
 
-    result
+    match (prepared_output, result) {
+        (Some(prepared_output), _) => Ok(prepared_output),
+        (None, result) => result,
+    }
 }
