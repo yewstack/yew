@@ -63,15 +63,15 @@ mod ssr_tests {
     use std::rc::Rc;
     use std::time::Duration;
 
-    use tokio::task::{spawn_local, LocalSet};
     use tokio::test;
-    use tokio::time::sleep;
+    use yew::platform::spawn_local;
+    use yew::platform::time::sleep;
 
     use crate::prelude::*;
     use crate::suspense::{Suspension, SuspensionResult};
     use crate::ServerRenderer;
 
-    #[test(flavor = "multi_thread", worker_threads = 2)]
+    #[test]
     async fn test_suspense() {
         #[derive(PartialEq)]
         pub struct SleepState {
@@ -82,9 +82,7 @@ mod ssr_tests {
             fn new() -> Self {
                 let (s, handle) = Suspension::new();
 
-                // we use tokio spawn local here.
                 spawn_local(async move {
-                    // we use tokio sleep here.
                     sleep(Duration::from_millis(50)).await;
 
                     handle.resume();
@@ -137,15 +135,9 @@ mod ssr_tests {
             }
         }
 
-        let local = LocalSet::new();
-
-        let s = local
-            .run_until(async move {
-                ServerRenderer::<Comp>::new()
-                    .hydratable(false)
-                    .render()
-                    .await
-            })
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
             .await;
 
         assert_eq!(
