@@ -88,7 +88,7 @@ fn bench_router_app() -> Duration {
 
 #[derive(Debug, Tabled, Serialize, Deserialize)]
 struct Statistics {
-    #[tabled(rename = "Name")]
+    #[tabled(rename = "Benchmark")]
     name: String,
     #[tabled(rename = "Round")]
     round: String,

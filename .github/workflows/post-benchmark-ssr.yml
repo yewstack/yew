@@ -1,14 +1,14 @@
 ---
-name: Post Comment for Size Comparison
+name: Post Comment for Benchmark - SSR
 
 on:
   workflow_run:
-    workflows: ["Size Comparison"]
+    workflows: ["Benchmark - SSR"]
     types:
       - completed
 
 jobs:
-  post-size-cmp:
+  post-benchmark-ssr:
     name: Post Comment on Pull Request
     runs-on: ubuntu-latest
 
@@ -21,13 +21,13 @@ jobs:
         uses: Legit-Labs/action-download-artifact@v2
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
-          workflow: size-cmp.yml
+          workflow: benchmark-ssr.yml
           run_id: ${{ github.event.workflow_run.id }}
-          name: size-cmp-info
-          path: "size-cmp-info/"
+          name: benchmark-ssr
+          path: "benchmark-ssr/"
 
       - name: Make pull request comment
-        run: python3 ci/make_example_size_cmt.py
+        run: python3 ci/make_benchmark_ssr_cmt.py
 
       - name: Post Comment
         uses: actions/github-script@v6
@@ -40,11 +40,11 @@ jobs:
 
             const comment = {
               ...commentInfo,
-              body: JSON.parse(process.env.YEW_EXAMPLE_SIZES),
+              body: JSON.parse(process.env.YEW_BENCH_SSR),
             };
 
             function isCommentByBot(comment) {
-              return comment.user.type === "Bot" && comment.body.includes("### Size Comparison");
+              return comment.user.type === "Bot" && comment.body.includes("### Benchmark - SSR");
             }
 
             let commentId = null;
