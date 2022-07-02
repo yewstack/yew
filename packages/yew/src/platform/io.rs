@@ -24,7 +24,8 @@ pub(crate) fn buffer(capacity: usize) -> (BufWriter, impl Stream<Item = String>)
     let (tx, rx) = mpsc::unbounded_channel::<String>();
 
     let tx = BufWriter {
-        buf: String::with_capacity(capacity),
+        // We start without allocation so empty strings will not be allocated.
+        buf: String::new(),
         tx,
         capacity,
     };
@@ -59,12 +60,18 @@ impl BufWriter {
         self.capacity
     }
 
+    #[inline]
     fn drain(&mut self) {
-        if self.buf.is_empty() {
-            return;
+        if !self.buf.is_empty() {
+            let _ = self.tx.send(self.buf.split_off(0));
         }
-        let _ = self.tx.send(self.buf.drain(..).collect());
-        self.buf.reserve(self.capacity);
+    }
+
+    #[inline]
+    fn reserve(&mut self) {
+        if self.buf.is_empty() {
+            self.buf.reserve(self.capacity);
+        }
     }
 
     /// Returns `True` if the internal buffer has capacity to fit a string of certain length.
@@ -75,6 +82,9 @@ impl BufWriter {
 
     /// Writes a string into the buffer, optionally drains the buffer.
     pub fn write(&mut self, s: Cow<'_, str>) {
+        // Try to reserve the capacity first.
+        self.reserve();
+
         if !self.has_capacity_of(s.len()) {
             // There isn't enough capacity, we drain the buffer.
             self.drain();
@@ -97,6 +107,7 @@ impl BufWriter {
 
 impl Drop for BufWriter {
     fn drop(&mut self) {
+        // We swap the buffer with an empty buffer, this saves an allocation.
         if !self.buf.is_empty() {
             let mut buf = String::new();
             std::mem::swap(&mut buf, &mut self.buf);
