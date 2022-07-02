@@ -43,7 +43,7 @@ pub use feat_ssr::*;
 /// where
 ///     D: Serialize + DeserializeOwned + PartialEq + 'static,
 ///     T: Serialize + DeserializeOwned + 'static,
-///     F: 'static + FnOnce(&D) -> T,
+///     F: 'static + FnOnce(Rc<D>) -> T,
 /// # { todo!() }
 /// ```
 ///
