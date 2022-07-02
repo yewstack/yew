@@ -87,24 +87,32 @@ where
 /// A hook to run a task and suspends the component while the task is running.
 ///
 /// The output is memorised and updated when the input changes.
+///
+/// # Server-side Rendering Support
+///
+/// Memorised tasks support server-side rendering.
+///
+/// On platforms with thread support, tasks are spawned to a dedicated thread for execution. If the
+/// platform has no thread support, it will be spawned to the rendering thread. If you plan to use
+/// tasks on a platform without thread support, CPU-bounded agent tasks will block the rendering
+/// thread.
 #[hook]
 pub fn use_memorized_task<T>(input: T::Input) -> SuspensionResult<Rc<T::Output>>
 where
     T: Task + 'static,
     T::Input: Send + Clone + PartialEq + 'static,
+    T::Output: Send + 'static,
 {
-    #[cfg(feature = "ssr")]
-    {
+    let prepared_output: Option<Rc<T::Output>> = {
         let input = input.clone();
-        let prepared_task_output = use_prepared_state!(
-            async |input| -> T::Output { T::run((*input).clone()).await },
-            input
-        )?;
 
-        if let Some(m) = prepared_task_output {
-            return Ok(m);
-        }
-    }
+        use_prepared_state!(
+            async |input| -> T::Output {
+                super::executor::execute_task::<T>((*input).clone()).await
+            },
+            input
+        )?
+    };
 
     let task_runner = use_task::<T>();
     let suspension_state = use_state(|| {
