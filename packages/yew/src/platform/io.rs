@@ -107,7 +107,6 @@ impl BufWriter {
 
 impl Drop for BufWriter {
     fn drop(&mut self) {
-        // We swap the buffer with an empty buffer, this saves an allocation.
         if !self.buf.is_empty() {
             let mut buf = String::new();
             std::mem::swap(&mut buf, &mut self.buf);
