@@ -10,8 +10,7 @@ on:
     branches: [master]
 
 env:
-  # anyway to dynamically grep the MSRV from Cargo.toml?
-  MSRV: 1.60.0
+  MSRV: '1.60.0'
 
 jobs:
   clippy:
