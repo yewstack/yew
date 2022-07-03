@@ -3,7 +3,7 @@ name: Tools & Examples
 on:
   pull_request:
     paths:
-      - 'workflows/main-checks.yml'
+      - '.github/workflows/tools-examples.yml'
       - 'tools/**/*'
       - 'examples/**/*'
   push:

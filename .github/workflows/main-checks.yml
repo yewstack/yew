@@ -3,7 +3,7 @@ name: Main Checks
 on:
   pull_request:
     paths:
-      - 'workflows/main-checks.yml'
+      - '.github/workflows/main-checks.yml'
       - 'packages/**/*'
   push:
     branches: [master]
