@@ -27,7 +27,7 @@ jobs:
           - toolchain: stable
             runs: clippy
           - toolchain: nightly
-            runs: fmt
+            runs: rustfmt
 
     steps:
       - uses: actions/checkout@v2
@@ -48,7 +48,7 @@ jobs:
           args: --all-targets --all-features --manifest-path ${{ matrix.workspace }}/Cargo.toml -- -D warnings
 
       - name: Run fmt for ${{ matrix.workspace }}
-        if: ${{ matrix.toolchain }} == 'fmt'
+        if: ${{ matrix.toolchain }} == 'rustfmt'
         uses: actions-rs/cargo@v1
         with:
           command: fmt
