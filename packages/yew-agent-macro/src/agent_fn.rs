@@ -11,7 +11,6 @@ pub trait AgentFnType {
 
     fn attr_name() -> &'static str;
     fn agent_type_name() -> &'static str;
-    fn agent_type_name_plural() -> &'static str;
     fn parse_recv_type(sig: &Signature) -> syn::Result<Self::RecvType>;
     fn parse_output_type(sig: &Signature) -> syn::Result<Self::OutputType>;
 
@@ -22,7 +21,7 @@ pub trait AgentFnType {
             FnArg::Receiver(_) => {
                 return Err(syn::Error::new_spanned(
                     arg,
-                    format!("{} can't accept a receiver", Self::agent_type_name_plural()),
+                    format!("{} agents can't accept a receiver", Self::agent_type_name()),
                 ));
             }
         };
@@ -46,8 +45,8 @@ pub trait AgentFnType {
             return Err(syn::Error::new_spanned(
                 params,
                 format!(
-                    "{} can accept at most {} argument{}",
-                    Self::agent_type_name_plural(),
+                    "{} agents can accept at most {} argument{}",
+                    Self::agent_type_name(),
                     expected_len,
                     if expected_len > 1 { "s" } else { "" }
                 ),
@@ -103,8 +102,8 @@ where
             return Err(syn::Error::new_spanned(
                 sig.generics,
                 format!(
-                    "{} can't have generic lifetime parameters",
-                    F::agent_type_name_plural()
+                    "{} agents can't have generic lifetime parameters",
+                    F::agent_type_name()
                 ),
             ));
         }
@@ -119,14 +118,14 @@ where
         if sig.constness.is_some() {
             return Err(syn::Error::new_spanned(
                 sig.constness,
-                format!("const functions can't be {}", F::agent_type_name_plural()),
+                format!("const functions can't be {} agents", F::agent_type_name()),
             ));
         }
 
         if sig.abi.is_some() {
             return Err(syn::Error::new_spanned(
                 sig.abi,
-                format!("extern functions can't be {}", F::agent_type_name_plural()),
+                format!("extern functions can't be {} agents", F::agent_type_name()),
             ));
         }
         let recv_type = F::parse_recv_type(&sig)?;

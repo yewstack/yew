@@ -4,7 +4,7 @@ use std::rc::Rc;
 use futures::channel::oneshot;
 use gloo_worker::WorkerBridge;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::spawn_local;
+use yew::platform::spawn_local;
 use yew::prelude::*;
 use yew::suspense::{Suspension, SuspensionResult};
 

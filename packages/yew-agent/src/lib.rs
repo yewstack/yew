@@ -92,7 +92,7 @@ pub use reach::Reach;
 
 #[doc(hidden)]
 pub mod __vendored {
-    pub use {futures, wasm_bindgen_futures};
+    pub use futures;
 }
 
 pub mod prelude {

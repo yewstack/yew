@@ -4,7 +4,7 @@ use std::fmt;
 use futures::channel::mpsc;
 use futures::future::LocalBoxFuture;
 use futures::stream::StreamExt;
-use wasm_bindgen_futures::spawn_local;
+use yew::platform::spawn_local;
 
 use super::messages::{ReactorInput, ReactorOutput};
 use super::tx_rx::{ReactorReceivable, ReactorSendable};

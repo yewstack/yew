@@ -5,6 +5,11 @@ use yew::platform::{spawn_local, LocalRuntime};
 
 use super::Task;
 
+/// This is not used during client-side rendering, we can avoid a feature flag using dead code
+/// elimination.
+/// In the future, it might be better to provide a custom procedural macro like `#[yew::cfg_ssr]` to
+/// provide consistent configuration.
+#[allow(dead_code)]
 pub(crate) async fn execute_task<T>(input: T::Input) -> T::Output
 where
     T: Task,

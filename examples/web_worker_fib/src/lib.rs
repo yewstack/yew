@@ -3,7 +3,7 @@
 
 pub mod agent;
 
-use wasm_bindgen_futures::spawn_local;
+use yew::platform::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 use yew_agent::task::{use_task, TaskProvider};

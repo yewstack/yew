@@ -18,10 +18,6 @@ impl AgentFnType for TaskFn {
         "task"
     }
 
-    fn agent_type_name_plural() -> &'static str {
-        "tasks"
-    }
-
     fn parse_recv_type(sig: &Signature) -> syn::Result<Self::RecvType> {
         let mut inputs = sig.inputs.iter();
         let arg = inputs

@@ -1,6 +1,5 @@
 //! This module provides task agent implementation.
 
-#[cfg(feature = "ssr")]
 mod executor;
 mod hooks;
 mod provider;
