@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::fmt;
 use std::marker::PhantomData;
 
@@ -83,7 +82,7 @@ where
     T: 'static + Task,
 {
     _marker: PhantomData<T>,
-    task_ids: HashSet<HandlerId>,
+    running_tasks: usize,
     destruct_handle: Option<WorkerDestroyHandle<Self>>,
 }
 
@@ -98,7 +97,7 @@ where
     fn create(_scope: &WorkerScope<Self>) -> Self {
         Self {
             _marker: PhantomData,
-            task_ids: Default::default(),
+            running_tasks: 0,
             destruct_handle: None,
         }
     }
@@ -106,16 +105,18 @@ where
     fn update(&mut self, scope: &WorkerScope<Self>, msg: Self::Message) {
         let TaskWorkerMsg::TaskFinished { handler_id, output } = msg;
 
-        self.task_ids.remove(&handler_id);
+        self.running_tasks -= 1;
 
         scope.respond(handler_id, output);
 
-        if self.task_ids.is_empty() {
+        if self.running_tasks == 0 {
             self.destruct_handle = None;
         }
     }
 
     fn received(&mut self, scope: &WorkerScope<Self>, input: Self::Input, handler_id: HandlerId) {
+        self.running_tasks += 1;
+
         scope.send_future(async move {
             let output = T::run(input).await;
 
@@ -124,7 +125,7 @@ where
     }
 
     fn destroy(&mut self, _scope: &WorkerScope<Self>, destruct: WorkerDestroyHandle<Self>) {
-        if !self.task_ids.is_empty() {
+        if self.running_tasks > 0 {
             self.destruct_handle = Some(destruct);
         }
     }
