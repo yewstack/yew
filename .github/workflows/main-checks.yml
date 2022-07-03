@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/main-checks.yml'
+      - 'ci/**'
       - 'packages/**/*'
       - 'Cargo.toml'
   push:
