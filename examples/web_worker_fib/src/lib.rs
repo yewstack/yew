@@ -3,8 +3,8 @@
 
 pub mod agent;
 
-use yew::platform::spawn_local;
 use web_sys::HtmlInputElement;
+use yew::platform::spawn_local;
 use yew::prelude::*;
 use yew_agent::task::{use_task, TaskProvider};
 
