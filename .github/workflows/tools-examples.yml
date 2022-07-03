@@ -22,7 +22,7 @@ jobs:
           - examples
         runs:
           - clippy
-          - fmt
+          - rustfmt
         include:
           - toolchain: stable
             runs: clippy
