@@ -2,7 +2,7 @@
 name: Size Comparison
 
 on:
-  pull_request:
+  pull_request_target:
     branches: [master]
     paths:
       - .github/workflows/size-cmp.yml
@@ -28,6 +28,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: current-pr
+          ref: "${{ github.head_ref }}"
 
       - name: Setup toolchain
         uses: actions-rs/toolchain@v1
@@ -55,14 +56,6 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Write optimisation flags for master
-        run: ./ci/write-optimisation-flags.sh
-        working-directory: yew-master
-
-      - name: Write optimisation flags for pull request
-        run: ./ci/write-optimisation-flags.sh
-        working-directory: current-pr
-
       - name: Build master examples
         run: find examples/*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
         working-directory: yew-master
@@ -80,9 +73,50 @@ jobs:
         env:
           ISSUE_NUMBER: ${{ github.event.number }}
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+      - name: Make pull request comment
+        run: python3 ci/make_example_size_cmt.py
+        working-directory: yew-master
+
+      - name: Post Comment
+        uses: actions/github-script@v6
         with:
-          name: size-cmp-info
-          path: ".SIZE_CMP_INFO"
-          retention-days: 1
+          script: |
+            const commentInfo = {
+              ...context.repo,
+              issue_number: ${{ env.PR_NUMBER }},
+            };
+
+            const comment = {
+              ...commentInfo,
+              body: JSON.parse(process.env.YEW_EXAMPLE_SIZES),
+            };
+
+            function isCommentByBot(comment) {
+              return comment.user.type === "Bot" && comment.body.includes("### Size Comparison");
+            }
+
+            let commentId = null;
+            const comments = (await github.rest.issues.listComments(commentInfo)).data;
+            for (let i = comments.length; i--; ) {
+              const c = comments[i];
+              if (isCommentByBot(c)) {
+                commentId = c.id;
+                break;
+              }
+            }
+
+            if (commentId) {
+              try {
+                await github.rest.issues.updateComment({
+                  ...context.repo,
+                  comment_id: commentId,
+                  body: comment.body,
+                });
+              } catch (e) {
+                commentId = null;
+              }
+            }
+
+            if (!commentId) {
+              await github.rest.issues.createComment(comment);
+            }

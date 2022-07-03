@@ -24,9 +24,6 @@ jobs:
           override: true
           profile: minimal
 
-      - name: Write optimisation flags
-        run: ./ci/write-optimisation-flags.sh
-
       - uses: Swatinem/rust-cache@v1
 
       - uses: jetli/trunk-action@v0.1.0

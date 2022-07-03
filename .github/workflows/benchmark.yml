@@ -243,11 +243,11 @@ jobs:
       - name: Build process-benchmark-results
         shell: bash
         run: |
-          cd yew
+          cd yew/tools
           cargo build --release -p process-benchmark-results
 
       - name: transform results to be fit for display benchmark-action/github-action-benchmark@v1
         uses: mathiasvr/command-output@v1
         id: results
         with:
-          run: cat js-framework-benchmark/webdriver-ts/results/results.json | ./yew/target/release/process-benchmark-results
+          run: cat js-framework-benchmark/webdriver-ts/results/results.json | ./yew/tools/target/release/process-benchmark-results
