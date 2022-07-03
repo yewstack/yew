@@ -59,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: benchmark-ssr
-          path:
-            - "yew-master/output.json"
-            - "current-pr/output.json"
+          path: |
+            yew-master/output.json
+            current-pr/output.json
           retention-days: 1
