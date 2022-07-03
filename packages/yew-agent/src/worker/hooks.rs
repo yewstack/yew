@@ -117,10 +117,10 @@ where
 
     let bridge = use_memo(
         |(state, _ctr)| {
-            state.create_bridge(move |output| {
+            state.create_bridge(Callback::from(move |output| {
                 let on_output = on_output_ref.borrow().clone();
                 on_output(output);
-            })
+            }))
         },
         (worker_state, ctr.inner),
     );

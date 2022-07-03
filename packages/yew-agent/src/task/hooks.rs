@@ -34,13 +34,13 @@ where
 
         let bridge = {
             let hold_bridge = hold_bridge.clone();
-            self.state.create_bridge(move |output| {
+            self.state.create_bridge(Callback::from(move |output| {
                 if let Some(tx) = tx_cell.borrow_mut().take() {
                     let _ = tx.send(output);
                 }
 
                 hold_bridge.borrow_mut().take();
-            })
+            }))
         };
 
         bridge.send(input);

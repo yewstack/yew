@@ -87,7 +87,7 @@ where
             .context::<WorkerProviderState<W>>((|_| {}).into())
             .expect_throw("failed to bridge to agent.")
             .0
-            .create_bridge(move |m| callback.emit(m));
+            .create_bridge(callback);
 
         WorkerBridgeHandle { inner }
     }

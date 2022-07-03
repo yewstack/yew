@@ -42,9 +42,8 @@ where
     W: Worker,
 {
     ctr: usize,
-    path: AttrValue,
+    spawn_bridge_fn: Rc<dyn Fn() -> WorkerBridge<W>>,
     reach: Reach,
-    lazy: bool,
     held_bridge: Rc<RefCell<Option<WorkerBridge<W>>>>,
 }
 
@@ -53,7 +52,7 @@ where
     W: Worker,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "WorkerProviderState<_>")
+        f.write_str("WorkerProviderState<_>")
     }
 }
 
@@ -61,27 +60,27 @@ impl<W> WorkerProviderState<W>
 where
     W: Worker,
 {
+    fn get_held_bridge(&self) -> WorkerBridge<W> {
+        let mut held_bridge = self.held_bridge.borrow_mut();
+
+        match held_bridge.as_mut() {
+            Some(m) => m.clone(),
+            None => {
+                let bridge = (self.spawn_bridge_fn)();
+                *held_bridge = Some(bridge.clone());
+                bridge
+            }
+        }
+    }
+
     /// Creates a bridge, uses "fork" for public agents.
-    pub fn create_bridge<F>(&self, cb: F) -> WorkerBridge<W>
-    where
-        F: 'static + Fn(W::Output),
-    {
+    pub fn create_bridge(&self, cb: Callback<W::Output>) -> WorkerBridge<W> {
         match self.reach {
             Reach::Public => {
-                let mut held_bridge = self.held_bridge.borrow_mut();
-
-                match held_bridge.as_mut() {
-                    Some(m) => m.fork(Some(cb)),
-                    None => {
-                        let new_held_bridge = W::spawner().spawn(&self.path);
-                        let bridge = new_held_bridge.fork(Some(cb));
-
-                        *held_bridge = Some(new_held_bridge);
-                        bridge
-                    }
-                }
+                let held_bridge = self.get_held_bridge();
+                held_bridge.fork(Some(move |m| cb.emit(m)))
             }
-            Reach::Private => W::spawner().callback(cb).spawn(&self.path),
+            Reach::Private => (self.spawn_bridge_fn)(),
         }
     }
 }
@@ -93,9 +92,8 @@ where
     fn clone(&self) -> Self {
         Self {
             ctr: self.ctr,
-            path: self.path.clone(),
+            spawn_bridge_fn: self.spawn_bridge_fn.clone(),
             reach: self.reach,
-            lazy: self.lazy,
             held_bridge: self.held_bridge.clone(),
         }
     }
@@ -118,9 +116,15 @@ static CTR: AtomicUsize = AtomicUsize::new(0);
 #[function_component]
 pub fn WorkerProvider<W, CODEC = Bincode>(props: &WorkerProviderProps) -> Html
 where
-    W: Worker,
-    CODEC: Codec,
+    W: Worker + 'static,
+    CODEC: Codec + 'static,
 {
+    // Creates a spawning function so CODEC is can be erased from contexts.
+    let spawn_bridge_fn: Rc<dyn Fn() -> WorkerBridge<W>> = {
+        let path = props.path.clone();
+        Rc::new(move || W::spawner().encoding::<CODEC>().spawn(&path))
+    };
+
     let WorkerProviderProps {
         children,
         path,
@@ -128,28 +132,26 @@ where
         reach,
     } = props.clone();
 
-    let state = use_memo(
-        |(path, lazy, reach)| {
-            let ctr = CTR.fetch_add(1, Ordering::SeqCst);
+    let state = {
+        use_memo(
+            move |(_path, lazy, reach)| {
+                let ctr = CTR.fetch_add(1, Ordering::SeqCst);
 
-            let held_bridge = if props.reach == Reach::Public && !props.lazy {
-                Rc::new(RefCell::new(Some(
-                    W::spawner().encoding::<CODEC>().spawn(&props.path),
-                )))
-            } else {
-                Rc::default()
-            };
+                let state = WorkerProviderState::<W> {
+                    ctr,
+                    spawn_bridge_fn,
+                    reach: *reach,
+                    held_bridge: Rc::default(),
+                };
 
-            WorkerProviderState::<W> {
-                ctr,
-                path: path.clone(),
-                lazy: *lazy,
-                reach: *reach,
-                held_bridge,
-            }
-        },
-        (path, lazy, reach),
-    );
+                if *reach == Reach::Public && !*lazy {
+                    state.get_held_bridge();
+                }
+                state
+            },
+            (path, lazy, reach),
+        )
+    };
 
     html! {
         <ContextProvider<WorkerProviderState<W>> context={(*state).clone()}>
