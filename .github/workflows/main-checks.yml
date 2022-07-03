@@ -61,6 +61,7 @@ jobs:
     name: Documentation Tests
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - uses: Swatinem/rust-cache@v1
 
       - uses: actions-rs/toolchain@v1
@@ -79,8 +80,6 @@ jobs:
       - name: Install wasm-bindgen-cli
         shell: bash
         run: ./ci/install-wasm-bindgen-cli.sh
-
-      - uses: actions/checkout@v2
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -121,11 +120,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - uses: Swatinem/rust-cache@v1
+
       - uses: actions-rs/toolchain@v1
         # for wasm-bindgen-cli, always use stable rust
         with:
           toolchain: stable
           profile: minimal
+
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: ./ci/install-wasm-bindgen-cli.sh
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -136,12 +142,6 @@ jobs:
 
       - uses: browser-actions/setup-geckodriver@latest
       - uses: nanasess/setup-chromedriver@v1
-
-      - uses: Swatinem/rust-cache@v1
-
-      - name: Install wasm-bindgen-cli
-        shell: bash
-        run: ./ci/install-wasm-bindgen-cli.sh
 
       - name: Run tests - yew
         run: |
