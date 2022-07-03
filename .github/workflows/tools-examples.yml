@@ -41,14 +41,14 @@ jobs:
       - uses: Swatinem/rust-cache@v1
 
       - name: Run clippy for ${{ matrix.workspace }}
-        if: ${{ matrix.runs }} == 'clippy'
+        if: matrix.runs == 'clippy'
         uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --all-targets --all-features --manifest-path ${{ matrix.workspace }}/Cargo.toml -- -D warnings
 
       - name: Run fmt for ${{ matrix.workspace }}
-        if: ${{ matrix.runs }} == 'rustfmt'
+        if: matrix.runs == 'rustfmt'
         uses: actions-rs/cargo@v1
         with:
           command: fmt
