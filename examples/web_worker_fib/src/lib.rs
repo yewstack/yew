@@ -8,7 +8,7 @@ use yew::platform::spawn_local;
 use yew::prelude::*;
 use yew_agent::task::{use_task, TaskProvider};
 
-use crate::agent::FibonacciTask;
+use crate::agent::{FibonacciTask, Postcard};
 
 #[function_component]
 fn Main() -> Html {
@@ -73,8 +73,8 @@ fn Main() -> Html {
 #[function_component]
 pub fn App() -> Html {
     html! {
-        <TaskProvider<FibonacciTask> path="/worker.js">
+        <TaskProvider<FibonacciTask, Postcard> path="/worker.js">
             <Main />
-        </TaskProvider<FibonacciTask>>
+        </TaskProvider<FibonacciTask, Postcard>>
     }
 }

@@ -1,4 +1,27 @@
-use yew_agent::task;
+use js_sys::Uint8Array;
+use serde::{Deserialize, Serialize};
+use wasm_bindgen::JsValue;
+use yew_agent::{task, Codec};
+
+pub struct Postcard;
+
+impl Codec for Postcard {
+    fn encode<I>(input: I) -> JsValue
+    where
+        I: Serialize,
+    {
+        let buf = postcard::to_allocvec(&input).expect("can't serialize an worker message");
+        Uint8Array::from(buf.as_slice()).into()
+    }
+
+    fn decode<O>(input: JsValue) -> O
+    where
+        O: for<'de> Deserialize<'de>,
+    {
+        let data = Uint8Array::from(input).to_vec();
+        postcard::from_bytes(&data).expect("can't deserialize an worker message")
+    }
+}
 
 #[task(FibonacciTask)]
 pub async fn calculate_fibonacci(n: u32) -> u32 {
