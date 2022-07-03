@@ -10,7 +10,7 @@ impl Codec for Postcard {
     where
         I: Serialize,
     {
-        let buf = postcard::to_vec::<_, 32>(&input).expect("can't serialize an worker message");
+        let buf = postcard::to_vec::<_, 32>(&input).expect("can't serialize a worker message");
         Uint8Array::from(buf.as_slice()).into()
     }
 
@@ -19,7 +19,7 @@ impl Codec for Postcard {
         O: for<'de> Deserialize<'de>,
     {
         let data = Uint8Array::from(input).to_vec();
-        postcard::from_bytes(&data).expect("can't deserialize an worker message")
+        postcard::from_bytes(&data).expect("can't deserialize a worker message")
     }
 }
 
