@@ -2,9 +2,8 @@ name: Publish Examples
 on:
   push:
     branches: [master]
-    paths-ignore:
-      - "**/*.md"
-      - "website/**"
+    paths:
+      - 'examples/**'
 
 jobs:
   publish:
