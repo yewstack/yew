@@ -1,6 +1,6 @@
-name: Build website
+name: Build and publish website
 on:
-  pull_request:
+  pull_request_target:
     branches: [master]
     paths:
       - "website/**"
@@ -17,10 +17,10 @@ jobs:
   build:
     name: Build Website
     runs-on: ubuntu-latest
-    env:
-      PR_INFO_FILE: ".PR_INFO"
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Setup node
         uses: actions/setup-node@v1
@@ -54,15 +54,29 @@ jobs:
           path: website/build/
           retention-days: 1
 
-      - if: github.event_name == 'pull_request'
-        name: Build pr info
+      - if: github.event.workflow_run.event == 'pull_request'
+        name: Apply pull request environment
         run: |
-          echo "${{ github.event.number }}" > $PR_INFO_FILE
+          echo "PR_NUMBER=${{ github.event.number }}" >> $GITHUB_ENV
+          echo "PR_BRANCH=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_ENV
+          echo "COMMIT_SHA=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_ENV
 
-      - if: github.event_name == 'pull_request'
-        name: Upload pr info
-        uses: actions/upload-artifact@v2
+      - if: github.event.workflow_run.event == 'push'
+        name: Apply push environment
+        run: |
+          echo "CHANNEL_ID=live" >> $GITHUB_ENV
+
+      - name: Deploy to Firebase
+        uses: siku2/action-hosting-deploy@v1
         with:
-          name: pr-info
-          path: "${{ env.PR_INFO_FILE }}"
-          retention-days: 1
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseToken: "${{ secrets.FIREBASE_TOKEN }}"
+          targets: website
+          channelId: "${{ env.CHANNEL_ID }}"
+          # link to the next version because that's what we care about
+          commentURLPath: "/docs/next"
+          # PR information
+          prNumber: "${{ env.PR_NUMBER }}"
+          prBranchName: "${{ env.PR_BRANCH }}"
+          commitSHA: "${{ env.COMMIT_SHA }}"
+
