@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/main-checks.yml'
       - 'packages/**/*'
+      - 'Cargo.toml'
   push:
     branches: [master]
 
@@ -40,12 +41,12 @@ jobs:
           args: --all-targets --features "csr,ssr,hydration,tokio" --profile ${{ matrix.profile }} -- -D warnings
 
       - name: Lint feature soundness
-        if: ${{ matrix.profile }} == 'dev'
+        if: matrix.profile == 'dev'
         run: bash ../../ci/feature-soundness.sh
         working-directory: packages/yew
 
       - name: Lint feature soundness
-        if: ${{ matrix.profile }} == 'release'
+        if: matrix.profile == 'release'
         run: bash ../../ci/feature-soundness-release.sh
         working-directory: packages/yew
 
