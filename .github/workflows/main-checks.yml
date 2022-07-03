@@ -9,9 +9,6 @@ on:
   push:
     branches: [master]
 
-env:
-  MSRV: '1.60.0'
-
 jobs:
   clippy:
     name: Clippy
@@ -118,7 +115,7 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - ${{ env.MSRV }}
+          - 1.60.0
           - stable
 
     steps:
@@ -164,7 +161,7 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - ${{ env.MSRV }}
+          - 1.60.0
           - stable
           - nightly
 
