@@ -430,7 +430,7 @@ impl PartialEq for VTag {
 mod feat_ssr {
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::io::BufWriter;
+    use crate::platform::fmt::BufWrite;
     use crate::virtual_dom::VText;
 
     // Elements that cannot have any child elements.
@@ -442,14 +442,14 @@ mod feat_ssr {
     impl VTag {
         pub(crate) async fn render_into_stream(
             &self,
-            w: &mut BufWriter,
+            w: &mut dyn BufWrite,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
             w.write("<".into());
             w.write(self.tag().into());
 
-            let write_attr = |w: &mut BufWriter, name: &str, val: Option<&str>| {
+            let write_attr = |w: &mut dyn BufWrite, name: &str, val: Option<&str>| {
                 w.write(" ".into());
                 w.write(name.into());
 

@@ -5,32 +5,40 @@
 
 use std::borrow::Cow;
 
-use futures::stream::Stream;
-
-use crate::platform::sync::mpsc::{self, UnboundedReceiverStream, UnboundedSender};
+use crate::platform::pinned;
 
 // Same as std::io::BufWriter and futures::io::BufWriter.
 pub(crate) const DEFAULT_BUF_SIZE: usize = 8 * 1024;
 
-/// A [`futures::io::BufWriter`], but operates over string and yields into a Stream.
-pub(crate) struct BufWriter {
-    buf: String,
-    tx: UnboundedSender<String>,
-    capacity: usize,
+pub(crate) trait BufSend {
+    fn buf_send(&self, item: String);
 }
 
-/// Creates a Buffer pair.
-pub(crate) fn buffer(capacity: usize) -> (BufWriter, impl Stream<Item = String>) {
-    let (tx, rx) = mpsc::unbounded_channel::<String>();
+impl BufSend for pinned::mpsc::UnboundedSender<String> {
+    fn buf_send(&self, item: String) {
+        let _ = self.send_now(item);
+    }
+}
 
-    let tx = BufWriter {
-        // We start without allocation so empty strings will not be allocated.
-        buf: String::new(),
-        tx,
-        capacity,
-    };
+impl BufSend for futures::channel::mpsc::UnboundedSender<String> {
+    fn buf_send(&self, item: String) {
+        let _ = self.unbounded_send(item);
+    }
+}
 
-    (tx, UnboundedReceiverStream::new(rx))
+pub trait BufWrite {
+    fn capacity(&self) -> usize;
+    fn write(&mut self, s: Cow<'_, str>);
+}
+
+/// A [`futures::io::BufWriter`], but operates over string and yields into a Stream.
+pub(crate) struct BufWriter<S>
+where
+    S: BufSend,
+{
+    buf: String,
+    tx: S,
+    capacity: usize,
 }
 
 // Implementation Notes:
@@ -54,16 +62,22 @@ pub(crate) fn buffer(capacity: usize) -> (BufWriter, impl Stream<Item = String>)
 // 2. If a fixed buffer is used, the rendering process can become blocked if the buffer is filled.
 //    Using a stream avoids this side effect and allows the renderer to finish rendering
 //    without being actively polled.
-impl BufWriter {
-    #[inline]
-    pub fn capacity(&self) -> usize {
-        self.capacity
+impl<S> BufWriter<S>
+where
+    S: BufSend,
+{
+    pub fn new(tx: S, capacity: usize) -> Self {
+        Self {
+            buf: String::new(),
+            tx,
+            capacity,
+        }
     }
 
     #[inline]
     fn drain(&mut self) {
         if !self.buf.is_empty() {
-            let _ = self.tx.send(self.buf.split_off(0));
+            self.tx.buf_send(self.buf.split_off(0));
         }
     }
 
@@ -79,9 +93,19 @@ impl BufWriter {
     fn has_capacity_of(&self, next_part_len: usize) -> bool {
         self.buf.capacity() >= self.buf.len() + next_part_len
     }
+}
+
+impl<S> BufWrite for BufWriter<S>
+where
+    S: BufSend,
+{
+    #[inline]
+    fn capacity(&self) -> usize {
+        self.capacity
+    }
 
     /// Writes a string into the buffer, optionally drains the buffer.
-    pub fn write(&mut self, s: Cow<'_, str>) {
+    fn write(&mut self, s: Cow<'_, str>) {
         // Try to reserve the capacity first.
         self.reserve();
 
@@ -100,17 +124,20 @@ impl BufWriter {
             // changes if the buffer was drained. If the buffer capacity didn't change,
             // then it means self.has_capacity_of() has returned true the first time which will be
             // guaranteed to be matched by the left hand side of this implementation.
-            let _ = self.tx.send(s.into_owned());
+            self.tx.buf_send(s.into_owned());
         }
     }
 }
 
-impl Drop for BufWriter {
+impl<S> Drop for BufWriter<S>
+where
+    S: BufSend,
+{
     fn drop(&mut self) {
         if !self.buf.is_empty() {
             let mut buf = String::new();
             std::mem::swap(&mut buf, &mut self.buf);
-            let _ = self.tx.send(buf);
+            self.tx.buf_send(buf);
         }
     }
 }

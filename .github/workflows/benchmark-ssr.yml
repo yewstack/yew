@@ -47,19 +47,19 @@ jobs:
           working-directory: current-pr
           key: pr
 
-      - name: Build master examples
-        run: cargo run --profile=bench --bin benchmark-ssr -- --output-path ./output.json
-        working-directory: yew-master
-
-      - name: Build pull request examples
+      - name: Run pull request benchmark
         run: cargo run --profile=bench --bin benchmark-ssr -- --output-path ./output.json
         working-directory: current-pr
+
+      - name: Run master benchmark
+        run: cargo run --profile=bench --bin benchmark-ssr -- --output-path ./output.json
+        working-directory: yew-master
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: benchmark-ssr
-          path:
-            - "yew-master/output.json"
-            - "current-pr/output.json"
+          path: |
+            yew-master/output.json
+            current-pr/output.json
           retention-days: 1

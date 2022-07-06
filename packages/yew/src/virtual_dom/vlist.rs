@@ -160,12 +160,13 @@ mod feat_ssr {
 
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::io::{self, BufWriter};
+    use crate::platform::fmt::{BufWrite, BufWriter};
+    use crate::platform::pinned::mpsc;
 
     impl VList {
         pub(crate) async fn render_into_stream(
             &self,
-            w: &mut BufWriter,
+            w: &mut dyn BufWrite,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
@@ -182,12 +183,14 @@ mod feat_ssr {
                         .children
                         .iter()
                         .map(|m| async move {
-                            let (mut w, r) = io::buffer(buf_capacity);
+                            let (tx, rx) = mpsc::unbounded();
+
+                            let mut w = BufWriter::new(tx, buf_capacity);
 
                             m.render_into_stream(&mut w, parent_scope, hydratable).await;
                             drop(w);
 
-                            r
+                            rx
                         })
                         .collect();
 
