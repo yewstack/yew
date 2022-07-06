@@ -37,8 +37,6 @@ struct Inner<T> {
     closed: bool,
     sender_ctr: usize,
     items: VecDeque<T>,
-
-    close_wakers: Vec<Waker>,
 }
 
 impl<T> Inner<T> {
@@ -60,10 +58,6 @@ impl<T> Inner<T> {
 
         if let Some(m) = self.rx_waker.take() {
             m.wake();
-        }
-
-        for close_waker in self.close_wakers.iter() {
-            close_waker.wake_by_ref();
         }
     }
 }
@@ -155,7 +149,7 @@ impl<T> UnboundedSender<T> {
     }
 
     /// Closes the channel.
-    pub fn close(&self) {
+    pub fn close_now(&self) {
         let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
 
         inner.close();
@@ -185,7 +179,7 @@ impl<T> Drop for UnboundedSender<T> {
         };
 
         if sender_ctr == 0 {
-            self.close();
+            self.close_now();
         }
     }
 }
@@ -194,22 +188,9 @@ impl<T> Sink<T> for &'_ UnboundedSender<T> {
     type Error = TrySendError;
 
     fn start_send(self: std::pin::Pin<&mut Self>, item: T) -> Result<(), Self::Error> {
-        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
-
-        match inner.closed {
-            false => {
-                inner.items.push_back(item);
-
-                if let Some(m) = inner.rx_waker.take() {
-                    m.wake();
-                }
-
-                Ok(())
-            }
-            true => Err(TrySendError {
-                _marker: PhantomData,
-            }),
-        }
+        self.send_now(item).map_err(|_| TrySendError {
+            _marker: PhantomData,
+        })
     }
 
     fn poll_ready(
@@ -235,16 +216,11 @@ impl<T> Sink<T> for &'_ UnboundedSender<T> {
 
     fn poll_close(
         self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
+        _cx: &mut std::task::Context<'_>,
     ) -> Poll<Result<(), Self::Error>> {
-        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
+        self.close_now();
 
-        if inner.closed {
-            return Poll::Ready(Ok(()));
-        }
-
-        inner.close_wakers.push(cx.waker().clone());
-        Poll::Pending
+        Poll::Ready(Ok(()))
     }
 }
 
@@ -261,7 +237,6 @@ pub fn unbounded<T>() -> (UnboundedSender<T>, UnboundedReceiver<T>) {
 
         sender_ctr: 1,
         items: VecDeque::new(),
-        close_wakers: Vec::new(),
     });
 
     (
