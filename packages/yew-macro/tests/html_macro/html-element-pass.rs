@@ -51,6 +51,7 @@ fn compile_pass() {
     ::yew::html! {
         <div>
             <div data-key="abc"></div>
+            <div ref={&parent_ref}></div>
             <div ref={parent_ref} class="parent">
                 <span class="child" value="anything"></span>
                 <label for="first-name">{"First Name"}</label>
