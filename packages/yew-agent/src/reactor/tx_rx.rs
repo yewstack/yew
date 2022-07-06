@@ -89,7 +89,7 @@ where
     O: Serialize + for<'de> Deserialize<'de>,
 {
     /// Send an output.
-    pub fn send(&self, output: O) -> std::result::Result<(), SendError<O>> {
+    pub fn send_now(&self, output: O) -> std::result::Result<(), SendError<O>> {
         self.tx.send_now(output)
     }
 }
