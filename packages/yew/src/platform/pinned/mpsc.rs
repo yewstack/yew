@@ -190,7 +190,7 @@ impl<T> Drop for UnboundedSender<T> {
     }
 }
 
-impl<T> Sink<T> for UnboundedSender<T> {
+impl<T> Sink<T> for &'_ UnboundedSender<T> {
     type Error = TrySendError;
 
     fn start_send(self: std::pin::Pin<&mut Self>, item: T) -> Result<(), Self::Error> {
