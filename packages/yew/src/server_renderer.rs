@@ -3,7 +3,7 @@ use std::fmt;
 use futures::stream::{Stream, StreamExt};
 
 use crate::html::{BaseComponent, Scope};
-use crate::platform::io::{self, DEFAULT_BUF_SIZE};
+use crate::platform::fmt::{BufWriter, DEFAULT_BUF_SIZE};
 use crate::platform::{spawn_local, Runtime};
 
 /// A Yew Server-side Renderer that renders on the current thread.
@@ -102,7 +102,9 @@ where
 
     /// Renders Yew Applications into a string Stream
     pub fn render_stream(self) -> impl Stream<Item = String> {
-        let (mut w, r) = io::buffer(self.capacity);
+        let (tx, rx) = crate::platform::pinned::mpsc::unbounded();
+
+        let mut w = BufWriter::new(tx, self.capacity);
 
         let scope = Scope::<COMP>::new(None);
         spawn_local(async move {
@@ -111,7 +113,7 @@ where
                 .await;
         });
 
-        r
+        rx
     }
 }
 
@@ -245,15 +247,22 @@ where
 
         let rt = rt.unwrap_or_default();
 
+        let (tx, rx) = futures::channel::mpsc::unbounded();
+        let mut w = BufWriter::new(tx, capacity);
+
         // We use run_pinned to switch to our runtime.
         rt.run_pinned(move || async move {
             let props = create_props();
+            let scope = Scope::<COMP>::new(None);
 
-            LocalServerRenderer::<COMP>::with_props(props)
-                .hydratable(hydratable)
-                .capacity(capacity)
-                .render_stream()
+            spawn_local(async move {
+                scope
+                    .render_into_stream(&mut w, props.into(), hydratable)
+                    .await;
+            });
         })
-        .await
+        .await;
+
+        rx
     }
 }
