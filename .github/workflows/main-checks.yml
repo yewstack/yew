@@ -2,14 +2,24 @@ name: Main Checks
 
 on:
   pull_request:
+    paths:
+      - '.github/workflows/main-checks.yml'
+      - 'ci/**'
+      - 'packages/**/*'
+      - 'Cargo.toml'
   push:
     branches: [master]
 
 jobs:
-
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        profile:
+          - dev
+          - release
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -25,34 +35,15 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --features "csr,ssr,hydration,tokio" -- -D warnings
+          args: --all-targets --features "csr,ssr,hydration,tokio" --profile ${{ matrix.profile }} -- -D warnings
 
       - name: Lint feature soundness
+        if: matrix.profile == 'dev'
         run: bash ../../ci/feature-soundness.sh
         working-directory: packages/yew
 
-
-  clippy-release:
-    name: Clippy on release profile
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-          components: clippy
-
-      - uses: Swatinem/rust-cache@v1
-
-      - name: Run clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets --features "csr,ssr,hydration,tokio" --release -- -D warnings
-
       - name: Lint feature soundness
+        if: matrix.profile == 'release'
         run: bash ../../ci/feature-soundness-release.sh
         working-directory: packages/yew
 
@@ -70,6 +61,7 @@ jobs:
     name: Documentation Tests
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - uses: Swatinem/rust-cache@v1
 
       - uses: actions-rs/toolchain@v1
@@ -78,10 +70,16 @@ jobs:
           override: true
           profile: minimal
 
-      - name: Install wasm-bindgen-test-runner
-        run: cargo install --git https://github.com/hamza1311/wasm-bindgen --branch respect-rustdoc-tmp-paths wasm-bindgen-cli
+      # perhaps extract it into its own little action?
+      - uses: actions-rs/toolchain@v1
+        # for wasm-bindgen-cli, always use stable rust
+        with:
+          toolchain: stable
+          profile: minimal
 
-      - uses: actions/checkout@v2
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: ./ci/install-wasm-bindgen-cli.sh
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -97,13 +95,11 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --doc --workspace --exclude yew --exclude changelog --exclude website-test --exclude ssr_router --exclude simple_ssr --target wasm32-unknown-unknown
+          args: --doc --workspace --exclude yew --target wasm32-unknown-unknown
 
       - name: Run website code snippet tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p website-test --target wasm32-unknown-unknown
+        run: cargo test -p website-test --target wasm32-unknown-unknown
+        working-directory: tools
 
       - name: Run doctest - yew with features
         uses: actions-rs/cargo@v1
@@ -116,19 +112,26 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         toolchain:
-          # anyway to dynamically grep the MSRV from Cargo.toml?
-          - 1.60.0 # MSRV
+          - 1.60.0
           - stable
 
     steps:
       - uses: actions/checkout@v2
+
+      - uses: Swatinem/rust-cache@v1
+
       - uses: actions-rs/toolchain@v1
         # for wasm-bindgen-cli, always use stable rust
         with:
           toolchain: stable
           profile: minimal
+
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: ./ci/install-wasm-bindgen-cli.sh
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -139,24 +142,6 @@ jobs:
 
       - uses: browser-actions/setup-geckodriver@latest
       - uses: nanasess/setup-chromedriver@v1
-
-      - uses: Swatinem/rust-cache@v1
-
-      - name: Install wasm-bindgen-cli
-        shell: bash
-        run: |
-          if [ ! -f "Cargo.lock" ]; then
-            cargo fetch
-          fi
-          
-          VERSION=$(cargo pkgid --frozen wasm-bindgen | cut -d ":" -f 3)
-
-          # Cargo decided to change syntax after 1.61
-          if [ "$VERSION" = "" ]; then
-            VERSION=$(cargo pkgid --frozen wasm-bindgen | cut -d "@" -f 2)
-          fi
-
-          cargo +stable install --version $VERSION wasm-bindgen-cli
 
       - name: Run tests - yew
         run: |
@@ -174,10 +159,10 @@ jobs:
     name: Unit Tests on ${{ matrix.toolchain }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         toolchain:
-          # anyway to dynamically grep the MSRV from Cargo.toml?
-          - 1.60.0 # MSRV
+          - 1.60.0
           - stable
           - nightly
 
@@ -198,7 +183,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-targets --workspace --exclude yew --exclude website-test --exclude ssr_router --exclude simple_ssr
+          args: --all-targets --workspace --exclude yew
 
       - name: Run native tests for yew
         uses: actions-rs/cargo@v1
