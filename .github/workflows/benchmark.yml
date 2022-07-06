@@ -6,7 +6,7 @@ on:
       - 'website/**'
     branches:
       - master
-  pull_request_target:
+  pull_request:
     paths-ignore:
       - 'website/**'
     types: [labeled, synchronize, opened, reopened]
@@ -32,6 +32,8 @@ jobs:
       # gh-pages branch is updated and pushed automatically with extracted benchmark data
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
+        # This needs access to secersts so only run it on push to master
+        if: github.event_name == 'push'
         with:
           name: "Yew master branch benchmarks (Lower is better)"
           tool: "customSmallerIsBetter"
@@ -42,11 +44,8 @@ jobs:
           # Push and deploy GitHub pages branch automatically
           alert-threshold: "200%"
           alert-comment-cc-users: "@yewstack/yew"
-          comment-always: ${{ github.event_name != 'pull_request_target' || contains(github.event.pull_request.labels.*.name, 'performance') }}
-          comment-on-alert: true
-          # Don't push to gh-pages if its a pull request
-          auto-push: ${{ github.event_name != 'pull_request_target' }}
-          save-data-file: ${{ github.event_name != 'pull_request_target' }}
+          auto-push: true
+          save-data-file: true
 
   benchmark:
     runs-on: ubuntu-latest
@@ -251,3 +250,6 @@ jobs:
         id: results
         with:
           run: cat js-framework-benchmark/webdriver-ts/results/results.json | ./yew/tools/target/release/process-benchmark-results
+
+      - name: Show output JSON
+        run: echo ${{ steps.results.outputs.stdout }}
