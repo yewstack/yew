@@ -1,12 +1,12 @@
 use std::pin::Pin;
 
-use futures::channel::mpsc;
-use futures::channel::mpsc::{SendError, TrySendError};
 use futures::sink::Sink;
 use futures::stream::{FusedStream, Stream};
 use futures::task::{Context, Poll};
 use pin_project::pin_project;
 use serde::{Deserialize, Serialize};
+use yew::platform::pinned::mpsc;
+use yew::platform::pinned::mpsc::{SendError, TrySendError};
 
 /// A receiver for reactors.
 #[pin_project]
@@ -89,8 +89,8 @@ where
     O: Serialize + for<'de> Deserialize<'de>,
 {
     /// Send an output.
-    pub fn send(&self, output: O) -> std::result::Result<(), TrySendError<O>> {
-        self.tx.unbounded_send(output)
+    pub fn send(&self, output: O) -> std::result::Result<(), SendError<O>> {
+        self.tx.send_now(output)
     }
 }
 
@@ -98,7 +98,7 @@ impl<O> Sink<O> for &'_ ReactorSender<O>
 where
     O: Serialize + for<'de> Deserialize<'de>,
 {
-    type Error = SendError;
+    type Error = TrySendError;
 
     fn poll_ready(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Pin::new(&mut &self.tx).poll_ready(cx)

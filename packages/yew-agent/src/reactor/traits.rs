@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::fmt;
 
-use futures::channel::mpsc;
 use futures::future::LocalBoxFuture;
 use futures::stream::StreamExt;
+use yew::platform::pinned::mpsc;
 use yew::platform::spawn_local;
 
 use super::messages::{ReactorInput, ReactorOutput};
@@ -143,7 +143,7 @@ where
 
             Self::Input::Input(input) => {
                 if let Some(m) = self.senders.get_mut(&id) {
-                    let _result = m.unbounded_send(input);
+                    let _result = m.send_now(input);
                 }
             }
         }
@@ -152,7 +152,7 @@ where
     fn disconnected(&mut self, _scope: &WorkerScope<Self>, id: HandlerId) {
         // We close this channel, but drop it when the reactor has exited itself.
         if let Some(m) = self.senders.get_mut(&id) {
-            m.close_channel();
+            m.close();
         }
     }
 

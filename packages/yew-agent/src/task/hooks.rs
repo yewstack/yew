@@ -1,15 +1,14 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use futures::channel::oneshot;
-use gloo_worker::WorkerBridge;
 use wasm_bindgen::prelude::*;
+use yew::platform::pinned::oneshot;
 use yew::platform::spawn_local;
 use yew::prelude::*;
 use yew::suspense::{Suspension, SuspensionResult};
 
 use super::traits::{Task, TaskWorker};
-use crate::worker::WorkerProviderState;
+use crate::worker::{WorkerBridge, WorkerProviderState};
 
 /// Handle for [use_task]
 #[derive(Debug)]

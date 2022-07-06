@@ -1,6 +1,6 @@
 use std::thread;
 
-use yew::platform::sync::oneshot;
+use futures::channel::oneshot;
 use yew::platform::{spawn_local, LocalRuntime};
 
 use super::Task;
