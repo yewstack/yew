@@ -55,6 +55,7 @@ impl ::yew::Component for Container {
     fn create(_ctx: &::yew::Context<Self>) -> Self {
         ::std::unimplemented!()
     }
+
     fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
         ::std::unimplemented!()
     }
@@ -116,6 +117,7 @@ impl ::yew::Component for Child {
     fn create(_ctx: &::yew::Context<Self>) -> Self {
         ::std::unimplemented!()
     }
+
     fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
         ::std::unimplemented!()
     }
@@ -129,6 +131,7 @@ impl ::yew::Component for AltChild {
     fn create(_ctx: &::yew::Context<Self>) -> Self {
         ::std::unimplemented!()
     }
+
     fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
         ::std::unimplemented!()
     }
@@ -151,14 +154,14 @@ impl ::yew::Component for ChildContainer {
     fn create(_ctx: &::yew::Context<Self>) -> Self {
         ::std::unimplemented!()
     }
+
     fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
         ::std::unimplemented!()
     }
 }
 
 mod scoped {
-    pub use super::Child;
-    pub use super::Container;
+    pub use super::{Child, Container};
 }
 
 fn compile_pass() {
@@ -181,6 +184,7 @@ fn compile_pass() {
             <Child ref={::std::clone::Clone::clone(&node_ref)} int={2} ..::yew::props!(Child::Properties { int: 5 }) />
             <Child int=3 ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
             <Child ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
+            <Child ref={&node_ref} ..<<Child as ::yew::Component>::Properties as ::std::default::Default>::default() />
             <Child ref={node_ref} ..<<Child as ::yew::Component>::Properties as ::std::default::Default>::default() />
         </>
     };
