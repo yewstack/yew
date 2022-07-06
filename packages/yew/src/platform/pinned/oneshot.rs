@@ -1,4 +1,4 @@
-//! A one-time Send - Receive channel.
+//! A one-time send - receive channel.
 
 use std::future::Future;
 use std::rc::Rc;

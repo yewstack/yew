@@ -237,7 +237,7 @@ where
     /// # Note
     ///
     /// Unlike [`LocalServerRenderer::render_stream`], this method is `async fn`.
-    pub async fn render_stream(self) -> impl Stream<Item = String> {
+    pub async fn render_stream(self) -> impl Send + Stream<Item = String> {
         let Self {
             create_props,
             hydratable,
@@ -247,22 +247,22 @@ where
 
         let rt = rt.unwrap_or_default();
 
-        let (tx, rx) = futures::channel::mpsc::unbounded();
-        let mut w = BufWriter::new(tx, capacity);
-
         // We use run_pinned to switch to our runtime.
         rt.run_pinned(move || async move {
             let props = create_props();
             let scope = Scope::<COMP>::new(None);
+
+            let (tx, rx) = futures::channel::mpsc::unbounded();
+            let mut w = BufWriter::new(tx, capacity);
 
             spawn_local(async move {
                 scope
                     .render_into_stream(&mut w, props.into(), hydratable)
                     .await;
             });
-        })
-        .await;
 
-        rx
+            rx
+        })
+        .await
     }
 }
