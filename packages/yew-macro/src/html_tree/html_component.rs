@@ -12,7 +12,6 @@ use syn::{
 
 use super::{HtmlChildrenTree, TagTokens};
 use crate::props::ComponentProps;
-use crate::stringify::Stringify;
 use crate::PeekValue;
 
 pub struct HtmlComponent {
@@ -107,33 +106,8 @@ impl ToTokens for HtmlComponent {
             Some(quote! { ::yew::html::ChildrenRenderer::new(#children) })
         };
         let build_props = props.build_properties_tokens(&props_ty, children_renderer);
-
-        let special_props = props.special();
-        let node_ref = special_props
-            .node_ref
-            .as_ref()
-            .map(|attr| {
-                let value = &attr.value;
-                quote_spanned! {value.span().resolved_at(Span::call_site())=>
-                    ::yew::html::IntoPropValue::<::yew::html::NodeRef>
-                    ::into_prop_value(#value)
-                }
-            })
-            .unwrap_or(quote! { ::std::default::Default::default() });
-
-        let key = special_props
-            .key
-            .as_ref()
-            .map(|attr| {
-                let value = attr.value.optimize_literals();
-                quote_spanned! {value.span().resolved_at(Span::call_site())=>
-                    ::std::option::Option::Some(
-                        ::std::convert::Into::<::yew::virtual_dom::Key>::into(#value)
-                    )
-                }
-            })
-            .unwrap_or(quote! { ::std::option::Option::None });
-
+        let node_ref = props.special().wrap_node_ref_attr();
+        let key = props.special().wrap_key_attr();
         let use_close_tag = close
             .as_ref()
             .map(|close| {
