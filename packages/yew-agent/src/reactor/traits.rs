@@ -152,7 +152,7 @@ where
     fn disconnected(&mut self, _scope: &WorkerScope<Self>, id: HandlerId) {
         // We close this channel, but drop it when the reactor has exited itself.
         if let Some(m) = self.senders.get_mut(&id) {
-            m.close();
+            m.close_now();
         }
     }
 

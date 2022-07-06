@@ -25,11 +25,13 @@ where
 {
     type Item = I;
 
+    #[inline]
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.project();
         this.rx.poll_next(cx)
     }
 
+    #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.rx.size_hint()
     }
@@ -39,6 +41,7 @@ impl<I> FusedStream for ReactorReceiver<I>
 where
     I: Serialize + for<'de> Deserialize<'de>,
 {
+    #[inline]
     fn is_terminated(&self) -> bool {
         self.rx.is_terminated()
     }
@@ -100,18 +103,22 @@ where
 {
     type Error = TrySendError;
 
+    #[inline]
     fn poll_ready(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Pin::new(&mut &self.tx).poll_ready(cx)
     }
 
+    #[inline]
     fn start_send(self: Pin<&mut Self>, item: O) -> Result<(), Self::Error> {
         Pin::new(&mut &self.tx).start_send(item)
     }
 
+    #[inline]
     fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Pin::new(&mut &self.tx).poll_flush(cx)
     }
 
+    #[inline]
     fn poll_close(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Pin::new(&mut &self.tx).poll_close(cx)
     }
