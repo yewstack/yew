@@ -16,7 +16,7 @@ pub struct TryRecvError {
     _marker: PhantomData<()>,
 }
 
-/// Error returned by [`send`](UnboundedSender::send).
+/// Error returned by [`send_now`](UnboundedSender::send_now).
 #[derive(Error, Debug)]
 #[error("failed to send")]
 pub struct SendError<T> {
