@@ -44,17 +44,13 @@ impl Runtime {
         })
     }
 
-    pub(super) async fn run_pinned<F, Fut>(&self, create_task: F) -> Fut::Output
+    pub fn spawn_pinned<F, Fut>(&self, create_task: F)
     where
         F: FnOnce() -> Fut,
         F: Send + 'static,
-        Fut: Future + 'static,
-        Fut::Output: Send + 'static,
+        Fut: Future<Output = ()> + 'static,
     {
-        self.pool
-            .spawn_pinned(create_task)
-            .await
-            .expect("future has panicked!")
+        self.pool.spawn_pinned(create_task);
     }
 }
 

@@ -33,12 +33,11 @@ impl Runtime {
         panic!("{}", NO_RUNTIME_NOTICE);
     }
 
-    pub(crate) async fn run_pinned<F, Fut>(&self, _create_task: F) -> Fut::Output
+    pub fn spawn_pinned<F, Fut>(&self, _create_task: F)
     where
         F: FnOnce() -> Fut,
         F: Send + 'static,
-        Fut: Future + 'static,
-        Fut::Output: Send + 'static,
+        Fut: Future<Output = ()> + 'static,
     {
         panic!("{}", NO_RUNTIME_NOTICE);
     }

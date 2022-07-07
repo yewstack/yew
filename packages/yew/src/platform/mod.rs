@@ -157,18 +157,17 @@ impl Runtime {
         RuntimeBuilder::new()
     }
 
-    /// Runs a task with it pinned to a worker thread.
+    /// Spawns a task with it pinned to a worker thread.
     ///
     /// This can be used to execute non-Send futures without blocking the current thread.
     ///
     /// [`spawn_local`] is available with tasks executed with `run_pinned`.
-    pub async fn run_pinned<F, Fut>(&self, create_task: F) -> Fut::Output
+    pub fn spawn_pinned<F, Fut>(&self, create_task: F)
     where
         F: FnOnce() -> Fut,
         F: Send + 'static,
-        Fut: Future + 'static,
-        Fut::Output: Send + 'static,
+        Fut: Future<Output = ()> + 'static,
     {
-        self.inner.run_pinned(create_task).await
+        self.inner.spawn_pinned(create_task);
     }
 }
