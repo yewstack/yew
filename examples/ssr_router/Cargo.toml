@@ -9,7 +9,7 @@ edition = "2021"
 yew = { path = "../../packages/yew" }
 function_router = { path = "../function_router" }
 log = "0.4"
-futures = "0.3"
+futures = { version = "0.3", features = ["std"], default-features = false }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4"
