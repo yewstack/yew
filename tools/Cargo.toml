@@ -6,3 +6,9 @@ exclude = [
   "target"
 ]
 resolver = "2"
+
+[profile.bench]
+lto = true
+codegen-units = 1
+panic = "abort"
+opt-level = 3

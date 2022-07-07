@@ -246,3 +246,104 @@ pub fn unbounded<T>() -> (UnboundedSender<T>, UnboundedReceiver<T>) {
         UnboundedReceiver { inner },
     )
 }
+
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "tokio")]
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use futures::sink::SinkExt;
+    use futures::stream::StreamExt;
+
+    use super::*;
+    use crate::platform::time::sleep;
+    use crate::platform::{spawn_local, LocalRuntime};
+
+    #[test]
+    fn mpsc_works() {
+        let rt = LocalRuntime::new().expect("failed to create runtime.");
+
+        rt.block_on(async {
+            let (tx, mut rx) = unbounded::<usize>();
+
+            spawn_local(async move {
+                for i in 0..10 {
+                    (&tx).send(i).await.expect("failed to send.");
+                    sleep(Duration::from_millis(1)).await;
+                }
+            });
+
+            for i in 0..10 {
+                let received = rx.next().await.expect("failed to receive");
+
+                assert_eq!(i, received);
+            }
+
+            assert_eq!(rx.next().await, None);
+        });
+    }
+
+    #[test]
+    fn mpsc_drops_receiver() {
+        let rt = LocalRuntime::new().expect("failed to create runtime.");
+
+        rt.block_on(async {
+            let (tx, rx) = unbounded::<usize>();
+            drop(rx);
+
+            (&tx).send(0).await.expect_err("should fail to send.");
+        });
+    }
+
+    #[test]
+    fn mpsc_multi_sender() {
+        let rt = LocalRuntime::new().expect("failed to create runtime.");
+
+        rt.block_on(async {
+            let (tx, mut rx) = unbounded::<usize>();
+
+            spawn_local(async move {
+                let tx2 = tx.clone();
+
+                for i in 0..10 {
+                    if i % 2 == 0 {
+                        (&tx).send(i).await.expect("failed to send.");
+                    } else {
+                        (&tx2).send(i).await.expect("failed to send.");
+                    }
+
+                    sleep(Duration::from_millis(1)).await;
+                }
+
+                drop(tx2);
+
+                for i in 10..20 {
+                    (&tx).send(i).await.expect("failed to send.");
+
+                    sleep(Duration::from_millis(1)).await;
+                }
+            });
+
+            for i in 0..20 {
+                let received = rx.next().await.expect("failed to receive");
+
+                assert_eq!(i, received);
+            }
+
+            assert_eq!(rx.next().await, None);
+        });
+    }
+
+    #[test]
+    fn mpsc_drops_sender() {
+        let rt = LocalRuntime::new().expect("failed to create runtime.");
+
+        rt.block_on(async {
+            let (tx, mut rx) = unbounded::<usize>();
+            drop(tx);
+
+            assert_eq!(rx.next().await, None);
+        });
+    }
+}

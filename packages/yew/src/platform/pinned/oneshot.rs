@@ -1,6 +1,7 @@
 //! A one-time send - receive channel.
 
 use std::future::Future;
+use std::marker::PhantomData;
 use std::rc::Rc;
 use std::task::{Poll, Waker};
 
@@ -12,6 +13,13 @@ use thiserror::Error;
 pub struct SendError<T> {
     /// The inner value.
     pub inner: T,
+}
+
+/// Error returned by awaiting the [`Receiver`].
+#[derive(Debug, Error)]
+#[error("channel has been closed.")]
+pub struct RecvError {
+    _marker: PhantomData<()>,
 }
 
 #[derive(Debug)]
@@ -43,7 +51,7 @@ pub struct Receiver<T> {
 }
 
 impl<T> Future for Receiver<T> {
-    type Output = Option<T>;
+    type Output = Result<T, RecvError>;
 
     fn poll(self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
         let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
@@ -54,15 +62,25 @@ impl<T> Future for Receiver<T> {
         // However, this will slow down the polling process by 10%.
 
         if let Some(m) = inner.item.take() {
-            return Poll::Ready(Some(m));
+            return Poll::Ready(Ok(m));
         }
 
         if inner.closed {
-            return Poll::Ready(None);
+            return Poll::Ready(Err(RecvError {
+                _marker: PhantomData,
+            }));
         }
 
         inner.rx_waker = Some(cx.waker().clone());
         Poll::Pending
+    }
+}
+
+impl<T> Drop for Receiver<T> {
+    fn drop(&mut self) {
+        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
+
+        inner.closed = true;
     }
 }
 
@@ -119,4 +137,71 @@ pub fn channel<T>() -> (Sender<T>, Receiver<T>) {
         },
         Receiver { inner },
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+    use std::time::Duration;
+
+    use tokio::sync::Barrier;
+
+    use super::*;
+    use crate::platform::time::sleep;
+    use crate::platform::{spawn_local, LocalRuntime};
+
+    #[test]
+    fn oneshot_works() {
+        let rt = LocalRuntime::new().expect("failed to create runtime.");
+
+        rt.block_on(async {
+            let (tx, rx) = channel();
+
+            tx.send(0).expect("failed to send.");
+
+            assert_eq!(rx.await.expect("failed to receive."), 0);
+        });
+    }
+
+    #[test]
+    fn oneshot_drops_sender() {
+        let rt = LocalRuntime::new().expect("failed to create runtime.");
+
+        rt.block_on(async {
+            let (tx, rx) = channel::<usize>();
+
+            spawn_local(async move {
+                sleep(Duration::from_millis(1)).await;
+
+                drop(tx);
+            });
+            rx.await.expect_err("successful to receive.")
+        });
+    }
+
+    #[test]
+    fn oneshot_drops_receiver() {
+        let rt = LocalRuntime::new().expect("failed to create runtime.");
+
+        rt.block_on(async {
+            let (tx, rx) = channel::<usize>();
+
+            let bar = Arc::new(Barrier::new(2));
+
+            {
+                let bar = bar.clone();
+                spawn_local(async move {
+                    sleep(Duration::from_millis(1)).await;
+
+                    drop(rx);
+
+                    bar.wait().await;
+                });
+            }
+
+            bar.wait().await;
+
+            tx.send(0).expect_err("successful to send.")
+        });
+    }
 }
