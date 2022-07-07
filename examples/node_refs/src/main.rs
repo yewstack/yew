@@ -79,7 +79,7 @@ impl Component for App {
                             <label>{ "Email" }</label>
                             <input
                                 type="text"
-                                ref={self.refs[0].clone()}
+                                ref={&self.refs[0]}
                                 class="input-element"
                                 onmouseover={ctx.link().callback(|_| Msg::HoverIndex(0))}
                                 placeholder="abcd@xyz.com"
@@ -89,7 +89,7 @@ impl Component for App {
                         <div class="input-container">
                             <label>{ "Password" }</label>
                             <InputComponent
-                                ref={self.refs[1].clone()}
+                                ref={&self.refs[1]}
                                 on_hover={ctx.link().callback(|_| Msg::HoverIndex(1))}
                                 placeholder="password"
                             />

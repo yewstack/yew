@@ -386,11 +386,14 @@ note: required by a bound in `ChildPropertiesBuilder::string`
    |         ------ required by a bound in this
    = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0308]: mismatched types
+error[E0277]: the trait bound `(): IntoPropValue<NodeRef>` is not satisfied
   --> tests/html_macro/component-fail.rs:80:31
    |
 80 |     html! { <Child int=1 ref={()} /> };
-   |                               ^^ expected struct `NodeRef`, found `()`
+   |                               ^^
+   |                               |
+   |                               the trait `IntoPropValue<NodeRef>` is not implemented for `()`
+   |                               required by a bound introduced by this call
 
 error[E0277]: the trait bound `u32: IntoPropValue<i32>` is not satisfied
   --> tests/html_macro/component-fail.rs:82:24
