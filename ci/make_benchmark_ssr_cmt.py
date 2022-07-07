@@ -24,10 +24,10 @@ def write_benchmark(lines: List[str], content: List[Dict[str, str]]) -> None:
 
 
 def main() -> None:
-    with open("benchmark-ssr/yew-master/output.json") as f:
+    with open("benchmark-ssr/yew-master/tools/output.json") as f:
         master_content = json.loads(f.read())
 
-    with open("benchmark-ssr/current-pr/output.json") as f:
+    with open("benchmark-ssr/current-pr/tools/output.json") as f:
         pr_content = json.loads(f.read())
 
     lines: List[str] = []

@@ -139,6 +139,8 @@ pub fn channel<T>() -> (Sender<T>, Receiver<T>) {
     )
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "tokio")]
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
