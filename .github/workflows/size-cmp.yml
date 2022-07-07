@@ -55,14 +55,6 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Write optimisation flags for master
-        run: ./ci/write-optimisation-flags.sh
-        working-directory: yew-master
-
-      - name: Write optimisation flags for pull request
-        run: ./ci/write-optimisation-flags.sh
-        working-directory: current-pr
-
       - name: Build master examples
         run: find examples/*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
         working-directory: yew-master
