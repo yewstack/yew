@@ -24,7 +24,7 @@ pub struct SendError<T> {
     pub inner: T,
 }
 
-/// Error returned by [`UnboundedSender`] when used as a [`Sink`].
+/// Error returned by [`UnboundedSender`] when used as a [`Sink`](futures::sink::Sink).
 #[derive(Error, Debug)]
 #[error("failed to send")]
 pub struct TrySendError {
@@ -62,7 +62,7 @@ impl<T> Inner<T> {
     }
 }
 
-/// The receiver of a unbounded mpsc channel.
+/// The receiver of an unbounded mpsc channel.
 #[derive(Debug)]
 pub struct UnboundedReceiver<T> {
     inner: Rc<Inner<T>>,
