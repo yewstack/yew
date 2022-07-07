@@ -9,7 +9,7 @@ use tokio_util::task::LocalPoolHandle;
 pub(crate) mod time;
 
 pub(crate) fn get_default_runtime_size() -> usize {
-    pub(crate) static DEFAULT_RUNTIME_SIZE: Lazy<usize> = Lazy::new(|| num_cpus::get() * 2);
+    pub(crate) static DEFAULT_RUNTIME_SIZE: Lazy<usize> = Lazy::new(num_cpus::get);
 
     *DEFAULT_RUNTIME_SIZE
 }

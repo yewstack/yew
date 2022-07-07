@@ -96,7 +96,7 @@ impl RuntimeBuilder {
     ///
     /// # Default
     ///
-    /// The default number of worker threads is double the number of available CPU cores.
+    /// The default number of worker threads is the number of available logical CPU cores.
     ///
     /// # Note
     ///
