@@ -156,13 +156,13 @@ mod test {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::stream::StreamExt;
+    use futures::stream::{FuturesUnordered, StreamExt};
+    use futures::FutureExt;
 
     use super::*;
     use crate::html::AnyScope;
     use crate::platform::fmt::{BufWrite, BufWriter};
     use crate::platform::pinned::mpsc;
-    use crate::platform::spawn_local;
 
     impl VList {
         pub(crate) async fn render_into_stream(
@@ -178,6 +178,7 @@ mod feat_ssr {
                 }
                 _ => {
                     let mut children_rx = Vec::with_capacity(self.children.len());
+                    let mut furs = FuturesUnordered::new();
 
                     // Concurrently render all children.
                     for child in self.children.clone().into_iter() {
@@ -185,20 +186,30 @@ mod feat_ssr {
                         let mut w = BufWriter::new(tx, w.capacity());
 
                         let parent_scope = parent_scope.clone();
-                        spawn_local(async move {
-                            child
-                                .render_into_stream(&mut w, &parent_scope, hydratable)
-                                .await;
-                        });
+                        furs.push(
+                            async move {
+                                child
+                                    .render_into_stream(&mut w, &parent_scope, hydratable)
+                                    .await;
+                            }
+                            .boxed_local(),
+                        );
 
                         children_rx.push(rx);
                     }
 
-                    for mut r in children_rx.into_iter() {
-                        while let Some(next_chunk) = r.next().await {
-                            w.write(next_chunk.into());
+                    furs.push(
+                        async move {
+                            for mut r in children_rx.into_iter() {
+                                while let Some(next_chunk) = r.next().await {
+                                    w.write(next_chunk.into());
+                                }
+                            }
                         }
-                    }
+                        .boxed_local(),
+                    );
+
+                    while furs.next().await.is_some() {}
                 }
             }
         }
