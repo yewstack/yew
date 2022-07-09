@@ -156,7 +156,7 @@ mod test {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::stream::{FuturesUnordered, StreamExt};
+    use futures::stream::StreamExt;
     use futures::FutureExt;
 
     use super::*;
@@ -177,30 +177,30 @@ mod feat_ssr {
                     child.render_into_stream(w, parent_scope, hydratable).await;
                 }
                 _ => {
-                    let mut children_rx = Vec::with_capacity(self.children.len());
-                    let mut furs = FuturesUnordered::new();
+                    let mut children_rxs = Vec::with_capacity(self.children.len());
+                    let mut furs = Vec::with_capacity(self.children.len() + 1);
 
                     // Concurrently render all children.
-                    for child in self.children.clone().into_iter() {
+                    for child in self.children.iter() {
                         let (tx, rx) = mpsc::unbounded();
                         let mut w = BufWriter::new(tx, w.capacity());
 
-                        let parent_scope = parent_scope.clone();
                         furs.push(
                             async move {
                                 child
-                                    .render_into_stream(&mut w, &parent_scope, hydratable)
+                                    .render_into_stream(&mut w, parent_scope, hydratable)
                                     .await;
                             }
                             .boxed_local(),
                         );
 
-                        children_rx.push(rx);
+                        children_rxs.push(rx);
                     }
 
+                    // Transfer results to parent writer.
                     furs.push(
                         async move {
-                            for mut r in children_rx.into_iter() {
+                            for mut r in children_rxs.into_iter() {
                                 while let Some(next_chunk) = r.next().await {
                                     w.write(next_chunk.into());
                                 }
@@ -209,7 +209,7 @@ mod feat_ssr {
                         .boxed_local(),
                     );
 
-                    while furs.next().await.is_some() {}
+                    futures::future::join_all(furs).await;
                 }
             }
         }
