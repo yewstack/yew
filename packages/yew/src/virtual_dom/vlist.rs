@@ -156,12 +156,13 @@ mod test {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::stream::{FuturesOrdered, StreamExt};
+    use futures::stream::StreamExt;
 
     use super::*;
     use crate::html::AnyScope;
     use crate::platform::fmt::{BufWrite, BufWriter};
     use crate::platform::pinned::mpsc;
+    use crate::platform::spawn_local;
 
     impl VList {
         pub(crate) async fn render_into_stream(
@@ -176,25 +177,24 @@ mod feat_ssr {
                     child.render_into_stream(w, parent_scope, hydratable).await;
                 }
                 _ => {
-                    let buf_capacity = w.capacity();
+                    let mut children_rx = Vec::with_capacity(self.children.len());
 
                     // Concurrently render all children.
-                    let mut children: FuturesOrdered<_> = self
-                        .children
-                        .iter()
-                        .map(|m| async move {
-                            let (tx, rx) = mpsc::unbounded();
+                    for child in self.children.clone().into_iter() {
+                        let (tx, rx) = mpsc::unbounded();
+                        let mut w = BufWriter::new(tx, w.capacity());
 
-                            let mut w = BufWriter::new(tx, buf_capacity);
+                        let parent_scope = parent_scope.clone();
+                        spawn_local(async move {
+                            child
+                                .render_into_stream(&mut w, &parent_scope, hydratable)
+                                .await;
+                        });
 
-                            m.render_into_stream(&mut w, parent_scope, hydratable).await;
-                            drop(w);
+                        children_rx.push(rx);
+                    }
 
-                            rx
-                        })
-                        .collect();
-
-                    while let Some(mut r) = children.next().await {
+                    for mut r in children_rx.into_iter() {
                         while let Some(next_chunk) = r.next().await {
                             w.write(next_chunk.into());
                         }
