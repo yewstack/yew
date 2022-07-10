@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1656698708490,
+  "lastUpdate": 1657453513286,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -20182,6 +20182,120 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 34_startup-totalbytes",
             "value": "332.146484375",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "muhammadhamza1311@gmail.com",
+            "name": "Muhammad Hamza",
+            "username": "hamza1311"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "423ef28afef52987654928e55d1f1ee0aed50c84",
+          "message": "Fix workflows (#2777)\n\n* don't echo\r\n\r\nit's shown in the previous command already\r\n\r\n* use examples as cwd\r\n\r\nthis should help cargo detect the .cargo/config.toml file in the\r\ndirectory\r\n\r\n* add [unstable]",
+          "timestamp": "2022-07-10T20:37:18+09:00",
+          "tree_id": "b1b002b2cf6d0dee5e92879e265a6f4c6bb4f659",
+          "url": "https://github.com/yewstack/yew/commit/423ef28afef52987654928e55d1f1ee0aed50c84"
+        },
+        "date": 1657453511289,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "158.966",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "165.48250000000002",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "267.452",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "44.1415",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "63.930499999999995",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "24.984",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "2633.7805",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "359.1915",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "152.7535",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.471881866455078",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.6606903076171875",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.6654815673828125",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.7158355712890625",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.3321037292480469",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1731.056",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "32.339999999999996",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 33_startup-mainthreadcost",
+            "value": "202.652",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "362.3193359375",
             "unit": ""
           }
         ]
