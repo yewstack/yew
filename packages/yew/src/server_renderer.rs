@@ -251,11 +251,9 @@ where
 
             let mut w = BufWriter::new(tx, capacity);
 
-            spawn_local(async move {
-                scope
-                    .render_into_stream(&mut w, props.into(), hydratable)
-                    .await;
-            });
+            scope
+                .render_into_stream(&mut w, props.into(), hydratable)
+                .await;
         });
 
         rx
