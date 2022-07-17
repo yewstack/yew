@@ -10,8 +10,8 @@ pub(crate) mod time;
 
 static DEFAULT_WORKER_NAME: &str = "yew-runtime-worker";
 
-// We use a local worker implementation that do not produce a JoinHandle for spawn_pinned.
-// This avoids the cost to acquire a JoinHandle in LocalPoolHandle.
+// We use a local worker implementation that does not produce a JoinHandle for spawn_pinned.
+// This avoids the cost to acquire a JoinHandle.
 //
 // We will not be able to produce a meaningful JoinHandle until WebAssembly targets support
 // unwinding.

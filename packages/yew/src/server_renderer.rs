@@ -13,7 +13,7 @@ use crate::platform::{spawn_local, Runtime};
 /// This renderer does not spawn its own runtime and can only be used when:
 ///
 /// - `wasm-bindgen` is selected as the backend of Yew runtime.
-/// - running within `actix_rt`.
+/// - running within a [`Runtime`](crate::platform::Runtime).
 /// - running within a [`LocalRuntime`](crate::platform::LocalRuntime).
 /// - running within a tokio [`LocalSet`](tokio::task::LocalSet).
 #[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
@@ -100,7 +100,7 @@ where
         }
     }
 
-    /// Renders Yew Applications into a string Stream
+    /// Renders Yew Application into a string Stream
     pub fn render_stream(self) -> impl Stream<Item = String> {
         let (tx, rx) = crate::platform::pinned::mpsc::unbounded();
 
@@ -232,7 +232,7 @@ where
         }
     }
 
-    /// Renders Yew Applications into a string Stream.
+    /// Renders Yew Application into a string Stream.
     pub fn render_stream(self) -> impl Send + Stream<Item = String> {
         let Self {
             create_props,
