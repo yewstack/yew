@@ -75,8 +75,6 @@ features = [
 wasm-bindgen-futures = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-num_cpus = { version = "1.13", optional = true }
-tokio-util = { version = "0.7", features = ["rt"], optional = true }
 once_cell = "1"
 
 [dev-dependencies]
@@ -95,7 +93,7 @@ features = [
 ]
 
 [features]
-tokio = ["dep:tokio", "dep:tokio-stream", "dep:num_cpus", "dep:tokio-util"]
+tokio = ["dep:tokio", "dep:tokio-stream"]
 ssr = ["dep:html-escape", "dep:base64ct", "dep:bincode"]
 csr = []
 hydration = ["csr", "dep:bincode"]
