@@ -1,5 +1,7 @@
+use gloo::utils::window;
 use serde::Serialize;
 use wasm_bindgen::UnwrapThrowExt;
+use web_sys::Url;
 use yew::prelude::*;
 use yew::virtual_dom::AttrValue;
 
@@ -23,6 +25,8 @@ where
     #[prop_or_default]
     pub query: Option<Q>,
     #[prop_or_default]
+    pub target: Option<String>,
+    #[prop_or_default]
     pub disabled: bool,
     #[prop_or_default]
     pub children: Children,
@@ -39,6 +43,7 @@ where
         classes,
         to,
         children,
+        target,
         disabled,
         query,
     } = props.clone();
@@ -49,20 +54,51 @@ where
         let navigator = navigator.clone();
         let to = to.clone();
         let query = query.clone();
+        let target = target.clone();
 
         Callback::from(move |e: MouseEvent| {
             e.prevent_default();
 
-            match query {
-                None => {
-                    navigator.push(&to);
+            match target {
+                Some(ref target) => {
+                    let window = window();
+                    let href = window
+                        .location()
+                        .href()
+                        .expect_throw("Failed to read location href");
+                    match query {
+                        None => {
+                            window
+                                .open_with_url_and_target(&to.to_path(), target)
+                                .unwrap();
+                            ()
+                        }
+                        Some(ref data) => {
+                            let route: &str = &to.to_path();
+                            let query: &str = &serde_urlencoded::to_string(data)
+                                .expect_throw("unable to encode query");
+
+                            let url = Url::new_with_base(route, &href)
+                                .expect_throw("current url is not valid.");
+                            url.set_search(query);
+
+                            window
+                                .open_with_url_and_target(&url.href(), target)
+                                .unwrap();
+                        }
+                    }
                 }
-                Some(ref data) => {
-                    navigator
-                        .push_with_query(&to, data)
-                        .expect_throw("failed push history with query");
-                }
-            }
+                None => match query {
+                    None => {
+                        navigator.push(&to);
+                    }
+                    Some(ref data) => {
+                        navigator
+                            .push_with_query(&to, data)
+                            .expect_throw("failed push history with query");
+                    }
+                },
+            };
         })
     };
 
