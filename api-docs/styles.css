@@ -1,13 +1,16 @@
 #unreleased-version-header {
-    background-color: rgb(77, 56, 0);
+    background-color: rgb(200, 237, 248);
     z-index: 400;
-    position: fixed;
+    position: absolute;
     left: 0;
     top: 0;
     right: 0;
     height: 70px;
     padding-top: 10px;
+    padding-bottom: 10px;
     text-align: center;
+    font-family: sans-serif;
+    box-shadow: 0 0 5px 0 rgb(100, 100, 100);
 }
 
 body {
