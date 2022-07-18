@@ -65,7 +65,6 @@ fn clear_element(host: &Element) {
     }
 }
 
-#[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
