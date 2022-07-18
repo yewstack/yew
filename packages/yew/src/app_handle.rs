@@ -9,7 +9,7 @@ use crate::dom_bundle::BSubtree;
 use crate::html::{BaseComponent, NodeRef, Scope, Scoped};
 
 /// An instance of an application.
-#[cfg_attr(documenting, doc(cfg(feature = "csr")))]
+#[cfg(feature = "csr")]
 #[derive(Debug)]
 pub struct AppHandle<COMP: BaseComponent> {
     /// `Scope` holder
