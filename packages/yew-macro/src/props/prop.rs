@@ -2,13 +2,16 @@ use std::cmp::Ordering;
 use std::convert::TryFrom;
 use std::ops::{Deref, DerefMut};
 
-use proc_macro2::{Spacing, TokenTree};
+use proc_macro2::{Spacing, Span, TokenStream, TokenTree};
+use quote::{quote, quote_spanned};
 use syn::parse::{Parse, ParseBuffer, ParseStream};
+use syn::spanned::Spanned;
 use syn::token::Brace;
 use syn::{braced, Block, Expr, ExprBlock, ExprPath, ExprRange, Stmt, Token};
 
 use super::CHILDREN_LABEL;
 use crate::html_tree::HtmlDashedName;
+use crate::stringify::Stringify;
 
 pub struct Prop {
     pub label: HtmlDashedName,
@@ -324,6 +327,33 @@ impl SpecialProps {
     /// If there's at least one error, the result will be `Result::Err`.
     pub fn check_all(&self, f: impl FnMut(&Prop) -> syn::Result<()>) -> syn::Result<()> {
         crate::join_errors(self.iter().map(f).filter_map(Result::err))
+    }
+
+    pub fn wrap_node_ref_attr(&self) -> TokenStream {
+        self.node_ref
+            .as_ref()
+            .map(|attr| {
+                let value = &attr.value;
+                quote_spanned! {value.span().resolved_at(Span::call_site())=>
+                    ::yew::html::IntoPropValue::<::yew::html::NodeRef>
+                    ::into_prop_value(#value)
+                }
+            })
+            .unwrap_or(quote! { ::std::default::Default::default() })
+    }
+
+    pub fn wrap_key_attr(&self) -> TokenStream {
+        self.key
+            .as_ref()
+            .map(|attr| {
+                let value = attr.value.optimize_literals();
+                quote_spanned! {value.span().resolved_at(Span::call_site())=>
+                    ::std::option::Option::Some(
+                        ::std::convert::Into::<::yew::virtual_dom::Key>::into(#value)
+                    )
+                }
+            })
+            .unwrap_or(quote! { ::std::option::Option::None })
     }
 }
 

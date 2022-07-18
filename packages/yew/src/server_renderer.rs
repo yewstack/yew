@@ -16,7 +16,7 @@ use crate::platform::{spawn_local, Runtime};
 /// - running within a [`Runtime`](crate::platform::Runtime).
 /// - running within a [`LocalRuntime`](crate::platform::LocalRuntime).
 /// - running within a tokio [`LocalSet`](tokio::task::LocalSet).
-#[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
+#[cfg(feature = "ssr")]
 #[derive(Debug)]
 pub struct LocalServerRenderer<COMP>
 where
@@ -123,7 +123,7 @@ where
 /// the rendering process has finished.
 ///
 /// See [`yew::platform`] for more information.
-#[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
+#[cfg(feature = "ssr")]
 pub struct ServerRenderer<COMP>
 where
     COMP: BaseComponent,

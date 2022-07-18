@@ -609,7 +609,6 @@ mod feat_csr {
 #[cfg(feature = "csr")]
 pub(crate) use feat_csr::*;
 
-#[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use wasm_bindgen::JsCast;

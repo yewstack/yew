@@ -112,37 +112,17 @@ impl ToTokens for HtmlElement {
             booleans,
             value,
             checked,
-            node_ref,
-            key,
             listeners,
+            special,
         } = &props;
 
         // attributes with special treatment
 
-        let node_ref = node_ref
-            .as_ref()
-            .map(|attr| {
-                let value = &attr.value;
-                quote_spanned! {value.span().resolved_at(Span::call_site())=>
-                    ::yew::html::IntoPropValue::<::yew::html::NodeRef>
-                    ::into_prop_value(#value)
-                }
-            })
-            .unwrap_or(quote! { ::std::default::Default::default() });
-        let key = key
-            .as_ref()
-            .map(|attr| {
-                let value = attr.value.optimize_literals();
-                quote_spanned! {value.span().resolved_at(Span::call_site())=>
-                    ::std::option::Option::Some(
-                        ::std::convert::Into::<::yew::virtual_dom::Key>::into(#value)
-                    )
-                }
-            })
-            .unwrap_or(quote! { ::std::option::Option::None });
+        let node_ref = special.wrap_node_ref_attr();
+        let key = special.wrap_key_attr();
         let value = value
             .as_ref()
-            .map(wrap_attr_prop)
+            .map(|prop| wrap_attr_value(prop.value.optimize_literals()))
             .unwrap_or(quote! { ::std::option::Option::None });
         let checked = checked
             .as_ref()
@@ -262,14 +242,7 @@ impl ToTokens for HtmlElement {
                 .collect::<Vec<(LitStr, Value)>>();
             try_into_static(&attrs).unwrap_or_else(|| {
                 let keys = attrs.iter().map(|(k, _)| quote! { #k });
-                let values = attrs.iter().map(|(_, v)| {
-                    quote_spanned! {v.span()=>
-                        ::yew::html::IntoPropValue::<
-                            ::std::option::Option::<::yew::virtual_dom::AttrValue>
-                        >
-                        ::into_prop_value(#v)
-                    }
-                });
+                let values = attrs.iter().map(|(_, v)| wrap_attr_value(v));
                 quote! {
                     ::yew::virtual_dom::Attributes::Dynamic{
                         keys: &[#(#keys),*],
@@ -473,8 +446,7 @@ impl ToTokens for HtmlElement {
     }
 }
 
-fn wrap_attr_prop(prop: &Prop) -> TokenStream {
-    let value = prop.value.optimize_literals();
+fn wrap_attr_value<T: ToTokens>(value: T) -> TokenStream {
     quote_spanned! {value.span()=>
         ::yew::html::IntoPropValue::<
             ::std::option::Option<
