@@ -70,21 +70,20 @@ where
                         None => {
                             window
                                 .open_with_url_and_target(&to.to_path(), target)
-                                .unwrap();
-                            ()
+                                .expect_throw("Unable to route to target");
                         }
                         Some(ref data) => {
                             let route: &str = &to.to_path();
                             let query: &str = &serde_urlencoded::to_string(data)
-                                .expect_throw("unable to encode query");
+                                .expect_throw("Unable to encode query");
 
                             let url = Url::new_with_base(route, &href)
-                                .expect_throw("current url is not valid.");
+                                .expect_throw("Current url is not valid.");
                             url.set_search(query);
 
                             window
                                 .open_with_url_and_target(&url.href(), target)
-                                .unwrap();
+                                .expect_throw("Unable to route to target with query");
                         }
                     }
                 }
