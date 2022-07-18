@@ -1,0 +1,55 @@
+name: Tools & Examples
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/tools-examples.yml'
+      - 'tools/**/*'
+      - 'examples/**/*'
+  push:
+      branches: [ master ]
+
+
+jobs:
+  clippy-fmt:
+    name: Clippy & Format
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace:
+          - tools
+          - examples
+        runs:
+          - clippy
+          - rustfmt
+        include:
+          - toolchain: stable
+            runs: clippy
+          - toolchain: nightly
+            runs: rustfmt
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+          profile: minimal
+          components: ${{ matrix.runs }}
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Run clippy for ${{ matrix.workspace }}
+        if: matrix.runs == 'clippy'
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets --all-features --manifest-path ${{ matrix.workspace }}/Cargo.toml -- -D warnings
+
+      - name: Run fmt for ${{ matrix.workspace }}
+        if: matrix.runs == 'rustfmt'
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all --manifest-path ${{ matrix.workspace }}/Cargo.toml -- --check

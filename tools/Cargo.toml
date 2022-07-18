@@ -1,9 +1,8 @@
 [workspace]
 members = [
-  "packages/*",
+  "*",
 ]
 exclude = [
-    "tools/*",
-    "examples/*",
+  "target"
 ]
 resolver = "2"
