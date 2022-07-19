@@ -106,8 +106,6 @@ impl ToTokens for HtmlComponent {
             Some(quote! { ::yew::html::ChildrenRenderer::new(#children) })
         };
         let build_props = props.build_properties_tokens(&props_ty, children_renderer);
-        // todo: this shouldn't exist for components
-        let _node_ref = props.special().wrap_node_ref_attr();
         let key = props.special().wrap_key_attr();
         let use_close_tag = close
             .as_ref()
