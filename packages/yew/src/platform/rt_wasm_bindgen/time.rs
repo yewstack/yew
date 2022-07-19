@@ -4,7 +4,7 @@ use std::time::Duration;
 use futures::stream::Stream;
 use wasm_bindgen::UnwrapThrowExt;
 
-#[inline]
+#[inline(always)]
 pub(crate) fn sleep(dur: Duration) -> impl Future<Output = ()> {
     gloo::timers::future::sleep(dur)
 }
