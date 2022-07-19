@@ -18,9 +18,6 @@ pub(super) struct BComp {
     // A internal NodeRef passed around to track this components position. This
     // is "stable", i.e. does not change when reconciled.
     internal_ref: NodeRef,
-    // The user-passed NodeRef from VComp. Might change every time we reconcile.
-    // Gets linked to the internal ref
-    node_ref: NodeRef,
     key: Option<Key>,
 }
 
@@ -64,11 +61,10 @@ impl Reconcilable for VComp {
         let VComp {
             type_id,
             mountable,
-            node_ref,
             key,
+            ..
         } = self;
         let internal_ref = NodeRef::default();
-        node_ref.link(internal_ref.clone());
 
         let scope = mountable.mount(
             root,
@@ -82,7 +78,6 @@ impl Reconcilable for VComp {
             internal_ref.clone(),
             BComp {
                 type_id,
-                node_ref,
                 internal_ref,
                 key,
                 scope,
@@ -119,14 +114,11 @@ impl Reconcilable for VComp {
     ) -> NodeRef {
         let VComp {
             mountable,
-            node_ref,
             key,
-            type_id: _,
+            ..
         } = self;
 
         bcomp.key = key;
-        let old_ref = std::mem::replace(&mut bcomp.node_ref, node_ref);
-        bcomp.node_ref.reuse(old_ref);
         mountable.reuse(bcomp.scope.borrow(), next_sibling);
         bcomp.internal_ref.clone()
     }
@@ -148,11 +140,10 @@ mod feat_hydration {
             let VComp {
                 type_id,
                 mountable,
-                node_ref,
                 key,
+                ..
             } = self;
             let internal_ref = NodeRef::default();
-            node_ref.link(internal_ref.clone());
 
             let scoped = mountable.hydrate(
                 root.clone(),
@@ -167,7 +158,6 @@ mod feat_hydration {
                 BComp {
                     type_id,
                     scope: scoped,
-                    node_ref,
                     internal_ref,
                     key,
                 },
