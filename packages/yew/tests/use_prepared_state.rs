@@ -18,7 +18,7 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 async fn use_prepared_state_works() {
     #[function_component]
     fn Comp() -> HtmlResult {
-        let ctr = use_prepared_state!(|_| -> u32 { 12345 }, ())?.unwrap_or_default();
+        let ctr = use_prepared_state!(|_| -> u32 { 12345 }, Rc::new(()))?.unwrap_or_default();
 
         Ok(html! {
             <div>
@@ -68,7 +68,8 @@ async fn use_prepared_state_works() {
 async fn use_prepared_state_with_suspension_works() {
     #[function_component]
     fn Comp() -> HtmlResult {
-        let ctr = use_prepared_state!(async move |_| -> u32 { 12345 }, ())?.unwrap_or_default();
+        let ctr =
+            use_prepared_state!(async move |_| -> u32 { 12345 }, Rc::new(()))?.unwrap_or_default();
 
         Ok(html! {
             <div>

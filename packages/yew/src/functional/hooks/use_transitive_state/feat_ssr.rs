@@ -40,7 +40,7 @@ where
 #[doc(hidden)]
 pub fn use_transitive_state<T, D, F>(
     f: F,
-    deps: D,
+    deps: Rc<D>,
 ) -> impl Hook<Output = SuspensionResult<Option<Rc<T>>>>
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,
@@ -53,7 +53,7 @@ where
         T: Serialize + DeserializeOwned + 'static,
         F: 'static + FnOnce(Rc<D>) -> T,
     {
-        deps: D,
+        deps: Rc<D>,
         f: F,
     }
 
@@ -66,12 +66,12 @@ where
         type Output = SuspensionResult<Option<Rc<T>>>;
 
         fn run(self, ctx: &mut HookContext) -> Self::Output {
-            let f = self.f;
+            let Self { f, deps } = self;
 
             ctx.next_prepared_state(move |_re_render, _| -> TransitiveStateBase<T, D, F> {
                 TransitiveStateBase {
                     state_fn: Some(f).into(),
-                    deps: self.deps.into(),
+                    deps,
                 }
             });
 
