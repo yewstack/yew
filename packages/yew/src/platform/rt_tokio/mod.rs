@@ -1,5 +1,7 @@
 use std::future::Future;
 
+pub(crate) mod time;
+
 #[cfg(feature = "ssr")]
 pub(super) async fn run_pinned<F, Fut>(create_task: F) -> Fut::Output
 where

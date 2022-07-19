@@ -1,5 +1,7 @@
 use std::future::Future;
 
+pub(crate) mod time;
+
 static NO_RUNTIME_NOTICE: &str = r#"No runtime configured for this platform, \
     features that requires a runtime can't be used. \
     Either compile with `target_arch = "wasm32", or enable the `tokio` feature."#;

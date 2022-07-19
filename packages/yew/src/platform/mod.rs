@@ -46,6 +46,7 @@ use std::future::Future;
 pub(crate) mod io;
 
 pub mod sync;
+pub mod time;
 
 #[cfg(target_arch = "wasm32")]
 #[path = "rt_wasm_bindgen/mod.rs"]
