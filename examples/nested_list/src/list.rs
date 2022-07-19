@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use yew::html::{ChildrenRenderer, NodeRef};
+use yew::html::ChildrenRenderer;
 use yew::prelude::*;
 use yew::virtual_dom::{VChild, VComp};
 
@@ -46,9 +46,7 @@ where
 impl From<ListVariant> for Html {
     fn from(variant: ListVariant) -> Html {
         match variant.props {
-            Variants::Header(props) => {
-                VComp::new::<ListHeader>(props, None).into()
-            }
+            Variants::Header(props) => VComp::new::<ListHeader>(props, None).into(),
             Variants::Item(props) => VComp::new::<ListItem>(props, None).into(),
         }
     }
