@@ -65,8 +65,8 @@ mod ssr_tests {
 
     use tokio::task::{spawn_local, LocalSet};
     use tokio::test;
-    use tokio::time::sleep;
 
+    use crate::platform::time::sleep;
     use crate::prelude::*;
     use crate::suspense::{Suspension, SuspensionResult};
     use crate::ServerRenderer;

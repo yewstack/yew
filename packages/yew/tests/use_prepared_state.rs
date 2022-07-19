@@ -7,8 +7,8 @@ use std::time::Duration;
 mod common;
 
 use common::obtain_result_by_id;
-use gloo::timers::future::sleep;
 use wasm_bindgen_test::*;
+use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew::{Renderer, ServerRenderer};
 

@@ -6,8 +6,8 @@ use std::ops::DerefMut;
 use std::time::Duration;
 
 use common::obtain_result;
-use gloo::timers::future::sleep;
 use wasm_bindgen_test::*;
+use yew::platform::time::sleep;
 use yew::prelude::*;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
