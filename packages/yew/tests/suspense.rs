@@ -639,7 +639,7 @@ async fn use_suspending_future_works() {
 async fn use_suspending_future_with_deps_works() {
     #[derive(PartialEq, Properties)]
     struct ContentProps {
-        delay_millis: u32,
+        delay_millis: u64,
     }
 
     #[function_component(Content)]
