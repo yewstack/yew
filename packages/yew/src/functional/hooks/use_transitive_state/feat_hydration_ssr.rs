@@ -18,13 +18,13 @@ pub fn use_transitive_state<T, D, F>(
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,
     T: Serialize + DeserializeOwned + 'static,
-    F: 'static + FnOnce(&D) -> T,
+    F: 'static + FnOnce(Rc<D>) -> T,
 {
     struct HookProvider<T, D, F>
     where
         D: Serialize + DeserializeOwned + PartialEq + 'static,
         T: Serialize + DeserializeOwned + 'static,
-        F: 'static + FnOnce(&D) -> T,
+        F: 'static + FnOnce(Rc<D>) -> T,
     {
         deps: D,
         f: F,
@@ -34,7 +34,7 @@ where
     where
         D: Serialize + DeserializeOwned + PartialEq + 'static,
         T: Serialize + DeserializeOwned + 'static,
-        F: 'static + FnOnce(&D) -> T,
+        F: 'static + FnOnce(Rc<D>) -> T,
     {
         type Output = SuspensionResult<Option<Rc<T>>>;
 

@@ -251,5 +251,3 @@ jobs:
         with:
           run: cat js-framework-benchmark/webdriver-ts/results/results.json | ./yew/tools/target/release/process-benchmark-results
 
-      - name: Show output JSON
-        run: echo ${{ steps.results.outputs.stdout }}

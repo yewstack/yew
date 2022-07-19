@@ -7,7 +7,7 @@ use crate::platform::io::{self, DEFAULT_BUF_SIZE};
 use crate::platform::{run_pinned, spawn_local};
 
 /// A Yew Server-side Renderer that renders on the current thread.
-#[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
+#[cfg(feature = "ssr")]
 #[derive(Debug)]
 pub struct LocalServerRenderer<COMP>
 where
@@ -112,7 +112,7 @@ where
 /// the rendering process has finished.
 ///
 /// See [`yew::platform`] for more information.
-#[cfg_attr(documenting, doc(cfg(feature = "ssr")))]
+#[cfg(feature = "ssr")]
 pub struct ServerRenderer<COMP>
 where
     COMP: BaseComponent,
