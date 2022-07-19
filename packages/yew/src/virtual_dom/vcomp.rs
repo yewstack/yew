@@ -26,7 +26,6 @@ use crate::platform::io::BufWriter;
 pub struct VComp {
     pub(crate) type_id: TypeId,
     pub(crate) mountable: Box<dyn Mountable>,
-    pub(crate) node_ref: NodeRef,
     pub(crate) key: Option<Key>,
 }
 
@@ -34,7 +33,6 @@ impl fmt::Debug for VComp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("VComp")
             .field("type_id", &self.type_id)
-            .field("node_ref", &self.node_ref)
             .field("mountable", &"..")
             .field("key", &self.key)
             .finish()
@@ -46,7 +44,6 @@ impl Clone for VComp {
         Self {
             type_id: self.type_id,
             mountable: self.mountable.copy(),
-            node_ref: self.node_ref.clone(),
             key: self.key.clone(),
         }
     }
@@ -164,7 +161,6 @@ pub struct VChild<COMP: BaseComponent> {
     /// The component properties
     pub props: Rc<COMP::Properties>,
     /// Reference to the mounted node
-    node_ref: NodeRef,
     key: Option<Key>,
 }
 
@@ -172,7 +168,6 @@ impl<COMP: BaseComponent> Clone for VChild<COMP> {
     fn clone(&self) -> Self {
         VChild {
             props: Rc::clone(&self.props),
-            node_ref: self.node_ref.clone(),
             key: self.key.clone(),
         }
     }
@@ -192,10 +187,9 @@ where
     COMP: BaseComponent,
 {
     /// Creates a child component that can be accessed and modified by its parent.
-    pub fn new(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self {
+    pub fn new(props: COMP::Properties, key: Option<Key>) -> Self {
         Self {
             props: Rc::new(props),
-            node_ref,
             key,
         }
     }
@@ -206,19 +200,18 @@ where
     COMP: BaseComponent,
 {
     fn from(vchild: VChild<COMP>) -> Self {
-        VComp::new::<COMP>(vchild.props, vchild.node_ref, vchild.key)
+        VComp::new::<COMP>(vchild.props, vchild.key)
     }
 }
 
 impl VComp {
     /// Creates a new `VComp` instance.
-    pub fn new<COMP>(props: Rc<COMP::Properties>, node_ref: NodeRef, key: Option<Key>) -> Self
+    pub fn new<COMP>(props: Rc<COMP::Properties>, key: Option<Key>) -> Self
     where
         COMP: BaseComponent,
     {
         VComp {
             type_id: TypeId::of::<COMP>(),
-            node_ref,
             mountable: Box::new(PropsWrapper::<COMP>::new(props)),
             key,
         }

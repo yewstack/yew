@@ -332,12 +332,10 @@ fn compile_pass() {
         ::std::vec![
             ChildrenVariants::Child(::yew::virtual_dom::VChild::new(
                 <ChildProperties as ::std::default::Default>::default(),
-                <::yew::NodeRef as ::std::default::Default>::default(),
                 ::std::option::Option::None,
             )),
             ChildrenVariants::AltChild(::yew::virtual_dom::VChild::new(
                 (),
-                <::yew::NodeRef as ::std::default::Default>::default(),
                 ::std::option::Option::None
             )),
         ]

@@ -42,7 +42,6 @@ fn App(props: &AppProps) -> Html {
         let node_ref = node_ref.clone();
         let tx = props.tx.clone();
         use_effect(move || {
-            gloo::console::log!("effect", node_ref.get());
             yew::platform::spawn_local(async move {
                 tx.send(()).await.unwrap();
             });

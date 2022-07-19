@@ -47,9 +47,9 @@ impl From<ListVariant> for Html {
     fn from(variant: ListVariant) -> Html {
         match variant.props {
             Variants::Header(props) => {
-                VComp::new::<ListHeader>(props, NodeRef::default(), None).into()
+                VComp::new::<ListHeader>(props, None).into()
             }
-            Variants::Item(props) => VComp::new::<ListItem>(props, NodeRef::default(), None).into(),
+            Variants::Item(props) => VComp::new::<ListItem>(props, None).into(),
         }
     }
 }

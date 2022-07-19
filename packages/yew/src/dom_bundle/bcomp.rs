@@ -273,38 +273,12 @@ mod tests {
     }
 
     #[test]
-    fn set_component_node_ref() {
-        let test_node: Node = document().create_text_node("test").into();
-        let test_node_ref = NodeRef::new(test_node);
-        let check_node_ref = |vnode: VNode| {
-            let vcomp = match vnode {
-                VNode::VComp(vcomp) => vcomp,
-                _ => unreachable!("should be a vcomp"),
-            };
-            assert_eq!(vcomp.node_ref, test_node_ref);
-        };
-
-        let props = Props {
-            field_1: 1,
-            field_2: 1,
-        };
-        let props_2 = props.clone();
-
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} /> });
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} field_1=1 /> });
-        check_node_ref(html! { <Comp field_1=1 ref={test_node_ref.clone()} /> });
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} ..props /> });
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} ..props_2 /> });
-    }
-
-    #[test]
     fn vchild_partialeq() {
         let vchild1: VChild<Comp> = VChild::new(
             Props {
                 field_1: 1,
                 field_2: 1,
             },
-            NodeRef::default(),
             None,
         );
 
@@ -313,7 +287,6 @@ mod tests {
                 field_1: 1,
                 field_2: 1,
             },
-            NodeRef::default(),
             None,
         );
 
@@ -322,7 +295,6 @@ mod tests {
                 field_1: 2,
                 field_2: 2,
             },
-            NodeRef::default(),
             None,
         );
 
@@ -429,45 +401,17 @@ mod tests {
     }
 
     #[test]
-    fn reset_node_ref() {
+    fn component_node_ref_stays_none() {
         let (root, scope, parent) = setup_parent();
 
         let node_ref = NodeRef::default();
         let elem = html! { <Comp ref={node_ref.clone()}></Comp> };
         let (_, elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         scheduler::start_now();
-        let parent_node = parent.deref();
-        assert_eq!(node_ref.get(), parent_node.first_child());
+        assert!(node_ref.get().is_none(), "components don't have node refs");
         elem.detach(&root, &parent, false);
         scheduler::start_now();
-        assert!(node_ref.get().is_none());
-    }
-
-    #[test]
-    fn reset_ancestors_node_ref() {
-        let (root, scope, parent) = setup_parent();
-
-        let mut bundle = Bundle::new();
-        let node_ref_a = NodeRef::default();
-        let node_ref_b = NodeRef::default();
-        let elem = html! { <Comp ref={node_ref_a.clone()}></Comp> };
-        let node_a = bundle.reconcile(&root, &scope, &parent, NodeRef::default(), elem);
-        scheduler::start_now();
-        let node_a = node_a.get().unwrap();
-
-        assert!(node_ref_a.get().is_some(), "node_ref_a should be bound");
-
-        let elem = html! { <Comp ref={node_ref_b.clone()}></Comp> };
-        let node_b = bundle.reconcile(&root, &scope, &parent, NodeRef::default(), elem);
-        scheduler::start_now();
-        let node_b = node_b.get().unwrap();
-
-        assert_eq!(node_a, node_b, "Comp should have reused the element");
-        assert!(node_ref_b.get().is_some(), "node_ref_b should be bound");
-        assert!(
-            node_ref_a.get().is_none(),
-            "node_ref_a should have been reset when the element was reused."
-        );
+        assert!(node_ref.get().is_none(), "components don't have node refs");
     }
 }
 
