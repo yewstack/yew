@@ -40,7 +40,7 @@ async fn decode_base64(_s: &str) -> Result<Vec<u8>, JsValue> {
 }
 
 #[doc(hidden)]
-pub fn use_prepared_state<T, D>(deps: Rc<D>) -> impl Hook<Output = SuspensionResult<Option<Rc<T>>>>
+pub fn use_prepared_state<T, D>(deps: D) -> impl Hook<Output = SuspensionResult<Option<Rc<T>>>>
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,
     T: Serialize + DeserializeOwned + 'static,
@@ -51,7 +51,7 @@ where
         T: Serialize + DeserializeOwned + 'static,
     {
         _marker: PhantomData<T>,
-        deps: Rc<D>,
+        deps: D,
     }
 
     impl<T, D> Hook for HookProvider<T, D>

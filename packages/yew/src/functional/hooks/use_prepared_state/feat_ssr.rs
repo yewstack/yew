@@ -15,7 +15,7 @@ use crate::suspense::{Suspension, SuspensionResult};
 #[doc(hidden)]
 pub fn use_prepared_state<T, D, F>(
     f: F,
-    deps: Rc<D>,
+    deps: D,
 ) -> impl Hook<Output = SuspensionResult<Option<Rc<T>>>>
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,
@@ -28,7 +28,7 @@ where
         T: Serialize + DeserializeOwned + 'static,
         F: FnOnce(Rc<D>) -> T,
     {
-        deps: Rc<D>,
+        deps: D,
         f: F,
     }
 
@@ -41,7 +41,8 @@ where
         type Output = SuspensionResult<Option<Rc<T>>>;
 
         fn run(self, ctx: &mut HookContext) -> Self::Output {
-            let Self { f, deps } = self;
+            let f = self.f;
+            let deps = Rc::new(self.deps);
 
             let state = {
                 let deps = deps.clone();
@@ -69,7 +70,7 @@ where
 #[doc(hidden)]
 pub fn use_prepared_state_with_suspension<T, D, F, U>(
     f: F,
-    deps: Rc<D>,
+    deps: D,
 ) -> impl Hook<Output = SuspensionResult<Option<Rc<T>>>>
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,
@@ -84,7 +85,7 @@ where
         F: FnOnce(Rc<D>) -> U,
         U: 'static + Future<Output = T>,
     {
-        deps: Rc<D>,
+        deps: D,
         f: F,
     }
 
@@ -98,7 +99,8 @@ where
         type Output = SuspensionResult<Option<Rc<T>>>;
 
         fn run(self, ctx: &mut HookContext) -> Self::Output {
-            let Self { f, deps } = self;
+            let f = self.f;
+            let deps = Rc::new(self.deps);
 
             let result = use_state(|| {
                 let (s, handle) = Suspension::new();

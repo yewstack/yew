@@ -10,7 +10,7 @@ use crate::suspense::SuspensionResult;
 
 #[doc(hidden)]
 #[hook]
-pub fn use_prepared_state<T, D>(_deps: Rc<D>) -> SuspensionResult<Option<Rc<T>>>
+pub fn use_prepared_state<T, D>(_deps: D) -> SuspensionResult<Option<Rc<T>>>
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,
     T: Serialize + DeserializeOwned + 'static,
@@ -20,7 +20,7 @@ where
 
 #[doc(hidden)]
 #[hook]
-pub fn use_prepared_state_with_suspension<T, D>(_deps: Rc<D>) -> SuspensionResult<Option<Rc<T>>>
+pub fn use_prepared_state_with_suspension<T, D>(_deps: D) -> SuspensionResult<Option<Rc<T>>>
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,
     T: Serialize + DeserializeOwned + 'static,

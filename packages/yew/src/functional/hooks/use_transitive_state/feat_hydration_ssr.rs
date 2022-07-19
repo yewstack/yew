@@ -13,7 +13,7 @@ use crate::suspense::SuspensionResult;
 #[doc(hidden)]
 pub fn use_transitive_state<T, D, F>(
     f: F,
-    deps: Rc<D>,
+    deps: D,
 ) -> impl Hook<Output = SuspensionResult<Option<Rc<T>>>>
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,
@@ -26,7 +26,7 @@ where
         T: Serialize + DeserializeOwned + 'static,
         F: 'static + FnOnce(Rc<D>) -> T,
     {
-        deps: Rc<D>,
+        deps: D,
         f: F,
     }
 
