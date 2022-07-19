@@ -14,11 +14,11 @@ use super::Key;
 use crate::dom_bundle::BSubtree;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
+use crate::html::BaseComponent;
 #[cfg(feature = "csr")]
 use crate::html::Scoped;
 #[cfg(any(feature = "ssr", feature = "csr"))]
-use crate::html::{AnyScope, Scope};
-use crate::html::{BaseComponent, NodeRef};
+use crate::html::{AnyScope, NodeRef, Scope};
 #[cfg(feature = "ssr")]
 use crate::platform::io::BufWriter;
 

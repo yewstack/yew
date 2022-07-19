@@ -100,6 +100,8 @@ pub struct ChildProperties {
     pub string: ::std::string::String,
     #[prop_or_default]
     pub r#fn: ::std::primitive::i32,
+    #[prop_or_default]
+    pub r#ref: ::yew::NodeRef,
     pub int: ::std::primitive::i32,
     #[prop_or_default]
     pub opt_str: ::std::option::Option<::std::string::String>,
@@ -181,11 +183,11 @@ fn compile_pass() {
         <>
             <Child ..::std::clone::Clone::clone(&props) />
             <Child int={1} ..props />
-            <Child ref={::std::clone::Clone::clone(&node_ref)} int={2} ..::yew::props!(Child::Properties { int: 5 }) />
-            <Child int=3 ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
-            <Child ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
-            <Child ref={&node_ref} ..<<Child as ::yew::Component>::Properties as ::std::default::Default>::default() />
-            <Child ref={node_ref} ..<<Child as ::yew::Component>::Properties as ::std::default::Default>::default() />
+            <Child r#ref={::std::clone::Clone::clone(&node_ref)} int={2} ..::yew::props!(Child::Properties { int: 5 }) />
+            <Child int=3 r#ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
+            <Child r#ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
+            <Child r#ref={&node_ref} ..<<Child as ::yew::Component>::Properties as ::std::default::Default>::default() />
+            <Child r#ref={node_ref} ..<<Child as ::yew::Component>::Properties as ::std::default::Default>::default() />
         </>
     };
 
@@ -227,7 +229,7 @@ fn compile_pass() {
     let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
     ::yew::html! {
         <>
-            <Child int=1 ref={node_ref} />
+            <Child int=1 r#ref={node_ref} />
         </>
     };
 
@@ -235,7 +237,7 @@ fn compile_pass() {
     let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
     ::yew::html! {
         <>
-            <Child {int} ref={node_ref} />
+            <Child {int} r#ref={node_ref} />
         </>
     };
 
