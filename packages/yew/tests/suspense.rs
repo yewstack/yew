@@ -2,20 +2,20 @@
 
 mod common;
 
-use common::obtain_result;
-use wasm_bindgen_test::*;
-use yew::prelude::*;
-
-wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
-
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::time::Duration;
 
+use common::obtain_result;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
+use wasm_bindgen_test::*;
 use web_sys::{HtmlElement, HtmlTextAreaElement};
 use yew::platform::time::sleep;
+use yew::prelude::*;
 use yew::suspense::{use_future, use_future_with_deps, Suspension, SuspensionResult};
+
+wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
 async fn suspense_works() {
