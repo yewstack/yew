@@ -2,7 +2,6 @@
 #![cfg(feature = "hydration")]
 #![cfg_attr(feature = "nightly", feature(async_closure))]
 
-use std::rc::Rc;
 use std::time::Duration;
 
 mod common;
