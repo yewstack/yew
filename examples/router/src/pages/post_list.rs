@@ -13,7 +13,7 @@ pub enum Msg {
 
 pub struct PostList {
     page: u64,
-    _listener: HistoryListener,
+    _listener: LocationHandle,
 }
 
 fn current_page(ctx: &Context<PostList>) -> u64 {
@@ -28,9 +28,10 @@ impl Component for PostList {
 
     fn create(ctx: &Context<Self>) -> Self {
         let link = ctx.link().clone();
-        let listener = ctx.link().history().unwrap().listen(move || {
-            link.send_message(Msg::PageUpdated);
-        });
+        let listener = ctx
+            .link()
+            .add_location_listener(link.callback(move |_| Msg::PageUpdated))
+            .unwrap();
 
         Self {
             page: current_page(ctx),

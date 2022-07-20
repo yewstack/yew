@@ -3,6 +3,7 @@ use std::{
     collections::{HashMap, HashSet},
     ops::Deref,
     rc::Rc,
+    sync::atomic::{AtomicBool, Ordering},
 };
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::{Element, Event};
@@ -19,7 +20,7 @@ thread_local! {
 }
 
 /// Bubble events during delegation
-static mut BUBBLE_EVENTS: bool = true;
+static BUBBLE_EVENTS: AtomicBool = AtomicBool::new(true);
 
 /// Set, if events should bubble up the DOM tree, calling any matching callbacks.
 ///
@@ -32,9 +33,7 @@ static mut BUBBLE_EVENTS: bool = true;
 ///
 /// This function should be called before any component is mounted.
 pub fn set_event_bubbling(bubble: bool) {
-    unsafe {
-        BUBBLE_EVENTS = bubble;
-    }
+    BUBBLE_EVENTS.store(bubble, Ordering::Relaxed);
 }
 
 /// The [Listener] trait is an universal implementation of an event listener
@@ -502,7 +501,7 @@ impl Registry {
 
         run_handler(&target);
 
-        if unsafe { BUBBLE_EVENTS } {
+        if BUBBLE_EVENTS.load(Ordering::Relaxed) {
             let mut el = target;
             while !event.cancel_bubble() {
                 el = match el.parent_element() {
@@ -543,10 +542,6 @@ mod tests {
     }
 
     trait Mixin {
-        fn passive() -> Option<bool> {
-            None
-        }
-
         fn view<C>(ctx: &Context<C>, state: &State) -> Html
         where
             C: Component<Message = Message>,
@@ -557,8 +552,7 @@ mod tests {
                 }
             } else {
                 html! {
-                    <a onclick={ctx.link().callback_with_passive(
-                        Self::passive(),
+                    <a onclick={ctx.link().callback(
                         |_| Message::Action,
                     )}>
                         {state.action}
@@ -669,19 +663,6 @@ mod tests {
         }))
         .await
         .unwrap();
-    }
-
-    #[test]
-    async fn passive() {
-        struct Passive;
-
-        impl Mixin for Passive {
-            fn passive() -> Option<bool> {
-                Some(true)
-            }
-        }
-
-        assert_async::<Passive>().await;
     }
 
     async fn assert_async<M: Mixin + 'static>() {

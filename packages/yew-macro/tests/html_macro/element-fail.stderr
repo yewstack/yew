@@ -288,6 +288,7 @@ error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<AttrVal
              <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<String> as IntoPropValue<Option<AttrValue>>>
+             <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
    = note: required by `into_prop_value`
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<AttrValue>>` is not satisfied
@@ -300,6 +301,7 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<AttrValue
              <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<String> as IntoPropValue<Option<AttrValue>>>
+             <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
    = note: required by `into_prop_value`
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `{integer}`
@@ -384,6 +386,7 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
              <Option<&'static str> as IntoPropValue<Option<AttrValue>>>
              <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<String> as IntoPropValue<Option<AttrValue>>>
+             <Option<std::rc::Rc<str>> as IntoPropValue<Option<AttrValue>>>
    = note: required by `into_prop_value`
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`

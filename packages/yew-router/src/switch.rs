@@ -8,7 +8,7 @@ use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
 
 use crate::prelude::*;
-use crate::scope_ext::HistoryHandle;
+use crate::scope_ext::LocationHandle;
 
 /// Wraps `Rc` around `Fn` so it can be passed as a prop.
 pub struct RenderFn<R>(Rc<dyn Fn(&R) -> Html>);
@@ -63,7 +63,7 @@ pub enum Msg {
 /// stating that no route can be matched.
 /// See the [crate level document][crate] for more information.
 pub struct Switch<R: Routable + 'static> {
-    _listener: HistoryHandle,
+    _listener: LocationHandle,
     _phantom: PhantomData<R>,
 }
 
@@ -77,7 +77,7 @@ where
     fn create(ctx: &Context<Self>) -> Self {
         let link = ctx.link();
         let listener = link
-            .add_history_listener(link.callback(move |_| Msg::ReRender))
+            .add_location_listener(link.callback(move |_| Msg::ReRender))
             .expect_throw("failed to create history handle. Do you have a router registered?");
 
         Self {
@@ -93,7 +93,7 @@ where
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let route = ctx.link().location().and_then(|m| m.route::<R>());
+        let route = ctx.link().route::<R>();
 
         let children = match &route {
             Some(ref route) => (ctx.props().render.0)(route),

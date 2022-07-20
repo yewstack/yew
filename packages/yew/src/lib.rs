@@ -1,5 +1,5 @@
 #![allow(clippy::needless_doctest_main)]
-#![doc(html_logo_url = "https://static.yew.rs/logo.svg")]
+#![doc(html_logo_url = "https://yew.rs/img/logo.png")]
 
 //! # Yew Framework - API Documentation
 //!
@@ -262,6 +262,8 @@ pub mod context;
 pub mod functional;
 pub mod html;
 pub mod scheduler;
+#[cfg(test)]
+pub mod tests;
 pub mod utils;
 pub mod virtual_dom;
 

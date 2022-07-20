@@ -7,7 +7,7 @@ a render loop, and draw to the canvas with basic shaders using `web-sys`.
 
 ## Concepts
 
-- Accessing a DOM element using `NodeRef`.
+- Accessing a DOM element using [`NodeRef`](https://yew.rs/docs/concepts/components/refs/).
 - Using Javascript APIs with `web-sys`.
 
 ## Improvements

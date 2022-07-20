@@ -22,7 +22,7 @@ pub fn base_url() -> Option<String> {
 }
 
 pub fn fetch_base_url() -> Option<String> {
-    match gloo_utils::document().query_selector("base[href]") {
+    match gloo::utils::document().query_selector("base[href]") {
         Ok(Some(base)) => {
             let base = base.unchecked_into::<web_sys::HtmlBaseElement>().href();
 
@@ -43,7 +43,7 @@ pub fn fetch_base_url() -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use gloo_utils::document;
+    use gloo::utils::document;
     use wasm_bindgen_test::wasm_bindgen_test as test;
     use yew_router::prelude::*;
     use yew_router::utils::*;

@@ -137,7 +137,7 @@ jobs:
 
       - name: Run website code snippet tests
         run: |
-          cd packages/website-test
+          cd tools/website-test
           cargo test
 
   integration_tests:
@@ -194,6 +194,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.toolchain }}

@@ -19,11 +19,7 @@ pub struct VList {
 
 impl Default for VList {
     fn default() -> Self {
-        Self {
-            children: Default::default(),
-            key: None,
-            fully_keyed: true,
-        }
+        Self::new()
     }
 }
 
@@ -88,8 +84,12 @@ impl<'s> ElementWriter<'s> {
 
 impl VList {
     /// Creates a new empty [VList] instance.
-    pub fn new() -> Self {
-        Self::default()
+    pub const fn new() -> Self {
+        Self {
+            children: Vec::new(),
+            key: None,
+            fully_keyed: true,
+        }
     }
 
     /// Creates a new [VList] instance with children.
@@ -348,7 +348,7 @@ mod layout_tests {
     extern crate self as yew;
 
     use crate::html;
-    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
@@ -426,7 +426,7 @@ mod layout_tests_keys {
     extern crate self as yew;
 
     use crate::html;
-    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
     use crate::{Children, Component, Context, Html, Properties};
     use web_sys::Node;

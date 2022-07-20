@@ -11,7 +11,7 @@
 //! }
 //! ```
 //!
-//! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/next/concepts/function-components)
+//! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/next/concepts/function-components/introduction)
 
 use crate::html::AnyScope;
 use crate::{Component, Html, Properties};

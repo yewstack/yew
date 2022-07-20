@@ -1,0 +1,5 @@
+error: You cannot use `#` in your routes. Please consider `HashRouter` instead.
+ --> tests/routable_derive/route-with-hash-fail.rs:3:10
+  |
+3 |     #[at("/#/one")]
+  |          ^^^^^^^^

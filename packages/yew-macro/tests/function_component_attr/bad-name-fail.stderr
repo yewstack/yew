@@ -1,23 +1,25 @@
 error: expected identifier
- --> $DIR/bad-name-fail.rs:8:22
+ --> tests/function_component_attr/bad-name-fail.rs:8:22
   |
 8 | #[function_component(let)]
   |                      ^^^
 
 error: unexpected token
-  --> $DIR/bad-name-fail.rs:17:23
+  --> tests/function_component_attr/bad-name-fail.rs:17:23
    |
 17 | #[function_component(x, y, z)]
    |                       ^
 
 error: expected identifier
-  --> $DIR/bad-name-fail.rs:26:22
+  --> tests/function_component_attr/bad-name-fail.rs:26:22
    |
 26 | #[function_component(124)]
    |                      ^^^
 
-error: the component must not have the same name as the function
-  --> $DIR/bad-name-fail.rs:35:22
+warning: type `component` should have an upper camel case name
+  --> tests/function_component_attr/bad-name-fail.rs:35:22
    |
 35 | #[function_component(component)]
-   |                      ^^^^^^^^^
+   |                      ^^^^^^^^^ help: convert the identifier to upper camel case (notice the capitalization): `Component`
+   |
+   = note: `#[warn(non_camel_case_types)]` on by default

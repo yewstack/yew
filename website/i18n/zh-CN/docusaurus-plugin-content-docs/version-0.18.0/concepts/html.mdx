@@ -1,0 +1,128 @@
+---
+title: html! 宏
+sidebar_label: 介绍
+description: 用于生成 HTML 和 SVG 的宏程序
+---
+
+`html!` 宏允许你为组件编写声明式的 HTML 和 SVG。如果你使用过 React 的 JSX，将会感觉到非常熟悉。
+
+**重要提示**
+
+1. `html!` 宏调用中只能有一个根节点（你可以通过[使用片段（fragments）或迭代器](html/lists.mdx)来绕过这一点）
+2. 空的 `html! {}` 宏调用是有效的但不会渲染任何内容
+3. 常量必须始终被引号括起来并被包含在大括号里：`html! { "Hello, World" }`
+
+:::note
+`html!`宏可以轻松达到编译器的默认递归限制。如果遇到编译错误，建议增大其值。在根 crate 使用这样的属性`#![recursion_limit="1024"]` 处理这个问题。
+:::
+
+## 标签结构
+
+标签基于 HTML 标签。组件、元素和列表都基于此标记语法。
+
+标签必须自闭合`<... />`否则每个开始标签都应该有相应的结束标签。
+
+<!--DOCUSAURUS_CODE_TABS-->
+
+<!--Open - Close-->
+
+```rust
+html! {
+  <div id="my_div"></div>
+}
+```
+
+<!--Invalid-->
+
+```rust
+html! {
+  <div id="my_div"> // <- 缺少闭合标签
+}
+```
+
+<!--Self-closing-->
+
+```rust
+html! {
+  <input id="my_input" />
+}
+```
+
+<!--Invalid-->
+
+```rust
+html! {
+  <input id="my_input"> // <- 缺少自闭合
+}
+```
+
+<!--END_DOCUSAURUS_CODE_TABS-->
+
+:::tip
+为方便起见，*通常*需要关闭标签的元素**可以**自行关闭。比如这样写`html! { <div class="placeholder" /> }`是有效的。
+:::
+
+## Children
+
+轻松创建复杂的嵌套 HTML 和 SVG 布局：
+
+<!--DOCUSAURUS_CODE_TABS-->
+
+<!--HTML-->
+
+```rust
+html! {
+    <div>
+        <div data-key="abc"></div>
+        <div class="parent">
+            <span class="child" value="anything"></span>
+            <label for="first-name">{ "First Name" }</label>
+            <input type="text" id="first-name" value="placeholder" />
+            <input type="checkbox" checked=true />
+            <textarea value="write a story" />
+            <select name="status">
+                <option selected=true disabled=false value="">{ "Selected" }</option>
+                <option selected=false disabled=true value="">{ "Unselected" }</option>
+            </select>
+        </div>
+    </div>
+}
+```
+
+<!--SVG-->
+
+```rust
+html! {
+    <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M60.5776 13.8268L51.8673 42.6431L77.7475 37.331L60.5776 13.8268Z" fill="#DEB819"/>
+        <path d="M108.361 94.9937L138.708 90.686L115.342 69.8642" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <g filter="url(#filter0_d)">
+            <circle cx="75.3326" cy="73.4918" r="55" fill="#FDD630"/>
+            <circle cx="75.3326" cy="73.4918" r="52.5" stroke="black" stroke-width="5"/>
+        </g>
+        <circle cx="71" cy="99" r="5" fill="white" fill-opacity="0.75" stroke="black" stroke-width="3"/>
+        <defs>
+            <filter id="filter0_d" x="16.3326" y="18.4918" width="118" height="118" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                <feGaussianBlur stdDeviation="2"/>
+                <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+            </filter>
+        </defs>
+    </svg>
+}
+```
+
+<!--END_DOCUSAURUS_CODE_TABS-->
+
+## 特殊属性
+
+有一些特殊的属性不会直接影响 DOM，而是充当 Yew 虚拟 DOM 的指令。目前，有这样两个特殊的 props： `ref`和`key` 。
+
+`ref`允许您直接访问和操作底层 DOM 节点。见[参考文献](components/refs)获取的更多细节。
+
+`key`为元素提供了一个唯一标识符，Yew 可以将其用于优化。
+
+:::important
+关于 key 的文档尚未编写。见[#1263](https://github.com/yewstack/yew/issues/1263) 。
+
+目前来说，当您有一个内部元素会发生位置变化的列表时，请使用 key。比如在除了列表尾部的任何位置插入或删除元素。
+:::

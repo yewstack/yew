@@ -104,7 +104,7 @@ mod layout_tests {
     extern crate self as yew;
 
     use crate::html;
-    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
     use yew::virtual_dom::VPortal;
 

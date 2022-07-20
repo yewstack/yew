@@ -1,16 +1,16 @@
 [workspace]
 members = [
+  # Packages
   "packages/yew",
   "packages/yew-macro",
-  "packages/yew-validation",
   "packages/yew-agent",
-
-  # Router
   "packages/yew-router",
   "packages/yew-router-macro",
 
   # Examples
+  "examples/agents",
   "examples/boids",
+  "examples/contexts",
   "examples/counter",
   "examples/dyn_create_destroy_apps",
   "examples/file_upload",
@@ -21,23 +21,21 @@ members = [
   "examples/js_callback",
   "examples/keyed_list",
   "examples/mount_point",
-  "examples/multi_thread",
   "examples/nested_list",
   "examples/node_refs",
   "examples/password_strength",
   "examples/portals",
-  "examples/pub_sub",
   "examples/router",
-  "examples/store",
   "examples/timer",
   "examples/todomvc",
   "examples/two_apps",
   "examples/webgl",
   "examples/web_worker_fib",
 
-  # Release tools
-  "packages/changelog",
+  # Tools
+  "tools/changelog",
 ]
 exclude = [
-  "packages/website-test",
+  # Tools
+  "tools/website-test",
 ]

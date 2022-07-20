@@ -8,10 +8,9 @@ use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::hint::unreachable_unchecked;
 use std::marker::PhantomData;
-use std::mem::MaybeUninit;
+use std::mem;
 use std::ops::Deref;
 use std::rc::Rc;
-use std::sync::Once;
 use wasm_bindgen::JsCast;
 use web_sys::{Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
 
@@ -338,14 +337,11 @@ impl VTag {
         match &self.inner {
             VTagInner::Other { children, .. } => children,
             _ => {
-                static mut EMPTY: MaybeUninit<VList> = MaybeUninit::uninit();
-                static ONCE: Once = Once::new();
-                unsafe {
-                    ONCE.call_once(|| {
-                        EMPTY = MaybeUninit::new(VList::default());
-                    });
-                    &*EMPTY.as_ptr()
-                }
+                // This is mutable because the VList is not Sync
+                static mut EMPTY: VList = VList::new();
+
+                // SAFETY: The EMPTY value is always read-only
+                unsafe { &EMPTY }
             }
         }
     }
@@ -435,8 +431,22 @@ impl VTag {
             .insert(key, value.into_prop_value());
     }
 
+    /// Add event listener on the [VTag]'s  [Element].
+    /// Returns `true` if the listener has been added, `false` otherwise.
+    pub fn add_listener(&mut self, listener: Rc<dyn Listener>) -> bool {
+        if let Listeners::Pending(listeners) = &mut self.listeners {
+            let mut listeners = mem::take(listeners).into_vec();
+            listeners.push(Some(listener));
+
+            self.set_listeners(listeners.into_boxed_slice());
+            true
+        } else {
+            false
+        }
+    }
+
     /// Set event listeners on the [VTag]'s  [Element]
-    pub fn set_listener(&mut self, listeners: Box<[Option<Rc<dyn Listener>>]>) {
+    pub fn set_listeners(&mut self, listeners: Box<[Option<Rc<dyn Listener>>]>) {
         self.listeners = Listeners::Pending(listeners);
     }
 
@@ -476,7 +486,11 @@ impl VDiff for VTag {
         if parent.remove_child(&node).is_err() {
             console::warn!("Node not found to remove VTag");
         }
-        self.node_ref.set(None);
+        // It could be that the ref was already reused when rendering another element.
+        // Only unset the ref it still belongs to our node
+        if self.node_ref.get().as_ref() == Some(&node) {
+            self.node_ref.set(None);
+        }
     }
 
     /// Renders virtual tag over DOM [Element], but it also compares this with an ancestor [VTag]
@@ -514,7 +528,9 @@ impl VDiff for VTag {
                         VNode::VTag(mut a) => {
                             // Preserve the reference that already exists
                             let el = a.reference.take().unwrap();
-                            a.node_ref.set(None);
+                            if self.node_ref.get().as_ref() == self.reference.as_deref() {
+                                a.node_ref.set(None);
+                            }
                             (Some(a), el)
                         }
                         _ => unsafe { unreachable_unchecked() },
@@ -1130,6 +1146,41 @@ mod tests {
             "node_ref_a should have been reset when the element was reused."
         );
     }
+
+    #[test]
+    fn vtag_should_not_touch_newly_bound_refs() {
+        let scope = test_scope();
+        let parent = document().create_element("div").unwrap();
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let test_ref = NodeRef::default();
+        let mut before = html! {
+            <>
+                <div ref={&test_ref} id="before" />
+            </>
+        };
+        let mut after = html! {
+            <>
+                <h6 />
+                <div ref={&test_ref} id="after" />
+            </>
+        };
+        // The point of this diff is to first render the "after" div and then detach the "before" div,
+        // while both should be bound to the same node ref
+
+        before.apply(&scope, &parent, NodeRef::default(), None);
+        after.apply(&scope, &parent, NodeRef::default(), Some(before));
+
+        assert_eq!(
+            test_ref
+                .get()
+                .unwrap()
+                .dyn_ref::<web_sys::Element>()
+                .unwrap()
+                .outer_html(),
+            "<div id=\"after\"></div>"
+        );
+    }
 }
 
 #[cfg(test)]
@@ -1137,7 +1188,7 @@ mod layout_tests {
     extern crate self as yew;
 
     use crate::html;
-    use crate::virtual_dom::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
     #[cfg(feature = "wasm_test")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};

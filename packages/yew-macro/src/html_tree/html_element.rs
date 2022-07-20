@@ -298,10 +298,9 @@ impl ToTokens for HtmlElement {
             TagName::Lit(name) => {
                 let name_span = name.span();
                 let name = name.to_ascii_lowercase_string();
-                match &*name {
+                let node = match &*name {
                     "input" => {
-                        quote_spanned! {name_span=>
-                            #[allow(clippy::redundant_clone, unused_braces)]
+                        quote! {
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_input(
                                     #value,
@@ -315,8 +314,7 @@ impl ToTokens for HtmlElement {
                         }
                     }
                     "textarea" => {
-                        quote_spanned! {name_span=>
-                            #[allow(clippy::redundant_clone, unused_braces)]
+                        quote! {
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_textarea(
                                     #value,
@@ -329,8 +327,7 @@ impl ToTokens for HtmlElement {
                         }
                     }
                     _ => {
-                        quote_spanned! {name_span=>
-                            #[allow(clippy::redundant_clone, unused_braces)]
+                        quote! {
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_other(
                                     ::std::borrow::Cow::<'static, ::std::primitive::str>::Borrowed(#name),
@@ -342,6 +339,16 @@ impl ToTokens for HtmlElement {
                                 ),
                             )
                         }
+                    }
+                };
+                // the return value can be inlined without the braces when this is stable:
+                // https://github.com/rust-lang/rust/issues/15701
+                quote_spanned!{
+                    name_span =>
+                    {
+                        #[allow(clippy::redundant_clone, unused_braces)]
+                        let node = #node;
+                        node
                     }
                 }
             }

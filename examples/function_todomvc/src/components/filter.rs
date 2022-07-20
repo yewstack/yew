@@ -8,8 +8,8 @@ pub struct FilterProps {
     pub onset_filter: Callback<FilterEnum>,
 }
 
-#[function_component(Filter)]
-pub fn filter(props: &FilterProps) -> Html {
+#[function_component]
+pub fn Filter(props: &FilterProps) -> Html {
     let filter = props.filter;
 
     let cls = if props.selected {
@@ -18,11 +18,16 @@ pub fn filter(props: &FilterProps) -> Html {
         "not-selected"
     };
 
+    let onset_filter = {
+        let onset_filter = props.onset_filter.clone();
+        move |_| onset_filter.emit(filter)
+    };
+
     html! {
         <li>
             <a class={cls}
                href={props.filter.as_href()}
-               onclick={props.onset_filter.reform(move |_| filter)}
+               onclick={onset_filter}
             >
                 { props.filter }
             </a>
