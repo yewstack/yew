@@ -99,3 +99,34 @@ pub trait Component: Sized + 'static {
     #[allow(unused_variables)]
     fn destroy(&mut self, ctx: &Context<Self>) {}
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct MyCustomComponent;
+
+    impl Component for MyCustomComponent {
+        type Message = ();
+        type Properties = ();
+
+        fn create(_ctx: &Context<Self>) -> Self {
+            Self
+        }
+
+        fn view(&self, _ctx: &Context<Self>) -> Html {
+            Default::default()
+        }
+    }
+
+    #[test]
+    fn make_sure_component_update_and_changed_rerender() {
+        let mut comp = MyCustomComponent;
+        let ctx = Context {
+            scope: Scope::new(None),
+            props: Rc::new(()),
+        };
+        assert!(comp.update(&ctx, ()));
+        assert!(comp.changed(&ctx));
+    }
+}
