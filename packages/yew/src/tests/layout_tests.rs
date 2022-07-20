@@ -39,7 +39,7 @@ pub struct TestLayout<'a> {
 }
 
 pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
-    let document = gloo_utils::document();
+    let document = gloo::utils::document();
     let scope: AnyScope = AnyScope::test();
     let parent_element = document.create_element("div").unwrap();
     let root = BSubtree::create_root(&parent_element);

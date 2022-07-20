@@ -1,4 +1,4 @@
-use gloo_render::{request_animation_frame, AnimationFrame};
+use gloo::render::{request_animation_frame, AnimationFrame};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGlRenderingContext as GL};
 use yew::html::Scope;

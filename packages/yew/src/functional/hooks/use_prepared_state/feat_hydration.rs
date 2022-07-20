@@ -14,7 +14,7 @@ use crate::suspense::{Suspension, SuspensionResult};
 
 #[cfg(target_arch = "wasm32")]
 async fn decode_base64(s: &str) -> Result<Vec<u8>, JsValue> {
-    use gloo_utils::window;
+    use gloo::utils::window;
     use js_sys::Uint8Array;
     use wasm_bindgen::JsCast;
     use wasm_bindgen_futures::JsFuture;

@@ -303,7 +303,7 @@ mod layout_tests {
 
     #[test]
     fn diff() {
-        let document = gloo_utils::document();
+        let document = gloo::utils::document();
         let vref_node_1 = VNode::VRef(document.create_element("i").unwrap().into());
         let vref_node_2 = VNode::VRef(document.create_element("b").unwrap().into());
 

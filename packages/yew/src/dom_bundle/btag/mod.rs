@@ -8,7 +8,7 @@ use std::hint::unreachable_unchecked;
 use std::ops::DerefMut;
 
 use gloo::console;
-use gloo_utils::document;
+use gloo::utils::document;
 use listeners::ListenerRegistration;
 pub use listeners::Registry;
 use wasm_bindgen::JsCast;
@@ -386,7 +386,7 @@ mod feat_hydration {
 #[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
-    use gloo_utils::document;
+    use gloo::utils::document;
     use wasm_bindgen::JsCast;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use web_sys::HtmlInputElement as InputElement;

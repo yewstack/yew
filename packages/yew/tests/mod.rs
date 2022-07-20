@@ -29,7 +29,7 @@ async fn props_are_passed() {
     }
 
     yew::Renderer::<PropsComponent>::with_root_and_props(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
         PropsPassedFunctionProps {
             value: "props".to_string(),
         },

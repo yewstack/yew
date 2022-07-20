@@ -61,7 +61,7 @@ async fn use_callback_works() {
     }
 
     yew::Renderer::<UseCallbackComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
 

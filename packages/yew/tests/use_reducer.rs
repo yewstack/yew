@@ -5,7 +5,7 @@ use std::rc::Rc;
 use std::time::Duration;
 
 use gloo::timers::future::sleep;
-use gloo_utils::document;
+use gloo::utils::document;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_test::*;
 use web_sys::HtmlElement;
@@ -57,7 +57,7 @@ async fn use_reducer_works() {
     }
 
     yew::Renderer::<UseReducerComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
     sleep(Duration::ZERO).await;

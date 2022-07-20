@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use gloo_file::callbacks::FileReader;
-use gloo_file::File;
+use gloo::file::callbacks::FileReader;
+use gloo::file::File;
 use web_sys::{Event, HtmlInputElement};
 use yew::html::TargetCast;
 use yew::{html, Component, Context, Html};
@@ -55,14 +55,14 @@ impl Component for App {
                         let link = ctx.link().clone();
 
                         if bytes {
-                            gloo_file::callbacks::read_as_bytes(&file, move |res| {
+                            gloo::file::callbacks::read_as_bytes(&file, move |res| {
                                 link.send_message(Msg::LoadedBytes(
                                     file_name,
                                     res.expect("failed to read file"),
                                 ))
                             })
                         } else {
-                            gloo_file::callbacks::read_as_text(&file, move |res| {
+                            gloo::file::callbacks::read_as_text(&file, move |res| {
                                 link.send_message(Msg::Loaded(
                                     file_name,
                                     res.unwrap_or_else(|e| e.to_string()),

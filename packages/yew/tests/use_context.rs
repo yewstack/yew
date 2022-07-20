@@ -65,7 +65,7 @@ async fn use_context_scoping_works() {
     }
 
     yew::Renderer::<UseContextComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
 
@@ -148,7 +148,7 @@ async fn use_context_works_with_multiple_types() {
     }
 
     yew::Renderer::<TestComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
 
@@ -248,7 +248,7 @@ async fn use_context_update_works() {
     }
 
     yew::Renderer::<TestComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
 
