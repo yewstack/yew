@@ -319,7 +319,7 @@ checksum = "5827cebf4670468b8772dd191856768aedcb1b0278a04f989f7766351917b9dc"
 name = "counter"
 version = "0.1.1"
 dependencies = [
- "gloo-console",
+ "gloo",
  "js-sys",
  "wasm-bindgen",
  "yew",
@@ -441,7 +441,6 @@ name = "dyn_create_destroy_apps"
 version = "0.1.0"
 dependencies = [
  "gloo",
- "gloo-utils",
  "js-sys",
  "slab",
  "wasm-bindgen",
@@ -509,7 +508,7 @@ dependencies = [
 name = "file_upload"
 version = "0.1.0"
 dependencies = [
- "gloo-file",
+ "gloo",
  "js-sys",
  "web-sys",
  "yew",
@@ -566,7 +565,7 @@ name = "function_router"
 version = "0.1.0"
 dependencies = [
  "getrandom",
- "gloo-timers",
+ "gloo",
  "instant",
  "lipsum",
  "log",
@@ -594,7 +593,7 @@ dependencies = [
 name = "futures"
 version = "0.1.0"
 dependencies = [
- "gloo-utils",
+ "gloo",
  "pulldown-cmark",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -696,7 +695,7 @@ name = "game_of_life"
 version = "0.1.4"
 dependencies = [
  "getrandom",
- "gloo-timers",
+ "gloo",
  "log",
  "rand",
  "wasm-logger",
@@ -1118,7 +1117,7 @@ dependencies = [
 name = "inner_html"
 version = "0.1.0"
 dependencies = [
- "gloo-utils",
+ "gloo",
  "web-sys",
  "yew",
 ]
@@ -1281,7 +1280,7 @@ dependencies = [
 name = "mount_point"
 version = "0.1.0"
 dependencies = [
- "gloo-utils",
+ "gloo",
  "wasm-bindgen",
  "web-sys",
  "yew",
@@ -1534,7 +1533,7 @@ checksum = "1df8c4ec4b0627e53bdf214615ad287367e482558cf84b109250b37464dc03ae"
 name = "portals"
 version = "0.1.0"
 dependencies = [
- "gloo-utils",
+ "gloo",
  "wasm-bindgen",
  "web-sys",
  "yew",
@@ -1734,7 +1733,7 @@ name = "router"
 version = "0.1.0"
 dependencies = [
  "getrandom",
- "gloo-timers",
+ "gloo",
  "instant",
  "lipsum",
  "log",
@@ -1987,7 +1986,7 @@ dependencies = [
 name = "suspense"
 version = "0.1.0"
 dependencies = [
- "gloo-timers",
+ "gloo",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -2319,7 +2318,7 @@ dependencies = [
 name = "two_apps"
 version = "0.1.0"
 dependencies = [
- "gloo-utils",
+ "gloo",
  "yew",
 ]
 
@@ -2558,7 +2557,7 @@ dependencies = [
 name = "webgl"
 version = "0.1.0"
 dependencies = [
- "gloo-render",
+ "gloo",
  "js-sys",
  "wasm-bindgen",
  "web-sys",
@@ -2657,7 +2656,6 @@ dependencies = [
  "console_error_panic_hook",
  "futures 0.3.21",
  "gloo",
- "gloo-utils",
  "html-escape",
  "implicit-clone",
  "indexmap",
