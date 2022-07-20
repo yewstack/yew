@@ -292,8 +292,12 @@ mod tests {
         let ctx = Context {
             scope: Scope::new(None),
             props: Rc::new(()),
+            #[cfg(feature = "hydration")]
+            creation_mode: crate::html::RenderMode,
+            #[cfg(feature = "hydration")]
+            prepared_state: None,
         };
-        assert!(comp.update(&ctx, ()));
-        assert!(comp.changed(&ctx));
+        assert!(Component::update(&mut comp, &ctx, ()));
+        assert!(Component::changed(&mut comp, &ctx));
     }
 }
