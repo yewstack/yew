@@ -97,7 +97,7 @@ async fn suspense_works() {
         }
     }
 
-    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .render();
 
     sleep(Duration::from_millis(10)).await;
@@ -114,7 +114,7 @@ async fn suspense_works() {
 
     sleep(Duration::from_millis(10)).await;
 
-    gloo_utils::document()
+    gloo::utils::document()
         .query_selector(".increase")
         .unwrap()
         .unwrap()
@@ -124,7 +124,7 @@ async fn suspense_works() {
 
     sleep(Duration::ZERO).await;
 
-    gloo_utils::document()
+    gloo::utils::document()
         .query_selector(".increase")
         .unwrap()
         .unwrap()
@@ -140,7 +140,7 @@ async fn suspense_works() {
         r#"<div class="content-area"><div class="actual-result">2</div><button class="increase">increase</button><div class="action-area"><button class="take-a-break">Take a break!</button></div></div>"#
     );
 
-    gloo_utils::document()
+    gloo::utils::document()
         .query_selector(".take-a-break")
         .unwrap()
         .unwrap()
@@ -247,7 +247,7 @@ async fn suspense_not_suspended_at_start() {
         }
     }
 
-    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .render();
 
     sleep(Duration::from_millis(10)).await;
@@ -257,7 +257,7 @@ async fn suspense_not_suspended_at_start() {
         result.as_str(),
         r#"<div class="content-area"><textarea></textarea><div class="action-area"><button class="take-a-break">Take a break!</button></div></div>"#
     );
-    gloo_utils::document()
+    gloo::utils::document()
         .query_selector(".take-a-break")
         .unwrap()
         .unwrap()
@@ -366,7 +366,7 @@ async fn suspense_nested_suspense_works() {
         }
     }
 
-    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .render();
 
     sleep(Duration::from_millis(10)).await;
@@ -389,7 +389,7 @@ async fn suspense_nested_suspense_works() {
         r#"<div class="content-area"><div class="action-area"><button class="take-a-break">Take a break!</button></div><div class="content-area"><div class="action-area"><button class="take-a-break2">Take a break!</button></div></div></div>"#
     );
 
-    gloo_utils::document()
+    gloo::utils::document()
         .query_selector(".take-a-break2")
         .unwrap()
         .unwrap()
@@ -523,7 +523,7 @@ async fn effects_not_run_when_suspended() {
     };
 
     yew::Renderer::<App>::with_root_and_props(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
         props,
     )
     .render();
@@ -544,7 +544,7 @@ async fn effects_not_run_when_suspended() {
 
     sleep(Duration::from_millis(10)).await;
 
-    gloo_utils::document()
+    gloo::utils::document()
         .query_selector(".increase")
         .unwrap()
         .unwrap()
@@ -554,7 +554,7 @@ async fn effects_not_run_when_suspended() {
 
     sleep(Duration::ZERO).await;
 
-    gloo_utils::document()
+    gloo::utils::document()
         .query_selector(".increase")
         .unwrap()
         .unwrap()
@@ -571,7 +571,7 @@ async fn effects_not_run_when_suspended() {
     );
     assert_eq!(*counter.borrow(), 3); // effects ran 3 times.
 
-    gloo_utils::document()
+    gloo::utils::document()
         .query_selector(".take-a-break")
         .unwrap()
         .unwrap()
@@ -622,7 +622,7 @@ async fn use_suspending_future_works() {
         }
     }
 
-    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .render();
 
     sleep(Duration::from_millis(10)).await;
@@ -672,7 +672,7 @@ async fn use_suspending_future_with_deps_works() {
         }
     }
 
-    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .render();
 
     sleep(Duration::from_millis(10)).await;

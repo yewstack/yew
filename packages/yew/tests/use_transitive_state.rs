@@ -53,7 +53,7 @@ async fn use_transitive_state_works() {
 
     sleep(Duration::ZERO).await;
 
-    Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+    Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
     sleep(Duration::from_millis(100)).await;

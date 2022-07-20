@@ -29,7 +29,7 @@ async fn use_state_works() {
     }
 
     yew::Renderer::<UseComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
     sleep(Duration::ZERO).await;
@@ -72,7 +72,7 @@ async fn multiple_use_state_setters() {
     }
 
     yew::Renderer::<UseComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
     sleep(Duration::ZERO).await;
@@ -101,7 +101,7 @@ async fn use_state_eq_works() {
     }
 
     yew::Renderer::<UseComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
     sleep(Duration::ZERO).await;
