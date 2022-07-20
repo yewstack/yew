@@ -50,7 +50,7 @@ async fn use_memo_works() {
     }
 
     yew::Renderer::<UseMemoComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
 

@@ -220,7 +220,7 @@ pub fn create_portal(child: Html, host: Element) -> Html {
 #[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
-    use gloo_utils::document;
+    use gloo::utils::document;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use super::*;

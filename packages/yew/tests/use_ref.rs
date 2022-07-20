@@ -32,7 +32,7 @@ async fn use_ref_works() {
     }
 
     yew::Renderer::<UseRefComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
     sleep(Duration::ZERO).await;

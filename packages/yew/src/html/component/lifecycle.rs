@@ -823,7 +823,7 @@ mod tests {
     }
 
     fn test_lifecycle(props: Props, expected: &[&str]) {
-        let document = gloo_utils::document();
+        let document = gloo::utils::document();
         let scope = Scope::<Comp>::new(None);
         let parent = document.create_element("div").unwrap();
         let root = BSubtree::create_root(&parent);

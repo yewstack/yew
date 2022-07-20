@@ -70,7 +70,7 @@ async fn change_nested_after_append() {
         }
     }
 
-    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .render();
 
     sleep(Duration::from_millis(100)).await;

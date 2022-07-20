@@ -181,7 +181,7 @@ mod feat_hydration {
 mod tests {
     use std::ops::Deref;
 
-    use gloo_utils::document;
+    use gloo::utils::document;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use web_sys::{Element, Node};
 

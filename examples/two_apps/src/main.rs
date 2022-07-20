@@ -70,7 +70,7 @@ impl Component for App {
 }
 
 fn mount_app(selector: &'static str) -> AppHandle<App> {
-    let document = gloo_utils::document();
+    let document = gloo::utils::document();
     let element = document.query_selector(selector).unwrap().unwrap();
     yew::Renderer::<App>::with_root(element).render()
 }

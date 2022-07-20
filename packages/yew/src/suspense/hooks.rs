@@ -44,7 +44,7 @@ impl<T: fmt::Debug> fmt::Debug for UseFutureHandle<T> {
 /// ```
 /// # use yew::prelude::*;
 /// # use yew::suspense::use_future;
-/// use gloo_net::http::Request;
+/// use gloo::net::http::Request;
 ///
 /// const URL: &str = "https://en.wikipedia.org/w/api.php?\
 ///                    action=query&origin=*&format=json&generator=search&\
