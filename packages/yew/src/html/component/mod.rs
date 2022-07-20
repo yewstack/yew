@@ -60,14 +60,18 @@ pub trait Component: Sized + 'static {
     /// to update their state and (optionally) re-render themselves.
     ///
     /// Returned bool indicates whether to render this Component after update.
+    ///
+    /// By default, this function will return true and thus make the component re-render.
     #[allow(unused_variables)]
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        false
+        true
     }
 
     /// Called when properties passed to the component change
     ///
     /// Returned bool indicates whether to render this Component after changed.
+    ///
+    /// By default, this function will return true and thus make the component re-render.
     #[allow(unused_variables)]
     fn changed(&mut self, ctx: &Context<Self>) -> bool {
         true
