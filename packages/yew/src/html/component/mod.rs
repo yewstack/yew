@@ -293,7 +293,7 @@ mod tests {
             scope: Scope::new(None),
             props: Rc::new(()),
             #[cfg(feature = "hydration")]
-            creation_mode: crate::html::RenderMode,
+            creation_mode: crate::html::RenderMode::Hydration,
             #[cfg(feature = "hydration")]
             prepared_state: None,
         };
