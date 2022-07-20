@@ -15,5 +15,5 @@ pub fn obtain_result_by_id(id: &str) -> String {
 }
 
 pub fn output_element() -> web_sys::Element {
-    gloo_utils::document().get_element_by_id("output").unwrap()
+    gloo::utils::document().get_element_by_id("output").unwrap()
 }
