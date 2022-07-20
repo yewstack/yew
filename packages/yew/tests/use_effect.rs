@@ -7,7 +7,7 @@ use wasm_bindgen_test::*;
 use yew::functional::{
     use_effect_with_deps, use_mut_ref, use_state, FunctionComponent, FunctionProvider,
 };
-use yew::{html, Html, Properties};
+use yew::{html, HtmlResult, Properties};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -39,7 +39,7 @@ fn use_effect_destroys_on_component_drop() {
     impl FunctionProvider for UseEffectFunction {
         type TProps = FunctionProps;
 
-        fn run(props: &Self::TProps) -> Html {
+        fn run(props: &Self::TProps) -> HtmlResult {
             let effect_called = props.effect_called.clone();
             let destroy_called = props.destroy_called.clone();
             use_effect_with_deps(
@@ -50,23 +50,23 @@ fn use_effect_destroys_on_component_drop() {
                 },
                 (),
             );
-            return html! {};
+            Ok(html! {})
         }
     }
     impl FunctionProvider for UseEffectWrapper {
         type TProps = WrapperProps;
 
-        fn run(props: &Self::TProps) -> Html {
+        fn run(props: &Self::TProps) -> HtmlResult {
             let show = use_state(|| true);
             if *show {
                 let effect_called: Rc<dyn Fn()> = { Rc::new(move || show.set(false)) };
-                html! {
+                Ok(html! {
                     <UseEffectComponent destroy_called={props.destroy_called.clone()} {effect_called} />
-                }
+                })
             } else {
-                html! {
+                Ok(html! {
                     <div>{ "EMPTY" }</div>
-                }
+                })
             }
         }
     }
@@ -87,7 +87,7 @@ fn use_effect_works_many_times() {
     impl FunctionProvider for UseEffectFunction {
         type TProps = ();
 
-        fn run(_: &Self::TProps) -> Html {
+        fn run(_: &Self::TProps) -> HtmlResult {
             let counter = use_state(|| 0);
             let counter_clone = counter.clone();
 
@@ -101,13 +101,13 @@ fn use_effect_works_many_times() {
                 *counter,
             );
 
-            return html! {
+            Ok(html! {
                 <div>
                     { "The test result is" }
                     <div id="result">{ *counter }</div>
                     { "\n" }
                 </div>
-            };
+            })
         }
     }
 
@@ -125,7 +125,7 @@ fn use_effect_works_once() {
     impl FunctionProvider for UseEffectFunction {
         type TProps = ();
 
-        fn run(_: &Self::TProps) -> Html {
+        fn run(_: &Self::TProps) -> HtmlResult {
             let counter = use_state(|| 0);
             let counter_clone = counter.clone();
 
@@ -137,13 +137,13 @@ fn use_effect_works_once() {
                 (),
             );
 
-            return html! {
+            Ok(html! {
                 <div>
                     { "The test result is" }
                     <div id="result">{ *counter }</div>
                     { "\n" }
                 </div>
-            };
+            })
         }
     }
     type UseEffectComponent = FunctionComponent<UseEffectFunction>;
@@ -160,7 +160,7 @@ fn use_effect_refires_on_dependency_change() {
     impl FunctionProvider for UseEffectFunction {
         type TProps = ();
 
-        fn run(_: &Self::TProps) -> Html {
+        fn run(_: &Self::TProps) -> HtmlResult {
             let number_ref = use_mut_ref(|| 0);
             let number_ref_c = number_ref.clone();
             let number_ref2 = use_mut_ref(|| 0);
@@ -185,13 +185,13 @@ fn use_effect_refires_on_dependency_change() {
                 },
                 arg,
             );
-            return html! {
+            Ok(html! {
                 <div>
                     {"The test result is"}
                     <div id="result">{*number_ref.borrow_mut().deref_mut()}{*number_ref2.borrow_mut().deref_mut()}</div>
                     {"\n"}
                 </div>
-            };
+            })
         }
     }
     type UseEffectComponent = FunctionComponent<UseEffectFunction>;

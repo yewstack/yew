@@ -25,6 +25,7 @@ slab = "0.4"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 yew-macro = { version = "^0.19.0", path = "../yew-macro" }
+thiserror = "1.0"
 
 scoped-tls-hkt = "0.1"
 
@@ -62,6 +63,7 @@ features = [
 [dev-dependencies]
 easybench-wasm = "0.2"
 wasm-bindgen-test = "0.3"
+gloo = { version = "0.4", features = ["futures"] }
 
 [features]
 doc_test = []

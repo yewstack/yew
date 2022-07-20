@@ -77,7 +77,8 @@ pub fn use_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<T> {
 /// ```rust
 /// # use wasm_bindgen::{prelude::Closure, JsCast};
 /// # use yew::{
-/// #    function_component, html, use_effect_with_deps, use_node_ref
+/// #    function_component, html, use_effect_with_deps, use_node_ref,
+/// #    Html,
 /// # };
 /// # use web_sys::{Event, HtmlElement};
 ///

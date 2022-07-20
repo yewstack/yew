@@ -1,13 +1,16 @@
 //! Component lifecycle module
 
-use super::{Component, Scope};
+use super::{AnyScope, BaseComponent, Scope};
+use crate::html::RenderError;
 use crate::scheduler::{self, Runnable, Shared};
+use crate::suspense::{Suspense, Suspension};
 use crate::virtual_dom::{VDiff, VNode};
+use crate::Callback;
 use crate::{Context, NodeRef};
 use std::rc::Rc;
 use web_sys::Element;
 
-pub(crate) struct ComponentState<COMP: Component> {
+pub(crate) struct ComponentState<COMP: BaseComponent> {
     pub(crate) component: Box<COMP>,
     pub(crate) root_node: VNode,
 
@@ -17,12 +20,14 @@ pub(crate) struct ComponentState<COMP: Component> {
     node_ref: NodeRef,
     has_rendered: bool,
 
+    suspension: Option<Suspension>,
+
     // Used for debug logging
     #[cfg(debug_assertions)]
     pub(crate) vcomp_id: u64,
 }
 
-impl<COMP: Component> ComponentState<COMP> {
+impl<COMP: BaseComponent> ComponentState<COMP> {
     pub(crate) fn new(
         parent: Element,
         next_sibling: NodeRef,
@@ -47,6 +52,7 @@ impl<COMP: Component> ComponentState<COMP> {
             parent,
             next_sibling,
             node_ref,
+            suspension: None,
             has_rendered: false,
 
             #[cfg(debug_assertions)]
@@ -55,7 +61,7 @@ impl<COMP: Component> ComponentState<COMP> {
     }
 }
 
-pub(crate) struct CreateRunner<COMP: Component> {
+pub(crate) struct CreateRunner<COMP: BaseComponent> {
     pub(crate) parent: Element,
     pub(crate) next_sibling: NodeRef,
     pub(crate) placeholder: VNode,
@@ -64,7 +70,7 @@ pub(crate) struct CreateRunner<COMP: Component> {
     pub(crate) scope: Scope<COMP>,
 }
 
-impl<COMP: Component> Runnable for CreateRunner<COMP> {
+impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
     fn run(self: Box<Self>) {
         let mut current_state = self.scope.state.borrow_mut();
         if current_state.is_none() {
@@ -83,21 +89,23 @@ impl<COMP: Component> Runnable for CreateRunner<COMP> {
     }
 }
 
-pub(crate) enum UpdateEvent<COMP: Component> {
+pub(crate) enum UpdateEvent<COMP: BaseComponent> {
     /// Wraps messages for a component.
     Message(COMP::Message),
     /// Wraps batch of messages for a component.
     MessageBatch(Vec<COMP::Message>),
     /// Wraps properties, node ref, and next sibling for a component.
     Properties(Rc<COMP::Properties>, NodeRef, NodeRef),
+    /// Shift Scope.
+    Shift(Element, NodeRef),
 }
 
-pub(crate) struct UpdateRunner<COMP: Component> {
+pub(crate) struct UpdateRunner<COMP: BaseComponent> {
     pub(crate) state: Shared<Option<ComponentState<COMP>>>,
     pub(crate) event: UpdateEvent<COMP>,
 }
 
-impl<COMP: Component> Runnable for UpdateRunner<COMP> {
+impl<COMP: BaseComponent> Runnable for UpdateRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().as_mut() {
             let schedule_render = match self.event {
@@ -119,6 +127,16 @@ impl<COMP: Component> Runnable for UpdateRunner<COMP> {
                     } else {
                         false
                     }
+                }
+                UpdateEvent::Shift(parent, next_sibling) => {
+                    state
+                        .root_node
+                        .shift(&state.parent, &parent, next_sibling.clone());
+
+                    state.parent = parent;
+                    state.next_sibling = next_sibling;
+
+                    false
                 }
             };
 
@@ -144,11 +162,11 @@ impl<COMP: Component> Runnable for UpdateRunner<COMP> {
     }
 }
 
-pub(crate) struct DestroyRunner<COMP: Component> {
+pub(crate) struct DestroyRunner<COMP: BaseComponent> {
     pub(crate) state: Shared<Option<ComponentState<COMP>>>,
 }
 
-impl<COMP: Component> Runnable for DestroyRunner<COMP> {
+impl<COMP: BaseComponent> Runnable for DestroyRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(mut state) = self.state.borrow_mut().take() {
             #[cfg(debug_assertions)]
@@ -161,33 +179,99 @@ impl<COMP: Component> Runnable for DestroyRunner<COMP> {
     }
 }
 
-pub(crate) struct RenderRunner<COMP: Component> {
+pub(crate) struct RenderRunner<COMP: BaseComponent> {
     pub(crate) state: Shared<Option<ComponentState<COMP>>>,
 }
 
-impl<COMP: Component> Runnable for RenderRunner<COMP> {
+impl<COMP: BaseComponent> Runnable for RenderRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             #[cfg(debug_assertions)]
             crate::virtual_dom::vcomp::log_event(state.vcomp_id, "render");
 
-            let mut new_root = state.component.view(&state.context);
-            std::mem::swap(&mut new_root, &mut state.root_node);
-            let ancestor = Some(new_root);
-            let new_root = &mut state.root_node;
-            let scope = state.context.scope.clone().into();
-            let next_sibling = state.next_sibling.clone();
-            let node = new_root.apply(&scope, &state.parent, next_sibling, ancestor);
-            state.node_ref.link(node);
+            match state.component.view(&state.context) {
+                Ok(m) => {
+                    // Currently not suspended, we remove any previous suspension and update
+                    // normally.
+                    let mut root = m;
+                    std::mem::swap(&mut root, &mut state.root_node);
+
+                    if let Some(ref m) = state.suspension {
+                        let comp_scope = AnyScope::from(state.context.scope.clone());
+
+                        let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
+                        let suspense = suspense_scope.get_component().unwrap();
+
+                        suspense.resume(m.clone());
+                    }
+
+                    let ancestor = Some(root);
+                    let new_root = &mut state.root_node;
+                    let scope = state.context.scope.clone().into();
+                    let next_sibling = state.next_sibling.clone();
+
+                    let node = new_root.apply(&scope, &state.parent, next_sibling, ancestor);
+                    state.node_ref.link(node);
+                }
+
+                Err(RenderError::Suspended(m)) => {
+                    // Currently suspended, we re-use previous root node and send
+                    // suspension to parent element.
+                    let shared_state = self.state.clone();
+
+                    if m.resumed() {
+                        // schedule a render immediately if suspension is resumed.
+
+                        scheduler::push_component_render(
+                            shared_state.as_ptr() as usize,
+                            RenderRunner {
+                                state: shared_state.clone(),
+                            },
+                            RenderedRunner {
+                                state: shared_state,
+                            },
+                        );
+                    } else {
+                        // We schedule a render after current suspension is resumed.
+
+                        let comp_scope = AnyScope::from(state.context.scope.clone());
+
+                        let suspense_scope = comp_scope.find_parent_scope::<Suspense>().unwrap();
+                        let suspense = suspense_scope.get_component().unwrap();
+
+                        m.listen(Callback::from(move |_| {
+                            scheduler::push_component_render(
+                                shared_state.as_ptr() as usize,
+                                RenderRunner {
+                                    state: shared_state.clone(),
+                                },
+                                RenderedRunner {
+                                    state: shared_state.clone(),
+                                },
+                            );
+                        }));
+
+                        if let Some(ref last_m) = state.suspension {
+                            if &m != last_m {
+                                // We remove previous suspension from the suspense.
+                                suspense.resume(last_m.clone());
+                            }
+                        }
+                        state.suspension = Some(m.clone());
+
+                        suspense.suspend(m);
+                    }
+                }
+            };
         }
     }
 }
 
-pub(crate) struct RenderedRunner<COMP: Component> {
+pub(crate) struct RenderedRunner<COMP: BaseComponent> {
     pub(crate) state: Shared<Option<ComponentState<COMP>>>,
 }
 
-impl<COMP: Component> Runnable for RenderedRunner<COMP> {
+impl<COMP: BaseComponent> Runnable for RenderedRunner<COMP> {
     fn run(self: Box<Self>) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             #[cfg(debug_assertions)]

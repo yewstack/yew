@@ -291,6 +291,16 @@ impl VDiff for VList {
         }
     }
 
+    fn shift(&self, previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef) {
+        let mut last_node_ref = next_sibling;
+
+        for node in self.children.iter().rev() {
+            node.shift(previous_parent, next_parent, last_node_ref);
+            last_node_ref = NodeRef::default();
+            last_node_ref.set(node.first_node());
+        }
+    }
+
     fn apply(
         &mut self,
         parent_scope: &AnyScope,

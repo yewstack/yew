@@ -13,6 +13,8 @@ pub mod vnode;
 #[doc(hidden)]
 pub mod vportal;
 #[doc(hidden)]
+pub mod vsuspense;
+#[doc(hidden)]
 pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
@@ -35,6 +37,8 @@ pub use self::vlist::VList;
 pub use self::vnode::VNode;
 #[doc(inline)]
 pub use self::vportal::VPortal;
+#[doc(inline)]
+pub use self::vsuspense::VSuspense;
 #[doc(inline)]
 pub use self::vtag::VTag;
 #[doc(inline)]
@@ -224,7 +228,7 @@ pub enum Attributes {
         /// Attribute keys. Includes both always set and optional attribute keys.
         keys: &'static [&'static str],
 
-        /// Attribute values. Matches [keys]. Optional attributes are designated by setting [None].
+        /// Attribute values. Matches [keys](Attributes::Dynamic::keys). Optional attributes are designated by setting [None].
         values: Box<[Option<AttrValue>]>,
     },
 
@@ -494,6 +498,12 @@ impl Default for Attributes {
 pub(crate) trait VDiff {
     /// Remove self from parent.
     fn detach(&mut self, parent: &Element);
+
+    /// Move elements from one parent to another parent.
+    /// This is currently only used by `VSuspense` to preserve component state without detaching
+    /// (which destroys component state).
+    /// Prefer `detach` then apply if possible.
+    fn shift(&self, previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef);
 
     /// Scoped diff apply to other tree.
     ///

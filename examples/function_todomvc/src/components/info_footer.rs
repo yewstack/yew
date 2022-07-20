@@ -1,4 +1,4 @@
-use yew::{function_component, html};
+use yew::prelude::*;
 
 #[function_component(InfoFooter)]
 pub fn info_footer() -> Html {

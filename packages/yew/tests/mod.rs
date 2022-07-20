@@ -3,7 +3,7 @@ mod common;
 use common::obtain_result;
 use wasm_bindgen_test::*;
 use yew::functional::{FunctionComponent, FunctionProvider};
-use yew::{html, Html, Properties};
+use yew::{html, HtmlResult, Properties};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -17,13 +17,13 @@ fn props_are_passed() {
     impl FunctionProvider for PropsPassedFunction {
         type TProps = PropsPassedFunctionProps;
 
-        fn run(props: &Self::TProps) -> Html {
+        fn run(props: &Self::TProps) -> HtmlResult {
             assert_eq!(&props.value, "props");
-            return html! {
+            return Ok(html! {
                 <div id="result">
                     {"done"}
                 </div>
-            };
+            });
         }
     }
     type PropsComponent = FunctionComponent<PropsPassedFunction>;

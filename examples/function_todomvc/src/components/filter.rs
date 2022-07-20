@@ -1,5 +1,5 @@
 use crate::state::Filter as FilterEnum;
-use yew::{function_component, html, Callback, Properties};
+use yew::prelude::*;
 
 #[derive(PartialEq, Properties)]
 pub struct FilterProps {

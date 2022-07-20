@@ -34,7 +34,7 @@ fn use_reducer_works() {
     struct UseReducerFunction {}
     impl FunctionProvider for UseReducerFunction {
         type TProps = ();
-        fn run(_: &Self::TProps) -> Html {
+        fn run(_: &Self::TProps) -> HtmlResult {
             let counter = use_reducer(|| CounterState { counter: 10 });
 
             let counter_clone = counter.clone();
@@ -45,13 +45,13 @@ fn use_reducer_works() {
                 },
                 (),
             );
-            return html! {
+            Ok(html! {
                 <div>
                     {"The test result is"}
                     <div id="result">{counter.counter}</div>
                     {"\n"}
                 </div>
-            };
+            })
         }
     }
     type UseReducerComponent = FunctionComponent<UseReducerFunction>;
@@ -83,7 +83,7 @@ fn use_reducer_eq_works() {
     struct UseReducerFunction {}
     impl FunctionProvider for UseReducerFunction {
         type TProps = ();
-        fn run(_: &Self::TProps) -> Html {
+        fn run(_: &Self::TProps) -> HtmlResult {
             let content = use_reducer_eq(|| ContentState {
                 content: HashSet::default(),
             });
@@ -104,7 +104,7 @@ fn use_reducer_eq_works() {
 
             let add_content_b = Callback::from(move |_| content.dispatch("B".to_string()));
 
-            return html! {
+            Ok(html! {
                 <>
                     <div>
                         {"This component has been rendered: "}<span id="result">{render_count}</span>{" Time(s)."}
@@ -112,7 +112,7 @@ fn use_reducer_eq_works() {
                     <button onclick={add_content_a} id="add-a">{"Add A to Content"}</button>
                     <button onclick={add_content_b} id="add-b">{"Add B to Content"}</button>
                 </>
-            };
+            })
         }
     }
     type UseReducerComponent = FunctionComponent<UseReducerFunction>;

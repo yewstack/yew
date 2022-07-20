@@ -54,7 +54,7 @@ html! {
   <TabItem value="With props" label="With props">
 
 ```rust
-use yew::{function_component, html, Properties};
+use yew::{function_component, html, Properties, Html};
 
 #[derive(Properties, PartialEq)]
 pub struct RenderedAtProps {
@@ -76,7 +76,7 @@ pub fn RenderedAt(props: &RenderedAtProps) -> Html {
   <TabItem value="Without props" label="Without props">
 
 ```rust
-use yew::{function_component, html, use_state, Callback};
+use yew::{function_component, html, use_state, Callback, Html};
 
 #[function_component]
 fn App() -> Html {
@@ -108,7 +108,7 @@ The `#[function_component(_)]` attribute also works with generic functions for c
 
 ```rust title=my_generic_component.rs
 use std::fmt::Display;
-use yew::{function_component, html, Properties};
+use yew::{function_component, html, Properties, Html};
 
 #[derive(Properties, PartialEq)]
 pub struct Props<T>

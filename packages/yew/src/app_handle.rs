@@ -3,21 +3,21 @@
 
 use std::ops::Deref;
 
-use crate::html::{Component, NodeRef, Scope, Scoped};
+use crate::html::{BaseComponent, NodeRef, Scope, Scoped};
 use gloo_utils::document;
 use std::rc::Rc;
 use web_sys::Element;
 
 /// An instance of an application.
 #[derive(Debug)]
-pub struct AppHandle<COMP: Component> {
+pub struct AppHandle<COMP: BaseComponent> {
     /// `Scope` holder
     pub(crate) scope: Scope<COMP>,
 }
 
 impl<COMP> AppHandle<COMP>
 where
-    COMP: Component,
+    COMP: BaseComponent,
 {
     /// The main entry point of a Yew program which also allows passing properties. It works
     /// similarly to the `program` function in Elm. You should provide an initial model, `update`
@@ -56,7 +56,7 @@ where
 
 impl<COMP> Deref for AppHandle<COMP>
 where
-    COMP: Component,
+    COMP: BaseComponent,
 {
     type Target = Scope<COMP>;
 

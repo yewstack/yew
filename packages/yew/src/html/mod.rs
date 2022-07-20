@@ -3,13 +3,16 @@
 mod classes;
 mod component;
 mod conversion;
+mod error;
 mod listener;
 
 pub use classes::*;
 pub use component::*;
 pub use conversion::*;
+pub use error::*;
 pub use listener::*;
 
+use crate::sealed::Sealed;
 use crate::virtual_dom::{VNode, VPortal};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -18,6 +21,31 @@ use web_sys::{Element, Node};
 
 /// A type which expected as a result of `view` function implementation.
 pub type Html = VNode;
+
+/// An enhanced type of `Html` returned in suspendible function components.
+pub type HtmlResult = RenderResult<Html>;
+
+impl Sealed for HtmlResult {}
+impl Sealed for Html {}
+
+/// A trait to translate into a [`HtmlResult`].
+pub trait IntoHtmlResult: Sealed {
+    /// Performs the conversion.
+    fn into_html_result(self) -> HtmlResult;
+}
+
+impl IntoHtmlResult for HtmlResult {
+    #[inline(always)]
+    fn into_html_result(self) -> HtmlResult {
+        self
+    }
+}
+impl IntoHtmlResult for Html {
+    #[inline(always)]
+    fn into_html_result(self) -> HtmlResult {
+        Ok(self)
+    }
+}
 
 /// Wrapped Node reference for later use in Component lifecycle methods.
 ///
