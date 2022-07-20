@@ -1,10 +1,10 @@
 [workspace]
 members = [
-  "*",
+    "*",
 ]
 exclude = [
-  "target",
-  ".cargo"
+    "target",
+    ".cargo"
 ]
 resolver = "2"
 
