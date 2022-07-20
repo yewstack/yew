@@ -3,8 +3,19 @@ updates:
   - package-ecosystem: "cargo"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "friday"
+      interval: "monthly"
+    open-pull-requests-limit: 5
+  
+  - package-ecosystem: "cargo"
+    directory: "/examples"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+  
+  - package-ecosystem: "cargo"
+    directory: "/tools"
+    schedule:
+      interval: "monthly"
     open-pull-requests-limit: 5
 
   - package-ecosystem: "npm"
