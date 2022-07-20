@@ -2,12 +2,12 @@
 name = "file_upload"
 version = "0.1.0"
 authors = ["Denis Kolodin <deniskolodin@gmail.com>"]
-edition = "2018"
+edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
 js-sys = "0.3"
-yew = { path = "../../packages/yew" }
+yew = { path = "../../packages/yew", features = ["csr"] }
 gloo-file = "0.2"
 
 [dependencies.web-sys]

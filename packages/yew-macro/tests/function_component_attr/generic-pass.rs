@@ -58,21 +58,20 @@ fn comp1<T1, T2>(_props: &()) -> ::yew::Html {
     }
 }
 
-// no longer possible?
-// #[::yew::function_component(ConstGenerics)]
-// fn const_generics<const N: ::std::primitive::i32>() -> ::yew::Html {
-//     ::yew::html! {
-//         <div>
-//             { N }
-//         </div>
-//     }
-// }
+#[::yew::function_component(ConstGenerics)]
+fn const_generics<const N: ::std::primitive::i32>() -> ::yew::Html {
+    ::yew::html! {
+        <div>
+            { N }
+        </div>
+    }
+}
 
 fn compile_pass() {
     ::yew::html! { <Comp<Props> a=10 /> };
     ::yew::html! { <Comp1<::std::primitive::usize, ::std::primitive::usize> /> };
 
-    // ::yew::html! { <ConstGenerics<10> /> };
+    ::yew::html! { <ConstGenerics<10> /> };
 }
 
 fn main() {}

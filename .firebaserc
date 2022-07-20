@@ -10,6 +10,9 @@
         ],
         "examples": [
           "yew-rs-examples"
+        ],
+        "api": [
+          "yew-rs-api"
         ]
       }
     }

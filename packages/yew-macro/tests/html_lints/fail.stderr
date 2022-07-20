@@ -22,8 +22,14 @@ warning: All `<img>` tags should have an `alt` attribute which provides a human-
 14 |         <img src="img.jpeg"/>
    |          ^^^
 
-error: This macro call exists to deliberately fail the compilation of the test so we can verify output of lints
-  --> tests/html_lints/fail.rs:16:5
+warning: The tag 'tExTAreA' is not matching its normalized form 'textarea'. If you want to keep this form, change this to a dynamic tag `@{"tExTAreA"}`.
+  --> tests/html_lints/fail.rs:17:10
    |
-16 |     compile_error!("This macro call exists to deliberately fail the compilation of the test so we can verify output of lints");
+17 |         <tExTAreA />
+   |          ^^^^^^^^
+
+error: This macro call exists to deliberately fail the compilation of the test so we can verify output of lints
+  --> tests/html_lints/fail.rs:19:5
+   |
+19 |     compile_error!("This macro call exists to deliberately fail the compilation of the test so we can verify output of lints");
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

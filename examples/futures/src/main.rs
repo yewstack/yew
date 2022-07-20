@@ -1,7 +1,6 @@
-use std::{
-    error::Error,
-    fmt::{self, Debug, Display, Formatter},
-};
+use std::error::Error;
+use std::fmt::{self, Debug, Display, Formatter};
+
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
@@ -63,11 +62,11 @@ enum Msg {
     GetMarkdown,
     GetError,
 }
-struct Model {
+struct App {
     markdown: FetchState<String>,
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -128,5 +127,5 @@ impl Component for Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::Renderer::<App>::new().render();
 }

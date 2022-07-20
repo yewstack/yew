@@ -1,13 +1,13 @@
-use yew::prelude::*;
+#![no_implicit_prelude]
 
-#[derive(Clone, Properties, PartialEq)]
+#[derive(::yew::prelude::Properties, ::std::prelude::rust_2021::PartialEq,)]
 struct Props {
     a: usize,
 }
 
-#[function_component]
-fn Comp(props: &Props) -> Html {
-    html! {
+#[::yew::prelude::function_component]
+fn Comp(props: &Props) -> ::yew::prelude::Html {
+    ::yew::prelude::html! {
         <p>
             { props.a }
         </p>
@@ -15,7 +15,7 @@ fn Comp(props: &Props) -> Html {
 }
 
 fn main() {
-    let _ = html! {
+    let _ = ::yew::prelude::html! {
         <Comp a={0} />
     };
 }

@@ -1,0 +1,24 @@
+.game-status-container {
+  position: relative;
+  margin-top: 10px;
+  width: 100%;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  button {
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: #5979ac;
+    font-size: 17px;
+    font-weight: bold;
+  }
+  .sec-past {
+    position: absolute;
+    right: 10px;
+    font-size: 15px;
+    font-weight: normal;
+  }
+}

@@ -1,6 +1,6 @@
 [tasks.test]
 clear = true
-toolchain = "1.51"
+toolchain = "1.60.0"
 command = "cargo"
 # test target can be optionally specified like `cargo make test html_macro`,
 args = ["test", "${@}"]
@@ -9,7 +9,7 @@ args = ["test", "${@}"]
 clear = true
 toolchain = "nightly"
 command = "cargo"
-args = ["test test_html_lints --features lints"]
+args = ["test", "test_html_lints", "--features", "lints"]
 
 [tasks.test-overwrite]
 extend = "test"

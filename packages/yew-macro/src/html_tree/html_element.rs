@@ -1,14 +1,16 @@
-use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
-use crate::props::{ClassesForm, ElementProps, Prop};
-use crate::stringify::{Stringify, Value};
-use crate::{non_capitalized_ascii, Peek, PeekValue};
 use boolinator::Boolinator;
-use proc_macro2::{Delimiter, TokenStream};
+use proc_macro2::{Delimiter, Span, TokenStream};
+use proc_macro_error::emit_warning;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{Block, Expr, Ident, Lit, LitStr, Token};
+
+use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
+use crate::props::{ClassesForm, ElementProps, Prop};
+use crate::stringify::{Stringify, Value};
+use crate::{non_capitalized_ascii, Peek, PeekValue};
 
 pub struct HtmlElement {
     pub name: TagName,
@@ -54,7 +56,14 @@ impl Parse for HtmlElement {
             match name.to_ascii_lowercase_string().as_str() {
                 "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
                 | "meta" | "param" | "source" | "track" | "wbr" => {
-                    return Err(syn::Error::new_spanned(open.to_spanned(), format!("the tag `<{}>` is a void element and cannot have children (hint: rewrite this as `<{0}/>`)", name)));
+                    return Err(syn::Error::new_spanned(
+                        open.to_spanned(),
+                        format!(
+                            "the tag `<{}>` is a void element and cannot have children (hint: \
+                             rewrite this as `<{0}/>`)",
+                            name
+                        ),
+                    ));
                 }
                 _ => {}
             }
@@ -103,37 +112,17 @@ impl ToTokens for HtmlElement {
             booleans,
             value,
             checked,
-            node_ref,
-            key,
             listeners,
+            special,
         } = &props;
 
         // attributes with special treatment
 
-        let node_ref = node_ref
-            .as_ref()
-            .map(|attr| {
-                let value = &attr.value;
-                quote_spanned! {value.span()=>
-                    ::yew::html::IntoPropValue::<::yew::html::NodeRef>
-                    ::into_prop_value(#value)
-                }
-            })
-            .unwrap_or(quote! { ::std::default::Default::default() });
-        let key = key
-            .as_ref()
-            .map(|attr| {
-                let value = attr.value.optimize_literals();
-                quote_spanned! {value.span()=>
-                    ::std::option::Option::Some(
-                        ::std::convert::Into::<::yew::virtual_dom::Key>::into(#value)
-                    )
-                }
-            })
-            .unwrap_or(quote! { ::std::option::Option::None });
+        let node_ref = special.wrap_node_ref_attr();
+        let key = special.wrap_key_attr();
         let value = value
             .as_ref()
-            .map(wrap_attr_prop)
+            .map(|prop| wrap_attr_value(prop.value.optimize_literals()))
             .unwrap_or(quote! { ::std::option::Option::None });
         let checked = checked
             .as_ref()
@@ -165,15 +154,17 @@ impl ToTokens for HtmlElement {
                                 #key
                             }}),
                         },
-                        expr => Value::Dynamic(quote_spanned! {expr.span()=>
-                            if #expr {
-                                ::std::option::Option::Some(
-                                    ::yew::virtual_dom::AttrValue::Static(#key)
-                                )
-                            } else {
-                                ::std::option::Option::None
-                            }
-                        }),
+                        expr => Value::Dynamic(
+                            quote_spanned! {expr.span().resolved_at(Span::call_site())=>
+                                if #expr {
+                                    ::std::option::Option::Some(
+                                        ::yew::virtual_dom::AttrValue::Static(#key)
+                                    )
+                                } else {
+                                    ::std::option::Option::None
+                                }
+                            },
+                        ),
                     },
                 ))
             });
@@ -251,14 +242,7 @@ impl ToTokens for HtmlElement {
                 .collect::<Vec<(LitStr, Value)>>();
             try_into_static(&attrs).unwrap_or_else(|| {
                 let keys = attrs.iter().map(|(k, _)| quote! { #k });
-                let values = attrs.iter().map(|(_, v)| {
-                    quote_spanned! {v.span()=>
-                        ::yew::html::IntoPropValue::<
-                            ::std::option::Option::<::yew::virtual_dom::AttrValue>
-                        >
-                        ::into_prop_value(#v)
-                    }
-                });
+                let values = attrs.iter().map(|(_, v)| wrap_attr_value(v));
                 quote! {
                     ::yew::virtual_dom::Attributes::Dynamic{
                         keys: &[#(#keys),*],
@@ -295,9 +279,20 @@ impl ToTokens for HtmlElement {
         };
 
         tokens.extend(match &name {
-            TagName::Lit(name) => {
-                let name_span = name.span();
-                let name = name.to_ascii_lowercase_string();
+            TagName::Lit(dashedname) => {
+                let name_span = dashedname.span();
+                let name = dashedname.to_ascii_lowercase_string();
+                if name != dashedname.to_string() {
+                    emit_warning!(
+                        dashedname.span(),
+                        format!(
+                            "The tag '{0}' is not matching its normalized form '{1}'. If you want \
+                             to keep this form, change this to a dynamic tag `@{{\"{0}\"}}`.",
+                            dashedname,
+                            name,
+                        )
+                    )
+                }
                 let node = match &*name {
                     "input" => {
                         quote! {
@@ -365,6 +360,18 @@ impl ToTokens for HtmlElement {
                     }}
                 });
 
+                #[cfg(feature = "nightly")]
+                let invalid_void_tag_msg_start = {
+                    let span = vtag.span().unwrap();
+                    let source_file = span.source_file().path();
+                    let source_file = source_file.display();
+                    let start = span.start();
+                    format!("[{}:{}:{}] ", source_file, start.line, start.column)
+                };
+
+                #[cfg(not(feature = "nightly"))]
+                let invalid_void_tag_msg_start = "";
+
                 // this way we get a nice error message (with the correct span) when the expression
                 // doesn't return a valid value
                 quote_spanned! {expr.span()=> {
@@ -375,18 +382,15 @@ impl ToTokens for HtmlElement {
                     let mut #vtag_name = ::std::convert::Into::<
                         ::std::borrow::Cow::<'static, ::std::primitive::str>
                     >::into(#expr);
-                    if !#vtag_name.is_ascii() {
-                        ::std::panic!(
-                            "a dynamic tag returned a tag name containing non ASCII characters: `{}`",
-                            #vtag_name,
-                        );
-                    }
-                    // convert to lowercase because the runtime checks rely on it.
-                    #vtag_name.to_mut().make_ascii_lowercase();
+                    ::std::debug_assert!(
+                        #vtag_name.is_ascii(),
+                        "a dynamic tag returned a tag name containing non ASCII characters: `{}`",
+                        #vtag_name,
+                    );
 
                     #[allow(clippy::redundant_clone, unused_braces, clippy::let_and_return)]
-                    let mut #vtag = match ::std::convert::AsRef::<::std::primitive::str>::as_ref(&#vtag_name) {
-                        "input" => {
+                    let mut #vtag = match () {
+                        _ if "input".eq_ignore_ascii_case(::std::convert::AsRef::<::std::primitive::str>::as_ref(&#vtag_name)) => {
                             ::yew::virtual_dom::VTag::__new_textarea(
                                 #value,
                                 #node_ref,
@@ -395,7 +399,7 @@ impl ToTokens for HtmlElement {
                                 #listeners,
                             )
                         }
-                        "textarea" => {
+                        _ if "textarea".eq_ignore_ascii_case(::std::convert::AsRef::<::std::primitive::str>::as_ref(&#vtag_name)) => {
                             ::yew::virtual_dom::VTag::__new_textarea(
                                 #value,
                                 #node_ref,
@@ -423,23 +427,16 @@ impl ToTokens for HtmlElement {
                     // These are the runtime-checks exclusive to dynamic tags.
                     // For literal tags this is already done at compile-time.
                     //
-                    // When Span::source_file Span::start get stabilised or yew-macro introduces a
-                    // nightly feature flag we should expand the panic message to contain the exact
-                    // location of the dynamic tag.
-                    //
                     // check void element
                     if !#vtag.children().is_empty() {
-                        match #vtag.tag() {
-                            "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input"
-                                | "link" | "meta" | "param" | "source" | "track" | "wbr"
-                            => {
-                                ::std::panic!(
-                                    "a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.",
-                                    #vtag.tag(),
-                                );
-                            }
-                            _ => {}
-                        }
+                        ::std::debug_assert!(
+                            !::std::matches!(#vtag.tag().to_ascii_lowercase().as_str(),
+                                "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input"
+                                    | "link" | "meta" | "param" | "source" | "track" | "wbr"
+                            ),
+                            concat!(#invalid_void_tag_msg_start, "a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children."),
+                            #vtag.tag(),
+                        );
                     }
 
                     ::std::convert::Into::<::yew::virtual_dom::VNode>::into(#vtag)
@@ -449,8 +446,7 @@ impl ToTokens for HtmlElement {
     }
 }
 
-fn wrap_attr_prop(prop: &Prop) -> TokenStream {
-    let value = prop.value.optimize_literals();
+fn wrap_attr_value<T: ToTokens>(value: T) -> TokenStream {
     quote_spanned! {value.span()=>
         ::yew::html::IntoPropValue::<
             ::std::option::Option<
@@ -498,7 +494,7 @@ impl Parse for DynamicName {
 impl ToTokens for DynamicName {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self { at, expr } = self;
-        tokens.extend(quote! {#at#expr});
+        tokens.extend(quote! {#at #expr});
     }
 }
 
@@ -659,9 +655,10 @@ impl Parse for HtmlElementClose {
             if let TagName::Expr(name) = &name {
                 if let Some(expr) = &name.expr {
                     return Err(syn::Error::new_spanned(
-                    expr,
-                    "dynamic closing tags must not have a body (hint: replace it with just `</@>`)",
-                ));
+                        expr,
+                        "dynamic closing tags must not have a body (hint: replace it with just \
+                         `</@>`)",
+                    ));
                 }
             }
 

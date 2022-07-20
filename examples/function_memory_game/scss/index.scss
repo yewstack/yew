@@ -1,0 +1,45 @@
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.game-panel {
+  width: 450px;
+  height: 670px;
+  border: 4px solid #bdbdbd;
+  border-radius: 2px;
+  background-color: #faf8ef;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+@media screen and (max-width: 450px) {
+  .game-panel {
+    width: 100%;
+    height: 100%;
+    justify-content: space-around;
+  }
+}
+
+@import './score_board.scss';
+@import './score_board_best_score.scss';
+@import './game_progress';
+@import './chess_board.scss';
+@import './chess_board_card.scss';
+@import './game_status_board.scss';

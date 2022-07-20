@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
-use yew_agent::{Agent, AgentLink, HandlerId, Public};
+use yew_agent::{HandlerId, Public, WorkerLink};
 
 pub struct Worker {
-    link: AgentLink<Self>,
+    link: WorkerLink<Self>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -15,13 +15,13 @@ pub struct WorkerOutput {
     pub value: u32,
 }
 
-impl Agent for Worker {
-    type Reach = Public<Self>;
-    type Message = ();
+impl yew_agent::Worker for Worker {
     type Input = WorkerInput;
+    type Message = ();
     type Output = WorkerOutput;
+    type Reach = Public<Self>;
 
-    fn create(link: AgentLink<Self>) -> Self {
+    fn create(link: WorkerLink<Self>) -> Self {
         Self { link }
     }
 
@@ -50,6 +50,6 @@ impl Agent for Worker {
     }
 
     fn name_of_resource() -> &'static str {
-        "wasm.js"
+        "worker.js"
     }
 }

@@ -8,12 +8,12 @@ slug: /concepts/wasm-bindgen
 high-level interactions between Wasm modules and JavaScript; it is built with Rust by
 [The Rust and WebAssembly Working Group](https://rustwasm.github.io/).
 
-Yew builds off `wasm-bindgen` and specifically uses the following of its crates:
+Yew is built on `wasm-bindgen` and specifically uses the following of its crates:
 
-- [`js-sys`](https://crates.io/crates/js-sys)
-- [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
-- [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
-- [`web-sys`](https://crates.io/crates/web-sys)
+-   [`js-sys`](https://crates.io/crates/js-sys)
+-   [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
+-   [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+-   [`web-sys`](https://crates.io/crates/web-sys)
 
 This section will explore some of these crates in a high level in order to make it easier to understand
 and use `wasm-bindgen` APIs with Yew. For a more in-depth guide into `wasm-bindgen` and it's associated
@@ -79,7 +79,7 @@ _This example was adapted from [1.2 Using console.log of The `wasm-bindgen` Guid
 
 ### Simulating inheritance
 
-Inheritance between JavaScript classes is a big part of the language and is a major part of how the
+Inheritance between JavaScript classes is a big part of the language and is a major part of the
 Document Object Model (DOM). When types are imported using `wasm-bindgen` you can
 also add attributes that describe its inheritance.
 
@@ -90,10 +90,10 @@ extends `A`.
 When importing these types the `#[wasm-bindgen]` macro will implement the `Deref` and `AsRef`
 traits in the following way:
 
-- `C` can `Deref` to `B`
-- `B` can `Deref` to `A`
-- `C` can be `AsRef` to `B`
-- Both `C` & `B` can be `AsRef` to `A`
+-   `C` can `Deref` to `B`
+-   `B` can `Deref` to `A`
+-   `C` can be `AsRef` to `B`
+-   Both `C` & `B` can be `AsRef` to `A`
 
 These implementations allow you to call a method from `A` on an instance of `C` and to use `C` as if
 it was `&B` or `&A`.

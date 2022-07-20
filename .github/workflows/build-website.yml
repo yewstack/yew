@@ -15,20 +15,36 @@ on:
 
 jobs:
   build:
+    name: Build Website
     runs-on: ubuntu-latest
     env:
       PR_INFO_FILE: ".PR_INFO"
     steps:
       - uses: actions/checkout@v2
+
       - name: Setup node
         uses: actions/setup-node@v1
         with:
-          node-version: "14.x"
+          node-version: "16"
+
+      - name: Install dependencies
+        run: |
+          cd website
+          npm install
+
+      - name: Run prettier
+        run: |
+          cd website
+          npm run fmt
+
+      - name: Check Translations
+        run: |
+          cd website
+          npm run check-translations
 
       - name: Build
         run: |
           cd website
-          npm install
           npm run build
 
       - name: Upload build artifact

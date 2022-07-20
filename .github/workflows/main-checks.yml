@@ -1,0 +1,212 @@
+name: Main Checks
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/main-checks.yml'
+      - 'ci/**'
+      - 'packages/**/*'
+      - 'Cargo.toml'
+  push:
+    branches: [master]
+
+jobs:
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        profile:
+          - dev
+          - release
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Run clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets --features "csr,ssr,hydration,tokio" --profile ${{ matrix.profile }} -- -D warnings
+
+      - name: Lint feature soundness
+        if: matrix.profile == 'dev'
+        run: bash ../../ci/feature-soundness.sh
+        working-directory: packages/yew
+
+      - name: Lint feature soundness
+        if: matrix.profile == 'release'
+        run: bash ../../ci/feature-soundness-release.sh
+        working-directory: packages/yew
+
+  spell_check:
+    name: spellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check spelling
+        run: |
+          sudo apt-get install aspell
+          ci/spellcheck.sh list
+
+  doc_tests:
+    name: Documentation Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v1
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+
+      # perhaps extract it into its own little action?
+      - uses: actions-rs/toolchain@v1
+        # for wasm-bindgen-cli, always use stable rust
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: ./ci/install-wasm-bindgen-cli.sh
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          target: wasm32-unknown-unknown
+          override: true
+          profile: minimal
+
+      - uses: browser-actions/setup-geckodriver@latest
+      - uses: nanasess/setup-chromedriver@v1
+
+      - name: Run doctest
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --doc --workspace --exclude yew --target wasm32-unknown-unknown
+
+      - name: Run website code snippet tests
+        run: cargo test -p website-test --target wasm32-unknown-unknown
+        working-directory: tools
+
+      - name: Run doctest - yew with features
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p yew --doc --all-features --target wasm32-unknown-unknown
+
+  integration_tests:
+    name: Integration Tests on ${{ matrix.toolchain }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - 1.60.0
+          - stable
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: Swatinem/rust-cache@v1
+
+      - uses: actions-rs/toolchain@v1
+        # for wasm-bindgen-cli, always use stable rust
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: ./ci/install-wasm-bindgen-cli.sh
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          target: wasm32-unknown-unknown
+          override: true
+          profile: minimal
+
+      - uses: browser-actions/setup-geckodriver@latest
+      - uses: nanasess/setup-chromedriver@v1
+
+      - name: Run tests - yew
+        run: |
+          cd packages/yew
+          CHROMEDRIVER=$(which chromedriver) cargo test --features csr,hydration,ssr --target wasm32-unknown-unknown
+          GECKODRIVER=$(which geckodriver) cargo test --features csr,hydration,ssr --target wasm32-unknown-unknown
+
+      - name: Run tests - yew-router
+        run: |
+          cd packages/yew-router
+          CHROMEDRIVER=$(which chromedriver) cargo test --target wasm32-unknown-unknown
+          GECKODRIVER=$(which geckodriver) cargo test --target wasm32-unknown-unknown
+
+  unit_tests:
+    name: Unit Tests on ${{ matrix.toolchain }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - 1.60.0
+          - stable
+          - nightly
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+          profile: minimal
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Run native tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-targets --workspace --exclude yew
+
+      - name: Run native tests for yew
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p yew --features "csr,ssr,hydration,tokio"
+
+  test-lints:
+    name: Test lints on nightly
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          profile: minimal
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p yew-macro test_html_lints --features lints

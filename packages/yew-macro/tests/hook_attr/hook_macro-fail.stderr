@@ -1,0 +1,27 @@
+error: hooks cannot be called at this position.
+
+         = help: move hooks to the top-level of your function.
+         = note: see: https://yew.rs/docs/next/concepts/function-components/introduction#hooks
+
+  --> tests/hook_attr/hook_macro-fail.rs:20:9
+   |
+20 |         use_some_macro!()
+   |         ^^^^^^^^^^^^^^
+
+error: hooks cannot be called at this position.
+
+         = help: move hooks to the top-level of your function.
+         = note: see: https://yew.rs/docs/next/concepts/function-components/introduction#hooks
+
+  --> tests/hook_attr/hook_macro-fail.rs:22:9
+   |
+22 |         use_some_macro!("b")
+   |         ^^^^^^^^^^^^^^
+
+warning: unused macro definition: `use_some_macro`
+ --> tests/hook_attr/hook_macro-fail.rs:8:14
+  |
+8 | macro_rules! use_some_macro {
+  |              ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_macros)]` on by default

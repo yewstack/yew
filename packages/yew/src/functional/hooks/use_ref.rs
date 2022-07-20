@@ -1,20 +1,37 @@
-use crate::{functional::use_hook, NodeRef};
-use std::{cell::RefCell, rc::Rc};
+use std::cell::RefCell;
+use std::rc::Rc;
+
+use crate::functional::{hook, use_state, Hook, HookContext};
+use crate::NodeRef;
+
+struct UseMutRef<F> {
+    init_fn: F,
+}
+
+impl<T: 'static, F: FnOnce() -> T> Hook for UseMutRef<F> {
+    type Output = Rc<RefCell<T>>;
+
+    fn run(self, ctx: &mut HookContext) -> Self::Output {
+        ctx.next_state(|_| RefCell::new((self.init_fn)()))
+    }
+}
 
 /// This hook is used for obtaining a mutable reference to a stateful value.
 /// Its state persists across renders.
 ///
 /// It is important to note that you do not get notified of state changes.
-/// If you need the component to be re-rendered on state change, consider using [`use_state`](super::use_state()).
+/// If you need the component to be re-rendered on state change, consider using
+/// [`use_state`](super::use_state()).
 ///
 /// # Example
 /// ```rust
-/// # use yew::prelude::*;
-/// # use web_sys::HtmlInputElement;
-/// # use std::rc::Rc;
-/// # use std::cell::RefCell;
-/// # use std::ops::{Deref, DerefMut};
-/// #
+/// use std::cell::RefCell;
+/// use std::ops::{Deref, DerefMut};
+/// use std::rc::Rc;
+///
+/// use web_sys::HtmlInputElement;
+/// use yew::prelude::*;
+///
 /// #[function_component(UseRef)]
 /// fn ref_hook() -> Html {
 ///     let message = use_state(|| "".to_string());
@@ -33,7 +50,7 @@ use std::{cell::RefCell, rc::Rc};
 ///
 ///     let onchange = {
 ///         let message = message.clone();
-///           Callback::from(move |e: Event| {
+///         Callback::from(move |e: Event| {
 ///             let input: HtmlInputElement = e.target_unchecked_into();
 ///             message.set(input.value())
 ///         })
@@ -47,40 +64,26 @@ use std::{cell::RefCell, rc::Rc};
 ///     }
 /// }
 /// ```
-pub fn use_mut_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<RefCell<T>> {
-    use_hook(
-        || Rc::new(RefCell::new(initial_value())),
-        |state, _| state.clone(),
-        |_| {},
-    )
-}
-
-/// This hook is used for obtaining a immutable reference to a stateful value.
-/// Its state persists across renders.
-///
-/// If you need a mutable reference, consider using [`use_mut_ref`](super::use_mut_ref).
-/// If you need the component to be re-rendered on state change, consider using [`use_state`](super::use_state()).
-pub fn use_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<T> {
-    use_hook(
-        || Rc::new(initial_value()),
-        |state, _| Rc::clone(state),
-        |_| {},
-    )
+pub fn use_mut_ref<T: 'static, F>(init_fn: F) -> impl Hook<Output = Rc<RefCell<T>>>
+where
+    F: FnOnce() -> T,
+{
+    UseMutRef { init_fn }
 }
 
 /// This hook is used for obtaining a [`NodeRef`].
 /// It persists across renders.
 ///
-/// It is important to note that you do not get notified of state changes.
+/// The `ref` attribute can be used to attach the [`NodeRef`] to an HTML element. In callbacks,
+/// you can then get the DOM `Element` that the `ref` is attached to.
 ///
 /// # Example
+///
 /// ```rust
-/// # use wasm_bindgen::{prelude::Closure, JsCast};
-/// # use yew::{
-/// #    function_component, html, use_effect_with_deps, use_node_ref,
-/// #    Html,
-/// # };
-/// # use web_sys::{Event, HtmlElement};
+/// use wasm_bindgen::prelude::Closure;
+/// use wasm_bindgen::JsCast;
+/// use web_sys::{Event, HtmlElement};
+/// use yew::{function_component, html, use_effect_with_deps, use_node_ref, Html};
 ///
 /// #[function_component(UseNodeRef)]
 /// pub fn node_ref_hook() -> Html {
@@ -88,7 +91,7 @@ pub fn use_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<T> {
 ///
 ///     {
 ///         let div_ref = div_ref.clone();
-///         
+///
 ///         use_effect_with_deps(
 ///             |div_ref| {
 ///                 let div = div_ref
@@ -123,8 +126,14 @@ pub fn use_ref<T: 'static>(initial_value: impl FnOnce() -> T) -> Rc<T> {
 ///         </div>
 ///     }
 /// }
-///
 /// ```
+///
+/// # Tip
+///
+/// When conditionally rendering elements you can use `NodeRef` in conjunction with
+/// `use_effect_with_deps` to perform actions each time an element is rendered and just before the
+/// component where the hook is used in is going to be removed from the DOM.
+#[hook]
 pub fn use_node_ref() -> NodeRef {
-    use_hook(NodeRef::default, |state, _| state.clone(), |_| {})
+    (*use_state(NodeRef::default)).clone()
 }

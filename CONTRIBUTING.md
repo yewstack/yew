@@ -60,7 +60,7 @@ Alternatively, you can set the `ECHO_SERVER_URL` environment variable to the URL
 
 When adding or updating tests, please make sure to update the appropriate `stderr` file, which you can find [here](https://github.com/yewstack/yew/tree/master/packages/yew-macro/tests/macro) for the `html!` macro.
 These files ensure that macro compilation errors are correct and easy to understand.
-These errors can change with each release of the compiler so they should be generated with the Rust version 1.51
+These errors can change with each release of the compiler, so they should be generated with the Rust version 1.56
 (because some tests make use of const generics which were stabilized in that version).
 
 To update or generate a new `stderr` file you can run `cargo make test-overwrite` in the `yew-macro` directory.
@@ -73,7 +73,7 @@ The following command checks the code using Rustfmt and Clippy:
 cargo make lint
 ```
 
-To automatically fix formatting issues, run `cargo fmt` first.
+To automatically fix formatting issues, run `cargo +nightly fmt` first.
 
 ## Benchmarks
 
@@ -101,3 +101,10 @@ Below, you can find some useful guidance and best practices on how to write APIs
 
 - [The Rust API Guidelines](https://rust-lang.github.io/api-guidelines/)
 - [Elegant Library APIs in Rust](https://deterministic.space/elegant-apis-in-rust.html)
+
+## Website
+
+The source code of our website ([https://yew.rs](https://yew.rs)) is in the [website directory](website).
+Most of the times, edits can be done in markdown.
+
+[website/README.md](website/README.md) has more detailed instructions.

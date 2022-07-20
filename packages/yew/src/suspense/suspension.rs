@@ -6,8 +6,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::task::{Context, Poll};
 
 use thiserror::Error;
-use wasm_bindgen_futures::spawn_local;
 
+use crate::platform::spawn_local;
 use crate::Callback;
 
 thread_local! {
@@ -52,6 +52,11 @@ impl Suspension {
         (self_.clone(), SuspensionHandle { inner: self_ })
     }
 
+    /// Returns `true` if the current suspension is already resumed.
+    pub fn resumed(&self) -> bool {
+        self.resumed.load(Ordering::Relaxed)
+    }
+
     /// Creates a Suspension that resumes when the [`Future`] resolves.
     pub fn from_future(f: impl Future<Output = ()> + 'static) -> Self {
         let (self_, handle) = Self::new();
@@ -62,11 +67,6 @@ impl Suspension {
         });
 
         self_
-    }
-
-    /// Returns `true` if the current suspension is already resumed.
-    pub fn resumed(&self) -> bool {
-        self.resumed.load(Ordering::Relaxed)
     }
 
     /// Listens to a suspension and get notified when it resumes.

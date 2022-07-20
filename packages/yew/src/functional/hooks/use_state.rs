@@ -3,17 +3,17 @@ use std::ops::Deref;
 use std::rc::Rc;
 
 use super::{use_reducer, use_reducer_eq, Reducible, UseReducerDispatcher, UseReducerHandle};
+use crate::functional::hook;
 
 struct UseStateReducer<T> {
-    value: Rc<T>,
+    value: T,
 }
 
 impl<T> Reducible for UseStateReducer<T> {
     type Action = T;
+
     fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
-        Rc::new(Self {
-            value: action.into(),
-        })
+        Rc::new(Self { value: action })
     }
 }
 
@@ -28,11 +28,16 @@ where
 
 /// This hook is used to manage state in a function component.
 ///
+/// This hook will always trigger a re-render upon receiving a new state. See [`use_state_eq`]
+/// if you want the component to only re-render when the new state compares unequal
+/// to the existing one.
+///
 /// # Example
+///
 /// ```rust
-/// # use yew::prelude::*;
+/// use yew::prelude::*;
 /// # use std::rc::Rc;
-/// #
+///
 /// #[function_component(UseState)]
 /// fn state() -> Html {
 ///     let counter = use_state(|| 0);
@@ -40,7 +45,6 @@ where
 ///         let counter = counter.clone();
 ///         Callback::from(move |_| counter.set(*counter + 1))
 ///     };
-///
 ///
 ///     html! {
 ///         <div>
@@ -53,14 +57,28 @@ where
 ///     }
 /// }
 /// ```
+///
+/// # Caution
+///
+/// The value held in the handle will reflect the value of at the time the
+/// handle is returned by the `use_reducer`. It is possible that the handle does
+/// not dereference to an up to date value if you are moving it into a
+/// `use_effect_with_deps` hook. You can register the
+/// state to the dependents so the hook can be updated when the value changes.
+///
+/// # Tip
+///
+/// The setter function is guaranteed to be the same across the entire
+/// component lifecycle. You can safely omit the `UseStateHandle` from the
+/// dependents of `use_effect_with_deps` if you only intend to set
+/// values from within the hook.
+#[hook]
 pub fn use_state<T, F>(init_fn: F) -> UseStateHandle<T>
 where
     T: 'static,
     F: FnOnce() -> T,
 {
-    let handle = use_reducer(move || UseStateReducer {
-        value: Rc::new(init_fn()),
-    });
+    let handle = use_reducer(move || UseStateReducer { value: init_fn() });
 
     UseStateHandle { inner: handle }
 }
@@ -68,14 +86,13 @@ where
 /// [`use_state`] but only re-renders when `prev_state != next_state`.
 ///
 /// This hook requires the state to implement [`PartialEq`].
+#[hook]
 pub fn use_state_eq<T, F>(init_fn: F) -> UseStateHandle<T>
 where
     T: PartialEq + 'static,
     F: FnOnce() -> T,
 {
-    let handle = use_reducer_eq(move || UseStateReducer {
-        value: Rc::new(init_fn()),
-    });
+    let handle = use_reducer_eq(move || UseStateReducer { value: init_fn() });
 
     UseStateHandle { inner: handle }
 }

@@ -1,9 +1,9 @@
 ---
-title: "Lists"
+title: 'Lists'
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
 
 ## Iterators
 
@@ -16,7 +16,7 @@ The first is to call `collect::<Html>()` on the final transform in your iterator
 list that Yew can display.
 
 ```rust
-use yew::{html, Html};
+use yew::prelude::*;
 
 let items = (1..=10).collect::<Vec<_>>();
 
@@ -34,7 +34,7 @@ The alternative is to use the `for` keyword, which is not native Rust syntax and
 the HTML macro to output the needed code to display the iterator.
 
 ```rust
-use yew::{html};
+use yew::prelude::*;
 
 let items = (1..=10).collect::<Vec<_>>();
 
@@ -50,21 +50,20 @@ html! {
 
 ## Keyed lists
 
-A keyed list is a optimized list that has keys on all tags.
-`key` is a special prop provided by Yew which gives an html element a unique identifier which can be used for optimization purposes.
+A keyed list is an optimized list that has keys on **all** children.
+`key` is a special prop provided by Yew which gives an html element or component a unique identifier
+which is used for optimization purposes inside Yew.
 
 :::caution
-
-Key has to be unique and must not depend on the order of the list.
-
+Key has to be unique only in each list, in constrast to the global uniqueness of html `id`s. It must not depend on the order of the list.
 :::
 
 It is always recommended to add keys to lists.
 
-Keys can be added by passing a unique value to the special `key` prop:
+Keys can be added by passing a unique `String`, `str` or integer to the special `key` prop:
 
 ```rust , ignore
-use yew::html;
+use yew::prelude::*;
 
 let names = vec!["Sam","Bob","Ray"]
 
@@ -82,7 +81,7 @@ html! {
 
 ### Performance increases
 
-We have [Keyed list](https://github.com/yewstack/yew/tree/master/examples/keyed_list) example that lets you test the performance improvements, but here is rough example of testing:
+We have [Keyed list](https://github.com/yewstack/yew/tree/master/examples/keyed_list) example that lets you test the performance improvements, but here is rough rundown:
 
 1. Go to [Keyed list](https://github.com/yewstack/yew/tree/master/examples/keyed_list) hosted demo
 2. Add 500 elements.
@@ -98,7 +97,9 @@ So just at the time of writing this, for 500 components its a x2 increase of spe
 ### Detailed explanation
 
 Usually you just need a key on every list item when you iterate and the order of data can change.
-So lets say you iterate through `["bob","sam","rob"]` ended up with html:
+It's used to speed up the reconciliation process when re-rendering the list.
+
+Without keys, lets assume you iterate through `["bob","sam","rob"]`, ending up with the html:
 
 ```html
 <div id="bob">My name is Bob</div>
@@ -106,12 +107,12 @@ So lets say you iterate through `["bob","sam","rob"]` ended up with html:
 <div id="rob">My name is rob</div>
 ```
 
-Then if your list changed to `["bob","rob"]`,
-yew would delete from previous html element with id="rob" and update id="sam" to be id="rob"
+Then on the next render, if your list changed to `["bob","rob"]`, yew could delete
+the element with id="rob" and update id="sam" to be id="rob"
 
-Now if you had added a key to each element, html would stay the same, but in case where it changed to `["bob","rob"]`, yew would just delete the second html element since it knows which one it is.
-
-Keys also help for weird cases where yew reuses html elements.
+If you had added a key to each element, the initial html would be the same, but after
+the render with the modified list, `["bob","rob"]`, yew would just delete the second
+html element and leave the rest untouched since it can use the keys to associate them.
 
 If you ever encounter a bug/"feature" where you switch from one component to another but both have a div as the highest rendered element.
 Yew reuses the rendered html div in those cases as an optimization.
@@ -119,6 +120,6 @@ If you need that div to be recreated instead of reused, then you can add differe
 
 ## Further reading
 
-- [TodoMVC](https://github.com/yewstack/yew/tree/master/examples/todomvc)
-- [Keyed list](https://github.com/yewstack/yew/tree/master/examples/keyed_list)
-- [Router](https://github.com/yewstack/yew/tree/master/examples/router)
+-   [TodoMVC](https://github.com/yewstack/yew/tree/master/examples/todomvc)
+-   [Keyed list](https://github.com/yewstack/yew/tree/master/examples/keyed_list)
+-   [Router](https://github.com/yewstack/yew/tree/master/examples/router)

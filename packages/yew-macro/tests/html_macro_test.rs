@@ -1,7 +1,7 @@
 use yew::{html, html_nested};
 
 #[allow(dead_code)]
-#[rustversion::attr(stable(1.51), test)]
+#[rustversion::attr(stable(1.60), test)]
 fn html_macro() {
     let t = trybuild::TestCases::new();
 
@@ -11,7 +11,8 @@ fn html_macro() {
 
 #[test]
 #[should_panic(
-    expected = "a dynamic tag tried to create a `<br>` tag with children. `<br>` is a void element which can't have any children."
+    expected = "a dynamic tag tried to create a `<br>` tag with children. `<br>` is a void \
+                element which can't have any children."
 )]
 fn dynamic_tags_catch_void_elements() {
     html! {

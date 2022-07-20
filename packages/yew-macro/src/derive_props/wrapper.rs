@@ -1,7 +1,8 @@
-use super::PropField;
 use proc_macro2::Ident;
 use quote::{quote, ToTokens};
 use syn::{Attribute, Generics};
+
+use super::PropField;
 
 pub struct PropsWrapper<'a> {
     wrapper_name: &'a Ident,
@@ -26,16 +27,18 @@ impl ToTokens for PropsWrapper<'_> {
         let wrapper_default_setters = self.default_setters();
 
         let wrapper = quote! {
+            #[doc(hidden)]
             #(#extra_attrs)*
-            struct #wrapper_name#generics
+            struct #wrapper_name #generics
                 #where_clause
             {
                 #(#wrapper_field_defs)*
             }
 
-            impl#impl_generics ::std::default::Default for #wrapper_name#ty_generics #where_clause {
+            #[automatically_derived]
+            impl #impl_generics ::std::default::Default for #wrapper_name #ty_generics #where_clause {
                 fn default() -> Self {
-                    #wrapper_name#turbofish_generics {
+                    #wrapper_name #turbofish_generics {
                         #(#wrapper_default_setters)*
                     }
                 }

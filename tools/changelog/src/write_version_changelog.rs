@@ -1,6 +1,7 @@
+use std::io::Write;
+
 use anyhow::Result;
 use semver::Version;
-use std::io::Write;
 
 use crate::yew_package::YewPackage;
 
@@ -19,7 +20,7 @@ pub fn write_changelog_file(
         version_only_changelog,
         "## ✨ {package} **{next_version}** *({release_date})* Changelog",
         next_version = next_version,
-        package = package.to_string(),
+        package = package,
         release_date = chrono::Utc::now().format("%Y-%m-%d")
     )?;
     writeln!(version_only_changelog)?;

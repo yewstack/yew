@@ -1,11 +1,14 @@
-use super::{html_dashed_name::HtmlDashedName, HtmlChildrenTree, TagTokens};
-use crate::{props::Prop, Peek, PeekValue};
 use boolinator::Boolinator;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::Expr;
+
+use super::html_dashed_name::HtmlDashedName;
+use super::{HtmlChildrenTree, TagTokens};
+use crate::props::Prop;
+use crate::{Peek, PeekValue};
 
 pub struct HtmlList {
     open: HtmlListOpen,
@@ -72,7 +75,7 @@ impl ToTokens for HtmlList {
         let spanned = {
             let open = open.to_spanned();
             let close = close.to_spanned();
-            quote! { #open#close }
+            quote! { #open #close }
         };
 
         tokens.extend(quote_spanned! {spanned.span()=>

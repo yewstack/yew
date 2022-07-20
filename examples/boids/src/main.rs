@@ -17,12 +17,12 @@ pub enum Msg {
     TogglePause,
 }
 
-pub struct Model {
+pub struct App {
     settings: Settings,
     generation: usize,
     paused: bool,
 }
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -74,7 +74,7 @@ impl Component for Model {
         }
     }
 }
-impl Model {
+impl App {
     fn view_panel(&self, link: &Scope<Self>) -> Html {
         let pause_text = if self.paused { "Resume" } else { "Pause" };
         html! {
@@ -92,9 +92,10 @@ impl Model {
     fn view_settings(&self, link: &Scope<Self>) -> Html {
         let Self { settings, .. } = self;
 
-        // This helper macro creates a callback which applies the new value to the current settings and sends `Msg::ChangeSettings`.
-        // Thanks to this, we don't need to have "ChangeBoids", "ChangeCohesion", etc. messages,
-        // but it comes at the cost of cloning the `Settings` struct each time.
+        // This helper macro creates a callback which applies the new value to the current settings
+        // and sends `Msg::ChangeSettings`. Thanks to this, we don't need to have
+        // "ChangeBoids", "ChangeCohesion", etc. messages, but it comes at the cost of
+        // cloning the `Settings` struct each time.
         macro_rules! settings_callback {
             ($link:expr, $settings:ident; $key:ident as $ty:ty) => {{
                 let settings = $settings.clone();
@@ -162,5 +163,5 @@ impl Model {
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::Renderer::<App>::new().render();
 }

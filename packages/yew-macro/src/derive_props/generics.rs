@@ -1,9 +1,6 @@
-use proc_macro2::{Ident, Span};
-use syn::{
-    punctuated::Punctuated, token::Colon2, GenericArgument, GenericParam, Generics, Path,
-    PathArguments, PathSegment, Token, TraitBound, TraitBoundModifier, Type, TypeParam,
-    TypeParamBound, TypePath,
-};
+use proc_macro2::Ident;
+use syn::punctuated::Punctuated;
+use syn::{GenericArgument, GenericParam, Generics, Path, Token, Type, TypePath};
 
 /// Alias for a comma-separated list of `GenericArgument`
 pub type GenericArguments = Punctuated<GenericArgument, Token![,]>;
@@ -17,9 +14,17 @@ fn first_default_or_const_param_position(generics: &Generics) -> Option<usize> {
     })
 }
 
-/// Converts `GenericParams` into `GenericArguments` and adds `type_ident` as a type arg.
-/// `type_ident` is added at the end of the existing type arguments which don't have a default value.
-pub fn to_arguments(generics: &Generics, type_ident: Ident) -> GenericArguments {
+/// Push a type GenericParam into a Generics
+pub fn push_type_param(generics: &mut Generics, type_param: GenericParam) {
+    if let Some(idx) = first_default_or_const_param_position(generics) {
+        generics.params.insert(idx, type_param)
+    } else {
+        generics.params.push(type_param)
+    }
+}
+
+/// Converts `GenericParams` into `GenericArguments`.
+pub fn to_arguments(generics: &Generics) -> GenericArguments {
     let mut args: GenericArguments = Punctuated::new();
     args.extend(generics.params.iter().map(|param| match param {
         GenericParam::Type(type_param) => new_generic_type_arg(type_param.ident.clone()),
@@ -28,30 +33,7 @@ pub fn to_arguments(generics: &Generics, type_ident: Ident) -> GenericArguments 
         }
         GenericParam::Const(const_param) => new_generic_type_arg(const_param.ident.clone()),
     }));
-
-    let new_arg = new_generic_type_arg(type_ident);
-    if let Some(index) = first_default_or_const_param_position(generics) {
-        args.insert(index, new_arg);
-    } else {
-        args.push(new_arg);
-    }
-
     args
-}
-
-/// Adds a new bounded `GenericParam` to a `Generics`
-/// The new param is added after the existing ones without a default value.
-pub fn with_param_bounds(generics: &Generics, param_ident: Ident, param_bounds: Ident) -> Generics {
-    let mut new_generics = generics.clone();
-    let params = &mut new_generics.params;
-    let new_param = new_param_bounds(param_ident, param_bounds);
-    if let Some(index) = first_default_or_const_param_position(generics) {
-        params.insert(index, new_param);
-    } else {
-        params.push(new_param);
-    }
-
-    new_generics
 }
 
 // Creates a `GenericArgument` from an `Ident`
@@ -60,33 +42,4 @@ fn new_generic_type_arg(ident: Ident) -> GenericArgument {
         path: Path::from(ident),
         qself: None,
     }))
-}
-
-// Creates a bounded `GenericParam` from two `Ident`
-fn new_param_bounds(param_ident: Ident, param_bounds: Ident) -> GenericParam {
-    let mut path_segments: Punctuated<PathSegment, Colon2> = Punctuated::new();
-    path_segments.push(PathSegment {
-        ident: param_bounds,
-        arguments: PathArguments::None,
-    });
-
-    let mut param_bounds: Punctuated<TypeParamBound, Token![+]> = Punctuated::new();
-    param_bounds.push(TypeParamBound::Trait(TraitBound {
-        paren_token: None,
-        modifier: TraitBoundModifier::None,
-        lifetimes: None,
-        path: Path {
-            leading_colon: None,
-            segments: path_segments,
-        },
-    }));
-
-    GenericParam::Type(TypeParam {
-        attrs: Vec::new(),
-        ident: param_ident,
-        colon_token: Some(Token![:](Span::call_site())),
-        bounds: param_bounds,
-        eq_token: None,
-        default: None,
-    })
 }

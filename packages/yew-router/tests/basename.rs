@@ -1,3 +1,6 @@
+use std::time::Duration;
+
+use gloo::timers::future::sleep;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::functional::function_component;
@@ -47,13 +50,13 @@ fn no(props: &NoProps) -> Html {
 fn component() -> Html {
     let navigator = use_navigator().unwrap();
 
-    let switch = Switch::render(move |routes| {
+    let switch = move |routes| {
         let navigator_clone = navigator.clone();
         let replace_route = Callback::from(move |_| {
             navigator_clone
                 .replace_with_query(
-                    Routes::No { id: 2 },
-                    Query {
+                    &Routes::No { id: 2 },
+                    &Query {
                         foo: "bar".to_string(),
                     },
                 )
@@ -64,8 +67,8 @@ fn component() -> Html {
         let push_route = Callback::from(move |_| {
             navigator_clone
                 .push_with_query(
-                    Routes::No { id: 3 },
-                    Query {
+                    &Routes::No { id: 3 },
+                    &Query {
                         foo: "baz".to_string(),
                     },
                 )
@@ -81,13 +84,13 @@ fn component() -> Html {
             },
             Routes::No { id } => html! {
                 <>
-                    <No id={*id} />
+                    <No id={id} />
                     <button onclick={push_route}>{"push a route"}</button>
                 </>
             },
             Routes::NotFound => html! { <div id="result">{"404"}</div> },
         }
-    });
+    };
 
     html! {
         <Switch<Routes> render={switch} />
@@ -112,19 +115,30 @@ fn root() -> Html {
 // - query parameters
 // - 404 redirects
 #[test]
-fn router_works() {
-    yew::start_app_in_element::<Root>(gloo::utils::document().get_element_by_id("output").unwrap());
+async fn router_works() {
+    yew::Renderer::<Root>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .render();
+
+    sleep(Duration::ZERO).await;
 
     assert_eq!("Home", obtain_result_by_id("result"));
 
+    sleep(Duration::ZERO).await;
+
     let initial_length = history_length();
 
+    sleep(Duration::ZERO).await;
+
     click("button"); // replacing the current route
+
+    sleep(Duration::ZERO).await;
     assert_eq!("2", obtain_result_by_id("result-params"));
     assert_eq!("bar", obtain_result_by_id("result-query"));
     assert_eq!(initial_length, history_length());
 
     click("button"); // pushing a new route
+
+    sleep(Duration::ZERO).await;
     assert_eq!("3", obtain_result_by_id("result-params"));
     assert_eq!("baz", obtain_result_by_id("result-query"));
     assert_eq!(initial_length + 1, history_length());

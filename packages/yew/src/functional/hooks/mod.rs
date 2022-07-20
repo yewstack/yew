@@ -1,75 +1,58 @@
+mod use_callback;
 mod use_context;
 mod use_effect;
+mod use_force_update;
+mod use_memo;
+mod use_prepared_state;
 mod use_reducer;
 mod use_ref;
 mod use_state;
+mod use_transitive_state;
 
+pub use use_callback::*;
 pub use use_context::*;
 pub use use_effect::*;
+pub use use_force_update::*;
+pub use use_memo::*;
+pub use use_prepared_state::*;
 pub use use_reducer::*;
 pub use use_ref::*;
 pub use use_state::*;
+pub use use_transitive_state::*;
 
-use crate::functional::{HookUpdater, CURRENT_HOOK};
-use std::cell::RefCell;
-use std::ops::DerefMut;
-use std::rc::Rc;
+use crate::functional::HookContext;
 
-/// Low level building block of creating hooks.
+/// A trait that is implemented on hooks.
 ///
-/// It is used to created the pre-defined primitive hooks.
-/// Generally, it isn't needed to create hooks and should be avoided as most custom hooks can be
-/// created by combining other hooks as described in [Yew Docs].
-///
-/// The `initializer` callback is called once to create the initial state of the hook.
-/// `runner` callback handles the logic of the hook. It is called when the hook function is called.
-/// `destructor`, as the name implies, is called to cleanup the leftovers of the hook.
-///
-/// See the pre-defined hooks for examples of how to use this function.
-///
-/// [Yew Docs]: https://yew.rs/next/concepts/function-components/custom-hooks
-pub fn use_hook<InternalHook: 'static, Output, Tear: FnOnce(&mut InternalHook) + 'static>(
-    initializer: impl FnOnce() -> InternalHook,
-    runner: impl FnOnce(&mut InternalHook, HookUpdater) -> Output,
-    destructor: Tear,
-) -> Output {
-    if !CURRENT_HOOK.is_set() {
-        panic!("Hooks can only be used in the scope of a function component");
+/// Hooks are defined via the [`#[hook]`](crate::functional::hook) macro. It provides rewrites to
+/// hook invocations and ensures that hooks can only be called at the top-level of a function
+/// component or a hook. Please refer to its documentation on how to implement hooks.
+pub trait Hook {
+    /// The return type when a hook is run.
+    type Output;
+
+    /// Runs the hook inside current state, returns output upon completion.
+    fn run(self, ctx: &mut HookContext) -> Self::Output;
+}
+
+/// The blanket implementation of boxed hooks.
+#[doc(hidden)]
+#[allow(missing_debug_implementations, missing_docs)]
+pub struct BoxedHook<'hook, T> {
+    inner: Box<dyn 'hook + FnOnce(&mut HookContext) -> T>,
+}
+
+impl<'hook, T> BoxedHook<'hook, T> {
+    #[allow(missing_docs)]
+    pub fn new(inner: Box<dyn 'hook + FnOnce(&mut HookContext) -> T>) -> Self {
+        Self { inner }
     }
+}
 
-    // Extract current hook
-    let updater = CURRENT_HOOK.with(|hook_state| {
-        // Determine which hook position we're at and increment for the next hook
-        let hook_pos = hook_state.counter;
-        hook_state.counter += 1;
+impl<T> Hook for BoxedHook<'_, T> {
+    type Output = T;
 
-        // Initialize hook if this is the first call
-        if hook_pos >= hook_state.hooks.len() {
-            let initial_state = Rc::new(RefCell::new(initializer()));
-            hook_state.hooks.push(initial_state.clone());
-            hook_state.destroy_listeners.push(Box::new(move || {
-                destructor(initial_state.borrow_mut().deref_mut());
-            }));
-        }
-
-        let hook = hook_state
-            .hooks
-            .get(hook_pos)
-            .expect("Not the same number of hooks. Hooks must not be called conditionally")
-            .clone();
-
-        HookUpdater {
-            hook,
-            process_message: hook_state.process_message.clone(),
-        }
-    });
-
-    // Execute the actual hook closure we were given. Let it mutate the hook state and let
-    // it create a callback that takes the mutable hook state.
-    let mut hook = updater.hook.borrow_mut();
-    let hook: &mut InternalHook = hook
-        .downcast_mut()
-        .expect("Incompatible hook type. Hooks must always be called in the same order");
-
-    runner(hook, updater.clone())
+    fn run(self, ctx: &mut HookContext) -> Self::Output {
+        (self.inner)(ctx)
+    }
 }

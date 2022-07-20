@@ -1,0 +1,69 @@
+error: hooks cannot be called at this position.
+
+         = help: move hooks to the top-level of your function.
+         = note: see: https://yew.rs/docs/next/concepts/function-components/introduction#hooks
+
+ --> tests/hook_attr/hook_location-fail.rs:9:9
+  |
+9 |         use_context::<Ctx>().unwrap();
+  |         ^^^^^^^^^^^
+
+error: hooks cannot be called at this position.
+
+         = help: move hooks to the top-level of your function.
+         = note: see: https://yew.rs/docs/next/concepts/function-components/introduction#hooks
+
+  --> tests/hook_attr/hook_location-fail.rs:14:9
+   |
+14 |         use_context::<Ctx>().unwrap();
+   |         ^^^^^^^^^^^
+
+error: hooks cannot be called at this position.
+
+         = help: move hooks to the top-level of your function.
+         = note: see: https://yew.rs/docs/next/concepts/function-components/introduction#hooks
+
+  --> tests/hook_attr/hook_location-fail.rs:19:9
+   |
+19 |         use_context::<Ctx>().unwrap();
+   |         ^^^^^^^^^^^
+
+error: hooks cannot be called at this position.
+
+         = help: move hooks to the top-level of your function.
+         = note: see: https://yew.rs/docs/next/concepts/function-components/introduction#hooks
+
+  --> tests/hook_attr/hook_location-fail.rs:22:26
+   |
+22 |     while let Some(_m) = use_context::<Ctx>() {
+   |                          ^^^^^^^^^^^
+
+error: hooks cannot be called at this position.
+
+         = help: move hooks to the top-level of your function.
+         = note: see: https://yew.rs/docs/next/concepts/function-components/introduction#hooks
+
+  --> tests/hook_attr/hook_location-fail.rs:23:9
+   |
+23 |         use_context::<Ctx>().unwrap();
+   |         ^^^^^^^^^^^
+
+error: hooks cannot be called at this position.
+
+         = help: move hooks to the top-level of your function.
+         = note: see: https://yew.rs/docs/next/concepts/function-components/introduction#hooks
+
+  --> tests/hook_attr/hook_location-fail.rs:27:20
+   |
+27 |         Some(_) => use_context::<Ctx>(),
+   |                    ^^^^^^^^^^^
+
+error: hooks cannot be called at this position.
+
+         = help: move hooks to the top-level of your function.
+         = note: see: https://yew.rs/docs/next/concepts/function-components/introduction#hooks
+
+  --> tests/hook_attr/hook_location-fail.rs:34:9
+   |
+34 |         use_context::<Ctx>().unwrap();
+   |         ^^^^^^^^^^^

@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use instant::Instant;
 use person::PersonType;
 use web_sys::{HtmlElement, HtmlInputElement};
@@ -20,18 +22,18 @@ pub enum Msg {
     SortByAge,
     SortByAddress,
     ToggleKeyed,
-    Rendered(Instant),
 }
 
-pub struct Model {
+pub struct App {
     persons: Vec<PersonType>,
     last_id: usize,
     keyed: bool,
     build_component_ratio: f64,
     delta_ref: NodeRef,
+    last_view: RefCell<Option<Instant>>,
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
@@ -42,6 +44,7 @@ impl Component for Model {
             keyed: true,
             build_component_ratio: 0.5,
             delta_ref: NodeRef::default(),
+            last_view: RefCell::default(),
         }
     }
 
@@ -122,22 +125,23 @@ impl Component for Model {
                 self.keyed = !self.keyed;
                 true
             }
-            Msg::Rendered(time_before) => {
-                let time_after = Instant::now();
-                let elapsed_max = time_after - time_before;
-                log::info!("Rendering started {} ms ago.", elapsed_max.as_millis());
-                if let Some(input) = self.delta_ref.cast::<HtmlElement>() {
-                    let delta_text =
-                        format!("The last rendering took {} ms", elapsed_max.as_millis());
-                    input.set_inner_text(&delta_text);
-                }
-                false
-            }
         }
     }
 
+    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
+        let time_after = Instant::now();
+        let elapsed_max = time_after - self.last_view.get_mut().take().unwrap();
+        log::info!("Rendering started {} ms ago.", elapsed_max.as_millis());
+        let output = self.delta_ref.cast::<HtmlElement>().unwrap();
+        let delta_text = format!("The last rendering took {} ms", elapsed_max.as_millis());
+        output.set_inner_text(&delta_text);
+    }
+
     fn view(&self, ctx: &Context<Self>) -> Html {
-        ctx.link().send_message(Msg::Rendered(Instant::now()));
+        let mut last_view = self.last_view.borrow_mut();
+        if last_view.is_none() {
+            *last_view = Some(Instant::now());
+        }
 
         html! {
             <div class="container">
@@ -152,7 +156,7 @@ impl Component for Model {
     }
 }
 
-impl Model {
+impl App {
     fn action_view(&self, link: &Scope<Self>) -> Html {
         html! {
             <>
@@ -174,6 +178,7 @@ impl Model {
             </>
         }
     }
+
     fn button_view(&self, link: &Scope<Self>) -> Html {
         html! {
             <>
@@ -254,6 +259,7 @@ impl Model {
             </>
         }
     }
+
     fn info_view(&self) -> Html {
         let ids = if self.persons.len() < 20 {
             self.persons
@@ -279,5 +285,5 @@ impl Model {
 
 fn main() {
     wasm_logger::init(wasm_logger::Config::new(log::Level::Trace));
-    yew::start_app::<Model>();
+    yew::Renderer::<App>::new().render();
 }

@@ -7,37 +7,58 @@ error[E0412]: cannot find type `INVALID` in this scope
 25 |     html! { <Comp<INVALID> /> };
    |                   ^^^^^^^ not found in this scope
 
-error[E0599]: no method named `build` found for struct `PropsBuilder<PropsBuilderStep_missing_required_prop_a>` in the current scope
+error[E0277]: the trait bound `AssertAllProps: HasProp<a, _>` is not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:22:14
    |
-3  | #[derive(Clone, Properties, PartialEq)]
-   |                 ---------- method `build` not found for this
-...
 22 |     html! { <Comp<Props> /> };
-   |              ^^^^ method not found in `PropsBuilder<PropsBuilderStep_missing_required_prop_a>`
+   |              ^^^^ the trait `HasProp<a, _>` is not implemented for `AssertAllProps`
+   |
+note: required because of the requirements on the impl of `HasAllProps<Props, (_,)>` for `CheckPropsAll<AssertAllProps>`
+  --> tests/function_component_attr/generic-props-fail.rs:3:17
+   |
+3  | #[derive(Clone, Properties, PartialEq)]
+   |                 ^^^^^^^^^^
+   = note: required because of the requirements on the impl of `AllPropsFor<PropsBuilder, (_,)>` for `AssertAllProps`
+note: required by a bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
+  --> $WORKSPACE/packages/yew/src/html/component/properties.rs
+   |
+   |             Token: AllPropsFor<B, How>,
+   |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `FunctionComponent<CompFunctionProvider<MissingTypeBounds>>: BaseComponent` is not satisfied
+error[E0277]: the trait bound `Comp<MissingTypeBounds>: yew::BaseComponent` is not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:27:14
    |
 27 |     html! { <Comp<MissingTypeBounds> /> };
-   |              ^^^^ the trait `BaseComponent` is not implemented for `FunctionComponent<CompFunctionProvider<MissingTypeBounds>>`
+   |              ^^^^ the trait `yew::BaseComponent` is not implemented for `Comp<MissingTypeBounds>`
    |
    = help: the following implementations were found:
-             <FunctionComponent<T> as BaseComponent>
+             <Comp<P> as yew::BaseComponent>
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0599]: the function or associated item `new` exists for struct `VChild<FunctionComponent<CompFunctionProvider<MissingTypeBounds>>>`, but its trait bounds were not satisfied
-  --> tests/function_component_attr/generic-props-fail.rs:27:14
-   |
-27 |     html! { <Comp<MissingTypeBounds> /> };
-   |              ^^^^ function or associated item cannot be called on `VChild<FunctionComponent<CompFunctionProvider<MissingTypeBounds>>>` due to unsatisfied trait bounds
-   |
-  ::: $WORKSPACE/packages/yew/src/functional/mod.rs
-   |
-   | pub struct FunctionComponent<T: FunctionProvider + 'static> {
-   | ----------------------------------------------------------- doesn't satisfy `_: BaseComponent`
-   |
-   = note: the following trait bounds were not satisfied:
-           `FunctionComponent<CompFunctionProvider<MissingTypeBounds>>: BaseComponent`
+error[E0599]: the function or associated item `new` exists for struct `VChild<Comp<MissingTypeBounds>>`, but its trait bounds were not satisfied
+   --> tests/function_component_attr/generic-props-fail.rs:27:14
+    |
+8   | #[function_component(Comp)]
+    | --------------------------- doesn't satisfy `Comp<MissingTypeBounds>: yew::BaseComponent`
+...
+27  |     html! { <Comp<MissingTypeBounds> /> };
+    |              ^^^^ function or associated item cannot be called on `VChild<Comp<MissingTypeBounds>>` due to unsatisfied trait bounds
+    |
+    = note: the following trait bounds were not satisfied:
+            `Comp<MissingTypeBounds>: yew::BaseComponent`
+note: the following trait must be implemented
+   --> $WORKSPACE/packages/yew/src/html/component/mod.rs
+    |
+    | / pub trait BaseComponent: Sized + 'static {
+    | |     /// The Component's Message.
+    | |     type Message: 'static;
+    | |
+...   |
+    | |     fn prepare_state(&self) -> Option<String>;
+    | | }
+    | |_^
+    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `MissingTypeBounds: yew::Properties` is not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:27:14
@@ -45,27 +66,30 @@ error[E0277]: the trait bound `MissingTypeBounds: yew::Properties` is not satisf
 27 |     html! { <Comp<MissingTypeBounds> /> };
    |              ^^^^ the trait `yew::Properties` is not implemented for `MissingTypeBounds`
    |
-  ::: $WORKSPACE/packages/yew/src/functional/mod.rs
+note: required by a bound in `Comp`
+  --> tests/function_component_attr/generic-props-fail.rs:11:8
    |
-   | pub struct FunctionComponent<T: FunctionProvider + 'static> {
-   |                                 ---------------- required by this bound in `FunctionComponent`
-   |
-   = note: required because of the requirements on the impl of `FunctionProvider` for `CompFunctionProvider<MissingTypeBounds>`
+8  | #[function_component(Comp)]
+   |                      ---- required by a bound in this
+...
+11 |     P: Properties + PartialEq,
+   |        ^^^^^^^^^^ required by this bound in `Comp`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0107]: missing generics for type alias `Comp`
+error[E0107]: missing generics for struct `Comp`
   --> tests/function_component_attr/generic-props-fail.rs:30:14
    |
 30 |     html! { <Comp /> };
-   |              ^^^^ expected 1 type argument
+   |              ^^^^ expected 1 generic argument
    |
-note: type alias defined here, with 1 type parameter: `P`
+note: struct defined here, with 1 generic parameter: `P`
   --> tests/function_component_attr/generic-props-fail.rs:8:22
    |
 8  | #[function_component(Comp)]
    |                      ^^^^
 9  | fn comp<P>(_props: &P) -> Html
    |         -
-help: use angle brackets to add missing type argument
+help: add missing generic argument
    |
 30 |     html! { <Comp<P> /> };
-   |                  ^^^
+   |              ~~~~~~~

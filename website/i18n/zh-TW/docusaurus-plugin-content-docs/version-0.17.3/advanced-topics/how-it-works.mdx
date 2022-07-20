@@ -1,8 +1,0 @@
----
-description: 關於框架的底層細節
----
-
-# 內部底層的 library
-
-元件生命周期的狀態機與 vdom diff 演算法
-

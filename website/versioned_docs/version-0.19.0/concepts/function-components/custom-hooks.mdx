@@ -1,13 +1,14 @@
 ---
-title: "Custom Hooks"
-description: "Defining your own Hooks "
+title: 'Custom Hooks'
+description: 'Defining your own Hooks '
 ---
 
 ## Defining custom Hooks
 
-Component's stateful logic can be extracted into usable function by creating custom Hooks. 
+Component's stateful logic can be extracted into usable function by creating custom Hooks.
 
 Consider that we have a component which subscribes to an agent and displays the messages sent to it.
+
 ```rust
 use yew::{function_component, html, use_effect, use_state, Callback};
 use yew_agent::Bridged;
@@ -43,6 +44,7 @@ If we build another component which keeps track of the messages, instead of copy
 We'll start by creating a new function called `use_subscribe`.
 The `use_` prefix conventionally denotes that a function is a hook.
 This function will take no arguments and return `Rc<RefCell<Vec<String>>>`.
+
 ```rust
 use std::{cell::RefCell, rc::Rc};
 
@@ -51,9 +53,9 @@ fn use_subscribe() -> Rc<RefCell<Vec<String>>> {
 }
 ```
 
-This is a simple hook which can be created by combining other hooks. For this example, we'll two pre-defined hooks. 
+This is a simple hook which can be created by combining other hooks. For this example, we'll two pre-defined hooks.
 We'll use `use_state` hook to store the `Vec` for messages, so they persist between component re-renders.
-We'll also use `use_effect` to subscribe to the `EventBus` `Agent` so the subscription can be tied to component's lifecycle. 
+We'll also use `use_effect` to subscribe to the `EventBus` `Agent` so the subscription can be tied to component's lifecycle.
 
 ```rust
 use std::collections::HashSet;
@@ -80,7 +82,7 @@ fn use_subscribe() -> Vec<String> {
 }
 ```
 
-Although this approach works in almost all cases, it can't be used to write primitive hooks like the pre-defined hooks we've been using already 
+Although this approach works in almost all cases, it can't be used to write primitive hooks like the pre-defined hooks we've been using already
 
 ### Writing primitive hooks
 

@@ -1,9 +1,9 @@
-use glob::glob;
 use std::collections::HashMap;
-use std::env;
 use std::fmt::{self, Write};
-use std::fs;
 use std::path::{Path, PathBuf};
+use std::{env, fs};
+
+use glob::glob;
 
 #[derive(Debug, Default)]
 struct Level {
@@ -13,7 +13,7 @@ struct Level {
 
 fn main() {
     let home = env::var("CARGO_MANIFEST_DIR").unwrap();
-    let pattern = format!("{}/../../website/docs/**/*.mdx", home);
+    let pattern = format!("{}/../../website/docs/**/*.md*", home);
     let base = format!("{}/../../website", home);
     let base = Path::new(&base).canonicalize().unwrap();
     let dir_pattern = format!("{}/../../website/docs/**", home);
@@ -86,10 +86,11 @@ impl Level {
                 .unwrap()
                 .to_str()
                 .unwrap()
-                .replace("-", "_");
+                .replace('-', "_");
 
             self.write_space(dst, level);
-            writeln!(dst, "#[doc = include_str!(\"{}\")]", file.display())?;
+
+            writeln!(dst, "#[doc = include_str!(r\"{}\")]", file.display())?;
             self.write_space(dst, level);
             writeln!(dst, "pub fn {}_md() {{}}", stem)?;
         }

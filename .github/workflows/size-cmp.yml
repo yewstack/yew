@@ -1,0 +1,80 @@
+---
+name: Size Comparison
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - .github/workflows/size-cmp.yml
+      - "ci/**"
+      - "packages/**"
+      - "examples/**"
+      - "Cargo.toml"
+
+jobs:
+  size-cmp:
+    name: Compare Size between master and current Pull Request
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v3
+        with:
+          repository: 'yewstack/yew'
+          ref: master
+          path: yew-master
+
+      - name: Checkout pull request
+        uses: actions/checkout@v3
+        with:
+          path: current-pr
+
+      - name: Setup toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          target: wasm32-unknown-unknown
+          components: rust-src
+          override: true
+          profile: minimal
+
+      - name: Restore Rust cache for master
+        uses: Swatinem/rust-cache@v1
+        with:
+          working-directory: yew-master
+          key: master
+
+      - name: Restore Rust cache for current pull request
+        uses: Swatinem/rust-cache@v1
+        with:
+          working-directory: current-pr
+          key: pr
+
+      - name: Setup Trunk
+        uses: jetli/trunk-action@v0.1.0
+        with:
+          version: 'latest'
+
+      - name: Build master examples
+        run: find ./*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
+        working-directory: yew-master/examples
+        env:
+          RUSTUP_TOOLCHAIN: nightly
+
+      - name: Build pull request examples
+        run: find ./*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
+        working-directory: current-pr/examples
+        env:
+          RUSTUP_TOOLCHAIN: nightly
+
+      - name: Collect size information
+        run: python3 current-pr/ci/collect_sizes.py
+        env:
+          ISSUE_NUMBER: ${{ github.event.number }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: size-cmp-info
+          path: ".SIZE_CMP_INFO"
+          retention-days: 1

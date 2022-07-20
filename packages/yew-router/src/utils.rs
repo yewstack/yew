@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+
 use wasm_bindgen::JsCast;
 
 pub(crate) fn strip_slash_suffix(path: &str) -> &str {
@@ -10,8 +11,8 @@ thread_local! {
     static BASE_URL: RefCell<Option<String>> = RefCell::new(None);
 }
 
-// This exists so we can cache the base url. It costs us a `to_string` call instead of a DOM API call.
-// Considering base urls are generally short, it *should* be less expensive.
+// This exists so we can cache the base url. It costs us a `to_string` call instead of a DOM API
+// call. Considering base urls are generally short, it *should* be less expensive.
 pub fn base_url() -> Option<String> {
     BASE_URL_LOADED.call_once(|| {
         BASE_URL.with(|val| {
@@ -38,6 +39,30 @@ pub fn fetch_base_url() -> Option<String> {
             Some(base.to_string())
         }
         _ => None,
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
+    gloo::utils::window()
+        .location()
+        .href()
+        .ok()
+        .and_then(|base| web_sys::Url::new_with_base(pathname, &base).ok())
+        .map(|url| {
+            url.set_search(query);
+            format!("{}{}", url.pathname(), url.search())
+        })
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
+    let query = query.trim();
+
+    if !query.is_empty() {
+        Some(format!("{}?{}", pathname, query))
+    } else {
+        Some(pathname.to_owned())
     }
 }
 
@@ -77,5 +102,18 @@ mod tests {
             .unwrap()
             .set_inner_html(r#"<base href="/base">"#);
         assert_eq!(fetch_base_url(), Some("/base".to_string()));
+    }
+
+    #[test]
+    fn test_compose_path() {
+        assert_eq!(compose_path("/home", ""), Some("/home".to_string()));
+        assert_eq!(
+            compose_path("/path/to", "foo=bar"),
+            Some("/path/to?foo=bar".to_string())
+        );
+        assert_eq!(
+            compose_path("/events", "from=2019&to=2021"),
+            Some("/events?from=2019&to=2021".to_string())
+        );
     }
 }

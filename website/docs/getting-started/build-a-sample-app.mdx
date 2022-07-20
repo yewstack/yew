@@ -1,8 +1,22 @@
 ---
-title: "Build a sample app"
+title: 'Build a sample app'
 ---
 
-## Create Project
+Once you have the environment ready, you can either choose to use a starter template that contains
+the boilerplate needed for a basic Yew app or manually set up a small project.
+
+## Using a starter template
+
+Install [`cargo-generate`](https://github.com/cargo-generate/cargo-generate) by following their installation instructions
+then run the following command:
+
+```shell
+cargo generate --git https://github.com/yewstack/yew-trunk-minimal-template
+```
+
+## Setting up the application manually
+
+### Create Project
 
 To get started, create a new cargo project.
 
@@ -16,19 +30,21 @@ Open the newly created directory.
 cd yew-app
 ```
 
-## Run a hello world example
+### Run a hello world example
 
-To verify the Rust environment is setup, run the initial project using the cargo build tool. After output about the build process, you should see the expected "Hello World" message.
+To verify the Rust environment is setup, run the initial project using `cargo run`. You should see
+a "Hello World!" message.
 
 ```bash
 cargo run
+# output: Hello World!
 ```
 
-## Converting the project into a Yew web application
+### Setting up the project as a Yew web application
 
 To convert this simple command line application to a basic Yew web application, a few changes are needed.
 
-### Update Cargo.toml
+#### Update Cargo.toml
 
 Add `yew` to the list of dependencies.
 
@@ -36,83 +52,75 @@ Add `yew` to the list of dependencies.
 [package]
 name = "yew-app"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-# you can check the latest version here: https://crates.io/crates/yew
-yew = "0.19"
+# this is the development version of Yew
+yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
 ```
 
-### Update main.rs
+:::info
 
-We need to generate a template which sets up a root Component called `Model` which renders a button that updates its value when clicked.
-Replace the contents of `src/main.rs` with the following code.
+You only need feature `csr` if you are building an application.
+It will enable the `Renderer` and all client-side rendering related code.
+
+If you are making a library, do not enable this feature as it will pull in
+client-side rendering logic into the server-side rendering bundle.
+
+If you need the Renderer for testing or examples, you should enable it
+in the `dev-dependencies` instead.
+
+:::
+
+#### Update main.rs
+
+We need to generate a template which sets up a root Component called `App` which renders a button
+that updates its value when clicked. Replace the contents of `src/main.rs` with the following code.
 
 :::note
-The line `yew::start_app::<Model>()` inside `main()` starts your application and mounts it to the page's `<body>` tag.  
-If you would like to start your application with any dynamic properties, you can instead use `yew::start_app_with_props::<Model>(..)`.
+The call to `yew::Renderer::<App>::new().render()` inside the `main` function starts your application and mounts
+it to the page's `<body>` tag. If you would like to start your application with any dynamic
+properties, you can instead use `yew::Renderer::<App>::with_props(..).render()`.
 :::
 
 ```rust ,no_run, title=main.rs
 use yew::prelude::*;
 
-enum Msg {
-    AddOne,
-}
-
-struct Model {
-    value: i64,
-}
-
-impl Component for Model {
-    type Message = Msg;
-    type Properties = ();
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self {
-            value: 0,
+#[function_component]
+fn App() -> Html {
+    let counter = use_state(|| 0);
+    let onclick = {
+        let counter = counter.clone();
+        move |_| {
+            let value = *counter + 1;
+            counter.set(value);
         }
-    }
+    };
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            Msg::AddOne => {
-                self.value += 1;
-                // the value has changed so we need to
-                // re-render for it to appear on the page
-                true
-            }
-        }
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        // This gives us a component's "`Scope`" which allows us to send messages, etc to the component.
-        let link = ctx.link();
-        html! {
-            <div>
-                <button onclick={link.callback(|_| Msg::AddOne)}>{ "+1" }</button>
-                <p>{ self.value }</p>
-            </div>
-        }
+    html! {
+        <div>
+            <button {onclick}>{ "+1" }</button>
+            <p>{ *counter }</p>
+        </div>
     }
 }
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::Renderer::<App>::new().render();
 }
 ```
 
-### Create index.html
+#### Create index.html
 
 Finally, add an `index.html` file in the root directory of your app.
 
-```html, title=index.html
+```html , title=index.html
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Yew App</title>
-  </head>
+    <head>
+        <meta charset="utf-8" />
+        <title>Yew App</title>
+    </head>
 </html>
 ```
 
@@ -124,7 +132,7 @@ Run the following command to build and serve the application locally.
 trunk serve
 ```
 
-Trunk will helpfully rebuild your application if you modify any of its files.
+Trunk will rebuild your application if you modify any of its source code files.
 
 ## Congratulations
 

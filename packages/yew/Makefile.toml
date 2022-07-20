@@ -1,37 +1,30 @@
-[tasks.test]
-extend = "core::wasm-pack-base"
-command = "wasm-pack"
-args = [
-    "test",
-    "@@split(YEW_TEST_FLAGS, )",
-    "--",
-    "--features",
-    "${YEW_TEST_FEATURES}",
-]
-
-[tasks.doc-test]
-clear = true
-run_task = { name = ["doc-test-normal"], fork = true }
-
-[tasks.doc-test-normal]
+[tasks.native-test]
 command = "cargo"
-args = [
-    "test",
-    "--doc",
-    "--features",
-    "doc_test,wasm_test",
-]
+args = ["test", "--features", "csr,ssr,hydration,tokio"]
 
-[tasks.bench]
-extend = "core::wasm-pack-base"
+[tasks.wasm-test]
 command = "wasm-pack"
 args = [
     "test",
-    "--release",
     "--firefox",
     "--headless",
     "--",
     "--features",
-    "wasm_bench",
-    "bench",
+    "csr,hydration,ssr",
 ]
+
+[tasks.ssr-test]
+command = "cargo"
+args = ["test", "ssr_tests", "--features", "ssr"]
+
+[tasks.test]
+args = ["test", "--all-targets", "--all-features"]
+dependencies = ["native-test", "wasm-test"]
+
+[tasks.clippy-feature-soundness]
+script = '''
+#!/usr/bin/env bash
+set -ex
+bash ../../ci/feature-soundness.sh
+bash ../../ci/feature-soundness-release.sh
+'''

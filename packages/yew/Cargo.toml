@@ -1,7 +1,7 @@
 [package]
 name = "yew"
 version = "0.19.3"
-edition = "2018"
+edition = "2021"
 authors = [
   "Denis Kolodin <deniskolodin@gmail.com>",
   "Justin Starry <justin@yew.rs>",
@@ -14,20 +14,26 @@ keywords = ["web", "webasm", "javascript"]
 categories = ["gui", "wasm", "web-programming"]
 description = "A framework for making client-side single-page apps"
 readme = "../../README.md"
+rust-version = "1.60.0"
 
 [dependencies]
 console_error_panic_hook = "0.1"
-gloo = "0.4"
+gloo = "0.8"
 gloo-utils = "0.1.0"
 indexmap = { version = "1", features = ["std"] }
 js-sys = "0.3"
 slab = "0.4"
 wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
 yew-macro = { version = "^0.19.0", path = "../yew-macro" }
 thiserror = "1.0"
-
-scoped-tls-hkt = "0.1"
+futures = { version = "0.3", optional = true }
+html-escape = { version = "0.2.9", optional = true }
+implicit-clone = { version = "0.3", features = ["map"] }
+base64ct = { version = "1.5.0", features = ["std"], optional = true }
+bincode = { version = "1.3.3", optional = true }
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1.19", features = ["sync"] }
+tokio-stream = { version = "0.1.9", features = ["sync"] }
 
 [dependencies.web-sys]
 version = "0.3"
@@ -50,25 +56,55 @@ features = [
   "Location",
   "MouseEvent",
   "Node",
+  "NodeList",
   "PointerEvent",
   "ProgressEvent",
+  "ShadowRoot",
   "Text",
   "TouchEvent",
   "TransitionEvent",
   "UiEvent",
   "WheelEvent",
   "Window",
+  "HtmlScriptElement",
 ]
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+# we move it here so no promise-based spawn_local can present for
+# non-wasm32 targets.
+wasm-bindgen-futures = "0.4"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+num_cpus = { version = "1.13", optional = true }
+tokio-util = { version = "0.7", features = ["rt"], optional = true }
+once_cell = "1"
+
 [dev-dependencies]
-easybench-wasm = "0.2"
 wasm-bindgen-test = "0.3"
-gloo = { version = "0.4", features = ["futures"] }
+gloo = { version = "0.8", features = ["futures"] }
+gloo-net = { version = "0.2", features = ["http"] }
+wasm-bindgen-futures = "0.4"
+rustversion = "1"
+trybuild = "1"
+
+[dev-dependencies.web-sys]
+version = "0.3"
+features = [
+  "ShadowRootInit",
+  "ShadowRootMode",
+]
 
 [features]
-doc_test = []
-wasm_test = []
-wasm_bench = []
+tokio = ["tokio/rt", "dep:num_cpus", "dep:tokio-util"]
+ssr = ["dep:futures", "dep:html-escape", "dep:base64ct", "dep:bincode"]
+csr = []
+hydration = ["csr", "dep:bincode"]
+nightly = ["yew-macro/nightly"]
+default = []
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+tokio = { version = "1.19", features = ["full"] }
 
 [package.metadata.docs.rs]
-features = ["doc_test"]
+all-features = true
+rustdoc-args = ["--cfg", "documenting"]

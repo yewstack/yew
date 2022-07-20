@@ -1,147 +1,156 @@
-use super::{Key, VDiff, VNode};
-use crate::html::{AnyScope, NodeRef};
-use web_sys::{Element, Node};
+use super::{Key, VNode};
 
 /// This struct represents a suspendable DOM fragment.
 #[derive(Clone, Debug, PartialEq)]
 pub struct VSuspense {
     /// Child nodes.
-    children: Box<VNode>,
-
+    pub(crate) children: Box<VNode>,
     /// Fallback nodes when suspended.
-    fallback: Box<VNode>,
-
-    /// The element to attach to when children is not attached to DOM
-    detached_parent: Element,
-
+    pub(crate) fallback: Box<VNode>,
     /// Whether the current status is suspended.
-    suspended: bool,
-
+    pub(crate) suspended: bool,
     /// The Key.
     pub(crate) key: Option<Key>,
 }
 
 impl VSuspense {
-    pub(crate) fn new(
-        children: VNode,
-        fallback: VNode,
-        detached_parent: Element,
-        suspended: bool,
-        key: Option<Key>,
-    ) -> Self {
+    pub fn new(children: VNode, fallback: VNode, suspended: bool, key: Option<Key>) -> Self {
         Self {
             children: children.into(),
             fallback: fallback.into(),
-            detached_parent,
             suspended,
             key,
         }
     }
+}
 
-    pub(crate) fn first_node(&self) -> Option<Node> {
-        if self.suspended {
-            self.fallback.first_node()
-        } else {
-            self.children.first_node()
+#[cfg(feature = "ssr")]
+mod feat_ssr {
+    use super::*;
+    use crate::html::AnyScope;
+    use crate::platform::io::BufWriter;
+    use crate::virtual_dom::Collectable;
+
+    impl VSuspense {
+        pub(crate) async fn render_into_stream(
+            &self,
+            w: &mut BufWriter,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+        ) {
+            let collectable = Collectable::Suspense;
+
+            if hydratable {
+                collectable.write_open_tag(w);
+            }
+
+            // always render children on the server side.
+            self.children
+                .render_into_stream(w, parent_scope, hydratable)
+                .await;
+
+            if hydratable {
+                collectable.write_close_tag(w);
+            }
         }
     }
 }
 
-impl VDiff for VSuspense {
-    fn detach(&mut self, parent: &Element) {
-        if self.suspended {
-            self.fallback.detach(parent);
-            self.children.detach(&self.detached_parent);
-        } else {
-            self.children.detach(parent);
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "ssr")]
+#[cfg(test)]
+mod ssr_tests {
+    use std::rc::Rc;
+    use std::time::Duration;
+
+    use tokio::task::{spawn_local, LocalSet};
+    use tokio::test;
+    use tokio::time::sleep;
+
+    use crate::prelude::*;
+    use crate::suspense::{Suspension, SuspensionResult};
+    use crate::ServerRenderer;
+
+    #[test(flavor = "multi_thread", worker_threads = 2)]
+    async fn test_suspense() {
+        #[derive(PartialEq)]
+        pub struct SleepState {
+            s: Suspension,
         }
-    }
 
-    fn shift(&self, previous_parent: &Element, next_parent: &Element, next_sibling: NodeRef) {
-        if self.suspended {
-            self.fallback
-                .shift(previous_parent, next_parent, next_sibling);
-        } else {
-            self.children
-                .shift(previous_parent, next_parent, next_sibling);
-        }
-    }
+        impl SleepState {
+            fn new() -> Self {
+                let (s, handle) = Suspension::new();
 
-    fn apply(
-        &mut self,
-        parent_scope: &AnyScope,
-        parent: &Element,
-        next_sibling: NodeRef,
-        ancestor: Option<VNode>,
-    ) -> NodeRef {
-        let (already_suspended, children_ancestor, fallback_ancestor) = match ancestor {
-            Some(VNode::VSuspense(mut m)) => {
-                // We only preserve the child state if they are the same suspense.
-                if m.key != self.key || self.detached_parent != m.detached_parent {
-                    m.detach(parent);
+                // we use tokio spawn local here.
+                spawn_local(async move {
+                    // we use tokio sleep here.
+                    sleep(Duration::from_millis(50)).await;
 
-                    (false, None, None)
-                } else {
-                    (m.suspended, Some(*m.children), Some(*m.fallback))
-                }
-            }
-            Some(mut m) => {
-                m.detach(parent);
-                (false, None, None)
-            }
-            None => (false, None, None),
-        };
+                    handle.resume();
+                });
 
-        // When it's suspended, we render children into an element that is detached from the dom
-        // tree while rendering fallback UI into the original place where children resides in.
-        match (self.suspended, already_suspended) {
-            (true, true) => {
-                self.children.apply(
-                    parent_scope,
-                    &self.detached_parent,
-                    NodeRef::default(),
-                    children_ancestor,
-                );
-
-                self.fallback
-                    .apply(parent_scope, parent, next_sibling, fallback_ancestor)
-            }
-
-            (false, false) => {
-                self.children
-                    .apply(parent_scope, parent, next_sibling, children_ancestor)
-            }
-
-            (true, false) => {
-                children_ancestor.as_ref().unwrap().shift(
-                    parent,
-                    &self.detached_parent,
-                    NodeRef::default(),
-                );
-
-                self.children.apply(
-                    parent_scope,
-                    &self.detached_parent,
-                    NodeRef::default(),
-                    children_ancestor,
-                );
-
-                // first render of fallback, ancestor needs to be None.
-                self.fallback
-                    .apply(parent_scope, parent, next_sibling, None)
-            }
-
-            (false, true) => {
-                fallback_ancestor.unwrap().detach(parent);
-
-                children_ancestor.as_ref().unwrap().shift(
-                    &self.detached_parent,
-                    parent,
-                    next_sibling.clone(),
-                );
-                self.children
-                    .apply(parent_scope, parent, next_sibling, children_ancestor)
+                Self { s }
             }
         }
+
+        impl Reducible for SleepState {
+            type Action = ();
+
+            fn reduce(self: Rc<Self>, _action: Self::Action) -> Rc<Self> {
+                Self::new().into()
+            }
+        }
+
+        #[hook]
+        pub fn use_sleep() -> SuspensionResult<Rc<dyn Fn()>> {
+            let sleep_state = use_reducer(SleepState::new);
+
+            if sleep_state.s.resumed() {
+                Ok(Rc::new(move || sleep_state.dispatch(())))
+            } else {
+                Err(sleep_state.s.clone())
+            }
+        }
+
+        #[derive(PartialEq, Properties, Debug)]
+        struct ChildProps {
+            name: String,
+        }
+
+        #[function_component]
+        fn Child(props: &ChildProps) -> HtmlResult {
+            use_sleep()?;
+            Ok(html! { <div>{"Hello, "}{&props.name}{"!"}</div> })
+        }
+
+        #[function_component]
+        fn Comp() -> Html {
+            let fallback = html! {"loading..."};
+
+            html! {
+                <Suspense {fallback}>
+                    <Child name="Jane" />
+                    <Child name="John" />
+                    <Child name="Josh" />
+                </Suspense>
+            }
+        }
+
+        let local = LocalSet::new();
+
+        let s = local
+            .run_until(async move {
+                ServerRenderer::<Comp>::new()
+                    .hydratable(false)
+                    .render()
+                    .await
+            })
+            .await;
+
+        assert_eq!(
+            s,
+            "<div>Hello, Jane!</div><div>Hello, John!</div><div>Hello, Josh!</div>"
+        );
     }
 }

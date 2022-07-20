@@ -1,0 +1,28 @@
+.chess-board {
+  margin-top: 20px;
+  width: 100%;
+  background-color: #fff;
+  height: 530px;
+  border-radius: 4px;
+  padding: 10px 5px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: space-around;
+  .chess-board-card-container:nth-child(4n) {
+    margin-right: 0px;
+  }
+}
+
+@media screen and (max-width: 450px) {
+  .chess-board {
+    height: 480px;
+    padding: 10px 0px;
+  }
+}
+@media screen and (max-width: 370px) {
+  .chess-board {
+    height: 450px;
+  }
+}

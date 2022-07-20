@@ -1,9 +1,13 @@
-use crate::html::{AnyScope, Scope};
-use crate::virtual_dom::{VDiff, VNode, VText};
-use crate::{Component, Context, Html};
+//! Snapshot testing of Yew components
+//!
+//! This tests must be run in browser and thus require the `csr` feature to be enabled
 use gloo::console::log;
-use web_sys::Node;
 use yew::NodeRef;
+
+use crate::dom_bundle::{BSubtree, Bundle};
+use crate::html::AnyScope;
+use crate::virtual_dom::VNode;
+use crate::{scheduler, Component, Context, Html};
 
 struct Comp;
 impl Component for Comp {
@@ -36,21 +40,23 @@ pub struct TestLayout<'a> {
 
 pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     let document = gloo_utils::document();
-    let parent_scope: AnyScope = Scope::<Comp>::new(None).into();
+    let scope: AnyScope = AnyScope::test();
     let parent_element = document.create_element("div").unwrap();
-    let parent_node: Node = parent_element.clone().into();
+    let root = BSubtree::create_root(&parent_element);
+
     let end_node = document.create_text_node("END");
-    parent_node.append_child(&end_node).unwrap();
-    let mut empty_node: VNode = VText::new("").into();
+    parent_element.append_child(&end_node).unwrap();
 
     // Tests each layout independently
     let next_sibling = NodeRef::new(end_node.into());
     for layout in layouts.iter() {
         // Apply the layout
-        let mut node = layout.node.clone();
+        let vnode = layout.node.clone();
         log!("Independently apply layout '{}'", layout.name);
 
-        node.apply(&parent_scope, &parent_element, next_sibling.clone(), None);
+        let mut bundle = Bundle::new();
+        bundle.reconcile(&root, &scope, &parent_element, next_sibling.clone(), vnode);
+        scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -59,16 +65,12 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         );
 
         // Diff with no changes
-        let mut node_clone = layout.node.clone();
+        let vnode = layout.node.clone();
 
         log!("Independently reapply layout '{}'", layout.name);
 
-        node_clone.apply(
-            &parent_scope,
-            &parent_element,
-            next_sibling.clone(),
-            Some(node),
-        );
+        bundle.reconcile(&root, &scope, &parent_element, next_sibling.clone(), vnode);
+        scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -77,12 +79,8 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         );
 
         // Detach
-        empty_node.clone().apply(
-            &parent_scope,
-            &parent_element,
-            next_sibling.clone(),
-            Some(node_clone),
-        );
+        bundle.detach(&root, &parent_element, false);
+        scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
             "END",
@@ -92,48 +90,53 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     }
 
     // Sequentially apply each layout
-    let mut ancestor: Option<VNode> = None;
+    let mut bundle = Bundle::new();
     for layout in layouts.iter() {
-        let mut next_node = layout.node.clone();
+        let next_vnode = layout.node.clone();
 
         log!("Sequentially apply layout '{}'", layout.name);
-        next_node.apply(
-            &parent_scope,
+        bundle.reconcile(
+            &root,
+            &scope,
             &parent_element,
             next_sibling.clone(),
-            ancestor,
+            next_vnode,
         );
+
+        scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
             "Sequential apply failed for layout '{}'",
             layout.name,
         );
-        ancestor = Some(next_node);
     }
 
     // Sequentially detach each layout
     for layout in layouts.into_iter().rev() {
-        let mut next_node = layout.node.clone();
+        let next_vnode = layout.node.clone();
 
         log!("Sequentially detach layout '{}'", layout.name);
-        next_node.apply(
-            &parent_scope,
+        bundle.reconcile(
+            &root,
+            &scope,
             &parent_element,
             next_sibling.clone(),
-            ancestor,
+            next_vnode,
         );
+
+        scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
             "Sequential detach failed for layout '{}'",
             layout.name,
         );
-        ancestor = Some(next_node);
     }
 
     // Detach last layout
-    empty_node.apply(&parent_scope, &parent_element, next_sibling, ancestor);
+    bundle.detach(&root, &parent_element, false);
+    scheduler::start_now();
     assert_eq!(
         parent_element.inner_html(),
         "END",

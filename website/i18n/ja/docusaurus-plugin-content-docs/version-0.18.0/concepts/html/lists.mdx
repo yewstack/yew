@@ -4,11 +4,12 @@ title: Lists
 
 ## フラグメント
 
-`html!`マクロは常にルートノードが1つであることを要求します。
+`html!`マクロは常にルートノードが 1 つであることを要求します。
 この制限のために、空のタグを使って内容をラップすると良いでしょう。
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Valid-->
+
 ```rust
 html! {
     <>
@@ -19,6 +20,7 @@ html! {
 ```
 
 <!--Invalid-->
+
 ```rust
 /* error: only one root html element allowed */
 
@@ -27,15 +29,16 @@ html! {
     <p></p>
 }
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
 
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 ## イテレータ
 
-YewはイテレータからHTMLをビルドするのに2つの方法をサポートしています。
+Yew はイテレータから HTML をビルドするのに 2 つの方法をサポートしています。
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Syntax Type 1-->
+
 ```rust
 html! {
     <ul class="item-list">
@@ -45,6 +48,7 @@ html! {
 ```
 
 <!--Syntax Type 2-->
+
 ```rust
 html! {
     <ul class="item-list">
@@ -52,4 +56,5 @@ html! {
     </ul>
 }
 ```
+
 <!--END_DOCUSAURUS_CODE_TABS-->

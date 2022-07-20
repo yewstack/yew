@@ -1,10 +1,10 @@
 ---
-title: "Elements"
-description: "Both HTML and SVG elements are supported"
+title: 'Elements'
+description: 'Both HTML and SVG elements are supported'
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
 
 ## DOM nodes
 
@@ -101,6 +101,28 @@ This will result in the following **HTML**:
 ```html
 <div>This div is NOT hidden.</div>
 ```
+
+## String-like attributes
+
+But apart from a select few boolean attributes, you will probably be dealing with a lot of string-like HTML attributes and Yew has a few option for those
+
+```rust
+use yew::{html, virtual_dom::AttrValue};
+
+let str_placeholder = "I'm a str!";
+let string_placeholder = String::from("I'm a String!");
+let attrvalue_placeholder = AttrValue::from("I'm an AttrValue!");
+
+html! {
+    <div>
+        <input placeholder={str_placeholder} />
+        <input placeholder={string_placeholder} />
+        <input placeholder={attrvalue_placeholder} />
+    </div>
+};
+```
+
+They are all valid **but** we encourage you to favor Yew's custom `AttrValue`, especially if you need to clone or pass them as properties to another component.
 
 ## Optional attributes for HTML elements
 
@@ -239,4 +261,4 @@ impl Component for MyComponent {
 
 ## Relevant examples
 
-- [Inner HTML](https://github.com/yewstack/yew/tree/master/examples/inner_html)
+-   [Inner HTML](https://github.com/yewstack/yew/tree/yew-v0.19.3/examples/inner_html)

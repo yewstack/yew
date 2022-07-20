@@ -44,6 +44,7 @@ jobs:
 
       - name: Build changelog generator
         run: cargo build --release -p changelog
+        working-directory: tools
 
       - name: Generate changelog
         uses: mathiasvr/command-output@v1

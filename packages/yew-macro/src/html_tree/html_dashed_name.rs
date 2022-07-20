@@ -1,13 +1,16 @@
-use crate::{non_capitalized_ascii, stringify::Stringify, Peek};
-use boolinator::Boolinator;
-use proc_macro2::Ident;
-use proc_macro2::{Span, TokenStream};
-use quote::{quote, ToTokens};
 use std::fmt;
+
+use boolinator::Boolinator;
+use proc_macro2::{Ident, Span, TokenStream};
+use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
 use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream};
-use syn::{spanned::Spanned, LitStr, Token};
+use syn::spanned::Spanned;
+use syn::{LitStr, Token};
+
+use crate::stringify::Stringify;
+use crate::{non_capitalized_ascii, Peek};
 
 #[derive(Clone, PartialEq)]
 pub struct HtmlDashedName {
@@ -60,7 +63,7 @@ impl Peek<'_, Self> for HtmlDashedName {
                 if punct.as_char() == '-' {
                     let (ident, i_cursor) = p_cursor.ident()?;
                     cursor = i_cursor;
-                    extended.push((Token![-](Span::call_site()), ident));
+                    extended.push((Token![-](Span::mixed_site()), ident));
                     continue;
                 }
             }
@@ -88,8 +91,8 @@ impl ToTokens for HtmlDashedName {
         let HtmlDashedName { name, extended } = self;
         let dashes = extended.iter().map(|(dash, _)| quote! {#dash});
         let idents = extended.iter().map(|(_, ident)| quote! {#ident});
-        let extended = quote! { #(#dashes#idents)* };
-        tokens.extend(quote! { #name#extended });
+        let extended = quote! { #(#dashes #idents)* };
+        tokens.extend(quote! { #name #extended });
     }
 }
 

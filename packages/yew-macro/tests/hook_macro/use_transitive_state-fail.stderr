@@ -1,0 +1,39 @@
+error: expected closure
+ --> tests/hook_macro/use_transitive_state-fail.rs:6:40
+  |
+6 |     use_transitive_state_with_closure!(123)?;
+  |                                        ^^^
+
+error: You must specify a return type for this closure. This is used when the closure is omitted from the client side rendering bundle.
+ --> tests/hook_macro/use_transitive_state-fail.rs:8:40
+  |
+8 |     use_transitive_state_with_closure!(|_| { todo!() }, 123)?;
+  |                                        ^^^^^^^^^^^^^^^
+
+error: this hook takes 2 arguments but 1 argument was supplied
+  --> tests/hook_macro/use_transitive_state-fail.rs:10:5
+   |
+10 |     use_transitive_state_with_closure!(|_| -> u32 { todo!() })?;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `use_transitive_state_with_closure` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected closure
+  --> tests/hook_macro/use_transitive_state-fail.rs:17:43
+   |
+17 |     use_transitive_state_without_closure!(123)?;
+   |                                           ^^^
+
+error: You must specify a return type for this closure. This is used when the closure is omitted from the client side rendering bundle.
+  --> tests/hook_macro/use_transitive_state-fail.rs:19:43
+   |
+19 |     use_transitive_state_without_closure!(|_| { todo!() }, 123)?;
+   |                                           ^^^^^^^^^^^^^^^
+
+error: this hook takes 2 arguments but 1 argument was supplied
+  --> tests/hook_macro/use_transitive_state-fail.rs:21:5
+   |
+21 |     use_transitive_state_without_closure!(|_| -> u32 { todo!() })?;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `use_transitive_state_without_closure` (in Nightly builds, run with -Z macro-backtrace for more info)
