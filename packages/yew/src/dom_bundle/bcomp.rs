@@ -170,7 +170,7 @@ mod tests {
     use web_sys::Element;
 
     use super::*;
-    use crate::dom_bundle::{eeconcilable, ReconcileTarget};
+    use crate::dom_bundle::{Reconcilable, ReconcileTarget};
     use crate::virtual_dom::{Key, VChild, VNode};
     use crate::{html, scheduler, Children, Component, Context, Html, NodeRef, Properties};
 
