@@ -165,14 +165,12 @@ mod feat_hydration {
 #[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
-    use std::ops::Deref;
-
     use gloo::utils::document;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-    use web_sys::{Element, Node};
+    use web_sys::Element;
 
     use super::*;
-    use crate::dom_bundle::{Bundle, Reconcilable, ReconcileTarget};
+    use crate::dom_bundle::{eeconcilable, ReconcileTarget};
     use crate::virtual_dom::{Key, VChild, VNode};
     use crate::{html, scheduler, Children, Component, Context, Html, NodeRef, Properties};
 
