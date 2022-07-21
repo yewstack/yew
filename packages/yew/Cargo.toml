@@ -18,7 +18,7 @@ rust-version = "1.60.0"
 
 [dependencies]
 console_error_panic_hook = "0.1"
-gloo = { version = "0.8", features = ["futures"] }
+gloo = "0.8"
 indexmap = { version = "1", features = ["std"] }
 js-sys = "0.3"
 slab = "0.4"
