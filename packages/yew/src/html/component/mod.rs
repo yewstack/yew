@@ -67,7 +67,7 @@ pub(crate) enum RenderMode {
 #[cfg(any(feature = "csr", feature = "ssr"))]
 pub(crate) use feat_csr_ssr::*;
 
-/// The [`Component`]'s context. This contains component's [`Scope`] and and props and
+/// The [`Component`]'s context. This contains component's [`Scope`] and props and
 /// is passed to every lifecycle method.
 #[derive(Debug)]
 pub struct Context<COMP: BaseComponent> {
