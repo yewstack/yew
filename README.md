@@ -46,7 +46,7 @@
 
 ## Contributing
 
-Yew is a community effort and we welcome all kinds of contributions, big or small, from developers of all backgrounds. We want the Yew community to be a fun and friendly place, so please review our [Code of Conduct](CODE_OF_CONDUCT.md) to learn what behavior will not be tolerated.
+Yew is a community effort and we welcome all kinds of contributions, big or small, from developers of all backgrounds. We want the Yew community to be a fun and friendly place, so please review our [Code of Conduct](https://github.com/yewstack/yew/blob/master/CODE_OF_CONDUCT.md) to learn what behavior will not be tolerated.
 
 #### 🤠 New to Yew?
 
@@ -62,7 +62,7 @@ Feel free to drop into our [Discord chatroom](https://discord.gg/VQck8X4) or ope
 
 #### 🙂 Ready to dive into the code?
 
-After reviewing the [Contribution Guide](CONTRIBUTING.md), check out the ["Good First Issues"](https://github.com/yewstack/yew/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) (they are eager for attention!). Once you find one that interests you, feel free to assign yourself to an issue and don't hesitate to reach out for guidance, the issues vary in complexity.
+After reviewing the [Contribution Guide](https://github.com/yewstack/yew/blob/master/CONTRIBUTING.md), check out the ["Good First Issues"](https://github.com/yewstack/yew/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) (they are eager for attention!). Once you find one that interests you, feel free to assign yourself to an issue and don't hesitate to reach out for guidance, the issues vary in complexity.
 
 #### 😱 Found a bug?
 
