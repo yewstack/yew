@@ -8,11 +8,11 @@ use std::time::Duration;
 mod common;
 
 use common::{obtain_result, obtain_result_by_id};
-use gloo::timers::future::sleep;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use wasm_bindgen_test::*;
 use web_sys::{HtmlElement, HtmlTextAreaElement};
+use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew::suspense::{use_future, Suspension, SuspensionResult};
 use yew::{Renderer, ServerRenderer};
@@ -769,7 +769,7 @@ async fn hydration_suspense_no_flickering() {
     #[hook]
     pub fn use_suspend() -> SuspensionResult<()> {
         use_future(|| async {
-            gloo::timers::future::sleep(std::time::Duration::from_millis(200)).await;
+            yew::platform::time::sleep(std::time::Duration::from_millis(200)).await;
         })?;
         Ok(())
     }
