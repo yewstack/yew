@@ -181,14 +181,18 @@ pub trait Component: Sized + 'static {
     /// to update their state and (optionally) re-render themselves.
     ///
     /// Returned bool indicates whether to render this Component after update.
+    ///
+    /// By default, this function will return true and thus make the component re-render.
     #[allow(unused_variables)]
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        false
+        true
     }
 
     /// Called when properties passed to the component change
     ///
     /// Returned bool indicates whether to render this Component after changed.
+    ///
+    /// By default, this function will return true and thus make the component re-render.
     #[allow(unused_variables)]
     fn changed(&mut self, ctx: &Context<Self>) -> bool {
         true
@@ -260,5 +264,40 @@ where
 
     fn prepare_state(&self) -> Option<String> {
         Component::prepare_state(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct MyCustomComponent;
+
+    impl Component for MyCustomComponent {
+        type Message = ();
+        type Properties = ();
+
+        fn create(_ctx: &Context<Self>) -> Self {
+            Self
+        }
+
+        fn view(&self, _ctx: &Context<Self>) -> Html {
+            Default::default()
+        }
+    }
+
+    #[test]
+    fn make_sure_component_update_and_changed_rerender() {
+        let mut comp = MyCustomComponent;
+        let ctx = Context {
+            scope: Scope::new(None),
+            props: Rc::new(()),
+            #[cfg(feature = "hydration")]
+            creation_mode: crate::html::RenderMode::Hydration,
+            #[cfg(feature = "hydration")]
+            prepared_state: None,
+        };
+        assert!(Component::update(&mut comp, &ctx, ()));
+        assert!(Component::changed(&mut comp, &ctx));
     }
 }
