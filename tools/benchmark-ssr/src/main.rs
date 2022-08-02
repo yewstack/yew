@@ -180,9 +180,8 @@ impl Statistics {
     }
 }
 
-fn create_progress(rounds: usize) -> ProgressBar {
-    // There are 3 items per round.
-    let bar = ProgressBar::new(rounds as u64);
+fn create_progress(tests: usize, rounds: usize) -> ProgressBar {
+    let bar = ProgressBar::new((tests * rounds) as u64);
     // Progress Bar needs to be updated in a different thread.
     {
         let bar = bar.downgrade();
@@ -210,19 +209,19 @@ fn create_progress(rounds: usize) -> ProgressBar {
 
 #[tokio::main]
 async fn main() {
-    // Tests in each round.
-    static TESTS: usize = 4;
-
     let local_set = LocalSet::new();
 
     let args = Args::parse();
 
-    let mut baseline_results = Vec::with_capacity(TESTS * args.rounds);
-    let mut hello_world_results = Vec::with_capacity(TESTS * args.rounds);
-    let mut function_router_results = Vec::with_capacity(TESTS * args.rounds);
-    let mut concurrent_tasks_results = Vec::with_capacity(TESTS * args.rounds);
+    // Tests in each round.
+    static TESTS: usize = 4;
 
-    let bar = (!args.no_term).then(|| create_progress(args.rounds));
+    let mut baseline_results = Vec::with_capacity(args.rounds);
+    let mut hello_world_results = Vec::with_capacity(args.rounds);
+    let mut function_router_results = Vec::with_capacity(args.rounds);
+    let mut concurrent_tasks_results = Vec::with_capacity(args.rounds);
+
+    let bar = (!args.no_term).then(|| create_progress(TESTS, args.rounds));
 
     local_set
         .run_until(async {
