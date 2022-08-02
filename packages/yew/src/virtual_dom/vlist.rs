@@ -175,16 +175,13 @@ mod feat_ssr {
                 [child] => {
                     child.render_into_stream(w, parent_scope, hydratable).await;
                 }
-                _ => {
+                [first_child, rest_children @ ..] => {
                     let buf_capacity = w.capacity();
                     let mut child_streams = Vec::with_capacity(self.children.len() - 1);
                     let mut child_furs = FuturesUnordered::new();
 
-                    let mut children = self.children.iter();
-                    let first_child = children.next().expect("first child should exist!");
-
-                    // Concurrently render all children.
-                    for child in children {
+                    // Concurrently render rest children into a separate buffer.
+                    for child in rest_children {
                         let (mut w, r) = io::buffer(buf_capacity);
 
                         child_furs.push(async move {
@@ -196,11 +193,12 @@ mod feat_ssr {
                         child_streams.push(r);
                     }
 
-                    // Concurrently resolve all futures.
+                    // Concurrently resolve all child futures.
                     let resolve_fur = async move { while child_furs.next().await.is_some() {} };
 
                     // Transfer results to parent writer.
                     let transfer_fur = async move {
+                        // Render first child to parent buffer directly.
                         first_child
                             .render_into_stream(w, parent_scope, hydratable)
                             .await;
