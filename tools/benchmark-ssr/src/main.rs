@@ -9,8 +9,6 @@ use function_router::{ServerApp, ServerAppProps};
 use indicatif::{ProgressBar, ProgressStyle};
 use serde::{Deserialize, Serialize};
 use tabled::{Style, TableIteratorExt, Tabled};
-use tokio::fs;
-use tokio::io::AsyncWriteExt;
 use tokio::task::{spawn_local, LocalSet};
 use yew::platform::time::sleep;
 use yew::prelude::*;
@@ -26,6 +24,10 @@ struct Args {
     /// Write the report to an output path in json format.
     #[clap(long)]
     output_path: Option<PathBuf>,
+
+    /// The number of rounds to run.
+    #[clap(long, default_value_t = 10)]
+    rounds: usize,
 }
 
 fn dur_as_millis_f64(dur: Duration) -> f64 {
@@ -153,11 +155,34 @@ struct Statistics {
     std_dev: String,
 }
 
-static ROUND: u16 = 10;
+impl Statistics {
+    fn from_results<S>(name: S, round: usize, mut results: Vec<Duration>) -> Self
+    where
+        S: Into<String>,
+    {
+        let name = name.into();
 
-fn create_bar() -> ProgressBar {
+        results.sort();
+
+        let var: Variance = results.iter().cloned().map(dur_as_millis_f64).collect();
+
+        Self {
+            name,
+            round: round.to_string(),
+            min: format!("{:.3}", dur_as_millis_f64(results[0])),
+            max: format!(
+                "{:.3}",
+                dur_as_millis_f64(*results.last().expect("array is empty?"))
+            ),
+            std_dev: format!("{:.3}", var.sample_variance().sqrt()),
+            mean: format!("{:.3}", var.mean()),
+        }
+    }
+}
+
+fn create_progress(rounds: usize) -> ProgressBar {
     // There are 3 items per round.
-    let bar = ProgressBar::new(u64::from(ROUND * 4));
+    let bar = ProgressBar::new(rounds as u64);
     // Progress Bar needs to be updated in a different thread.
     {
         let bar = bar.downgrade();
@@ -174,7 +199,7 @@ fn create_bar() -> ProgressBar {
             .template(&format!(
                 "{{spinner:.green}} {{prefix}} [{{elapsed_precise}}] [{{bar:40.cyan/blue}}] round \
                  {{msg}}/{}",
-                ROUND
+                rounds
             ))
             // .tick_chars("-\\|/")
             .progress_chars("=>-"),
@@ -185,20 +210,23 @@ fn create_bar() -> ProgressBar {
 
 #[tokio::main]
 async fn main() {
+    // Tests in each round.
+    static TESTS: usize = 4;
+
     let local_set = LocalSet::new();
 
     let args = Args::parse();
 
-    let mut baseline_results = Vec::new();
-    let mut hello_world_results = Vec::new();
-    let mut function_router_results = Vec::new();
-    let mut concurrent_tasks_results = Vec::new();
+    let mut baseline_results = Vec::with_capacity(TESTS * args.rounds);
+    let mut hello_world_results = Vec::with_capacity(TESTS * args.rounds);
+    let mut function_router_results = Vec::with_capacity(TESTS * args.rounds);
+    let mut concurrent_tasks_results = Vec::with_capacity(TESTS * args.rounds);
 
-    let bar = (!args.no_term).then(create_bar);
+    let bar = (!args.no_term).then(|| create_progress(args.rounds));
 
     local_set
         .run_until(async {
-            for i in 0..=ROUND {
+            for i in 0..=args.rounds {
                 if let Some(ref bar) = bar {
                     bar.set_message(i.to_string());
                     if i == 0 {
@@ -248,68 +276,11 @@ async fn main() {
     }
     drop(bar);
 
-    baseline_results.sort();
-    hello_world_results.sort();
-    function_router_results.sort();
-    concurrent_tasks_results.sort();
-
-    let base_var: Variance = baseline_results
-        .iter()
-        .cloned()
-        .map(dur_as_millis_f64)
-        .collect();
-
-    let hw_var: Variance = hello_world_results
-        .iter()
-        .cloned()
-        .map(dur_as_millis_f64)
-        .collect();
-
-    let fr_var: Variance = function_router_results
-        .iter()
-        .cloned()
-        .map(dur_as_millis_f64)
-        .collect();
-
-    let ct_var: Variance = concurrent_tasks_results
-        .iter()
-        .cloned()
-        .map(dur_as_millis_f64)
-        .collect();
-
     let output = [
-        Statistics {
-            name: "Baseline".into(),
-            round: ROUND.to_string(),
-            min: format!("{:.3}", dur_as_millis_f64(baseline_results[0])),
-            max: format!("{:.3}", dur_as_millis_f64(baseline_results[9])),
-            std_dev: format!("{:.3}", base_var.sample_variance().sqrt()),
-            mean: format!("{:.3}", base_var.mean()),
-        },
-        Statistics {
-            name: "Hello World".into(),
-            round: ROUND.to_string(),
-            min: format!("{:.3}", dur_as_millis_f64(hello_world_results[0])),
-            max: format!("{:.3}", dur_as_millis_f64(hello_world_results[9])),
-            std_dev: format!("{:.3}", hw_var.sample_variance().sqrt()),
-            mean: format!("{:.3}", hw_var.mean()),
-        },
-        Statistics {
-            name: "Function Router".into(),
-            round: ROUND.to_string(),
-            min: format!("{:.3}", dur_as_millis_f64(function_router_results[0])),
-            max: format!("{:.3}", dur_as_millis_f64(function_router_results[9])),
-            std_dev: format!("{:.3}", fr_var.sample_variance().sqrt()),
-            mean: format!("{:.3}", fr_var.mean()),
-        },
-        Statistics {
-            name: "Concurrent Task".into(),
-            round: ROUND.to_string(),
-            min: format!("{:.3}", dur_as_millis_f64(concurrent_tasks_results[0])),
-            max: format!("{:.3}", dur_as_millis_f64(concurrent_tasks_results[9])),
-            std_dev: format!("{:.3}", ct_var.sample_variance().sqrt()),
-            mean: format!("{:.3}", ct_var.mean()),
-        },
+        Statistics::from_results("Baseline", args.rounds, baseline_results),
+        Statistics::from_results("Hello World", args.rounds, hello_world_results),
+        Statistics::from_results("Function Router", args.rounds, function_router_results),
+        Statistics::from_results("Concurrent Task", args.rounds, concurrent_tasks_results),
     ];
 
     println!("{}", output.as_ref().table().with(Style::rounded()));
