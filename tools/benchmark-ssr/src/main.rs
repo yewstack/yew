@@ -27,7 +27,7 @@ struct Args {
     output_path: Option<PathBuf>,
 }
 
-fn dur_to_millis(dur: Duration) -> f64 {
+fn dur_as_millis_f64(dur: Duration) -> f64 {
     i32::try_from(dur.as_micros()).map(f64::from).unwrap() / 1000.0
 }
 
@@ -255,57 +255,57 @@ async fn main() {
     let base_var: Variance = baseline_results
         .iter()
         .cloned()
-        .map(dur_to_millis)
+        .map(dur_as_millis_f64)
         .collect();
 
     let hw_var: Variance = hello_world_results
         .iter()
         .cloned()
-        .map(dur_to_millis)
+        .map(dur_as_millis_f64)
         .collect();
 
     let fr_var: Variance = function_router_results
         .iter()
         .cloned()
-        .map(dur_to_millis)
+        .map(dur_as_millis_f64)
         .collect();
 
     let ct_var: Variance = concurrent_tasks_results
         .iter()
         .cloned()
-        .map(dur_to_millis)
+        .map(dur_as_millis_f64)
         .collect();
 
     let output = [
         Statistics {
             name: "Baseline".into(),
             round: ROUND.to_string(),
-            min: format!("{:.3}", dur_to_millis(baseline_results[0])),
-            max: format!("{:.3}", dur_to_millis(baseline_results[9])),
+            min: format!("{:.3}", dur_as_millis_f64(baseline_results[0])),
+            max: format!("{:.3}", dur_as_millis_f64(baseline_results[9])),
             std_dev: format!("{:.3}", base_var.sample_variance().sqrt()),
             mean: format!("{:.3}", base_var.mean()),
         },
         Statistics {
             name: "Hello World".into(),
             round: ROUND.to_string(),
-            min: format!("{:.3}", dur_to_millis(hello_world_results[0])),
-            max: format!("{:.3}", dur_to_millis(hello_world_results[9])),
+            min: format!("{:.3}", dur_as_millis_f64(hello_world_results[0])),
+            max: format!("{:.3}", dur_as_millis_f64(hello_world_results[9])),
             std_dev: format!("{:.3}", hw_var.sample_variance().sqrt()),
             mean: format!("{:.3}", hw_var.mean()),
         },
         Statistics {
             name: "Function Router".into(),
             round: ROUND.to_string(),
-            min: format!("{:.3}", dur_to_millis(function_router_results[0])),
-            max: format!("{:.3}", dur_to_millis(function_router_results[9])),
+            min: format!("{:.3}", dur_as_millis_f64(function_router_results[0])),
+            max: format!("{:.3}", dur_as_millis_f64(function_router_results[9])),
             std_dev: format!("{:.3}", fr_var.sample_variance().sqrt()),
             mean: format!("{:.3}", fr_var.mean()),
         },
         Statistics {
             name: "Concurrent Task".into(),
             round: ROUND.to_string(),
-            min: format!("{:.3}", dur_to_millis(concurrent_tasks_results[0])),
-            max: format!("{:.3}", dur_to_millis(concurrent_tasks_results[9])),
+            min: format!("{:.3}", dur_as_millis_f64(concurrent_tasks_results[0])),
+            max: format!("{:.3}", dur_as_millis_f64(concurrent_tasks_results[9])),
             std_dev: format!("{:.3}", ct_var.sample_variance().sqrt()),
             mean: format!("{:.3}", ct_var.mean()),
         },
