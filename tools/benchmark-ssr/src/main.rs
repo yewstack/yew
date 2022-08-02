@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fs::File;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
@@ -314,21 +315,8 @@ async fn main() {
     println!("{}", output.as_ref().table().with(Style::rounded()));
 
     if let Some(ref p) = args.output_path {
-        let mut f = fs::OpenOptions::new()
-            .create(true)
-            .write(true)
-            .truncate(true)
-            .open(p)
-            .await
-            .expect("failed to write output.");
-
-        f.write_all(
-            serde_json::to_string_pretty(&output)
-                .expect("failed to write output.")
-                .as_bytes(),
-        )
-        .await
-        .expect("failed to write output.");
+        let mut f = File::create(p).expect("failed to write output.");
+        serde_json::to_writer_pretty(&mut f, &output).expect("failed to write output.");
 
         println!();
         println!("Result has been written to: {}", p.display());
