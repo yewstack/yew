@@ -156,7 +156,8 @@ mod test {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::stream::{FuturesOrdered, StreamExt};
+    use futures::future;
+    use futures::stream::{FuturesUnordered, StreamExt};
 
     use super::*;
     use crate::html::AnyScope;
@@ -176,26 +177,42 @@ mod feat_ssr {
                 }
                 _ => {
                     let buf_capacity = w.capacity();
+                    let mut children_streams = Vec::with_capacity(self.children.len());
+                    let mut children_furs = FuturesUnordered::new();
+
+                    let mut children = self.children.iter();
+                    let first_child = children.next().expect("first child should exist!");
 
                     // Concurrently render all children.
-                    let mut children: FuturesOrdered<_> = self
-                        .children
-                        .iter()
-                        .map(|m| async move {
-                            let (mut w, r) = io::buffer(buf_capacity);
+                    for child in children {
+                        let (mut w, r) = io::buffer(buf_capacity);
 
-                            m.render_into_stream(&mut w, parent_scope, hydratable).await;
-                            drop(w);
+                        children_furs.push(async move {
+                            child
+                                .render_into_stream(&mut w, parent_scope, hydratable)
+                                .await;
+                        });
 
-                            r
-                        })
-                        .collect();
-
-                    while let Some(mut r) = children.next().await {
-                        while let Some(next_chunk) = r.next().await {
-                            w.write(next_chunk.into());
-                        }
+                        children_streams.push(r);
                     }
+
+                    // Concurrently resolve all futures.
+                    let resolve_fur = async move { while children_furs.next().await.is_some() {} };
+
+                    // Transfer results to parent writer.
+                    let transfer_fur = async move {
+                        first_child
+                            .render_into_stream(w, parent_scope, hydratable)
+                            .await;
+
+                        for mut r in children_streams.into_iter() {
+                            while let Some(next_chunk) = r.next().await {
+                                w.write(next_chunk.into());
+                            }
+                        }
+                    };
+
+                    future::join(resolve_fur, transfer_fur).await;
                 }
             }
         }
