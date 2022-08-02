@@ -177,8 +177,8 @@ mod feat_ssr {
                 }
                 _ => {
                     let buf_capacity = w.capacity();
-                    let mut children_streams = Vec::with_capacity(self.children.len());
-                    let mut children_furs = FuturesUnordered::new();
+                    let mut child_streams = Vec::with_capacity(self.children.len());
+                    let mut child_furs = FuturesUnordered::new();
 
                     let mut children = self.children.iter();
                     let first_child = children.next().expect("first child should exist!");
@@ -187,17 +187,17 @@ mod feat_ssr {
                     for child in children {
                         let (mut w, r) = io::buffer(buf_capacity);
 
-                        children_furs.push(async move {
+                        child_furs.push(async move {
                             child
                                 .render_into_stream(&mut w, parent_scope, hydratable)
                                 .await;
                         });
 
-                        children_streams.push(r);
+                        child_streams.push(r);
                     }
 
                     // Concurrently resolve all futures.
-                    let resolve_fur = async move { while children_furs.next().await.is_some() {} };
+                    let resolve_fur = async move { while child_furs.next().await.is_some() {} };
 
                     // Transfer results to parent writer.
                     let transfer_fur = async move {
@@ -205,14 +205,14 @@ mod feat_ssr {
                             .render_into_stream(w, parent_scope, hydratable)
                             .await;
 
-                        for mut r in children_streams.into_iter() {
+                        for mut r in child_streams {
                             while let Some(next_chunk) = r.next().await {
                                 w.write(next_chunk.into());
                             }
                         }
                     };
 
-                    future::join(resolve_fur, transfer_fur).await;
+                    future::join(transfer_fur, resolve_fur).await;
                 }
             }
         }
