@@ -177,7 +177,7 @@ mod feat_ssr {
                 }
                 _ => {
                     let buf_capacity = w.capacity();
-                    let mut child_streams = Vec::with_capacity(self.children.len());
+                    let mut child_streams = Vec::with_capacity(self.children.len() - 1);
                     let mut child_furs = FuturesUnordered::new();
 
                     let mut children = self.children.iter();
@@ -212,7 +212,7 @@ mod feat_ssr {
                         }
                     };
 
-                    future::join(transfer_fur, resolve_fur).await;
+                    future::join(resolve_fur, transfer_fur).await;
                 }
             }
         }
