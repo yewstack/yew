@@ -7,7 +7,7 @@ exclude = [
 ]
 resolver = "2"
 
-[profile.release]
+[profile.bench]
 lto = true
 codegen-units = 1
 panic = "abort"
