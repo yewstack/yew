@@ -6,9 +6,10 @@ on:
     branches: [master]
     paths:
       - .github/workflows/benchmark-ssr.yml
-      - "packages/yew"
-      - "examples/function_router"
-      - "tools/benchmark-ssr"
+      - "packages/yew/**"
+      - "packages/yew-router/**"
+      - "examples/function_router/**"
+      - "tools/benchmark-ssr/**"
 
 jobs:
   benchmark-ssr:
