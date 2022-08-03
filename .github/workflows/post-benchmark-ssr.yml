@@ -9,6 +9,7 @@ on:
 
 jobs:
   post-benchmark-ssr:
+    if: github.event.workflow_run.event == 'pull_request'
     name: Post Comment on Pull Request
     runs-on: ubuntu-latest
 
@@ -16,8 +17,7 @@ jobs:
       - name: Download Repository
         uses: actions/checkout@v2
 
-      - if: github.event.workflow_run.event == 'pull_request'
-        name: Download Artifact
+      - name: Download Artifact
         uses: Legit-Labs/action-download-artifact@v2
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -28,6 +28,15 @@ jobs:
 
       - name: Make pull request comment
         run: python3 ci/make_benchmark_ssr_cmt.py
+
+      - name: Read Pull Request ID
+        run: |
+          PR_NUMBER=$(cat "benchmark-ssr/.PR_NUMBER")
+          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "pr number invalid"
+            exit 1
+          fi
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
 
       - name: Post Comment
         uses: actions/github-script@v6

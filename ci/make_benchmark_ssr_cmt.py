@@ -49,7 +49,6 @@ def main() -> None:
 
     with open(os.environ["GITHUB_ENV"], "a+") as f:
         f.write(f"YEW_BENCH_SSR={json.dumps(output)}\n")
-        f.write(f"PR_NUMBER={issue_number}\n")
 
 
 if __name__ == "__main__":
