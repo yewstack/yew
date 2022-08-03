@@ -5,7 +5,7 @@ pub use implicit_clone::ImplicitClone;
 
 use super::super::callback::Callback;
 use super::{BaseComponent, Children, ChildrenRenderer, Component, NodeRef, Scope};
-use crate::virtual_dom::{AttrValue, VChild, VNode};
+use crate::virtual_dom::{AttrValue, Key, VChild, VNode};
 
 impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
@@ -176,6 +176,10 @@ impl_into_prop!(|value: &'static str| -> AttrValue { AttrValue::Static(value) })
 impl_into_prop!(|value: String| -> AttrValue { AttrValue::Rc(Rc::from(value)) });
 impl_into_prop!(|value: Rc<str>| -> AttrValue { AttrValue::Rc(value) });
 impl_into_prop!(|value: VNode| -> Children { Children::new(vec![value]) });
+
+impl_into_prop!(|value: &'static str| -> Key { Key::from(value) });
+impl_into_prop!(|value: String| -> Key { Key::from(value) });
+impl_into_prop!(|value: Rc<str>| -> Key { Key::from(value) });
 
 impl<T: ImplicitClone + 'static> IntoPropValue<IArray<T>> for &'static [T] {
     fn into_prop_value(self) -> IArray<T> {
