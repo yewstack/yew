@@ -20,7 +20,7 @@ use crate::html::{AnyScope, Scope};
 #[cfg(feature = "csr")]
 use crate::html::{NodeRef, Scoped};
 #[cfg(feature = "ssr")]
-use crate::platform::io::BufWriter;
+use crate::platform::fmt::BufWrite;
 
 /// A virtual component.
 pub struct VComp {
@@ -71,7 +71,7 @@ pub(crate) trait Mountable {
     #[cfg(feature = "ssr")]
     fn render_into_stream<'a>(
         &'a self,
-        w: &'a mut BufWriter,
+        w: &'a mut dyn BufWrite,
         parent_scope: &'a AnyScope,
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()>;
@@ -129,7 +129,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     #[cfg(feature = "ssr")]
     fn render_into_stream<'a>(
         &'a self,
-        w: &'a mut BufWriter,
+        w: &'a mut dyn BufWrite,
         parent_scope: &'a AnyScope,
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()> {
@@ -243,7 +243,7 @@ mod feat_ssr {
         #[inline]
         pub(crate) async fn render_into_stream(
             &self,
-            w: &mut BufWriter,
+            w: &mut dyn BufWrite,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {

@@ -264,15 +264,15 @@ mod feat_ssr {
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
-    use crate::platform::io::BufWriter;
-    use crate::platform::sync::oneshot;
+    use crate::platform::fmt::BufWrite;
+    use crate::platform::pinned::oneshot;
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
 
     impl<COMP: BaseComponent> Scope<COMP> {
         pub(crate) async fn render_into_stream(
             &self,
-            w: &mut BufWriter,
+            w: &mut dyn BufWrite,
             props: Rc<COMP::Properties>,
             hydratable: bool,
         ) {
