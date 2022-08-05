@@ -7,14 +7,6 @@ use std::task::{Poll, Waker};
 
 use thiserror::Error;
 
-/// Error returned by [`send`](Sender::send).
-#[derive(Debug, Error)]
-#[error("channel has been closed.")]
-pub struct SendError<T> {
-    /// The inner value.
-    pub inner: T,
-}
-
 /// Error returned by awaiting the [`Receiver`].
 #[derive(Debug, Error)]
 #[error("channel has been closed.")]
