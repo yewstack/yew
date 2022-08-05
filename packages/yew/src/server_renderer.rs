@@ -226,20 +226,22 @@ where
             capacity,
         } = self;
 
-        let (tx, rx) = futures::channel::mpsc::unbounded();
-
         run_pinned(move || async move {
+            let (tx, rx) = futures::channel::mpsc::unbounded();
+
             let props = create_props();
             let scope = Scope::<COMP>::new(None);
 
             let mut w = BufWriter::new(tx, capacity);
 
-            scope
-                .render_into_stream(&mut w, props.into(), hydratable)
-                .await;
-        })
-        .await;
+            spawn_local(async move {
+                scope
+                    .render_into_stream(&mut w, props.into(), hydratable)
+                    .await;
+            });
 
-        rx
+            rx
+        })
+        .await
     }
 }
