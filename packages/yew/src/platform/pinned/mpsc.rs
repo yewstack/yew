@@ -255,6 +255,7 @@ mod tests {
 
     use futures::sink::SinkExt;
     use futures::stream::StreamExt;
+    use tokio::task::LocalSet;
     use tokio::test;
 
     use super::*;
@@ -263,22 +264,28 @@ mod tests {
 
     #[test]
     async fn mpsc_works() {
-        let (tx, mut rx) = unbounded::<usize>();
+        let local_set = LocalSet::new();
 
-        spawn_local(async move {
-            for i in 0..10 {
-                (&tx).send(i).await.expect("failed to send.");
-                sleep(Duration::from_millis(1)).await;
-            }
-        });
+        local_set
+            .run_until(async {
+                let (tx, mut rx) = unbounded::<usize>();
 
-        for i in 0..10 {
-            let received = rx.next().await.expect("failed to receive");
+                spawn_local(async move {
+                    for i in 0..10 {
+                        (&tx).send(i).await.expect("failed to send.");
+                        sleep(Duration::from_millis(1)).await;
+                    }
+                });
 
-            assert_eq!(i, received);
-        }
+                for i in 0..10 {
+                    let received = rx.next().await.expect("failed to receive");
 
-        assert_eq!(rx.next().await, None);
+                    assert_eq!(i, received);
+                }
+
+                assert_eq!(rx.next().await, None);
+            })
+            .await;
     }
 
     #[test]
@@ -291,37 +298,43 @@ mod tests {
 
     #[test]
     async fn mpsc_multi_sender() {
-        let (tx, mut rx) = unbounded::<usize>();
+        let local_set = LocalSet::new();
 
-        spawn_local(async move {
-            let tx2 = tx.clone();
+        local_set
+            .run_until(async {
+                let (tx, mut rx) = unbounded::<usize>();
 
-            for i in 0..10 {
-                if i % 2 == 0 {
-                    (&tx).send(i).await.expect("failed to send.");
-                } else {
-                    (&tx2).send(i).await.expect("failed to send.");
+                spawn_local(async move {
+                    let tx2 = tx.clone();
+
+                    for i in 0..10 {
+                        if i % 2 == 0 {
+                            (&tx).send(i).await.expect("failed to send.");
+                        } else {
+                            (&tx2).send(i).await.expect("failed to send.");
+                        }
+
+                        sleep(Duration::from_millis(1)).await;
+                    }
+
+                    drop(tx2);
+
+                    for i in 10..20 {
+                        (&tx).send(i).await.expect("failed to send.");
+
+                        sleep(Duration::from_millis(1)).await;
+                    }
+                });
+
+                for i in 0..20 {
+                    let received = rx.next().await.expect("failed to receive");
+
+                    assert_eq!(i, received);
                 }
 
-                sleep(Duration::from_millis(1)).await;
-            }
-
-            drop(tx2);
-
-            for i in 10..20 {
-                (&tx).send(i).await.expect("failed to send.");
-
-                sleep(Duration::from_millis(1)).await;
-            }
-        });
-
-        for i in 0..20 {
-            let received = rx.next().await.expect("failed to receive");
-
-            assert_eq!(i, received);
-        }
-
-        assert_eq!(rx.next().await, None);
+                assert_eq!(rx.next().await, None);
+            })
+            .await;
     }
 
     #[test]

@@ -147,6 +147,7 @@ mod tests {
     use std::time::Duration;
 
     use tokio::sync::Barrier;
+    use tokio::task::LocalSet;
     use tokio::test;
 
     use super::*;
@@ -164,35 +165,47 @@ mod tests {
 
     #[test]
     async fn oneshot_drops_sender() {
-        let (tx, rx) = channel::<usize>();
+        let local_set = LocalSet::new();
 
-        spawn_local(async move {
-            sleep(Duration::from_millis(1)).await;
+        local_set
+            .run_until(async {
+                let (tx, rx) = channel::<usize>();
 
-            drop(tx);
-        });
-        rx.await.expect_err("successful to receive.");
+                spawn_local(async move {
+                    sleep(Duration::from_millis(1)).await;
+
+                    drop(tx);
+                });
+                rx.await.expect_err("successful to receive.");
+            })
+            .await;
     }
 
     #[test]
     async fn oneshot_drops_receiver() {
-        let (tx, rx) = channel::<usize>();
+        let local_set = LocalSet::new();
 
-        let bar = Arc::new(Barrier::new(2));
+        local_set
+            .run_until(async {
+                let (tx, rx) = channel::<usize>();
 
-        {
-            let bar = bar.clone();
-            spawn_local(async move {
-                sleep(Duration::from_millis(1)).await;
+                let bar = Arc::new(Barrier::new(2));
 
-                drop(rx);
+                {
+                    let bar = bar.clone();
+                    spawn_local(async move {
+                        sleep(Duration::from_millis(1)).await;
+
+                        drop(rx);
+
+                        bar.wait().await;
+                    });
+                }
 
                 bar.wait().await;
-            });
-        }
 
-        bar.wait().await;
-
-        tx.send(0).expect_err("successful to send.");
+                tx.send(0).expect_err("successful to send.");
+            })
+            .await;
     }
 }
