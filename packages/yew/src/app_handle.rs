@@ -24,6 +24,11 @@ where
     /// similarly to the `program` function in Elm. You should provide an initial model, `update`
     /// function which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
+    #[tracing::instrument(
+        level = tracing::Level::DEBUG,
+        name = "mount",
+        skip(props),
+    )]
     pub(crate) fn mount_with_props(host: Element, props: Rc<COMP::Properties>) -> Self {
         clear_element(&host);
         let app = Self {
@@ -42,6 +47,10 @@ where
     }
 
     /// Schedule the app for destruction
+    #[tracing::instrument(
+        level = tracing::Level::DEBUG,
+        skip_all,
+    )]
     pub fn destroy(self) {
         self.scope.destroy(false)
     }
@@ -74,6 +83,11 @@ mod feat_hydration {
     where
         COMP: BaseComponent,
     {
+        #[tracing::instrument(
+            level = tracing::Level::DEBUG,
+            name = "hydrate",
+            skip(props),
+        )]
         pub(crate) fn hydrate_with_props(host: Element, props: Rc<COMP::Properties>) -> Self {
             let app = Self {
                 scope: Scope::new(None),

@@ -141,6 +141,20 @@ pub(crate) use feat_hydration::*;
 
 /// Execute any pending [Runnable]s
 pub(crate) fn start_now() {
+    #[tracing::instrument(level = tracing::Level::DEBUG)]
+    fn scheduler_loop() {
+        let mut queue = vec![];
+        loop {
+            with(|s| s.fill_queue(&mut queue));
+            if queue.is_empty() {
+                break;
+            }
+            for r in queue.drain(..) {
+                r.run();
+            }
+        }
+    }
+
     thread_local! {
         // The lock is used to prevent recursion. If the lock cannot be acquired, it is because the
         // `start()` method is being called recursively as part of a `runnable.run()`.
@@ -149,16 +163,7 @@ pub(crate) fn start_now() {
 
     LOCK.with(|l| {
         if let Ok(_lock) = l.try_borrow_mut() {
-            let mut queue = vec![];
-            loop {
-                with(|s| s.fill_queue(&mut queue));
-                if queue.is_empty() {
-                    break;
-                }
-                for r in queue.drain(..) {
-                    r.run();
-                }
-            }
+            scheduler_loop();
         }
     });
 }
