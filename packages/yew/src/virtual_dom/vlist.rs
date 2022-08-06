@@ -195,7 +195,8 @@ mod feat_ssr {
                     // Concurrently resolve all child futures.
                     let resolve_fur = if rest_children.len() <= 30 {
                         // 30 is selected by join_all to be deemed small.
-                        future::join_all(rest_child_furs).map(|_| {}).left_future()
+                        let rest_child_furs = future::join_all(rest_child_furs);
+                        async move { rest_child_furs.map(|_| {}).await }.left_future()
                     } else {
                         let mut rest_child_furs: FuturesUnordered<_> = rest_child_furs.collect();
                         async move { while rest_child_furs.next().await.is_some() {} }
