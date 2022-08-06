@@ -15,7 +15,6 @@ pub trait Runnable {
 
 struct QueueEntry {
     task: Box<dyn Runnable>,
-    span: Span,
 }
 
 #[derive(Default)]
@@ -25,9 +24,7 @@ struct FifoQueue {
 
 impl FifoQueue {
     fn push(&mut self, task: Box<dyn Runnable>) {
-        let span = tracing::span!(tracing::Level::TRACE, "scheduler-task");
-        span.follows_from(Span::current());
-        self.inner.push(QueueEntry { task, span });
+        self.inner.push(QueueEntry { task });
     }
 
     fn drain_into(&mut self, queue: &mut Vec<QueueEntry>) {
@@ -45,9 +42,7 @@ struct TopologicalQueue {
 impl TopologicalQueue {
     #[cfg(any(feature = "ssr", feature = "csr"))]
     fn push(&mut self, component_id: usize, task: Box<dyn Runnable>) {
-        let span = tracing::span!(tracing::Level::TRACE, "scheduler-task");
-        span.follows_from(Span::current());
-        self.inner.insert(component_id, QueueEntry { task, span });
+        self.inner.insert(component_id, QueueEntry { task });
     }
 
     /// Take a single entry, preferring parents over children
@@ -199,7 +194,6 @@ pub(crate) fn start_now() {
                 break;
             }
             for r in queue.drain(..) {
-                let _enter = r.span.entered();
                 r.task.run();
             }
         }
@@ -244,7 +238,6 @@ mod arch {
 }
 
 pub(crate) use arch::*;
-use tracing::Span;
 
 impl Scheduler {
     /// Fill vector with tasks to be executed according to Runnable type execution priority
