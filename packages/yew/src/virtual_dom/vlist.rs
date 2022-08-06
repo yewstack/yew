@@ -156,8 +156,8 @@ mod test {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::future;
     use futures::stream::{FuturesUnordered, StreamExt};
+    use futures::{future, FutureExt};
 
     use super::*;
     use crate::html::AnyScope;
@@ -178,31 +178,37 @@ mod feat_ssr {
                 [first_child, rest_children @ ..] => {
                     let buf_capacity = w.capacity();
                     let mut child_streams = Vec::with_capacity(self.children.len() - 1);
-                    let mut child_furs = FuturesUnordered::new();
 
                     // Concurrently render rest children into a separate buffer.
-                    for child in rest_children {
+                    let rest_child_furs = rest_children.iter().map(|child| {
                         let (mut w, r) = io::buffer(buf_capacity);
 
-                        child_furs.push(async move {
+                        child_streams.push(r);
+
+                        async move {
                             child
                                 .render_into_stream(&mut w, parent_scope, hydratable)
                                 .await;
-                        });
-
-                        child_streams.push(r);
-                    }
+                        }
+                    });
 
                     // Concurrently resolve all child futures.
-                    let resolve_fur = async move { while child_furs.next().await.is_some() {} };
+                    let resolve_fur = if rest_children.len() <= 30 {
+                        // 30 is selected by join_all to be deemed small.
+                        future::join_all(rest_child_furs).map(|_| {}).left_future()
+                    } else {
+                        let mut rest_child_furs: FuturesUnordered<_> = rest_child_furs.collect();
+                        async move { while rest_child_furs.next().await.is_some() {} }
+                            .right_future()
+                    };
 
-                    // Transfer results to parent writer.
                     let transfer_fur = async move {
                         // Render first child to parent buffer directly.
                         first_child
                             .render_into_stream(w, parent_scope, hydratable)
                             .await;
 
+                        // Transfer results to parent writer.
                         for mut r in child_streams {
                             while let Some(next_chunk) = r.next().await {
                                 w.write(next_chunk.into());
