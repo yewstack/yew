@@ -13,32 +13,80 @@ pub trait Runnable {
     fn run(self: Box<Self>);
 }
 
+struct QueueEntry {
+    task: Box<dyn Runnable>,
+    span: Span,
+}
+
+#[derive(Default)]
+struct FifoQueue {
+    inner: Vec<QueueEntry>,
+}
+
+impl FifoQueue {
+    fn push(&mut self, task: Box<dyn Runnable>) {
+        let span = tracing::span!(tracing::Level::TRACE, "scheduler-task");
+        span.follows_from(Span::current());
+        self.inner.push(QueueEntry { task, span });
+    }
+
+    fn drain_into(&mut self, queue: &mut Vec<QueueEntry>) {
+        queue.append(&mut self.inner);
+    }
+}
+
+#[derive(Default)]
+
+struct TopologicalQueue {
+    /// The Binary Tree Map guarantees components with lower id (parent) is rendered first
+    inner: BTreeMap<usize, QueueEntry>,
+}
+
+impl TopologicalQueue {
+    fn push(&mut self, component_id: usize, task: Box<dyn Runnable>) {
+        let span = tracing::span!(tracing::Level::TRACE, "scheduler-task");
+        span.follows_from(Span::current());
+        self.inner.insert(component_id, QueueEntry { task, span });
+    }
+
+    /// Take a single entry, preferring parents over children
+    fn pop_topmost(&mut self) -> Option<QueueEntry> {
+        // To be replaced with BTreeMap::pop_first once it is stable.
+        let key = *self.inner.keys().next()?;
+        self.inner.remove(&key)
+    }
+
+    /// Drain all entries, such that children are queued before parents
+    fn drain_post_order_into(&mut self, queue: &mut Vec<QueueEntry>) {
+        if self.inner.is_empty() {
+            return;
+        }
+        let rendered = std::mem::take(&mut self.inner);
+        // Children rendered lifecycle happen before parents.
+        queue.extend(rendered.into_values().rev());
+    }
+}
+
 /// This is a global scheduler suitable to schedule and run any tasks.
 #[derive(Default)]
 #[allow(missing_debug_implementations)] // todo
 struct Scheduler {
     // Main queue
-    main: Vec<Box<dyn Runnable>>,
+    main: FifoQueue,
 
     // Component queues
-    destroy: Vec<Box<dyn Runnable>>,
-    create: Vec<Box<dyn Runnable>>,
+    destroy: FifoQueue,
+    create: FifoQueue,
 
-    props_update: Vec<Box<dyn Runnable>>,
-    update: Vec<Box<dyn Runnable>>,
+    props_update: FifoQueue,
+    update: FifoQueue,
 
-    /// The Binary Tree Map guarantees components with lower id (parent) is rendered first and
-    /// no more than 1 render can be scheduled before a component is rendered.
-    ///
-    /// Parent can destroy child components but not otherwise, we can save unnecessary render by
-    /// rendering parent first.
-    render: BTreeMap<usize, Box<dyn Runnable>>,
-    render_first: BTreeMap<usize, Box<dyn Runnable>>,
-    render_priority: BTreeMap<usize, Box<dyn Runnable>>,
+    render: TopologicalQueue,
+    render_first: TopologicalQueue,
+    render_priority: TopologicalQueue,
 
-    /// Binary Tree Map to guarantee children rendered are always called before parent calls
-    rendered_first: BTreeMap<usize, Box<dyn Runnable>>,
-    rendered: BTreeMap<usize, Box<dyn Runnable>>,
+    rendered_first: TopologicalQueue,
+    rendered: TopologicalQueue,
 }
 
 /// Execute closure with a mutable reference to the scheduler
@@ -74,7 +122,7 @@ mod feat_csr_ssr {
     ) {
         with(|s| {
             s.create.push(create);
-            s.render_first.insert(component_id, first_render);
+            s.render_first.push(component_id, first_render);
         });
     }
 
@@ -86,7 +134,7 @@ mod feat_csr_ssr {
     /// Push a component render [Runnable]s to be executed
     pub(crate) fn push_component_render(component_id: usize, render: Box<dyn Runnable>) {
         with(|s| {
-            s.render.insert(component_id, render);
+            s.render.push(component_id, render);
         });
     }
 
@@ -110,9 +158,9 @@ mod feat_csr {
     ) {
         with(|s| {
             if first_render {
-                s.rendered_first.insert(component_id, rendered);
+                s.rendered_first.push(component_id, rendered);
             } else {
-                s.rendered.insert(component_id, rendered);
+                s.rendered.push(component_id, rendered);
             }
         });
     }
@@ -131,7 +179,7 @@ mod feat_hydration {
 
     pub(crate) fn push_component_priority_render(component_id: usize, render: Box<dyn Runnable>) {
         with(|s| {
-            s.render_priority.insert(component_id, render);
+            s.render_priority.push(component_id, render);
         });
     }
 }
@@ -150,7 +198,8 @@ pub(crate) fn start_now() {
                 break;
             }
             for r in queue.drain(..) {
-                r.run();
+                let _enter = r.span.entered();
+                r.task.run();
             }
         }
     }
@@ -194,6 +243,7 @@ mod arch {
 }
 
 pub(crate) use arch::*;
+use tracing::Span;
 
 impl Scheduler {
     /// Fill vector with tasks to be executed according to Runnable type execution priority
@@ -201,13 +251,13 @@ impl Scheduler {
     /// This method is optimized for typical usage, where possible, but does not break on
     /// non-typical usage (like scheduling renders in [crate::Component::create()] or
     /// [crate::Component::rendered()] calls).
-    fn fill_queue(&mut self, to_run: &mut Vec<Box<dyn Runnable>>) {
+    fn fill_queue(&mut self, to_run: &mut Vec<QueueEntry>) {
         // Placed first to avoid as much needless work as possible, handling all the other events.
         // Drained completely, because they are the highest priority events anyway.
-        to_run.append(&mut self.destroy);
+        self.destroy.drain_into(to_run);
 
         // Create events can be batched, as they are typically just for object creation
-        to_run.append(&mut self.create);
+        self.create.drain_into(to_run);
 
         // These typically do nothing and don't spawn any other events - can be batched.
         // Should be run only after all first renders have finished.
@@ -220,52 +270,32 @@ impl Scheduler {
         //
         // Should be processed one at time, because they can spawn more create and rendered events
         // for their children.
-        //
-        // To be replaced with BTreeMap::pop_first once it is stable.
-        if let Some(r) = self
-            .render_first
-            .keys()
-            .next()
-            .cloned()
-            .and_then(|m| self.render_first.remove(&m))
-        {
+        if let Some(r) = self.render_first.pop_topmost() {
             to_run.push(r);
-        }
-
-        if !to_run.is_empty() {
             return;
         }
 
-        to_run.append(&mut self.props_update);
+        self.props_update.drain_into(to_run);
 
         // Priority rendering
         //
         // This is needed for hydration susequent render to fix node refs.
-        if let Some(r) = self
-            .render_priority
-            .keys()
-            .next()
-            .cloned()
-            .and_then(|m| self.render_priority.remove(&m))
-        {
+        if let Some(r) = self.render_priority.pop_topmost() {
             to_run.push(r);
             return;
         }
 
-        if !self.rendered_first.is_empty() {
-            let rendered_first = std::mem::take(&mut self.rendered_first);
-            // Children rendered lifecycle happen before parents.
-            to_run.extend(rendered_first.into_values().rev());
-        }
+        // Children rendered lifecycle happen before parents.
+        self.rendered_first.drain_post_order_into(to_run);
 
         // Updates are after the first render to ensure we always have the entire child tree
         // rendered, once an update is processed.
         //
         // Can be batched, as they can cause only non-first renders.
-        to_run.append(&mut self.update);
+        self.update.drain_into(to_run);
 
         // Likely to cause duplicate renders via component updates, so placed before them
-        to_run.append(&mut self.main);
+        self.main.drain_into(to_run);
 
         // Run after all possible updates to avoid duplicate renders.
         //
@@ -275,30 +305,16 @@ impl Scheduler {
             return;
         }
 
-        // To be replaced with BTreeMap::pop_first once it is stable.
         // Should be processed one at time, because they can spawn more create and rendered events
         // for their children.
-        if let Some(r) = self
-            .render
-            .keys()
-            .next()
-            .cloned()
-            .and_then(|m| self.render.remove(&m))
-        {
+        if let Some(r) = self.render.pop_topmost() {
             to_run.push(r);
-        }
-
-        // These typically do nothing and don't spawn any other events - can be batched.
-        // Should be run only after all renders have finished.
-        if !to_run.is_empty() {
             return;
         }
-
-        if !self.rendered.is_empty() {
-            let rendered = std::mem::take(&mut self.rendered);
-            // Children rendered lifecycle happen before parents.
-            to_run.extend(rendered.into_values().rev());
-        }
+        // These typically do nothing and don't spawn any other events - can be batched.
+        // Should be run only after all renders have finished.
+        // Children rendered lifecycle happen before parents.
+        self.rendered.drain_post_order_into(to_run);
     }
 }
 
