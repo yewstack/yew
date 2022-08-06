@@ -43,6 +43,7 @@ struct TopologicalQueue {
 }
 
 impl TopologicalQueue {
+    #[cfg(any(feature = "ssr", feature = "csr"))]
     fn push(&mut self, component_id: usize, task: Box<dyn Runnable>) {
         let span = tracing::span!(tracing::Level::TRACE, "scheduler-task");
         span.follows_from(Span::current());
