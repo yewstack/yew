@@ -562,6 +562,7 @@ impl ComponentState {
 
             #[cfg(feature = "ssr")]
             ComponentRenderState::Ssr { ref mut sender } => {
+                let _ = shared_state;
                 if let Some(tx) = sender.take() {
                     tx.send(new_root).unwrap();
                 }
