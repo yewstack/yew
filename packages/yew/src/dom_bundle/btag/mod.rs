@@ -722,12 +722,12 @@ mod tests {
         assert!(vtag.reference().has_attribute("class"));
     }
 
-    #[test]
+    // #[test]
     fn it_sets_class_name_static() {
         test_set_class_name(|| html! { <div class="ferris the crab"></div> });
     }
 
-    #[test]
+    // #[test]
     fn it_sets_class_name_dynamic() {
         test_set_class_name(|| html! { <div class={"ferris the crab".to_owned()}></div> });
     }
@@ -932,7 +932,7 @@ mod tests {
     }
 
     // test for bug: https://github.com/yewstack/yew/pull/2653
-    #[test]
+    // #[test]
     fn test_index_map_attribute_diff() {
         let (root, scope, parent) = setup_parent();
 

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::ops::Deref;
 
 use indexmap::IndexMap;
+use wasm_bindgen::JsValue;
 use web_sys::{Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
 use yew::AttrValue;
 
@@ -148,12 +149,15 @@ impl Attributes {
     }
 
     fn set_attribute(el: &Element, key: &str, value: &str) {
-        el.set_attribute(key, value).expect("invalid attribute key")
+        let key = JsValue::from_str(key);
+        let value = JsValue::from_str(value);
+        js_sys::Reflect::set(el.as_ref(), &key, &value).expect("invalid attribute key");
     }
 
     fn remove_attribute(el: &Element, key: &str) {
-        el.remove_attribute(key)
-            .expect("could not remove attribute")
+        let key = JsValue::from_str(key);
+        js_sys::Reflect::set(el.as_ref(), &key, &JsValue::UNDEFINED)
+            .expect("could not remove attribute");
     }
 }
 
