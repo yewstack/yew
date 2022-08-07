@@ -18,42 +18,6 @@ pub use scope::{AnyScope, Scope, SendAsMessage};
 
 use super::{Html, HtmlResult, IntoHtmlResult};
 
-#[cfg(debug_assertions)]
-#[cfg(any(feature = "csr", feature = "ssr"))]
-mod feat_csr_ssr {
-    use wasm_bindgen::prelude::wasm_bindgen;
-    use wasm_bindgen::JsValue;
-
-    thread_local! {
-         static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<usize, Vec<String>>>
-            = Default::default();
-    }
-
-    /// Push [Component] event to lifecycle debugging registry
-    pub(crate) fn log_event(comp_id: usize, event: impl ToString) {
-        EVENT_HISTORY.with(|h| {
-            h.borrow_mut()
-                .entry(comp_id)
-                .or_default()
-                .push(event.to_string())
-        });
-    }
-
-    /// Get [Component] event log from lifecycle debugging registry
-    #[wasm_bindgen(js_name = "yewGetEventLog")]
-    pub fn _get_event_log(comp_id: usize) -> Option<Vec<JsValue>> {
-        EVENT_HISTORY.with(|h| {
-            Some(
-                h.borrow()
-                    .get(&comp_id)?
-                    .iter()
-                    .map(|l| (*l).clone().into())
-                    .collect(),
-            )
-        })
-    }
-}
-
 #[cfg(feature = "hydration")]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum RenderMode {
@@ -62,10 +26,6 @@ pub(crate) enum RenderMode {
     #[cfg(feature = "ssr")]
     Ssr,
 }
-
-#[cfg(debug_assertions)]
-#[cfg(any(feature = "csr", feature = "ssr"))]
-pub(crate) use feat_csr_ssr::*;
 
 /// The [`Component`]'s context. This contains component's [`Scope`] and props and
 /// is passed to every lifecycle method.

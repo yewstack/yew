@@ -1,6 +1,5 @@
 //! The [`Switch`] Component.
 
-use gloo::console;
 use yew::prelude::*;
 
 use crate::prelude::*;
@@ -41,7 +40,7 @@ where
     match route {
         Some(route) => props.render.emit(route),
         None => {
-            console::warn!("no route matched");
+            tracing::warn!("no route matched");
             Html::default()
         }
     }

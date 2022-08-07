@@ -2,7 +2,6 @@
 
 use std::fmt;
 
-use gloo::console;
 use web_sys::{Element, Node};
 
 use super::{BComp, BList, BPortal, BSubtree, BSuspense, BTag, BText};
@@ -54,7 +53,7 @@ impl ReconcileTarget for BNode {
             Self::Ref(ref node) => {
                 // Always remove user-defined nodes to clear possible parent references of them
                 if parent.remove_child(node).is_err() {
-                    console::warn!("Node not found to remove VRef");
+                    tracing::warn!("Node not found to remove VRef");
                 }
             }
             Self::Portal(bportal) => bportal.detach(root, parent, parent_to_detach),
