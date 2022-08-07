@@ -308,8 +308,8 @@ pub mod events {
     #[doc(no_inline)]
     pub use web_sys::{
         AnimationEvent, DragEvent, ErrorEvent, Event, FocusEvent, InputEvent, KeyboardEvent,
-        MouseEvent, PointerEvent, ProgressEvent, TouchEvent, TransitionEvent, UiEvent, WheelEvent,
-        SubmitEvent,
+        MouseEvent, PointerEvent, ProgressEvent, SubmitEvent, TouchEvent, TransitionEvent, UiEvent,
+        WheelEvent,
     };
 
     #[cfg(feature = "csr")]
