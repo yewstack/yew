@@ -270,7 +270,7 @@ These include, but are not limited to:
 
 1. Using `String` type instead of `AttrValue.
    **Why is this bad?** `String` can be expensive to clone.
-   Cloning is often needed when the prop value with hooks and such. `AttrValue` is either
+   Cloning is often needed when the prop value is used with hooks and callbacks. `AttrValue` is either
    a reference-counted string (`Rc<str>`) or a `&'static str`, thus very cheap to clone.
    **Note**: `AttrValue` internally is `IString` from [implicit-clone](https://crates.io/crates/implicit-clone)
    See that crate to learn more.
