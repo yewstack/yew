@@ -550,9 +550,6 @@ mod feat_csr {
         }
 
         pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, next_sibling: NodeRef) {
-            #[cfg(debug_assertions)]
-            super::super::log_event(self.id, "reuse");
-
             schedule_props_update(self.state.clone(), props, next_sibling)
         }
     }
@@ -644,10 +641,10 @@ mod feat_hydration {
             // This is very helpful to see which component is failing during hydration
             // which means this component may not having a stable layout / differs between
             // client-side and server-side.
-            #[cfg(debug_assertions)]
-            super::super::log_event(
-                self.id,
-                format!("hydration(type = {})", std::any::type_name::<COMP>()),
+            tracing::trace!(
+                component.id = self.id,
+                "hydration(type = {})",
+                std::any::type_name::<COMP>()
             );
 
             let collectable = Collectable::for_component::<COMP>();
