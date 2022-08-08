@@ -386,7 +386,7 @@ mod feat_hydration {
 #[cfg(test)]
 mod tests {
     use gloo::utils::document;
-    use wasm_bindgen::{JsCast};
+    use wasm_bindgen::JsCast;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use web_sys::HtmlInputElement as InputElement;
 

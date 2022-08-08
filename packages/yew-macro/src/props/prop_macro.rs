@@ -61,7 +61,11 @@ impl Parse for PropValue {
 impl From<PropValue> for Prop {
     fn from(prop_value: PropValue) -> Prop {
         let PropValue { label, value } = prop_value;
-        Prop { label, value, is_forced_attribute: false }
+        Prop {
+            label,
+            value,
+            is_forced_attribute: false,
+        }
     }
 }
 

@@ -35,7 +35,10 @@ impl Prop {
     /// Parse a prop using the shorthand syntax `{value}`, short for `value={value}`
     /// This only allows for labels with no hyphens, as it would otherwise create
     /// an ambiguity in the syntax
-    fn parse_shorthand_prop_assignment(input: ParseStream, is_forced_attribute: bool) -> syn::Result<Self> {
+    fn parse_shorthand_prop_assignment(
+        input: ParseStream,
+        is_forced_attribute: bool,
+    ) -> syn::Result<Self> {
         let value;
         let _brace = braced!(value in input);
         let expr = value.parse::<Expr>()?;
@@ -61,7 +64,11 @@ impl Prop {
             ));
         }?;
 
-        Ok(Self { label, value: expr, is_forced_attribute })
+        Ok(Self {
+            label,
+            value: expr,
+            is_forced_attribute,
+        })
     }
 
     /// Parse a prop of the form `label={value}`
@@ -85,7 +92,11 @@ impl Prop {
         }
 
         let value = parse_prop_value(input)?;
-        Ok(Self { label, value, is_forced_attribute })
+        Ok(Self {
+            label,
+            value,
+            is_forced_attribute,
+        })
     }
 }
 

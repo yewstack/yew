@@ -135,40 +135,58 @@ impl ToTokens for HtmlElement {
         // other attributes
 
         let attributes = {
-            let normal_attrs = attributes.iter().map(|Prop { label, value, is_forced_attribute, .. }| {
-                (label.to_lit_str(), value.optimize_literals_tagged(), *is_forced_attribute)
-            });
-            let boolean_attrs = booleans.iter().filter_map(|Prop { label, value, is_forced_attribute, .. }| {
-                let key = label.to_lit_str();
-                Some((
-                    key.clone(),
-                    match value {
-                        Expr::Lit(e) => match &e.lit {
-                            Lit::Bool(b) => Value::Static(if b.value {
-                                quote! { #key }
-                            } else {
-                                return None;
-                            }),
-                            _ => Value::Dynamic(quote_spanned! {value.span()=> {
-                                ::yew::utils::__ensure_type::<::std::primitive::bool>(#value);
-                                #key
-                            }}),
-                        },
-                        expr => Value::Dynamic(
-                            quote_spanned! {expr.span().resolved_at(Span::call_site())=>
-                                if #expr {
-                                    ::std::option::Option::Some(
-                                        ::yew::virtual_dom::AttrValue::Static(#key)
-                                    )
+            let normal_attrs = attributes.iter().map(
+                |Prop {
+                     label,
+                     value,
+                     is_forced_attribute,
+                     ..
+                 }| {
+                    (
+                        label.to_lit_str(),
+                        value.optimize_literals_tagged(),
+                        *is_forced_attribute,
+                    )
+                },
+            );
+            let boolean_attrs = booleans.iter().filter_map(
+                |Prop {
+                     label,
+                     value,
+                     is_forced_attribute,
+                     ..
+                 }| {
+                    let key = label.to_lit_str();
+                    Some((
+                        key.clone(),
+                        match value {
+                            Expr::Lit(e) => match &e.lit {
+                                Lit::Bool(b) => Value::Static(if b.value {
+                                    quote! { #key }
                                 } else {
-                                    ::std::option::Option::None
-                                }
+                                    return None;
+                                }),
+                                _ => Value::Dynamic(quote_spanned! {value.span()=> {
+                                    ::yew::utils::__ensure_type::<::std::primitive::bool>(#value);
+                                    #key
+                                }}),
                             },
-                        ),
-                    },
-                    *is_forced_attribute
-                ))
-            });
+                            expr => Value::Dynamic(
+                                quote_spanned! {expr.span().resolved_at(Span::call_site())=>
+                                    if #expr {
+                                        ::std::option::Option::Some(
+                                            ::yew::virtual_dom::AttrValue::Static(#key)
+                                        )
+                                    } else {
+                                        ::std::option::Option::None
+                                    }
+                                },
+                            ),
+                        },
+                        *is_forced_attribute,
+                    ))
+                },
+            );
             let class_attr = classes.as_ref().and_then(|classes| match classes {
                 ClassesForm::Tuple(classes) => {
                     let span = classes.span();
@@ -259,7 +277,7 @@ impl ToTokens for HtmlElement {
                             quote! { ::yew::virtual_dom::ApplyAttributeAs::Property }
                         };
                         let value = wrap_attr_value(v);
-                        quote! { ::std::option::Option::map(#value, |it| (it, ::yew::virtual_dom::ApplyAttributeAs::Property)) }
+                        quote! { ::std::option::Option::map(#value, |it| (it, #apply_as)) }
                     });
                 quote! {
                     ::yew::virtual_dom::Attributes::Dynamic{

@@ -295,11 +295,13 @@ impl Apply for Attributes {
 #[cfg(test)]
 mod tests {
     use std::time::Duration;
+
     use gloo::utils::document;
     use js_sys::Reflect;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-    use crate::{html, Html, function_component};
+
     use super::*;
+    use crate::{function_component, html, Html};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -345,7 +347,11 @@ mod tests {
         ]);
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
-        assert_eq!(element.outer_html(), "<a href=\"https://example.com/\"></a>", "should be set as attribute");
+        assert_eq!(
+            element.outer_html(),
+            "<a href=\"https://example.com/\"></a>",
+            "should be set as attribute"
+        );
         assert_eq!(
             Reflect::get(element.as_ref(), &JsValue::from_str("alt"))
                 .expect("no alt")
@@ -358,13 +364,10 @@ mod tests {
 
     #[test]
     fn class_is_always_attrs() {
-        let attrs = Attributes::Static(&[
-            ("class", "thing", ApplyAttributeAs::Attribute),
-        ]);
+        let attrs = Attributes::Static(&[("class", "thing", ApplyAttributeAs::Attribute)]);
 
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
-        assert_eq!(element.get_attribute("id").unwrap(), "foo");
         assert_eq!(element.get_attribute("class").unwrap(), "thing");
     }
 
@@ -376,8 +379,8 @@ mod tests {
         }
 
         let output = gloo::utils::document().get_element_by_id("output").unwrap();
-        yew::Renderer::<Comp>::with_root(output.clone())
-            .render();
+        yew::Renderer::<Comp>::with_root(output.clone()).render();
+
         gloo::timers::future::sleep(Duration::from_secs(1)).await;
         let element = output.query_selector("a").unwrap().unwrap();
         assert_eq!(element.get_attribute("alt").unwrap(), "abc");
