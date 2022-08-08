@@ -23,7 +23,7 @@ impl UseForceUpdateHandle {
     }
 }
 
-#[cfg(feature = "nightly")]
+#[cfg(nightly_yew)]
 mod feat_nightly {
     use super::*;
 
@@ -112,7 +112,7 @@ pub fn use_force_update() -> impl Hook<Output = UseForceUpdateHandle> {
     UseRerenderHook
 }
 
-#[cfg(all(test, feature = "nightly"))]
+#[cfg(all(test, nightly_yew))]
 mod nightly_test {
     use yew::prelude::*;
 

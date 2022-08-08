@@ -3,7 +3,7 @@
 #![cfg_attr(documenting, feature(doc_cfg))]
 #![cfg_attr(documenting, feature(doc_auto_cfg))]
 #![cfg_attr(
-    feature = "nightly",
+    nightly_yew,
     feature(fn_traits, async_closure, unboxed_closures)
 )]
 
