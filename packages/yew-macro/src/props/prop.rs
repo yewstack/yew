@@ -14,17 +14,21 @@ use crate::html_tree::HtmlDashedName;
 use crate::stringify::Stringify;
 
 pub struct Prop {
+    pub is_forced_attribute: bool,
     pub label: HtmlDashedName,
     /// Punctuation between `label` and `value`.
     pub value: Expr,
 }
 impl Parse for Prop {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        if input.peek(Brace) {
-            Self::parse_shorthand_prop_assignment(input)
+        let at = input.parse::<Token![@]>().map(|_| true).unwrap_or(false);
+        let prop = if input.peek(Brace) {
+            Self::parse_shorthand_prop_assignment(input, at)
         } else {
-            Self::parse_prop_assignment(input)
-        }
+            Self::parse_prop_assignment(input, at)
+        };
+        eprintln!("prop => {:?}; at?: {}", prop.as_ref().map(|prop| format!("label: {}, value: {:?}", prop.label.to_string(), prop.value)), at);
+        prop
     }
 }
 
@@ -33,7 +37,7 @@ impl Prop {
     /// Parse a prop using the shorthand syntax `{value}`, short for `value={value}`
     /// This only allows for labels with no hyphens, as it would otherwise create
     /// an ambiguity in the syntax
-    fn parse_shorthand_prop_assignment(input: ParseStream) -> syn::Result<Self> {
+    fn parse_shorthand_prop_assignment(input: ParseStream, is_forced_attribute: bool) -> syn::Result<Self> {
         let value;
         let _brace = braced!(value in input);
         let expr = value.parse::<Expr>()?;
@@ -44,7 +48,7 @@ impl Prop {
         }) = expr
         {
             if let (Some(ident), true) = (path.get_ident(), attrs.is_empty()) {
-                syn::Result::Ok(HtmlDashedName::from(ident.clone()))
+                Ok(HtmlDashedName::from(ident.clone()))
             } else {
                 Err(syn::Error::new_spanned(
                     path,
@@ -59,11 +63,11 @@ impl Prop {
             ));
         }?;
 
-        Ok(Self { label, value: expr })
+        Ok(Self { label, value: expr, is_forced_attribute })
     }
 
     /// Parse a prop of the form `label={value}`
-    fn parse_prop_assignment(input: ParseStream) -> syn::Result<Self> {
+    fn parse_prop_assignment(input: ParseStream, is_forced_attribute: bool) -> syn::Result<Self> {
         let label = input.parse::<HtmlDashedName>()?;
         let equals = input.parse::<Token![=]>().map_err(|_| {
             syn::Error::new_spanned(
@@ -83,7 +87,7 @@ impl Prop {
         }
 
         let value = parse_prop_value(input)?;
-        Ok(Self { label, value })
+        Ok(Self { label, value, is_forced_attribute })
     }
 }
 

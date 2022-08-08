@@ -9,7 +9,7 @@ use yew::AttrValue;
 use super::Apply;
 use crate::dom_bundle::BSubtree;
 use crate::virtual_dom::vtag::{InputFields, Value};
-use crate::virtual_dom::Attributes;
+use crate::virtual_dom::{ApplyAttributeAs, Attributes};
 
 impl<T: AccessValue> Apply for Value<T> {
     type Bundle = Self;
@@ -88,17 +88,17 @@ impl Attributes {
     #[cold]
     fn apply_diff_index_maps(
         el: &Element,
-        new: &IndexMap<AttrValue, AttrValue>,
-        old: &IndexMap<AttrValue, AttrValue>,
+        new: &IndexMap<AttrValue, (AttrValue, ApplyAttributeAs)>,
+        old: &IndexMap<AttrValue, (AttrValue, ApplyAttributeAs)>,
     ) {
         for (key, value) in new.iter() {
             match old.get(key) {
                 Some(old_value) => {
                     if value != old_value {
-                        Self::set_attribute(el, key, value);
+                        Self::set_attribute(el, key, value.0.as_ref());
                     }
                 }
-                None => Self::set_attribute(el, key, value),
+                None => Self::set_attribute(el, key, value.0.as_ref()),
             }
         }
 
@@ -113,17 +113,17 @@ impl Attributes {
     /// Works with any [Attributes] variants.
     #[cold]
     fn apply_diff_as_maps<'a>(el: &Element, new: &'a Self, old: &'a Self) {
-        fn collect(src: &Attributes) -> HashMap<&str, &str> {
+        fn collect(src: &Attributes) -> HashMap<&str, (&str, ApplyAttributeAs)> {
             use Attributes::*;
 
             match src {
-                Static(arr) => (*arr).iter().map(|[k, v]| (*k, *v)).collect(),
+                Static(arr) => (*arr).iter().map(|(k, v, apply_as)| (*k, (*v, *apply_as))).collect(),
                 Dynamic { keys, values } => keys
                     .iter()
                     .zip(values.iter())
-                    .filter_map(|(k, v)| v.as_ref().map(|v| (*k, v.as_ref())))
+                    .filter_map(|(k, v)| v.as_ref().map(|(v, apply_as)| (*k, (v.as_ref(), *apply_as))))
                     .collect(),
-                IndexMap(m) => m.iter().map(|(k, v)| (k.as_ref(), v.as_ref())).collect(),
+                IndexMap(m) => m.iter().map(|(k, (v, apply_as))| (k.as_ref(), (v.as_ref(), *apply_as))).collect(),
             }
         }
 
@@ -136,7 +136,8 @@ impl Attributes {
                 Some(old) => old != new,
                 None => true,
             } {
-                el.set_attribute(k, new).unwrap();
+                // todo: set property
+                el.set_attribute(k, new.0).unwrap();
             }
         }
 
@@ -182,19 +183,19 @@ impl Apply for Attributes {
     fn apply(self, _root: &BSubtree, el: &Element) -> Self {
         match &self {
             Self::Static(arr) => {
-                for kv in arr.iter() {
-                    Self::set_attribute(el, kv[0], kv[1]);
+                for (k, v, _) in arr.iter() {
+                    Self::set_attribute(el, *k, *v);
                 }
             }
             Self::Dynamic { keys, values } => {
                 for (k, v) in keys.iter().zip(values.iter()) {
-                    if let Some(v) = v {
+                    if let Some((v, _)) = v {
                         Self::set_attribute(el, k, v)
                     }
                 }
             }
             Self::IndexMap(m) => {
-                for (k, v) in m.iter() {
+                for (k, (v, _)) in m.iter() {
                     Self::set_attribute(el, k, v)
                 }
             }
@@ -235,7 +236,7 @@ impl Apply for Attributes {
                     }
                     macro_rules! set {
                         ($new:expr) => {
-                            Self::set_attribute(el, key!(), $new)
+                            Self::set_attribute(el, key!(), $new.0.as_ref())
                         };
                     }
 

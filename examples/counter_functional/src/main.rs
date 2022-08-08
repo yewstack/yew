@@ -14,13 +14,13 @@ fn App() -> Html {
         Callback::from(move |_| state.set(*state - 1))
     };
 
-    html!(
+    html! {
         <>
-        <p> {"current count: "} {*state} </p>
-        <button onclick={incr_counter}> {"+"} </button>
-        <button onclick={decr_counter}> {"-"} </button>
+            <p @disabled={false}> {"current count: "} {*state} </p>
+            <button onclick={incr_counter}> {"+"} </button>
+            <button onclick={decr_counter}> {"-"} </button>
         </>
-    )
+    }
 }
 
 fn main() {

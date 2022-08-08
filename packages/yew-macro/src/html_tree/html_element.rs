@@ -135,10 +135,10 @@ impl ToTokens for HtmlElement {
         // other attributes
 
         let attributes = {
-            let normal_attrs = attributes.iter().map(|Prop { label, value, .. }| {
-                (label.to_lit_str(), value.optimize_literals_tagged())
+            let normal_attrs = attributes.iter().map(|Prop { label, value, is_forced_attribute, .. }| {
+                (label.to_lit_str(), value.optimize_literals_tagged(), *is_forced_attribute)
             });
-            let boolean_attrs = booleans.iter().filter_map(|Prop { label, value, .. }| {
+            let boolean_attrs = booleans.iter().filter_map(|Prop { label, value, is_forced_attribute, .. }| {
                 let key = label.to_lit_str();
                 Some((
                     key.clone(),
@@ -166,6 +166,7 @@ impl ToTokens for HtmlElement {
                             },
                         ),
                     },
+                    *is_forced_attribute
                 ))
             });
             let class_attr = classes.as_ref().and_then(|classes| match classes {
@@ -196,6 +197,7 @@ impl ToTokens for HtmlElement {
                                 __yew_classes
                             }
                         }),
+                        false,
                     ))
                 }
                 ClassesForm::Single(classes) => {
@@ -207,6 +209,7 @@ impl ToTokens for HtmlElement {
                                 Some((
                                     LitStr::new("class", lit.span()),
                                     Value::Static(quote! { #lit }),
+                                    false,
                                 ))
                             }
                         }
@@ -216,6 +219,7 @@ impl ToTokens for HtmlElement {
                                 Value::Dynamic(quote! {
                                     ::std::convert::Into::<::yew::html::Classes>::into(#classes)
                                 }),
+                                false,
                             ))
                         }
                     }
@@ -223,14 +227,19 @@ impl ToTokens for HtmlElement {
             });
 
             /// Try to turn attribute list into a `::yew::virtual_dom::Attributes::Static`
-            fn try_into_static(src: &[(LitStr, Value)]) -> Option<TokenStream> {
+            fn try_into_static(src: &[(LitStr, Value, bool)]) -> Option<TokenStream> {
                 let mut kv = Vec::with_capacity(src.len());
-                for (k, v) in src.iter() {
+                for (k, v, is_forced_attribute) in src.iter() {
                     let v = match v {
                         Value::Static(v) => quote! { #v },
                         Value::Dynamic(_) => return None,
                     };
-                    kv.push(quote! { [ #k, #v ] });
+                    let apply_as = if *is_forced_attribute {
+                        quote! { ::yew::virtual_dom::ApplyAttributeAs::Attribute }
+                    } else {
+                        quote! { ::yew::virtual_dom::ApplyAttributeAs::Property }
+                    };
+                    kv.push(quote! { ( #k, #v, #apply_as ) });
                 }
 
                 Some(quote! { ::yew::virtual_dom::Attributes::Static(&[#(#kv),*]) })
@@ -239,10 +248,19 @@ impl ToTokens for HtmlElement {
             let attrs = normal_attrs
                 .chain(boolean_attrs)
                 .chain(class_attr)
-                .collect::<Vec<(LitStr, Value)>>();
+                .collect::<Vec<(LitStr, Value, bool)>>();
             try_into_static(&attrs).unwrap_or_else(|| {
-                let keys = attrs.iter().map(|(k, _)| quote! { #k });
-                let values = attrs.iter().map(|(_, v)| wrap_attr_value(v));
+                let keys = attrs.iter().map(|(k, _, _)| quote! { #k });
+                let values = attrs.iter()
+                    .map(|(_, v, is_forced_attribute)| {
+                        let apply_as = if *is_forced_attribute {
+                            quote! { ::yew::virtual_dom::ApplyAttributeAs::Attribute }
+                        } else {
+                            quote! { ::yew::virtual_dom::ApplyAttributeAs::Property }
+                        };
+                        let value = wrap_attr_value(v);
+                        quote! { (#value, #apply_as) }
+                    });
                 quote! {
                     ::yew::virtual_dom::Attributes::Dynamic{
                         keys: &[#(#keys),*],
