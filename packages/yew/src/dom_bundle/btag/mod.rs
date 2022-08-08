@@ -722,12 +722,12 @@ mod tests {
         assert!(vtag.reference().has_attribute("class"));
     }
 
-    // #[test]
+    #[test]
     fn it_sets_class_name_static() {
         test_set_class_name(|| html! { <div class="ferris the crab"></div> });
     }
 
-    // #[test]
+    #[test]
     fn it_sets_class_name_dynamic() {
         test_set_class_name(|| html! { <div class={"ferris the crab".to_owned()}></div> });
     }

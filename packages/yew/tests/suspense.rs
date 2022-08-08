@@ -17,7 +17,7 @@ use yew::suspense::{use_future, use_future_with_deps, Suspension, SuspensionResu
 
 wasm_bindgen_test_configure!(run_in_browser);
 
-// #[wasm_bindgen_test]
+#[wasm_bindgen_test]
 async fn suspense_works() {
     #[derive(PartialEq)]
     pub struct SleepState {
@@ -161,7 +161,7 @@ async fn suspense_works() {
     );
 }
 
-// #[wasm_bindgen_test]
+#[wasm_bindgen_test]
 async fn suspense_not_suspended_at_start() {
     #[derive(PartialEq)]
     pub struct SleepState {
@@ -278,7 +278,7 @@ async fn suspense_not_suspended_at_start() {
     );
 }
 
-// #[wasm_bindgen_test]
+#[wasm_bindgen_test]
 async fn suspense_nested_suspense_works() {
     #[derive(PartialEq)]
     pub struct SleepState {
@@ -413,7 +413,7 @@ async fn suspense_nested_suspense_works() {
     );
 }
 
-// #[wasm_bindgen_test]
+#[wasm_bindgen_test]
 async fn effects_not_run_when_suspended() {
     #[derive(PartialEq)]
     pub struct SleepState {

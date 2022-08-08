@@ -149,15 +149,29 @@ impl Attributes {
     }
 
     fn set_attribute(el: &Element, key: &str, value: &str) {
-        let key = JsValue::from_str(key);
-        let value = JsValue::from_str(value);
-        js_sys::Reflect::set(el.as_ref(), &key, &value).expect("invalid attribute key");
+        match key {
+            // need to be attributes because, otherwise query selectors fail
+            "class" | "id" => el.set_attribute(key, value).expect("invalid attribute key"),
+            _ => {
+                let key = JsValue::from_str(key);
+                let value = JsValue::from_str(value);
+                js_sys::Reflect::set(el.as_ref(), &key, &value).expect("invalid attribute key");
+            }
+        }
     }
 
     fn remove_attribute(el: &Element, key: &str) {
-        let key = JsValue::from_str(key);
-        js_sys::Reflect::set(el.as_ref(), &key, &JsValue::UNDEFINED)
-            .expect("could not remove attribute");
+        match key {
+            // need to be attributes because, otherwise query selectors fail
+            "class" | "id" => el
+                .remove_attribute(key)
+                .expect("could not remove attribute"),
+            _ => {
+                let key = JsValue::from_str(key);
+                js_sys::Reflect::set(el.as_ref(), &key, &JsValue::UNDEFINED)
+                    .expect("could not remove attribute");
+            }
+        }
     }
 }
 
