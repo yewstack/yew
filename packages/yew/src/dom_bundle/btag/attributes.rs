@@ -186,7 +186,7 @@ impl Attributes {
             ApplyAttributeAs::Property => {
                 match key {
                     // need to be attributes because, otherwise query selectors fail
-                    "class" | "id" => el
+                    "class" => el
                         .remove_attribute(key)
                         .expect("could not remove attribute"),
                     _ => {
@@ -357,9 +357,8 @@ mod tests {
     }
 
     #[test]
-    fn class_id_are_always_attrs() {
+    fn class_is_always_attrs() {
         let attrs = Attributes::Static(&[
-            ("id", "foo", ApplyAttributeAs::Property),
             ("class", "thing", ApplyAttributeAs::Attribute),
         ]);
 

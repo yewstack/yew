@@ -371,8 +371,8 @@ impl VTag {
 
     /// Adds a key-value pair to element's property
     ///
-    /// Not every property works when it set as an attribute. We use workarounds for:
-    /// `class` and `id`, which are both set as attributes.
+    /// Not everything works when it set as an property. We use workarounds for:
+    /// `class`, which is set as attribute.
     pub fn set_property(&mut self, key: &'static str, value: impl Into<AttrValue>) {
         self.attributes.get_mut_index_map().insert(
             AttrValue::Static(key),
