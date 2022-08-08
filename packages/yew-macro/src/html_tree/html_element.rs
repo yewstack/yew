@@ -269,16 +269,15 @@ impl ToTokens for HtmlElement {
                 .collect::<Vec<(LitStr, Value, bool)>>();
             try_into_static(&attrs).unwrap_or_else(|| {
                 let keys = attrs.iter().map(|(k, _, _)| quote! { #k });
-                let values = attrs.iter()
-                    .map(|(_, v, is_forced_attribute)| {
-                        let apply_as = if *is_forced_attribute {
-                            quote! { ::yew::virtual_dom::ApplyAttributeAs::Attribute }
-                        } else {
-                            quote! { ::yew::virtual_dom::ApplyAttributeAs::Property }
-                        };
-                        let value = wrap_attr_value(v);
-                        quote! { ::std::option::Option::map(#value, |it| (it, #apply_as)) }
-                    });
+                let values = attrs.iter().map(|(_, v, is_forced_attribute)| {
+                    let apply_as = if *is_forced_attribute {
+                        quote! { ::yew::virtual_dom::ApplyAttributeAs::Attribute }
+                    } else {
+                        quote! { ::yew::virtual_dom::ApplyAttributeAs::Property }
+                    };
+                    let value = wrap_attr_value(v);
+                    quote! { ::std::option::Option::map(#value, |it| (it, #apply_as)) }
+                });
                 quote! {
                     ::yew::virtual_dom::Attributes::Dynamic{
                         keys: &[#(#keys),*],
