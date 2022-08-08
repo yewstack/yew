@@ -35,7 +35,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --features "csr,ssr,hydration,tokio" --profile ${{ matrix.profile }} -- -D warnings
+          args: --all-targets --all-features --profile ${{ matrix.profile }} -- -D warnings
 
       - name: Lint feature soundness
         if: matrix.profile == 'dev'
@@ -189,7 +189,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -p yew --features "csr,ssr,hydration,tokio"
+          args: -p yew --all-features
 
   test-lints:
     name: Test lints on nightly
