@@ -269,34 +269,40 @@ impl Apply for Attributes {
 #[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use gloo::utils::document;
     use js_sys::Reflect;
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    use super::*;
 
     wasm_bindgen_test_configure!(run_in_browser);
 
     fn create_element() -> (Element, BSubtree) {
-        let element = document().create_element("a").expect("failed to create element");
+        let element = document()
+            .create_element("a")
+            .expect("failed to create element");
         let btree = BSubtree::create_root(&element);
         (element, btree)
     }
 
     #[test]
     fn properties_are_set() {
-        let attrs = Attributes::Static(&[
-            ["href", "https://example.com/"],
-            ["alt", "somewhere"],
-        ]);
+        let attrs = Attributes::Static(&[["href", "https://example.com/"], ["alt", "somewhere"]]);
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
         assert_eq!(
-            Reflect::get(element.as_ref(), &JsValue::from_str("href")).expect("no href").as_string().expect("not a string"),
+            Reflect::get(element.as_ref(), &JsValue::from_str("href"))
+                .expect("no href")
+                .as_string()
+                .expect("not a string"),
             "https://example.com/",
             "property `href` not set properly"
         );
         assert_eq!(
-            Reflect::get(element.as_ref(), &JsValue::from_str("alt")).expect("no alt").as_string().expect("not a string"),
+            Reflect::get(element.as_ref(), &JsValue::from_str("alt"))
+                .expect("no alt")
+                .as_string()
+                .expect("not a string"),
             "somewhere",
             "property `alt` not set properly"
         );
@@ -304,10 +310,7 @@ mod tests {
 
     #[test]
     fn class_id_are_attrs() {
-        let attrs = Attributes::Static(&[
-            ["id", "foo"],
-            ["class", "thing"],
-        ]);
+        let attrs = Attributes::Static(&[["id", "foo"], ["class", "thing"]]);
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
         assert_eq!(element.get_attribute("id").unwrap(), "foo");
