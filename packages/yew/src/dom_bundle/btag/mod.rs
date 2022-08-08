@@ -386,7 +386,7 @@ mod feat_hydration {
 #[cfg(test)]
 mod tests {
     use gloo::utils::document;
-    use wasm_bindgen::{JsCast, JsValue};
+    use wasm_bindgen::{JsCast};
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use web_sys::HtmlInputElement as InputElement;
 
@@ -969,19 +969,7 @@ mod tests {
                 .dyn_ref::<web_sys::Element>()
                 .unwrap()
                 .outer_html(),
-            "<div></div>"
-        );
-
-        assert_eq!(
-            js_sys::Reflect::get(
-                test_ref.get().unwrap().as_ref(),
-                &JsValue::from_str("tabindex")
-            )
-            .expect("no tabindex")
-            .as_string()
-            .expect("not a string"),
-            "0",
-            "property `tabindex` not set properly"
+            "<div tabindex=\"0\"></div>"
         );
     }
 }

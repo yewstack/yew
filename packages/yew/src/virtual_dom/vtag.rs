@@ -9,7 +9,7 @@ use std::rc::Rc;
 
 use web_sys::{HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
 
-use super::{AttrValue, Attributes, Key, Listener, Listeners, VList, VNode, ApplyAttributeAs};
+use super::{ApplyAttributeAs, AttrValue, Attributes, Key, Listener, Listeners, VList, VNode};
 use crate::html::{IntoPropValue, NodeRef};
 
 /// SVG namespace string used for creating svg elements
@@ -363,9 +363,10 @@ impl VTag {
     /// Not every attribute works when it set as an attribute. We use workarounds for:
     /// `value` and `checked`.
     pub fn add_attribute(&mut self, key: &'static str, value: impl Into<AttrValue>) {
-        self.attributes
-            .get_mut_index_map()
-            .insert(AttrValue::Static(key), (value.into(), ApplyAttributeAs::Attribute));
+        self.attributes.get_mut_index_map().insert(
+            AttrValue::Static(key),
+            (value.into(), ApplyAttributeAs::Attribute),
+        );
     }
 
     /// Adds a key-value pair to element's property
@@ -373,9 +374,10 @@ impl VTag {
     /// Not every property works when it set as an attribute. We use workarounds for:
     /// `class` and `id`, which are both set as attributes.
     pub fn set_property(&mut self, key: &'static str, value: impl Into<AttrValue>) {
-        self.attributes
-            .get_mut_index_map()
-            .insert(AttrValue::Static(key), (value.into(), ApplyAttributeAs::Property));
+        self.attributes.get_mut_index_map().insert(
+            AttrValue::Static(key),
+            (value.into(), ApplyAttributeAs::Property),
+        );
     }
 
     /// Sets attributes to a virtual node.
@@ -388,9 +390,10 @@ impl VTag {
 
     #[doc(hidden)]
     pub fn __macro_push_attr(&mut self, key: &'static str, value: impl IntoPropValue<AttrValue>) {
-        self.attributes
-            .get_mut_index_map()
-            .insert(AttrValue::from(key), (value.into_prop_value(), ApplyAttributeAs::Property));
+        self.attributes.get_mut_index_map().insert(
+            AttrValue::from(key),
+            (value.into_prop_value(), ApplyAttributeAs::Property),
+        );
     }
 
     /// Add event listener on the [VTag]'s  [Element](web_sys::Element).

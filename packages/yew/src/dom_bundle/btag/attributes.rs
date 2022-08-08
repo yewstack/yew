@@ -95,16 +95,16 @@ impl Attributes {
             match old.get(key) {
                 Some(old_value) => {
                     if value != old_value {
-                        Self::set_attribute(el, key, value.0.as_ref());
+                        Self::set(el, key, value.0.as_ref(), value.1);
                     }
                 }
-                None => Self::set_attribute(el, key, value.0.as_ref()),
+                None => Self::set(el, key, value.0.as_ref(), value.1),
             }
         }
 
-        for (key, _value) in old.iter() {
+        for (key, (_, apply_as)) in old.iter() {
             if !new.contains_key(key) {
-                Self::remove_attribute(el, key);
+                Self::remove(el, key, *apply_as);
             }
         }
     }
@@ -117,13 +117,22 @@ impl Attributes {
             use Attributes::*;
 
             match src {
-                Static(arr) => (*arr).iter().map(|(k, v, apply_as)| (*k, (*v, *apply_as))).collect(),
+                Static(arr) => (*arr)
+                    .iter()
+                    .map(|(k, v, apply_as)| (*k, (*v, *apply_as)))
+                    .collect(),
                 Dynamic { keys, values } => keys
                     .iter()
                     .zip(values.iter())
-                    .filter_map(|(k, v)| v.as_ref().map(|(v, apply_as)| (*k, (v.as_ref(), *apply_as))))
+                    .filter_map(|(k, v)| {
+                        v.as_ref()
+                            .map(|(v, apply_as)| (*k, (v.as_ref(), *apply_as)))
+                    })
                     .collect(),
-                IndexMap(m) => m.iter().map(|(k, (v, apply_as))| (k.as_ref(), (v.as_ref(), *apply_as))).collect(),
+                IndexMap(m) => m
+                    .iter()
+                    .map(|(k, (v, apply_as))| (k.as_ref(), (v.as_ref(), *apply_as)))
+                    .collect(),
             }
         }
 
@@ -142,35 +151,50 @@ impl Attributes {
         }
 
         // Remove missing
-        for k in old.keys() {
+        for (k, (_, apply_as)) in old.iter() {
             if !new.contains_key(k) {
-                Self::remove_attribute(el, k);
+                Self::remove(el, k, *apply_as);
             }
         }
     }
 
-    fn set_attribute(el: &Element, key: &str, value: &str) {
-        match key {
-            // need to be attributes because, otherwise query selectors fail
-            "class" | "id" => el.set_attribute(key, value).expect("invalid attribute key"),
-            _ => {
-                let key = JsValue::from_str(key);
-                let value = JsValue::from_str(value);
-                js_sys::Reflect::set(el.as_ref(), &key, &value).expect("invalid attribute key");
+    fn set(el: &Element, key: &str, value: &str, apply_as: ApplyAttributeAs) {
+        match apply_as {
+            ApplyAttributeAs::Attribute => {
+                el.set_attribute(key, value).expect("invalid attribute key")
+            }
+            ApplyAttributeAs::Property => {
+                match key {
+                    // need to be attributes because, otherwise query selectors fail
+                    "class" => el.set_attribute(key, value).expect("invalid attribute key"),
+                    _ => {
+                        let key = JsValue::from_str(key);
+                        let value = JsValue::from_str(value);
+                        js_sys::Reflect::set(el.as_ref(), &key, &value)
+                            .expect("could not set property");
+                    }
+                }
             }
         }
     }
 
-    fn remove_attribute(el: &Element, key: &str) {
-        match key {
-            // need to be attributes because, otherwise query selectors fail
-            "class" | "id" => el
+    fn remove(el: &Element, key: &str, apply_as: ApplyAttributeAs) {
+        match apply_as {
+            ApplyAttributeAs::Attribute => el
                 .remove_attribute(key)
                 .expect("could not remove attribute"),
-            _ => {
-                let key = JsValue::from_str(key);
-                js_sys::Reflect::set(el.as_ref(), &key, &JsValue::UNDEFINED)
-                    .expect("could not remove attribute");
+            ApplyAttributeAs::Property => {
+                match key {
+                    // need to be attributes because, otherwise query selectors fail
+                    "class" | "id" => el
+                        .remove_attribute(key)
+                        .expect("could not remove attribute"),
+                    _ => {
+                        let key = JsValue::from_str(key);
+                        js_sys::Reflect::set(el.as_ref(), &key, &JsValue::UNDEFINED)
+                            .expect("could not remove property");
+                    }
+                }
             }
         }
     }
@@ -183,20 +207,20 @@ impl Apply for Attributes {
     fn apply(self, _root: &BSubtree, el: &Element) -> Self {
         match &self {
             Self::Static(arr) => {
-                for (k, v, _) in arr.iter() {
-                    Self::set_attribute(el, *k, *v);
+                for (k, v, apply_as) in arr.iter() {
+                    Self::set(el, *k, *v, *apply_as);
                 }
             }
             Self::Dynamic { keys, values } => {
                 for (k, v) in keys.iter().zip(values.iter()) {
-                    if let Some((v, _)) = v {
-                        Self::set_attribute(el, k, v)
+                    if let Some((v, apply_as)) = v {
+                        Self::set(el, k, v, *apply_as)
                     }
                 }
             }
             Self::IndexMap(m) => {
-                for (k, (v, _)) in m.iter() {
-                    Self::set_attribute(el, k, v)
+                for (k, (v, apply_as)) in m.iter() {
+                    Self::set(el, k, v, *apply_as)
                 }
             }
         }
@@ -236,7 +260,7 @@ impl Apply for Attributes {
                     }
                     macro_rules! set {
                         ($new:expr) => {
-                            Self::set_attribute(el, key!(), $new.0.as_ref())
+                            Self::set(el, key!(), $new.0.as_ref(), $new.1)
                         };
                     }
 
@@ -247,8 +271,8 @@ impl Apply for Attributes {
                             }
                         }
                         (Some(new), None) => set!(new),
-                        (None, Some(_)) => {
-                            Self::remove_attribute(el, key!());
+                        (None, Some(old)) => {
+                            Self::remove(el, key!(), old.1);
                         }
                         (None, None) => (),
                     }
@@ -270,10 +294,11 @@ impl Apply for Attributes {
 #[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
     use gloo::utils::document;
     use js_sys::Reflect;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
+    use crate::{html, Html, function_component};
     use super::*;
 
     wasm_bindgen_test_configure!(run_in_browser);
@@ -288,7 +313,10 @@ mod tests {
 
     #[test]
     fn properties_are_set() {
-        let attrs = Attributes::Static(&[("href", "https://example.com/", ApplyAttributeAs::Property), ("alt", "somewhere", ApplyAttributeAs::Property)]);
+        let attrs = Attributes::Static(&[
+            ("href", "https://example.com/", ApplyAttributeAs::Property),
+            ("alt", "somewhere", ApplyAttributeAs::Property),
+        ]);
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
         assert_eq!(
@@ -310,11 +338,58 @@ mod tests {
     }
 
     #[test]
-    fn class_id_are_attrs() {
-        let attrs = Attributes::Static(&[("id", "foo", ApplyAttributeAs::Attribute), ("class", "thing", ApplyAttributeAs::Attribute)]);
+    fn respects_apply_as() {
+        let attrs = Attributes::Static(&[
+            ("href", "https://example.com/", ApplyAttributeAs::Attribute),
+            ("alt", "somewhere", ApplyAttributeAs::Property),
+        ]);
+        let (element, btree) = create_element();
+        attrs.apply(&btree, &element);
+        assert_eq!(element.outer_html(), "<a href=\"https://example.com/\"></a>", "should be set as attribute");
+        assert_eq!(
+            Reflect::get(element.as_ref(), &JsValue::from_str("alt"))
+                .expect("no alt")
+                .as_string()
+                .expect("not a string"),
+            "somewhere",
+            "property `alt` not set properly"
+        );
+    }
+
+    #[test]
+    fn class_id_are_always_attrs() {
+        let attrs = Attributes::Static(&[
+            ("id", "foo", ApplyAttributeAs::Property),
+            ("class", "thing", ApplyAttributeAs::Attribute),
+        ]);
+
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
         assert_eq!(element.get_attribute("id").unwrap(), "foo");
         assert_eq!(element.get_attribute("class").unwrap(), "thing");
+    }
+
+    #[test]
+    async fn macro_syntax_works() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! { <a href="https://example.com/" @alt="abc" /> }
+        }
+
+        let output = gloo::utils::document().get_element_by_id("output").unwrap();
+        yew::Renderer::<Comp>::with_root(output.clone())
+            .render();
+        gloo::timers::future::sleep(Duration::from_secs(1)).await;
+        let element = output.query_selector("a").unwrap().unwrap();
+        assert_eq!(element.get_attribute("alt").unwrap(), "abc");
+
+        assert_eq!(
+            Reflect::get(element.as_ref(), &JsValue::from_str("href"))
+                .expect("no href")
+                .as_string()
+                .expect("not a string"),
+            "https://example.com/",
+            "property `href` not set properly"
+        );
     }
 }

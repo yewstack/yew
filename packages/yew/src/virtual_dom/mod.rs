@@ -150,7 +150,7 @@ mod feat_ssr {
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum ApplyAttributeAs {
     Attribute,
-    Property
+    Property,
 }
 
 /// A collection of attributes for an element
@@ -191,9 +191,7 @@ impl Attributes {
     /// This function is suboptimal and does not inline well. Avoid on hot paths.
     pub fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a str, &'a str)> + 'a> {
         match self {
-            Self::Static(arr) => Box::new(
-                arr.iter().map(|(k, v, _)| (*k, *v as &'a str))
-            ),
+            Self::Static(arr) => Box::new(arr.iter().map(|(k, v, _)| (*k, *v as &'a str))),
             Self::Dynamic { keys, values } => Box::new(
                 keys.iter()
                     .zip(values.iter())
@@ -219,7 +217,11 @@ impl Attributes {
         match self {
             Self::IndexMap(m) => m,
             Self::Static(arr) => {
-                *self = Self::IndexMap(arr.iter().map(|(k, v, ty)| ((*k).into(), ((*v).into(), *ty))).collect());
+                *self = Self::IndexMap(
+                    arr.iter()
+                        .map(|(k, v, ty)| ((*k).into(), ((*v).into(), *ty)))
+                        .collect(),
+                );
                 unpack!()
             }
             Self::Dynamic { keys, values } => {
@@ -238,7 +240,10 @@ impl Attributes {
 
 impl From<IndexMap<AttrValue, AttrValue>> for Attributes {
     fn from(map: IndexMap<AttrValue, AttrValue>) -> Self {
-        let v= map.into_iter().map(|(k, v)| (k, (v, ApplyAttributeAs::Property))).collect();
+        let v = map
+            .into_iter()
+            .map(|(k, v)| (k, (v, ApplyAttributeAs::Property)))
+            .collect();
         Self::IndexMap(v)
     }
 }
