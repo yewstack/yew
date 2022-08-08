@@ -288,7 +288,7 @@ mod tests {
 
     #[test]
     fn properties_are_set() {
-        let attrs = Attributes::Static(&[["href", "https://example.com/"], ["alt", "somewhere"]]);
+        let attrs = Attributes::Static(&[("href", "https://example.com/", ApplyAttributeAs::Property), ("alt", "somewhere", ApplyAttributeAs::Property)]);
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
         assert_eq!(
@@ -311,7 +311,7 @@ mod tests {
 
     #[test]
     fn class_id_are_attrs() {
-        let attrs = Attributes::Static(&[["id", "foo"], ["class", "thing"]]);
+        let attrs = Attributes::Static(&[("id", "foo", ApplyAttributeAs::Attribute), ("class", "thing", ApplyAttributeAs::Attribute)]);
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
         assert_eq!(element.get_attribute("id").unwrap(), "foo");

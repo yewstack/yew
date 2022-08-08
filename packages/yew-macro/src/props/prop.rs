@@ -22,13 +22,11 @@ pub struct Prop {
 impl Parse for Prop {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let at = input.parse::<Token![@]>().map(|_| true).unwrap_or(false);
-        let prop = if input.peek(Brace) {
+        if input.peek(Brace) {
             Self::parse_shorthand_prop_assignment(input, at)
         } else {
             Self::parse_prop_assignment(input, at)
-        };
-        eprintln!("prop => {:?}; at?: {}", prop.as_ref().map(|prop| format!("label: {}, value: {:?}", prop.label.to_string(), prop.value)), at);
-        prop
+        }
     }
 }
 

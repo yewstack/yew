@@ -259,7 +259,7 @@ impl ToTokens for HtmlElement {
                             quote! { ::yew::virtual_dom::ApplyAttributeAs::Property }
                         };
                         let value = wrap_attr_value(v);
-                        quote! { (#value, #apply_as) }
+                        quote! { ::std::option::Option::map(#value, |it| (it, ::yew::virtual_dom::ApplyAttributeAs::Property)) }
                     });
                 quote! {
                     ::yew::virtual_dom::Attributes::Dynamic{
