@@ -268,7 +268,7 @@ impl ToTokens for HtmlElement {
                 .chain(class_attr)
                 .collect::<Vec<(LitStr, Value, bool)>>();
             try_into_static(&attrs).unwrap_or_else(|| {
-                let keys = attrs.iter().map(|(k, _, _)| quote! { #k });
+                let keys = attrs.iter().map(|(k, ..)| quote! { #k });
                 let values = attrs.iter().map(|(_, v, is_forced_attribute)| {
                     let apply_as = if *is_forced_attribute {
                         quote! { ::yew::virtual_dom::ApplyAttributeAs::Attribute }
