@@ -16,7 +16,7 @@ fn App() -> Html {
 
     html! {
         <>
-            <p @disabled={false}> {"current count: "} {*state} </p>
+            <p> {"current count: "} {*state} </p>
             <button onclick={incr_counter}> {"+"} </button>
             <button onclick={decr_counter}> {"-"} </button>
         </>
