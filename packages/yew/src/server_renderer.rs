@@ -1,9 +1,11 @@
 use std::fmt;
 
-use futures::stream::{self, Stream, StreamExt};
+use futures::pin_mut;
+use futures::stream::{Stream, StreamExt};
 
 use crate::html::{BaseComponent, Scope};
 use crate::platform::fmt::{BufStream, DEFAULT_BUF_SIZE};
+use crate::platform::{run_pinned, spawn_local};
 
 /// A Yew Server-side Renderer that renders on the current thread.
 #[cfg(feature = "ssr")]
@@ -214,27 +216,30 @@ where
     ///
     /// Unlike [`LocalServerRenderer::render_stream`], this method is `async fn`.
     pub async fn render_stream(self) -> impl Stream<Item = String> {
-        // let Self {
-        //     create_props,
-        //     hydratable,
-        //     capacity,
-        // } = self;
+        let Self {
+            create_props,
+            hydratable,
+            capacity,
+        } = self;
 
-        // run_pinned(move || async move {
-        //     let (tx, rx) = futures::channel::mpsc::unbounded();
+        run_pinned(move || async move {
+            let (tx, rx) = futures::channel::mpsc::unbounded();
 
-        //     let props = create_props();
-        //     let scope = Scope::<COMP>::new(None);
+            spawn_local(async move {
+                let props = create_props();
+                let s = LocalServerRenderer::<COMP>::with_props(props)
+                    .hydratable(hydratable)
+                    .capacity(capacity)
+                    .render_stream();
+                pin_mut!(s);
 
-        //     spawn_local(async move {
-        //         scope
-        //             .render_into_stream(&mut w, props.into(), hydratable)
-        //             .await;
-        //     });
+                while let Some(m) = s.next().await {
+                    let _ = tx.unbounded_send(m);
+                }
+            });
 
-        //     rx
-        // })
-        // .await
-        stream::pending()
+            rx
+        })
+        .await
     }
 }
