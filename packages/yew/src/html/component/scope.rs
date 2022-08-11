@@ -268,14 +268,14 @@ mod feat_ssr {
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
-    use crate::platform::fmt::Writer;
+    use crate::platform::fmt::BufWriter;
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
 
     impl<COMP: BaseComponent> Scope<COMP> {
         pub(crate) async fn render_into_stream(
             &self,
-            w: &mut Writer,
+            w: &mut BufWriter,
             props: Rc<COMP::Properties>,
             hydratable: bool,
         ) {

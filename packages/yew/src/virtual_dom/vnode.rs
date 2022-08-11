@@ -153,18 +153,18 @@ mod feat_ssr {
 
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::fmt::Writer;
+    use crate::platform::fmt::BufWriter;
 
     impl VNode {
         pub(crate) fn render_into_stream<'a>(
             &'a self,
-            w: &'a mut Writer,
+            w: &'a mut BufWriter,
             parent_scope: &'a AnyScope,
             hydratable: bool,
         ) -> LocalBoxFuture<'a, ()> {
             async fn render_into_stream_(
                 this: &VNode,
-                w: &mut Writer,
+                w: &mut BufWriter,
                 parent_scope: &AnyScope,
                 hydratable: bool,
             ) {

@@ -114,10 +114,10 @@ mod feat_ssr {
     use std::fmt::Write;
 
     use super::*;
-    use crate::platform::fmt::Writer;
+    use crate::platform::fmt::BufWriter;
 
     impl Collectable {
-        pub(crate) fn write_open_tag(&self, w: &mut Writer) {
+        pub(crate) fn write_open_tag(&self, w: &mut BufWriter) {
             let _ = w.write_str("<!--");
             let _ = w.write_str(self.open_start_mark());
 
@@ -133,7 +133,7 @@ mod feat_ssr {
             let _ = w.write_str("-->");
         }
 
-        pub(crate) fn write_close_tag(&self, w: &mut Writer) {
+        pub(crate) fn write_close_tag(&self, w: &mut BufWriter) {
             let _ = w.write_str("<!--");
             let _ = w.write_str(self.close_start_mark());
 

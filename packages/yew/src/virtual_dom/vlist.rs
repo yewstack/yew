@@ -163,12 +163,12 @@ mod feat_ssr {
 
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::fmt::{BufStream, Writer};
+    use crate::platform::fmt::{BufStream, BufWriter};
 
     impl VList {
         pub(crate) async fn render_into_stream(
             &self,
-            w: &mut Writer,
+            w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {

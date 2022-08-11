@@ -18,11 +18,11 @@ struct BufStreamInner {
     done: bool,
 }
 
-pub(crate) struct Writer {
+pub(crate) struct BufWriter {
     inner: Rc<RefCell<BufStreamInner>>,
 }
 
-impl Write for Writer {
+impl Write for BufWriter {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         let mut inner = self.inner.borrow_mut();
 
@@ -88,7 +88,7 @@ where
 {
     pub fn new<C>(f: C) -> Self
     where
-        C: FnOnce(Writer) -> F,
+        C: FnOnce(BufWriter) -> F,
     {
         let inner = {
             Rc::new(RefCell::new(BufStreamInner {
@@ -100,7 +100,7 @@ where
 
         let resolver = {
             let inner = inner.clone();
-            let w = Writer { inner };
+            let w = BufWriter { inner };
 
             future::maybe_done(f(w))
         };
@@ -113,7 +113,7 @@ where
 
     pub fn new_with_resolver<C>(f: C) -> (BufStream<F>, impl Future<Output = ()>)
     where
-        C: FnOnce(Writer) -> F,
+        C: FnOnce(BufWriter) -> F,
     {
         let inner = {
             Rc::new(RefCell::new(BufStreamInner {
@@ -128,7 +128,7 @@ where
             let w = {
                 let inner = inner.clone();
 
-                Writer { inner }
+                BufWriter { inner }
             };
 
             async move {

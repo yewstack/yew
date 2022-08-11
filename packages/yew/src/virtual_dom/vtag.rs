@@ -432,7 +432,7 @@ mod feat_ssr {
 
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::fmt::Writer;
+    use crate::platform::fmt::BufWriter;
     use crate::virtual_dom::VText;
 
     // Elements that cannot have any child elements.
@@ -444,14 +444,14 @@ mod feat_ssr {
     impl VTag {
         pub(crate) async fn render_into_stream(
             &self,
-            w: &mut Writer,
+            w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
             let _ = w.write_str("<");
             let _ = w.write_str(self.tag());
 
-            let write_attr = |w: &mut Writer, name: &str, val: Option<&str>| {
+            let write_attr = |w: &mut BufWriter, name: &str, val: Option<&str>| {
                 let _ = w.write_str(" ");
                 let _ = w.write_str(name);
 

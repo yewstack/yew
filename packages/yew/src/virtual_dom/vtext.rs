@@ -39,12 +39,12 @@ mod feat_ssr {
 
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::fmt::Writer;
+    use crate::platform::fmt::BufWriter;
 
     impl VText {
         pub(crate) async fn render_into_stream(
             &self,
-            w: &mut Writer,
+            w: &mut BufWriter,
             _parent_scope: &AnyScope,
             _hydratable: bool,
         ) {
