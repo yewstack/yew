@@ -10,6 +10,8 @@ use futures::future::{self, FusedFuture, MaybeDone};
 use futures::stream::{FusedStream, Stream};
 use pin_project::pin_project;
 
+pub(crate) static DEFAULT_BUF_SIZE: usize = 1024;
+
 struct BufStreamInner {
     buf: String,
     waker: Option<Waker>,
@@ -25,7 +27,7 @@ impl Write for Writer {
         let mut inner = self.inner.borrow_mut();
 
         if inner.buf.is_empty() {
-            inner.buf.reserve(1024);
+            inner.buf.reserve(DEFAULT_BUF_SIZE);
         }
 
         let result = inner.buf.write_str(s);
@@ -41,7 +43,7 @@ impl Write for Writer {
         let mut inner = self.inner.borrow_mut();
 
         if inner.buf.is_empty() {
-            inner.buf.reserve(1024);
+            inner.buf.reserve(DEFAULT_BUF_SIZE);
         }
 
         let result = inner.buf.write_char(c);
@@ -57,7 +59,7 @@ impl Write for Writer {
         let mut inner = self.inner.borrow_mut();
 
         if inner.buf.is_empty() {
-            inner.buf.reserve(1024);
+            inner.buf.reserve(DEFAULT_BUF_SIZE);
         }
 
         let result = inner.buf.write_fmt(args);

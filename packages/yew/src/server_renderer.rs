@@ -3,9 +3,7 @@ use std::fmt;
 use futures::stream::{self, Stream, StreamExt};
 
 use crate::html::{BaseComponent, Scope};
-use crate::platform::fmt::BufStream;
-
-static DEFAULT_BUF_SIZE: usize = 8192;
+use crate::platform::fmt::{BufStream, DEFAULT_BUF_SIZE};
 
 /// A Yew Server-side Renderer that renders on the current thread.
 #[cfg(feature = "ssr")]
@@ -55,7 +53,7 @@ where
 
     /// Sets the capacity of renderer buffer.
     ///
-    /// Default: `8192`
+    /// Default: `1024`
     pub fn capacity(mut self, capacity: usize) -> Self {
         self.capacity = capacity;
 
@@ -173,7 +171,7 @@ where
 
     /// Sets the capacity of renderer buffer.
     ///
-    /// Default: `8192`
+    /// Default: `1024`
     pub fn capacity(mut self, capacity: usize) -> Self {
         self.capacity = capacity;
 
