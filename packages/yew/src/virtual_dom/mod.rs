@@ -111,36 +111,42 @@ pub(crate) use feat_ssr_hydration::*;
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use std::fmt::Write;
+
     use super::*;
-    use crate::platform::fmt::BufWrite;
+    use crate::platform::fmt::Writer;
 
     impl Collectable {
-        pub(crate) fn write_open_tag(&self, w: &mut dyn BufWrite) {
-            w.write("<!--".into());
-            w.write(self.open_start_mark().into());
+        pub(crate) fn write_open_tag(&self, w: &mut Writer) {
+            let _ = w.write_str("<!--");
+            let _ = w.write_str(self.open_start_mark());
 
             #[cfg(debug_assertions)]
             match self {
-                Self::Component(type_name) => w.write((*type_name).into()),
+                Self::Component(type_name) => {
+                    let _ = w.write_str(*type_name);
+                }
                 Self::Suspense => {}
             }
 
-            w.write(self.end_mark().into());
-            w.write("-->".into());
+            let _ = w.write_str(self.end_mark());
+            let _ = w.write_str("-->");
         }
 
-        pub(crate) fn write_close_tag(&self, w: &mut dyn BufWrite) {
-            w.write("<!--".into());
-            w.write(self.close_start_mark().into());
+        pub(crate) fn write_close_tag(&self, w: &mut Writer) {
+            let _ = w.write_str("<!--");
+            let _ = w.write_str(self.close_start_mark());
 
             #[cfg(debug_assertions)]
             match self {
-                Self::Component(type_name) => w.write((*type_name).into()),
+                Self::Component(type_name) => {
+                    let _ = w.write_str(*type_name);
+                }
                 Self::Suspense => {}
             }
 
-            w.write(self.end_mark().into());
-            w.write("-->".into());
+            let _ = w.write_str(self.end_mark());
+            let _ = w.write_str("-->");
         }
     }
 }

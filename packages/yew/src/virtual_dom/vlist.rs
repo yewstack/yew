@@ -156,18 +156,19 @@ mod test {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use std::fmt::Write;
+
     use futures::stream::{FuturesUnordered, StreamExt};
-    use futures::{future, FutureExt};
+    use futures::{future, pin_mut, FutureExt};
 
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::fmt::{BufWrite, BufWriter};
-    use crate::platform::pinned::mpsc;
+    use crate::platform::fmt::{BufStream, Writer};
 
     impl VList {
         pub(crate) async fn render_into_stream(
             &self,
-            w: &mut dyn BufWrite,
+            w: &mut Writer,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
@@ -177,21 +178,19 @@ mod feat_ssr {
                     child.render_into_stream(w, parent_scope, hydratable).await;
                 }
                 [first_child, rest_children @ ..] => {
-                    let buf_capacity = w.capacity();
                     let mut child_streams = Vec::with_capacity(self.children.len() - 1);
 
                     // Concurrently render rest children into a separate buffer.
                     let rest_child_furs = rest_children.iter().map(|child| {
-                        let (tx, rx) = mpsc::unbounded();
-                        let mut w = BufWriter::new(tx, buf_capacity);
-
-                        child_streams.push(rx);
-
-                        async move {
+                        let (s, resolver) = BufStream::new_with_resolver(move |mut w| async move {
                             child
                                 .render_into_stream(&mut w, parent_scope, hydratable)
                                 .await;
-                        }
+                        });
+
+                        child_streams.push(s);
+
+                        resolver
                     });
 
                     // Concurrently resolve all child futures.
@@ -215,9 +214,10 @@ mod feat_ssr {
                             .await;
 
                         // Transfer results to parent writer.
-                        for mut r in child_streams {
+                        for r in child_streams {
+                            pin_mut!(r);
                             while let Some(next_chunk) = r.next().await {
-                                w.write(next_chunk.into());
+                                let _ = w.write_str(&*next_chunk);
                             }
                         }
                     };

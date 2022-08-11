@@ -1,11 +1,11 @@
 use std::fmt;
 
-use futures::stream::{Stream, StreamExt};
+use futures::stream::{self, Stream, StreamExt};
 
 use crate::html::{BaseComponent, Scope};
-use crate::platform::fmt::{BufWriter, DEFAULT_BUF_SIZE};
-use crate::platform::pinned::mpsc;
-use crate::platform::{run_pinned, spawn_local};
+use crate::platform::fmt::BufStream;
+
+static DEFAULT_BUF_SIZE: usize = 8192;
 
 /// A Yew Server-side Renderer that renders on the current thread.
 #[cfg(feature = "ssr")]
@@ -85,7 +85,8 @@ where
 
     /// Renders Yew Application to a String.
     pub async fn render_to_string(self, w: &mut String) {
-        let mut s = self.render_stream();
+        let s = self.render_stream();
+        futures::pin_mut!(s);
 
         while let Some(m) = s.next().await {
             w.push_str(&m);
@@ -94,17 +95,12 @@ where
 
     /// Renders Yew Applications into a string Stream
     pub fn render_stream(self) -> impl Stream<Item = String> {
-        let (tx, rx) = mpsc::unbounded();
-        let mut w = BufWriter::new(tx, self.capacity);
-
         let scope = Scope::<COMP>::new(None);
-        spawn_local(async move {
+        BufStream::new(move |mut w| async move {
             scope
                 .render_into_stream(&mut w, self.props.into(), self.hydratable)
                 .await;
-        });
-
-        rx
+        })
     }
 }
 
@@ -220,28 +216,27 @@ where
     ///
     /// Unlike [`LocalServerRenderer::render_stream`], this method is `async fn`.
     pub async fn render_stream(self) -> impl Stream<Item = String> {
-        let Self {
-            create_props,
-            hydratable,
-            capacity,
-        } = self;
+        // let Self {
+        //     create_props,
+        //     hydratable,
+        //     capacity,
+        // } = self;
 
-        run_pinned(move || async move {
-            let (tx, rx) = futures::channel::mpsc::unbounded();
+        // run_pinned(move || async move {
+        //     let (tx, rx) = futures::channel::mpsc::unbounded();
 
-            let props = create_props();
-            let scope = Scope::<COMP>::new(None);
+        //     let props = create_props();
+        //     let scope = Scope::<COMP>::new(None);
 
-            let mut w = BufWriter::new(tx, capacity);
+        //     spawn_local(async move {
+        //         scope
+        //             .render_into_stream(&mut w, props.into(), hydratable)
+        //             .await;
+        //     });
 
-            spawn_local(async move {
-                scope
-                    .render_into_stream(&mut w, props.into(), hydratable)
-                    .await;
-            });
-
-            rx
-        })
-        .await
+        //     rx
+        // })
+        // .await
+        stream::pending()
     }
 }

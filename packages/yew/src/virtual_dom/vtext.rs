@@ -35,19 +35,21 @@ impl PartialEq for VText {
 #[cfg(feature = "ssr")]
 mod feat_ssr {
 
+    use std::fmt::Write;
+
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::fmt::BufWrite;
+    use crate::platform::fmt::Writer;
 
     impl VText {
         pub(crate) async fn render_into_stream(
             &self,
-            w: &mut dyn BufWrite,
+            w: &mut Writer,
             _parent_scope: &AnyScope,
             _hydratable: bool,
         ) {
             let s = html_escape::encode_text(&self.text);
-            w.write(s);
+            let _ = w.write_str(&*s);
         }
     }
 }

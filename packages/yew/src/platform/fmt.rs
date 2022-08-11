@@ -1,143 +1,203 @@
 //! This module contains types for I/O functionality.
 
-// This module should remain private until impl trait type alias becomes available so
-// `BufReader` can be produced with an existential type.
+use std::cell::RefCell;
+use std::fmt::{self, Write};
+use std::future::Future;
+use std::rc::Rc;
+use std::task::{Poll, Waker};
 
-use std::borrow::Cow;
+use futures::future::{self, FusedFuture, MaybeDone};
+use futures::stream::{FusedStream, Stream};
+use pin_project::pin_project;
 
-use crate::platform::pinned;
-
-// Same as std::io::BufWriter and futures::io::BufWriter.
-pub(crate) const DEFAULT_BUF_SIZE: usize = 8 * 1024;
-
-pub(crate) trait BufSend {
-    fn buf_send(&self, item: String);
-}
-
-impl BufSend for pinned::mpsc::UnboundedSender<String> {
-    fn buf_send(&self, item: String) {
-        let _ = self.send_now(item);
-    }
-}
-
-impl BufSend for futures::channel::mpsc::UnboundedSender<String> {
-    fn buf_send(&self, item: String) {
-        let _ = self.unbounded_send(item);
-    }
-}
-
-pub trait BufWrite {
-    fn capacity(&self) -> usize;
-    fn write(&mut self, s: Cow<'_, str>);
-}
-
-/// A [`futures::io::BufWriter`], but operates over string and yields into a Stream.
-pub(crate) struct BufWriter<S>
-where
-    S: BufSend,
-{
+struct BufStreamInner {
     buf: String,
-    tx: S,
-    capacity: usize,
+    waker: Option<Waker>,
+    done: bool,
 }
 
-// Implementation Notes:
-//
-// When jemalloc is used and a reasonable buffer length is chosen,
-// performance of this buffer is related to the number of allocations
-// instead of the amount of memory that is allocated.
-//
-// A Bytes-based implementation is also tested, and yielded a similar performance to String-based
-// buffer.
-//
-// Having a String-based buffer avoids unsafe / cost of conversion between String and Bytes
-// when text based content is needed (e.g.: post-processing).
-//
-// `Bytes::from` can be used to convert a `String` to `Bytes` if web server asks for an
-// `impl Stream<Item = Bytes>`. This conversion incurs no memory allocation.
-//
-// Yielding the output with a Stream provides a couple advantages:
-//
-// 1. All child components of a VList can have their own buffer and be rendered concurrently.
-// 2. If a fixed buffer is used, the rendering process can become blocked if the buffer is filled.
-//    Using a stream avoids this side effect and allows the renderer to finish rendering
-//    without being actively polled.
-impl<S> BufWriter<S>
+pub(crate) struct Writer {
+    inner: Rc<RefCell<BufStreamInner>>,
+}
+
+impl Write for Writer {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        let mut inner = self.inner.borrow_mut();
+
+        if inner.buf.is_empty() {
+            inner.buf.reserve(1024);
+        }
+
+        let result = inner.buf.write_str(s);
+
+        if let Some(waker) = inner.waker.take() {
+            waker.wake();
+        }
+
+        result
+    }
+
+    fn write_char(&mut self, c: char) -> fmt::Result {
+        let mut inner = self.inner.borrow_mut();
+
+        if inner.buf.is_empty() {
+            inner.buf.reserve(1024);
+        }
+
+        let result = inner.buf.write_char(c);
+
+        if let Some(waker) = inner.waker.take() {
+            waker.wake();
+        }
+
+        result
+    }
+
+    fn write_fmt(&mut self, args: fmt::Arguments<'_>) -> fmt::Result {
+        let mut inner = self.inner.borrow_mut();
+
+        if inner.buf.is_empty() {
+            inner.buf.reserve(1024);
+        }
+
+        let result = inner.buf.write_fmt(args);
+
+        if let Some(waker) = inner.waker.take() {
+            waker.wake();
+        }
+
+        result
+    }
+}
+
+#[pin_project]
+pub(crate) struct BufStream<F>
 where
-    S: BufSend,
+    F: Future<Output = ()>,
 {
-    pub fn new(tx: S, capacity: usize) -> Self {
+    #[pin]
+    resolver: Option<MaybeDone<F>>,
+    inner: Rc<RefCell<BufStreamInner>>,
+}
+
+impl<F> BufStream<F>
+where
+    F: Future<Output = ()>,
+{
+    pub fn new<C>(f: C) -> Self
+    where
+        C: FnOnce(Writer) -> F,
+    {
+        let inner = {
+            Rc::new(RefCell::new(BufStreamInner {
+                buf: String::new(),
+                waker: None,
+                done: false,
+            }))
+        };
+
+        let resolver = {
+            let inner = inner.clone();
+            let w = Writer { inner };
+
+            future::maybe_done(f(w))
+        };
+
         Self {
-            buf: String::new(),
-            tx,
-            capacity,
+            resolver: Some(resolver),
+            inner,
         }
     }
 
-    #[inline]
-    fn drain(&mut self) {
-        if !self.buf.is_empty() {
-            self.tx.buf_send(self.buf.split_off(0));
-        }
-    }
+    pub fn new_with_resolver<C>(f: C) -> (BufStream<F>, impl Future<Output = ()>)
+    where
+        C: FnOnce(Writer) -> F,
+    {
+        let inner = {
+            Rc::new(RefCell::new(BufStreamInner {
+                buf: String::new(),
+                waker: None,
+                done: false,
+            }))
+        };
 
-    #[inline]
-    fn reserve(&mut self) {
-        if self.buf.is_empty() {
-            self.buf.reserve(self.capacity);
-        }
-    }
+        let resolver = {
+            let inner = inner.clone();
+            let w = {
+                let inner = inner.clone();
 
-    /// Returns `True` if the internal buffer has capacity to fit a string of certain length.
-    #[inline]
-    fn has_capacity_of(&self, next_part_len: usize) -> bool {
-        self.buf.capacity() >= self.buf.len() + next_part_len
+                Writer { inner }
+            };
+
+            async move {
+                f(w).await;
+                inner.borrow_mut().done = true;
+            }
+        };
+
+        (
+            Self {
+                resolver: None,
+                inner,
+            },
+            resolver,
+        )
     }
 }
 
-impl<S> BufWrite for BufWriter<S>
+impl<F> Stream for BufStream<F>
 where
-    S: BufSend,
+    F: Future<Output = ()>,
 {
-    #[inline]
-    fn capacity(&self) -> usize {
-        self.capacity
-    }
+    type Item = String;
 
-    /// Writes a string into the buffer, optionally drains the buffer.
-    fn write(&mut self, s: Cow<'_, str>) {
-        // Try to reserve the capacity first.
-        self.reserve();
+    fn poll_next(
+        self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Option<Self::Item>> {
+        let this = self.project();
 
-        if !self.has_capacity_of(s.len()) {
-            // There isn't enough capacity, we drain the buffer.
-            self.drain();
-        }
+        match this.resolver.as_pin_mut() {
+            Some(mut resolver) => {
+                let _ = resolver.as_mut().poll(cx);
 
-        if self.has_capacity_of(s.len()) {
-            // The next part is going to fit into the buffer, we push it onto the buffer.
-            self.buf.push_str(&s);
-        } else {
-            // if the next part is more than buffer size, we send the next part.
+                let mut inner = this.inner.borrow_mut();
 
-            // We don't need to drain the buffer here as the result of self.has_capacity_of() only
-            // changes if the buffer was drained. If the buffer capacity didn't change,
-            // then it means self.has_capacity_of() has returned true the first time which will be
-            // guaranteed to be matched by the left hand side of this implementation.
-            self.tx.buf_send(s.into_owned());
+                match (inner.buf.is_empty(), resolver.is_terminated()) {
+                    (true, true) => Poll::Ready(None),
+                    (true, false) => Poll::Pending,
+                    (false, _) => Poll::Ready(Some(inner.buf.split_off(0))),
+                }
+            }
+            None => {
+                let mut inner = this.inner.borrow_mut();
+
+                if !inner.buf.is_empty() {
+                    return Poll::Ready(Some(inner.buf.split_off(0)));
+                }
+
+                if inner.done {
+                    return Poll::Ready(None);
+                }
+
+                inner.waker = Some(cx.waker().clone());
+
+                Poll::Pending
+            }
         }
     }
 }
 
-impl<S> Drop for BufWriter<S>
+impl<F> FusedStream for BufStream<F>
 where
-    S: BufSend,
+    F: Future<Output = ()>,
 {
-    fn drop(&mut self) {
-        if !self.buf.is_empty() {
-            let mut buf = String::new();
-            std::mem::swap(&mut buf, &mut self.buf);
-            self.tx.buf_send(buf);
+    fn is_terminated(&self) -> bool {
+        let inner = self.inner.borrow();
+
+        match self.resolver.as_ref() {
+            Some(resolver) => inner.buf.is_empty() && resolver.is_terminated(),
+            None => inner.buf.is_empty() && inner.done,
         }
     }
 }

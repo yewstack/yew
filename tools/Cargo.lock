@@ -2109,6 +2109,7 @@ dependencies = [
  "js-sys",
  "num_cpus",
  "once_cell",
+ "pin-project",
  "serde",
  "slab",
  "thiserror",
