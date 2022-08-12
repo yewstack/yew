@@ -6,98 +6,41 @@ use std::future::Future;
 use std::rc::Rc;
 use std::task::{Poll, Waker};
 
-use futures::future::{self, FusedFuture, MaybeDone};
+use futures::future::{self, MaybeDone};
 use futures::stream::{FusedStream, Stream};
+use futures::StreamExt;
 use pin_project::pin_project;
 
 pub(crate) static DEFAULT_BUF_SIZE: usize = 1024;
 
-enum BufStreamInner {
-    Combined {
-        buf: String,
-    },
-    Detached {
-        buf: String,
-        waker: Option<Waker>,
-        done: bool,
-    },
+enum BufStreamState {
+    Ready,
+    Pending(Waker),
+    Done,
+}
+
+struct BufStreamInner {
+    buf: String,
+    state: BufStreamState,
 }
 
 impl BufStreamInner {
-    #[inline]
-    const fn new_detached() -> Self {
-        Self::Detached {
+    const fn new() -> Self {
+        Self {
             buf: String::new(),
-            waker: None,
-            done: false,
-        }
-    }
-
-    #[inline]
-    const fn new_combined() -> Self {
-        Self::Combined { buf: String::new() }
-    }
-
-    #[inline]
-    fn buf(&self) -> &String {
-        match self {
-            Self::Combined { ref buf } => buf,
-            Self::Detached { ref buf, .. } => buf,
-        }
-    }
-
-    #[inline]
-    fn buf_mut(&mut self) -> &mut String {
-        match self {
-            Self::Combined { ref mut buf } => buf,
-            Self::Detached { ref mut buf, .. } => buf,
+            state: BufStreamState::Ready,
         }
     }
 
     fn wake(&self) {
-        match self {
-            Self::Combined { .. } => {}
-            Self::Detached { ref waker, .. } => {
-                if let Some(m) = waker {
-                    m.wake_by_ref();
-                }
-            }
-        }
-    }
-
-    fn set_waker(&mut self, waker: Waker) {
-        match self {
-            Self::Combined { .. } => {}
-            Self::Detached {
-                waker: ref mut current_waker,
-                ..
-            } => {
-                *current_waker = Some(waker);
-            }
+        if let BufStreamState::Pending(ref waker) = self.state {
+            waker.wake_by_ref();
         }
     }
 
     fn finish(&mut self) {
-        match self {
-            Self::Combined { .. } => {}
-            Self::Detached {
-                ref waker,
-                ref mut done,
-                ..
-            } => {
-                *done = true;
-                if let Some(m) = waker {
-                    m.wake_by_ref();
-                }
-            }
-        }
-    }
-
-    fn is_finished(&self) -> Option<bool> {
-        match self {
-            Self::Combined { .. } => None,
-            Self::Detached { ref buf, done, .. } => Some(buf.is_empty() && *done),
-        }
+        self.wake();
+        self.state = BufStreamState::Done;
     }
 }
 
@@ -121,76 +64,46 @@ impl Write for BufWriter {
         let mut inner = self.inner.borrow_mut();
         inner.wake();
 
-        let buf = inner.buf_mut();
-        if buf.is_empty() {
-            buf.reserve(self.capacity);
+        if inner.buf.is_empty() {
+            inner.buf.reserve(self.capacity);
         }
 
-        buf.write_str(s)
+        inner.buf.write_str(s)
     }
 
     fn write_char(&mut self, c: char) -> fmt::Result {
         let mut inner = self.inner.borrow_mut();
         inner.wake();
 
-        let buf = inner.buf_mut();
-        if buf.is_empty() {
-            buf.reserve(self.capacity);
+        if inner.buf.is_empty() {
+            inner.buf.reserve(self.capacity);
         }
 
-        buf.write_char(c)
+        inner.buf.write_char(c)
     }
 
     fn write_fmt(&mut self, args: fmt::Arguments<'_>) -> fmt::Result {
         let mut inner = self.inner.borrow_mut();
 
-        let buf = inner.buf_mut();
-        if buf.is_empty() {
-            buf.reserve(self.capacity);
+        if inner.buf.is_empty() {
+            inner.buf.reserve(self.capacity);
         }
 
-        buf.write_fmt(args)
+        inner.buf.write_fmt(args)
     }
 }
 
-#[pin_project]
-pub(crate) struct BufStream<F>
-where
-    F: Future<Output = ()>,
-{
-    #[pin]
-    resolver: Option<MaybeDone<F>>,
+pub(crate) struct BufStream {
     inner: Rc<RefCell<BufStreamInner>>,
 }
 
-impl<F> BufStream<F>
-where
-    F: Future<Output = ()>,
-{
-    pub fn new<C>(capacity: usize, f: C) -> Self
+impl BufStream {
+    pub fn new<C, F>(capacity: usize, f: C) -> (BufStream, impl Future<Output = ()>)
     where
         C: FnOnce(BufWriter) -> F,
+        F: Future<Output = ()>,
     {
-        let inner = Rc::new(RefCell::new(BufStreamInner::new_combined()));
-
-        let resolver = {
-            let inner = inner.clone();
-            let w = BufWriter { inner, capacity };
-
-            f(w)
-        };
-
-        Self {
-            resolver: Some(future::maybe_done(resolver)),
-            inner,
-        }
-    }
-
-    pub fn new_with_resolver<C>(capacity: usize, f: C) -> (BufStream<F>, impl Future<Output = ()>)
-    where
-        C: FnOnce(BufWriter) -> F,
-    {
-        let inner = Rc::new(RefCell::new(BufStreamInner::new_detached()));
+        let inner = Rc::new(RefCell::new(BufStreamInner::new()));
 
         let resolver = {
             let inner = inner.clone();
@@ -205,17 +118,72 @@ where
             }
         };
 
-        (
-            Self {
-                resolver: None,
-                inner,
-            },
-            resolver,
+        (Self { inner }, resolver)
+    }
+}
+
+impl Stream for BufStream {
+    type Item = String;
+
+    fn poll_next(
+        self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Option<Self::Item>> {
+        let mut inner = self.inner.borrow_mut();
+
+        if !inner.buf.is_empty() {
+            return Poll::Ready(Some(inner.buf.split_off(0)));
+        }
+
+        if let BufStreamState::Done = inner.state {
+            return Poll::Ready(None);
+        }
+
+        inner.state = BufStreamState::Pending(cx.waker().clone());
+        Poll::Pending
+    }
+}
+
+impl FusedStream for BufStream {
+    fn is_terminated(&self) -> bool {
+        let inner = self.inner.borrow();
+
+        matches!(
+            (&inner.state, inner.buf.is_empty()),
+            (BufStreamState::Done, true)
         )
     }
 }
 
-impl<F> Stream for BufStream<F>
+#[pin_project]
+pub(crate) struct ResolvedBufStream<F>
+where
+    F: Future<Output = ()>,
+{
+    #[pin]
+    resolver: MaybeDone<F>,
+    inner: BufStream,
+}
+
+impl<F> ResolvedBufStream<F>
+where
+    F: Future<Output = ()>,
+{
+    pub fn new<C>(capacity: usize, f: C) -> ResolvedBufStream<impl Future<Output = ()>>
+    where
+        C: FnOnce(BufWriter) -> F,
+        F: Future<Output = ()>,
+    {
+        let (inner, resolver) = BufStream::new(capacity, f);
+
+        ResolvedBufStream {
+            inner,
+            resolver: future::maybe_done(resolver),
+        }
+    }
+}
+
+impl<F> Stream for ResolvedBufStream<F>
 where
     F: Future<Output = ()>,
 {
@@ -226,47 +194,18 @@ where
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Option<Self::Item>> {
         let this = self.project();
+        let _ = this.resolver.poll(cx);
 
-        match this.resolver.as_pin_mut() {
-            Some(mut resolver) => {
-                let _ = resolver.as_mut().poll(cx);
-
-                let mut inner = this.inner.borrow_mut();
-
-                match (inner.buf().is_empty(), resolver.is_terminated()) {
-                    (true, true) => Poll::Ready(None),
-                    (true, false) => Poll::Pending,
-                    (false, _) => Poll::Ready(Some(inner.buf_mut().split_off(0))),
-                }
-            }
-            None => {
-                let mut inner = this.inner.borrow_mut();
-
-                if !inner.buf().is_empty() {
-                    return Poll::Ready(Some(inner.buf_mut().split_off(0)));
-                }
-
-                if Some(true) == inner.is_finished() {
-                    return Poll::Ready(None);
-                }
-
-                inner.set_waker(cx.waker().clone());
-                Poll::Pending
-            }
-        }
+        this.inner.poll_next_unpin(cx)
     }
 }
 
-impl<F> FusedStream for BufStream<F>
+impl<F> FusedStream for ResolvedBufStream<F>
 where
     F: Future<Output = ()>,
 {
+    #[inline]
     fn is_terminated(&self) -> bool {
-        let inner = self.inner.borrow();
-
-        match self.resolver.as_ref() {
-            Some(resolver) => inner.buf().is_empty() && resolver.is_terminated(),
-            None => inner.is_finished().unwrap_or_default(),
-        }
+        self.inner.is_terminated()
     }
 }

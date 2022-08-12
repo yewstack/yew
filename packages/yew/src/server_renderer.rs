@@ -5,7 +5,7 @@ use futures::stream::{Stream, StreamExt};
 use tracing::Instrument;
 
 use crate::html::{BaseComponent, Scope};
-use crate::platform::fmt::{BufStream, DEFAULT_BUF_SIZE};
+use crate::platform::fmt::{ResolvedBufStream, DEFAULT_BUF_SIZE};
 use crate::platform::{run_pinned, spawn_local};
 
 /// A Yew Server-side Renderer that renders on the current thread.
@@ -105,7 +105,7 @@ where
         let scope = Scope::<COMP>::new(None);
 
         let outer_span = tracing::Span::current();
-        BufStream::new(self.capacity, move |mut w| async move {
+        ResolvedBufStream::new(self.capacity, move |mut w| async move {
             let render_span = tracing::debug_span!("render_stream_item");
             render_span.follows_from(outer_span);
             scope

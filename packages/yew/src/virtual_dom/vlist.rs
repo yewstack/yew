@@ -183,12 +183,11 @@ mod feat_ssr {
 
                     // Concurrently render rest children into a separate buffer.
                     let rest_child_furs = rest_children.iter().map(|child| {
-                        let (s, resolver) =
-                            BufStream::new_with_resolver(capacity, move |mut w| async move {
-                                child
-                                    .render_into_stream(&mut w, parent_scope, hydratable)
-                                    .await;
-                            });
+                        let (s, resolver) = BufStream::new(capacity, move |mut w| async move {
+                            child
+                                .render_into_stream(&mut w, parent_scope, hydratable)
+                                .await;
+                        });
 
                         child_streams.push(s);
 
