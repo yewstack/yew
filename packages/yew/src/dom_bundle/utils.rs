@@ -6,8 +6,18 @@ pub(super) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&N
         Some(next_sibling) => parent
             .insert_before(node, Some(next_sibling))
             .unwrap_or_else(|err| {
-                gloo::console::error!("failed to insert node", err, parent, next_sibling, node);
-                panic!("failed to insert tag before next sibling")
+                // Log normally, so we can inspect the nodes in console
+                gloo::console::error!(
+                    "failed to insert node before next sibling",
+                    err,
+                    parent,
+                    next_sibling,
+                    node
+                );
+                // Log via tracing for consistency
+                tracing::error!("failed to insert node before next sibling");
+                // Panic to short-curcuit and fail
+                panic!("failed to insert node before next sibling")
             }),
         None => parent.append_child(node).expect("failed to append child"),
     };

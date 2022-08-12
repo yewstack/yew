@@ -2,6 +2,7 @@ use std::fmt;
 
 use futures::pin_mut;
 use futures::stream::{Stream, StreamExt};
+use tracing::Instrument;
 
 use crate::html::{BaseComponent, Scope};
 use crate::platform::fmt::{BufStream, DEFAULT_BUF_SIZE};
@@ -94,11 +95,22 @@ where
     }
 
     /// Renders Yew Applications into a string Stream
+    #[tracing::instrument(
+        level = tracing::Level::DEBUG,
+        name = "render",
+        skip(self),
+        fields(hydratable = self.hydratable, capacity = self.capacity),
+    )]
     pub fn render_stream(self) -> impl Stream<Item = String> {
         let scope = Scope::<COMP>::new(None);
+
+        let outer_span = tracing::Span::current();
         BufStream::new(self.capacity, move |mut w| async move {
+            let render_span = tracing::debug_span!("render_stream_item");
+            render_span.follows_from(outer_span);
             scope
                 .render_into_stream(&mut w, self.props.into(), self.hydratable)
+                .instrument(render_span)
                 .await;
         })
     }
