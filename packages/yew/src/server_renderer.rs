@@ -96,7 +96,7 @@ where
     /// Renders Yew Applications into a string Stream
     pub fn render_stream(self) -> impl Stream<Item = String> {
         let scope = Scope::<COMP>::new(None);
-        BufStream::new(move |mut w| async move {
+        BufStream::new(self.capacity, move |mut w| async move {
             scope
                 .render_into_stream(&mut w, self.props.into(), self.hydratable)
                 .await;

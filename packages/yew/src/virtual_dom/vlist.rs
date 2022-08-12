@@ -178,15 +178,17 @@ mod feat_ssr {
                     child.render_into_stream(w, parent_scope, hydratable).await;
                 }
                 [first_child, rest_children @ ..] => {
+                    let capacity = w.capacity();
                     let mut child_streams = Vec::with_capacity(self.children.len() - 1);
 
                     // Concurrently render rest children into a separate buffer.
                     let rest_child_furs = rest_children.iter().map(|child| {
-                        let (s, resolver) = BufStream::new_with_resolver(move |mut w| async move {
-                            child
-                                .render_into_stream(&mut w, parent_scope, hydratable)
-                                .await;
-                        });
+                        let (s, resolver) =
+                            BufStream::new_with_resolver(capacity, move |mut w| async move {
+                                child
+                                    .render_into_stream(&mut w, parent_scope, hydratable)
+                                    .await;
+                            });
 
                         child_streams.push(s);
 

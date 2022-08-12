@@ -103,6 +103,13 @@ impl BufStreamInner {
 
 pub(crate) struct BufWriter {
     inner: Rc<RefCell<BufStreamInner>>,
+    capacity: usize,
+}
+
+impl BufWriter {
+    pub fn capacity(&self) -> usize {
+        self.capacity
+    }
 }
 
 impl Write for BufWriter {
@@ -116,7 +123,7 @@ impl Write for BufWriter {
 
         let buf = inner.buf_mut();
         if buf.is_empty() {
-            buf.reserve(DEFAULT_BUF_SIZE);
+            buf.reserve(self.capacity);
         }
 
         buf.write_str(s)
@@ -128,7 +135,7 @@ impl Write for BufWriter {
 
         let buf = inner.buf_mut();
         if buf.is_empty() {
-            buf.reserve(DEFAULT_BUF_SIZE);
+            buf.reserve(self.capacity);
         }
 
         buf.write_char(c)
@@ -139,7 +146,7 @@ impl Write for BufWriter {
 
         let buf = inner.buf_mut();
         if buf.is_empty() {
-            buf.reserve(DEFAULT_BUF_SIZE);
+            buf.reserve(self.capacity);
         }
 
         buf.write_fmt(args)
@@ -160,36 +167,36 @@ impl<F> BufStream<F>
 where
     F: Future<Output = ()>,
 {
-    pub fn new<C>(f: C) -> Self
+    pub fn new<C>(capacity: usize, f: C) -> Self
     where
         C: FnOnce(BufWriter) -> F,
     {
-        let inner = { Rc::new(RefCell::new(BufStreamInner::new_combined())) };
+        let inner = Rc::new(RefCell::new(BufStreamInner::new_combined()));
 
         let resolver = {
             let inner = inner.clone();
-            let w = BufWriter { inner };
+            let w = BufWriter { inner, capacity };
 
-            future::maybe_done(f(w))
+            f(w)
         };
 
         Self {
-            resolver: Some(resolver),
+            resolver: Some(future::maybe_done(resolver)),
             inner,
         }
     }
 
-    pub fn new_with_resolver<C>(f: C) -> (BufStream<F>, impl Future<Output = ()>)
+    pub fn new_with_resolver<C>(capacity: usize, f: C) -> (BufStream<F>, impl Future<Output = ()>)
     where
         C: FnOnce(BufWriter) -> F,
     {
-        let inner = { Rc::new(RefCell::new(BufStreamInner::new_detached())) };
+        let inner = Rc::new(RefCell::new(BufStreamInner::new_detached()));
 
         let resolver = {
             let inner = inner.clone();
             let w = {
                 let inner = inner.clone();
-                BufWriter { inner }
+                BufWriter { inner, capacity }
             };
 
             async move {
@@ -244,7 +251,6 @@ where
                 }
 
                 inner.set_waker(cx.waker().clone());
-
                 Poll::Pending
             }
         }
