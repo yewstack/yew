@@ -132,7 +132,10 @@ impl Stream for BufStream {
         let mut inner = self.inner.borrow_mut();
 
         if !inner.buf.is_empty() {
-            return Poll::Ready(Some(inner.buf.split_off(0)));
+            let mut buf = String::new();
+            std::mem::swap(&mut buf, &mut inner.buf);
+
+            return Poll::Ready(Some(buf));
         }
 
         if let BufStreamState::Done = inner.state {
@@ -189,6 +192,7 @@ where
 {
     type Item = String;
 
+    #[inline]
     fn poll_next(
         self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
