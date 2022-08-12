@@ -12,10 +12,93 @@ use pin_project::pin_project;
 
 pub(crate) static DEFAULT_BUF_SIZE: usize = 1024;
 
-struct BufStreamInner {
-    buf: String,
-    waker: Option<Waker>,
-    done: bool,
+enum BufStreamInner {
+    Combined {
+        buf: String,
+    },
+    Detached {
+        buf: String,
+        waker: Option<Waker>,
+        done: bool,
+    },
+}
+
+impl BufStreamInner {
+    #[inline]
+    const fn new_detached() -> Self {
+        Self::Detached {
+            buf: String::new(),
+            waker: None,
+            done: false,
+        }
+    }
+
+    #[inline]
+    const fn new_combined() -> Self {
+        Self::Combined { buf: String::new() }
+    }
+
+    #[inline]
+    fn buf(&self) -> &String {
+        match self {
+            Self::Combined { ref buf } => buf,
+            Self::Detached { ref buf, .. } => buf,
+        }
+    }
+
+    #[inline]
+    fn buf_mut(&mut self) -> &mut String {
+        match self {
+            Self::Combined { ref mut buf } => buf,
+            Self::Detached { ref mut buf, .. } => buf,
+        }
+    }
+
+    fn wake(&self) {
+        match self {
+            Self::Combined { .. } => {}
+            Self::Detached { ref waker, .. } => {
+                if let Some(m) = waker {
+                    m.wake_by_ref();
+                }
+            }
+        }
+    }
+
+    fn set_waker(&mut self, waker: Waker) {
+        match self {
+            Self::Combined { .. } => {}
+            Self::Detached {
+                waker: ref mut current_waker,
+                ..
+            } => {
+                *current_waker = Some(waker);
+            }
+        }
+    }
+
+    fn finish(&mut self) {
+        match self {
+            Self::Combined { .. } => {}
+            Self::Detached {
+                ref waker,
+                ref mut done,
+                ..
+            } => {
+                *done = true;
+                if let Some(m) = waker {
+                    m.wake_by_ref();
+                }
+            }
+        }
+    }
+
+    fn is_finished(&self) -> Option<bool> {
+        match self {
+            Self::Combined { .. } => None,
+            Self::Detached { ref buf, done, .. } => Some(buf.is_empty() && *done),
+        }
+    }
 }
 
 pub(crate) struct BufWriter {
@@ -24,51 +107,42 @@ pub(crate) struct BufWriter {
 
 impl Write for BufWriter {
     fn write_str(&mut self, s: &str) -> fmt::Result {
+        if s.is_empty() {
+            return Ok(());
+        }
+
         let mut inner = self.inner.borrow_mut();
+        inner.wake();
 
-        if inner.buf.is_empty() {
-            inner.buf.reserve(DEFAULT_BUF_SIZE);
+        let buf = inner.buf_mut();
+        if buf.is_empty() {
+            buf.reserve(DEFAULT_BUF_SIZE);
         }
 
-        let result = inner.buf.write_str(s);
-
-        if let Some(waker) = inner.waker.take() {
-            waker.wake();
-        }
-
-        result
+        buf.write_str(s)
     }
 
     fn write_char(&mut self, c: char) -> fmt::Result {
         let mut inner = self.inner.borrow_mut();
+        inner.wake();
 
-        if inner.buf.is_empty() {
-            inner.buf.reserve(DEFAULT_BUF_SIZE);
+        let buf = inner.buf_mut();
+        if buf.is_empty() {
+            buf.reserve(DEFAULT_BUF_SIZE);
         }
 
-        let result = inner.buf.write_char(c);
-
-        if let Some(waker) = inner.waker.take() {
-            waker.wake();
-        }
-
-        result
+        buf.write_char(c)
     }
 
     fn write_fmt(&mut self, args: fmt::Arguments<'_>) -> fmt::Result {
         let mut inner = self.inner.borrow_mut();
 
-        if inner.buf.is_empty() {
-            inner.buf.reserve(DEFAULT_BUF_SIZE);
+        let buf = inner.buf_mut();
+        if buf.is_empty() {
+            buf.reserve(DEFAULT_BUF_SIZE);
         }
 
-        let result = inner.buf.write_fmt(args);
-
-        if let Some(waker) = inner.waker.take() {
-            waker.wake();
-        }
-
-        result
+        buf.write_fmt(args)
     }
 }
 
@@ -90,13 +164,7 @@ where
     where
         C: FnOnce(BufWriter) -> F,
     {
-        let inner = {
-            Rc::new(RefCell::new(BufStreamInner {
-                buf: String::new(),
-                waker: None,
-                done: false,
-            }))
-        };
+        let inner = { Rc::new(RefCell::new(BufStreamInner::new_combined())) };
 
         let resolver = {
             let inner = inner.clone();
@@ -115,25 +183,18 @@ where
     where
         C: FnOnce(BufWriter) -> F,
     {
-        let inner = {
-            Rc::new(RefCell::new(BufStreamInner {
-                buf: String::new(),
-                waker: None,
-                done: false,
-            }))
-        };
+        let inner = { Rc::new(RefCell::new(BufStreamInner::new_detached())) };
 
         let resolver = {
             let inner = inner.clone();
             let w = {
                 let inner = inner.clone();
-
                 BufWriter { inner }
             };
 
             async move {
                 f(w).await;
-                inner.borrow_mut().done = true;
+                inner.borrow_mut().finish();
             }
         };
 
@@ -165,24 +226,24 @@ where
 
                 let mut inner = this.inner.borrow_mut();
 
-                match (inner.buf.is_empty(), resolver.is_terminated()) {
+                match (inner.buf().is_empty(), resolver.is_terminated()) {
                     (true, true) => Poll::Ready(None),
                     (true, false) => Poll::Pending,
-                    (false, _) => Poll::Ready(Some(inner.buf.split_off(0))),
+                    (false, _) => Poll::Ready(Some(inner.buf_mut().split_off(0))),
                 }
             }
             None => {
                 let mut inner = this.inner.borrow_mut();
 
-                if !inner.buf.is_empty() {
-                    return Poll::Ready(Some(inner.buf.split_off(0)));
+                if !inner.buf().is_empty() {
+                    return Poll::Ready(Some(inner.buf_mut().split_off(0)));
                 }
 
-                if inner.done {
+                if Some(true) == inner.is_finished() {
                     return Poll::Ready(None);
                 }
 
-                inner.waker = Some(cx.waker().clone());
+                inner.set_waker(cx.waker().clone());
 
                 Poll::Pending
             }
@@ -198,8 +259,8 @@ where
         let inner = self.inner.borrow();
 
         match self.resolver.as_ref() {
-            Some(resolver) => inner.buf.is_empty() && resolver.is_terminated(),
-            None => inner.buf.is_empty() && inner.done,
+            Some(resolver) => inner.buf().is_empty() && resolver.is_terminated(),
+            None => inner.is_finished().unwrap_or_default(),
         }
     }
 }
