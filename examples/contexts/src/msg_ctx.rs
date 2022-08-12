@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use yew::prelude::*;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Message {
     pub inner: String,
 }

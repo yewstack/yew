@@ -237,7 +237,7 @@ impl Apply for Attributes {
             }
             // For VTag's constructed outside the html! macro
             (Self::IndexMap(new), Self::IndexMap(ref old)) => {
-                Self::apply_diff_index_maps(el, &*new, &*old);
+                Self::apply_diff_index_maps(el, new, old);
             }
             // Cold path. Happens only with conditional swapping and reordering of `VTag`s with the
             // same tag and no keys.
