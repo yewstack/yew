@@ -12,7 +12,7 @@ use syn::{LitStr, Token};
 use crate::stringify::Stringify;
 use crate::{non_capitalized_ascii, Peek};
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct HtmlDashedName {
     pub name: Ident,
     pub extended: Vec<(Token![-], Ident)>,
