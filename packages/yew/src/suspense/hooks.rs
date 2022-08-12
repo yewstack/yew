@@ -19,7 +19,7 @@ impl<O> Deref for UseFutureHandle<O> {
     type Target = O;
 
     fn deref(&self) -> &Self::Target {
-        &*self.inner.as_ref().unwrap()
+        self.inner.as_ref().unwrap()
     }
 }
 
