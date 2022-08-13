@@ -178,12 +178,11 @@ mod feat_ssr {
                     child.render_into_stream(w, parent_scope, hydratable).await;
                 }
                 [first_child, rest_children @ ..] => {
-                    let buf_capacity = w.capacity();
                     let mut child_streams = Vec::with_capacity(self.children.len() - 1);
 
                     // Concurrently render rest children into a separate buffer.
                     let rest_child_furs = rest_children.iter().map(|child| {
-                        let (mut w, r) = fmt::buffer(buf_capacity);
+                        let (mut w, r) = fmt::buffer();
 
                         child_streams.push(r);
 

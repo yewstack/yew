@@ -11,7 +11,7 @@ use futures::stream::{FusedStream, Stream};
 use futures::StreamExt;
 use pin_project::pin_project;
 
-pub(crate) static DEFAULT_BUF_SIZE: usize = 1024;
+pub(crate) static BUF_SIZE: usize = 1024;
 
 enum BufStreamState {
     Ready,
@@ -41,23 +41,15 @@ impl BufStreamInner {
     }
 
     #[inline]
-    fn try_reserve(&mut self, capacity: usize) {
+    fn try_reserve(&mut self) {
         if self.buf.is_empty() {
-            self.buf.reserve(capacity);
+            self.buf.reserve(BUF_SIZE);
         }
     }
 }
 
 pub(crate) struct BufWriter {
     inner: Rc<RefCell<BufStreamInner>>,
-    capacity: usize,
-}
-
-impl BufWriter {
-    #[inline]
-    pub const fn capacity(&self) -> usize {
-        self.capacity
-    }
 }
 
 impl Write for BufWriter {
@@ -69,7 +61,7 @@ impl Write for BufWriter {
         let mut inner = self.inner.borrow_mut();
 
         inner.wake();
-        inner.try_reserve(self.capacity);
+        inner.try_reserve();
 
         inner.buf.write_str(s)
     }
@@ -78,7 +70,7 @@ impl Write for BufWriter {
         let mut inner = self.inner.borrow_mut();
 
         inner.wake();
-        inner.try_reserve(self.capacity);
+        inner.try_reserve();
 
         inner.buf.write_char(c)
     }
@@ -87,7 +79,7 @@ impl Write for BufWriter {
         let mut inner = self.inner.borrow_mut();
 
         inner.wake();
-        inner.try_reserve(self.capacity);
+        inner.try_reserve();
 
         inner.buf.write_fmt(args)
     }
@@ -103,12 +95,12 @@ impl Drop for BufWriter {
 }
 
 /// Creates an asynchronous buffer that operates over String.
-pub(crate) fn buffer(capacity: usize) -> (BufWriter, BufReader) {
+pub(crate) fn buffer() -> (BufWriter, BufReader) {
     let inner = Rc::new(RefCell::new(BufStreamInner::new()));
 
     let w = {
         let inner = inner.clone();
-        BufWriter { inner, capacity }
+        BufWriter { inner }
     };
 
     let r = BufReader { inner };
@@ -173,11 +165,11 @@ where
     F: Future<Output = ()>,
 {
     /// Creates a `BufStream`.
-    pub fn new<C>(capacity: usize, f: C) -> Self
+    pub fn new<C>(f: C) -> Self
     where
         C: FnOnce(BufWriter) -> F,
     {
-        let (w, r) = buffer(capacity);
+        let (w, r) = buffer();
         let resolver = future::maybe_done(f(w));
 
         BufStream { inner: r, resolver }

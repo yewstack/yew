@@ -5,7 +5,7 @@ use futures::stream::{Stream, StreamExt};
 use tracing::Instrument;
 
 use crate::html::{BaseComponent, Scope};
-use crate::platform::fmt::{BufStream, DEFAULT_BUF_SIZE};
+use crate::platform::fmt::BufStream;
 use crate::platform::{run_pinned, spawn_local};
 
 /// A Yew Server-side Renderer that renders on the current thread.
@@ -17,7 +17,6 @@ where
 {
     props: COMP::Properties,
     hydratable: bool,
-    capacity: usize,
 }
 
 impl<COMP> Default for LocalServerRenderer<COMP>
@@ -50,17 +49,7 @@ where
         Self {
             props,
             hydratable: true,
-            capacity: DEFAULT_BUF_SIZE,
         }
-    }
-
-    /// Sets the capacity of renderer buffer.
-    ///
-    /// Default: `1024`
-    pub fn capacity(mut self, capacity: usize) -> Self {
-        self.capacity = capacity;
-
-        self
     }
 
     /// Sets whether an the rendered result is hydratable.
@@ -99,13 +88,13 @@ where
         level = tracing::Level::DEBUG,
         name = "render",
         skip(self),
-        fields(hydratable = self.hydratable, capacity = self.capacity),
+        fields(hydratable = self.hydratable),
     )]
     pub fn render_stream(self) -> impl Stream<Item = String> {
         let scope = Scope::<COMP>::new(None);
 
         let outer_span = tracing::Span::current();
-        BufStream::new(self.capacity, move |mut w| async move {
+        BufStream::new(move |mut w| async move {
             let render_span = tracing::debug_span!("render_stream_item");
             render_span.follows_from(outer_span);
             scope
@@ -129,7 +118,6 @@ where
 {
     create_props: Box<dyn Send + FnOnce() -> COMP::Properties>,
     hydratable: bool,
-    capacity: usize,
 }
 
 impl<COMP> fmt::Debug for ServerRenderer<COMP>
@@ -179,17 +167,7 @@ where
         Self {
             create_props: Box::new(create_props),
             hydratable: true,
-            capacity: DEFAULT_BUF_SIZE,
         }
-    }
-
-    /// Sets the capacity of renderer buffer.
-    ///
-    /// Default: `1024`
-    pub fn capacity(mut self, capacity: usize) -> Self {
-        self.capacity = capacity;
-
-        self
     }
 
     /// Sets whether an the rendered result is hydratable.
@@ -231,7 +209,6 @@ where
         let Self {
             create_props,
             hydratable,
-            capacity,
         } = self;
 
         run_pinned(move || async move {
@@ -241,7 +218,6 @@ where
                 let props = create_props();
                 let s = LocalServerRenderer::<COMP>::with_props(props)
                     .hydratable(hydratable)
-                    .capacity(capacity)
                     .render_stream();
                 pin_mut!(s);
 
