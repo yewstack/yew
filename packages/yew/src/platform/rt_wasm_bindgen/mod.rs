@@ -26,20 +26,3 @@ impl Runtime {
         spawn_local(create_task())
     }
 }
-
-#[derive(Debug, Clone)]
-pub(crate) struct LocalRuntime {}
-
-impl LocalRuntime {
-    pub fn new() -> io::Result<Self> {
-        Ok(Self {})
-    }
-
-    pub fn block_on<F>(&self, _f: F) -> F::Output
-    where
-        F: Future + 'static,
-        F::Output: 'static,
-    {
-        panic!("invoked from within a runtime!");
-    }
-}

@@ -15,7 +15,6 @@ use crate::platform::{spawn_local, Runtime};
 ///
 /// - `wasm-bindgen` is selected as the backend of Yew runtime.
 /// - running within a [`Runtime`](crate::platform::Runtime).
-/// - running within a [`LocalRuntime`](crate::platform::LocalRuntime).
 /// - running within a tokio [`LocalSet`](tokio::task::LocalSet).
 #[cfg(feature = "ssr")]
 #[derive(Debug)]

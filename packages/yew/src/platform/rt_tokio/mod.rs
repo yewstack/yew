@@ -3,8 +3,6 @@ use std::sync::Arc;
 use std::{fmt, io, thread};
 
 use once_cell::sync::Lazy;
-use tokio::runtime::{Builder as TokioRuntimeBuilder, Runtime as TokioRuntime};
-use tokio::task::LocalSet;
 
 pub(crate) mod time;
 
@@ -39,7 +37,7 @@ mod local_worker {
 
             let task_count: Arc<AtomicUsize> = Arc::default();
 
-            let rt = TokioRuntimeBuilder::new_current_thread()
+            let rt = tokio::runtime::Builder::new_current_thread()
                 .enable_all()
                 .build()?;
 
@@ -103,8 +101,8 @@ mod local_worker {
 use local_worker::LocalWorker;
 
 pub(crate) fn get_default_runtime_size() -> usize {
-    // We continue to use num_cpus as std::thread::available_parallelism() does not take
-    // system resource constraint into consideration.
+    // We use num_cpus as std::thread::available_parallelism() does not take
+    // system resource constraint (e.g.: cgroups) into consideration.
     num_cpus::get()
 }
 
@@ -186,30 +184,5 @@ impl Runtime {
     {
         let worker = self.find_least_busy_local_worker();
         worker.spawn_pinned(create_task);
-    }
-}
-
-#[derive(Debug)]
-pub(crate) struct LocalRuntime {
-    local_set: LocalSet,
-    rt: TokioRuntime,
-}
-
-impl LocalRuntime {
-    pub fn new() -> io::Result<Self> {
-        Ok(Self {
-            local_set: LocalSet::new(),
-            rt: TokioRuntimeBuilder::new_current_thread()
-                .enable_all()
-                .build()?,
-        })
-    }
-
-    pub fn block_on<F>(&self, f: F) -> F::Output
-    where
-        F: Future + 'static,
-        F::Output: 'static,
-    {
-        self.local_set.block_on(&self.rt, f)
     }
 }
