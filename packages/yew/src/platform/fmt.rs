@@ -1,4 +1,4 @@
-//! This module contains types for I/O functionality.
+//! Asynchronous utilities to work with `String`s.
 
 use std::cell::RefCell;
 use std::fmt::{self, Write};
@@ -25,6 +25,7 @@ struct BufStreamInner {
 }
 
 impl BufStreamInner {
+    #[inline]
     const fn new() -> Self {
         Self {
             buf: String::new(),
@@ -32,15 +33,18 @@ impl BufStreamInner {
         }
     }
 
+    #[inline]
     fn wake(&self) {
         if let BufStreamState::Pending(ref waker) = self.state {
             waker.wake_by_ref();
         }
     }
 
-    fn finish(&mut self) {
-        self.wake();
-        self.state = BufStreamState::Done;
+    #[inline]
+    fn try_reserve(&mut self, capacity: usize) {
+        if self.buf.is_empty() {
+            self.buf.reserve(capacity);
+        }
     }
 }
 
@@ -50,7 +54,8 @@ pub(crate) struct BufWriter {
 }
 
 impl BufWriter {
-    pub fn capacity(&self) -> usize {
+    #[inline]
+    pub const fn capacity(&self) -> usize {
         self.capacity
     }
 }
@@ -62,22 +67,18 @@ impl Write for BufWriter {
         }
 
         let mut inner = self.inner.borrow_mut();
-        inner.wake();
 
-        if inner.buf.is_empty() {
-            inner.buf.reserve(self.capacity);
-        }
+        inner.wake();
+        inner.try_reserve(self.capacity);
 
         inner.buf.write_str(s)
     }
 
     fn write_char(&mut self, c: char) -> fmt::Result {
         let mut inner = self.inner.borrow_mut();
-        inner.wake();
 
-        if inner.buf.is_empty() {
-            inner.buf.reserve(self.capacity);
-        }
+        inner.wake();
+        inner.try_reserve(self.capacity);
 
         inner.buf.write_char(c)
     }
@@ -85,44 +86,41 @@ impl Write for BufWriter {
     fn write_fmt(&mut self, args: fmt::Arguments<'_>) -> fmt::Result {
         let mut inner = self.inner.borrow_mut();
 
-        if inner.buf.is_empty() {
-            inner.buf.reserve(self.capacity);
-        }
+        inner.wake();
+        inner.try_reserve(self.capacity);
 
         inner.buf.write_fmt(args)
     }
 }
 
-pub(crate) struct BufStream {
-    inner: Rc<RefCell<BufStreamInner>>,
-}
+impl Drop for BufWriter {
+    fn drop(&mut self) {
+        let mut inner = self.inner.borrow_mut();
 
-impl BufStream {
-    pub fn new<C, F>(capacity: usize, f: C) -> (BufStream, impl Future<Output = ()>)
-    where
-        C: FnOnce(BufWriter) -> F,
-        F: Future<Output = ()>,
-    {
-        let inner = Rc::new(RefCell::new(BufStreamInner::new()));
-
-        let resolver = {
-            let inner = inner.clone();
-            let w = {
-                let inner = inner.clone();
-                BufWriter { inner, capacity }
-            };
-
-            async move {
-                f(w).await;
-                inner.borrow_mut().finish();
-            }
-        };
-
-        (Self { inner }, resolver)
+        inner.wake();
+        inner.state = BufStreamState::Done;
     }
 }
 
-impl Stream for BufStream {
+/// Creates an asynchronous buffer that operates over String.
+pub(crate) fn buffer(capacity: usize) -> (BufWriter, BufReader) {
+    let inner = Rc::new(RefCell::new(BufStreamInner::new()));
+
+    let w = {
+        let inner = inner.clone();
+        BufWriter { inner, capacity }
+    };
+
+    let r = BufReader { inner };
+
+    (w, r)
+}
+
+pub(crate) struct BufReader {
+    inner: Rc<RefCell<BufStreamInner>>,
+}
+
+impl Stream for BufReader {
     type Item = String;
 
     fn poll_next(
@@ -132,9 +130,7 @@ impl Stream for BufStream {
         let mut inner = self.inner.borrow_mut();
 
         if !inner.buf.is_empty() {
-            let mut buf = String::new();
-            std::mem::swap(&mut buf, &mut inner.buf);
-
+            let buf = std::mem::take(&mut inner.buf);
             return Poll::Ready(Some(buf));
         }
 
@@ -147,7 +143,7 @@ impl Stream for BufStream {
     }
 }
 
-impl FusedStream for BufStream {
+impl FusedStream for BufReader {
     fn is_terminated(&self) -> bool {
         let inner = self.inner.borrow();
 
@@ -158,35 +154,38 @@ impl FusedStream for BufStream {
     }
 }
 
+/// A buffered asynchronous string Stream.
+///
+/// This combines a BufWriter - BufReader pair and a resolving future.
+/// The resoloving future will be polled as the stream is polled.
 #[pin_project]
-pub(crate) struct ResolvedBufStream<F>
+pub(crate) struct BufStream<F>
 where
     F: Future<Output = ()>,
 {
     #[pin]
     resolver: MaybeDone<F>,
-    inner: BufStream,
+    inner: BufReader,
 }
 
-impl<F> ResolvedBufStream<F>
+impl<F> BufStream<F>
 where
     F: Future<Output = ()>,
 {
-    pub fn new<C>(capacity: usize, f: C) -> ResolvedBufStream<impl Future<Output = ()>>
+    /// Creates a `BufStream`.
+    pub fn new<C>(capacity: usize, f: C) -> Self
     where
         C: FnOnce(BufWriter) -> F,
         F: Future<Output = ()>,
     {
-        let (inner, resolver) = BufStream::new(capacity, f);
+        let (w, r) = buffer(capacity);
+        let resolver = future::maybe_done(f(w));
 
-        ResolvedBufStream {
-            inner,
-            resolver: future::maybe_done(resolver),
-        }
+        BufStream { inner: r, resolver }
     }
 }
 
-impl<F> Stream for ResolvedBufStream<F>
+impl<F> Stream for BufStream<F>
 where
     F: Future<Output = ()>,
 {
@@ -204,7 +203,7 @@ where
     }
 }
 
-impl<F> FusedStream for ResolvedBufStream<F>
+impl<F> FusedStream for BufStream<F>
 where
     F: Future<Output = ()>,
 {

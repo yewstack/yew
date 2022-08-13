@@ -163,7 +163,7 @@ mod feat_ssr {
 
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::fmt::{BufStream, BufWriter};
+    use crate::platform::fmt::{self, BufWriter};
 
     impl VList {
         pub(crate) async fn render_into_stream(
@@ -178,20 +178,20 @@ mod feat_ssr {
                     child.render_into_stream(w, parent_scope, hydratable).await;
                 }
                 [first_child, rest_children @ ..] => {
-                    let capacity = w.capacity();
+                    let buf_capacity = w.capacity();
                     let mut child_streams = Vec::with_capacity(self.children.len() - 1);
 
                     // Concurrently render rest children into a separate buffer.
                     let rest_child_furs = rest_children.iter().map(|child| {
-                        let (s, resolver) = BufStream::new(capacity, move |mut w| async move {
+                        let (mut w, r) = fmt::buffer(buf_capacity);
+
+                        child_streams.push(r);
+
+                        async move {
                             child
                                 .render_into_stream(&mut w, parent_scope, hydratable)
                                 .await;
-                        });
-
-                        child_streams.push(s);
-
-                        resolver
+                        }
                     });
 
                     // Concurrently resolve all child futures.
