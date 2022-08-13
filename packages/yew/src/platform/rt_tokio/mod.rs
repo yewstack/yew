@@ -103,9 +103,9 @@ mod local_worker {
 use local_worker::LocalWorker;
 
 pub(crate) fn get_default_runtime_size() -> usize {
-    thread::available_parallelism()
-        .map(|m| m.get())
-        .unwrap_or(1)
+    // We continue to use num_cpus as std::thread::available_parallelism() does not take
+    // system resource constraint into consideration.
+    num_cpus::get()
 }
 
 #[inline(always)]
