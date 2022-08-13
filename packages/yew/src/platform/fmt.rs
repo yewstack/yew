@@ -176,7 +176,6 @@ where
     pub fn new<C>(capacity: usize, f: C) -> Self
     where
         C: FnOnce(BufWriter) -> F,
-        F: Future<Output = ()>,
     {
         let (w, r) = buffer(capacity);
         let resolver = future::maybe_done(f(w));
