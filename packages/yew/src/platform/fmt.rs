@@ -156,8 +156,8 @@ impl FusedStream for BufReader {
 
 /// A buffered asynchronous string Stream.
 ///
-/// This combines a BufWriter - BufReader pair and a resolving future.
-/// The resoloving future will be polled as the stream is polled.
+/// A BufStream combines a BufWriter - BufReader pair and a resolving future that writes to the
+/// buffer and polls the future alongside the buffer.
 #[pin_project]
 pub(crate) struct BufStream<F>
 where
