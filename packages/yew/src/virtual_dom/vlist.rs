@@ -161,13 +161,12 @@ mod feat_ssr {
 
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::fmt::{BufWrite, BufWriter};
-    use crate::platform::pinned::mpsc;
+    use crate::platform::io::{self, BufWriter};
 
     impl VList {
         pub(crate) async fn render_into_stream(
             &self,
-            w: &mut dyn BufWrite,
+            w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
@@ -182,10 +181,9 @@ mod feat_ssr {
 
                     // Concurrently render rest children into a separate buffer.
                     let rest_child_furs = rest_children.iter().map(|child| {
-                        let (tx, rx) = mpsc::unbounded();
-                        let mut w = BufWriter::new(tx, buf_capacity);
+                        let (mut w, r) = io::buffer(buf_capacity);
 
-                        child_streams.push(rx);
+                        child_streams.push(r);
 
                         async move {
                             child

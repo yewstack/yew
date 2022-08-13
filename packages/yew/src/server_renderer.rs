@@ -4,8 +4,7 @@ use futures::stream::{Stream, StreamExt};
 use tracing::Instrument;
 
 use crate::html::{BaseComponent, Scope};
-use crate::platform::fmt::{BufWriter, DEFAULT_BUF_SIZE};
-use crate::platform::pinned::mpsc;
+use crate::platform::io::{self, DEFAULT_BUF_SIZE};
 use crate::platform::{run_pinned, spawn_local};
 
 /// A Yew Server-side Renderer that renders on the current thread.
@@ -101,8 +100,7 @@ where
         fields(hydratable = self.hydratable, capacity = self.capacity),
     )]
     pub fn render_stream(self) -> impl Stream<Item = String> {
-        let (tx, rx) = mpsc::unbounded();
-        let mut w = BufWriter::new(tx, self.capacity);
+        let (mut w, r) = io::buffer(self.capacity);
 
         let scope = Scope::<COMP>::new(None);
         let outer_span = tracing::Span::current();
@@ -115,7 +113,7 @@ where
                 .await;
         });
 
-        rx
+        r
     }
 }
 
@@ -231,27 +229,20 @@ where
     ///
     /// Unlike [`LocalServerRenderer::render_stream`], this method is `async fn`.
     pub async fn render_stream(self) -> impl Stream<Item = String> {
-        let Self {
-            create_props,
-            hydratable,
-            capacity,
-        } = self;
-
+        // We use run_pinned to switch to our runtime.
         run_pinned(move || async move {
-            let (tx, rx) = futures::channel::mpsc::unbounded();
+            let Self {
+                create_props,
+                hydratable,
+                capacity,
+            } = self;
 
             let props = create_props();
-            let scope = Scope::<COMP>::new(None);
 
-            let mut w = BufWriter::new(tx, capacity);
-
-            spawn_local(async move {
-                scope
-                    .render_into_stream(&mut w, props.into(), hydratable)
-                    .await;
-            });
-
-            rx
+            LocalServerRenderer::<COMP>::with_props(props)
+                .hydratable(hydratable)
+                .capacity(capacity)
+                .render_stream()
         })
         .await
     }

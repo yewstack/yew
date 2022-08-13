@@ -28,13 +28,13 @@ impl VSuspense {
 mod feat_ssr {
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::fmt::BufWrite;
+    use crate::platform::io::BufWriter;
     use crate::virtual_dom::Collectable;
 
     impl VSuspense {
         pub(crate) async fn render_into_stream(
             &self,
-            w: &mut dyn BufWrite,
+            w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
