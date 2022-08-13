@@ -122,7 +122,7 @@ pub struct Runtime {
 }
 
 impl Runtime {
-    /// Creates a Builder to create a runtime.
+    /// Creates a runtime Builder.
     pub fn builder() -> RuntimeBuilder {
         RuntimeBuilder::new()
     }
