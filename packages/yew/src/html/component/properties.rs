@@ -93,7 +93,7 @@ mod __macro {
     pub struct AssertAllProps;
 
     /// Builder for when a component has no properties
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Eq)]
     pub struct EmptyBuilder;
 
     impl super::Properties for () {

@@ -1,9 +1,9 @@
 [workspace]
 members = [
-  "*",
+    "*",
 ]
 exclude = [
-  "target"
+    "target"
 ]
 resolver = "2"
 

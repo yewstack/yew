@@ -9,7 +9,7 @@ pub type NavigationError = HistoryError;
 pub type NavigationResult<T> = HistoryResult<T>;
 
 /// The kind of Navigator Provider.
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum NavigatorKind {
     /// Browser History.
     Browser,

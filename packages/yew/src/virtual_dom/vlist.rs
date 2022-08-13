@@ -156,18 +156,17 @@ mod test {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::stream::StreamExt;
-    use futures::FutureExt;
+    use futures::stream::{FuturesUnordered, StreamExt};
+    use futures::{future, FutureExt};
 
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::fmt::{BufWrite, BufWriter};
-    use crate::platform::pinned::mpsc;
+    use crate::platform::io::{self, BufWriter};
 
     impl VList {
         pub(crate) async fn render_into_stream(
             &self,
-            w: &mut dyn BufWrite,
+            w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
@@ -176,40 +175,52 @@ mod feat_ssr {
                 [child] => {
                     child.render_into_stream(w, parent_scope, hydratable).await;
                 }
-                _ => {
-                    let mut children_rxs = Vec::with_capacity(self.children.len());
-                    let mut furs = Vec::with_capacity(self.children.len() + 1);
+                [first_child, rest_children @ ..] => {
+                    let buf_capacity = w.capacity();
+                    let mut child_streams = Vec::with_capacity(self.children.len() - 1);
 
-                    // Concurrently render all children.
-                    for child in self.children.iter() {
-                        let (tx, rx) = mpsc::unbounded();
-                        let mut w = BufWriter::new(tx, w.capacity());
+                    // Concurrently render rest children into a separate buffer.
+                    let rest_child_furs = rest_children.iter().map(|child| {
+                        let (mut w, r) = io::buffer(buf_capacity);
 
-                        furs.push(
-                            async move {
-                                child
-                                    .render_into_stream(&mut w, parent_scope, hydratable)
-                                    .await;
-                            }
-                            .boxed_local(),
-                        );
+                        child_streams.push(r);
 
-                        children_rxs.push(rx);
-                    }
-
-                    // Transfer results to parent writer.
-                    furs.push(
                         async move {
-                            for mut r in children_rxs.into_iter() {
-                                while let Some(next_chunk) = r.next().await {
-                                    w.write(next_chunk.into());
-                                }
+                            child
+                                .render_into_stream(&mut w, parent_scope, hydratable)
+                                .await;
+                        }
+                    });
+
+                    // Concurrently resolve all child futures.
+                    let resolve_fur = if rest_children.len() <= 30 {
+                        // 30 is selected by join_all to be deemed small.
+                        let rest_child_furs = future::join_all(rest_child_furs);
+                        async move {
+                            rest_child_furs.await;
+                        }
+                        .left_future()
+                    } else {
+                        let mut rest_child_furs: FuturesUnordered<_> = rest_child_furs.collect();
+                        async move { while rest_child_furs.next().await.is_some() {} }
+                            .right_future()
+                    };
+
+                    let transfer_fur = async move {
+                        // Render first child to parent buffer directly.
+                        first_child
+                            .render_into_stream(w, parent_scope, hydratable)
+                            .await;
+
+                        // Transfer results to parent writer.
+                        for mut r in child_streams {
+                            while let Some(next_chunk) = r.next().await {
+                                w.write(next_chunk.into());
                             }
                         }
-                        .boxed_local(),
-                    );
+                    };
 
-                    futures::future::join_all(furs).await;
+                    future::join(resolve_fur, transfer_fur).await;
                 }
             }
         }

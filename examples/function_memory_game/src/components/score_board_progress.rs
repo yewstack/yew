@@ -1,6 +1,6 @@
 use yew::{function_component, html, Html, Properties};
 
-#[derive(PartialEq, Properties, Clone)]
+#[derive(PartialEq, Eq, Properties, Clone)]
 pub struct Props {
     pub unresolved_card_pairs: u8,
 }

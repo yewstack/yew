@@ -6,9 +6,12 @@ on:
     branches: [master]
     paths:
       - .github/workflows/benchmark-ssr.yml
-      - "packages/yew"
-      - "examples/function_router"
-      - "tools/benchmark-ssr"
+      - "packages/yew/**"
+      - "packages/yew-macro/**"
+      - "packages/yew-router/**"
+      - "packages/yew-router-macro/**"
+      - "examples/function_router/**"
+      - "tools/benchmark-ssr/**"
 
 jobs:
   benchmark-ssr:
@@ -55,11 +58,16 @@ jobs:
         run: cargo run --profile=bench --bin benchmark-ssr -- --output-path ./output.json
         working-directory: yew-master/tools
 
+      - name: Write Pull Request ID
+        run: |
+          echo "${{ github.event.number }}" > .PR_NUMBER
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: benchmark-ssr
           path: |
+            .PR_NUMBER
             yew-master/tools/output.json
             current-pr/tools/output.json
           retention-days: 1

@@ -43,7 +43,7 @@ pub use feat_ssr::*;
 /// where
 ///     D: Serialize + DeserializeOwned + PartialEq + 'static,
 ///     T: Serialize + DeserializeOwned + 'static,
-///     F: FnOnce(&D) -> T,
+///     F: FnOnce(Rc<D>) -> T,
 /// # { todo!() }
 /// ```
 ///
@@ -69,7 +69,7 @@ pub use feat_ssr::*;
 ///     where
 ///         D: Serialize + DeserializeOwned + PartialEq + 'static,
 ///         T: Serialize + DeserializeOwned + 'static,
-///         F: FnOnce(&D) -> U,
+///         F: FnOnce(Rc<D>) -> U,
 ///         U: 'static + Future<Output = T>,
 /// # { todo!() }
 /// ```

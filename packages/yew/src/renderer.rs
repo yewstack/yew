@@ -73,7 +73,7 @@ where
     /// Creates a [Renderer] that renders into the document body with custom properties.
     pub fn with_props(props: COMP::Properties) -> Self {
         Self::with_root_and_props(
-            gloo_utils::document()
+            gloo::utils::document()
                 .body()
                 .expect("no body node found")
                 .into(),

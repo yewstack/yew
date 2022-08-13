@@ -7,8 +7,8 @@ use std::time::Duration;
 mod common;
 
 use common::obtain_result_by_id;
-use gloo::timers::future::sleep;
 use wasm_bindgen_test::*;
+use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew::{Renderer, ServerRenderer};
 
@@ -53,7 +53,7 @@ async fn use_prepared_state_works() {
 
     sleep(Duration::ZERO).await;
 
-    Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+    Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
     sleep(Duration::from_millis(100)).await;
@@ -103,7 +103,7 @@ async fn use_prepared_state_with_suspension_works() {
 
     sleep(Duration::ZERO).await;
 
-    Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+    Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
     sleep(Duration::from_millis(100)).await;

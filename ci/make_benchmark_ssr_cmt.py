@@ -16,11 +16,12 @@ def write_benchmark(lines: List[str], content: List[Dict[str, str]]) -> None:
 
     for i in content:
         lines.append(
-            "| {i.name} | {i.round} | {i.min} | {i.max} | {i.mean} | {i.std_dev} |"
+            f"| {i['name']} | {i['round']} | {i['min']} | {i['max']} | {i['mean']} | {i['std_dev']} |"
         )
 
     lines.append("")
     lines.append("</details>")
+    lines.append("")
 
 
 def main() -> None:
@@ -49,7 +50,6 @@ def main() -> None:
 
     with open(os.environ["GITHUB_ENV"], "a+") as f:
         f.write(f"YEW_BENCH_SSR={json.dumps(output)}\n")
-        f.write(f"PR_NUMBER={issue_number}\n")
 
 
 if __name__ == "__main__":

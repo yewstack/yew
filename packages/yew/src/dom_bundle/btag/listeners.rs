@@ -205,7 +205,7 @@ mod tests {
     use web_sys::{Event, EventInit, FocusEvent, HtmlElement, MouseEvent};
     wasm_bindgen_test_configure!(run_in_browser);
 
-    use gloo_utils::document;
+    use gloo::utils::document;
     use wasm_bindgen::JsCast;
     use yew::Callback;
 

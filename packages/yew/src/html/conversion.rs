@@ -318,7 +318,7 @@ mod test {
             }
         }
 
-        let header = VChild::new((), NodeRef::default(), None);
+        let header = VChild::new((), None);
         let footer = html_nested! { <Comp /> };
         let children = html! { <div>{"main"}</div> };
 

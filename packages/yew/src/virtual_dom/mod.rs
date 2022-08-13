@@ -112,10 +112,10 @@ pub(crate) use feat_ssr_hydration::*;
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
-    use crate::platform::fmt::BufWrite;
+    use crate::platform::io::BufWriter;
 
     impl Collectable {
-        pub(crate) fn write_open_tag(&self, w: &mut dyn BufWrite) {
+        pub(crate) fn write_open_tag(&self, w: &mut BufWriter) {
             w.write("<!--".into());
             w.write(self.open_start_mark().into());
 
@@ -129,7 +129,7 @@ mod feat_ssr {
             w.write("-->".into());
         }
 
-        pub(crate) fn write_close_tag(&self, w: &mut dyn BufWrite) {
+        pub(crate) fn write_close_tag(&self, w: &mut BufWriter) {
             w.write("<!--".into());
             w.write(self.close_start_mark().into());
 

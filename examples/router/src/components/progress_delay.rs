@@ -1,4 +1,4 @@
-use gloo_timers::callback::Interval;
+use gloo::timers::callback::Interval;
 use instant::Instant;
 use yew::prelude::*;
 

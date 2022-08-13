@@ -44,9 +44,9 @@ use std::future::Future;
 use std::io::Result;
 
 #[cfg(feature = "ssr")]
-pub(crate) mod fmt;
+pub(crate) mod io;
 
-pub mod pinned;
+pub mod sync;
 pub mod time;
 
 #[cfg(target_arch = "wasm32")]

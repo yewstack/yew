@@ -38,7 +38,7 @@ impl<T: 'static, F: FnOnce() -> T> Hook for UseMutRef<F> {
 ///     let message_count = use_mut_ref(|| 0);
 ///
 ///     let onclick = Callback::from(move |e| {
-///         let window = gloo_utils::window();
+///         let window = gloo::utils::window();
 ///
 ///         if *message_count.borrow_mut() > 3 {
 ///             window.alert_with_message("Message limit reached");

@@ -166,7 +166,7 @@ impl_short! {
 
     oninput(InputEvent)
 
-    onsubmit(FocusEvent)
+    onsubmit(SubmitEvent)
 
     onanimationcancel(AnimationEvent)
     onanimationend(AnimationEvent)

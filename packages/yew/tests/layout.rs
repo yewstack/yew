@@ -7,9 +7,9 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 use std::time::Duration;
 
 use common::obtain_result;
-use gloo::timers::future::sleep;
 use wasm_bindgen_futures::spawn_local;
 use wasm_bindgen_test::*;
+use yew::platform::time::sleep;
 use yew::prelude::*;
 
 #[wasm_bindgen_test]
@@ -70,7 +70,7 @@ async fn change_nested_after_append() {
         }
     }
 
-    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .render();
 
     sleep(Duration::from_millis(100)).await;
