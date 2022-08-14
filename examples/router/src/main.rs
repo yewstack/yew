@@ -13,7 +13,7 @@ use pages::post::Post;
 use pages::post_list::PostList;
 use yew::html::Scope;
 
-#[derive(Routable, PartialEq, Clone, Debug)]
+#[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
     #[at("/posts/:id")]
     Post { id: u64 },

@@ -5,7 +5,7 @@ use crate::hooks::use_navigator;
 use crate::Routable;
 
 /// Props for [`Redirect`]
-#[derive(Properties, Clone, PartialEq)]
+#[derive(Properties, Clone, PartialEq, Eq)]
 pub struct RedirectProps<R: Routable> {
     /// Route that will be pushed when the component is rendered.
     pub to: R,

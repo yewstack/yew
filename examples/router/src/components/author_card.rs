@@ -5,7 +5,7 @@ use crate::content::Author;
 use crate::generator::Generated;
 use crate::Route;
 
-#[derive(Clone, Debug, PartialEq, Properties)]
+#[derive(Clone, Debug, PartialEq, Eq, Properties)]
 pub struct Props {
     pub seed: u64,
 }

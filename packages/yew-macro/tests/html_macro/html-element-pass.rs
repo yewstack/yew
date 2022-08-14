@@ -118,6 +118,9 @@ fn compile_pass() {
     // handle misleading angle brackets
     ::yew::html! { <div data-val={<::std::string::String as ::std::default::Default>::default()}></div> };
     ::yew::html! { <div><a data-val={<::std::string::String as ::std::default::Default>::default()} /></div> };
+
+    // test for https://github.com/yewstack/yew/issues/2810
+    ::yew::html! {  <div data-type="date" data-as="calender" /> };
 }
 
 fn main() {}
