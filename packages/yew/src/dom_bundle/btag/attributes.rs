@@ -367,7 +367,10 @@ mod tests {
 
         gloo::timers::future::sleep(Duration::from_secs(1)).await;
         let element = output.query_selector("a").unwrap().unwrap();
-        assert_eq!(element.get_attribute("href").unwrap(), "https://example.com/");
+        assert_eq!(
+            element.get_attribute("href").unwrap(),
+            "https://example.com/"
+        );
 
         assert_eq!(
             Reflect::get(element.as_ref(), &JsValue::from_str("alt"))
