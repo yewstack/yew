@@ -32,8 +32,14 @@ impl<T> Future for Receiver<T> {
     type Output = Result<T, RecvError>;
 
     fn poll(self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
-        // SAFETY: This function is not used by any other functions and hence uniquely owns the
+        // SAFETY:
+        //
+        // We can acquire a mutable reference without checking as:
+        //
+        // - This type is !Send.
+        // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
+        // - The mutable reference is dropped at the end of this function.
         let inner = unsafe { &mut *self.inner.get() };
 
         // Implementation Note:
@@ -58,8 +64,14 @@ impl<T> Future for Receiver<T> {
 
 impl<T> Drop for Receiver<T> {
     fn drop(&mut self) {
-        // SAFETY: This function is not used by any other functions and hence uniquely owns the
+        // SAFETY:
+        //
+        // We can acquire a mutable reference without checking as:
+        //
+        // - This type is !Send.
+        // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
+        // - The mutable reference is dropped at the end of this function.
         let inner = unsafe { &mut *self.inner.get() };
         inner.closed = true;
     }
@@ -74,8 +86,14 @@ pub struct Sender<T> {
 impl<T> Sender<T> {
     /// Send an item to the other side of the channel, consumes the sender.
     pub fn send(self, item: T) -> Result<(), T> {
-        // SAFETY: This function is not used by any other functions and hence uniquely owns the
+        // SAFETY:
+        //
+        // We can acquire a mutable reference without checking as:
+        //
+        // - This type is !Send.
+        // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
+        // - The mutable reference is dropped at the end of this function.
         let inner = unsafe { &mut *self.inner.get() };
 
         if inner.closed {
@@ -94,8 +112,14 @@ impl<T> Sender<T> {
 
 impl<T> Drop for Sender<T> {
     fn drop(&mut self) {
-        // SAFETY: This function is not used by any other functions and hence uniquely owns the
+        // SAFETY:
+        //
+        // We can acquire a mutable reference without checking as:
+        //
+        // - This type is !Send.
+        // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
+        // - The mutable reference is dropped at the end of this function.
         let inner = unsafe { &mut *self.inner.get() };
 
         inner.closed = true;

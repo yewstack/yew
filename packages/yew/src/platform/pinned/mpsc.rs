@@ -64,8 +64,14 @@ impl<T> UnboundedReceiver<T> {
     /// - `Ok(None)` if the channel has become closed.
     /// - `Err(TryRecvError)` if the channel is not closed and the channel is empty.
     pub fn try_next(&self) -> std::result::Result<Option<T>, TryRecvError> {
-        // SAFETY: This function is not used by any other functions and hence uniquely owns the
+        // SAFETY:
+        //
+        // We can acquire a mutable reference without checking as:
+        //
+        // - This type is !Send.
+        // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
+        // - The mutable reference is dropped at the end of this function.
         let inner = unsafe { &mut *self.inner.get() };
 
         match (inner.items.pop_front(), inner.closed) {
@@ -85,8 +91,14 @@ impl<T> Stream for UnboundedReceiver<T> {
         self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Option<Self::Item>> {
-        // SAFETY: This function is not used by any other functions and hence uniquely owns the
+        // SAFETY:
+        //
+        // We can acquire a mutable reference without checking as:
+        //
+        // - This type is !Send.
+        // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
+        // - The mutable reference is dropped at the end of this function.
         let inner = unsafe { &mut *self.inner.get() };
 
         match (inner.items.pop_front(), inner.closed) {
@@ -102,8 +114,14 @@ impl<T> Stream for UnboundedReceiver<T> {
 
 impl<T> FusedStream for UnboundedReceiver<T> {
     fn is_terminated(&self) -> bool {
-        // SAFETY: This function is not used by any other functions and hence uniquely owns the
-        // reference.
+        // SAFETY:
+        //
+        // We can acquire a mutable reference without checking as:
+        //
+        // - This type is !Send.
+        // - This function is not used by any other functions and hence uniquely owns the
+        // mutable reference.
+        // - The mutable reference is dropped at the end of this function.
         let inner = unsafe { &*self.inner.get() };
         inner.items.is_empty() && inner.closed
     }
@@ -111,8 +129,14 @@ impl<T> FusedStream for UnboundedReceiver<T> {
 
 impl<T> Drop for UnboundedReceiver<T> {
     fn drop(&mut self) {
-        // SAFETY: This function is not used by any other functions and hence uniquely owns the
+        // SAFETY:
+        //
+        // We can acquire a mutable reference without checking as:
+        //
+        // - This type is !Send.
+        // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
+        // - The mutable reference is dropped at the end of this function.
         let inner = unsafe { &mut *self.inner.get() };
         inner.close();
     }
@@ -127,8 +151,14 @@ pub struct UnboundedSender<T> {
 impl<T> UnboundedSender<T> {
     /// Sends a value to the unbounded receiver.
     pub fn send_now(&self, item: T) -> Result<(), SendError<T>> {
-        // SAFETY: This function is not used by any function that have already acquired a mutable
+        // SAFETY:
+        //
+        // We can acquire a mutable reference without checking as:
+        //
+        // - This type is !Send.
+        // - This function is not used by any function that have already acquired a mutable
         // reference.
+        // - The mutable reference is dropped at the end of this function.
         let inner = unsafe { &mut *self.inner.get() };
 
         if inner.closed {
@@ -146,8 +176,14 @@ impl<T> UnboundedSender<T> {
 
     /// Closes the channel.
     pub fn close_now(&self) {
-        // SAFETY: This function is not used by any other functions that have acquired a mutable
-        // reference and hence uniquely owns the mutable reference.
+        // SAFETY:
+        //
+        // We can acquire a mutable reference without checking as:
+        //
+        // - This type is !Send.
+        // - This function is not used by any function that have already acquired a mutable
+        // reference.
+        // - The mutable reference is dropped at the end of this function.
         let inner = unsafe { &mut *self.inner.get() };
         inner.close();
     }
@@ -159,8 +195,14 @@ impl<T> Clone for UnboundedSender<T> {
             inner: self.inner.clone(),
         };
 
-        // SAFETY: This function is not used by any other functions and hence uniquely owns the
+        // SAFETY:
+        //
+        // We can acquire a mutable reference without checking as:
+        //
+        // - This type is !Send.
+        // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
+        // - The mutable reference is dropped at the end of this function.
         let inner = unsafe { &mut *self.inner.get() };
         inner.sender_ctr += 1;
 
@@ -170,8 +212,14 @@ impl<T> Clone for UnboundedSender<T> {
 
 impl<T> Drop for UnboundedSender<T> {
     fn drop(&mut self) {
-        // SAFETY: This function is not used by any other functions and hence uniquely owns the
+        // SAFETY:
+        //
+        // We can acquire a mutable reference without checking as:
+        //
+        // - This type is !Send.
+        // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
+        // - The mutable reference is dropped at the end of this function.
         let inner = unsafe { &mut *self.inner.get() };
 
         let sender_ctr = {
