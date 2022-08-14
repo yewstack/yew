@@ -156,8 +156,10 @@ mod test {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::stream::{FuturesUnordered, StreamExt};
-    use futures::{future, FutureExt};
+    use std::task::Poll;
+
+    use futures::stream::StreamExt;
+    use futures::{join, pin_mut, poll, FutureExt};
 
     use super::*;
     use crate::html::AnyScope;
@@ -175,52 +177,68 @@ mod feat_ssr {
                 [child] => {
                     child.render_into_stream(w, parent_scope, hydratable).await;
                 }
-                [first_child, rest_children @ ..] => {
-                    let buf_capacity = w.capacity();
-                    let mut child_streams = Vec::with_capacity(self.children.len() - 1);
+                _ => {
+                    async fn render_child_iter<'a, I>(
+                        mut children: I,
+                        w: &mut BufWriter,
+                        parent_scope: &AnyScope,
+                        hydratable: bool,
+                    ) where
+                        I: Iterator<Item = &'a VNode>,
+                    {
+                        let buf_capacity = w.capacity();
+                        let mut w = w;
+                        while let Some(m) = children.next() {
+                            let child_fur = async move {
+                                // Rust's Compiler does not release the mutable reference to
+                                // BufWriter until the end of the loop, regardless of whether an
+                                // await statement has dropped the child_fur.
+                                //
+                                // We capture and return the mutable reference to avoid this.
 
-                    // Concurrently render rest children into a separate buffer.
-                    let rest_child_furs = rest_children.iter().map(|child| {
-                        let (mut w, r) = io::buffer(buf_capacity);
+                                m.render_into_stream(w, parent_scope, hydratable).await;
+                                w
+                            };
+                            pin_mut!(child_fur);
 
-                        child_streams.push(r);
+                            match poll!(child_fur.as_mut()) {
+                                Poll::Pending => {
+                                    let (mut next_w, next_r) = io::buffer(buf_capacity);
+                                    // Move buf writer into an async block for it to be dropped at
+                                    // the end of the future.
+                                    let rest_render_fur = async move {
+                                        render_child_iter(
+                                            children,
+                                            &mut next_w,
+                                            parent_scope,
+                                            hydratable,
+                                        )
+                                        .await;
+                                    }
+                                    // boxing to avoid recursion
+                                    .boxed_local();
 
-                        async move {
-                            child
-                                .render_into_stream(&mut w, parent_scope, hydratable)
-                                .await;
-                        }
-                    });
+                                    let transfer_fur = async move {
+                                        let w = child_fur.await;
 
-                    // Concurrently resolve all child futures.
-                    let resolve_fur = if rest_children.len() <= 30 {
-                        // 30 is selected by join_all to be deemed small.
-                        let rest_child_furs = future::join_all(rest_child_furs);
-                        async move {
-                            rest_child_furs.await;
-                        }
-                        .left_future()
-                    } else {
-                        let mut rest_child_furs: FuturesUnordered<_> = rest_child_furs.collect();
-                        async move { while rest_child_furs.next().await.is_some() {} }
-                            .right_future()
-                    };
+                                        pin_mut!(next_r);
+                                        while let Some(m) = next_r.next().await {
+                                            w.write(m.into());
+                                        }
+                                    };
 
-                    let transfer_fur = async move {
-                        // Render first child to parent buffer directly.
-                        first_child
-                            .render_into_stream(w, parent_scope, hydratable)
-                            .await;
-
-                        // Transfer results to parent writer.
-                        for mut r in child_streams {
-                            while let Some(next_chunk) = r.next().await {
-                                w.write(next_chunk.into());
+                                    join!(rest_render_fur, transfer_fur);
+                                    break;
+                                }
+                                Poll::Ready(w_) => {
+                                    w = w_;
+                                }
                             }
                         }
-                    };
+                    }
 
-                    future::join(resolve_fur, transfer_fur).await;
+                    let children = self.children.iter();
+                    render_child_iter(children, w, parent_scope, hydratable).await;
                 }
             }
         }
