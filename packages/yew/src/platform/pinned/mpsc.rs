@@ -68,7 +68,7 @@ impl<T> UnboundedReceiver<T> {
         //
         // We can acquire a mutable reference without checking as:
         //
-        // - This type is !Send.
+        // - This type is !Sync.
         // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
         // - The mutable reference is dropped at the end of this function.
@@ -95,7 +95,7 @@ impl<T> Stream for UnboundedReceiver<T> {
         //
         // We can acquire a mutable reference without checking as:
         //
-        // - This type is !Send.
+        // - This type is !Sync.
         // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
         // - The mutable reference is dropped at the end of this function.
@@ -118,7 +118,7 @@ impl<T> FusedStream for UnboundedReceiver<T> {
         //
         // We can acquire a mutable reference without checking as:
         //
-        // - This type is !Send.
+        // - This type is !Sync.
         // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
         // - The mutable reference is dropped at the end of this function.
@@ -133,7 +133,7 @@ impl<T> Drop for UnboundedReceiver<T> {
         //
         // We can acquire a mutable reference without checking as:
         //
-        // - This type is !Send.
+        // - This type is !Sync.
         // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
         // - The mutable reference is dropped at the end of this function.
@@ -155,7 +155,7 @@ impl<T> UnboundedSender<T> {
         //
         // We can acquire a mutable reference without checking as:
         //
-        // - This type is !Send.
+        // - This type is !Sync.
         // - This function is not used by any function that have already acquired a mutable
         // reference.
         // - The mutable reference is dropped at the end of this function.
@@ -180,7 +180,7 @@ impl<T> UnboundedSender<T> {
         //
         // We can acquire a mutable reference without checking as:
         //
-        // - This type is !Send.
+        // - This type is !Sync.
         // - This function is not used by any function that have already acquired a mutable
         // reference.
         // - The mutable reference is dropped at the end of this function.
@@ -199,7 +199,7 @@ impl<T> Clone for UnboundedSender<T> {
         //
         // We can acquire a mutable reference without checking as:
         //
-        // - This type is !Send.
+        // - This type is !Sync.
         // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
         // - The mutable reference is dropped at the end of this function.
@@ -216,7 +216,7 @@ impl<T> Drop for UnboundedSender<T> {
         //
         // We can acquire a mutable reference without checking as:
         //
-        // - This type is !Send.
+        // - This type is !Sync.
         // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
         // - The mutable reference is dropped at the end of this function.
