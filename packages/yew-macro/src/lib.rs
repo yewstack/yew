@@ -1,4 +1,4 @@
-#![cfg_attr(feature = "nightly", feature(proc_macro_span))]
+#![cfg_attr(nightly_yew, feature(proc_macro_span))]
 
 //! This crate provides Yew's procedural macro `html!` which allows using JSX-like syntax
 //! for generating html and the `Properties` derive macro for deriving the `Properties` trait

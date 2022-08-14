@@ -25,7 +25,7 @@ slab = "0.4"
 wasm-bindgen = "0.2"
 yew-macro = { version = "^0.19.0", path = "../yew-macro" }
 thiserror = "1.0"
-futures = { version = "0.3", default-features = false, features = ["std"] }
+futures = { version = "0.3", default-features = false, features = ["std", "async-await"] }
 html-escape = { version = "0.2.9", optional = true }
 implicit-clone = { version = "0.3", features = ["map"] }
 base64ct = { version = "1.5.0", features = ["std"], optional = true }
@@ -99,7 +99,6 @@ tokio = ["tokio/rt", "tokio/time", "dep:num_cpus", "dep:tokio-util"]
 ssr = ["dep:html-escape", "dep:base64ct", "dep:bincode"]
 csr = []
 hydration = ["csr", "dep:bincode"]
-nightly = ["yew-macro/nightly"]
 default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
