@@ -78,16 +78,14 @@ impl<T> UnboundedReceiver<T> {
     pub fn try_next(&self) -> std::result::Result<Option<T>, TryRecvError> {
         // SAFETY: This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
-        unsafe {
-            let inner = self.inner.get_mut_unchecked();
+        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
 
-            match ((*inner).items.pop_front(), (*inner).closed) {
-                (Some(m), _) => Ok(Some(m)),
-                (None, false) => Ok(None),
-                (None, true) => Err(TryRecvError {
-                    _marker: PhantomData,
-                }),
-            }
+        match (inner.items.pop_front(), inner.closed) {
+            (Some(m), _) => Ok(Some(m)),
+            (None, false) => Ok(None),
+            (None, true) => Err(TryRecvError {
+                _marker: PhantomData,
+            }),
         }
     }
 }
@@ -101,17 +99,15 @@ impl<T> Stream for UnboundedReceiver<T> {
     ) -> std::task::Poll<Option<Self::Item>> {
         // SAFETY: This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
-        unsafe {
-            let inner = self.inner.get_mut_unchecked();
+        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
 
-            match ((*inner).items.pop_front(), (*inner).closed) {
-                (Some(m), _) => Poll::Ready(Some(m)),
-                (None, false) => {
-                    (*inner).rx_waker = Some(cx.waker().clone());
-                    Poll::Pending
-                }
-                (None, true) => Poll::Ready(None),
+        match (inner.items.pop_front(), inner.closed) {
+            (Some(m), _) => Poll::Ready(Some(m)),
+            (None, false) => {
+                inner.rx_waker = Some(cx.waker().clone());
+                Poll::Pending
             }
+            (None, true) => Poll::Ready(None),
         }
     }
 }
@@ -126,10 +122,8 @@ impl<T> Drop for UnboundedReceiver<T> {
     fn drop(&mut self) {
         // SAFETY: This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
-        unsafe {
-            let inner = self.inner.get_mut_unchecked();
-            (*inner).close();
-        }
+        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
+        inner.close();
     }
 }
 
@@ -144,18 +138,16 @@ impl<T> UnboundedSender<T> {
     pub fn send_now(&self, item: T) -> Result<(), SendError<T>> {
         // SAFETY: This function is not used by any function that have already acquired a mutable
         // reference.
-        unsafe {
-            let inner = &mut *self.inner.get_mut_unchecked();
+        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
 
-            if (*inner).closed {
-                return Err(SendError { inner: item });
-            }
+        if inner.closed {
+            return Err(SendError { inner: item });
+        }
 
-            (*inner).items.push_back(item);
+        inner.items.push_back(item);
 
-            if let Some(ref m) = (*inner).rx_waker {
-                m.wake_by_ref();
-            }
+        if let Some(ref m) = inner.rx_waker {
+            m.wake_by_ref();
         }
 
         Ok(())
@@ -165,10 +157,8 @@ impl<T> UnboundedSender<T> {
     pub fn close_now(&self) {
         // SAFETY: This function is not used by any other functions that have acquired a mutable
         // reference and hence uniquely owns the mutable reference.
-        unsafe {
-            let inner = self.inner.get_mut_unchecked();
-            (*inner).close();
-        }
+        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
+        inner.close();
     }
 }
 
@@ -180,10 +170,8 @@ impl<T> Clone for UnboundedSender<T> {
 
         // SAFETY: This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
-        unsafe {
-            let inner = self.inner.get_mut_unchecked();
-            (*inner).sender_ctr += 1;
-        }
+        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
+        inner.sender_ctr += 1;
 
         self_
     }
@@ -193,17 +181,15 @@ impl<T> Drop for UnboundedSender<T> {
     fn drop(&mut self) {
         // SAFETY: This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
-        unsafe {
-            let inner = self.inner.get_mut_unchecked();
+        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
 
-            let sender_ctr = {
-                (*inner).sender_ctr -= 1;
-                (*inner).sender_ctr
-            };
+        let sender_ctr = {
+            inner.sender_ctr -= 1;
+            inner.sender_ctr
+        };
 
-            if sender_ctr == 0 {
-                (*inner).close();
-            }
+        if sender_ctr == 0 {
+            inner.close();
         }
     }
 }
