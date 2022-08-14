@@ -1,5 +1,6 @@
 //! A one-time send - receive channel.
 
+use std::cell::UnsafeCell;
 use std::future::Future;
 use std::marker::PhantomData;
 use std::rc::Rc;
@@ -21,25 +22,10 @@ struct Inner<T> {
     item: Option<T>,
 }
 
-impl<T> Inner<T> {
-    /// Creates a unchecked mutable reference from a mutable reference.
-    ///
-    /// SAFETY: You can only use this when:
-    ///
-    /// 1. The mutable reference is released at the end of a function call.
-    /// 2. No parent function has acquired the mutable reference.
-    /// 3. The caller is not an async function / the mutable reference is released before an await
-    /// statement.
-    #[inline]
-    unsafe fn get_mut_unchecked(&self) -> *mut Self {
-        self as *const Self as *mut Self
-    }
-}
-
 /// The receiver of a oneshot channel.
 #[derive(Debug)]
 pub struct Receiver<T> {
-    inner: Rc<Inner<T>>,
+    inner: Rc<UnsafeCell<Inner<T>>>,
 }
 
 impl<T> Future for Receiver<T> {
@@ -48,7 +34,7 @@ impl<T> Future for Receiver<T> {
     fn poll(self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
         // SAFETY: This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
-        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
+        let inner = unsafe { &mut *self.inner.get() };
 
         // Implementation Note:
         //
@@ -74,7 +60,7 @@ impl<T> Drop for Receiver<T> {
     fn drop(&mut self) {
         // SAFETY: This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
-        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
+        let inner = unsafe { &mut *self.inner.get() };
         inner.closed = true;
     }
 }
@@ -82,7 +68,7 @@ impl<T> Drop for Receiver<T> {
 /// The sender of a oneshot channel.
 #[derive(Debug)]
 pub struct Sender<T> {
-    inner: Rc<Inner<T>>,
+    inner: Rc<UnsafeCell<Inner<T>>>,
 }
 
 impl<T> Sender<T> {
@@ -90,7 +76,7 @@ impl<T> Sender<T> {
     pub fn send(self, item: T) -> Result<(), T> {
         // SAFETY: This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
-        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
+        let inner = unsafe { &mut *self.inner.get() };
 
         if inner.closed {
             return Err(item);
@@ -110,7 +96,7 @@ impl<T> Drop for Sender<T> {
     fn drop(&mut self) {
         // SAFETY: This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
-        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
+        let inner = unsafe { &mut *self.inner.get() };
 
         inner.closed = true;
 
@@ -124,11 +110,11 @@ impl<T> Drop for Sender<T> {
 
 /// Creates a oneshot channel.
 pub fn channel<T>() -> (Sender<T>, Receiver<T>) {
-    let inner = Rc::new(Inner {
+    let inner = Rc::new(UnsafeCell::new(Inner {
         rx_waker: None,
         closed: false,
         item: None,
-    });
+    }));
 
     (
         Sender {

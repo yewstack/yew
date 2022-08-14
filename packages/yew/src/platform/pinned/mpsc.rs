@@ -1,5 +1,6 @@
 //! A multi-producer single-receiver channel.
 
+use std::cell::UnsafeCell;
 use std::collections::VecDeque;
 use std::marker::PhantomData;
 use std::rc::Rc;
@@ -40,19 +41,6 @@ struct Inner<T> {
 }
 
 impl<T> Inner<T> {
-    /// Creates a unchecked mutable reference from an immutable reference.
-    ///
-    /// SAFETY: You can only use this when:
-    ///
-    /// 1. The mutable reference is released at the end of a function call.
-    /// 2. No parent function has acquired the mutable reference.
-    /// 3. The caller is not an async function / the mutable reference is released before an await
-    /// statement.
-    #[inline]
-    unsafe fn get_mut_unchecked(&self) -> *mut Self {
-        self as *const Self as *mut Self
-    }
-
     fn close(&mut self) {
         self.closed = true;
 
@@ -65,7 +53,7 @@ impl<T> Inner<T> {
 /// The receiver of an unbounded mpsc channel.
 #[derive(Debug)]
 pub struct UnboundedReceiver<T> {
-    inner: Rc<Inner<T>>,
+    inner: Rc<UnsafeCell<Inner<T>>>,
 }
 
 impl<T> UnboundedReceiver<T> {
@@ -78,7 +66,7 @@ impl<T> UnboundedReceiver<T> {
     pub fn try_next(&self) -> std::result::Result<Option<T>, TryRecvError> {
         // SAFETY: This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
-        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
+        let inner = unsafe { &mut *self.inner.get() };
 
         match (inner.items.pop_front(), inner.closed) {
             (Some(m), _) => Ok(Some(m)),
@@ -99,7 +87,7 @@ impl<T> Stream for UnboundedReceiver<T> {
     ) -> std::task::Poll<Option<Self::Item>> {
         // SAFETY: This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
-        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
+        let inner = unsafe { &mut *self.inner.get() };
 
         match (inner.items.pop_front(), inner.closed) {
             (Some(m), _) => Poll::Ready(Some(m)),
@@ -114,7 +102,10 @@ impl<T> Stream for UnboundedReceiver<T> {
 
 impl<T> FusedStream for UnboundedReceiver<T> {
     fn is_terminated(&self) -> bool {
-        self.inner.items.is_empty() && self.inner.closed
+        // SAFETY: This function is not used by any other functions and hence uniquely owns the
+        // reference.
+        let inner = unsafe { &*self.inner.get() };
+        inner.items.is_empty() && inner.closed
     }
 }
 
@@ -122,7 +113,7 @@ impl<T> Drop for UnboundedReceiver<T> {
     fn drop(&mut self) {
         // SAFETY: This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
-        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
+        let inner = unsafe { &mut *self.inner.get() };
         inner.close();
     }
 }
@@ -130,7 +121,7 @@ impl<T> Drop for UnboundedReceiver<T> {
 /// The sender of an unbounded mpsc channel.
 #[derive(Debug)]
 pub struct UnboundedSender<T> {
-    inner: Rc<Inner<T>>,
+    inner: Rc<UnsafeCell<Inner<T>>>,
 }
 
 impl<T> UnboundedSender<T> {
@@ -138,7 +129,7 @@ impl<T> UnboundedSender<T> {
     pub fn send_now(&self, item: T) -> Result<(), SendError<T>> {
         // SAFETY: This function is not used by any function that have already acquired a mutable
         // reference.
-        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
+        let inner = unsafe { &mut *self.inner.get() };
 
         if inner.closed {
             return Err(SendError { inner: item });
@@ -157,7 +148,7 @@ impl<T> UnboundedSender<T> {
     pub fn close_now(&self) {
         // SAFETY: This function is not used by any other functions that have acquired a mutable
         // reference and hence uniquely owns the mutable reference.
-        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
+        let inner = unsafe { &mut *self.inner.get() };
         inner.close();
     }
 }
@@ -170,7 +161,7 @@ impl<T> Clone for UnboundedSender<T> {
 
         // SAFETY: This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
-        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
+        let inner = unsafe { &mut *self.inner.get() };
         inner.sender_ctr += 1;
 
         self_
@@ -181,7 +172,7 @@ impl<T> Drop for UnboundedSender<T> {
     fn drop(&mut self) {
         // SAFETY: This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
-        let inner = unsafe { &mut *self.inner.get_mut_unchecked() };
+        let inner = unsafe { &mut *self.inner.get() };
 
         let sender_ctr = {
             inner.sender_ctr -= 1;
@@ -207,7 +198,8 @@ impl<T> Sink<T> for &'_ UnboundedSender<T> {
         self: std::pin::Pin<&mut Self>,
         _cx: &mut std::task::Context<'_>,
     ) -> Poll<Result<(), Self::Error>> {
-        match self.inner.closed {
+        let inner = unsafe { &*self.inner.get() };
+        match inner.closed {
             false => Poll::Ready(Ok(())),
             true => Poll::Ready(Err(TrySendError {
                 _marker: PhantomData,
@@ -239,13 +231,13 @@ impl<T> Sink<T> for &'_ UnboundedSender<T> {
 /// This channel has an infinite buffer and can run out of memory if the channel is not actively
 /// drained.
 pub fn unbounded<T>() -> (UnboundedSender<T>, UnboundedReceiver<T>) {
-    let inner = Rc::new(Inner {
+    let inner = Rc::new(UnsafeCell::new(Inner {
         rx_waker: None,
         closed: false,
 
         sender_ctr: 1,
         items: VecDeque::new(),
-    });
+    }));
 
     (
         UnboundedSender {
