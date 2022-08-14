@@ -36,7 +36,7 @@ impl<T> Future for Receiver<T> {
         //
         // We can acquire a mutable reference without checking as:
         //
-        // - This type is !Sync.
+        // - This type is !Sync and !Send.
         // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
         // - The mutable reference is dropped at the end of this function.
@@ -68,7 +68,7 @@ impl<T> Drop for Receiver<T> {
         //
         // We can acquire a mutable reference without checking as:
         //
-        // - This type is !Sync.
+        // - This type is !Sync and !Send.
         // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
         // - The mutable reference is dropped at the end of this function.
@@ -90,7 +90,7 @@ impl<T> Sender<T> {
         //
         // We can acquire a mutable reference without checking as:
         //
-        // - This type is !Sync.
+        // - This type is !Sync and !Send.
         // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
         // - The mutable reference is dropped at the end of this function.
@@ -116,7 +116,7 @@ impl<T> Drop for Sender<T> {
         //
         // We can acquire a mutable reference without checking as:
         //
-        // - This type is !Sync.
+        // - This type is !Sync and !Send.
         // - This function is not used by any other functions and hence uniquely owns the
         // mutable reference.
         // - The mutable reference is dropped at the end of this function.
