@@ -360,7 +360,7 @@ impl ToTokens for HtmlElement {
                     }}
                 });
 
-                #[cfg(feature = "nightly")]
+                #[cfg(nightly_yew)]
                 let invalid_void_tag_msg_start = {
                     let span = vtag.span().unwrap();
                     let source_file = span.source_file().path();
@@ -369,7 +369,7 @@ impl ToTokens for HtmlElement {
                     format!("[{}:{}:{}] ", source_file, start.line, start.column)
                 };
 
-                #[cfg(not(feature = "nightly"))]
+                #[cfg(not(nightly_yew))]
                 let invalid_void_tag_msg_start = "";
 
                 // this way we get a nice error message (with the correct span) when the expression
