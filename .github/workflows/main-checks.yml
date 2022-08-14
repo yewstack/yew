@@ -181,12 +181,20 @@ jobs:
 
       - name: Run native tests
         uses: actions-rs/cargo@v1
+        env:
+          # workaround for lack of ternary operator
+          # see https://github.com/orgs/community/discussions/25725
+          RUSTFLAGS: ${{ matrix.toolchain == 'nightly && '--cfg nightly_yew' || '' }}
         with:
           command: test
           args: --all-targets --workspace --exclude yew
 
       - name: Run native tests for yew
         uses: actions-rs/cargo@v1
+        env:
+          # workaround for lack of ternary operator
+          # see https://github.com/orgs/community/discussions/25725
+          RUSTFLAGS: ${{ matrix.toolchain == 'nightly && '--cfg nightly_yew' || '' }}
         with:
           command: test
           args: -p yew --all-features
@@ -207,6 +215,8 @@ jobs:
 
       - name: Run tests
         uses: actions-rs/cargo@v1
+        env:
+          RUSTFLAGS: --cfg nightly_yew
         with:
           command: test
           args: -p yew-macro test_html_lints --features lints
