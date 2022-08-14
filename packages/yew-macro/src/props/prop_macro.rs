@@ -64,7 +64,7 @@ impl From<PropValue> for Prop {
         Prop {
             label,
             value,
-            is_forced_attribute: false,
+            directive: None,
         }
     }
 }

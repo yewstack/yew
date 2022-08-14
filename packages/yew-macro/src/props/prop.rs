@@ -13,19 +13,24 @@ use super::CHILDREN_LABEL;
 use crate::html_tree::HtmlDashedName;
 use crate::stringify::Stringify;
 
+#[derive(Copy, Clone)]
+pub enum PropDirective {
+    ApplyAsProperty(Token![~]),
+}
+
 pub struct Prop {
-    pub is_forced_attribute: bool,
+    pub directive: Option<PropDirective>,
     pub label: HtmlDashedName,
     /// Punctuation between `label` and `value`.
     pub value: Expr,
 }
 impl Parse for Prop {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let at = input.parse::<Token![@]>().map(|_| true).unwrap_or(false);
+        let directive = input.parse::<Token![~]>().map(|parsed| PropDirective::ApplyAsProperty(parsed)).ok();
         if input.peek(Brace) {
-            Self::parse_shorthand_prop_assignment(input, at)
+            Self::parse_shorthand_prop_assignment(input, directive)
         } else {
-            Self::parse_prop_assignment(input, at)
+            Self::parse_prop_assignment(input, directive)
         }
     }
 }
@@ -37,7 +42,7 @@ impl Prop {
     /// an ambiguity in the syntax
     fn parse_shorthand_prop_assignment(
         input: ParseStream,
-        is_forced_attribute: bool,
+        directive: Option<PropDirective>,
     ) -> syn::Result<Self> {
         let value;
         let _brace = braced!(value in input);
@@ -67,12 +72,12 @@ impl Prop {
         Ok(Self {
             label,
             value: expr,
-            is_forced_attribute,
+            directive,
         })
     }
 
     /// Parse a prop of the form `label={value}`
-    fn parse_prop_assignment(input: ParseStream, is_forced_attribute: bool) -> syn::Result<Self> {
+    fn parse_prop_assignment(input: ParseStream, directive: Option<PropDirective>) -> syn::Result<Self> {
         let label = input.parse::<HtmlDashedName>()?;
         let equals = input.parse::<Token![=]>().map_err(|_| {
             syn::Error::new_spanned(
@@ -95,7 +100,7 @@ impl Prop {
         Ok(Self {
             label,
             value,
-            is_forced_attribute,
+            directive,
         })
     }
 }
@@ -118,10 +123,10 @@ fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
 
         match &expr {
             Expr::Lit(_) => Ok(expr),
-            _ => Err(syn::Error::new_spanned(
+            ref exp => Err(syn::Error::new_spanned(
                 &expr,
-                "the property value must be either a literal or enclosed in braces. Consider \
-                 adding braces around your expression.",
+                format!("the property value must be either a literal or enclosed in braces. Consider \
+                 adding braces around your expression.: {:#?}", exp),
             )),
         }
     }

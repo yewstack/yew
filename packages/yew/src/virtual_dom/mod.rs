@@ -242,7 +242,7 @@ impl From<IndexMap<AttrValue, AttrValue>> for Attributes {
     fn from(map: IndexMap<AttrValue, AttrValue>) -> Self {
         let v = map
             .into_iter()
-            .map(|(k, v)| (k, (v, ApplyAttributeAs::Property)))
+            .map(|(k, v)| (k, (v, ApplyAttributeAs::Attribute)))
             .collect();
         Self::IndexMap(v)
     }
@@ -252,7 +252,7 @@ impl From<IndexMap<&'static str, AttrValue>> for Attributes {
     fn from(v: IndexMap<&'static str, AttrValue>) -> Self {
         let v = v
             .into_iter()
-            .map(|(k, v)| (AttrValue::Static(k), (v, ApplyAttributeAs::Property)))
+            .map(|(k, v)| (AttrValue::Static(k), (v, ApplyAttributeAs::Attribute)))
             .collect();
         Self::IndexMap(v)
     }

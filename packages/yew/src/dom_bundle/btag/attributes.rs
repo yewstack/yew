@@ -145,8 +145,7 @@ impl Attributes {
                 Some(old) => old != new,
                 None => true,
             } {
-                // todo: set property
-                el.set_attribute(k, new.0).unwrap();
+                Self::set(&el, k, new.0, new.1);
             }
         }
 
@@ -164,16 +163,9 @@ impl Attributes {
                 el.set_attribute(key, value).expect("invalid attribute key")
             }
             ApplyAttributeAs::Property => {
-                match key {
-                    // need to be attributes because, otherwise query selectors fail
-                    "class" => el.set_attribute(key, value).expect("invalid attribute key"),
-                    _ => {
-                        let key = JsValue::from_str(key);
-                        let value = JsValue::from_str(value);
-                        js_sys::Reflect::set(el.as_ref(), &key, &value)
-                            .expect("could not set property");
-                    }
-                }
+                let key = JsValue::from_str(key);
+                let value = JsValue::from_str(value);
+                js_sys::Reflect::set(el.as_ref(), &key, &value).expect("could not set property");
             }
         }
     }
@@ -184,17 +176,9 @@ impl Attributes {
                 .remove_attribute(key)
                 .expect("could not remove attribute"),
             ApplyAttributeAs::Property => {
-                match key {
-                    // need to be attributes because, otherwise query selectors fail
-                    "class" => el
-                        .remove_attribute(key)
-                        .expect("could not remove attribute"),
-                    _ => {
-                        let key = JsValue::from_str(key);
-                        js_sys::Reflect::set(el.as_ref(), &key, &JsValue::UNDEFINED)
-                            .expect("could not remove property");
-                    }
-                }
+                let key = JsValue::from_str(key);
+                js_sys::Reflect::set(el.as_ref(), &key, &JsValue::UNDEFINED)
+                    .expect("could not remove property");
             }
         }
     }
@@ -375,7 +359,7 @@ mod tests {
     async fn macro_syntax_works() {
         #[function_component]
         fn Comp() -> Html {
-            html! { <a href="https://example.com/" @alt="abc" /> }
+            html! { <a href="https://example.com/" ~alt="abc" /> }
         }
 
         let output = gloo::utils::document().get_element_by_id("output").unwrap();
@@ -383,15 +367,15 @@ mod tests {
 
         gloo::timers::future::sleep(Duration::from_secs(1)).await;
         let element = output.query_selector("a").unwrap().unwrap();
-        assert_eq!(element.get_attribute("alt").unwrap(), "abc");
+        assert_eq!(element.get_attribute("href").unwrap(), "https://example.com/");
 
         assert_eq!(
-            Reflect::get(element.as_ref(), &JsValue::from_str("href"))
-                .expect("no href")
+            Reflect::get(element.as_ref(), &JsValue::from_str("alt"))
+                .expect("no alt")
                 .as_string()
                 .expect("not a string"),
-            "https://example.com/",
-            "property `href` not set properly"
+            "abc",
+            "property `alt` not set properly"
         );
     }
 }

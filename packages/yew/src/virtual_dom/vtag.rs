@@ -369,11 +369,10 @@ impl VTag {
         );
     }
 
-    /// Adds a key-value pair to element's property
+    /// Set the given key as property on the element
     ///
-    /// Not everything works when it set as an property. We use workarounds for:
-    /// `class`, which is set as attribute.
-    pub fn set_property(&mut self, key: &'static str, value: impl Into<AttrValue>) {
+    /// [`js_sys::Reflect`] is used for setting properties.
+    pub fn add_property(&mut self, key: &'static str, value: impl Into<AttrValue>) {
         self.attributes.get_mut_index_map().insert(
             AttrValue::Static(key),
             (value.into(), ApplyAttributeAs::Property),
