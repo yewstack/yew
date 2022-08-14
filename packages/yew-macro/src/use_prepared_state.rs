@@ -59,7 +59,7 @@ impl Parse for PreparedState {
 
 impl PreparedState {
     // Async closure is not stable, so we rewrite it to closure + async block
-    #[cfg(not(feature = "nightly"))]
+    #[cfg(not(nightly_yew))]
     pub fn rewrite_to_closure_with_async_block(&self) -> ExprClosure {
         use proc_macro2::Span;
         use syn::parse_quote;
@@ -95,7 +95,7 @@ impl PreparedState {
         closure
     }
 
-    #[cfg(feature = "nightly")]
+    #[cfg(nightly_yew)]
     pub fn rewrite_to_closure_with_async_block(&self) -> ExprClosure {
         self.closure.clone()
     }
