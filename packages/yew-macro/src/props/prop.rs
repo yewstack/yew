@@ -28,7 +28,7 @@ impl Parse for Prop {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let directive = input
             .parse::<Token![~]>()
-            .map(|parsed| PropDirective::ApplyAsProperty(parsed))
+            .map(PropDirective::ApplyAsProperty)
             .ok();
         if input.peek(Brace) {
             Self::parse_shorthand_prop_assignment(input, directive)
