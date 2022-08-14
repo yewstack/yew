@@ -15,7 +15,7 @@ use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew::suspense::{use_future, use_future_with_deps, Suspension, SuspensionResult};
 
-wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
+wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
 async fn suspense_works() {

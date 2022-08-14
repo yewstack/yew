@@ -970,7 +970,7 @@ mod tests {
                 .unwrap()
                 .outer_html(),
             "<div tabindex=\"0\"></div>"
-        )
+        );
     }
 }
 
