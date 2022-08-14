@@ -145,7 +145,7 @@ impl Attributes {
                 Some(old) => old != new,
                 None => true,
             } {
-                Self::set(&el, k, new.0, new.1);
+                Self::set(el, k, new.0, new.1);
             }
         }
 
