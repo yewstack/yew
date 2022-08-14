@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1660504271625,
+  "lastUpdate": 1660506515881,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -22343,6 +22343,120 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 33_startup-mainthreadcost",
             "value": "285.45200000000017",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "361.927734375",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "muhammadhamza1311@gmail.com",
+            "name": "Muhammad Hamza",
+            "username": "hamza1311"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4c35f95350a30c311e00eebe5c2b95ba69288bf1",
+          "message": "Bind to properties instead of attributes by default (#2819)\n\n* Set to properties, not attributes\r\n\r\n* fix tests\r\n\r\n* Add tests\r\n\r\n* enable disabled test, fmt\r\n\r\n* Introduce @key syntax to forcefully set as attribute\r\n\r\n* Everything compiles\r\n\r\n* More tests\r\n\r\n* id as property\r\n\r\n* This was not meant to be committed\r\n\r\n* Make test pass, fmt + clippy\r\n\r\n* fucking rustfmt\r\n\r\n* is this enough formatting\r\n\r\n* that was not supposed to be commited\r\n\r\n* apply review\r\n\r\n* fmt\r\n\r\n* fix CI\r\n\r\n* will you be happy now, clippy?",
+          "timestamp": "2022-08-14T21:41:04+02:00",
+          "tree_id": "81df5fd151172df5519b2ad39875407b5f119ea1",
+          "url": "https://github.com/yewstack/yew/commit/4c35f95350a30c311e00eebe5c2b95ba69288bf1"
+        },
+        "date": 1660506513521,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "187.33",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "193.674",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "409.3525",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "63.36450000000001",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "93.665",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "31.524",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "2477.093",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "445.0525",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "205.1245",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.4686050415039062",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.6645240783691406",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.6976394653320312",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.7172317504882812",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.3351478576660156",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1734.1080000000002",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "34.796",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 33_startup-mainthreadcost",
+            "value": "249.93199999999996",
             "unit": ""
           },
           {
