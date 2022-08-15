@@ -175,6 +175,8 @@ impl<T> UnboundedSender<T> {
     }
 
     /// Closes the channel.
+    ///
+    /// Every sender (dropped or not) is considered closed when this method is called.
     pub fn close_now(&self) {
         // SAFETY:
         //
