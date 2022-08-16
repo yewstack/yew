@@ -85,6 +85,7 @@ pub(crate) struct BufWriter {
 }
 
 impl Write for BufWriter {
+    #[inline]
     fn write_str(&mut self, s: &str) -> fmt::Result {
         // SAFETY:
         //
@@ -98,6 +99,7 @@ impl Write for BufWriter {
         inner.write_str(s)
     }
 
+    #[inline]
     fn write_char(&mut self, c: char) -> fmt::Result {
         // SAFETY:
         //
@@ -111,6 +113,7 @@ impl Write for BufWriter {
         inner.write_char(c)
     }
 
+    #[inline]
     fn write_fmt(&mut self, args: fmt::Arguments<'_>) -> fmt::Result {
         // SAFETY:
         //
