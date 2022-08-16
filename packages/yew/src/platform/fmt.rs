@@ -58,7 +58,7 @@ impl Write for BufWriter {
             return Ok(());
         }
 
-        let mut inner = self.inner.borrow_mut();
+        let inner = unsafe { &mut *self.inner.as_ptr() };
 
         inner.wake();
         inner.try_reserve();
@@ -67,7 +67,7 @@ impl Write for BufWriter {
     }
 
     fn write_char(&mut self, c: char) -> fmt::Result {
-        let mut inner = self.inner.borrow_mut();
+        let inner = unsafe { &mut *self.inner.as_ptr() };
 
         inner.wake();
         inner.try_reserve();
@@ -76,7 +76,7 @@ impl Write for BufWriter {
     }
 
     fn write_fmt(&mut self, args: fmt::Arguments<'_>) -> fmt::Result {
-        let mut inner = self.inner.borrow_mut();
+        let inner = unsafe { &mut *self.inner.as_ptr() };
 
         inner.wake();
         inner.try_reserve();
@@ -87,7 +87,7 @@ impl Write for BufWriter {
 
 impl Drop for BufWriter {
     fn drop(&mut self) {
-        let mut inner = self.inner.borrow_mut();
+        let inner = unsafe { &mut *self.inner.as_ptr() };
 
         inner.wake();
         inner.state = BufStreamState::Done;
@@ -119,7 +119,7 @@ impl Stream for BufReader {
         self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Option<Self::Item>> {
-        let mut inner = self.inner.borrow_mut();
+        let inner = unsafe { &mut *self.inner.as_ptr() };
 
         if !inner.buf.is_empty() {
             let buf = std::mem::take(&mut inner.buf);
@@ -137,7 +137,7 @@ impl Stream for BufReader {
 
 impl FusedStream for BufReader {
     fn is_terminated(&self) -> bool {
-        let inner = self.inner.borrow();
+        let inner = unsafe { &mut *self.inner.as_ptr() };
 
         matches!(
             (&inner.state, inner.buf.is_empty()),
