@@ -262,13 +262,12 @@ impl<COMP: BaseComponent> Scope<COMP> {
 mod feat_ssr {
     use std::fmt::Write;
 
-    use futures::channel::oneshot;
-
     use super::*;
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
     use crate::platform::fmt::BufWriter;
+    use crate::platform::pinned::oneshot;
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
 

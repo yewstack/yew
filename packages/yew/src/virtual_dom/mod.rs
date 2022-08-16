@@ -151,6 +151,14 @@ mod feat_ssr {
     }
 }
 
+/// Defines if the [`Attributes`] is set as element's attribute or property
+#[allow(missing_docs)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug)]
+pub enum ApplyAttributeAs {
+    Attribute,
+    Property,
+}
+
 /// A collection of attributes for an element
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Attributes {
@@ -158,7 +166,7 @@ pub enum Attributes {
     ///
     /// Allows optimizing comparison to a simple pointer equality check and reducing allocations,
     /// if the attributes do not change on a node.
-    Static(&'static [[&'static str; 2]]),
+    Static(&'static [(&'static str, &'static str, ApplyAttributeAs)]),
 
     /// Static list of attribute keys with possibility to exclude attributes and dynamic attribute
     /// values.
@@ -171,12 +179,12 @@ pub enum Attributes {
 
         /// Attribute values. Matches [keys](Attributes::Dynamic::keys). Optional attributes are
         /// designated by setting [None].
-        values: Box<[Option<AttrValue>]>,
+        values: Box<[Option<(AttrValue, ApplyAttributeAs)>]>,
     },
 
     /// IndexMap is used to provide runtime attribute deduplication in cases where the html! macro
     /// was not used to guarantee it.
-    IndexMap(IndexMap<AttrValue, AttrValue>),
+    IndexMap(IndexMap<AttrValue, (AttrValue, ApplyAttributeAs)>),
 }
 
 impl Attributes {
@@ -189,19 +197,19 @@ impl Attributes {
     /// This function is suboptimal and does not inline well. Avoid on hot paths.
     pub fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a str, &'a str)> + 'a> {
         match self {
-            Self::Static(arr) => Box::new(arr.iter().map(|kv| (kv[0], kv[1] as &'a str))),
+            Self::Static(arr) => Box::new(arr.iter().map(|(k, v, _)| (*k, *v as &'a str))),
             Self::Dynamic { keys, values } => Box::new(
                 keys.iter()
                     .zip(values.iter())
-                    .filter_map(|(k, v)| v.as_ref().map(|v| (*k, v.as_ref()))),
+                    .filter_map(|(k, v)| v.as_ref().map(|(v, _)| (*k, v.as_ref()))),
             ),
-            Self::IndexMap(m) => Box::new(m.iter().map(|(k, v)| (k.as_ref(), v.as_ref()))),
+            Self::IndexMap(m) => Box::new(m.iter().map(|(k, (v, _))| (k.as_ref(), v.as_ref()))),
         }
     }
 
     /// Get a mutable reference to the underlying `IndexMap`.
     /// If the attributes are stored in the `Vec` variant, it will be converted.
-    pub fn get_mut_index_map(&mut self) -> &mut IndexMap<AttrValue, AttrValue> {
+    pub fn get_mut_index_map(&mut self) -> &mut IndexMap<AttrValue, (AttrValue, ApplyAttributeAs)> {
         macro_rules! unpack {
             () => {
                 match self {
@@ -215,7 +223,11 @@ impl Attributes {
         match self {
             Self::IndexMap(m) => m,
             Self::Static(arr) => {
-                *self = Self::IndexMap(arr.iter().map(|kv| (kv[0].into(), kv[1].into())).collect());
+                *self = Self::IndexMap(
+                    arr.iter()
+                        .map(|(k, v, ty)| ((*k).into(), ((*v).into(), *ty)))
+                        .collect(),
+                );
                 unpack!()
             }
             Self::Dynamic { keys, values } => {
@@ -233,7 +245,11 @@ impl Attributes {
 }
 
 impl From<IndexMap<AttrValue, AttrValue>> for Attributes {
-    fn from(v: IndexMap<AttrValue, AttrValue>) -> Self {
+    fn from(map: IndexMap<AttrValue, AttrValue>) -> Self {
+        let v = map
+            .into_iter()
+            .map(|(k, v)| (k, (v, ApplyAttributeAs::Attribute)))
+            .collect();
         Self::IndexMap(v)
     }
 }
@@ -242,7 +258,7 @@ impl From<IndexMap<&'static str, AttrValue>> for Attributes {
     fn from(v: IndexMap<&'static str, AttrValue>) -> Self {
         let v = v
             .into_iter()
-            .map(|(k, v)| (AttrValue::Static(k), v))
+            .map(|(k, v)| (AttrValue::Static(k), (v, ApplyAttributeAs::Attribute)))
             .collect();
         Self::IndexMap(v)
     }
