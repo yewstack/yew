@@ -184,7 +184,7 @@ jobs:
         env:
           # workaround for lack of ternary operator
           # see https://github.com/orgs/community/discussions/25725
-          RUSTFLAGS: ${{ matrix.toolchain == 'nightly && '--cfg nightly_yew' || '' }}
+          RUSTFLAGS: ${{ matrix.toolchain == 'nightly' && '--cfg nightly_yew' || '' }}
         with:
           command: test
           args: --all-targets --workspace --exclude yew
@@ -194,7 +194,7 @@ jobs:
         env:
           # workaround for lack of ternary operator
           # see https://github.com/orgs/community/discussions/25725
-          RUSTFLAGS: ${{ matrix.toolchain == 'nightly && '--cfg nightly_yew' || '' }}
+          RUSTFLAGS: ${{ matrix.toolchain == 'nightly' && '--cfg nightly_yew' || '' }}
         with:
           command: test
           args: -p yew --all-features

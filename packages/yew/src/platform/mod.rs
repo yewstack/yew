@@ -45,6 +45,7 @@ use std::future::Future;
 #[cfg(feature = "ssr")]
 pub(crate) mod io;
 
+pub mod pinned;
 pub mod sync;
 pub mod time;
 

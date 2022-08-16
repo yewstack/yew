@@ -265,7 +265,7 @@ mod feat_ssr {
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
     use crate::platform::io::BufWriter;
-    use crate::platform::sync::oneshot;
+    use crate::platform::pinned::oneshot;
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
 
