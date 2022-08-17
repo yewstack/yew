@@ -287,7 +287,7 @@ struct Video {
     url: String,
 }
 
-#[derive(Properties, PartialEq)]
+#[derive(Clone, Properties, PartialEq)]
 struct VideosListProps {
     videos: Vec<Video>,
 }
