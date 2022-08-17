@@ -228,6 +228,7 @@ where
 }
 
 #[cfg(test)]
+#[cfg(any(feature = "ssr", feature = "csr"))]
 mod tests {
     use super::*;
 
