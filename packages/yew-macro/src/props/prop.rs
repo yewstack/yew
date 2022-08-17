@@ -13,17 +13,27 @@ use super::CHILDREN_LABEL;
 use crate::html_tree::HtmlDashedName;
 use crate::stringify::Stringify;
 
+#[derive(Copy, Clone)]
+pub enum PropDirective {
+    ApplyAsProperty(Token![~]),
+}
+
 pub struct Prop {
+    pub directive: Option<PropDirective>,
     pub label: HtmlDashedName,
     /// Punctuation between `label` and `value`.
     pub value: Expr,
 }
 impl Parse for Prop {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        let directive = input
+            .parse::<Token![~]>()
+            .map(PropDirective::ApplyAsProperty)
+            .ok();
         if input.peek(Brace) {
-            Self::parse_shorthand_prop_assignment(input)
+            Self::parse_shorthand_prop_assignment(input, directive)
         } else {
-            Self::parse_prop_assignment(input)
+            Self::parse_prop_assignment(input, directive)
         }
     }
 }
@@ -33,7 +43,10 @@ impl Prop {
     /// Parse a prop using the shorthand syntax `{value}`, short for `value={value}`
     /// This only allows for labels with no hyphens, as it would otherwise create
     /// an ambiguity in the syntax
-    fn parse_shorthand_prop_assignment(input: ParseStream) -> syn::Result<Self> {
+    fn parse_shorthand_prop_assignment(
+        input: ParseStream,
+        directive: Option<PropDirective>,
+    ) -> syn::Result<Self> {
         let value;
         let _brace = braced!(value in input);
         let expr = value.parse::<Expr>()?;
@@ -44,7 +57,7 @@ impl Prop {
         }) = expr
         {
             if let (Some(ident), true) = (path.get_ident(), attrs.is_empty()) {
-                syn::Result::Ok(HtmlDashedName::from(ident.clone()))
+                Ok(HtmlDashedName::from(ident.clone()))
             } else {
                 Err(syn::Error::new_spanned(
                     path,
@@ -59,11 +72,18 @@ impl Prop {
             ));
         }?;
 
-        Ok(Self { label, value: expr })
+        Ok(Self {
+            label,
+            value: expr,
+            directive,
+        })
     }
 
     /// Parse a prop of the form `label={value}`
-    fn parse_prop_assignment(input: ParseStream) -> syn::Result<Self> {
+    fn parse_prop_assignment(
+        input: ParseStream,
+        directive: Option<PropDirective>,
+    ) -> syn::Result<Self> {
         let label = input.parse::<HtmlDashedName>()?;
         let equals = input.parse::<Token![=]>().map_err(|_| {
             syn::Error::new_spanned(
@@ -83,7 +103,11 @@ impl Prop {
         }
 
         let value = parse_prop_value(input)?;
-        Ok(Self { label, value })
+        Ok(Self {
+            label,
+            value,
+            directive,
+        })
     }
 }
 
@@ -105,10 +129,13 @@ fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
 
         match &expr {
             Expr::Lit(_) => Ok(expr),
-            _ => Err(syn::Error::new_spanned(
+            ref exp => Err(syn::Error::new_spanned(
                 &expr,
-                "the property value must be either a literal or enclosed in braces. Consider \
-                 adding braces around your expression.",
+                format!(
+                    "the property value must be either a literal or enclosed in braces. Consider \
+                     adding braces around your expression.: {:#?}",
+                    exp
+                ),
             )),
         }
     }

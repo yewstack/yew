@@ -142,61 +142,260 @@ error: dynamic closing tags must not have a body (hint: replace it with just `</
 75 |     html! { <@{"test"}></@{"test"}> };
    |                           ^^^^^^^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Tuple(
+           ExprTuple {
+               attrs: [],
+               paren_token: Paren,
+               elems: [
+                   Lit(
+                       ExprLit {
+                           attrs: [],
+                           lit: Str(
+                               LitStr {
+                                   token: "deprecated",
+                               },
+                           ),
+                       },
+                   ),
+                   Comma,
+                   Lit(
+                       ExprLit {
+                           attrs: [],
+                           lit: Str(
+                               LitStr {
+                                   token: "warning",
+                               },
+                           ),
+                       },
+                   ),
+               ],
+           },
+       )
   --> tests/html_macro/element-fail.rs:83:24
    |
 83 |     html! { <div class=("deprecated", "warning") /> };
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Tuple(
+           ExprTuple {
+               attrs: [],
+               paren_token: Paren,
+               elems: [],
+           },
+       )
   --> tests/html_macro/element-fail.rs:84:24
    |
 84 |     html! { <input ref=() /> };
    |                        ^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Tuple(
+           ExprTuple {
+               attrs: [],
+               paren_token: Paren,
+               elems: [],
+           },
+       )
   --> tests/html_macro/element-fail.rs:85:24
    |
 85 |     html! { <input ref=() ref=() /> };
    |                        ^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Call(
+           ExprCall {
+               attrs: [],
+               func: Path(
+                   ExprPath {
+                       attrs: [],
+                       qself: None,
+                       path: Path {
+                           leading_colon: None,
+                           segments: [
+                               PathSegment {
+                                   ident: Ident {
+                                       ident: "Some",
+                                       span: #0 bytes(2632..2636),
+                                   },
+                                   arguments: None,
+                               },
+                           ],
+                       },
+                   },
+               ),
+               paren_token: Paren,
+               args: [
+                   Lit(
+                       ExprLit {
+                           attrs: [],
+                           lit: Int(
+                               LitInt {
+                                   token: 5,
+                               },
+                           ),
+                       },
+                   ),
+               ],
+           },
+       )
   --> tests/html_macro/element-fail.rs:86:28
    |
 86 |     html! { <input onfocus=Some(5) /> };
    |                            ^^^^^^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Path(
+           ExprPath {
+               attrs: [],
+               qself: None,
+               path: Path {
+                   leading_colon: None,
+                   segments: [
+                       PathSegment {
+                           ident: Ident {
+                               ident: "NotToString",
+                               span: #0 bytes(2672..2683),
+                           },
+                           arguments: None,
+                       },
+                   ],
+               },
+           },
+       )
   --> tests/html_macro/element-fail.rs:87:27
    |
 87 |     html! { <input string=NotToString /> };
    |                           ^^^^^^^^^^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Call(
+           ExprCall {
+               attrs: [],
+               func: Path(
+                   ExprPath {
+                       attrs: [],
+                       qself: None,
+                       path: Path {
+                           leading_colon: None,
+                           segments: [
+                               PathSegment {
+                                   ident: Ident {
+                                       ident: "Some",
+                                       span: #0 bytes(2711..2715),
+                                   },
+                                   arguments: None,
+                               },
+                           ],
+                       },
+                   },
+               ),
+               paren_token: Paren,
+               args: [
+                   Path(
+                       ExprPath {
+                           attrs: [],
+                           qself: None,
+                           path: Path {
+                               leading_colon: None,
+                               segments: [
+                                   PathSegment {
+                                       ident: Ident {
+                                           ident: "NotToString",
+                                           span: #0 bytes(2716..2727),
+                                       },
+                                       arguments: None,
+                                   },
+                               ],
+                           },
+                       },
+                   ),
+               ],
+           },
+       )
   --> tests/html_macro/element-fail.rs:88:22
    |
 88 |     html! { <a media=Some(NotToString) /> };
    |                      ^^^^^^^^^^^^^^^^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Call(
+           ExprCall {
+               attrs: [],
+               func: Path(
+                   ExprPath {
+                       attrs: [],
+                       qself: None,
+                       path: Path {
+                           leading_colon: None,
+                           segments: [
+                               PathSegment {
+                                   ident: Ident {
+                                       ident: "Some",
+                                       span: #0 bytes(2755..2759),
+                                   },
+                                   arguments: None,
+                               },
+                           ],
+                       },
+                   },
+               ),
+               paren_token: Paren,
+               args: [
+                   Lit(
+                       ExprLit {
+                           attrs: [],
+                           lit: Int(
+                               LitInt {
+                                   token: 5,
+                               },
+                           ),
+                       },
+                   ),
+               ],
+           },
+       )
   --> tests/html_macro/element-fail.rs:89:21
    |
 89 |     html! { <a href=Some(5) /> };
    |                     ^^^^^^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Tuple(
+           ExprTuple {
+               attrs: [],
+               paren_token: Paren,
+               elems: [],
+           },
+       )
   --> tests/html_macro/element-fail.rs:90:25
    |
 90 |     html! { <input type=() /> };
    |                         ^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Tuple(
+           ExprTuple {
+               attrs: [],
+               paren_token: Paren,
+               elems: [],
+           },
+       )
   --> tests/html_macro/element-fail.rs:91:26
    |
 91 |     html! { <input value=() /> };
    |                          ^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Path(
+           ExprPath {
+               attrs: [],
+               qself: None,
+               path: Path {
+                   leading_colon: None,
+                   segments: [
+                       PathSegment {
+                           ident: Ident {
+                               ident: "NotToString",
+                               span: #0 bytes(2862..2873),
+                           },
+                           arguments: None,
+                       },
+                   ],
+               },
+           },
+       )
   --> tests/html_macro/element-fail.rs:92:27
    |
 92 |     html! { <input string=NotToString /> };

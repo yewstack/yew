@@ -249,7 +249,13 @@ help: escape `type` to use it as an identifier
 85 |     html! { <Child r#type=0 /> };
    |                    ++
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Tuple(
+           ExprTuple {
+               attrs: [],
+               paren_token: Paren,
+               elems: [],
+           },
+       )
   --> tests/html_macro/component-fail.rs:86:24
    |
 86 |     html! { <Child ref=() /> };
@@ -309,7 +315,24 @@ error: only one root html element is allowed (hint: you can wrap multiple html e
 102 |     html! { <Child></Child><Child></Child> };
     |                            ^^^^^^^^^^^^^^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Path(
+           ExprPath {
+               attrs: [],
+               qself: None,
+               path: Path {
+                   leading_colon: None,
+                   segments: [
+                       PathSegment {
+                           ident: Ident {
+                               ident: "num",
+                               span: #0 bytes(3894..3897),
+                           },
+                           arguments: None,
+                       },
+                   ],
+               },
+           },
+       )
    --> tests/html_macro/component-fail.rs:106:24
     |
 106 |     html! { <Child int=num ..props /> };

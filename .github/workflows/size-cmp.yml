@@ -66,6 +66,7 @@ jobs:
         working-directory: current-pr/examples
         env:
           RUSTUP_TOOLCHAIN: nightly
+          RUSTFLAGS: --cfg nightly_yew
 
       - name: Collect size information
         run: python3 current-pr/ci/collect_sizes.py
