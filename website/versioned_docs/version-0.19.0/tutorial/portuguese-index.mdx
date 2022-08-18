@@ -1,0 +1,589 @@
+---
+title: 'Tutorial'
+slug: /tutorial
+---
+
+## Introdução
+
+Nesse tutorial, iremos ver como podemos construir aplicações 'web' usando 'Yew'.
+**'Yew'** é um moderno 'framework' em ['Rust'](https://www.rust-lang.org/) para a construção do 'front-end' de aplicativos 'web' usando ['WebAssembly'](https://webassembly.org/).
+'Yew' promove uma arquitetura bem estruturada, reusável e sustentável por meio do uso do incrível sistema de tipo do Rust.
+Uma grande comunidade cria bibliotecas, conhecidas, em Rust, como [crates](https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html),
+provendo componentes para padrões, assim como o 'state management'.
+
+[Cargo](https://doc.rust-lang.org/cargo/), é o gerenciador de pacotes de Rust, que nos permite tirar vantagens de inúmeras 'crates' disponíveis em [crates.io](https://crates.io), tais como Yew.
+
+### O Que Iremos Construir
+
+'Rustconf' é uma conferência internacional da comunidade 'Rust', que acontece anualmente.
+'Rustconf' 2020 teve uma grande quantidade de conversas que proveram uma grande quantidade de informações.
+Nesse tutorial, nós iremos criar um aplicativo 'web' para ajudar os companheiros 'Rustaceans'
+conseguirem uma ideia sobre a conversa.
+
+
+
+## Se Preparando
+
+### Pré-requisitos
+
+Para começar, vamos garantir que o ambiente de desenvolvimento esteja atualizado.
+Nós iremos precisar das seguintes ferramentas:
+
+
+-   ['Rust'](https://www.rust-lang.org/)
+-   [`trunk`](https://trunkrs.dev/)
+-   `wasm32-unknown-unknown` target, o compilador e alvo WASM para Rust.
+
+Esse tutorial assume que você já está familiarizado com 'Rust'. Se não,
+o livro gratuito ['Rust Book'](https://doc.rust-lang.org/book/ch00-00-introduction.html) oferece uma ótima porta de entrada para
+iniciantes, e uma ótima fonte de conhecimento para desenvolvedores 'Rust' experientes.
+
+Garanta que a última versão do 'Rust' esteja instalada usando o comando `rustup update` ou por
+[installing rust](https://www.rust-lang.org/tools/install). Caso você já não tenha feito isso.
+
+Após a instalação do 'Rust', você pode usar o 'cargo' para instalar 'trunk' executando o comando:
+
+```bash
+cargo install trunk
+```
+
+Nós também precisamos adicionar o alvo de WASM:
+
+```bash
+rustup target add wasm32-unknown-unknown
+```
+
+
+### Configurando o Projeto
+
+Primeiro, criamos um novo projeto 'cargo':
+
+```bash
+cargo new yew-app
+cd yew-app
+```
+
+Para confirmar que o ambiente 'Rust' está configurado corretamente, execute o projeto inicial usando a ferramenta de 'build' do 'cargo':
+
+```bash
+cargo run
+```
+
+## Nossa Primeira Página Estática
+Para converter essa simples aplicação de 'CMD' para uma aplicação 'web' básica de 'Yew', algumas mudanças são necessárias.
+Atualize os arquivos como segue:
+
+```toml title="Cargo.toml" {7}
+[package]
+name = "yew-app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
++ yew = "0.19"
+```
+
+```rust ,no_run title="src/main.rs"
+use yew::prelude::*;
+
+#[function_component(App)]
+fn app() -> Html {
+    html! {
+        <h1>{ "Hello World" }</h1>
+    }
+}
+
+fn main() {
+    yew::start_app::<App>();
+}
+```
+
+Agora, vamos criar um arquivo 'index.html' na base do projeto.
+
+
+```html title="index.html"
+<!DOCTYPE html>
+<html lang="en">
+    <head> </head>
+    <body></body>
+</html>
+```
+
+### Iniciando o Servidor De Desenvolvimento
+
+Execute o seguinte comando para compilar e executar o servidor da aplicação localmente.
+
+```bash
+trunk serve --open
+```
+
+'Trunk' irá abrir a sua aplicação no seu navegador padrão, monitora o diretório do seu projeto, e re-compila sua aplicação
+caso você modifique qualquer arquivo fonte. Se você estiver curioso, você pode executar o comando `trunk help` e `trunk help <subcommand>`
+para mais detalhes do que está acontecendo.
+
+
+### Parabéns
+
+Você conseguiu configurar o seu ambiente 'Yew' de desenvolvimento e construiu o seu primeiro programa web 'Yew'.
+
+## Construindo HTML
+'Yew' faz uso das macros procedurais de Rust para prover uma sintaxe similar a JSX (uma extensão de JavaScript, que permite você escrever código similar
+a HTML dentro do código JavaScript) para criar 'markup'.
+
+### Convertendo HTML clássico.
+
+Desde que já temos uma boa ideia de como noso 'website' vai se parecer, nós podemos, simplesmente, traduzir a nossa ideia mental em
+uma representação compatível com a macro 'html!'. Se você está confortável em escrever HTML simples, você não deve ter nenhum
+problema escrevendo dentro de 'html!'. É importante notar que a macro 'html!' difere de algumas formas de HTML:
+
+1. Expressões devem estar dentro de chaves (`{ }`)
+2. Só pode haver um nó raiz/base. Se você quiser  vários elementos fora de um container,
+uma tag vazia (`<> ... </>) é usada.
+3. Elementos devem ser sempre fechados propriamente.
+
+Queremos construir um 'layout' que se parece como o seguinte código de HTML bruto:
+
+```html
+<h1>RustConf Explorer</h1>
+<div>
+    <h3>Videos to watch</h3>
+    <p>John Doe: Building and breaking things</p>
+    <p>Jane Smith: The development process</p>
+    <p>Matt Miller: The Web 7.0</p>
+    <p>Tom Jerry: Mouseless development</p>
+</div>
+<div>
+    <h3>John Doe: Building and breaking things</h3>
+    <img
+        src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder"
+        alt="video thumbnail"
+    />
+</div>
+```
+
+Agora, vamos converter o código HTML anterior para a macro `html!`. Digite (ou copie/cole) o código a seguir no corpo
+da função `app`, de tal forma que o valor de `html!` seja retornado.
+
+```rust ,ignore
+html! {
+    <>
+        <h1>{ "RustConf Explorer" }</h1>
+        <div>
+            <h3>{"Videos to watch"}</h3>
+            <p>{ "John Doe: Building and breaking things" }</p>
+            <p>{ "Jane Smith: The development process" }</p>
+            <p>{ "Matt Miller: The Web 7.0" }</p>
+            <p>{ "Tom Jerry: Mouseless development" }</p>
+        </div>
+        <div>
+            <h3>{ "John Doe: Building and breaking things" }</h3>
+            <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+        </div>
+    </>
+}
+```
+
+Atualize a página do navegador, e você deve ver a seguinte saída a mostra:
+
+![Running WASM application screenshot](/img/tutorial_application_screenshot.png)
+
+
+### Usando a Linguagem Rust Para Construir 'Markup'
+Uma grande vantagem de usar 'Rust' para construir 'markup' são todos os recursos no nosso 'markup'.
+Agora, ao invez de escrever a lista de vídeos direto no HTML, podemos definir um vetor (`vec`) de Objetos Rust.
+Criaremos um simples `struct` (na main.rs, ou qualquer arquivo de sua escolha), o qual guardará nossa informação.
+
+```rust
+struct Video {
+    id: usize,
+    title: String,
+    speaker: String,
+    url: String,
+}
+```
+
+Depois, vamos criar instancias dessa 'struct' na nossa função `app` e usa-la ao invez de escrever as informações direto:
+
+```rust
+use website_test::tutorial::Video; // replace with your own path
+
+let videos = vec![
+    Video {
+        id: 1,
+        title: "Building and breaking things".to_string(),
+        speaker: "John Doe".to_string(),
+        url: "https://youtu.be/PsaFVLr8t4E".to_string(),
+    },
+    Video {
+        id: 2,
+        title: "The development process".to_string(),
+        speaker: "Jane Smith".to_string(),
+        url: "https://youtu.be/PsaFVLr8t4E".to_string(),
+    },
+    Video {
+        id: 3,
+        title: "The Web 7.0".to_string(),
+        speaker: "Matt Miller".to_string(),
+        url: "https://youtu.be/PsaFVLr8t4E".to_string(),
+    },
+    Video {
+        id: 4,
+        title: "Mouseless development".to_string(),
+        speaker: "Tom Jerry".to_string(),
+        url: "https://youtu.be/PsaFVLr8t4E".to_string(),
+    },
+];
+```
+
+Em ordem para mostrar elas, precisamos converter `Vec` para `html`. Podemos fazer isso criando um interador, mapeando ele
+para `html!` e o coletando como `html`:
+
+```rust ,ignore
+let videos = videos.iter().map(|video| html! {
+    <p>{format!("{}: {}", video.speaker, video.title)}</p>
+}).collect::<Html>();
+```
+
+E finalmente, precisamos substituir a lista de vídeos escrita direto no `Html` pelo código que criamos:
+
+```rust ,ignore {6-10}
+html! {
+    <>
+        <h1>{ "RustConf Explorer" }</h1>
+        <div>
+            <h3>{ "Videos to watch" }</h3>
+-           <p>{ "John Doe: Building and breaking things" }</p>
+-           <p>{ "Jane Smith: The development process" }</p>
+-           <p>{ "Matt Miller: The Web 7.0" }</p>
+-           <p>{ "Tom Jerry: Mouseless development" }</p>
++           { videos }
+        </div>
+        // ...
+    </>
+}
+```
+
+
+## Componentes
+
+Componentes são os blocos de construção de aplicações 'Yew'. Em combinando os componentes, os quais podem ser feitos
+de outros componentes, nós construímos nossa aplicação. Estruturando nossos componentes para reusabilidade e os mantendo
+genéricos, nós conseguimos usá-los em várias partes de nossa aplicação sem duplicar código ou lógica.
+
+
+Na verdade, a função `app` que usamos é um componente em si, chamado de `App`, ele é um "componente função".
+Há dois tipos de componentes em 'Yew'.
+
+1. Componentes Struct
+2. Componentes função
+
+Nesse tutorial só usaremos os componentes função.
+
+Agora, vamos dividir nosso componente `App` em vários componentes menores. Começaremos por extrair a lista
+de vídeos em seu próprio componente.
+
+```rust ,compile_fail
+use yew::prelude::*;
+
+struct Video {
+    id: usize,
+    title: String,
+    speaker: String,
+    url: String,
+}
+
+#[derive(Properties, PartialEq)]
+struct VideosListProps {
+    videos: Vec<Video>,
+}
+
+#[function_component(VideosList)]
+fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
+    videos.iter().map(|video| html! {
+        <p>{format!("{}: {}", video.speaker, video.title)}</p>
+    }).collect()
+}
+```
+
+Note os parametros do nosso componente função `VideosList`. Um componente função só pode receber um argumento, que
+define suas "props" (abreviação para "propriedades"). Props são usadaos para passar informações de um componente pai para
+o componente filho.
+Nesse caso, `VideosListProps` é uma struct a qual define as propriedades.
+
+:::important
+A struct usada para props deve implementar `Properties` derivando dela.
+:::
+
+Para que o código acima compile devemos modificar a 'struct' `Video`:
+```rust {1}
+#[derive(Clone, PartialEq)]
+struct Video {
+    id: usize,
+    title: String,
+    speaker: String,
+    url: String,
+}
+```
+
+Agora podemos atualizar nosso componente `App` para fazer uso do componente `VideosList`.
+
+
+```rust ,ignore {4-7,13-14}
+#[function_component(App)]
+fn app() -> Html {
+    // ...
+-    let videos = videos.iter().map(|video| html! {
+-        <p>{format!("{}: {}", video.speaker, video.title)}</p>
+-    }).collect::<Html>();
+-
+    html! {
+        <>
+            <h1>{ "RustConf Explorer" }</h1>
+            <div>
+                <h3>{"Videos to watch"}</h3>
+-               { videos }
++               <VideosList videos={videos} />
+            </div>
+            // ...
+        </>
+    }
+}
+```
+
+Olhando no navegador, podemos confirmar que a lista é renderizada como desejado.
+Nos transferimos a lógica de renderização da lista para o seu próprio componente.
+Isso diminui o código fonte do componente `App` tornando ele mais fácil de ler.
+
+
+### Tornado Interativo
+
+O objetivo final é mostrar o vídeo selecionada. Em ordem para isso, o componente `VideosList` deve "notificar" o seu pai
+quando um vídeo é selecionado, que é feito por meio de `Callback`. Esse conceito é chamado de: passando 'handlers'.
+Modificamos as propriedades para aceitar `on_click` 'callback':
+
+```rust ,ignore {4}
+#[derive(Clone, Properties, PartialEq)]
+struct VideosListProps {
+    videos: Vec<Video>,
++    on_click: Callback<Video>
+}
+```
+
+Depois modificamos o componente `VideosList` para passar o "aviso"  do vídeo selecionado para o callback.
+
+```rust ,ignore {5-11,14-15}
+#[function_component(VideosList)]
+fn videos_list(VideosListProps { videos, on_click }: &VideosListProps) -> Html {
+    let on_click = on_click.clone();
+    videos.iter().map(|video| {
++        let on_video_select = {
++            let on_click = on_click.clone();
++            let video = video.clone();
++            Callback::from(move |_| {
++                on_click.emit(video.clone())
++            })
++        };
+
+        html! {
+-            <p>{format!("{}: {}", video.speaker, video.title)}</p>
++            <p onclick={on_video_select}>{format!("{}: {}", video.speaker, video.title)}</p>
+        }
+    }).collect()
+}
+```
+
+Depois, modificamos o uso de `VideosList` para transmitir o 'callback', mas antes disso devemos criar um novo componente
+`VideoDetails`, que irá mostrar quando um vídeo for clicado.
+
+```rust
+use website_test::tutorial::Video;
+use yew::prelude::*;
+
+#[derive(Clone, Properties, PartialEq)]
+struct VideosDetailsProps {
+    video: Video,
+}
+
+#[function_component(VideoDetails)]
+fn video_details(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
+    html! {
+        <div>
+            <h3>{ video.title.clone() }</h3>
+            <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+        </div>
+    }
+}
+```
+
+Agora, modificamos o componente `App` para mostrar o componente `VideoDetails` quando um vídeo é selecionado.
+
+```rust ,ignore {4,6-11,13-15,24-29}
+#[function_component(App)]
+fn app() -> Html {
+    // ...
++    let selected_video = use_state(|| None);
+
++    let on_video_select = {
++        let selected_video = selected_video.clone();
++        Callback::from(move |video: Video| {
++            selected_video.set(Some(video))
++        })
++    };
+
++    let details = selected_video.as_ref().map(|video| html! {
++        <VideoDetails video={video.clone()} />
++    });
+
+    html! {
+        <>
+            <h1>{ "RustConf Explorer" }</h1>
+            <div>
+                <h3>{"Videos to watch"}</h3>
+-               <VideosList videos={videos} />
++               <VideosList videos={videos} on_click={on_video_select.clone()} />
+            </div>
++            { for details }
+-            <div>
+-                <h3>{ "John Doe: Building and breaking things" }</h3>
+-                <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+-            </div>
+-        </>
+    }
+}
+```
+
+Não se preocupe com `use_state` agora, voltaremos pra ele mais tarde.
+Perceba o truque que usamos com `{for details}`.
+`Option<_>` implementa `Iterator`então podemos usa-lo para mostrar só os lementos retornados pelo
+`Interador` com a sintaxe `{for ... }`.
+
+### Manipulando estados
+
+Lembra do `use_state` utilizado  anteriormente? Ele é uma função especial chamada "hook" (gancho). Hooks são usados para
+chamar um ciclo de vida de uma função componente e executar ações. Você pode aprender mais sobre esse "hook" e sobre outros
+[aqui](concepts/function-components/pre-defined-hooks#use_state).
+
+:::note
+Struct componentes são diferentes. Veja [a documentação](concepts/components/introduction), para aprender mais sobre.
+:::
+
+## Obtendo dados. (Usando uma API REST externa)
+Em uma aplicação do mundo real, dados virão de uma API ao invez de estarem escritos direto no código. Vamos obter nossa
+lista de videos de uma fonte externa. Para isso, vamos precisar das seguintes 'crates':
+
+
+-   [`reqwasm`](https://crates.io/crates/reqwasm)
+Para fazer a chamada de busta (fetch call).
+-   [`serde`](https://serde.rs) with derive features
+para de-serializar a resposta JSON
+-   [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+Para executar Rust Futere como Promise.
+
+Vamos atualizar as dependencias na `Cargo.toml`:
+```toml title="Cargo.toml"
+[dependencies]
+reqwasm = "0.2"
+serde = { version = "1.0", features = ["derive"] }
+wasm-bindgen-futures = "0.4"
+```
+
+Atualizar a struct `video` para derivar a trait `Deserialize`:
+```rust ,ignore {1-2}
+- #[derive(Clone, PartialEq)]
++ #[derive(Clone, PartialEq, Deserialize)]
+struct Video {
+    id: usize,
+    title: String,
+    speaker: String,
+    url: String,
+}
+```
+
+Agora, o útlimo passo, precisamos atualizar o componente `App` para fazer requesições 'fetch' ao invez de usar
+dados escritos direto no código.
+```rust ,ignore {3-23,32-33}
+#[function_component(App)]
+fn app() -> Html {
+-    let videos = vec![
+-        // ...
+-    ]
++    let videos = use_state(|| vec![]);
++    {
++        let videos = videos.clone();
++        use_effect_with_deps(move |_| {
++            let videos = videos.clone();
++            wasm_bindgen_futures::spawn_local(async move {
++                let fetched_videos: Vec<Video> = Request::get("https://yew.rs/tutorial/data.json")
++                    .send()
++                    .await
++                    .unwrap()
++                    .json()
++                    .await
++                    .unwrap();
++                videos.set(fetched_videos);
++            });
++            || ()
++        }, ());
++    }
+
+    // ...
+
+    html! {
+        <>
+            <h1>{ "RustConf Explorer" }</h1>
+            <div>
+                <h3>{"Videos to watch"}</h3>
+-                <VideosList videos={videos} on_click={on_video_select.clone()} />
++                <VideosList videos={(*videos).clone()} on_click={on_video_select.clone()} />
+            </div>
+            { for details }
+        </>
+    }
+}
+```
+
+:::note
+Estamos usando `unwrap` aqui porque essa é uma aplicação "demo". Em um app no mundo real, você vai querer
+[gerenciar error adequado](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html).
+
+Agora observe no navegador, tudo deve estar funcionando como esperado... O que seria verdades se não fosse por CORS.
+Para arrumar isso, precisamos de um servidor 'proxy'. ainda bem que 'trunk' disponibiliza um.
+
+Atualize as seguinte linhas:
+
+```rust ,ignore {2-3}
+// ...
+-                let fetched_videos: Vec<Video> = Request::get("https://yew.rs/tutorial/data.json")
++                let fetched_videos: Vec<Video> = Request::get("/tutorial/data.json")
+// ...
+```
+
+Agora rode o servidor com o seguinte comando:
+
+```bash
+trunk serve --proxy-backend=https://yew.rs/tutorial
+```
+
+Atualize a aba do navegador, e tudo deve estar funcionando.
+
+## Wrapping up
+
+Parabéns! Você criou uma aplicação que obtem dados de uma API externa e mostra uma lista de vídeos.
+
+## What's next
+Obviamente, este aplicativo está longe de ser perfeito ou útil. Depois de seguir esse tutorial, você pode
+procurar mais pontos para explorar.
+
+### Styles
+Nosso aplicativo não é muito bonito. Não tem nenhum CSS ou qualquer outro tipo de estilo.
+Infelizmente, 'Yew' não oferece um sistema de estilização. Veja [Trunk's assets](https://trunkrs.dev/assets/)
+ para aprender como adicionar 'style sheets'.
+
+### Mais Bibliotecas
+Nosso app fez uso de algumas poucas dependecias externas. Há uma grande variações de 'crates', que são uteis, por ai.
+Veja [external libraries](more/external-libs) para mais detalhes.
+
+
+### Aprendendo mais sobre Yew
+Leia nossa [documentação oficial](/docs/getting-started/introduction). Ela explica vários conceitos com muito mais detalhes.
+Para aprender mais sobre a API 'Yew', veja [API docs](https://docs.rs/yew).
