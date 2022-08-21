@@ -1,7 +1,7 @@
 //! We use a local worker implementation that does not produce a JoinHandle for spawn_pinned.
 //! This avoids the cost to acquire a JoinHandle.
 //!
-//! See: https://github.com/tokio-rs/tokio/issues/4819
+//! See https://github.com/tokio-rs/tokio/issues/4819
 //!
 //! We will not be able to produce a meaningful JoinHandle until WebAssembly targets support
 //! unwinding.
