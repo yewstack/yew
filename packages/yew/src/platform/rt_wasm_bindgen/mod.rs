@@ -1,5 +1,6 @@
 use std::future::Future;
 use std::io;
+use std::marker::PhantomData;
 
 pub(crate) mod time;
 
@@ -24,5 +25,32 @@ impl Runtime {
         Fut: Future<Output = ()> + 'static,
     {
         spawn_local(create_task())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct LocalHandle {
+    // This type is not send or sync.
+    _marker: PhantomData<*const ()>,
+}
+
+impl LocalHandle {
+    pub fn try_current() -> Option<Self> {
+        Some(Self {
+            _marker: PhantomData,
+        })
+    }
+
+    pub fn current() -> Self {
+        Self {
+            _marker: PhantomData,
+        }
+    }
+
+    pub fn spawn_local<F>(&self, f: F)
+    where
+        F: Future<Output = ()> + 'static,
+    {
+        spawn_local(f);
     }
 }

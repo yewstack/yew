@@ -1,103 +1,14 @@
 use std::future::Future;
 use std::sync::Arc;
-use std::{fmt, io, thread};
+use std::{fmt, io};
 
 use once_cell::sync::Lazy;
 
 pub(crate) mod time;
 
-static DEFAULT_WORKER_NAME: &str = "yew-runtime-worker";
+mod local_worker;
 
-// We use a local worker implementation that does not produce a JoinHandle for spawn_pinned.
-// This avoids the cost to acquire a JoinHandle.
-//
-// We will not be able to produce a meaningful JoinHandle until WebAssembly targets support
-// unwinding.
-//
-// See: https://github.com/tokio-rs/tokio/issues/4819
-mod local_worker {
-    use std::sync::atomic::{AtomicUsize, Ordering};
-
-    use futures::channel::mpsc::UnboundedSender;
-    use futures::stream::StreamExt;
-    use tokio::task::{spawn_local, LocalSet};
-
-    use super::*;
-
-    type SpawnTask = Box<dyn Send + FnOnce()>;
-
-    pub(crate) struct LocalWorker {
-        task_count: Arc<AtomicUsize>,
-        tx: UnboundedSender<SpawnTask>,
-    }
-
-    impl LocalWorker {
-        pub fn new() -> io::Result<Self> {
-            let (tx, mut rx) = futures::channel::mpsc::unbounded::<SpawnTask>();
-
-            let task_count: Arc<AtomicUsize> = Arc::default();
-
-            let rt = tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()?;
-
-            thread::Builder::new()
-                .name(DEFAULT_WORKER_NAME.into())
-                .spawn(move || {
-                    let local_set = LocalSet::new();
-
-                    local_set.block_on(&rt, async move {
-                        while let Some(m) = rx.next().await {
-                            m();
-                        }
-                    });
-
-                    drop(local_set);
-                })?;
-
-            Ok(Self { task_count, tx })
-        }
-
-        pub fn task_count(&self) -> usize {
-            self.task_count.load(Ordering::Acquire)
-        }
-
-        pub fn spawn_pinned<F, Fut>(&self, f: F)
-        where
-            F: 'static + Send + FnOnce() -> Fut,
-            Fut: 'static + Future<Output = ()>,
-        {
-            let guard = LocalJobCountGuard::new(self.task_count.clone());
-
-            // We ignore the result upon a failure, this can never happen unless the runtime is
-            // exiting which all instances of Runtime will be dropped at that time and hence cannot
-            // spawn pinned tasks.
-            let _ = self.tx.unbounded_send(Box::new(move || {
-                spawn_local(async move {
-                    let _guard = guard;
-
-                    f().await;
-                });
-            }));
-        }
-    }
-
-    pub struct LocalJobCountGuard(Arc<AtomicUsize>);
-
-    impl LocalJobCountGuard {
-        fn new(inner: Arc<AtomicUsize>) -> Self {
-            inner.fetch_add(1, Ordering::AcqRel);
-            LocalJobCountGuard(inner)
-        }
-    }
-
-    impl Drop for LocalJobCountGuard {
-        fn drop(&mut self) {
-            self.0.fetch_sub(1, Ordering::AcqRel);
-        }
-    }
-}
-
+pub(crate) use local_worker::LocalHandle;
 use local_worker::LocalWorker;
 
 pub(crate) fn get_default_runtime_size() -> usize {
@@ -111,7 +22,15 @@ pub(super) fn spawn_local<F>(f: F)
 where
     F: Future<Output = ()> + 'static,
 {
-    tokio::task::spawn_local(f);
+    match LocalHandle::try_current() {
+        Some(m) => {
+            // If within a Yew runtime, use a local handle increases the local task count.
+            m.spawn_local(f);
+        }
+        None => {
+            tokio::task::spawn_local(f);
+        }
+    }
 }
 
 #[derive(Clone)]

@@ -5,7 +5,7 @@ use tracing::Instrument;
 
 use crate::html::{BaseComponent, Scope};
 use crate::platform::io::{self, DEFAULT_BUF_SIZE};
-use crate::platform::{spawn_local, Runtime};
+use crate::platform::{spawn_local, LocalHandle, Runtime};
 
 /// A Yew Server-side Renderer that renders on the current thread.
 ///
@@ -249,17 +249,26 @@ where
             rt,
         } = self;
 
-        let rt = rt.unwrap_or_default();
         let (mut w, r) = io::buffer(capacity);
-
-        rt.spawn_pinned(move || async move {
+        let create_task = move || async move {
             let props = create_props();
             let scope = Scope::<COMP>::new(None);
 
             scope
                 .render_into_stream(&mut w, props.into(), hydratable)
                 .await;
-        });
+        };
+
+        match rt {
+            // If a runtime is specified, spawn to the specified runtime.
+            Some(m) => m.spawn_pinned(create_task),
+            None => match LocalHandle::try_current() {
+                // If within a Yew Runtime, spawn to the current runtime.
+                Some(m) => m.spawn_local(create_task()),
+                // Outside of Yew Runtime, spawn to the default runtime.
+                None => Runtime::default().spawn_pinned(create_task),
+            },
+        }
 
         r
     }

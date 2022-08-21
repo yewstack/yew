@@ -1,5 +1,6 @@
 use std::future::Future;
 use std::io;
+use std::marker::PhantomData;
 
 pub(crate) mod time;
 
@@ -42,6 +43,29 @@ impl Runtime {
         F: FnOnce() -> Fut,
         F: Send + 'static,
         Fut: Future<Output = ()> + 'static,
+    {
+        panic_no_runtime();
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct LocalHandle {
+    // This type is not send or sync.
+    _marker: PhantomData<*const ()>,
+}
+
+impl LocalHandle {
+    pub fn try_current() -> Option<Self> {
+        panic_no_runtime();
+    }
+
+    pub fn current() -> Self {
+        panic_no_runtime();
+    }
+
+    pub fn spawn_local<F>(&self, _f: F)
+    where
+        F: Future<Output = ()> + 'static,
     {
         panic_no_runtime();
     }

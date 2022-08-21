@@ -546,6 +546,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "fs_extra"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2022715d62ab30faffd124d40b76f4134a550a87792276512b18d63272333394"
+
+[[package]]
 name = "function_memory_game"
 version = "0.1.0"
 dependencies = [
@@ -1154,6 +1160,27 @@ name = "itoa"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "112c678d4050afce233f4f2852bb2eb519230b3cf12f33585275537d7e41578d"
+
+[[package]]
+name = "jemalloc-sys"
+version = "0.5.1+5.3.0-patched"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b7c2b313609b95939cb0c5a5c6917fb9b7c9394562aa3ef44eb66ffa51736432"
+dependencies = [
+ "cc",
+ "fs_extra",
+ "libc",
+]
+
+[[package]]
+name = "jemallocator"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "16c2514137880c52b0b4822b563fadd38257c1f380858addb74a400889696ea6"
+dependencies = [
+ "jemalloc-sys",
+ "libc",
+]
 
 [[package]]
 name = "js-sys"
@@ -1903,6 +1930,8 @@ dependencies = [
  "bytes",
  "clap",
  "futures 0.3.21",
+ "hyper",
+ "jemallocator",
  "log",
  "reqwest",
  "serde",
@@ -1948,6 +1977,8 @@ dependencies = [
  "env_logger",
  "function_router",
  "futures 0.3.21",
+ "hyper",
+ "jemallocator",
  "log",
  "tokio",
  "tower",

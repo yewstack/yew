@@ -42,6 +42,7 @@
 
 use std::future::Future;
 use std::io::Result;
+use std::marker::PhantomData;
 
 #[cfg(feature = "ssr")]
 pub(crate) mod io;
@@ -140,5 +141,51 @@ impl Runtime {
         Fut: Future<Output = ()> + 'static,
     {
         self.inner.spawn_pinned(create_task);
+    }
+}
+
+/// A Local Runtime Handle.
+///
+/// This type can be used to acquire a runtime handle to spawn local tasks.
+#[derive(Debug, Clone)]
+pub struct LocalHandle {
+    inner: imp::LocalHandle,
+    // This type is not send or sync.
+    _marker: PhantomData<*const ()>,
+}
+
+impl LocalHandle {
+    /// Creates a Handle to current Runtime worker.
+    ///
+    /// # Panics
+    ///
+    /// This method will panic if not called within Yew Runtime.
+    pub fn current() -> Self {
+        let inner = imp::LocalHandle::current();
+
+        Self {
+            inner,
+            _marker: PhantomData,
+        }
+    }
+
+    /// Creates a Handle to current Runtime worker.
+    ///
+    /// This methods will return `None` if called from outside Yew Runtime.
+    pub fn try_current() -> Option<Self> {
+        let inner = imp::LocalHandle::try_current()?;
+
+        Some(Self {
+            inner,
+            _marker: PhantomData,
+        })
+    }
+
+    /// Spawns a Future with current Runtime worker.
+    pub fn spawn_local<F>(&self, f: F)
+    where
+        F: Future<Output = ()> + 'static,
+    {
+        self.inner.spawn_local(f);
     }
 }

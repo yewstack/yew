@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::convert::Infallible;
+use std::future::Future;
 use std::path::PathBuf;
 
 use axum::body::{Body, StreamBody};
@@ -13,8 +14,13 @@ use axum::{Extension, Router};
 use clap::Parser;
 use function_router::{ServerApp, ServerAppProps};
 use futures::stream::{self, StreamExt};
+use hyper::server::Server;
 use tower::ServiceExt;
 use tower_http::services::ServeDir;
+use yew::platform::Runtime;
+
+#[global_allocator]
+static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 /// A basic example
 #[derive(Parser, Debug)]
@@ -44,8 +50,27 @@ async fn render(
     )
 }
 
+// An executor to process requests on the Yew runtime.
+#[derive(Clone, Default)]
+struct Executor {
+    inner: Runtime,
+}
+
+impl<F> hyper::rt::Executor<F> for Executor
+where
+    F: Future + Send + 'static,
+{
+    fn execute(&self, fut: F) {
+        self.inner.spawn_pinned(move || async move {
+            fut.await;
+        });
+    }
+}
+
 #[tokio::main]
 async fn main() {
+    let exec = Executor::default();
+
     env_logger::init();
 
     let opts = Opt::parse();
@@ -86,7 +111,8 @@ async fn main() {
 
     println!("You can view the website at: http://localhost:8080/");
 
-    axum::Server::bind(&"0.0.0.0:8080".parse().unwrap())
+    Server::bind(&"127.0.0.1:8080".parse().unwrap())
+        .executor(exec)
         .serve(app.into_make_service())
         .await
         .unwrap();

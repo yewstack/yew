@@ -1,11 +1,15 @@
+use std::convert::Infallible;
 use std::error::Error;
+use std::future::Future;
 use std::path::PathBuf;
 
 use bytes::Bytes;
 use clap::Parser;
 use futures::stream::{self, Stream, StreamExt};
+use hyper::server::Server;
 use simple_ssr::App;
 use warp::Filter;
+use yew::platform::Runtime;
 
 type BoxedError = Box<dyn Error + Send + Sync + 'static>;
 
@@ -15,6 +19,23 @@ struct Opt {
     /// the "dist" created by trunk directory to be served for hydration.
     #[structopt(short, long, parse(from_os_str))]
     dir: PathBuf,
+}
+
+// An executor to process requests on the Yew runtime.
+#[derive(Clone, Default)]
+struct Executor {
+    inner: Runtime,
+}
+
+impl<F> hyper::rt::Executor<F> for Executor
+where
+    F: Future + Send + 'static,
+{
+    fn execute(&self, fut: F) {
+        self.inner.spawn_pinned(move || async move {
+            fut.await;
+        });
+    }
 }
 
 async fn render(
@@ -34,6 +55,7 @@ async fn render(
 #[tokio::main]
 async fn main() {
     let opts = Opt::parse();
+    let exec = Executor::default();
 
     let index_html_s = tokio::fs::read_to_string(opts.dir.join("index.html"))
         .await
@@ -55,5 +77,14 @@ async fn main() {
 
     println!("You can view the website at: http://localhost:8080/");
 
-    warp::serve(routes).run(([127, 0, 0, 1], 8080)).await;
+    let warp_svc = warp::service(routes);
+    let svc = hyper::service::make_service_fn(move |_| {
+        let warp_svc = warp_svc.clone();
+        async move { Ok::<_, Infallible>(warp_svc) }
+    });
+    Server::bind(&"127.0.0.1:8080".parse().unwrap())
+        .executor(exec)
+        .serve(svc)
+        .await
+        .unwrap();
 }
