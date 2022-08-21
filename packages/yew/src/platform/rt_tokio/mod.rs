@@ -142,10 +142,10 @@ mod tests {
 
         runtime.spawn_pinned(move || async move {
             tokio::task::spawn(async move {
-                // tokio::task::spawn_local cannot spawn within a Send task.
+                // tokio::task::spawn_local cannot spawn tasks outside of a local context.
                 //
-                // yew::platform::spawn_local can spawn within a Send task as long as runnting under
-                // a Yew Runtime.
+                // yew::platform::spawn_local can spawn tasks within a Send task as long as running
+                // under a Yew Runtime.
                 spawn_local(async move {
                     tx.send(()).expect("failed to send!");
                 })
