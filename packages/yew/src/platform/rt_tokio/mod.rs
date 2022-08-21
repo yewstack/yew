@@ -105,3 +105,53 @@ impl Runtime {
         worker.spawn_pinned(create_task);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use futures::channel::oneshot;
+    use tokio::test;
+
+    use super::*;
+
+    #[test]
+    async fn test_spawn_pinned_least_busy() {
+        let runtime = Runtime::new(2).expect("failed to create runtime.");
+
+        let (tx1, rx1) = oneshot::channel();
+        let (tx2, rx2) = oneshot::channel();
+
+        runtime.spawn_pinned(move || async move {
+            tx1.send(std::thread::current().id())
+                .expect("failed to send!");
+        });
+
+        runtime.spawn_pinned(move || async move {
+            tx2.send(std::thread::current().id())
+                .expect("failed to send!");
+        });
+
+        // first task and second task are not on the same thread.
+        assert_ne!(rx1.await, rx2.await);
+    }
+
+    #[test]
+    async fn test_spawn_local_within_send() {
+        let runtime = Runtime::new(1).expect("failed to create runtime.");
+
+        let (tx, rx) = oneshot::channel();
+
+        runtime.spawn_pinned(move || async move {
+            tokio::task::spawn(async move {
+                // tokio::task::spawn_local cannot spawn within a Send task.
+                //
+                // yew::platform::spawn_local can spawn within a Send task as long as runnting under
+                // a Yew Runtime.
+                spawn_local(async move {
+                    tx.send(()).expect("failed to send!");
+                })
+            });
+        });
+
+        assert_eq!(rx.await, Ok(()));
+    }
+}

@@ -141,3 +141,50 @@ impl LocalHandle {
         });
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use futures::channel::oneshot;
+    use tokio::test;
+    use yew::platform::Runtime;
+
+    use super::*;
+
+    #[test]
+    async fn test_local_handle_exists() {
+        assert!(LocalHandle::try_current().is_none());
+
+        let runtime = Runtime::default();
+        let (tx, rx) = oneshot::channel();
+
+        runtime.spawn_pinned(move || async move {
+            tx.send(LocalHandle::try_current().is_some())
+                .expect("failed to send");
+        });
+
+        assert!(rx.await.expect("failed to receive"));
+    }
+
+    #[test]
+    async fn test_local_handle_spawns_on_same_worker() {
+        assert!(LocalHandle::try_current().is_none());
+
+        let runtime = Runtime::default();
+        let (tx1, rx1) = oneshot::channel();
+        let (tx2, rx2) = oneshot::channel();
+
+        runtime.spawn_pinned(move || async move {
+            let handle = LocalHandle::current();
+
+            tx1.send(std::thread::current().id())
+                .expect("failed to send");
+
+            handle.spawn_local(async move {
+                tx2.send(std::thread::current().id())
+                    .expect("failed to send");
+            })
+        });
+
+        assert_eq!(rx1.await, rx2.await);
+    }
+}
