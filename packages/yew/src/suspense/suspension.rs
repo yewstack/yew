@@ -7,7 +7,7 @@ use std::task::{Context, Poll};
 
 use thiserror::Error;
 
-use crate::io_coop::spawn_local;
+use crate::platform::spawn_local;
 use crate::Callback;
 
 thread_local! {

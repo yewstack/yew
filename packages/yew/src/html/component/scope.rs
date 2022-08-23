@@ -12,7 +12,7 @@ use super::lifecycle::ComponentState;
 use super::BaseComponent;
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
-use crate::io_coop::spawn_local;
+use crate::platform::spawn_local;
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use crate::scheduler::Shared;
 
@@ -260,22 +260,26 @@ impl<COMP: BaseComponent> Scope<COMP> {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use futures::channel::oneshot;
-
     use super::*;
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
+    use crate::platform::io::BufWriter;
+    use crate::platform::sync::oneshot;
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
 
     impl<COMP: BaseComponent> Scope<COMP> {
-        pub(crate) async fn render_to_string(
-            self,
-            w: &mut String,
+        pub(crate) async fn render_into_stream(
+            &self,
+            w: &mut BufWriter,
             props: Rc<COMP::Properties>,
             hydratable: bool,
         ) {
+            // Rust's Future implementation is stack-allocated and incurs zero runtime-cost.
+            //
+            // If the content of this channel is ready before it is awaited, it is
+            // similar to taking the value from a mutex lock.
             let (tx, rx) = oneshot::channel();
             let state = ComponentRenderState::Ssr { sender: Some(tx) };
 
@@ -303,12 +307,13 @@ mod feat_ssr {
             let html = rx.await.unwrap();
 
             let self_any_scope = AnyScope::from(self.clone());
-            html.render_to_string(w, &self_any_scope, hydratable).await;
+            html.render_into_stream(w, &self_any_scope, hydratable)
+                .await;
 
             if let Some(prepared_state) = self.get_component().unwrap().prepare_state() {
-                w.push_str(r#"<script type="application/x-yew-comp-state">"#);
-                w.push_str(&prepared_state);
-                w.push_str(r#"</script>"#);
+                w.write(r#"<script type="application/x-yew-comp-state">"#.into());
+                w.write(prepared_state.into());
+                w.write(r#"</script>"#.into());
             }
 
             if hydratable {
@@ -545,9 +550,6 @@ mod feat_csr {
         }
 
         pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, next_sibling: NodeRef) {
-            #[cfg(debug_assertions)]
-            super::super::log_event(self.id, "reuse");
-
             schedule_props_update(self.state.clone(), props, next_sibling)
         }
     }
@@ -604,7 +606,6 @@ mod feat_csr {
 #[cfg(feature = "csr")]
 pub(crate) use feat_csr::*;
 
-#[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use wasm_bindgen::JsCast;
@@ -640,10 +641,10 @@ mod feat_hydration {
             // This is very helpful to see which component is failing during hydration
             // which means this component may not having a stable layout / differs between
             // client-side and server-side.
-            #[cfg(debug_assertions)]
-            super::super::log_event(
-                self.id,
-                format!("hydration(type = {})", std::any::type_name::<COMP>()),
+            tracing::trace!(
+                component.id = self.id,
+                "hydration(type = {})",
+                std::any::type_name::<COMP>()
             );
 
             let collectable = Collectable::for_component::<COMP>();

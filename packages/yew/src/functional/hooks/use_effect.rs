@@ -125,10 +125,10 @@ where
 ///     let counter_one = counter.clone();
 ///     use_effect(move || {
 ///         // Make a call to DOM API after component is rendered
-///         gloo_utils::document().set_title(&format!("You clicked {} times", *counter_one));
+///         gloo::utils::document().set_title(&format!("You clicked {} times", *counter_one));
 ///
 ///         // Perform the cleanup
-///         || gloo_utils::document().set_title(&format!("You clicked 0 times"))
+///         || gloo::utils::document().set_title(&format!("You clicked 0 times"))
 ///     });
 ///
 ///     let onclick = {

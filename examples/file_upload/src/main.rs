@@ -1,9 +1,9 @@
 extern crate base64;
-use base64::encode;
 use std::collections::HashMap;
 
-use gloo_file::callbacks::FileReader;
-use gloo_file::File;
+use base64::encode;
+use gloo::file::callbacks::FileReader;
+use gloo::file::File;
 use web_sys::{DragEvent, Event, FileList, HtmlInputElement};
 use yew::html::TargetCast;
 use yew::{html, Callback, Component, Context, Html};
@@ -55,7 +55,7 @@ impl Component for App {
                         let link = ctx.link().clone();
                         let file_name = file_name.clone();
 
-                        gloo_file::callbacks::read_as_bytes(&file, move |res| {
+                        gloo::file::callbacks::read_as_bytes(&file, move |res| {
                             link.send_message(Msg::Loaded(
                                 file_name,
                                 file_type,

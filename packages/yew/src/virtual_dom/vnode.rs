@@ -153,26 +153,31 @@ mod feat_ssr {
 
     use super::*;
     use crate::html::AnyScope;
+    use crate::platform::io::BufWriter;
 
     impl VNode {
-        // Boxing is needed here, due to: https://rust-lang.github.io/async-book/07_workarounds/04_recursion.html
-        pub(crate) fn render_to_string<'a>(
+        pub(crate) fn render_into_stream<'a>(
             &'a self,
-            w: &'a mut String,
+            w: &'a mut BufWriter,
             parent_scope: &'a AnyScope,
             hydratable: bool,
         ) -> LocalBoxFuture<'a, ()> {
-            async move {
-                match self {
-                    VNode::VTag(vtag) => vtag.render_to_string(w, parent_scope, hydratable).await,
+            async fn render_into_stream_(
+                this: &VNode,
+                w: &mut BufWriter,
+                parent_scope: &AnyScope,
+                hydratable: bool,
+            ) {
+                match this {
+                    VNode::VTag(vtag) => vtag.render_into_stream(w, parent_scope, hydratable).await,
                     VNode::VText(vtext) => {
-                        vtext.render_to_string(w, parent_scope, hydratable).await
+                        vtext.render_into_stream(w, parent_scope, hydratable).await
                     }
                     VNode::VComp(vcomp) => {
-                        vcomp.render_to_string(w, parent_scope, hydratable).await
+                        vcomp.render_into_stream(w, parent_scope, hydratable).await
                     }
                     VNode::VList(vlist) => {
-                        vlist.render_to_string(w, parent_scope, hydratable).await
+                        vlist.render_into_stream(w, parent_scope, hydratable).await
                     }
                     // We are pretty safe here as it's not possible to get a web_sys::Node without
                     // DOM support in the first place.
@@ -186,12 +191,14 @@ mod feat_ssr {
                     VNode::VPortal(_) => {}
                     VNode::VSuspense(vsuspense) => {
                         vsuspense
-                            .render_to_string(w, parent_scope, hydratable)
+                            .render_into_stream(w, parent_scope, hydratable)
                             .await
                     }
                 }
             }
-            .boxed_local()
+
+            async move { render_into_stream_(self, w, parent_scope, hydratable).await }
+                .boxed_local()
         }
     }
 }

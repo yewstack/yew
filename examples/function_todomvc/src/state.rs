@@ -4,20 +4,20 @@ use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumIter};
 use yew::prelude::*;
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct State {
     pub entries: Vec<Entry>,
     pub filter: Filter,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Entry {
     pub id: usize,
     pub description: String,
     pub completed: bool,
 }
 
-#[derive(Clone, Copy, Debug, EnumIter, Display, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, EnumIter, Display, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Filter {
     All,
     Active,

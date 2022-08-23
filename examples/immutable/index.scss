@@ -1,0 +1,11 @@
+$font-stack:    Roboto, sans-serif;
+$primary-color: #f5f5f5;
+
+body {
+    font: 100% $font-stack;
+    color: black;
+    background-color: $primary-color;
+    margin: 0 auto;
+    min-width: 230px;
+    max-width: 550px;
+}

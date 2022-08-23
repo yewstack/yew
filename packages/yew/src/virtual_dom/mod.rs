@@ -19,13 +19,7 @@ pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
 
-use std::borrow::{Borrow, Cow};
-use std::fmt;
-use std::fmt::Formatter;
-use std::hash::{Hash, Hasher};
 use std::hint::unreachable_unchecked;
-use std::ops::Deref;
-use std::rc::Rc;
 
 use indexmap::IndexMap;
 
@@ -49,165 +43,17 @@ pub use self::vtag::VTag;
 pub use self::vtext::VText;
 
 /// Attribute value
-#[derive(Debug)]
-pub enum AttrValue {
-    /// String living for `'static`
-    Static(&'static str),
-    /// Reference counted string
-    Rc(Rc<str>),
-}
-
-impl Deref for AttrValue {
-    type Target = str;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        match self {
-            AttrValue::Static(s) => *s,
-            AttrValue::Rc(s) => &*s,
-        }
-    }
-}
-
-impl Hash for AttrValue {
-    #[inline(always)]
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.as_ref().hash(state);
-    }
-}
-
-impl From<&'static str> for AttrValue {
-    #[inline(always)]
-    fn from(s: &'static str) -> Self {
-        AttrValue::Static(s)
-    }
-}
-
-impl From<String> for AttrValue {
-    #[inline(always)]
-    fn from(s: String) -> Self {
-        AttrValue::Rc(Rc::from(s))
-    }
-}
-
-impl From<Rc<str>> for AttrValue {
-    #[inline(always)]
-    fn from(s: Rc<str>) -> Self {
-        AttrValue::Rc(s)
-    }
-}
-
-impl From<Cow<'static, str>> for AttrValue {
-    #[inline(always)]
-    fn from(s: Cow<'static, str>) -> Self {
-        match s {
-            Cow::Borrowed(s) => s.into(),
-            Cow::Owned(s) => s.into(),
-        }
-    }
-}
-
-impl Clone for AttrValue {
-    fn clone(&self) -> Self {
-        match self {
-            AttrValue::Static(s) => AttrValue::Static(s),
-            AttrValue::Rc(s) => AttrValue::Rc(Rc::clone(s)),
-        }
-    }
-}
-
-impl AsRef<str> for AttrValue {
-    #[inline(always)]
-    fn as_ref(&self) -> &str {
-        &*self
-    }
-}
-
-impl Borrow<str> for AttrValue {
-    fn borrow(&self) -> &str {
-        &*self
-    }
-}
-
-impl fmt::Display for AttrValue {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            AttrValue::Static(s) => write!(f, "{}", s),
-            AttrValue::Rc(s) => write!(f, "{}", s),
-        }
-    }
-}
-
-impl PartialEq for AttrValue {
-    #[inline(always)]
-    fn eq(&self, other: &Self) -> bool {
-        self.as_ref() == other.as_ref()
-    }
-}
-
-impl Eq for AttrValue {}
-
-impl AttrValue {
-    /// Consumes the AttrValue and returns the owned String from the AttrValue whenever possible.
-    /// For AttrValue::Rc the <str> is cloned to String in case there are other Rc or Weak pointers
-    /// to the same allocation.
-    pub fn into_string(self) -> String {
-        match self {
-            AttrValue::Static(s) => (*s).to_owned(),
-            AttrValue::Rc(mut rc) => {
-                if let Some(s) = Rc::get_mut(&mut rc) {
-                    (*s).to_owned()
-                } else {
-                    rc.to_string()
-                }
-            }
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests_attr_value {
-    use super::*;
-
-    #[test]
-    fn test_into_string() {
-        let av = AttrValue::Static("str");
-        assert_eq!(av.into_string(), "str");
-
-        let av = AttrValue::Rc("Rc<str>".into());
-        assert_eq!(av.into_string(), "Rc<str>");
-    }
-
-    #[test]
-    fn test_from_string() {
-        let av = AttrValue::from("str");
-        assert_eq!(av.into_string(), "str");
-
-        let av = AttrValue::from("String".to_string());
-        assert_eq!(av.into_string(), "String");
-
-        let av = AttrValue::from(Cow::from("BorrowedCow"));
-        assert_eq!(av.into_string(), "BorrowedCow");
-    }
-
-    #[test]
-    fn test_equality() {
-        // construct 3 AttrValue with same embedded value; expectation is that all are equal
-        let a = AttrValue::Static("same");
-        let b = AttrValue::Rc("same".into());
-
-        assert_eq!(a, b);
-
-        assert_eq!(a, b);
-    }
-}
+pub type AttrValue = implicit_clone::unsync::IString;
 
 #[cfg(any(feature = "ssr", feature = "hydration"))]
 mod feat_ssr_hydration {
     #[cfg(debug_assertions)]
     type ComponentName = &'static str;
     #[cfg(not(debug_assertions))]
-    type ComponentName = ();
+    type ComponentName = std::marker::PhantomData<()>;
+
+    #[cfg(feature = "hydration")]
+    use std::borrow::Cow;
 
     /// A collectable.
     ///
@@ -222,7 +68,7 @@ mod feat_ssr_hydration {
             #[cfg(debug_assertions)]
             let comp_name = std::any::type_name::<T>();
             #[cfg(not(debug_assertions))]
-            let comp_name = ();
+            let comp_name = std::marker::PhantomData;
             Self::Component(comp_name)
         }
 
@@ -247,38 +93,8 @@ mod feat_ssr_hydration {
             }
         }
 
-        #[cfg(feature = "ssr")]
-        pub fn write_open_tag(&self, w: &mut String) {
-            w.push_str("<!--");
-            w.push_str(self.open_start_mark());
-
-            #[cfg(debug_assertions)]
-            match self {
-                Self::Component(type_name) => w.push_str(type_name),
-                Self::Suspense => {}
-            }
-
-            w.push_str(self.end_mark());
-            w.push_str("-->");
-        }
-
-        #[cfg(feature = "ssr")]
-        pub fn write_close_tag(&self, w: &mut String) {
-            w.push_str("<!--");
-            w.push_str(self.close_start_mark());
-
-            #[cfg(debug_assertions)]
-            match self {
-                Self::Component(type_name) => w.push_str(type_name),
-                Self::Suspense => {}
-            }
-
-            w.push_str(self.end_mark());
-            w.push_str("-->");
-        }
-
         #[cfg(feature = "hydration")]
-        pub fn name(&self) -> super::Cow<'static, str> {
+        pub fn name(&self) -> Cow<'static, str> {
             match self {
                 #[cfg(debug_assertions)]
                 Self::Component(m) => format!("Component({})", m).into(),
@@ -293,6 +109,50 @@ mod feat_ssr_hydration {
 #[cfg(any(feature = "ssr", feature = "hydration"))]
 pub(crate) use feat_ssr_hydration::*;
 
+#[cfg(feature = "ssr")]
+mod feat_ssr {
+    use super::*;
+    use crate::platform::io::BufWriter;
+
+    impl Collectable {
+        pub(crate) fn write_open_tag(&self, w: &mut BufWriter) {
+            w.write("<!--".into());
+            w.write(self.open_start_mark().into());
+
+            #[cfg(debug_assertions)]
+            match self {
+                Self::Component(type_name) => w.write((*type_name).into()),
+                Self::Suspense => {}
+            }
+
+            w.write(self.end_mark().into());
+            w.write("-->".into());
+        }
+
+        pub(crate) fn write_close_tag(&self, w: &mut BufWriter) {
+            w.write("<!--".into());
+            w.write(self.close_start_mark().into());
+
+            #[cfg(debug_assertions)]
+            match self {
+                Self::Component(type_name) => w.write((*type_name).into()),
+                Self::Suspense => {}
+            }
+
+            w.write(self.end_mark().into());
+            w.write("-->".into());
+        }
+    }
+}
+
+/// Defines if the [`Attributes`] is set as element's attribute or property
+#[allow(missing_docs)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug)]
+pub enum ApplyAttributeAs {
+    Attribute,
+    Property,
+}
+
 /// A collection of attributes for an element
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Attributes {
@@ -300,7 +160,7 @@ pub enum Attributes {
     ///
     /// Allows optimizing comparison to a simple pointer equality check and reducing allocations,
     /// if the attributes do not change on a node.
-    Static(&'static [[&'static str; 2]]),
+    Static(&'static [(&'static str, &'static str, ApplyAttributeAs)]),
 
     /// Static list of attribute keys with possibility to exclude attributes and dynamic attribute
     /// values.
@@ -313,12 +173,12 @@ pub enum Attributes {
 
         /// Attribute values. Matches [keys](Attributes::Dynamic::keys). Optional attributes are
         /// designated by setting [None].
-        values: Box<[Option<AttrValue>]>,
+        values: Box<[Option<(AttrValue, ApplyAttributeAs)>]>,
     },
 
     /// IndexMap is used to provide runtime attribute deduplication in cases where the html! macro
     /// was not used to guarantee it.
-    IndexMap(IndexMap<AttrValue, AttrValue>),
+    IndexMap(IndexMap<AttrValue, (AttrValue, ApplyAttributeAs)>),
 }
 
 impl Attributes {
@@ -331,19 +191,19 @@ impl Attributes {
     /// This function is suboptimal and does not inline well. Avoid on hot paths.
     pub fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a str, &'a str)> + 'a> {
         match self {
-            Self::Static(arr) => Box::new(arr.iter().map(|kv| (kv[0], kv[1] as &'a str))),
+            Self::Static(arr) => Box::new(arr.iter().map(|(k, v, _)| (*k, *v as &'a str))),
             Self::Dynamic { keys, values } => Box::new(
                 keys.iter()
                     .zip(values.iter())
-                    .filter_map(|(k, v)| v.as_ref().map(|v| (*k, v.as_ref()))),
+                    .filter_map(|(k, v)| v.as_ref().map(|(v, _)| (*k, v.as_ref()))),
             ),
-            Self::IndexMap(m) => Box::new(m.iter().map(|(k, v)| (k.as_ref(), v.as_ref()))),
+            Self::IndexMap(m) => Box::new(m.iter().map(|(k, (v, _))| (k.as_ref(), v.as_ref()))),
         }
     }
 
     /// Get a mutable reference to the underlying `IndexMap`.
     /// If the attributes are stored in the `Vec` variant, it will be converted.
-    pub fn get_mut_index_map(&mut self) -> &mut IndexMap<AttrValue, AttrValue> {
+    pub fn get_mut_index_map(&mut self) -> &mut IndexMap<AttrValue, (AttrValue, ApplyAttributeAs)> {
         macro_rules! unpack {
             () => {
                 match self {
@@ -357,7 +217,11 @@ impl Attributes {
         match self {
             Self::IndexMap(m) => m,
             Self::Static(arr) => {
-                *self = Self::IndexMap(arr.iter().map(|kv| (kv[0].into(), kv[1].into())).collect());
+                *self = Self::IndexMap(
+                    arr.iter()
+                        .map(|(k, v, ty)| ((*k).into(), ((*v).into(), *ty)))
+                        .collect(),
+                );
                 unpack!()
             }
             Self::Dynamic { keys, values } => {
@@ -375,7 +239,11 @@ impl Attributes {
 }
 
 impl From<IndexMap<AttrValue, AttrValue>> for Attributes {
-    fn from(v: IndexMap<AttrValue, AttrValue>) -> Self {
+    fn from(map: IndexMap<AttrValue, AttrValue>) -> Self {
+        let v = map
+            .into_iter()
+            .map(|(k, v)| (k, (v, ApplyAttributeAs::Attribute)))
+            .collect();
         Self::IndexMap(v)
     }
 }
@@ -384,7 +252,7 @@ impl From<IndexMap<&'static str, AttrValue>> for Attributes {
     fn from(v: IndexMap<&'static str, AttrValue>) -> Self {
         let v = v
             .into_iter()
-            .map(|(k, v)| (AttrValue::Static(k), v))
+            .map(|(k, v)| (AttrValue::Static(k), (v, ApplyAttributeAs::Attribute)))
             .collect();
         Self::IndexMap(v)
     }

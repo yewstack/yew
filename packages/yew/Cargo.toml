@@ -14,27 +14,29 @@ keywords = ["web", "webasm", "javascript"]
 categories = ["gui", "wasm", "web-programming"]
 description = "A framework for making client-side single-page apps"
 readme = "../../README.md"
-rust-version = "1.56.0"
+rust-version = "1.60.0"
 
 [dependencies]
 console_error_panic_hook = "0.1"
-gloo = "0.7"
-gloo-utils = "0.1.0"
+gloo = "0.8"
 indexmap = { version = "1", features = ["std"] }
 js-sys = "0.3"
 slab = "0.4"
 wasm-bindgen = "0.2"
 yew-macro = { version = "^0.19.0", path = "../yew-macro" }
 thiserror = "1.0"
-
-futures = { version = "0.3", optional = true }
+futures = { version = "0.3", default-features = false, features = ["std", "async-await"] }
 html-escape = { version = "0.2.9", optional = true }
+implicit-clone = { version = "0.3", features = ["map"] }
 base64ct = { version = "1.5.0", features = ["std"], optional = true }
 bincode = { version = "1.3.3", optional = true }
 serde = { version = "1", features = ["derive"] }
+tokio = { version = "1.19", features = ["sync"] }
+tokio-stream = { version = "0.1.9", features = ["sync"] }
+tracing = "0.1.36"
 
 [dependencies.web-sys]
-version = "0.3"
+version = "^0.3.59"
 features = [
   "AnimationEvent",
   "Document",
@@ -65,6 +67,7 @@ features = [
   "WheelEvent",
   "Window",
   "HtmlScriptElement",
+  "SubmitEvent"
 ]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -73,12 +76,13 @@ features = [
 wasm-bindgen-futures = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1.15.0", features = ["rt"], optional = true }
+num_cpus = { version = "1.13", optional = true }
+tokio-util = { version = "0.7", features = ["rt"], optional = true }
+once_cell = "1"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
-gloo = { version = "0.7", features = ["futures"] }
-gloo-net = { version = "0.2", features = ["http"] }
+gloo = { version = "0.8", features = ["futures"] }
 wasm-bindgen-futures = "0.4"
 rustversion = "1"
 trybuild = "1"
@@ -91,15 +95,14 @@ features = [
 ]
 
 [features]
-# TODO: `dep:` syntax only supported with MSRV 1.60, would be more precise
-# tokio = ["dep:tokio"]
-ssr = ["futures", "html-escape", "base64ct", "bincode"] # dep:html-escape
+tokio = ["tokio/rt", "tokio/time", "dep:num_cpus", "dep:tokio-util"]
+ssr = ["dep:html-escape", "dep:base64ct", "dep:bincode"]
 csr = []
-hydration = ["csr", "bincode"]
+hydration = ["csr", "dep:bincode"]
 default = []
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-tokio = { version = "1.15.0", features = ["full"] }
+tokio = { version = "1.19", features = ["full"] }
 
 [package.metadata.docs.rs]
 all-features = true

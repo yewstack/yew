@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use yew::prelude::*;
-use yew::virtual_dom::AttrValue;
 use yew_router::history::{AnyHistory, History, MemoryHistory};
 use yew_router::prelude::*;
 
@@ -13,7 +12,7 @@ use crate::pages::page_not_found::PageNotFound;
 use crate::pages::post::Post;
 use crate::pages::post_list::PostList;
 
-#[derive(Routable, PartialEq, Clone, Debug)]
+#[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
     #[at("/posts/:id")]
     Post { id: u32 },
@@ -53,7 +52,7 @@ pub fn App() -> Html {
     }
 }
 
-#[derive(Properties, PartialEq, Debug)]
+#[derive(Properties, PartialEq, Eq, Debug)]
 pub struct ServerAppProps {
     pub url: AttrValue,
     pub queries: HashMap<String, String>,

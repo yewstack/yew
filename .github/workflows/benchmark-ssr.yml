@@ -1,0 +1,73 @@
+---
+name: Benchmark - SSR
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - .github/workflows/benchmark-ssr.yml
+      - "packages/yew/**"
+      - "packages/yew-macro/**"
+      - "packages/yew-router/**"
+      - "packages/yew-router-macro/**"
+      - "examples/function_router/**"
+      - "tools/benchmark-ssr/**"
+
+jobs:
+  benchmark-ssr:
+    name: Benchmark - SSR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v3
+        with:
+          repository: 'yewstack/yew'
+          ref: master
+          path: yew-master
+
+      - name: Checkout pull request
+        uses: actions/checkout@v3
+        with:
+          path: current-pr
+
+      - name: Setup toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          profile: minimal
+
+      - name: Restore Rust cache for master
+        uses: Swatinem/rust-cache@v1
+        with:
+          working-directory: yew-master
+          key: master
+
+      - name: Restore Rust cache for current pull request
+        uses: Swatinem/rust-cache@v1
+        with:
+          working-directory: current-pr
+          key: pr
+
+      - name: Run pull request benchmark
+        run: cargo run --profile=bench --bin benchmark-ssr -- --output-path ./output.json
+        working-directory: current-pr/tools
+
+      - name: Run master benchmark
+        run: cargo run --profile=bench --bin benchmark-ssr -- --output-path ./output.json
+        working-directory: yew-master/tools
+
+      - name: Write Pull Request ID
+        run: |
+          echo "${{ github.event.number }}" > .PR_NUMBER
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: benchmark-ssr
+          path: |
+            .PR_NUMBER
+            yew-master/tools/output.json
+            current-pr/tools/output.json
+          retention-days: 1

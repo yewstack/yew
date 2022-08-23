@@ -12,7 +12,7 @@ pub struct Props {
     pub seed: u32,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct PostState {
     pub inner: content::Post,
 }

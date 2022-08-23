@@ -1,7 +1,6 @@
 //! This module contains the bundle implementation of text [BText].
 
-use gloo::console;
-use gloo_utils::document;
+use gloo::utils::document;
 use web_sys::{Element, Text as TextNode};
 
 use super::{insert_node, BNode, BSubtree, Reconcilable, ReconcileTarget};
@@ -21,7 +20,7 @@ impl ReconcileTarget for BText {
             let result = parent.remove_child(&self.text_node);
 
             if result.is_err() {
-                console::warn!("Node not found to remove VText");
+                tracing::warn!("Node not found to remove VText");
             }
         }
     }

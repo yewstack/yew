@@ -7,8 +7,7 @@ use std::borrow::Cow;
 use std::hint::unreachable_unchecked;
 use std::ops::DerefMut;
 
-use gloo::console;
-use gloo_utils::document;
+use gloo::utils::document;
 use listeners::ListenerRegistration;
 pub use listeners::Registry;
 use wasm_bindgen::JsCast;
@@ -84,7 +83,7 @@ impl ReconcileTarget for BTag {
             let result = parent.remove_child(&node);
 
             if result.is_err() {
-                console::warn!("Node not found to remove VTag");
+                tracing::warn!("Node not found to remove VTag");
             }
         }
         // It could be that the ref was already reused when rendering another element.
@@ -386,7 +385,7 @@ mod feat_hydration {
 #[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
-    use gloo_utils::document;
+    use gloo::utils::document;
     use wasm_bindgen::JsCast;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use web_sys::HtmlInputElement as InputElement;
@@ -971,7 +970,7 @@ mod tests {
                 .unwrap()
                 .outer_html(),
             "<div tabindex=\"0\"></div>"
-        )
+        );
     }
 }
 

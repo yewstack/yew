@@ -2,9 +2,9 @@ name: Publish Examples
 on:
   push:
     branches: [master]
-    paths-ignore:
-      - "**/*.md"
-      - "website/**"
+    paths:
+      - 'ci/**'
+      - 'examples/**'
 
 jobs:
   publish:
@@ -23,9 +23,6 @@ jobs:
           components: rust-src
           override: true
           profile: minimal
-
-      - name: Write optimisation flags
-        run: ./ci/write-optimisation-flags.sh
 
       - uses: Swatinem/rust-cache@v1
 

@@ -1,0 +1,83 @@
+---
+name: Post Comment for Benchmark - SSR
+
+on:
+  workflow_run:
+    workflows: ["Benchmark - SSR"]
+    types:
+      - completed
+
+jobs:
+  post-benchmark-ssr:
+    if: github.event.workflow_run.event == 'pull_request'
+    name: Post Comment on Pull Request
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Repository
+        uses: actions/checkout@v2
+
+      - name: Download Artifact
+        uses: Legit-Labs/action-download-artifact@v2
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          workflow: benchmark-ssr.yml
+          run_id: ${{ github.event.workflow_run.id }}
+          name: benchmark-ssr
+          path: "benchmark-ssr/"
+
+      - name: Make pull request comment
+        run: python3 ci/make_benchmark_ssr_cmt.py
+
+      - name: Read Pull Request ID
+        run: |
+          PR_NUMBER=$(cat "benchmark-ssr/.PR_NUMBER")
+          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "pr number invalid"
+            exit 1
+          fi
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+
+      - name: Post Comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const commentInfo = {
+              ...context.repo,
+              issue_number: ${{ env.PR_NUMBER }},
+            };
+
+            const comment = {
+              ...commentInfo,
+              body: JSON.parse(process.env.YEW_BENCH_SSR),
+            };
+
+            function isCommentByBot(comment) {
+              return comment.user.type === "Bot" && comment.body.includes("### Benchmark - SSR");
+            }
+
+            let commentId = null;
+            const comments = (await github.rest.issues.listComments(commentInfo)).data;
+            for (let i = comments.length; i--; ) {
+              const c = comments[i];
+              if (isCommentByBot(c)) {
+                commentId = c.id;
+                break;
+              }
+            }
+
+            if (commentId) {
+              try {
+                await github.rest.issues.updateComment({
+                  ...context.repo,
+                  comment_id: commentId,
+                  body: comment.body,
+                });
+              } catch (e) {
+                commentId = null;
+              }
+            }
+
+            if (!commentId) {
+              await github.rest.issues.createComment(comment);
+            }

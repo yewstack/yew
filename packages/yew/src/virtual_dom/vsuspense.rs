@@ -28,12 +28,13 @@ impl VSuspense {
 mod feat_ssr {
     use super::*;
     use crate::html::AnyScope;
+    use crate::platform::io::BufWriter;
     use crate::virtual_dom::Collectable;
 
     impl VSuspense {
-        pub(crate) async fn render_to_string(
+        pub(crate) async fn render_into_stream(
             &self,
-            w: &mut String,
+            w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
@@ -45,7 +46,7 @@ mod feat_ssr {
 
             // always render children on the server side.
             self.children
-                .render_to_string(w, parent_scope, hydratable)
+                .render_into_stream(w, parent_scope, hydratable)
                 .await;
 
             if hydratable {
@@ -56,6 +57,7 @@ mod feat_ssr {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "ssr")]
 #[cfg(test)]
 mod ssr_tests {
     use std::rc::Rc;
@@ -63,8 +65,8 @@ mod ssr_tests {
 
     use tokio::task::{spawn_local, LocalSet};
     use tokio::test;
-    use tokio::time::sleep;
 
+    use crate::platform::time::sleep;
     use crate::prelude::*;
     use crate::suspense::{Suspension, SuspensionResult};
     use crate::ServerRenderer;

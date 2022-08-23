@@ -60,6 +60,11 @@ module.exports = {
                     label: 'Blog',
                 },
                 {
+                    href: 'https://play.yew.rs/',
+                    position: 'right',
+                    label: 'Playground',
+                },
+                {
                     href: 'https://docs.rs/yew',
                     position: 'right',
                     label: API_BUTTON,
@@ -121,7 +126,7 @@ module.exports = {
     },
     i18n: {
         defaultLocale: 'en',
-        locales: ['en', 'ja', 'zh-CN', 'zh-TW'],
+        locales: ['en', 'ja', 'zh-Hans', 'zh-Hant'],
     },
     plugins: [
         'content-pages',

@@ -9,7 +9,7 @@ use serde::Serialize;
 
 use super::PreparedStateBase;
 use crate::functional::{use_memo, use_state, Hook, HookContext};
-use crate::io_coop::spawn_local;
+use crate::platform::spawn_local;
 use crate::suspense::{Suspension, SuspensionResult};
 
 #[doc(hidden)]
@@ -20,13 +20,13 @@ pub fn use_prepared_state<T, D, F>(
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,
     T: Serialize + DeserializeOwned + 'static,
-    F: FnOnce(&D) -> T,
+    F: FnOnce(Rc<D>) -> T,
 {
     struct HookProvider<T, D, F>
     where
         D: Serialize + DeserializeOwned + PartialEq + 'static,
         T: Serialize + DeserializeOwned + 'static,
-        F: FnOnce(&D) -> T,
+        F: FnOnce(Rc<D>) -> T,
     {
         deps: D,
         f: F,
@@ -36,7 +36,7 @@ where
     where
         D: Serialize + DeserializeOwned + PartialEq + 'static,
         T: Serialize + DeserializeOwned + 'static,
-        F: FnOnce(&D) -> T,
+        F: FnOnce(Rc<D>) -> T,
     {
         type Output = SuspensionResult<Option<Rc<T>>>;
 
@@ -46,7 +46,7 @@ where
 
             let state = {
                 let deps = deps.clone();
-                use_memo(move |_| f(&deps), ()).run(ctx)
+                use_memo(move |_| f(deps), ()).run(ctx)
             };
 
             let state = PreparedStateBase {
@@ -75,14 +75,14 @@ pub fn use_prepared_state_with_suspension<T, D, F, U>(
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,
     T: Serialize + DeserializeOwned + 'static,
-    F: FnOnce(&D) -> U,
+    F: FnOnce(Rc<D>) -> U,
     U: 'static + Future<Output = T>,
 {
     struct HookProvider<T, D, F, U>
     where
         D: Serialize + DeserializeOwned + PartialEq + 'static,
         T: Serialize + DeserializeOwned + 'static,
-        F: FnOnce(&D) -> U,
+        F: FnOnce(Rc<D>) -> U,
         U: 'static + Future<Output = T>,
     {
         deps: D,
@@ -93,7 +93,7 @@ where
     where
         D: Serialize + DeserializeOwned + PartialEq + 'static,
         T: Serialize + DeserializeOwned + 'static,
-        F: FnOnce(&D) -> U,
+        F: FnOnce(Rc<D>) -> U,
         U: 'static + Future<Output = T>,
     {
         type Output = SuspensionResult<Option<Rc<T>>>;
@@ -112,7 +112,7 @@ where
                 let deps = deps.clone();
                 let result = result.clone();
                 use_state(move || {
-                    let state_f = f(&deps);
+                    let state_f = f(deps.clone());
 
                     spawn_local(async move {
                         let state = state_f.await;
