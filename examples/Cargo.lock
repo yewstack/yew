@@ -508,6 +508,7 @@ dependencies = [
 name = "file_upload"
 version = "0.1.0"
 dependencies = [
+ "base64",
  "gloo",
  "js-sys",
  "web-sys",

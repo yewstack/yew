@@ -104,7 +104,7 @@ impl Component for App {
                     })}
                 />
                 <div id="preview-area">
-                    { for self.files.iter().map(| file | Self::view_file(file)) }
+                    { for self.files.iter().map(Self::view_file) }
                 </div>
             </div>
         }
@@ -117,9 +117,9 @@ impl App {
             <div class="preview-tile">
                 <p class="preview-name">{ format!("{}", file.name) }</p>
                 <div class="preview-media">
-                    if file.file_type.contains("image") == true {
+                    if file.file_type.contains("image") {
                         <img src={format!("data:{};base64,{}", file.file_type, encode(&file.data))} />
-                    } else if file.file_type.contains("video") == true {
+                    } else if file.file_type.contains("video") {
                         <video controls={true}>
                             <source src={format!("data:{};base64,{}", file.file_type, encode(&file.data))} type={file.file_type.clone()}/>
                         </video>
