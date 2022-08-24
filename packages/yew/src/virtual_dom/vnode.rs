@@ -45,6 +45,71 @@ impl VNode {
     pub fn has_key(&self) -> bool {
         self.key().is_some()
     }
+
+    #[cfg(any(feature = "csr", feature = "hydration"))]
+    pub fn from_raw_html(html: &str) -> Self {
+        let div = gloo::utils::document().create_element("div").unwrap();
+        div.set_inner_html(html);
+        VNode::VRef(div.into())
+    }
+
+    #[cfg(feature = "ssr")]
+    pub fn from_raw_html(html: &str) -> Self {
+        use html_parser::{Dom, Node};
+
+        use super::{ApplyAttributeAs, Attributes};
+        use crate::{AttrValue, Classes};
+        fn dom_node_to_vnode(node: Node) -> VNode {
+            match node {
+                Node::Text(text) => VNode::from(VText::new(text)),
+                Node::Element(element) => {
+                    let mut tag = VTag::new(element.name);
+                    if !element.attributes.is_empty() {
+                        let attributes = element
+                            .attributes
+                            .into_iter()
+                            .map(|(key, value)| {
+                                (
+                                    AttrValue::from(key),
+                                    (
+                                        AttrValue::from(value.unwrap_or_default()),
+                                        ApplyAttributeAs::Attribute,
+                                    ),
+                                )
+                            })
+                            .collect();
+                        tag.set_attributes(Attributes::IndexMap(attributes));
+                    }
+                    if let Some(id) = element.id {
+                        tag.add_attribute("id", id)
+                    }
+                    if !element.classes.is_empty() {
+                        tag.add_attribute("class", Classes::from(element.classes).to_string())
+                    };
+                    tag.add_children(
+                        element
+                            .children
+                            .into_iter()
+                            .map(dom_node_to_vnode)
+                            .collect::<Vec<_>>(),
+                    );
+                    VNode::from(tag)
+                }
+                Node::Comment(_) => VNode::default(),
+            }
+        }
+
+        let dom = Dom::parse(html).map(|it| {
+            let vnodes = it
+                .children
+                .into_iter()
+                .map(dom_node_to_vnode)
+                .collect::<Vec<_>>();
+            VNode::from(VList::with_children(vnodes, None))
+        });
+        // error handling??
+        dom.unwrap()
+    }
 }
 
 impl Default for VNode {
@@ -200,5 +265,34 @@ mod feat_ssr {
             async move { render_into_stream_(self, w, parent_scope, hydratable).await }
                 .boxed_local()
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[cfg(target_arch = "wasm32")]
+    use wasm_bindgen_test::wasm_bindgen_test as test;
+    #[cfg(target_arch = "wasm32")]
+    wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
+
+    use super::*;
+    use crate::html;
+
+    const HTML: &str = r#"<div><a>a link</a><button>click me</button></div><p>paragraph</p>"#;
+    // const HTML: &str = r#"<div><a href="https://yew.rs">a link</a><button>click me</button></div><p>paragraph</p>"#;
+
+    #[test]
+    fn from_raw_html_works() {
+        let vnode = html! {
+            <><div>{"div"}</div></>
+        };
+
+        eprintln!("{:#?}", vnode);
+
+        let from_raw = VNode::from_raw_html("<div>div</div>");
+        eprintln!();
+        eprintln!("{:#?}", from_raw);
+
+        assert_eq!(vnode, from_raw);
     }
 }
