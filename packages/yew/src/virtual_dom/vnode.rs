@@ -73,6 +73,7 @@ impl VNode {
     /// }
     /// # }
     /// ```
+    #[cfg(any(feature = "csr", feature = "hydration", feature = "ssr"))]
     pub fn from_raw_html(html: &str) -> Self {
         #[cfg(any(feature = "csr", feature = "hydration"))]
         fn inner(html: &str) -> VNode {
