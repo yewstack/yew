@@ -8,6 +8,8 @@ use web_sys::Node;
 
 use super::{Key, VChild, VComp, VList, VPortal, VSuspense, VTag, VText};
 use crate::html::BaseComponent;
+use crate::virtual_dom::VRaw;
+use crate::AttrValue;
 
 /// Bind virtual element to a DOM reference.
 #[derive(Clone)]
@@ -26,6 +28,8 @@ pub enum VNode {
     VRef(Node),
     /// A suspendible document fragment.
     VSuspense(VSuspense),
+    /// A raw HTML string, represented by [`AttrValue`](crate::AttrValue).
+    VRaw(VRaw),
 }
 
 impl VNode {
@@ -38,6 +42,7 @@ impl VNode {
             VNode::VText(_) => None,
             VNode::VPortal(vportal) => vportal.node.key(),
             VNode::VSuspense(vsuspense) => vsuspense.key.as_ref(),
+            VNode::VRaw(_) => None,
         }
     }
 
@@ -73,73 +78,8 @@ impl VNode {
     /// }
     /// # }
     /// ```
-    #[cfg(any(feature = "csr", feature = "hydration", feature = "ssr"))]
-    pub fn from_raw_html(html: &str) -> Self {
-        #[cfg(any(feature = "csr", feature = "hydration"))]
-        fn inner(html: &str) -> VNode {
-            let div = gloo::utils::document().create_element("div").unwrap();
-            div.set_inner_html(html);
-            VNode::VRef(div.into())
-        }
-
-        #[cfg(feature = "ssr")]
-        fn inner(html: &str) -> VNode {
-            use html_parser::{Dom, Node};
-
-            use super::{ApplyAttributeAs, Attributes};
-            use crate::{AttrValue, Classes};
-            fn dom_node_to_vnode(node: Node) -> VNode {
-                match node {
-                    Node::Text(text) => VNode::from(VText::new(text)),
-                    Node::Element(element) => {
-                        let mut tag = VTag::new(element.name);
-                        if !element.attributes.is_empty() {
-                            let attributes = element
-                                .attributes
-                                .into_iter()
-                                .map(|(key, value)| {
-                                    (
-                                        AttrValue::from(key),
-                                        (
-                                            AttrValue::from(value.unwrap_or_default()),
-                                            ApplyAttributeAs::Attribute,
-                                        ),
-                                    )
-                                })
-                                .collect();
-                            tag.set_attributes(Attributes::IndexMap(attributes));
-                        }
-                        if let Some(id) = element.id {
-                            tag.add_attribute("id", id)
-                        }
-                        if !element.classes.is_empty() {
-                            tag.add_attribute("class", Classes::from(element.classes).to_string())
-                        };
-                        tag.add_children(
-                            element
-                                .children
-                                .into_iter()
-                                .map(dom_node_to_vnode)
-                                .collect::<Vec<_>>(),
-                        );
-                        VNode::from(tag)
-                    }
-                    Node::Comment(_) => VNode::default(),
-                }
-            }
-
-            let dom = Dom::parse(html).map(|it| {
-                let vnodes = it
-                    .children
-                    .into_iter()
-                    .map(dom_node_to_vnode)
-                    .collect::<Vec<_>>();
-                VNode::from(VList::with_children(vnodes, None))
-            });
-            // error handling??
-            dom.unwrap()
-        }
-        inner(html)
+    pub fn from_raw_html(html: AttrValue) -> Self {
+        VNode::VRaw(VRaw { html })
     }
 }
 
@@ -225,6 +165,7 @@ impl fmt::Debug for VNode {
             VNode::VRef(ref vref) => write!(f, "VRef ( \"{}\" )", crate::utils::print_node(vref)),
             VNode::VPortal(ref vportal) => vportal.fmt(f),
             VNode::VSuspense(ref vsuspense) => vsuspense.fmt(f),
+            VNode::VRaw(ref vraw) => write!(f, "VRaw {{ {} }}", vraw.html),
         }
     }
 }
@@ -238,6 +179,7 @@ impl PartialEq for VNode {
             (VNode::VRef(a), VNode::VRef(b)) => a == b,
             // TODO: Need to improve PartialEq for VComp before enabling.
             (VNode::VComp(_), VNode::VComp(_)) => false,
+            (VNode::VRaw(a), VNode::VRaw(b)) => a.html == b.html,
             _ => false,
         }
     }
@@ -245,6 +187,7 @@ impl PartialEq for VNode {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use std::borrow::Cow;
     use futures::future::{FutureExt, LocalBoxFuture};
 
     use super::*;
@@ -289,6 +232,10 @@ mod feat_ssr {
                         vsuspense
                             .render_into_stream(w, parent_scope, hydratable)
                             .await
+                    }
+
+                    VNode::VRaw(vraw) => {
+                        w.write(Cow::Borrowed(vraw.html.as_ref()))
                     }
                 }
             }

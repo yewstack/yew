@@ -1,4 +1,3 @@
-use web_sys::console;
 use yew::{Component, Context, Html};
 
 const HTML: &str = include_str!("document.html");
@@ -16,12 +15,7 @@ impl Component for App {
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
-        let div = gloo::utils::document().create_element("div").unwrap();
-        div.set_inner_html(HTML);
-        // See <https://github.com/yewstack/yew/issues/1546>
-        console::log_1(&div);
-
-        Html::VRef(div.into())
+        Html::from_raw_html(HTML.into())
     }
 }
 

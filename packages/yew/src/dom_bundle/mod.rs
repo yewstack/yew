@@ -17,6 +17,7 @@ mod bportal;
 mod bsuspense;
 mod btag;
 mod btext;
+mod braw;
 mod subtree_root;
 
 mod traits;
@@ -29,6 +30,7 @@ use bportal::BPortal;
 use bsuspense::BSuspense;
 use btag::{BTag, Registry};
 use btext::BText;
+use braw::BRaw;
 use subtree_root::EventDescriptor;
 pub use subtree_root::{set_event_bubbling, BSubtree};
 use traits::{Reconcilable, ReconcileTarget};
