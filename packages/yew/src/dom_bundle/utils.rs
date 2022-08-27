@@ -86,6 +86,7 @@ mod tests {
     use crate::dom_bundle::BSubtree;
     use crate::html::AnyScope;
 
+    #[allow(dead_code)]
     pub fn setup_parent() -> (BSubtree, AnyScope, Element) {
         let scope = AnyScope::test();
         let parent = document().create_element("div").unwrap();
@@ -98,4 +99,6 @@ mod tests {
 }
 
 #[cfg(test)]
+// this is needed because clippy doesn't like the import not being used
+#[allow(unused_imports)]
 pub(super) use tests::*;

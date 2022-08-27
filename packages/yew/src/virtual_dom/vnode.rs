@@ -87,8 +87,8 @@ impl VNode {
     /// let _: VNode = html! {
     ///     <div>
     ///         {parsed}
-    ///     <div>
-    /// }
+    ///     </div>
+    /// };
     /// # }
     /// ```
     pub fn from_raw_html(html: AttrValue) -> Self {
