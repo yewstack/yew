@@ -4,7 +4,7 @@ use std::fmt;
 
 use web_sys::{Element, Node};
 
-use super::{BComp, BList, BPortal, BSubtree, BSuspense, BTag, BText, BRaw};
+use super::{BComp, BList, BPortal, BRaw, BSubtree, BSuspense, BTag, BText};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::{AnyScope, NodeRef};
 use crate::virtual_dom::{Key, VNode};
@@ -124,10 +124,9 @@ impl Reconcilable for VNode {
                 let (node_ref, suspsense) =
                     vsuspsense.attach(root, parent_scope, parent, next_sibling);
                 (node_ref, suspsense.into())
-            },
+            }
             VNode::VRaw(vraw) => {
-                let (node_ref, raw) =
-                    vraw.attach(root, parent_scope, parent, next_sibling);
+                let (node_ref, raw) = vraw.attach(root, parent_scope, parent, next_sibling);
                 (node_ref, raw.into())
             }
         }
@@ -235,7 +234,6 @@ impl From<BSuspense> for BNode {
     }
 }
 
-
 impl From<BRaw> for BNode {
     #[inline]
     fn from(braw: BRaw) -> Self {
@@ -253,7 +251,7 @@ impl fmt::Debug for BNode {
             Self::Ref(ref vref) => write!(f, "VRef ( \"{}\" )", crate::utils::print_node(vref)),
             Self::Portal(ref vportal) => vportal.fmt(f),
             Self::Suspense(ref bsusp) => bsusp.fmt(f),
-            Self::Raw(ref braw) => write!(f, "VRaw {{ {} }}", braw.html)
+            Self::Raw(ref braw) => write!(f, "VRaw {{ {} }}", braw.html),
         }
     }
 }
@@ -308,9 +306,7 @@ mod feat_hydration {
                     (node_ref, suspense.into())
                 }
                 VNode::VRaw(_) => {
-                    panic!(
-                        "VRaw is not hydratable (raw HTML string cannot be hydrated)"
-                    )
+                    panic!("VRaw is not hydratable (raw HTML string cannot be hydrated)")
                 }
             }
         }

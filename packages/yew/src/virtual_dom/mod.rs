@@ -13,13 +13,13 @@ pub mod vnode;
 #[doc(hidden)]
 pub mod vportal;
 #[doc(hidden)]
+pub mod vraw;
+#[doc(hidden)]
 pub mod vsuspense;
 #[doc(hidden)]
 pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
-#[doc(hidden)]
-pub mod vraw;
 
 use std::hint::unreachable_unchecked;
 
@@ -38,13 +38,13 @@ pub use self::vnode::VNode;
 #[doc(inline)]
 pub use self::vportal::VPortal;
 #[doc(inline)]
+pub use self::vraw::VRaw;
+#[doc(inline)]
 pub use self::vsuspense::VSuspense;
 #[doc(inline)]
 pub use self::vtag::VTag;
 #[doc(inline)]
 pub use self::vtext::VText;
-#[doc(inline)]
-pub use self::vraw::VRaw;
 
 /// Attribute value
 pub type AttrValue = implicit_clone::unsync::IString;

@@ -29,6 +29,8 @@ pub enum VNode {
     /// A suspendible document fragment.
     VSuspense(VSuspense),
     /// A raw HTML string, represented by [`AttrValue`](crate::AttrValue).
+    ///
+    /// Also see: [`VNode::from_html_raw`]
     VRaw(VRaw),
 }
 
@@ -56,21 +58,28 @@ impl VNode {
     /// # Behavior in browser
     ///
     /// In the browser, this function creates an element, sets the passed HTML to its `innerHTML`
-    /// and returns a [`VNode::VRef`] of it
+    /// and inserts the contents of it into the DOM.
+    ///
+    /// If there are multiple elements, they're wrapped in a `div`. If this behavior is not desired,
+    /// ensure there is only one top level node.
     ///
     /// # Behavior on server
     ///
-    /// Since there's no DOM available on the server, the passed HTML is parsed using the
-    /// [`html_parser`](https://docs.rs/html_parser/0.6.3/html_parser/) crate. A VNode is created
-    /// from the parsed HTML
+    /// When rendering on the server, the contents of HTML are directly injected into the HTML
+    /// stream.
+    ///
+    /// ## Warning
+    ///
+    /// The contents are **not** validated or sanitized. You, as the developer, are responsible to
+    /// ensure the HTML string passed to this method is valid and not malicious
     ///
     /// # Example
     ///
     /// ```rust
     /// # use yew::virtual_dom::VNode;
-    /// # use yew::html;
+    /// use yew::{AttrValue, html};
     /// # fn _main() {
-    /// let parsed = VNode::from_raw_html("<div>content</div>");
+    /// let parsed = VNode::from_raw_html(AttrValue::from("<div>content</div>"));
     /// let _: VNode = html! {
     ///     <div>
     ///         {parsed}
@@ -188,6 +197,7 @@ impl PartialEq for VNode {
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use std::borrow::Cow;
+
     use futures::future::{FutureExt, LocalBoxFuture};
 
     use super::*;
@@ -234,9 +244,7 @@ mod feat_ssr {
                             .await
                     }
 
-                    VNode::VRaw(vraw) => {
-                        w.write(Cow::Borrowed(vraw.html.as_ref()))
-                    }
+                    VNode::VRaw(vraw) => w.write(Cow::Borrowed(vraw.html.as_ref())),
                 }
             }
 
