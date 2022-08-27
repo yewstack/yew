@@ -77,3 +77,25 @@ mod feat_hydration {
 
 #[cfg(feature = "hydration")]
 pub(super) use feat_hydration::*;
+
+#[cfg(test)]
+mod tests {
+    use gloo::utils::document;
+    use web_sys::Element;
+
+    use crate::dom_bundle::BSubtree;
+    use crate::html::AnyScope;
+
+    pub fn setup_parent() -> (BSubtree, AnyScope, Element) {
+        let scope = AnyScope::test();
+        let parent = document().create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        (root, scope, parent)
+    }
+}
+
+#[cfg(test)]
+pub(super) use tests::*;
