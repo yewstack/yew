@@ -19,7 +19,7 @@ impl BRaw {
         let html = html.trim();
         div.set_inner_html(html);
         let children = div.children();
-        return if children.length() == 0 {
+        if children.length() == 0 {
             None
         } else if children.length() == 1 {
             children.get_with_index(0)
@@ -28,8 +28,8 @@ impl BRaw {
                 "HTML with more than one root node was passed as raw node. It will be wrapped in \
                  a <div>"
             );
-            Some(div.into())
-        };
+            Some(div)
+        }
     }
 
     fn detach_bundle(&self, parent: &Element) {
