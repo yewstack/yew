@@ -70,8 +70,12 @@ impl VNode {
     ///
     /// ## Warning
     ///
-    /// The contents are **not** validated or sanitized. You, as the developer, are responsible to
-    /// ensure the HTML string passed to this method is valid and not malicious
+    /// The contents are **not** sanitized. You, as the developer, are responsible to
+    /// ensure the HTML string passed to this method not malicious
+    ///
+    /// ## Panics
+    ///
+    /// If the HTML string is invalid, the [`ServerRenderer`](crate::ServerRenderer) will panic
     ///
     /// # Example
     ///
@@ -196,8 +200,6 @@ impl PartialEq for VNode {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use std::borrow::Cow;
-
     use futures::future::{FutureExt, LocalBoxFuture};
 
     use super::*;
@@ -244,7 +246,7 @@ mod feat_ssr {
                             .await
                     }
 
-                    VNode::VRaw(vraw) => w.write(Cow::Borrowed(vraw.html.as_ref())),
+                    VNode::VRaw(vraw) => vraw.render_into_stream(w, parent_scope, hydratable).await,
                 }
             }
 

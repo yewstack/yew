@@ -1,14 +1,15 @@
-#![cfg(target_arch = "wasm32")]
-
 mod common;
 
-wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
-use std::time::Duration;
-use common::obtain_result;
-use wasm_bindgen_test::*;
-use yew::platform::time::sleep;
 use yew::prelude::*;
+
+
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen_test::wasm_bindgen_test as test;
+#[cfg(target_arch = "wasm32")]
+wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
+#[cfg(feature = "tokio")]
+use tokio::test;
 
 macro_rules! create_test {
     ($name:ident, $html:expr) => {
@@ -18,7 +19,7 @@ macro_rules! create_test {
         create_test!($name, $html, format!("<div>{}</div>", $html));
     };
     ($name:ident, $raw:expr, $expected:expr) => {
-        #[wasm_bindgen_test]
+        #[test]
         async fn $name() {
             #[function_component]
             fn App() -> Html {
@@ -30,16 +31,27 @@ macro_rules! create_test {
                 }
             }
 
-            yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+            #[cfg(target_arch = "wasm32")]
+            {
+                use std::time::Duration;
+                use yew::platform::time::sleep;
+
+                yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
                 .render();
 
-            // wait for render to finish
-            sleep(Duration::from_millis(100)).await;
+                // wait for render to finish
+                sleep(Duration::from_millis(100)).await;
 
-            let e = gloo::utils::document()
-                .get_element_by_id("raw-container")
-                .unwrap();
-            assert_eq!(e.inner_html(), $expected);
+                let e = gloo::utils::document()
+                    .get_element_by_id("raw-container")
+                    .unwrap();
+                assert_eq!(e.inner_html(), $expected);
+            }
+            #[cfg(not(target_arch = "wasm32"))]
+            {
+                let actual = yew::ServerRenderer::<App>::new()                .hydratable(false).render().await;
+                assert_eq!(actual, format!(r#"<div id="raw-container">{}</div>"#, $expected));
+            }
         }
     };
 }
