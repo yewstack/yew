@@ -1,11 +1,8 @@
 mod common;
 
-
-use yew::prelude::*;
-
-
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::wasm_bindgen_test as test;
+use yew::prelude::*;
 #[cfg(target_arch = "wasm32")]
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 #[cfg(feature = "tokio")]
@@ -34,9 +31,12 @@ macro_rules! create_test {
             #[cfg(target_arch = "wasm32")]
             {
                 use std::time::Duration;
+
                 use yew::platform::time::sleep;
 
-                yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+                yew::Renderer::<App>::with_root(
+                    gloo::utils::document().get_element_by_id("output").unwrap(),
+                )
                 .render();
 
                 // wait for render to finish
@@ -49,8 +49,14 @@ macro_rules! create_test {
             }
             #[cfg(not(target_arch = "wasm32"))]
             {
-                let actual = yew::ServerRenderer::<App>::new()                .hydratable(false).render().await;
-                assert_eq!(actual, format!(r#"<div id="raw-container">{}</div>"#, $expected));
+                let actual = yew::ServerRenderer::<App>::new()
+                    .hydratable(false)
+                    .render()
+                    .await;
+                assert_eq!(
+                    actual,
+                    format!(r#"<div id="raw-container">{}</div>"#, $expected)
+                );
             }
         }
     };
@@ -58,5 +64,12 @@ macro_rules! create_test {
 
 create_test!(empty_string, "");
 create_test!(one_node, "<span>text</span>");
-create_test!(one_but_nested_node, r#"<p>one <a href="https://yew.rs">link</a> more paragraph</p>"#);
-create_test!(multi_node, r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#, wrap_div);
+create_test!(
+    one_but_nested_node,
+    r#"<p>one <a href="https://yew.rs">link</a> more paragraph</p>"#
+);
+create_test!(
+    multi_node,
+    r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#,
+    wrap_div
+);

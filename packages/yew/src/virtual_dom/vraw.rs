@@ -8,10 +8,11 @@ pub struct VRaw {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use super::*;
-    use html_parser::Dom;
     use std::borrow::Cow;
 
+    use html_parser::Dom;
+
+    use super::*;
     use crate::html::AnyScope;
     use crate::platform::io::BufWriter;
 
@@ -22,7 +23,6 @@ mod feat_ssr {
             _parent_scope: &AnyScope,
             _hydratable: bool,
         ) {
-
             // this is needed to ensure the resulting HTML during CSR and SSR is the same
             let dom = Dom::parse(self.html.as_ref()).expect("invalid HTML was passed");
             if dom.children.len() > 1 {

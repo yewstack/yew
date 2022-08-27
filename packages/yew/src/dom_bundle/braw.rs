@@ -126,9 +126,10 @@ impl Reconcilable for VRaw {
 #[cfg(test)]
 mod tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
     use super::*;
-    use crate::virtual_dom::VNode;
     use crate::dom_bundle::utils::setup_parent;
+    use crate::virtual_dom::VNode;
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -136,7 +137,7 @@ mod tests {
     fn braw_works_one_node() {
         let (root, scope, parent) = setup_parent();
 
-        const HTML: &str ="<span>text</span>";
+        const HTML: &str = "<span>text</span>";
         let elem = VNode::from_raw_html(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
@@ -147,7 +148,7 @@ mod tests {
     fn braw_works_no_node() {
         let (root, scope, parent) = setup_parent();
 
-        const HTML: &str ="";
+        const HTML: &str = "";
         let elem = VNode::from_raw_html(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
@@ -158,7 +159,7 @@ mod tests {
     fn braw_works_one_node_nested() {
         let (root, scope, parent) = setup_parent();
 
-        const HTML: &str =r#"<p>one <a href="https://yew.rs">link</a> more paragraph</p>"#;
+        const HTML: &str = r#"<p>one <a href="https://yew.rs">link</a> more paragraph</p>"#;
         let elem = VNode::from_raw_html(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
@@ -168,7 +169,7 @@ mod tests {
     fn braw_works_multi_top_nodes() {
         let (root, scope, parent) = setup_parent();
 
-        const HTML: &str =r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#;
+        const HTML: &str = r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#;
         let elem = VNode::from_raw_html(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
