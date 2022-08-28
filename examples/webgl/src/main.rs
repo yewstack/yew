@@ -1,29 +1,22 @@
-use web_sys::{HtmlCanvasElement, WebGlRenderingContext as GL, window};
-use yew::html::Scope;
-use yew::{html, Component, Context, Html, NodeRef};
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
-
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use gloo_console::log;
-
-pub enum Msg {}
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
+use web_sys::{window, HtmlCanvasElement, WebGlRenderingContext as GL, WebGlRenderingContext};
+use yew::{html, Component, Context, Html, NodeRef};
 
 // Wrap gl in Rc (Arc for multi-threaded) so it can be injected into the render-loop closure.
 pub struct App {
-    gl: Option<Rc<GL>>,
     node_ref: NodeRef,
 }
 
 impl Component for App {
-    type Message = Msg;
+    type Message = ();
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            gl: None,
             node_ref: NodeRef::default(),
         }
     }
@@ -34,7 +27,15 @@ impl Component for App {
         }
     }
 
-    fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
+    fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
+        // Only start the render loop if it's the first render
+        // There's no loop cancellation taking place, so if multiple renders happen,
+        // there will be multiple loops running. That doesn't *really* matter here because
+        // there's no props update and no SSR is taking place, but it is something to keep in
+        // consideration
+        if !first_render {
+            return;
+        }
         // Once rendered, store references for the canvas and GL context. These can be used for
         // resizing the rendering area when the window or canvas element are resized, as well as
         // for making GL calls.
@@ -45,23 +46,20 @@ impl Component for App {
             .unwrap()
             .dyn_into()
             .unwrap();
-        self.gl = Some(Rc::new(gl));
-        self.render_gl(ctx.link());
+        Self::render_gl(gl);
     }
 }
 
 impl App {
-
     fn request_animation_frame(f: &Closure<dyn FnMut()>) {
-        window().unwrap()
+        window()
+            .unwrap()
             .request_animation_frame(f.as_ref().unchecked_ref())
             .expect("should register `requestAnimationFrame` OK");
     }
 
-    fn render_gl(&mut self, _link: &Scope<Self>) {
-        log!("This should log only once -- not once per frame");
-
-        let gl = self.gl.as_ref().expect("GL Context not initialized!");
+    fn render_gl(gl: WebGlRenderingContext) {
+        // This should log only once -- not once per frame
 
         let mut timestamp = 0.0;
 
@@ -108,21 +106,20 @@ impl App {
         // wrapping logic running every frame, unnecessary cost.
         // Here constructing the wrapped closure just once.
 
-        let gl = gl.clone();
+        let cb = Rc::new(RefCell::new(None));
 
-        let f = Rc::new(RefCell::new(None));
-        let g = f.clone();
-
-        *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-            log!("This should repeat every frame.");
-            timestamp+= 20.0;
-            let time = gl.get_uniform_location(&shader_program, "u_time");
-            gl.uniform1f(time.as_ref(), timestamp as f32);
-            gl.draw_arrays(GL::TRIANGLES, 0, 6);
-            App::request_animation_frame(f.borrow().as_ref().unwrap());
+        *cb.borrow_mut() = Some(Closure::wrap(Box::new({
+            let cb = cb.clone();
+            move || {
+                // This should repeat every frame
+                timestamp += 20.0;
+                gl.uniform1f(time.as_ref(), timestamp as f32);
+                gl.draw_arrays(GL::TRIANGLES, 0, 6);
+                App::request_animation_frame(cb.borrow().as_ref().unwrap());
+            }
         }) as Box<dyn FnMut()>));
 
-        App::request_animation_frame(g.borrow().as_ref().unwrap());
+        App::request_animation_frame(cb.borrow().as_ref().unwrap());
     }
 }
 
