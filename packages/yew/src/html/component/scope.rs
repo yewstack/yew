@@ -7,6 +7,8 @@ use std::ops::Deref;
 use std::rc::Rc;
 use std::{fmt, iter};
 
+use futures::{Stream, StreamExt};
+
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use super::lifecycle::ComponentState;
 use super::BaseComponent;
@@ -232,6 +234,35 @@ impl<COMP: BaseComponent> Scope<COMP> {
         let link = self.clone();
         let js_future = async move {
             future.await.send(&link);
+        };
+        spawn_local(js_future);
+    }
+
+    /// This method asynchronously awaits a [`Stream`] that returns a series of messages and sends
+    /// them to the linked component.
+    ///
+    /// # Panics
+    /// If the stream panics, then the promise will not resolve, and will leak.
+    ///
+    /// # Note
+    ///
+    /// This method will not notify the component when the stream has been fully exhausted. If
+    /// you want this feature, you can add an EOF message variant for your component and use
+    /// [`StreamExt::chain`] and [`stream::once`] to chain an EOF message to the original stream.
+    /// If your stream is produced by another crate, you can use [`StreamExt::map`] to transform
+    /// the stream's item type to the component message type.
+    pub fn send_stream<S, M>(&self, stream: S)
+    where
+        M: Into<COMP::Message>,
+        S: Stream<Item = M> + 'static,
+    {
+        let link = self.clone();
+        let js_future = async move {
+            futures::pin_mut!(stream);
+            while let Some(msg) = stream.next().await {
+                let message: COMP::Message = msg.into();
+                link.send_message(message);
+            }
         };
         spawn_local(js_future);
     }
@@ -695,48 +726,6 @@ mod feat_hydration {
 
             // Not guaranteed to already have the scheduler started
             scheduler::start();
-        }
-    }
-}
-
-#[cfg(all(nightly_yew, any(target_arch = "wasm32", feature = "tokio")))]
-mod feat_nightly {
-    use super::*;
-    use crate::platform::spawn_local;
-    use futures::{Stream, StreamExt};
-
-    impl<COMP: BaseComponent> Scope<COMP> {
-        /// This method asynchronously awaits a [Stream] that returns a series of messages and sends
-        /// them to the linked component.
-        ///
-        /// # Panics
-        /// If the stream panics, then the promise will not resolve, and will leak.
-        ///
-        /// # Note
-        ///
-        /// This method will not notify the component when the stream has been fully exhausted. If
-        /// you want this feature, you can add an EOF message variant for your component and use
-        /// [`StreamExt::chain`] and [`stream::once`] to chain an EOF message to the original stream.
-        /// If your stream is produced by another crate, you can use [`StreamExt::map`] to transform
-        /// the stream's item type to the component message type.
-        ///
-        /// [`StreamExt::chain`]: https://docs.rs/futures/latest/futures/stream/trait.StreamExt.html#method.chain
-        /// [`stream::once`]: https://docs.rs/futures/latest/futures/stream/fn.once.html
-        /// [`StreamExt::map`]: https://docs.rs/futures/latest/futures/stream/trait.StreamExt.html#method.map
-        pub fn send_stream<S, M>(&self, stream: S)
-        where
-            M: Into<COMP::Message>,
-            S: Stream<Item = M> + 'static,
-        {
-            let link = self.clone();
-            let js_future = async move {
-                futures::pin_mut!(stream);
-                while let Some(msg) = stream.next().await {
-                    let message: COMP::Message = msg.into();
-                    link.send_message(message);
-                }
-            };
-            spawn_local(js_future);
         }
     }
 }
