@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1660625022511,
+  "lastUpdate": 1661697619540,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -22571,6 +22571,120 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 33_startup-mainthreadcost",
             "value": "231.46400000000008",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "361.927734375",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "futursolo@users.noreply.github.com",
+            "name": "Kaede Hoshikawa",
+            "username": "futursolo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cffb7c5e7ebd528097cb429871390b355aee5450",
+          "message": "Configurable Runtime (#2772)\n\n* Adds Runtime.\r\n\r\n* A LocalRuntime.\r\n\r\n* Add note.\r\n\r\n* Add SSR benchmark.\r\n\r\n* Only create default runtime if no custom runtime is set.\r\n\r\n* Use jemalloc for benchmarking.\r\n\r\n* Remove once_cell for web assembly.\r\n\r\n* Add time.\r\n\r\n* Fix wasm_bindgen.\r\n\r\n* Adjust inlining.\r\n\r\n* Optimise benchmark output.\r\n\r\n* Optimise BufWriter.\r\n\r\n* Add json output.\r\n\r\n* Add Benchmark Workflow.\r\n\r\n* Remove local set from tests.\r\n\r\n* Fix Workflow syntax.\r\n\r\n* Exclude benchmark from doc tests.\r\n\r\n* Adjust feature flags.\r\n\r\n* Adds a pinned channel implementation.\r\n\r\n* Make Send bound explicit.\r\n\r\n* Implement on immutable reference.\r\n\r\n* Fix Sink close.\r\n\r\n* run_pinned -> spawn_pinned.\r\n\r\n* Add tests.\r\n\r\n* Adjusts worker threads.\r\n\r\n* Fix workflow.\r\n\r\n* Remove futures-executor.\r\n\r\n* Cargo update.\r\n\r\n* Fix docs.\r\n\r\n* Update notice.\r\n\r\n* Fix docs.\r\n\r\n* Fix docs.\r\n\r\n* Switch to task spawning.\r\n\r\n* Use futures unordered instead of spawn_local.\r\n\r\n* Switch to join_all.\r\n\r\n* Remove LocalPoolHandle.\r\n\r\n* Fix docs.\r\n\r\n* Spawn a single task.\r\n\r\n* Fix merge failure.\r\n\r\n* Remove LocalRuntime.\r\n\r\n* Update documentation.\r\n\r\n* Merge local-runtime-handle into local-runtime.\r\n\r\n* Add some tests.\r\n\r\n* Fix clippy notice.\r\n\r\n* Fix comment.\r\n\r\n* Address various review comments.\r\n\r\n* Remove unused type.\r\n\r\n* Fix clippy.\r\n\r\n* Fix clippy.",
+          "timestamp": "2022-08-28T23:31:11+09:00",
+          "tree_id": "aafe36743ab6c75556094962d0dc3bf8b189d956",
+          "url": "https://github.com/yewstack/yew/commit/cffb7c5e7ebd528097cb429871390b355aee5450"
+        },
+        "date": 1661697617952,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "234.767",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "251.1195",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "494.2365",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "91.1305",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "118.783",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "39.9235",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "3104.9245",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "578.3924999999999",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "217.9055",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.4686050415039062",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.6644439697265625",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.6990013122558594",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.717071533203125",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.3349876403808594",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1733.8760000000002",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "50.16399999999999",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 33_startup-mainthreadcost",
+            "value": "291.0039999999999",
             "unit": ""
           },
           {
