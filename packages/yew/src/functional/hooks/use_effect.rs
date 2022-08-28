@@ -5,10 +5,12 @@ use crate::functional::{hook, Effect, Hook, HookContext};
 /// Trait describing the destructor of [`use_effect`] hook.
 pub trait TearDown: Sized + 'static {
     /// The function that is executed when destructor is called
-    fn tear_down(self) {}
+    fn tear_down(self);
 }
 
-impl TearDown for () {}
+impl TearDown for () {
+    fn tear_down(self) {}
+}
 
 impl<F: FnOnce() + 'static> TearDown for F {
     fn tear_down(self) {
