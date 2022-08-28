@@ -8,7 +8,6 @@ use clap::Parser;
 use futures::stream::{self, Stream, StreamExt};
 use simple_ssr::App;
 use warp::Filter;
-use yew::platform::Runtime;
 
 type BoxedError = Box<dyn Error + Send + Sync + 'static>;
 
@@ -18,12 +17,6 @@ struct Opt {
     /// the "dist" created by trunk directory to be served for hydration.
     #[structopt(short, long, parse(from_os_str))]
     dir: PathBuf,
-}
-
-// An executor to process requests on the Yew runtime.
-#[derive(Clone, Default)]
-struct Executor {
-    inner: Runtime,
 }
 
 async fn render(
