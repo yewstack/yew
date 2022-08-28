@@ -5,9 +5,17 @@ use tracing::Instrument;
 
 use crate::html::{BaseComponent, Scope};
 use crate::platform::io::{self, DEFAULT_BUF_SIZE};
-use crate::platform::{run_pinned, spawn_local};
+use crate::platform::{spawn_local, LocalHandle, Runtime};
 
 /// A Yew Server-side Renderer that renders on the current thread.
+///
+/// # Note
+///
+/// This renderer does not spawn its own runtime and can only be used when:
+///
+/// - `wasm-bindgen` is selected as the backend of Yew runtime.
+/// - running within a [`Runtime`](crate::platform::Runtime).
+/// - running within a tokio [`LocalSet`](tokio::task::LocalSet).
 #[cfg(feature = "ssr")]
 #[derive(Debug)]
 pub struct LocalServerRenderer<COMP>
@@ -92,7 +100,7 @@ where
         }
     }
 
-    /// Renders Yew Applications into a string Stream
+    /// Renders Yew Application into a string Stream
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         name = "render",
@@ -131,6 +139,7 @@ where
     create_props: Box<dyn Send + FnOnce() -> COMP::Properties>,
     hydratable: bool,
     capacity: usize,
+    rt: Option<Runtime>,
 }
 
 impl<COMP> fmt::Debug for ServerRenderer<COMP>
@@ -181,7 +190,15 @@ where
             create_props: Box::new(create_props),
             hydratable: true,
             capacity: DEFAULT_BUF_SIZE,
+            rt: None,
         }
+    }
+
+    /// Sets the runtime the ServerRenderer will run the rendering task with.
+    pub fn with_runtime(mut self, rt: Runtime) -> Self {
+        self.rt = Some(rt);
+
+        self
     }
 
     /// Sets the capacity of renderer buffer.
@@ -216,34 +233,43 @@ where
 
     /// Renders Yew Application to a String.
     pub async fn render_to_string(self, w: &mut String) {
-        let mut s = self.render_stream().await;
+        let mut s = self.render_stream();
 
         while let Some(m) = s.next().await {
             w.push_str(&m);
         }
     }
 
-    /// Renders Yew Applications into a string Stream.
-    ///
-    /// # Note
-    ///
-    /// Unlike [`LocalServerRenderer::render_stream`], this method is `async fn`.
-    pub async fn render_stream(self) -> impl Stream<Item = String> {
-        // We use run_pinned to switch to our runtime.
-        run_pinned(move || async move {
-            let Self {
-                create_props,
-                hydratable,
-                capacity,
-            } = self;
+    /// Renders Yew Application into a string Stream.
+    pub fn render_stream(self) -> impl Send + Stream<Item = String> {
+        let Self {
+            create_props,
+            hydratable,
+            capacity,
+            rt,
+        } = self;
 
+        let (mut w, r) = io::buffer(capacity);
+        let create_task = move || async move {
             let props = create_props();
+            let scope = Scope::<COMP>::new(None);
 
-            LocalServerRenderer::<COMP>::with_props(props)
-                .hydratable(hydratable)
-                .capacity(capacity)
-                .render_stream()
-        })
-        .await
+            scope
+                .render_into_stream(&mut w, props.into(), hydratable)
+                .await;
+        };
+
+        match rt {
+            // If a runtime is specified, spawn to the specified runtime.
+            Some(m) => m.spawn_pinned(create_task),
+            None => match LocalHandle::try_current() {
+                // If within a Yew Runtime, spawn to the current runtime.
+                Some(m) => m.spawn_local(create_task()),
+                // Outside of Yew Runtime, spawn to the default runtime.
+                None => Runtime::default().spawn_pinned(create_task),
+            },
+        }
+
+        r
     }
 }
