@@ -1,9 +1,12 @@
+use std::fmt::Write;
+use std::iter;
+
+use rand::Rng;
+use yew::{html, Html};
+
 use crate::math::{self, Mean, Vector2D, WeightedMean};
 use crate::settings::Settings;
 use crate::simulation::SIZE;
-use rand::Rng;
-use std::iter;
-use yew::{html, Html};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Boid {
@@ -127,7 +130,9 @@ impl Boid {
         let mut points = String::new();
         for offset in iter_shape_points(self.radius, self.velocity.angle()) {
             let Vector2D { x, y } = self.position + offset;
-            points.push_str(&format!("{:.2},{:.2} ", x, y));
+
+            // Write to string will never fail.
+            let _ = write!(points, "{:.2},{:.2} ", x, y);
         }
 
         html! { <polygon {points} fill={color} /> }

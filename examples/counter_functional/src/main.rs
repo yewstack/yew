@@ -1,7 +1,7 @@
 use yew::prelude::*;
 
-#[function_component(App)]
-fn app() -> Html {
+#[function_component]
+fn App() -> Html {
     let state = use_state(|| 0);
 
     let incr_counter = {
@@ -14,13 +14,13 @@ fn app() -> Html {
         Callback::from(move |_| state.set(*state - 1))
     };
 
-    html!(
+    html! {
         <>
-        <p> {"current count: "} {*state} </p>
-        <button onclick={incr_counter}> {"+"} </button>
-        <button onclick={decr_counter}> {"-"} </button>
+            <p> {"current count: "} {*state} </p>
+            <button onclick={incr_counter}> {"+"} </button>
+            <button onclick={decr_counter}> {"-"} </button>
         </>
-    )
+    }
 }
 
 fn main() {

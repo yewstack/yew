@@ -1,6 +1,6 @@
-use serde::Deserialize;
-use serde::Serialize;
 use std::ops::Range;
+
+use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 use yew_router::prelude::*;
 
@@ -8,12 +8,12 @@ use crate::Route;
 
 const ELLIPSIS: &str = "\u{02026}";
 
-#[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Clone, Debug)]
 pub struct PageQuery {
     pub page: u32,
 }
 
-#[derive(Clone, Debug, PartialEq, Properties)]
+#[derive(Clone, Debug, PartialEq, Eq, Properties)]
 pub struct Props {
     pub page: u32,
     pub total_pages: u32,
@@ -50,7 +50,7 @@ pub fn RelNavButtons(props: &Props) -> Html {
     }
 }
 
-#[derive(Properties, Clone, Debug, PartialEq)]
+#[derive(Properties, Clone, Debug, PartialEq, Eq)]
 pub struct RenderLinksProps {
     range: Range<u32>,
     len: usize,
@@ -88,7 +88,7 @@ pub fn RenderLinks(props: &RenderLinksProps) -> Html {
     }
 }
 
-#[derive(Properties, Clone, Debug, PartialEq)]
+#[derive(Properties, Clone, Debug, PartialEq, Eq)]
 pub struct RenderLinkProps {
     to_page: u32,
     props: Props,

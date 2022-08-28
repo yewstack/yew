@@ -12,15 +12,14 @@ Properties are often shortened as "Props".
 
 :::
 
-Properties are essentially component function arguments that Yew can keep watch on.
-Components can have an associated properties type which describes what is passed down from the parent.
+Properties are essentially component arguments that Yew can keep watch on.
 
-Props are defined using the `Properties` trait.
+A type has to implement the `Properties` trait before it can be used as the properties of a component.
 
 ## Reactivity
 
-Yew always checks if props changed to know if the component needs to be rerendered.
-This way Yew can be considered a very reactive framework as any change from the parent will always be propagated downwards
+Yew checks if props have changed when reconciling the vdom during rerendering, to know if nested components needs to be rerendered.
+This way Yew can be considered a very reactive framework as changes from the parent will always be propagated downwards
 and the view will never be out of sync from the data coming from props/state.
 
 :::tip
@@ -29,14 +28,9 @@ If you have not yet completed the [tutorial](../../tutorial), try it out and tes
 
 :::
 
-## Memory/speed overhead of using Properties
-
-Internally properties are reference counted. This means that only a pointer is passed down the component tree for props.
-It saves us from the cost of having to clone the entire props, which might be expensive.
-
 ## Derive macro
 
-Yew provides a derive macro to easily implement the `Properties` trait.
+Yew provides a derive macro to easily implement the `Properties` trait on structs.
 
 Types for which you derive `Properties` must also implement `PartialEq` so Yew can do data comparison.
 
@@ -51,7 +45,8 @@ pub struct Props {
 
 ## Use in function components
 
-The attribute `#[function_component]` allows to optionally specify Props in the function arguments
+The attribute `#[function_component]` allows to optionally receive Props in the function arguments. To supply them,
+they are assigned via attributes in the `html!` macro.
 
 <Tabs>
   <TabItem value="with-props" label="With Props">
@@ -106,8 +101,8 @@ fn App() -> Html {
 
 ## Derive macro field attributes
 
-When deriving `Properties`, all fields are required by default.
-The following attributes allow you to give your props initial values which will be used when parent has not set them.
+When deriving `Properties` all fields are required by default.
+The following attributes allow you to give your props default values which will be used when parent has not set them.
 
 :::tip
 Attributes aren't visible in Rustdoc generated documentation.
@@ -155,7 +150,8 @@ fn Case2() -> Html {
   <TabItem value="prop_or_value" label="#[prop_or(value)]">
 
 Use `value` to initialize the prop value. `value` can be any expression that returns the field's type.
-For example, to default a boolean prop to `true`, use the attribute `#[prop_or(true)]`.
+For example, to default a boolean prop to `true`, use the attribute `#[prop_or(true)]`. The expression
+is evaluated when the properties are constructed and no explicit value has been given.
 
 ```rust
 use yew::{function_component, html, Html, Properties};
@@ -189,6 +185,7 @@ fn Case2() -> Html {
   <TabItem value="prop_or_else_function" label="#[prop_or_else(function)]">
 
 Call `function` to initialize the prop value. `function` should have the signature `FnMut() -> T` where `T` is the field type.
+The function is called when no explicit value has been given for that attribute.
 
 ```rust
 use yew::{function_component, html, Html, Properties};
@@ -225,6 +222,15 @@ fn Case2() -> Html {
   </TabItem>
 </Tabs>
 
+## Memory/speed overhead of using Properties
+
+Internally properties are reference counted. This means that only a shared pointer is passed down the component tree for props.
+It saves us from the cost of having to clone the entire props, which might be expensive.
+
+:::tip
+Make use of `AttrValue` which is our custom type for attribute values instead of defining them as String or another similar type.
+:::
+
 ## Props macro
 
 The `yew::props!` macro allows you to build properties the same way the `html!` macro does it.
@@ -233,12 +239,12 @@ The macro uses the same syntax as a struct expression except that you can't use 
 The type path can either point to the props directly (`path::to::Props`) or the associated properties of a component (`MyComp::Properties`).
 
 ```rust
-use yew::{function_component, html, Html, Properties, props};
+use yew::{function_component, html, Html, Properties, props, virtual_dom::AttrValue};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
-    #[prop_or("Bob".to_string())]
-    pub name: String,
+    #[prop_or(AttrValue::from("Bob"))]
+    pub name: AttrValue,
 }
 
 #[function_component]
@@ -256,3 +262,21 @@ fn App() -> Html {
     html! {<HelloWorld ..pre_made_props />}
 }
 ```
+
+## Anti Patterns
+
+While almost any Rust type can be passed as properties, there are some anti-patterns that should be avoided.
+These include, but are not limited to:
+
+1. Using `String` type instead of `AttrValue`. <br />
+   **Why is this bad?** `String` can be expensive to clone.
+   Cloning is often needed when the prop value is used with hooks and callbacks. `AttrValue` is either
+   a reference-counted string (`Rc<str>`) or a `&'static str`, thus very cheap to clone.<br />
+   **Note**: `AttrValue` internally is `IString` from [implicit-clone](https://crates.io/crates/implicit-clone)
+   See that crate to learn more.
+2. Using interior mutability. <br />
+   **Why is this bad?** Interior mutability (such as with `RefCell`, `Mutex`, etc.) should
+   _generally_ be avoided. It can cause problems with re-renders (Yew doesn't know when state has changed)
+   so you may have to manually force a render. Like all things, it has its place. Use it with caution.
+3. You tell us. Did you run into an edge-case you wish you knew about earlier? Feel free to create an issue
+   or PR a fix to this documentation.

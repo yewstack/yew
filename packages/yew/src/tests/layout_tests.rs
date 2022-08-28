@@ -1,10 +1,13 @@
-use crate::dom_bundle::{BSubtree, Bundle};
-use crate::html::AnyScope;
-use crate::scheduler;
-use crate::virtual_dom::VNode;
-use crate::{Component, Context, Html};
+//! Snapshot testing of Yew components
+//!
+//! This tests must be run in browser and thus require the `csr` feature to be enabled
 use gloo::console::log;
 use yew::NodeRef;
+
+use crate::dom_bundle::{BSubtree, Bundle};
+use crate::html::AnyScope;
+use crate::virtual_dom::VNode;
+use crate::{scheduler, Component, Context, Html};
 
 struct Comp;
 impl Component for Comp {
@@ -36,7 +39,7 @@ pub struct TestLayout<'a> {
 }
 
 pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
-    let document = gloo_utils::document();
+    let document = gloo::utils::document();
     let scope: AnyScope = AnyScope::test();
     let parent_element = document.create_element("div").unwrap();
     let root = BSubtree::create_root(&parent_element);

@@ -1,4 +1,4 @@
-use gloo_render::{request_animation_frame, AnimationFrame};
+use gloo::render::{request_animation_frame, AnimationFrame};
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGlRenderingContext as GL};
 use yew::html::Scope;
@@ -73,8 +73,8 @@ impl Component for App {
                 request_animation_frame(move |time| link.send_message(Msg::Render(time)))
             };
 
-            // A reference to the handle must be stored, otherwise it is dropped and the render won't
-            // occur.
+            // A reference to the handle must be stored, otherwise it is dropped and the render
+            // won't occur.
             self._render_loop = Some(handle);
         }
     }

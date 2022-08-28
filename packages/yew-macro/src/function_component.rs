@@ -253,8 +253,8 @@ impl FunctionComponent {
         let mut block = *block.clone();
         let (impl_generics, _ty_generics, where_clause) = generics.split_for_impl();
 
-        // We use _ctx here so if the component does not use any hooks, the usused_vars lint will not
-        // be triggered.
+        // We use _ctx here so if the component does not use any hooks, the usused_vars lint will
+        // not be triggered.
         let ctx_ident = Ident::new("_ctx", Span::mixed_site());
 
         let mut body_rewriter = BodyRewriter::new(ctx_ident.clone());
@@ -318,6 +318,11 @@ impl FunctionComponent {
                 #[inline]
                 fn destroy(&mut self, _ctx: &::yew::html::Context<Self>) {
                     ::yew::functional::FunctionComponent::<Self>::destroy(&self.function_component)
+                }
+
+                #[inline]
+                fn prepare_state(&self) -> ::std::option::Option<::std::string::String> {
+                    ::yew::functional::FunctionComponent::<Self>::prepare_state(&self.function_component)
                 }
             }
         }

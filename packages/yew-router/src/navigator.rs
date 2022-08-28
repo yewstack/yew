@@ -9,7 +9,7 @@ pub type NavigationError = HistoryError;
 pub type NavigationResult<T> = HistoryResult<T>;
 
 /// The kind of Navigator Provider.
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum NavigatorKind {
     /// Browser History.
     Browser,
@@ -57,77 +57,94 @@ impl Navigator {
     }
 
     /// Pushes a [`Routable`] entry.
-    pub fn push(&self, route: impl Routable) {
-        self.inner.push(self.route_to_url(route));
+    pub fn push<R>(&self, route: &R)
+    where
+        R: Routable,
+    {
+        self.inner.push(self.prefix_basename(&route.to_path()));
     }
 
     /// Replaces the current history entry with provided [`Routable`] and [`None`] state.
-    pub fn replace(&self, route: impl Routable) {
-        self.inner.replace(self.route_to_url(route));
+    pub fn replace<R>(&self, route: &R)
+    where
+        R: Routable,
+    {
+        self.inner.replace(self.prefix_basename(&route.to_path()));
     }
 
     /// Pushes a [`Routable`] entry with state.
-    pub fn push_with_state<T>(&self, route: impl Routable, state: T)
+    pub fn push_with_state<R, T>(&self, route: &R, state: T)
     where
+        R: Routable,
         T: 'static,
     {
-        self.inner.push_with_state(self.route_to_url(route), state);
+        self.inner
+            .push_with_state(self.prefix_basename(&route.to_path()), state);
     }
 
     /// Replaces the current history entry with provided [`Routable`] and state.
-    pub fn replace_with_state<T>(&self, route: impl Routable, state: T)
+    pub fn replace_with_state<R, T>(&self, route: &R, state: T)
     where
+        R: Routable,
         T: 'static,
     {
         self.inner
-            .replace_with_state(self.route_to_url(route), state);
+            .replace_with_state(self.prefix_basename(&route.to_path()), state);
     }
 
     /// Same as `.push()` but affix the queries to the end of the route.
-    pub fn push_with_query<Q>(&self, route: impl Routable, query: Q) -> NavigationResult<()>
+    pub fn push_with_query<R, Q>(&self, route: &R, query: &Q) -> NavigationResult<()>
     where
+        R: Routable,
         Q: Serialize,
     {
-        self.inner.push_with_query(self.route_to_url(route), query)
+        self.inner
+            .push_with_query(self.prefix_basename(&route.to_path()), query)
     }
 
     /// Same as `.replace()` but affix the queries to the end of the route.
-    pub fn replace_with_query<Q>(&self, route: impl Routable, query: Q) -> NavigationResult<()>
+    pub fn replace_with_query<R, Q>(&self, route: &R, query: &Q) -> NavigationResult<()>
     where
+        R: Routable,
         Q: Serialize,
     {
         self.inner
-            .replace_with_query(self.route_to_url(route), query)
+            .replace_with_query(self.prefix_basename(&route.to_path()), query)
     }
 
     /// Same as `.push_with_state()` but affix the queries to the end of the route.
-    pub fn push_with_query_and_state<Q, T>(
+    pub fn push_with_query_and_state<R, Q, T>(
         &self,
-        route: impl Routable,
-        query: Q,
+        route: &R,
+        query: &Q,
         state: T,
     ) -> NavigationResult<()>
     where
+        R: Routable,
         Q: Serialize,
         T: 'static,
     {
         self.inner
-            .push_with_query_and_state(self.route_to_url(route), query, state)
+            .push_with_query_and_state(self.prefix_basename(&route.to_path()), query, state)
     }
 
     /// Same as `.replace_with_state()` but affix the queries to the end of the route.
-    pub fn replace_with_query_and_state<Q, T>(
+    pub fn replace_with_query_and_state<R, Q, T>(
         &self,
-        route: impl Routable,
-        query: Q,
+        route: &R,
+        query: &Q,
         state: T,
     ) -> NavigationResult<()>
     where
+        R: Routable,
         Q: Serialize,
         T: 'static,
     {
-        self.inner
-            .replace_with_query_and_state(self.route_to_url(route), query, state)
+        self.inner.replace_with_query_and_state(
+            self.prefix_basename(&route.to_path()),
+            query,
+            state,
+        )
     }
 
     /// Returns the Navigator kind.
@@ -139,22 +156,17 @@ impl Navigator {
         }
     }
 
-    pub(crate) fn route_to_url(&self, route: impl Routable) -> Cow<'static, str> {
-        let url = route.to_path();
-
-        let path = match self.basename() {
+    pub(crate) fn prefix_basename<'a>(&self, route_s: &'a str) -> Cow<'a, str> {
+        match self.basename() {
             Some(base) => {
-                let path = format!("{}{}", base, url);
-                if path.is_empty() {
+                if route_s.is_empty() && route_s.is_empty() {
                     Cow::from("/")
                 } else {
-                    path.into()
+                    Cow::from(format!("{}{}", base, route_s))
                 }
             }
-            None => url.into(),
-        };
-
-        path
+            None => route_s.into(),
+        }
     }
 
     pub(crate) fn strip_basename<'a>(&self, path: Cow<'a, str>) -> Cow<'a, str> {

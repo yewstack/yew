@@ -1,0 +1,5 @@
+[target.'cfg(target_arch = "wasm32")']
+runner = 'wasm-bindgen-test-runner'
+
+[unstable]
+doctest-xcompile = true

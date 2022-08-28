@@ -1,7 +1,8 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
-use super::AttrValue;
 use std::cmp::PartialEq;
+
+use super::AttrValue;
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -33,22 +34,27 @@ impl PartialEq for VText {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+
     use super::*;
     use crate::html::AnyScope;
+    use crate::platform::io::BufWriter;
 
     impl VText {
-        pub(crate) async fn render_to_string(
+        pub(crate) async fn render_into_stream(
             &self,
-            w: &mut String,
+            w: &mut BufWriter,
             _parent_scope: &AnyScope,
             _hydratable: bool,
         ) {
-            html_escape::encode_text_to_string(&self.text, w);
+            let s = html_escape::encode_text(&self.text);
+            w.write(s);
         }
     }
 }
 
-#[cfg(all(test, not(target_arch = "wasm32"), feature = "ssr"))]
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "ssr")]
+#[cfg(test)]
 mod ssr_tests {
     use tokio::test;
 

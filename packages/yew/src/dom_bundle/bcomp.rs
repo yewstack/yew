@@ -1,12 +1,15 @@
 //! This module contains the bundle implementation of a virtual component [BComp].
 
+use std::any::TypeId;
+use std::borrow::Borrow;
+use std::fmt;
+
+use web_sys::Element;
+
 use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
 use crate::html::{AnyScope, Scoped};
 use crate::virtual_dom::{Key, VComp};
 use crate::NodeRef;
-use std::fmt;
-use std::{any::TypeId, borrow::Borrow};
-use web_sys::Element;
 
 /// A virtual component. Compare with [VComp].
 pub(super) struct BComp {
@@ -15,9 +18,6 @@ pub(super) struct BComp {
     // A internal NodeRef passed around to track this components position. This
     // is "stable", i.e. does not change when reconciled.
     internal_ref: NodeRef,
-    // The user-passed NodeRef from VComp. Might change every time we reconcile.
-    // Gets linked to the internal ref
-    node_ref: NodeRef,
     key: Option<Key>,
 }
 
@@ -41,8 +41,10 @@ impl ReconcileTarget for BComp {
         self.scope.destroy_boxed(parent_to_detach);
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
         self.scope.shift_node(next_parent.clone(), next_sibling);
+
+        self.internal_ref.clone()
     }
 }
 
@@ -59,17 +61,16 @@ impl Reconcilable for VComp {
         let VComp {
             type_id,
             mountable,
-            node_ref,
             key,
+            ..
         } = self;
         let internal_ref = NodeRef::default();
-        node_ref.link(internal_ref.clone());
 
         let scope = mountable.mount(
             root,
-            internal_ref.clone(),
             parent_scope,
             parent.to_owned(),
+            internal_ref.clone(),
             next_sibling,
         );
 
@@ -77,7 +78,6 @@ impl Reconcilable for VComp {
             internal_ref.clone(),
             BComp {
                 type_id,
-                node_ref,
                 internal_ref,
                 key,
                 scope,
@@ -112,16 +112,9 @@ impl Reconcilable for VComp {
         next_sibling: NodeRef,
         bcomp: &mut Self::Bundle,
     ) -> NodeRef {
-        let VComp {
-            mountable,
-            node_ref,
-            key,
-            type_id: _,
-        } = self;
+        let VComp { mountable, key, .. } = self;
 
         bcomp.key = key;
-        let old_ref = std::mem::replace(&mut bcomp.node_ref, node_ref);
-        bcomp.node_ref.reuse(old_ref);
         mountable.reuse(bcomp.scope.borrow(), next_sibling);
         bcomp.internal_ref.clone()
     }
@@ -130,7 +123,6 @@ impl Reconcilable for VComp {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-
     use crate::dom_bundle::{Fragment, Hydratable};
 
     impl Hydratable for VComp {
@@ -144,18 +136,17 @@ mod feat_hydration {
             let VComp {
                 type_id,
                 mountable,
-                node_ref,
                 key,
+                ..
             } = self;
             let internal_ref = NodeRef::default();
-            node_ref.link(internal_ref.clone());
 
             let scoped = mountable.hydrate(
                 root.clone(),
                 parent_scope,
                 parent.clone(),
-                fragment,
                 internal_ref.clone(),
+                fragment,
             );
 
             (
@@ -163,7 +154,6 @@ mod feat_hydration {
                 BComp {
                     type_id,
                     scope: scoped,
-                    node_ref,
                     internal_ref,
                     key,
                 },
@@ -172,23 +162,17 @@ mod feat_hydration {
     }
 }
 
-#[cfg(feature = "wasm_test")]
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::dom_bundle::{Bundle, Reconcilable, ReconcileTarget};
-    use crate::scheduler;
-    use crate::{
-        html,
-        virtual_dom::{Key, VChild, VNode},
-        Children, Component, Context, Html, NodeRef, Properties,
-    };
-    use gloo_utils::document;
-    use std::ops::Deref;
-    use web_sys::Element;
-    use web_sys::Node;
-
+    use gloo::utils::document;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use web_sys::Element;
+
+    use super::*;
+    use crate::dom_bundle::{Reconcilable, ReconcileTarget};
+    use crate::virtual_dom::{Key, VChild, VNode};
+    use crate::{html, scheduler, Children, Component, Context, Html, NodeRef, Properties};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -283,38 +267,12 @@ mod tests {
     }
 
     #[test]
-    fn set_component_node_ref() {
-        let test_node: Node = document().create_text_node("test").into();
-        let test_node_ref = NodeRef::new(test_node);
-        let check_node_ref = |vnode: VNode| {
-            let vcomp = match vnode {
-                VNode::VComp(vcomp) => vcomp,
-                _ => unreachable!("should be a vcomp"),
-            };
-            assert_eq!(vcomp.node_ref, test_node_ref);
-        };
-
-        let props = Props {
-            field_1: 1,
-            field_2: 1,
-        };
-        let props_2 = props.clone();
-
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} /> });
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} field_1=1 /> });
-        check_node_ref(html! { <Comp field_1=1 ref={test_node_ref.clone()} /> });
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} ..props /> });
-        check_node_ref(html! { <Comp ref={test_node_ref.clone()} ..props_2 /> });
-    }
-
-    #[test]
     fn vchild_partialeq() {
         let vchild1: VChild<Comp> = VChild::new(
             Props {
                 field_1: 1,
                 field_2: 1,
             },
-            NodeRef::default(),
             None,
         );
 
@@ -323,7 +281,6 @@ mod tests {
                 field_1: 1,
                 field_2: 1,
             },
-            NodeRef::default(),
             None,
         );
 
@@ -332,7 +289,6 @@ mod tests {
                 field_1: 2,
                 field_2: 2,
             },
-            NodeRef::default(),
             None,
         );
 
@@ -353,12 +309,15 @@ mod tests {
         fn create(_: &Context<Self>) -> Self {
             Self
         }
+
         fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
             unimplemented!();
         }
+
         fn changed(&mut self, _ctx: &Context<Self>) -> bool {
             unimplemented!();
         }
+
         fn view(&self, ctx: &Context<Self>) -> Html {
             let item_iter = ctx
                 .props()
@@ -400,11 +359,7 @@ mod tests {
             .collect();
         let children_renderer = Children::new(children.clone());
         let expected_html = "\
-        <ul>\
-            <li><span>a</span></li>\
-            <li><span>b</span></li>\
-            <li><span>c</span></li>\
-        </ul>";
+        <ul><li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ul>";
 
         let prop_method = html! {
             <List children={children_renderer.clone()} />
@@ -440,59 +395,31 @@ mod tests {
     }
 
     #[test]
-    fn reset_node_ref() {
+    fn component_node_ref_stays_none() {
         let (root, scope, parent) = setup_parent();
 
         let node_ref = NodeRef::default();
         let elem = html! { <Comp ref={node_ref.clone()}></Comp> };
         let (_, elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         scheduler::start_now();
-        let parent_node = parent.deref();
-        assert_eq!(node_ref.get(), parent_node.first_child());
+        assert!(node_ref.get().is_none(), "components don't have node refs");
         elem.detach(&root, &parent, false);
         scheduler::start_now();
-        assert!(node_ref.get().is_none());
-    }
-
-    #[test]
-    fn reset_ancestors_node_ref() {
-        let (root, scope, parent) = setup_parent();
-
-        let mut bundle = Bundle::new();
-        let node_ref_a = NodeRef::default();
-        let node_ref_b = NodeRef::default();
-        let elem = html! { <Comp ref={node_ref_a.clone()}></Comp> };
-        let node_a = bundle.reconcile(&root, &scope, &parent, NodeRef::default(), elem);
-        scheduler::start_now();
-        let node_a = node_a.get().unwrap();
-
-        assert!(node_ref_a.get().is_some(), "node_ref_a should be bound");
-
-        let elem = html! { <Comp ref={node_ref_b.clone()}></Comp> };
-        let node_b = bundle.reconcile(&root, &scope, &parent, NodeRef::default(), elem);
-        scheduler::start_now();
-        let node_b = node_b.get().unwrap();
-
-        assert_eq!(node_a, node_b, "Comp should have reused the element");
-        assert!(node_ref_b.get().is_some(), "node_ref_b should be bound");
-        assert!(
-            node_ref_a.get().is_none(),
-            "node_ref_a should have been reset when the element was reused."
-        );
+        assert!(node_ref.get().is_none(), "components don't have node refs");
     }
 }
 
-#[cfg(feature = "wasm_test")]
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
-    use crate::html;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
-    use crate::{Children, Component, Context, Html, Properties};
     use std::marker::PhantomData;
 
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::{html, Children, Component, Context, Html, Properties};
 
     wasm_bindgen_test_configure!(run_in_browser);
 

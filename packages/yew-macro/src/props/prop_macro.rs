@@ -1,15 +1,15 @@
-use super::{ComponentProps, Prop, Props, SortedPropList};
-use crate::html_tree::HtmlDashedName;
+use std::convert::TryInto;
+
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
-use std::convert::TryInto;
-use syn::{
-    parse::{Parse, ParseStream},
-    punctuated::Punctuated,
-    spanned::Spanned,
-    token::Brace,
-    Expr, Token, TypePath,
-};
+use syn::parse::{Parse, ParseStream};
+use syn::punctuated::Punctuated;
+use syn::spanned::Spanned;
+use syn::token::Brace;
+use syn::{Expr, Token, TypePath};
+
+use super::{ComponentProps, Prop, Props, SortedPropList};
+use crate::html_tree::HtmlDashedName;
 
 /// Pop from `Punctuated` without leaving it in a state where it has trailing punctuation.
 fn pop_last_punctuated<T, P>(punctuated: &mut Punctuated<T, P>) -> Option<T> {
@@ -30,7 +30,8 @@ fn is_associated_properties(ty: &TypePath) -> bool {
             if let Some(seg) = segments_it.next_back() {
                 // ... and we can be reasonably sure that the previous segment is a component ...
                 if !crate::non_capitalized_ascii(&seg.ident.to_string()) {
-                    // ... then we assume that this is an associated type like `Component::Properties`
+                    // ... then we assume that this is an associated type like
+                    // `Component::Properties`
                     return true;
                 }
             }
@@ -60,7 +61,11 @@ impl Parse for PropValue {
 impl From<PropValue> for Prop {
     fn from(prop_value: PropValue) -> Prop {
         let PropValue { label, value } = prop_value;
-        Prop { label, value }
+        Prop {
+            label,
+            value,
+            directive: None,
+        }
     }
 }
 
@@ -73,7 +78,8 @@ impl Parse for PropsExpr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut ty: TypePath = input.parse()?;
 
-        // if the type isn't already qualified (`<x as y>`) and it's an associated type (`MyComp::Properties`) ...
+        // if the type isn't already qualified (`<x as y>`) and it's an associated type
+        // (`MyComp::Properties`) ...
         if ty.qself.is_none() && is_associated_properties(&ty) {
             pop_last_punctuated(&mut ty.path.segments);
             // .. transform it into a "qualified-self" type

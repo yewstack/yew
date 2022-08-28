@@ -3,14 +3,17 @@ mod field;
 mod generics;
 mod wrapper;
 
+use std::convert::TryInto;
+
 use builder::PropsBuilder;
 use field::PropField;
 use proc_macro2::{Ident, Span};
 use quote::{format_ident, quote, ToTokens};
-use std::convert::TryInto;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::{Attribute, DeriveInput, Generics, Visibility};
 use wrapper::PropsWrapper;
+
+use self::generics::to_arguments;
 
 pub struct DerivePropsInput {
     vis: Visibility,
@@ -23,10 +26,10 @@ pub struct DerivePropsInput {
 /// Some attributes on the original struct are to be preserved and added to the builder struct,
 /// in order to avoid warnings (sometimes reported as errors) in the output.
 fn should_preserve_attr(attr: &Attribute) -> bool {
-    // #[cfg(...)]: does not usually appear in macro inputs, but rust-analyzer seems to generate it sometimes.
-    //              If not preserved, results in "no-such-field" errors generating the field setter for `build`
-    // #[allow(...)]: silences warnings from clippy, such as dead_code etc.
-    // #[deny(...)]: enable additional warnings from clippy
+    // #[cfg(...)]: does not usually appear in macro inputs, but rust-analyzer seems to generate it
+    // sometimes.              If not preserved, results in "no-such-field" errors generating
+    // the field setter for `build` #[allow(...)]: silences warnings from clippy, such as
+    // dead_code etc. #[deny(...)]: enable additional warnings from clippy
     let path = &attr.path;
     path.is_ident("allow") || path.is_ident("deny") || path.is_ident("cfg")
 }
@@ -91,27 +94,27 @@ impl ToTokens for DerivePropsInput {
 
         // The builder will only build if all required props have been set
         let builder_name = format_ident!("{}Builder", props_name, span = Span::mixed_site());
-        let builder_step = format_ident!("{}BuilderStep", props_name, span = Span::mixed_site());
+        let check_all_props_name =
+            format_ident!("Check{}All", props_name, span = Span::mixed_site());
         let builder = PropsBuilder::new(
             &builder_name,
-            &builder_step,
             self,
             &wrapper_name,
+            &check_all_props_name,
             &self.preserved_attrs,
         );
-        let builder_generic_args = builder.first_step_generic_args();
+        let generic_args = to_arguments(generics);
         tokens.extend(builder.into_token_stream());
 
         // The properties trait has a `builder` method which creates the props builder
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
         let properties = quote! {
             impl #impl_generics ::yew::html::Properties for #props_name #ty_generics #where_clause {
-                type Builder = #builder_name<#builder_generic_args>;
+                type Builder = #builder_name<#generic_args>;
 
                 fn builder() -> Self::Builder {
                     #builder_name {
                         wrapped: ::std::boxed::Box::new(::std::default::Default::default()),
-                        _marker: ::std::marker::PhantomData,
                     }
                 }
             }

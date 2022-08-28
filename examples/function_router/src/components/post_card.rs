@@ -1,15 +1,18 @@
 use std::rc::Rc;
 
-use crate::{content::PostMeta, generator::Generated, Route};
 use yew::prelude::*;
 use yew_router::components::Link;
 
-#[derive(Clone, Debug, PartialEq, Properties)]
+use crate::content::PostMeta;
+use crate::generator::Generated;
+use crate::Route;
+
+#[derive(Clone, Debug, PartialEq, Eq, Properties)]
 pub struct Props {
     pub seed: u32,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct PostMetaState {
     inner: PostMeta,
 }

@@ -1,17 +1,18 @@
 use std::collections::HashMap;
 
 use yew::prelude::*;
-use yew::virtual_dom::AttrValue;
 use yew_router::history::{AnyHistory, History, MemoryHistory};
 use yew_router::prelude::*;
 
 use crate::components::nav::Nav;
-use crate::pages::{
-    author::Author, author_list::AuthorList, home::Home, page_not_found::PageNotFound, post::Post,
-    post_list::PostList,
-};
+use crate::pages::author::Author;
+use crate::pages::author_list::AuthorList;
+use crate::pages::home::Home;
+use crate::pages::page_not_found::PageNotFound;
+use crate::pages::post::Post;
+use crate::pages::post_list::PostList;
 
-#[derive(Routable, PartialEq, Clone, Debug)]
+#[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
     #[at("/posts/:id")]
     Post { id: u32 },
@@ -35,7 +36,7 @@ pub fn App() -> Html {
             <Nav />
 
             <main>
-                <Switch<Route> render={Switch::render(switch)} />
+                <Switch<Route> render={switch} />
             </main>
             <footer class="footer">
                 <div class="content has-text-centered">
@@ -51,7 +52,7 @@ pub fn App() -> Html {
     }
 }
 
-#[derive(Properties, PartialEq, Debug)]
+#[derive(Properties, PartialEq, Eq, Debug)]
 pub struct ServerAppProps {
     pub url: AttrValue,
     pub queries: HashMap<String, String>,
@@ -69,7 +70,7 @@ pub fn ServerApp(props: &ServerAppProps) -> Html {
             <Nav />
 
             <main>
-                <Switch<Route> render={Switch::render(switch)} />
+                <Switch<Route> render={switch} />
             </main>
             <footer class="footer">
                 <div class="content has-text-centered">
@@ -85,8 +86,8 @@ pub fn ServerApp(props: &ServerAppProps) -> Html {
     }
 }
 
-fn switch(routes: &Route) -> Html {
-    match routes.clone() {
+fn switch(routes: Route) -> Html {
+    match routes {
         Route::Post { id } => {
             html! { <Post seed={id} /> }
         }

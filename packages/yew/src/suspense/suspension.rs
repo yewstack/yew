@@ -7,6 +7,7 @@ use std::task::{Context, Poll};
 
 use thiserror::Error;
 
+use crate::platform::spawn_local;
 use crate::Callback;
 
 thread_local! {
@@ -54,6 +55,18 @@ impl Suspension {
     /// Returns `true` if the current suspension is already resumed.
     pub fn resumed(&self) -> bool {
         self.resumed.load(Ordering::Relaxed)
+    }
+
+    /// Creates a Suspension that resumes when the [`Future`] resolves.
+    pub fn from_future(f: impl Future<Output = ()> + 'static) -> Self {
+        let (self_, handle) = Self::new();
+
+        spawn_local(async move {
+            f.await;
+            handle.resume();
+        });
+
+        self_
     }
 
     /// Listens to a suspension and get notified when it resumes.
@@ -123,26 +136,5 @@ impl SuspensionHandle {
 impl Drop for SuspensionHandle {
     fn drop(&mut self) {
         self.inner.resume_by_ref();
-    }
-}
-
-#[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
-#[cfg(any(target_arch = "wasm32", feature = "tokio"))]
-mod feat_io {
-    use super::*;
-    use crate::io_coop::spawn_local;
-
-    impl Suspension {
-        /// Creates a Suspension that resumes when the [`Future`] resolves.
-        pub fn from_future(f: impl Future<Output = ()> + 'static) -> Self {
-            let (self_, handle) = Self::new();
-
-            spawn_local(async move {
-                f.await;
-                handle.resume();
-            });
-
-            self_
-        }
     }
 }

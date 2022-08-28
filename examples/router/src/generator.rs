@@ -1,18 +1,19 @@
-use lazy_static::lazy_static;
 use lipsum::MarkovChain;
-use rand::{distributions::Bernoulli, rngs::SmallRng, seq::IteratorRandom, Rng, SeedableRng};
+use once_cell::sync::Lazy;
+use rand::distributions::Bernoulli;
+use rand::rngs::SmallRng;
+use rand::seq::IteratorRandom;
+use rand::{Rng, SeedableRng};
 
 const KEYWORDS: &str = include_str!("../data/keywords.txt");
 const SYLLABLES: &str = include_str!("../data/syllables.txt");
 const YEW_CONTENT: &str = include_str!("../data/yew.txt");
 
-lazy_static! {
-    static ref YEW_CHAIN: MarkovChain<'static> = {
-        let mut chain = MarkovChain::new();
-        chain.learn(YEW_CONTENT);
-        chain
-    };
-}
+static YEW_CHAIN: Lazy<MarkovChain<'static>> = Lazy::new(|| {
+    let mut chain = MarkovChain::new();
+    chain.learn(YEW_CONTENT);
+    chain
+});
 
 pub struct Generator {
     pub seed: u64,

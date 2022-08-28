@@ -1,10 +1,10 @@
 use yew::{function_component, html, Html, Properties};
 
-use crate::components::{
-    score_board_best_score::BestScore, score_board_logo::Logo, score_board_progress::GameProgress,
-};
+use crate::components::score_board_best_score::BestScore;
+use crate::components::score_board_logo::Logo;
+use crate::components::score_board_progress::GameProgress;
 
-#[derive(PartialEq, Properties, Clone)]
+#[derive(PartialEq, Properties, Clone, Eq)]
 pub struct Props {
     pub unresolved_card_pairs: u8,
     pub best_score: u32,

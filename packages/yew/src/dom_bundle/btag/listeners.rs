@@ -1,12 +1,15 @@
-use super::Apply;
-use crate::dom_bundle::{test_log, BSubtree, EventDescriptor};
-use crate::virtual_dom::{Listener, Listeners};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::rc::Rc;
-use wasm_bindgen::{prelude::wasm_bindgen, JsCast};
+
+use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::JsCast;
 use web_sys::{Element, Event, EventTarget as HtmlEventTarget};
+
+use super::Apply;
+use crate::dom_bundle::{test_log, BSubtree, EventDescriptor};
+use crate::virtual_dom::{Listener, Listeners};
 
 #[wasm_bindgen]
 extern "C" {
@@ -45,8 +48,8 @@ pub(super) enum ListenerRegistration {
 }
 
 impl Apply for Listeners {
-    type Element = Element;
     type Bundle = ListenerRegistration;
+    type Element = Element;
 
     fn apply(self, root: &BSubtree, el: &Self::Element) -> ListenerRegistration {
         match self {
@@ -193,22 +196,24 @@ impl Registry {
     }
 }
 
-#[cfg(feature = "wasm_test")]
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
     use std::marker::PhantomData;
 
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-    use web_sys::{Event, EventInit, HtmlElement, MouseEvent};
+    use web_sys::{Event, EventInit, FocusEvent, HtmlElement, MouseEvent};
     wasm_bindgen_test_configure!(run_in_browser);
 
-    use crate::{
-        create_portal, html, html::TargetCast, scheduler, virtual_dom::VNode, AppHandle, Component,
-        Context, Html, NodeRef, Properties,
-    };
-    use gloo_utils::document;
+    use gloo::utils::document;
     use wasm_bindgen::JsCast;
     use yew::Callback;
+
+    use crate::html::TargetCast;
+    use crate::virtual_dom::VNode;
+    use crate::{
+        create_portal, html, scheduler, AppHandle, Component, Context, Html, NodeRef, Properties,
+    };
 
     #[derive(Clone)]
     enum Message {
@@ -307,7 +312,7 @@ mod tests {
         M: Mixin + Properties + Default,
     {
         // Remove any existing elements
-        let body = document().body().unwrap();
+        let body = document().query_selector("#output").unwrap().unwrap();
         while let Some(child) = body.query_selector("div#testroot").unwrap() {
             body.remove_child(&child).unwrap();
         }
@@ -531,6 +536,45 @@ mod tests {
         assert_count(&el, 2);
     }
 
+    #[test]
+    fn non_bubbling() {
+        #[derive(Default, PartialEq, Properties)]
+        struct NonBubbling;
+
+        impl Mixin for NonBubbling {
+            fn view<C>(ctx: &Context<C>, state: &State) -> Html
+            where
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
+            {
+                let onfocus = ctx.link().callback(|_| Message::Action);
+                let onfocus_inner = ctx.link().callback(|e: FocusEvent| {
+                    assert!(!e.bubbles(), "event should be non-bubbling");
+                    Message::Action
+                });
+
+                html! {
+                    <div {onfocus}>
+                        <button onfocus={onfocus_inner} ref={&ctx.props().state_ref}>
+                            {state.action}
+                        </button>
+                    </div>
+                }
+            }
+        }
+        // Should only trigger the inner listener, not also the outer one
+        let (_, el) = init::<NonBubbling>();
+
+        assert_count(&el, 0);
+        el.get()
+            .unwrap()
+            .dyn_into::<HtmlElement>()
+            .unwrap()
+            .focus()
+            .unwrap();
+        scheduler::start_now();
+        assert_count(&el, 1);
+    }
+
     /// Here an event is being delivered to a DOM node which is contained
     /// in a portal. It should bubble through the portal and reach the containing
     /// element.
@@ -576,7 +620,8 @@ mod tests {
         assert_count(&el, 1);
     }
 
-    /// Here an event is being from inside a shadow root. It should only be caught exactly once on each handler
+    /// Here an event is being from inside a shadow root. It should only be caught exactly once on
+    /// each handler
     #[test]
     fn open_shadow_dom_bubbling() {
         use web_sys::{ShadowRootInit, ShadowRootMode};

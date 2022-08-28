@@ -1,15 +1,16 @@
 //! [AppHandle] contains the state Yew keeps to bootstrap a component in an isolated scope.
 
-use crate::dom_bundle::BSubtree;
-use crate::html::Scoped;
-use crate::html::{BaseComponent, NodeRef, Scope};
 use std::ops::Deref;
 use std::rc::Rc;
+
 use web_sys::Element;
 
+use crate::dom_bundle::BSubtree;
+use crate::html::{BaseComponent, NodeRef, Scope, Scoped};
+
 /// An instance of an application.
+#[cfg(feature = "csr")]
 #[derive(Debug)]
-#[cfg_attr(documenting, doc(cfg(feature = "csr")))]
 pub struct AppHandle<COMP: BaseComponent> {
     /// `Scope` holder
     pub(crate) scope: Scope<COMP>,
@@ -23,6 +24,11 @@ where
     /// similarly to the `program` function in Elm. You should provide an initial model, `update`
     /// function which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
+    #[tracing::instrument(
+        level = tracing::Level::DEBUG,
+        name = "mount",
+        skip(props),
+    )]
     pub(crate) fn mount_with_props(host: Element, props: Rc<COMP::Properties>) -> Self {
         clear_element(&host);
         let app = Self {
@@ -41,6 +47,10 @@ where
     }
 
     /// Schedule the app for destruction
+    #[tracing::instrument(
+        level = tracing::Level::DEBUG,
+        skip_all,
+    )]
     pub fn destroy(self) {
         self.scope.destroy(false)
     }
@@ -64,17 +74,20 @@ fn clear_element(host: &Element) {
     }
 }
 
-#[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-
     use crate::dom_bundle::Fragment;
 
     impl<COMP> AppHandle<COMP>
     where
         COMP: BaseComponent,
     {
+        #[tracing::instrument(
+            level = tracing::Level::DEBUG,
+            name = "hydrate",
+            skip(props),
+        )]
         pub(crate) fn hydrate_with_props(host: Element, props: Rc<COMP::Properties>) -> Self {
             let app = Self {
                 scope: Scope::new(None),
@@ -88,8 +101,10 @@ mod feat_hydration {
                 host.clone(),
                 &mut fragment,
                 NodeRef::default(),
-                props,
+                Rc::clone(&props),
             );
+            #[cfg(debug_assertions)] // Fix trapped next_sibling at the root
+            app.scope.reuse(props, NodeRef::default());
 
             // We remove all remaining nodes, this mimics the clear_element behaviour in
             // mount_with_props.

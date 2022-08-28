@@ -1,0 +1,9 @@
+[[hooks]]
+stage = "pre_build"
+command = "rustc"
+command_arguments = ["trunk_post_build.rs"]
+
+[[hooks]]
+stage = "post_build"
+command = "./trunk_post_build"
+

@@ -1,15 +1,18 @@
-use crate::{non_capitalized_ascii, stringify::Stringify, Peek};
-use boolinator::Boolinator;
-use proc_macro2::Ident;
-use proc_macro2::{Span, TokenStream};
-use quote::{quote, ToTokens};
 use std::fmt;
+
+use boolinator::Boolinator;
+use proc_macro2::{Ident, Span, TokenStream};
+use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
 use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream};
-use syn::{spanned::Spanned, LitStr, Token};
+use syn::spanned::Spanned;
+use syn::{LitStr, Token};
 
-#[derive(Clone, PartialEq)]
+use crate::stringify::Stringify;
+use crate::{non_capitalized_ascii, Peek};
+
+#[derive(Clone, PartialEq, Eq)]
 pub struct HtmlDashedName {
     pub name: Ident,
     pub extended: Vec<(Token![-], Ident)>,
@@ -76,7 +79,7 @@ impl Parse for HtmlDashedName {
         let name = input.call(Ident::parse_any)?;
         let mut extended = Vec::new();
         while input.peek(Token![-]) {
-            extended.push((input.parse::<Token![-]>()?, input.parse::<Ident>()?));
+            extended.push((input.parse::<Token![-]>()?, input.call(Ident::parse_any)?));
         }
 
         Ok(HtmlDashedName { name, extended })

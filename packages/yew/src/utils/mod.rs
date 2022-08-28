@@ -1,6 +1,7 @@
 //! This module contains useful utilities to get information about the current document.
 
 use std::marker::PhantomData;
+
 use yew::html::ChildrenRenderer;
 
 /// Map IntoIterator<Item=Into<T>> to Iterator<Item=T>
@@ -41,8 +42,8 @@ impl<IN: Into<OUT>, OUT> From<ChildrenRenderer<IN>> for NodeSeq<IN, OUT> {
 }
 
 impl<IN, OUT> IntoIterator for NodeSeq<IN, OUT> {
-    type Item = OUT;
     type IntoIter = std::vec::IntoIter<Self::Item>;
+    type Item = OUT;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
@@ -50,7 +51,6 @@ impl<IN, OUT> IntoIterator for NodeSeq<IN, OUT> {
 }
 
 /// Hack to force type mismatch compile errors in yew-macro.
-//
 // TODO: replace with `compile_error!`, when `type_name_of_val` is stabilised (https://github.com/rust-lang/rust/issues/66359).
 #[doc(hidden)]
 pub fn __ensure_type<T>(_: T) {}

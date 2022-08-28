@@ -1,11 +1,12 @@
 //! Router Component.
 use std::rc::Rc;
 
+use yew::prelude::*;
+use yew::virtual_dom::AttrValue;
+
 use crate::history::{AnyHistory, BrowserHistory, HashHistory, History, Location};
 use crate::navigator::Navigator;
 use crate::utils::{base_url, strip_slash_suffix};
-use yew::prelude::*;
-use yew::virtual_dom::AttrValue;
 
 /// Props for [`Router`].
 #[derive(Properties, PartialEq, Clone)]

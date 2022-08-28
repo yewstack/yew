@@ -3,20 +3,21 @@
 mod attributes;
 mod listeners;
 
+use std::borrow::Cow;
+use std::hint::unreachable_unchecked;
+use std::ops::DerefMut;
+
+use gloo::utils::document;
+use listeners::ListenerRegistration;
 pub use listeners::Registry;
+use wasm_bindgen::JsCast;
+use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
 use super::{insert_node, BList, BNode, BSubtree, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
 use crate::NodeRef;
-use gloo::console;
-use gloo_utils::document;
-use listeners::ListenerRegistration;
-use std::ops::DerefMut;
-use std::{borrow::Cow, hint::unreachable_unchecked};
-use wasm_bindgen::JsCast;
-use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
 /// Applies contained changes to DOM [web_sys::Element]
 trait Apply {
@@ -82,7 +83,7 @@ impl ReconcileTarget for BTag {
             let result = parent.remove_child(&node);
 
             if result.is_err() {
-                console::warn!("Node not found to remove VTag");
+                tracing::warn!("Node not found to remove VTag");
             }
         }
         // It could be that the ref was already reused when rendering another element.
@@ -92,10 +93,12 @@ impl ReconcileTarget for BTag {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
         next_parent
             .insert_before(&self.reference, next_sibling.get().as_ref())
             .unwrap();
+
+        self.node_ref.clone()
     }
 }
 
@@ -261,13 +264,13 @@ impl BTag {
         self.key.as_ref()
     }
 
-    #[cfg(feature = "wasm_test")]
+    #[cfg(target_arch = "wasm32")]
     #[cfg(test)]
     fn reference(&self) -> &Element {
         &self.reference
     }
 
-    #[cfg(feature = "wasm_test")]
+    #[cfg(target_arch = "wasm32")]
     #[cfg(test)]
     fn children(&self) -> &[BNode] {
         match &self.inner {
@@ -276,7 +279,7 @@ impl BTag {
         }
     }
 
-    #[cfg(feature = "wasm_test")]
+    #[cfg(target_arch = "wasm32")]
     #[cfg(test)]
     fn tag(&self) -> &str {
         match &self.inner {
@@ -289,10 +292,10 @@ impl BTag {
 
 #[cfg(feature = "hydration")]
 mod feat_hydration {
-    use super::*;
-
-    use crate::dom_bundle::{node_type_str, Fragment, Hydratable};
     use web_sys::Node;
+
+    use super::*;
+    use crate::dom_bundle::{node_type_str, Fragment, Hydratable};
 
     impl Hydratable for VTag {
         fn hydrate(
@@ -379,21 +382,20 @@ mod feat_hydration {
     }
 }
 
-#[cfg(feature = "wasm_test")]
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
+    use gloo::utils::document;
+    use wasm_bindgen::JsCast;
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use web_sys::HtmlInputElement as InputElement;
+
     use super::*;
     use crate::dom_bundle::{BNode, Reconcilable, ReconcileTarget};
-    use crate::html;
     use crate::html::AnyScope;
     use crate::virtual_dom::vtag::{HTML_NAMESPACE, SVG_NAMESPACE};
     use crate::virtual_dom::{AttrValue, VNode, VTag};
-    use crate::{Html, NodeRef};
-    use gloo_utils::document;
-    use wasm_bindgen::JsCast;
-    use web_sys::HtmlInputElement as InputElement;
-
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use crate::{html, Html, NodeRef};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -912,8 +914,8 @@ mod tests {
                 <div ref={&test_ref} id="after" />
             </>
         };
-        // The point of this diff is to first render the "after" div and then detach the "before" div,
-        // while both should be bound to the same node ref
+        // The point of this diff is to first render the "after" div and then detach the "before"
+        // div, while both should be bound to the same node ref
 
         let (_, mut elem) = before.attach(&root, &scope, &parent, NodeRef::default());
         after.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut elem);
@@ -928,19 +930,60 @@ mod tests {
             "<div id=\"after\"></div>"
         );
     }
+
+    // test for bug: https://github.com/yewstack/yew/pull/2653
+    #[test]
+    fn test_index_map_attribute_diff() {
+        let (root, scope, parent) = setup_parent();
+
+        let test_ref = NodeRef::default();
+
+        // We want to test appy_diff with Attributes::IndexMap, so we
+        // need to create the VTag manually
+
+        // Create <div disabled="disabled" tabindex="0">
+        let mut vtag = VTag::new("div");
+        vtag.node_ref = test_ref.clone();
+        vtag.add_attribute("disabled", "disabled");
+        vtag.add_attribute("tabindex", "0");
+
+        let elem = VNode::VTag(Box::new(vtag));
+
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
+
+        // Create <div tabindex="0"> (removed first attribute "disabled")
+        let mut vtag = VTag::new("div");
+        vtag.node_ref = test_ref.clone();
+        vtag.add_attribute("tabindex", "0");
+        let next_elem = VNode::VTag(Box::new(vtag));
+        let elem_vtag = assert_vtag(next_elem);
+
+        // Sync happens here
+        // this should remove the the "disabled" attribute
+        elem_vtag.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut elem);
+
+        assert_eq!(
+            test_ref
+                .get()
+                .unwrap()
+                .dyn_ref::<web_sys::Element>()
+                .unwrap()
+                .outer_html(),
+            "<div tabindex=\"0\"></div>"
+        );
+    }
 }
 
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
     use crate::html;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
 
-    #[cfg(feature = "wasm_test")]
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
@@ -1038,7 +1081,11 @@ mod tests_without_browser {
                     <div class="foo" />
                 }
             },
-            html! { <div class="foo" /> },
+            html! {
+                <>
+                    <div class="foo" />
+                </>
+            },
         );
         assert_eq!(
             html! {
@@ -1049,7 +1096,7 @@ mod tests_without_browser {
                 }
             },
             html! {
-                <div class="bar" />
+                <><div class="bar" /></>
             },
         );
         assert_eq!(
@@ -1058,7 +1105,9 @@ mod tests_without_browser {
                     <div class="foo" />
                 }
             },
-            html! {},
+            html! {
+                <></>
+            },
         );
 
         // non-root tests
@@ -1072,7 +1121,7 @@ mod tests_without_browser {
             },
             html! {
                 <div>
-                    <div class="foo" />
+                    <><div class="foo" /></>
                 </div>
             },
         );
@@ -1088,7 +1137,7 @@ mod tests_without_browser {
             },
             html! {
                 <div>
-                    <div class="bar" />
+                    <><div class="bar" /></>
                 </div>
             },
         );
@@ -1118,7 +1167,11 @@ mod tests_without_browser {
                     <div class={class} />
                 }
             },
-            html! { <div class="foo" /> },
+            html! {
+                <>
+                    <div class={Some("foo")} />
+                </>
+            },
         );
         assert_eq!(
             html! {
@@ -1128,7 +1181,11 @@ mod tests_without_browser {
                     <div class="bar" />
                 }
             },
-            html! { <div class="bar" /> },
+            html! {
+                <>
+                    <div class="bar" />
+                </>
+            },
         );
         assert_eq!(
             html! {
@@ -1136,7 +1193,9 @@ mod tests_without_browser {
                     <div class={class} />
                 }
             },
-            html! {},
+            html! {
+                <></>
+            },
         );
 
         // non-root tests
@@ -1148,7 +1207,13 @@ mod tests_without_browser {
                     }
                 </div>
             },
-            html! { <div><div class="foo" /></div> },
+            html! {
+                <div>
+                    <>
+                        <div class={Some("foo")} />
+                    </>
+                </div>
+            },
         );
         assert_eq!(
             html! {
@@ -1160,7 +1225,13 @@ mod tests_without_browser {
                     }
                 </div>
             },
-            html! { <div><div class="bar" /></div> },
+            html! {
+                <div>
+                    <>
+                        <div class="bar" />
+                    </>
+                </div>
+            },
         );
         assert_eq!(
             html! {

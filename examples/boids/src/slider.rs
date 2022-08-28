@@ -1,6 +1,8 @@
 use std::cell::Cell;
+
 use web_sys::HtmlInputElement;
-use yew::{events::InputEvent, html, Callback, Component, Context, Html, Properties, TargetCast};
+use yew::events::InputEvent;
+use yew::{html, Callback, Component, Context, Html, Properties, TargetCast};
 
 thread_local! {
     static SLIDER_ID: Cell<usize> = Cell::default();
@@ -77,6 +79,7 @@ impl Component for Slider {
             <div class="slider">
                 <label for={id.clone()} class="slider__label">{ label }</label>
                 <input type="range"
+                    value={value.to_string()}
                     {id}
                     class="slider__input"
                     min={min.to_string()} max={max.to_string()} step={step.to_string()}

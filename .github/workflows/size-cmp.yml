@@ -6,7 +6,7 @@ on:
     branches: [master]
     paths:
       - .github/workflows/size-cmp.yml
-      - ci/collect_sizes.py
+      - "ci/**"
       - "packages/**"
       - "examples/**"
       - "Cargo.toml"
@@ -55,49 +55,18 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Write optimisation flags for master
-        run: |
-          cat >> .cargo/config << EOF
-          [unstable]
-          build-std = ["std", "panic_abort"]
-          build-std-features = ["panic_immediate_abort"]
-          EOF
-          cat >> Cargo.toml << EOF
-          [profile.release]
-          lto = true
-          codegen-units = 1
-          panic = "abort"
-          opt-level = "z"
-          EOF
-        working-directory: yew-master
-
-      - name: Write optimisation flags for pull request
-        run: |
-          cat >> .cargo/config << EOF
-          [unstable]
-          build-std = ["std", "panic_abort"]
-          build-std-features = ["panic_immediate_abort"]
-          EOF
-          cat >> Cargo.toml << EOF
-          [profile.release]
-          lto = true
-          codegen-units = 1
-          panic = "abort"
-          opt-level = "z"
-          EOF
-        working-directory: current-pr
-
       - name: Build master examples
-        run: find examples/*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
-        working-directory: yew-master
+        run: find ./*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
+        working-directory: yew-master/examples
         env:
           RUSTUP_TOOLCHAIN: nightly
 
       - name: Build pull request examples
-        run: find examples/*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
-        working-directory: current-pr
+        run: find ./*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
+        working-directory: current-pr/examples
         env:
           RUSTUP_TOOLCHAIN: nightly
+          RUSTFLAGS: --cfg nightly_yew
 
       - name: Collect size information
         run: python3 current-pr/ci/collect_sizes.py

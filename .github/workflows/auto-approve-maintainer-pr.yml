@@ -5,6 +5,7 @@ on: pull_request_target
 jobs:
   auto-approve:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
     steps:
       - name: Check if organization member
         id: is_organization_member
@@ -16,6 +17,6 @@ jobs:
 
       - name: Auto approve
         uses: hmarr/auto-approve-action@v2
-        if: ${{ steps.is_organization_member.outputs.result == 'true' || github.actor == 'dependabot' }}
+        if: ${{ steps.is_organization_member.outputs.result == 'true' || github.actor == 'dependabot[bot]' }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

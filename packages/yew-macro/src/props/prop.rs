@@ -1,29 +1,39 @@
+use std::cmp::Ordering;
+use std::convert::TryFrom;
+use std::ops::{Deref, DerefMut};
+
+use proc_macro2::{Spacing, Span, TokenStream, TokenTree};
+use quote::{quote, quote_spanned};
+use syn::parse::{Parse, ParseBuffer, ParseStream};
+use syn::spanned::Spanned;
+use syn::token::Brace;
+use syn::{braced, Block, Expr, ExprBlock, ExprPath, ExprRange, Stmt, Token};
+
 use super::CHILDREN_LABEL;
 use crate::html_tree::HtmlDashedName;
-use proc_macro2::{Spacing, TokenTree};
-use std::{
-    cmp::Ordering,
-    convert::TryFrom,
-    ops::{Deref, DerefMut},
-};
-use syn::{
-    braced,
-    parse::{Parse, ParseBuffer, ParseStream},
-    token::Brace,
-    Block, Expr, ExprBlock, ExprPath, ExprRange, Stmt, Token,
-};
+use crate::stringify::Stringify;
+
+#[derive(Copy, Clone)]
+pub enum PropDirective {
+    ApplyAsProperty(Token![~]),
+}
 
 pub struct Prop {
+    pub directive: Option<PropDirective>,
     pub label: HtmlDashedName,
     /// Punctuation between `label` and `value`.
     pub value: Expr,
 }
 impl Parse for Prop {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        let directive = input
+            .parse::<Token![~]>()
+            .map(PropDirective::ApplyAsProperty)
+            .ok();
         if input.peek(Brace) {
-            Self::parse_shorthand_prop_assignment(input)
+            Self::parse_shorthand_prop_assignment(input, directive)
         } else {
-            Self::parse_prop_assignment(input)
+            Self::parse_prop_assignment(input, directive)
         }
     }
 }
@@ -33,7 +43,10 @@ impl Prop {
     /// Parse a prop using the shorthand syntax `{value}`, short for `value={value}`
     /// This only allows for labels with no hyphens, as it would otherwise create
     /// an ambiguity in the syntax
-    fn parse_shorthand_prop_assignment(input: ParseStream) -> syn::Result<Self> {
+    fn parse_shorthand_prop_assignment(
+        input: ParseStream,
+        directive: Option<PropDirective>,
+    ) -> syn::Result<Self> {
         let value;
         let _brace = braced!(value in input);
         let expr = value.parse::<Expr>()?;
@@ -44,7 +57,7 @@ impl Prop {
         }) = expr
         {
             if let (Some(ident), true) = (path.get_ident(), attrs.is_empty()) {
-                syn::Result::Ok(HtmlDashedName::from(ident.clone()))
+                Ok(HtmlDashedName::from(ident.clone()))
             } else {
                 Err(syn::Error::new_spanned(
                     path,
@@ -54,20 +67,32 @@ impl Prop {
         } else {
             return Err(syn::Error::new_spanned(
                 expr,
-                "missing label for property value. If trying to use the shorthand property syntax, only identifiers may be used",
+                "missing label for property value. If trying to use the shorthand property \
+                 syntax, only identifiers may be used",
             ));
         }?;
 
-        Ok(Self { label, value: expr })
+        Ok(Self {
+            label,
+            value: expr,
+            directive,
+        })
     }
 
     /// Parse a prop of the form `label={value}`
-    fn parse_prop_assignment(input: ParseStream) -> syn::Result<Self> {
+    fn parse_prop_assignment(
+        input: ParseStream,
+        directive: Option<PropDirective>,
+    ) -> syn::Result<Self> {
         let label = input.parse::<HtmlDashedName>()?;
         let equals = input.parse::<Token![=]>().map_err(|_| {
             syn::Error::new_spanned(
                 &label,
-                format!("`{}` doesn't have a value. (hint: set the value to `true` or `false` for boolean attributes)", label),
+                format!(
+                    "`{}` doesn't have a value. (hint: set the value to `true` or `false` for \
+                     boolean attributes)",
+                    label
+                ),
             )
         })?;
         if input.is_empty() {
@@ -78,7 +103,11 @@ impl Prop {
         }
 
         let value = parse_prop_value(input)?;
-        Ok(Self { label, value })
+        Ok(Self {
+            label,
+            value,
+            directive,
+        })
     }
 }
 
@@ -100,12 +129,14 @@ fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
 
         match &expr {
             Expr::Lit(_) => Ok(expr),
-            _ => {
-                Err(syn::Error::new_spanned(
-                    &expr,
-                    "the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.",
-                ))
-            }
+            ref exp => Err(syn::Error::new_spanned(
+                &expr,
+                format!(
+                    "the property value must be either a literal or enclosed in braces. Consider \
+                     adding braces around your expression.: {:#?}",
+                    exp
+                ),
+            )),
         }
     }
 }
@@ -119,14 +150,24 @@ fn strip_braces(block: ExprBlock) -> syn::Result<Expr> {
             let stmt = stmts.remove(0);
             match stmt {
                 Stmt::Expr(expr) => Ok(expr),
+                // See issue #2267, we want to parse macro invocations as expressions
+                Stmt::Item(syn::Item::Macro(mac))
+                    if mac.ident.is_none() && mac.semi_token.is_none() =>
+                {
+                    Ok(Expr::Macro(syn::ExprMacro {
+                        attrs: mac.attrs,
+                        mac: mac.mac,
+                    }))
+                }
                 Stmt::Semi(_expr, semi) => Err(syn::Error::new_spanned(
-                        semi,
-                        "only an expression may be assigned as a property. Consider removing this semicolon",
+                    semi,
+                    "only an expression may be assigned as a property. Consider removing this \
+                     semicolon",
                 )),
-                _ =>             Err(syn::Error::new_spanned(
-                        stmt,
-                        "only an expression may be assigned as a property",
-                ))
+                _ => Err(syn::Error::new_spanned(
+                    stmt,
+                    "only an expression may be assigned as a property",
+                )),
             }
         }
         block => Ok(Expr::Block(block)),
@@ -296,8 +337,8 @@ pub struct SpecialProps {
     pub key: Option<Prop>,
 }
 impl SpecialProps {
-    const REF_LABEL: &'static str = "ref";
     const KEY_LABEL: &'static str = "key";
+    const REF_LABEL: &'static str = "ref";
 
     fn pop_from(props: &mut SortedPropList) -> syn::Result<Self> {
         let node_ref = props.pop_unique(Self::REF_LABEL)?;
@@ -313,6 +354,33 @@ impl SpecialProps {
     /// If there's at least one error, the result will be `Result::Err`.
     pub fn check_all(&self, f: impl FnMut(&Prop) -> syn::Result<()>) -> syn::Result<()> {
         crate::join_errors(self.iter().map(f).filter_map(Result::err))
+    }
+
+    pub fn wrap_node_ref_attr(&self) -> TokenStream {
+        self.node_ref
+            .as_ref()
+            .map(|attr| {
+                let value = &attr.value;
+                quote_spanned! {value.span().resolved_at(Span::call_site())=>
+                    ::yew::html::IntoPropValue::<::yew::html::NodeRef>
+                    ::into_prop_value(#value)
+                }
+            })
+            .unwrap_or(quote! { ::std::default::Default::default() })
+    }
+
+    pub fn wrap_key_attr(&self) -> TokenStream {
+        self.key
+            .as_ref()
+            .map(|attr| {
+                let value = attr.value.optimize_literals();
+                quote_spanned! {value.span().resolved_at(Span::call_site())=>
+                    ::std::option::Option::Some(
+                        ::std::convert::Into::<::yew::virtual_dom::Key>::into(#value)
+                    )
+                }
+            })
+            .unwrap_or(quote! { ::std::option::Option::None })
     }
 }
 

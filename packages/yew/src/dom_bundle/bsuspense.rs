@@ -1,14 +1,14 @@
 //! This module contains the bundle version of a supsense [BSuspense]
 
-use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::AnyScope;
-use crate::virtual_dom::{Key, VSuspense};
-use crate::NodeRef;
 use gloo::utils::document;
 use web_sys::Element;
 
 #[cfg(feature = "hydration")]
 use super::Fragment;
+use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
+use crate::html::AnyScope;
+use crate::virtual_dom::{Key, VSuspense};
+use crate::NodeRef;
 
 #[derive(Debug)]
 enum Fallback {
@@ -60,18 +60,12 @@ impl ReconcileTarget for BSuspense {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
         match self.fallback.as_ref() {
-            Some(Fallback::Bundle(bundle)) => {
-                bundle.shift(next_parent, next_sibling);
-            }
+            Some(Fallback::Bundle(bundle)) => bundle.shift(next_parent, next_sibling),
             #[cfg(feature = "hydration")]
-            Some(Fallback::Fragment(fragment)) => {
-                fragment.shift(next_parent, next_sibling);
-            }
-            None => {
-                self.children_bundle.shift(next_parent, next_sibling);
-            }
+            Some(Fallback::Fragment(fragment)) => fragment.shift(next_parent, next_sibling),
+            None => self.children_bundle.shift(next_parent, next_sibling),
         }
     }
 }
@@ -180,21 +174,18 @@ impl Reconcilable for VSuspense {
                         vfallback.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
                     }
                     #[cfg(feature = "hydration")]
-                    Fallback::Fragment(fragment) => {
-                        let node_ref = NodeRef::default();
-                        match fragment.front().cloned() {
-                            Some(m) => node_ref.set(Some(m)),
-                            None => node_ref.link(next_sibling),
-                        }
-                        node_ref
-                    }
+                    Fallback::Fragment(fragment) => match fragment.front().cloned() {
+                        Some(m) => NodeRef::new(m),
+                        None => next_sibling,
+                    },
                 }
             }
             // Not suspended, just reconcile the children into the DOM
             (false, None) => {
                 children.reconcile_node(root, parent_scope, parent, next_sibling, children_bundle)
             }
-            // Freshly suspended. Shift children into the detached parent, then add fallback to the DOM
+            // Freshly suspended. Shift children into the detached parent, then add fallback to the
+            // DOM
             (true, None) => {
                 children_bundle.shift(&suspense.detached_parent, NodeRef::default());
 
@@ -237,7 +228,6 @@ impl Reconcilable for VSuspense {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-
     use crate::dom_bundle::{Fragment, Hydratable};
     use crate::virtual_dom::Collectable;
 
@@ -262,6 +252,8 @@ mod feat_hydration {
                 detached_parent.append_child(node).unwrap();
             }
 
+            // Even if initially suspended, these children correspond to the first non-suspended
+            // content Refer to VSuspense::render_to_string
             let (_, children_bundle) =
                 self.children
                     .hydrate(root, parent_scope, &detached_parent, &mut nodes);

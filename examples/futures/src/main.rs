@@ -1,7 +1,6 @@
-use std::{
-    error::Error,
-    fmt::{self, Debug, Display, Formatter},
-};
+use std::error::Error;
+use std::fmt::{self, Debug, Display, Formatter};
+
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
@@ -50,7 +49,7 @@ async fn fetch_markdown(url: &'static str) -> Result<String, FetchError> {
 
     let request = Request::new_with_str_and_init(url, &opts)?;
 
-    let window = gloo_utils::window();
+    let window = gloo::utils::window();
     let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
     let resp: Response = resp_value.dyn_into().unwrap();
 

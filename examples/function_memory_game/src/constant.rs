@@ -3,7 +3,7 @@ use strum_macros::{Display, EnumIter};
 
 pub const KEY_BEST_SCORE: &str = "memory.game.best.score";
 
-#[derive(Clone, Copy, Debug, EnumIter, Display, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, EnumIter, Display, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CardName {
     EightBall,
     Kronos,
@@ -15,7 +15,7 @@ pub enum CardName {
     Zeppelin,
 }
 
-#[derive(Clone, Copy, Debug, EnumIter, Display, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, EnumIter, Display, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Status {
     Ready,
     Playing,

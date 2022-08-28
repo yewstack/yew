@@ -6,20 +6,30 @@ pub(super) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&N
         Some(next_sibling) => parent
             .insert_before(node, Some(next_sibling))
             .unwrap_or_else(|err| {
-                gloo::console::error!("failed to insert node", err, parent, next_sibling, node);
-                panic!("failed to insert tag before next sibling")
+                // Log normally, so we can inspect the nodes in console
+                gloo::console::error!(
+                    "failed to insert node before next sibling",
+                    err,
+                    parent,
+                    next_sibling,
+                    node
+                );
+                // Log via tracing for consistency
+                tracing::error!("failed to insert node before next sibling");
+                // Panic to short-curcuit and fail
+                panic!("failed to insert node before next sibling")
             }),
         None => parent.append_child(node).expect("failed to append child"),
     };
 }
 
-#[cfg(all(test, feature = "wasm_test", verbose_tests))]
+#[cfg(all(test, target_arch = "wasm32", verbose_tests))]
 macro_rules! test_log {
     ($fmt:literal, $($arg:expr),* $(,)?) => {
         ::wasm_bindgen_test::console_log!(concat!("\t  ", $fmt), $($arg),*);
     };
 }
-#[cfg(not(all(test, feature = "wasm_test", verbose_tests)))]
+#[cfg(not(all(test, target_arch = "wasm32", verbose_tests)))]
 macro_rules! test_log {
     ($fmt:literal, $($arg:expr),* $(,)?) => {
         // Only type-check the format expression, do not run any side effects
@@ -32,12 +42,12 @@ pub(super) use test_log;
 
 #[cfg(feature = "hydration")]
 mod feat_hydration {
-    use super::*;
-
     use std::borrow::Cow;
 
     use wasm_bindgen::JsCast;
     use web_sys::Element;
+
+    use super::*;
 
     pub(in crate::dom_bundle) fn node_type_str(node: &Node) -> Cow<'static, str> {
         match node.node_type() {

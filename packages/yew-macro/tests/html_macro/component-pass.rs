@@ -43,6 +43,8 @@ pub struct ContainerProperties {
     pub int: ::std::primitive::i32,
     #[prop_or_default]
     pub children: ::yew::Children,
+    #[prop_or_default]
+    pub header: ::yew::Html,
 }
 
 pub struct Container;
@@ -53,6 +55,7 @@ impl ::yew::Component for Container {
     fn create(_ctx: &::yew::Context<Self>) -> Self {
         ::std::unimplemented!()
     }
+
     fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
         ::std::unimplemented!()
     }
@@ -97,6 +100,8 @@ pub struct ChildProperties {
     pub string: ::std::string::String,
     #[prop_or_default]
     pub r#fn: ::std::primitive::i32,
+    #[prop_or_default]
+    pub r#ref: ::yew::NodeRef,
     pub int: ::std::primitive::i32,
     #[prop_or_default]
     pub opt_str: ::std::option::Option<::std::string::String>,
@@ -114,6 +119,7 @@ impl ::yew::Component for Child {
     fn create(_ctx: &::yew::Context<Self>) -> Self {
         ::std::unimplemented!()
     }
+
     fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
         ::std::unimplemented!()
     }
@@ -127,6 +133,7 @@ impl ::yew::Component for AltChild {
     fn create(_ctx: &::yew::Context<Self>) -> Self {
         ::std::unimplemented!()
     }
+
     fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
         ::std::unimplemented!()
     }
@@ -149,14 +156,14 @@ impl ::yew::Component for ChildContainer {
     fn create(_ctx: &::yew::Context<Self>) -> Self {
         ::std::unimplemented!()
     }
+
     fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
         ::std::unimplemented!()
     }
 }
 
 mod scoped {
-    pub use super::Child;
-    pub use super::Container;
+    pub use super::{Child, Container};
 }
 
 fn compile_pass() {
@@ -176,10 +183,11 @@ fn compile_pass() {
         <>
             <Child ..::std::clone::Clone::clone(&props) />
             <Child int={1} ..props />
-            <Child ref={::std::clone::Clone::clone(&node_ref)} int={2} ..::yew::props!(Child::Properties { int: 5 }) />
-            <Child int=3 ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
-            <Child ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
-            <Child ref={node_ref} ..<<Child as ::yew::Component>::Properties as ::std::default::Default>::default() />
+            <Child r#ref={::std::clone::Clone::clone(&node_ref)} int={2} ..::yew::props!(Child::Properties { int: 5 }) />
+            <Child int=3 r#ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
+            <Child r#ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
+            <Child r#ref={&node_ref} ..<<Child as ::yew::Component>::Properties as ::std::default::Default>::default() />
+            <Child r#ref={node_ref} ..<<Child as ::yew::Component>::Properties as ::std::default::Default>::default() />
         </>
     };
 
@@ -221,7 +229,7 @@ fn compile_pass() {
     let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
     ::yew::html! {
         <>
-            <Child int=1 ref={node_ref} />
+            <Child int=1 r#ref={node_ref} />
         </>
     };
 
@@ -229,7 +237,7 @@ fn compile_pass() {
     let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
     ::yew::html! {
         <>
-            <Child {int} ref={node_ref} />
+            <Child {int} r#ref={node_ref} />
         </>
     };
 
@@ -273,6 +281,9 @@ fn compile_pass() {
             <Container int=1 children={::yew::html::ChildrenRenderer::new(
                 ::std::vec![::yew::html!{ "::std::string::String" }]
             )} />
+            <Container int=1 header={::yew::html!{
+                <Child int=2 />
+            }} />
         </>
     };
 
@@ -323,12 +334,10 @@ fn compile_pass() {
         ::std::vec![
             ChildrenVariants::Child(::yew::virtual_dom::VChild::new(
                 <ChildProperties as ::std::default::Default>::default(),
-                <::yew::NodeRef as ::std::default::Default>::default(),
                 ::std::option::Option::None,
             )),
             ChildrenVariants::AltChild(::yew::virtual_dom::VChild::new(
                 (),
-                <::yew::NodeRef as ::std::default::Default>::default(),
                 ::std::option::Option::None
             )),
         ]

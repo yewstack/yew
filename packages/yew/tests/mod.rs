@@ -1,11 +1,12 @@
-#![cfg(feature = "wasm_test")]
+#![cfg(target_arch = "wasm32")]
 
 mod common;
 
-use common::obtain_result;
-use gloo::timers::future::sleep;
 use std::time::Duration;
+
+use common::obtain_result;
 use wasm_bindgen_test::*;
+use yew::platform::time::sleep;
 use yew::prelude::*;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
@@ -28,7 +29,7 @@ async fn props_are_passed() {
     }
 
     yew::Renderer::<PropsComponent>::with_root_and_props(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
         PropsPassedFunctionProps {
             value: "props".to_string(),
         },

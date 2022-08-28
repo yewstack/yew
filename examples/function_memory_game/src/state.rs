@@ -1,25 +1,26 @@
+use std::rc::Rc;
+
 use gloo::storage::{LocalStorage, Storage};
 use serde::{Deserialize, Serialize};
-use std::rc::Rc;
 use yew::prelude::*;
 
 use crate::constant::{CardName, Status, KEY_BEST_SCORE};
 use crate::helper::shuffle_cards;
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct RawCard {
     pub id: String,
     pub name: CardName,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct Card {
     pub id: String,
     pub flipped: bool,
     pub name: CardName,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct State {
     pub unresolved_card_pairs: u8,
     pub best_score: u32,

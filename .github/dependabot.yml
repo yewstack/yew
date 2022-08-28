@@ -6,9 +6,23 @@ updates:
       interval: "weekly"
       day: "friday"
     open-pull-requests-limit: 5
+  
+  - package-ecosystem: "cargo"
+    directory: "/examples"
+    schedule:
+      interval: "weekly"
+      day: "friday"
+    open-pull-requests-limit: 5
+  
+  - package-ecosystem: "cargo"
+    directory: "/tools"
+    schedule:
+      interval: "weekly"
+      day: "friday"
+    open-pull-requests-limit: 5
 
   - package-ecosystem: "npm"
     directory: "/website"
     schedule:
-      interval: "daily"
+      interval: "monthly"
     target-branch: "master"

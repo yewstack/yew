@@ -1,14 +1,14 @@
-#![cfg(feature = "wasm_test")]
+#![cfg(target_arch = "wasm32")]
 
 use std::collections::HashSet;
 use std::rc::Rc;
-
-use gloo::timers::future::sleep;
-use gloo_utils::document;
 use std::time::Duration;
+
+use gloo::utils::document;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_test::*;
 use web_sys::HtmlElement;
+use yew::platform::time::sleep;
 use yew::prelude::*;
 
 mod common;
@@ -57,7 +57,7 @@ async fn use_reducer_works() {
     }
 
     yew::Renderer::<UseReducerComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
     sleep(Duration::ZERO).await;

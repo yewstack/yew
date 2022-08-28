@@ -7,6 +7,7 @@ pub enum Msg {
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub on_hover: Callback<()>,
+    pub placeholder: AttrValue,
 }
 
 pub struct InputComponent;
@@ -29,10 +30,12 @@ impl Component for InputComponent {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let placeholder = ctx.props().placeholder.clone();
         html! {
             <input
                 type="text"
                 class="input-component"
+                placeholder={placeholder}
                 onmouseover={ctx.link().callback(|_| Msg::Hover)}
             />
         }

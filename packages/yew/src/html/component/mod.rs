@@ -7,45 +7,16 @@ mod marker;
 mod properties;
 mod scope;
 
-use super::{Html, HtmlResult, IntoHtmlResult};
+use std::rc::Rc;
+
 pub use children::*;
 pub use marker::*;
 pub use properties::*;
-
 #[cfg(feature = "csr")]
 pub(crate) use scope::Scoped;
 pub use scope::{AnyScope, Scope, SendAsMessage};
-use std::rc::Rc;
 
-#[cfg(debug_assertions)]
-#[cfg(any(feature = "csr", feature = "ssr"))]
-mod feat_csr_ssr {
-    thread_local! {
-         static EVENT_HISTORY: std::cell::RefCell<std::collections::HashMap<usize, Vec<String>>>
-            = Default::default();
-    }
-
-    /// Push [Component] event to lifecycle debugging registry
-    pub(crate) fn log_event(comp_id: usize, event: impl ToString) {
-        EVENT_HISTORY.with(|h| {
-            h.borrow_mut()
-                .entry(comp_id)
-                .or_default()
-                .push(event.to_string())
-        });
-    }
-
-    /// Get [Component] event log from lifecycle debugging registry
-    #[allow(dead_code)]
-    pub(crate) fn get_event_log(comp_id: usize) -> Vec<String> {
-        EVENT_HISTORY.with(|h| {
-            h.borrow()
-                .get(&comp_id)
-                .map(|l| (*l).clone())
-                .unwrap_or_default()
-        })
-    }
-}
+use super::{Html, HtmlResult, IntoHtmlResult};
 
 #[cfg(feature = "hydration")]
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -56,18 +27,17 @@ pub(crate) enum RenderMode {
     Ssr,
 }
 
-#[cfg(debug_assertions)]
-#[cfg(any(feature = "csr", feature = "ssr"))]
-pub(crate) use feat_csr_ssr::*;
-
-/// The [`Component`]'s context. This contains component's [`Scope`] and and props and
+/// The [`Component`]'s context. This contains component's [`Scope`] and props and
 /// is passed to every lifecycle method.
 #[derive(Debug)]
 pub struct Context<COMP: BaseComponent> {
     scope: Scope<COMP>,
     props: Rc<COMP::Properties>,
     #[cfg(feature = "hydration")]
-    mode: RenderMode,
+    creation_mode: RenderMode,
+
+    #[cfg(feature = "hydration")]
+    prepared_state: Option<String>,
 }
 
 impl<COMP: BaseComponent> Context<COMP> {
@@ -84,8 +54,19 @@ impl<COMP: BaseComponent> Context<COMP> {
     }
 
     #[cfg(feature = "hydration")]
-    pub(crate) fn mode(&self) -> RenderMode {
-        self.mode
+    pub(crate) fn creation_mode(&self) -> RenderMode {
+        self.creation_mode
+    }
+
+    /// The component's prepared state
+    pub fn prepared_state(&self) -> Option<&str> {
+        #[cfg(not(feature = "hydration"))]
+        let state = None;
+
+        #[cfg(feature = "hydration")]
+        let state = self.prepared_state.as_deref();
+
+        state
     }
 }
 
@@ -94,7 +75,17 @@ impl<COMP: BaseComponent> Context<COMP> {
 /// If you are taken here by doc links, you might be looking for [`Component`] or
 /// [`#[function_component]`](crate::functional::function_component).
 ///
-/// We provide a blanket implementation of this trait for every member that implements [`Component`].
+/// We provide a blanket implementation of this trait for every member that implements
+/// [`Component`].
+///
+/// # Warning
+///
+/// This trait may be subject to heavy changes between versions and is not intended for direct
+/// implementation.
+///
+/// You should used the [`Component`] trait or the
+/// [`#[function_component]`](crate::functional::function_component) macro to define your
+/// components.
 pub trait BaseComponent: Sized + 'static {
     /// The Component's Message.
     type Message: 'static;
@@ -119,6 +110,9 @@ pub trait BaseComponent: Sized + 'static {
 
     /// Notified before a component is destroyed.
     fn destroy(&mut self, ctx: &Context<Self>);
+
+    /// Prepares the server-side state.
+    fn prepare_state(&self) -> Option<String>;
 }
 
 /// Components are the basic building blocks of the UI in a Yew app. Each Component
@@ -147,14 +141,18 @@ pub trait Component: Sized + 'static {
     /// to update their state and (optionally) re-render themselves.
     ///
     /// Returned bool indicates whether to render this Component after update.
+    ///
+    /// By default, this function will return true and thus make the component re-render.
     #[allow(unused_variables)]
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        false
+        true
     }
 
     /// Called when properties passed to the component change
     ///
     /// Returned bool indicates whether to render this Component after changed.
+    ///
+    /// By default, this function will return true and thus make the component re-render.
     #[allow(unused_variables)]
     fn changed(&mut self, ctx: &Context<Self>) -> bool {
         true
@@ -178,6 +176,16 @@ pub trait Component: Sized + 'static {
     #[allow(unused_variables)]
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {}
 
+    /// Prepares the state during server side rendering.
+    ///
+    /// This state will be sent to the client side and is available via `ctx.prepared_state()`.
+    ///
+    /// This method is only called during server-side rendering after the component has been
+    /// rendered.
+    fn prepare_state(&self) -> Option<String> {
+        None
+    }
+
     /// Called right before a Component is unmounted.
     #[allow(unused_variables)]
     fn destroy(&mut self, ctx: &Context<Self>) {}
@@ -188,7 +196,6 @@ where
     T: Sized + Component + 'static,
 {
     type Message = <T as Component>::Message;
-
     type Properties = <T as Component>::Properties;
 
     fn create(ctx: &Context<Self>) -> Self {
@@ -213,5 +220,44 @@ where
 
     fn destroy(&mut self, ctx: &Context<Self>) {
         Component::destroy(self, ctx)
+    }
+
+    fn prepare_state(&self) -> Option<String> {
+        Component::prepare_state(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct MyCustomComponent;
+
+    impl Component for MyCustomComponent {
+        type Message = ();
+        type Properties = ();
+
+        fn create(_ctx: &Context<Self>) -> Self {
+            Self
+        }
+
+        fn view(&self, _ctx: &Context<Self>) -> Html {
+            Default::default()
+        }
+    }
+
+    #[test]
+    fn make_sure_component_update_and_changed_rerender() {
+        let mut comp = MyCustomComponent;
+        let ctx = Context {
+            scope: Scope::new(None),
+            props: Rc::new(()),
+            #[cfg(feature = "hydration")]
+            creation_mode: crate::html::RenderMode::Hydration,
+            #[cfg(feature = "hydration")]
+            prepared_state: None,
+        };
+        assert!(Component::update(&mut comp, &ctx, ()));
+        assert!(Component::changed(&mut comp, &ctx));
     }
 }

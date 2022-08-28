@@ -5,13 +5,15 @@ mod components;
 mod content;
 mod generator;
 mod pages;
-use pages::{
-    author::Author, author_list::AuthorList, home::Home, page_not_found::PageNotFound, post::Post,
-    post_list::PostList,
-};
+use pages::author::Author;
+use pages::author_list::AuthorList;
+use pages::home::Home;
+use pages::page_not_found::PageNotFound;
+use pages::post::Post;
+use pages::post_list::PostList;
 use yew::html::Scope;
 
-#[derive(Routable, PartialEq, Clone, Debug)]
+#[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
     #[at("/posts/:id")]
     Post { id: u64 },
@@ -60,7 +62,7 @@ impl Component for App {
                 { self.view_nav(ctx.link()) }
 
                 <main>
-                    <Switch<Route> render={Switch::render(switch)} />
+                    <Switch<Route> render={switch} />
                 </main>
                 <footer class="footer">
                     <div class="content has-text-centered">
@@ -122,8 +124,8 @@ impl App {
     }
 }
 
-fn switch(routes: &Route) -> Html {
-    match routes.clone() {
+fn switch(routes: Route) -> Html {
+    match routes {
         Route::Post { id } => {
             html! { <Post seed={id} /> }
         }

@@ -1,11 +1,11 @@
 //! This module contains the bundle implementation of a portal [BPortal].
 
+use web_sys::Element;
+
 use super::{test_log, BNode, BSubtree};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::{AnyScope, NodeRef};
-use crate::virtual_dom::Key;
-use crate::virtual_dom::VPortal;
-use web_sys::Element;
+use crate::virtual_dom::{Key, VPortal};
 
 /// The bundle implementation to [VPortal].
 #[derive(Debug)]
@@ -26,8 +26,10 @@ impl ReconcileTarget for BPortal {
         self.node.detach(&self.inner_root, &self.host, false);
     }
 
-    fn shift(&self, _next_parent: &Element, _next_sibling: NodeRef) {
+    fn shift(&self, _next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
         // portals have nothing in it's original place of DOM, we also do nothing.
+
+        next_sibling
     }
 }
 
@@ -116,28 +118,27 @@ impl BPortal {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
 
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use yew::virtual_dom::VPortal;
+
     use crate::html;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
-    use yew::virtual_dom::VPortal;
 
-    #[cfg(feature = "wasm_test")]
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
-    #[cfg(feature = "wasm_test")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
     fn diff() {
         let mut layouts = vec![];
-        let first_target = gloo_utils::document().create_element("i").unwrap();
-        let second_target = gloo_utils::document().create_element("o").unwrap();
-        let target_with_child = gloo_utils::document().create_element("i").unwrap();
-        let target_child = gloo_utils::document().create_element("s").unwrap();
+        let first_target = gloo::utils::document().create_element("i").unwrap();
+        let second_target = gloo::utils::document().create_element("o").unwrap();
+        let target_with_child = gloo::utils::document().create_element("i").unwrap();
+        let target_child = gloo::utils::document().create_element("s").unwrap();
         target_with_child.append_child(&target_child).unwrap();
 
         layouts.push(TestLayout {

@@ -1,5 +1,6 @@
-use proc_macro2::Span;
 use std::sync::{Arc, Mutex};
+
+use proc_macro2::Span;
 use syn::visit_mut::{self, VisitMut};
 use syn::{
     GenericArgument, Lifetime, ParenthesizedGenericArguments, Receiver, TypeBareFn, TypeImplTrait,

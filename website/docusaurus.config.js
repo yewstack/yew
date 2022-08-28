@@ -15,7 +15,11 @@ module.exports = {
     organizationName: 'yewstack', // Usually your GitHub org/user name.
     projectName: 'yew', // Usually your repo name.
     themeConfig: {
-        hideableSidebar: true,
+        docs: {
+            sidebar: {
+                hideable: true,
+            },
+        },
         navbar: {
             title: 'Yew',
             logo: {
@@ -54,6 +58,11 @@ module.exports = {
                     position: 'right',
                     to: 'blog',
                     label: 'Blog',
+                },
+                {
+                    href: 'https://play.yew.rs/',
+                    position: 'right',
+                    label: 'Playground',
                 },
                 {
                     href: 'https://docs.rs/yew',
@@ -117,7 +126,7 @@ module.exports = {
     },
     i18n: {
         defaultLocale: 'en',
-        locales: ['en', 'ja', 'zh-CN', 'zh-TW'],
+        locales: ['en', 'ja', 'zh-Hans', 'zh-Hant'],
     },
     plugins: [
         'content-pages',

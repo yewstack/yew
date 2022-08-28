@@ -73,7 +73,7 @@ The following command checks the code using Rustfmt and Clippy:
 cargo make lint
 ```
 
-To automatically fix formatting issues, run `cargo fmt` first.
+To automatically fix formatting issues, run `cargo +nightly fmt` first.
 
 ## Benchmarks
 

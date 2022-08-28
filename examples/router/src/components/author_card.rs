@@ -1,8 +1,11 @@
-use crate::{content::Author, generator::Generated, Route};
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-#[derive(Clone, Debug, PartialEq, Properties)]
+use crate::content::Author;
+use crate::generator::Generated;
+use crate::Route;
+
+#[derive(Clone, Debug, PartialEq, Eq, Properties)]
 pub struct Props {
     pub seed: u64,
 }

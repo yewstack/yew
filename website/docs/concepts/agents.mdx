@@ -6,7 +6,7 @@ description: "Yew's Actor System"
 import useBaseUrl from '@docusaurus/useBaseUrl'
 import ThemedImage from '@theme/ThemedImage'
 
-Agents are a way to offload tasks to web workers or achieve inter-tab communication(WIP).
+Agents are a way to offload tasks to web workers.
 
 In order for agents to run concurrently, Yew uses
 [web-workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers).
@@ -60,5 +60,5 @@ with other threads, so the cost is substantially higher than just calling a func
 
 ## Further reading
 
--   The [multi_thread](https://github.com/yewstack/yew/tree/master/examples/multi_thread) example shows how
+-   The [web_worker_fib](https://github.com/yewstack/yew/tree/master/examples/web_worker_fib) example shows how
     components can send message to and receive message from agents.

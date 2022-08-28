@@ -27,6 +27,12 @@ fn main() {
 log::info!("Update: {:?}", msg);
 ```
 
+## Debugging component lifecycles
+
+Yew makes use of the [`tracing`](https://crates.io/crates/tracing) crate to emit debug information about lifecycle events of components. These can be used to trace why and when a component is created, updated, rerendered or destroyed.
+
+To make use of this, you need to [register a `Subscriber`](https://docs.rs/tracing/latest/tracing/#in-executables) or enable the `"log"` feature for compatibility with the `log` crate, e.g. when using `wasm-logger`. A subscriber is supposed to be chosen only by the final executable crate, not by library crates. You can also turn on compile-time [flags to disable logging](https://docs.rs/tracing/latest/tracing/level_filters/index.html#compile-time-filters) statically, for a smaller wasm file size.
+
 ## Source Maps
 
 There is currently no first-class support for source maps for Rust / Wasm web apps. This, of course, is subject to change. If this is no longer true or if progress is made, please suggest a change!

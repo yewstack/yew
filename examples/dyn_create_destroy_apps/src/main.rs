@@ -1,4 +1,4 @@
-use gloo_utils::document;
+use gloo::utils::document;
 use slab::Slab;
 use web_sys::Element;
 use yew::prelude::*;
@@ -16,7 +16,8 @@ pub enum Msg {
 }
 
 pub struct App {
-    apps: Slab<(Element, AppHandle<CounterModel>)>, // Contains the spawned apps and their parent div elements
+    apps: Slab<(Element, AppHandle<CounterModel>)>, /* Contains the spawned apps and their
+                                                     * parent div elements */
     apps_container_ref: NodeRef,
 }
 

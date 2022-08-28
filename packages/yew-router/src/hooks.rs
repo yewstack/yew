@@ -1,11 +1,11 @@
 //! Hooks to access router state and navigate between pages.
 
+use yew::prelude::*;
+
 use crate::history::*;
 use crate::navigator::Navigator;
 use crate::routable::Routable;
 use crate::router::{LocationContext, NavigatorContext};
-
-use yew::prelude::*;
 
 /// A hook to access the [`Navigator`].
 #[hook]

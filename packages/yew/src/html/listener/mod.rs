@@ -1,11 +1,11 @@
 #[macro_use]
 mod events;
 
+pub use events::*;
 use wasm_bindgen::JsCast;
 use web_sys::{Event, EventTarget};
 
 use crate::Callback;
-pub use events::*;
 
 /// Cast [Event] `e` into it's target `T`.
 ///
@@ -37,8 +37,8 @@ where
     /// # Example
     ///
     /// ```
-    /// use yew::prelude::*;
     /// use web_sys::HtmlTextAreaElement;
+    /// use yew::prelude::*;
     /// # enum Msg {
     /// #   Value(String),
     /// # }
@@ -94,8 +94,8 @@ where
     /// # Example
     ///
     /// ```
-    /// use yew::prelude::*;
     /// use web_sys::HtmlInputElement;
+    /// use yew::prelude::*;
     /// # enum Msg {
     /// #   Value(String),
     /// # }

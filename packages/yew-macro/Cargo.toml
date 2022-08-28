@@ -10,14 +10,13 @@ license = "MIT OR Apache-2.0"
 keywords = ["web", "wasm", "frontend", "webasm", "webassembly"]
 categories = ["gui", "web-programming", "wasm"]
 description = "A framework for making client-side single-page apps"
-rust-version = "1.56.0"
+rust-version = "1.60.0"
 
 [lib]
 proc-macro = true
 
 [dependencies]
 boolinator = "2"
-lazy_static = "1"
 proc-macro-error = "1"
 proc-macro2 = "1"
 quote = "1"
@@ -34,5 +33,4 @@ yew = { path = "../yew" }
 [build-dependencies]
 
 [features]
-doc_test = []
 lints = []
