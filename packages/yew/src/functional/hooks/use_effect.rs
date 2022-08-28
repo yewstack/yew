@@ -2,11 +2,25 @@ use std::cell::RefCell;
 
 use crate::functional::{hook, Effect, Hook, HookContext};
 
+/// Trait describing the destructor of [`use_effect`] hook.
+pub trait TearDown: Sized + 'static {
+    /// The function that is executed when destructor is called
+    fn tear_down(self) {}
+}
+
+impl TearDown for () {}
+
+impl<F: FnOnce() + 'static> TearDown for F {
+    fn tear_down(self) {
+        self()
+    }
+}
+
 struct UseEffectBase<T, F, D>
 where
     F: FnOnce(&T) -> D + 'static,
     T: 'static,
-    D: FnOnce() + 'static,
+    D: TearDown,
 {
     runner_with_deps: Option<(T, F)>,
     destructor: Option<D>,
@@ -18,7 +32,7 @@ impl<T, F, D> Effect for RefCell<UseEffectBase<T, F, D>>
 where
     F: FnOnce(&T) -> D + 'static,
     T: 'static,
-    D: FnOnce() + 'static,
+    D: TearDown,
 {
     fn rendered(&self) {
         let mut this = self.borrow_mut();
@@ -29,7 +43,7 @@ where
             }
 
             if let Some(de) = this.destructor.take() {
-                de();
+                de.tear_down();
             }
 
             let new_destructor = runner(&deps);
@@ -44,11 +58,11 @@ impl<T, F, D> Drop for UseEffectBase<T, F, D>
 where
     F: FnOnce(&T) -> D + 'static,
     T: 'static,
-    D: FnOnce() + 'static,
+    D: TearDown,
 {
     fn drop(&mut self) {
         if let Some(destructor) = self.destructor.take() {
-            destructor()
+            destructor.tear_down()
         }
     }
 }
@@ -60,13 +74,13 @@ fn use_effect_base<T, D>(
 ) -> impl Hook<Output = ()>
 where
     T: 'static,
-    D: FnOnce() + 'static,
+    D: TearDown,
 {
     struct HookProvider<T, F, D>
     where
         F: FnOnce(&T) -> D + 'static,
         T: 'static,
-        D: FnOnce() + 'static,
+        D: TearDown,
     {
         runner: F,
         deps: T,
@@ -77,7 +91,7 @@ where
     where
         F: FnOnce(&T) -> D + 'static,
         T: 'static,
-        D: FnOnce() + 'static,
+        D: TearDown,
     {
         type Output = ();
 
@@ -145,7 +159,7 @@ where
 pub fn use_effect<F, D>(f: F)
 where
     F: FnOnce() -> D + 'static,
-    D: FnOnce() + 'static,
+    D: TearDown,
 {
     use_effect_base(|_| f(), (), |_, _| true);
 }
@@ -237,7 +251,7 @@ pub fn use_effect_with_deps<T, F, D>(f: F, deps: T)
 where
     T: PartialEq + 'static,
     F: FnOnce(&T) -> D + 'static,
-    D: FnOnce() + 'static,
+    D: TearDown,
 {
     use_effect_base(f, deps, |lhs, rhs| lhs != rhs)
 }
