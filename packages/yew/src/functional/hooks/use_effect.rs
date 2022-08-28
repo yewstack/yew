@@ -155,6 +155,15 @@ where
 ///     }
 /// }
 /// ```
+///
+/// # Destructor
+///
+/// Any type implementing [`TearDown`] can be used as destructor, which is called when the component
+/// is re-rendered
+///
+/// ## Tip
+///
+/// The callback can return [`()`] if there is no destructor to run.
 #[hook]
 pub fn use_effect<F, D>(f: F)
 where
@@ -190,7 +199,6 @@ where
 ///     use_effect_with_deps(
 ///         move |_| {
 ///             log!(" Is loading prop changed!");
-///             || ()
 ///         },
 ///         is_loading,
 ///     );
@@ -215,7 +223,6 @@ where
 ///     use_effect_with_deps(
 ///         move |_| {
 ///             log!("I got rendered, yay!");
-///             || ()
 ///         },
 ///         (),
 ///     );
@@ -246,6 +253,12 @@ where
 ///     html! { "Hello" }
 /// }
 /// ```
+///
+/// Any type implementing [`TearDown`] can be used as destructor
+///
+/// ### Tip
+///
+/// The callback can return [`()`] if there is no destructor to run.
 #[hook]
 pub fn use_effect_with_deps<T, F, D>(f: F, deps: T)
 where
