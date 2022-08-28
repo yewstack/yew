@@ -60,9 +60,6 @@ impl VNode {
     /// In the browser, this function creates an element, sets the passed HTML to its `innerHTML`
     /// and inserts the contents of it into the DOM.
     ///
-    /// If there are multiple elements, they're wrapped in a `div`. If this behavior is not desired,
-    /// ensure there is only one top level node.
-    ///
     /// # Behavior on server
     ///
     /// When rendering on the server, the contents of HTML are directly injected into the HTML
@@ -70,12 +67,8 @@ impl VNode {
     ///
     /// ## Warning
     ///
-    /// The contents are **not** sanitized. You, as the developer, are responsible to
-    /// ensure the HTML string passed to this method not malicious
-    ///
-    /// ## Panics
-    ///
-    /// If the HTML string is invalid, the [`ServerRenderer`](crate::ServerRenderer) will panic
+    /// The contents are **not** sanitized or validated. You, as the developer, are responsible to
+    /// ensure the HTML string passed to this method are _valid_ and _not malicious_
     ///
     /// # Example
     ///
