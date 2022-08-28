@@ -6,7 +6,6 @@ use std::path::PathBuf;
 use bytes::Bytes;
 use clap::Parser;
 use futures::stream::{self, Stream, StreamExt};
-use hyper::server::Server;
 use simple_ssr::App;
 use warp::Filter;
 use yew::platform::Runtime;
@@ -27,17 +26,6 @@ struct Executor {
     inner: Runtime,
 }
 
-impl<F> hyper::rt::Executor<F> for Executor
-where
-    F: Future + Send + 'static,
-{
-    fn execute(&self, fut: F) {
-        self.inner.spawn_pinned(move || async move {
-            fut.await;
-        });
-    }
-}
-
 async fn render(
     index_html_before: String,
     index_html_after: String,
@@ -55,7 +43,6 @@ async fn render(
 #[tokio::main]
 async fn main() {
     let opts = Opt::parse();
-    let exec = Executor::default();
 
     let index_html_s = tokio::fs::read_to_string(opts.dir.join("index.html"))
         .await
@@ -76,15 +63,5 @@ async fn main() {
     let routes = html.or(warp::fs::dir(opts.dir));
 
     println!("You can view the website at: http://localhost:8080/");
-
-    let warp_svc = warp::service(routes);
-    let svc = hyper::service::make_service_fn(move |_| {
-        let warp_svc = warp_svc.clone();
-        async move { Ok::<_, Infallible>(warp_svc) }
-    });
-    Server::bind(&"127.0.0.1:8080".parse().unwrap())
-        .executor(exec)
-        .serve(svc)
-        .await
-        .unwrap();
+    warp::serve(routes).run(([127, 0, 0, 1], 8080)).await;
 }

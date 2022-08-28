@@ -1930,8 +1930,6 @@ dependencies = [
  "bytes",
  "clap",
  "futures 0.3.21",
- "hyper",
- "jemallocator",
  "log",
  "reqwest",
  "serde",

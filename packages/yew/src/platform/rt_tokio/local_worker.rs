@@ -1,7 +1,7 @@
 //! We use a local worker implementation that does not produce a JoinHandle for spawn_pinned.
 //! This avoids the cost to acquire a JoinHandle.
 //!
-//! See https://github.com/tokio-rs/tokio/issues/4819
+//! See: [tokio-rs/tokio#4819](https://github.com/tokio-rs/tokio/issues/4819)
 //!
 //! We will not be able to produce a meaningful JoinHandle until WebAssembly targets support
 //! unwinding.
@@ -144,8 +144,11 @@ impl LocalHandle {
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use futures::channel::oneshot;
     use tokio::test;
+    use tokio::time::timeout;
     use yew::platform::Runtime;
 
     use super::*;
@@ -162,7 +165,12 @@ mod tests {
                 .expect("failed to send");
         });
 
-        assert!(rx.await.expect("failed to receive"));
+        let result = timeout(Duration::from_secs(5), rx)
+            .await
+            .expect("task timed out")
+            .expect("failed to receive");
+
+        assert!(result);
     }
 
     #[test]
@@ -185,6 +193,15 @@ mod tests {
             })
         });
 
-        assert_eq!(rx1.await, rx2.await);
+        let result1 = timeout(Duration::from_secs(5), rx1)
+            .await
+            .expect("task timed out")
+            .expect("failed to receive");
+        let result2 = timeout(Duration::from_secs(5), rx2)
+            .await
+            .expect("task timed out")
+            .expect("failed to receive");
+
+        assert_eq!(result1, result2);
     }
 }

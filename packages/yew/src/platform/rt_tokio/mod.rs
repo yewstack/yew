@@ -108,8 +108,11 @@ impl Runtime {
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use futures::channel::oneshot;
     use tokio::test;
+    use tokio::time::timeout;
 
     use super::*;
 
@@ -130,8 +133,17 @@ mod tests {
                 .expect("failed to send!");
         });
 
+        let result1 = timeout(Duration::from_secs(5), rx1)
+            .await
+            .expect("task timed out")
+            .expect("failed to receive");
+        let result2 = timeout(Duration::from_secs(5), rx2)
+            .await
+            .expect("task timed out")
+            .expect("failed to receive");
+
         // first task and second task are not on the same thread.
-        assert_ne!(rx1.await, rx2.await);
+        assert_ne!(result1, result2);
     }
 
     #[test]
@@ -152,6 +164,11 @@ mod tests {
             });
         });
 
-        assert_eq!(rx.await, Ok(()));
+        let result = timeout(Duration::from_secs(5), rx)
+            .await
+            .expect("task timed out")
+            .expect("failed to receive");
+
+        assert_eq!(result, ());
     }
 }

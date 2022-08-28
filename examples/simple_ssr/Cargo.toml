@@ -29,8 +29,6 @@ log = "0.4"
 tokio = { version = "1.15.0", features = ["full"] }
 warp = "0.3"
 clap = { version = "3.1.7", features = ["derive"] }
-hyper = { version = "0.14", features = ["server", "http1"] }
-jemallocator = "0.5"
 
 [features]
 hydration = ["yew/hydration"]

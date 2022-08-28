@@ -19,6 +19,7 @@ use tower::ServiceExt;
 use tower_http::services::ServeDir;
 use yew::platform::Runtime;
 
+// We use jemalloc as it produces better performance.
 #[global_allocator]
 static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
@@ -51,6 +52,11 @@ async fn render(
 }
 
 // An executor to process requests on the Yew runtime.
+//
+// By spawning requests on the Yew runtime,
+// it processes request on the same thread as the rendering task.
+//
+// This increases performance in some environments (e.g.: in VM).
 #[derive(Clone, Default)]
 struct Executor {
     inner: Runtime,
