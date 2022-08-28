@@ -164,11 +164,9 @@ mod tests {
             });
         });
 
-        let result = timeout(Duration::from_secs(5), rx)
+        timeout(Duration::from_secs(5), rx)
             .await
             .expect("task timed out")
             .expect("failed to receive");
-
-        assert_eq!(result, ());
     }
 }
