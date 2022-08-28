@@ -19,6 +19,11 @@ note: required because of the requirements on the impl of `HasAllProps<Props, (_
 3  | #[derive(Clone, Properties, PartialEq)]
    |                 ^^^^^^^^^^
    = note: required because of the requirements on the impl of `AllPropsFor<PropsBuilder, (_,)>` for `AssertAllProps`
+note: required by a bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
+  --> $WORKSPACE/packages/yew/src/html/component/properties.rs
+   |
+   |             Token: AllPropsFor<B, How>,
+   |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `Comp<MissingTypeBounds>: yew::BaseComponent` is not satisfied
@@ -32,17 +37,28 @@ error[E0277]: the trait bound `Comp<MissingTypeBounds>: yew::BaseComponent` is n
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: the function or associated item `new` exists for struct `VChild<Comp<MissingTypeBounds>>`, but its trait bounds were not satisfied
-  --> tests/function_component_attr/generic-props-fail.rs:27:14
-   |
-8  | #[function_component(Comp)]
-   | --------------------------- doesn't satisfy `Comp<MissingTypeBounds>: yew::BaseComponent`
+   --> tests/function_component_attr/generic-props-fail.rs:27:14
+    |
+8   | #[function_component(Comp)]
+    | --------------------------- doesn't satisfy `Comp<MissingTypeBounds>: yew::BaseComponent`
 ...
-27 |     html! { <Comp<MissingTypeBounds> /> };
-   |              ^^^^ function or associated item cannot be called on `VChild<Comp<MissingTypeBounds>>` due to unsatisfied trait bounds
-   |
-   = note: the following trait bounds were not satisfied:
-           `Comp<MissingTypeBounds>: yew::BaseComponent`
-   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+27  |     html! { <Comp<MissingTypeBounds> /> };
+    |              ^^^^ function or associated item cannot be called on `VChild<Comp<MissingTypeBounds>>` due to unsatisfied trait bounds
+    |
+    = note: the following trait bounds were not satisfied:
+            `Comp<MissingTypeBounds>: yew::BaseComponent`
+note: the following trait must be implemented
+   --> $WORKSPACE/packages/yew/src/html/component/mod.rs
+    |
+    | / pub trait BaseComponent: Sized + 'static {
+    | |     /// The Component's Message.
+    | |     type Message: 'static;
+    | |
+...   |
+    | |     fn prepare_state(&self) -> Option<String>;
+    | | }
+    | |_^
+    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `MissingTypeBounds: yew::Properties` is not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:27:14

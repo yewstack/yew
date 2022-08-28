@@ -106,38 +106,22 @@ impl ToTokens for HtmlComponent {
             Some(quote! { ::yew::html::ChildrenRenderer::new(#children) })
         };
         let build_props = props.build_properties_tokens(&props_ty, children_renderer);
-
-        let special_props = props.special();
-        let node_ref = if let Some(node_ref) = &special_props.node_ref {
-            let value = &node_ref.value;
-            quote! { #value }
-        } else {
-            quote! { <::yew::html::NodeRef as ::std::default::Default>::default() }
-        };
-
-        let key = if let Some(key) = &special_props.key {
-            let value = &key.value;
-            quote_spanned! {value.span().resolved_at(Span::call_site())=>
-                #[allow(clippy::useless_conversion)]
-                Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#value))
-            }
-        } else {
-            quote! { ::std::option::Option::None }
-        };
-        let use_close_tag = if let Some(close) = close {
-            let close_ty = &close.ty;
-            quote_spanned! {close_ty.span()=>
-                let _ = |_:#close_ty| {};
-            }
-        } else {
-            Default::default()
-        };
+        let key = props.special().wrap_key_attr();
+        let use_close_tag = close
+            .as_ref()
+            .map(|close| {
+                let close_ty = &close.ty;
+                quote_spanned! {close_ty.span()=>
+                    let _ = |_:#close_ty| {};
+                }
+            })
+            .unwrap_or_default();
 
         tokens.extend(quote_spanned! {ty_span=>
             {
                 #use_close_tag
                 let __yew_props = #build_props;
-                ::yew::virtual_dom::VChild::<#ty>::new(__yew_props, #node_ref, #key)
+                ::yew::virtual_dom::VChild::<#ty>::new(__yew_props, #key)
             }
         });
     }

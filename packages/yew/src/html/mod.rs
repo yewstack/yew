@@ -138,19 +138,6 @@ mod feat_csr {
     use super::*;
 
     impl NodeRef {
-        /// Reuse an existing `NodeRef`
-        pub(crate) fn reuse(&self, node_ref: Self) {
-            // Avoid circular references
-            if self == &node_ref {
-                return;
-            }
-
-            let mut this = self.0.borrow_mut();
-            let mut existing = node_ref.0.borrow_mut();
-            this.node = existing.node.take();
-            this.link = existing.link.take();
-        }
-
         /// Link a downstream `NodeRef`
         pub(crate) fn link(&self, node_ref: Self) {
             // Avoid circular references
@@ -220,7 +207,7 @@ pub fn create_portal(child: Html, host: Element) -> Html {
 #[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
-    use gloo_utils::document;
+    use gloo::utils::document;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use super::*;

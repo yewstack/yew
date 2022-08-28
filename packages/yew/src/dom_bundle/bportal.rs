@@ -135,10 +135,10 @@ mod layout_tests {
     #[test]
     fn diff() {
         let mut layouts = vec![];
-        let first_target = gloo_utils::document().create_element("i").unwrap();
-        let second_target = gloo_utils::document().create_element("o").unwrap();
-        let target_with_child = gloo_utils::document().create_element("i").unwrap();
-        let target_child = gloo_utils::document().create_element("s").unwrap();
+        let first_target = gloo::utils::document().create_element("i").unwrap();
+        let second_target = gloo::utils::document().create_element("o").unwrap();
+        let target_with_child = gloo::utils::document().create_element("i").unwrap();
+        let target_child = gloo::utils::document().create_element("s").unwrap();
         target_with_child.append_child(&target_child).unwrap();
 
         layouts.push(TestLayout {

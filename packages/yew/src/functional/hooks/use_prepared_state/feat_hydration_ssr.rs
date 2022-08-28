@@ -19,13 +19,13 @@ pub fn use_prepared_state<T, D, F>(
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,
     T: Serialize + DeserializeOwned + 'static,
-    F: FnOnce(&D) -> T,
+    F: FnOnce(Rc<D>) -> T,
 {
     struct HookProvider<T, D, F>
     where
         D: Serialize + DeserializeOwned + PartialEq + 'static,
         T: Serialize + DeserializeOwned + 'static,
-        F: FnOnce(&D) -> T,
+        F: FnOnce(Rc<D>) -> T,
     {
         deps: D,
         f: F,
@@ -35,7 +35,7 @@ where
     where
         D: Serialize + DeserializeOwned + PartialEq + 'static,
         T: Serialize + DeserializeOwned + 'static,
-        F: FnOnce(&D) -> T,
+        F: FnOnce(Rc<D>) -> T,
     {
         type Output = SuspensionResult<Option<Rc<T>>>;
 
@@ -58,14 +58,14 @@ pub fn use_prepared_state_with_suspension<T, D, F, U>(
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,
     T: Serialize + DeserializeOwned + 'static,
-    F: FnOnce(&D) -> U,
+    F: FnOnce(Rc<D>) -> U,
     U: 'static + Future<Output = T>,
 {
     struct HookProvider<T, D, F, U>
     where
         D: Serialize + DeserializeOwned + PartialEq + 'static,
         T: Serialize + DeserializeOwned + 'static,
-        F: FnOnce(&D) -> U,
+        F: FnOnce(Rc<D>) -> U,
         U: 'static + Future<Output = T>,
     {
         deps: D,
@@ -76,7 +76,7 @@ where
     where
         D: Serialize + DeserializeOwned + PartialEq + 'static,
         T: Serialize + DeserializeOwned + 'static,
-        F: FnOnce(&D) -> U,
+        F: FnOnce(Rc<D>) -> U,
         U: 'static + Future<Output = T>,
     {
         type Output = SuspensionResult<Option<Rc<T>>>;

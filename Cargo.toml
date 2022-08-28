@@ -1,47 +1,9 @@
 [workspace]
 members = [
-  # Packages
-  "packages/yew",
-  "packages/yew-macro",
-  "packages/yew-agent",
-  "packages/yew-router",
-  "packages/yew-router-macro",
-
-  # Examples
-  "examples/boids",
-  "examples/contexts",
-  "examples/counter",
-  "examples/counter_functional",
-  "examples/dyn_create_destroy_apps",
-  "examples/file_upload",
-  "examples/function_memory_game",
-  "examples/function_router",
-  "examples/function_todomvc",
-  "examples/futures",
-  "examples/game_of_life",
-  "examples/inner_html",
-  "examples/js_callback",
-  "examples/keyed_list",
-  "examples/mount_point",
-  "examples/nested_list",
-  "examples/node_refs",
-  "examples/password_strength",
-  "examples/portals",
-  "examples/router",
-  "examples/simple_ssr",
-  "examples/timer",
-  "examples/todomvc",
-  "examples/two_apps",
-  "examples/webgl",
-  "examples/web_worker_fib",
-  "examples/ssr_router",
-  "examples/suspense",
-  "examples/immutable",
-
-  # Tools
-  "tools/benchmark-struct",
-  "tools/benchmark-hooks",
-  "tools/changelog",
-  "tools/process-benchmark-results",
-  "tools/website-test",
+    "packages/*",
 ]
+exclude = [
+    "tools/*",
+    "examples/*",
+]
+resolver = "2"

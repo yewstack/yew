@@ -1,23 +1,27 @@
 use std::collections::HashMap;
+use std::convert::Infallible;
+use std::future::Future;
 use std::path::PathBuf;
 
-use axum::body::Body;
+use axum::body::{Body, StreamBody};
 use axum::error_handling::HandleError;
 use axum::extract::Query;
 use axum::handler::Handler;
 use axum::http::{Request, StatusCode};
-use axum::response::Html;
+use axum::response::IntoResponse;
 use axum::routing::get;
 use axum::{Extension, Router};
 use clap::Parser;
 use function_router::{ServerApp, ServerAppProps};
-use once_cell::sync::Lazy;
-use tokio_util::task::LocalPoolHandle;
+use futures::stream::{self, StreamExt};
+use hyper::server::Server;
 use tower::ServiceExt;
 use tower_http::services::ServeDir;
+use yew::platform::Runtime;
 
-// We spawn a local pool that is as big as the number of cpu threads.
-static LOCAL_POOL: Lazy<LocalPoolHandle> = Lazy::new(|| LocalPoolHandle::new(num_cpus::get()));
+// We use jemalloc as it produces better performance.
+#[global_allocator]
+static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 /// A basic example
 #[derive(Parser, Debug)]
@@ -28,33 +32,51 @@ struct Opt {
 }
 
 async fn render(
-    Extension(index_html_s): Extension<String>,
+    Extension((index_html_before, index_html_after)): Extension<(String, String)>,
     url: Request<Body>,
     Query(queries): Query<HashMap<String, String>>,
-) -> Html<String> {
+) -> impl IntoResponse {
     let url = url.uri().to_string();
 
-    let content = LOCAL_POOL
-        .spawn_pinned(move || async move {
-            let server_app_props = ServerAppProps {
-                url: url.into(),
-                queries,
-            };
+    let renderer = yew::ServerRenderer::<ServerApp>::with_props(move || ServerAppProps {
+        url: url.into(),
+        queries,
+    });
 
-            let renderer = yew::ServerRenderer::<ServerApp>::with_props(server_app_props);
+    StreamBody::new(
+        stream::once(async move { index_html_before })
+            .chain(renderer.render_stream())
+            .chain(stream::once(async move { index_html_after }))
+            .map(Result::<_, Infallible>::Ok),
+    )
+}
 
-            renderer.render().await
-        })
-        .await
-        .expect("the task has failed.");
+// An executor to process requests on the Yew runtime.
+//
+// By spawning requests on the Yew runtime,
+// it processes request on the same thread as the rendering task.
+//
+// This increases performance in some environments (e.g.: in VM).
+#[derive(Clone, Default)]
+struct Executor {
+    inner: Runtime,
+}
 
-    // Good enough for an example, but developers should avoid the replace and extra allocation
-    // here in an actual app.
-    Html(index_html_s.replace("<body>", &format!("<body>{}", content)))
+impl<F> hyper::rt::Executor<F> for Executor
+where
+    F: Future + Send + 'static,
+{
+    fn execute(&self, fut: F) {
+        self.inner.spawn_pinned(move || async move {
+            fut.await;
+        });
+    }
 }
 
 #[tokio::main]
 async fn main() {
+    let exec = Executor::default();
+
     env_logger::init();
 
     let opts = Opt::parse();
@@ -62,6 +84,12 @@ async fn main() {
     let index_html_s = tokio::fs::read_to_string(opts.dir.join("index.html"))
         .await
         .expect("failed to read index.html");
+
+    let (index_html_before, index_html_after) = index_html_s.split_once("<body>").unwrap();
+    let mut index_html_before = index_html_before.to_owned();
+    index_html_before.push_str("<body>");
+
+    let index_html_after = index_html_after.to_owned();
 
     let handle_error = |e| async move {
         (
@@ -77,7 +105,10 @@ async fn main() {
                 .append_index_html_on_directories(false)
                 .fallback(
                     render
-                        .layer(Extension(index_html_s))
+                        .layer(Extension((
+                            index_html_before.clone(),
+                            index_html_after.clone(),
+                        )))
                         .into_service()
                         .map_err(|err| -> std::io::Error { match err {} }),
                 ),
@@ -86,7 +117,8 @@ async fn main() {
 
     println!("You can view the website at: http://localhost:8080/");
 
-    axum::Server::bind(&"0.0.0.0:8080".parse().unwrap())
+    Server::bind(&"127.0.0.1:8080".parse().unwrap())
+        .executor(exec)
         .serve(app.into_make_service())
         .await
         .unwrap();

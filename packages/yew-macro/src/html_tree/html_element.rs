@@ -8,7 +8,7 @@ use syn::spanned::Spanned;
 use syn::{Block, Expr, Ident, Lit, LitStr, Token};
 
 use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
-use crate::props::{ClassesForm, ElementProps, Prop};
+use crate::props::{ClassesForm, ElementProps, Prop, PropDirective};
 use crate::stringify::{Stringify, Value};
 use crate::{non_capitalized_ascii, Peek, PeekValue};
 
@@ -112,37 +112,17 @@ impl ToTokens for HtmlElement {
             booleans,
             value,
             checked,
-            node_ref,
-            key,
             listeners,
+            special,
         } = &props;
 
         // attributes with special treatment
 
-        let node_ref = node_ref
-            .as_ref()
-            .map(|attr| {
-                let value = &attr.value;
-                quote_spanned! {value.span().resolved_at(Span::call_site())=>
-                    ::yew::html::IntoPropValue::<::yew::html::NodeRef>
-                    ::into_prop_value(#value)
-                }
-            })
-            .unwrap_or(quote! { ::std::default::Default::default() });
-        let key = key
-            .as_ref()
-            .map(|attr| {
-                let value = attr.value.optimize_literals();
-                quote_spanned! {value.span().resolved_at(Span::call_site())=>
-                    ::std::option::Option::Some(
-                        ::std::convert::Into::<::yew::virtual_dom::Key>::into(#value)
-                    )
-                }
-            })
-            .unwrap_or(quote! { ::std::option::Option::None });
+        let node_ref = special.wrap_node_ref_attr();
+        let key = special.wrap_key_attr();
         let value = value
             .as_ref()
-            .map(wrap_attr_prop)
+            .map(|prop| wrap_attr_value(prop.value.optimize_literals()))
             .unwrap_or(quote! { ::std::option::Option::None });
         let checked = checked
             .as_ref()
@@ -155,39 +135,58 @@ impl ToTokens for HtmlElement {
         // other attributes
 
         let attributes = {
-            let normal_attrs = attributes.iter().map(|Prop { label, value, .. }| {
-                (label.to_lit_str(), value.optimize_literals_tagged())
-            });
-            let boolean_attrs = booleans.iter().filter_map(|Prop { label, value, .. }| {
-                let key = label.to_lit_str();
-                Some((
-                    key.clone(),
-                    match value {
-                        Expr::Lit(e) => match &e.lit {
-                            Lit::Bool(b) => Value::Static(if b.value {
-                                quote! { #key }
-                            } else {
-                                return None;
-                            }),
-                            _ => Value::Dynamic(quote_spanned! {value.span()=> {
-                                ::yew::utils::__ensure_type::<::std::primitive::bool>(#value);
-                                #key
-                            }}),
-                        },
-                        expr => Value::Dynamic(
-                            quote_spanned! {expr.span().resolved_at(Span::call_site())=>
-                                if #expr {
-                                    ::std::option::Option::Some(
-                                        ::yew::virtual_dom::AttrValue::Static(#key)
-                                    )
+            let normal_attrs = attributes.iter().map(
+                |Prop {
+                     label,
+                     value,
+                     directive,
+                     ..
+                 }| {
+                    (
+                        label.to_lit_str(),
+                        value.optimize_literals_tagged(),
+                        *directive,
+                    )
+                },
+            );
+            let boolean_attrs = booleans.iter().filter_map(
+                |Prop {
+                     label,
+                     value,
+                     directive,
+                     ..
+                 }| {
+                    let key = label.to_lit_str();
+                    Some((
+                        key.clone(),
+                        match value {
+                            Expr::Lit(e) => match &e.lit {
+                                Lit::Bool(b) => Value::Static(if b.value {
+                                    quote! { #key }
                                 } else {
-                                    ::std::option::Option::None
-                                }
+                                    return None;
+                                }),
+                                _ => Value::Dynamic(quote_spanned! {value.span()=> {
+                                    ::yew::utils::__ensure_type::<::std::primitive::bool>(#value);
+                                    #key
+                                }}),
                             },
-                        ),
-                    },
-                ))
-            });
+                            expr => Value::Dynamic(
+                                quote_spanned! {expr.span().resolved_at(Span::call_site())=>
+                                    if #expr {
+                                        ::std::option::Option::Some(
+                                            ::yew::virtual_dom::AttrValue::Static(#key)
+                                        )
+                                    } else {
+                                        ::std::option::Option::None
+                                    }
+                                },
+                            ),
+                        },
+                        *directive,
+                    ))
+                },
+            );
             let class_attr = classes.as_ref().and_then(|classes| match classes {
                 ClassesForm::Tuple(classes) => {
                     let span = classes.span();
@@ -216,6 +215,7 @@ impl ToTokens for HtmlElement {
                                 __yew_classes
                             }
                         }),
+                        None,
                     ))
                 }
                 ClassesForm::Single(classes) => {
@@ -227,6 +227,7 @@ impl ToTokens for HtmlElement {
                                 Some((
                                     LitStr::new("class", lit.span()),
                                     Value::Static(quote! { #lit }),
+                                    None,
                                 ))
                             }
                         }
@@ -236,21 +237,34 @@ impl ToTokens for HtmlElement {
                                 Value::Dynamic(quote! {
                                     ::std::convert::Into::<::yew::html::Classes>::into(#classes)
                                 }),
+                                None,
                             ))
                         }
                     }
                 }
             });
 
+            fn apply_as(directive: Option<&PropDirective>) -> TokenStream {
+                match directive {
+                    Some(PropDirective::ApplyAsProperty(token)) => {
+                        quote_spanned!(token.span()=> ::yew::virtual_dom::ApplyAttributeAs::Property)
+                    }
+                    None => quote!(::yew::virtual_dom::ApplyAttributeAs::Attribute),
+                }
+            }
+
             /// Try to turn attribute list into a `::yew::virtual_dom::Attributes::Static`
-            fn try_into_static(src: &[(LitStr, Value)]) -> Option<TokenStream> {
+            fn try_into_static(
+                src: &[(LitStr, Value, Option<PropDirective>)],
+            ) -> Option<TokenStream> {
                 let mut kv = Vec::with_capacity(src.len());
-                for (k, v) in src.iter() {
+                for (k, v, directive) in src.iter() {
                     let v = match v {
                         Value::Static(v) => quote! { #v },
                         Value::Dynamic(_) => return None,
                     };
-                    kv.push(quote! { [ #k, #v ] });
+                    let apply_as = apply_as(directive.as_ref());
+                    kv.push(quote! { ( #k, #v, #apply_as ) });
                 }
 
                 Some(quote! { ::yew::virtual_dom::Attributes::Static(&[#(#kv),*]) })
@@ -259,16 +273,13 @@ impl ToTokens for HtmlElement {
             let attrs = normal_attrs
                 .chain(boolean_attrs)
                 .chain(class_attr)
-                .collect::<Vec<(LitStr, Value)>>();
+                .collect::<Vec<(LitStr, Value, Option<PropDirective>)>>();
             try_into_static(&attrs).unwrap_or_else(|| {
-                let keys = attrs.iter().map(|(k, _)| quote! { #k });
-                let values = attrs.iter().map(|(_, v)| {
-                    quote_spanned! {v.span()=>
-                        ::yew::html::IntoPropValue::<
-                            ::std::option::Option::<::yew::virtual_dom::AttrValue>
-                        >
-                        ::into_prop_value(#v)
-                    }
+                let keys = attrs.iter().map(|(k, ..)| quote! { #k });
+                let values = attrs.iter().map(|(_, v, directive)| {
+                    let apply_as = apply_as(directive.as_ref());
+                    let value = wrap_attr_value(v);
+                    quote! { ::std::option::Option::map(#value, |it| (it, #apply_as)) }
                 });
                 quote! {
                     ::yew::virtual_dom::Attributes::Dynamic{
@@ -387,7 +398,7 @@ impl ToTokens for HtmlElement {
                     }}
                 });
 
-                #[cfg(feature = "nightly")]
+                #[cfg(nightly_yew)]
                 let invalid_void_tag_msg_start = {
                     let span = vtag.span().unwrap();
                     let source_file = span.source_file().path();
@@ -396,7 +407,7 @@ impl ToTokens for HtmlElement {
                     format!("[{}:{}:{}] ", source_file, start.line, start.column)
                 };
 
-                #[cfg(not(feature = "nightly"))]
+                #[cfg(not(nightly_yew))]
                 let invalid_void_tag_msg_start = "";
 
                 // this way we get a nice error message (with the correct span) when the expression
@@ -473,8 +484,7 @@ impl ToTokens for HtmlElement {
     }
 }
 
-fn wrap_attr_prop(prop: &Prop) -> TokenStream {
-    let value = prop.value.optimize_literals();
+fn wrap_attr_value<T: ToTokens>(value: T) -> TokenStream {
     quote_spanned! {value.span()=>
         ::yew::html::IntoPropValue::<
             ::std::option::Option<

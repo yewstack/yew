@@ -43,7 +43,7 @@ pub use feat_ssr::*;
 /// where
 ///     D: Serialize + DeserializeOwned + PartialEq + 'static,
 ///     T: Serialize + DeserializeOwned + 'static,
-///     F: FnOnce(&D) -> T,
+///     F: FnOnce(Rc<D>) -> T,
 /// # { todo!() }
 /// ```
 ///
@@ -69,7 +69,7 @@ pub use feat_ssr::*;
 ///     where
 ///         D: Serialize + DeserializeOwned + PartialEq + 'static,
 ///         T: Serialize + DeserializeOwned + 'static,
-///         F: FnOnce(&D) -> U,
+///         F: FnOnce(Rc<D>) -> U,
 ///         U: 'static + Future<Output = T>,
 /// # { todo!() }
 /// ```
@@ -89,7 +89,6 @@ pub use feat_ssr::*;
 /// Whilst async closure is an unstable feature, the procedural macro will rewrite this to a
 /// closure that returns an async block automatically. You can use this hook with async closure
 /// in stable Rust.
-#[cfg_attr(documenting, doc(cfg(any(target_arch = "wasm32", feature = "tokio"))))]
 pub use use_prepared_state_macro as use_prepared_state;
 // With SSR.
 #[doc(hidden)]

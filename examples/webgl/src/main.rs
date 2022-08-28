@@ -60,7 +60,7 @@ impl App {
 
     fn render_gl(&mut self, _link: &Scope<Self>) {
         log!("This should log only once -- not once per frame");
-        
+
         let gl = self.gl.as_ref().expect("GL Context not initialized!");
 
         let mut timestamp = 0.0;
@@ -104,7 +104,7 @@ impl App {
 
         gl.draw_arrays(GL::TRIANGLES, 0, 6);
 
-        // Gloo-render's request_animation_frame has this extra closure 
+        // Gloo-render's request_animation_frame has this extra closure
         // wrapping logic running every frame, unnecessary cost.
         // Here constructing the wrapped closure just once.
 

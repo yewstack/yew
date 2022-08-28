@@ -8,14 +8,25 @@ error[E0277]: the trait bound `Unimplemented: yew::Component` is not satisfied
   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: the function or associated item `new` exists for struct `VChild<Unimplemented>`, but its trait bounds were not satisfied
- --> tests/html_macro/component-unimplemented-fail.rs:6:14
-  |
-3 | struct Unimplemented;
-  | --------------------- doesn't satisfy `Unimplemented: BaseComponent`
+   --> tests/html_macro/component-unimplemented-fail.rs:6:14
+    |
+3   | struct Unimplemented;
+    | --------------------- doesn't satisfy `Unimplemented: BaseComponent`
 ...
-6 |     html! { <Unimplemented /> };
-  |              ^^^^^^^^^^^^^ function or associated item cannot be called on `VChild<Unimplemented>` due to unsatisfied trait bounds
-  |
-  = note: the following trait bounds were not satisfied:
-          `Unimplemented: BaseComponent`
-  = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+6   |     html! { <Unimplemented /> };
+    |              ^^^^^^^^^^^^^ function or associated item cannot be called on `VChild<Unimplemented>` due to unsatisfied trait bounds
+    |
+    = note: the following trait bounds were not satisfied:
+            `Unimplemented: BaseComponent`
+note: the following trait must be implemented
+   --> $WORKSPACE/packages/yew/src/html/component/mod.rs
+    |
+    | / pub trait BaseComponent: Sized + 'static {
+    | |     /// The Component's Message.
+    | |     type Message: 'static;
+    | |
+...   |
+    | |     fn prepare_state(&self) -> Option<String>;
+    | | }
+    | |_^
+    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)

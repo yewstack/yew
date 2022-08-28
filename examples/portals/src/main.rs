@@ -33,7 +33,7 @@ impl Component for ShadowDOMHost {
                 .unchecked_into::<Element>()
                 .attach_shadow(&ShadowRootInit::new(ShadowRootMode::Open))
                 .expect("installing shadow root succeeds");
-            let inner_host = gloo_utils::document()
+            let inner_host = gloo::utils::document()
                 .create_element("div")
                 .expect("can create inner wrapper");
             shadow_root
@@ -82,7 +82,7 @@ impl Component for App {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        let document_head = gloo_utils::document()
+        let document_head = gloo::utils::document()
             .head()
             .expect("head element to be present");
         let title_element = document_head

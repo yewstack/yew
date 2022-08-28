@@ -8,7 +8,7 @@ on:
       - completed
 
 jobs:
-  size-cmp:
+  post-size-cmp:
     name: Post Comment on Pull Request
     runs-on: ubuntu-latest
 

@@ -27,7 +27,6 @@ use std::rc::Rc;
 
 use wasm_bindgen::prelude::*;
 
-#[cfg(any(target_arch = "wasm32", feature = "tokio"))]
 #[cfg(all(feature = "hydration", feature = "ssr"))]
 use crate::html::RenderMode;
 use crate::html::{AnyScope, BaseComponent, Context, HtmlResult};
@@ -68,7 +67,6 @@ pub use yew_macro::hook;
 type ReRender = Rc<dyn Fn()>;
 
 /// Primitives of a prepared state hook.
-#[cfg(any(target_arch = "wasm32", feature = "tokio"))]
 #[cfg(any(feature = "hydration", feature = "ssr"))]
 pub(crate) trait PreparedState {
     #[cfg(feature = "ssr")]
@@ -83,7 +81,6 @@ pub(crate) trait Effect {
 /// A hook context to be passed to hooks.
 pub struct HookContext {
     pub(crate) scope: AnyScope,
-    #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
     #[cfg(all(feature = "hydration", feature = "ssr"))]
     creation_mode: RenderMode,
     re_render: ReRender,
@@ -91,14 +88,11 @@ pub struct HookContext {
     states: Vec<Rc<dyn Any>>,
     effects: Vec<Rc<dyn Effect>>,
 
-    #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
     #[cfg(any(feature = "hydration", feature = "ssr"))]
     prepared_states: Vec<Rc<dyn PreparedState>>,
 
-    #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
     #[cfg(feature = "hydration")]
     prepared_states_data: Vec<Rc<str>>,
-    #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
     #[cfg(feature = "hydration")]
     prepared_state_counter: usize,
 
@@ -111,29 +105,22 @@ impl HookContext {
     fn new(
         scope: AnyScope,
         re_render: ReRender,
-        #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
-        #[cfg(all(feature = "hydration", feature = "ssr"))]
-        creation_mode: RenderMode,
-        #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
-        #[cfg(feature = "hydration")]
-        prepared_state: Option<&str>,
+        #[cfg(all(feature = "hydration", feature = "ssr"))] creation_mode: RenderMode,
+        #[cfg(feature = "hydration")] prepared_state: Option<&str>,
     ) -> RefCell<Self> {
         RefCell::new(HookContext {
             scope,
             re_render,
 
-            #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
             #[cfg(all(feature = "hydration", feature = "ssr"))]
             creation_mode,
 
             states: Vec::new(),
 
-            #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
             #[cfg(any(feature = "hydration", feature = "ssr"))]
             prepared_states: Vec::new(),
             effects: Vec::new(),
 
-            #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
             #[cfg(feature = "hydration")]
             prepared_states_data: {
                 match prepared_state {
@@ -141,7 +128,6 @@ impl HookContext {
                     None => Vec::new(),
                 }
             },
-            #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
             #[cfg(feature = "hydration")]
             prepared_state_counter: 0,
 
@@ -187,7 +173,6 @@ impl HookContext {
         t
     }
 
-    #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
     #[cfg(any(feature = "hydration", feature = "ssr"))]
     pub(crate) fn next_prepared_state<T>(
         &mut self,
@@ -220,7 +205,6 @@ impl HookContext {
 
     #[inline(always)]
     fn prepare_run(&mut self) {
-        #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
         #[cfg(feature = "hydration")]
         {
             self.prepared_state_counter = 0;
@@ -277,15 +261,11 @@ impl HookContext {
         }
     }
 
-    #[cfg(any(
-        not(feature = "ssr"),
-        not(any(target_arch = "wasm32", feature = "tokio"))
-    ))]
+    #[cfg(not(feature = "ssr"))]
     fn prepare_state(&self) -> Option<String> {
         None
     }
 
-    #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
     #[cfg(feature = "ssr")]
     fn prepare_state(&self) -> Option<String> {
         if self.prepared_states.is_empty() {
@@ -361,10 +341,8 @@ where
             hook_ctx: HookContext::new(
                 scope,
                 re_render,
-                #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
                 #[cfg(all(feature = "hydration", feature = "ssr"))]
                 ctx.creation_mode(),
-                #[cfg(any(target_arch = "wasm32", feature = "tokio"))]
                 #[cfg(feature = "hydration")]
                 ctx.prepared_state(),
             ),

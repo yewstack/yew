@@ -156,33 +156,97 @@ mod test {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use std::task::Poll;
+
+    use futures::stream::StreamExt;
+    use futures::{join, pin_mut, poll, FutureExt};
+
     use super::*;
     use crate::html::AnyScope;
+    use crate::platform::io::{self, BufWriter};
 
     impl VList {
-        pub(crate) async fn render_to_string(
+        pub(crate) async fn render_into_stream(
             &self,
-            w: &mut String,
+            w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
-            // Concurrently render all children.
-            for fragment in futures::future::join_all(self.children.iter().map(|m| async move {
-                let mut w = String::new();
+            match &self.children[..] {
+                [] => {}
+                [child] => {
+                    child.render_into_stream(w, parent_scope, hydratable).await;
+                }
+                _ => {
+                    async fn render_child_iter<'a, I>(
+                        mut children: I,
+                        w: &mut BufWriter,
+                        parent_scope: &AnyScope,
+                        hydratable: bool,
+                    ) where
+                        I: Iterator<Item = &'a VNode>,
+                    {
+                        let buf_capacity = w.capacity();
+                        let mut w = w;
+                        while let Some(m) = children.next() {
+                            let child_fur = async move {
+                                // Rust's Compiler does not release the mutable reference to
+                                // BufWriter until the end of the loop, regardless of whether an
+                                // await statement has dropped the child_fur.
+                                //
+                                // We capture and return the mutable reference to avoid this.
 
-                m.render_to_string(&mut w, parent_scope, hydratable).await;
+                                m.render_into_stream(w, parent_scope, hydratable).await;
+                                w
+                            };
+                            pin_mut!(child_fur);
 
-                w
-            }))
-            .await
-            {
-                w.push_str(&fragment)
+                            match poll!(child_fur.as_mut()) {
+                                Poll::Pending => {
+                                    let (mut next_w, next_r) = io::buffer(buf_capacity);
+                                    // Move buf writer into an async block for it to be dropped at
+                                    // the end of the future.
+                                    let rest_render_fur = async move {
+                                        render_child_iter(
+                                            children,
+                                            &mut next_w,
+                                            parent_scope,
+                                            hydratable,
+                                        )
+                                        .await;
+                                    }
+                                    // boxing to avoid recursion
+                                    .boxed_local();
+
+                                    let transfer_fur = async move {
+                                        let w = child_fur.await;
+
+                                        pin_mut!(next_r);
+                                        while let Some(m) = next_r.next().await {
+                                            w.write(m.into());
+                                        }
+                                    };
+
+                                    join!(rest_render_fur, transfer_fur);
+                                    break;
+                                }
+                                Poll::Ready(w_) => {
+                                    w = w_;
+                                }
+                            }
+                        }
+                    }
+
+                    let children = self.children.iter();
+                    render_child_iter(children, w, parent_scope, hydratable).await;
+                }
             }
         }
     }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "ssr")]
 #[cfg(test)]
 mod ssr_tests {
     use tokio::test;

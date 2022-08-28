@@ -232,7 +232,7 @@ static BUBBLE_EVENTS: AtomicBool = AtomicBool::new(true);
 /// handler has no effect.
 ///
 /// This function should be called before any component is mounted.
-#[cfg_attr(documenting, doc(cfg(feature = "csr")))]
+#[cfg(feature = "csr")]
 pub fn set_event_bubbling(bubble: bool) {
     BUBBLE_EVENTS.store(bubble, Ordering::Relaxed);
 }
@@ -370,7 +370,7 @@ impl SubtreeData {
         // We're tasked with finding the subtree that is reponsible with handling the event, and/or
         // run the handling if that's `self`.
         let target = event_path.get(0).dyn_into::<Element>().ok()?;
-        let should_bubble = BUBBLE_EVENTS.load(Ordering::Relaxed);
+        let should_bubble = BUBBLE_EVENTS.load(Ordering::Relaxed) && event.bubbles();
         // We say that the most deeply nested subtree is "responsible" for handling the event.
         let (responsible_tree_id, bubbling_start) = if let Some(branding) = cached_branding {
             (branding, target.clone())
