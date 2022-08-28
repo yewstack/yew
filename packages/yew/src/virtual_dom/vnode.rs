@@ -81,7 +81,7 @@ impl VNode {
     ///
     /// ```rust
     /// # use yew::virtual_dom::VNode;
-    /// use yew::{AttrValue, html};
+    /// use yew::{html, AttrValue};
     /// # fn _main() {
     /// let parsed = VNode::from_raw_html(AttrValue::from("<div>content</div>"));
     /// let _: VNode = html! {

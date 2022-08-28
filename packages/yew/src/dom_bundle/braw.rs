@@ -1,3 +1,4 @@
+use wasm_bindgen::JsCast;
 use web_sys::Element;
 
 use crate::dom_bundle::bnode::BNode;
@@ -14,22 +15,17 @@ pub struct BRaw {
 }
 
 impl BRaw {
-    fn create_element(html: &str) -> Option<Element> {
+    fn create_elements(html: &str) -> Vec<Element> {
         let div = gloo::utils::document().create_element("div").unwrap();
         let html = html.trim();
         div.set_inner_html(html);
         let children = div.children();
-        if children.length() == 0 {
-            None
-        } else if children.length() == 1 {
-            children.get_with_index(0)
-        } else {
-            tracing::debug!(
-                "HTML with more than one root node was passed as raw node. It will be wrapped in \
-                 a <div>"
-            );
-            Some(div)
-        }
+        let children = js_sys::Array::from(&children);
+        let children = children.to_vec();
+        children
+            .into_iter()
+            .map(|it| it.unchecked_into())
+            .collect::<Vec<_>>()
     }
 
     fn detach_bundle(&self, parent: &Element) {
@@ -72,12 +68,24 @@ impl Reconcilable for VRaw {
         parent: &Element,
         next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
-        let element = BRaw::create_element(&self.html);
+        let elements = BRaw::create_elements(&self.html);
+        if elements.is_empty() {
+            return (
+                next_sibling.clone(),
+                BRaw {
+                    html: self.html,
+                    reference: next_sibling,
+                },
+            );
+        }
         let node_ref = NodeRef::default();
 
-        if let Some(element) = element {
-            insert_node(&element, parent, next_sibling.get().as_ref());
-            node_ref.set(Some(element.into()));
+        let mut iter = elements.into_iter();
+        let first = iter.next().unwrap();
+        insert_node(&first, parent, next_sibling.get().as_ref());
+        node_ref.set(Some(first.into()));
+        for child in iter {
+            insert_node(&child, parent, next_sibling.get().as_ref());
         }
         (
             node_ref.clone(),
@@ -173,7 +181,7 @@ mod tests {
         let elem = VNode::from_raw_html(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
-        assert_eq!(parent.inner_html(), format!("<div>{}</div>", HTML))
+        assert_eq!(parent.inner_html(), HTML)
     }
 
     fn assert_braw(node: &mut BNode) -> &mut BRaw {

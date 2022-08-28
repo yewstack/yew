@@ -1,6 +1,8 @@
 mod common;
 
 #[cfg(target_arch = "wasm32")]
+use wasm_bindgen::JsCast;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::wasm_bindgen_test as test;
 use yew::prelude::*;
 #[cfg(target_arch = "wasm32")]
@@ -11,9 +13,6 @@ use tokio::test;
 macro_rules! create_test {
     ($name:ident, $html:expr) => {
         create_test!($name, $html, $html);
-    };
-    ($name:ident, $html:expr, wrap_div) => {
-        create_test!($name, $html, format!("<div>{}</div>", $html));
     };
     ($name:ident, $raw:expr, $expected:expr) => {
         #[test]
@@ -70,6 +69,54 @@ create_test!(
 );
 create_test!(
     multi_node,
-    r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#,
-    wrap_div
+    r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#
 );
+
+#[cfg(target_arch = "wasm32")]
+#[test]
+async fn set_new_html_string() {
+    #[function_component]
+    fn App() -> Html {
+        let raw_html = use_state(|| ("<span>first</span>"));
+        let onclick = {
+            let raw_html = raw_html.clone();
+            move |_| raw_html.set("<span>second</span>")
+        };
+        let raw = Html::from_raw_html(AttrValue::from(*raw_html));
+        html! {
+            <>
+                <div id="raw-container">
+                    {raw}
+                </div>
+                <button id="click-me-btn" {onclick}>{"Click me"}</button>
+            </>
+        }
+    }
+    use std::time::Duration;
+
+    use yew::platform::time::sleep;
+
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .render();
+
+    // wait for render to finish
+    sleep(Duration::from_millis(100)).await;
+
+    let e = gloo::utils::document()
+        .get_element_by_id("raw-container")
+        .unwrap();
+    assert_eq!(e.inner_html(), "<span>first</span>");
+
+    gloo::utils::document()
+        .get_element_by_id("click-me-btn")
+        .unwrap()
+        .unchecked_into::<web_sys::HtmlButtonElement>()
+        .click();
+
+    sleep(Duration::from_millis(100)).await;
+
+    let e = gloo::utils::document()
+        .get_element_by_id("raw-container")
+        .unwrap();
+    assert_eq!(e.inner_html(), "<span>second</span>");
+}

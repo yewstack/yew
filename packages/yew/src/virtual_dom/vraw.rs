@@ -6,11 +6,15 @@ pub struct VRaw {
     pub html: AttrValue,
 }
 
+impl From<AttrValue> for VRaw {
+    fn from(html: AttrValue) -> Self {
+        Self { html }
+    }
+}
+
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use std::borrow::Cow;
-
-    use html_parser::Dom;
 
     use super::*;
     use crate::html::AnyScope;
@@ -23,13 +27,7 @@ mod feat_ssr {
             _parent_scope: &AnyScope,
             _hydratable: bool,
         ) {
-            // this is needed to ensure the resulting HTML during CSR and SSR is the same
-            let dom = Dom::parse(self.html.as_ref()).expect("invalid HTML was passed");
-            if dom.children.len() > 1 {
-                w.write(Cow::Owned(format!("<div>{}</div>", self.html)))
-            } else {
-                w.write(Cow::Borrowed(self.html.as_ref()))
-            }
+            w.write(Cow::Borrowed(self.html.as_ref()))
         }
     }
 }
