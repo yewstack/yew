@@ -220,7 +220,7 @@ where
 
         Self::spawn_rendering_task(rt, create_task);
 
-        rx.await.expect("failed to receive.")
+        rx.await.expect("failed to render application")
     }
 
     /// Renders Yew Application to a String.
