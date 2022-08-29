@@ -30,7 +30,7 @@ impl Component for App {
     fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
         // Only start the render loop if it's the first render
         // There's no loop cancellation taking place, so if multiple renders happen,
-        // there will be multiple loops running. That doesn't *really* matter here because
+        // there would be multiple loops running. That doesn't *really* matter here because
         // there's no props update and no SSR is taking place, but it is something to keep in
         // consideration
         if !first_render {
