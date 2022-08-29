@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::convert::Infallible;
+use std::future::Future;
 use std::path::PathBuf;
 
 use axum::body::{Body, StreamBody};
@@ -13,8 +14,14 @@ use axum::{Extension, Router};
 use clap::Parser;
 use function_router::{ServerApp, ServerAppProps};
 use futures::stream::{self, StreamExt};
+use hyper::server::Server;
 use tower::ServiceExt;
 use tower_http::services::ServeDir;
+use yew::platform::Runtime;
+
+// We use jemalloc as it produces better performance.
+#[global_allocator]
+static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 /// A basic example
 #[derive(Parser, Debug)]
@@ -38,14 +45,38 @@ async fn render(
 
     StreamBody::new(
         stream::once(async move { index_html_before })
-            .chain(renderer.render_stream().await)
+            .chain(renderer.render_stream())
             .chain(stream::once(async move { index_html_after }))
             .map(Result::<_, Infallible>::Ok),
     )
 }
 
+// An executor to process requests on the Yew runtime.
+//
+// By spawning requests on the Yew runtime,
+// it processes request on the same thread as the rendering task.
+//
+// This increases performance in some environments (e.g.: in VM).
+#[derive(Clone, Default)]
+struct Executor {
+    inner: Runtime,
+}
+
+impl<F> hyper::rt::Executor<F> for Executor
+where
+    F: Future + Send + 'static,
+{
+    fn execute(&self, fut: F) {
+        self.inner.spawn_pinned(move || async move {
+            fut.await;
+        });
+    }
+}
+
 #[tokio::main]
 async fn main() {
+    let exec = Executor::default();
+
     env_logger::init();
 
     let opts = Opt::parse();
@@ -86,7 +117,8 @@ async fn main() {
 
     println!("You can view the website at: http://localhost:8080/");
 
-    axum::Server::bind(&"0.0.0.0:8080".parse().unwrap())
+    Server::bind(&"127.0.0.1:8080".parse().unwrap())
+        .executor(exec)
         .serve(app.into_make_service())
         .await
         .unwrap();

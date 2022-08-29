@@ -1,4 +1,5 @@
 use std::fmt;
+use std::future::Future;
 
 use futures::pin_mut;
 use futures::stream::{Stream, StreamExt};
@@ -6,9 +7,17 @@ use tracing::Instrument;
 
 use crate::html::{BaseComponent, Scope};
 use crate::platform::fmt::BufStream;
-use crate::platform::{run_pinned, spawn_local};
+use crate::platform::{LocalHandle, Runtime};
 
 /// A Yew Server-side Renderer that renders on the current thread.
+///
+/// # Note
+///
+/// This renderer does not spawn its own runtime and can only be used when:
+///
+/// - `wasm-bindgen-futures` is selected as the backend of Yew runtime.
+/// - running within a [`Runtime`](crate::platform::Runtime).
+/// - running within a tokio [`LocalSet`](struct@tokio::task::LocalSet).
 #[cfg(feature = "ssr")]
 #[derive(Debug)]
 pub struct LocalServerRenderer<COMP>
@@ -66,11 +75,10 @@ where
 
     /// Renders Yew Application.
     pub async fn render(self) -> String {
-        let mut s = String::new();
+        let s = self.render_stream();
+        futures::pin_mut!(s);
 
-        self.render_to_string(&mut s).await;
-
-        s
+        s.collect().await
     }
 
     /// Renders Yew Application to a String.
@@ -83,7 +91,7 @@ where
         }
     }
 
-    /// Renders Yew Applications into a string Stream
+    /// Renders Yew Application into a string Stream
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         name = "render",
@@ -107,7 +115,7 @@ where
 
 /// A Yew Server-side Renderer.
 ///
-/// This renderer spawns the rendering task to an internal worker pool and receives result when
+/// This renderer spawns the rendering task to a Yew [`Runtime`]. and receives result when
 /// the rendering process has finished.
 ///
 /// See [`yew::platform`] for more information.
@@ -118,6 +126,7 @@ where
 {
     create_props: Box<dyn Send + FnOnce() -> COMP::Properties>,
     hydratable: bool,
+    rt: Option<Runtime>,
 }
 
 impl<COMP> fmt::Debug for ServerRenderer<COMP>
@@ -167,7 +176,15 @@ where
         Self {
             create_props: Box::new(create_props),
             hydratable: true,
+            rt: None,
         }
+    }
+
+    /// Sets the runtime the ServerRenderer will run the rendering task with.
+    pub fn with_runtime(mut self, rt: Runtime) -> Self {
+        self.rt = Some(rt);
+
+        self
     }
 
     /// Sets whether an the rendered result is hydratable.
@@ -184,50 +201,78 @@ where
 
     /// Renders Yew Application.
     pub async fn render(self) -> String {
-        let mut s = String::new();
+        let Self {
+            create_props,
+            hydratable,
+            rt,
+        } = self;
 
-        self.render_to_string(&mut s).await;
+        let (tx, rx) = futures::channel::oneshot::channel();
+        let create_task = move || async move {
+            let props = create_props();
+            let s = LocalServerRenderer::<COMP>::with_props(props)
+                .hydratable(hydratable)
+                .render()
+                .await;
 
-        s
+            let _ = tx.send(s);
+        };
+
+        Self::spawn_rendering_task(rt, create_task);
+
+        rx.await.expect("failed to receive.")
     }
 
     /// Renders Yew Application to a String.
     pub async fn render_to_string(self, w: &mut String) {
-        let mut s = self.render_stream().await;
+        let mut s = self.render_stream();
 
         while let Some(m) = s.next().await {
             w.push_str(&m);
         }
     }
 
-    /// Renders Yew Applications into a string Stream.
-    ///
-    /// # Note
-    ///
-    /// Unlike [`LocalServerRenderer::render_stream`], this method is `async fn`.
-    pub async fn render_stream(self) -> impl Stream<Item = String> {
+    #[inline]
+    fn spawn_rendering_task<F, Fut>(rt: Option<Runtime>, create_task: F)
+    where
+        F: 'static + Send + FnOnce() -> Fut,
+        Fut: Future<Output = ()> + 'static,
+    {
+        match rt {
+            // If a runtime is specified, spawn to the specified runtime.
+            Some(m) => m.spawn_pinned(create_task),
+            None => match LocalHandle::try_current() {
+                // If within a Yew Runtime, spawn to the current runtime.
+                Some(m) => m.spawn_local(create_task()),
+                // Outside of Yew Runtime, spawn to the default runtime.
+                None => Runtime::default().spawn_pinned(create_task),
+            },
+        }
+    }
+
+    /// Renders Yew Application into a string Stream.
+    pub fn render_stream(self) -> impl Send + Stream<Item = String> {
         let Self {
             create_props,
             hydratable,
+            rt,
         } = self;
 
-        run_pinned(move || async move {
-            let (tx, rx) = futures::channel::mpsc::unbounded();
+        let (tx, rx) = futures::channel::mpsc::unbounded();
+        let create_task = move || async move {
+            let props = create_props();
+            let s = LocalServerRenderer::<COMP>::with_props(props)
+                .hydratable(hydratable)
+                .render_stream();
+            pin_mut!(s);
 
-            spawn_local(async move {
-                let props = create_props();
-                let s = LocalServerRenderer::<COMP>::with_props(props)
-                    .hydratable(hydratable)
-                    .render_stream();
-                pin_mut!(s);
+            while let Some(m) = s.next().await {
+                let _ = tx.unbounded_send(m);
+            }
+        };
 
-                while let Some(m) = s.next().await {
-                    let _ = tx.unbounded_send(m);
-                }
-            });
+        Self::spawn_rendering_task(rt, create_task);
 
-            rx
-        })
-        .await
+        rx
     }
 }
