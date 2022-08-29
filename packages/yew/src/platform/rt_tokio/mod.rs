@@ -108,9 +108,11 @@ impl Runtime {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
     use std::time::Duration;
 
     use futures::channel::oneshot;
+    use tokio::sync::Barrier;
     use tokio::test;
     use tokio::time::timeout;
 
@@ -123,12 +125,19 @@ mod tests {
         let (tx1, rx1) = oneshot::channel();
         let (tx2, rx2) = oneshot::channel();
 
-        runtime.spawn_pinned(move || async move {
-            tx1.send(std::thread::current().id())
-                .expect("failed to send!");
-        });
+        let bar = Arc::new(Barrier::new(2));
+
+        {
+            let bar = bar.clone();
+            runtime.spawn_pinned(move || async move {
+                bar.wait().await;
+                tx1.send(std::thread::current().id())
+                    .expect("failed to send!");
+            });
+        }
 
         runtime.spawn_pinned(move || async move {
+            bar.wait().await;
             tx2.send(std::thread::current().id())
                 .expect("failed to send!");
         });
