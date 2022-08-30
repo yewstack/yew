@@ -257,7 +257,7 @@ impl Component for Row {
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+    fn changed(&mut self, ctx: &Context<Self>, _old_props: Self::Properties) -> bool {
         let id = ctx.props().data.id;
         self.on_select = ctx.props().on_select.reform(move |_| id);
         self.on_remove = ctx.props().on_remove.reform(move |_| id);

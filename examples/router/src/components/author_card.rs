@@ -23,7 +23,7 @@ impl Component for AuthorCard {
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+    fn changed(&mut self, ctx: &Context<Self>, _old_props: Self::Properties) -> bool {
         self.author = Author::generate_from_seed(ctx.props().seed);
         true
     }

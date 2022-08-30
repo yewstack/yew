@@ -851,7 +851,7 @@ mod tests {
             msg
         }
 
-        fn changed(&mut self, ctx: &Context<Self>) -> bool {
+        fn changed(&mut self, ctx: &Context<Self>, _old_props: Self::Properties) -> bool {
             self.lifecycle = Rc::clone(&ctx.props().lifecycle);
             self.lifecycle.borrow_mut().push("change".into());
             false
