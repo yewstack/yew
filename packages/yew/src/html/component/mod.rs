@@ -258,6 +258,6 @@ mod tests {
             prepared_state: None,
         };
         assert!(Component::update(&mut comp, &ctx, ()));
-        assert!(Component::changed(&mut comp, &ctx));
+        assert!(Component::changed(&mut comp, &ctx, &Rc::new(())));
     }
 }
