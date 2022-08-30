@@ -91,7 +91,7 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>, _old_props: Self::Properties) -> bool {
+    fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
         let props = ctx.props();
         let should_render = if self.children == props.children {
             false

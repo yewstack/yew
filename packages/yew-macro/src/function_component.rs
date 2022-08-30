@@ -298,7 +298,7 @@ impl FunctionComponent {
                 }
 
                 #[inline]
-                fn changed(&mut self, _ctx: &::yew::html::Context<Self>, _old_props: Self::Properties) -> ::std::primitive::bool {
+                fn changed(&mut self, _ctx: &::yew::html::Context<Self>, _old_props: &Self::Properties) -> ::std::primitive::bool {
                     true
                 }
 

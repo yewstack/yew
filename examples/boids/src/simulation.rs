@@ -73,7 +73,7 @@ impl Component for Simulation {
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>, _old_props: Self::Properties) -> bool {
+    fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
         let props = ctx.props();
         let should_reset = self.settings != props.settings || self.generation != props.generation;
         self.settings = props.settings.clone();

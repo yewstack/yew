@@ -205,8 +205,9 @@ where
         };
 
         if self.context.props != props {
+            let old_props = self.context.props.clone();
             self.context.props = props;
-            self.component.changed(&self.context)
+            self.component.changed(&self.context, &*old_props)
         } else {
             false
         }
@@ -851,7 +852,7 @@ mod tests {
             msg
         }
 
-        fn changed(&mut self, ctx: &Context<Self>, _old_props: Self::Properties) -> bool {
+        fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
             self.lifecycle = Rc::clone(&ctx.props().lifecycle);
             self.lifecycle.borrow_mut().push("change".into());
             false

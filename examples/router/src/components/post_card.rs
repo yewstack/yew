@@ -23,7 +23,7 @@ impl Component for PostCard {
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>, _old_props: Self::Properties) -> bool {
+    fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
         self.post = PostMeta::generate_from_seed(ctx.props().seed);
         true
     }
