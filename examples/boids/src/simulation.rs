@@ -73,7 +73,8 @@ impl Component for Simulation {
 
     fn changed(&mut self, ctx: &Context<Self>, old_props: &Self::Properties) -> bool {
         let props = ctx.props();
-        let should_reset = old_props.settings != props.settings || self.generation != props.generation;
+        let should_reset =
+            old_props.settings != props.settings || self.generation != props.generation;
         self.generation = props.generation;
         if should_reset {
             self.boids.clear();
