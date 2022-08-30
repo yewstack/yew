@@ -2599,7 +2599,6 @@ dependencies = [
 name = "webgl"
 version = "0.1.0"
 dependencies = [
- "gloo",
  "js-sys",
  "wasm-bindgen",
  "web-sys",
