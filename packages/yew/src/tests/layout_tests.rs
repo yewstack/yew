@@ -22,7 +22,7 @@ impl Component for Comp {
         unimplemented!();
     }
 
-    fn changed(&mut self, _ctx: &Context<Self>) -> bool {
+    fn changed(&mut self, _ctx: &Context<Self>, _: &Self::Properties) -> bool {
         unimplemented!()
     }
 
