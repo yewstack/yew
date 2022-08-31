@@ -205,9 +205,8 @@ where
         };
 
         if self.context.props != props {
-            let old_props = self.context.props.clone();
-            self.context.props = props;
-            self.component.changed(&self.context, &*old_props)
+            std::mem::replace(&mut self.context.props, &mut props);
+            self.component.changed(&self.context, &*props)
         } else {
             false
         }
