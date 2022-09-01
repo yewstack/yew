@@ -1,0 +1,53 @@
+body {
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 16pt;
+}
+
+.button {
+  background-color: #e3891b; /* Green */
+  border: 0;
+  color: white;
+  padding: 14px 14px;
+  text-align: center;
+  font-size: 16pt;
+  margin: 2px 2px;
+  width: 100px;
+}
+
+.app {
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+}
+
+.button-panel {
+    display: flex;
+    justify-content: center;
+}
+
+.parent {
+  display: flex;
+  flex-direction: column;
+  row-gap: 10px;
+}
+
+.child {
+    display: flex;
+    justify-content: center;
+    column-gap: 10px;
+}
+
+.status-message {
+    display: flex;
+    align-items: center;
+}
+
+.spacer {
+    height: 10px;
+}
+
+.child-name {
+    display: flex;
+    align-items: center;
+    min-width: 75px;
+}
