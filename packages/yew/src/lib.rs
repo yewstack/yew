@@ -297,7 +297,7 @@ mod app_handle;
 mod renderer;
 
 #[cfg(feature = "csr")]
-#[cfg(test)]
+#[cfg(all(test, target_arch = "wasm32"))]
 mod tests;
 
 /// The module that contains all events available in the framework.
