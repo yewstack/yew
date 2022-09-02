@@ -258,7 +258,7 @@ impl<TC: TestContext> TestCase for TC {
     fn finish(self) {}
 }
 
-//#[cfg(target_arch = "wasm32")]
+#[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
     extern crate self as yew_test_runner;
