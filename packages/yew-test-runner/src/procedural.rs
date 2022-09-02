@@ -204,7 +204,10 @@ pub trait TestCase {
     /// # Example
     ///
     /// ```no_run
-    /// let test_runner = TestRunner::new();
+    /// use yew::html;
+    /// use yew_test_runner::procedural::{TestCase, TestRunner};
+    ///
+    /// let mut test_runner = TestRunner::new();
     /// test_runner
     ///     .render(html! {
     ///         <button>{"Click me!"}</button>
