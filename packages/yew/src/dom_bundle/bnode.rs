@@ -1,5 +1,6 @@
 //! This module contains the bundle version of an abstract node [BNode]
 
+use fmt::Debug;
 use std::fmt;
 
 use web_sys::{Element, Node};
@@ -241,7 +242,7 @@ impl From<BRaw> for BNode {
     }
 }
 
-impl fmt::Debug for BNode {
+impl Debug for BNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Self::Tag(ref vtag) => vtag.fmt(f),
@@ -251,7 +252,7 @@ impl fmt::Debug for BNode {
             Self::Ref(ref vref) => write!(f, "VRef ( \"{}\" )", crate::utils::print_node(vref)),
             Self::Portal(ref vportal) => vportal.fmt(f),
             Self::Suspense(ref bsusp) => bsusp.fmt(f),
-            Self::Raw(ref braw) => write!(f, "VRaw {{ {} }}", braw.html),
+            Self::Raw(ref braw) => braw.fmt(f),
         }
     }
 }

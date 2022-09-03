@@ -7,11 +7,12 @@ use crate::dom_bundle::utils::insert_node;
 use crate::dom_bundle::BSubtree;
 use crate::html::AnyScope;
 use crate::virtual_dom::VRaw;
-use crate::{AttrValue, NodeRef};
+use crate::{NodeRef};
 
+#[derive(Debug)]
 pub struct BRaw {
-    pub html: AttrValue,
     reference: NodeRef,
+    children_count: usize
 }
 
 impl BRaw {
@@ -30,9 +31,20 @@ impl BRaw {
 
     fn detach_bundle(&self, parent: &Element) {
         if let Some(node) = self.reference.cast::<Element>() {
+            let mut next_sibling = node.unchecked_ref::<Element>().next_sibling();
+
             parent
                 .remove_child(&node)
                 .expect("failed to remove braw node");
+            let len = self.children_count - 1;
+            for _ in 0..len {
+                if let Some(node) = next_sibling {
+                    next_sibling = node.clone().unchecked_ref::<Element>().next_sibling();
+                    parent
+                        .remove_child(&node)
+                        .expect("failed to remove braw node");
+                }
+            }
         }
     }
 }
@@ -73,13 +85,14 @@ impl Reconcilable for VRaw {
             return (
                 next_sibling.clone(),
                 BRaw {
-                    html: self.html,
                     reference: next_sibling,
+                    children_count: 0,
                 },
             );
         }
         let node_ref = NodeRef::default();
 
+        let count = elements.len();
         let mut iter = elements.into_iter();
         let first = iter.next().unwrap();
         insert_node(&first, parent, next_sibling.get().as_ref());
@@ -90,8 +103,8 @@ impl Reconcilable for VRaw {
         (
             node_ref.clone(),
             BRaw {
-                html: self.html,
                 reference: node_ref,
+                children_count: count,
             },
         )
     }
@@ -167,7 +180,7 @@ mod tests {
     fn braw_works_one_node_nested() {
         let (root, scope, parent) = setup_parent();
 
-        const HTML: &str = r#"<p>one <a href="https://yew.rs">link</a> more paragraph</p>"#;
+        const HTML: &str = r#"<p>one <a href="https://yew.rs">link</a> more paragraph</p><div>here</div>"#;
         let elem = VNode::from_raw_html(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
@@ -182,6 +195,19 @@ mod tests {
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML)
+    }
+
+    #[test]
+    fn braw_detach_works() {
+        let (root, scope, parent) = setup_parent();
+
+        const HTML: &str = r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#;
+        let elem = VNode::from_raw_html(HTML.into());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
+        assert_braw(&mut elem);
+        assert_eq!(parent.inner_html(), HTML);
+        elem.detach(&root, &parent, false);
+        assert_eq!(parent.inner_html(), "");
     }
 
     fn assert_braw(node: &mut BNode) -> &mut BRaw {
