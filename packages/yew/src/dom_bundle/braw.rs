@@ -7,12 +7,12 @@ use crate::dom_bundle::utils::insert_node;
 use crate::dom_bundle::BSubtree;
 use crate::html::AnyScope;
 use crate::virtual_dom::VRaw;
-use crate::{NodeRef};
+use crate::NodeRef;
 
 #[derive(Debug)]
 pub struct BRaw {
     reference: NodeRef,
-    children_count: usize
+    children_count: usize,
 }
 
 impl BRaw {
@@ -180,7 +180,8 @@ mod tests {
     fn braw_works_one_node_nested() {
         let (root, scope, parent) = setup_parent();
 
-        const HTML: &str = r#"<p>one <a href="https://yew.rs">link</a> more paragraph</p><div>here</div>"#;
+        const HTML: &str =
+            r#"<p>one <a href="https://yew.rs">link</a> more paragraph</p><div>here</div>"#;
         let elem = VNode::from_raw_html(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
