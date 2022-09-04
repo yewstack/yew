@@ -112,16 +112,18 @@ mod tests {
     use std::time::Duration;
 
     use futures::channel::oneshot;
+    use once_cell::sync::Lazy;
     use tokio::sync::Barrier;
     use tokio::test;
     use tokio::time::timeout;
 
     use super::*;
 
+    static RUNTIME_2: Lazy<Runtime> =
+        Lazy::new(|| Runtime::new(2).expect("failed to create runtime."));
+
     #[test]
     async fn test_spawn_pinned_least_busy() {
-        let runtime = Runtime::new(2).expect("failed to create runtime.");
-
         let (tx1, rx1) = oneshot::channel();
         let (tx2, rx2) = oneshot::channel();
 
@@ -129,14 +131,14 @@ mod tests {
 
         {
             let bar = bar.clone();
-            runtime.spawn_pinned(move || async move {
+            RUNTIME_2.spawn_pinned(move || async move {
                 bar.wait().await;
                 tx1.send(std::thread::current().id())
                     .expect("failed to send!");
             });
         }
 
-        runtime.spawn_pinned(move || async move {
+        RUNTIME_2.spawn_pinned(move || async move {
             bar.wait().await;
             tx2.send(std::thread::current().id())
                 .expect("failed to send!");
@@ -157,7 +159,7 @@ mod tests {
 
     #[test]
     async fn test_spawn_local_within_send() {
-        let runtime = Runtime::new(1).expect("failed to create runtime.");
+        let runtime = Runtime::default();
 
         let (tx, rx) = oneshot::channel();
 
