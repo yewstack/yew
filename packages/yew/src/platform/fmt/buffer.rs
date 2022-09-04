@@ -77,9 +77,9 @@ impl Write for Inner {
     }
 }
 
-/// An asynchronous String BufWriter.
+/// An asynchronous [`String`] writer.
 ///
-/// This type implements [`fmt::Write`] and can be.
+/// This type implements [`fmt::Write`] and can be used with [`write!`] and [`writeln!`].
 pub(crate) struct BufWriter {
     inner: Rc<UnsafeCell<Inner>>,
 }
@@ -144,7 +144,7 @@ impl Drop for BufWriter {
     }
 }
 
-/// An asynchronous String Stream.
+/// An asynchronous [`String`] reader.
 pub(crate) struct BufReader {
     inner: Rc<UnsafeCell<Inner>>,
 }
