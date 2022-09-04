@@ -205,8 +205,8 @@ where
         };
 
         if self.context.props != props {
-            self.context.props = props;
-            self.component.changed(&self.context)
+            let old_props = std::mem::replace(&mut self.context.props, props);
+            self.component.changed(&self.context, &*old_props)
         } else {
             false
         }
@@ -791,7 +791,7 @@ mod tests {
             false
         }
 
-        fn changed(&mut self, _ctx: &Context<Self>) -> bool {
+        fn changed(&mut self, _ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
             false
         }
 
@@ -851,7 +851,7 @@ mod tests {
             msg
         }
 
-        fn changed(&mut self, ctx: &Context<Self>) -> bool {
+        fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
             self.lifecycle = Rc::clone(&ctx.props().lifecycle);
             self.lifecycle.borrow_mut().push("change".into());
             false

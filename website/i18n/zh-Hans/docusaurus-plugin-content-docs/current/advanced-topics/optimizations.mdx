@@ -62,18 +62,6 @@ fn change(&mut self, props: Self::Properties) -> ShouldRender {
 
 你不仅限在 `change` 函数中使用它。通常，在 `update` 函数中执行此操作也是有意义的，尽管性能提升在那里不太明显。
 
-## wee_alloc
-
-[wee_alloc](https://github.com/rustwasm/wee_alloc) 是一个比 Rust 二进制文件中通常使用的分配器还小得多的微型分配器。用这个分配器来替代默认的分配器将使 Wasm 文件体积更小，但会牺牲速度和内存开销。
-
-对比不包含默认分配器换取的体积大小，牺牲的速度和内存开销是微不足道的。较小的文件体积意味着你的页面将加载更快，因此通常建议使用此分配器而不是默认分配器，除非你的应用程序会执行一些繁重的内存分配任务。
-
-```rust
-// 将 `wee_alloc` 作为全局分配器
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-```
-
 ## RC
 
 为了避免在重新渲染时为了创建 props 而克隆大块数据，我们可以使用智能指针来只克隆指针。如果在 props 和子组件中使用 `Rc<_>` 而不是普通未装箱的值，则可以延迟克隆直到需要修改子组件中的数据为止，在该组件中可以使用 `Rc::make_mut` 来对要更改数据进行克隆和获取可变引用。通过在要修改前不进行克隆，子组件可以在几乎没有性能成本的情况下拒绝与它们在 `Component::change` 中拥有状态的 props 相同的 props，这与数据本身需要先复制到父级 props 结构体中，然后在子级中进行比较和拒绝的情况相反。

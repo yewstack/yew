@@ -100,7 +100,7 @@ pub trait BaseComponent: Sized + 'static {
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool;
 
     /// React to changes of component properties.
-    fn changed(&mut self, ctx: &Context<Self>) -> bool;
+    fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool;
 
     /// Returns a component layout to be rendered.
     fn view(&self, ctx: &Context<Self>) -> HtmlResult;
@@ -154,7 +154,7 @@ pub trait Component: Sized + 'static {
     ///
     /// By default, this function will return true and thus make the component re-render.
     #[allow(unused_variables)]
-    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+    fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
         true
     }
 
@@ -206,8 +206,8 @@ where
         Component::update(self, ctx, msg)
     }
 
-    fn changed(&mut self, ctx: &Context<Self>) -> bool {
-        Component::changed(self, ctx)
+    fn changed(&mut self, ctx: &Context<Self>, old_props: &Self::Properties) -> bool {
+        Component::changed(self, ctx, old_props)
     }
 
     fn view(&self, ctx: &Context<Self>) -> HtmlResult {
@@ -228,6 +228,7 @@ where
 }
 
 #[cfg(test)]
+#[cfg(any(feature = "ssr", feature = "csr"))]
 mod tests {
     use super::*;
 
@@ -258,6 +259,6 @@ mod tests {
             prepared_state: None,
         };
         assert!(Component::update(&mut comp, &ctx, ()));
-        assert!(Component::changed(&mut comp, &ctx));
+        assert!(Component::changed(&mut comp, &ctx, &Rc::new(())));
     }
 }
