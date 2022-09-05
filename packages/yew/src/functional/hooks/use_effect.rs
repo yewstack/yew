@@ -18,109 +18,54 @@ impl<F: FnOnce() + 'static> TearDown for F {
     }
 }
 
-struct UseEffectBase<T, F, D>
-where
-    F: FnOnce(&T) -> D + 'static,
-    T: 'static,
-    D: TearDown,
-{
-    runner_with_deps: Option<(T, F)>,
-    destructor: Option<D>,
-    deps: Option<T>,
-    effect_changed_fn: fn(Option<&T>, Option<&T>) -> bool,
+struct UseEffectHook<T, F, D: TearDown> {
+    runner_with_deps: Option<(F, T)>,
+    last_destructor: Option<D>,
+    last_deps: Option<T>,
 }
 
-impl<T, F, D> Effect for RefCell<UseEffectBase<T, F, D>>
+impl<T, F, D: TearDown> Drop for UseEffectHook<T, F, D> {
+    fn drop(&mut self) {
+        if let Some(de) = self.last_destructor.take() {
+            de.tear_down()
+        }
+    }
+}
+
+impl<T, F, D> Effect for RefCell<UseEffectHook<T, F, D>>
 where
+    T: PartialEq + 'static,
     F: FnOnce(&T) -> D + 'static,
-    T: 'static,
     D: TearDown,
 {
     fn rendered(&self) {
         let mut this = self.borrow_mut();
 
-        if let Some((deps, runner)) = this.runner_with_deps.take() {
-            if !(this.effect_changed_fn)(Some(&deps), this.deps.as_ref()) {
+        if let Some((f, deps)) = this.runner_with_deps.take() {
+            if Some(&deps) == this.last_deps.as_ref() {
                 return;
             }
 
-            if let Some(de) = this.destructor.take() {
+            if let Some(de) = this.last_destructor.take() {
                 de.tear_down();
             }
 
-            let new_destructor = runner(&deps);
-
-            this.deps = Some(deps);
-            this.destructor = Some(new_destructor);
+            this.last_destructor = Some(f(&deps));
+            this.last_deps = Some(deps);
         }
     }
 }
 
-impl<T, F, D> Drop for UseEffectBase<T, F, D>
+impl<T, F, D> Hook for UseEffectHook<T, F, D>
 where
+    T: PartialEq + 'static,
     F: FnOnce(&T) -> D + 'static,
-    T: 'static,
     D: TearDown,
 {
-    fn drop(&mut self) {
-        if let Some(destructor) = self.destructor.take() {
-            destructor.tear_down()
-        }
-    }
-}
+    type Output = ();
 
-fn use_effect_base<T, D>(
-    runner: impl FnOnce(&T) -> D + 'static,
-    deps: T,
-    effect_changed_fn: fn(Option<&T>, Option<&T>) -> bool,
-) -> impl Hook<Output = ()>
-where
-    T: 'static,
-    D: TearDown,
-{
-    struct HookProvider<T, F, D>
-    where
-        F: FnOnce(&T) -> D + 'static,
-        T: 'static,
-        D: TearDown,
-    {
-        runner: F,
-        deps: T,
-        effect_changed_fn: fn(Option<&T>, Option<&T>) -> bool,
-    }
-
-    impl<T, F, D> Hook for HookProvider<T, F, D>
-    where
-        F: FnOnce(&T) -> D + 'static,
-        T: 'static,
-        D: TearDown,
-    {
-        type Output = ();
-
-        fn run(self, ctx: &mut HookContext) -> Self::Output {
-            let Self {
-                runner,
-                deps,
-                effect_changed_fn,
-            } = self;
-
-            let state = ctx.next_effect(|_| -> RefCell<UseEffectBase<T, F, D>> {
-                RefCell::new(UseEffectBase {
-                    runner_with_deps: None,
-                    destructor: None,
-                    deps: None,
-                    effect_changed_fn,
-                })
-            });
-
-            state.borrow_mut().runner_with_deps = Some((deps, runner));
-        }
-    }
-
-    HookProvider {
-        runner,
-        deps,
-        effect_changed_fn,
+    fn run(self, ctx: &mut HookContext) -> Self::Output {
+        ctx.next_effect(|_| RefCell::new(self));
     }
 }
 
@@ -172,13 +117,14 @@ where
     F: FnOnce() -> D + 'static,
     D: TearDown,
 {
-    use_effect_base(|_| f(), (), |_, _| true);
+    // NAN != NAN, so this will be runned each render
+    use_effect_with(f32::NAN, |_| f());
 }
 
 /// This hook is similar to [`use_effect`] but it accepts dependencies.
 ///
 /// Whenever the dependencies are changed, the effect callback is called again.
-/// To detect changes, dependencies must implement `PartialEq`.
+/// To detect changes, dependencies must implement [`PartialEq`].
 ///
 /// # Note
 /// The destructor also runs when dependencies change.
@@ -186,7 +132,7 @@ where
 /// # Example
 ///
 /// ```rust
-/// use yew::{function_component, html, use_effect_with_deps, Html, Properties};
+/// use yew::{function_component, html, use_effect_with, Html, Properties};
 /// # use gloo::console::log;
 ///
 /// #[derive(Properties, PartialEq)]
@@ -198,14 +144,13 @@ where
 /// fn HelloWorld(props: &Props) -> Html {
 ///     let is_loading = props.is_loading.clone();
 ///
-///     use_effect_with_deps(
-///         move |_| {
-///             log!(" Is loading prop changed!");
-///         },
-///         is_loading,
-///     );
+///     use_effect_with(is_loading, move |_| {
+///         log!(" Is loading prop changed!");
+///     });
 ///
-///     html! { <>{"Am I loading? - "}{is_loading}</> }
+///     html! {
+///         <>{"Am I loading? - "}{is_loading}</>
+///     }
 /// }
 /// ```
 ///
@@ -217,17 +162,14 @@ where
 /// render of a component.
 ///
 /// ```rust
-/// use yew::{function_component, html, use_effect_with_deps, Html};
+/// use yew::{function_component, html, use_effect_with, Html};
 /// # use gloo::console::log;
 ///
 /// #[function_component]
 /// fn HelloWorld() -> Html {
-///     use_effect_with_deps(
-///         move |_| {
-///             log!("I got rendered, yay!");
-///         },
-///         (),
-///     );
+///     use_effect_with(is_loading, move |_| {
+///         log!("I got rendered, yay!");
+///     });
 ///
 ///     html! { "Hello" }
 /// }
@@ -239,19 +181,15 @@ where
 /// It will only get called when the component is removed from view / gets destroyed.
 ///
 /// ```rust
-/// use yew::{function_component, html, use_effect_with_deps, Html};
+/// use yew::{function_component, html, use_effect_with, Html};
 /// # use gloo::console::log;
 ///
 /// #[function_component]
 /// fn HelloWorld() -> Html {
-///     use_effect_with_deps(
-///         move |_| {
-///             || {
-///                 log!("Noo dont kill me, ahhh!");
-///             }
-///         },
-///         (),
-///     );
+///     use_effect_with((), move |_| {
+///         || { log!("Noo dont kill me, ahhh!"); }
+///     });
+///
 ///     html! { "Hello" }
 /// }
 /// ```
@@ -261,12 +199,28 @@ where
 /// ### Tip
 ///
 /// The callback can return [`()`] if there is no destructor to run.
+///
+pub fn use_effect_with<T, F, D>(deps: T, f: F) -> impl Hook<Output = ()>
+where
+    T: PartialEq + 'static,
+    F: FnOnce(&T) -> D + 'static,
+    D: TearDown,
+{
+    UseEffectHook {
+        runner_with_deps: Some((f, deps)),
+        last_destructor: None,
+        last_deps: None,
+    }
+}
+
+/// use effect with deps
 #[hook]
+#[deprecated = "use `use_effect_with` instead"]
 pub fn use_effect_with_deps<T, F, D>(f: F, deps: T)
 where
     T: PartialEq + 'static,
     F: FnOnce(&T) -> D + 'static,
     D: TearDown,
 {
-    use_effect_base(f, deps, |lhs, rhs| lhs != rhs)
+    use_effect_with(deps, f)
 }
