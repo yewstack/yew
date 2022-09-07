@@ -89,7 +89,7 @@ impl Component for App {
                         <div class="input-container">
                             <label>{ "Password" }</label>
                             <InputComponent
-                                ref={&self.refs[1]}
+                                input_ref={&self.refs[1]}
                                 on_hover={ctx.link().callback(|_| Msg::HoverIndex(1))}
                                 placeholder="password"
                             />

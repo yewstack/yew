@@ -8,6 +8,7 @@ pub enum Msg {
 pub struct Props {
     pub on_hover: Callback<()>,
     pub placeholder: AttrValue,
+    pub input_ref: NodeRef,
 }
 
 pub struct InputComponent;
@@ -33,6 +34,7 @@ impl Component for InputComponent {
         let placeholder = ctx.props().placeholder.clone();
         html! {
             <input
+                ref={&ctx.props().input_ref}
                 type="text"
                 class="input-component"
                 placeholder={placeholder}
