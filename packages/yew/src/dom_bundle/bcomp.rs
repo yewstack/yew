@@ -170,7 +170,7 @@ mod tests {
     use web_sys::Element;
 
     use super::*;
-    use crate::dom_bundle::{Reconcilable, ReconcileTarget};
+    use crate::dom_bundle::Reconcilable;
     use crate::virtual_dom::{Key, VChild, VNode};
     use crate::{html, scheduler, Children, Component, Context, Html, NodeRef, Properties};
 
@@ -392,20 +392,6 @@ mod tests {
             </List>
         };
         assert_eq!(get_html(for_method, &root, &scope, &parent), expected_html);
-    }
-
-    #[test]
-    fn component_node_ref_stays_none() {
-        let (root, scope, parent) = setup_parent();
-
-        let node_ref = NodeRef::default();
-        let elem = html! { <Comp ref={node_ref.clone()}></Comp> };
-        let (_, elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
-        scheduler::start_now();
-        assert!(node_ref.get().is_none(), "components don't have node refs");
-        elem.detach(&root, &parent, false);
-        scheduler::start_now();
-        assert!(node_ref.get().is_none(), "components don't have node refs");
     }
 }
 

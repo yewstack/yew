@@ -257,7 +257,15 @@ impl Parse for HtmlComponentOpen {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         TagTokens::parse_start_content(input, |input, tag| {
             let ty = input.parse()?;
-            let props = input.parse()?;
+            let props: ComponentProps = input.parse()?;
+
+            if let Some(ref node_ref) = props.special().node_ref {
+                return Err(syn::Error::new_spanned(
+                    &node_ref.label,
+                    "cannot use `ref` with components. If you want to specify a property, use \
+                     `r#ref` here instead.",
+                ));
+            }
 
             Ok(Self { tag, ty, props })
         })
