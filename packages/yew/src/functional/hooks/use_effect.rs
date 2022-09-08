@@ -117,8 +117,15 @@ where
     F: FnOnce() -> D + 'static,
     D: TearDown,
 {
-    // NAN != NAN, so this will be runned each render
-    use_effect_with(f32::NAN, |_| f());
+    struct NeverEq;
+    impl PartialEq for NeverEq {
+        fn eq(&self, _other: &Self) -> bool {
+            false
+        }
+    }
+
+    // Never equals, so this will be called every render
+    use_effect_with(NeverEq, |_| f());
 }
 
 /// This hook is similar to [`use_effect`] but it accepts dependencies.
