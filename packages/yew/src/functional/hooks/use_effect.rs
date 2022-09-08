@@ -19,7 +19,7 @@ impl<F: FnOnce() + 'static> TearDown for F {
 }
 
 struct UseEffectHook<T, F, D: TearDown> {
-    runner_with_deps: Option<(F, T)>,
+    deps_and_runner: Option<(T, F)>,
     last_destructor: Option<D>,
     last_deps: Option<T>,
 }
@@ -41,7 +41,7 @@ where
     fn rendered(&self) {
         let mut this = self.borrow_mut();
 
-        if let Some((f, deps)) = this.runner_with_deps.take() {
+        if let Some((deps, f)) = this.deps_and_runner.take() {
             if Some(&deps) == this.last_deps.as_ref() {
                 return;
             }
@@ -215,7 +215,7 @@ where
     D: TearDown,
 {
     UseEffectHook {
-        runner_with_deps: Some((f, deps)),
+        deps_and_runner: Some((deps, f)),
         last_destructor: None,
         last_deps: None,
     }
