@@ -167,7 +167,7 @@ where
 ///
 /// #[function_component]
 /// fn HelloWorld() -> Html {
-///     use_effect_with(is_loading, move |_| {
+///     use_effect_with((), move |_| {
 ///         log!("I got rendered, yay!");
 ///     });
 ///
@@ -187,7 +187,9 @@ where
 /// #[function_component]
 /// fn HelloWorld() -> Html {
 ///     use_effect_with((), move |_| {
-///         || { log!("Noo dont kill me, ahhh!"); }
+///         || {
+///             log!("Noo dont kill me, ahhh!");
+///         }
 ///     });
 ///
 ///     html! { "Hello" }
@@ -199,7 +201,6 @@ where
 /// ### Tip
 ///
 /// The callback can return [`()`] if there is no destructor to run.
-///
 pub fn use_effect_with<T, F, D>(deps: T, f: F) -> impl Hook<Output = ()>
 where
     T: PartialEq + 'static,
