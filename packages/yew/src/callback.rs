@@ -83,9 +83,9 @@ impl<IN: 'static, OUT: 'static> Callback<IN, OUT> {
 }
 
 impl<IN: 'static> Callback<IN> {
-    /// Creates a new callback from another callback and a function
-    /// That when emitted will call that function and will emit the original callback if it is
-    /// not `None`.
+    /// Creates a new callback from another callback and a function.
+    /// When emitted will call the function and, only if it returns `Some(value)`, will emit
+    /// `value` to the original callback.
     pub fn filter_reform<F, T>(&self, func: F) -> Callback<T>
     where
         F: Fn(T) -> Option<IN> + 'static,
