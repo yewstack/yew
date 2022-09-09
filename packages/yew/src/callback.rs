@@ -80,21 +80,18 @@ impl<IN: 'static, OUT: 'static> Callback<IN, OUT> {
         };
         Callback::from(func)
     }
-}
 
-impl<IN: 'static> Callback<IN> {
     /// Creates a new callback from another callback and a function.
     /// When emitted will call the function and, only if it returns `Some(value)`, will emit
     /// `value` to the original callback.
-    pub fn filter_reform<F, T>(&self, func: F) -> Callback<T>
+    pub fn filter_reform<F, T>(&self, func: F) -> Callback<T, Option<OUT>>
     where
         F: Fn(T) -> Option<IN> + 'static,
     {
         let this = self.clone();
-        let func = move |input| {
-            if let Some(output) = func(input) {
-                this.emit(output);
-            }
+        let func = move |input| match func(input) {
+            Some(output) => Some(this.emit(output)),
+            None => None,
         };
         Callback::from(func)
     }
@@ -109,14 +106,16 @@ mod test {
     use super::*;
 
     /// emit the callback with the provided value
-    fn emit<T, I, R: 'static + Clone, F>(values: I, f: F) -> Vec<R>
+    fn emit<T, I, R: 'static + Clone, F, OUT>(values: I, f: F) -> Vec<R>
     where
         I: IntoIterator<Item = T>,
-        F: FnOnce(Callback<R>) -> Callback<T>,
+        F: FnOnce(Callback<R, ()>) -> Callback<T, OUT>,
     {
         let result = Rc::new(Mutex::new(Vec::new()));
         let cb_result = result.clone();
-        let cb = f(Callback::from(move |v| cb_result.lock().unwrap().push(v)));
+        let cb = f(Callback::<R, ()>::from(move |v| {
+            cb_result.lock().unwrap().push(v);
+        }));
         for value in values {
             cb.emit(value);
         }
