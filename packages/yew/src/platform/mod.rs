@@ -45,10 +45,9 @@ use std::io::Result;
 use std::marker::PhantomData;
 
 #[cfg(feature = "ssr")]
-pub(crate) mod io;
+pub(crate) mod fmt;
 
 pub mod pinned;
-pub mod sync;
 pub mod time;
 
 #[cfg(target_arch = "wasm32")]

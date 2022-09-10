@@ -153,7 +153,7 @@ mod feat_ssr {
 
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::io::BufWriter;
+    use crate::platform::fmt::BufWriter;
 
     impl VNode {
         pub(crate) fn render_into_stream<'a>(

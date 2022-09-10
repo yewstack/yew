@@ -291,11 +291,13 @@ impl<COMP: BaseComponent> Scope<COMP> {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use std::fmt::Write;
+
     use super::*;
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
-    use crate::platform::io::BufWriter;
+    use crate::platform::fmt::BufWriter;
     use crate::platform::pinned::oneshot;
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
@@ -342,9 +344,9 @@ mod feat_ssr {
                 .await;
 
             if let Some(prepared_state) = self.get_component().unwrap().prepare_state() {
-                w.write(r#"<script type="application/x-yew-comp-state">"#.into());
-                w.write(prepared_state.into());
-                w.write(r#"</script>"#.into());
+                let _ = w.write_str(r#"<script type="application/x-yew-comp-state">"#);
+                let _ = w.write_str(&prepared_state);
+                let _ = w.write_str(r#"</script>"#);
             }
 
             if hydratable {

@@ -38,6 +38,9 @@ struct Inner<T> {
     closed: bool,
     sender_ctr: usize,
     items: VecDeque<T>,
+
+    // This type is not send or sync.
+    _marker: PhantomData<Rc<()>>,
 }
 
 impl<T> Inner<T> {
@@ -287,6 +290,7 @@ pub fn unbounded<T>() -> (UnboundedSender<T>, UnboundedReceiver<T>) {
 
         sender_ctr: 1,
         items: VecDeque::new(),
+        _marker: PhantomData,
     }));
 
     (
