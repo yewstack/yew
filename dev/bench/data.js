@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1661948347206,
+  "lastUpdate": 1662841991998,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -23260,6 +23260,120 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 34_startup-totalbytes",
             "value": "361.927734375",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "futursolo@users.noreply.github.com",
+            "name": "Kaede Hoshikawa",
+            "username": "futursolo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "278d2ce08ea5fa01abf4f9d1a4ee80e8bfc8342f",
+          "message": "Polled SSR Stream (#2824)\n\n* Switch to pinned channels.\r\n\r\n* Fix ServerRenderer so it's not blocked until the result is resolved.\r\n\r\n* Fix tests.\r\n\r\n* Remove unused SendError.\r\n\r\n* Implement a stream to be polled alongside rendering.\r\n\r\n* Update Buffer Size.\r\n\r\n* Make Send renderer work.\r\n\r\n* Remove pinned channels.\r\n\r\n* Unified Naming.\r\n\r\n* Optimise code.\r\n\r\n* Restore capacity.\r\n\r\n* Remove unused profile.\r\n\r\n* Default to separate resolver.\r\n\r\n* Reduce allocations on string.\r\n\r\n* Adjust API.\r\n\r\n* Remove duplicate trait bound.\r\n\r\n* Update docs.\r\n\r\n* Remove capacity setting.\r\n\r\n* Unsafe?\r\n\r\n* Separate files.\r\n\r\n* Adjust inlining.\r\n\r\n* Fix test.\r\n\r\n* Update notice.\r\n\r\n* Update documentation.\r\n\r\n* Fix tests.",
+          "timestamp": "2022-09-11T01:25:00+05:00",
+          "tree_id": "edc5dbdc26d3c25c550f0156b05ff8a8802e99ca",
+          "url": "https://github.com/yewstack/yew/commit/278d2ce08ea5fa01abf4f9d1a4ee80e8bfc8342f"
+        },
+        "date": 1662841990326,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "192.8825",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "193.275",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "404.1245",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "69.9005",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "92.762",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "34.347",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "2451.9849999999997",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "437.301",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "176.635",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.38922119140625",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.6539459228515625",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.6561355590820312",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.6645889282226562",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.2652053833007812",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1730.404",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "34.348",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 33_startup-mainthreadcost",
+            "value": "248.44",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "362.34765625",
             "unit": ""
           }
         ]
