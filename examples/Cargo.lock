@@ -281,6 +281,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "communication_child_to_parent"
+version = "0.0.1"
+dependencies = [
+ "yew",
+]
+
+[[package]]
+name = "communication_grandchild_with_grandparent"
+version = "0.0.1"
+dependencies = [
+ "yew",
+]
+
+[[package]]
+name = "communication_grandparent_to_grandchild"
+version = "0.0.1"
+dependencies = [
+ "yew",
+]
+
+[[package]]
+name = "communication_parent_to_child"
+version = "0.0.1"
+dependencies = [
+ "yew",
+]
+
+[[package]]
 name = "console_error_panic_hook"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
