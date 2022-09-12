@@ -7,6 +7,8 @@ use std::ops::Deref;
 use std::rc::Rc;
 use std::{fmt, iter};
 
+use futures::{Stream, StreamExt};
+
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use super::lifecycle::ComponentState;
 use super::BaseComponent;
@@ -236,6 +238,35 @@ impl<COMP: BaseComponent> Scope<COMP> {
         spawn_local(js_future);
     }
 
+    /// This method asynchronously awaits a [`Stream`] that returns a series of messages and sends
+    /// them to the linked component.
+    ///
+    /// # Panics
+    /// If the stream panics, then the promise will not resolve, and will leak.
+    ///
+    /// # Note
+    ///
+    /// This method will not notify the component when the stream has been fully exhausted. If
+    /// you want this feature, you can add an EOF message variant for your component and use
+    /// [`StreamExt::chain`] and [`stream::once`] to chain an EOF message to the original stream.
+    /// If your stream is produced by another crate, you can use [`StreamExt::map`] to transform
+    /// the stream's item type to the component message type.
+    pub fn send_stream<S, M>(&self, stream: S)
+    where
+        M: Into<COMP::Message>,
+        S: Stream<Item = M> + 'static,
+    {
+        let link = self.clone();
+        let js_future = async move {
+            futures::pin_mut!(stream);
+            while let Some(msg) = stream.next().await {
+                let message: COMP::Message = msg.into();
+                link.send_message(message);
+            }
+        };
+        spawn_local(js_future);
+    }
+
     /// Returns the linked component if available
     pub fn get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
         self.arch_get_component()
@@ -260,11 +291,13 @@ impl<COMP: BaseComponent> Scope<COMP> {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use std::fmt::Write;
+
     use super::*;
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
-    use crate::platform::io::BufWriter;
+    use crate::platform::fmt::BufWriter;
     use crate::platform::pinned::oneshot;
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
@@ -311,9 +344,9 @@ mod feat_ssr {
                 .await;
 
             if let Some(prepared_state) = self.get_component().unwrap().prepare_state() {
-                w.write(r#"<script type="application/x-yew-comp-state">"#.into());
-                w.write(prepared_state.into());
-                w.write(r#"</script>"#.into());
+                let _ = w.write_str(r#"<script type="application/x-yew-comp-state">"#);
+                let _ = w.write_str(&prepared_state);
+                let _ = w.write_str(r#"</script>"#);
             }
 
             if hydratable {

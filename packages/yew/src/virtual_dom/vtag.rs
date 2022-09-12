@@ -440,9 +440,11 @@ impl PartialEq for VTag {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use std::fmt::Write;
+
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::io::BufWriter;
+    use crate::platform::fmt::BufWriter;
     use crate::virtual_dom::VText;
 
     // Elements that cannot have any child elements.
@@ -458,17 +460,17 @@ mod feat_ssr {
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
-            w.write("<".into());
-            w.write(self.tag().into());
+            let _ = w.write_str("<");
+            let _ = w.write_str(self.tag());
 
             let write_attr = |w: &mut BufWriter, name: &str, val: Option<&str>| {
-                w.write(" ".into());
-                w.write(name.into());
+                let _ = w.write_str(" ");
+                let _ = w.write_str(name);
 
                 if let Some(m) = val {
-                    w.write("=\"".into());
-                    w.write(html_escape::encode_double_quoted_attribute(m));
-                    w.write("\"".into());
+                    let _ = w.write_str("=\"");
+                    let _ = w.write_str(&*html_escape::encode_double_quoted_attribute(m));
+                    let _ = w.write_str("\"");
                 }
             };
 
@@ -486,7 +488,7 @@ mod feat_ssr {
                 write_attr(w, k, Some(v));
             }
 
-            w.write(">".into());
+            let _ = w.write_str(">");
 
             match self.inner {
                 VTagInner::Input(_) => {}
@@ -497,7 +499,7 @@ mod feat_ssr {
                             .await;
                     }
 
-                    w.write("</textarea>".into());
+                    let _ = w.write_str("</textarea>");
                 }
                 VTagInner::Other {
                     ref tag,
@@ -509,9 +511,9 @@ mod feat_ssr {
                             .render_into_stream(w, parent_scope, hydratable)
                             .await;
 
-                        w.write(Cow::Borrowed("</"));
-                        w.write(Cow::Borrowed(tag));
-                        w.write(Cow::Borrowed(">"));
+                        let _ = w.write_str("</");
+                        let _ = w.write_str(tag);
+                        let _ = w.write_str(">");
                     } else {
                         // We don't write children of void elements nor closing tags.
                         debug_assert!(children.is_empty(), "{} cannot have any children!", tag);

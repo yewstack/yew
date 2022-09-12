@@ -20,6 +20,9 @@ struct Inner<T> {
     rx_waker: Option<Waker>,
     closed: bool,
     item: Option<T>,
+
+    // This type is not send or sync.
+    _marker: PhantomData<Rc<()>>,
 }
 
 /// The receiver of a oneshot channel.
@@ -138,6 +141,8 @@ pub fn channel<T>() -> (Sender<T>, Receiver<T>) {
         rx_waker: None,
         closed: false,
         item: None,
+
+        _marker: PhantomData,
     }));
 
     (

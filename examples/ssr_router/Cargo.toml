@@ -17,7 +17,7 @@ required-features = ["ssr"]
 yew = { path = "../../packages/yew" }
 function_router = { path = "../function_router" }
 log = "0.4"
-futures = "0.3"
+futures = { version = "0.3", features = ["std"], default-features = false }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4"
@@ -30,7 +30,9 @@ tower = { version = "0.4", features = ["make"] }
 tower-http = { version = "0.3", features = ["fs"] }
 env_logger = "0.9"
 clap = { version = "3.1.7", features = ["derive"] }
+hyper = { version = "0.14", features = ["server", "http1"] }
+jemallocator = "0.5"
 
 [features]
-ssr = ["yew/ssr"]
+ssr = ["yew/ssr", "yew/tokio"]
 hydration = ["yew/hydration"]

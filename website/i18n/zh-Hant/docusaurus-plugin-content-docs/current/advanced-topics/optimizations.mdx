@@ -67,23 +67,10 @@ Yew 最大的缺點就是花太多時間在編譯上了。編譯時間似乎和 
 ## 編譯大小的優化 <a id="build-size-optimization"></a>
 
 -   優化 Rust 的程式碼
-    -   `wee_alloc` （使用輕量的分配器）
-    -   `cargo.toml` （定義釋出的設定檔）
+-   `cargo.toml` （定義釋出的設定檔）
 -   使用 `wasm-opt` 優化 wasm 程式碼
 
 更多關於程式碼大小的資訊，請參考： [rustwasm book](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
-
-### wee_alloc
-
-[wee_alloc](https://github.com/rustwasm/wee_alloc) 是一個比一般用在 Rust 二進制檔中的分配器更輕量的分配器。用他取代預設的分配器，可以讓 Wasm 的檔案大小更小，但是會造成速度和記憶體的開銷變大。
-
-但比起檔案大小，速度和記憶體的開銷比較次要。更小的檔案大小意味著你的頁面可以載入的更快，因此我們通常建議你使用這個分配器作為預設的分配器，除分你的專案有很多吃重的記憶體分配工作。
-
-```rust
-// 使用 `wee_alloc` 作為全局的分配器
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-```
 
 ### Cargo.toml <a id="cargo-toml"></a>
 

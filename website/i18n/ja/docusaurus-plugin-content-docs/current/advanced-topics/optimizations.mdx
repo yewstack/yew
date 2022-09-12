@@ -116,26 +116,10 @@ Yew は純粋な関数やコンポーネントをサポートしていません�
 ## バイナリサイズを小さくする
 
 -   Rust のコードを最適化する
-    -   `wee_alloc` \( tiny allocator を使用 \)
-    -   `cargo.toml` \( release profile を定義 \)
+-   `cargo.toml` \( release profile を定義 \)
 -   `wasm-opt`を用いて wasm のコードを最適化する
 
 **注意: バイナリサイズを小さくするのについては[Rust Wasm Book](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)に詳しく書いてあります。**
-
-### wee_alloc
-
-[wee_alloc](https://github.com/rustwasm/wee_alloc)は小さなアロケーターで、Rust のバイナリで使用される通常のものより遥かに小さなものです。
-デフォルトのアロケーターと置き換えることで、Wasm ファイルをより小さくすることができ、速度とメモリのオーバーヘッドを軽減できます。
-
-デフォルトのアロケータを含めないことによるサイズの増加と比較して、速度とメモリのオーバーヘッドが悪くなります。
-ファイルサイズが小さいことで、ページの読み込みが速くなります。
-そのため、アロケーションのタスクが非常に多い場合でなければデフォルトのものではなく tiny allocator を利用することが一般的に推奨されています。
-
-```rust
-// `wee_alloc`を使用する。
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-```
 
 ### Cargo.toml
 
