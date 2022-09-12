@@ -156,6 +156,7 @@ mod test {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use std::fmt::Write;
     use std::task::Poll;
 
     use futures::stream::StreamExt;
@@ -163,7 +164,7 @@ mod feat_ssr {
 
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::io::{self, BufWriter};
+    use crate::platform::fmt::{self, BufWriter};
 
     impl VList {
         pub(crate) async fn render_into_stream(
@@ -186,7 +187,6 @@ mod feat_ssr {
                     ) where
                         I: Iterator<Item = &'a VNode>,
                     {
-                        let buf_capacity = w.capacity();
                         let mut w = w;
                         while let Some(m) = children.next() {
                             let child_fur = async move {
@@ -203,7 +203,7 @@ mod feat_ssr {
 
                             match poll!(child_fur.as_mut()) {
                                 Poll::Pending => {
-                                    let (mut next_w, next_r) = io::buffer(buf_capacity);
+                                    let (mut next_w, next_r) = fmt::buffer();
                                     // Move buf writer into an async block for it to be dropped at
                                     // the end of the future.
                                     let rest_render_fur = async move {
@@ -223,7 +223,7 @@ mod feat_ssr {
 
                                         pin_mut!(next_r);
                                         while let Some(m) = next_r.next().await {
-                                            w.write(m.into());
+                                            let _ = w.write_str(m.as_str());
                                         }
                                     };
 

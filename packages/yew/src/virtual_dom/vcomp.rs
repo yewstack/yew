@@ -20,7 +20,7 @@ use crate::html::{AnyScope, Scope};
 #[cfg(feature = "csr")]
 use crate::html::{NodeRef, Scoped};
 #[cfg(feature = "ssr")]
-use crate::platform::io::BufWriter;
+use crate::platform::fmt::BufWriter;
 
 /// A virtual component.
 pub struct VComp {

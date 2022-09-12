@@ -1,11 +1,13 @@
 use std::fmt;
+use std::future::Future;
 
+use futures::pin_mut;
 use futures::stream::{Stream, StreamExt};
 use tracing::Instrument;
 
 use crate::html::{BaseComponent, Scope};
-use crate::platform::io::{self, DEFAULT_BUF_SIZE};
-use crate::platform::{spawn_local, LocalHandle, Runtime};
+use crate::platform::fmt::BufStream;
+use crate::platform::{LocalHandle, Runtime};
 
 /// A Yew Server-side Renderer that renders on the current thread.
 ///
@@ -13,9 +15,9 @@ use crate::platform::{spawn_local, LocalHandle, Runtime};
 ///
 /// This renderer does not spawn its own runtime and can only be used when:
 ///
-/// - `wasm-bindgen` is selected as the backend of Yew runtime.
+/// - `wasm-bindgen-futures` is selected as the backend of Yew runtime.
 /// - running within a [`Runtime`](crate::platform::Runtime).
-/// - running within a tokio [`LocalSet`](tokio::task::LocalSet).
+/// - running within a tokio [`LocalSet`](struct@tokio::task::LocalSet).
 #[cfg(feature = "ssr")]
 #[derive(Debug)]
 pub struct LocalServerRenderer<COMP>
@@ -24,7 +26,6 @@ where
 {
     props: COMP::Properties,
     hydratable: bool,
-    capacity: usize,
 }
 
 impl<COMP> Default for LocalServerRenderer<COMP>
@@ -57,17 +58,7 @@ where
         Self {
             props,
             hydratable: true,
-            capacity: DEFAULT_BUF_SIZE,
         }
-    }
-
-    /// Sets the capacity of renderer buffer.
-    ///
-    /// Default: `8192`
-    pub fn capacity(mut self, capacity: usize) -> Self {
-        self.capacity = capacity;
-
-        self
     }
 
     /// Sets whether an the rendered result is hydratable.
@@ -84,16 +75,16 @@ where
 
     /// Renders Yew Application.
     pub async fn render(self) -> String {
-        let mut s = String::new();
+        let s = self.render_stream();
+        futures::pin_mut!(s);
 
-        self.render_to_string(&mut s).await;
-
-        s
+        s.collect().await
     }
 
     /// Renders Yew Application to a String.
     pub async fn render_to_string(self, w: &mut String) {
-        let mut s = self.render_stream();
+        let s = self.render_stream();
+        futures::pin_mut!(s);
 
         while let Some(m) = s.next().await {
             w.push_str(&m);
@@ -105,29 +96,26 @@ where
         level = tracing::Level::DEBUG,
         name = "render",
         skip(self),
-        fields(hydratable = self.hydratable, capacity = self.capacity),
+        fields(hydratable = self.hydratable),
     )]
     pub fn render_stream(self) -> impl Stream<Item = String> {
-        let (mut w, r) = io::buffer(self.capacity);
-
         let scope = Scope::<COMP>::new(None);
+
         let outer_span = tracing::Span::current();
-        spawn_local(async move {
+        BufStream::new(move |mut w| async move {
             let render_span = tracing::debug_span!("render_stream_item");
             render_span.follows_from(outer_span);
             scope
                 .render_into_stream(&mut w, self.props.into(), self.hydratable)
                 .instrument(render_span)
                 .await;
-        });
-
-        r
+        })
     }
 }
 
 /// A Yew Server-side Renderer.
 ///
-/// This renderer spawns the rendering task to an internal worker pool and receives result when
+/// This renderer spawns the rendering task to a Yew [`Runtime`]. and receives result when
 /// the rendering process has finished.
 ///
 /// See [`yew::platform`] for more information.
@@ -138,7 +126,6 @@ where
 {
     create_props: Box<dyn Send + FnOnce() -> COMP::Properties>,
     hydratable: bool,
-    capacity: usize,
     rt: Option<Runtime>,
 }
 
@@ -189,7 +176,6 @@ where
         Self {
             create_props: Box::new(create_props),
             hydratable: true,
-            capacity: DEFAULT_BUF_SIZE,
             rt: None,
         }
     }
@@ -197,15 +183,6 @@ where
     /// Sets the runtime the ServerRenderer will run the rendering task with.
     pub fn with_runtime(mut self, rt: Runtime) -> Self {
         self.rt = Some(rt);
-
-        self
-    }
-
-    /// Sets the capacity of renderer buffer.
-    ///
-    /// Default: `8192`
-    pub fn capacity(mut self, capacity: usize) -> Self {
-        self.capacity = capacity;
 
         self
     }
@@ -224,11 +201,26 @@ where
 
     /// Renders Yew Application.
     pub async fn render(self) -> String {
-        let mut s = String::new();
+        let Self {
+            create_props,
+            hydratable,
+            rt,
+        } = self;
 
-        self.render_to_string(&mut s).await;
+        let (tx, rx) = futures::channel::oneshot::channel();
+        let create_task = move || async move {
+            let props = create_props();
+            let s = LocalServerRenderer::<COMP>::with_props(props)
+                .hydratable(hydratable)
+                .render()
+                .await;
 
-        s
+            let _ = tx.send(s);
+        };
+
+        Self::spawn_rendering_task(rt, create_task);
+
+        rx.await.expect("failed to render application")
     }
 
     /// Renders Yew Application to a String.
@@ -240,25 +232,12 @@ where
         }
     }
 
-    /// Renders Yew Application into a string Stream.
-    pub fn render_stream(self) -> impl Send + Stream<Item = String> {
-        let Self {
-            create_props,
-            hydratable,
-            capacity,
-            rt,
-        } = self;
-
-        let (mut w, r) = io::buffer(capacity);
-        let create_task = move || async move {
-            let props = create_props();
-            let scope = Scope::<COMP>::new(None);
-
-            scope
-                .render_into_stream(&mut w, props.into(), hydratable)
-                .await;
-        };
-
+    #[inline]
+    fn spawn_rendering_task<F, Fut>(rt: Option<Runtime>, create_task: F)
+    where
+        F: 'static + Send + FnOnce() -> Fut,
+        Fut: Future<Output = ()> + 'static,
+    {
         match rt {
             // If a runtime is specified, spawn to the specified runtime.
             Some(m) => m.spawn_pinned(create_task),
@@ -269,7 +248,31 @@ where
                 None => Runtime::default().spawn_pinned(create_task),
             },
         }
+    }
 
-        r
+    /// Renders Yew Application into a string Stream.
+    pub fn render_stream(self) -> impl Send + Stream<Item = String> {
+        let Self {
+            create_props,
+            hydratable,
+            rt,
+        } = self;
+
+        let (tx, rx) = futures::channel::mpsc::unbounded();
+        let create_task = move || async move {
+            let props = create_props();
+            let s = LocalServerRenderer::<COMP>::with_props(props)
+                .hydratable(hydratable)
+                .render_stream();
+            pin_mut!(s);
+
+            while let Some(m) = s.next().await {
+                let _ = tx.unbounded_send(m);
+            }
+        };
+
+        Self::spawn_rendering_task(rt, create_task);
+
+        rx
     }
 }

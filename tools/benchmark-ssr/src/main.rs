@@ -200,6 +200,7 @@ fn create_progress(tests: usize, rounds: usize) -> ProgressBar {
                  {{msg}}/{}",
                 rounds
             ))
+            .expect("failed to parse template")
             // .tick_chars("-\\|/")
             .progress_chars("=>-"),
     );
