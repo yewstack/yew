@@ -89,10 +89,7 @@ impl<IN: 'static, OUT: 'static> Callback<IN, OUT> {
         F: Fn(T) -> Option<IN> + 'static,
     {
         let this = self.clone();
-        let func = move |input| match func(input) {
-            Some(output) => Some(this.emit(output)),
-            None => None,
-        };
+        let func = move |input| func(input).map(|output| this.emit(output));
         Callback::from(func)
     }
 }
