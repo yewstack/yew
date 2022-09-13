@@ -285,6 +285,12 @@ error: `int` can only be specified once but is given here again
 90 |     html! { <Child int=1 int=2 int=3 /> };
    |                                ^^^
 
+error: cannot use `ref` with components. If you want to specify a property, use `r#ref` here instead.
+  --> tests/html_macro/component-fail.rs:94:26
+   |
+94 |     html! { <Child int=1 ref={()} /> };
+   |                          ^^^
+
 error: `ref` can only be specified once
   --> tests/html_macro/component-fail.rs:95:35
    |
