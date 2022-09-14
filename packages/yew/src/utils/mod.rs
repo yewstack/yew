@@ -23,6 +23,15 @@ impl<IN: Into<OUT>, OUT> From<IN> for NodeSeq<IN, OUT> {
     }
 }
 
+impl<IN: Into<OUT>, OUT> From<Option<IN>> for NodeSeq<IN, OUT> {
+    fn from(val: Option<IN>) -> Self {
+        Self(
+            val.map(|s| vec![s.into()]).unwrap_or_default(),
+            PhantomData::default(),
+        )
+    }
+}
+
 impl<IN: Into<OUT>, OUT> From<Vec<IN>> for NodeSeq<IN, OUT> {
     fn from(val: Vec<IN>) -> Self {
         Self(

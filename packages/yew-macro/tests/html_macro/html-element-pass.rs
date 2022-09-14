@@ -121,6 +121,9 @@ fn compile_pass() {
 
     // test for https://github.com/yewstack/yew/issues/2810
     ::yew::html! {  <div data-type="date" data-as="calender" /> };
+
+    let option_vnode = ::std::option::Option::Some(::yew::html! {});
+    ::yew::html! { <div>{option_vnode}</div> };
 }
 
 fn main() {}
