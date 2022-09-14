@@ -68,7 +68,7 @@ impl<IN> Default for Callback<IN> {
 
 impl<IN: 'static, OUT: 'static> Callback<IN, OUT> {
     /// Creates a new callback from another callback and a function
-    /// That when emited will call that function and will emit the original callback
+    /// That when emitted will call that function and will emit the original callback
     pub fn reform<F, T>(&self, func: F) -> Callback<T, OUT>
     where
         F: Fn(T) -> IN + 'static,
@@ -80,6 +80,68 @@ impl<IN: 'static, OUT: 'static> Callback<IN, OUT> {
         };
         Callback::from(func)
     }
+
+    /// Creates a new callback from another callback and a function.
+    /// When emitted will call the function and, only if it returns `Some(value)`, will emit
+    /// `value` to the original callback.
+    pub fn filter_reform<F, T>(&self, func: F) -> Callback<T, Option<OUT>>
+    where
+        F: Fn(T) -> Option<IN> + 'static,
+    {
+        let this = self.clone();
+        let func = move |input| func(input).map(|output| this.emit(output));
+        Callback::from(func)
+    }
 }
 
 impl<IN, OUT> ImplicitClone for Callback<IN, OUT> {}
+
+#[cfg(test)]
+mod test {
+    use std::sync::Mutex;
+
+    use super::*;
+
+    /// emit the callback with the provided value
+    fn emit<T, I, R: 'static + Clone, F, OUT>(values: I, f: F) -> Vec<R>
+    where
+        I: IntoIterator<Item = T>,
+        F: FnOnce(Callback<R, ()>) -> Callback<T, OUT>,
+    {
+        let result = Rc::new(Mutex::new(Vec::new()));
+        let cb_result = result.clone();
+        let cb = f(Callback::<R, ()>::from(move |v| {
+            cb_result.lock().unwrap().push(v);
+        }));
+        for value in values {
+            cb.emit(value);
+        }
+        let x = result.lock().unwrap().clone();
+        x
+    }
+
+    #[test]
+    fn test_callback() {
+        assert_eq!(*emit([true, false], |cb| cb), vec![true, false]);
+    }
+
+    #[test]
+    fn test_reform() {
+        assert_eq!(
+            *emit([true, false], |cb| cb.reform(|v: bool| !v)),
+            vec![false, true]
+        );
+    }
+
+    #[test]
+    fn test_filter_reform() {
+        assert_eq!(
+            *emit([1, 2, 3], |cb| cb.filter_reform(|v| match v {
+                1 => Some(true),
+                2 => Some(false),
+                _ => None,
+            })),
+            vec![true, false]
+        );
+    }
+}
