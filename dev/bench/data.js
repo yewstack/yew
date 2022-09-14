@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1663161128617,
+  "lastUpdate": 1663197694619,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -24053,6 +24053,120 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 33_startup-mainthreadcost",
             "value": "277.24800000000005",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "362.6884765625",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jreimann@redhat.com",
+            "name": "Jens Reimann",
+            "username": "ctron"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "beb0157c4865727bb350cefc57ddb76dfc6730bd",
+          "message": "Allow skipping a callback when reforming (#2864)\n\n* Allow skipping a callback when reforming\r\n\r\nThis adds a method to the callback, similar to Rust's filter_map, which\r\nallows to reform a callback, but also suppress the emit in case\r\nthe reform function returns `None`.\r\n\r\n* Update packages/yew/src/callback.rs\r\n\r\nCo-authored-by: WorldSEnder <WorldSEnder@users.noreply.github.com>\r\n\r\n* Implement filter_reform for all Callback output types\r\n\r\nAs suggested in the PR, this implements filter_reform for all output\r\ntypes of callbacks by mapping to `Option<OUT>`.\r\n\r\n* Fix clippy error\r\n\r\nAlthough I believe that the code is more readable/understandable with\r\nan explicit map, I am not sure adding a clippy exception just for that\r\nis justified. So I applied the clippy suggestion.\r\n\r\nCo-authored-by: WorldSEnder <WorldSEnder@users.noreply.github.com>",
+          "timestamp": "2022-09-15T01:14:58+02:00",
+          "tree_id": "20ebad9fd0a011076aa825db596b07c5bafc5a2f",
+          "url": "https://github.com/yewstack/yew/commit/beb0157c4865727bb350cefc57ddb76dfc6730bd"
+        },
+        "date": 1663197691260,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "149.52100000000002",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "160.7435",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "249.4255",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "43.41",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "63.53",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "24.0725",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "1982.6215",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "336.2155",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "136.2295",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.3937034606933594",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.6541213989257812",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.657501220703125",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.64581298828125",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.378643035888672",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1879.115",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "27.284",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 33_startup-mainthreadcost",
+            "value": "197.06000000000003",
             "unit": ""
           },
           {
