@@ -8,9 +8,9 @@ use std::time::Duration;
 
 use common::obtain_result;
 use wasm_bindgen::JsCast;
-use wasm_bindgen_futures::spawn_local;
 use wasm_bindgen_test::*;
 use web_sys::{HtmlElement, HtmlTextAreaElement};
+use yew::platform::spawn_local;
 use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew::suspense::{use_future, use_future_with_deps, Suspension, SuspensionResult};
@@ -683,4 +683,54 @@ async fn use_suspending_future_with_deps_works() {
 
     let result = obtain_result();
     assert_eq!(result.as_str(), r#"<div>42</div>"#);
+}
+
+#[wasm_bindgen_test]
+async fn test_suspend_forever() {
+    /// A component that its suspension never resumes.
+    /// We test that this can be used with to trigger a suspension and unsuspend upon unmount.
+    #[function_component]
+    fn SuspendForever() -> HtmlResult {
+        let (s, handle) = Suspension::new();
+        use_state(move || handle);
+        Err(s)
+    }
+
+    #[function_component]
+    fn App() -> Html {
+        let page = use_state(|| 1);
+
+        {
+            let page_setter = page.setter();
+            use_effect_with_deps(
+                move |_| {
+                    spawn_local(async move {
+                        sleep(Duration::from_secs(1)).await;
+                        page_setter.set(2);
+                    });
+                },
+                (),
+            );
+        }
+
+        let content = if *page == 1 {
+            html! { <FirstPage /> }
+        } else {
+            html! { <h1>{"Page 2"}</h1> }
+        };
+
+        html! {
+            <Suspense fallback={html! {<div>{"Loading..."}</div>}}>
+                {content}
+            </Suspense>
+        }
+    }
+
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .render();
+
+    sleep(Duration::from_millis(1500)).await;
+
+    let result = obtain_result();
+    assert_eq!(result.as_str(), r#"<h1>Page 2</h1>"#);
 }
