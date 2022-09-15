@@ -716,7 +716,7 @@ async fn test_suspend_forever() {
         let content = if *page == 1 {
             html! { <SuspendForever /> }
         } else {
-            html! { <h1>{"Page 2"}</h1> }
+            html! { <div id="result">{"OK"}</div> }
         };
 
         html! {
@@ -732,5 +732,5 @@ async fn test_suspend_forever() {
     sleep(Duration::from_millis(1500)).await;
 
     let result = obtain_result();
-    assert_eq!(result.as_str(), r#"<h1>Page 2</h1>"#);
+    assert_eq!(result.as_str(), r#"OK"#);
 }
