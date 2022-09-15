@@ -693,7 +693,7 @@ async fn test_suspend_forever() {
     fn SuspendForever() -> HtmlResult {
         let (s, handle) = Suspension::new();
         use_state(move || handle);
-        Err(s)
+        Err(s.into())
     }
 
     #[function_component]
@@ -714,7 +714,7 @@ async fn test_suspend_forever() {
         }
 
         let content = if *page == 1 {
-            html! { <FirstPage /> }
+            html! { <SuspendForever /> }
         } else {
             html! { <h1>{"Page 2"}</h1> }
         };
