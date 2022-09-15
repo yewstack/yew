@@ -297,6 +297,17 @@ impl ComponentState {
             .downcast_ref::<CompStateInner<COMP>>()
             .map(|m| &m.component)
     }
+
+    fn resume_existing_suspension(&mut self) {
+        if let Some(m) = self.suspension.take() {
+            let comp_scope = self.inner.any_scope();
+
+            let suspense_scope = comp_scope.find_parent_scope::<BaseSuspense>().unwrap();
+            let suspense = suspense_scope.get_component().unwrap();
+
+            suspense.resume(m);
+        }
+    }
 }
 
 pub(crate) struct CreateRunner<COMP: BaseComponent> {
@@ -370,6 +381,7 @@ impl ComponentState {
     )]
     fn destroy(mut self, parent_to_detach: bool) {
         self.inner.destroy();
+        self.resume_existing_suspension();
 
         match self.render_state {
             #[cfg(feature = "csr")]
@@ -479,14 +491,7 @@ impl ComponentState {
     fn commit_render(&mut self, shared_state: &Shared<Option<ComponentState>>, new_root: Html) {
         // Currently not suspended, we remove any previous suspension and update
         // normally.
-        if let Some(m) = self.suspension.take() {
-            let comp_scope = self.inner.any_scope();
-
-            let suspense_scope = comp_scope.find_parent_scope::<BaseSuspense>().unwrap();
-            let suspense = suspense_scope.get_component().unwrap();
-
-            suspense.resume(m);
-        }
+        self.resume_existing_suspension();
 
         match self.render_state {
             #[cfg(feature = "csr")]
