@@ -403,6 +403,15 @@ impl ComponentState {
                 let _ = parent_to_detach;
             }
         }
+
+        if let Some(m) = self.suspension.take() {
+            let comp_scope = self.inner.any_scope();
+
+            let suspense_scope = comp_scope.find_parent_scope::<BaseSuspense>().unwrap();
+            let suspense = suspense_scope.get_component().unwrap();
+
+            suspense.resume(m);
+        }
     }
 }
 
