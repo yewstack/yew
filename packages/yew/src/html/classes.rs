@@ -73,8 +73,8 @@ impl Classes {
     /// # Safety
     ///
     /// This function will not split the string into multiple classes. Please do not use it unless
-    /// you are absolutely certain that the string does not contain any whitespace. Using `push()`
-    /// is preferred.
+    /// you are absolutely certain that the string does not contain any whitespace and it is not
+    /// empty. Using `push()`  is preferred.
     pub unsafe fn unchecked_push<T: Into<Cow<'static, str>>>(&mut self, class: T) {
         self.set.insert(class.into());
     }
@@ -178,7 +178,7 @@ impl From<&'static str> for Classes {
 
 impl From<String> for Classes {
     fn from(t: String) -> Self {
-        match t.contains(|c: char| c.is_whitespace()) && !t.is_empty() {
+        match t.contains(|c: char| c.is_whitespace()) {
             // If the string only contains a single class, we can just use it
             // directly (rather than cloning it into a new string). Need to make
             // sure it's not empty, though.
