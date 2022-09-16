@@ -14,7 +14,6 @@ impl From<AttrValue> for VRaw {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use std::borrow::Cow;
     use std::fmt::Write;
 
     use super::*;
