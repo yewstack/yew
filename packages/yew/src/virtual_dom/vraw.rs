@@ -15,10 +15,11 @@ impl From<AttrValue> for VRaw {
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use std::borrow::Cow;
+    use std::fmt::Write;
 
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::io::BufWriter;
+    use crate::platform::fmt::BufWriter;
 
     impl VRaw {
         pub(crate) async fn render_into_stream(
@@ -27,7 +28,7 @@ mod feat_ssr {
             _parent_scope: &AnyScope,
             _hydratable: bool,
         ) {
-            w.write(Cow::Borrowed(self.html.as_ref()))
+            let _ = w.write_str(self.html.as_ref());
         }
     }
 }
