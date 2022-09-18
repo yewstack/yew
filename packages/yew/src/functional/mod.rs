@@ -18,7 +18,7 @@
 //! }
 //! ```
 //!
-//! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/next/concepts/function-components/introduction)
+//! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/concepts/function-components/introduction)
 
 use std::any::Any;
 use std::cell::RefCell;
