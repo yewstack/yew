@@ -24,6 +24,9 @@ where
     pub query: Option<Q>,
     #[prop_or_default]
     pub disabled: bool,
+    /// [`NodeRef`](yew::html::NodeRef) for the `<a>` element.
+    #[prop_or_default]
+    pub anchor_ref: NodeRef,
     #[prop_or_default]
     pub children: Children,
 }
@@ -41,6 +44,7 @@ where
         children,
         disabled,
         query,
+        anchor_ref,
     } = props.clone();
 
     let navigator = use_navigator().expect_throw("failed to get navigator");
@@ -86,6 +90,7 @@ where
             {href}
             {onclick}
             {disabled}
+            ref={anchor_ref}
         >
             { children }
         </a>
