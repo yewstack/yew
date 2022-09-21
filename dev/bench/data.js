@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1663550161210,
+  "lastUpdate": 1663735651378,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -24395,6 +24395,120 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 33_startup-mainthreadcost",
             "value": "293.0200000000001",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "362.6884765625",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Lucretiel@users.noreply.github.com",
+            "name": "Nathan West",
+            "username": "Lucretiel"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6751946477b836745366ddfbf197d0a0adcd89d5",
+          "message": "Various improvements to Classes, oriented around reducing allocations (#2870)\n\n* Various improvements to Classes, oriented around reducing allocations\r\n\r\n- `push` no longer performs unnecessary allocations if `self` is empty.\r\n    - Most constructors (FromIterator, From, Extend) are now oriented around push, to take advantage of this\r\n- `to_string` and `into_prop_value`:\r\n  - No longer allocate an unnecessary `Vec`; they instead preallocate a string of the correct length and push into it directly.\r\n  - No longer use a length check + `unsafe`; they instead match over a fallible .next() and proceed from there.\r\n  - Additionally, `into_prop_value` no longer builds a `String` or `Rc` if `Classes` contains a single `&'static str` or is empty.\r\n- `From<String>` no longer clones the string if it contains a single class.\r\n- `impl Eq for Classes`\r\n\r\n* Fix duplicated is_empty test",
+          "timestamp": "2022-09-21T13:41:10+09:00",
+          "tree_id": "3f024e5f43662bf400019968ed05d2d3f6507553",
+          "url": "https://github.com/yewstack/yew/commit/6751946477b836745366ddfbf197d0a0adcd89d5"
+        },
+        "date": 1663735649548,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "147.997",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "154.25799999999998",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "225.4295",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "36.9955",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "56.815",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "22.456",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "1906.4115",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "330.3615",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "129.70049999999998",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.3894615173339844",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.654205322265625",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.6574592590332031",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.6459274291992188",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "1.2637672424316406",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1729.156",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "29.287999999999982",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 33_startup-mainthreadcost",
+            "value": "185.404",
             "unit": ""
           },
           {
