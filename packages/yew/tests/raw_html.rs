@@ -72,21 +72,98 @@ create_test!(
     r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#
 );
 
+macro_rules! create_update_html_test {
+    ($name:ident, $initial:expr, $updated:expr) => {
+        #[cfg(target_arch = "wasm32")]
+        #[test]
+        async fn $name() {
+            #[function_component]
+            fn App() -> Html {
+                let raw_html = use_state(|| ($initial));
+                let onclick = {
+                    let raw_html = raw_html.clone();
+                    move |_| raw_html.set($updated)
+                };
+                let raw = Html::from_raw_html(AttrValue::from(*raw_html));
+                html! {
+                    <>
+                        <div id="raw-container">
+                            {raw}
+                        </div>
+                        <button id="click-me-btn" {onclick}>{"Click me"}</button>
+                    </>
+                }
+            }
+            use std::time::Duration;
+
+            use yew::platform::time::sleep;
+
+            yew::Renderer::<App>::with_root(
+                gloo::utils::document().get_element_by_id("output").unwrap(),
+            )
+            .render();
+
+            // wait for render to finish
+            sleep(Duration::from_millis(100)).await;
+
+            let e = gloo::utils::document()
+                .get_element_by_id("raw-container")
+                .unwrap();
+            assert_eq!(e.inner_html(), $initial);
+
+            gloo::utils::document()
+                .get_element_by_id("click-me-btn")
+                .unwrap()
+                .unchecked_into::<web_sys::HtmlButtonElement>()
+                .click();
+
+            sleep(Duration::from_millis(100)).await;
+
+            let e = gloo::utils::document()
+                .get_element_by_id("raw-container")
+                .unwrap();
+            assert_eq!(e.inner_html(), $updated);
+        }
+    };
+}
+
+create_update_html_test!(
+    set_new_html_string,
+    "<span>first</span>",
+    "<span>second</span>"
+);
+
+create_update_html_test!(
+    set_new_html_string_multiple_children,
+    "<span>first</span><span>second</span>",
+    "<span>second</span>"
+);
+
+create_update_html_test!(
+    clear_html_string_multiple_children,
+    "<span>first</span><span>second</span>",
+    ""
+);
+create_update_html_test!(
+    nothing_changes,
+    "<span>first</span><span>second</span>",
+    "<span>first</span><span>second</span>"
+);
+
 #[cfg(target_arch = "wasm32")]
 #[test]
-async fn set_new_html_string() {
+async fn change_vnode_types_from_other_to_vraw() {
     #[function_component]
     fn App() -> Html {
-        let raw_html = use_state(|| ("<span>first</span>"));
+        let node = use_state(|| html!("text"));
         let onclick = {
-            let raw_html = raw_html.clone();
-            move |_| raw_html.set("<span>second</span>")
+            let node = node.clone();
+            move |_| node.set(Html::from_raw_html(AttrValue::from("<span>second</span>")))
         };
-        let raw = Html::from_raw_html(AttrValue::from(*raw_html));
         html! {
             <>
                 <div id="raw-container">
-                    {raw}
+                    {(*node).clone()}
                 </div>
                 <button id="click-me-btn" {onclick}>{"Click me"}</button>
             </>
@@ -105,7 +182,7 @@ async fn set_new_html_string() {
     let e = gloo::utils::document()
         .get_element_by_id("raw-container")
         .unwrap();
-    assert_eq!(e.inner_html(), "<span>first</span>");
+    assert_eq!(e.inner_html(), "text");
 
     gloo::utils::document()
         .get_element_by_id("click-me-btn")
@@ -119,4 +196,52 @@ async fn set_new_html_string() {
         .get_element_by_id("raw-container")
         .unwrap();
     assert_eq!(e.inner_html(), "<span>second</span>");
+}
+
+#[cfg(target_arch = "wasm32")]
+#[test]
+async fn change_vnode_types_from_vraw_to_other() {
+    #[function_component]
+    fn App() -> Html {
+        let node = use_state(|| Html::from_raw_html(AttrValue::from("<span>second</span>")));
+        let onclick = {
+            let node = node.clone();
+            move |_| node.set(html!("text"))
+        };
+        html! {
+            <>
+                <div id="raw-container">
+                    {(*node).clone()}
+                </div>
+                <button id="click-me-btn" {onclick}>{"Click me"}</button>
+            </>
+        }
+    }
+    use std::time::Duration;
+
+    use yew::platform::time::sleep;
+
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .render();
+
+    // wait for render to finish
+    sleep(Duration::from_millis(100)).await;
+
+    let e = gloo::utils::document()
+        .get_element_by_id("raw-container")
+        .unwrap();
+    assert_eq!(e.inner_html(), "<span>second</span>");
+
+    gloo::utils::document()
+        .get_element_by_id("click-me-btn")
+        .unwrap()
+        .unchecked_into::<web_sys::HtmlButtonElement>()
+        .click();
+
+    sleep(Duration::from_millis(100)).await;
+
+    let e = gloo::utils::document()
+        .get_element_by_id("raw-container")
+        .unwrap();
+    assert_eq!(e.inner_html(), "text");
 }
