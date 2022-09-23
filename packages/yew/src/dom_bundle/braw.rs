@@ -57,15 +57,11 @@ impl ReconcileTarget for BRaw {
 
     fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
         if let Some(node) = self.reference.get() {
-            if let Some(parent) = node.parent_node() {
-                parent.remove_child(&node).unwrap();
-            }
-
-            next_parent
+            let new_node = next_parent
                 .insert_before(&node, next_sibling.get().as_ref())
                 .unwrap();
 
-            return NodeRef::new(node.into());
+            return NodeRef::new(new_node);
         }
         NodeRef::default()
     }
