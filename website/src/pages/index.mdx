@@ -42,14 +42,14 @@ browsers. For ideas on how to get the most out of WebAssembly for your app, chec
 
 It should be noted that using Wasm is not \(yet\) a silver bullet for improving the performance of
 web apps. As of the present, using DOM APIs from WebAssembly is still slower than calling them
-directly from JavaScript. This is an issue which the
+directly from JavaScript. The
 [WebAssembly Component Model](https://github.com/WebAssembly/component-model) proposal aims to
-resolve. Standardization work is still ongoing (currently in
+resolve this issue. Standardization work is still ongoing (currently in
 [phase 1 of 5](https://github.com/WebAssembly/proposals) at time of writing). If you would like
 to learn more, check out this
 [excellent article](https://hacks.mozilla.org/2019/08/webassembly-interface-types/). It's based on an
 [inactive proposal](https://github.com/WebAssembly/interface-types/blob/main/proposals/interface-types/Explainer.md)
-superseeded by the Component Model proposal, but it's still a great read.
+superseeded by the aforementioned Component Model proposal, but it's still a great read.
 
 ### Ok, but why Rust?
 
