@@ -26,6 +26,9 @@ pub fn lint<L>(tree: &HtmlTree)
 where
     L: Lint,
 {
+    #[cfg(not(yew_lints))]
+    let _ = tree;
+    #[cfg(yew_lints)]
     match tree {
         HtmlTree::List(list) => {
             for child in &list.children.0 {
