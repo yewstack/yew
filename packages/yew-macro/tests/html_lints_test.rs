@@ -1,5 +1,5 @@
 #[allow(dead_code)]
-#[cfg(feature = "lints")]
+#[cfg(yew_lints)]
 #[rustversion::attr(nightly, test)]
 fn test_html_lints() {
     let t = trybuild::TestCases::new();
