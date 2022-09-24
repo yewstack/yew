@@ -96,7 +96,7 @@ fn with<R>(f: impl FnOnce(&mut Scheduler) -> R) -> R {
         static SCHEDULER: RefCell<Scheduler> = Default::default();
     }
 
-    SCHEDULER.with(|s| f(&mut *s.borrow_mut()))
+    SCHEDULER.with(|s| f(&mut s.borrow_mut()))
 }
 
 /// Push a generic [Runnable] to be executed

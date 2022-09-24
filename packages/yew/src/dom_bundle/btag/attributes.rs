@@ -192,7 +192,7 @@ impl Apply for Attributes {
         match &self {
             Self::Static(arr) => {
                 for (k, v, apply_as) in arr.iter() {
-                    Self::set(el, *k, *v, *apply_as);
+                    Self::set(el, k, v, *apply_as);
                 }
             }
             Self::Dynamic { keys, values } => {

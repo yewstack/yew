@@ -98,12 +98,12 @@ impl VisitMut for BodyRewriter {
             visit_mut::visit_attribute_mut(self, it);
         }
 
-        visit_mut::visit_expr_mut(self, &mut *i.cond);
+        visit_mut::visit_expr_mut(self, &mut i.cond);
 
         self.with_branch(|m| visit_mut::visit_block_mut(m, &mut i.then_branch));
 
         if let Some(it) = &mut i.else_branch {
-            self.with_branch(|m| visit_mut::visit_expr_mut(m, &mut *(it).1));
+            self.with_branch(|m| visit_mut::visit_expr_mut(m, &mut (it).1));
         }
     }
 
@@ -119,7 +119,7 @@ impl VisitMut for BodyRewriter {
             visit_mut::visit_label_mut(self, it);
         }
         visit_mut::visit_pat_mut(self, &mut i.pat);
-        visit_mut::visit_expr_mut(self, &mut *i.expr);
+        visit_mut::visit_expr_mut(self, &mut i.expr);
 
         self.with_branch(|m| visit_mut::visit_block_mut(m, &mut i.body));
     }
@@ -129,7 +129,7 @@ impl VisitMut for BodyRewriter {
             visit_mut::visit_attribute_mut(self, it);
         }
 
-        visit_mut::visit_expr_mut(self, &mut *i.expr);
+        visit_mut::visit_expr_mut(self, &mut i.expr);
 
         self.with_branch(|m| {
             for it in &mut i.arms {
