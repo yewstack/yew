@@ -31,20 +31,11 @@ impl BRaw {
     }
 
     fn detach_bundle(&self, parent: &Element) {
-        if let Some(node) = self.reference.get() {
-            let mut next_sibling = node.next_sibling();
-
-            parent
-                .remove_child(&node)
-                .expect("failed to remove braw node");
-            let len = self.children_count - 1;
-            for _ in 0..len {
-                if let Some(node) = next_sibling {
-                    next_sibling = node.clone().next_sibling();
-                    parent
-                        .remove_child(&node)
-                        .expect("failed to remove braw node");
-                }
+        let mut next_node = self.reference.get();
+        for _ in 0..self.children_count {
+            if let Some(node) = next_node {
+                next_node = node.next_sibling();
+                parent.remove_child(&node).unwrap();
             }
         }
     }
