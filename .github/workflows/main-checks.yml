@@ -219,4 +219,4 @@ jobs:
           RUSTFLAGS: --cfg nightly_yew --cfg yew_lints
         with:
           command: test
-          args: -p yew-macro test_html_lints --features lints
+          args: -p yew-macro test_html_lints
