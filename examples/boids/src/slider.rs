@@ -56,7 +56,7 @@ impl Component for Slider {
             step,
         } = *ctx.props();
 
-        let precision = precision.unwrap_or(if percentage { 1 } else { 0 });
+        let precision = precision.unwrap_or_else(|| usize::from(percentage));
 
         let display_value = if percentage {
             format!("{:.p$}%", 100.0 * value, p = precision)
