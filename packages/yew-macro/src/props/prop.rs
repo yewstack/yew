@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 use std::convert::TryFrom;
 use std::ops::{Deref, DerefMut};
 
@@ -9,7 +8,6 @@ use syn::spanned::Spanned;
 use syn::token::Brace;
 use syn::{braced, Block, Expr, ExprBlock, ExprPath, ExprRange, Stmt, Token};
 
-use super::CHILDREN_LABEL;
 use crate::html_tree::HtmlDashedName;
 use crate::stringify::Stringify;
 
@@ -24,6 +22,16 @@ pub struct Prop {
     /// Punctuation between `label` and `value`.
     pub value: Expr,
 }
+
+// impl std::fmt::Debug for Prop {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         f.debug_struct("Prop")
+//             .field("label", &self.label.to_string())
+//             .field("label", &self.value)
+//             .finish_non_exhaustive()
+//     }
+// }
+
 impl Parse for Prop {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let directive = input
@@ -220,32 +228,17 @@ pub struct SortedPropList(Vec<Prop>);
 impl SortedPropList {
     /// Create a new `SortedPropList` from a vector of props.
     /// The given `props` doesn't need to be sorted.
-    pub fn new(mut props: Vec<Prop>) -> Self {
-        props.sort_by(|a, b| Self::cmp_label(&a.label.to_string(), &b.label.to_string()));
+    pub fn new(props: Vec<Prop>) -> Self {
         Self(props)
     }
 
-    fn cmp_label(a: &str, b: &str) -> Ordering {
-        if a == b {
-            Ordering::Equal
-        } else if a == CHILDREN_LABEL {
-            Ordering::Greater
-        } else if b == CHILDREN_LABEL {
-            Ordering::Less
-        } else {
-            a.cmp(b)
-        }
-    }
-
     fn position(&self, key: &str) -> Option<usize> {
-        self.0
-            .binary_search_by(|prop| Self::cmp_label(prop.label.to_string().as_str(), key))
-            .ok()
+        self.0.iter().position(|it| it.label.to_string() == key)
     }
 
     /// Get the first prop with the given key.
     pub fn get_by_label(&self, key: &str) -> Option<&Prop> {
-        self.position(key).and_then(|i| self.0.get(i))
+        self.0.iter().find(|it| it.label.to_string() == key)
     }
 
     /// Pop the first prop with the given key.
