@@ -224,8 +224,8 @@ fn advance_until_next_dot2(input: &ParseBuffer) -> syn::Result<()> {
 ///
 /// The list may contain multiple props with the same label.
 /// Use `check_no_duplicates` to ensure that there are no duplicates.
-pub struct SortedPropList(Vec<Prop>);
-impl SortedPropList {
+pub struct PropList(Vec<Prop>);
+impl PropList {
     /// Create a new `SortedPropList` from a vector of props.
     /// The given `props` doesn't need to be sorted.
     pub fn new(props: Vec<Prop>) -> Self {
@@ -305,7 +305,7 @@ impl SortedPropList {
         }))
     }
 }
-impl Parse for SortedPropList {
+impl Parse for PropList {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut props: Vec<Prop> = Vec::new();
         // Stop parsing props if a base expression preceded by `..` is reached
@@ -316,7 +316,7 @@ impl Parse for SortedPropList {
         Ok(Self::new(props))
     }
 }
-impl Deref for SortedPropList {
+impl Deref for PropList {
     type Target = [Prop];
 
     fn deref(&self) -> &Self::Target {
@@ -333,7 +333,7 @@ impl SpecialProps {
     const KEY_LABEL: &'static str = "key";
     const REF_LABEL: &'static str = "ref";
 
-    fn pop_from(props: &mut SortedPropList) -> syn::Result<Self> {
+    fn pop_from(props: &mut PropList) -> syn::Result<Self> {
         let node_ref = props.pop_unique(Self::REF_LABEL)?;
         let key = props.pop_unique(Self::KEY_LABEL)?;
         Ok(Self { node_ref, key })
@@ -379,15 +379,15 @@ impl SpecialProps {
 
 pub struct Props {
     pub special: SpecialProps,
-    pub prop_list: SortedPropList,
+    pub prop_list: PropList,
 }
 impl Parse for Props {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        Self::try_from(input.parse::<SortedPropList>()?)
+        Self::try_from(input.parse::<PropList>()?)
     }
 }
 impl Deref for Props {
-    type Target = SortedPropList;
+    type Target = PropList;
 
     fn deref(&self) -> &Self::Target {
         &self.prop_list
@@ -399,10 +399,10 @@ impl DerefMut for Props {
     }
 }
 
-impl TryFrom<SortedPropList> for Props {
+impl TryFrom<PropList> for Props {
     type Error = syn::Error;
 
-    fn try_from(mut prop_list: SortedPropList) -> Result<Self, Self::Error> {
+    fn try_from(mut prop_list: PropList) -> Result<Self, Self::Error> {
         let special = SpecialProps::pop_from(&mut prop_list)?;
         Ok(Self { special, prop_list })
     }
