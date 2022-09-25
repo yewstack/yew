@@ -216,7 +216,7 @@ jobs:
       - name: Run tests
         uses: actions-rs/cargo@v1
         env:
-          RUSTFLAGS: --cfg nightly_yew
+          RUSTFLAGS: --cfg nightly_yew --cfg yew_lints
         with:
           command: test
-          args: -p yew-macro test_html_lints --features lints
+          args: -p yew-macro test_html_lints

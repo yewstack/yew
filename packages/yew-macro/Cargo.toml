@@ -29,8 +29,3 @@ prettyplease = "0.1.1"
 rustversion = "1"
 trybuild = "1"
 yew = { path = "../yew" }
-
-[build-dependencies]
-
-[features]
-lints = []
