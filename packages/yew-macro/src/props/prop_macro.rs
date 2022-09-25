@@ -8,7 +8,7 @@ use syn::spanned::Spanned;
 use syn::token::Brace;
 use syn::{Expr, Token, TypePath};
 
-use super::{ComponentProps, Prop, Props, PropList};
+use super::{ComponentProps, Prop, PropList, Props};
 use crate::html_tree::HtmlDashedName;
 
 /// Pop from `Punctuated` without leaving it in a state where it has trailing punctuation.
