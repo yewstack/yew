@@ -24,7 +24,6 @@ pub struct ContextProviderProps<T: Clone + PartialEq> {
 #[derive(Debug)]
 pub struct ContextProvider<T: Clone + PartialEq + 'static> {
     context: T,
-    children: Children,
     consumers: RefCell<Slab<Callback<T>>>,
 }
 
@@ -85,20 +84,15 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
     fn create(ctx: &Context<Self>) -> Self {
         let props = ctx.props();
         Self {
-            children: props.children.clone(),
             context: props.context.clone(),
             consumers: RefCell::new(Slab::new()),
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
+    fn changed(&mut self, ctx: &Context<Self>, old_props: &Self::Properties) -> bool {
         let props = ctx.props();
-        let should_render = if self.children == props.children {
-            false
-        } else {
-            self.children = props.children.clone();
-            true
-        };
+
+        let should_render = old_props.children != props.children;
 
         if self.context != props.context {
             self.context = props.context.clone();
@@ -108,7 +102,7 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
         should_render
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
-        html! { <>{ self.children.clone() }</> }
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! { <>{ ctx.props().children.clone() }</> }
     }
 }
