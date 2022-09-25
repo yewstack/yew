@@ -53,7 +53,7 @@ fn use_subscribe() -> Rc<RefCell<Vec<String>>> {
 }
 ```
 
-This is a simple hook which can be created by combining other hooks. For this example, we'll two pre-defined hooks.
+This is a simple hook which can be created by combining other hooks. For this example, we'll implement two pre-defined hooks.
 We'll use `use_state` hook to store the `Vec` for messages, so they persist between component re-renders.
 We'll also use `use_effect` to subscribe to the `EventBus` `Agent` so the subscription can be tied to component's lifecycle.
 
@@ -82,9 +82,8 @@ fn use_subscribe() -> Vec<String> {
 }
 ```
 
-Although this approach works in almost all cases, it can't be used to write primitive hooks like the pre-defined hooks we've been using already
+Although this approach works in almost all cases, it can't be used to write primitive hooks like the pre-defined ones we've been using.
 
 ### Writing primitive hooks
 
-`use_hook` function is used to write such hooks. View the docs on [docs.rs](https://docs.rs/yew/0.18.0/yew-functional/use_hook.html) for the documentation
-and `hooks` directory to see implementations of pre-defined hooks.
+The `use_hook` function is used to prepare this kind of hook. View the docs on [docs.rs](https://docs.rs/yew/0.18.0/yew-functional/use_hook.html) for the documentation, as well as the `hooks` directory to see implementations of pre-defined hooks.
