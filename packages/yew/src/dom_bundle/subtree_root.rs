@@ -484,7 +484,7 @@ impl BSubtree {
     /// Run f with access to global Registry
     #[inline]
     pub fn with_listener_registry<R>(&self, f: impl FnOnce(&mut Registry) -> R) -> R {
-        f(&mut *self.0.event_registry().borrow_mut())
+        f(&mut self.0.event_registry().borrow_mut())
     }
 
     pub fn brand_element(&self, el: &dyn EventGrating) {

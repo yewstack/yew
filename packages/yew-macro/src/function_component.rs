@@ -102,7 +102,7 @@ impl Parse for FunctionComponent {
 
                     if ty.mutability.is_some() {
                         return Err(syn::Error::new_spanned(
-                            &ty.mutability,
+                            ty.mutability,
                             "reference must not be mutable",
                         ));
                     }

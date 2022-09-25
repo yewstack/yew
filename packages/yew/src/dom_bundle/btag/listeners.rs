@@ -66,7 +66,7 @@ impl Apply for Listeners {
             (Pending(pending), Registered(ref id)) => {
                 // Reuse the ID
                 test_log!("reusing listeners for {}", id);
-                root.with_listener_registry(|reg| reg.patch(root, id, &*pending));
+                root.with_listener_registry(|reg| reg.patch(root, id, &pending));
             }
             (Pending(pending), bundle @ NoReg) => {
                 *bundle = ListenerRegistration::register(root, el, &pending);

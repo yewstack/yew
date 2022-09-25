@@ -50,7 +50,7 @@ impl<COMP: BaseComponent> Context<COMP> {
     /// The component's props
     #[inline]
     pub fn props(&self) -> &COMP::Properties {
-        &*self.props
+        &self.props
     }
 
     #[cfg(feature = "hydration")]

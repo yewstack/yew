@@ -206,7 +206,7 @@ where
 
         if self.context.props != props {
             let old_props = std::mem::replace(&mut self.context.props, props);
-            self.component.changed(&self.context, &*old_props)
+            self.component.changed(&self.context, &old_props)
         } else {
             false
         }
