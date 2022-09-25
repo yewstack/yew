@@ -140,7 +140,7 @@ mod tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use super::*;
-    use crate::dom_bundle::utils::setup_parent;
+    use crate::dom_bundle::utils::{setup_parent, SIBLING_CONTENT, setup_parent_and_sibling};
     use crate::virtual_dom::VNode;
 
     wasm_bindgen_test_configure!(run_in_browser);
@@ -227,6 +227,91 @@ mod tests {
         elem.detach(&root, &parent, false);
         assert_eq!(parent.inner_html(), "");
     }
+
+    #[test]
+    fn braw_works_one_node_sibling_attached() {
+        let (root, scope, parent, sibling) = setup_parent_and_sibling();
+
+        const HTML: &str = "<span>text</span>";
+        let elem = VNode::from_raw_html(HTML.into());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, sibling);
+        assert_braw(&mut elem);
+        assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
+    }
+
+    #[test]
+    fn braw_works_no_node_sibling_attached() {
+        let (root, scope, parent, sibling) = setup_parent_and_sibling();
+
+        const HTML: &str = "";
+        let elem = VNode::from_raw_html(HTML.into());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, sibling);
+        assert_braw(&mut elem);
+        assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
+    }
+
+    #[test]
+    fn braw_works_one_node_nested_sibling_attached() {
+        let (root, scope, parent, sibling) = setup_parent_and_sibling();
+
+        const HTML: &str =
+            r#"<p>one <a href="https://yew.rs">link</a> more paragraph</p><div>here</div>"#;
+        let elem = VNode::from_raw_html(HTML.into());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, sibling);
+        assert_braw(&mut elem);
+        assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
+    }
+    #[test]
+    fn braw_works_multi_top_nodes_sibling_attached() {
+        let (root, scope, parent, sibling) = setup_parent_and_sibling();
+
+        const HTML: &str = r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#;
+        let elem = VNode::from_raw_html(HTML.into());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, sibling);
+        assert_braw(&mut elem);
+        assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
+    }
+
+
+    #[test]
+    fn braw_detach_works_multi_node_sibling_attached() {
+        let (root, scope, parent, sibling) = setup_parent_and_sibling();
+
+        const HTML: &str = r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#;
+        let elem = VNode::from_raw_html(HTML.into());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, sibling);
+        assert_braw(&mut elem);
+        assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
+        elem.detach(&root, &parent, false);
+        assert_eq!(parent.inner_html(), format!("{}", SIBLING_CONTENT))
+    }
+
+    #[test]
+    fn braw_detach_works_single_node_sibling_attached() {
+        let (root, scope, parent, sibling) = setup_parent_and_sibling();
+
+        const HTML: &str = r#"<p>paragraph</p>"#;
+        let elem = VNode::from_raw_html(HTML.into());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, sibling);
+        assert_braw(&mut elem);
+        assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
+        elem.detach(&root, &parent, false);
+        assert_eq!(parent.inner_html(), format!("{}", SIBLING_CONTENT))
+    }
+
+    #[test]
+    fn braw_detach_works_empty_sibling_attached() {
+        let (root, scope, parent, sibling) = setup_parent_and_sibling();
+
+        const HTML: &str = "";
+        let elem = VNode::from_raw_html(HTML.into());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, sibling);
+        assert_braw(&mut elem);
+        assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
+        elem.detach(&root, &parent, false);
+        assert_eq!(parent.inner_html(), format!("{}", SIBLING_CONTENT))
+    }
+
 
     fn assert_braw(node: &mut BNode) -> &mut BRaw {
         if let BNode::Raw(braw) = node {
