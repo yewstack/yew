@@ -8,35 +8,13 @@ fn props_macro() {
 
 #[test]
 fn props_order() {
-    yew::html!( <div ref={yew::NodeRef::default()} />);
-
-    #[derive(Default)]
-    struct Gen {
-        state: usize,
-    }
-    impl Gen {
-        fn next(&mut self) -> usize {
-            self.state += 1;
-            self.state
-        }
-    }
-
     #[derive(yew::Properties, PartialEq)]
-    struct Props {
-        my_first: usize,
-        second: usize,
-        last: usize,
-    }
+    struct Props { first: usize, second: usize, last: usize }
 
-    let mut g = Gen::default();
-    let props = yew::props!(Props {
-        my_first: g.next(),
-        second: g.next(),
-        last: g.next(),
-    });
+    let mut g = 1..=3;
+    let props = yew::props!(Props { first: g.next().unwrap(), second: g.next().unwrap(), last: g.next().unwrap() });
 
-
-    assert_eq!(props.my_first, 1);
+    assert_eq!(props.first, 1);
     assert_eq!(props.second, 2);
     assert_eq!(props.last, 3);
 }
