@@ -151,7 +151,41 @@ HTML code.
 At the moment the lints are mostly accessibility-related. If you have ideas for lints, please feel
 free to [chime in on this issue](https://github.com/yewstack/yew/issues/1334).
 
-## Special properties
+## Specifying attributes and properties
+
+Attributes are set on elements in the same way as in normal HTML:
+
+```rust
+let value = "something";
+html! { <div attribute={value} />
+```
+
+Properties are specified with `~` before the element name:
+
+```rust
+html! { <my-element ~property="abc" /> }
+```
+
+:::tip
+
+The braces around the value can be ommited if the value is a literal.
+
+:::
+
+:::note What classifies as a literal
+
+Literals are all valid [literal expressions](https://doc.rust-lang.org/reference/expressions/literal-expr.html)
+in Rust. Note that [negative numbers are **not** literals](https://users.rust-lang.org/t/why-are-negative-value-literals-expressions/43333)
+and thus must be encosed in curly-braces `{-6}`
+
+:::
+
+:::note Component properties
+Component properites are passed as Rust objects and are different from the element attributes/properties described here.
+Read more about them at [Component Properties](../function-components/properties.mdx)
+:::
+
+### Special properties
 
 There are special properties which don't directly influence the DOM but instead act as instructions to Yew's virtual DOM.
 Currently, there are two such special props: `ref` and `key`.
