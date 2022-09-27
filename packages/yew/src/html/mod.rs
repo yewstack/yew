@@ -124,13 +124,6 @@ impl NodeRef {
         let node = self.get();
         node.map(Into::into).map(INTO::from)
     }
-
-    /// Place a Node in a reference for later use
-    pub(crate) fn set(&self, node: Option<Node>) {
-        let mut this = self.0.borrow_mut();
-        this.node = node;
-        this.link = None;
-    }
 }
 
 #[cfg(feature = "csr")]
@@ -155,6 +148,13 @@ mod feat_csr {
             let node_ref = NodeRef::default();
             node_ref.set(Some(node));
             node_ref
+        }
+
+        /// Place a Node in a reference for later use
+        pub(crate) fn set(&self, node: Option<Node>) {
+            let mut this = self.0.borrow_mut();
+            this.node = node;
+            this.link = None;
         }
     }
 }
