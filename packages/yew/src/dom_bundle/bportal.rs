@@ -48,6 +48,11 @@ impl Reconcilable for VPortal {
             inner_sibling,
             node,
         } = self;
+        let inner_sibling = {
+            let sib_ref = NodeRef::default();
+            sib_ref.set(inner_sibling);
+            sib_ref
+        };
         let inner_root = root.create_subroot(parent.clone(), &host);
         let (_, inner) = node.attach(&inner_root, parent_scope, &host, inner_sibling.clone());
         (
@@ -92,9 +97,11 @@ impl Reconcilable for VPortal {
         } = self;
 
         let old_host = std::mem::replace(&mut portal.host, host);
-        let old_inner_sibling = std::mem::replace(&mut portal.inner_sibling, inner_sibling);
 
-        if old_host != portal.host || old_inner_sibling != portal.inner_sibling {
+        let should_shift = old_host != portal.host || portal.inner_sibling.get() != inner_sibling;
+        portal.inner_sibling.set(inner_sibling);
+
+        if should_shift {
             // Remount the inner node somewhere else instead of diffing
             // Move the node, but keep the state
             let inner_sibling = portal.inner_sibling.clone();
@@ -123,12 +130,15 @@ impl BPortal {
 mod layout_tests {
     extern crate self as yew;
 
+    use gloo::utils::document;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+    use web_sys::HtmlInputElement;
     use yew::virtual_dom::VPortal;
 
-    use crate::html;
+    use super::*;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
+    use crate::{create_portal, html};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -199,5 +209,44 @@ mod layout_tests {
         });
 
         diff_layouts(layouts)
+    }
+
+    fn setup_parent_with_portal() -> (BSubtree, AnyScope, Element, Element) {
+        let scope = AnyScope::test();
+        let parent = document().create_element("div").unwrap();
+        let portal_host = document().create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+
+        let body = document().body().unwrap();
+        body.append_child(&parent).unwrap();
+        body.append_child(&portal_host).unwrap();
+
+        (root, scope, parent, portal_host)
+    }
+
+    #[test]
+    fn test_no_shift() {
+        // Portals shouldn't shift (which e.g. causes internal inputs to unfocus) when sibling
+        // doesn't change.
+        let (root, scope, parent, portal_host) = setup_parent_with_portal();
+        let input_ref = NodeRef::default();
+
+        let portal = create_portal(
+            html! { <input type="text" ref={&input_ref} /> },
+            portal_host,
+        );
+        let (_, mut bundle) = portal
+            .clone()
+            .attach(&root, &scope, &parent, NodeRef::default());
+
+        // Focus the input, then reconcile again
+        let input_el = input_ref.cast::<HtmlInputElement>().unwrap();
+        input_el.focus().unwrap();
+
+        let _ = portal.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut bundle);
+
+        let new_input_el = input_ref.cast::<HtmlInputElement>().unwrap();
+        assert_eq!(input_el, new_input_el);
+        assert_eq!(document().active_element(), Some(new_input_el.into()));
     }
 }
