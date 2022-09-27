@@ -4,8 +4,8 @@ use yew::{html, Component, Context, Html};
 
 mod clock;
 
-/// The ClockComponent displays the current time. Its main purpose is to demonstrate the use of async code in a yew
-/// component.
+/// The ClockComponent displays the current time. Its main purpose is to demonstrate the use of
+/// async code in a yew component.
 pub struct ClockComponent {
     current_time: Option<String>,
 }
@@ -22,11 +22,13 @@ impl Component for ClockComponent {
         // create a callback that will be called when the clock ticks.
         let clock_ticked = ctx.link().callback(Msg::ClockTicked);
 
-        // spawn_local starts a new async task. The task will send a message to the component when the time changes.
+        // spawn_local starts a new async task. The task will send a message to the component when
+        // the time changes.
         spawn_local(async move {
             let clock = Clock::new();
 
-            // The stream_time method returns a stream of time updates. We use the while let loop to consume the stream.
+            // The stream_time method returns a stream of time updates. We use the while let loop to
+            // consume the stream.
             let mut time_steam = clock.stream_time();
 
             // Endless loop that consumes the stream.

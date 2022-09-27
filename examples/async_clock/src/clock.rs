@@ -1,6 +1,7 @@
+use std::time::Duration;
+
 use chrono::Local;
 use gloo_timers::future::sleep;
-use std::time::Duration;
 use tokio::sync::mpsc::Receiver;
 use wasm_bindgen_futures::spawn_local;
 
@@ -30,7 +31,8 @@ impl Clock {
             }
         });
 
-        // Return the receiver. Note that this method returns immediately, and that any work is done in the background.
+        // Return the receiver. Note that this method returns immediately, and that any work is done
+        // in the background.
         rx
     }
 }
