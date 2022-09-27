@@ -1,0 +1,13 @@
+[package]
+name = "async_clock"
+version = "0.0.1"
+authors = ["Marcel Ibes <mibes@mibesco.com>"]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+yew = { path = "../../packages/yew", features = ["csr"] }
+chrono = "0.4"
+wasm-bindgen-futures = "0.4"
+tokio = { version = "1", features = ["sync"] }
+gloo-timers = { version = "0.2", features = ["futures"] }
