@@ -1,6 +1,8 @@
-use clock::Clock;
-use wasm_bindgen_futures::spawn_local;
+use futures::FutureExt;
+use tokio_stream::StreamExt;
 use yew::{html, Component, Context, Html};
+
+use crate::clock::{initialized_atomic_clocks, Clock};
 
 mod clock;
 
@@ -11,6 +13,7 @@ pub struct ClockComponent {
 }
 
 pub enum Msg {
+    ClockInitialized(String),
     ClockTicked(String),
 }
 
@@ -19,24 +22,17 @@ impl Component for ClockComponent {
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
-        // create a callback that will be called when the clock ticks.
-        let clock_ticked = ctx.link().callback(Msg::ClockTicked);
+        let clock = Clock::new();
 
-        // spawn_local starts a new async task. The task will send a message to the component when
-        // the time changes.
-        spawn_local(async move {
-            let clock = Clock::new();
+        // Demonstrate how we can send a message to the component when a future completes.
+        let is_initialized = initialized_atomic_clocks();
+        ctx.link()
+            .send_future(is_initialized.map(Msg::ClockInitialized));
 
-            // The stream_time method returns a stream of time updates. We use the while let loop to
-            // consume the stream.
-            let mut time_steam = clock.stream_time();
-
-            // Endless loop that consumes the stream.
-            while let Some(current_time) = time_steam.recv().await {
-                // Send the current time to the component.
-                clock_ticked.emit(current_time);
-            }
-        });
+        // The stream_time method returns a stream of time updates. We use the while let loop to
+        // consume the stream.
+        let time_steam = clock.stream_time();
+        ctx.link().send_stream(time_steam.map(Msg::ClockTicked));
 
         Self { current_time: None }
     }
@@ -45,9 +41,12 @@ impl Component for ClockComponent {
         match msg {
             Msg::ClockTicked(current_time) => {
                 self.current_time = Some(current_time);
-                true
+            }
+            Msg::ClockInitialized(init_message) => {
+                self.current_time = Some(init_message);
             }
         }
+        true
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
