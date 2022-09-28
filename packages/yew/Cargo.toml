@@ -35,7 +35,7 @@ tracing = "0.1.36"
 yew-platform = { version = "0.1.0", path = "../yew-platform" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-# We still need tokio as we have rust docs linked to it.
+# We still need tokio as we have docs linked to it.
 tokio = { version = "1.19", features = ["rt"] }
 
 [dependencies.web-sys]
@@ -73,18 +73,12 @@ features = [
   "SubmitEvent"
 ]
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-# we move it here so no promise-based spawn_local can present for
-# non-wasm32 targets.
-wasm-bindgen-futures = "0.4"
-
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1.19", features = ["full"] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
 gloo = { version = "0.8", features = ["futures"] }
-wasm-bindgen-futures = "0.4"
 rustversion = "1"
 trybuild = "1"
 

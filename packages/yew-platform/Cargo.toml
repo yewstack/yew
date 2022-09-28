@@ -21,7 +21,6 @@ pinned = "0.1.0"
 # we move wasm-bindgen here so no promise-based spawn_local can present for
 # non-wasm32 targets.
 wasm-bindgen-futures = "0.4"
-wasm-bindgen = "0.2"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 num_cpus = { version = "1.13", optional = true }
