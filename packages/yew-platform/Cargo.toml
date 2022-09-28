@@ -12,7 +12,6 @@ repository = "https://github.com/yewstack/yew"
 rust-version = "1.60.0"
 
 [dependencies]
-gloo = "0.8"
 futures = { version = "0.3", default-features = false, features = ["std", "async-await"] }
 pin-project = "1.0.11"
 pinned = "0.1.0"
@@ -21,6 +20,7 @@ pinned = "0.1.0"
 # we move wasm-bindgen here so no promise-based spawn_local can present for
 # non-wasm32 targets.
 wasm-bindgen-futures = "0.4"
+gloo = "0.8"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 num_cpus = { version = "1.13", optional = true }

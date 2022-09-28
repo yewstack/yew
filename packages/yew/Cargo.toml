@@ -34,6 +34,9 @@ serde = { version = "1", features = ["derive"] }
 tracing = "0.1.36"
 yew-platform = { version = "0.1.0", path = "../yew-platform" }
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen-futures = "0.4"
+
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # We still need tokio as we have docs linked to it.
 tokio = { version = "1.19", features = ["rt"] }
