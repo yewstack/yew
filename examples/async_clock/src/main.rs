@@ -29,8 +29,9 @@ impl Component for ClockComponent {
         ctx.link()
             .send_future(is_initialized.map(Msg::ClockInitialized));
 
-        // The stream_time method returns a stream of time updates. We use the while let loop to
-        // consume the stream.
+        // The stream_time method returns a stream of time updates. We use send_stream to update the
+        // component with a Msg::ClockTicked message every time the stream produces a new
+        // value.
         let time_steam = clock.stream_time();
         ctx.link().send_stream(time_steam.map(Msg::ClockTicked));
 
