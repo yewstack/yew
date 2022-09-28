@@ -11,7 +11,7 @@ mod buffer;
 
 pub use buffer::{buffer, BufReader, BufWriter};
 
-/// A buffered asynchronous [`String`] [`Stream`].
+/// A buffered asynchronous [`String`] [`Stream`](futures::stream::Stream).
 ///
 /// A BufStream combines a BufWriter - BufReader pair and a resolving future that writes to the
 /// buffer and polls the future alongside the buffer.
