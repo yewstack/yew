@@ -149,9 +149,9 @@ mod tests {
     use futures::channel::oneshot;
     use tokio::test;
     use tokio::time::timeout;
-    use yew::platform::Runtime;
 
     use super::*;
+    use crate::Runtime;
 
     #[test]
     async fn test_local_handle_exists() {
