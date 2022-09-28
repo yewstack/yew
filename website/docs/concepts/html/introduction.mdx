@@ -156,14 +156,18 @@ free to [chime in on this issue](https://github.com/yewstack/yew/issues/1334).
 Attributes are set on elements in the same way as in normal HTML:
 
 ```rust
+use yew::prelude::*;
+
 let value = "something";
-html! { <div attribute={value} />
+html! { <div attribute={value} /> };
 ```
 
 Properties are specified with `~` before the element name:
 
 ```rust
-html! { <my-element ~property="abc" /> }
+use yew::prelude::*;
+
+html! { <my-element ~property="abc" /> };
 ```
 
 :::tip
