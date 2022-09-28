@@ -280,7 +280,8 @@ pub mod context;
 mod dom_bundle;
 pub mod functional;
 pub mod html;
-pub mod platform;
+#[doc(inline)]
+pub use yew_platform as platform;
 pub mod scheduler;
 mod sealed;
 #[cfg(feature = "ssr")]

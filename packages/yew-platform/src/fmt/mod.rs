@@ -9,14 +9,15 @@ use pin_project::pin_project;
 
 mod buffer;
 
-pub(crate) use buffer::{buffer, BufReader, BufWriter};
+pub use buffer::{buffer, BufReader, BufWriter};
 
 /// A buffered asynchronous [`String`] [`Stream`].
 ///
 /// A BufStream combines a BufWriter - BufReader pair and a resolving future that writes to the
 /// buffer and polls the future alongside the buffer.
+#[derive(Debug)]
 #[pin_project]
-pub(crate) struct BufStream<F>
+pub struct BufStream<F>
 where
     F: Future<Output = ()>,
 {

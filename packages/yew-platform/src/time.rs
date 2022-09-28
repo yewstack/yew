@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use futures::stream::Stream;
 
-use crate::platform::imp::time as imp;
+use crate::imp::time as imp;
 
 /// Waits until duration has elapsed.
 #[inline(always)]

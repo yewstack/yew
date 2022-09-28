@@ -1,4 +1,4 @@
-//! Compatibility between JavaScript Runtime and Native Runtimes.
+//! Yew's compatibility between JavaScript Runtime and Native Runtimes.
 //!
 //! When designing components and libraries that works on both WebAssembly targets backed by
 //! JavaScript Runtime and non-WebAssembly targets with Native Runtimes. Developers usually face
@@ -40,13 +40,21 @@
 //! transparent to the future that executes the renderer. The Yew application still needs to use
 //! `tokio`'s timer, IO and task synchronisation primitives.
 
+#![cfg_attr(documenting, feature(doc_cfg))]
+#![cfg_attr(documenting, feature(doc_auto_cfg))]
+#![deny(
+    missing_docs,
+    missing_debug_implementations,
+    bare_trait_objects,
+    anonymous_parameters,
+    elided_lifetimes_in_paths
+)]
+
 use std::future::Future;
 use std::io::Result;
 use std::marker::PhantomData;
 
-#[cfg(feature = "ssr")]
-pub(crate) mod fmt;
-
+pub mod fmt;
 pub mod pinned;
 pub mod time;
 
