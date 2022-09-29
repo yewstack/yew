@@ -13,11 +13,30 @@ body {
     display: flex;
     justify-content: center;
     color: darkblue;
+    font-size: 24pt;
+    font-weight: bold;
+    margin-bottom: 15px;
 }
+
+.joke-display {
+    display: flex;
+    justify-content: center;
+    color: orangered;
+    max-width: 75%;
+    border-color: darkblue;
+    border-style: dashed;
+    border-width: 1px;
+    padding: 10px;
+}
+
+.fun-score-display {
+    font-style: italic;
+}
+
 
 .clock {
   display: flex;
   flex-direction: column;
-  row-gap: 10px;
+  row-gap: 15px;
   align-items: center;
 }

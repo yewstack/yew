@@ -49,6 +49,7 @@ version = "0.0.1"
 dependencies = [
  "chrono",
  "futures 0.3.24",
+ "gloo-net",
  "wasm-bindgen-futures",
  "yew",
 ]
