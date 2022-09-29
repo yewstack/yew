@@ -1,9 +1,9 @@
 use std::time::Duration;
 
-use chrono::Local;
-use gloo_timers::future::sleep;
+use chrono::{DateTime, Local};
 use tokio_stream::wrappers::ReceiverStream;
 use wasm_bindgen_futures::spawn_local;
+use yew::platform::time::sleep;
 
 /// Simple Clock
 pub struct Clock;
@@ -17,7 +17,10 @@ impl Clock {
     }
 
     /// Returns a stream of time updates.
-    pub fn stream_time(&self) -> ReceiverStream<String> {
+    ///
+    /// Note: this isn't the most efficient way of creating a stream of time updates. Its main purpose is to show how
+    /// to combine async code with yew components.
+    pub fn stream_time(&self) -> ReceiverStream<DateTime<Local>> {
         // Create a sender and receiver pair.
         let (tx, rx) = tokio::sync::mpsc::channel(10);
 
@@ -28,8 +31,8 @@ impl Clock {
             sleep(Duration::from_secs(2)).await;
 
             loop {
-                let formatted_time = Self::nice_now();
-                tx.send(formatted_time).await.expect("Failed to send time");
+                let now = Local::now();
+                tx.send(now).await.expect("Failed to send time");
                 sleep(ONE_SEC).await;
             }
         });
@@ -38,16 +41,10 @@ impl Clock {
         // in the background.
         ReceiverStream::new(rx)
     }
-
-    fn nice_now() -> String {
-        let current_time = Local::now();
-        current_time.to_rfc2822()
-    }
 }
 
 /// Demonstration code to show how to use async code in a yew component.
-pub async fn initialized_atomic_clocks() -> String {
+pub async fn initialized_atomic_clocks() {
     // aligning with atomic clocks :-)
     sleep(ONE_SEC).await;
-    "Initialized".to_string()
 }

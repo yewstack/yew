@@ -49,7 +49,6 @@ version = "0.0.1"
 dependencies = [
  "chrono",
  "futures 0.3.24",
- "gloo-timers",
  "tokio",
  "tokio-stream",
  "wasm-bindgen-futures",

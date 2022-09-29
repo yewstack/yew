@@ -1,6 +1,7 @@
+use chrono::{DateTime, Local};
 use futures::FutureExt;
 use tokio_stream::StreamExt;
-use yew::{html, Component, Context, Html};
+use yew::{html, AttrValue, Component, Context, Html};
 
 use crate::clock::{initialized_atomic_clocks, Clock};
 
@@ -9,12 +10,12 @@ mod clock;
 /// The ClockComponent displays the current time. Its main purpose is to demonstrate the use of
 /// async code in a yew component.
 pub struct ClockComponent {
-    current_time: Option<String>,
+    display: Option<AttrValue>,
 }
 
 pub enum Msg {
-    ClockInitialized(String),
-    ClockTicked(String),
+    ClockInitialized(()),
+    ClockTicked(DateTime<Local>),
 }
 
 impl Component for ClockComponent {
@@ -35,29 +36,29 @@ impl Component for ClockComponent {
         let time_steam = clock.stream_time();
         ctx.link().send_stream(time_steam.map(Msg::ClockTicked));
 
-        Self { current_time: None }
+        Self { display: None }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::ClockTicked(current_time) => {
-                self.current_time = Some(current_time);
+                self.display = Some(AttrValue::from(current_time.to_rfc2822()));
             }
-            Msg::ClockInitialized(init_message) => {
-                self.current_time = Some(init_message);
+            Msg::ClockInitialized(_) => {
+                self.display = Some(AttrValue::from("Initialized"));
             }
         }
         true
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
-        let now = self.current_time.as_deref().unwrap_or("Loading...");
+        let display = self.display.as_deref().unwrap_or("Loading...");
         html! {
             <div class="app">
                 <div class="clock">
                     <h2>{ "Asynchronous Clock" }</h2>
                     <div class="time-display">
-                        <h1>{ now }</h1>
+                        <h1>{ display }</h1>
                     </div>
                 </div>
             </div>
