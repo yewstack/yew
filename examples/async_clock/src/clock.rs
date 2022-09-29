@@ -18,8 +18,8 @@ impl Clock {
 
     /// Returns a stream of time updates.
     ///
-    /// Note: this isn't the most efficient way of creating a stream of time updates. Its main purpose is to show how
-    /// to combine async code with yew components.
+    /// Note: this isn't the most efficient way of creating a stream of time updates. Its main
+    /// purpose is to show how to combine async code with yew components.
     pub fn stream_time(&self) -> ReceiverStream<DateTime<Local>> {
         // Create a sender and receiver pair.
         let (tx, rx) = tokio::sync::mpsc::channel(10);
@@ -44,7 +44,7 @@ impl Clock {
 }
 
 /// Demonstration code to show how to use async code in a yew component.
-pub async fn initialized_atomic_clocks() {
+pub async fn initialize_atomic_clocks() {
     // aligning with atomic clocks :-)
     sleep(ONE_SEC).await;
 }

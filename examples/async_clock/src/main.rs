@@ -3,7 +3,7 @@ use futures::FutureExt;
 use tokio_stream::StreamExt;
 use yew::{html, AttrValue, Component, Context, Html};
 
-use crate::clock::{initialized_atomic_clocks, Clock};
+use crate::clock::{initialize_atomic_clocks, Clock};
 
 mod clock;
 
@@ -26,7 +26,7 @@ impl Component for ClockComponent {
         let clock = Clock::new();
 
         // Demonstrate how we can send a message to the component when a future completes.
-        let is_initialized = initialized_atomic_clocks();
+        let is_initialized = initialize_atomic_clocks();
         ctx.link()
             .send_future(is_initialized.map(Msg::ClockInitialized));
 
