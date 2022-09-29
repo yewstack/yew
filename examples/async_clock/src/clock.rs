@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use chrono::{DateTime, Local};
-use tokio_stream::wrappers::ReceiverStream;
+use futures::{channel::mpsc, Stream};
 use wasm_bindgen_futures::spawn_local;
 use yew::platform::time::sleep;
 
@@ -20,9 +20,9 @@ impl Clock {
     ///
     /// Note: this isn't the most efficient way of creating a stream of time updates. Its main
     /// purpose is to show how to combine async code with yew components.
-    pub fn stream_time(&self) -> ReceiverStream<DateTime<Local>> {
+    pub fn stream_time(&self) -> impl Stream<Item = DateTime<Local>> {
         // Create a sender and receiver pair.
-        let (tx, rx) = tokio::sync::mpsc::channel(10);
+        let (tx, rx) = mpsc::unbounded();
 
         // Spawn a background task that will send the current time to the receiver every second.
         spawn_local(async move {
@@ -32,14 +32,14 @@ impl Clock {
 
             loop {
                 let now = Local::now();
-                tx.send(now).await.expect("Failed to send time");
+                tx.unbounded_send(now).expect("Failed to send time");
                 sleep(ONE_SEC).await;
             }
         });
 
         // Return the receiver. Note that this method returns immediately, and that any work is done
         // in the background.
-        ReceiverStream::new(rx)
+        rx
     }
 }
 
