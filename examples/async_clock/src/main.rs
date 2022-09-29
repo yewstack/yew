@@ -1,6 +1,5 @@
 use chrono::{DateTime, Local};
-use futures::FutureExt;
-use tokio_stream::StreamExt;
+use futures::{FutureExt, StreamExt};
 use yew::{html, AttrValue, Component, Context, Html};
 
 use crate::clock::{initialize_atomic_clocks, Clock};
