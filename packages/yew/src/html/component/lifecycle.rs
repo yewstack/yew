@@ -302,10 +302,12 @@ impl ComponentState {
         if let Some(m) = self.suspension.take() {
             let comp_scope = self.inner.any_scope();
 
-            let suspense_scope = comp_scope.find_parent_scope::<BaseSuspense>().unwrap();
-            let suspense = suspense_scope.get_component().unwrap();
-
-            suspense.resume(m);
+            if let Some(suspense_scope) = comp_scope.find_parent_scope::<BaseSuspense>() {
+                let component = suspense_scope.get_component();
+                if let Some(suspense) = component {
+                    suspense.resume(m);
+                }
+            }
         }
     }
 }
