@@ -133,11 +133,11 @@ mod feat_csr_ssr {
     impl BaseSuspense {
         pub(crate) fn suspend(scope: &Scope<Self>, s: Suspension) {
             scope.send_message(BaseSuspenseMsg::Suspend(s));
-        } 
+        }
 
         pub(crate) fn resume(scope: &Scope<Self>, s: Suspension) {
             scope.send_message(BaseSuspenseMsg::Resume(s));
-        } 
+        }
     }
 
     /// Suspend rendering and show a fallback UI until the underlying task completes.

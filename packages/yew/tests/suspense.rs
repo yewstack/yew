@@ -14,7 +14,7 @@ use yew::platform::spawn_local;
 use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew::suspense::{use_future, use_future_with_deps, Suspension, SuspensionResult};
-use yew::{UseStateHandle};
+use yew::UseStateHandle;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
