@@ -14,6 +14,7 @@ use yew::platform::spawn_local;
 use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew::suspense::{use_future, use_future_with_deps, Suspension, SuspensionResult};
+use yew::{UseStateHandle};
 
 wasm_bindgen_test_configure!(run_in_browser);
 
@@ -733,4 +734,55 @@ async fn test_suspend_forever() {
 
     let result = obtain_result();
     assert_eq!(result.as_str(), r#"OK"#);
+}
+
+#[wasm_bindgen_test]
+async fn resume_after_unmount() {
+    #[derive(Clone, Properties, PartialEq)]
+    struct ContentProps {
+        state: UseStateHandle<bool>,
+    }
+
+    #[function_component(Content)]
+    fn content(ContentProps { state }: &ContentProps) -> HtmlResult {
+        let state = state.clone();
+        let _sleep_handle = use_future(|| async move {
+            sleep(Duration::from_millis(50)).await;
+            state.set(false);
+            sleep(Duration::from_millis(50)).await;
+        })?;
+
+        Ok(html! {
+            <div>{"Content"}</div>
+        })
+    }
+
+    #[function_component(App)]
+    fn app() -> Html {
+        let fallback = html! {<div>{"wait..."}</div>};
+        let state = use_state(|| true);
+
+        html! {
+            <div id="result">
+            if *state {
+                <Suspense {fallback}>
+                    <Content {state} />
+                </Suspense>
+            } else {
+                <div>{"Content replacement"}</div>
+            }
+            </div>
+        }
+    }
+
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .render();
+
+    sleep(Duration::from_millis(25)).await;
+    let result = obtain_result();
+    assert_eq!(result.as_str(), "<div>wait...</div>");
+
+    sleep(Duration::from_millis(50)).await;
+    let result = obtain_result();
+    assert_eq!(result.as_str(), "<div>Content replacement</div>");
 }
