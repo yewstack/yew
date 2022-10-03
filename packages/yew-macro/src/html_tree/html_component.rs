@@ -61,7 +61,10 @@ impl Parse for HtmlComponent {
                     .and_then(|(_, cursor)| cursor.punct())
                     .and_then(|(_, cursor)| cursor.ident())
                     .ok_or_else(|| {
-                        syn::Error::new(Span::call_site(), "expected a valid closing tag (e.g.: </Component>)")
+                        syn::Error::new(
+                            Span::call_site(),
+                            "expected a valid closing tag (e.g.: </Component>)",
+                        )
                     })?;
 
                 let fork = input.fork();
