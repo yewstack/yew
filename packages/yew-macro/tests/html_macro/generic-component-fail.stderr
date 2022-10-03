@@ -1,21 +1,31 @@
 error: this opening tag has no corresponding closing tag
-  --> tests/html_macro/generic-component-fail.rs:43:13
+  --> tests/html_macro/generic-component-fail.rs:46:13
    |
-43 |     html! { <Generic<String>> };
+46 |     html! { <Generic<String>> };
    |             ^^^^^^^^^^^^^^^^^
 
-error[E0107]: missing generics for struct `Generic`
-  --> tests/html_macro/generic-component-fail.rs:44:32
+error: mismatched closing tags: expected `Generic<String>`, found `Generic`
+  --> tests/html_macro/generic-component-fail.rs:47:14
    |
-44 |     html! { <Generic<String>></Generic> };
-   |                                ^^^^^^^ expected 1 generic argument
+47 |     html! { <Generic<String>></Generic> };
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: mismatched closing tags: expected `Generic<String>`, found `Generic<Vec<String>>`
+  --> tests/html_macro/generic-component-fail.rs:48:14
    |
-note: struct defined here, with 1 generic parameter: `T`
-  --> tests/html_macro/generic-component-fail.rs:4:12
+48 |     html! { <Generic<String>></Generic<Vec<String>>> };
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: mismatched closing tags: expected `Generic<String>`, found `Generic<Path>`
+  --> tests/html_macro/generic-component-fail.rs:50:14
    |
-4  | pub struct Generic<T> {
-   |            ^^^^^^^ -
-help: add missing generic argument
+50 |     html! { <Generic<String>></Generic<Path>> };
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: expected a valid closing tag (e.g.: </Component>)
+  --> tests/html_macro/generic-component-fail.rs:51:5
    |
-44 |     html! { <Generic<String>></Generic<T>> };
-   |                                ~~~~~~~~~~
+51 |     html! { <Generic<String>></> };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)

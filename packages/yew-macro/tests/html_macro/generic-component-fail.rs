@@ -40,9 +40,15 @@ where
     }}
 
 fn compile_fail() {
+    #[allow(unused_imports)]
+    use std::path::Path;
+
     html! { <Generic<String>> };
     html! { <Generic<String>></Generic> };
     html! { <Generic<String>></Generic<Vec<String>>> };
+
+    html! { <Generic<String>></Generic<Path>> };
+    html! { <Generic<String>></> };
 }
 
 fn main() {}
