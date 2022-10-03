@@ -44,6 +44,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "async_clock"
+version = "0.0.1"
+dependencies = [
+ "chrono",
+ "futures 0.3.24",
+ "gloo-net",
+ "yew",
+]
+
+[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
