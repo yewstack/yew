@@ -36,7 +36,6 @@ mod feat_csr_ssr {
 
     #[derive(Debug)]
     pub(crate) struct BaseSuspense {
-        link: Scope<Self>,
         suspensions: Vec<Suspension>,
         #[cfg(feature = "hydration")]
         hydration_handle: Option<SuspensionHandle>,
@@ -46,7 +45,7 @@ mod feat_csr_ssr {
         type Message = BaseSuspenseMsg;
         type Properties = BaseSuspenseProps;
 
-        fn create(ctx: &Context<Self>) -> Self {
+        fn create(_ctx: &Context<Self>) -> Self {
             #[cfg(not(feature = "hydration"))]
             let suspensions = Vec::new();
 
@@ -56,9 +55,9 @@ mod feat_csr_ssr {
                 use crate::callback::Callback;
                 use crate::html::RenderMode;
 
-                match ctx.creation_mode() {
+                match _ctx.creation_mode() {
                     RenderMode::Hydration => {
-                        let link = ctx.link().clone();
+                        let link = _ctx.link().clone();
                         let (s, handle) = Suspension::new();
                         s.listen(Callback::from(move |s| {
                             link.send_message(BaseSuspenseMsg::Resume(s));
@@ -70,7 +69,6 @@ mod feat_csr_ssr {
             };
 
             Self {
-                link: ctx.link().clone(),
                 suspensions,
                 #[cfg(feature = "hydration")]
                 hydration_handle,
@@ -133,12 +131,12 @@ mod feat_csr_ssr {
     }
 
     impl BaseSuspense {
-        pub(crate) fn suspend(&self, s: Suspension) {
-            self.link.send_message(BaseSuspenseMsg::Suspend(s));
+        pub(crate) fn suspend(scope: &Scope<Self>, s: Suspension) {
+            scope.send_message(BaseSuspenseMsg::Suspend(s));
         }
 
-        pub(crate) fn resume(&self, s: Suspension) {
-            self.link.send_message(BaseSuspenseMsg::Resume(s));
+        pub(crate) fn resume(scope: &Scope<Self>, s: Suspension) {
+            scope.send_message(BaseSuspenseMsg::Resume(s));
         }
     }
 
