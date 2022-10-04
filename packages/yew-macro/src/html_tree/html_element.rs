@@ -128,9 +128,9 @@ impl ToTokens for HtmlElement {
             .as_ref()
             .map(|attr| {
                 let value = &attr.value;
-                quote_spanned! {value.span()=> #value}
+                quote! { ::std::option::Option::Some( #value ) }
             })
-            .unwrap_or(quote! { false });
+            .unwrap_or(quote! { ::std::option::Option::None });
 
         // other attributes
 
