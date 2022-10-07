@@ -45,7 +45,9 @@ matched, the router navigates to the path with `not_found` attribute. If no rout
 a message is logged to console stating that no route was matched.
 
 Finally, you need to register one of the Router context provider components like `<BrowserRouter />`.
-It provides location information and navigator to its children.
+It provides location information and navigator to its children. I.e. certain components depend on the
+functionality provided by the Router to work properly e.g. `<Link />` and `<Switch />`. That means
+they must be wrapped in a Router (children of `<Router/>`). This is shown in the code below.
 
 :::caution
 When using `yew-router` in browser environment, `<BrowserRouter />` is highly recommended.
@@ -94,7 +96,7 @@ fn switch(routes: Route) -> Html {
 fn app() -> Html {
     html! {
         <BrowserRouter>
-            <Switch<Route> render={switch} />
+            <Switch<Route> render={switch} /> // <- depends on <BorwserRouter> functionality
         </BrowserRouter>
     }
 }
