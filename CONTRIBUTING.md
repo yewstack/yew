@@ -27,7 +27,7 @@ The most important tasks are outlined below.
 To run all tests, use the following command:
 
 ```bash
-cargo make test
+cargo make test-flow
 ```
 
 ### Browser tests
