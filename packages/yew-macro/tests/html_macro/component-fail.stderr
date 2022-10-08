@@ -392,13 +392,13 @@ error: mismatched closing tags: expected `A`, found `B`
 177 |     let _ = html! { <A></B> };
     |                      ^^^^^
 
-error: expected a valid closing tag (e.g.: </Component>)
-   --> tests/html_macro/component-fail.rs:178:13
+error: expected a valid closing tag for component
+       note: found opening tag `<A>`
+       help: try `</A>`
+   --> tests/html_macro/component-fail.rs:178:24
     |
 178 |     let _ = html! { <A></> };
-    |             ^^^^^^^^^^^^^^^^
-    |
-    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+    |                        ^^^
 
 error[E0425]: cannot find value `blah` in this scope
   --> tests/html_macro/component-fail.rs:82:22

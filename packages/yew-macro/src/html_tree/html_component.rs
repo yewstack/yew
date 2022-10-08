@@ -55,46 +55,43 @@ impl Parse for HtmlComponent {
             }
 
             if trying_to_close() {
-                let cursor = input.cursor();
-                let _ = cursor
-                    .punct()
-                    .and_then(|(_, cursor)| cursor.punct())
-                    .and_then(|(_, cursor)| cursor.ident())
-                    .ok_or_else(|| {
+                fn format_token_stream(ts: impl ToTokens) -> String {
+                    let string = ts.to_token_stream().to_string();
+                    // remove unnecessary spaces
+                    string.replace(' ', "")
+                }
+
+                let fork = input.fork();
+                break TagTokens::parse_end_content(&fork, |i_fork, tag| {
+                    let ty = i_fork.parse().map_err(|e| {
                         syn::Error::new(
-                            Span::call_site(),
-                            "expected a valid closing tag (e.g.: </Component>)",
+                            e.span(),
+                            format!(
+                                "expected a valid closing tag for component\nnote: found opening \
+                                 tag `{lt}{0}{gt}`\nhelp: try `{lt}/{0}{gt}`",
+                                format_token_stream(&open.ty),
+                                lt = open.tag.lt.to_token_stream(),
+                                gt = open.tag.gt.to_token_stream(),
+                            ),
                         )
                     })?;
 
-                let fork = input.fork();
-                let lt = fork.parse::<Token![<]>()?;
-                let div = Some(fork.parse::<Token![/]>()?);
-                let ty = fork.parse::<Type>()?;
-                if ty != open.ty {
-                    fn format_token_stream(ts: impl ToTokens) -> String {
-                        let string = ts.to_token_stream().to_string();
-                        // remove unnecessary spaces
-                        string.replace(' ', "")
+                    if ty != open.ty {
+                        let open_ty = &open.ty;
+                        Err(syn::Error::new_spanned(
+                            quote!(#open_ty #ty),
+                            format!(
+                                "mismatched closing tags: expected `{}`, found `{}`",
+                                format_token_stream(open_ty),
+                                format_token_stream(ty)
+                            ),
+                        ))
+                    } else {
+                        let close = HtmlComponentClose { tag, ty };
+                        input.advance_to(&fork);
+                        Ok(close)
                     }
-                    let open_ty = open.ty;
-                    return Err(syn::Error::new_spanned(
-                        quote!(#open_ty #ty),
-                        format!(
-                            "mismatched closing tags: expected `{}`, found `{}`",
-                            format_token_stream(open_ty),
-                            format_token_stream(ty)
-                        ),
-                    ));
-                } else {
-                    let gt = fork.parse::<Token![>]>()?;
-                    let close = HtmlComponentClose {
-                        tag: TagTokens { lt, div, gt },
-                        ty,
-                    };
-                    input.advance_to(&fork);
-                    break close;
-                }
+                })?;
             }
             children.parse_child(input)?;
         };
