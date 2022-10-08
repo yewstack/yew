@@ -41,7 +41,7 @@ impl VDiff for VPortal {
                     // Remount the inner node somewhere else instead of diffing
                     node.detach(&old_host);
                     None
-                } else if old_sibling != self.next_sibling {
+                } else if old_sibling.get() != self.next_sibling.get() {
                     // Move the node, but keep the state
                     node.move_before(&self.host, &self.next_sibling.get());
                     Some(*node)
