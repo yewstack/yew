@@ -386,6 +386,20 @@ error: only an expression may be assigned as a property. Consider removing this 
 148 |     html! { <HtmlInProps header={format!("ending with semi");} /> };
     |                                                             ^
 
+error: mismatched closing tags: expected `A`, found `B`
+   --> tests/html_macro/component-fail.rs:177:22
+    |
+177 |     let _ = html! { <A></B> };
+    |                      ^^^^^
+
+error: expected a valid closing tag for component
+       note: found opening tag `<A>`
+       help: try `</A>`
+   --> tests/html_macro/component-fail.rs:178:24
+    |
+178 |     let _ = html! { <A></> };
+    |                        ^^^
+
 error[E0425]: cannot find value `blah` in this scope
   --> tests/html_macro/component-fail.rs:82:22
    |
