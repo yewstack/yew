@@ -30,14 +30,14 @@ description: 'Community projects built using yew'
 -   [DevAndDev](https://github.com/alepez/devand) - A website where developers can find pair-programming partners. Written in Rust, Yew frontend.
 -   [yew-octicons](https://github.com/io12/yew-octicons) - An easy interface for using Octicons in Yew projects.
 -   [Pipe](https://github.com/pipe-fun/pipe) - This is a Rust / Wasm client web app which is a task control center.
--   [note-to-yew](https://github.com/GalAster/note-to-yew) - Convert your markups into Yew macro online, which is also made by Yew.
+-   [note-to-yew](https://github.com/oovm/note-to-yew) - Convert your markups into Yew macro online, which is also made by Yew.
 -   [ASCII-Hangman](https://github.com/getreu/ascii-hangman) - Configurable Hangman game for children with ASCII-art rewarding.
 -   [dotdotyew](https://github.com/shaunbennett/dotdotyew) - [Dot-voting](https://en.wikipedia.org/wiki/Dot-voting) using Yew, with Rust powering the backend API.
 -   [wasm-2048](https://github.com/dev-family/wasm-2048) - 2048 game implemented with Rust and Yew and compiled to Wasm.
 -   [website-wasm](https://github.com/kamiyaa/website-wasm) - My personal website written in Rust via Yew/Wasm.
 -   [KeyPress](https://github.com/rayylee/keypress) - A Rust WebAssembly Website example for practising english for chinese.
 -   [yew-train-ticket](https://github.com/anthhub/yew-train-ticket) - A Rust WebAssembly Webapp example basing Yew newest hooks and functional API, the code style is extremely like React Function Component.
--   [yew-d3-example](https://github.com/i-schuetz/yew-d3-example) - Showing a d3 chart with Yew.
+-   [yew-d3-example](https://github.com/ivanschuetz/yew-d3-example) - Showing a d3 chart with Yew.
 -   [Oxfeed](https://github.com/sanpii/oxfeed) - A feed reader written in Rust with a Yew frontend.
 -   [Flow.er](https://github.com/LighghtEeloo/flow.er) - A notebook app integrated with todo lists utility. Developed with Rust, WebAssembly, Yew and Trunk.
 -   [Fullstack-Rust](https://github.com/vascokk/fullstack-rust) - A Full Stack Rust application (Connect5 game) with Actix-web, Yew, Bulma CSS and Diesel.
