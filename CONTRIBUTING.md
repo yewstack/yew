@@ -48,14 +48,6 @@ If you have [Docker](https://www.docker.com/) installed,
 
 Alternatively, you can set the `HTTPBIN_URL` environment variable to the URL you wish to run tests against.
 
-### WebSocket service tests
-
-The tests for the web-socket service require an echo server.
-If you have [Docker](https://www.docker.com/) installed,
-`cargo make test` will automatically run an [echo server](https://hub.docker.com/r/jmalloc/echo-server) in a container for you.
-
-Alternatively, you can set the `ECHO_SERVER_URL` environment variable to the URL you wish to run tests against.
-
 ### Macro tests
 
 When adding or updating tests, please make sure to update the appropriate `stderr` file, which you can find [here](https://github.com/yewstack/yew/tree/master/packages/yew-macro/tests/macro) for the `html!` macro.
