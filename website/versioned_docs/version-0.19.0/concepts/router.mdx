@@ -90,7 +90,7 @@ fn switch(routes: &Route) -> Html {
 fn app() -> Html {
     html! {
         <BrowserRouter>
-            <Switch<Route> render={switch} /> // <- depends on <BorwserRouter>
+            <Switch<Route> render={Switch::render(switch)} /> // <- depends on <BrowserRouter>
         </BrowserRouter>
     }
 }
