@@ -1,6 +1,6 @@
 [tasks.native-test]
 command = "cargo"
-args = ["test", "--features", "csr,ssr,hydration,tokio"]
+args = ["test", "--features", "csr,ssr,hydration"]
 
 [tasks.wasm-test]
 command = "wasm-pack"

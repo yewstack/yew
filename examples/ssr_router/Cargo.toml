@@ -34,5 +34,5 @@ hyper = { version = "0.14", features = ["server", "http1"] }
 jemallocator = "0.5"
 
 [features]
-ssr = ["yew/ssr", "yew/tokio"]
+ssr = ["yew/ssr"]
 hydration = ["yew/hydration"]
