@@ -248,9 +248,9 @@ impl<COMP: BaseComponent> Scope<COMP> {
     ///
     /// This method will not notify the component when the stream has been fully exhausted. If
     /// you want this feature, you can add an EOF message variant for your component and use
-    /// [`StreamExt::chain`] and [`stream::once`] to chain an EOF message to the original stream.
-    /// If your stream is produced by another crate, you can use [`StreamExt::map`] to transform
-    /// the stream's item type to the component message type.
+    /// [`StreamExt::chain`] and [`stream::once`](futures::stream::once) to chain an EOF message to
+    /// the original stream. If your stream is produced by another crate, you can use
+    /// [`StreamExt::map`] to transform the stream's item type to the component message type.
     pub fn send_stream<S, M>(&self, stream: S)
     where
         M: Into<COMP::Message>,

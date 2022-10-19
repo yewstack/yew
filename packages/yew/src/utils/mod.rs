@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 
 use yew::html::ChildrenRenderer;
 
-/// Map IntoIterator<Item=Into<T>> to Iterator<Item=T>
+/// Map `IntoIterator<Item = Into<T>>` to `Iterator<Item = T>`
 pub fn into_node_iter<IT, T, R>(it: IT) -> impl Iterator<Item = R>
 where
     IT: IntoIterator<Item = T>,

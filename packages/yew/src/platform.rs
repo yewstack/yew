@@ -1,6 +1,6 @@
 //! Yew's compatibility between JavaScript Runtime and Native Runtimes.
 //!
-//! This module is also published under the name [prokio](crate@prokio) on crates.io.
+//! This module is also published under the name [prokio] on crates.io.
 //!
 //! # Rationale
 //!
