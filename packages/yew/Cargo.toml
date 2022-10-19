@@ -33,6 +33,7 @@ bincode = { version = "1.3.3", optional = true }
 serde = { version = "1", features = ["derive"] }
 tracing = "0.1.36"
 prokio = "0.1.0"
+rustversion = "1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4"
@@ -40,7 +41,6 @@ wasm-bindgen-futures = "0.4"
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # We still need tokio as we have docs linked to it.
 tokio = { version = "1.19", features = ["rt"] }
-rustversion = "1"
 
 [dependencies.web-sys]
 version = "^0.3.59"
