@@ -148,4 +148,34 @@ fn not_expressions() {
     html! { <HtmlInProps header={format!("ending with semi");} /> };
 }
 
+fn mismatch_closing_tags() {
+    pub struct A;
+    impl Component for A {
+        type Message = ();
+        type Properties = ();
+
+        fn create(_ctx: &Context<Self>) -> Self {
+            unimplemented!()
+        }
+        fn view(&self, _ctx: &Context<Self>) -> Html {
+            unimplemented!()
+        }
+    }
+
+    pub struct B;
+    impl Component for B {
+        type Message = ();
+        type Properties = ();
+
+        fn create(_ctx: &Context<Self>) -> Self {
+            unimplemented!()
+        }
+        fn view(&self, _ctx: &Context<Self>) -> Html {
+            unimplemented!()
+        }
+    }
+    let _ = html! { <A></B> };
+    let _ = html! { <A></> };
+}
+
 fn main() {}

@@ -303,9 +303,7 @@ impl ComponentState {
             let comp_scope = self.inner.any_scope();
 
             let suspense_scope = comp_scope.find_parent_scope::<BaseSuspense>().unwrap();
-            let suspense = suspense_scope.get_component().unwrap();
-
-            suspense.resume(m);
+            BaseSuspense::resume(&suspense_scope, m);
         }
     }
 }
@@ -462,7 +460,6 @@ impl ComponentState {
             let suspense_scope = comp_scope
                 .find_parent_scope::<BaseSuspense>()
                 .expect("To suspend rendering, a <Suspense /> component is required.");
-            let suspense = suspense_scope.get_component().unwrap();
 
             let comp_id = self.comp_id;
             let shared_state = shared_state.clone();
@@ -479,12 +476,12 @@ impl ComponentState {
             if let Some(ref last_suspension) = self.suspension {
                 if &suspension != last_suspension {
                     // We remove previous suspension from the suspense.
-                    suspense.resume(last_suspension.clone());
+                    BaseSuspense::resume(&suspense_scope, last_suspension.clone());
                 }
             }
             self.suspension = Some(suspension.clone());
 
-            suspense.suspend(suspension);
+            BaseSuspense::suspend(&suspense_scope, suspension);
         }
     }
 

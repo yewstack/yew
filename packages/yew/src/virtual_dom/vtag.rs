@@ -62,7 +62,7 @@ pub(crate) struct InputFields {
     /// It exists to override standard behavior of `checked` attribute, because
     /// in original HTML it sets `defaultChecked` value of `InputElement`, but for reactive
     /// frameworks it's more useful to control `checked` value of an `InputElement`.
-    pub(crate) checked: bool,
+    pub(crate) checked: Option<bool>,
 }
 
 impl Deref for InputFields {
@@ -81,7 +81,7 @@ impl DerefMut for InputFields {
 
 impl InputFields {
     /// Crate new attributes for an [InputElement] element
-    fn new(value: Option<AttrValue>, checked: bool) -> Self {
+    fn new(value: Option<AttrValue>, checked: Option<bool>) -> Self {
         Self {
             value: Value::new(value),
             checked,
@@ -164,7 +164,7 @@ impl VTag {
     #[allow(clippy::too_many_arguments)]
     pub fn __new_input(
         value: Option<AttrValue>,
-        checked: bool,
+        checked: Option<bool>,
         node_ref: NodeRef,
         key: Option<Key>,
         // at bottom for more readable macro-expanded coded
@@ -341,20 +341,29 @@ impl VTag {
 
     /// Returns `checked` property of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
-    /// (Not a value of node's attribute).
-    pub fn checked(&self) -> bool {
+    /// (Does not affect the value of the node's attribute).
+    pub fn checked(&self) -> Option<bool> {
         match &self.inner {
             VTagInner::Input(f) => f.checked,
-            _ => false,
+            _ => None,
         }
     }
 
     /// Sets `checked` property of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
-    /// (Not a value of node's attribute).
+    /// (Does not affect the value of the node's attribute).
     pub fn set_checked(&mut self, value: bool) {
         if let VTagInner::Input(f) = &mut self.inner {
-            f.checked = value;
+            f.checked = Some(value);
+        }
+    }
+
+    /// Keeps the current value of the `checked` property of an
+    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
+    /// (Does not affect the value of the node's attribute).
+    pub fn preserve_checked(&mut self) {
+        if let VTagInner::Input(f) = &mut self.inner {
+            f.checked = None;
         }
     }
 
@@ -479,7 +488,9 @@ mod feat_ssr {
                     write_attr(w, "value", Some(m));
                 }
 
-                if self.checked() {
+                // Setting is as an attribute sets the `defaultChecked` property. Only emit this
+                // if it's explicitly set to checked.
+                if self.checked() == Some(true) {
                     write_attr(w, "checked", None);
                 }
             }

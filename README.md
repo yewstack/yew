@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://yew.rs/img/logo.png" width="150" />
+  <a href="https://yew.rs/" target="_blank"><img src="https://yew.rs/img/logo.png" width="150" /></a>
 
   <h1>Yew</h1>
 
@@ -20,7 +20,7 @@
     <span> | </span>
     <a href="https://yew.rs/docs/next/">Documentation (latest)</a>
     <span> | </span>
-    <a href="https://github.com/yewstack/yew/tree/v0.18/examples">Examples</a>
+    <a href="https://github.com/yewstack/yew/tree/master/examples">Examples</a>
     <span> | </span>
     <a href="https://github.com/yewstack/yew/blob/master/CHANGELOG.md">Changelog</a>
     <span> | </span>

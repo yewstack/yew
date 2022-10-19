@@ -27,12 +27,12 @@ The most important tasks are outlined below.
 To run all tests, use the following command:
 
 ```bash
-cargo make tests
+cargo make test-flow
 ```
 
 ### Browser tests
 
-`cargo make tests` will automatically download Geckodriver to a temporary location if it isn't in the PATH.
+`cargo make test` will automatically download Geckodriver to a temporary location if it isn't in the PATH.
 
 Because Geckodriver looks for `firefox` in the path, if you use
 FireFox Developer Edition, you may get an error, because Developer Editions
@@ -44,17 +44,9 @@ To fix this, either install the standard version of Firefox or symlink
 
 The tests for the fetch service require a local [httpbin](https://httpbin.org/) server.
 If you have [Docker](https://www.docker.com/) installed,
-`cargo make tests` will automatically run httpbin in a container for you.
+`cargo make test` will automatically run httpbin in a container for you.
 
 Alternatively, you can set the `HTTPBIN_URL` environment variable to the URL you wish to run tests against.
-
-### WebSocket service tests
-
-The tests for the web-socket service require an echo server.
-If you have [Docker](https://www.docker.com/) installed,
-`cargo make tests` will automatically run an [echo server](https://hub.docker.com/r/jmalloc/echo-server) in a container for you.
-
-Alternatively, you can set the `ECHO_SERVER_URL` environment variable to the URL you wish to run tests against.
 
 ### Macro tests
 
