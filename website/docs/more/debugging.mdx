@@ -19,7 +19,7 @@ This crate integrates with the [`log`](https://crates.io/crates/log) crate.
 use log::info;
 use wasm_bindgen::JsValue;
 
-fn main() {    
+fn main() {
     wasm_logger::init(wasm_logger::Config::default());
 
     let object = JsValue::from("world");
