@@ -19,7 +19,6 @@ pub struct BRaw {
 impl BRaw {
     fn create_elements(html: &str) -> Vec<Element> {
         let div = gloo::utils::document().create_element("div").unwrap();
-        let html = html.trim();
         div.set_inner_html(html);
         let children = div.children();
         let children = js_sys::Array::from(&children);
@@ -47,14 +46,16 @@ impl ReconcileTarget for BRaw {
     }
 
     fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
-        if let Some(node) = self.reference.get() {
-            let new_node = next_parent
-                .insert_before(&node, next_sibling.get().as_ref())
+        let mut next_node = match self.reference.get() {
+            Some(n) => n,
+            None => return NodeRef::default(),
+        };
+        for _ in 0..self.children_count {
+            next_node = next_parent
+                .insert_before(&next_node, next_sibling.get().as_ref())
                 .unwrap();
-
-            return NodeRef::new(new_node);
         }
-        NodeRef::default()
+        return NodeRef::new(next_node);
     }
 }
 
@@ -134,9 +135,11 @@ impl Reconcilable for VRaw {
         }
     }
 }
+
 #[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
+    use gloo::utils::document;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use super::*;
@@ -309,6 +312,49 @@ mod tests {
         assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
         elem.detach(&root, &parent, false);
         assert_eq!(parent.inner_html(), format!("{}", SIBLING_CONTENT))
+    }
+
+    #[test]
+    fn braw_shift_works() {
+        let (root, scope, parent) = setup_parent();
+        const HTML: &str = r#"<p>paragraph</p>"#;
+
+        let elem = VNode::from_raw_html(HTML.into());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
+        assert_braw(&mut elem);
+        assert_eq!(parent.inner_html(), HTML);
+
+        let new_parent = document().create_element("section").unwrap();
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        elem.shift(&new_parent, NodeRef::default());
+
+        assert_eq!(new_parent.inner_html(), HTML);
+        assert_eq!(parent.inner_html(), "");
+    }
+
+    #[test]
+    fn braw_shift_with_sibling_works() {
+        let (root, scope, parent, sibling) = setup_parent_and_sibling();
+        const HTML: &str = r#"<p>paragraph</p>"#;
+
+        let elem = VNode::from_raw_html(HTML.into());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, sibling);
+        assert_braw(&mut elem);
+        assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
+
+        let new_parent = document().create_element("section").unwrap();
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let new_sibling = document().create_text_node(SIBLING_CONTENT);
+        new_parent.append_child(&new_sibling).unwrap();
+        let new_sibling_ref = NodeRef::new(new_sibling.into());
+
+        elem.shift(&new_parent, new_sibling_ref);
+
+        assert_eq!(parent.inner_html(), SIBLING_CONTENT);
+
+        assert_eq!(new_parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
     }
 
     fn assert_braw(node: &mut BNode) -> &mut BRaw {
