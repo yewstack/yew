@@ -354,7 +354,10 @@ mod tests {
 
         assert_eq!(parent.inner_html(), SIBLING_CONTENT);
 
-        assert_eq!(new_parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
+        assert_eq!(
+            new_parent.inner_html(),
+            format!("{}{}", HTML, SIBLING_CONTENT)
+        );
     }
 
     fn assert_braw(node: &mut BNode) -> &mut BRaw {
