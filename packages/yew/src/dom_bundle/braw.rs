@@ -55,7 +55,7 @@ impl ReconcileTarget for BRaw {
                 .insert_before(&next_node, next_sibling.get().as_ref())
                 .unwrap();
         }
-        return NodeRef::new(next_node);
+        NodeRef::new(next_node)
     }
 }
 

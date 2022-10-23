@@ -7,7 +7,7 @@ use wasm_bindgen_test::wasm_bindgen_test as test;
 use yew::prelude::*;
 #[cfg(target_arch = "wasm32")]
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
-#[cfg(feature = "tokio")]
+#[cfg(not(target_arch = "wasm32"))]
 use tokio::test;
 
 macro_rules! create_test {
