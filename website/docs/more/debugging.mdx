@@ -8,12 +8,11 @@ Yew automatically logs panics in the browser console.
 
 ## Console Logging
 
-In JavaScript, `console.log()` is used to log to the browser console. There are two main options for Yew, both of which can log any `JsValue`.
+In JavaScript, `console.log()` is used to log to the browser console. Some options for Yew are listed below.
 
 ### [`wasm-logger`](https://crates.io/crates/wasm-logger)
 
-This crate integrates with the [`log`](https://crates.io/crates/log) crate.
-`wasm_logger` sends the log level, source line and filename to the browser console.
+`wasm-logger` crate integrates with [`log`](https://crates.io/crates/log) crate to send the log level, source line and filename to the browser console.
 
 ```rust ,ignore
 use log::info;
@@ -42,6 +41,37 @@ fn main() {
 }
 ```
 
+### [`tracing-web`](https://crates.io/crates/tracing-web)
+
+`tracing-web` can be used with [`tracing-subscriber`](https://crates.io/crates/tracing-subscriber to output messages to the browser console.
+
+```rust, ignore
+use tracing_subscriber::{
+    fmt::{
+        format::{FmtSpan, Pretty},
+        time::UtcTime,
+    },
+    prelude::*,
+};
+use wasm_bindgen::JsValue;
+
+fn main() {
+    let fmt_layer = tracing_subscriber::fmt::layer()
+        .with_ansi(false)
+        .with_timer(UtcTime::rfc_3339())
+        .with_writer(tracing_web::MakeConsoleWriter)
+        .with_span_events(FmtSpan::ACTIVE);
+    let perf_layer = tracing_web::performance_layer().with_details_from_fields(Pretty::default());
+
+    tracing_subscriber::registry()
+        .with(fmt_layer)
+        .with(perf_layer)
+        .init();
+    let object = JsValue::from("world");
+    tracing::info!("Hello {}", object.as_string().unwrap());
+}
+```
+
 ## Debugging component lifecycles
 
 [`tracing`](https://crates.io/crates/tracing) can be used to collect event information related to a component's lifecycle. `tracing` also comes with a feature flag for `log` support, which integrates nicely with `wasm-logger`.
@@ -50,7 +80,8 @@ fn main() {
 
 ## Source Maps
 
-Source maps are currently not supported.
+There is [some support](https://developer.chrome.com/blog/wasm-debugging-2019/#enter-dwarf) for source maps.
+However, some configuration is required.
 
 ## Past Articles
 
