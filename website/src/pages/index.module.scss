@@ -1,0 +1,36 @@
+.heroHeader {
+    flex-direction: column;
+}
+
+
+.header {
+
+    display: flex;
+    padding: var(--ifm-h1-font-size);
+    gap: calc(var(--ifm-h1-font-size) / 2);
+    align-items: center;
+    justify-content: center;
+
+    h1 {
+        --ifm-h1-font-size: calc(var(--ifm-h1-font-size) * 3);
+    }
+    img {
+        $dimensions: calc(var(--ifm-h1-font-size) * 5);
+        width: $dimensions;
+        height: $dimensions;
+    }
+}
+
+.features {
+    h2 {
+        font-size: calc(var(--ifm-h2-font-size) * 1.5);
+    }
+
+    .featuresGrid {
+        $spacing: 2rem;
+        padding: $spacing;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: ($spacing * 2);
+    }
+}
