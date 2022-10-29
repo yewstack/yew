@@ -15,8 +15,10 @@ const Hero = () => {
                 <img src={siteConfig.favicon} alt="Logo" />
                 <h1 className="hero__title">{siteConfig.title}</h1>
             </section>
-            <section className={'hero__subtitle'}>{siteConfig.tagline}</section>
-            <section>
+            <section className={clsx('hero__subtitle', styles.heroSubtitle)}>
+                {siteConfig.tagline}
+            </section>
+            <section className={styles.callToActions}>
                 <Link
                     className="button button--lg button--outline button--primary margin--lg"
                     to="/docs/getting-started/introduction"
