@@ -1,54 +1,57 @@
-import React from 'react';
-import Layout from '@theme/Layout';
+import React from 'react'
+import Layout from '@theme/Layout'
 import styles from './index.module.scss'
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import clsx from 'clsx';
-import IconExternalLink from "@theme/Icon/ExternalLink";
-import Link from '@docusaurus/Link';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
+import clsx from 'clsx'
+import IconExternalLink from '@theme/Icon/ExternalLink'
+import Link from '@docusaurus/Link'
 
 const Hero = () => {
-    const {siteConfig} = useDocusaurusContext()
-
-    console.log(styles)
+    const { siteConfig } = useDocusaurusContext()
 
     return (
         <div className={clsx('hero shadow--lw', styles.heroHeader)}>
             <section className={styles.header}>
-                <img src={siteConfig.favicon} alt="Logo"/>
-                <h1 className='hero__title'>
-                    {siteConfig.title}
-                </h1>
+                <img src={siteConfig.favicon} alt="Logo" />
+                <h1 className="hero__title">{siteConfig.title}</h1>
             </section>
-            <section className={'hero__subtitle'}>
-                {siteConfig.tagline}
-            </section>
+            <section className={'hero__subtitle'}>{siteConfig.tagline}</section>
             <section>
-                <Link className="button button--lg button--outline button--primary margin--lg" to='/docs/getting-started/introduction'>Get Started</Link>
-                <Link className="button button--lg button--outline button--link margin--lg" to="https://play.yew.rs" target='_blank'>
+                <Link
+                    className="button button--lg button--outline button--primary margin--lg"
+                    to="/docs/getting-started/introduction"
+                >
+                    Get Started
+                </Link>
+                <Link
+                    className="button button--lg button--outline button--link margin--lg"
+                    to="https://play.yew.rs"
+                    target="_blank"
+                >
                     Playground
                     <IconExternalLink />
                 </Link>
             </section>
         </div>
-    );
-};
+    )
+}
 
 const FEATURES = [
     {
         header: 'Component Based',
-        body: "It features a component-based framework which makes it easy to create interactive UIs. Developers who have experience with frameworks like React and Elm should feel quite at home when using Yew.",
-        to: ''
+        body: 'It features a component-based framework which makes it easy to create interactive UIs. Developers who have experience with frameworks like React and Elm should feel quite at home when using Yew.',
+        to: '',
     },
     {
         header: 'HTML macro',
         body: 'Features a macro for declaring interactive HTML with Rust expressions. Developers who have experience using JSX in React should feel quite at home when using Yew.',
-        to: ''
+        to: '',
     },
     {
         header: 'HTML macro',
         body: 'Features a macro for declaring interactive HTML with Rust expressions. Developers who have experience using JSX in React should feel quite at home when using Yew.',
-        to: ''
-    }
+        to: '',
+    },
 ]
 
 function Feature(props: { feature: typeof FEATURES[number] }) {
@@ -62,28 +65,37 @@ function Feature(props: { feature: typeof FEATURES[number] }) {
                     <p>{props.feature.body}</p>
                 </div>
                 <div className="card__footer">
-                    <Link className="button button--secondary" to={props.feature.to}>Learn more</Link>
+                    <Link
+                        className="button button--secondary"
+                        to={props.feature.to}
+                    >
+                        Learn more
+                    </Link>
                 </div>
             </div>
         </div>
-    );
+    )
 }
 
 function Features() {
-    return <article className={clsx('padding--lg', styles.features)}>
-        <h2>Features</h2>
-        <section className={styles.featuresGrid}>
-            {FEATURES.map(it => <Feature feature={it}/>)}
-        </section>
-    </article>;
+    return (
+        <article className={clsx('padding--lg', styles.features)}>
+            <h2>Features</h2>
+            <section className={styles.featuresGrid}>
+                {FEATURES.map((it) => (
+                    <Feature feature={it} />
+                ))}
+            </section>
+        </article>
+    )
 }
 
 export default function Index() {
-    const {siteConfig} = useDocusaurusContext()
+    const { siteConfig } = useDocusaurusContext()
     return (
         <Layout description={siteConfig.tagline}>
-            <Hero/>
-            <Features/>
+            <Hero />
+            <Features />
         </Layout>
-    );
+    )
 }
