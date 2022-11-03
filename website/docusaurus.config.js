@@ -5,7 +5,7 @@ const editUrl = 'https://github.com/yewstack/yew/blob/master/website/'
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
     title: 'Yew',
-    tagline: 'A modern Rust framework for creating web applications.',
+    tagline: 'A framework for creating safe, reliable and efficient web applications.',
     url: 'https://yew.rs',
     baseUrl: '/',
     onBrokenLinks: 'throw',

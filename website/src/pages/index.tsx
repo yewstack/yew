@@ -41,18 +41,18 @@ const Hero = () => {
 const FEATURES = [
     {
         header: 'Component Based',
-        body: 'It features a component-based framework which makes it easy to create interactive UIs. Developers who have experience with frameworks like React and Elm should feel quite at home when using Yew.',
-        to: '',
+        body: 'Features a component-based framework which makes it easy to create interactive UIs. Developers who have experience with frameworks like React and Elm should feel quite at home when using Yew.',
+        to: '/docs/next/concepts/function-components',
     },
     {
         header: 'HTML macro',
         body: 'Features a macro for declaring interactive HTML with Rust expressions. Developers who have experience using JSX in React should feel quite at home when using Yew.',
-        to: '',
+        to: '/docs/next/concepts/html',
     },
     {
-        header: 'HTML macro',
-        body: 'Features a macro for declaring interactive HTML with Rust expressions. Developers who have experience using JSX in React should feel quite at home when using Yew.',
-        to: '',
+        header: 'Server Side Rendering',
+        body: 'Features server side rendering for all the SEO and enhancements of server-rendered app while keeping the feel of an SPA',
+        to: '/docs/next/advanced-topics/server-side-rendering',
     },
 ]
 
