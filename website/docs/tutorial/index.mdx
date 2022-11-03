@@ -243,7 +243,7 @@ mapping it to `html!` and collecting it as `Html`:
 
 ```rust ,ignore
 let videos = videos.iter().map(|video| html! {
-    <p>{format!("{}: {}", video.speaker, video.title)}</p>
+    <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
 }).collect::<Html>();
 ```
 
@@ -301,7 +301,7 @@ struct VideosListProps {
 #[function_component(VideosList)]
 fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
     videos.iter().map(|video| html! {
-        <p>{format!("{}: {}", video.speaker, video.title)}</p>
+        <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
     }).collect()
 }
 ```
@@ -333,7 +333,7 @@ Now, we can update our `App` component to make use of `VideosList` component.
 fn app() -> Html {
     // ...
 -    let videos = videos.iter().map(|video| html! {
--        <p>{format!("{}: {}", video.speaker, video.title)}</p>
+-        <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
 -    }).collect::<Html>();
 -
     html! {
