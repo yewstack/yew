@@ -6,7 +6,7 @@ const editUrl = 'https://github.com/yewstack/yew/blob/master/website/'
 module.exports = {
     title: 'Yew',
     tagline:
-        'Yew is a modern Rust framework for creating multi-threaded front-end web apps with WebAssembly.',
+        'A framework for creating reliable and efficient web applications.',
     url: 'https://yew.rs',
     baseUrl: '/',
     onBrokenLinks: 'throw',
@@ -130,6 +130,7 @@ module.exports = {
     },
     plugins: [
         'content-pages',
+        'docusaurus-plugin-sass',
         [
             '@docusaurus/theme-classic',
             {
