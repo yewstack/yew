@@ -49,7 +49,7 @@ mod feat_ssr {
             _hydratable: bool,
         ) {
             let s = html_escape::encode_text(&self.text);
-            let _ = w.write_str(&*s);
+            let _ = w.write_str(&s);
         }
     }
 }
