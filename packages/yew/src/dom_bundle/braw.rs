@@ -50,10 +50,22 @@ impl ReconcileTarget for BRaw {
             Some(n) => n,
             None => return NodeRef::default(),
         };
+        let insert = |n| {
+            next_parent
+                .insert_before(&n, next_sibling.get().as_ref())
+                .unwrap()
+        };
         for _ in 0..self.children_count {
-            next_node = next_parent
-                .insert_before(&next_node, next_sibling.get().as_ref())
-                .unwrap();
+            let current = next_node;
+            next_node = match current.next_sibling() {
+                Some(n) => n,
+                None => {
+                    // if nothing is next, add whatever is the current node and return early
+                    insert(current.clone());
+                    return NodeRef::new(current);
+                }
+            };
+            insert(current);
         }
         NodeRef::new(next_node)
     }
@@ -358,6 +370,25 @@ mod tests {
             new_parent.inner_html(),
             format!("{}{}", HTML, SIBLING_CONTENT)
         );
+    }
+
+    #[test]
+    fn braw_shift_works_multi_node() {
+        let (root, scope, parent) = setup_parent();
+        const HTML: &str = r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#;
+
+        let elem = VNode::from_raw_html(HTML.into());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
+        assert_braw(&mut elem);
+        assert_eq!(parent.inner_html(), HTML);
+
+        let new_parent = document().create_element("section").unwrap();
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        elem.shift(&new_parent, NodeRef::default());
+
+        assert_eq!(parent.inner_html(), "");
+        assert_eq!(new_parent.inner_html(), HTML);
     }
 
     fn assert_braw(node: &mut BNode) -> &mut BRaw {
