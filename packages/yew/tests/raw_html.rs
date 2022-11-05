@@ -19,7 +19,7 @@ macro_rules! create_test {
         async fn $name() {
             #[function_component]
             fn App() -> Html {
-                let raw = Html::from_raw_html(AttrValue::from($raw));
+                let raw = Html::from_html_unchecked(AttrValue::from($raw));
                 html! {
                     <div id="raw-container">
                         {raw}
@@ -84,7 +84,7 @@ macro_rules! create_update_html_test {
                     let raw_html = raw_html.clone();
                     move |_| raw_html.set($updated)
                 };
-                let raw = Html::from_raw_html(AttrValue::from(*raw_html));
+                let raw = Html::from_html_unchecked(AttrValue::from(*raw_html));
                 html! {
                     <>
                         <div id="raw-container">
@@ -158,7 +158,7 @@ async fn change_vnode_types_from_other_to_vraw() {
         let node = use_state(|| html!("text"));
         let onclick = {
             let node = node.clone();
-            move |_| node.set(Html::from_raw_html(AttrValue::from("<span>second</span>")))
+            move |_| node.set(Html::from_html_unchecked(AttrValue::from("<span>second</span>")))
         };
         html! {
             <>
@@ -203,7 +203,7 @@ async fn change_vnode_types_from_other_to_vraw() {
 async fn change_vnode_types_from_vraw_to_other() {
     #[function_component]
     fn App() -> Html {
-        let node = use_state(|| Html::from_raw_html(AttrValue::from("<span>second</span>")));
+        let node = use_state(|| Html::from_html_unchecked(AttrValue::from("<span>second</span>")));
         let onclick = {
             let node = node.clone();
             move |_| node.set(html!("text"))

@@ -30,7 +30,7 @@ pub enum VNode {
     VSuspense(VSuspense),
     /// A raw HTML string, represented by [`AttrValue`](crate::AttrValue).
     ///
-    /// Also see: [`VNode::from_raw_html`]
+    /// Also see: [`VNode::from_html_unchecked`]
     VRaw(VRaw),
 }
 
@@ -75,7 +75,7 @@ impl VNode {
     /// ```rust
     /// use yew::{html, AttrValue, Html};
     /// # fn _main() {
-    /// let parsed = Html::from_raw_html(AttrValue::from("<div>content</div>"));
+    /// let parsed = Html::from_html_unchecked(AttrValue::from("<div>content</div>"));
     /// let _: Html = html! {
     ///     <div>
     ///         {parsed}
@@ -83,7 +83,7 @@ impl VNode {
     /// };
     /// # }
     /// ```
-    pub fn from_raw_html(html: AttrValue) -> Self {
+    pub fn from_html_unchecked(html: AttrValue) -> Self {
         VNode::VRaw(VRaw { html })
     }
 }

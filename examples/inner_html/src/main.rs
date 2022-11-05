@@ -13,7 +13,7 @@ impl Component for App {
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
-        Html::from_raw_html(HTML.into())
+        Html::from_html_unchecked(HTML.into())
     }
 }
 

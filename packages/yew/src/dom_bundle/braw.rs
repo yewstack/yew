@@ -165,7 +165,7 @@ mod tests {
         let (root, scope, parent) = setup_parent();
 
         const HTML: &str = "<span>text</span>";
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML)
@@ -176,7 +176,7 @@ mod tests {
         let (root, scope, parent) = setup_parent();
 
         const HTML: &str = "";
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML)
@@ -188,7 +188,7 @@ mod tests {
 
         const HTML: &str =
             r#"<p>one <a href="https://yew.rs">link</a> more paragraph</p><div>here</div>"#;
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML)
@@ -198,7 +198,7 @@ mod tests {
         let (root, scope, parent) = setup_parent();
 
         const HTML: &str = r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#;
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML)
@@ -209,7 +209,7 @@ mod tests {
         let (root, scope, parent) = setup_parent();
 
         const HTML: &str = r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#;
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML);
@@ -222,7 +222,7 @@ mod tests {
         let (root, scope, parent) = setup_parent();
 
         const HTML: &str = r#"<p>paragraph</p>"#;
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML);
@@ -235,7 +235,7 @@ mod tests {
         let (root, scope, parent) = setup_parent();
 
         const HTML: &str = "";
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML);
@@ -248,7 +248,7 @@ mod tests {
         let (root, scope, parent, sibling) = setup_parent_and_sibling();
 
         const HTML: &str = "<span>text</span>";
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, sibling);
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
@@ -259,7 +259,7 @@ mod tests {
         let (root, scope, parent, sibling) = setup_parent_and_sibling();
 
         const HTML: &str = "";
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, sibling);
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
@@ -271,7 +271,7 @@ mod tests {
 
         const HTML: &str =
             r#"<p>one <a href="https://yew.rs">link</a> more paragraph</p><div>here</div>"#;
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, sibling);
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
@@ -281,7 +281,7 @@ mod tests {
         let (root, scope, parent, sibling) = setup_parent_and_sibling();
 
         const HTML: &str = r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#;
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, sibling);
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
@@ -292,7 +292,7 @@ mod tests {
         let (root, scope, parent, sibling) = setup_parent_and_sibling();
 
         const HTML: &str = r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#;
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, sibling);
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
@@ -305,7 +305,7 @@ mod tests {
         let (root, scope, parent, sibling) = setup_parent_and_sibling();
 
         const HTML: &str = r#"<p>paragraph</p>"#;
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, sibling);
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
@@ -318,7 +318,7 @@ mod tests {
         let (root, scope, parent, sibling) = setup_parent_and_sibling();
 
         const HTML: &str = "";
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, sibling);
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
@@ -331,7 +331,7 @@ mod tests {
         let (root, scope, parent) = setup_parent();
         const HTML: &str = r#"<p>paragraph</p>"#;
 
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML);
@@ -350,7 +350,7 @@ mod tests {
         let (root, scope, parent, sibling) = setup_parent_and_sibling();
         const HTML: &str = r#"<p>paragraph</p>"#;
 
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, sibling);
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), format!("{}{}", HTML, SIBLING_CONTENT));
@@ -377,7 +377,7 @@ mod tests {
         let (root, scope, parent) = setup_parent();
         const HTML: &str = r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#;
 
-        let elem = VNode::from_raw_html(HTML.into());
+        let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML);
