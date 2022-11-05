@@ -158,7 +158,11 @@ async fn change_vnode_types_from_other_to_vraw() {
         let node = use_state(|| html!("text"));
         let onclick = {
             let node = node.clone();
-            move |_| node.set(Html::from_html_unchecked(AttrValue::from("<span>second</span>")))
+            move |_| {
+                node.set(Html::from_html_unchecked(AttrValue::from(
+                    "<span>second</span>",
+                )))
+            }
         };
         html! {
             <>
