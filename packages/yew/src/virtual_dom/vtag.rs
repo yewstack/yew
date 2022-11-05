@@ -478,7 +478,7 @@ mod feat_ssr {
 
                 if let Some(m) = val {
                     let _ = w.write_str("=\"");
-                    let _ = w.write_str(&*html_escape::encode_double_quoted_attribute(m));
+                    let _ = w.write_str(&html_escape::encode_double_quoted_attribute(m));
                     let _ = w.write_str("\"");
                 }
             };

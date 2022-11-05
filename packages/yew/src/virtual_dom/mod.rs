@@ -124,7 +124,7 @@ mod feat_ssr {
             #[cfg(debug_assertions)]
             match self {
                 Self::Component(type_name) => {
-                    let _ = w.write_str(*type_name);
+                    let _ = w.write_str(type_name);
                 }
                 Self::Suspense => {}
             }
@@ -140,7 +140,7 @@ mod feat_ssr {
             #[cfg(debug_assertions)]
             match self {
                 Self::Component(type_name) => {
-                    let _ = w.write_str(*type_name);
+                    let _ = w.write_str(type_name);
                 }
                 Self::Suspense => {}
             }

@@ -49,14 +49,14 @@ impl Fragment {
         parent: &Element,
     ) -> Self {
         let is_open_tag = |node: &Node| {
-            let comment_text = node.text_content().unwrap_or_else(|| "".to_string());
+            let comment_text = node.text_content().unwrap_or_default();
 
             comment_text.starts_with(collect_for.open_start_mark())
                 && comment_text.ends_with(collect_for.end_mark())
         };
 
         let is_close_tag = |node: &Node| {
-            let comment_text = node.text_content().unwrap_or_else(|| "".to_string());
+            let comment_text = node.text_content().unwrap_or_default();
 
             comment_text.starts_with(collect_for.close_start_mark())
                 && comment_text.ends_with(collect_for.end_mark())
