@@ -92,6 +92,7 @@ version = "0.3"
 features = [
   "ShadowRootInit",
   "ShadowRootMode",
+  "HtmlButtonElement"
 ]
 
 [features]
