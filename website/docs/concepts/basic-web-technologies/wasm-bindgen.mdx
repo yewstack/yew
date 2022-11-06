@@ -162,7 +162,7 @@ method is a checked cast that returns an `Option<&T>` which means the original t
 can be used again if the cast failed and thus returned `None`. The
 [`dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
 method will consume `self`, as per convention for into methods in Rust, and the type returned is
-`Result<T, Self>` this means if the casting fails then the value in `Err` is so you can try again
+`Result<T, Self>`. If the casting fails, the original `Self` value is returned in `Err`. You can try again
 or do something else with the original type.
 
 _[`JsCast` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)._
