@@ -361,7 +361,7 @@ parent when a video is selected, which is done via a `Callback`. This concept is
 We modify its props to take an `on_click` callback:
 
 ```rust ,ignore {4}
-#[derive(Clone, Properties, PartialEq)]
+#[derive(Properties, PartialEq)]
 struct VideosListProps {
     videos: Vec<Video>,
 +    on_click: Callback<Video>
@@ -398,7 +398,7 @@ a new component, `VideoDetails`, component that is displayed when a video is cli
 use website_test::tutorial::Video;
 use yew::prelude::*;
 
-#[derive(Clone, Properties, PartialEq)]
+#[derive(Properties, PartialEq)]
 struct VideosDetailsProps {
     video: Video,
 }
