@@ -7,10 +7,10 @@ use yew::NodeRef;
 use crate::dom_bundle::{BSubtree, Bundle};
 use crate::html::AnyScope;
 use crate::virtual_dom::VNode;
-use crate::{scheduler, Component, Context, Html};
+use crate::{scheduler, BaseComponent, Context, HtmlResult};
 
 struct Comp;
-impl Component for Comp {
+impl BaseComponent for Comp {
     type Message = ();
     type Properties = ();
 
@@ -26,7 +26,19 @@ impl Component for Comp {
         unimplemented!()
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> HtmlResult {
+        unimplemented!()
+    }
+
+    fn destroy(&mut self, _ctx: &Context<Self>) {
+        unimplemented!()
+    }
+
+    fn prepare_state(&self) -> Option<String> {
+        unimplemented!()
+    }
+
+    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
         unimplemented!()
     }
 }

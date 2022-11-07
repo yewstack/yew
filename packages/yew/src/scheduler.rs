@@ -62,15 +62,10 @@ struct Scheduler {
     // Main queue
     main: FifoQueue,
 
-    // Component queues
-    destroy: FifoQueue,
-    create: FifoQueue,
-
     props_update: FifoQueue,
     update: FifoQueue,
 
     render: TopologicalQueue,
-    render_first: TopologicalQueue,
     render_priority: TopologicalQueue,
 
     rendered_first: TopologicalQueue,
@@ -105,26 +100,6 @@ where
 #[cfg(any(feature = "ssr", feature = "csr"))]
 mod feat_csr_ssr {
     use super::*;
-    /// Push a component creation, first render and first rendered [Runnable]s to be executed
-    pub(crate) fn push_component_create<F1, F2>(component_id: usize, create: F1, first_render: F2)
-    where
-        F1: FnOnce() + 'static,
-        F2: FnOnce() + 'static,
-    {
-        with(|s| {
-            s.create.push(Box::new(create));
-            s.render_first.push(component_id, Box::new(first_render));
-        });
-    }
-
-    /// Push a component destruction [Runnable] to be executed
-    pub(crate) fn push_component_destroy<F>(runnable: F)
-    where
-        F: FnOnce() + 'static,
-    {
-        with(|s| s.destroy.push(Box::new(runnable)));
-    }
-
     /// Push a component render [Runnable]s to be executed
     pub(crate) fn push_component_render<F>(component_id: usize, render: F)
     where
@@ -255,29 +230,6 @@ impl Scheduler {
     /// non-typical usage (like scheduling renders in [crate::Component::create()] or
     /// [crate::Component::rendered()] calls).
     fn fill_queue(&mut self, to_run: &mut Vec<Runnable>) {
-        // Placed first to avoid as much needless work as possible, handling all the other events.
-        // Drained completely, because they are the highest priority events anyway.
-        self.destroy.drain_into(to_run);
-
-        // Create events can be batched, as they are typically just for object creation
-        self.create.drain_into(to_run);
-
-        // These typically do nothing and don't spawn any other events - can be batched.
-        // Should be run only after all first renders have finished.
-        if !to_run.is_empty() {
-            return;
-        }
-
-        // First render must never be skipped and takes priority over main, because it may need
-        // to init `NodeRef`s
-        //
-        // Should be processed one at time, because they can spawn more create and rendered events
-        // for their children.
-        if let Some(r) = self.render_first.pop_topmost() {
-            to_run.push(r);
-            return;
-        }
-
         self.props_update.drain_into(to_run);
 
         // Priority rendering

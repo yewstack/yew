@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use slab::Slab;
 
 use crate::html::Scope;
-use crate::{html, Callback, Children, Component, Context, Html, Properties};
+use crate::{html, BaseComponent, Callback, Children, Context, HtmlResult, Properties};
 
 /// Props for [`ContextProvider`]
 #[derive(Debug, Clone, PartialEq, Properties)]
@@ -77,7 +77,7 @@ impl<T: Clone + PartialEq> ContextProvider<T> {
     }
 }
 
-impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
+impl<T: Clone + PartialEq + 'static> BaseComponent for ContextProvider<T> {
     type Message = ();
     type Properties = ContextProviderProps<T>;
 
@@ -89,20 +89,34 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>, old_props: &Self::Properties) -> bool {
-        let props = ctx.props();
+    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
+        true
+    }
 
-        let should_render = old_props.children != props.children;
+    fn destroy(&mut self, _ctx: &Context<Self>) {}
+
+    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
+        if first_render {
+            return;
+        }
+
+        let props = ctx.props();
 
         if self.context != props.context {
             self.context = props.context.clone();
             self.notify_consumers();
         }
-
-        should_render
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        html! { <>{ ctx.props().children.clone() }</> }
+    fn prepare_state(&self) -> Option<String> {
+        None
+    }
+
+    fn changed(&mut self, _ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
+        true
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> HtmlResult {
+        Ok(html! { <>{ ctx.props().children.clone() }</> })
     }
 }

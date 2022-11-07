@@ -316,24 +316,18 @@ mod feat_ssr {
             let (tx, rx) = oneshot::channel();
             let state = ComponentRenderState::Ssr { sender: Some(tx) };
 
-            let create_runner = CreateRunner {
+            CreateRunner {
                 initial_render_state: state,
                 props,
                 scope: self.clone(),
                 #[cfg(feature = "hydration")]
                 prepared_state: None,
-            };
-
-            let first_render_runner = RenderRunner {
+            }
+            .run();
+            RenderRunner {
                 state: self.state.clone(),
-            };
-
-            scheduler::push_component_create(
-                self.id,
-                move || create_runner.run(),
-                move || first_render_runner.run(),
-            );
-            scheduler::start();
+            }
+            .run();
 
             let collectable = Collectable::for_component::<COMP>();
 
@@ -357,12 +351,11 @@ mod feat_ssr {
                 collectable.write_close_tag(w);
             }
 
-            let runner = DestroyRunner {
+            DestroyRunner {
                 state: self.state.clone(),
                 parent_to_detach: false,
-            };
-
-            scheduler::push_component_destroy(move || runner.run());
+            }
+            .run();
             scheduler::start();
         }
     }
@@ -587,25 +580,19 @@ mod feat_csr {
                 next_sibling: stable_next_sibling,
             };
 
-            let create_runner = CreateRunner {
+            CreateRunner {
                 initial_render_state: state,
                 props,
                 scope: self.clone(),
                 #[cfg(feature = "hydration")]
                 prepared_state: None,
-            };
+            }
+            .run();
 
-            let first_render_runner = RenderRunner {
+            RenderRunner {
                 state: self.state.clone(),
-            };
-
-            scheduler::push_component_create(
-                self.id,
-                move || create_runner.run(),
-                move || first_render_runner.run(),
-            );
-            // Not guaranteed to already have the scheduler started
-            scheduler::start();
+            }
+            .run();
         }
 
         pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, next_sibling: NodeRef) {
@@ -642,14 +629,11 @@ mod feat_csr {
 
         /// Process an event to destroy a component
         fn destroy(self, parent_to_detach: bool) {
-            let runner = DestroyRunner {
+            DestroyRunner {
                 state: self.state,
                 parent_to_detach,
-            };
-
-            scheduler::push_component_destroy(move || runner.run());
-            // Not guaranteed to already have the scheduler started
-            scheduler::start();
+            }
+            .run()
         }
 
         fn destroy_boxed(self: Box<Self>, parent_to_detach: bool) {
@@ -676,7 +660,6 @@ mod feat_hydration {
     use crate::dom_bundle::{BSubtree, Fragment};
     use crate::html::component::lifecycle::{ComponentRenderState, CreateRunner, RenderRunner};
     use crate::html::NodeRef;
-    use crate::scheduler;
     use crate::virtual_dom::Collectable;
 
     impl<COMP> Scope<COMP>
@@ -741,25 +724,17 @@ mod feat_hydration {
                 fragment,
             };
 
-            let create_runner = CreateRunner {
+            CreateRunner {
                 initial_render_state: state,
                 props,
                 scope: self.clone(),
                 prepared_state,
-            };
-
-            let first_render_runner = RenderRunner {
+            }
+            .run();
+            RenderRunner {
                 state: self.state.clone(),
-            };
-
-            scheduler::push_component_create(
-                self.id,
-                move || create_runner.run(),
-                move || first_render_runner.run(),
-            );
-
-            // Not guaranteed to already have the scheduler started
-            scheduler::start();
+            }
+            .run();
         }
     }
 }

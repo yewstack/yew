@@ -4,11 +4,11 @@ use implicit_clone::unsync::{IArray, IMap};
 pub use implicit_clone::ImplicitClone;
 
 use super::super::callback::Callback;
-use super::{BaseComponent, Children, ChildrenRenderer, Component, NodeRef, Scope};
+use super::{BaseComponent, Children, ChildrenRenderer, NodeRef, Scope};
 use crate::virtual_dom::{AttrValue, VChild, VNode};
 
 impl ImplicitClone for NodeRef {}
-impl<Comp: Component> ImplicitClone for Scope<Comp> {}
+impl<Comp: BaseComponent> ImplicitClone for Scope<Comp> {}
 // TODO there are still a few missing
 
 /// A trait similar to `Into<T>` which allows conversion to a value of a `Properties` struct.

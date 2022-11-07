@@ -15,12 +15,12 @@ pub struct SuspenseProps {
 #[cfg(any(feature = "csr", feature = "ssr"))]
 mod feat_csr_ssr {
     use super::*;
-    use crate::html::{Children, Component, Context, Html, Scope};
+    use crate::html::{BaseComponent, Children, Context, Html, Scope};
     use crate::suspense::Suspension;
     #[cfg(feature = "hydration")]
     use crate::suspense::SuspensionHandle;
     use crate::virtual_dom::{VNode, VSuspense};
-    use crate::{function_component, html};
+    use crate::{function_component, html, HtmlResult};
 
     #[derive(Properties, PartialEq, Debug, Clone)]
     pub(crate) struct BaseSuspenseProps {
@@ -41,7 +41,7 @@ mod feat_csr_ssr {
         hydration_handle: Option<SuspensionHandle>,
     }
 
-    impl Component for BaseSuspense {
+    impl BaseComponent for BaseSuspense {
         type Message = BaseSuspenseMsg;
         type Properties = BaseSuspenseProps;
 
@@ -100,11 +100,11 @@ mod feat_csr_ssr {
             }
         }
 
-        fn view(&self, ctx: &Context<Self>) -> Html {
+        fn view(&self, ctx: &Context<Self>) -> HtmlResult {
             let BaseSuspenseProps { children, fallback } = (*ctx.props()).clone();
             let children = html! {<>{children}</>};
 
-            match fallback {
+            Ok(match fallback {
                 Some(fallback) => {
                     let vsuspense = VSuspense::new(
                         children,
@@ -117,7 +117,7 @@ mod feat_csr_ssr {
                     VNode::from(vsuspense)
                 }
                 None => children,
-            }
+            })
         }
 
         #[cfg(feature = "hydration")]
@@ -127,6 +127,19 @@ mod feat_csr_ssr {
                     m.resume();
                 }
             }
+        }
+
+        #[cfg(not(feature = "hydration"))]
+        fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {}
+
+        fn changed(&mut self, _ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
+            true
+        }
+
+        fn destroy(&mut self, _ctx: &Context<Self>) {}
+
+        fn prepare_state(&self) -> Option<String> {
+            None
         }
     }
 
