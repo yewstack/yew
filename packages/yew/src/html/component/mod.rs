@@ -87,17 +87,11 @@ impl<COMP: BaseComponent> Context<COMP> {
 /// [`#[function_component]`](crate::functional::function_component) macro to define your
 /// components.
 pub trait BaseComponent: Sized + 'static {
-    /// The Component's Message.
-    type Message: 'static;
-
     /// The Component's Properties.
     type Properties: Properties;
 
     /// Creates a component.
     fn create(ctx: &Context<Self>) -> Self;
-
-    /// React to changes of component properties.
-    fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool;
 
     /// Returns a component layout to be rendered.
     fn view(&self, ctx: &Context<Self>) -> HtmlResult;

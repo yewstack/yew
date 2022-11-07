@@ -11,14 +11,9 @@ use crate::{scheduler, BaseComponent, Context, HtmlResult};
 
 struct Comp;
 impl BaseComponent for Comp {
-    type Message = ();
     type Properties = ();
 
     fn create(_: &Context<Self>) -> Self {
-        unimplemented!()
-    }
-
-    fn changed(&mut self, _ctx: &Context<Self>, _: &Self::Properties) -> bool {
         unimplemented!()
     }
 

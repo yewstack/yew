@@ -281,7 +281,6 @@ impl FunctionComponent {
         quote! {
             #[automatically_derived]
             impl #impl_generics ::yew::html::BaseComponent for #component_name #ty_generics #where_clause {
-                type Message = ();
                 type Properties = #props_type;
 
                 #[inline]
@@ -290,11 +289,6 @@ impl FunctionComponent {
                         _marker: ::std::marker::PhantomData,
                         function_component: ::yew::functional::FunctionComponent::<Self>::new(ctx),
                     }
-                }
-
-                #[inline]
-                fn changed(&mut self, _ctx: &::yew::html::Context<Self>, _old_props: &Self::Properties) -> ::std::primitive::bool {
-                    true
                 }
 
                 #[inline]

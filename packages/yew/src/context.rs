@@ -82,7 +82,6 @@ impl<T: Clone + PartialEq> ContextProvider<T> {
 }
 
 impl<T: Clone + PartialEq + 'static> BaseComponent for ContextProvider<T> {
-    type Message = ();
     type Properties = ContextProviderProps<T>;
 
     fn create(ctx: &Context<Self>) -> Self {
@@ -110,10 +109,6 @@ impl<T: Clone + PartialEq + 'static> BaseComponent for ContextProvider<T> {
 
     fn prepare_state(&self) -> Option<String> {
         None
-    }
-
-    fn changed(&mut self, _ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
-        true
     }
 
     fn view(&self, ctx: &Context<Self>) -> HtmlResult {

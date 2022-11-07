@@ -187,16 +187,12 @@ where
     }
 
     fn props_changed(&mut self, props: Rc<dyn Any>) -> bool {
-        let props = match Rc::downcast::<COMP::Properties>(props) {
-            Ok(m) => m,
-            _ => return false,
-        };
-
-        if self.context.props != props {
-            let old_props = std::mem::replace(&mut self.context.props, props);
-            self.component.changed(&self.context, &old_props)
-        } else {
-            false
+        match Rc::downcast::<COMP::Properties>(props) {
+            Ok(m) if m != self.context.props => {
+                self.context.props = m;
+                true
+            }
+            _ => false,
         }
     }
 

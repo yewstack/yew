@@ -327,7 +327,7 @@ where
     /// Creates a new function component.
     pub fn new(ctx: &Context<T>) -> Self
     where
-        T: BaseComponent<Message = ()> + FunctionProvider + 'static,
+        T: BaseComponent + FunctionProvider + 'static,
     {
         let scope = AnyScope::from(ctx.link().clone());
         let re_render = {
