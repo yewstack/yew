@@ -690,7 +690,7 @@ mod feat_csr {
                         next_sibling: None,
                     };
 
-                    scheduler::push_component_props_update(move || runner.run());
+                    scheduler::push(move || runner.run());
                 }
             }
         }

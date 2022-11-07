@@ -309,7 +309,6 @@ mod feat_csr {
         ComponentRenderState, CreateRunner, DestroyRunner, PropsUpdateRunner, RenderRunner,
     };
     use crate::html::NodeRef;
-    use crate::scheduler;
 
     impl AnyScope {
         #[cfg(test)]
@@ -327,15 +326,12 @@ mod feat_csr {
         props: Rc<dyn Any>,
         next_sibling: NodeRef,
     ) {
-        let runner = PropsUpdateRunner {
+        PropsUpdateRunner {
             state,
             props: Some(props),
             next_sibling: Some(next_sibling),
-        };
-
-        scheduler::push_component_props_update(move || runner.run());
-        // Not guaranteed to already have the scheduler started
-        scheduler::start();
+        }
+        .run();
     }
 
     impl<COMP> Scope<COMP>

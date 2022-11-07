@@ -62,8 +62,6 @@ struct Scheduler {
     // Main queue
     main: FifoQueue,
 
-    props_update: FifoQueue,
-
     render: TopologicalQueue,
     render_priority: TopologicalQueue,
 
@@ -128,13 +126,6 @@ mod feat_csr {
                 s.rendered.push(component_id, Box::new(rendered));
             }
         });
-    }
-
-    pub(crate) fn push_component_props_update<F>(props_update: F)
-    where
-        F: FnOnce() + 'static,
-    {
-        with(|s| s.props_update.push(Box::new(props_update)));
     }
 }
 
@@ -221,8 +212,6 @@ impl Scheduler {
     /// non-typical usage (like scheduling renders in [crate::Component::create()] or
     /// [crate::Component::rendered()] calls).
     fn fill_queue(&mut self, to_run: &mut Vec<Runnable>) {
-        self.props_update.drain_into(to_run);
-
         // Priority rendering
         //
         // This is needed for hydration susequent render to fix node refs.
