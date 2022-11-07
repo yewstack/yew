@@ -18,8 +18,8 @@ use crate::html::NodeRef;
 use crate::html::RenderMode;
 use crate::html::{Html, RenderError};
 use crate::scheduler::{self, Shared};
-use crate::suspense::{BaseSuspense, Suspension};
-use crate::{Callback, Context, HtmlResult};
+use crate::suspense::{resume_suspension, suspend_suspension, DispatchSuspension, Suspension};
+use crate::{Callback, Context, ContextProvider, HtmlResult};
 
 pub(crate) enum ComponentRenderState {
     #[cfg(feature = "csr")]
@@ -152,7 +152,6 @@ pub(crate) trait Stateful {
 
     fn any_scope(&self) -> AnyScope;
 
-    fn flush_messages(&mut self) -> bool;
     fn props_changed(&mut self, props: Rc<dyn Any>) -> bool;
 
     fn as_any(&self) -> &dyn Any;
@@ -185,17 +184,6 @@ where
     #[cfg(feature = "hydration")]
     fn creation_mode(&self) -> RenderMode {
         self.context.creation_mode()
-    }
-
-    fn flush_messages(&mut self) -> bool {
-        self.context
-            .link()
-            .pending_messages
-            .drain()
-            .into_iter()
-            .fold(false, |acc, msg| {
-                self.component.update(&self.context, msg) || acc
-            })
     }
 
     fn props_changed(&mut self, props: Rc<dyn Any>) -> bool {
@@ -302,8 +290,10 @@ impl ComponentState {
         if let Some(m) = self.suspension.take() {
             let comp_scope = self.inner.any_scope();
 
-            let suspense_scope = comp_scope.find_parent_scope::<BaseSuspense>().unwrap();
-            BaseSuspense::resume(&suspense_scope, m);
+            let suspense_scope = comp_scope
+                .find_parent_scope::<ContextProvider<DispatchSuspension>>()
+                .unwrap();
+            resume_suspension(&suspense_scope, m);
         }
     }
 }
@@ -327,40 +317,6 @@ impl<COMP: BaseComponent> CreateRunner<COMP> {
                 #[cfg(feature = "hydration")]
                 self.prepared_state,
             ));
-        }
-    }
-}
-
-pub(crate) struct UpdateRunner {
-    pub state: Shared<Option<ComponentState>>,
-}
-
-impl ComponentState {
-    #[tracing::instrument(
-        level = tracing::Level::DEBUG,
-        skip(self),
-        fields(component.id = self.comp_id)
-    )]
-    fn update(&mut self) -> bool {
-        let schedule_render = self.inner.flush_messages();
-        tracing::trace!(schedule_render);
-        schedule_render
-    }
-}
-
-impl UpdateRunner {
-    pub fn run(self) {
-        if let Some(state) = self.state.borrow_mut().as_mut() {
-            let schedule_render = state.update();
-
-            if schedule_render {
-                let render = RenderRunner {
-                    state: self.state.clone(),
-                };
-
-                scheduler::push_component_render(state.comp_id, move || render.run());
-                // Only run from the scheduler, so no need to call `scheduler::start()`
-            }
         }
     }
 }
@@ -456,7 +412,7 @@ impl ComponentState {
             let comp_scope = self.inner.any_scope();
 
             let suspense_scope = comp_scope
-                .find_parent_scope::<BaseSuspense>()
+                .find_parent_scope::<ContextProvider<DispatchSuspension>>()
                 .expect("To suspend rendering, a <Suspense /> component is required.");
 
             let comp_id = self.comp_id;
@@ -473,12 +429,12 @@ impl ComponentState {
             if let Some(ref last_suspension) = self.suspension {
                 if &suspension != last_suspension {
                     // We remove previous suspension from the suspense.
-                    BaseSuspense::resume(&suspense_scope, last_suspension.clone());
+                    resume_suspension(&suspense_scope, last_suspension.clone())
                 }
             }
             self.suspension = Some(suspension.clone());
 
-            BaseSuspense::suspend(&suspense_scope, suspension);
+            suspend_suspension(&suspense_scope, suspension);
         }
     }
 

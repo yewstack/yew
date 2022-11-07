@@ -18,10 +18,6 @@ impl BaseComponent for Comp {
         unimplemented!()
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
-        unimplemented!();
-    }
-
     fn changed(&mut self, _ctx: &Context<Self>, _: &Self::Properties) -> bool {
         unimplemented!()
     }

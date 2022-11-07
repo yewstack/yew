@@ -63,7 +63,6 @@ struct Scheduler {
     main: FifoQueue,
 
     props_update: FifoQueue,
-    update: FifoQueue,
 
     render: TopologicalQueue,
     render_priority: TopologicalQueue,
@@ -108,14 +107,6 @@ mod feat_csr_ssr {
         with(|s| {
             s.render.push(component_id, Box::new(render));
         });
-    }
-
-    /// Push a component update [Runnable] to be executed
-    pub(crate) fn push_component_update<F>(runnable: F)
-    where
-        F: FnOnce() + 'static,
-    {
-        with(|s| s.update.push(Box::new(runnable)));
     }
 }
 
@@ -242,12 +233,6 @@ impl Scheduler {
 
         // Children rendered lifecycle happen before parents.
         self.rendered_first.drain_post_order_into(to_run);
-
-        // Updates are after the first render to ensure we always have the entire child tree
-        // rendered, once an update is processed.
-        //
-        // Can be batched, as they can cause only non-first renders.
-        self.update.drain_into(to_run);
 
         // Likely to cause duplicate renders via component updates, so placed before them
         self.main.drain_into(to_run);

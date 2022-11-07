@@ -1,20 +1,18 @@
 //! Component scope module
 
 use std::any::{Any, TypeId};
-use std::future::Future;
 use std::marker::PhantomData;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::{fmt, iter};
 
-use futures::{Stream, StreamExt};
-
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use super::lifecycle::ComponentState;
+use super::lifecycle::RenderRunner;
 use super::BaseComponent;
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
-use crate::platform::spawn_local;
+use crate::scheduler;
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use crate::scheduler::Shared;
 
@@ -96,9 +94,6 @@ pub struct Scope<COMP: BaseComponent> {
     parent: Option<Rc<AnyScope>>,
 
     #[cfg(any(feature = "csr", feature = "ssr"))]
-    pub(crate) pending_messages: MsgQueue<COMP::Message>,
-
-    #[cfg(any(feature = "csr", feature = "ssr"))]
     pub(crate) state: Shared<Option<ComponentState>>,
 
     pub(crate) id: usize,
@@ -115,8 +110,6 @@ impl<COMP: BaseComponent> Clone for Scope<COMP> {
         Scope {
             _marker: PhantomData,
 
-            #[cfg(any(feature = "csr", feature = "ssr"))]
-            pending_messages: self.pending_messages.clone(),
             parent: self.parent.clone(),
 
             #[cfg(any(feature = "csr", feature = "ssr"))]
@@ -133,48 +126,6 @@ impl<COMP: BaseComponent> Scope<COMP> {
         self.parent.as_deref()
     }
 
-    /// Creates a `Callback` which will send a message to the linked
-    /// component's update method when invoked.
-    ///
-    /// If your callback function returns a [Future],
-    /// use [`callback_future`](Scope::callback_future) instead.
-    pub fn callback<F, IN, M>(&self, function: F) -> Callback<IN>
-    where
-        M: Into<COMP::Message>,
-        F: Fn(IN) -> M + 'static,
-    {
-        let scope = self.clone();
-        let closure = move |input| {
-            let output = function(input);
-            scope.send_message(output);
-        };
-        Callback::from(closure)
-    }
-
-    /// Creates a `Callback` which will send a batch of messages back
-    /// to the linked component's update method when invoked.
-    ///
-    /// The callback function's return type is generic to allow for dealing with both
-    /// `Option` and `Vec` nicely. `Option` can be used when dealing with a callback that
-    /// might not need to send an update.
-    ///
-    /// ```ignore
-    /// link.batch_callback(|_| vec![Msg::A, Msg::B]);
-    /// link.batch_callback(|_| Some(Msg::A));
-    /// ```
-    pub fn batch_callback<F, IN, OUT>(&self, function: F) -> Callback<IN>
-    where
-        F: Fn(IN) -> OUT + 'static,
-        OUT: SendAsMessage<COMP>,
-    {
-        let scope = self.clone();
-        let closure = move |input| {
-            let messages = function(input);
-            messages.send(&scope);
-        };
-        closure.into()
-    }
-
     /// Accesses a value provided by a parent `ContextProvider` component of the
     /// same type.
     pub fn context<T: Clone + PartialEq + 'static>(
@@ -184,108 +135,19 @@ impl<COMP: BaseComponent> Scope<COMP> {
         AnyScope::from(self.clone()).context(callback)
     }
 
-    /// This method asynchronously awaits a [Future] that returns a message and sends it
-    /// to the linked component.
-    ///
-    /// # Panics
-    /// If the future panics, then the promise will not resolve, and will leak.
-    pub fn send_future<Fut, Msg>(&self, future: Fut)
-    where
-        Msg: Into<COMP::Message>,
-        Fut: Future<Output = Msg> + 'static,
-    {
-        let link = self.clone();
-        spawn_local(async move {
-            let message: COMP::Message = future.await.into();
-            link.send_message(message);
-        });
-    }
-
-    /// This method creates a [`Callback`] which, when emitted, asynchronously awaits the
-    /// message returned from the passed function before sending it to the linked component.
-    ///
-    /// # Panics
-    /// If the future panics, then the promise will not resolve, and will leak.
-    pub fn callback_future<F, Fut, IN, Msg>(&self, function: F) -> Callback<IN>
-    where
-        Msg: Into<COMP::Message>,
-        Fut: Future<Output = Msg> + 'static,
-        F: Fn(IN) -> Fut + 'static,
-    {
-        let link = self.clone();
-
-        let closure = move |input: IN| {
-            link.send_future(function(input));
-        };
-
-        closure.into()
-    }
-
-    /// Asynchronously send a batch of messages to a component. This asynchronously awaits the
-    /// passed [Future], before sending the message batch to the linked component.
-    ///
-    /// # Panics
-    /// If the future panics, then the promise will not resolve, and will leak.
-    pub fn send_future_batch<Fut>(&self, future: Fut)
-    where
-        Fut: Future + 'static,
-        Fut::Output: SendAsMessage<COMP>,
-    {
-        let link = self.clone();
-        let js_future = async move {
-            future.await.send(&link);
-        };
-        spawn_local(js_future);
-    }
-
-    /// This method asynchronously awaits a [`Stream`] that returns a series of messages and sends
-    /// them to the linked component.
-    ///
-    /// # Panics
-    /// If the stream panics, then the promise will not resolve, and will leak.
-    ///
-    /// # Note
-    ///
-    /// This method will not notify the component when the stream has been fully exhausted. If
-    /// you want this feature, you can add an EOF message variant for your component and use
-    /// [`StreamExt::chain`] and [`stream::once`](futures::stream::once) to chain an EOF message to
-    /// the original stream. If your stream is produced by another crate, you can use
-    /// [`StreamExt::map`] to transform the stream's item type to the component message type.
-    pub fn send_stream<S, M>(&self, stream: S)
-    where
-        M: Into<COMP::Message>,
-        S: Stream<Item = M> + 'static,
-    {
-        let link = self.clone();
-        let js_future = async move {
-            futures::pin_mut!(stream);
-            while let Some(msg) = stream.next().await {
-                let message: COMP::Message = msg.into();
-                link.send_message(message);
-            }
-        };
-        spawn_local(js_future);
-    }
-
     /// Returns the linked component if available
     pub fn get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
         self.arch_get_component()
     }
 
-    /// Send a message to the component.
-    pub fn send_message<T>(&self, msg: T)
-    where
-        T: Into<COMP::Message>,
-    {
-        self.arch_send_message(msg)
-    }
+    /// Schedules a render.
+    pub(crate) fn schedule_render(&self) {
+        let runner = RenderRunner {
+            state: self.state.clone(),
+        };
 
-    /// Send a batch of messages to the component.
-    ///
-    /// This is slightly more efficient than calling [`send_message`](Self::send_message)
-    /// in a loop.
-    pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
-        self.arch_send_message_batch(messages)
+        scheduler::push_component_render(self.id, move || runner.run());
+        scheduler::start();
     }
 }
 
@@ -387,46 +249,6 @@ mod feat_csr_ssr {
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     use super::*;
-    use crate::html::component::lifecycle::UpdateRunner;
-    use crate::scheduler::{self, Shared};
-
-    #[derive(Debug)]
-    pub(crate) struct MsgQueue<Msg>(Shared<Vec<Msg>>);
-
-    impl<Msg> MsgQueue<Msg> {
-        pub fn new() -> Self {
-            MsgQueue(Rc::default())
-        }
-
-        pub fn push(&self, msg: Msg) -> usize {
-            let mut inner = self.0.borrow_mut();
-            inner.push(msg);
-
-            inner.len()
-        }
-
-        pub fn append(&self, other: &mut Vec<Msg>) -> usize {
-            let mut inner = self.0.borrow_mut();
-            inner.append(other);
-
-            inner.len()
-        }
-
-        pub fn drain(&self) -> Vec<Msg> {
-            let mut other_queue = Vec::new();
-            let mut inner = self.0.borrow_mut();
-
-            std::mem::swap(&mut *inner, &mut other_queue);
-
-            other_queue
-        }
-    }
-
-    impl<Msg> Clone for MsgQueue<Msg> {
-        fn clone(&self) -> Self {
-            MsgQueue(self.0.clone())
-        }
-    }
 
     static COMP_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
@@ -437,12 +259,8 @@ mod feat_csr_ssr {
 
             let state = Rc::new(RefCell::new(None));
 
-            let pending_messages = MsgQueue::new();
-
             Scope {
                 _marker: PhantomData,
-
-                pending_messages,
 
                 state,
                 parent,
@@ -476,43 +294,8 @@ mod feat_csr_ssr {
                 .ok()
             })
         }
-
-        #[inline]
-        fn schedule_update(&self) {
-            let runner = UpdateRunner {
-                state: self.state.clone(),
-            };
-
-            scheduler::push_component_update(move || runner.run());
-            // Not guaranteed to already have the scheduler started
-            scheduler::start();
-        }
-
-        #[inline]
-        pub(super) fn arch_send_message<T>(&self, msg: T)
-        where
-            T: Into<COMP::Message>,
-        {
-            // We are the first message in queue, so we queue the update.
-            if self.pending_messages.push(msg.into()) == 1 {
-                self.schedule_update();
-            }
-        }
-
-        #[inline]
-        pub(super) fn arch_send_message_batch(&self, mut messages: Vec<COMP::Message>) {
-            let msg_len = messages.len();
-
-            // The queue was empty, so we queue the update
-            if self.pending_messages.append(&mut messages) == msg_len {
-                self.schedule_update();
-            }
-        }
     }
 }
-
-#[cfg(any(feature = "ssr", feature = "csr"))]
-pub(crate) use feat_csr_ssr::*;
 
 #[cfg(feature = "csr")]
 mod feat_csr {
@@ -736,34 +519,5 @@ mod feat_hydration {
             }
             .run();
         }
-    }
-}
-
-/// Defines a message type that can be sent to a component.
-/// Used for the return value of closure given to
-/// [Scope::batch_callback](struct.Scope.html#method.batch_callback).
-pub trait SendAsMessage<COMP: BaseComponent> {
-    /// Sends the message to the given component's scope.
-    /// See [Scope::batch_callback](struct.Scope.html#method.batch_callback).
-    fn send(self, scope: &Scope<COMP>);
-}
-
-impl<COMP> SendAsMessage<COMP> for Option<COMP::Message>
-where
-    COMP: BaseComponent,
-{
-    fn send(self, scope: &Scope<COMP>) {
-        if let Some(msg) = self {
-            scope.send_message(msg);
-        }
-    }
-}
-
-impl<COMP> SendAsMessage<COMP> for Vec<COMP::Message>
-where
-    COMP: BaseComponent,
-{
-    fn send(self, scope: &Scope<COMP>) {
-        scope.send_message_batch(self);
     }
 }

@@ -14,7 +14,7 @@ pub use marker::*;
 pub use properties::*;
 #[cfg(feature = "csr")]
 pub(crate) use scope::Scoped;
-pub use scope::{AnyScope, Scope, SendAsMessage};
+pub use scope::{AnyScope, Scope};
 
 use super::HtmlResult;
 
@@ -95,9 +95,6 @@ pub trait BaseComponent: Sized + 'static {
 
     /// Creates a component.
     fn create(ctx: &Context<Self>) -> Self;
-
-    /// Updates component's internal state.
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool;
 
     /// React to changes of component properties.
     fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool;

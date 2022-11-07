@@ -333,7 +333,7 @@ where
         let re_render = {
             let link = ctx.link().clone();
 
-            Rc::new(move || link.send_message(()))
+            Rc::new(move || link.schedule_render())
         };
 
         Self {

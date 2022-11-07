@@ -14,13 +14,47 @@ pub struct SuspenseProps {
 
 #[cfg(any(feature = "csr", feature = "ssr"))]
 mod feat_csr_ssr {
+    use std::cell::RefCell;
+
     use super::*;
-    use crate::html::{BaseComponent, Children, Context, Html, Scope};
+    use crate::html::{Children, Html, Scope};
     use crate::suspense::Suspension;
-    #[cfg(feature = "hydration")]
-    use crate::suspense::SuspensionHandle;
     use crate::virtual_dom::{VNode, VSuspense};
-    use crate::{function_component, html, HtmlResult};
+    use crate::{
+        function_component, html, use_reducer, ContextProvider, Reducible, UseReducerDispatcher,
+    };
+
+    #[derive(Default)]
+    pub(crate) struct Suspensions {
+        inner: RefCell<Vec<Suspension>>,
+    }
+
+    impl Reducible for Suspensions {
+        type Action = BaseSuspenseMsg;
+
+        fn reduce(self: std::rc::Rc<Self>, action: Self::Action) -> std::rc::Rc<Self> {
+            {
+                let mut inner = self.inner.borrow_mut();
+
+                match action {
+                    BaseSuspenseMsg::Resume(m) => {
+                        inner.retain(|n| &m != n);
+                    }
+                    BaseSuspenseMsg::Suspend(m) => {
+                        if m.resumed() {
+                            drop(inner);
+                            return self;
+                        }
+                        inner.push(m);
+                    }
+                }
+            }
+
+            self
+        }
+    }
+
+    pub(crate) type DispatchSuspension = UseReducerDispatcher<Suspensions>;
 
     #[derive(Properties, PartialEq, Debug, Clone)]
     pub(crate) struct BaseSuspenseProps {
@@ -28,129 +62,66 @@ mod feat_csr_ssr {
         pub fallback: Option<Html>,
     }
 
+    #[function_component]
+    pub(crate) fn BaseSuspense(props: &BaseSuspenseProps) -> Html {
+        let suspensions = use_reducer(Suspensions::default);
+
+        let has_suspension = !suspensions.inner.borrow().is_empty();
+
+        let BaseSuspenseProps { children, fallback } = props.clone();
+        let dispatch_suspension = suspensions.dispatcher();
+
+        let children = html! {
+            <ContextProvider<DispatchSuspension> context={dispatch_suspension}>
+                {children}
+            </ContextProvider<DispatchSuspension>>
+        };
+
+        #[cfg(debug_assertions)]
+        if has_suspension && fallback.is_none() {
+            panic!("You cannot suspend from a fallback component.");
+        }
+
+        match fallback {
+            Some(fallback) => {
+                let vsuspense = VSuspense::new(
+                    children,
+                    fallback,
+                    has_suspension,
+                    // We don't need to key this as the key will be applied to the component.
+                    None,
+                );
+
+                VNode::from(vsuspense)
+            }
+            None => children,
+        }
+    }
+
+    pub(crate) fn resume_suspension(
+        provider: &Scope<ContextProvider<DispatchSuspension>>,
+        s: Suspension,
+    ) {
+        if let Some(provider) = provider.get_component() {
+            let context = provider.get_context_value();
+            context.dispatch(BaseSuspenseMsg::Resume(s));
+        }
+    }
+
+    pub(crate) fn suspend_suspension(
+        provider: &Scope<ContextProvider<DispatchSuspension>>,
+        s: Suspension,
+    ) {
+        if let Some(provider) = provider.get_component() {
+            let context = provider.get_context_value();
+            context.dispatch(BaseSuspenseMsg::Suspend(s));
+        }
+    }
+
     #[derive(Debug)]
     pub(crate) enum BaseSuspenseMsg {
         Suspend(Suspension),
         Resume(Suspension),
-    }
-
-    #[derive(Debug)]
-    pub(crate) struct BaseSuspense {
-        suspensions: Vec<Suspension>,
-        #[cfg(feature = "hydration")]
-        hydration_handle: Option<SuspensionHandle>,
-    }
-
-    impl BaseComponent for BaseSuspense {
-        type Message = BaseSuspenseMsg;
-        type Properties = BaseSuspenseProps;
-
-        fn create(_ctx: &Context<Self>) -> Self {
-            #[cfg(not(feature = "hydration"))]
-            let suspensions = Vec::new();
-
-            // We create a suspension to block suspense until its rendered method is notified.
-            #[cfg(feature = "hydration")]
-            let (suspensions, hydration_handle) = {
-                use crate::callback::Callback;
-                use crate::html::RenderMode;
-
-                match _ctx.creation_mode() {
-                    RenderMode::Hydration => {
-                        let link = _ctx.link().clone();
-                        let (s, handle) = Suspension::new();
-                        s.listen(Callback::from(move |s| {
-                            link.send_message(BaseSuspenseMsg::Resume(s));
-                        }));
-                        (vec![s], Some(handle))
-                    }
-                    _ => (Vec::new(), None),
-                }
-            };
-
-            Self {
-                suspensions,
-                #[cfg(feature = "hydration")]
-                hydration_handle,
-            }
-        }
-
-        fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-            match msg {
-                Self::Message::Suspend(m) => {
-                    assert!(
-                        ctx.props().fallback.is_some(),
-                        "You cannot suspend from a component rendered as a fallback."
-                    );
-
-                    if m.resumed() {
-                        return false;
-                    }
-
-                    self.suspensions.push(m);
-
-                    true
-                }
-                Self::Message::Resume(ref m) => {
-                    let suspensions_len = self.suspensions.len();
-                    self.suspensions.retain(|n| m != n);
-
-                    suspensions_len != self.suspensions.len()
-                }
-            }
-        }
-
-        fn view(&self, ctx: &Context<Self>) -> HtmlResult {
-            let BaseSuspenseProps { children, fallback } = (*ctx.props()).clone();
-            let children = html! {<>{children}</>};
-
-            Ok(match fallback {
-                Some(fallback) => {
-                    let vsuspense = VSuspense::new(
-                        children,
-                        fallback,
-                        !self.suspensions.is_empty(),
-                        // We don't need to key this as the key will be applied to the component.
-                        None,
-                    );
-
-                    VNode::from(vsuspense)
-                }
-                None => children,
-            })
-        }
-
-        #[cfg(feature = "hydration")]
-        fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
-            if first_render {
-                if let Some(m) = self.hydration_handle.take() {
-                    m.resume();
-                }
-            }
-        }
-
-        #[cfg(not(feature = "hydration"))]
-        fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {}
-
-        fn changed(&mut self, _ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
-            true
-        }
-
-        fn destroy(&mut self, _ctx: &Context<Self>) {}
-
-        fn prepare_state(&self) -> Option<String> {
-            None
-        }
-    }
-
-    impl BaseSuspense {
-        pub(crate) fn suspend(scope: &Scope<Self>, s: Suspension) {
-            scope.send_message(BaseSuspenseMsg::Suspend(s));
-        }
-
-        pub(crate) fn resume(scope: &Scope<Self>, s: Suspension) {
-            scope.send_message(BaseSuspenseMsg::Resume(s));
-        }
     }
 
     /// Suspend rendering and show a fallback UI until the underlying task completes.

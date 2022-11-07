@@ -75,6 +75,10 @@ impl<T: Clone + PartialEq> ContextProvider<T> {
             consumer.emit(self.context.clone());
         }
     }
+
+    pub(crate) fn get_context_value(&self) -> T {
+        self.context.clone()
+    }
 }
 
 impl<T: Clone + PartialEq + 'static> BaseComponent for ContextProvider<T> {
@@ -87,10 +91,6 @@ impl<T: Clone + PartialEq + 'static> BaseComponent for ContextProvider<T> {
             context: props.context.clone(),
             consumers: RefCell::new(Slab::new()),
         }
-    }
-
-    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
-        true
     }
 
     fn destroy(&mut self, _ctx: &Context<Self>) {}
