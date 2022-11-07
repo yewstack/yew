@@ -481,14 +481,6 @@ impl ComponentState {
                 ref next_sibling,
                 ref root,
             } => {
-                let runner = RenderRunner {
-                    state: shared_state.clone(),
-                };
-
-                // We schedule a "first" render to run immediately after hydration,
-                // to fix NodeRefs (first_node and next_sibling).
-                scheduler::push_component_priority_render(self.comp_id, move || runner.run());
-
                 let scope = self.inner.any_scope();
 
                 // This first node is not guaranteed to be correct here.

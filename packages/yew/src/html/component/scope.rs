@@ -367,7 +367,6 @@ mod feat_csr {
                 prepared_state: None,
             }
             .run();
-
             RenderRunner {
                 state: self.state.clone(),
             }

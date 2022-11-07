@@ -63,7 +63,6 @@ struct Scheduler {
     main: FifoQueue,
 
     render: TopologicalQueue,
-    render_priority: TopologicalQueue,
 
     rendered_first: TopologicalQueue,
     rendered: TopologicalQueue,
@@ -132,23 +131,6 @@ mod feat_csr {
 #[cfg(feature = "csr")]
 pub(crate) use feat_csr::*;
 
-#[cfg(feature = "hydration")]
-mod feat_hydration {
-    use super::*;
-
-    pub(crate) fn push_component_priority_render<F>(component_id: usize, render: F)
-    where
-        F: FnOnce() + 'static,
-    {
-        with(|s| {
-            s.render_priority.push(component_id, Box::new(render));
-        });
-    }
-}
-
-#[cfg(feature = "hydration")]
-pub(crate) use feat_hydration::*;
-
 /// Execute any pending [Runnable]s
 pub(crate) fn start_now() {
     #[tracing::instrument(level = tracing::Level::DEBUG)]
@@ -212,14 +194,6 @@ impl Scheduler {
     /// non-typical usage (like scheduling renders in [crate::Component::create()] or
     /// [crate::Component::rendered()] calls).
     fn fill_queue(&mut self, to_run: &mut Vec<Runnable>) {
-        // Priority rendering
-        //
-        // This is needed for hydration susequent render to fix node refs.
-        if let Some(r) = self.render_priority.pop_topmost() {
-            to_run.push(r);
-            return;
-        }
-
         // Children rendered lifecycle happen before parents.
         self.rendered_first.drain_post_order_into(to_run);
 
