@@ -7,53 +7,45 @@ use std::rc::Rc;
 /// Alias for `Rc<RefCell<T>>`
 pub type Shared<T> = Rc<RefCell<T>>;
 
-/// A routine which could be run.
-pub trait Runnable {
-    /// Runs a routine with a context instance.
-    fn run(self: Box<Self>);
-}
-
-struct QueueEntry {
-    task: Box<dyn Runnable>,
-}
+type Runnable = Box<dyn FnOnce()>;
 
 #[derive(Default)]
 struct FifoQueue {
-    inner: Vec<QueueEntry>,
+    inner: Vec<Runnable>,
 }
 
 impl FifoQueue {
-    fn push(&mut self, task: Box<dyn Runnable>) {
-        self.inner.push(QueueEntry { task });
+    #[inline(always)]
+    fn push(&mut self, task: Runnable) {
+        self.inner.push(task);
     }
 
-    fn drain_into(&mut self, queue: &mut Vec<QueueEntry>) {
+    fn drain_into(&mut self, queue: &mut Vec<Runnable>) {
         queue.append(&mut self.inner);
     }
 }
 
 #[derive(Default)]
-
 struct TopologicalQueue {
     /// The Binary Tree Map guarantees components with lower id (parent) is rendered first
-    inner: BTreeMap<usize, QueueEntry>,
+    inner: BTreeMap<usize, Runnable>,
 }
 
 impl TopologicalQueue {
     #[cfg(any(feature = "ssr", feature = "csr"))]
-    fn push(&mut self, component_id: usize, task: Box<dyn Runnable>) {
-        self.inner.insert(component_id, QueueEntry { task });
+    fn push(&mut self, component_id: usize, task: Runnable) {
+        self.inner.insert(component_id, task);
     }
 
     /// Take a single entry, preferring parents over children
-    fn pop_topmost(&mut self) -> Option<QueueEntry> {
+    fn pop_topmost(&mut self) -> Option<Runnable> {
         // To be replaced with BTreeMap::pop_first once it is stable.
         let key = *self.inner.keys().next()?;
         self.inner.remove(&key)
     }
 
     /// Drain all entries, such that children are queued before parents
-    fn drain_post_order_into(&mut self, queue: &mut Vec<QueueEntry>) {
+    fn drain_post_order_into(&mut self, queue: &mut Vec<Runnable>) {
         if self.inner.is_empty() {
             return;
         }
@@ -100,8 +92,11 @@ fn with<R>(f: impl FnOnce(&mut Scheduler) -> R) -> R {
 }
 
 /// Push a generic [Runnable] to be executed
-pub fn push(runnable: Box<dyn Runnable>) {
-    with(|s| s.main.push(runnable));
+pub fn push<F>(runnable: F)
+where
+    F: FnOnce() + 'static,
+{
+    with(|s| s.main.push(Box::new(runnable)));
     // Execute pending immediately. Necessary for runnables added outside the component lifecycle,
     // which would otherwise be delayed.
     start();
@@ -111,32 +106,41 @@ pub fn push(runnable: Box<dyn Runnable>) {
 mod feat_csr_ssr {
     use super::*;
     /// Push a component creation, first render and first rendered [Runnable]s to be executed
-    pub(crate) fn push_component_create(
-        component_id: usize,
-        create: Box<dyn Runnable>,
-        first_render: Box<dyn Runnable>,
-    ) {
+    pub(crate) fn push_component_create<F1, F2>(component_id: usize, create: F1, first_render: F2)
+    where
+        F1: FnOnce() + 'static,
+        F2: FnOnce() + 'static,
+    {
         with(|s| {
-            s.create.push(create);
-            s.render_first.push(component_id, first_render);
+            s.create.push(Box::new(create));
+            s.render_first.push(component_id, Box::new(first_render));
         });
     }
 
     /// Push a component destruction [Runnable] to be executed
-    pub(crate) fn push_component_destroy(runnable: Box<dyn Runnable>) {
-        with(|s| s.destroy.push(runnable));
+    pub(crate) fn push_component_destroy<F>(runnable: F)
+    where
+        F: FnOnce() + 'static,
+    {
+        with(|s| s.destroy.push(Box::new(runnable)));
     }
 
     /// Push a component render [Runnable]s to be executed
-    pub(crate) fn push_component_render(component_id: usize, render: Box<dyn Runnable>) {
+    pub(crate) fn push_component_render<F>(component_id: usize, render: F)
+    where
+        F: FnOnce() + 'static,
+    {
         with(|s| {
-            s.render.push(component_id, render);
+            s.render.push(component_id, Box::new(render));
         });
     }
 
     /// Push a component update [Runnable] to be executed
-    pub(crate) fn push_component_update(runnable: Box<dyn Runnable>) {
-        with(|s| s.update.push(runnable));
+    pub(crate) fn push_component_update<F>(runnable: F)
+    where
+        F: FnOnce() + 'static,
+    {
+        with(|s| s.update.push(Box::new(runnable)));
     }
 }
 
@@ -147,22 +151,24 @@ pub(crate) use feat_csr_ssr::*;
 mod feat_csr {
     use super::*;
 
-    pub(crate) fn push_component_rendered(
-        component_id: usize,
-        rendered: Box<dyn Runnable>,
-        first_render: bool,
-    ) {
+    pub(crate) fn push_component_rendered<F>(component_id: usize, rendered: F, first_render: bool)
+    where
+        F: FnOnce() + 'static,
+    {
         with(|s| {
             if first_render {
-                s.rendered_first.push(component_id, rendered);
+                s.rendered_first.push(component_id, Box::new(rendered));
             } else {
-                s.rendered.push(component_id, rendered);
+                s.rendered.push(component_id, Box::new(rendered));
             }
         });
     }
 
-    pub(crate) fn push_component_props_update(props_update: Box<dyn Runnable>) {
-        with(|s| s.props_update.push(props_update));
+    pub(crate) fn push_component_props_update<F>(props_update: F)
+    where
+        F: FnOnce() + 'static,
+    {
+        with(|s| s.props_update.push(Box::new(props_update)));
     }
 }
 
@@ -173,9 +179,12 @@ pub(crate) use feat_csr::*;
 mod feat_hydration {
     use super::*;
 
-    pub(crate) fn push_component_priority_render(component_id: usize, render: Box<dyn Runnable>) {
+    pub(crate) fn push_component_priority_render<F>(component_id: usize, render: F)
+    where
+        F: FnOnce() + 'static,
+    {
         with(|s| {
-            s.render_priority.push(component_id, render);
+            s.render_priority.push(component_id, Box::new(render));
         });
     }
 }
@@ -194,7 +203,7 @@ pub(crate) fn start_now() {
                 break;
             }
             for r in queue.drain(..) {
-                r.task.run();
+                r();
             }
         }
     }
@@ -245,7 +254,7 @@ impl Scheduler {
     /// This method is optimized for typical usage, where possible, but does not break on
     /// non-typical usage (like scheduling renders in [crate::Component::create()] or
     /// [crate::Component::rendered()] calls).
-    fn fill_queue(&mut self, to_run: &mut Vec<QueueEntry>) {
+    fn fill_queue(&mut self, to_run: &mut Vec<Runnable>) {
         // Placed first to avoid as much needless work as possible, handling all the other events.
         // Drained completely, because they are the highest priority events anyway.
         self.destroy.drain_into(to_run);
@@ -324,14 +333,7 @@ mod tests {
             static FLAG: Cell<bool> = Default::default();
         }
 
-        struct Test;
-        impl Runnable for Test {
-            fn run(self: Box<Self>) {
-                FLAG.with(|v| v.set(true));
-            }
-        }
-
-        push(Box::new(Test));
+        push(|| FLAG.with(|v| v.set(true)));
         FLAG.with(|v| assert!(v.get()));
     }
 }

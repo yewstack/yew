@@ -17,7 +17,7 @@ use crate::html::NodeRef;
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
 use crate::html::{Html, RenderError};
-use crate::scheduler::{self, Runnable, Shared};
+use crate::scheduler::{self, Shared};
 use crate::suspense::{BaseSuspense, Suspension};
 use crate::{Callback, Context, HtmlResult};
 
@@ -316,8 +316,8 @@ pub(crate) struct CreateRunner<COMP: BaseComponent> {
     pub prepared_state: Option<String>,
 }
 
-impl<COMP: BaseComponent> Runnable for CreateRunner<COMP> {
-    fn run(self: Box<Self>) {
+impl<COMP: BaseComponent> CreateRunner<COMP> {
+    pub fn run(self) {
         let mut current_state = self.scope.state.borrow_mut();
         if current_state.is_none() {
             *current_state = Some(ComponentState::new(
@@ -348,18 +348,17 @@ impl ComponentState {
     }
 }
 
-impl Runnable for UpdateRunner {
-    fn run(self: Box<Self>) {
+impl UpdateRunner {
+    pub fn run(self) {
         if let Some(state) = self.state.borrow_mut().as_mut() {
             let schedule_render = state.update();
 
             if schedule_render {
-                scheduler::push_component_render(
-                    state.comp_id,
-                    Box::new(RenderRunner {
-                        state: self.state.clone(),
-                    }),
-                );
+                let render = RenderRunner {
+                    state: self.state.clone(),
+                };
+
+                scheduler::push_component_render(state.comp_id, move || render.run());
                 // Only run from the scheduler, so no need to call `scheduler::start()`
             }
         }
@@ -416,8 +415,8 @@ impl ComponentState {
     }
 }
 
-impl Runnable for DestroyRunner {
-    fn run(self: Box<Self>) {
+impl DestroyRunner {
+    pub fn run(self) {
         if let Some(state) = self.state.borrow_mut().take() {
             state.destroy(self.parent_to_detach);
         }
@@ -446,13 +445,12 @@ impl ComponentState {
         // suspension to parent element.
 
         if suspension.resumed() {
+            let runner = RenderRunner {
+                state: shared_state.clone(),
+            };
+
             // schedule a render immediately if suspension is resumed.
-            scheduler::push_component_render(
-                self.comp_id,
-                Box::new(RenderRunner {
-                    state: shared_state.clone(),
-                }),
-            );
+            scheduler::push_component_render(self.comp_id, move || runner.run());
         } else {
             // We schedule a render after current suspension is resumed.
             let comp_scope = self.inner.any_scope();
@@ -464,12 +462,11 @@ impl ComponentState {
             let comp_id = self.comp_id;
             let shared_state = shared_state.clone();
             suspension.listen(Callback::from(move |_| {
-                scheduler::push_component_render(
-                    comp_id,
-                    Box::new(RenderRunner {
-                        state: shared_state.clone(),
-                    }),
-                );
+                let runner = RenderRunner {
+                    state: shared_state.clone(),
+                };
+
+                scheduler::push_component_render(comp_id, move || runner.run());
                 scheduler::start();
             }));
 
@@ -512,12 +509,14 @@ impl ComponentState {
                 let first_render = !self.has_rendered;
                 self.has_rendered = true;
 
+                let runner = RenderedRunner {
+                    state: shared_state.clone(),
+                    first_render,
+                };
+
                 scheduler::push_component_rendered(
                     self.comp_id,
-                    Box::new(RenderedRunner {
-                        state: shared_state.clone(),
-                        first_render,
-                    }),
+                    move || runner.run(),
                     first_render,
                 );
             }
@@ -530,14 +529,13 @@ impl ComponentState {
                 ref next_sibling,
                 ref root,
             } => {
+                let runner = RenderRunner {
+                    state: shared_state.clone(),
+                };
+
                 // We schedule a "first" render to run immediately after hydration,
                 // to fix NodeRefs (first_node and next_sibling).
-                scheduler::push_component_priority_render(
-                    self.comp_id,
-                    Box::new(RenderRunner {
-                        state: shared_state.clone(),
-                    }),
-                );
+                scheduler::push_component_priority_render(self.comp_id, move || runner.run());
 
                 let scope = self.inner.any_scope();
 
@@ -573,8 +571,8 @@ impl ComponentState {
     }
 }
 
-impl Runnable for RenderRunner {
-    fn run(self: Box<Self>) {
+impl RenderRunner {
+    pub fn run(self) {
         let mut state = self.state.borrow_mut();
         let state = match state.as_mut() {
             None => return, // skip for components that have already been destroyed
@@ -678,24 +676,23 @@ mod feat_csr {
         }
     }
 
-    impl Runnable for PropsUpdateRunner {
-        fn run(self: Box<Self>) {
+    impl PropsUpdateRunner {
+        pub fn run(self) {
             let Self {
                 next_sibling,
                 props,
                 state: shared_state,
-            } = *self;
+            } = self;
 
             if let Some(state) = shared_state.borrow_mut().as_mut() {
                 let schedule_render = state.changed(props, next_sibling);
 
+                let runner = RenderRunner {
+                    state: shared_state.clone(),
+                };
+
                 if schedule_render {
-                    scheduler::push_component_render(
-                        state.comp_id,
-                        Box::new(RenderRunner {
-                            state: shared_state.clone(),
-                        }),
-                    );
+                    scheduler::push_component_render(state.comp_id, move || runner.run());
                     // Only run from the scheduler, so no need to call `scheduler::start()`
                 }
             };
@@ -729,17 +726,19 @@ mod feat_csr {
         }
     }
 
-    impl Runnable for RenderedRunner {
-        fn run(self: Box<Self>) {
+    impl RenderedRunner {
+        pub fn run(self) {
             if let Some(state) = self.state.borrow_mut().as_mut() {
                 let has_pending_props = state.rendered(self.first_render);
 
                 if has_pending_props {
-                    scheduler::push_component_props_update(Box::new(PropsUpdateRunner {
+                    let runner = PropsUpdateRunner {
                         state: self.state.clone(),
                         props: None,
                         next_sibling: None,
-                    }));
+                    };
+
+                    scheduler::push_component_props_update(move || runner.run());
                 }
             }
         }

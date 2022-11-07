@@ -316,18 +316,22 @@ mod feat_ssr {
             let (tx, rx) = oneshot::channel();
             let state = ComponentRenderState::Ssr { sender: Some(tx) };
 
+            let create_runner = CreateRunner {
+                initial_render_state: state,
+                props,
+                scope: self.clone(),
+                #[cfg(feature = "hydration")]
+                prepared_state: None,
+            };
+
+            let first_render_runner = RenderRunner {
+                state: self.state.clone(),
+            };
+
             scheduler::push_component_create(
                 self.id,
-                Box::new(CreateRunner {
-                    initial_render_state: state,
-                    props,
-                    scope: self.clone(),
-                    #[cfg(feature = "hydration")]
-                    prepared_state: None,
-                }),
-                Box::new(RenderRunner {
-                    state: self.state.clone(),
-                }),
+                move || create_runner.run(),
+                move || first_render_runner.run(),
             );
             scheduler::start();
 
@@ -353,10 +357,12 @@ mod feat_ssr {
                 collectable.write_close_tag(w);
             }
 
-            scheduler::push_component_destroy(Box::new(DestroyRunner {
+            let runner = DestroyRunner {
                 state: self.state.clone(),
                 parent_to_detach: false,
-            }));
+            };
+
+            scheduler::push_component_destroy(move || runner.run());
             scheduler::start();
         }
     }
@@ -480,9 +486,11 @@ mod feat_csr_ssr {
 
         #[inline]
         fn schedule_update(&self) {
-            scheduler::push_component_update(Box::new(UpdateRunner {
+            let runner = UpdateRunner {
                 state: self.state.clone(),
-            }));
+            };
+
+            scheduler::push_component_update(move || runner.run());
             // Not guaranteed to already have the scheduler started
             scheduler::start();
         }
@@ -543,11 +551,13 @@ mod feat_csr {
         props: Rc<dyn Any>,
         next_sibling: NodeRef,
     ) {
-        scheduler::push_component_props_update(Box::new(PropsUpdateRunner {
+        let runner = PropsUpdateRunner {
             state,
-            next_sibling: Some(next_sibling),
             props: Some(props),
-        }));
+            next_sibling: Some(next_sibling),
+        };
+
+        scheduler::push_component_props_update(move || runner.run());
         // Not guaranteed to already have the scheduler started
         scheduler::start();
     }
@@ -577,18 +587,22 @@ mod feat_csr {
                 next_sibling: stable_next_sibling,
             };
 
+            let create_runner = CreateRunner {
+                initial_render_state: state,
+                props,
+                scope: self.clone(),
+                #[cfg(feature = "hydration")]
+                prepared_state: None,
+            };
+
+            let first_render_runner = RenderRunner {
+                state: self.state.clone(),
+            };
+
             scheduler::push_component_create(
                 self.id,
-                Box::new(CreateRunner {
-                    initial_render_state: state,
-                    props,
-                    scope: self.clone(),
-                    #[cfg(feature = "hydration")]
-                    prepared_state: None,
-                }),
-                Box::new(RenderRunner {
-                    state: self.state.clone(),
-                }),
+                move || create_runner.run(),
+                move || first_render_runner.run(),
             );
             // Not guaranteed to already have the scheduler started
             scheduler::start();
@@ -628,10 +642,12 @@ mod feat_csr {
 
         /// Process an event to destroy a component
         fn destroy(self, parent_to_detach: bool) {
-            scheduler::push_component_destroy(Box::new(DestroyRunner {
+            let runner = DestroyRunner {
                 state: self.state,
                 parent_to_detach,
-            }));
+            };
+
+            scheduler::push_component_destroy(move || runner.run());
             // Not guaranteed to already have the scheduler started
             scheduler::start();
         }
@@ -725,17 +741,21 @@ mod feat_hydration {
                 fragment,
             };
 
+            let create_runner = CreateRunner {
+                initial_render_state: state,
+                props,
+                scope: self.clone(),
+                prepared_state,
+            };
+
+            let first_render_runner = RenderRunner {
+                state: self.state.clone(),
+            };
+
             scheduler::push_component_create(
                 self.id,
-                Box::new(CreateRunner {
-                    initial_render_state: state,
-                    props,
-                    scope: self.clone(),
-                    prepared_state,
-                }),
-                Box::new(RenderRunner {
-                    state: self.state.clone(),
-                }),
+                move || create_runner.run(),
+                move || first_render_runner.run(),
             );
 
             // Not guaranteed to already have the scheduler started
