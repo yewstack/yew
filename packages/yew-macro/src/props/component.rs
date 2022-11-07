@@ -64,7 +64,7 @@ impl ComponentProps {
             .iter()
             .map(|Prop { label, .. }| {
                 quote_spanned! {Span::call_site().located_at(label.span())=>
-                    let _ = #props_ident.#label;
+                    let _ = &#props_ident.#label;
                 }
             })
             .collect();
