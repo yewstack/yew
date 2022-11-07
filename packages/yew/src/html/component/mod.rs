@@ -7,6 +7,7 @@ mod marker;
 mod properties;
 mod scope;
 
+use std::any::Any;
 use std::rc::Rc;
 
 pub use children::*;
@@ -30,9 +31,9 @@ pub(crate) enum RenderMode {
 /// The [`Component`]'s context. This contains component's [`Scope`] and props and
 /// is passed to every lifecycle method.
 #[derive(Debug)]
-pub struct Context<COMP: BaseComponent> {
-    scope: Scope<COMP>,
-    props: Rc<COMP::Properties>,
+pub struct Context {
+    props: Rc<dyn Any>,
+    scope: AnyScope,
     #[cfg(feature = "hydration")]
     creation_mode: RenderMode,
 
@@ -40,17 +41,17 @@ pub struct Context<COMP: BaseComponent> {
     prepared_state: Option<String>,
 }
 
-impl<COMP: BaseComponent> Context<COMP> {
+impl Context {
     /// The component scope
     #[inline]
-    pub fn link(&self) -> &Scope<COMP> {
+    pub fn link(&self) -> &AnyScope {
         &self.scope
     }
 
     /// The component's props
     #[inline]
-    pub fn props(&self) -> &COMP::Properties {
-        &self.props
+    pub fn props(&self) -> Rc<dyn Any> {
+        self.scope.any_props().unwrap()
     }
 
     #[cfg(feature = "hydration")]
@@ -91,16 +92,16 @@ pub trait BaseComponent: Sized + 'static {
     type Properties: Properties;
 
     /// Creates a component.
-    fn create(ctx: &Context<Self>) -> Self;
+    fn create(ctx: &Context) -> Self;
 
     /// Returns a component layout to be rendered.
-    fn view(&self, ctx: &Context<Self>) -> HtmlResult;
+    fn view(&self, ctx: &Context) -> HtmlResult;
 
     /// Notified after a layout is rendered.
-    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool);
+    fn rendered(&mut self, ctx: &Context);
 
     /// Notified before a component is destroyed.
-    fn destroy(&mut self, ctx: &Context<Self>);
+    fn destroy(&mut self, ctx: &Context);
 
     /// Prepares the server-side state.
     fn prepare_state(&self) -> Option<String>;

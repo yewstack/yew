@@ -1,6 +1,8 @@
 //! Component scope module
 
 use std::any::{Any, TypeId};
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::ops::Deref;
 use std::rc::Rc;
@@ -16,10 +18,19 @@ use crate::scheduler;
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use crate::scheduler::Shared;
 
+thread_local! {
+    static PROPS: RefCell<HashMap<usize, Rc<dyn Any>>> = RefCell::default();
+}
+
 /// Untyped scope used for accessing parent scope
 #[derive(Clone)]
 pub struct AnyScope {
+    id: usize,
     type_id: TypeId,
+
+    #[cfg(any(feature = "csr", feature = "ssr"))]
+    pub(crate) state: Shared<Option<ComponentState>>,
+
     parent: Option<Rc<AnyScope>>,
     typed_scope: Rc<dyn Any>,
 }
@@ -33,7 +44,12 @@ impl fmt::Debug for AnyScope {
 impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
     fn from(scope: Scope<COMP>) -> Self {
         AnyScope {
+            id: scope.id,
             type_id: TypeId::of::<COMP>(),
+
+            #[cfg(any(feature = "csr", feature = "ssr"))]
+            state: scope.state.clone(),
+
             parent: scope.parent.clone(),
             typed_scope: Rc::new(scope),
         }
@@ -41,6 +57,24 @@ impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
 }
 
 impl AnyScope {
+    pub(crate) fn get_id(&self) -> usize {
+        self.id
+    }
+
+    /// Schedules a render.
+    pub(crate) fn schedule_render(&self) {
+        let runner = RenderRunner {
+            state: self.state.clone(),
+        };
+
+        scheduler::push_component_render(self.id, move || runner.run());
+        scheduler::start();
+    }
+
+    pub(crate) fn any_props(&self) -> Option<Rc<dyn Any>> {
+        PROPS.with(|m| m.borrow().get(&self.get_id()).cloned())
+    }
+
     /// Returns the parent scope
     pub fn get_parent(&self) -> Option<&AnyScope> {
         self.parent.as_deref()
@@ -139,16 +173,6 @@ impl<COMP: BaseComponent> Scope<COMP> {
     pub fn get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
         self.arch_get_component()
     }
-
-    /// Schedules a render.
-    pub(crate) fn schedule_render(&self) {
-        let runner = RenderRunner {
-            state: self.state.clone(),
-        };
-
-        scheduler::push_component_render(self.id, move || runner.run());
-        scheduler::start();
-    }
 }
 
 #[cfg(feature = "ssr")]
@@ -181,9 +205,10 @@ mod feat_ssr {
             CreateRunner {
                 initial_render_state: state,
                 props,
-                scope: self.clone(),
+                scope: self.clone().to_any(),
                 #[cfg(feature = "hydration")]
                 prepared_state: None,
+                _marker: PhantomData::<COMP>,
             }
             .run();
             RenderRunner {
@@ -220,26 +245,6 @@ mod feat_ssr {
             .run();
             scheduler::start();
         }
-    }
-}
-
-#[cfg(not(any(feature = "ssr", feature = "csr")))]
-mod feat_no_csr_ssr {
-    use super::*;
-
-    // Skeleton code to provide public methods when no renderer are enabled.
-    impl<COMP: BaseComponent> Scope<COMP> {
-        pub(super) fn arch_get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
-            Option::<&COMP>::None
-        }
-
-        pub(super) fn arch_send_message<T>(&self, _msg: T)
-        where
-            T: Into<COMP::Message>,
-        {
-        }
-
-        pub(super) fn arch_send_message_batch(&self, _messages: Vec<COMP::Message>) {}
     }
 }
 
@@ -314,7 +319,9 @@ mod feat_csr {
         #[cfg(test)]
         pub(crate) fn test() -> Self {
             Self {
+                id: 0,
                 type_id: TypeId::of::<()>(),
+                state: Rc::default(),
                 parent: None,
                 typed_scope: Rc::new(()),
             }
@@ -351,6 +358,9 @@ mod feat_csr {
             internal_ref.link(next_sibling.clone());
             let stable_next_sibling = NodeRef::default();
             stable_next_sibling.link(next_sibling);
+
+            PROPS.with(|m| m.borrow_mut().insert(self.id, props.clone()));
+
             let state = ComponentRenderState::Render {
                 bundle,
                 root,
@@ -362,9 +372,10 @@ mod feat_csr {
             CreateRunner {
                 initial_render_state: state,
                 props,
-                scope: self.clone(),
+                scope: self.clone().to_any(),
                 #[cfg(feature = "hydration")]
                 prepared_state: None,
+                _marker: PhantomData::<COMP>,
             }
             .run();
             RenderRunner {
@@ -505,8 +516,9 @@ mod feat_hydration {
             CreateRunner {
                 initial_render_state: state,
                 props,
-                scope: self.clone(),
+                scope: self.clone().to_any(),
                 prepared_state,
+                _marker: PhantomData::<COMP>,
             }
             .run();
             RenderRunner {

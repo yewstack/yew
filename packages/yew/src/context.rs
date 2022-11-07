@@ -84,22 +84,18 @@ impl<T: Clone + PartialEq> ContextProvider<T> {
 impl<T: Clone + PartialEq + 'static> BaseComponent for ContextProvider<T> {
     type Properties = ContextProviderProps<T>;
 
-    fn create(ctx: &Context<Self>) -> Self {
-        let props = ctx.props();
+    fn create(ctx: &Context) -> Self {
+        let props = ctx.props().downcast::<ContextProviderProps<T>>().unwrap();
         Self {
             context: props.context.clone(),
             consumers: RefCell::new(Slab::new()),
         }
     }
 
-    fn destroy(&mut self, _ctx: &Context<Self>) {}
+    fn destroy(&mut self, _ctx: &Context) {}
 
-    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
-        if first_render {
-            return;
-        }
-
-        let props = ctx.props();
+    fn rendered(&mut self, ctx: &Context) {
+        let props = ctx.props().downcast::<ContextProviderProps<T>>().unwrap();
 
         if self.context != props.context {
             self.context = props.context.clone();
@@ -111,7 +107,9 @@ impl<T: Clone + PartialEq + 'static> BaseComponent for ContextProvider<T> {
         None
     }
 
-    fn view(&self, ctx: &Context<Self>) -> HtmlResult {
-        Ok(html! { <>{ ctx.props().children.clone() }</> })
+    fn view(&self, ctx: &Context) -> HtmlResult {
+        let props = ctx.props().downcast::<ContextProviderProps<T>>().unwrap();
+
+        Ok(html! { <>{ props.children.clone() }</> })
     }
 }

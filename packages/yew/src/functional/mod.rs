@@ -22,6 +22,7 @@
 
 use std::any::Any;
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 
@@ -303,6 +304,10 @@ pub trait FunctionProvider {
     fn run(ctx: &mut HookContext, props: &Self::Properties) -> HtmlResult;
 }
 
+thread_local! {
+    static FC_CONTEXTS: RefCell<HashMap<usize, HookContext>> = RefCell::default();
+}
+
 /// A type that interacts [`FunctionProvider`] to provide lifecycle events to be bridged to
 /// [`BaseComponent`].
 ///
@@ -325,11 +330,11 @@ where
     T: FunctionProvider + 'static,
 {
     /// Creates a new function component.
-    pub fn new(ctx: &Context<T>) -> Self
+    pub fn new(ctx: &Context) -> Self
     where
         T: BaseComponent + FunctionProvider + 'static,
     {
-        let scope = AnyScope::from(ctx.link().clone());
+        let scope = ctx.link().clone();
         let re_render = {
             let link = ctx.link().clone();
 
@@ -350,13 +355,14 @@ where
     }
 
     /// Renders a function component.
-    pub fn render(&self, props: &T::Properties) -> HtmlResult {
+    pub fn render(&self, props: Rc<dyn Any>) -> HtmlResult {
+        let props = props.downcast().unwrap();
         let mut hook_ctx = self.hook_ctx.borrow_mut();
 
         hook_ctx.prepare_run();
 
         #[allow(clippy::let_and_return)]
-        let result = T::run(&mut hook_ctx, props);
+        let result = T::run(&mut hook_ctx, &props);
 
         #[cfg(debug_assertions)]
         hook_ctx.assert_hook_context(result.is_ok());

@@ -13,15 +13,15 @@ struct Comp;
 impl BaseComponent for Comp {
     type Properties = ();
 
-    fn create(_: &Context<Self>) -> Self {
+    fn create(_: &Context) -> Self {
         unimplemented!()
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> HtmlResult {
+    fn view(&self, _ctx: &Context) -> HtmlResult {
         unimplemented!()
     }
 
-    fn destroy(&mut self, _ctx: &Context<Self>) {
+    fn destroy(&mut self, _ctx: &Context) {
         unimplemented!()
     }
 
@@ -29,7 +29,7 @@ impl BaseComponent for Comp {
         unimplemented!()
     }
 
-    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
+    fn rendered(&mut self, _ctx: &Context) {
         unimplemented!()
     }
 }

@@ -1,12 +1,13 @@
 //! Component lifecycle module
 
 use std::any::Any;
+use std::marker::PhantomData;
 use std::rc::Rc;
 
 #[cfg(feature = "csr")]
 use web_sys::Element;
 
-use super::scope::{AnyScope, Scope};
+use super::scope::AnyScope;
 use super::BaseComponent;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
@@ -137,7 +138,7 @@ where
     COMP: BaseComponent,
 {
     pub(crate) component: COMP,
-    pub(crate) context: Context<COMP>,
+    pub(crate) context: Context,
 }
 
 /// A trait to provide common,
@@ -147,7 +148,7 @@ where
 /// methods.
 pub(crate) trait Stateful {
     fn view(&self) -> HtmlResult;
-    fn rendered(&mut self, first_render: bool);
+    fn rendered(&mut self);
     fn destroy(&mut self);
 
     fn any_scope(&self) -> AnyScope;
@@ -169,8 +170,8 @@ where
         self.component.view(&self.context)
     }
 
-    fn rendered(&mut self, first_render: bool) {
-        self.component.rendered(&self.context, first_render)
+    fn rendered(&mut self) {
+        self.component.rendered(&self.context)
     }
 
     fn destroy(&mut self) {
@@ -178,7 +179,7 @@ where
     }
 
     fn any_scope(&self) -> AnyScope {
-        self.context.link().clone().into()
+        self.context.link().clone()
     }
 
     #[cfg(feature = "hydration")]
@@ -187,9 +188,12 @@ where
     }
 
     fn props_changed(&mut self, props: Rc<dyn Any>) -> bool {
-        match Rc::downcast::<COMP::Properties>(props) {
-            Ok(m) if m != self.context.props => {
-                self.context.props = m;
+        match (
+            props.downcast_ref::<COMP::Properties>(),
+            self.context.props.downcast_ref(),
+        ) {
+            (Some(l), Some(r)) if l != r => {
+                self.context.props = props;
                 true
             }
             _ => false,
@@ -225,15 +229,15 @@ impl ComponentState {
         level = tracing::Level::DEBUG,
         name = "create",
         skip_all,
-        fields(component.id = scope.id),
+        fields(component.id = scope.get_id()),
     )]
     fn new<COMP: BaseComponent>(
         initial_render_state: ComponentRenderState,
-        scope: Scope<COMP>,
-        props: Rc<COMP::Properties>,
+        scope: AnyScope,
+        props: Rc<dyn Any>,
         #[cfg(feature = "hydration")] prepared_state: Option<String>,
     ) -> Self {
-        let comp_id = scope.id;
+        let comp_id = scope.get_id();
         #[cfg(feature = "hydration")]
         let creation_mode = {
             match initial_render_state {
@@ -296,17 +300,18 @@ impl ComponentState {
 
 pub(crate) struct CreateRunner<COMP: BaseComponent> {
     pub initial_render_state: ComponentRenderState,
-    pub props: Rc<COMP::Properties>,
-    pub scope: Scope<COMP>,
+    pub props: Rc<dyn Any>,
+    pub scope: AnyScope,
     #[cfg(feature = "hydration")]
     pub prepared_state: Option<String>,
+    pub _marker: PhantomData<COMP>,
 }
 
 impl<COMP: BaseComponent> CreateRunner<COMP> {
     pub fn run(self) {
         let mut current_state = self.scope.state.borrow_mut();
         if current_state.is_none() {
-            *current_state = Some(ComponentState::new(
+            *current_state = Some(ComponentState::new::<COMP>(
                 self.initial_render_state,
                 self.scope.clone(),
                 self.props,
@@ -463,7 +468,6 @@ impl ComponentState {
 
                 let runner = RenderedRunner {
                     state: shared_state.clone(),
-                    first_render,
                 };
 
                 scheduler::push_component_rendered(
@@ -645,7 +649,6 @@ mod feat_csr {
 
     pub(crate) struct RenderedRunner {
         pub state: Shared<Option<ComponentState>>,
-        pub first_render: bool,
     }
 
     impl ComponentState {
@@ -654,9 +657,9 @@ mod feat_csr {
             skip(self),
             fields(component.id = self.comp_id)
         )]
-        fn rendered(&mut self, first_render: bool) -> bool {
+        fn rendered(&mut self) -> bool {
             if self.suspension.is_none() {
-                self.inner.rendered(first_render);
+                self.inner.rendered();
             }
 
             #[cfg(feature = "hydration")]
@@ -673,7 +676,7 @@ mod feat_csr {
     impl RenderedRunner {
         pub fn run(self) {
             if let Some(state) = self.state.borrow_mut().as_mut() {
-                let has_pending_props = state.rendered(self.first_render);
+                let has_pending_props = state.rendered();
 
                 if has_pending_props {
                     let runner = PropsUpdateRunner {
