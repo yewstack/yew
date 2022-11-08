@@ -22,7 +22,6 @@
 
 use std::any::Any;
 use std::cell::RefCell;
-use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 
@@ -317,7 +316,7 @@ where
     T: FunctionProvider + 'static,
 {
     fn run(&self, ctx: &mut HookContext, props: &dyn Any) -> HtmlResult {
-        let props = match props.downcast_ref() {
+        let props = match props.downcast_ref::<T::Properties>() {
             Some(m) => m,
             None => return Ok(Html::default()),
         };
@@ -336,10 +335,6 @@ where
     }
 }
 
-thread_local! {
-    static FC_CONTEXTS: RefCell<HashMap<usize, HookContext>> = RefCell::default();
-}
-
 /// A type that interacts [`FunctionProvider`] to provide lifecycle events to be bridged to
 /// [`BaseComponent`].
 ///
@@ -350,7 +345,7 @@ thread_local! {
 /// Use the `#[function_component]` macro instead.
 #[doc(hidden)]
 pub struct FunctionComponent {
-    inner: Rc<dyn AnyFunctionProvider>,
+    inner: Box<dyn AnyFunctionProvider>,
     hook_ctx: RefCell<HookContext>,
 }
 
@@ -360,12 +355,12 @@ impl FunctionComponent {
     where
         T: Sized + BaseComponent + FunctionProvider + 'static,
     {
-        let inner = Rc::new(<T as FunctionProvider>::create());
+        let inner = Box::new(<T as FunctionProvider>::create());
 
         Self::new_any(ctx, inner)
     }
 
-    fn new_any(ctx: &Context, inner: Rc<dyn AnyFunctionProvider>) -> Self {
+    fn new_any(ctx: &Context, inner: Box<dyn AnyFunctionProvider>) -> Self {
         let scope = ctx.link().clone();
         let re_render = {
             let link = ctx.link().clone();
@@ -390,13 +385,13 @@ impl FunctionComponent {
     }
 
     /// Renders a function component.
-    pub fn render(&self, props: Rc<dyn Any>) -> HtmlResult {
+    pub fn render(&self, props: &dyn Any) -> HtmlResult {
         let mut hook_ctx = self.hook_ctx.borrow_mut();
 
         hook_ctx.prepare_run();
 
         #[allow(clippy::let_and_return)]
-        let result = self.inner.run(&mut hook_ctx, &props);
+        let result = self.inner.run(&mut hook_ctx, props);
 
         #[cfg(debug_assertions)]
         hook_ctx.assert_hook_context(result.is_ok());

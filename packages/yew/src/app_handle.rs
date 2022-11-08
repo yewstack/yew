@@ -1,6 +1,5 @@
 //! [AppHandle] contains the state Yew keeps to bootstrap a component in an isolated scope.
 
-use std::ops::Deref;
 use std::rc::Rc;
 
 use web_sys::Element;
@@ -53,17 +52,6 @@ where
     )]
     pub fn destroy(self) {
         self.scope.destroy(false)
-    }
-}
-
-impl<COMP> Deref for AppHandle<COMP>
-where
-    COMP: BaseComponent,
-{
-    type Target = Scope<COMP>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.scope
     }
 }
 

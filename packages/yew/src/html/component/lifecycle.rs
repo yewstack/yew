@@ -20,7 +20,7 @@ use crate::scheduler::{self, Shared};
 use crate::suspense::{resume_suspension, suspend_suspension, DispatchSuspension, Suspension};
 use crate::{Callback, Context, ContextProvider, FunctionComponent};
 
-pub(crate) enum ComponentRenderState {
+pub(crate) enum Rendered {
     #[cfg(feature = "csr")]
     Render {
         bundle: Bundle,
@@ -43,7 +43,7 @@ pub(crate) enum ComponentRenderState {
     },
 }
 
-impl std::fmt::Debug for ComponentRenderState {
+impl std::fmt::Debug for Rendered {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             #[cfg(feature = "csr")]
@@ -54,7 +54,7 @@ impl std::fmt::Debug for ComponentRenderState {
                 ref next_sibling,
                 ref internal_ref,
             } => f
-                .debug_struct("ComponentRenderState::Render")
+                .debug_struct("Rendered::Render")
                 .field("bundle", bundle)
                 .field("root", root)
                 .field("parent", parent)
@@ -70,7 +70,7 @@ impl std::fmt::Debug for ComponentRenderState {
                 ref internal_ref,
                 ref root,
             } => f
-                .debug_struct("ComponentRenderState::Hydration")
+                .debug_struct("Rendered::Hydration")
                 .field("fragment", fragment)
                 .field("root", root)
                 .field("parent", parent)
@@ -85,7 +85,7 @@ impl std::fmt::Debug for ComponentRenderState {
                     None => "None",
                 };
 
-                f.debug_struct("ComponentRenderState::Ssr")
+                f.debug_struct("Rendered::Ssr")
                     .field("sender", &sender_repr)
                     .finish()
             }
@@ -94,7 +94,7 @@ impl std::fmt::Debug for ComponentRenderState {
 }
 
 #[cfg(feature = "csr")]
-impl ComponentRenderState {
+impl Rendered {
     pub(crate) fn shift(&mut self, next_parent: Element, next_next_sibling: NodeRef) {
         match self {
             #[cfg(feature = "csr")]
@@ -135,7 +135,7 @@ pub(crate) struct ComponentState {
     pub(super) component: FunctionComponent,
     pub(super) context: Context,
 
-    pub(super) render_state: ComponentRenderState,
+    pub(super) render_state: Rendered,
 
     #[cfg(feature = "csr")]
     has_rendered: bool,
@@ -157,7 +157,7 @@ impl ComponentState {
     fn new(
         component: FunctionComponent,
         context: Context,
-        initial_render_state: ComponentRenderState,
+        initial_render_state: Rendered,
         scope: AnyScope,
     ) -> Self {
         let comp_id = scope.get_id();
@@ -190,7 +190,7 @@ impl ComponentState {
 }
 
 pub(crate) struct CreateRunner {
-    pub initial_render_state: ComponentRenderState,
+    pub initial_render_state: Rendered,
     pub scope: AnyScope,
     pub component: FunctionComponent,
     pub context: Context,
@@ -227,7 +227,7 @@ impl ComponentState {
 
         match self.render_state {
             #[cfg(feature = "csr")]
-            ComponentRenderState::Render {
+            Rendered::Render {
                 bundle,
                 ref parent,
                 ref internal_ref,
@@ -240,7 +240,7 @@ impl ComponentState {
             }
             // We need to detach the hydrate fragment if the component is not hydrated.
             #[cfg(feature = "hydration")]
-            ComponentRenderState::Hydration {
+            Rendered::Hydration {
                 ref root,
                 fragment,
                 ref parent,
@@ -253,7 +253,7 @@ impl ComponentState {
             }
 
             #[cfg(feature = "ssr")]
-            ComponentRenderState::Ssr { .. } => {
+            Rendered::Ssr { .. } => {
                 let _ = parent_to_detach;
             }
         }
@@ -279,7 +279,7 @@ impl ComponentState {
         fields(component.id = self.comp_id)
     )]
     fn render(&mut self, shared_state: &Shared<Option<ComponentState>>) {
-        match self.component.render(self.context.props()) {
+        match self.component.render(self.context.props().as_ref()) {
             Ok(vnode) => self.commit_render(shared_state, vnode),
             Err(RenderError::Suspended(susp)) => self.suspend(shared_state, susp),
         };
@@ -295,7 +295,7 @@ impl ComponentState {
             };
 
             // schedule a render immediately if suspension is resumed.
-            scheduler::push_component_render(self.comp_id, move || runner.run());
+            scheduler::push(move || runner.run());
         } else {
             // We schedule a render after current suspension is resumed.
             let comp_scope = self.context.link();
@@ -304,15 +304,13 @@ impl ComponentState {
                 .find_parent_scope::<ContextProvider<DispatchSuspension>>()
                 .expect("To suspend rendering, a <Suspense /> component is required.");
 
-            let comp_id = self.comp_id;
             let shared_state = shared_state.clone();
             suspension.listen(Callback::from(move |_| {
                 let runner = RenderRunner {
                     state: shared_state.clone(),
                 };
 
-                scheduler::push_component_render(comp_id, move || runner.run());
-                scheduler::start();
+                scheduler::push(move || runner.run());
             }));
 
             if let Some(ref last_suspension) = self.suspension {
@@ -334,7 +332,7 @@ impl ComponentState {
 
         match self.render_state {
             #[cfg(feature = "csr")]
-            ComponentRenderState::Render {
+            Rendered::Render {
                 ref mut bundle,
                 ref parent,
                 ref root,
@@ -351,22 +349,16 @@ impl ComponentState {
                     bundle.reconcile(root, scope, parent, next_sibling.clone(), new_root);
                 internal_ref.link(new_node_ref);
 
-                let first_render = !self.has_rendered;
                 self.has_rendered = true;
 
-                let runner = RenderedRunner {
+                RenderedRunner {
                     state: shared_state.clone(),
-                };
-
-                scheduler::push_component_rendered(
-                    self.comp_id,
-                    move || runner.run(),
-                    first_render,
-                );
+                }
+                .run();
             }
 
             #[cfg(feature = "hydration")]
-            ComponentRenderState::Hydration {
+            Rendered::Hydration {
                 ref mut fragment,
                 ref parent,
                 ref internal_ref,
@@ -387,7 +379,7 @@ impl ComponentState {
 
                 internal_ref.link(node);
 
-                self.render_state = ComponentRenderState::Render {
+                self.render_state = Rendered::Render {
                     root: root.clone(),
                     bundle,
                     parent: parent.clone(),
@@ -397,7 +389,7 @@ impl ComponentState {
             }
 
             #[cfg(feature = "ssr")]
-            ComponentRenderState::Ssr { ref mut sender } => {
+            Rendered::Ssr { ref mut sender } => {
                 let _ = shared_state;
                 if let Some(tx) = sender.take() {
                     tx.send(new_root).unwrap();
@@ -442,7 +434,7 @@ mod feat_csr {
                 // components.
                 match self.render_state {
                     #[cfg(feature = "csr")]
-                    ComponentRenderState::Render {
+                    Rendered::Render {
                         next_sibling: ref current_next_sibling,
                         ..
                     } => {
@@ -450,7 +442,7 @@ mod feat_csr {
                     }
 
                     #[cfg(feature = "hydration")]
-                    ComponentRenderState::Hydration {
+                    Rendered::Hydration {
                         next_sibling: ref current_next_sibling,
                         ..
                     } => {
@@ -458,7 +450,7 @@ mod feat_csr {
                     }
 
                     #[cfg(feature = "ssr")]
-                    ComponentRenderState::Ssr { .. } => {
+                    Rendered::Ssr { .. } => {
                         #[cfg(debug_assertions)]
                         panic!("properties do not change during SSR");
                     }
@@ -468,7 +460,7 @@ mod feat_csr {
             let should_render = |props: Option<Rc<dyn Any>>, state: &mut ComponentState| -> bool {
                 props
                     .and_then(|m| {
-                        (!state.component.props_eq(&state.context.props(), &m)).then_some(m)
+                        (!state.component.props_eq(state.context.props(), &m)).then_some(m)
                     })
                     .map(|m| {
                         state.context.props = m;
@@ -484,7 +476,7 @@ mod feat_csr {
                         match state.has_rendered {
                             true => {
                                 state.pending_props = None;
-                                if !state.component.props_eq(&state.context.props(), &props) {
+                                if !state.component.props_eq(state.context.props(), &props) {
                                     state.context.props = props;
                                 }
                                 true
@@ -539,8 +531,7 @@ mod feat_csr {
                 };
 
                 if schedule_render {
-                    scheduler::push_component_render(state.comp_id, move || runner.run());
-                    // Only run from the scheduler, so no need to call `scheduler::start()`
+                    scheduler::push(move || runner.run());
                 }
             };
         }

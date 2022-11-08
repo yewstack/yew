@@ -32,6 +32,7 @@ env_logger = "0.9"
 clap = { version = "3.1.7", features = ["derive"] }
 hyper = { version = "0.14", features = ["server", "http1"] }
 jemallocator = "0.5"
+tracing = { version = "0.1", features = ["log-always"] }
 
 [features]
 ssr = ["yew/ssr"]

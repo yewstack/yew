@@ -2116,6 +2116,7 @@ dependencies = [
  "tokio",
  "tower",
  "tower-http",
+ "tracing",
  "wasm-bindgen-futures",
  "wasm-logger",
  "yew",

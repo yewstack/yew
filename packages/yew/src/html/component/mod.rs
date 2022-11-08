@@ -13,9 +13,10 @@ use std::rc::Rc;
 pub use children::*;
 pub use marker::*;
 pub use properties::*;
+pub use scope::AnyScope;
+pub(crate) use scope::Scope;
 #[cfg(feature = "csr")]
 pub(crate) use scope::Scoped;
-pub use scope::{AnyScope, Scope};
 
 use crate::FunctionComponent;
 
@@ -50,8 +51,8 @@ impl Context {
 
     /// The component's props
     #[inline]
-    pub fn props(&self) -> Rc<dyn Any> {
-        self.props.clone()
+    pub fn props(&self) -> &Rc<dyn Any> {
+        &self.props
     }
 
     #[cfg(feature = "hydration")]
