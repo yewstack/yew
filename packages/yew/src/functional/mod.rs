@@ -31,7 +31,7 @@ use wasm_bindgen::prelude::*;
 #[cfg(all(feature = "hydration", feature = "ssr"))]
 use crate::html::RenderMode;
 use crate::html::{AnyScope, BaseComponent, Context, HtmlResult};
-use crate::Properties;
+use crate::{Html, Properties};
 
 mod hooks;
 pub use hooks::*;
@@ -308,6 +308,8 @@ thread_local! {
     static FC_CONTEXTS: RefCell<HashMap<usize, HookContext>> = RefCell::default();
 }
 
+type MakeHtml = Rc<dyn Fn(&mut HookContext, &dyn Any) -> HtmlResult>;
+
 /// A type that interacts [`FunctionProvider`] to provide lifecycle events to be bridged to
 /// [`BaseComponent`].
 ///
@@ -317,32 +319,38 @@ thread_local! {
 ///
 /// Use the `#[function_component]` macro instead.
 #[doc(hidden)]
-pub struct FunctionComponent<T>
-where
-    T: FunctionProvider,
-{
-    _never: std::marker::PhantomData<T>,
+pub struct FunctionComponent {
+    run_once: MakeHtml,
     hook_ctx: RefCell<HookContext>,
 }
 
-impl<T> FunctionComponent<T>
-where
-    T: FunctionProvider + 'static,
-{
+impl FunctionComponent {
     /// Creates a new function component.
-    pub fn new(ctx: &Context) -> Self
+    pub fn new<T>(ctx: &Context) -> Self
     where
         T: BaseComponent + FunctionProvider + 'static,
     {
+        let run_once = Rc::new(|ctx: &mut HookContext, props: &dyn Any| {
+            let props = match props.downcast_ref() {
+                Some(m) => m,
+                None => return Ok(Html::default()),
+            };
+
+            T::run(ctx, props)
+        });
+
+        Self::new_any(ctx, run_once)
+    }
+
+    fn new_any(ctx: &Context, run_once: MakeHtml) -> Self {
         let scope = ctx.link().clone();
         let re_render = {
             let link = ctx.link().clone();
-
             Rc::new(move || link.schedule_render())
         };
 
         Self {
-            _never: std::marker::PhantomData::default(),
+            run_once,
             hook_ctx: HookContext::new(
                 scope,
                 re_render,
@@ -356,13 +364,12 @@ where
 
     /// Renders a function component.
     pub fn render(&self, props: Rc<dyn Any>) -> HtmlResult {
-        let props = props.downcast().unwrap();
         let mut hook_ctx = self.hook_ctx.borrow_mut();
 
         hook_ctx.prepare_run();
 
         #[allow(clippy::let_and_return)]
-        let result = T::run(&mut hook_ctx, &props);
+        let result = (self.run_once)(&mut hook_ctx, &props);
 
         #[cfg(debug_assertions)]
         hook_ctx.assert_hook_context(result.is_ok());
@@ -389,11 +396,8 @@ where
     }
 }
 
-impl<T> fmt::Debug for FunctionComponent<T>
-where
-    T: FunctionProvider + 'static,
-{
+impl fmt::Debug for FunctionComponent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("FunctionComponent<_>")
+        f.write_str("FunctionComponent")
     }
 }

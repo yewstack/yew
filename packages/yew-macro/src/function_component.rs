@@ -287,13 +287,13 @@ impl FunctionComponent {
                 fn create(ctx: &::yew::html::Context) -> Self {
                     Self {
                         _marker: ::std::marker::PhantomData,
-                        function_component: ::yew::functional::FunctionComponent::<Self>::new(ctx),
+                        function_component: ::yew::functional::FunctionComponent::new::<Self>(ctx),
                     }
                 }
 
                 #[inline]
                 fn view(&self, ctx: &::yew::html::Context) -> ::yew::html::HtmlResult {
-                    ::yew::functional::FunctionComponent::<Self>::render(
+                    ::yew::functional::FunctionComponent::render(
                         &self.function_component,
                         ::yew::html::Context::props(ctx)
                     )
@@ -301,17 +301,17 @@ impl FunctionComponent {
 
                 #[inline]
                 fn rendered(&mut self, _ctx: &::yew::html::Context) {
-                    ::yew::functional::FunctionComponent::<Self>::rendered(&self.function_component)
+                    ::yew::functional::FunctionComponent::rendered(&self.function_component)
                 }
 
                 #[inline]
                 fn destroy(&mut self, _ctx: &::yew::html::Context) {
-                    ::yew::functional::FunctionComponent::<Self>::destroy(&self.function_component)
+                    ::yew::functional::FunctionComponent::destroy(&self.function_component)
                 }
 
                 #[inline]
                 fn prepare_state(&self) -> ::std::option::Option<::std::string::String> {
-                    ::yew::functional::FunctionComponent::<Self>::prepare_state(&self.function_component)
+                    ::yew::functional::FunctionComponent::prepare_state(&self.function_component)
                 }
             }
         }
@@ -375,7 +375,7 @@ impl FunctionComponent {
             #[allow(unused_parens)]
             #vis struct #component_name #generics #where_clause {
                 _marker: ::std::marker::PhantomData<(#phantom_generics)>,
-                function_component: ::yew::functional::FunctionComponent<Self>,
+                function_component: ::yew::functional::FunctionComponent,
             }
         }
     }
