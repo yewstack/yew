@@ -77,3 +77,46 @@ mod feat_hydration {
 
 #[cfg(feature = "hydration")]
 pub(super) use feat_hydration::*;
+
+#[cfg(test)]
+mod tests {
+    #![allow(dead_code)]
+
+    use gloo::utils::document;
+    use web_sys::Element;
+
+    use crate::dom_bundle::BSubtree;
+    use crate::html::AnyScope;
+    use crate::NodeRef;
+
+    pub fn setup_parent() -> (BSubtree, AnyScope, Element) {
+        let scope = AnyScope::test();
+        let parent = document().create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        (root, scope, parent)
+    }
+
+    pub const SIBLING_CONTENT: &str = "END";
+
+    pub fn setup_parent_and_sibling() -> (BSubtree, AnyScope, Element, NodeRef) {
+        let scope = AnyScope::test();
+        let parent = document().create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        let end = document().create_text_node(SIBLING_CONTENT);
+        parent.append_child(&end).unwrap();
+        let sibling = NodeRef::new(end.into());
+
+        (root, scope, parent, sibling)
+    }
+}
+
+#[cfg(test)]
+// this is needed because clippy doesn't like the import not being used
+#[allow(unused_imports)]
+pub(super) use tests::*;

@@ -32,6 +32,8 @@ pub(super) trait Reconcilable {
     /// - `next_sibling`: to find where to put the node.
     ///
     /// Returns a reference to the newly inserted element.
+    /// The [`NodeRef`] points the first element (if there are multiple nodes created),
+    /// or is the passed in next_sibling if there are no element is created.
     fn attach(
         self,
 
