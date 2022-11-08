@@ -13,7 +13,7 @@ use super::lifecycle::ComponentState;
 use super::lifecycle::RenderRunner;
 use super::BaseComponent;
 use crate::callback::Callback;
-use crate::context::{ContextHandle, ContextProvider};
+use crate::context::{ContextHandle, ContextProvider, ContextStore};
 use crate::scheduler;
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use crate::scheduler::Shared;
@@ -116,9 +116,8 @@ impl AnyScope {
         callback: Callback<T>,
     ) -> Option<(T, ContextHandle<T>)> {
         let scope = self.find_parent_scope::<ContextProvider<T>>()?;
-        let scope_clone = scope.clone();
-        let component = scope.get_component()?;
-        Some(component.subscribe_consumer(callback, scope_clone))
+        let store = ContextStore::<T>::get(&scope.to_any())?;
+        Some(ContextStore::subscribe_consumer(store, callback))
     }
 }
 

@@ -17,7 +17,8 @@ mod feat_csr_ssr {
     use std::cell::RefCell;
 
     use super::*;
-    use crate::html::{Children, Html, Scope};
+    use crate::context::ContextStore;
+    use crate::html::{Children, Html, Scope, Scoped};
     use crate::suspense::Suspension;
     use crate::virtual_dom::{VNode, VSuspense};
     use crate::{
@@ -102,8 +103,8 @@ mod feat_csr_ssr {
         provider: &Scope<ContextProvider<DispatchSuspension>>,
         s: Suspension,
     ) {
-        if let Some(provider) = provider.get_component() {
-            let context = provider.get_context_value();
+        if let Some(provider) = ContextStore::<DispatchSuspension>::get(&provider.to_any()) {
+            let context = provider.borrow().get_context_value();
             context.dispatch(BaseSuspenseMsg::Resume(s));
         }
     }
@@ -112,8 +113,8 @@ mod feat_csr_ssr {
         provider: &Scope<ContextProvider<DispatchSuspension>>,
         s: Suspension,
     ) {
-        if let Some(provider) = provider.get_component() {
-            let context = provider.get_context_value();
+        if let Some(provider) = ContextStore::<DispatchSuspension>::get(&provider.to_any()) {
+            let context = provider.borrow().get_context_value();
             context.dispatch(BaseSuspenseMsg::Suspend(s));
         }
     }

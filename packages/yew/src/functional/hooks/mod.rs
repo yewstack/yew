@@ -56,3 +56,17 @@ impl<T> Hook for BoxedHook<'_, T> {
         (self.inner)(ctx)
     }
 }
+
+pub(crate) fn use_component_id() -> impl Hook<Output = usize> {
+    struct HookProvider {}
+
+    impl Hook for HookProvider {
+        type Output = usize;
+
+        fn run(self, ctx: &mut HookContext) -> Self::Output {
+            ctx.scope.get_id()
+        }
+    }
+
+    HookProvider {}
+}
