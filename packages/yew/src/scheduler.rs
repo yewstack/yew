@@ -1,12 +1,8 @@
 //! This module contains a scheduler.
 
 use std::cell::RefCell;
-use std::rc::Rc;
 
 use crate::platform::spawn_local;
-
-/// Alias for `Rc<RefCell<T>>`
-pub type Shared<T> = Rc<RefCell<T>>;
 
 type Runnable = Box<dyn FnOnce()>;
 
@@ -21,6 +17,7 @@ impl FifoQueue {
         self.inner.push(task);
     }
 
+    #[inline(always)]
     fn drain_into(&mut self, queue: &mut Vec<Runnable>) {
         queue.append(&mut self.inner);
     }
@@ -49,6 +46,7 @@ fn with<R>(f: impl FnOnce(&mut Scheduler) -> R) -> R {
 }
 
 /// Push a generic [Runnable] to be executed
+#[inline(always)]
 pub fn push<F>(runnable: F)
 where
     F: FnOnce() + 'static,

@@ -1,8 +1,8 @@
 //! Component scope module
 
 use std::any::{Any, TypeId};
-// use std::cell::RefCell;
-// use std::collections::HashMap;
+#[cfg(feature = "csr")]
+use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::rc::Rc;
 use std::{fmt, iter};
@@ -15,12 +15,6 @@ use crate::context::{ContextHandle, ContextProvider, ContextStore};
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
 use crate::scheduler;
-#[cfg(any(feature = "csr", feature = "ssr"))]
-use crate::scheduler::Shared;
-
-// thread_local! {
-//     static PROPS: RefCell<HashMap<usize, Rc<dyn Any>>> = RefCell::default();
-// }
 
 /// Untyped scope used for accessing parent scope
 #[derive(Clone)]
@@ -29,7 +23,7 @@ pub struct AnyScope {
     type_id: TypeId,
 
     #[cfg(feature = "csr")]
-    pub(crate) state: Shared<Option<ComponentState>>,
+    pub(crate) state: Rc<RefCell<Option<ComponentState>>>,
 
     parent: Option<Rc<AnyScope>>,
     typed_scope: Rc<dyn Any>,
@@ -123,7 +117,7 @@ pub(crate) struct Scope<COMP: BaseComponent> {
     parent: Option<Rc<AnyScope>>,
 
     #[cfg(feature = "csr")]
-    pub(crate) state: Shared<Option<ComponentState>>,
+    pub(crate) state: Rc<RefCell<Option<ComponentState>>>,
 
     pub(crate) id: usize,
 }
@@ -250,7 +244,7 @@ mod feat_csr {
 
     use super::*;
     use crate::dom_bundle::{BSubtree, Bundle};
-    use crate::html::component::lifecycle::Rendered;
+    use crate::html::component::lifecycle::Realized;
     use crate::html::NodeRef;
     use crate::Context;
 
@@ -289,15 +283,7 @@ mod feat_csr {
             let stable_next_sibling = NodeRef::default();
             stable_next_sibling.link(next_sibling);
 
-            // PROPS.with(|m| m.borrow_mut().insert(self.id, props.clone()));
-
-            let state = Rendered::Render {
-                bundle,
-                root,
-                internal_ref,
-                parent,
-                next_sibling: stable_next_sibling,
-            };
+            let state = Realized::Bundle(bundle);
 
             let context = Context {
                 scope: self.to_any(),
@@ -310,7 +296,15 @@ mod feat_csr {
 
             let component = COMP::create(&context);
 
-            ComponentState::run_create(context, component, state);
+            ComponentState::run_create(
+                context,
+                component,
+                state,
+                root,
+                parent,
+                stable_next_sibling,
+                internal_ref,
+            );
         }
 
         pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, next_sibling: NodeRef) {
@@ -321,7 +315,7 @@ mod feat_csr {
     pub(crate) trait Scoped {
         fn to_any(&self) -> AnyScope;
         /// Get the render state if it hasn't already been destroyed
-        fn render_state(&self) -> Option<Ref<'_, Rendered>>;
+        fn render_state(&self) -> Option<Ref<'_, Realized>>;
         /// Shift the node associated with this scope to a new place
         fn shift_node(&self, parent: Element, next_sibling: NodeRef);
         /// Process an event to destroy a component
@@ -334,14 +328,14 @@ mod feat_csr {
             self.clone().into()
         }
 
-        fn render_state(&self) -> Option<Ref<'_, Rendered>> {
+        fn render_state(&self) -> Option<Ref<'_, Realized>> {
             let state_ref = self.state.borrow();
 
             // check that component hasn't been destroyed
             state_ref.as_ref()?;
 
             Some(Ref::map(state_ref, |state_ref| {
-                &state_ref.as_ref().unwrap().render_state
+                &state_ref.as_ref().unwrap().rendered
             }))
         }
 
@@ -357,7 +351,7 @@ mod feat_csr {
         fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
             let mut state_ref = self.state.borrow_mut();
             if let Some(render_state) = state_ref.as_mut() {
-                render_state.render_state.shift(parent, next_sibling)
+                render_state.shift(parent, next_sibling)
             }
         }
     }
@@ -372,7 +366,7 @@ mod feat_hydration {
 
     use super::*;
     use crate::dom_bundle::{BSubtree, Fragment};
-    use crate::html::component::lifecycle::Rendered;
+    use crate::html::component::lifecycle::Realized;
     use crate::html::NodeRef;
     use crate::virtual_dom::Collectable;
     use crate::Context;
@@ -431,13 +425,7 @@ mod feat_hydration {
                 _ => None,
             };
 
-            let state = Rendered::Hydration {
-                parent,
-                root,
-                internal_ref,
-                next_sibling: NodeRef::new_debug_trapped(),
-                fragment,
-            };
+            let state = Realized::Fragement(fragment);
 
             let scope = self.to_any();
 
@@ -450,7 +438,15 @@ mod feat_hydration {
 
             let component = COMP::create(&context);
 
-            ComponentState::run_create(context, component, state);
+            ComponentState::run_create(
+                context,
+                component,
+                state,
+                root,
+                parent,
+                NodeRef::new_debug_trapped(),
+                internal_ref,
+            );
         }
     }
 }

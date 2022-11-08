@@ -12,91 +12,28 @@ use crate::dom_bundle::{BSubtree, Bundle};
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
 use crate::html::{Html, NodeRef, RenderError};
-use crate::scheduler::{self};
 use crate::suspense::{resume_suspension, suspend_suspension, DispatchSuspension, Suspension};
-use crate::{Callback, Context, ContextProvider, FunctionComponent};
+use crate::{scheduler, Callback, Context, ContextProvider, FunctionComponent};
 
-pub(crate) enum Rendered {
-    Render {
-        bundle: Bundle,
-        root: BSubtree,
-        parent: Element,
-        next_sibling: NodeRef,
-        internal_ref: NodeRef,
-    },
+pub(crate) enum Realized {
+    Bundle(Bundle),
     #[cfg(feature = "hydration")]
-    Hydration {
-        fragment: Fragment,
-        root: BSubtree,
-        parent: Element,
-        next_sibling: NodeRef,
-        internal_ref: NodeRef,
-    },
+    Fragement(Fragment),
 }
 
-impl std::fmt::Debug for Rendered {
+impl std::fmt::Debug for Realized {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Render {
-                ref bundle,
-                root,
-                ref parent,
-                ref next_sibling,
-                ref internal_ref,
-            } => f
+            Self::Bundle(ref bundle) => f
                 .debug_struct("Rendered::Render")
                 .field("bundle", bundle)
-                .field("root", root)
-                .field("parent", parent)
-                .field("next_sibling", next_sibling)
-                .field("internal_ref", internal_ref)
                 .finish(),
 
             #[cfg(feature = "hydration")]
-            Self::Hydration {
-                ref fragment,
-                ref parent,
-                ref next_sibling,
-                ref internal_ref,
-                ref root,
-            } => f
+            Self::Fragement(ref fragment) => f
                 .debug_struct("Rendered::Hydration")
                 .field("fragment", fragment)
-                .field("root", root)
-                .field("parent", parent)
-                .field("next_sibling", next_sibling)
-                .field("internal_ref", internal_ref)
                 .finish(),
-        }
-    }
-}
-
-impl Rendered {
-    pub(crate) fn shift(&mut self, next_parent: Element, next_next_sibling: NodeRef) {
-        match self {
-            Self::Render {
-                bundle,
-                parent,
-                next_sibling,
-                ..
-            } => {
-                bundle.shift(&next_parent, next_next_sibling.clone());
-
-                *parent = next_parent;
-                next_sibling.link(next_next_sibling);
-            }
-            #[cfg(feature = "hydration")]
-            Self::Hydration {
-                fragment,
-                parent,
-                next_sibling,
-                ..
-            } => {
-                fragment.shift(&next_parent, next_next_sibling.clone());
-
-                *parent = next_parent;
-                next_sibling.link(next_next_sibling);
-            }
         }
     }
 }
@@ -105,14 +42,17 @@ pub(crate) struct ComponentState {
     pub(super) component: FunctionComponent,
     pub(super) context: Context,
 
-    pub(super) render_state: Rendered,
+    pub(super) rendered: Realized,
+
+    root: BSubtree,
+    parent: Element,
+    next_sibling: NodeRef,
+    internal_ref: NodeRef,
 
     #[cfg(feature = "hydration")]
     pending_props: Option<Rc<dyn Any>>,
 
     suspension: Option<Suspension>,
-
-    pub(crate) comp_id: usize,
 }
 
 impl ComponentState {
@@ -122,32 +62,53 @@ impl ComponentState {
         skip_all,
         fields(component.id = context.link().get_id()),
     )]
-    fn new(component: FunctionComponent, context: Context, initial_render_state: Rendered) -> Self {
-        let comp_id = context.scope.get_id();
-
+    fn new(
+        component: FunctionComponent,
+        context: Context,
+        initial_render_state: Realized,
+        root: BSubtree,
+        parent: Element,
+        next_sibling: NodeRef,
+        internal_ref: NodeRef,
+    ) -> Self {
         Self {
             component,
             context,
-            render_state: initial_render_state,
+            rendered: initial_render_state,
             suspension: None,
+
+            root,
+            parent,
+            next_sibling,
+            internal_ref,
 
             #[cfg(feature = "hydration")]
             pending_props: None,
-
-            comp_id,
         }
     }
 
     pub fn run_create(
         context: Context,
         component: FunctionComponent,
-        initial_render_state: Rendered,
+        initial_render_state: Realized,
+        root: BSubtree,
+        parent: Element,
+        next_sibling: NodeRef,
+        internal_ref: NodeRef,
     ) {
         let state = context.scope.state.clone();
         let mut current_state = state.borrow_mut();
 
         if current_state.is_none() {
-            let mut self_ = Self::new(component, context, initial_render_state);
+            let mut self_ = Self::new(
+                component,
+                context,
+                initial_render_state,
+                root,
+                parent,
+                next_sibling,
+                internal_ref,
+            );
             self_.render();
 
             // We are safe to assign afterwards as we mutably borrow the state and don't release it
@@ -189,47 +150,48 @@ impl ComponentState {
         }
     }
 
+    pub fn shift(&mut self, next_parent: Element, next_next_sibling: NodeRef) {
+        match self.rendered {
+            Realized::Bundle(ref mut bundle) => {
+                bundle.shift(&next_parent, next_next_sibling.clone());
+            }
+            #[cfg(feature = "hydration")]
+            Realized::Fragement(ref mut fragment) => {
+                fragment.shift(&next_parent, next_next_sibling.clone());
+            }
+        }
+
+        self.parent = next_parent;
+        self.next_sibling.link(next_next_sibling);
+    }
+
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         skip(self),
-        fields(component.id = self.comp_id)
+        fields(component.id = self.context.link().get_id())
     )]
     fn destroy(mut self, parent_to_detach: bool) {
         self.component.destroy();
         self.resume_existing_suspension();
 
-        match self.render_state {
-            Rendered::Render {
-                bundle,
-                ref parent,
-                ref internal_ref,
-                ref root,
-                ..
-            } => {
-                bundle.detach(root, parent, parent_to_detach);
-
-                internal_ref.set(None);
+        match self.rendered {
+            Realized::Bundle(bundle) => {
+                bundle.detach(&self.root, &self.parent, parent_to_detach);
             }
             // We need to detach the hydrate fragment if the component is not hydrated.
             #[cfg(feature = "hydration")]
-            Rendered::Hydration {
-                ref root,
-                fragment,
-                ref parent,
-                ref internal_ref,
-                ..
-            } => {
-                fragment.detach(root, parent, parent_to_detach);
-
-                internal_ref.set(None);
+            Realized::Fragement(fragment) => {
+                fragment.detach(&self.root, &self.parent, parent_to_detach);
             }
         }
+
+        self.internal_ref.set(None);
     }
 
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         skip_all,
-        fields(component.id = self.comp_id)
+        fields(component.id = self.context.link().get_id())
     )]
     fn render(&mut self) {
         match self.component.render(self.context.props().as_ref()) {
@@ -277,23 +239,21 @@ impl ComponentState {
         // normally.
         self.resume_existing_suspension();
 
-        match self.render_state {
-            Rendered::Render {
-                ref mut bundle,
-                ref parent,
-                ref root,
-                ref next_sibling,
-                ref internal_ref,
-                ..
-            } => {
+        match self.rendered {
+            Realized::Bundle(ref mut bundle) => {
                 let scope = self.context.link();
 
                 #[cfg(feature = "hydration")]
-                next_sibling.debug_assert_not_trapped();
+                self.next_sibling.debug_assert_not_trapped();
 
-                let new_node_ref =
-                    bundle.reconcile(root, scope, parent, next_sibling.clone(), new_root);
-                internal_ref.link(new_node_ref);
+                let new_node_ref = bundle.reconcile(
+                    &self.root,
+                    scope,
+                    &self.parent,
+                    self.next_sibling.clone(),
+                    new_root,
+                );
+                self.internal_ref.link(new_node_ref);
 
                 let has_pending_props = self.rendered();
                 if has_pending_props {
@@ -302,61 +262,35 @@ impl ComponentState {
             }
 
             #[cfg(feature = "hydration")]
-            Rendered::Hydration {
-                ref mut fragment,
-                ref parent,
-                ref internal_ref,
-                ref next_sibling,
-                ref root,
-            } => {
+            Realized::Fragement(ref mut fragment) => {
                 let scope = self.context.link();
 
-                let (node, bundle) = Bundle::hydrate(root, scope, parent, fragment, new_root);
+                let (node, bundle) =
+                    Bundle::hydrate(&self.root, scope, &self.parent, fragment, new_root);
 
                 // We trim all text nodes before checking as it's likely these are whitespaces.
-                fragment.trim_start_text_nodes(parent);
+                fragment.trim_start_text_nodes(&self.parent);
 
                 assert!(fragment.is_empty(), "expected end of component, found node");
 
-                internal_ref.link(node);
+                self.internal_ref.link(node);
 
-                self.render_state = Rendered::Render {
-                    root: root.clone(),
-                    bundle,
-                    parent: parent.clone(),
-                    internal_ref: internal_ref.clone(),
-                    next_sibling: next_sibling.clone(),
-                };
+                self.rendered = Realized::Bundle(bundle);
             }
         };
     }
 
     #[tracing::instrument(
-            level = tracing::Level::DEBUG,
-            skip(self),
-            fields(component.id = self.comp_id)
-        )]
+        level = tracing::Level::DEBUG,
+        skip(self),
+        fields(component.id = self.context.link().get_id())
+    )]
     pub(super) fn changed(&mut self, props: Option<Rc<dyn Any>>, next_sibling: Option<NodeRef>) {
         if let Some(next_sibling) = next_sibling {
             // When components are updated, their siblings were likely also updated
             // We also need to shift the bundle so next sibling will be synced to child
             // components.
-            match self.render_state {
-                Rendered::Render {
-                    next_sibling: ref current_next_sibling,
-                    ..
-                } => {
-                    current_next_sibling.link(next_sibling);
-                }
-
-                #[cfg(feature = "hydration")]
-                Rendered::Hydration {
-                    next_sibling: ref current_next_sibling,
-                    ..
-                } => {
-                    current_next_sibling.link(next_sibling);
-                }
-            }
+            self.next_sibling.link(next_sibling);
         }
 
         // Only trigger changed if props were changed / next sibling has changed.
@@ -364,15 +298,15 @@ impl ComponentState {
             #[cfg(feature = "hydration")]
             if self.context.creation_mode() == RenderMode::Hydration {
                 break '_block if let Some(props) = props.or_else(|| self.pending_props.take()) {
-                    match self.render_state {
-                        Rendered::Render { .. } => {
+                    match self.rendered {
+                        Realized::Bundle { .. } => {
                             self.pending_props = None;
                             if !self.component.props_eq(self.context.props(), &props) {
                                 self.context.props = props;
                             }
                             true
                         }
-                        Rendered::Hydration { .. } => {
+                        Realized::Fragement { .. } => {
                             self.pending_props = Some(props);
                             false
                         }
@@ -399,10 +333,10 @@ impl ComponentState {
     }
 
     #[tracing::instrument(
-            level = tracing::Level::DEBUG,
-            skip(self),
-            fields(component.id = self.comp_id)
-        )]
+        level = tracing::Level::DEBUG,
+        skip(self),
+        fields(component.id = self.context.link().get_id())
+    )]
     pub(super) fn rendered(&mut self) -> bool {
         if self.suspension.is_none() {
             self.component.rendered();
