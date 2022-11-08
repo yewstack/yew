@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1667661186189,
+  "lastUpdate": 1667925102178,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -26219,6 +26219,120 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 33_startup-mainthreadcost",
             "value": "218.38400000000007",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "370.3720703125",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "github@cschramm.eu",
+            "name": "Christopher Schramm",
+            "username": "cschramm"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b649e9dacd1804fbbe158a714107330c7825eecb",
+          "message": "Avoid clippy::let-underscore-drop (#2952)\n\nThe following main.rs replicates the clippy warning:\r\n\r\n```\r\nuse yew::prelude::*;\r\n\r\nstruct Props {\r\n    droppable: Vec<()>,\r\n}\r\n\r\nfn component(props: &Props) -> Html {\r\n    let props = Props { droppable: Vec::new() };\r\n    html! { <Component ..props /> }\r\n}\r\n\r\nfn main() {}\r\n```\r\n\r\nIf I'm not mistaken this happens when using the `..` on any `Properties` with a field that implements `Drop`.",
+          "timestamp": "2022-11-08T21:21:06+05:00",
+          "tree_id": "58f12001c0df22b5fda2c1be98d4a3ef148d5cd1",
+          "url": "https://github.com/yewstack/yew/commit/b649e9dacd1804fbbe158a714107330c7825eecb"
+        },
+        "date": 1667925099774,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "154.1015",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "169.0265",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "281.20050000000003",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "50.967",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "75.831",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "28.5645",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "1762.588",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "355.22249999999997",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "143.356",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.0817146301269531",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.2896003723144531",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.3756599426269531",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.3833045959472656",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "0.9542121887207032",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1834.4680000000003",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "28.068",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 33_startup-mainthreadcost",
+            "value": "273.71200000000016",
             "unit": ""
           },
           {
