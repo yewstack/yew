@@ -9,7 +9,6 @@ use std::{fmt, iter};
 
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use super::lifecycle::ComponentState;
-use super::lifecycle::RenderRunner;
 use super::BaseComponent;
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider, ContextStore};
@@ -64,11 +63,8 @@ impl AnyScope {
 
     /// Schedules a render.
     pub(crate) fn schedule_render(&self) {
-        let runner = RenderRunner {
-            state: self.state.clone(),
-        };
-
-        scheduler::push(move || runner.run());
+        let scope = self.clone();
+        scheduler::push(move || ComponentState::run_render(&scope));
     }
 
     /// Returns the parent scope
@@ -158,7 +154,7 @@ mod feat_ssr {
 
     use super::*;
     use crate::functional::FunctionComponent;
-    use crate::html::component::lifecycle::{CreateRunner, DestroyRunner, RenderRunner, Rendered};
+    use crate::html::component::lifecycle::Rendered;
     #[cfg(feature = "hydration")]
     use crate::html::RenderMode;
     use crate::platform::fmt::BufWriter;
@@ -188,8 +184,10 @@ mod feat_ssr {
             let (tx, rx) = oneshot::channel();
             let state = Rendered::Ssr { sender: Some(tx) };
 
+            let scope = AnyScope::from(self.clone());
+
             let context = Context {
-                scope: AnyScope::from(self.clone()),
+                scope: scope.clone(),
                 props: props as Rc<dyn Any>,
                 #[cfg(feature = "hydration")]
                 creation_mode: RenderMode::Ssr,
@@ -199,17 +197,7 @@ mod feat_ssr {
 
             let component = COMP::create(&context);
 
-            CreateRunner {
-                initial_render_state: state,
-                scope: AnyScope::from(self.clone()),
-                context,
-                component,
-            }
-            .run();
-            RenderRunner {
-                state: self.state.clone(),
-            }
-            .run();
+            ComponentState::run_create(context, component, state);
 
             let collectable = Collectable::for_component::<COMP>();
 
@@ -233,11 +221,7 @@ mod feat_ssr {
                 collectable.write_close_tag(w);
             }
 
-            DestroyRunner {
-                state: self.state.clone(),
-                parent_to_detach: false,
-            }
-            .run();
+            ComponentState::run_destroy(&scope, false);
         }
     }
 }
@@ -278,9 +262,7 @@ mod feat_csr {
 
     use super::*;
     use crate::dom_bundle::{BSubtree, Bundle};
-    use crate::html::component::lifecycle::{
-        CreateRunner, DestroyRunner, PropsUpdateRunner, RenderRunner, Rendered,
-    };
+    use crate::html::component::lifecycle::Rendered;
     use crate::html::NodeRef;
     use crate::Context;
 
@@ -295,19 +277,10 @@ mod feat_csr {
                 typed_scope: Rc::new(()),
             }
         }
-    }
 
-    fn schedule_props_update(
-        state: Shared<Option<ComponentState>>,
-        props: Rc<dyn Any>,
-        next_sibling: NodeRef,
-    ) {
-        PropsUpdateRunner {
-            state,
-            props: Some(props),
-            next_sibling: Some(next_sibling),
+        fn schedule_props_update(&self, props: Rc<dyn Any>, next_sibling: NodeRef) {
+            ComponentState::run_update_props(self, Some(props), Some(next_sibling));
         }
-        .run();
     }
 
     impl<COMP> Scope<COMP>
@@ -349,21 +322,11 @@ mod feat_csr {
 
             let component = COMP::create(&context);
 
-            CreateRunner {
-                initial_render_state: state,
-                scope: self.clone().to_any(),
-                context,
-                component,
-            }
-            .run();
-            RenderRunner {
-                state: self.state.clone(),
-            }
-            .run();
+            ComponentState::run_create(context, component, state);
         }
 
         pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, next_sibling: NodeRef) {
-            schedule_props_update(self.state.clone(), props, next_sibling)
+            self.to_any().schedule_props_update(props, next_sibling)
         }
     }
 
@@ -396,11 +359,7 @@ mod feat_csr {
 
         /// Process an event to destroy a component
         fn destroy(self, parent_to_detach: bool) {
-            DestroyRunner {
-                state: self.state,
-                parent_to_detach,
-            }
-            .run()
+            ComponentState::run_destroy(&self.to_any(), parent_to_detach);
         }
 
         fn destroy_boxed(self: Box<Self>, parent_to_detach: bool) {
@@ -425,7 +384,7 @@ mod feat_hydration {
 
     use super::*;
     use crate::dom_bundle::{BSubtree, Fragment};
-    use crate::html::component::lifecycle::{CreateRunner, RenderRunner, Rendered};
+    use crate::html::component::lifecycle::Rendered;
     use crate::html::NodeRef;
     use crate::virtual_dom::Collectable;
     use crate::Context;
@@ -492,8 +451,10 @@ mod feat_hydration {
                 fragment,
             };
 
+            let scope = self.to_any();
+
             let context = Context {
-                scope: self.to_any(),
+                scope,
                 props: props as Rc<dyn Any>,
                 creation_mode: RenderMode::Hydration,
                 prepared_state,
@@ -501,17 +462,7 @@ mod feat_hydration {
 
             let component = COMP::create(&context);
 
-            CreateRunner {
-                initial_render_state: state,
-                scope: self.clone().to_any(),
-                context,
-                component,
-            }
-            .run();
-            RenderRunner {
-                state: self.state.clone(),
-            }
-            .run();
+            ComponentState::run_create(context, component, state);
         }
     }
 }

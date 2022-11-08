@@ -152,15 +152,10 @@ impl ComponentState {
         level = tracing::Level::DEBUG,
         name = "create",
         skip_all,
-        fields(component.id = scope.get_id()),
+        fields(component.id = context.link().get_id()),
     )]
-    fn new(
-        component: FunctionComponent,
-        context: Context,
-        initial_render_state: Rendered,
-        scope: AnyScope,
-    ) -> Self {
-        let comp_id = scope.get_id();
+    fn new(component: FunctionComponent, context: Context, initial_render_state: Rendered) -> Self {
+        let comp_id = context.scope.get_id();
 
         Self {
             component,
@@ -177,6 +172,50 @@ impl ComponentState {
         }
     }
 
+    pub fn run_create(
+        context: Context,
+        component: FunctionComponent,
+        initial_render_state: Rendered,
+    ) {
+        let state = context.scope.state.clone();
+        let mut current_state = state.borrow_mut();
+
+        if current_state.is_none() {
+            let mut self_ = Self::new(component, context, initial_render_state);
+            self_.render(&state);
+
+            // We are safe to assign afterwards as we mutably borrow the state and don't release it
+            // until this function returns.
+            *current_state = Some(self_);
+        }
+    }
+
+    pub fn run_render(scope: &AnyScope) {
+        if let Some(state) = scope.state.borrow_mut().as_mut() {
+            state.render(&scope.state);
+        }
+    }
+
+    pub fn run_update_props(
+        scope: &AnyScope,
+        props: Option<Rc<dyn Any>>,
+        next_sibling: Option<NodeRef>,
+    ) {
+        if let Some(state) = scope.state.borrow_mut().as_mut() {
+            let schedule_render = state.changed(props, next_sibling);
+
+            if schedule_render {
+                state.render(&scope.state);
+            }
+        }
+    }
+
+    pub fn run_destroy(scope: &AnyScope, parent_to_detach: bool) {
+        if let Some(state) = scope.state.borrow_mut().take() {
+            state.destroy(parent_to_detach);
+        }
+    }
+
     fn resume_existing_suspension(&mut self) {
         if let Some(m) = self.suspension.take() {
             let comp_scope = self.context.link();
@@ -187,32 +226,6 @@ impl ComponentState {
             resume_suspension(&suspense_scope, m);
         }
     }
-}
-
-pub(crate) struct CreateRunner {
-    pub initial_render_state: Rendered,
-    pub scope: AnyScope,
-    pub component: FunctionComponent,
-    pub context: Context,
-}
-
-impl CreateRunner {
-    pub fn run(self) {
-        let mut current_state = self.scope.state.borrow_mut();
-        if current_state.is_none() {
-            *current_state = Some(ComponentState::new(
-                self.component,
-                self.context,
-                self.initial_render_state,
-                self.scope.clone(),
-            ));
-        }
-    }
-}
-
-pub(crate) struct DestroyRunner {
-    pub state: Shared<Option<ComponentState>>,
-    pub parent_to_detach: bool,
 }
 
 impl ComponentState {
@@ -260,18 +273,6 @@ impl ComponentState {
     }
 }
 
-impl DestroyRunner {
-    pub fn run(self) {
-        if let Some(state) = self.state.borrow_mut().take() {
-            state.destroy(self.parent_to_detach);
-        }
-    }
-}
-
-pub(crate) struct RenderRunner {
-    pub state: Shared<Option<ComponentState>>,
-}
-
 impl ComponentState {
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
@@ -299,14 +300,13 @@ impl ComponentState {
                 .find_parent_scope::<ContextProvider<DispatchSuspension>>()
                 .expect("To suspend rendering, a <Suspense /> component is required.");
 
-            let shared_state = shared_state.clone();
-            suspension.listen(Callback::from(move |_| {
-                let runner = RenderRunner {
-                    state: shared_state.clone(),
-                };
-
-                scheduler::push(move || runner.run());
-            }));
+            {
+                let scope = self.context.link().clone();
+                suspension.listen(Callback::from(move |_| {
+                    let scope = scope.clone();
+                    scheduler::push(move || ComponentState::run_render(&scope));
+                }));
+            }
 
             if let Some(ref last_suspension) = self.suspension {
                 if &suspension != last_suspension {
@@ -398,27 +398,9 @@ impl ComponentState {
     }
 }
 
-impl RenderRunner {
-    pub fn run(self) {
-        let mut state = self.state.borrow_mut();
-        let state = match state.as_mut() {
-            None => return, // skip for components that have already been destroyed
-            Some(state) => state,
-        };
-
-        state.render(&self.state);
-    }
-}
-
 #[cfg(feature = "csr")]
 mod feat_csr {
     use super::*;
-
-    pub(crate) struct PropsUpdateRunner {
-        pub state: Shared<Option<ComponentState>>,
-        pub props: Option<Rc<dyn Any>>,
-        pub next_sibling: Option<NodeRef>,
-    }
 
     impl ComponentState {
         #[tracing::instrument(
@@ -518,24 +500,6 @@ mod feat_csr {
         }
     }
 
-    impl PropsUpdateRunner {
-        pub fn run(self) {
-            let Self {
-                next_sibling,
-                props,
-                state: shared_state,
-            } = self;
-
-            if let Some(state) = shared_state.borrow_mut().as_mut() {
-                let schedule_render = state.changed(props, next_sibling);
-
-                if schedule_render {
-                    state.render(&shared_state);
-                }
-            };
-        }
-    }
-
     impl ComponentState {
         #[tracing::instrument(
             level = tracing::Level::DEBUG,
@@ -558,9 +522,6 @@ mod feat_csr {
         }
     }
 }
-
-#[cfg(feature = "csr")]
-pub(super) use feat_csr::*;
 
 #[cfg(target_arch = "wasm32")]
 #[cfg(test)]
