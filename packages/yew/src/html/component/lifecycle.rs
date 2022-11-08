@@ -12,7 +12,7 @@ use crate::dom_bundle::{BSubtree, Bundle};
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
 use crate::html::{Html, NodeRef, RenderError};
-use crate::scheduler::{self, Shared};
+use crate::scheduler::{self};
 use crate::suspense::{resume_suspension, suspend_suspension, DispatchSuspension, Suspension};
 use crate::{Callback, Context, ContextProvider, FunctionComponent};
 
@@ -107,7 +107,6 @@ pub(crate) struct ComponentState {
 
     pub(super) render_state: Rendered,
 
-    has_rendered: bool,
     #[cfg(feature = "hydration")]
     pending_props: Option<Rc<dyn Any>>,
 
@@ -132,7 +131,6 @@ impl ComponentState {
             render_state: initial_render_state,
             suspension: None,
 
-            has_rendered: false,
             #[cfg(feature = "hydration")]
             pending_props: None,
 
@@ -150,7 +148,7 @@ impl ComponentState {
 
         if current_state.is_none() {
             let mut self_ = Self::new(component, context, initial_render_state);
-            self_.render(&state);
+            self_.render();
 
             // We are safe to assign afterwards as we mutably borrow the state and don't release it
             // until this function returns.
@@ -160,7 +158,7 @@ impl ComponentState {
 
     pub fn run_render(scope: &AnyScope) {
         if let Some(state) = scope.state.borrow_mut().as_mut() {
-            state.render(&scope.state);
+            state.render();
         }
     }
 
@@ -170,11 +168,7 @@ impl ComponentState {
         next_sibling: Option<NodeRef>,
     ) {
         if let Some(state) = scope.state.borrow_mut().as_mut() {
-            let schedule_render = state.changed(props, next_sibling);
-
-            if schedule_render {
-                state.render(&scope.state);
-            }
+            state.changed(props, next_sibling);
         }
     }
 
@@ -237,19 +231,19 @@ impl ComponentState {
         skip_all,
         fields(component.id = self.comp_id)
     )]
-    fn render(&mut self, shared_state: &Shared<Option<ComponentState>>) {
+    fn render(&mut self) {
         match self.component.render(self.context.props().as_ref()) {
-            Ok(vnode) => self.commit_render(shared_state, vnode),
-            Err(RenderError::Suspended(susp)) => self.suspend(shared_state, susp),
+            Ok(vnode) => self.commit_render(vnode),
+            Err(RenderError::Suspended(susp)) => self.suspend(susp),
         };
     }
 
-    fn suspend(&mut self, shared_state: &Shared<Option<ComponentState>>, suspension: Suspension) {
+    fn suspend(&mut self, suspension: Suspension) {
         // Currently suspended, we re-use previous root node and send
         // suspension to parent element.
 
         if suspension.resumed() {
-            self.render(shared_state);
+            self.render();
         } else {
             // We schedule a render after current suspension is resumed.
             let comp_scope = self.context.link();
@@ -278,7 +272,7 @@ impl ComponentState {
         }
     }
 
-    fn commit_render(&mut self, shared_state: &Shared<Option<ComponentState>>, new_root: Html) {
+    fn commit_render(&mut self, new_root: Html) {
         // Currently not suspended, we remove any previous suspension and update
         // normally.
         self.resume_existing_suspension();
@@ -301,15 +295,9 @@ impl ComponentState {
                     bundle.reconcile(root, scope, parent, next_sibling.clone(), new_root);
                 internal_ref.link(new_node_ref);
 
-                self.has_rendered = true;
-
                 let has_pending_props = self.rendered();
                 if has_pending_props {
-                    let should_render = self.changed(None, None);
-
-                    if should_render {
-                        self.render(shared_state);
-                    }
+                    self.changed(None, None);
                 }
             }
 
@@ -348,11 +336,7 @@ impl ComponentState {
             skip(self),
             fields(component.id = self.comp_id)
         )]
-    pub(super) fn changed(
-        &mut self,
-        props: Option<Rc<dyn Any>>,
-        next_sibling: Option<NodeRef>,
-    ) -> bool {
+    pub(super) fn changed(&mut self, props: Option<Rc<dyn Any>>, next_sibling: Option<NodeRef>) {
         if let Some(next_sibling) = next_sibling {
             // When components are updated, their siblings were likely also updated
             // We also need to shift the bundle so next sibling will be synced to child
@@ -375,59 +359,43 @@ impl ComponentState {
             }
         }
 
-        let should_render = |props: Option<Rc<dyn Any>>, state: &mut ComponentState| -> bool {
-            props
-                .and_then(|m| (!state.component.props_eq(state.context.props(), &m)).then_some(m))
-                .map(|m| {
-                    state.context.props = m;
-                    true
-                })
-                .unwrap_or(false)
-        };
-
-        #[cfg(feature = "hydration")]
-        let should_render_hydration =
-            |props: Option<Rc<dyn Any>>, state: &mut ComponentState| -> bool {
-                if let Some(props) = props.or_else(|| state.pending_props.take()) {
-                    match state.has_rendered {
-                        true => {
-                            state.pending_props = None;
-                            if !state.component.props_eq(state.context.props(), &props) {
-                                state.context.props = props;
+        // Only trigger changed if props were changed / next sibling has changed.
+        let schedule_render = '_block: {
+            #[cfg(feature = "hydration")]
+            if self.context.creation_mode() == RenderMode::Hydration {
+                break '_block if let Some(props) = props.or_else(|| self.pending_props.take()) {
+                    match self.render_state {
+                        Rendered::Render { .. } => {
+                            self.pending_props = None;
+                            if !self.component.props_eq(self.context.props(), &props) {
+                                self.context.props = props;
                             }
                             true
                         }
-                        false => {
-                            state.pending_props = Some(props);
+                        Rendered::Hydration { .. } => {
+                            self.pending_props = Some(props);
                             false
                         }
                     }
                 } else {
                     false
-                }
-            };
-
-        // Only trigger changed if props were changed / next sibling has changed.
-        let schedule_render = {
-            #[cfg(feature = "hydration")]
-            {
-                if self.context.creation_mode() == RenderMode::Hydration {
-                    should_render_hydration(props, self)
-                } else {
-                    should_render(props, self)
-                }
+                };
             }
 
-            #[cfg(not(feature = "hydration"))]
-            should_render(props, self)
+            props
+                .and_then(|m| (!self.component.props_eq(self.context.props(), &m)).then_some(m))
+                .map(|m| {
+                    self.context.props = m;
+                    true
+                })
+                .unwrap_or(false)
         };
 
-        tracing::trace!(
-            "props_update(has_rendered={} schedule_render={})",
-            self.has_rendered,
-            schedule_render
-        );
-        schedule_render
+        tracing::trace!("props_update(schedule_render={})", schedule_render);
+
+        if schedule_render {
+            self.render()
+        }
     }
 
     #[tracing::instrument(
