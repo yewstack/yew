@@ -308,6 +308,7 @@ pub trait FunctionProvider {
 
 pub(crate) trait AnyFunctionProvider {
     fn run(&self, ctx: &mut HookContext, props: &dyn Any) -> HtmlResult;
+    #[cfg(feature = "csr")]
     fn props_eq(&self, last_props: &dyn Any, next_props: &dyn Any) -> bool;
 }
 
@@ -324,6 +325,7 @@ where
         T::run(ctx, props)
     }
 
+    #[cfg(feature = "csr")]
     fn props_eq(&self, last_props: &dyn Any, next_props: &dyn Any) -> bool {
         match (
             last_props.downcast_ref::<T::Properties>(),
@@ -380,6 +382,7 @@ impl FunctionComponent {
         }
     }
 
+    #[cfg(feature = "csr")]
     pub(crate) fn props_eq(&self, last_props: &dyn Any, next_props: &dyn Any) -> bool {
         self.inner.props_eq(last_props, next_props)
     }

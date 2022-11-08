@@ -4,7 +4,7 @@ mod component;
 mod hooks;
 mod suspension;
 
-#[cfg(any(feature = "csr", feature = "ssr"))]
+#[cfg(feature = "csr")]
 pub(crate) use component::{resume_suspension, suspend_suspension, DispatchSuspension};
 pub use component::{Suspense, SuspenseProps};
 pub use hooks::*;

@@ -12,18 +12,73 @@ pub struct SuspenseProps {
     pub fallback: Html,
 }
 
-#[cfg(any(feature = "csr", feature = "ssr"))]
-mod feat_csr_ssr {
-    use std::cell::RefCell;
+#[cfg(feature = "csr")]
+mod feat_csr {
 
     use super::*;
     use crate::context::ContextStore;
-    use crate::html::{AnyScope, Children, Html, Scope};
+    use crate::html::{AnyScope, Scope};
+    use crate::suspense::Suspension;
+    use crate::ContextProvider;
+
+    #[cfg(feature = "csr")]
+    pub(crate) fn resume_suspension(
+        provider: &Scope<ContextProvider<DispatchSuspension>>,
+        s: Suspension,
+    ) {
+        if let Some(provider) =
+            ContextStore::<DispatchSuspension>::get(&AnyScope::from(provider.clone()))
+        {
+            let context = provider.borrow().get_context_value();
+            context.dispatch(SuspensionsAction::Resume(s));
+        }
+    }
+
+    #[cfg(feature = "csr")]
+    pub(crate) fn suspend_suspension(
+        provider: &Scope<ContextProvider<DispatchSuspension>>,
+        s: Suspension,
+    ) {
+        if let Some(provider) =
+            ContextStore::<DispatchSuspension>::get(&AnyScope::from(provider.clone()))
+        {
+            let context = provider.borrow().get_context_value();
+            context.dispatch(SuspensionsAction::Suspend(s));
+        }
+    }
+}
+
+#[cfg(feature = "csr")]
+pub(crate) use feat_csr::*;
+
+#[cfg(any(feature = "csr", feature = "ssr"))]
+mod feat_csr_ssr {
+
+    use std::cell::RefCell;
+
+    use super::*;
+    use crate::html::{Children, Html};
     use crate::suspense::Suspension;
     use crate::virtual_dom::{VNode, VSuspense};
     use crate::{
         function_component, html, use_reducer, ContextProvider, Reducible, UseReducerDispatcher,
     };
+
+    pub(crate) type DispatchSuspension = UseReducerDispatcher<Suspensions>;
+
+    #[derive(Properties, PartialEq, Debug, Clone)]
+    pub(crate) struct BaseSuspenseProps {
+        pub children: Children,
+        pub fallback: Option<Html>,
+    }
+
+    #[derive(Debug)]
+    pub(crate) enum SuspensionsAction {
+        #[cfg(feature = "csr")]
+        Suspend(Suspension),
+        #[cfg(feature = "csr")]
+        Resume(Suspension),
+    }
 
     #[derive(Default)]
     pub(crate) struct Suspensions {
@@ -31,17 +86,18 @@ mod feat_csr_ssr {
     }
 
     impl Reducible for Suspensions {
-        type Action = BaseSuspenseMsg;
+        type Action = SuspensionsAction;
 
-        fn reduce(self: std::rc::Rc<Self>, action: Self::Action) -> std::rc::Rc<Self> {
+        fn reduce(self: std::rc::Rc<Self>, _action: Self::Action) -> std::rc::Rc<Self> {
+            #[cfg(feature = "csr")]
             {
                 let mut inner = self.inner.borrow_mut();
 
-                match action {
-                    BaseSuspenseMsg::Resume(m) => {
+                match _action {
+                    SuspensionsAction::Resume(m) => {
                         inner.retain(|n| &m != n);
                     }
-                    BaseSuspenseMsg::Suspend(m) => {
+                    SuspensionsAction::Suspend(m) => {
                         if m.resumed() {
                             drop(inner);
                             return self;
@@ -53,14 +109,6 @@ mod feat_csr_ssr {
 
             self
         }
-    }
-
-    pub(crate) type DispatchSuspension = UseReducerDispatcher<Suspensions>;
-
-    #[derive(Properties, PartialEq, Debug, Clone)]
-    pub(crate) struct BaseSuspenseProps {
-        pub children: Children,
-        pub fallback: Option<Html>,
     }
 
     #[function_component]
@@ -97,36 +145,6 @@ mod feat_csr_ssr {
             }
             None => children,
         }
-    }
-
-    pub(crate) fn resume_suspension(
-        provider: &Scope<ContextProvider<DispatchSuspension>>,
-        s: Suspension,
-    ) {
-        if let Some(provider) =
-            ContextStore::<DispatchSuspension>::get(&AnyScope::from(provider.clone()))
-        {
-            let context = provider.borrow().get_context_value();
-            context.dispatch(BaseSuspenseMsg::Resume(s));
-        }
-    }
-
-    pub(crate) fn suspend_suspension(
-        provider: &Scope<ContextProvider<DispatchSuspension>>,
-        s: Suspension,
-    ) {
-        if let Some(provider) =
-            ContextStore::<DispatchSuspension>::get(&AnyScope::from(provider.clone()))
-        {
-            let context = provider.borrow().get_context_value();
-            context.dispatch(BaseSuspenseMsg::Suspend(s));
-        }
-    }
-
-    #[derive(Debug)]
-    pub(crate) enum BaseSuspenseMsg {
-        Suspend(Suspension),
-        Resume(Suspension),
     }
 
     /// Suspend rendering and show a fallback UI until the underlying task completes.

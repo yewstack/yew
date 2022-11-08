@@ -14,7 +14,6 @@ use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider, ContextStore};
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
-use crate::scheduler;
 
 /// Untyped scope used for accessing parent scope
 #[derive(Clone)]
@@ -59,6 +58,8 @@ impl AnyScope {
     pub(crate) fn schedule_render(&self) {
         #[cfg(feature = "csr")]
         {
+            use crate::scheduler;
+
             let scope = self.clone();
             scheduler::push(move || ComponentState::run_render(&scope));
         }
@@ -211,7 +212,6 @@ mod feat_ssr {
 
 #[cfg(any(feature = "ssr", feature = "csr"))]
 mod feat_csr_ssr {
-    use std::cell::RefCell;
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     use super::*;

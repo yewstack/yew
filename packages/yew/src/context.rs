@@ -66,6 +66,7 @@ impl<T: Clone + PartialEq> ContextStore<T> {
         }
     }
 
+    #[cfg(feature = "csr")]
     pub(crate) fn get_context_value(&self) -> T {
         self.context.clone()
     }
