@@ -1,7 +1,7 @@
 //! Components wrapped with context including properties, state, and link
 
 mod children;
-#[cfg(any(feature = "csr", feature = "ssr"))]
+#[cfg(feature = "csr")]
 mod lifecycle;
 mod marker;
 mod properties;

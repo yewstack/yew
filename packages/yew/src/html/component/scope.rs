@@ -7,7 +7,7 @@ use std::marker::PhantomData;
 use std::rc::Rc;
 use std::{fmt, iter};
 
-#[cfg(any(feature = "csr", feature = "ssr"))]
+#[cfg(feature = "csr")]
 use super::lifecycle::ComponentState;
 use super::BaseComponent;
 use crate::callback::Callback;
@@ -28,7 +28,7 @@ pub struct AnyScope {
     id: usize,
     type_id: TypeId,
 
-    #[cfg(any(feature = "csr", feature = "ssr"))]
+    #[cfg(feature = "csr")]
     pub(crate) state: Shared<Option<ComponentState>>,
 
     parent: Option<Rc<AnyScope>>,
@@ -47,7 +47,7 @@ impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
             id: scope.id,
             type_id: TypeId::of::<COMP>(),
 
-            #[cfg(any(feature = "csr", feature = "ssr"))]
+            #[cfg(feature = "csr")]
             state: scope.state.clone(),
 
             parent: scope.parent.clone(),
@@ -63,8 +63,11 @@ impl AnyScope {
 
     /// Schedules a render.
     pub(crate) fn schedule_render(&self) {
-        let scope = self.clone();
-        scheduler::push(move || ComponentState::run_render(&scope));
+        #[cfg(feature = "csr")]
+        {
+            let scope = self.clone();
+            scheduler::push(move || ComponentState::run_render(&scope));
+        }
     }
 
     /// Returns the parent scope
@@ -119,7 +122,7 @@ pub(crate) struct Scope<COMP: BaseComponent> {
     _marker: PhantomData<COMP>,
     parent: Option<Rc<AnyScope>>,
 
-    #[cfg(any(feature = "csr", feature = "ssr"))]
+    #[cfg(feature = "csr")]
     pub(crate) state: Shared<Option<ComponentState>>,
 
     pub(crate) id: usize,
@@ -138,7 +141,7 @@ impl<COMP: BaseComponent> Clone for Scope<COMP> {
 
             parent: self.parent.clone(),
 
-            #[cfg(any(feature = "csr", feature = "ssr"))]
+            #[cfg(feature = "csr")]
             state: self.state.clone(),
 
             id: self.id,
@@ -148,29 +151,17 @@ impl<COMP: BaseComponent> Clone for Scope<COMP> {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
-    use std::cell::Ref;
     use std::fmt::Write;
-    use std::ops::Deref;
 
     use super::*;
-    use crate::functional::FunctionComponent;
-    use crate::html::component::lifecycle::Rendered;
+    use crate::html::RenderError;
     #[cfg(feature = "hydration")]
     use crate::html::RenderMode;
     use crate::platform::fmt::BufWriter;
-    use crate::platform::pinned::oneshot;
     use crate::virtual_dom::Collectable;
     use crate::Context;
 
     impl<COMP: BaseComponent> Scope<COMP> {
-        /// Returns the linked component if available
-        pub(crate) fn get_component(&self) -> Option<impl Deref<Target = FunctionComponent> + '_> {
-            self.state.try_borrow().ok().and_then(|state_ref| {
-                // Ref::filter_map is only available since 1.63
-                Ref::filter_map(state_ref, |state| state.as_ref().map(|m| &m.component)).ok()
-            })
-        }
-
         pub(crate) async fn render_into_stream(
             &self,
             w: &mut BufWriter,
@@ -181,9 +172,6 @@ mod feat_ssr {
             //
             // If the content of this channel is ready before it is awaited, it is
             // similar to taking the value from a mutex lock.
-            let (tx, rx) = oneshot::channel();
-            let state = Rendered::Ssr { sender: Some(tx) };
-
             let scope = AnyScope::from(self.clone());
 
             let context = Context {
@@ -197,21 +185,24 @@ mod feat_ssr {
 
             let component = COMP::create(&context);
 
-            ComponentState::run_create(context, component, state);
-
             let collectable = Collectable::for_component::<COMP>();
 
             if hydratable {
                 collectable.write_open_tag(w);
             }
 
-            let html = rx.await.unwrap();
+            let html = loop {
+                match component.render(context.props().as_ref()) {
+                    Ok(m) => break m,
+                    Err(RenderError::Suspended(e)) => e.await,
+                }
+            };
 
             let self_any_scope = AnyScope::from(self.clone());
             html.render_into_stream(w, &self_any_scope, hydratable)
                 .await;
 
-            if let Some(prepared_state) = self.get_component().unwrap().prepare_state() {
+            if let Some(prepared_state) = component.prepare_state() {
                 let _ = w.write_str(r#"<script type="application/x-yew-comp-state">"#);
                 let _ = w.write_str(&prepared_state);
                 let _ = w.write_str(r#"</script>"#);
@@ -220,8 +211,6 @@ mod feat_ssr {
             if hydratable {
                 collectable.write_close_tag(w);
             }
-
-            ComponentState::run_destroy(&scope, false);
         }
     }
 }
@@ -240,12 +229,11 @@ mod feat_csr_ssr {
         pub(crate) fn new(parent: Option<AnyScope>) -> Self {
             let parent = parent.map(Rc::new);
 
-            let state = Rc::new(RefCell::new(None));
-
             Scope {
                 _marker: PhantomData,
 
-                state,
+                #[cfg(feature = "csr")]
+                state: Rc::new(RefCell::new(None)),
                 parent,
 
                 id: COMP_ID_COUNTER.fetch_add(1, Ordering::SeqCst),

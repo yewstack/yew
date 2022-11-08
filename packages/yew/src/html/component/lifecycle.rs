@@ -3,25 +3,20 @@
 use std::any::Any;
 use std::rc::Rc;
 
-#[cfg(feature = "csr")]
 use web_sys::Element;
 
 use super::scope::AnyScope;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
-#[cfg(feature = "csr")]
 use crate::dom_bundle::{BSubtree, Bundle};
-#[cfg(feature = "csr")]
-use crate::html::NodeRef;
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
-use crate::html::{Html, RenderError};
+use crate::html::{Html, NodeRef, RenderError};
 use crate::scheduler::{self, Shared};
 use crate::suspense::{resume_suspension, suspend_suspension, DispatchSuspension, Suspension};
 use crate::{Callback, Context, ContextProvider, FunctionComponent};
 
 pub(crate) enum Rendered {
-    #[cfg(feature = "csr")]
     Render {
         bundle: Bundle,
         root: BSubtree,
@@ -37,16 +32,11 @@ pub(crate) enum Rendered {
         next_sibling: NodeRef,
         internal_ref: NodeRef,
     },
-    #[cfg(feature = "ssr")]
-    Ssr {
-        sender: Option<crate::platform::pinned::oneshot::Sender<Html>>,
-    },
 }
 
 impl std::fmt::Debug for Rendered {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            #[cfg(feature = "csr")]
             Self::Render {
                 ref bundle,
                 root,
@@ -77,27 +67,13 @@ impl std::fmt::Debug for Rendered {
                 .field("next_sibling", next_sibling)
                 .field("internal_ref", internal_ref)
                 .finish(),
-
-            #[cfg(feature = "ssr")]
-            Self::Ssr { ref sender } => {
-                let sender_repr = match sender {
-                    Some(_) => "Some(_)",
-                    None => "None",
-                };
-
-                f.debug_struct("Rendered::Ssr")
-                    .field("sender", &sender_repr)
-                    .finish()
-            }
         }
     }
 }
 
-#[cfg(feature = "csr")]
 impl Rendered {
     pub(crate) fn shift(&mut self, next_parent: Element, next_next_sibling: NodeRef) {
         match self {
-            #[cfg(feature = "csr")]
             Self::Render {
                 bundle,
                 parent,
@@ -121,12 +97,6 @@ impl Rendered {
                 *parent = next_parent;
                 next_sibling.link(next_next_sibling);
             }
-
-            #[cfg(feature = "ssr")]
-            Self::Ssr { .. } => {
-                #[cfg(debug_assertions)]
-                panic!("shifting is not possible during SSR");
-            }
         }
     }
 }
@@ -137,7 +107,6 @@ pub(crate) struct ComponentState {
 
     pub(super) render_state: Rendered,
 
-    #[cfg(feature = "csr")]
     has_rendered: bool,
     #[cfg(feature = "hydration")]
     pending_props: Option<Rc<dyn Any>>,
@@ -163,7 +132,6 @@ impl ComponentState {
             render_state: initial_render_state,
             suspension: None,
 
-            #[cfg(feature = "csr")]
             has_rendered: false,
             #[cfg(feature = "hydration")]
             pending_props: None,
@@ -226,9 +194,7 @@ impl ComponentState {
             resume_suspension(&suspense_scope, m);
         }
     }
-}
 
-impl ComponentState {
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         skip(self),
@@ -239,7 +205,6 @@ impl ComponentState {
         self.resume_existing_suspension();
 
         match self.render_state {
-            #[cfg(feature = "csr")]
             Rendered::Render {
                 bundle,
                 ref parent,
@@ -264,16 +229,9 @@ impl ComponentState {
 
                 internal_ref.set(None);
             }
-
-            #[cfg(feature = "ssr")]
-            Rendered::Ssr { .. } => {
-                let _ = parent_to_detach;
-            }
         }
     }
-}
 
-impl ComponentState {
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         skip_all,
@@ -326,7 +284,6 @@ impl ComponentState {
         self.resume_existing_suspension();
 
         match self.render_state {
-            #[cfg(feature = "csr")]
             Rendered::Render {
                 ref mut bundle,
                 ref parent,
@@ -366,9 +323,6 @@ impl ComponentState {
             } => {
                 let scope = self.context.link();
 
-                // This first node is not guaranteed to be correct here.
-                // As it may be a comment node that is removed afterwards.
-                // but we link it anyways.
                 let (node, bundle) = Bundle::hydrate(root, scope, parent, fragment, new_root);
 
                 // We trim all text nodes before checking as it's likely these are whitespaces.
@@ -386,139 +340,113 @@ impl ComponentState {
                     next_sibling: next_sibling.clone(),
                 };
             }
-
-            #[cfg(feature = "ssr")]
-            Rendered::Ssr { ref mut sender } => {
-                let _ = shared_state;
-                if let Some(tx) = sender.take() {
-                    tx.send(new_root).unwrap();
-                }
-            }
         };
     }
-}
 
-#[cfg(feature = "csr")]
-mod feat_csr {
-    use super::*;
-
-    impl ComponentState {
-        #[tracing::instrument(
+    #[tracing::instrument(
             level = tracing::Level::DEBUG,
             skip(self),
             fields(component.id = self.comp_id)
         )]
-        pub(super) fn changed(
-            &mut self,
-            props: Option<Rc<dyn Any>>,
-            next_sibling: Option<NodeRef>,
-        ) -> bool {
-            if let Some(next_sibling) = next_sibling {
-                // When components are updated, their siblings were likely also updated
-                // We also need to shift the bundle so next sibling will be synced to child
-                // components.
-                match self.render_state {
-                    #[cfg(feature = "csr")]
-                    Rendered::Render {
-                        next_sibling: ref current_next_sibling,
-                        ..
-                    } => {
-                        current_next_sibling.link(next_sibling);
-                    }
+    pub(super) fn changed(
+        &mut self,
+        props: Option<Rc<dyn Any>>,
+        next_sibling: Option<NodeRef>,
+    ) -> bool {
+        if let Some(next_sibling) = next_sibling {
+            // When components are updated, their siblings were likely also updated
+            // We also need to shift the bundle so next sibling will be synced to child
+            // components.
+            match self.render_state {
+                Rendered::Render {
+                    next_sibling: ref current_next_sibling,
+                    ..
+                } => {
+                    current_next_sibling.link(next_sibling);
+                }
 
-                    #[cfg(feature = "hydration")]
-                    Rendered::Hydration {
-                        next_sibling: ref current_next_sibling,
-                        ..
-                    } => {
-                        current_next_sibling.link(next_sibling);
-                    }
+                #[cfg(feature = "hydration")]
+                Rendered::Hydration {
+                    next_sibling: ref current_next_sibling,
+                    ..
+                } => {
+                    current_next_sibling.link(next_sibling);
+                }
+            }
+        }
 
-                    #[cfg(feature = "ssr")]
-                    Rendered::Ssr { .. } => {
-                        #[cfg(debug_assertions)]
-                        panic!("properties do not change during SSR");
+        let should_render = |props: Option<Rc<dyn Any>>, state: &mut ComponentState| -> bool {
+            props
+                .and_then(|m| (!state.component.props_eq(state.context.props(), &m)).then_some(m))
+                .map(|m| {
+                    state.context.props = m;
+                    true
+                })
+                .unwrap_or(false)
+        };
+
+        #[cfg(feature = "hydration")]
+        let should_render_hydration =
+            |props: Option<Rc<dyn Any>>, state: &mut ComponentState| -> bool {
+                if let Some(props) = props.or_else(|| state.pending_props.take()) {
+                    match state.has_rendered {
+                        true => {
+                            state.pending_props = None;
+                            if !state.component.props_eq(state.context.props(), &props) {
+                                state.context.props = props;
+                            }
+                            true
+                        }
+                        false => {
+                            state.pending_props = Some(props);
+                            false
+                        }
                     }
+                } else {
+                    false
+                }
+            };
+
+        // Only trigger changed if props were changed / next sibling has changed.
+        let schedule_render = {
+            #[cfg(feature = "hydration")]
+            {
+                if self.context.creation_mode() == RenderMode::Hydration {
+                    should_render_hydration(props, self)
+                } else {
+                    should_render(props, self)
                 }
             }
 
-            let should_render = |props: Option<Rc<dyn Any>>, state: &mut ComponentState| -> bool {
-                props
-                    .and_then(|m| {
-                        (!state.component.props_eq(state.context.props(), &m)).then_some(m)
-                    })
-                    .map(|m| {
-                        state.context.props = m;
-                        true
-                    })
-                    .unwrap_or(false)
-            };
+            #[cfg(not(feature = "hydration"))]
+            should_render(props, self)
+        };
 
-            #[cfg(feature = "hydration")]
-            let should_render_hydration =
-                |props: Option<Rc<dyn Any>>, state: &mut ComponentState| -> bool {
-                    if let Some(props) = props.or_else(|| state.pending_props.take()) {
-                        match state.has_rendered {
-                            true => {
-                                state.pending_props = None;
-                                if !state.component.props_eq(state.context.props(), &props) {
-                                    state.context.props = props;
-                                }
-                                true
-                            }
-                            false => {
-                                state.pending_props = Some(props);
-                                false
-                            }
-                        }
-                    } else {
-                        false
-                    }
-                };
-
-            // Only trigger changed if props were changed / next sibling has changed.
-            let schedule_render = {
-                #[cfg(feature = "hydration")]
-                {
-                    if self.context.creation_mode() == RenderMode::Hydration {
-                        should_render_hydration(props, self)
-                    } else {
-                        should_render(props, self)
-                    }
-                }
-
-                #[cfg(not(feature = "hydration"))]
-                should_render(props, self)
-            };
-
-            tracing::trace!(
-                "props_update(has_rendered={} schedule_render={})",
-                self.has_rendered,
-                schedule_render
-            );
+        tracing::trace!(
+            "props_update(has_rendered={} schedule_render={})",
+            self.has_rendered,
             schedule_render
-        }
+        );
+        schedule_render
     }
 
-    impl ComponentState {
-        #[tracing::instrument(
+    #[tracing::instrument(
             level = tracing::Level::DEBUG,
             skip(self),
             fields(component.id = self.comp_id)
         )]
-        pub(super) fn rendered(&mut self) -> bool {
-            if self.suspension.is_none() {
-                self.component.rendered();
-            }
+    pub(super) fn rendered(&mut self) -> bool {
+        if self.suspension.is_none() {
+            self.component.rendered();
+        }
 
-            #[cfg(feature = "hydration")]
-            {
-                self.pending_props.is_some()
-            }
-            #[cfg(not(feature = "hydration"))]
-            {
-                false
-            }
+        #[cfg(feature = "hydration")]
+        {
+            self.pending_props.is_some()
+        }
+        #[cfg(not(feature = "hydration"))]
+        {
+            false
         }
     }
 }
