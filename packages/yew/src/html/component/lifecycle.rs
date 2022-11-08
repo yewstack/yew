@@ -290,12 +290,7 @@ impl ComponentState {
         // suspension to parent element.
 
         if suspension.resumed() {
-            let runner = RenderRunner {
-                state: shared_state.clone(),
-            };
-
-            // schedule a render immediately if suspension is resumed.
-            scheduler::push(move || runner.run());
+            self.render(shared_state);
         } else {
             // We schedule a render after current suspension is resumed.
             let comp_scope = self.context.link();
@@ -351,10 +346,14 @@ impl ComponentState {
 
                 self.has_rendered = true;
 
-                RenderedRunner {
-                    state: shared_state.clone(),
+                let has_pending_props = self.rendered();
+                if has_pending_props {
+                    let should_render = self.changed(None, None);
+
+                    if should_render {
+                        self.render(shared_state);
+                    }
                 }
-                .run();
             }
 
             #[cfg(feature = "hydration")]
@@ -427,7 +426,11 @@ mod feat_csr {
             skip(self),
             fields(component.id = self.comp_id)
         )]
-        fn changed(&mut self, props: Option<Rc<dyn Any>>, next_sibling: Option<NodeRef>) -> bool {
+        pub(super) fn changed(
+            &mut self,
+            props: Option<Rc<dyn Any>>,
+            next_sibling: Option<NodeRef>,
+        ) -> bool {
             if let Some(next_sibling) = next_sibling {
                 // When components are updated, their siblings were likely also updated
                 // We also need to shift the bundle so next sibling will be synced to child
@@ -526,19 +529,11 @@ mod feat_csr {
             if let Some(state) = shared_state.borrow_mut().as_mut() {
                 let schedule_render = state.changed(props, next_sibling);
 
-                let runner = RenderRunner {
-                    state: shared_state.clone(),
-                };
-
                 if schedule_render {
-                    scheduler::push(move || runner.run());
+                    state.render(&shared_state);
                 }
             };
         }
-    }
-
-    pub(crate) struct RenderedRunner {
-        pub state: Shared<Option<ComponentState>>,
     }
 
     impl ComponentState {
@@ -547,7 +542,7 @@ mod feat_csr {
             skip(self),
             fields(component.id = self.comp_id)
         )]
-        fn rendered(&mut self) -> bool {
+        pub(super) fn rendered(&mut self) -> bool {
             if self.suspension.is_none() {
                 self.component.rendered();
             }
@@ -559,24 +554,6 @@ mod feat_csr {
             #[cfg(not(feature = "hydration"))]
             {
                 false
-            }
-        }
-    }
-
-    impl RenderedRunner {
-        pub fn run(self) {
-            if let Some(state) = self.state.borrow_mut().as_mut() {
-                let has_pending_props = state.rendered();
-
-                if has_pending_props {
-                    let runner = PropsUpdateRunner {
-                        state: self.state.clone(),
-                        props: None,
-                        next_sibling: None,
-                    };
-
-                    scheduler::push(move || runner.run());
-                }
             }
         }
     }
@@ -726,7 +703,6 @@ mod tests {
             NodeRef::default(),
             Rc::new(props),
         );
-        crate::scheduler::start_now();
 
         assert_eq!(&lifecycle.borrow_mut().deref()[..], expected);
     }

@@ -89,6 +89,7 @@ where
     /// Renders the application.
     pub fn render(self) -> AppHandle<COMP> {
         set_default_panic_hook();
+
         AppHandle::<COMP>::mount_with_props(self.root, Rc::new(self.props))
     }
 }

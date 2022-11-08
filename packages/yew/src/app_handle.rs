@@ -6,6 +6,7 @@ use web_sys::Element;
 
 use crate::dom_bundle::BSubtree;
 use crate::html::{BaseComponent, NodeRef, Scope, Scoped};
+use crate::scheduler;
 
 /// An instance of an application.
 #[cfg(feature = "csr")]
@@ -34,13 +35,19 @@ where
             scope: Scope::new(None),
         };
         let hosting_root = BSubtree::create_root(&host);
-        app.scope.mount_in_place(
-            hosting_root,
-            host,
-            NodeRef::default(),
-            NodeRef::default(),
-            props,
-        );
+
+        {
+            let scope = app.scope.clone();
+            scheduler::push(move || {
+                scope.mount_in_place(
+                    hosting_root,
+                    host,
+                    NodeRef::default(),
+                    NodeRef::default(),
+                    props,
+                );
+            });
+        }
 
         app
     }
@@ -51,7 +58,10 @@ where
         skip_all,
     )]
     pub fn destroy(self) {
-        self.scope.destroy(false)
+        let scope = self.scope;
+        scheduler::push(move || {
+            scope.destroy(false);
+        });
     }
 }
 
@@ -84,21 +94,25 @@ mod feat_hydration {
             let mut fragment = Fragment::collect_children(&host);
             let hosting_root = BSubtree::create_root(&host);
 
-            app.scope.hydrate_in_place(
-                hosting_root,
-                host.clone(),
-                &mut fragment,
-                NodeRef::default(),
-                Rc::clone(&props),
-            );
-            #[cfg(debug_assertions)] // Fix trapped next_sibling at the root
-            app.scope.reuse(props, NodeRef::default());
+            let scope = app.scope.clone();
 
-            // We remove all remaining nodes, this mimics the clear_element behaviour in
-            // mount_with_props.
-            for node in fragment.iter() {
-                host.remove_child(node).unwrap();
-            }
+            scheduler::push(move || {
+                scope.hydrate_in_place(
+                    hosting_root,
+                    host.clone(),
+                    &mut fragment,
+                    NodeRef::default(),
+                    Rc::clone(&props),
+                );
+                #[cfg(debug_assertions)] // Fix trapped next_sibling at the root
+                scope.reuse(props, NodeRef::default());
+
+                // We remove all remaining nodes, this mimics the clear_element behaviour in
+                // mount_with_props.
+                for node in fragment.iter() {
+                    host.remove_child(node).unwrap();
+                }
+            });
 
             app
         }
