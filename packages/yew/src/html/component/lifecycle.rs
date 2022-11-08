@@ -465,11 +465,17 @@ mod feat_csr {
                 }
             }
 
-            let should_render =
-                |_props: Option<Rc<dyn Any>>, _state: &mut ComponentState| -> bool {
-                    // TODO: Add Props Change back.
-                    true
-                };
+            let should_render = |props: Option<Rc<dyn Any>>, state: &mut ComponentState| -> bool {
+                props
+                    .and_then(|m| {
+                        (!state.component.props_eq(&state.context.props(), &m)).then_some(m)
+                    })
+                    .map(|m| {
+                        state.context.props = m;
+                        true
+                    })
+                    .unwrap_or(false)
+            };
 
             #[cfg(feature = "hydration")]
             let should_render_hydration =
@@ -478,8 +484,9 @@ mod feat_csr {
                         match state.has_rendered {
                             true => {
                                 state.pending_props = None;
-                                // state.inner.props_changed(props)
-                                // TODO: Add Props Change back.
+                                if !state.component.props_eq(&state.context.props(), &props) {
+                                    state.context.props = props;
+                                }
                                 true
                             }
                             false => {

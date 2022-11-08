@@ -297,6 +297,9 @@ pub trait FunctionProvider {
     /// Properties for the Function Component.
     type Properties: Properties + PartialEq;
 
+    /// Creates an instance of function provider.
+    fn create() -> Self;
+
     /// Render the component. This function returns the [`Html`](crate::Html) to be rendered for the
     /// component.
     ///
@@ -304,11 +307,38 @@ pub trait FunctionProvider {
     fn run(ctx: &mut HookContext, props: &Self::Properties) -> HtmlResult;
 }
 
+pub(crate) trait AnyFunctionProvider {
+    fn run(&self, ctx: &mut HookContext, props: &dyn Any) -> HtmlResult;
+    fn props_eq(&self, last_props: &dyn Any, next_props: &dyn Any) -> bool;
+}
+
+impl<T> AnyFunctionProvider for T
+where
+    T: FunctionProvider + 'static,
+{
+    fn run(&self, ctx: &mut HookContext, props: &dyn Any) -> HtmlResult {
+        let props = match props.downcast_ref() {
+            Some(m) => m,
+            None => return Ok(Html::default()),
+        };
+
+        T::run(ctx, props)
+    }
+
+    fn props_eq(&self, last_props: &dyn Any, next_props: &dyn Any) -> bool {
+        match (
+            last_props.downcast_ref::<T::Properties>(),
+            next_props.downcast_ref::<T::Properties>(),
+        ) {
+            (Some(l), Some(r)) => l == r,
+            _ => false,
+        }
+    }
+}
+
 thread_local! {
     static FC_CONTEXTS: RefCell<HashMap<usize, HookContext>> = RefCell::default();
 }
-
-type MakeHtml = Rc<dyn Fn(&mut HookContext, &dyn Any) -> HtmlResult>;
 
 /// A type that interacts [`FunctionProvider`] to provide lifecycle events to be bridged to
 /// [`BaseComponent`].
@@ -320,7 +350,7 @@ type MakeHtml = Rc<dyn Fn(&mut HookContext, &dyn Any) -> HtmlResult>;
 /// Use the `#[function_component]` macro instead.
 #[doc(hidden)]
 pub struct FunctionComponent {
-    run_once: MakeHtml,
+    inner: Rc<dyn AnyFunctionProvider>,
     hook_ctx: RefCell<HookContext>,
 }
 
@@ -328,21 +358,14 @@ impl FunctionComponent {
     /// Creates a new function component.
     pub fn new<T>(ctx: &Context) -> Self
     where
-        T: BaseComponent + FunctionProvider + 'static,
+        T: Sized + BaseComponent + FunctionProvider + 'static,
     {
-        let run_once = Rc::new(|ctx: &mut HookContext, props: &dyn Any| {
-            let props = match props.downcast_ref() {
-                Some(m) => m,
-                None => return Ok(Html::default()),
-            };
+        let inner = Rc::new(<T as FunctionProvider>::create());
 
-            T::run(ctx, props)
-        });
-
-        Self::new_any(ctx, run_once)
+        Self::new_any(ctx, inner)
     }
 
-    fn new_any(ctx: &Context, run_once: MakeHtml) -> Self {
+    fn new_any(ctx: &Context, inner: Rc<dyn AnyFunctionProvider>) -> Self {
         let scope = ctx.link().clone();
         let re_render = {
             let link = ctx.link().clone();
@@ -350,7 +373,7 @@ impl FunctionComponent {
         };
 
         Self {
-            run_once,
+            inner,
             hook_ctx: HookContext::new(
                 scope,
                 re_render,
@@ -362,6 +385,10 @@ impl FunctionComponent {
         }
     }
 
+    pub(crate) fn props_eq(&self, last_props: &dyn Any, next_props: &dyn Any) -> bool {
+        self.inner.props_eq(last_props, next_props)
+    }
+
     /// Renders a function component.
     pub fn render(&self, props: Rc<dyn Any>) -> HtmlResult {
         let mut hook_ctx = self.hook_ctx.borrow_mut();
@@ -369,7 +396,7 @@ impl FunctionComponent {
         hook_ctx.prepare_run();
 
         #[allow(clippy::let_and_return)]
-        let result = (self.run_once)(&mut hook_ctx, &props);
+        let result = self.inner.run(&mut hook_ctx, &props);
 
         #[cfg(debug_assertions)]
         hook_ctx.assert_hook_context(result.is_ok());
