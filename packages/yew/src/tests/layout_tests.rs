@@ -7,29 +7,13 @@ use yew::NodeRef;
 use crate::dom_bundle::{BSubtree, Bundle};
 use crate::html::AnyScope;
 use crate::virtual_dom::VNode;
-use crate::{scheduler, BaseComponent, Context, HtmlResult};
+use crate::{scheduler, BaseComponent, Context, FunctionComponent};
 
 struct Comp;
 impl BaseComponent for Comp {
     type Properties = ();
 
-    fn create(_: &Context) -> Self {
-        unimplemented!()
-    }
-
-    fn view(&self, _ctx: &Context) -> HtmlResult {
-        unimplemented!()
-    }
-
-    fn destroy(&mut self, _ctx: &Context) {
-        unimplemented!()
-    }
-
-    fn prepare_state(&self) -> Option<String> {
-        unimplemented!()
-    }
-
-    fn rendered(&mut self, _ctx: &Context) {
+    fn create(_: &Context) -> FunctionComponent {
         unimplemented!()
     }
 }

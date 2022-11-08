@@ -1,14 +1,12 @@
 //! Component lifecycle module
 
 use std::any::Any;
-use std::marker::PhantomData;
 use std::rc::Rc;
 
 #[cfg(feature = "csr")]
 use web_sys::Element;
 
 use super::scope::AnyScope;
-use super::BaseComponent;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
@@ -20,7 +18,7 @@ use crate::html::RenderMode;
 use crate::html::{Html, RenderError};
 use crate::scheduler::{self, Shared};
 use crate::suspense::{resume_suspension, suspend_suspension, DispatchSuspension, Suspension};
-use crate::{Callback, Context, ContextProvider, HtmlResult};
+use crate::{Callback, Context, ContextProvider, FunctionComponent};
 
 pub(crate) enum ComponentRenderState {
     #[cfg(feature = "csr")]
@@ -133,84 +131,9 @@ impl ComponentRenderState {
     }
 }
 
-struct CompStateInner<COMP>
-where
-    COMP: BaseComponent,
-{
-    pub(crate) component: COMP,
-    pub(crate) context: Context,
-}
-
-/// A trait to provide common,
-/// generic free behaviour across all components to reduce code size.
-///
-/// Mostly a thin wrapper that passes the context to a component's lifecycle
-/// methods.
-pub(crate) trait Stateful {
-    fn view(&self) -> HtmlResult;
-    fn rendered(&mut self);
-    fn destroy(&mut self);
-
-    fn any_scope(&self) -> AnyScope;
-
-    fn props_changed(&mut self, props: Rc<dyn Any>) -> bool;
-
-    fn as_any(&self) -> &dyn Any;
-    fn as_any_mut(&mut self) -> &mut dyn Any;
-
-    #[cfg(feature = "hydration")]
-    fn creation_mode(&self) -> RenderMode;
-}
-
-impl<COMP> Stateful for CompStateInner<COMP>
-where
-    COMP: BaseComponent,
-{
-    fn view(&self) -> HtmlResult {
-        self.component.view(&self.context)
-    }
-
-    fn rendered(&mut self) {
-        self.component.rendered(&self.context)
-    }
-
-    fn destroy(&mut self) {
-        self.component.destroy(&self.context);
-    }
-
-    fn any_scope(&self) -> AnyScope {
-        self.context.link().clone()
-    }
-
-    #[cfg(feature = "hydration")]
-    fn creation_mode(&self) -> RenderMode {
-        self.context.creation_mode()
-    }
-
-    fn props_changed(&mut self, props: Rc<dyn Any>) -> bool {
-        match (
-            props.downcast_ref::<COMP::Properties>(),
-            self.context.props.downcast_ref(),
-        ) {
-            (Some(l), Some(r)) if l != r => {
-                self.context.props = props;
-                true
-            }
-            _ => false,
-        }
-    }
-
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
-    fn as_any_mut(&mut self) -> &mut dyn Any {
-        self
-    }
-}
-
 pub(crate) struct ComponentState {
-    pub(super) inner: Box<dyn Stateful>,
+    pub(super) component: FunctionComponent,
+    pub(super) context: Context,
 
     pub(super) render_state: ComponentRenderState,
 
@@ -231,39 +154,17 @@ impl ComponentState {
         skip_all,
         fields(component.id = scope.get_id()),
     )]
-    fn new<COMP: BaseComponent>(
+    fn new(
+        component: FunctionComponent,
+        context: Context,
         initial_render_state: ComponentRenderState,
         scope: AnyScope,
-        props: Rc<dyn Any>,
-        #[cfg(feature = "hydration")] prepared_state: Option<String>,
     ) -> Self {
         let comp_id = scope.get_id();
-        #[cfg(feature = "hydration")]
-        let creation_mode = {
-            match initial_render_state {
-                ComponentRenderState::Render { .. } => RenderMode::Render,
-                ComponentRenderState::Hydration { .. } => RenderMode::Hydration,
-                #[cfg(feature = "ssr")]
-                ComponentRenderState::Ssr { .. } => RenderMode::Ssr,
-            }
-        };
-
-        let context = Context {
-            scope,
-            props,
-            #[cfg(feature = "hydration")]
-            creation_mode,
-            #[cfg(feature = "hydration")]
-            prepared_state,
-        };
-
-        let inner = Box::new(CompStateInner {
-            component: COMP::create(&context),
-            context,
-        });
 
         Self {
-            inner,
+            component,
+            context,
             render_state: initial_render_state,
             suspension: None,
 
@@ -276,19 +177,9 @@ impl ComponentState {
         }
     }
 
-    pub(crate) fn downcast_comp_ref<COMP>(&self) -> Option<&COMP>
-    where
-        COMP: BaseComponent + 'static,
-    {
-        self.inner
-            .as_any()
-            .downcast_ref::<CompStateInner<COMP>>()
-            .map(|m| &m.component)
-    }
-
     fn resume_existing_suspension(&mut self) {
         if let Some(m) = self.suspension.take() {
-            let comp_scope = self.inner.any_scope();
+            let comp_scope = self.context.link();
 
             let suspense_scope = comp_scope
                 .find_parent_scope::<ContextProvider<DispatchSuspension>>()
@@ -298,25 +189,22 @@ impl ComponentState {
     }
 }
 
-pub(crate) struct CreateRunner<COMP: BaseComponent> {
+pub(crate) struct CreateRunner {
     pub initial_render_state: ComponentRenderState,
-    pub props: Rc<dyn Any>,
     pub scope: AnyScope,
-    #[cfg(feature = "hydration")]
-    pub prepared_state: Option<String>,
-    pub _marker: PhantomData<COMP>,
+    pub component: FunctionComponent,
+    pub context: Context,
 }
 
-impl<COMP: BaseComponent> CreateRunner<COMP> {
+impl CreateRunner {
     pub fn run(self) {
         let mut current_state = self.scope.state.borrow_mut();
         if current_state.is_none() {
-            *current_state = Some(ComponentState::new::<COMP>(
+            *current_state = Some(ComponentState::new(
+                self.component,
+                self.context,
                 self.initial_render_state,
                 self.scope.clone(),
-                self.props,
-                #[cfg(feature = "hydration")]
-                self.prepared_state,
             ));
         }
     }
@@ -334,7 +222,7 @@ impl ComponentState {
         fields(component.id = self.comp_id)
     )]
     fn destroy(mut self, parent_to_detach: bool) {
-        self.inner.destroy();
+        self.component.destroy();
         self.resume_existing_suspension();
 
         match self.render_state {
@@ -391,7 +279,7 @@ impl ComponentState {
         fields(component.id = self.comp_id)
     )]
     fn render(&mut self, shared_state: &Shared<Option<ComponentState>>) {
-        match self.inner.view() {
+        match self.component.render(self.context.props()) {
             Ok(vnode) => self.commit_render(shared_state, vnode),
             Err(RenderError::Suspended(susp)) => self.suspend(shared_state, susp),
         };
@@ -410,7 +298,7 @@ impl ComponentState {
             scheduler::push_component_render(self.comp_id, move || runner.run());
         } else {
             // We schedule a render after current suspension is resumed.
-            let comp_scope = self.inner.any_scope();
+            let comp_scope = self.context.link();
 
             let suspense_scope = comp_scope
                 .find_parent_scope::<ContextProvider<DispatchSuspension>>()
@@ -454,13 +342,13 @@ impl ComponentState {
                 ref internal_ref,
                 ..
             } => {
-                let scope = self.inner.any_scope();
+                let scope = self.context.link();
 
                 #[cfg(feature = "hydration")]
                 next_sibling.debug_assert_not_trapped();
 
                 let new_node_ref =
-                    bundle.reconcile(root, &scope, parent, next_sibling.clone(), new_root);
+                    bundle.reconcile(root, scope, parent, next_sibling.clone(), new_root);
                 internal_ref.link(new_node_ref);
 
                 let first_render = !self.has_rendered;
@@ -485,12 +373,12 @@ impl ComponentState {
                 ref next_sibling,
                 ref root,
             } => {
-                let scope = self.inner.any_scope();
+                let scope = self.context.link();
 
                 // This first node is not guaranteed to be correct here.
                 // As it may be a comment node that is removed afterwards.
                 // but we link it anyways.
-                let (node, bundle) = Bundle::hydrate(root, &scope, parent, fragment, new_root);
+                let (node, bundle) = Bundle::hydrate(root, scope, parent, fragment, new_root);
 
                 // We trim all text nodes before checking as it's likely these are whitespaces.
                 fragment.trim_start_text_nodes(parent);
@@ -577,9 +465,11 @@ mod feat_csr {
                 }
             }
 
-            let should_render = |props: Option<Rc<dyn Any>>, state: &mut ComponentState| -> bool {
-                props.map(|m| state.inner.props_changed(m)).unwrap_or(false)
-            };
+            let should_render =
+                |_props: Option<Rc<dyn Any>>, _state: &mut ComponentState| -> bool {
+                    // TODO: Add Props Change back.
+                    true
+                };
 
             #[cfg(feature = "hydration")]
             let should_render_hydration =
@@ -588,7 +478,9 @@ mod feat_csr {
                         match state.has_rendered {
                             true => {
                                 state.pending_props = None;
-                                state.inner.props_changed(props)
+                                // state.inner.props_changed(props)
+                                // TODO: Add Props Change back.
+                                true
                             }
                             false => {
                                 state.pending_props = Some(props);
@@ -604,7 +496,7 @@ mod feat_csr {
             let schedule_render = {
                 #[cfg(feature = "hydration")]
                 {
-                    if self.inner.creation_mode() == RenderMode::Hydration {
+                    if self.context.creation_mode() == RenderMode::Hydration {
                         should_render_hydration(props, self)
                     } else {
                         should_render(props, self)
@@ -659,7 +551,7 @@ mod feat_csr {
         )]
         fn rendered(&mut self) -> bool {
             if self.suspension.is_none() {
-                self.inner.rendered();
+                self.component.rendered();
             }
 
             #[cfg(feature = "hydration")]

@@ -14,9 +14,11 @@ use super::lifecycle::RenderRunner;
 use super::BaseComponent;
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider, ContextStore};
-use crate::scheduler;
+#[cfg(feature = "hydration")]
+use crate::html::RenderMode;
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use crate::scheduler::Shared;
+use crate::{scheduler, FunctionComponent};
 
 thread_local! {
     static PROPS: RefCell<HashMap<usize, Rc<dyn Any>>> = RefCell::default();
@@ -69,10 +71,6 @@ impl AnyScope {
 
         scheduler::push_component_render(self.id, move || runner.run());
         scheduler::start();
-    }
-
-    pub(crate) fn any_props(&self) -> Option<Rc<dyn Any>> {
-        PROPS.with(|m| m.borrow().get(&self.get_id()).cloned())
     }
 
     /// Returns the parent scope
@@ -169,7 +167,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     }
 
     /// Returns the linked component if available
-    pub fn get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
+    pub fn get_component(&self) -> Option<impl Deref<Target = FunctionComponent> + '_> {
         self.arch_get_component()
     }
 }
@@ -182,10 +180,11 @@ mod feat_ssr {
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
+    use crate::html::RenderMode;
     use crate::platform::fmt::BufWriter;
     use crate::platform::pinned::oneshot;
-    use crate::scheduler;
     use crate::virtual_dom::Collectable;
+    use crate::{scheduler, Context};
 
     impl<COMP: BaseComponent> Scope<COMP> {
         pub(crate) async fn render_into_stream(
@@ -201,13 +200,22 @@ mod feat_ssr {
             let (tx, rx) = oneshot::channel();
             let state = ComponentRenderState::Ssr { sender: Some(tx) };
 
-            CreateRunner {
-                initial_render_state: state,
-                props,
-                scope: self.clone().to_any(),
+            let context = Context {
+                scope: self.to_any(),
+                props: props as Rc<dyn Any>,
+                #[cfg(feature = "hydration")]
+                creation_mode: RenderMode::Ssr,
                 #[cfg(feature = "hydration")]
                 prepared_state: None,
-                _marker: PhantomData::<COMP>,
+            };
+
+            let component = COMP::create(&context);
+
+            CreateRunner {
+                initial_render_state: state,
+                scope: self.clone().to_any(),
+                context,
+                component,
             }
             .run();
             RenderRunner {
@@ -253,6 +261,7 @@ mod feat_csr_ssr {
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     use super::*;
+    use crate::FunctionComponent;
 
     static COMP_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
@@ -273,29 +282,13 @@ mod feat_csr_ssr {
             }
         }
 
-        #[rustversion::before(1.63)]
         #[inline]
-        pub(super) fn arch_get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
-            self.state.try_borrow().ok().and_then(|state_ref| {
-                state_ref.as_ref()?;
-                Some(Ref::map(state_ref, |state| {
-                    state
-                        .as_ref()
-                        .and_then(|m| m.downcast_comp_ref::<COMP>())
-                        .unwrap()
-                }))
-            })
-        }
-
-        #[rustversion::since(1.63)]
-        #[inline]
-        pub(super) fn arch_get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
+        pub(super) fn arch_get_component(
+            &self,
+        ) -> Option<impl Deref<Target = FunctionComponent> + '_> {
             self.state.try_borrow().ok().and_then(|state_ref| {
                 // Ref::filter_map is only available since 1.63
-                Ref::filter_map(state_ref, |state| {
-                    state.as_ref().and_then(|m| m.downcast_comp_ref::<COMP>())
-                })
-                .ok()
+                Ref::filter_map(state_ref, |state| state.as_ref().map(|m| &m.component)).ok()
             })
         }
     }
@@ -313,6 +306,7 @@ mod feat_csr {
         ComponentRenderState, CreateRunner, DestroyRunner, PropsUpdateRunner, RenderRunner,
     };
     use crate::html::NodeRef;
+    use crate::Context;
 
     impl AnyScope {
         #[cfg(test)]
@@ -368,13 +362,22 @@ mod feat_csr {
                 next_sibling: stable_next_sibling,
             };
 
-            CreateRunner {
-                initial_render_state: state,
-                props,
-                scope: self.clone().to_any(),
+            let context = Context {
+                scope: self.to_any(),
+                props: props as Rc<dyn Any>,
+                #[cfg(feature = "hydration")]
+                creation_mode: RenderMode::Render,
                 #[cfg(feature = "hydration")]
                 prepared_state: None,
-                _marker: PhantomData::<COMP>,
+            };
+
+            let component = COMP::create(&context);
+
+            CreateRunner {
+                initial_render_state: state,
+                scope: self.clone().to_any(),
+                context,
+                component,
             }
             .run();
             RenderRunner {
@@ -449,6 +452,7 @@ mod feat_hydration {
     use crate::html::component::lifecycle::{ComponentRenderState, CreateRunner, RenderRunner};
     use crate::html::NodeRef;
     use crate::virtual_dom::Collectable;
+    use crate::Context;
 
     impl<COMP> Scope<COMP>
     where
@@ -512,12 +516,20 @@ mod feat_hydration {
                 fragment,
             };
 
+            let context = Context {
+                scope: self.to_any(),
+                props: props as Rc<dyn Any>,
+                creation_mode: RenderMode::Hydration,
+                prepared_state,
+            };
+
+            let component = COMP::create(&context);
+
             CreateRunner {
                 initial_render_state: state,
-                props,
                 scope: self.clone().to_any(),
-                prepared_state,
-                _marker: PhantomData::<COMP>,
+                context,
+                component,
             }
             .run();
             RenderRunner {

@@ -284,34 +284,8 @@ impl FunctionComponent {
                 type Properties = #props_type;
 
                 #[inline]
-                fn create(ctx: &::yew::html::Context) -> Self {
-                    Self {
-                        _marker: ::std::marker::PhantomData,
-                        function_component: ::yew::functional::FunctionComponent::new::<Self>(ctx),
-                    }
-                }
-
-                #[inline]
-                fn view(&self, ctx: &::yew::html::Context) -> ::yew::html::HtmlResult {
-                    ::yew::functional::FunctionComponent::render(
-                        &self.function_component,
-                        ::yew::html::Context::props(ctx)
-                    )
-                }
-
-                #[inline]
-                fn rendered(&mut self, _ctx: &::yew::html::Context) {
-                    ::yew::functional::FunctionComponent::rendered(&self.function_component)
-                }
-
-                #[inline]
-                fn destroy(&mut self, _ctx: &::yew::html::Context) {
-                    ::yew::functional::FunctionComponent::destroy(&self.function_component)
-                }
-
-                #[inline]
-                fn prepare_state(&self) -> ::std::option::Option<::std::string::String> {
-                    ::yew::functional::FunctionComponent::prepare_state(&self.function_component)
+                fn create(ctx: &::yew::html::Context) -> ::yew::functional::FunctionComponent {
+                    ::yew::functional::FunctionComponent::new::<Self>(ctx)
                 }
             }
         }

@@ -17,7 +17,7 @@ pub use properties::*;
 pub(crate) use scope::Scoped;
 pub use scope::{AnyScope, Scope};
 
-use super::HtmlResult;
+use crate::FunctionComponent;
 
 #[cfg(feature = "hydration")]
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -51,7 +51,7 @@ impl Context {
     /// The component's props
     #[inline]
     pub fn props(&self) -> Rc<dyn Any> {
-        self.scope.any_props().unwrap()
+        self.props.clone()
     }
 
     #[cfg(feature = "hydration")]
@@ -92,17 +92,5 @@ pub trait BaseComponent: Sized + 'static {
     type Properties: Properties;
 
     /// Creates a component.
-    fn create(ctx: &Context) -> Self;
-
-    /// Returns a component layout to be rendered.
-    fn view(&self, ctx: &Context) -> HtmlResult;
-
-    /// Notified after a layout is rendered.
-    fn rendered(&mut self, ctx: &Context);
-
-    /// Notified before a component is destroyed.
-    fn destroy(&mut self, ctx: &Context);
-
-    /// Prepares the server-side state.
-    fn prepare_state(&self) -> Option<String>;
+    fn create(ctx: &Context) -> FunctionComponent;
 }
