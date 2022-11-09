@@ -1,22 +1,16 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
-use std::any::{Any, TypeId};
+use std::any::TypeId;
 use std::fmt;
 use std::rc::Rc;
 
 use super::Key;
-#[cfg(feature = "csr")]
-use crate::html::BaseComponent;
-use crate::html::{ComponentIntriustic, Mountable};
-#[cfg(feature = "csr")]
-#[cfg(any(feature = "ssr", feature = "csr"))]
-#[cfg(feature = "ssr")]
-use crate::platform::fmt::BufWriter;
+use crate::html::{BaseComponent, ComponentIntriustic, Intrinsical};
 
 /// A virtual component.
 pub struct VComp {
     pub(crate) type_id: TypeId,
-    pub(crate) mountable: Rc<dyn Mountable>,
+    pub(crate) mountable: Rc<dyn Intrinsical>,
     pub(crate) key: Option<Key>,
     // for some reason, this reduces the bundle size by ~2-3 KBs
     _marker: u32,
@@ -46,7 +40,7 @@ impl Clone for VComp {
 /// A virtual child component.
 pub struct VChild<COMP: BaseComponent> {
     /// The component properties
-    pub props: Rc<COMP::Properties>,
+    intrinsic: Rc<ComponentIntriustic<COMP>>,
     /// Reference to the mounted node
     key: Option<Key>,
 }
@@ -54,7 +48,7 @@ pub struct VChild<COMP: BaseComponent> {
 impl<COMP: BaseComponent> Clone for VChild<COMP> {
     fn clone(&self) -> Self {
         VChild {
-            props: Rc::clone(&self.props),
+            intrinsic: Rc::clone(&self.intrinsic),
             key: self.key.clone(),
         }
     }
@@ -65,7 +59,7 @@ where
     COMP::Properties: PartialEq,
 {
     fn eq(&self, other: &VChild<COMP>) -> bool {
-        self.props == other.props
+        self.intrinsic.props() == other.intrinsic.props()
     }
 }
 
@@ -76,7 +70,7 @@ where
     /// Creates a child component that can be accessed and modified by its parent.
     pub fn new(props: COMP::Properties, key: Option<Key>) -> Self {
         Self {
-            props: Rc::new(props),
+            intrinsic: Rc::new(ComponentIntriustic::new(props)),
             key,
         }
     }
@@ -87,19 +81,33 @@ where
     COMP: BaseComponent,
 {
     fn from(vchild: VChild<COMP>) -> Self {
-        VComp::new::<COMP>(vchild.props, vchild.key)
+        VComp::with_intrinsic::<COMP, _>(vchild.intrinsic, vchild.key)
     }
 }
 
 impl VComp {
     /// Creates a new `VComp` instance.
-    pub fn new<COMP>(props: Rc<COMP::Properties>, key: Option<Key>) -> Self
+    pub fn new<COMP>(props: COMP::Properties, key: Option<Key>) -> Self
     where
         COMP: BaseComponent,
     {
         VComp {
             type_id: TypeId::of::<COMP>(),
             mountable: Rc::new(ComponentIntriustic::<COMP>::new(props)),
+            key,
+            _marker: 0,
+        }
+    }
+
+    /// Creates a new `VComp` instance.
+    pub(crate) fn with_intrinsic<COMP, I>(intrinsic: I, key: Option<Key>) -> Self
+    where
+        COMP: BaseComponent,
+        I: Into<Rc<ComponentIntriustic<COMP>>>,
+    {
+        VComp {
+            type_id: TypeId::of::<COMP>(),
+            mountable: intrinsic.into(),
             key,
             _marker: 0,
         }
@@ -122,6 +130,7 @@ impl<COMP: BaseComponent> fmt::Debug for VChild<COMP> {
 mod feat_ssr {
     use super::*;
     use crate::html::Scope;
+    use crate::platform::fmt::BufWriter;
 
     impl VComp {
         #[inline]

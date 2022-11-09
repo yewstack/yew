@@ -1,6 +1,5 @@
 use std::cell::Cell;
 use std::panic::PanicInfo;
-use std::rc::Rc;
 
 use web_sys::Element;
 
@@ -90,7 +89,7 @@ where
     pub fn render(self) -> AppHandle<COMP> {
         set_default_panic_hook();
 
-        AppHandle::<COMP>::mount_with_props(self.root, Rc::new(self.props))
+        AppHandle::<COMP>::mount_with_props(self.root, self.props)
     }
 }
 
@@ -105,7 +104,7 @@ mod feat_hydration {
         /// Hydrates the application.
         pub fn hydrate(self) -> AppHandle<COMP> {
             set_default_panic_hook();
-            AppHandle::<COMP>::hydrate_with_props(self.root, Rc::new(self.props))
+            AppHandle::<COMP>::hydrate_with_props(self.root, self.props)
         }
     }
 }

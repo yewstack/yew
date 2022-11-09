@@ -3,22 +3,25 @@ use std::rc::Rc;
 
 #[cfg(feature = "ssr")]
 use futures::future::{FutureExt, LocalBoxFuture};
+#[cfg(feature = "csr")]
 use web_sys::Element;
 
 use super::{BaseComponent, Context, Scope};
+#[cfg(feature = "csr")]
 use crate::dom_bundle::BSubtree;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
 use crate::functional::FunctionComponent;
+#[cfg(feature = "csr")]
 use crate::html::NodeRef;
 #[cfg(feature = "ssr")]
 use crate::platform::fmt::BufWriter;
 #[cfg(any(feature = "hydration", feature = "ssr"))]
 use crate::virtual_dom::Collectable;
 
-pub(crate) trait Mountable {
+pub(crate) trait Intrinsical {
     fn type_id(&self) -> TypeId;
-    fn props(&self) -> &dyn Any;
+    fn any_props(&self) -> &dyn Any;
 
     fn create_component(&self, ctx: &Context) -> FunctionComponent;
     #[cfg(any(feature = "hydration", feature = "ssr"))]
@@ -57,22 +60,26 @@ pub(crate) trait Mountable {
 }
 
 pub(crate) struct ComponentIntriustic<COMP: BaseComponent> {
-    props: Rc<COMP::Properties>,
+    props: COMP::Properties,
 }
 
 impl<COMP: BaseComponent> ComponentIntriustic<COMP> {
-    pub fn new(props: Rc<COMP::Properties>) -> Self {
+    pub fn new(props: COMP::Properties) -> Self {
         Self { props }
+    }
+
+    pub fn props(&self) -> &COMP::Properties {
+        &self.props
     }
 }
 
-impl<COMP: BaseComponent> Mountable for ComponentIntriustic<COMP> {
+impl<COMP: BaseComponent> Intrinsical for ComponentIntriustic<COMP> {
     fn type_id(&self) -> TypeId {
         TypeId::of::<COMP>()
     }
 
-    fn props(&self) -> &dyn Any {
-        self.props.as_ref()
+    fn any_props(&self) -> &dyn Any {
+        &self.props
     }
 
     fn create_component(&self, ctx: &Context) -> FunctionComponent {

@@ -13,7 +13,7 @@ use std::fmt;
 use std::rc::Rc;
 
 pub use children::*;
-pub(crate) use intrinsic::{ComponentIntriustic, Mountable};
+pub(crate) use intrinsic::{ComponentIntriustic, Intrinsical};
 pub use marker::*;
 pub use properties::*;
 pub use scope::Scope;
@@ -32,7 +32,7 @@ pub(crate) enum RenderMode {
 /// The [`Component`]'s context. This contains component's [`Scope`] and props and
 /// is passed to every lifecycle method.
 pub struct Context {
-    mountable: Rc<dyn Mountable>,
+    mountable: Rc<dyn Intrinsical>,
     scope: Scope,
     #[cfg(feature = "hydration")]
     creation_mode: RenderMode,
@@ -57,7 +57,7 @@ impl Context {
     /// The component's props
     #[inline]
     pub fn props(&self) -> &dyn Any {
-        self.mountable.props()
+        self.mountable.any_props()
     }
 
     #[cfg(feature = "hydration")]

@@ -100,7 +100,7 @@ where
         fields(hydratable = self.hydratable),
     )]
     pub fn render_stream(self) -> impl Stream<Item = String> {
-        let mountable = Rc::new(ComponentIntriustic::<COMP>::new(self.props.into()));
+        let mountable = Rc::new(ComponentIntriustic::<COMP>::new(self.props));
 
         let scope = Scope::new(mountable.as_ref(), None);
 

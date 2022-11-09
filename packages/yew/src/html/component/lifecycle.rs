@@ -10,7 +10,7 @@ use crate::dom_bundle::Fragment;
 use crate::dom_bundle::{BSubtree, Bundle};
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
-use crate::html::{Html, Mountable, NodeRef, RenderError};
+use crate::html::{Html, Intrinsical, NodeRef, RenderError};
 use crate::suspense::{resume_suspension, suspend_suspension, DispatchSuspension, Suspension};
 use crate::{scheduler, Callback, Context, ContextProvider, FunctionComponent};
 
@@ -49,7 +49,7 @@ pub(crate) struct ComponentState {
     internal_ref: NodeRef,
 
     #[cfg(feature = "hydration")]
-    pending_mountable: Option<Rc<dyn Mountable>>,
+    pending_mountable: Option<Rc<dyn Intrinsical>>,
 
     suspension: Option<Suspension>,
 }
@@ -130,7 +130,7 @@ impl ComponentState {
 
     pub fn run_update(
         scope: &Scope,
-        mountable: Option<Rc<dyn Mountable>>,
+        mountable: Option<Rc<dyn Intrinsical>>,
         next_sibling: Option<NodeRef>,
     ) {
         if let Some(state) = scope.state_cell().borrow_mut().as_mut() {
@@ -292,7 +292,7 @@ impl ComponentState {
     )]
     pub(super) fn changed(
         &mut self,
-        mountable: Option<Rc<dyn Mountable>>,
+        mountable: Option<Rc<dyn Intrinsical>>,
         next_sibling: Option<NodeRef>,
     ) {
         if let Some(next_sibling) = next_sibling {
@@ -314,7 +314,7 @@ impl ComponentState {
                             self.pending_mountable = None;
                             if !self
                                 .component
-                                .props_eq(self.context.props(), mountable.props())
+                                .props_eq(self.context.props(), mountable.any_props())
                             {
                                 self.context.mountable = mountable;
                             }

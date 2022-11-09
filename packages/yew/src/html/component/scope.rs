@@ -127,14 +127,14 @@ mod feat_ssr {
     use super::*;
     #[cfg(feature = "hydration")]
     use crate::html::RenderMode;
-    use crate::html::{Mountable, RenderError};
+    use crate::html::{Intrinsical, RenderError};
     use crate::platform::fmt::BufWriter;
     use crate::Context;
 
     impl Scope {
         pub(crate) async fn render_into_stream(
             &self,
-            mountable: Rc<dyn Mountable>,
+            mountable: Rc<dyn Intrinsical>,
             w: &mut BufWriter,
             hydratable: bool,
         ) {
@@ -186,13 +186,13 @@ mod feat_csr_ssr {
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     use super::*;
-    use crate::html::Mountable;
+    use crate::html::Intrinsical;
 
     static COMP_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
     impl Scope {
         /// Crate a scope with an optional parent scope
-        pub(crate) fn new(mountable: &dyn Mountable, parent: Option<Scope>) -> Self {
+        pub(crate) fn new(mountable: &dyn Intrinsical, parent: Option<Scope>) -> Self {
             Scope {
                 inner: Rc::new(ScopeInner {
                     type_id: mountable.type_id(),
@@ -215,7 +215,7 @@ mod feat_csr {
     use super::*;
     use crate::dom_bundle::{BSubtree, Bundle};
     use crate::html::component::lifecycle::Realized;
-    use crate::html::{Mountable, NodeRef};
+    use crate::html::{Intrinsical, NodeRef};
     use crate::Context;
 
     impl Scope {
@@ -235,14 +235,14 @@ mod feat_csr {
             &self.inner.state
         }
 
-        pub(crate) fn reuse(&self, mountable: Rc<dyn Mountable>, next_sibling: NodeRef) {
+        pub(crate) fn reuse(&self, mountable: Rc<dyn Intrinsical>, next_sibling: NodeRef) {
             ComponentState::run_update(self, Some(mountable), Some(next_sibling));
         }
 
         /// Mounts a component with `props` to the specified `element` in the DOM.
         pub(crate) fn mount(
             &self,
-            mountable: Rc<dyn Mountable>,
+            mountable: Rc<dyn Intrinsical>,
             root: BSubtree,
             parent: Element,
             next_sibling: NodeRef,
@@ -296,7 +296,7 @@ mod feat_hydration {
     use super::*;
     use crate::dom_bundle::{BSubtree, Fragment};
     use crate::html::component::lifecycle::Realized;
-    use crate::html::{Mountable, NodeRef};
+    use crate::html::{Intrinsical, NodeRef};
     use crate::Context;
 
     impl Scope {
@@ -311,7 +311,7 @@ mod feat_hydration {
         #[allow(clippy::too_many_arguments)]
         pub(crate) fn hydrate(
             &self,
-            mountable: Rc<dyn Mountable>,
+            mountable: Rc<dyn Intrinsical>,
             root: BSubtree,
             parent: Element,
             fragment: &mut Fragment,

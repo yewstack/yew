@@ -31,7 +31,7 @@ where
         name = "mount",
         skip(props),
     )]
-    pub(crate) fn mount_with_props(host: Element, props: Rc<COMP::Properties>) -> Self {
+    pub(crate) fn mount_with_props(host: Element, props: COMP::Properties) -> Self {
         clear_element(&host);
         let mountable = Rc::new(ComponentIntriustic::<COMP>::new(props));
 
@@ -91,7 +91,7 @@ mod feat_hydration {
             name = "hydrate",
             skip(props),
         )]
-        pub(crate) fn hydrate_with_props(host: Element, props: Rc<COMP::Properties>) -> Self {
+        pub(crate) fn hydrate_with_props(host: Element, props: COMP::Properties) -> Self {
             let mountable = Rc::new(ComponentIntriustic::<COMP>::new(props));
 
             let app = Self {
