@@ -1,4 +1,5 @@
 use std::any::{Any, TypeId};
+#[cfg(any(feature = "csr", feature = "ssr"))]
 use std::rc::Rc;
 
 #[cfg(feature = "ssr")]
@@ -6,7 +7,9 @@ use futures::future::{FutureExt, LocalBoxFuture};
 #[cfg(feature = "csr")]
 use web_sys::Element;
 
-use super::{BaseComponent, Context, Scope};
+#[cfg(any(feature = "csr", feature = "ssr"))]
+use super::Scope;
+use super::{BaseComponent, Context};
 #[cfg(feature = "csr")]
 use crate::dom_bundle::BSubtree;
 #[cfg(feature = "hydration")]
