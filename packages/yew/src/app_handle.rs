@@ -69,7 +69,8 @@ where
         skip_all,
     )]
     pub fn update(&mut self, new_props: COMP::Properties) {
-        self.scope.reuse(Rc::new(new_props), NodeRef::default())
+        let mountable = Rc::new(ComponentIntrinsic::<COMP>::new(new_props));
+        self.scope.reuse(mountable, NodeRef::default())
     }
 
     /// Schedule the app for destruction
