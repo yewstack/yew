@@ -24,13 +24,13 @@ impl std::fmt::Debug for Realized {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Bundle(ref bundle) => f
-                .debug_struct("Rendered::Render")
+                .debug_struct("Realized::Render")
                 .field("bundle", bundle)
                 .finish(),
 
             #[cfg(feature = "hydration")]
             Self::Fragement(ref fragment) => f
-                .debug_struct("Rendered::Hydration")
+                .debug_struct("Realized::Hydration")
                 .field("fragment", fragment)
                 .finish(),
         }
