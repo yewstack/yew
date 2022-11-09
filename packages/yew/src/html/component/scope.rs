@@ -283,39 +283,17 @@ mod feat_csr {
                 internal_ref,
             );
         }
-    }
-
-    pub(crate) trait Scoped {
-        fn to_any(&self) -> Scope;
-        /// Shift the node associated with this scope to a new place
-        fn shift_node(&self, parent: Element, next_sibling: NodeRef);
-        /// Process an event to destroy a component
-        fn destroy(self, parent_to_detach: bool);
-        fn destroy_boxed(self: Box<Self>, parent_to_detach: bool);
-    }
-
-    impl Scoped for Scope {
-        fn to_any(&self) -> Scope {
-            self.clone()
-        }
 
         /// Process an event to destroy a component
-        fn destroy(self, parent_to_detach: bool) {
+        pub(crate) fn destroy(self, parent_to_detach: bool) {
             ComponentState::run_destroy(&self, parent_to_detach);
         }
 
-        fn destroy_boxed(self: Box<Self>, parent_to_detach: bool) {
-            self.destroy(parent_to_detach);
-        }
-
-        fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
+        pub(crate) fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
             ComponentState::run_shift(self, parent, next_sibling);
         }
     }
 }
-
-#[cfg(feature = "csr")]
-pub(crate) use feat_csr::*;
 
 #[cfg(feature = "hydration")]
 mod feat_hydration {
@@ -376,10 +354,8 @@ mod feat_hydration {
 
             let state = Realized::Fragement(fragment);
 
-            let scope = self.to_any();
-
             let context = Context {
-                scope,
+                scope: self.clone(),
                 props: props as Rc<dyn Any>,
                 creation_mode: RenderMode::Hydration,
                 prepared_state,

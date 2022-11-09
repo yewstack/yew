@@ -6,7 +6,7 @@ use std::rc::Rc;
 use web_sys::Element;
 
 use crate::dom_bundle::BSubtree;
-use crate::html::{BaseComponent, NodeRef, Scope, Scoped};
+use crate::html::{BaseComponent, NodeRef, Scope};
 use crate::scheduler;
 
 /// An instance of an application.
@@ -42,7 +42,7 @@ where
         {
             let scope = app.scope.clone();
             scheduler::push(move || {
-                scope.to_any().mount(
+                scope.mount(
                     hosting_root,
                     host,
                     NodeRef::default(),
@@ -103,7 +103,7 @@ mod feat_hydration {
             let scope = app.scope.clone();
 
             scheduler::push(move || {
-                scope.to_any().hydrate(
+                scope.hydrate(
                     hosting_root,
                     host.clone(),
                     &mut fragment,
@@ -113,7 +113,7 @@ mod feat_hydration {
                     || Collectable::for_component::<COMP>(),
                 );
                 #[cfg(debug_assertions)] // Fix trapped next_sibling at the root
-                scope.to_any().reuse(props, NodeRef::default());
+                scope.reuse(props, NodeRef::default());
 
                 // We remove all remaining nodes, this mimics the clear_element behaviour in
                 // mount_with_props.

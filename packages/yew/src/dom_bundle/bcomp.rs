@@ -1,20 +1,19 @@
 //! This module contains the bundle implementation of a virtual component [BComp].
 
 use std::any::TypeId;
-use std::borrow::Borrow;
 use std::fmt;
 
 use web_sys::Element;
 
 use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::{Scope, Scoped};
+use crate::html::Scope;
 use crate::virtual_dom::{Key, VComp};
 use crate::NodeRef;
 
 /// A virtual component. Compare with [VComp].
 pub(super) struct BComp {
     type_id: TypeId,
-    scope: Box<dyn Scoped>,
+    scope: Scope,
     // A internal NodeRef passed around to track this components position. This
     // is "stable", i.e. does not change when reconciled.
     internal_ref: NodeRef,
@@ -36,7 +35,7 @@ impl fmt::Debug for BComp {
 
 impl ReconcileTarget for BComp {
     fn detach(self, _root: &BSubtree, _parent: &Element, parent_to_detach: bool) {
-        self.scope.destroy_boxed(parent_to_detach);
+        self.scope.destroy(parent_to_detach);
     }
 
     fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
@@ -113,7 +112,7 @@ impl Reconcilable for VComp {
         let VComp { mountable, key, .. } = self;
 
         bcomp.key = key;
-        mountable.reuse(bcomp.scope.borrow(), next_sibling);
+        mountable.reuse(&bcomp.scope, next_sibling);
         bcomp.internal_ref.clone()
     }
 }

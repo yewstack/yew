@@ -15,10 +15,10 @@ use crate::dom_bundle::BSubtree;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
 use crate::html::BaseComponent;
+#[cfg(feature = "csr")]
+use crate::html::NodeRef;
 #[cfg(any(feature = "ssr", feature = "csr"))]
 use crate::html::Scope;
-#[cfg(feature = "csr")]
-use crate::html::{NodeRef, Scoped};
 #[cfg(feature = "ssr")]
 use crate::platform::fmt::BufWriter;
 
@@ -63,10 +63,10 @@ pub(crate) trait Mountable {
         parent: Element,
         internal_ref: NodeRef,
         next_sibling: NodeRef,
-    ) -> Box<dyn Scoped>;
+    ) -> Scope;
 
     #[cfg(feature = "csr")]
-    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef);
+    fn reuse(self: Box<Self>, scope: &Scope, next_sibling: NodeRef);
 
     #[cfg(feature = "ssr")]
     fn render_into_stream<'a>(
@@ -84,7 +84,7 @@ pub(crate) trait Mountable {
         parent: Element,
         internal_ref: NodeRef,
         fragment: &mut Fragment,
-    ) -> Box<dyn Scoped>;
+    ) -> Scope;
 }
 
 pub(crate) struct PropsWrapper<COMP: BaseComponent> {
@@ -113,9 +113,9 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         parent: Element,
         internal_ref: NodeRef,
         next_sibling: NodeRef,
-    ) -> Box<dyn Scoped> {
-        let scope: Scope = Scope::new::<COMP>(Some(parent_scope.clone()));
-        scope.to_any().mount(
+    ) -> Scope {
+        let scope = Scope::new::<COMP>(Some(parent_scope.clone()));
+        scope.mount(
             root.clone(),
             parent,
             next_sibling,
@@ -124,12 +124,12 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
             self.props,
         );
 
-        Box::new(scope)
+        scope
     }
 
     #[cfg(feature = "csr")]
-    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef) {
-        scope.to_any().reuse(self.props, next_sibling);
+    fn reuse(self: Box<Self>, scope: &Scope, next_sibling: NodeRef) {
+        scope.reuse(self.props, next_sibling);
     }
 
     #[cfg(feature = "ssr")]
@@ -143,7 +143,6 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
 
         async move {
             scope
-                .to_any()
                 .render_into_stream::<COMP>(w, self.props.clone(), hydratable)
                 .await;
         }
@@ -158,7 +157,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         parent: Element,
         internal_ref: NodeRef,
         fragment: &mut Fragment,
-    ) -> Box<dyn Scoped> {
+    ) -> Scope {
         use crate::virtual_dom::Collectable;
 
         let scope: Scope = Scope::new::<COMP>(Some(parent_scope.clone()));
@@ -167,12 +166,12 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         // which means this component may not having a stable layout / differs between
         // client-side and server-side.
         tracing::trace!(
-            component.id = scope.to_any().id(),
+            component.id = scope.id(),
             "hydration(type = {})",
             std::any::type_name::<COMP>()
         );
 
-        scope.to_any().hydrate(
+        scope.hydrate(
             root,
             parent,
             fragment,
@@ -182,7 +181,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
             || Collectable::for_component::<COMP>(),
         );
 
-        Box::new(scope)
+        scope
     }
 }
 

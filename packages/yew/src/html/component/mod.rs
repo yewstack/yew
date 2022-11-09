@@ -14,8 +14,6 @@ pub use children::*;
 pub use marker::*;
 pub use properties::*;
 pub use scope::Scope;
-#[cfg(feature = "csr")]
-pub(crate) use scope::Scoped;
 
 use crate::FunctionComponent;
 
