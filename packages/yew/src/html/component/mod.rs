@@ -1,6 +1,7 @@
 //! Components wrapped with context including properties, state, and link
 
 mod children;
+mod intrinsic;
 #[cfg(feature = "csr")]
 mod lifecycle;
 mod marker;
@@ -8,9 +9,11 @@ mod properties;
 mod scope;
 
 use std::any::Any;
+use std::fmt;
 use std::rc::Rc;
 
 pub use children::*;
+pub(crate) use intrinsic::{ComponentIntriustic, Mountable};
 pub use marker::*;
 pub use properties::*;
 pub use scope::Scope;
@@ -28,15 +31,20 @@ pub(crate) enum RenderMode {
 
 /// The [`Component`]'s context. This contains component's [`Scope`] and props and
 /// is passed to every lifecycle method.
-#[derive(Debug)]
 pub struct Context {
-    props: Rc<dyn Any>,
+    mountable: Rc<dyn Mountable>,
     scope: Scope,
     #[cfg(feature = "hydration")]
     creation_mode: RenderMode,
 
     #[cfg(feature = "hydration")]
     prepared_state: Option<String>,
+}
+
+impl fmt::Debug for Context {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("Context")
+    }
 }
 
 impl Context {
@@ -48,8 +56,8 @@ impl Context {
 
     /// The component's props
     #[inline]
-    pub fn props(&self) -> &Rc<dyn Any> {
-        &self.props
+    pub fn props(&self) -> &dyn Any {
+        self.mountable.props()
     }
 
     #[cfg(feature = "hydration")]

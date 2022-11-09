@@ -1,6 +1,6 @@
 //! Component scope module
 
-use std::any::{Any, TypeId};
+use std::any::TypeId;
 #[cfg(feature = "csr")]
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -55,10 +55,6 @@ impl Scope {
     /// Returns the parent scope
     pub fn parent(&self) -> Option<&Scope> {
         self.inner.parent.as_ref()
-    }
-
-    pub(crate) fn state_cell(&self) -> &RefCell<Option<ComponentState>> {
-        &self.inner.state
     }
 
     /// Returns the type of the linked component
@@ -129,22 +125,19 @@ mod feat_ssr {
     use std::fmt::Write;
 
     use super::*;
-    use crate::html::RenderError;
     #[cfg(feature = "hydration")]
     use crate::html::RenderMode;
+    use crate::html::{Mountable, RenderError};
     use crate::platform::fmt::BufWriter;
-    use crate::virtual_dom::Collectable;
     use crate::Context;
 
     impl Scope {
-        pub(crate) async fn render_into_stream<COMP>(
+        pub(crate) async fn render_into_stream(
             &self,
+            mountable: Rc<dyn Mountable>,
             w: &mut BufWriter,
-            props: Rc<COMP::Properties>,
             hydratable: bool,
-        ) where
-            COMP: BaseComponent,
-        {
+        ) {
             // Rust's Future implementation is stack-allocated and incurs zero runtime-cost.
             //
             // If the content of this channel is ready before it is awaited, it is
@@ -152,23 +145,22 @@ mod feat_ssr {
 
             let context = Context {
                 scope: self.clone(),
-                props: props as Rc<dyn Any>,
+                mountable: mountable.clone(),
                 #[cfg(feature = "hydration")]
                 creation_mode: RenderMode::Ssr,
                 #[cfg(feature = "hydration")]
                 prepared_state: None,
             };
 
-            let component = COMP::create(&context);
-
-            let collectable = Collectable::for_component::<COMP>();
+            let component = mountable.create_component(&context);
+            let collectable = mountable.create_collectable();
 
             if hydratable {
                 collectable.write_open_tag(w);
             }
 
             let html = loop {
-                match component.render(context.props().as_ref()) {
+                match component.render(context.props()) {
                     Ok(m) => break m,
                     Err(RenderError::Suspended(e)) => e.await,
                 }
@@ -194,18 +186,16 @@ mod feat_csr_ssr {
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     use super::*;
+    use crate::html::Mountable;
 
     static COMP_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
     impl Scope {
         /// Crate a scope with an optional parent scope
-        pub(crate) fn new<COMP>(parent: Option<Scope>) -> Self
-        where
-            COMP: BaseComponent,
-        {
+        pub(crate) fn new(mountable: &dyn Mountable, parent: Option<Scope>) -> Self {
             Scope {
                 inner: Rc::new(ScopeInner {
-                    type_id: TypeId::of::<COMP>(),
+                    type_id: mountable.type_id(),
 
                     #[cfg(feature = "csr")]
                     state: RefCell::new(None),
@@ -225,8 +215,8 @@ mod feat_csr {
     use super::*;
     use crate::dom_bundle::{BSubtree, Bundle};
     use crate::html::component::lifecycle::Realized;
-    use crate::html::NodeRef;
-    use crate::{Context, FunctionComponent};
+    use crate::html::{Mountable, NodeRef};
+    use crate::Context;
 
     impl Scope {
         #[cfg(test)]
@@ -241,19 +231,22 @@ mod feat_csr {
             }
         }
 
-        pub(crate) fn reuse(&self, props: Rc<dyn Any>, next_sibling: NodeRef) {
-            ComponentState::run_update_props(self, Some(props), Some(next_sibling));
+        pub(crate) fn state_cell(&self) -> &RefCell<Option<ComponentState>> {
+            &self.inner.state
+        }
+
+        pub(crate) fn reuse(&self, mountable: Rc<dyn Mountable>, next_sibling: NodeRef) {
+            ComponentState::run_update(self, Some(mountable), Some(next_sibling));
         }
 
         /// Mounts a component with `props` to the specified `element` in the DOM.
         pub(crate) fn mount(
             &self,
+            mountable: Rc<dyn Mountable>,
             root: BSubtree,
             parent: Element,
             next_sibling: NodeRef,
             internal_ref: NodeRef,
-            create_component: fn(&Context) -> FunctionComponent,
-            props: Rc<dyn Any>,
         ) {
             let bundle = Bundle::new();
             internal_ref.link(next_sibling.clone());
@@ -264,14 +257,14 @@ mod feat_csr {
 
             let context = Context {
                 scope: self.clone(),
-                props: props as Rc<dyn Any>,
+                mountable: mountable.clone(),
                 #[cfg(feature = "hydration")]
                 creation_mode: RenderMode::Render,
                 #[cfg(feature = "hydration")]
                 prepared_state: None,
             };
 
-            let component = create_component(&context);
+            let component = mountable.create_component(&context);
 
             ComponentState::run_create(
                 context,
@@ -303,9 +296,8 @@ mod feat_hydration {
     use super::*;
     use crate::dom_bundle::{BSubtree, Fragment};
     use crate::html::component::lifecycle::Realized;
-    use crate::html::NodeRef;
-    use crate::virtual_dom::Collectable;
-    use crate::{Context, FunctionComponent};
+    use crate::html::{Mountable, NodeRef};
+    use crate::Context;
 
     impl Scope {
         /// Hydrates the component.
@@ -319,15 +311,13 @@ mod feat_hydration {
         #[allow(clippy::too_many_arguments)]
         pub(crate) fn hydrate(
             &self,
+            mountable: Rc<dyn Mountable>,
             root: BSubtree,
             parent: Element,
             fragment: &mut Fragment,
             internal_ref: NodeRef,
-            create_component: fn(&Context) -> FunctionComponent,
-            props: Rc<dyn Any>,
-            create_collectable: fn() -> Collectable,
         ) {
-            let collectable = create_collectable();
+            let collectable = mountable.create_collectable();
 
             let mut fragment = Fragment::collect_between(fragment, &collectable, &parent);
             match fragment.front().cloned() {
@@ -356,12 +346,12 @@ mod feat_hydration {
 
             let context = Context {
                 scope: self.clone(),
-                props: props as Rc<dyn Any>,
+                mountable: mountable.clone(),
                 creation_mode: RenderMode::Hydration,
                 prepared_state,
             };
 
-            let component = create_component(&context);
+            let component = mountable.create_component(&context);
 
             ComponentState::run_create(
                 context,

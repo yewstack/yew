@@ -1,11 +1,12 @@
 use std::fmt;
 use std::future::Future;
+use std::rc::Rc;
 
 use futures::pin_mut;
 use futures::stream::{Stream, StreamExt};
 use tracing::Instrument;
 
-use crate::html::{BaseComponent, Scope};
+use crate::html::{BaseComponent, ComponentIntriustic, Scope};
 use crate::platform::fmt::BufStream;
 use crate::platform::{LocalHandle, Runtime};
 
@@ -99,14 +100,16 @@ where
         fields(hydratable = self.hydratable),
     )]
     pub fn render_stream(self) -> impl Stream<Item = String> {
-        let scope = Scope::new::<COMP>(None);
+        let mountable = Rc::new(ComponentIntriustic::<COMP>::new(self.props.into()));
+
+        let scope = Scope::new(mountable.as_ref(), None);
 
         let outer_span = tracing::Span::current();
         BufStream::new(move |mut w| async move {
             let render_span = tracing::debug_span!("render_stream_item");
             render_span.follows_from(outer_span);
             scope
-                .render_into_stream::<COMP>(&mut w, self.props.into(), self.hydratable)
+                .render_into_stream(mountable, &mut w, self.hydratable)
                 .instrument(render_span)
                 .await;
         })

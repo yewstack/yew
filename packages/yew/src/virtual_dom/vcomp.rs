@@ -1,31 +1,22 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 use std::fmt;
 use std::rc::Rc;
 
-#[cfg(feature = "ssr")]
-use futures::future::{FutureExt, LocalBoxFuture};
-#[cfg(feature = "csr")]
-use web_sys::Element;
-
 use super::Key;
 #[cfg(feature = "csr")]
-use crate::dom_bundle::BSubtree;
-#[cfg(feature = "hydration")]
-use crate::dom_bundle::Fragment;
 use crate::html::BaseComponent;
+use crate::html::{ComponentIntriustic, Mountable};
 #[cfg(feature = "csr")]
-use crate::html::NodeRef;
 #[cfg(any(feature = "ssr", feature = "csr"))]
-use crate::html::Scope;
 #[cfg(feature = "ssr")]
 use crate::platform::fmt::BufWriter;
 
 /// A virtual component.
 pub struct VComp {
     pub(crate) type_id: TypeId,
-    pub(crate) mountable: Box<dyn Mountable>,
+    pub(crate) mountable: Rc<dyn Mountable>,
     pub(crate) key: Option<Key>,
     // for some reason, this reduces the bundle size by ~2-3 KBs
     _marker: u32,
@@ -45,143 +36,10 @@ impl Clone for VComp {
     fn clone(&self) -> Self {
         Self {
             type_id: self.type_id,
-            mountable: self.mountable.copy(),
+            mountable: self.mountable.clone(),
             key: self.key.clone(),
             _marker: 0,
         }
-    }
-}
-
-pub(crate) trait Mountable {
-    fn copy(&self) -> Box<dyn Mountable>;
-
-    #[cfg(feature = "csr")]
-    fn mount(
-        self: Box<Self>,
-        root: &BSubtree,
-        parent_scope: &Scope,
-        parent: Element,
-        internal_ref: NodeRef,
-        next_sibling: NodeRef,
-    ) -> Scope;
-
-    #[cfg(feature = "csr")]
-    fn reuse(self: Box<Self>, scope: &Scope, next_sibling: NodeRef);
-
-    #[cfg(feature = "ssr")]
-    fn render_into_stream<'a>(
-        &'a self,
-        w: &'a mut BufWriter,
-        parent_scope: &'a Scope,
-        hydratable: bool,
-    ) -> LocalBoxFuture<'a, ()>;
-
-    #[cfg(feature = "hydration")]
-    fn hydrate(
-        self: Box<Self>,
-        root: BSubtree,
-        parent_scope: &Scope,
-        parent: Element,
-        internal_ref: NodeRef,
-        fragment: &mut Fragment,
-    ) -> Scope;
-}
-
-pub(crate) struct PropsWrapper<COMP: BaseComponent> {
-    props: Rc<COMP::Properties>,
-}
-
-impl<COMP: BaseComponent> PropsWrapper<COMP> {
-    pub fn new(props: Rc<COMP::Properties>) -> Self {
-        Self { props }
-    }
-}
-
-impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
-    fn copy(&self) -> Box<dyn Mountable> {
-        let wrapper: PropsWrapper<COMP> = PropsWrapper {
-            props: Rc::clone(&self.props),
-        };
-        Box::new(wrapper)
-    }
-
-    #[cfg(feature = "csr")]
-    fn mount(
-        self: Box<Self>,
-        root: &BSubtree,
-        parent_scope: &Scope,
-        parent: Element,
-        internal_ref: NodeRef,
-        next_sibling: NodeRef,
-    ) -> Scope {
-        let scope = Scope::new::<COMP>(Some(parent_scope.clone()));
-        scope.mount(
-            root.clone(),
-            parent,
-            next_sibling,
-            internal_ref,
-            |ctx| COMP::create(ctx),
-            self.props,
-        );
-
-        scope
-    }
-
-    #[cfg(feature = "csr")]
-    fn reuse(self: Box<Self>, scope: &Scope, next_sibling: NodeRef) {
-        scope.reuse(self.props, next_sibling);
-    }
-
-    #[cfg(feature = "ssr")]
-    fn render_into_stream<'a>(
-        &'a self,
-        w: &'a mut BufWriter,
-        parent_scope: &'a Scope,
-        hydratable: bool,
-    ) -> LocalBoxFuture<'a, ()> {
-        let scope: Scope = Scope::new::<COMP>(Some(parent_scope.clone()));
-
-        async move {
-            scope
-                .render_into_stream::<COMP>(w, self.props.clone(), hydratable)
-                .await;
-        }
-        .boxed_local()
-    }
-
-    #[cfg(feature = "hydration")]
-    fn hydrate(
-        self: Box<Self>,
-        root: BSubtree,
-        parent_scope: &Scope,
-        parent: Element,
-        internal_ref: NodeRef,
-        fragment: &mut Fragment,
-    ) -> Scope {
-        use crate::virtual_dom::Collectable;
-
-        let scope: Scope = Scope::new::<COMP>(Some(parent_scope.clone()));
-
-        // This is very helpful to see which component is failing during hydration
-        // which means this component may not having a stable layout / differs between
-        // client-side and server-side.
-        tracing::trace!(
-            component.id = scope.id(),
-            "hydration(type = {})",
-            std::any::type_name::<COMP>()
-        );
-
-        scope.hydrate(
-            root,
-            parent,
-            fragment,
-            internal_ref,
-            |ctx| COMP::create(ctx),
-            self.props,
-            || Collectable::for_component::<COMP>(),
-        );
-
-        scope
     }
 }
 
@@ -241,7 +99,7 @@ impl VComp {
     {
         VComp {
             type_id: TypeId::of::<COMP>(),
-            mountable: Box::new(PropsWrapper::<COMP>::new(props)),
+            mountable: Rc::new(ComponentIntriustic::<COMP>::new(props)),
             key,
             _marker: 0,
         }
@@ -274,7 +132,7 @@ mod feat_ssr {
             hydratable: bool,
         ) {
             self.mountable
-                .as_ref()
+                .clone()
                 .render_into_stream(w, parent_scope, hydratable)
                 .await;
         }

@@ -1,6 +1,5 @@
 //! Component lifecycle module
 
-use std::any::Any;
 use std::rc::Rc;
 
 use web_sys::Element;
@@ -11,7 +10,7 @@ use crate::dom_bundle::Fragment;
 use crate::dom_bundle::{BSubtree, Bundle};
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
-use crate::html::{Html, NodeRef, RenderError};
+use crate::html::{Html, Mountable, NodeRef, RenderError};
 use crate::suspense::{resume_suspension, suspend_suspension, DispatchSuspension, Suspension};
 use crate::{scheduler, Callback, Context, ContextProvider, FunctionComponent};
 
@@ -50,7 +49,7 @@ pub(crate) struct ComponentState {
     internal_ref: NodeRef,
 
     #[cfg(feature = "hydration")]
-    pending_props: Option<Rc<dyn Any>>,
+    pending_mountable: Option<Rc<dyn Mountable>>,
 
     suspension: Option<Suspension>,
 }
@@ -83,7 +82,7 @@ impl ComponentState {
             internal_ref,
 
             #[cfg(feature = "hydration")]
-            pending_props: None,
+            pending_mountable: None,
         }
     }
 
@@ -129,13 +128,13 @@ impl ComponentState {
         }
     }
 
-    pub fn run_update_props(
+    pub fn run_update(
         scope: &Scope,
-        props: Option<Rc<dyn Any>>,
+        mountable: Option<Rc<dyn Mountable>>,
         next_sibling: Option<NodeRef>,
     ) {
         if let Some(state) = scope.state_cell().borrow_mut().as_mut() {
-            state.changed(props, next_sibling);
+            state.changed(mountable, next_sibling);
         }
     }
 
@@ -200,7 +199,7 @@ impl ComponentState {
         fields(component.id = self.context.link().id())
     )]
     fn render(&mut self) {
-        match self.component.render(self.context.props().as_ref()) {
+        match self.component.render(self.context.props()) {
             Ok(vnode) => self.commit_render(vnode),
             Err(RenderError::Suspended(susp)) => self.suspend(susp),
         };
@@ -288,10 +287,14 @@ impl ComponentState {
 
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
-        skip(self),
+        skip(self, mountable),
         fields(component.id = self.context.link().id())
     )]
-    pub(super) fn changed(&mut self, props: Option<Rc<dyn Any>>, next_sibling: Option<NodeRef>) {
+    pub(super) fn changed(
+        &mut self,
+        mountable: Option<Rc<dyn Mountable>>,
+        next_sibling: Option<NodeRef>,
+    ) {
         if let Some(next_sibling) = next_sibling {
             // When components are updated, their siblings were likely also updated
             // We also need to shift the bundle so next sibling will be synced to child
@@ -303,17 +306,22 @@ impl ComponentState {
         let schedule_render = '_block: {
             #[cfg(feature = "hydration")]
             if self.context.creation_mode() == RenderMode::Hydration {
-                break '_block if let Some(props) = props.or_else(|| self.pending_props.take()) {
+                break '_block if let Some(mountable) =
+                    mountable.or_else(|| self.pending_mountable.take())
+                {
                     match self.rendered {
                         Realized::Bundle { .. } => {
-                            self.pending_props = None;
-                            if !self.component.props_eq(self.context.props(), &props) {
-                                self.context.props = props;
+                            self.pending_mountable = None;
+                            if !self
+                                .component
+                                .props_eq(self.context.props(), mountable.props())
+                            {
+                                self.context.mountable = mountable;
                             }
                             true
                         }
                         Realized::Fragement { .. } => {
-                            self.pending_props = Some(props);
+                            self.pending_mountable = Some(mountable);
                             false
                         }
                     }
@@ -322,10 +330,10 @@ impl ComponentState {
                 };
             }
 
-            props
+            mountable
                 .and_then(|m| (!self.component.props_eq(self.context.props(), &m)).then_some(m))
                 .map(|m| {
-                    self.context.props = m;
+                    self.context.mountable = m;
                     true
                 })
                 .unwrap_or(false)
@@ -350,7 +358,7 @@ impl ComponentState {
 
         #[cfg(feature = "hydration")]
         {
-            self.pending_props.is_some()
+            self.pending_mountable.is_some()
         }
         #[cfg(not(feature = "hydration"))]
         {
