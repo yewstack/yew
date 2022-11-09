@@ -120,7 +120,7 @@ mod feat_ssr {
                 prepared_state: None,
             };
 
-            let component = mountable.create_component(&context);
+            let mut component = mountable.create_component(&context);
             let collectable = mountable.create_collectable();
 
             if hydratable {

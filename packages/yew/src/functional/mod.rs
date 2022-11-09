@@ -21,7 +21,6 @@
 //! More details about function components and Hooks can be found on [Yew Docs](https://yew.rs/docs/next/concepts/function-components/introduction)
 
 use std::any::Any;
-use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
@@ -107,8 +106,8 @@ impl HookContext {
         re_render: ReRender,
         #[cfg(all(feature = "hydration", feature = "ssr"))] creation_mode: RenderMode,
         #[cfg(feature = "hydration")] prepared_state: Option<&str>,
-    ) -> RefCell<Self> {
-        RefCell::new(HookContext {
+    ) -> Self {
+        HookContext {
             scope,
             re_render,
 
@@ -134,7 +133,7 @@ impl HookContext {
             counter: 0,
             #[cfg(debug_assertions)]
             total_hook_counter: None,
-        })
+        }
     }
 
     pub(crate) fn next_state<T>(&mut self, initializer: impl FnOnce(ReRender) -> T) -> Rc<T>
@@ -348,7 +347,7 @@ where
 #[doc(hidden)]
 pub struct FunctionComponent {
     inner: Box<dyn AnyFunctionProvider>,
-    hook_ctx: RefCell<HookContext>,
+    hook_ctx: HookContext,
 }
 
 impl FunctionComponent {
@@ -388,36 +387,36 @@ impl FunctionComponent {
     }
 
     /// Renders a function component.
-    pub fn render(&self, props: &dyn Any) -> HtmlResult {
-        let mut hook_ctx = self.hook_ctx.borrow_mut();
-
-        hook_ctx.prepare_run();
+    pub(crate) fn render(&mut self, props: &dyn Any) -> HtmlResult {
+        self.hook_ctx.prepare_run();
 
         #[allow(clippy::let_and_return)]
-        let result = self.inner.run(&mut hook_ctx, props);
+        let result = self.inner.run(&mut self.hook_ctx, props);
 
         #[cfg(debug_assertions)]
-        hook_ctx.assert_hook_context(result.is_ok());
+        self.hook_ctx.assert_hook_context(result.is_ok());
 
         result
     }
 
     /// Run Effects of a function component.
-    pub fn rendered(&self) {
-        let hook_ctx = self.hook_ctx.borrow();
-        hook_ctx.run_effects();
+
+    #[inline]
+    pub(crate) fn rendered(&self) {
+        self.hook_ctx.run_effects();
     }
 
     /// Destroys the function component.
-    pub fn destroy(&self) {
-        let mut hook_ctx = self.hook_ctx.borrow_mut();
-        hook_ctx.drain_states();
+
+    #[inline]
+    pub(crate) fn destroy(&mut self) {
+        self.hook_ctx.drain_states();
     }
 
     /// Prepares the server-side state.
+    #[inline]
     pub fn prepare_state(&self) -> Option<String> {
-        let hook_ctx = self.hook_ctx.borrow();
-        hook_ctx.prepare_state()
+        self.hook_ctx.prepare_state()
     }
 }
 
