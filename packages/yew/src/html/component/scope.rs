@@ -276,7 +276,6 @@ mod feat_hydration {
         ///
         /// This method is expected to collect all the elements belongs to the current component
         /// immediately.
-        #[allow(clippy::too_many_arguments)]
         pub(crate) fn hydrate(
             &self,
             mountable: Rc<dyn Intrinsical>,
