@@ -30,6 +30,8 @@ pub(crate) trait Intrinsical {
     #[cfg(any(feature = "hydration", feature = "ssr"))]
     fn create_collectable(&self) -> Collectable;
 
+    fn intrinsic_eq(&self, other: &dyn Intrinsical) -> bool;
+
     #[cfg(feature = "csr")]
     fn mount(
         self: Rc<Self>,
@@ -87,6 +89,15 @@ impl<COMP: BaseComponent> Intrinsical for ComponentIntrinsic<COMP> {
 
     fn create_component(&self, ctx: &Context) -> FunctionComponent {
         COMP::create(ctx)
+    }
+
+    fn intrinsic_eq(&self, other: &dyn Intrinsical) -> bool {
+        Intrinsical::type_id(self) == other.type_id()
+            && other
+                .any_props()
+                .downcast_ref::<COMP::Properties>()
+                .map(|m| m == &self.props)
+                .unwrap_or(false)
     }
 
     #[cfg(any(feature = "hydration", feature = "ssr"))]

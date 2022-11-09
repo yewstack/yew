@@ -312,10 +312,7 @@ impl ComponentState {
                     match self.rendered {
                         Realized::Bundle { .. } => {
                             self.pending_mountable = None;
-                            if !self
-                                .component
-                                .props_eq(self.context.props(), mountable.any_props())
-                            {
+                            if !self.context.mountable.intrinsic_eq(mountable.as_ref()) {
                                 self.context.mountable = mountable;
                             }
                             true
@@ -331,7 +328,7 @@ impl ComponentState {
             }
 
             mountable
-                .and_then(|m| (!self.component.props_eq(self.context.props(), &m)).then_some(m))
+                .and_then(|m| (!self.context.mountable.intrinsic_eq(m.as_ref())).then_some(m))
                 .map(|m| {
                     self.context.mountable = m;
                     true
