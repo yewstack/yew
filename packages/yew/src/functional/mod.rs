@@ -305,24 +305,6 @@ pub trait FunctionProvider {
     fn run(ctx: &mut HookContext, props: &Self::Properties) -> HtmlResult;
 }
 
-pub(crate) trait AnyFunctionProvider {
-    fn run(&self, ctx: &mut HookContext, props: &dyn Any) -> HtmlResult;
-}
-
-impl<T> AnyFunctionProvider for T
-where
-    T: FunctionProvider + 'static,
-{
-    fn run(&self, ctx: &mut HookContext, props: &dyn Any) -> HtmlResult {
-        let props = match props.downcast_ref::<T::Properties>() {
-            Some(m) => m,
-            None => return Ok(Html::default()),
-        };
-
-        T::run(ctx, props)
-    }
-}
-
 /// A type that interacts [`FunctionProvider`] to provide lifecycle events to be bridged to
 /// [`BaseComponent`].
 ///
@@ -333,7 +315,7 @@ where
 /// Use the `#[function_component]` macro instead.
 #[doc(hidden)]
 pub struct FunctionComponent {
-    inner: Box<dyn AnyFunctionProvider>,
+    inner: fn(&mut HookContext, props: &dyn Any) -> HtmlResult,
     hook_ctx: HookContext,
 }
 
@@ -343,12 +325,19 @@ impl FunctionComponent {
     where
         T: Sized + BaseComponent + FunctionProvider + 'static,
     {
-        let inner = Box::new(<T as FunctionProvider>::create());
+        let inner = |ctx: &mut HookContext, props: &dyn Any| {
+            let props = match props.downcast_ref::<<T as FunctionProvider>::Properties>() {
+                Some(m) => m,
+                None => return Ok(Html::default()),
+            };
+
+            T::run(ctx, props)
+        };
 
         Self::new_any(ctx, inner)
     }
 
-    fn new_any(ctx: &Context, inner: Box<dyn AnyFunctionProvider>) -> Self {
+    fn new_any(ctx: &Context, inner: fn(&mut HookContext, props: &dyn Any) -> HtmlResult) -> Self {
         let scope = ctx.link().clone();
         let re_render = {
             let link = ctx.link().clone();
@@ -373,7 +362,7 @@ impl FunctionComponent {
         self.hook_ctx.prepare_run();
 
         #[allow(clippy::let_and_return)]
-        let result = self.inner.run(&mut self.hook_ctx, props);
+        let result = (self.inner)(&mut self.hook_ctx, props);
 
         #[cfg(debug_assertions)]
         self.hook_ctx.assert_hook_context(result.is_ok());
