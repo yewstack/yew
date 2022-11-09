@@ -27,7 +27,7 @@ pub struct Cli {
     pub to: String,
 
     /// Path to changelog file
-    #[clap(short = 'f', long, default_value = "CHANGELOG.md")]
+    #[clap(short = 'f', long, default_value = "../CHANGELOG.md")]
     pub changelog_path: String,
 
     /// Skip writing changelog file

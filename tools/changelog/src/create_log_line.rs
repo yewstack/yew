@@ -6,12 +6,10 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::github_issue_labels_fetcher::GitHubIssueLabelsFetcher;
-use crate::github_user_fetcher::GitHubUsersFetcher;
 use crate::log_line::LogLine;
 
 static REGEX_FOR_ISSUE_ID_CAPTURE: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"\s*\(#(\d+)\)").unwrap());
-static GITHUB_USERS_FETCHER: Lazy<Mutex<GitHubUsersFetcher>> = Lazy::new(Default::default);
 static GITHUB_ISSUE_LABELS_FETCHER: Lazy<Mutex<GitHubIssueLabelsFetcher>> =
     Lazy::new(Default::default);
 
@@ -21,6 +19,7 @@ pub fn create_log_line(
     oid: Result<Oid, Error>,
     token: Option<String>,
 ) -> Result<Option<LogLine>> {
+    println!("Commit oid: {:?}", oid);
     let oid = oid?;
     let commit = repo.find_commit(oid)?;
     let commit_first_line = commit
@@ -31,9 +30,16 @@ pub fn create_log_line(
         .context("Missing commit message")?
         .to_string();
     let author = commit.author();
+    let author_name = author.name().unwrap_or("Unknown");
     let email = author.email().context("Missing author's email")?;
 
-    if email.contains("dependabot") || email.contains("github-action") {
+    if email.contains("dependabot") {
+        println!("email contains dependabot");
+        return Ok(None);
+    }
+
+    if email.contains("github-action") {
+        println!("email contains github-action");
         return Ok(None);
     }
 
@@ -44,7 +50,7 @@ pub fn create_log_line(
     let captures = match mb_captures {
         Some(some) => some,
         None => {
-            eprintln!("Missing issue for commit: {}", oid);
+            eprintln!("Missing issue for commit: {oid}");
             return Ok(None);
         }
     };
@@ -61,13 +67,6 @@ pub fn create_log_line(
         .as_str()
         .to_string();
 
-    let user = GITHUB_USERS_FETCHER
-        .lock()
-        .map_err(|err| anyhow!("Failed to lock GITHUB_USERS_FETCHER: {}", err))?
-        .fetch_user_by_commit_author(email, oid.to_string(), token.clone())
-        .with_context(|| format!("Could not find GitHub user for commit: {}", oid))?
-        .to_string();
-
     let issue_labels = GITHUB_ISSUE_LABELS_FETCHER
         .lock()
         .map_err(|err| anyhow!("Failed to lock GITHUB_ISSUE_LABELS_FETCHER: {}", err))?
@@ -79,14 +78,17 @@ pub fn create_log_line(
         .any(|label| package_labels.contains(&label.as_str()));
 
     if !is_issue_for_this_package {
+        println!("Issue {issue_id} is not for {package_labels:?} packages");
         return Ok(None);
     }
 
     let log_line = LogLine {
         message,
-        user,
+        user: author_name.to_string(),
         issue_id,
     };
+
+    println!("{log_line:?}");
 
     Ok(Some(log_line))
 }

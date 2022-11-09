@@ -9,7 +9,7 @@ pub fn write_changelog(changelog_path: &str, version_changelog: &[u8]) -> Result
         .context(format!("could not open {} for reading", changelog_path))?;
     let old_changelog_reader = BufReader::new(old_changelog);
 
-    let changelog_path_new = &format!("{}.new", changelog_path);
+    let changelog_path_new = &format!("../{}.new", changelog_path);
 
     let mut new_changelog = fs::OpenOptions::new()
         .write(true)
