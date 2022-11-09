@@ -387,7 +387,7 @@ impl FunctionComponent {
     }
 
     /// Renders a function component.
-    pub(crate) fn render(&mut self, props: &dyn Any) -> HtmlResult {
+    pub fn render(&mut self, props: &dyn Any) -> HtmlResult {
         self.hook_ctx.prepare_run();
 
         #[allow(clippy::let_and_return)]
@@ -402,14 +402,14 @@ impl FunctionComponent {
     /// Run Effects of a function component.
 
     #[inline]
-    pub(crate) fn rendered(&self) {
+    pub fn rendered(&self) {
         self.hook_ctx.run_effects();
     }
 
     /// Destroys the function component.
 
     #[inline]
-    pub(crate) fn destroy(&mut self) {
+    pub fn destroy(&mut self) {
         self.hook_ctx.drain_states();
     }
 
