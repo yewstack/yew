@@ -385,29 +385,18 @@ mod feat_hydration {
 #[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
-    use gloo::utils::document;
     use wasm_bindgen::JsCast;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use web_sys::HtmlInputElement as InputElement;
 
     use super::*;
+    use crate::dom_bundle::utils::setup_parent;
     use crate::dom_bundle::{BNode, Reconcilable, ReconcileTarget};
-    use crate::html::Scope;
     use crate::virtual_dom::vtag::{HTML_NAMESPACE, SVG_NAMESPACE};
     use crate::virtual_dom::{AttrValue, VNode, VTag};
     use crate::{html, Html, NodeRef};
 
     wasm_bindgen_test_configure!(run_in_browser);
-
-    fn setup_parent() -> (BSubtree, Scope, Element) {
-        let scope = Scope::test();
-        let parent = document().create_element("div").unwrap();
-        let root = BSubtree::create_root(&parent);
-
-        document().body().unwrap().append_child(&parent).unwrap();
-
-        (root, scope, parent)
-    }
 
     #[test]
     fn it_compares_tags() {

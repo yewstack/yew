@@ -57,6 +57,21 @@ where
         app
     }
 
+    /// Update the properties of the app's root component.
+    ///
+    /// This can be an alternative to sending and handling messages. The existing component will be
+    /// reused and have its properties updates. This will presumably trigger a re-render, refer to
+    /// the [`changed`] lifecycle for details.
+    ///
+    /// [`changed`]: crate::Component::changed
+    #[tracing::instrument(
+        level = tracing::Level::DEBUG,
+        skip_all,
+    )]
+    pub fn update(&mut self, new_props: COMP::Properties) {
+        self.scope.reuse(Rc::new(new_props), NodeRef::default())
+    }
+
     /// Schedule the app for destruction
     #[tracing::instrument(
         level = tracing::Level::DEBUG,

@@ -4,7 +4,7 @@ use std::fmt;
 
 use web_sys::{Element, Node};
 
-use super::{BComp, BList, BPortal, BSubtree, BSuspense, BTag, BText};
+use super::{BComp, BList, BPortal, BRaw, BSubtree, BSuspense, BTag, BText};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::{NodeRef, Scope};
 use crate::virtual_dom::{Key, VNode};
@@ -25,6 +25,8 @@ pub(super) enum BNode {
     Ref(Node),
     /// A suspendible document fragment.
     Suspense(Box<BSuspense>),
+    /// A raw HTML string, represented by [`AttrValue`](crate::AttrValue).
+    Raw(BRaw),
 }
 
 impl BNode {
@@ -38,6 +40,7 @@ impl BNode {
             Self::Text(_) => None,
             Self::Portal(bportal) => bportal.key(),
             Self::Suspense(bsusp) => bsusp.key(),
+            Self::Raw(_) => None,
         }
     }
 }
@@ -58,6 +61,7 @@ impl ReconcileTarget for BNode {
             }
             Self::Portal(bportal) => bportal.detach(root, parent, parent_to_detach),
             Self::Suspense(bsusp) => bsusp.detach(root, parent, parent_to_detach),
+            Self::Raw(raw) => raw.detach(root, parent, parent_to_detach),
         }
     }
 
@@ -76,6 +80,7 @@ impl ReconcileTarget for BNode {
             }
             Self::Portal(ref vportal) => vportal.shift(next_parent, next_sibling),
             Self::Suspense(ref vsuspense) => vsuspense.shift(next_parent, next_sibling),
+            Self::Raw(ref braw) => braw.shift(next_parent, next_sibling),
         }
     }
 }
@@ -119,6 +124,10 @@ impl Reconcilable for VNode {
                 let (node_ref, suspsense) =
                     vsuspsense.attach(root, parent_scope, parent, next_sibling);
                 (node_ref, suspsense.into())
+            }
+            VNode::VRaw(vraw) => {
+                let (node_ref, raw) = vraw.attach(root, parent_scope, parent, next_sibling);
+                (node_ref, raw.into())
             }
         }
     }
@@ -176,6 +185,9 @@ impl Reconcilable for VNode {
             VNode::VSuspense(vsuspsense) => {
                 vsuspsense.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
             }
+            VNode::VRaw(vraw) => {
+                vraw.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
+            }
         }
     }
 }
@@ -222,6 +234,13 @@ impl From<BSuspense> for BNode {
     }
 }
 
+impl From<BRaw> for BNode {
+    #[inline]
+    fn from(braw: BRaw) -> Self {
+        Self::Raw(braw)
+    }
+}
+
 impl fmt::Debug for BNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
@@ -232,6 +251,7 @@ impl fmt::Debug for BNode {
             Self::Ref(ref vref) => write!(f, "VRef ( \"{}\" )", crate::utils::print_node(vref)),
             Self::Portal(ref vportal) => vportal.fmt(f),
             Self::Suspense(ref bsusp) => bsusp.fmt(f),
+            Self::Raw(ref braw) => braw.fmt(f),
         }
     }
 }
@@ -284,6 +304,9 @@ mod feat_hydration {
                     let (node_ref, suspense) =
                         vsuspense.hydrate(root, parent_scope, parent, fragment);
                     (node_ref, suspense.into())
+                }
+                VNode::VRaw(_) => {
+                    panic!("VRaw is not hydratable (raw HTML string cannot be hydrated)")
                 }
             }
         }

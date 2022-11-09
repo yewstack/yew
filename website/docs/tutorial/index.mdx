@@ -243,9 +243,13 @@ mapping it to `html!` and collecting it as `Html`:
 
 ```rust ,ignore
 let videos = videos.iter().map(|video| html! {
-    <p>{format!("{}: {}", video.speaker, video.title)}</p>
+    <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
 }).collect::<Html>();
 ```
+
+:::tip
+Keys on list items helps Yew keep track of which items have changed in the list, resulting in faster re-renders. [It is always recommended to use keys in lists](/concepts/html/lists.mdx#keyed-lists).
+:::
 
 And finally we need to replace the hardcoded list of videos with the `Html` we created from data:
 
@@ -301,7 +305,7 @@ struct VideosListProps {
 #[function_component(VideosList)]
 fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
     videos.iter().map(|video| html! {
-        <p>{format!("{}: {}", video.speaker, video.title)}</p>
+        <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
     }).collect()
 }
 ```
@@ -333,7 +337,7 @@ Now, we can update our `App` component to make use of `VideosList` component.
 fn app() -> Html {
     // ...
 -    let videos = videos.iter().map(|video| html! {
--        <p>{format!("{}: {}", video.speaker, video.title)}</p>
+-        <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
 -    }).collect::<Html>();
 -
     html! {
@@ -385,8 +389,8 @@ Then we modify the `VideosList` component to pass the "emit" the selected video 
 +        };
 
         html! {
--            <p>{format!("{}: {}", video.speaker, video.title)}</p>
-+            <p onclick={on_video_select}>{format!("{}: {}", video.speaker, video.title)}</p>
+-            <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
++            <p key={video.id} onclick={on_video_select}>{format!("{}: {}", video.speaker, video.title)}</p>
         }
     }).collect()
 }
