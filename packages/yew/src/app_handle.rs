@@ -6,7 +6,7 @@ use std::rc::Rc;
 use web_sys::Element;
 
 use crate::dom_bundle::BSubtree;
-use crate::html::{BaseComponent, ComponentIntriustic, NodeRef, Scope};
+use crate::html::{BaseComponent, ComponentIntrinsic, NodeRef, Scope};
 use crate::scheduler;
 
 /// An instance of an application.
@@ -33,7 +33,7 @@ where
     )]
     pub(crate) fn mount_with_props(host: Element, props: COMP::Properties) -> Self {
         clear_element(&host);
-        let mountable = Rc::new(ComponentIntriustic::<COMP>::new(props));
+        let mountable = Rc::new(ComponentIntrinsic::<COMP>::new(props));
 
         let app = Self {
             scope: Scope::new(mountable.as_ref(), None),
@@ -92,7 +92,7 @@ mod feat_hydration {
             skip(props),
         )]
         pub(crate) fn hydrate_with_props(host: Element, props: COMP::Properties) -> Self {
-            let mountable = Rc::new(ComponentIntriustic::<COMP>::new(props));
+            let mountable = Rc::new(ComponentIntrinsic::<COMP>::new(props));
 
             let app = Self {
                 scope: Scope::new(mountable.as_ref(), None),

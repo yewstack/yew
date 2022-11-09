@@ -5,7 +5,7 @@ use std::fmt;
 use std::rc::Rc;
 
 use super::Key;
-use crate::html::{BaseComponent, ComponentIntriustic, Intrinsical};
+use crate::html::{BaseComponent, ComponentIntrinsic, Intrinsical};
 
 /// A virtual component.
 pub struct VComp {
@@ -40,7 +40,7 @@ impl Clone for VComp {
 /// A virtual child component.
 pub struct VChild<COMP: BaseComponent> {
     /// The component properties
-    intrinsic: Rc<ComponentIntriustic<COMP>>,
+    intrinsic: Rc<ComponentIntrinsic<COMP>>,
     /// Reference to the mounted node
     key: Option<Key>,
 }
@@ -70,7 +70,7 @@ where
     /// Creates a child component that can be accessed and modified by its parent.
     pub fn new(props: COMP::Properties, key: Option<Key>) -> Self {
         Self {
-            intrinsic: Rc::new(ComponentIntriustic::new(props)),
+            intrinsic: Rc::new(ComponentIntrinsic::new(props)),
             key,
         }
     }
@@ -93,7 +93,7 @@ impl VComp {
     {
         VComp {
             type_id: TypeId::of::<COMP>(),
-            mountable: Rc::new(ComponentIntriustic::<COMP>::new(props)),
+            mountable: Rc::new(ComponentIntrinsic::<COMP>::new(props)),
             key,
             _marker: 0,
         }
@@ -103,7 +103,7 @@ impl VComp {
     pub(crate) fn with_intrinsic<COMP, I>(intrinsic: I, key: Option<Key>) -> Self
     where
         COMP: BaseComponent,
-        I: Into<Rc<ComponentIntriustic<COMP>>>,
+        I: Into<Rc<ComponentIntrinsic<COMP>>>,
     {
         VComp {
             type_id: TypeId::of::<COMP>(),

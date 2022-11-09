@@ -13,7 +13,7 @@ use std::fmt;
 use std::rc::Rc;
 
 pub use children::*;
-pub(crate) use intrinsic::{ComponentIntriustic, Intrinsical};
+pub(crate) use intrinsic::{ComponentIntrinsic, Intrinsical};
 pub use marker::*;
 pub use properties::*;
 pub use scope::Scope;

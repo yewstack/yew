@@ -59,11 +59,11 @@ pub(crate) trait Intrinsical {
     ) -> Scope;
 }
 
-pub(crate) struct ComponentIntriustic<COMP: BaseComponent> {
+pub(crate) struct ComponentIntrinsic<COMP: BaseComponent> {
     props: COMP::Properties,
 }
 
-impl<COMP: BaseComponent> ComponentIntriustic<COMP> {
+impl<COMP: BaseComponent> ComponentIntrinsic<COMP> {
     pub fn new(props: COMP::Properties) -> Self {
         Self { props }
     }
@@ -73,7 +73,7 @@ impl<COMP: BaseComponent> ComponentIntriustic<COMP> {
     }
 }
 
-impl<COMP: BaseComponent> Intrinsical for ComponentIntriustic<COMP> {
+impl<COMP: BaseComponent> Intrinsical for ComponentIntrinsic<COMP> {
     fn type_id(&self) -> TypeId {
         TypeId::of::<COMP>()
     }

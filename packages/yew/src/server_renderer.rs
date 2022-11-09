@@ -6,7 +6,7 @@ use futures::pin_mut;
 use futures::stream::{Stream, StreamExt};
 use tracing::Instrument;
 
-use crate::html::{BaseComponent, ComponentIntriustic, Scope};
+use crate::html::{BaseComponent, ComponentIntrinsic, Scope};
 use crate::platform::fmt::BufStream;
 use crate::platform::{LocalHandle, Runtime};
 
@@ -100,7 +100,7 @@ where
         fields(hydratable = self.hydratable),
     )]
     pub fn render_stream(self) -> impl Stream<Item = String> {
-        let mountable = Rc::new(ComponentIntriustic::<COMP>::new(self.props));
+        let mountable = Rc::new(ComponentIntrinsic::<COMP>::new(self.props));
 
         let scope = Scope::new(mountable.as_ref(), None);
 
