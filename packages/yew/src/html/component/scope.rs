@@ -88,38 +88,6 @@ impl Scope {
     }
 }
 
-/// A context which allows sending messages to a component.
-// pub(crate) struct Scope<COMP: BaseComponent> {
-//     _marker: PhantomData<COMP>,
-//     parent: Option<Rc<AnyScope>>,
-
-//     #[cfg(feature = "csr")]
-//     pub(crate) state: Rc<RefCell<Option<ComponentState>>>,
-
-//     pub(crate) id: usize,
-// }
-
-// impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         f.write_str("Scope<_>")
-//     }
-// }
-
-// impl<COMP: BaseComponent> Clone for Scope<COMP> {
-//     fn clone(&self) -> Self {
-//         Scope {
-//             _marker: PhantomData,
-
-//             parent: self.parent.clone(),
-
-//             #[cfg(feature = "csr")]
-//             state: self.state.clone(),
-
-//             id: self.id,
-//         }
-//     }
-// }
-
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use std::fmt::Write;
