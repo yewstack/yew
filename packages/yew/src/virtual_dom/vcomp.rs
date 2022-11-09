@@ -16,7 +16,7 @@ use crate::dom_bundle::BSubtree;
 use crate::dom_bundle::Fragment;
 use crate::html::BaseComponent;
 #[cfg(any(feature = "ssr", feature = "csr"))]
-use crate::html::{AnyScope, Scope};
+use crate::html::Scope;
 #[cfg(feature = "csr")]
 use crate::html::{NodeRef, Scoped};
 #[cfg(feature = "ssr")]
@@ -59,7 +59,7 @@ pub(crate) trait Mountable {
     fn mount(
         self: Box<Self>,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: Element,
         internal_ref: NodeRef,
         next_sibling: NodeRef,
@@ -72,7 +72,7 @@ pub(crate) trait Mountable {
     fn render_into_stream<'a>(
         &'a self,
         w: &'a mut BufWriter,
-        parent_scope: &'a AnyScope,
+        parent_scope: &'a Scope,
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()>;
 
@@ -80,7 +80,7 @@ pub(crate) trait Mountable {
     fn hydrate(
         self: Box<Self>,
         root: BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: Element,
         internal_ref: NodeRef,
         fragment: &mut Fragment,
@@ -109,35 +109,42 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     fn mount(
         self: Box<Self>,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: Element,
         internal_ref: NodeRef,
         next_sibling: NodeRef,
     ) -> Box<dyn Scoped> {
-        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        scope.mount_in_place(root.clone(), parent, next_sibling, internal_ref, self.props);
+        let scope: Scope = Scope::new::<COMP>(Some(parent_scope.clone()));
+        scope.to_any().mount(
+            root.clone(),
+            parent,
+            next_sibling,
+            internal_ref,
+            |ctx| COMP::create(ctx),
+            self.props,
+        );
 
         Box::new(scope)
     }
 
     #[cfg(feature = "csr")]
     fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef) {
-        let scope: Scope<COMP> = scope.to_any().downcast::<COMP>();
-        scope.reuse(self.props, next_sibling);
+        scope.to_any().reuse(self.props, next_sibling);
     }
 
     #[cfg(feature = "ssr")]
     fn render_into_stream<'a>(
         &'a self,
         w: &'a mut BufWriter,
-        parent_scope: &'a AnyScope,
+        parent_scope: &'a Scope,
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()> {
-        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+        let scope: Scope = Scope::new::<COMP>(Some(parent_scope.clone()));
 
         async move {
             scope
-                .render_into_stream(w, self.props.clone(), hydratable)
+                .to_any()
+                .render_into_stream::<COMP>(w, self.props.clone(), hydratable)
                 .await;
         }
         .boxed_local()
@@ -147,13 +154,33 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     fn hydrate(
         self: Box<Self>,
         root: BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: Element,
         internal_ref: NodeRef,
         fragment: &mut Fragment,
     ) -> Box<dyn Scoped> {
-        let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        scope.hydrate_in_place(root, parent, fragment, internal_ref, self.props);
+        use crate::virtual_dom::Collectable;
+
+        let scope: Scope = Scope::new::<COMP>(Some(parent_scope.clone()));
+
+        // This is very helpful to see which component is failing during hydration
+        // which means this component may not having a stable layout / differs between
+        // client-side and server-side.
+        tracing::trace!(
+            component.id = scope.to_any().id(),
+            "hydration(type = {})",
+            std::any::type_name::<COMP>()
+        );
+
+        scope.to_any().hydrate(
+            root,
+            parent,
+            fragment,
+            internal_ref,
+            |ctx| COMP::create(ctx),
+            self.props,
+            || Collectable::for_component::<COMP>(),
+        );
 
         Box::new(scope)
     }
@@ -237,14 +264,14 @@ impl<COMP: BaseComponent> fmt::Debug for VChild<COMP> {
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
-    use crate::html::AnyScope;
+    use crate::html::Scope;
 
     impl VComp {
         #[inline]
         pub(crate) async fn render_into_stream(
             &self,
             w: &mut BufWriter,
-            parent_scope: &AnyScope,
+            parent_scope: &Scope,
             hydratable: bool,
         ) {
             self.mountable

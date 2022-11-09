@@ -9,7 +9,7 @@ use web_sys::Element;
 
 use super::{test_log, BNode, BSubtree};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, NodeRef};
+use crate::html::{NodeRef, Scope};
 use crate::virtual_dom::{Key, VList, VNode, VText};
 
 /// This struct represents a mounted [VList]
@@ -34,7 +34,7 @@ impl Deref for BList {
 #[derive(Clone)]
 struct NodeWriter<'s> {
     root: &'s BSubtree,
-    parent_scope: &'s AnyScope,
+    parent_scope: &'s Scope,
     parent: &'s Element,
     next_sibling: NodeRef,
 }
@@ -146,7 +146,7 @@ impl BList {
     /// Diff and patch unkeyed child lists
     fn apply_unkeyed(
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
         lefts: Vec<VNode>,
@@ -187,7 +187,7 @@ impl BList {
     /// middle.
     fn apply_keyed(
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
         left_vdoms: Vec<VNode>,
@@ -397,7 +397,7 @@ impl Reconcilable for VList {
     fn attach(
         self,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
@@ -409,7 +409,7 @@ impl Reconcilable for VList {
     fn reconcile_node(
         self,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
@@ -423,7 +423,7 @@ impl Reconcilable for VList {
     fn reconcile(
         mut self,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
         blist: &mut BList,
@@ -474,7 +474,7 @@ mod feat_hydration {
         fn hydrate(
             self,
             root: &BSubtree,
-            parent_scope: &AnyScope,
+            parent_scope: &Scope,
             parent: &Element,
             fragment: &mut Fragment,
         ) -> (NodeRef, Self::Bundle) {

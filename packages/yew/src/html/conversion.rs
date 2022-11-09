@@ -8,7 +8,7 @@ use super::{BaseComponent, Children, ChildrenRenderer, NodeRef, Scope};
 use crate::virtual_dom::{AttrValue, VChild, VNode};
 
 impl ImplicitClone for NodeRef {}
-impl<Comp: BaseComponent> ImplicitClone for Scope<Comp> {}
+impl ImplicitClone for Scope {}
 // TODO there are still a few missing
 
 /// A trait similar to `Into<T>` which allows conversion to a value of a `Properties` struct.

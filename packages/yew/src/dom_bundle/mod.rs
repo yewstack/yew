@@ -7,7 +7,7 @@
 
 use web_sys::Element;
 
-use crate::html::{AnyScope, NodeRef};
+use crate::html::{NodeRef, Scope};
 use crate::virtual_dom::VNode;
 
 mod bcomp;
@@ -59,7 +59,7 @@ impl Bundle {
     pub fn reconcile(
         &mut self,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
         next_node: VNode,
@@ -87,7 +87,7 @@ mod feat_hydration {
         /// Creates a bundle by hydrating a virtual dom layout.
         pub fn hydrate(
             root: &BSubtree,
-            parent_scope: &AnyScope,
+            parent_scope: &Scope,
             parent: &Element,
             fragment: &mut Fragment,
             node: VNode,

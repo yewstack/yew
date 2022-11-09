@@ -5,7 +5,7 @@ use std::rc::Rc;
 
 use web_sys::Element;
 
-use super::scope::AnyScope;
+use super::scope::Scope;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
 use crate::dom_bundle::{BSubtree, Bundle};
@@ -60,7 +60,7 @@ impl ComponentState {
         level = tracing::Level::DEBUG,
         name = "create",
         skip_all,
-        fields(component.id = context.link().get_id()),
+        fields(component.id = context.link().id()),
     )]
     fn new(
         component: FunctionComponent,
@@ -96,8 +96,8 @@ impl ComponentState {
         next_sibling: NodeRef,
         internal_ref: NodeRef,
     ) {
-        let state = context.scope.state.clone();
-        let mut current_state = state.borrow_mut();
+        let scope = context.scope.clone();
+        let mut current_state = scope.state_cell().borrow_mut();
 
         if current_state.is_none() {
             let mut self_ = Self::new(
@@ -117,24 +117,30 @@ impl ComponentState {
         }
     }
 
-    pub fn run_render(scope: &AnyScope) {
-        if let Some(state) = scope.state.borrow_mut().as_mut() {
+    pub fn run_render(scope: &Scope) {
+        if let Some(state) = scope.state_cell().borrow_mut().as_mut() {
             state.render();
         }
     }
 
+    pub fn run_shift(scope: &Scope, next_parent: Element, next_sibling: NodeRef) {
+        if let Some(state) = scope.state_cell().borrow_mut().as_mut() {
+            state.shift(next_parent, next_sibling);
+        }
+    }
+
     pub fn run_update_props(
-        scope: &AnyScope,
+        scope: &Scope,
         props: Option<Rc<dyn Any>>,
         next_sibling: Option<NodeRef>,
     ) {
-        if let Some(state) = scope.state.borrow_mut().as_mut() {
+        if let Some(state) = scope.state_cell().borrow_mut().as_mut() {
             state.changed(props, next_sibling);
         }
     }
 
-    pub fn run_destroy(scope: &AnyScope, parent_to_detach: bool) {
-        if let Some(state) = scope.state.borrow_mut().take() {
+    pub fn run_destroy(scope: &Scope, parent_to_detach: bool) {
+        if let Some(state) = scope.state_cell().borrow_mut().take() {
             state.destroy(parent_to_detach);
         }
     }
@@ -146,7 +152,7 @@ impl ComponentState {
             let suspense_scope = comp_scope
                 .find_parent_scope::<ContextProvider<DispatchSuspension>>()
                 .unwrap();
-            resume_suspension(&suspense_scope, m);
+            resume_suspension(suspense_scope, m);
         }
     }
 
@@ -168,7 +174,7 @@ impl ComponentState {
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         skip(self),
-        fields(component.id = self.context.link().get_id())
+        fields(component.id = self.context.link().id())
     )]
     fn destroy(mut self, parent_to_detach: bool) {
         self.component.destroy();
@@ -191,7 +197,7 @@ impl ComponentState {
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         skip_all,
-        fields(component.id = self.context.link().get_id())
+        fields(component.id = self.context.link().id())
     )]
     fn render(&mut self) {
         match self.component.render(self.context.props().as_ref()) {
@@ -225,12 +231,12 @@ impl ComponentState {
             if let Some(ref last_suspension) = self.suspension {
                 if &suspension != last_suspension {
                     // We remove previous suspension from the suspense.
-                    resume_suspension(&suspense_scope, last_suspension.clone())
+                    resume_suspension(suspense_scope, last_suspension.clone())
                 }
             }
             self.suspension = Some(suspension.clone());
 
-            suspend_suspension(&suspense_scope, suspension);
+            suspend_suspension(suspense_scope, suspension);
         }
     }
 
@@ -283,7 +289,7 @@ impl ComponentState {
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         skip(self),
-        fields(component.id = self.context.link().get_id())
+        fields(component.id = self.context.link().id())
     )]
     pub(super) fn changed(&mut self, props: Option<Rc<dyn Any>>, next_sibling: Option<NodeRef>) {
         if let Some(next_sibling) = next_sibling {
@@ -335,7 +341,7 @@ impl ComponentState {
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         skip(self),
-        fields(component.id = self.context.link().get_id())
+        fields(component.id = self.context.link().id())
     )]
     pub(super) fn rendered(&mut self) -> bool {
         if self.suspension.is_none() {

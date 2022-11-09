@@ -27,7 +27,7 @@ impl VSuspense {
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
-    use crate::html::AnyScope;
+    use crate::html::Scope;
     use crate::platform::fmt::BufWriter;
     use crate::virtual_dom::Collectable;
 
@@ -35,7 +35,7 @@ mod feat_ssr {
         pub(crate) async fn render_into_stream(
             &self,
             w: &mut BufWriter,
-            parent_scope: &AnyScope,
+            parent_scope: &Scope,
             hydratable: bool,
         ) {
             let collectable = Collectable::Suspense;

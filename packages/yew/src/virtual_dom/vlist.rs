@@ -163,14 +163,14 @@ mod feat_ssr {
     use futures::{join, pin_mut, poll, FutureExt};
 
     use super::*;
-    use crate::html::AnyScope;
+    use crate::html::Scope;
     use crate::platform::fmt::{self, BufWriter};
 
     impl VList {
         pub(crate) async fn render_into_stream(
             &self,
             w: &mut BufWriter,
-            parent_scope: &AnyScope,
+            parent_scope: &Scope,
             hydratable: bool,
         ) {
             match &self.children[..] {
@@ -182,7 +182,7 @@ mod feat_ssr {
                     async fn render_child_iter<'a, I>(
                         mut children: I,
                         w: &mut BufWriter,
-                        parent_scope: &AnyScope,
+                        parent_scope: &Scope,
                         hydratable: bool,
                     ) where
                         I: Iterator<Item = &'a VNode>,

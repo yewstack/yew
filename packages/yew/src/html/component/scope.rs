@@ -3,7 +3,6 @@
 use std::any::{Any, TypeId};
 #[cfg(feature = "csr")]
 use std::cell::RefCell;
-use std::marker::PhantomData;
 use std::rc::Rc;
 use std::{fmt, iter};
 
@@ -15,43 +14,31 @@ use crate::context::{ContextHandle, ContextProvider, ContextStore};
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
 
-/// Untyped scope used for accessing parent scope
-#[derive(Clone)]
-pub struct AnyScope {
+struct ScopeInner {
     id: usize,
     type_id: TypeId,
 
     #[cfg(feature = "csr")]
-    pub(crate) state: Rc<RefCell<Option<ComponentState>>>,
+    pub(crate) state: RefCell<Option<ComponentState>>,
 
-    parent: Option<Rc<AnyScope>>,
-    typed_scope: Rc<dyn Any>,
+    parent: Option<Scope>,
 }
 
-impl fmt::Debug for AnyScope {
+/// Untyped scope used for accessing parent scope
+#[derive(Clone)]
+pub struct Scope {
+    inner: Rc<ScopeInner>,
+}
+
+impl fmt::Debug for Scope {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("AnyScope<_>")
     }
 }
 
-impl<COMP: BaseComponent> From<Scope<COMP>> for AnyScope {
-    fn from(scope: Scope<COMP>) -> Self {
-        AnyScope {
-            id: scope.id,
-            type_id: TypeId::of::<COMP>(),
-
-            #[cfg(feature = "csr")]
-            state: scope.state.clone(),
-
-            parent: scope.parent.clone(),
-            typed_scope: Rc::new(scope),
-        }
-    }
-}
-
-impl AnyScope {
-    pub(crate) fn get_id(&self) -> usize {
-        self.id
+impl Scope {
+    pub(crate) fn id(&self) -> usize {
+        self.inner.id
     }
 
     /// Schedules a render.
@@ -66,38 +53,31 @@ impl AnyScope {
     }
 
     /// Returns the parent scope
-    pub fn get_parent(&self) -> Option<&AnyScope> {
-        self.parent.as_deref()
+    pub fn parent(&self) -> Option<&Scope> {
+        self.inner.parent.as_ref()
+    }
+
+    pub(crate) fn state_cell(&self) -> &RefCell<Option<ComponentState>> {
+        &self.inner.state
     }
 
     /// Returns the type of the linked component
-    pub fn get_type_id(&self) -> &TypeId {
-        &self.type_id
+    pub fn type_id(&self) -> TypeId {
+        self.inner.type_id
     }
 
-    /// Attempts to downcast into a typed scope
-    ///
-    /// # Panics
-    ///
-    /// If the self value can't be cast into the target type.
-    #[cfg(feature = "csr")]
-    pub(crate) fn downcast<COMP: BaseComponent>(&self) -> Scope<COMP> {
-        self.try_downcast::<COMP>().unwrap()
-    }
-
-    /// Attempts to downcast into a typed scope
+    /// Attempts checks the component type of current scope
     ///
     /// Returns [`None`] if the self value can't be cast into the target type.
-    pub(crate) fn try_downcast<COMP: BaseComponent>(&self) -> Option<Scope<COMP>> {
-        self.typed_scope.downcast_ref::<Scope<COMP>>().cloned()
+    pub(crate) fn is_scope_of<COMP: BaseComponent>(&self) -> bool {
+        self.type_id() == TypeId::of::<COMP>()
     }
 
     /// Attempts to find a parent scope of a certain type
     ///
     /// Returns [`None`] if no parent scope with the specified type was found.
-    pub(crate) fn find_parent_scope<COMP: BaseComponent>(&self) -> Option<Scope<COMP>> {
-        iter::successors(Some(self), |scope| scope.get_parent())
-            .find_map(AnyScope::try_downcast::<COMP>)
+    pub(crate) fn find_parent_scope<COMP: BaseComponent>(&self) -> Option<&Scope> {
+        iter::successors(Some(self), |scope| scope.parent()).find(|m| m.is_scope_of::<COMP>())
     }
 
     /// Accesses a value provided by a parent `ContextProvider` component of the
@@ -107,42 +87,42 @@ impl AnyScope {
         callback: Callback<T>,
     ) -> Option<(T, ContextHandle<T>)> {
         let scope = self.find_parent_scope::<ContextProvider<T>>()?;
-        let store = ContextStore::<T>::get(&AnyScope::from(scope))?;
+        let store = ContextStore::<T>::get(scope)?;
         Some(ContextStore::subscribe_consumer(store, callback))
     }
 }
 
 /// A context which allows sending messages to a component.
-pub(crate) struct Scope<COMP: BaseComponent> {
-    _marker: PhantomData<COMP>,
-    parent: Option<Rc<AnyScope>>,
+// pub(crate) struct Scope<COMP: BaseComponent> {
+//     _marker: PhantomData<COMP>,
+//     parent: Option<Rc<AnyScope>>,
 
-    #[cfg(feature = "csr")]
-    pub(crate) state: Rc<RefCell<Option<ComponentState>>>,
+//     #[cfg(feature = "csr")]
+//     pub(crate) state: Rc<RefCell<Option<ComponentState>>>,
 
-    pub(crate) id: usize,
-}
+//     pub(crate) id: usize,
+// }
 
-impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("Scope<_>")
-    }
-}
+// impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         f.write_str("Scope<_>")
+//     }
+// }
 
-impl<COMP: BaseComponent> Clone for Scope<COMP> {
-    fn clone(&self) -> Self {
-        Scope {
-            _marker: PhantomData,
+// impl<COMP: BaseComponent> Clone for Scope<COMP> {
+//     fn clone(&self) -> Self {
+//         Scope {
+//             _marker: PhantomData,
 
-            parent: self.parent.clone(),
+//             parent: self.parent.clone(),
 
-            #[cfg(feature = "csr")]
-            state: self.state.clone(),
+//             #[cfg(feature = "csr")]
+//             state: self.state.clone(),
 
-            id: self.id,
-        }
-    }
-}
+//             id: self.id,
+//         }
+//     }
+// }
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
@@ -156,21 +136,22 @@ mod feat_ssr {
     use crate::virtual_dom::Collectable;
     use crate::Context;
 
-    impl<COMP: BaseComponent> Scope<COMP> {
-        pub(crate) async fn render_into_stream(
+    impl Scope {
+        pub(crate) async fn render_into_stream<COMP>(
             &self,
             w: &mut BufWriter,
             props: Rc<COMP::Properties>,
             hydratable: bool,
-        ) {
+        ) where
+            COMP: BaseComponent,
+        {
             // Rust's Future implementation is stack-allocated and incurs zero runtime-cost.
             //
             // If the content of this channel is ready before it is awaited, it is
             // similar to taking the value from a mutex lock.
-            let scope = AnyScope::from(self.clone());
 
             let context = Context {
-                scope: scope.clone(),
+                scope: self.clone(),
                 props: props as Rc<dyn Any>,
                 #[cfg(feature = "hydration")]
                 creation_mode: RenderMode::Ssr,
@@ -193,9 +174,7 @@ mod feat_ssr {
                 }
             };
 
-            let self_any_scope = AnyScope::from(self.clone());
-            html.render_into_stream(w, &self_any_scope, hydratable)
-                .await;
+            html.render_into_stream(w, self, hydratable).await;
 
             if let Some(prepared_state) = component.prepare_state() {
                 let _ = w.write_str(r#"<script type="application/x-yew-comp-state">"#);
@@ -218,19 +197,22 @@ mod feat_csr_ssr {
 
     static COMP_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
-    impl<COMP: BaseComponent> Scope<COMP> {
+    impl Scope {
         /// Crate a scope with an optional parent scope
-        pub(crate) fn new(parent: Option<AnyScope>) -> Self {
-            let parent = parent.map(Rc::new);
-
+        pub(crate) fn new<COMP>(parent: Option<Scope>) -> Self
+        where
+            COMP: BaseComponent,
+        {
             Scope {
-                _marker: PhantomData,
+                inner: Rc::new(ScopeInner {
+                    type_id: TypeId::of::<COMP>(),
 
-                #[cfg(feature = "csr")]
-                state: Rc::new(RefCell::new(None)),
-                parent,
+                    #[cfg(feature = "csr")]
+                    state: RefCell::new(None),
+                    parent,
 
-                id: COMP_ID_COUNTER.fetch_add(1, Ordering::SeqCst),
+                    id: COMP_ID_COUNTER.fetch_add(1, Ordering::SeqCst),
+                }),
             }
         }
     }
@@ -238,45 +220,40 @@ mod feat_csr_ssr {
 
 #[cfg(feature = "csr")]
 mod feat_csr {
-    use std::cell::Ref;
-
     use web_sys::Element;
 
     use super::*;
     use crate::dom_bundle::{BSubtree, Bundle};
     use crate::html::component::lifecycle::Realized;
     use crate::html::NodeRef;
-    use crate::Context;
+    use crate::{Context, FunctionComponent};
 
-    impl AnyScope {
+    impl Scope {
         #[cfg(test)]
         pub(crate) fn test() -> Self {
             Self {
-                id: 0,
-                type_id: TypeId::of::<()>(),
-                state: Rc::default(),
-                parent: None,
-                typed_scope: Rc::new(()),
+                inner: Rc::new(ScopeInner {
+                    id: 0,
+                    type_id: TypeId::of::<()>(),
+                    state: RefCell::default(),
+                    parent: None,
+                }),
             }
         }
 
-        fn schedule_props_update(&self, props: Rc<dyn Any>, next_sibling: NodeRef) {
+        pub(crate) fn reuse(&self, props: Rc<dyn Any>, next_sibling: NodeRef) {
             ComponentState::run_update_props(self, Some(props), Some(next_sibling));
         }
-    }
 
-    impl<COMP> Scope<COMP>
-    where
-        COMP: BaseComponent,
-    {
         /// Mounts a component with `props` to the specified `element` in the DOM.
-        pub(crate) fn mount_in_place(
+        pub(crate) fn mount(
             &self,
             root: BSubtree,
             parent: Element,
             next_sibling: NodeRef,
             internal_ref: NodeRef,
-            props: Rc<COMP::Properties>,
+            create_component: fn(&Context) -> FunctionComponent,
+            props: Rc<dyn Any>,
         ) {
             let bundle = Bundle::new();
             internal_ref.link(next_sibling.clone());
@@ -286,7 +263,7 @@ mod feat_csr {
             let state = Realized::Bundle(bundle);
 
             let context = Context {
-                scope: self.to_any(),
+                scope: self.clone(),
                 props: props as Rc<dyn Any>,
                 #[cfg(feature = "hydration")]
                 creation_mode: RenderMode::Render,
@@ -294,7 +271,7 @@ mod feat_csr {
                 prepared_state: None,
             };
 
-            let component = COMP::create(&context);
+            let component = create_component(&context);
 
             ComponentState::run_create(
                 context,
@@ -306,16 +283,10 @@ mod feat_csr {
                 internal_ref,
             );
         }
-
-        pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, next_sibling: NodeRef) {
-            self.to_any().schedule_props_update(props, next_sibling)
-        }
     }
 
     pub(crate) trait Scoped {
-        fn to_any(&self) -> AnyScope;
-        /// Get the render state if it hasn't already been destroyed
-        fn render_state(&self) -> Option<Ref<'_, Realized>>;
+        fn to_any(&self) -> Scope;
         /// Shift the node associated with this scope to a new place
         fn shift_node(&self, parent: Element, next_sibling: NodeRef);
         /// Process an event to destroy a component
@@ -323,39 +294,26 @@ mod feat_csr {
         fn destroy_boxed(self: Box<Self>, parent_to_detach: bool);
     }
 
-    impl<COMP: BaseComponent> Scoped for Scope<COMP> {
-        fn to_any(&self) -> AnyScope {
-            self.clone().into()
-        }
-
-        fn render_state(&self) -> Option<Ref<'_, Realized>> {
-            let state_ref = self.state.borrow();
-
-            // check that component hasn't been destroyed
-            state_ref.as_ref()?;
-
-            Some(Ref::map(state_ref, |state_ref| {
-                &state_ref.as_ref().unwrap().rendered
-            }))
+    impl Scoped for Scope {
+        fn to_any(&self) -> Scope {
+            self.clone()
         }
 
         /// Process an event to destroy a component
         fn destroy(self, parent_to_detach: bool) {
-            ComponentState::run_destroy(&self.to_any(), parent_to_detach);
+            ComponentState::run_destroy(&self, parent_to_detach);
         }
 
         fn destroy_boxed(self: Box<Self>, parent_to_detach: bool) {
-            self.destroy(parent_to_detach)
+            self.destroy(parent_to_detach);
         }
 
         fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
-            let mut state_ref = self.state.borrow_mut();
-            if let Some(render_state) = state_ref.as_mut() {
-                render_state.shift(parent, next_sibling)
-            }
+            ComponentState::run_shift(self, parent, next_sibling);
         }
     }
 }
+
 #[cfg(feature = "csr")]
 pub(crate) use feat_csr::*;
 
@@ -369,12 +327,9 @@ mod feat_hydration {
     use crate::html::component::lifecycle::Realized;
     use crate::html::NodeRef;
     use crate::virtual_dom::Collectable;
-    use crate::Context;
+    use crate::{Context, FunctionComponent};
 
-    impl<COMP> Scope<COMP>
-    where
-        COMP: BaseComponent,
-    {
+    impl Scope {
         /// Hydrates the component.
         ///
         /// Returns a pending NodeRef of the next sibling.
@@ -383,24 +338,18 @@ mod feat_hydration {
         ///
         /// This method is expected to collect all the elements belongs to the current component
         /// immediately.
-        pub(crate) fn hydrate_in_place(
+        #[allow(clippy::too_many_arguments)]
+        pub(crate) fn hydrate(
             &self,
             root: BSubtree,
             parent: Element,
             fragment: &mut Fragment,
             internal_ref: NodeRef,
-            props: Rc<COMP::Properties>,
+            create_component: fn(&Context) -> FunctionComponent,
+            props: Rc<dyn Any>,
+            create_collectable: fn() -> Collectable,
         ) {
-            // This is very helpful to see which component is failing during hydration
-            // which means this component may not having a stable layout / differs between
-            // client-side and server-side.
-            tracing::trace!(
-                component.id = self.id,
-                "hydration(type = {})",
-                std::any::type_name::<COMP>()
-            );
-
-            let collectable = Collectable::for_component::<COMP>();
+            let collectable = create_collectable();
 
             let mut fragment = Fragment::collect_between(fragment, &collectable, &parent);
             match fragment.front().cloned() {
@@ -436,7 +385,7 @@ mod feat_hydration {
                 prepared_state,
             };
 
-            let component = COMP::create(&context);
+            let component = create_component(&context);
 
             ComponentState::run_create(
                 context,

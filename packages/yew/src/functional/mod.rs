@@ -29,7 +29,7 @@ use wasm_bindgen::prelude::*;
 
 #[cfg(all(feature = "hydration", feature = "ssr"))]
 use crate::html::RenderMode;
-use crate::html::{AnyScope, BaseComponent, Context, HtmlResult};
+use crate::html::{BaseComponent, Context, HtmlResult, Scope};
 use crate::{Html, Properties};
 
 mod hooks;
@@ -80,7 +80,7 @@ pub(crate) trait Effect {
 
 /// A hook context to be passed to hooks.
 pub struct HookContext {
-    pub(crate) scope: AnyScope,
+    pub(crate) scope: Scope,
     #[cfg(all(feature = "hydration", feature = "ssr"))]
     creation_mode: RenderMode,
     re_render: ReRender,
@@ -103,7 +103,7 @@ pub struct HookContext {
 
 impl HookContext {
     fn new(
-        scope: AnyScope,
+        scope: Scope,
         re_render: ReRender,
         #[cfg(all(feature = "hydration", feature = "ssr"))] creation_mode: RenderMode,
         #[cfg(feature = "hydration")] prepared_state: Option<&str>,

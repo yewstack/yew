@@ -1,7 +1,7 @@
 use web_sys::Element;
 
 use super::{BNode, BSubtree};
-use crate::html::{AnyScope, NodeRef};
+use crate::html::{NodeRef, Scope};
 
 /// A Reconcile Target.
 ///
@@ -36,7 +36,7 @@ pub(super) trait Reconcilable {
         self,
 
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle);
@@ -59,7 +59,7 @@ pub(super) trait Reconcilable {
         self,
 
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
@@ -68,7 +68,7 @@ pub(super) trait Reconcilable {
     fn reconcile(
         self,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut Self::Bundle,
@@ -79,7 +79,7 @@ pub(super) trait Reconcilable {
         self,
 
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
@@ -111,7 +111,7 @@ mod feat_hydration {
         fn hydrate(
             self,
             root: &BSubtree,
-            parent_scope: &AnyScope,
+            parent_scope: &Scope,
             parent: &Element,
             fragment: &mut Fragment,
         ) -> (NodeRef, Self::Bundle);

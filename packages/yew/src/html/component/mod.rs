@@ -13,8 +13,7 @@ use std::rc::Rc;
 pub use children::*;
 pub use marker::*;
 pub use properties::*;
-pub use scope::AnyScope;
-pub(crate) use scope::Scope;
+pub use scope::Scope;
 #[cfg(feature = "csr")]
 pub(crate) use scope::Scoped;
 
@@ -34,7 +33,7 @@ pub(crate) enum RenderMode {
 #[derive(Debug)]
 pub struct Context {
     props: Rc<dyn Any>,
-    scope: AnyScope,
+    scope: Scope,
     #[cfg(feature = "hydration")]
     creation_mode: RenderMode,
 
@@ -45,7 +44,7 @@ pub struct Context {
 impl Context {
     /// The component scope
     #[inline]
-    pub fn link(&self) -> &AnyScope {
+    pub fn link(&self) -> &Scope {
         &self.scope
     }
 

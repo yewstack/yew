@@ -7,7 +7,7 @@ use std::fmt;
 use web_sys::Element;
 
 use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, Scoped};
+use crate::html::{Scope, Scoped};
 use crate::virtual_dom::{Key, VComp};
 use crate::NodeRef;
 
@@ -30,9 +30,7 @@ impl BComp {
 
 impl fmt::Debug for BComp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("BComp")
-            .field("root", &self.scope.as_ref().render_state())
-            .finish()
+        f.debug_struct("BComp").finish_non_exhaustive()
     }
 }
 
@@ -54,7 +52,7 @@ impl Reconcilable for VComp {
     fn attach(
         self,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
@@ -88,7 +86,7 @@ impl Reconcilable for VComp {
     fn reconcile_node(
         self,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
@@ -107,7 +105,7 @@ impl Reconcilable for VComp {
     fn reconcile(
         self,
         _root: &BSubtree,
-        _parent_scope: &AnyScope,
+        _parent_scope: &Scope,
         _parent: &Element,
         next_sibling: NodeRef,
         bcomp: &mut Self::Bundle,
@@ -129,7 +127,7 @@ mod feat_hydration {
         fn hydrate(
             self,
             root: &BSubtree,
-            parent_scope: &AnyScope,
+            parent_scope: &Scope,
             parent: &Element,
             fragment: &mut Fragment,
         ) -> (NodeRef, Self::Bundle) {
@@ -330,8 +328,8 @@ mod tests {
         }
     }
 
-    fn setup_parent() -> (BSubtree, AnyScope, Element) {
-        let scope = AnyScope::test();
+    fn setup_parent() -> (BSubtree, Scope, Element) {
+        let scope = Scope::test();
         let parent = document().create_element("div").unwrap();
         let root = BSubtree::create_root(&parent);
 
@@ -340,7 +338,7 @@ mod tests {
         (root, scope, parent)
     }
 
-    fn get_html(node: Html, root: &BSubtree, scope: &AnyScope, parent: &Element) -> String {
+    fn get_html(node: Html, root: &BSubtree, scope: &Scope, parent: &Element) -> String {
         // clear parent
         parent.set_inner_html("");
 

@@ -452,7 +452,7 @@ mod feat_ssr {
     use std::fmt::Write;
 
     use super::*;
-    use crate::html::AnyScope;
+    use crate::html::Scope;
     use crate::platform::fmt::BufWriter;
     use crate::virtual_dom::VText;
 
@@ -466,7 +466,7 @@ mod feat_ssr {
         pub(crate) async fn render_into_stream(
             &self,
             w: &mut BufWriter,
-            parent_scope: &AnyScope,
+            parent_scope: &Scope,
             hydratable: bool,
         ) {
             let _ = w.write_str("<");

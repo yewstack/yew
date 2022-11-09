@@ -4,7 +4,7 @@ use gloo::utils::document;
 use web_sys::{Element, Text as TextNode};
 
 use super::{insert_node, BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::AnyScope;
+use crate::html::Scope;
 use crate::virtual_dom::{AttrValue, VText};
 use crate::NodeRef;
 
@@ -42,7 +42,7 @@ impl Reconcilable for VText {
     fn attach(
         self,
         _root: &BSubtree,
-        _parent_scope: &AnyScope,
+        _parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
@@ -57,7 +57,7 @@ impl Reconcilable for VText {
     fn reconcile_node(
         self,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
@@ -71,7 +71,7 @@ impl Reconcilable for VText {
     fn reconcile(
         self,
         _root: &BSubtree,
-        _parent_scope: &AnyScope,
+        _parent_scope: &Scope,
         _parent: &Element,
         _next_sibling: NodeRef,
         btext: &mut Self::Bundle,
@@ -103,7 +103,7 @@ mod feat_hydration {
         fn hydrate(
             self,
             root: &BSubtree,
-            parent_scope: &AnyScope,
+            parent_scope: &Scope,
             parent: &Element,
             fragment: &mut Fragment,
         ) -> (NodeRef, Self::Bundle) {

@@ -5,7 +5,7 @@ use gloo::console::log;
 use yew::NodeRef;
 
 use crate::dom_bundle::{BSubtree, Bundle};
-use crate::html::AnyScope;
+use crate::html::Scope;
 use crate::virtual_dom::VNode;
 use crate::{scheduler, BaseComponent, Context, FunctionComponent};
 
@@ -27,7 +27,7 @@ pub struct TestLayout<'a> {
 
 pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     let document = gloo::utils::document();
-    let scope: AnyScope = AnyScope::test();
+    let scope: Scope = Scope::test();
     let parent_element = document.create_element("div").unwrap();
     let root = BSubtree::create_root(&parent_element);
 

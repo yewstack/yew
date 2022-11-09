@@ -6,7 +6,7 @@ use web_sys::Element;
 #[cfg(feature = "hydration")]
 use super::Fragment;
 use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::AnyScope;
+use crate::html::Scope;
 use crate::virtual_dom::{Key, VSuspense};
 use crate::NodeRef;
 
@@ -76,7 +76,7 @@ impl Reconcilable for VSuspense {
     fn attach(
         self,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
@@ -124,7 +124,7 @@ impl Reconcilable for VSuspense {
     fn reconcile_node(
         self,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
@@ -141,7 +141,7 @@ impl Reconcilable for VSuspense {
     fn reconcile(
         self,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
         suspense: &mut Self::Bundle,
@@ -235,7 +235,7 @@ mod feat_hydration {
         fn hydrate(
             self,
             root: &BSubtree,
-            parent_scope: &AnyScope,
+            parent_scope: &Scope,
             parent: &Element,
             fragment: &mut Fragment,
         ) -> (NodeRef, Self::Bundle) {

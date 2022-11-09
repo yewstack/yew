@@ -38,14 +38,14 @@ mod feat_ssr {
     use std::fmt::Write;
 
     use super::*;
-    use crate::html::AnyScope;
+    use crate::html::Scope;
     use crate::platform::fmt::BufWriter;
 
     impl VText {
         pub(crate) async fn render_into_stream(
             &self,
             w: &mut BufWriter,
-            _parent_scope: &AnyScope,
+            _parent_scope: &Scope,
             _hydratable: bool,
         ) {
             let s = html_escape::encode_text(&self.text);

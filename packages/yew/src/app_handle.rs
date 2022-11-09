@@ -1,5 +1,6 @@
 //! [AppHandle] contains the state Yew keeps to bootstrap a component in an isolated scope.
 
+use std::marker::PhantomData;
 use std::rc::Rc;
 
 use web_sys::Element;
@@ -13,7 +14,8 @@ use crate::scheduler;
 #[derive(Debug)]
 pub struct AppHandle<COMP: BaseComponent> {
     /// `Scope` holder
-    pub(crate) scope: Scope<COMP>,
+    pub(crate) scope: Scope,
+    _marker: PhantomData<COMP>,
 }
 
 impl<COMP> AppHandle<COMP>
@@ -32,18 +34,20 @@ where
     pub(crate) fn mount_with_props(host: Element, props: Rc<COMP::Properties>) -> Self {
         clear_element(&host);
         let app = Self {
-            scope: Scope::new(None),
+            scope: Scope::new::<COMP>(None),
+            _marker: PhantomData,
         };
         let hosting_root = BSubtree::create_root(&host);
 
         {
             let scope = app.scope.clone();
             scheduler::push(move || {
-                scope.mount_in_place(
+                scope.to_any().mount(
                     hosting_root,
                     host,
                     NodeRef::default(),
                     NodeRef::default(),
+                    |ctx| COMP::create(ctx),
                     props,
                 );
             });
@@ -76,6 +80,7 @@ fn clear_element(host: &Element) {
 mod feat_hydration {
     use super::*;
     use crate::dom_bundle::Fragment;
+    use crate::virtual_dom::Collectable;
 
     impl<COMP> AppHandle<COMP>
     where
@@ -88,7 +93,8 @@ mod feat_hydration {
         )]
         pub(crate) fn hydrate_with_props(host: Element, props: Rc<COMP::Properties>) -> Self {
             let app = Self {
-                scope: Scope::new(None),
+                scope: Scope::new::<COMP>(None),
+                _marker: PhantomData,
             };
 
             let mut fragment = Fragment::collect_children(&host);
@@ -97,15 +103,17 @@ mod feat_hydration {
             let scope = app.scope.clone();
 
             scheduler::push(move || {
-                scope.hydrate_in_place(
+                scope.to_any().hydrate(
                     hosting_root,
                     host.clone(),
                     &mut fragment,
                     NodeRef::default(),
-                    Rc::clone(&props),
+                    |ctx| COMP::create(ctx),
+                    props.clone(),
+                    || Collectable::for_component::<COMP>(),
                 );
                 #[cfg(debug_assertions)] // Fix trapped next_sibling at the root
-                scope.reuse(props, NodeRef::default());
+                scope.to_any().reuse(props, NodeRef::default());
 
                 // We remove all remaining nodes, this mimics the clear_element behaviour in
                 // mount_with_props.

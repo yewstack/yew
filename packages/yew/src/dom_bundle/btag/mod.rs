@@ -14,7 +14,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
 use super::{insert_node, BList, BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::AnyScope;
+use crate::html::Scope;
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
 use crate::NodeRef;
@@ -108,7 +108,7 @@ impl Reconcilable for VTag {
     fn attach(
         self,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
@@ -157,7 +157,7 @@ impl Reconcilable for VTag {
     fn reconcile_node(
         self,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
@@ -196,7 +196,7 @@ impl Reconcilable for VTag {
     fn reconcile(
         self,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         _parent: &Element,
         _next_sibling: NodeRef,
         tag: &mut Self::Bundle,
@@ -301,7 +301,7 @@ mod feat_hydration {
         fn hydrate(
             self,
             root: &BSubtree,
-            parent_scope: &AnyScope,
+            parent_scope: &Scope,
             parent: &Element,
             fragment: &mut Fragment,
         ) -> (NodeRef, Self::Bundle) {
@@ -392,15 +392,15 @@ mod tests {
 
     use super::*;
     use crate::dom_bundle::{BNode, Reconcilable, ReconcileTarget};
-    use crate::html::AnyScope;
+    use crate::html::Scope;
     use crate::virtual_dom::vtag::{HTML_NAMESPACE, SVG_NAMESPACE};
     use crate::virtual_dom::{AttrValue, VNode, VTag};
     use crate::{html, Html, NodeRef};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
-    fn setup_parent() -> (BSubtree, AnyScope, Element) {
-        let scope = AnyScope::test();
+    fn setup_parent() -> (BSubtree, Scope, Element) {
+        let scope = Scope::test();
         let parent = document().create_element("div").unwrap();
         let root = BSubtree::create_root(&parent);
 

@@ -17,31 +17,20 @@ mod feat_csr {
 
     use super::*;
     use crate::context::ContextStore;
-    use crate::html::{AnyScope, Scope};
+    use crate::html::Scope;
     use crate::suspense::Suspension;
-    use crate::ContextProvider;
 
     #[cfg(feature = "csr")]
-    pub(crate) fn resume_suspension(
-        provider: &Scope<ContextProvider<DispatchSuspension>>,
-        s: Suspension,
-    ) {
-        if let Some(provider) =
-            ContextStore::<DispatchSuspension>::get(&AnyScope::from(provider.clone()))
-        {
+    pub(crate) fn resume_suspension(provider: &Scope, s: Suspension) {
+        if let Some(provider) = ContextStore::<DispatchSuspension>::get(provider) {
             let context = provider.borrow().get_context_value();
             context.dispatch(SuspensionsAction::Resume(s));
         }
     }
 
     #[cfg(feature = "csr")]
-    pub(crate) fn suspend_suspension(
-        provider: &Scope<ContextProvider<DispatchSuspension>>,
-        s: Suspension,
-    ) {
-        if let Some(provider) =
-            ContextStore::<DispatchSuspension>::get(&AnyScope::from(provider.clone()))
-        {
+    pub(crate) fn suspend_suspension(provider: &Scope, s: Suspension) {
+        if let Some(provider) = ContextStore::<DispatchSuspension>::get(provider) {
             let context = provider.borrow().get_context_value();
             context.dispatch(SuspensionsAction::Suspend(s));
         }

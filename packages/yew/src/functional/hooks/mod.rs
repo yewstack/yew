@@ -64,7 +64,7 @@ pub(crate) fn use_component_id() -> impl Hook<Output = usize> {
         type Output = usize;
 
         fn run(self, ctx: &mut HookContext) -> Self::Output {
-            ctx.scope.get_id()
+            ctx.scope.id()
         }
     }
 

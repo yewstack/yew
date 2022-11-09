@@ -99,14 +99,14 @@ where
         fields(hydratable = self.hydratable),
     )]
     pub fn render_stream(self) -> impl Stream<Item = String> {
-        let scope = Scope::<COMP>::new(None);
+        let scope = Scope::new::<COMP>(None);
 
         let outer_span = tracing::Span::current();
         BufStream::new(move |mut w| async move {
             let render_span = tracing::debug_span!("render_stream_item");
             render_span.follows_from(outer_span);
             scope
-                .render_into_stream(&mut w, self.props.into(), self.hydratable)
+                .render_into_stream::<COMP>(&mut w, self.props.into(), self.hydratable)
                 .instrument(render_span)
                 .await;
         })

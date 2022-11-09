@@ -4,7 +4,7 @@ use web_sys::Element;
 
 use super::{test_log, BNode, BSubtree};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, NodeRef};
+use crate::html::{NodeRef, Scope};
 use crate::virtual_dom::{Key, VPortal};
 
 /// The bundle implementation to [VPortal].
@@ -39,7 +39,7 @@ impl Reconcilable for VPortal {
     fn attach(
         self,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         host_next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
@@ -69,7 +69,7 @@ impl Reconcilable for VPortal {
     fn reconcile_node(
         self,
         root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
         bundle: &mut BNode,
@@ -85,7 +85,7 @@ impl Reconcilable for VPortal {
     fn reconcile(
         self,
         _root: &BSubtree,
-        parent_scope: &AnyScope,
+        parent_scope: &Scope,
         parent: &Element,
         next_sibling: NodeRef,
         portal: &mut Self::Bundle,
@@ -211,8 +211,8 @@ mod layout_tests {
         diff_layouts(layouts)
     }
 
-    fn setup_parent_with_portal() -> (BSubtree, AnyScope, Element, Element) {
-        let scope = AnyScope::test();
+    fn setup_parent_with_portal() -> (BSubtree, Scope, Element, Element) {
+        let scope = Scope::test();
         let parent = document().create_element("div").unwrap();
         let portal_host = document().create_element("div").unwrap();
         let root = BSubtree::create_root(&parent);

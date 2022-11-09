@@ -9,7 +9,7 @@ use std::rc::Rc;
 use slab::Slab;
 use yew_macro::function_component;
 
-use crate::html::AnyScope;
+use crate::html::Scope;
 use crate::{
     html, use_component_id, use_effect_with_deps, use_memo, Callback, Children, Html, Properties,
 };
@@ -21,10 +21,10 @@ pub(crate) struct ContextStore<T: Clone + PartialEq + 'static> {
 }
 
 impl<T: Clone + PartialEq> ContextStore<T> {
-    pub(crate) fn get(scope: &AnyScope) -> Option<Rc<RefCell<ContextStore<T>>>> {
+    pub(crate) fn get(scope: &Scope) -> Option<Rc<RefCell<ContextStore<T>>>> {
         CONTEXT_STORES.with(|m| {
             m.borrow_mut()
-                .get(&scope.get_id())
+                .get(&scope.id())
                 .cloned()
                 .and_then(|m| m.downcast().ok())
         })
