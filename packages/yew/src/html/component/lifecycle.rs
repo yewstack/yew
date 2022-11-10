@@ -10,10 +10,10 @@ use crate::dom_bundle::{DomSlot, Realized};
 use crate::html::RenderMode;
 use crate::html::{Context, Html, Intrinsical, NodeRef, RenderError};
 use crate::suspense::{resume_suspension, suspend_suspension, DispatchSuspension, Suspension};
-use crate::{scheduler, Callback, ContextProvider, FunctionComponent};
+use crate::{scheduler, Callback, ContextProvider, HookContext};
 
 pub(crate) struct ComponentState {
-    pub(super) component: FunctionComponent,
+    pub(super) component: HookContext,
     pub(super) context: Context,
 
     pub slot: DomSlot,
@@ -33,7 +33,7 @@ impl ComponentState {
     )]
     fn new(context: Context, slot: DomSlot) -> Self {
         Self {
-            component: context.intrisic().create_component(&context),
+            component: HookContext::new(&context),
             context,
             suspension: None,
 
@@ -141,7 +141,7 @@ impl ComponentState {
         fields(component.id = self.context.link().id())
     )]
     fn render(&mut self) {
-        match self.component.render(self.context.props()) {
+        match self.context.intrisic().render(&mut self.component) {
             Ok(vnode) => self.commit_render(vnode),
             Err(RenderError::Suspended(susp)) => self.suspend(susp),
         };

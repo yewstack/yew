@@ -8,7 +8,6 @@ mod marker;
 mod properties;
 mod scope;
 
-use std::any::Any;
 use std::fmt;
 use std::rc::Rc;
 
@@ -54,12 +53,6 @@ impl Context {
 
     pub fn intrisic(&self) -> &dyn Intrinsical {
         self.mountable.as_ref()
-    }
-
-    /// The component's props
-    #[inline]
-    pub fn props(&self) -> &dyn Any {
-        self.mountable.any_props()
     }
 
     #[cfg(feature = "hydration")]

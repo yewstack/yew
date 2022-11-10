@@ -7,30 +7,32 @@ use futures::future::{FutureExt, LocalBoxFuture};
 #[cfg(feature = "csr")]
 use web_sys::Element;
 
+use super::BaseComponent;
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use super::Scope;
-use super::{BaseComponent, Context};
 #[cfg(feature = "csr")]
 use crate::dom_bundle::BSubtree;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
-use crate::functional::FunctionComponent;
+use crate::functional::{HookContext, Renderable};
 #[cfg(feature = "csr")]
 use crate::html::NodeRef;
 #[cfg(feature = "ssr")]
 use crate::platform::fmt::BufWriter;
 #[cfg(any(feature = "hydration", feature = "ssr"))]
 use crate::virtual_dom::Collectable;
+use crate::HtmlResult;
 
 pub(crate) trait Intrinsical {
+    fn as_any(&self) -> &dyn Any;
     fn type_id(&self) -> TypeId;
-    fn any_props(&self) -> &dyn Any;
 
-    fn create_component(&self, ctx: &Context) -> FunctionComponent;
     #[cfg(any(feature = "hydration", feature = "ssr"))]
     fn create_collectable(&self) -> Collectable;
 
     fn intrinsic_eq(&self, other: &dyn Intrinsical) -> bool;
+
+    fn render(&self, ctx: &mut HookContext) -> HtmlResult;
 
     #[cfg(feature = "csr")]
     fn mount(
@@ -79,25 +81,24 @@ impl<COMP: BaseComponent> ComponentIntrinsic<COMP> {
 }
 
 impl<COMP: BaseComponent> Intrinsical for ComponentIntrinsic<COMP> {
+    fn as_any(&self) -> &dyn Any {
+        self as &dyn Any
+    }
+
     fn type_id(&self) -> TypeId {
         TypeId::of::<COMP>()
     }
 
-    fn any_props(&self) -> &dyn Any {
-        &self.props
-    }
-
-    fn create_component(&self, ctx: &Context) -> FunctionComponent {
-        FunctionComponent::new::<COMP>(ctx)
-    }
-
     fn intrinsic_eq(&self, other: &dyn Intrinsical) -> bool {
-        Intrinsical::type_id(self) == other.type_id()
-            && other
-                .any_props()
-                .downcast_ref::<COMP::Properties>()
-                .map(|m| m == &self.props)
-                .unwrap_or(false)
+        other
+            .as_any()
+            .downcast_ref::<Self>()
+            .map(|m| self.props() == m.props())
+            .unwrap_or(false)
+    }
+
+    fn render(&self, ctx: &mut HookContext) -> HtmlResult {
+        COMP::render(ctx, self.props())
     }
 
     #[cfg(any(feature = "hydration", feature = "ssr"))]

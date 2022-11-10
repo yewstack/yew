@@ -97,6 +97,7 @@ mod feat_ssr {
     use crate::html::RenderMode;
     use crate::html::{Context, Intrinsical, RenderError};
     use crate::platform::fmt::BufWriter;
+    use crate::HookContext;
 
     impl Scope {
         pub(crate) async fn render_into_stream(
@@ -119,7 +120,7 @@ mod feat_ssr {
                 prepared_state: None,
             };
 
-            let mut component = mountable.create_component(&context);
+            let mut hook_ctx = HookContext::new(&context);
             let collectable = mountable.create_collectable();
 
             if hydratable {
@@ -127,7 +128,7 @@ mod feat_ssr {
             }
 
             let html = loop {
-                match component.render(context.props()) {
+                match mountable.render(&mut hook_ctx) {
                     Ok(m) => break m,
                     Err(RenderError::Suspended(e)) => e.await,
                 }
@@ -135,7 +136,7 @@ mod feat_ssr {
 
             html.render_into_stream(w, self, hydratable).await;
 
-            if let Some(prepared_state) = component.prepare_state() {
+            if let Some(prepared_state) = hook_ctx.prepare_state() {
                 let _ = w.write_str(r#"<script type="application/x-yew-comp-state">"#);
                 let _ = w.write_str(&prepared_state);
                 let _ = w.write_str(r#"</script>"#);

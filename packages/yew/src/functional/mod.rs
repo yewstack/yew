@@ -29,7 +29,7 @@ use wasm_bindgen::prelude::*;
 #[cfg(all(feature = "hydration", feature = "ssr"))]
 use crate::html::RenderMode;
 use crate::html::{Context, HtmlResult, Scope};
-use crate::{Html, Properties};
+use crate::Properties;
 
 mod hooks;
 pub use hooks::*;
@@ -98,16 +98,12 @@ pub struct HookContext {
 }
 
 impl HookContext {
-    fn new(
-        scope: Scope,
-        #[cfg(all(feature = "hydration", feature = "ssr"))] creation_mode: RenderMode,
-        #[cfg(feature = "hydration")] prepared_state: Option<&str>,
-    ) -> Self {
+    pub(crate) fn new(ctx: &Context) -> Self {
         HookContext {
-            scope,
+            scope: ctx.link().clone(),
 
             #[cfg(all(feature = "hydration", feature = "ssr"))]
-            creation_mode,
+            creation_mode: ctx.creation_mode(),
 
             states: Vec::new(),
 
@@ -117,7 +113,7 @@ impl HookContext {
 
             #[cfg(feature = "hydration")]
             prepared_states_data: {
-                match prepared_state {
+                match ctx.prepared_state() {
                     Some(m) => m.split(',').map(Rc::from).collect(),
                     None => Vec::new(),
                 }
@@ -244,13 +240,13 @@ impl HookContext {
         }
     }
 
-    fn run_effects(&self) {
+    pub(crate) fn rendered(&self) {
         for effect in self.effects.iter() {
             effect.rendered();
         }
     }
 
-    fn drain_states(&mut self) {
+    pub(crate) fn destroy(&mut self) {
         // We clear the effects as these are also references to states.
         self.effects.clear();
 
@@ -259,13 +255,8 @@ impl HookContext {
         }
     }
 
-    #[cfg(not(feature = "ssr"))]
-    fn prepare_state(&self) -> Option<String> {
-        None
-    }
-
     #[cfg(feature = "ssr")]
-    fn prepare_state(&self) -> Option<String> {
+    pub(crate) fn prepare_state(&self) -> Option<String> {
         if self.prepared_states.is_empty() {
             return None;
         }
@@ -304,89 +295,28 @@ pub trait Component: Sized + 'static {
     fn run(ctx: &mut HookContext, props: &Self::Properties) -> HtmlResult;
 }
 
-/// A type that interacts [`FunctionProvider`] to provide lifecycle events to be bridged to
-/// [`BaseComponent`].
-///
-/// # Note
-///
-/// Function Components should not be implemented with this type directly.
-///
-/// Use the `#[function_component]` macro instead.
-#[doc(hidden)]
-pub struct FunctionComponent {
-    inner: fn(&mut HookContext, props: &dyn Any) -> HtmlResult,
-    hook_ctx: HookContext,
+pub(crate) trait Renderable {
+    /// Properties for the Function Component.
+    type TProps: Properties + PartialEq;
+
+    fn render(ctx: &mut HookContext, props: &Self::TProps) -> HtmlResult;
 }
 
-impl FunctionComponent {
-    /// Creates a new function component.
-    pub(crate) fn new<T>(ctx: &Context) -> Self
-    where
-        T: Sized + Component + 'static,
-    {
-        let inner = |ctx: &mut HookContext, props: &dyn Any| {
-            let props = match props.downcast_ref::<<T as Component>::Properties>() {
-                Some(m) => m,
-                None => return Ok(Html::default()),
-            };
+impl<T> Renderable for T
+where
+    T: Component + 'static,
+{
+    type TProps = T::Properties;
 
-            T::run(ctx, props)
-        };
-
-        Self::new_any(ctx, inner)
-    }
-
-    fn new_any(ctx: &Context, inner: fn(&mut HookContext, props: &dyn Any) -> HtmlResult) -> Self {
-        let scope = ctx.link().clone();
-
-        Self {
-            inner,
-            hook_ctx: HookContext::new(
-                scope,
-                #[cfg(all(feature = "hydration", feature = "ssr"))]
-                ctx.creation_mode(),
-                #[cfg(feature = "hydration")]
-                ctx.prepared_state(),
-            ),
-        }
-    }
-
-    /// Renders a function component.
-    pub fn render(&mut self, props: &dyn Any) -> HtmlResult {
-        self.hook_ctx.prepare_run();
+    fn render(ctx: &mut HookContext, props: &Self::TProps) -> HtmlResult {
+        ctx.prepare_run();
 
         #[allow(clippy::let_and_return)]
-        let result = (self.inner)(&mut self.hook_ctx, props);
+        let result = T::run(ctx, props);
 
         #[cfg(debug_assertions)]
-        self.hook_ctx.assert_hook_context(result.is_ok());
+        ctx.assert_hook_context(result.is_ok());
 
         result
-    }
-
-    /// Run Effects of a function component.
-
-    #[inline]
-    pub fn rendered(&self) {
-        self.hook_ctx.run_effects();
-    }
-
-    /// Destroys the function component.
-
-    #[inline]
-    pub fn destroy(&mut self) {
-        self.hook_ctx.drain_states();
-    }
-
-    /// Prepares the server-side state.
-    #[inline]
-    pub fn prepare_state(&self) -> Option<String> {
-        self.hook_ctx.prepare_state()
-    }
-}
-
-impl fmt::Debug for FunctionComponent {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("FunctionComponent")
     }
 }
