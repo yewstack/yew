@@ -306,12 +306,6 @@ impl FunctionComponent {
             impl #impl_generics ::yew::html::Component for #component_name #ty_generics #where_clause {
                 type Properties = #props_type;
 
-                fn create() -> Self {
-                    Self {
-                        _marker: ::std::marker::PhantomData,
-                    }
-                }
-
                 fn run(#ctx_ident: &mut ::yew::functional::HookContext, #component_props: &Self::Properties) -> ::yew::html::HtmlResult {
                     #func
 

@@ -200,7 +200,7 @@ impl HookContext {
     }
 
     #[inline(always)]
-    fn prepare_run(&mut self) {
+    pub(crate) fn prepare_run(&mut self) {
         #[cfg(feature = "hydration")]
         {
             self.prepared_state_counter = 0;
@@ -213,7 +213,7 @@ impl HookContext {
     ///
     /// This function asserts that the number of hooks matches for every render.
     #[cfg(debug_assertions)]
-    fn assert_hook_context(&mut self, render_ok: bool) {
+    pub(crate) fn assert_hook_context(&mut self, render_ok: bool) {
         // Procedural Macros can catch most conditionally called hooks at compile time, but it
         // cannot detect early return (as the return can be Err(_), Suspension).
         match (render_ok, self.total_hook_counter) {
@@ -289,38 +289,9 @@ pub trait Component: Sized + 'static {
     /// Properties for the Function Component.
     type Properties: Properties + PartialEq;
 
-    /// Creates an instance of function provider.
-    fn create() -> Self;
-
     /// Render the component. This function returns the [`Html`](crate::Html) to be rendered for the
     /// component.
     ///
     /// Equivalent of [`Component::view`](crate::html::Component::view).
     fn run(ctx: &mut HookContext, props: &Self::Properties) -> HtmlResult;
-}
-
-pub(crate) trait Renderable {
-    /// Properties for the Function Component.
-    type TProps: Properties + PartialEq;
-
-    fn render(ctx: &mut HookContext, props: &Self::TProps) -> HtmlResult;
-}
-
-impl<T> Renderable for T
-where
-    T: Component + 'static,
-{
-    type TProps = T::Properties;
-
-    fn render(ctx: &mut HookContext, props: &Self::TProps) -> HtmlResult {
-        ctx.prepare_run();
-
-        #[allow(clippy::let_and_return)]
-        let result = T::run(ctx, props);
-
-        #[cfg(debug_assertions)]
-        ctx.assert_hook_context(result.is_ok());
-
-        result
-    }
 }

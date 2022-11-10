@@ -14,7 +14,7 @@ use super::Scope;
 use crate::dom_bundle::BSubtree;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
-use crate::functional::{HookContext, Renderable};
+use crate::functional::HookContext;
 #[cfg(feature = "csr")]
 use crate::html::NodeRef;
 #[cfg(feature = "ssr")]
@@ -96,7 +96,15 @@ impl<COMP: Component> Intrinsical for ComponentIntrinsic<COMP> {
     }
 
     fn render(&self, ctx: &mut HookContext) -> HtmlResult {
-        COMP::render(ctx, self.props())
+        ctx.prepare_run();
+
+        #[allow(clippy::let_and_return)]
+        let result = COMP::run(ctx, self.props());
+
+        #[cfg(debug_assertions)]
+        ctx.assert_hook_context(result.is_ok());
+
+        result
     }
 
     #[cfg(any(feature = "hydration", feature = "ssr"))]
