@@ -6,13 +6,13 @@ use std::rc::Rc;
 use web_sys::Element;
 
 use crate::dom_bundle::BSubtree;
-use crate::html::{BaseComponent, ComponentIntrinsic, NodeRef, Scope};
+use crate::html::{Component, ComponentIntrinsic, NodeRef, Scope};
 use crate::scheduler;
 
 /// An instance of an application.
 #[cfg(feature = "csr")]
 #[derive(Debug)]
-pub struct AppHandle<COMP: BaseComponent> {
+pub struct AppHandle<COMP: Component> {
     /// `Scope` holder
     pub(crate) scope: Scope,
     _marker: PhantomData<COMP>,
@@ -20,7 +20,7 @@ pub struct AppHandle<COMP: BaseComponent> {
 
 impl<COMP> AppHandle<COMP>
 where
-    COMP: BaseComponent,
+    COMP: Component,
 {
     /// The main entry point of a Yew program which also allows passing properties. It works
     /// similarly to the `program` function in Elm. You should provide an initial model, `update`
@@ -100,7 +100,7 @@ mod feat_hydration {
 
     impl<COMP> AppHandle<COMP>
     where
-        COMP: BaseComponent,
+        COMP: Component,
     {
         #[tracing::instrument(
             level = tracing::Level::DEBUG,

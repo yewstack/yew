@@ -6,7 +6,7 @@ use futures::pin_mut;
 use futures::stream::{Stream, StreamExt};
 use tracing::Instrument;
 
-use crate::html::{BaseComponent, ComponentIntrinsic, Scope};
+use crate::html::{Component, ComponentIntrinsic, Scope};
 use crate::platform::fmt::BufStream;
 use crate::platform::{LocalHandle, Runtime};
 
@@ -23,7 +23,7 @@ use crate::platform::{LocalHandle, Runtime};
 #[derive(Debug)]
 pub struct LocalServerRenderer<COMP>
 where
-    COMP: BaseComponent,
+    COMP: Component,
 {
     props: COMP::Properties,
     hydratable: bool,
@@ -31,7 +31,7 @@ where
 
 impl<COMP> Default for LocalServerRenderer<COMP>
 where
-    COMP: BaseComponent,
+    COMP: Component,
     COMP::Properties: Default,
 {
     fn default() -> Self {
@@ -41,7 +41,7 @@ where
 
 impl<COMP> LocalServerRenderer<COMP>
 where
-    COMP: BaseComponent,
+    COMP: Component,
     COMP::Properties: Default,
 {
     /// Creates a [LocalServerRenderer] with default properties.
@@ -52,7 +52,7 @@ where
 
 impl<COMP> LocalServerRenderer<COMP>
 where
-    COMP: BaseComponent,
+    COMP: Component,
 {
     /// Creates a [LocalServerRenderer] with custom properties.
     pub fn with_props(props: COMP::Properties) -> Self {
@@ -125,7 +125,7 @@ where
 #[cfg(feature = "ssr")]
 pub struct ServerRenderer<COMP>
 where
-    COMP: BaseComponent,
+    COMP: Component,
 {
     create_props: Box<dyn Send + FnOnce() -> COMP::Properties>,
     hydratable: bool,
@@ -134,7 +134,7 @@ where
 
 impl<COMP> fmt::Debug for ServerRenderer<COMP>
 where
-    COMP: BaseComponent,
+    COMP: Component,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("ServerRenderer<_>")
@@ -143,7 +143,7 @@ where
 
 impl<COMP> Default for ServerRenderer<COMP>
 where
-    COMP: BaseComponent,
+    COMP: Component,
     COMP::Properties: Default,
 {
     fn default() -> Self {
@@ -153,7 +153,7 @@ where
 
 impl<COMP> ServerRenderer<COMP>
 where
-    COMP: BaseComponent,
+    COMP: Component,
     COMP::Properties: Default,
 {
     /// Creates a [ServerRenderer] with default properties.
@@ -164,7 +164,7 @@ where
 
 impl<COMP> ServerRenderer<COMP>
 where
-    COMP: BaseComponent,
+    COMP: Component,
 {
     /// Creates a [ServerRenderer] with custom properties.
     ///

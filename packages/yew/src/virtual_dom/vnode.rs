@@ -7,7 +7,7 @@ use std::iter::FromIterator;
 use web_sys::Node;
 
 use super::{Key, VChild, VComp, VList, VPortal, VSuspense, VTag, VText};
-use crate::html::BaseComponent;
+use crate::html::Component;
 use crate::virtual_dom::VRaw;
 use crate::AttrValue;
 
@@ -138,7 +138,7 @@ impl From<VPortal> for VNode {
 
 impl<COMP> From<VChild<COMP>> for VNode
 where
-    COMP: BaseComponent,
+    COMP: Component,
 {
     fn from(vchild: VChild<COMP>) -> Self {
         VNode::VComp(VComp::from(vchild))

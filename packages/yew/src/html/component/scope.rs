@@ -8,7 +8,7 @@ use std::{fmt, iter};
 
 #[cfg(feature = "csr")]
 use super::lifecycle::ComponentState;
-use super::BaseComponent;
+use super::Component;
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider, ContextStore};
 #[cfg(feature = "hydration")]
@@ -65,14 +65,14 @@ impl Scope {
     /// Attempts checks the component type of current scope
     ///
     /// Returns [`None`] if the self value can't be cast into the target type.
-    pub(crate) fn is_scope_of<COMP: BaseComponent>(&self) -> bool {
+    pub(crate) fn is_scope_of<COMP: Component>(&self) -> bool {
         self.type_id() == TypeId::of::<COMP>()
     }
 
     /// Attempts to find a parent scope of a certain type
     ///
     /// Returns [`None`] if no parent scope with the specified type was found.
-    pub(crate) fn find_parent_scope<COMP: BaseComponent>(&self) -> Option<&Scope> {
+    pub(crate) fn find_parent_scope<COMP: Component>(&self) -> Option<&Scope> {
         iter::successors(Some(self), |scope| scope.parent()).find(|m| m.is_scope_of::<COMP>())
     }
 

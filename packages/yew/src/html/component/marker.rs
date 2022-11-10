@@ -1,6 +1,6 @@
 //! Primitive Components & Properties Types
 
-use crate::html::{BaseComponent, ChildrenProps, Html};
+use crate::html::{ChildrenProps, Component, Html};
 use crate::{function_component, html};
 
 /// A Component to represent a component that does not exist in current implementation.
@@ -140,7 +140,7 @@ use crate::{function_component, html};
 #[function_component]
 pub fn PhantomComponent<T>(props: &ChildrenProps) -> Html
 where
-    T: BaseComponent,
+    T: Component,
 {
     html! { <>{props.children.clone()}</> }
 }

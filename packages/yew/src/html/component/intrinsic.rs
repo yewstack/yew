@@ -7,7 +7,7 @@ use futures::future::{FutureExt, LocalBoxFuture};
 #[cfg(feature = "csr")]
 use web_sys::Element;
 
-use super::BaseComponent;
+use super::Component;
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use super::Scope;
 #[cfg(feature = "csr")]
@@ -66,11 +66,11 @@ pub(crate) trait Intrinsical {
     ) -> Scope;
 }
 
-pub(crate) struct ComponentIntrinsic<COMP: BaseComponent> {
+pub(crate) struct ComponentIntrinsic<COMP: Component> {
     props: COMP::Properties,
 }
 
-impl<COMP: BaseComponent> ComponentIntrinsic<COMP> {
+impl<COMP: Component> ComponentIntrinsic<COMP> {
     pub fn new(props: COMP::Properties) -> Self {
         Self { props }
     }
@@ -80,7 +80,7 @@ impl<COMP: BaseComponent> ComponentIntrinsic<COMP> {
     }
 }
 
-impl<COMP: BaseComponent> Intrinsical for ComponentIntrinsic<COMP> {
+impl<COMP: Component> Intrinsical for ComponentIntrinsic<COMP> {
     fn as_any(&self) -> &dyn Any {
         self as &dyn Any
     }

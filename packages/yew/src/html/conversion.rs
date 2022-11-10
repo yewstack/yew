@@ -4,7 +4,7 @@ use implicit_clone::unsync::{IArray, IMap};
 pub use implicit_clone::ImplicitClone;
 
 use super::super::callback::Callback;
-use super::{BaseComponent, Children, ChildrenRenderer, NodeRef, Scope};
+use super::{Children, ChildrenRenderer, Component, NodeRef, Scope};
 use crate::virtual_dom::{AttrValue, VChild, VNode};
 
 impl ImplicitClone for NodeRef {}
@@ -83,7 +83,7 @@ where
 
 impl<T> IntoPropValue<ChildrenRenderer<VChild<T>>> for VChild<T>
 where
-    T: BaseComponent,
+    T: Component,
 {
     #[inline]
     fn into_prop_value(self) -> ChildrenRenderer<VChild<T>> {
@@ -93,7 +93,7 @@ where
 
 impl<T> IntoPropValue<Option<ChildrenRenderer<VChild<T>>>> for VChild<T>
 where
-    T: BaseComponent,
+    T: Component,
 {
     #[inline]
     fn into_prop_value(self) -> Option<ChildrenRenderer<VChild<T>>> {
@@ -103,7 +103,7 @@ where
 
 impl<T> IntoPropValue<Option<ChildrenRenderer<VChild<T>>>> for Option<VChild<T>>
 where
-    T: BaseComponent,
+    T: Component,
 {
     #[inline]
     fn into_prop_value(self) -> Option<ChildrenRenderer<VChild<T>>> {
@@ -113,7 +113,7 @@ where
 
 impl<T> IntoPropValue<ChildrenRenderer<VChild<T>>> for Vec<VChild<T>>
 where
-    T: BaseComponent,
+    T: Component,
 {
     #[inline]
     fn into_prop_value(self) -> ChildrenRenderer<VChild<T>> {
@@ -123,7 +123,7 @@ where
 
 impl<T> IntoPropValue<Option<ChildrenRenderer<VChild<T>>>> for Vec<VChild<T>>
 where
-    T: BaseComponent,
+    T: Component,
 {
     #[inline]
     fn into_prop_value(self) -> Option<ChildrenRenderer<VChild<T>>> {
@@ -133,7 +133,7 @@ where
 
 impl<T> IntoPropValue<Option<ChildrenRenderer<VChild<T>>>> for Option<Vec<VChild<T>>>
 where
-    T: BaseComponent,
+    T: Component,
 {
     #[inline]
     fn into_prop_value(self) -> Option<ChildrenRenderer<VChild<T>>> {

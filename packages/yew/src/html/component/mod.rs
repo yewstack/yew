@@ -73,4 +73,4 @@ impl Context {
     }
 }
 
-pub use crate::functional::Component as BaseComponent;
+pub use crate::functional::Component;

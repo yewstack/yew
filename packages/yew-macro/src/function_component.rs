@@ -303,7 +303,7 @@ impl FunctionComponent {
             // we cannot disable any lints here because it will be applied to the function body
             // as well.
             #(#component_impl_attrs)*
-            impl #impl_generics ::yew::functional::Component for #component_name #ty_generics #where_clause {
+            impl #impl_generics ::yew::html::Component for #component_name #ty_generics #where_clause {
                 type Properties = #props_type;
 
                 fn create() -> Self {

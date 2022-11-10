@@ -4,7 +4,7 @@ use std::panic::PanicInfo;
 use web_sys::Element;
 
 use crate::app_handle::AppHandle;
-use crate::html::BaseComponent;
+use crate::html::Component;
 
 thread_local! {
     static PANIC_HOOK_IS_SET: Cell<bool> = Cell::new(false);
@@ -33,7 +33,7 @@ fn set_default_panic_hook() {
 #[must_use = "Renderer does nothing unless render() is called."]
 pub struct Renderer<COMP>
 where
-    COMP: BaseComponent + 'static,
+    COMP: Component + 'static,
 {
     root: Element,
     props: COMP::Properties,
@@ -41,7 +41,7 @@ where
 
 impl<COMP> Default for Renderer<COMP>
 where
-    COMP: BaseComponent + 'static,
+    COMP: Component + 'static,
     COMP::Properties: Default,
 {
     fn default() -> Self {
@@ -51,7 +51,7 @@ where
 
 impl<COMP> Renderer<COMP>
 where
-    COMP: BaseComponent + 'static,
+    COMP: Component + 'static,
     COMP::Properties: Default,
 {
     /// Creates a [Renderer] that renders into the document body with default properties.
@@ -67,7 +67,7 @@ where
 
 impl<COMP> Renderer<COMP>
 where
-    COMP: BaseComponent + 'static,
+    COMP: Component + 'static,
 {
     /// Creates a [Renderer] that renders into the document body with custom properties.
     pub fn with_props(props: COMP::Properties) -> Self {
@@ -99,7 +99,7 @@ mod feat_hydration {
 
     impl<COMP> Renderer<COMP>
     where
-        COMP: BaseComponent + 'static,
+        COMP: Component + 'static,
     {
         /// Hydrates the application.
         pub fn hydrate(self) -> AppHandle<COMP> {

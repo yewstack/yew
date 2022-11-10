@@ -5,7 +5,7 @@ use std::fmt;
 use std::rc::Rc;
 
 use super::Key;
-use crate::html::{BaseComponent, ComponentIntrinsic, Intrinsical};
+use crate::html::{Component, ComponentIntrinsic, Intrinsical};
 
 /// A virtual component.
 pub struct VComp {
@@ -38,14 +38,14 @@ impl Clone for VComp {
 }
 
 /// A virtual child component.
-pub struct VChild<COMP: BaseComponent> {
+pub struct VChild<COMP: Component> {
     /// The component properties
     intrinsic: Rc<ComponentIntrinsic<COMP>>,
     /// Reference to the mounted node
     key: Option<Key>,
 }
 
-impl<COMP: BaseComponent> Clone for VChild<COMP> {
+impl<COMP: Component> Clone for VChild<COMP> {
     fn clone(&self) -> Self {
         VChild {
             intrinsic: Rc::clone(&self.intrinsic),
@@ -54,7 +54,7 @@ impl<COMP: BaseComponent> Clone for VChild<COMP> {
     }
 }
 
-impl<COMP: BaseComponent> PartialEq for VChild<COMP>
+impl<COMP: Component> PartialEq for VChild<COMP>
 where
     COMP::Properties: PartialEq,
 {
@@ -65,7 +65,7 @@ where
 
 impl<COMP> VChild<COMP>
 where
-    COMP: BaseComponent,
+    COMP: Component,
 {
     /// Creates a child component that can be accessed and modified by its parent.
     pub fn new(props: COMP::Properties, key: Option<Key>) -> Self {
@@ -78,7 +78,7 @@ where
 
 impl<COMP> From<VChild<COMP>> for VComp
 where
-    COMP: BaseComponent,
+    COMP: Component,
 {
     fn from(vchild: VChild<COMP>) -> Self {
         VComp::with_intrinsic::<COMP, _>(vchild.intrinsic, vchild.key)
@@ -89,7 +89,7 @@ impl VComp {
     /// Creates a new `VComp` instance.
     pub fn new<COMP>(props: COMP::Properties, key: Option<Key>) -> Self
     where
-        COMP: BaseComponent,
+        COMP: Component,
     {
         VComp {
             type_id: TypeId::of::<COMP>(),
@@ -102,7 +102,7 @@ impl VComp {
     /// Creates a new `VComp` instance.
     pub(crate) fn with_intrinsic<COMP, I>(intrinsic: I, key: Option<Key>) -> Self
     where
-        COMP: BaseComponent,
+        COMP: Component,
         I: Into<Rc<ComponentIntrinsic<COMP>>>,
     {
         VComp {
@@ -120,7 +120,7 @@ impl PartialEq for VComp {
     }
 }
 
-impl<COMP: BaseComponent> fmt::Debug for VChild<COMP> {
+impl<COMP: Component> fmt::Debug for VChild<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("VChild<_>")
     }

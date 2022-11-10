@@ -335,8 +335,8 @@ pub mod prelude {
     pub use crate::events::*;
     pub use crate::functional::*;
     pub use crate::html::{
-        create_portal, BaseComponent, Children, ChildrenWithProps, Classes, Html, HtmlResult,
-        NodeRef, Properties,
+        create_portal, Children, ChildrenWithProps, Classes, Component, Html, HtmlResult, NodeRef,
+        Properties,
     };
     pub use crate::macros::{classes, html, html_nested};
     pub use crate::suspense::Suspense;

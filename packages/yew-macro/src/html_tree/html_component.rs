@@ -124,7 +124,7 @@ impl ToTokens for HtmlComponent {
         } = self;
 
         let ty_span = ty.span().resolved_at(Span::call_site());
-        let props_ty = quote_spanned!(ty_span=> <#ty as ::yew::html::BaseComponent>::Properties);
+        let props_ty = quote_spanned!(ty_span=> <#ty as ::yew::html::Component>::Properties);
         let children_renderer = if children.is_empty() {
             None
         } else {
