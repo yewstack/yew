@@ -19,7 +19,7 @@ pub(crate) struct ComponentState {
     pub slot: DomSlot,
 
     #[cfg(feature = "hydration")]
-    pending_mountable: Option<Rc<dyn Intrinsical>>,
+    pending_intrinsic: Option<Rc<dyn Intrinsical>>,
 
     suspension: Option<Suspension>,
 }
@@ -42,7 +42,7 @@ impl ComponentState {
             slot,
 
             #[cfg(feature = "hydration")]
-            pending_mountable: None,
+            pending_intrinsic: None,
         }
     }
 
@@ -79,11 +79,11 @@ impl ComponentState {
 
     pub fn run_update(
         scope: &Scope,
-        mountable: Option<Rc<dyn Intrinsical>>,
+        intrinsic: Option<Rc<dyn Intrinsical>>,
         next_sibling: Option<NodeRef>,
     ) {
         if let Some(state) = scope.state_cell().borrow_mut().as_mut() {
-            state.changed(mountable, next_sibling);
+            state.changed(intrinsic, next_sibling);
         }
     }
 
@@ -234,12 +234,12 @@ impl ComponentState {
 
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
-        skip(self, mountable),
+        skip(self, intrinsic),
         fields(component.id = self.scope.id())
     )]
     pub(super) fn changed(
         &mut self,
-        mountable: Option<Rc<dyn Intrinsical>>,
+        intrinsic: Option<Rc<dyn Intrinsical>>,
         next_sibling: Option<NodeRef>,
     ) {
         if let Some(next_sibling) = next_sibling {
@@ -253,30 +253,28 @@ impl ComponentState {
         let schedule_render = '_block: {
             #[cfg(feature = "hydration")]
             {
-                break '_block if let Some(mountable) =
-                    mountable.or_else(|| self.pending_mountable.take())
-                {
+                if let Some(intrinsic) = intrinsic.or_else(|| self.pending_intrinsic.take()) {
                     match self.slot.content {
                         Realized::Bundle { .. } => {
-                            self.pending_mountable = None;
-                            if !self.intrinsic.intrinsic_eq(mountable.as_ref()) {
-                                self.intrinsic = mountable;
+                            self.pending_intrinsic = None;
+                            if !self.intrinsic.intrinsic_eq(intrinsic.as_ref()) {
+                                self.intrinsic = intrinsic;
                             }
                             true
                         }
                         Realized::Fragement { .. } => {
-                            self.pending_mountable = Some(mountable);
+                            self.pending_intrinsic = Some(intrinsic);
                             false
                         }
                     }
                 } else {
                     false
-                };
+                }
             }
 
             #[cfg(not(feature = "hydration"))]
             {
-                mountable
+                intrinsic
                     .and_then(|m| (!self.intrinsic.intrinsic_eq(m.as_ref())).then_some(m))
                     .map(|m| {
                         self.intrinsic = m;
@@ -305,7 +303,7 @@ impl ComponentState {
 
         #[cfg(feature = "hydration")]
         {
-            self.pending_mountable.is_some()
+            self.pending_intrinsic.is_some()
         }
         #[cfg(not(feature = "hydration"))]
         {

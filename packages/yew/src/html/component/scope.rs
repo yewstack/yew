@@ -102,7 +102,7 @@ mod feat_ssr {
     impl Scope {
         pub(crate) async fn render_into_stream<'a>(
             &'a self,
-            mountable: Rc<dyn Intrinsical>,
+            intrinsic: Rc<dyn Intrinsical>,
             w: &'a mut BufWriter,
             hydratable: bool,
         ) {
@@ -118,14 +118,14 @@ mod feat_ssr {
                 #[cfg(feature = "hydration")]
                 None,
             );
-            let collectable = mountable.create_collectable();
+            let collectable = intrinsic.create_collectable();
 
             if hydratable {
                 collectable.write_open_tag(w);
             }
 
             let html = loop {
-                match mountable.render(&mut ctx) {
+                match intrinsic.render(&mut ctx) {
                     Ok(m) => break m,
                     Err(RenderError::Suspended(e)) => e.await,
                 }
@@ -157,10 +157,10 @@ mod feat_csr_ssr {
 
     impl Scope {
         /// Crate a scope with an optional parent scope
-        pub(crate) fn new(mountable: &dyn Intrinsical, parent: Option<Scope>) -> Self {
+        pub(crate) fn new(intrinsic: &dyn Intrinsical, parent: Option<Scope>) -> Self {
             Scope {
                 inner: Rc::new(ScopeInner {
-                    type_id: mountable.type_id(),
+                    type_id: intrinsic.type_id(),
 
                     #[cfg(feature = "csr")]
                     state: RefCell::new(None),
@@ -199,14 +199,14 @@ mod feat_csr {
             &self.inner.state
         }
 
-        pub(crate) fn reuse(&self, mountable: Rc<dyn Intrinsical>, next_sibling: NodeRef) {
-            ComponentState::run_update(self, Some(mountable), Some(next_sibling));
+        pub(crate) fn reuse(&self, intrinsic: Rc<dyn Intrinsical>, next_sibling: NodeRef) {
+            ComponentState::run_update(self, Some(intrinsic), Some(next_sibling));
         }
 
         /// Mounts a component with `props` to the specified `element` in the DOM.
         pub(crate) fn mount(
             &self,
-            mountable: Rc<dyn Intrinsical>,
+            intrinsic: Rc<dyn Intrinsical>,
             root: BSubtree,
             parent: Element,
             next_sibling: NodeRef,
@@ -230,7 +230,7 @@ mod feat_csr {
                 None,
             );
 
-            ComponentState::run_create(ctx, self.clone(), mountable, slot);
+            ComponentState::run_create(ctx, self.clone(), intrinsic, slot);
         }
 
         /// Process an event to destroy a component
@@ -265,13 +265,13 @@ mod feat_hydration {
         /// immediately.
         pub(crate) fn hydrate(
             &self,
-            mountable: Rc<dyn Intrinsical>,
+            intrinsic: Rc<dyn Intrinsical>,
             root: BSubtree,
             parent: Element,
             fragment: &mut Fragment,
             internal_ref: NodeRef,
         ) {
-            let collectable = mountable.create_collectable();
+            let collectable = intrinsic.create_collectable();
             let mut fragment = Fragment::collect_between(fragment, &collectable, &parent);
 
             let prepared_state = match fragment
@@ -300,7 +300,7 @@ mod feat_hydration {
                 RenderMode::Hydration,
                 prepared_state.as_deref(),
             );
-            ComponentState::run_create(ctx, self.clone(), mountable, slot);
+            ComponentState::run_create(ctx, self.clone(), intrinsic, slot);
         }
     }
 }

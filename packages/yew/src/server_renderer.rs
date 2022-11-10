@@ -100,16 +100,16 @@ where
         fields(hydratable = self.hydratable),
     )]
     pub fn render_stream(self) -> impl Stream<Item = String> {
-        let mountable = Rc::new(ComponentIntrinsic::<COMP>::new(self.props));
+        let intrinsic = Rc::new(ComponentIntrinsic::<COMP>::new(self.props));
 
-        let scope = Scope::new(mountable.as_ref(), None);
+        let scope = Scope::new(intrinsic.as_ref(), None);
 
         let outer_span = tracing::Span::current();
         BufStream::new(move |mut w| async move {
             let render_span = tracing::debug_span!("render_stream_item");
             render_span.follows_from(outer_span);
             scope
-                .render_into_stream(mountable, &mut w, self.hydratable)
+                .render_into_stream(intrinsic, &mut w, self.hydratable)
                 .instrument(render_span)
                 .await;
         })

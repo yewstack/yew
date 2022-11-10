@@ -33,10 +33,10 @@ where
     )]
     pub(crate) fn mount_with_props(host: Element, props: COMP::Properties) -> Self {
         clear_element(&host);
-        let mountable = Rc::new(ComponentIntrinsic::<COMP>::new(props));
+        let intrinsic = Rc::new(ComponentIntrinsic::<COMP>::new(props));
 
         let app = Self {
-            scope: Scope::new(mountable.as_ref(), None),
+            scope: Scope::new(intrinsic.as_ref(), None),
             _marker: PhantomData,
         };
         let hosting_root = BSubtree::create_root(&host);
@@ -45,7 +45,7 @@ where
             let scope = app.scope.clone();
             scheduler::push(move || {
                 scope.mount(
-                    mountable,
+                    intrinsic,
                     hosting_root,
                     host,
                     NodeRef::default(),
@@ -69,8 +69,8 @@ where
         skip_all,
     )]
     pub fn update(&mut self, new_props: COMP::Properties) {
-        let mountable = Rc::new(ComponentIntrinsic::<COMP>::new(new_props));
-        self.scope.reuse(mountable, NodeRef::default())
+        let intrinsic = Rc::new(ComponentIntrinsic::<COMP>::new(new_props));
+        self.scope.reuse(intrinsic, NodeRef::default())
     }
 
     /// Schedule the app for destruction
@@ -108,10 +108,10 @@ mod feat_hydration {
             skip(props),
         )]
         pub(crate) fn hydrate_with_props(host: Element, props: COMP::Properties) -> Self {
-            let mountable = Rc::new(ComponentIntrinsic::<COMP>::new(props));
+            let intrinsic = Rc::new(ComponentIntrinsic::<COMP>::new(props));
 
             let app = Self {
-                scope: Scope::new(mountable.as_ref(), None),
+                scope: Scope::new(intrinsic.as_ref(), None),
                 _marker: PhantomData,
             };
 
@@ -122,14 +122,14 @@ mod feat_hydration {
 
             scheduler::push(move || {
                 scope.hydrate(
-                    mountable.clone(),
+                    intrinsic.clone(),
                     hosting_root,
                     host.clone(),
                     &mut fragment,
                     NodeRef::default(),
                 );
                 #[cfg(debug_assertions)] // Fix trapped next_sibling at the root
-                scope.reuse(mountable, NodeRef::default());
+                scope.reuse(intrinsic, NodeRef::default());
 
                 // We remove all remaining nodes, this mimics the clear_element behaviour in
                 // mount_with_props.

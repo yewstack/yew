@@ -10,7 +10,7 @@ use crate::html::{Component, ComponentIntrinsic, Intrinsical};
 /// A virtual component.
 pub struct VComp {
     pub(crate) type_id: TypeId,
-    pub(crate) mountable: Rc<dyn Intrinsical>,
+    pub(crate) intrinsic: Rc<dyn Intrinsical>,
     pub(crate) key: Option<Key>,
     // for some reason, this reduces the bundle size by ~2-3 KBs
     _marker: u32,
@@ -20,7 +20,7 @@ impl fmt::Debug for VComp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("VComp")
             .field("type_id", &self.type_id)
-            .field("mountable", &"..")
+            .field("intrinsic", &"..")
             .field("key", &self.key)
             .finish()
     }
@@ -30,7 +30,7 @@ impl Clone for VComp {
     fn clone(&self) -> Self {
         Self {
             type_id: self.type_id,
-            mountable: self.mountable.clone(),
+            intrinsic: self.intrinsic.clone(),
             key: self.key.clone(),
             _marker: 0,
         }
@@ -93,7 +93,7 @@ impl VComp {
     {
         VComp {
             type_id: TypeId::of::<COMP>(),
-            mountable: Rc::new(ComponentIntrinsic::<COMP>::new(props)),
+            intrinsic: Rc::new(ComponentIntrinsic::<COMP>::new(props)),
             key,
             _marker: 0,
         }
@@ -107,7 +107,7 @@ impl VComp {
     {
         VComp {
             type_id: TypeId::of::<COMP>(),
-            mountable: intrinsic.into(),
+            intrinsic: intrinsic.into(),
             key,
             _marker: 0,
         }
@@ -140,7 +140,7 @@ mod feat_ssr {
             parent_scope: &Scope,
             hydratable: bool,
         ) {
-            self.mountable
+            self.intrinsic
                 .clone()
                 .render_into_stream(w, parent_scope, hydratable)
                 .await;

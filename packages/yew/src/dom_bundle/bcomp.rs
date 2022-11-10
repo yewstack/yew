@@ -57,13 +57,13 @@ impl Reconcilable for VComp {
     ) -> (NodeRef, Self::Bundle) {
         let VComp {
             type_id,
-            mountable,
+            intrinsic,
             key,
             ..
         } = self;
         let internal_ref = NodeRef::default();
 
-        let scope = mountable.mount(
+        let scope = intrinsic.mount(
             root,
             parent_scope,
             parent.to_owned(),
@@ -109,10 +109,10 @@ impl Reconcilable for VComp {
         next_sibling: NodeRef,
         bcomp: &mut Self::Bundle,
     ) -> NodeRef {
-        let VComp { mountable, key, .. } = self;
+        let VComp { intrinsic, key, .. } = self;
 
         bcomp.key = key;
-        mountable.reuse(&bcomp.scope, next_sibling);
+        intrinsic.reuse(&bcomp.scope, next_sibling);
         bcomp.internal_ref.clone()
     }
 }
@@ -132,13 +132,13 @@ mod feat_hydration {
         ) -> (NodeRef, Self::Bundle) {
             let VComp {
                 type_id,
-                mountable,
+                intrinsic,
                 key,
                 ..
             } = self;
             let internal_ref = NodeRef::default();
 
-            let scoped = mountable.hydrate(
+            let scoped = intrinsic.hydrate(
                 root.clone(),
                 parent_scope,
                 parent.clone(),
