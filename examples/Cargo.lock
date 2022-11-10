@@ -2498,6 +2498,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "typed-builder"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "47a126a40dbff39e8320900cd61b8de053a2706e1f782cd27145792feb8fd41e"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "typenum"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2895,6 +2906,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tracing",
+ "typed-builder",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",

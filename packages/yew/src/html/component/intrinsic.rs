@@ -88,7 +88,7 @@ impl<COMP: BaseComponent> Intrinsical for ComponentIntrinsic<COMP> {
     }
 
     fn create_component(&self, ctx: &Context) -> FunctionComponent {
-        COMP::create(ctx)
+        FunctionComponent::new::<COMP>(ctx)
     }
 
     fn intrinsic_eq(&self, other: &dyn Intrinsical) -> bool {

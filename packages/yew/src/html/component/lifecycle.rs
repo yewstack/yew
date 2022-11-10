@@ -5,48 +5,18 @@ use std::rc::Rc;
 use web_sys::Element;
 
 use super::scope::Scope;
-#[cfg(feature = "hydration")]
-use crate::dom_bundle::Fragment;
-use crate::dom_bundle::{BSubtree, Bundle};
+use crate::dom_bundle::{DomSlot, Realized};
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
-use crate::html::{Html, Intrinsical, NodeRef, RenderError};
+use crate::html::{Context, Html, Intrinsical, NodeRef, RenderError};
 use crate::suspense::{resume_suspension, suspend_suspension, DispatchSuspension, Suspension};
-use crate::{scheduler, Callback, Context, ContextProvider, FunctionComponent};
-
-pub(crate) enum Realized {
-    Bundle(Bundle),
-    #[cfg(feature = "hydration")]
-    Fragement(Fragment),
-}
-
-impl std::fmt::Debug for Realized {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Bundle(ref bundle) => f
-                .debug_struct("Realized::Render")
-                .field("bundle", bundle)
-                .finish(),
-
-            #[cfg(feature = "hydration")]
-            Self::Fragement(ref fragment) => f
-                .debug_struct("Realized::Hydration")
-                .field("fragment", fragment)
-                .finish(),
-        }
-    }
-}
+use crate::{scheduler, Callback, ContextProvider, FunctionComponent};
 
 pub(crate) struct ComponentState {
     pub(super) component: FunctionComponent,
     pub(super) context: Context,
 
-    pub(super) rendered: Realized,
-
-    root: BSubtree,
-    parent: Element,
-    next_sibling: NodeRef,
-    internal_ref: NodeRef,
+    pub slot: DomSlot,
 
     #[cfg(feature = "hydration")]
     pending_mountable: Option<Rc<dyn Intrinsical>>,
@@ -61,53 +31,25 @@ impl ComponentState {
         skip_all,
         fields(component.id = context.link().id()),
     )]
-    fn new(
-        component: FunctionComponent,
-        context: Context,
-        initial_render_state: Realized,
-        root: BSubtree,
-        parent: Element,
-        next_sibling: NodeRef,
-        internal_ref: NodeRef,
-    ) -> Self {
+    fn new(context: Context, slot: DomSlot) -> Self {
         Self {
-            component,
+            component: context.intrisic().create_component(&context),
             context,
-            rendered: initial_render_state,
             suspension: None,
 
-            root,
-            parent,
-            next_sibling,
-            internal_ref,
+            slot,
 
             #[cfg(feature = "hydration")]
             pending_mountable: None,
         }
     }
 
-    pub fn run_create(
-        context: Context,
-        component: FunctionComponent,
-        initial_render_state: Realized,
-        root: BSubtree,
-        parent: Element,
-        next_sibling: NodeRef,
-        internal_ref: NodeRef,
-    ) {
+    pub fn run_create(context: Context, slot: DomSlot) {
         let scope = context.scope.clone();
         let mut current_state = scope.state_cell().borrow_mut();
 
         if current_state.is_none() {
-            let mut self_ = Self::new(
-                component,
-                context,
-                initial_render_state,
-                root,
-                parent,
-                next_sibling,
-                internal_ref,
-            );
+            let mut self_ = Self::new(context, slot);
             self_.render();
 
             // We are safe to assign afterwards as we mutably borrow the state and don't release it
@@ -156,7 +98,7 @@ impl ComponentState {
     }
 
     pub fn shift(&mut self, next_parent: Element, next_next_sibling: NodeRef) {
-        match self.rendered {
+        match self.slot.content {
             Realized::Bundle(ref mut bundle) => {
                 bundle.shift(&next_parent, next_next_sibling.clone());
             }
@@ -166,8 +108,8 @@ impl ComponentState {
             }
         }
 
-        self.parent = next_parent;
-        self.next_sibling.link(next_next_sibling);
+        self.slot.parent = next_parent;
+        self.slot.next_sibling.link(next_next_sibling);
     }
 
     #[tracing::instrument(
@@ -179,18 +121,18 @@ impl ComponentState {
         self.component.destroy();
         self.resume_existing_suspension();
 
-        match self.rendered {
+        match self.slot.content {
             Realized::Bundle(bundle) => {
-                bundle.detach(&self.root, &self.parent, parent_to_detach);
+                bundle.detach(&self.slot.root, &self.slot.parent, parent_to_detach);
             }
             // We need to detach the hydrate fragment if the component is not hydrated.
             #[cfg(feature = "hydration")]
             Realized::Fragement(fragment) => {
-                fragment.detach(&self.root, &self.parent, parent_to_detach);
+                fragment.detach(&self.slot.root, &self.slot.parent, parent_to_detach);
             }
         }
 
-        self.internal_ref.set(None);
+        self.slot.internal_ref.set(None);
     }
 
     #[tracing::instrument(
@@ -244,21 +186,18 @@ impl ComponentState {
         // normally.
         self.resume_existing_suspension();
 
-        match self.rendered {
+        match self.slot.content {
             Realized::Bundle(ref mut bundle) => {
                 let scope = self.context.link();
 
-                #[cfg(feature = "hydration")]
-                self.next_sibling.debug_assert_not_trapped();
-
                 let new_node_ref = bundle.reconcile(
-                    &self.root,
+                    &self.slot.root,
                     scope,
-                    &self.parent,
-                    self.next_sibling.clone(),
+                    &self.slot.parent,
+                    self.slot.next_sibling.clone(),
                     new_root,
                 );
-                self.internal_ref.link(new_node_ref);
+                self.slot.internal_ref.link(new_node_ref);
 
                 let has_pending_props = self.rendered();
                 if has_pending_props {
@@ -268,19 +207,26 @@ impl ComponentState {
 
             #[cfg(feature = "hydration")]
             Realized::Fragement(ref mut fragment) => {
+                use crate::dom_bundle::Bundle;
+
                 let scope = self.context.link();
 
-                let (node, bundle) =
-                    Bundle::hydrate(&self.root, scope, &self.parent, fragment, new_root);
+                let (node, bundle) = Bundle::hydrate(
+                    &self.slot.root,
+                    scope,
+                    &self.slot.parent,
+                    fragment,
+                    new_root,
+                );
 
                 // We trim all text nodes before checking as it's likely these are whitespaces.
-                fragment.trim_start_text_nodes(&self.parent);
+                fragment.trim_start_text_nodes(&self.slot.parent);
 
                 assert!(fragment.is_empty(), "expected end of component, found node");
 
-                self.internal_ref.link(node);
+                self.slot.internal_ref.link(node);
 
-                self.rendered = Realized::Bundle(bundle);
+                self.slot.content = Realized::Bundle(bundle);
             }
         };
     }
@@ -299,7 +245,7 @@ impl ComponentState {
             // When components are updated, their siblings were likely also updated
             // We also need to shift the bundle so next sibling will be synced to child
             // components.
-            self.next_sibling.link(next_sibling);
+            self.slot.next_sibling.link(next_sibling);
         }
 
         // Only trigger changed if props were changed / next sibling has changed.
@@ -309,7 +255,7 @@ impl ComponentState {
                 break '_block if let Some(mountable) =
                     mountable.or_else(|| self.pending_mountable.take())
                 {
-                    match self.rendered {
+                    match self.slot.content {
                         Realized::Bundle { .. } => {
                             self.pending_mountable = None;
                             if !self.context.mountable.intrinsic_eq(mountable.as_ref()) {

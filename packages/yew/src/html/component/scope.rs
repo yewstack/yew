@@ -95,9 +95,8 @@ mod feat_ssr {
     use super::*;
     #[cfg(feature = "hydration")]
     use crate::html::RenderMode;
-    use crate::html::{Intrinsical, RenderError};
+    use crate::html::{Context, Intrinsical, RenderError};
     use crate::platform::fmt::BufWriter;
-    use crate::Context;
 
     impl Scope {
         pub(crate) async fn render_into_stream(
@@ -181,10 +180,8 @@ mod feat_csr {
     use web_sys::Element;
 
     use super::*;
-    use crate::dom_bundle::{BSubtree, Bundle};
-    use crate::html::component::lifecycle::Realized;
-    use crate::html::{Intrinsical, NodeRef};
-    use crate::Context;
+    use crate::dom_bundle::{BSubtree, DomSlot};
+    use crate::html::{Context, Intrinsical, NodeRef};
 
     impl Scope {
         #[cfg(test)]
@@ -216,12 +213,15 @@ mod feat_csr {
             next_sibling: NodeRef,
             internal_ref: NodeRef,
         ) {
-            let bundle = Bundle::new();
             internal_ref.link(next_sibling.clone());
             let stable_next_sibling = NodeRef::default();
             stable_next_sibling.link(next_sibling);
 
-            let state = Realized::Bundle(bundle);
+            let slot = DomSlot::builder()
+                .root(root)
+                .parent(parent)
+                .next_sibling(stable_next_sibling)
+                .build();
 
             let context = Context {
                 scope: self.clone(),
@@ -232,17 +232,7 @@ mod feat_csr {
                 prepared_state: None,
             };
 
-            let component = mountable.create_component(&context);
-
-            ComponentState::run_create(
-                context,
-                component,
-                state,
-                root,
-                parent,
-                stable_next_sibling,
-                internal_ref,
-            );
+            ComponentState::run_create(context, slot);
         }
 
         /// Process an event to destroy a component
@@ -262,10 +252,8 @@ mod feat_hydration {
     use web_sys::{Element, HtmlScriptElement};
 
     use super::*;
-    use crate::dom_bundle::{BSubtree, Fragment};
-    use crate::html::component::lifecycle::Realized;
-    use crate::html::{Intrinsical, NodeRef};
-    use crate::Context;
+    use crate::dom_bundle::{BSubtree, DomSlot, Fragment, Realized};
+    use crate::html::{Context, Intrinsical, NodeRef};
 
     impl Scope {
         /// Hydrates the component.
@@ -285,16 +273,7 @@ mod feat_hydration {
             internal_ref: NodeRef,
         ) {
             let collectable = mountable.create_collectable();
-
             let mut fragment = Fragment::collect_between(fragment, &collectable, &parent);
-            match fragment.front().cloned() {
-                front @ Some(_) => internal_ref.set(front),
-                None =>
-                {
-                    #[cfg(debug_assertions)]
-                    internal_ref.link(NodeRef::new_debug_trapped())
-                }
-            }
 
             let prepared_state = match fragment
                 .back()
@@ -309,8 +288,6 @@ mod feat_hydration {
                 _ => None,
             };
 
-            let state = Realized::Fragement(fragment);
-
             let context = Context {
                 scope: self.clone(),
                 mountable: mountable.clone(),
@@ -318,17 +295,14 @@ mod feat_hydration {
                 prepared_state,
             };
 
-            let component = mountable.create_component(&context);
+            let slot = DomSlot::builder()
+                .content(Realized::Fragement(fragment))
+                .root(root)
+                .parent(parent)
+                .internal_ref(internal_ref)
+                .build();
 
-            ComponentState::run_create(
-                context,
-                component,
-                state,
-                root,
-                parent,
-                NodeRef::new_debug_trapped(),
-                internal_ref,
-            );
+            ComponentState::run_create(context, slot);
         }
     }
 }

@@ -18,8 +18,6 @@ pub use marker::*;
 pub use properties::*;
 pub use scope::Scope;
 
-use crate::FunctionComponent;
-
 #[cfg(feature = "hydration")]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum RenderMode {
@@ -31,7 +29,7 @@ pub(crate) enum RenderMode {
 
 /// The [`Component`]'s context. This contains component's [`Scope`] and props and
 /// is passed to every lifecycle method.
-pub struct Context {
+pub(crate) struct Context {
     mountable: Rc<dyn Intrinsical>,
     scope: Scope,
     #[cfg(feature = "hydration")]
@@ -54,6 +52,10 @@ impl Context {
         &self.scope
     }
 
+    pub fn intrisic(&self) -> &dyn Intrinsical {
+        self.mountable.as_ref()
+    }
+
     /// The component's props
     #[inline]
     pub fn props(&self) -> &dyn Any {
@@ -66,6 +68,7 @@ impl Context {
     }
 
     /// The component's prepared state
+    #[cfg(feature = "hydration")]
     pub fn prepared_state(&self) -> Option<&str> {
         #[cfg(not(feature = "hydration"))]
         let state = None;
@@ -77,26 +80,4 @@ impl Context {
     }
 }
 
-/// The common base of both function components and struct components.
-///
-/// If you are taken here by doc links, you might be looking for [`Component`] or
-/// [`#[function_component]`](crate::functional::function_component).
-///
-/// We provide a blanket implementation of this trait for every member that implements
-/// [`Component`].
-///
-/// # Warning
-///
-/// This trait may be subject to heavy changes between versions and is not intended for direct
-/// implementation.
-///
-/// You should used the [`Component`] trait or the
-/// [`#[function_component]`](crate::functional::function_component) macro to define your
-/// components.
-pub trait BaseComponent: Sized + 'static {
-    /// The Component's Properties.
-    type Properties: Properties;
-
-    /// Creates a component.
-    fn create(ctx: &Context) -> FunctionComponent;
-}
+pub use crate::functional::Component as BaseComponent;

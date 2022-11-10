@@ -5,6 +5,7 @@
 //! In order to efficiently implement updates, and diffing, additional information has to be
 //! kept around. This information is carried in the bundle.
 
+use typed_builder::TypedBuilder;
 use web_sys::Element;
 
 use crate::html::{NodeRef, Scope};
@@ -101,3 +102,21 @@ mod feat_hydration {
 }
 #[cfg(feature = "hydration")]
 pub(crate) use feat_hydration::*;
+
+pub(crate) enum Realized {
+    Bundle(Bundle),
+    #[cfg(feature = "hydration")]
+    Fragement(Fragment),
+}
+
+#[derive(TypedBuilder)]
+pub(crate) struct DomSlot {
+    #[builder(default = Realized::Bundle(Bundle::new()))]
+    pub content: Realized,
+    pub root: BSubtree,
+    pub parent: Element,
+    #[builder(default)]
+    pub next_sibling: NodeRef,
+    #[builder(default)]
+    pub internal_ref: NodeRef,
+}

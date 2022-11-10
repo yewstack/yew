@@ -270,27 +270,6 @@ impl FunctionComponent {
         }
     }
 
-    fn print_base_component_impl(&self) -> TokenStream {
-        let component_name = self.component_name();
-        let props_type = &self.props_type;
-        let static_comp_generics = self.create_static_component_generics();
-
-        let (impl_generics, ty_generics, where_clause) = static_comp_generics.split_for_impl();
-
-        // TODO: replace with blanket implementation when specialisation becomes stable.
-        quote! {
-            #[automatically_derived]
-            impl #impl_generics ::yew::html::BaseComponent for #component_name #ty_generics #where_clause {
-                type Properties = #props_type;
-
-                #[inline]
-                fn create(ctx: &::yew::html::Context) -> ::yew::functional::FunctionComponent {
-                    ::yew::functional::FunctionComponent::new::<Self>(ctx)
-                }
-            }
-        }
-    }
-
     fn print_debug_impl(&self) -> TokenStream {
         let component_name = self.component_name();
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
@@ -312,7 +291,8 @@ impl FunctionComponent {
         let component_impl_attrs = self.filter_attrs_for_component_impl();
         let component_name = self.component_name();
         let fn_name = self.inner_fn_ident();
-        let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
+        let static_ty_generics = self.create_static_component_generics();
+        let (impl_generics, ty_generics, where_clause) = static_ty_generics.split_for_impl();
         let props_type = &self.props_type;
         let fn_generics = ty_generics.as_turbofish();
 
@@ -323,7 +303,7 @@ impl FunctionComponent {
             // we cannot disable any lints here because it will be applied to the function body
             // as well.
             #(#component_impl_attrs)*
-            impl #impl_generics ::yew::functional::FunctionProvider for #component_name #ty_generics #where_clause {
+            impl #impl_generics ::yew::functional::Component for #component_name #ty_generics #where_clause {
                 type Properties = #props_type;
 
                 fn create() -> Self {
@@ -386,7 +366,6 @@ pub fn function_component_impl(
 ) -> syn::Result<TokenStream> {
     component.merge_component_name(name)?;
 
-    let base_comp_impl = component.print_base_component_impl();
     let debug_impl = component.print_debug_impl();
     let provider_fn_impl = component.print_fn_provider_impl();
     let struct_def = component.print_struct_def();
@@ -396,7 +375,6 @@ pub fn function_component_impl(
 
         #provider_fn_impl
         #debug_impl
-        #base_comp_impl
     };
 
     Ok(quoted)

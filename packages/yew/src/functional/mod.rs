@@ -28,7 +28,7 @@ use wasm_bindgen::prelude::*;
 
 #[cfg(all(feature = "hydration", feature = "ssr"))]
 use crate::html::RenderMode;
-use crate::html::{BaseComponent, Context, HtmlResult, Scope};
+use crate::html::{Context, HtmlResult, Scope};
 use crate::{Html, Properties};
 
 mod hooks;
@@ -290,7 +290,7 @@ impl fmt::Debug for HookContext {
 }
 
 /// Trait that allows a struct to act as Function Component.
-pub trait FunctionProvider {
+pub trait Component: Sized + 'static {
     /// Properties for the Function Component.
     type Properties: Properties + PartialEq;
 
@@ -320,12 +320,12 @@ pub struct FunctionComponent {
 
 impl FunctionComponent {
     /// Creates a new function component.
-    pub fn new<T>(ctx: &Context) -> Self
+    pub(crate) fn new<T>(ctx: &Context) -> Self
     where
-        T: Sized + BaseComponent + FunctionProvider + 'static,
+        T: Sized + Component + 'static,
     {
         let inner = |ctx: &mut HookContext, props: &dyn Any| {
-            let props = match props.downcast_ref::<<T as FunctionProvider>::Properties>() {
+            let props = match props.downcast_ref::<<T as Component>::Properties>() {
                 Some(m) => m,
                 None => return Ok(Html::default()),
             };

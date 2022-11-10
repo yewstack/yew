@@ -34,6 +34,7 @@ serde = { version = "1", features = ["derive"] }
 tracing = "0.1.36"
 prokio = "0.1.0"
 rustversion = "1"
+typed-builder = "0.11.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4"

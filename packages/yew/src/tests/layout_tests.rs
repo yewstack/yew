@@ -3,19 +3,16 @@
 //! This tests must be run in browser and thus require the `csr` feature to be enabled
 use gloo::console::log;
 use yew::NodeRef;
+use yew_macro::function_component;
 
 use crate::dom_bundle::{BSubtree, Bundle};
 use crate::html::Scope;
 use crate::virtual_dom::VNode;
-use crate::{BaseComponent, Context, FunctionComponent};
+use crate::Html;
 
-struct Comp;
-impl BaseComponent for Comp {
-    type Properties = ();
-
-    fn create(_: &Context) -> FunctionComponent {
-        unimplemented!()
-    }
+#[function_component]
+fn Comp() -> Html {
+    todo!()
 }
 
 #[derive(Debug)]
