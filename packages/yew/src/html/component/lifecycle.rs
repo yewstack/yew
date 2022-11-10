@@ -250,7 +250,7 @@ impl ComponentState {
         }
 
         // Only trigger changed if props were changed / next sibling has changed.
-        let schedule_render = '_block: {
+        let schedule_render = {
             #[cfg(feature = "hydration")]
             {
                 if let Some(intrinsic) = intrinsic.or_else(|| self.pending_intrinsic.take()) {
