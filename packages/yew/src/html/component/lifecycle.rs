@@ -6,15 +6,15 @@ use web_sys::Element;
 
 use super::scope::Scope;
 use crate::dom_bundle::{DomSlot, Realized};
-#[cfg(feature = "hydration")]
-use crate::html::RenderMode;
-use crate::html::{Context, Html, Intrinsical, NodeRef, RenderError};
+use crate::html::{Html, Intrinsical, NodeRef, RenderError};
 use crate::suspense::{resume_suspension, suspend_suspension, DispatchSuspension, Suspension};
 use crate::{scheduler, Callback, ContextProvider, HookContext};
 
 pub(crate) struct ComponentState {
-    pub(super) component: HookContext,
-    pub(super) context: Context,
+    pub(super) ctx: HookContext,
+
+    intrinsic: Rc<dyn Intrinsical>,
+    scope: Scope,
 
     pub slot: DomSlot,
 
@@ -29,12 +29,14 @@ impl ComponentState {
         level = tracing::Level::DEBUG,
         name = "create",
         skip_all,
-        fields(component.id = context.link().id()),
+        fields(component.id = scope.id()),
     )]
-    fn new(context: Context, slot: DomSlot) -> Self {
+    fn new(ctx: HookContext, scope: Scope, intrinsic: Rc<dyn Intrinsical>, slot: DomSlot) -> Self {
         Self {
-            component: HookContext::new(&context),
-            context,
+            ctx,
+            intrinsic,
+            scope,
+
             suspension: None,
 
             slot,
@@ -44,12 +46,17 @@ impl ComponentState {
         }
     }
 
-    pub fn run_create(context: Context, slot: DomSlot) {
-        let scope = context.scope.clone();
-        let mut current_state = scope.state_cell().borrow_mut();
+    pub fn run_create(
+        ctx: HookContext,
+        scope: Scope,
+        intrinsic: Rc<dyn Intrinsical>,
+        slot: DomSlot,
+    ) {
+        let scope_ = scope.clone();
+        let mut current_state = scope_.state_cell().borrow_mut();
 
         if current_state.is_none() {
-            let mut self_ = Self::new(context, slot);
+            let mut self_ = Self::new(ctx, scope, intrinsic, slot);
             self_.render();
 
             // We are safe to assign afterwards as we mutably borrow the state and don't release it
@@ -88,9 +95,8 @@ impl ComponentState {
 
     fn resume_existing_suspension(&mut self) {
         if let Some(m) = self.suspension.take() {
-            let comp_scope = self.context.link();
-
-            let suspense_scope = comp_scope
+            let suspense_scope = self
+                .scope
                 .find_parent_scope::<ContextProvider<DispatchSuspension>>()
                 .unwrap();
             resume_suspension(suspense_scope, m);
@@ -115,10 +121,10 @@ impl ComponentState {
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         skip(self),
-        fields(component.id = self.context.link().id())
+        fields(component.id = self.scope.id())
     )]
     fn destroy(mut self, parent_to_detach: bool) {
-        self.component.destroy();
+        self.ctx.destroy();
         self.resume_existing_suspension();
 
         match self.slot.content {
@@ -138,10 +144,10 @@ impl ComponentState {
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         skip_all,
-        fields(component.id = self.context.link().id())
+        fields(component.id = self.scope.id())
     )]
     fn render(&mut self) {
-        match self.context.intrisic().render(&mut self.component) {
+        match self.intrinsic.render(&mut self.ctx) {
             Ok(vnode) => self.commit_render(vnode),
             Err(RenderError::Suspended(susp)) => self.suspend(susp),
         };
@@ -155,14 +161,13 @@ impl ComponentState {
             self.render();
         } else {
             // We schedule a render after current suspension is resumed.
-            let comp_scope = self.context.link();
-
-            let suspense_scope = comp_scope
+            let suspense_scope = self
+                .scope
                 .find_parent_scope::<ContextProvider<DispatchSuspension>>()
                 .expect("To suspend rendering, a <Suspense /> component is required.");
 
             {
-                let scope = self.context.link().clone();
+                let scope = self.scope.clone();
                 suspension.listen(Callback::from(move |_| {
                     let scope = scope.clone();
                     scheduler::push(move || ComponentState::run_render(&scope));
@@ -188,11 +193,9 @@ impl ComponentState {
 
         match self.slot.content {
             Realized::Bundle(ref mut bundle) => {
-                let scope = self.context.link();
-
                 let new_node_ref = bundle.reconcile(
                     &self.slot.root,
-                    scope,
+                    &self.scope,
                     &self.slot.parent,
                     self.slot.next_sibling.clone(),
                     new_root,
@@ -209,11 +212,9 @@ impl ComponentState {
             Realized::Fragement(ref mut fragment) => {
                 use crate::dom_bundle::Bundle;
 
-                let scope = self.context.link();
-
                 let (node, bundle) = Bundle::hydrate(
                     &self.slot.root,
-                    scope,
+                    &self.scope,
                     &self.slot.parent,
                     fragment,
                     new_root,
@@ -234,7 +235,7 @@ impl ComponentState {
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         skip(self, mountable),
-        fields(component.id = self.context.link().id())
+        fields(component.id = self.scope.id())
     )]
     pub(super) fn changed(
         &mut self,
@@ -251,15 +252,15 @@ impl ComponentState {
         // Only trigger changed if props were changed / next sibling has changed.
         let schedule_render = '_block: {
             #[cfg(feature = "hydration")]
-            if self.context.creation_mode() == RenderMode::Hydration {
+            {
                 break '_block if let Some(mountable) =
                     mountable.or_else(|| self.pending_mountable.take())
                 {
                     match self.slot.content {
                         Realized::Bundle { .. } => {
                             self.pending_mountable = None;
-                            if !self.context.mountable.intrinsic_eq(mountable.as_ref()) {
-                                self.context.mountable = mountable;
+                            if !self.intrinsic.intrinsic_eq(mountable.as_ref()) {
+                                self.intrinsic = mountable;
                             }
                             true
                         }
@@ -273,13 +274,16 @@ impl ComponentState {
                 };
             }
 
-            mountable
-                .and_then(|m| (!self.context.mountable.intrinsic_eq(m.as_ref())).then_some(m))
-                .map(|m| {
-                    self.context.mountable = m;
-                    true
-                })
-                .unwrap_or(false)
+            #[cfg(not(feature = "hydration"))]
+            {
+                mountable
+                    .and_then(|m| (!self.intrinsic.intrinsic_eq(m.as_ref())).then_some(m))
+                    .map(|m| {
+                        self.intrinsic = m;
+                        true
+                    })
+                    .unwrap_or(false)
+            }
         };
 
         tracing::trace!("props_update(schedule_render={})", schedule_render);
@@ -292,11 +296,11 @@ impl ComponentState {
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         skip(self),
-        fields(component.id = self.context.link().id())
+        fields(component.id = self.scope.id())
     )]
     pub(super) fn rendered(&mut self) -> bool {
         if self.suspension.is_none() {
-            self.component.rendered();
+            self.ctx.rendered();
         }
 
         #[cfg(feature = "hydration")]
@@ -339,26 +343,30 @@ mod tests {
         type Message = ();
         type Properties = ChildProps;
 
-        fn create(_ctx: &Context<Self>) -> Self {
+        fn create(_ctx: &PreRenderContext<Self>) -> Self {
             Child {}
         }
 
-        fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
+        fn rendered(&mut self, ctx: &PreRenderContext<Self>, _first_render: bool) {
             ctx.props()
                 .lifecycle
                 .borrow_mut()
                 .push("child rendered".into());
         }
 
-        fn update(&mut self, _ctx: &Context<Self>, _: Self::Message) -> bool {
+        fn update(&mut self, _ctx: &PreRenderContext<Self>, _: Self::Message) -> bool {
             false
         }
 
-        fn changed(&mut self, _ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
+        fn changed(
+            &mut self,
+            _ctx: &PreRenderContext<Self>,
+            _old_props: &Self::Properties,
+        ) -> bool {
             false
         }
 
-        fn view(&self, _ctx: &Context<Self>) -> Html {
+        fn view(&self, _ctx: &PreRenderContext<Self>) -> Html {
             html! {}
         }
     }
@@ -382,7 +390,7 @@ mod tests {
         type Message = bool;
         type Properties = Props;
 
-        fn create(ctx: &Context<Self>) -> Self {
+        fn create(ctx: &PreRenderContext<Self>) -> Self {
             ctx.props().lifecycle.borrow_mut().push("create".into());
             #[cfg(target_arch = "wasm32")]
             if let Some(msg) = ctx.props().create_message {
@@ -393,7 +401,7 @@ mod tests {
             }
         }
 
-        fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
+        fn rendered(&mut self, ctx: &PreRenderContext<Self>, first_render: bool) {
             if let Some(msg) = ctx.props().rendered_message.borrow_mut().take() {
                 ctx.link().send_message(msg);
             }
@@ -403,7 +411,7 @@ mod tests {
                 .push(format!("rendered({})", first_render));
         }
 
-        fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        fn update(&mut self, ctx: &PreRenderContext<Self>, msg: Self::Message) -> bool {
             if let Some(msg) = ctx.props().update_message.borrow_mut().take() {
                 ctx.link().send_message(msg);
             }
@@ -414,13 +422,13 @@ mod tests {
             msg
         }
 
-        fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
+        fn changed(&mut self, ctx: &PreRenderContext<Self>, _old_props: &Self::Properties) -> bool {
             self.lifecycle = Rc::clone(&ctx.props().lifecycle);
             self.lifecycle.borrow_mut().push("change".into());
             false
         }
 
-        fn view(&self, ctx: &Context<Self>) -> Html {
+        fn view(&self, ctx: &PreRenderContext<Self>) -> Html {
             if let Some(msg) = ctx.props().view_message.borrow_mut().take() {
                 ctx.link().send_message(msg);
             }

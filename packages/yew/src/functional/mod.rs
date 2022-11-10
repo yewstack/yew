@@ -28,7 +28,7 @@ use wasm_bindgen::prelude::*;
 
 #[cfg(all(feature = "hydration", feature = "ssr"))]
 use crate::html::RenderMode;
-use crate::html::{Context, HtmlResult, Scope};
+use crate::html::{HtmlResult, Scope};
 use crate::Properties;
 
 mod hooks;
@@ -98,12 +98,16 @@ pub struct HookContext {
 }
 
 impl HookContext {
-    pub(crate) fn new(ctx: &Context) -> Self {
+    pub(crate) fn new(
+        scope: Scope,
+        #[cfg(feature = "hydration")] creation_mode: RenderMode,
+        #[cfg(feature = "hydration")] prepared_state: Option<&str>,
+    ) -> Self {
         HookContext {
-            scope: ctx.link().clone(),
+            scope,
 
             #[cfg(all(feature = "hydration", feature = "ssr"))]
-            creation_mode: ctx.creation_mode(),
+            creation_mode,
 
             states: Vec::new(),
 
@@ -113,7 +117,7 @@ impl HookContext {
 
             #[cfg(feature = "hydration")]
             prepared_states_data: {
-                match ctx.prepared_state() {
+                match prepared_state {
                     Some(m) => m.split(',').map(Rc::from).collect(),
                     None => Vec::new(),
                 }
@@ -127,11 +131,11 @@ impl HookContext {
         }
     }
 
-    pub(crate) fn scope(&self) -> &Scope {
+    fn scope(&self) -> &Scope {
         &self.scope
     }
 
-    pub(crate) fn next_state<T>(&mut self, initializer: impl FnOnce() -> T) -> Rc<T>
+    fn next_state<T>(&mut self, initializer: impl FnOnce() -> T) -> Rc<T>
     where
         T: 'static,
     {
@@ -152,7 +156,7 @@ impl HookContext {
         state.downcast().unwrap_throw()
     }
 
-    pub(crate) fn next_effect<T>(&mut self, initializer: impl FnOnce() -> T) -> Rc<T>
+    fn next_effect<T>(&mut self, initializer: impl FnOnce() -> T) -> Rc<T>
     where
         T: 'static + Effect,
     {
@@ -168,10 +172,7 @@ impl HookContext {
     }
 
     #[cfg(any(feature = "hydration", feature = "ssr"))]
-    pub(crate) fn next_prepared_state<T>(
-        &mut self,
-        initializer: impl FnOnce(Option<&str>) -> T,
-    ) -> Rc<T>
+    fn next_prepared_state<T>(&mut self, initializer: impl FnOnce(Option<&str>) -> T) -> Rc<T>
     where
         T: 'static + PreparedState,
     {

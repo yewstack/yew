@@ -26,12 +26,10 @@ use crate::HtmlResult;
 pub(crate) trait Intrinsical {
     fn as_any(&self) -> &dyn Any;
     fn type_id(&self) -> TypeId;
-
     #[cfg(any(feature = "hydration", feature = "ssr"))]
     fn create_collectable(&self) -> Collectable;
 
     fn intrinsic_eq(&self, other: &dyn Intrinsical) -> bool;
-
     fn render(&self, ctx: &mut HookContext) -> HtmlResult;
 
     #[cfg(feature = "csr")]

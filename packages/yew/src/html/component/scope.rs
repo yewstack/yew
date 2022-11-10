@@ -93,17 +93,17 @@ mod feat_ssr {
     use std::fmt::Write;
 
     use super::*;
+    use crate::functional::HookContext;
     #[cfg(feature = "hydration")]
     use crate::html::RenderMode;
-    use crate::html::{Context, Intrinsical, RenderError};
+    use crate::html::{Intrinsical, RenderError};
     use crate::platform::fmt::BufWriter;
-    use crate::HookContext;
 
     impl Scope {
-        pub(crate) async fn render_into_stream(
-            &self,
+        pub(crate) async fn render_into_stream<'a>(
+            &'a self,
             mountable: Rc<dyn Intrinsical>,
-            w: &mut BufWriter,
+            w: &'a mut BufWriter,
             hydratable: bool,
         ) {
             // Rust's Future implementation is stack-allocated and incurs zero runtime-cost.
@@ -111,16 +111,13 @@ mod feat_ssr {
             // If the content of this channel is ready before it is awaited, it is
             // similar to taking the value from a mutex lock.
 
-            let context = Context {
-                scope: self.clone(),
-                mountable: mountable.clone(),
+            let mut ctx = HookContext::new(
+                self.clone(),
                 #[cfg(feature = "hydration")]
-                creation_mode: RenderMode::Ssr,
+                RenderMode::Ssr,
                 #[cfg(feature = "hydration")]
-                prepared_state: None,
-            };
-
-            let mut hook_ctx = HookContext::new(&context);
+                None,
+            );
             let collectable = mountable.create_collectable();
 
             if hydratable {
@@ -128,7 +125,7 @@ mod feat_ssr {
             }
 
             let html = loop {
-                match mountable.render(&mut hook_ctx) {
+                match mountable.render(&mut ctx) {
                     Ok(m) => break m,
                     Err(RenderError::Suspended(e)) => e.await,
                 }
@@ -136,7 +133,7 @@ mod feat_ssr {
 
             html.render_into_stream(w, self, hydratable).await;
 
-            if let Some(prepared_state) = hook_ctx.prepare_state() {
+            if let Some(prepared_state) = ctx.prepare_state() {
                 let _ = w.write_str(r#"<script type="application/x-yew-comp-state">"#);
                 let _ = w.write_str(&prepared_state);
                 let _ = w.write_str(r#"</script>"#);
@@ -182,7 +179,8 @@ mod feat_csr {
 
     use super::*;
     use crate::dom_bundle::{BSubtree, DomSlot};
-    use crate::html::{Context, Intrinsical, NodeRef};
+    use crate::html::{Intrinsical, NodeRef};
+    use crate::HookContext;
 
     impl Scope {
         #[cfg(test)]
@@ -224,16 +222,15 @@ mod feat_csr {
                 .next_sibling(stable_next_sibling)
                 .build();
 
-            let context = Context {
-                scope: self.clone(),
-                mountable: mountable.clone(),
+            let ctx = HookContext::new(
+                self.clone(),
                 #[cfg(feature = "hydration")]
-                creation_mode: RenderMode::Render,
+                RenderMode::Render,
                 #[cfg(feature = "hydration")]
-                prepared_state: None,
-            };
+                None,
+            );
 
-            ComponentState::run_create(context, slot);
+            ComponentState::run_create(ctx, self.clone(), mountable, slot);
         }
 
         /// Process an event to destroy a component
@@ -254,7 +251,8 @@ mod feat_hydration {
 
     use super::*;
     use crate::dom_bundle::{BSubtree, DomSlot, Fragment, Realized};
-    use crate::html::{Context, Intrinsical, NodeRef};
+    use crate::html::{Intrinsical, NodeRef};
+    use crate::HookContext;
 
     impl Scope {
         /// Hydrates the component.
@@ -289,13 +287,6 @@ mod feat_hydration {
                 _ => None,
             };
 
-            let context = Context {
-                scope: self.clone(),
-                mountable: mountable.clone(),
-                creation_mode: RenderMode::Hydration,
-                prepared_state,
-            };
-
             let slot = DomSlot::builder()
                 .content(Realized::Fragement(fragment))
                 .root(root)
@@ -303,7 +294,12 @@ mod feat_hydration {
                 .internal_ref(internal_ref)
                 .build();
 
-            ComponentState::run_create(context, slot);
+            let ctx = HookContext::new(
+                self.clone(),
+                RenderMode::Hydration,
+                prepared_state.as_deref(),
+            );
+            ComponentState::run_create(ctx, self.clone(), mountable, slot);
         }
     }
 }
