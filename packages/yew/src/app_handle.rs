@@ -128,8 +128,6 @@ mod feat_hydration {
                     &mut fragment,
                     NodeRef::default(),
                 );
-                #[cfg(debug_assertions)] // Fix trapped next_sibling at the root
-                scope.reuse(intrinsic, NodeRef::default());
 
                 // We remove all remaining nodes, this mimics the clear_element behaviour in
                 // mount_with_props.
