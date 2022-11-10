@@ -43,7 +43,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
 
         let mut bundle = Bundle::new();
         bundle.reconcile(&root, &scope, &parent_element, next_sibling.clone(), vnode);
-        scheduler::start_now();
+        scheduler::start();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -57,7 +57,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         log!("Independently reapply layout '{}'", layout.name);
 
         bundle.reconcile(&root, &scope, &parent_element, next_sibling.clone(), vnode);
-        scheduler::start_now();
+        scheduler::start();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -67,7 +67,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
 
         // Detach
         bundle.detach(&root, &parent_element, false);
-        scheduler::start_now();
+        scheduler::start();
         assert_eq!(
             parent_element.inner_html(),
             "END",
@@ -90,7 +90,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             next_vnode,
         );
 
-        scheduler::start_now();
+        scheduler::start();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -112,7 +112,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             next_vnode,
         );
 
-        scheduler::start_now();
+        scheduler::start();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -123,7 +123,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
 
     // Detach last layout
     bundle.detach(&root, &parent_element, false);
-    scheduler::start_now();
+    scheduler::start();
     assert_eq!(
         parent_element.inner_html(),
         "END",
