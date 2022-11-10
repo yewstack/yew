@@ -176,7 +176,9 @@ where
                 ..
             } = self;
 
-            let state = ctx.next_state(move |re_render| {
+            let scope = ctx.scope().clone();
+
+            let state = ctx.next_state(move || {
                 let val = Rc::new(RefCell::new(Rc::new(init_fn())));
                 let should_render_fn = Rc::new(should_render_fn);
 
@@ -196,7 +198,7 @@ where
                         // Currently, this triggers a render immediately, so we need to release the
                         // borrowed reference first.
                         if should_render {
-                            re_render()
+                            scope.schedule_render()
                         }
                     }),
                 }

@@ -12,7 +12,7 @@ impl<T: 'static, F: FnOnce() -> T> Hook for UseMutRef<F> {
     type Output = Rc<RefCell<T>>;
 
     fn run(self, ctx: &mut HookContext) -> Self::Output {
-        ctx.next_state(|_| RefCell::new((self.init_fn)()))
+        ctx.next_state(|| RefCell::new((self.init_fn)()))
     }
 }
 

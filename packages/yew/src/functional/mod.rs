@@ -63,8 +63,6 @@ pub use yew_macro::function_component;
 /// This attribute creates a user-defined hook from a normal Rust function.
 pub use yew_macro::hook;
 
-type ReRender = Rc<dyn Fn()>;
-
 /// Primitives of a prepared state hook.
 #[cfg(any(feature = "hydration", feature = "ssr"))]
 pub(crate) trait PreparedState {
@@ -82,7 +80,6 @@ pub struct HookContext {
     pub(crate) scope: Scope,
     #[cfg(all(feature = "hydration", feature = "ssr"))]
     creation_mode: RenderMode,
-    re_render: ReRender,
 
     states: Vec<Rc<dyn Any>>,
     effects: Vec<Rc<dyn Effect>>,
@@ -103,13 +100,11 @@ pub struct HookContext {
 impl HookContext {
     fn new(
         scope: Scope,
-        re_render: ReRender,
         #[cfg(all(feature = "hydration", feature = "ssr"))] creation_mode: RenderMode,
         #[cfg(feature = "hydration")] prepared_state: Option<&str>,
     ) -> Self {
         HookContext {
             scope,
-            re_render,
 
             #[cfg(all(feature = "hydration", feature = "ssr"))]
             creation_mode,
@@ -136,7 +131,11 @@ impl HookContext {
         }
     }
 
-    pub(crate) fn next_state<T>(&mut self, initializer: impl FnOnce(ReRender) -> T) -> Rc<T>
+    pub(crate) fn scope(&self) -> &Scope {
+        &self.scope
+    }
+
+    pub(crate) fn next_state<T>(&mut self, initializer: impl FnOnce() -> T) -> Rc<T>
     where
         T: 'static,
     {
@@ -147,7 +146,7 @@ impl HookContext {
         let state = match self.states.get(hook_pos).cloned() {
             Some(m) => m,
             None => {
-                let initial_state = Rc::new(initializer(self.re_render.clone()));
+                let initial_state = Rc::new(initializer());
                 self.states.push(initial_state.clone());
 
                 initial_state
@@ -157,7 +156,7 @@ impl HookContext {
         state.downcast().unwrap_throw()
     }
 
-    pub(crate) fn next_effect<T>(&mut self, initializer: impl FnOnce(ReRender) -> T) -> Rc<T>
+    pub(crate) fn next_effect<T>(&mut self, initializer: impl FnOnce() -> T) -> Rc<T>
     where
         T: 'static + Effect,
     {
@@ -175,7 +174,7 @@ impl HookContext {
     #[cfg(any(feature = "hydration", feature = "ssr"))]
     pub(crate) fn next_prepared_state<T>(
         &mut self,
-        initializer: impl FnOnce(ReRender, Option<&str>) -> T,
+        initializer: impl FnOnce(Option<&str>) -> T,
     ) -> Rc<T>
     where
         T: 'static + PreparedState,
@@ -192,7 +191,7 @@ impl HookContext {
         };
 
         let prev_state_len = self.states.len();
-        let t = self.next_state(move |re_render| initializer(re_render, prepared_state.as_deref()));
+        let t = self.next_state(move || initializer(prepared_state.as_deref()));
 
         // This is a new effect, we add it to effects.
         if self.states.len() != prev_state_len {
@@ -339,16 +338,11 @@ impl FunctionComponent {
 
     fn new_any(ctx: &Context, inner: fn(&mut HookContext, props: &dyn Any) -> HtmlResult) -> Self {
         let scope = ctx.link().clone();
-        let re_render = {
-            let link = ctx.link().clone();
-            Rc::new(move || link.schedule_render())
-        };
 
         Self {
             inner,
             hook_ctx: HookContext::new(
                 scope,
-                re_render,
                 #[cfg(all(feature = "hydration", feature = "ssr"))]
                 ctx.creation_mode(),
                 #[cfg(feature = "hydration")]

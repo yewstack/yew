@@ -104,7 +104,7 @@ where
                 effect_changed_fn,
             } = self;
 
-            let state = ctx.next_effect(|_| -> RefCell<UseEffectBase<T, F, D>> {
+            let state = ctx.next_effect(|| -> RefCell<UseEffectBase<T, F, D>> {
                 RefCell::new(UseEffectBase {
                     runner_with_deps: None,
                     destructor: None,

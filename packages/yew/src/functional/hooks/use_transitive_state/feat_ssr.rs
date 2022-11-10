@@ -68,7 +68,7 @@ where
         fn run(self, ctx: &mut HookContext) -> Self::Output {
             let f = self.f;
 
-            ctx.next_prepared_state(move |_re_render, _| -> TransitiveStateBase<T, D, F> {
+            ctx.next_prepared_state(move |_| -> TransitiveStateBase<T, D, F> {
                 TransitiveStateBase {
                     state_fn: Some(f).into(),
                     deps: self.deps.into(),

@@ -73,7 +73,7 @@ where
 
             let state = {
                 let data = data.clone();
-                ctx.next_prepared_state(move |_re_render, buf| -> PreparedStateBase<T, D> {
+                ctx.next_prepared_state(move |buf| -> PreparedStateBase<T, D> {
                     if let Some(buf) = buf {
                         let buf = format!("data:application/octet-binary;base64,{}", buf);
 

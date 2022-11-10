@@ -21,6 +21,7 @@ pub use use_state::*;
 pub use use_transitive_state::*;
 
 use crate::functional::HookContext;
+use crate::html::Scope;
 
 /// A trait that is implemented on hooks.
 ///
@@ -57,14 +58,14 @@ impl<T> Hook for BoxedHook<'_, T> {
     }
 }
 
-pub(crate) fn use_component_id() -> impl Hook<Output = usize> {
+pub(crate) fn use_scope() -> impl Hook<Output = Scope> {
     struct HookProvider {}
 
     impl Hook for HookProvider {
-        type Output = usize;
+        type Output = Scope;
 
         fn run(self, ctx: &mut HookContext) -> Self::Output {
-            ctx.scope.id()
+            ctx.scope().clone()
         }
     }
 

@@ -88,15 +88,16 @@ pub fn use_context<T: Clone + PartialEq + 'static>() -> impl Hook<Output = Optio
         fn run(self, ctx: &mut HookContext) -> Self::Output {
             let scope = ctx.scope.clone();
 
-            let state = ctx.next_state(move |re_render| -> UseContext<T> {
+            let state = ctx.next_state(move || -> UseContext<T> {
                 let value_cell: Rc<RefCell<Option<T>>> = Rc::default();
 
                 let (init_value, handle) = {
                     let value_cell = value_cell.clone();
+                    let scope_ = scope.clone();
 
                     scope.context(Callback::from(move |m| {
                         *(value_cell.borrow_mut()) = Some(m);
-                        re_render()
+                        scope_.schedule_render()
                     }))
                 }
                 .map(|(value, handle)| (Some(value), Some(handle)))

@@ -57,8 +57,7 @@ where
                 _marker: PhantomData,
             };
 
-            let state =
-                ctx.next_prepared_state(|_re_render, _| -> PreparedStateBase<T, D> { state });
+            let state = ctx.next_prepared_state(|_| -> PreparedStateBase<T, D> { state });
 
             Ok(state.state.clone())
         }
@@ -132,8 +131,7 @@ where
                 _marker: PhantomData,
             };
 
-            let state =
-                ctx.next_prepared_state(|_re_render, _| -> PreparedStateBase<T, D> { state });
+            let state = ctx.next_prepared_state(|_| -> PreparedStateBase<T, D> { state });
 
             Ok(state.state.clone())
         }

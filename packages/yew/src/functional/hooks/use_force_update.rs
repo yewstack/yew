@@ -1,13 +1,13 @@
 use std::fmt;
 
 use super::{Hook, HookContext};
-use crate::functional::ReRender;
+use crate::html::Scope;
 
 /// A handle which can be used to force a re-render of the associated
 /// function component.
 #[derive(Clone)]
 pub struct UseForceUpdateHandle {
-    trigger: ReRender,
+    scope: Scope,
 }
 
 impl fmt::Debug for UseForceUpdateHandle {
@@ -19,7 +19,7 @@ impl fmt::Debug for UseForceUpdateHandle {
 impl UseForceUpdateHandle {
     /// Trigger an unconditional re-render of the associated function component
     pub fn force_update(&self) {
-        (self.trigger)()
+        self.scope.schedule_render();
     }
 }
 
@@ -104,7 +104,7 @@ pub fn use_force_update() -> impl Hook<Output = UseForceUpdateHandle> {
 
         fn run(self, ctx: &mut HookContext) -> Self::Output {
             UseForceUpdateHandle {
-                trigger: ctx.re_render.clone(),
+                scope: ctx.scope().clone(),
             }
         }
     }

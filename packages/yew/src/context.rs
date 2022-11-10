@@ -11,7 +11,7 @@ use yew_macro::function_component;
 
 use crate::html::Scope;
 use crate::{
-    html, use_component_id, use_effect_with_deps, use_memo, Callback, Children, Html, Properties,
+    html, use_effect_with_deps, use_memo, use_scope, Callback, Children, Html, Properties,
 };
 
 #[derive(Debug)]
@@ -111,7 +111,7 @@ where
     T: PartialEq + Clone + 'static,
 {
     let ContextProviderProps { context, children } = props.clone();
-    let comp_id = use_component_id();
+    let comp_id = use_scope().id();
 
     {
         let context = context.clone();
