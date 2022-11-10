@@ -12,7 +12,3 @@ where
         runnable();
     });
 }
-
-/// Execute any pending [Runnable]s
-#[inline(always)]
-pub fn start() {}

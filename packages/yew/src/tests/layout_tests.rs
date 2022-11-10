@@ -7,7 +7,7 @@ use yew::NodeRef;
 use crate::dom_bundle::{BSubtree, Bundle};
 use crate::html::Scope;
 use crate::virtual_dom::VNode;
-use crate::{scheduler, BaseComponent, Context, FunctionComponent};
+use crate::{BaseComponent, Context, FunctionComponent};
 
 struct Comp;
 impl BaseComponent for Comp {
@@ -43,7 +43,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
 
         let mut bundle = Bundle::new();
         bundle.reconcile(&root, &scope, &parent_element, next_sibling.clone(), vnode);
-        scheduler::start();
+
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -57,7 +57,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         log!("Independently reapply layout '{}'", layout.name);
 
         bundle.reconcile(&root, &scope, &parent_element, next_sibling.clone(), vnode);
-        scheduler::start();
+
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -67,7 +67,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
 
         // Detach
         bundle.detach(&root, &parent_element, false);
-        scheduler::start();
+
         assert_eq!(
             parent_element.inner_html(),
             "END",
@@ -90,7 +90,6 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             next_vnode,
         );
 
-        scheduler::start();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -112,7 +111,6 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
             next_vnode,
         );
 
-        scheduler::start();
         assert_eq!(
             parent_element.inner_html(),
             format!("{}END", layout.expected),
@@ -123,7 +121,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
 
     // Detach last layout
     bundle.detach(&root, &parent_element, false);
-    scheduler::start();
+
     assert_eq!(
         parent_element.inner_html(),
         "END",
