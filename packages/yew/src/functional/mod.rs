@@ -98,9 +98,10 @@ pub struct HookContext {
 }
 
 impl HookContext {
+    #[cfg(any(feature = "csr", feature = "ssr"))]
     pub(crate) fn new(
         scope: Scope,
-        #[cfg(feature = "hydration")] creation_mode: RenderMode,
+        #[cfg(all(feature = "hydration", feature = "ssr"))] creation_mode: RenderMode,
         #[cfg(feature = "hydration")] prepared_state: Option<&str>,
     ) -> Self {
         HookContext {
@@ -241,12 +242,14 @@ impl HookContext {
         }
     }
 
+    #[cfg(feature = "csr")]
     pub(crate) fn rendered(&self) {
         for effect in self.effects.iter() {
             effect.rendered();
         }
     }
 
+    #[cfg(feature = "csr")]
     pub(crate) fn destroy(&mut self) {
         // We clear the effects as these are also references to states.
         self.effects.clear();

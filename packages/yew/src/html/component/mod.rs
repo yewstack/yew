@@ -14,12 +14,11 @@ pub use marker::*;
 pub use properties::*;
 pub use scope::Scope;
 
-#[cfg(feature = "hydration")]
+#[cfg(all(feature = "hydration", feature = "ssr"))]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum RenderMode {
     Hydration,
     Render,
-    #[cfg(feature = "ssr")]
     Ssr,
 }
 

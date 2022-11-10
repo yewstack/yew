@@ -11,7 +11,7 @@ use super::lifecycle::ComponentState;
 use super::Component;
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider, ContextStore};
-#[cfg(feature = "hydration")]
+#[cfg(all(feature = "hydration", feature = "ssr"))]
 use crate::html::RenderMode;
 
 struct ScopeInner {
@@ -224,7 +224,7 @@ mod feat_csr {
 
             let ctx = HookContext::new(
                 self.clone(),
-                #[cfg(feature = "hydration")]
+                #[cfg(all(feature = "hydration", feature = "ssr"))]
                 RenderMode::Render,
                 #[cfg(feature = "hydration")]
                 None,
@@ -296,6 +296,7 @@ mod feat_hydration {
 
             let ctx = HookContext::new(
                 self.clone(),
+                #[cfg(feature = "ssr")]
                 RenderMode::Hydration,
                 prepared_state.as_deref(),
             );
