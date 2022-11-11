@@ -12,15 +12,11 @@ use crate::{scheduler, Callback, ContextProvider, HookContext};
 
 pub(crate) struct ComponentState {
     pub(super) ctx: HookContext,
-
     intrinsic: Rc<dyn Intrinsical>,
-    scope: Scope,
-
     pub slot: DomSlot,
 
     #[cfg(feature = "hydration")]
     pending_intrinsic: Option<Rc<dyn Intrinsical>>,
-
     suspension: Option<Suspension>,
 }
 
@@ -29,13 +25,17 @@ impl ComponentState {
         level = tracing::Level::DEBUG,
         name = "create",
         skip_all,
-        fields(component.id = scope.id()),
+        fields(component.id = _scope.id()),
     )]
-    fn new(ctx: HookContext, scope: Scope, intrinsic: Rc<dyn Intrinsical>, slot: DomSlot) -> Self {
+    fn new(
+        _scope: &Scope,
+        ctx: HookContext,
+        intrinsic: Rc<dyn Intrinsical>,
+        slot: DomSlot,
+    ) -> Self {
         Self {
             ctx,
             intrinsic,
-            scope,
 
             suspension: None,
 
@@ -47,17 +47,16 @@ impl ComponentState {
     }
 
     pub fn run_create(
+        scope: &Scope,
         ctx: HookContext,
-        scope: Scope,
         intrinsic: Rc<dyn Intrinsical>,
         slot: DomSlot,
     ) {
-        let scope_ = scope.clone();
-        let mut current_state = scope_.state_cell().borrow_mut();
+        let mut current_state = scope.state_cell().borrow_mut();
 
         if current_state.is_none() {
-            let mut self_ = Self::new(ctx, scope, intrinsic, slot);
-            self_.render();
+            let mut self_ = Self::new(scope, ctx, intrinsic, slot);
+            self_.render(scope);
 
             // We are safe to assign afterwards as we mutably borrow the state and don't release it
             // until this function returns.
@@ -67,7 +66,7 @@ impl ComponentState {
 
     pub fn run_render(scope: &Scope) {
         if let Some(state) = scope.state_cell().borrow_mut().as_mut() {
-            state.render();
+            state.render(scope);
         }
     }
 
@@ -83,20 +82,19 @@ impl ComponentState {
         next_sibling: Option<NodeRef>,
     ) {
         if let Some(state) = scope.state_cell().borrow_mut().as_mut() {
-            state.changed(intrinsic, next_sibling);
+            state.changed(scope, intrinsic, next_sibling);
         }
     }
 
     pub fn run_destroy(scope: &Scope, parent_to_detach: bool) {
         if let Some(state) = scope.state_cell().borrow_mut().take() {
-            state.destroy(parent_to_detach);
+            state.destroy(scope, parent_to_detach);
         }
     }
 
-    fn resume_existing_suspension(&mut self) {
+    fn resume_existing_suspension(&mut self, scope: &Scope) {
         if let Some(m) = self.suspension.take() {
-            let suspense_scope = self
-                .scope
+            let suspense_scope = scope
                 .find_parent_scope::<ContextProvider<DispatchSuspension>>()
                 .unwrap();
             resume_suspension(suspense_scope, m);
@@ -121,11 +119,11 @@ impl ComponentState {
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         skip(self),
-        fields(component.id = self.scope.id())
+        fields(component.id = scope.id())
     )]
-    fn destroy(mut self, parent_to_detach: bool) {
+    fn destroy(mut self, scope: &Scope, parent_to_detach: bool) {
         self.ctx.destroy();
-        self.resume_existing_suspension();
+        self.resume_existing_suspension(scope);
 
         match self.slot.content {
             Realized::Bundle(bundle) => {
@@ -144,30 +142,29 @@ impl ComponentState {
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         skip_all,
-        fields(component.id = self.scope.id())
+        fields(component.id = scope.id())
     )]
-    fn render(&mut self) {
+    fn render(&mut self, scope: &Scope) {
         match self.intrinsic.render(&mut self.ctx) {
-            Ok(vnode) => self.commit_render(vnode),
-            Err(RenderError::Suspended(susp)) => self.suspend(susp),
+            Ok(vnode) => self.commit_render(scope, vnode),
+            Err(RenderError::Suspended(susp)) => self.suspend(scope, susp),
         };
     }
 
-    fn suspend(&mut self, suspension: Suspension) {
+    fn suspend(&mut self, scope: &Scope, suspension: Suspension) {
         // Currently suspended, we re-use previous root node and send
         // suspension to parent element.
 
         if suspension.resumed() {
-            self.render();
+            self.render(scope);
         } else {
             // We schedule a render after current suspension is resumed.
-            let suspense_scope = self
-                .scope
+            let suspense_scope = scope
                 .find_parent_scope::<ContextProvider<DispatchSuspension>>()
                 .expect("To suspend rendering, a <Suspense /> component is required.");
 
             {
-                let scope = self.scope.clone();
+                let scope = scope.clone();
                 suspension.listen(Callback::from(move |_| {
                     let scope = scope.clone();
                     scheduler::push(move || ComponentState::run_render(&scope));
@@ -186,25 +183,25 @@ impl ComponentState {
         }
     }
 
-    fn commit_render(&mut self, new_root: Html) {
+    fn commit_render(&mut self, scope: &Scope, new_root: Html) {
         // Currently not suspended, we remove any previous suspension and update
         // normally.
-        self.resume_existing_suspension();
+        self.resume_existing_suspension(scope);
 
         match self.slot.content {
             Realized::Bundle(ref mut bundle) => {
                 let new_node_ref = bundle.reconcile(
                     &self.slot.root,
-                    &self.scope,
+                    scope,
                     &self.slot.parent,
                     self.slot.next_sibling.clone(),
                     new_root,
                 );
                 self.slot.internal_ref.link(new_node_ref);
 
-                let has_pending_props = self.rendered();
+                let has_pending_props = self.rendered(scope);
                 if has_pending_props {
-                    self.changed(None, None);
+                    self.changed(scope, None, None);
                 }
             }
 
@@ -214,7 +211,7 @@ impl ComponentState {
 
                 let (node, bundle) = Bundle::hydrate(
                     &self.slot.root,
-                    &self.scope,
+                    scope,
                     &self.slot.parent,
                     fragment,
                     new_root,
@@ -235,10 +232,11 @@ impl ComponentState {
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         skip(self, intrinsic),
-        fields(component.id = self.scope.id())
+        fields(component.id = scope.id())
     )]
     pub(super) fn changed(
         &mut self,
+        scope: &Scope,
         intrinsic: Option<Rc<dyn Intrinsical>>,
         next_sibling: Option<NodeRef>,
     ) {
@@ -287,16 +285,16 @@ impl ComponentState {
         tracing::trace!("props_update(schedule_render={})", schedule_render);
 
         if schedule_render {
-            self.render()
+            self.render(scope)
         }
     }
 
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         skip(self),
-        fields(component.id = self.scope.id())
+        fields(component.id = _scope.id())
     )]
-    pub(super) fn rendered(&mut self) -> bool {
+    pub(super) fn rendered(&mut self, _scope: &Scope) -> bool {
         if self.suspension.is_none() {
             self.ctx.rendered();
         }

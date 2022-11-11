@@ -16,6 +16,7 @@ pub struct AppHandle<COMP: Component> {
     /// `Scope` holder
     pub(crate) scope: Scope,
     _marker: PhantomData<COMP>,
+    destroyed: bool,
 }
 
 impl<COMP> AppHandle<COMP>
@@ -38,6 +39,7 @@ where
         let app = Self {
             scope: Scope::new(intrinsic.as_ref(), None),
             _marker: PhantomData,
+            destroyed: false,
         };
         let hosting_root = BSubtree::create_root(&host);
 
@@ -78,8 +80,9 @@ where
         level = tracing::Level::DEBUG,
         skip_all,
     )]
-    pub fn destroy(self) {
-        let scope = self.scope;
+    pub fn destroy(mut self) {
+        self.destroyed = true;
+        let scope = self.scope.clone();
         scheduler::push(move || {
             scope.destroy(false);
         });
@@ -113,6 +116,7 @@ mod feat_hydration {
             let app = Self {
                 scope: Scope::new(intrinsic.as_ref(), None),
                 _marker: PhantomData,
+                destroyed: false,
             };
 
             let mut fragment = Fragment::collect_children(&host);
@@ -137,6 +141,19 @@ mod feat_hydration {
             });
 
             app
+        }
+    }
+}
+
+impl<COMP> Drop for AppHandle<COMP>
+where
+    COMP: Component,
+{
+    fn drop(&mut self) {
+        if !self.destroyed {
+            // We leak scope if hasn't been destroyed.
+            // So the application stays running for as long as the page is open.
+            Box::leak(Box::new(self.scope.clone()));
         }
     }
 }

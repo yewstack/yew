@@ -230,7 +230,7 @@ mod feat_csr {
                 None,
             );
 
-            ComponentState::run_create(ctx, self.clone(), intrinsic, slot);
+            ComponentState::run_create(self, ctx, intrinsic, slot);
         }
 
         /// Process an event to destroy a component
@@ -300,7 +300,7 @@ mod feat_hydration {
                 RenderMode::Hydration,
                 prepared_state.as_deref(),
             );
-            ComponentState::run_create(ctx, self.clone(), intrinsic, slot);
+            ComponentState::run_create(self, ctx, intrinsic, slot);
         }
     }
 }
