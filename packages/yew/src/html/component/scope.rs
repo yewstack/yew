@@ -1,6 +1,7 @@
 //! Component scope module
 
 use std::any::TypeId;
+use std::cell::Cell;
 #[cfg(feature = "csr")]
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -21,6 +22,7 @@ struct ScopeInner {
     #[cfg(feature = "csr")]
     pub(crate) state: RefCell<Option<ComponentState>>,
 
+    render_step: Cell<usize>,
     parent: Option<Scope>,
 }
 
@@ -41,6 +43,10 @@ impl Scope {
         self.inner.id
     }
 
+    pub(crate) fn render_step_cell(&self) -> &Cell<usize> {
+        &self.inner.render_step
+    }
+
     /// Schedules a render.
     pub(crate) fn schedule_render(&self) {
         #[cfg(feature = "csr")]
@@ -48,7 +54,8 @@ impl Scope {
             use crate::scheduler;
 
             let scope = self.clone();
-            scheduler::push(move || ComponentState::run_render(&scope));
+            let step = self.inner.render_step.get();
+            scheduler::push(move || ComponentState::run_render(&scope, step));
         }
     }
 
@@ -166,6 +173,7 @@ mod feat_csr_ssr {
                     state: RefCell::new(None),
                     parent,
 
+                    render_step: Cell::new(0),
                     id: COMP_ID_COUNTER.fetch_add(1, Ordering::SeqCst),
                 }),
             }
@@ -191,6 +199,7 @@ mod feat_csr {
                     type_id: TypeId::of::<()>(),
                     state: RefCell::default(),
                     parent: None,
+                    render_step: Cell::new(0),
                 }),
             }
         }

@@ -8,7 +8,7 @@ use super::scope::Scope;
 use crate::dom_bundle::{DomSlot, Realized};
 use crate::html::{Html, Intrinsical, NodeRef, RenderError};
 use crate::suspense::{resume_suspension, suspend_suspension, DispatchSuspension, Suspension};
-use crate::{scheduler, Callback, ContextProvider, HookContext};
+use crate::{Callback, ContextProvider, HookContext};
 
 pub(crate) struct ComponentState {
     pub(super) ctx: HookContext,
@@ -64,7 +64,14 @@ impl ComponentState {
         }
     }
 
-    pub fn run_render(scope: &Scope) {
+    pub fn run_render(scope: &Scope, step: usize) {
+        let current_step = scope.render_step_cell().get();
+        // The desired change has been applied.
+        if current_step > step {
+            return;
+        }
+
+        scope.render_step_cell().set(current_step + 1);
         if let Some(state) = scope.state_cell().borrow_mut().as_mut() {
             state.render(scope);
         }
@@ -166,8 +173,7 @@ impl ComponentState {
             {
                 let scope = scope.clone();
                 suspension.listen(Callback::from(move |_| {
-                    let scope = scope.clone();
-                    scheduler::push(move || ComponentState::run_render(&scope));
+                    scope.schedule_render();
                 }));
             }
 

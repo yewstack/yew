@@ -14,7 +14,7 @@ use crate::scheduler;
 #[derive(Debug)]
 pub struct AppHandle<COMP: Component> {
     /// `Scope` holder
-    pub(crate) scope: Scope,
+    scope: Scope,
     _marker: PhantomData<COMP>,
     destroyed: bool,
 }
@@ -43,18 +43,16 @@ where
         };
         let hosting_root = BSubtree::create_root(&host);
 
-        {
-            let scope = app.scope.clone();
-            scheduler::push(move || {
-                scope.mount(
-                    intrinsic,
-                    hosting_root,
-                    host,
-                    NodeRef::default(),
-                    NodeRef::default(),
-                );
-            });
-        }
+        let scope = app.scope.clone();
+        scheduler::push(move || {
+            scope.mount(
+                intrinsic,
+                hosting_root,
+                host,
+                NodeRef::default(),
+                NodeRef::default(),
+            );
+        });
 
         app
     }

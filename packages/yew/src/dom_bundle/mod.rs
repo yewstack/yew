@@ -48,7 +48,6 @@ pub(crate) struct Bundle(BNode);
 
 impl Bundle {
     /// Creates a new bundle.
-
     pub const fn new() -> Self {
         Self(BNode::List(BList::new()))
     }
