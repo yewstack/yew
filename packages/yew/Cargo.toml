@@ -7,12 +7,12 @@ authors = [
   "Justin Starry <justin@yew.rs>",
 ]
 repository = "https://github.com/yewstack/yew"
-homepage = "https://github.com/yewstack/yew"
+homepage = "https://yew.rs"
 documentation = "https://docs.rs/yew/"
 license = "MIT OR Apache-2.0"
 keywords = ["web", "webasm", "javascript"]
 categories = ["gui", "wasm", "web-programming"]
-description = "A framework for making client-side single-page apps"
+description = "A framework for creating reliable and efficient web applications"
 readme = "../../README.md"
 rust-version = "1.60.0"
 
