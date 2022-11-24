@@ -1,0 +1,79 @@
+---
+title: 'HTML with html!'
+description: 'Its HTML but not quite!'
+comment: 'Keep this file as short and simple as possible. Its purpose is to ease in the reader into components in Yew instead of providing proper API docs'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+You can write expressions resembling HTML with the `html!` macro. Behind the scenes Yew turns
+it into rust code representing the DOM to generate.
+
+```rust
+use yew::prelude::*;
+
+let my_header: Html = html! {
+    <img src="img_girl.jpg" alt="Girl in a jacket" width="500" height="600" />
+};
+```
+
+Similar to format expressions, there is an easy way to embed values from the surrounding
+context into the html by applying curly brackets:
+
+```rust
+use yew::prelude::*;
+
+let header_text = "Hello world".to_string();
+let header_html: Html = html! {
+    <h1>{header_text}</h1>
+};
+
+let count: usize = 5;
+let counter_html: Html = html! {
+    <p>{"My age is: "}{count}</p>
+};
+
+let combined_html: Html = html! {
+    <div>{header_html}{counter_html}</div>
+};
+```
+
+One rule major rule comes with use of `html!` - you can only return 1 wrapping node.
+To render a list of multiple elements, `html!` allows fragments. Fragments are tags
+without a name, that produce no html element by themselves.
+
+<Tabs>
+<TabItem value="Invalid" label="Invalid">
+
+```rust , compile_fail
+use yew::html;
+
+// error: only one root html element allowed
+html! {
+
+    <div></div>
+    <p></p>
+
+};
+```
+
+</TabItem>
+<TabItem value="Valid" label="Valid">
+
+```rust
+use yew::html;
+
+// fixed: using html fragments
+html! {
+    <>
+        <div></div>
+        <p></p>
+    </>
+};
+```
+
+</TabItem>
+</Tabs>
+
+We will introduce Yew and HTML further in depth in [more HTML](concepts/html/introduction.mdx).
