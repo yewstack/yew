@@ -28,6 +28,9 @@
   - Make fn update() re-render the component by default. [[@Cecile Tonglet](https://github.com/Cecile Tonglet), [#2786](https://github.com/yewstack/yew/pull/2786)]
   - Do not detach child elements if parent element is about to be detached. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2420](https://github.com/yewstack/yew/pull/2420)]
   - remove some unsafes by using atomics. [[@WorldSEnder](https://github.com/WorldSEnder), [#2186](https://github.com/yewstack/yew/pull/2186)]
+  - `use_prepared_state` & `use_transitive_state`. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2650](https://github.com/yewstack/yew/pull/2650)]
+  - Silence some warnings from derive(Properties). [[@WorldSEnder](https://github.com/WorldSEnder), [#2266](https://github.com/yewstack/yew/pull/2266)]
+  - onsubmit should be a SubmitEvent. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2816](https://github.com/yewstack/yew/pull/2816)]
 
 - #### ⚡️ Features
 
@@ -43,7 +46,6 @@
   - Convert nightly from a feature flag to a compiler flag. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2827](https://github.com/yewstack/yew/pull/2827)]
   - Reduce SSR Buffers in VList. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2826](https://github.com/yewstack/yew/pull/2826)]
   - Allow keywords after dash in element and attribute names. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2820](https://github.com/yewstack/yew/pull/2820)]
-  - onsubmit should be a SubmitEvent. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2816](https://github.com/yewstack/yew/pull/2816)]
   - Replace custom logging by tracing. [[@WorldSEnder](https://github.com/WorldSEnder), [#2814](https://github.com/yewstack/yew/pull/2814)]
   - Implement sleep and interval for Yew Platform. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2784](https://github.com/yewstack/yew/pull/2784)]
   - Remove component NodeRef. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2783](https://github.com/yewstack/yew/pull/2783)]
@@ -55,11 +57,10 @@
   - Redo derive(Properties), take 2. [[@WorldSEnder](https://github.com/WorldSEnder), [#2729](https://github.com/yewstack/yew/pull/2729)]
   - `Callback::reform()` should return `Callback<T, OUT>`. [[@orzogc](https://github.com/orzogc), [#2719](https://github.com/yewstack/yew/pull/2719)]
   - Span hygiene and editor UX. [[@WorldSEnder](https://github.com/WorldSEnder), [#2702](https://github.com/yewstack/yew/pull/2702)]
-  - Partially undo #2673, different approach for the DerefMut impl of VList. [[@WorldSEnder](https://github.com/WorldSEnder), [#2692](https://github.com/yewstack/yew/pull/2692)]
-  - `use_prepared_state` & `use_transitive_state`. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2650](https://github.com/yewstack/yew/pull/2650)]
   - Block props update during hydration. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2665](https://github.com/yewstack/yew/pull/2665)]
   - Point to `callback_future` in `callback` docs. [[@Shadlock0133](https://github.com/Shadlock0133), [#2674](https://github.com/yewstack/yew/pull/2674)]
   - Change access to VList children to a wrapper. [[@WorldSEnder](https://github.com/WorldSEnder), [#2673](https://github.com/yewstack/yew/pull/2673)]
+  - Partially undo #2673, different approach for the DerefMut impl of VList. [[@WorldSEnder](https://github.com/WorldSEnder), [#2692](https://github.com/yewstack/yew/pull/2692)]
   - Rework a bunch of cfg(feature) flags to be more principled. [[@WorldSEnder](https://github.com/WorldSEnder), [#2666](https://github.com/yewstack/yew/pull/2666)]
   - Delay Hydration second render until all assistive nodes have been removed. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2629](https://github.com/yewstack/yew/pull/2629)]
   - Allow to consume deps in use_callback. [[@Jet Li](https://github.com/Jet Li), [#2617](https://github.com/yewstack/yew/pull/2617)]
@@ -93,7 +94,6 @@
   - constify VList::new. [[@Alexander Mescheryakov](https://github.com/Alexander Mescheryakov), [#2293](https://github.com/yewstack/yew/pull/2293)]
   - Allow `function_component` creation based on function name. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2292](https://github.com/yewstack/yew/pull/2292)]
   - Implement IntoPropValue for Rc<str>. [[@Zachary Stewart](https://github.com/Zachary Stewart), [#2285](https://github.com/yewstack/yew/pull/2285)]
-  - Silence some warnings from derive(Properties). [[@WorldSEnder](https://github.com/WorldSEnder), [#2266](https://github.com/yewstack/yew/pull/2266)]
   - Raw field names in property structs. [[@WorldSEnder](https://github.com/WorldSEnder), [#2273](https://github.com/yewstack/yew/pull/2273)]
 
 ## ✨ yew-router **0.17.0** *(2022-11-xx)*
