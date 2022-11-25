@@ -46,10 +46,10 @@ jobs:
         run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
 
       - name: Release yew-macro
-        run: cargo release ${PUBLISH_LEVEL} --execute --no-confirm --package yew-macro
+        run: cargo release ${{ github.event.inputs.level }} --execute --no-confirm --package yew-macro
 
       - name: Release yew
-        run: cargo release ${PUBLISH_LEVEL} --execute --no-confirm --package yew
+        run: cargo release ${{ github.event.inputs.level }} --execute --no-confirm --package yew
 
       - name: Get tag
         id: gettag
