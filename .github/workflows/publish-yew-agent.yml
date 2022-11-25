@@ -40,29 +40,13 @@ jobs:
         uses: baptiste0928/cargo-install@v1
         with:
           crate: cargo-release
-          version: 0.18.5
+          version: 0.23.1
 
-      - name: Build changelog generator
-        run: cargo build --release -p changelog
-        working-directory: tools
-
-      - name: Generate changelog
-        uses: mathiasvr/command-output@v1
-        id: changelog
-        with:
-          run: ./target/release/changelog yew-agent ${{ github.event.inputs.level }} -t ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Commit changelog
-        run: |
-          git add CHANGELOG.md
-          git commit -m "update CHANGELOG.md for yew-agent release"
-          git push origin master
+      - name: Cargo login
+        run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
 
       - name: Release yew-agent
-        run: cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm --package yew-agent
-        env:
-          PUBLISH_LEVEL: ${{ github.event.inputs.level }}
-          CRATES_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+        run: cargo release ${PUBLISH_LEVEL} --execute --no-confirm --package yew-agent
 
       - name: Get tag
         id: gettag

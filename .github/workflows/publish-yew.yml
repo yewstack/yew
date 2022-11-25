@@ -40,19 +40,16 @@ jobs:
         uses: baptiste0928/cargo-install@v1
         with:
           crate: cargo-release
-          version: 0.18.5
+          version: 0.23.1
+
+      - name: Cargo login
+        run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
 
       - name: Release yew-macro
-        run: cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm --package yew-macro
-        env:
-          PUBLISH_LEVEL: ${{ github.event.inputs.level }}
-          CRATES_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+        run: cargo release ${PUBLISH_LEVEL} --execute --no-confirm --package yew-macro
 
       - name: Release yew
-        run: cargo release ${PUBLISH_LEVEL} --token ${CRATES_TOKEN} --execute --no-confirm --package yew
-        env:
-          PUBLISH_LEVEL: ${{ github.event.inputs.level }}
-          CRATES_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+        run: cargo release ${PUBLISH_LEVEL} --execute --no-confirm --package yew
 
       - name: Get tag
         id: gettag
