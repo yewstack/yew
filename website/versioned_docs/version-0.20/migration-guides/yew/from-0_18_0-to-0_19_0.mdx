@@ -1,0 +1,139 @@
+---
+title: 'From 0.18.0 to 0.19.0'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+`Yew 0.19.0` has changed a lot, thus this migration will not cover ALL of the changes.
+
+Instead only the most impactful changes are mentioned and the rest should be picked up by `cargo`.
+
+## `html!` requirement for braces around most props
+
+The syntax of the `html!` macro has been updated, such that in most cases you will need to enclose
+props with braces.
+
+<Tabs>
+  <TabItem value="Invalid" label="Invalid">
+
+```rust {4}, ignore
+let super_age = 1;
+html!{
+    <JapaneseYew
+        age=super_age // ! Will throw an error
+    >
+}
+```
+
+  </TabItem>
+  <TabItem value="Valid" label="Valid">
+
+```rust {4}, ignore
+let super_age = 1;
+html!{
+    <JapaneseYew
+        age={super_age} // Correct
+    >
+}
+```
+
+  </TabItem>
+  <TabItem value="Shorthand" label="Shorthand">
+
+Shorthand initialization has been added:
+
+```rust {4}, ignore
+let age = 1;
+html!{
+    <JapaneseYew
+        {age}
+    >
+}
+```
+
+  </TabItem>
+</Tabs>
+
+There is a community provided regex to help automate the update, though we can't promise it will work
+all the time.
+
+It breaks when it encounters closures (specifically the `|_|` syntax).
+
+find with `=(?![{">=\s])([^\s></]*(\s!{0,1}[=|&]{2}\s[^\s></]*)*)`
+
+replace with `={$1}`
+
+## Function components
+
+[Function components](concepts/function-components/introduction.mdx) are a brand new way to write components that
+requires less boilerplate than their structural counterpart.
+
+While this change does not force you to change your codebase, as you migrate from `0.18` to `0.19`, this migration time might present a good opportunity to start using them in your codebase.
+
+## Struct components lifecycle methods and ctx
+
+[Struct components](advanced-topics/struct-components/introduction.mdx) also received changes to their API.
+
+### ShouldRender removed in favor of bool
+
+`ShouldRender` removed in favor of `bool` and can be just find all - replaced throughout your code base.
+
+### ctx, props, link
+
+Struct components no longer own props and link, instead they receive `ctx: &Context<Self>` argument in lifetime methods that can later give you access to `ctx.props() -> &Properties` and `ctx.link() -> &Scope<Self>`.
+
+You will need to remove `link` and `props` from your component struct fields as such all lifetime methods got updated.
+
+### Lifetime methods in Component trait
+
+For new API look in the [Component trait](https://github.com/yewstack/yew/blob/9b6bc96826d53ec38aa3ecc02e3a1e132692c411/packages/yew/src/html/component/mod.rs#L37-L97)
+
+## `web-sys` is no longer re-exported
+
+Add `web-sys` as your project dependency and one by one add the needed features like `Event` or `Window`.
+
+## Services
+
+During this update all services were removed in favor of community driven solutions like [gloo](https://github.com/rustwasm/gloo)
+
+Remove this entirely. `yew-services` adds a layer a abstraction which makes it easier to call external resources. This is all well and good but this layer is supposed to be specific to Yew. It would be better if an framework agnostic abstraction existed instead.
+
+-   `ConsoleService`
+    Use [gloo-console](https://crates.io/crates/gloo-console) or [`weblog`](https://crates.io/crates/weblog) instead.
+-   `DialogService`
+    Use [`gloo-dialogs`](https://docs.rs/gloo-dialogs/) instead.
+-   `IntervalService`
+    Use [`gloo-timers`](https://docs.rs/gloo-timers/) instead.
+-   `KeyboardService`
+    `on*` event handlers in yew already handle it. Using this service is even more cumbersome because it requires use of `NodeRef` in order to call any functions provided by it.
+
+```rust ,ignore
+let onkeydown = Callback::from(|e| {
+    e.prevent_default();
+    todo!("use `e`, just like in service methods.");
+});
+html! {
+    <input {onkeydown} />
+}
+```
+
+-   `ResizeService`
+    Use [`gloo-events`](https://docs.rs/gloo-events) to attach the listener instead.
+-   `StorageService`
+    Use [`gloo-storage`](https://docs.rs/gloo-storage/) instead.
+-   `TimeoutService`
+    Use [`gloo-timers`](https://docs.rs/gloo-timers/) instead.
+-   `WebSocketService`
+    Use [`wasm-sockets`](https://github.com/scratchyone/wasm-sockets) or [`gloo-net`](https://crates.io/crates/gloo-net) instead.
+-   `FetchService`
+    Use [`reqwest`](https://crates.io/crates/reqwest) or [`gloo-net`](https://crates.io/crates/gloo-net) instead.
+
+## New crate - yew-agent
+
+Yew agents were removed to a separate crate, see [yew agents migration guide](./../yew-agent/from-0_0_0-to-0_1_0)
+
+## Ending note
+
+We are sorry if some things are not covered in this guide as it was truly a huge update and we hope
+that the uncovered issues will be clearly explained in error messages emitted by the Rust compiler.

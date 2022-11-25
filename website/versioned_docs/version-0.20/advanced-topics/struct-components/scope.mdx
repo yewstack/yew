@@ -1,0 +1,81 @@
+---
+title: 'Scope'
+description: "Component's Scope"
+---
+
+## Component's `Scope<_>` API
+
+The component "`Scope`" is the mechanism through which components are able to create callbacks and update themselves
+using messages. We obtain a reference to this by calling `link()` on the context object passed to the component.
+
+### `send_message`
+
+Sends a message to the component.
+Messages are handled by the `update` method which determines whether the component should re-render.
+
+### `send_message_batch`
+
+Sends multiple messages to the component at the same time.
+This is similar to `send_message` but if any of the messages cause the `update` method to return `true`,
+the component will re-render after all messages in the batch have been processed.
+
+If the given vector is empty, this function doesn't do anything.
+
+### `callback`
+
+Create a callback that will send a message to the component when it is executed.
+Under the hood, it will call `send_message` with the message returned by the provided closure.
+
+```rust
+use yew::{html, Component, Context, Html};
+
+enum Msg {
+    Text(String),
+}
+
+struct Comp;
+
+impl Component for Comp {
+
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // Create a callback that accepts some text and sends it
+        // to the component as the `Msg::Text` message variant.
+        // highlight-next-line
+        let cb = ctx.link().callback(|text: String| Msg::Text(text));
+
+        // The previous line is needlessly verbose to make it clearer.
+        // It can be simplified it to this:
+        // highlight-next-line
+        let cb = ctx.link().callback(Msg::Text);
+
+        // Will send `Msg::Text("Hello World!")` to the component.
+        // highlight-next-line
+        cb.emit("Hello World!".to_owned());
+
+        html! {
+            // html here
+        }
+    }
+}
+```
+
+### `batch_callback`
+
+Create a callback that will send a batch of messages to the component when it is executed.
+The difference to `callback` is that the closure passed to this method doesn't have to return a message.
+Instead, the closure can return either `Vec<Msg>` or `Option<Msg>` where `Msg` is the component's message type.
+
+`Vec<Msg>` is treated as a batch of messages and uses `send_message_batch` under the hood.
+
+`Option<Msg>` calls `send_message` if it is `Some`. If the value is `None`, nothing happens.
+This can be used in cases where, depending on the situation, an update isn't required.
+
+This is achieved using the `SendAsMessage` trait which is only implemented for these types.
+You can implement `SendAsMessage` for your own types which allows you to use them in `batch_callback`.

@@ -74,11 +74,19 @@ pub fn create_log_line(
         .with_context(|| format!("Could not find GitHub labels for issue: {}", issue_id))?;
 
     let is_issue_for_this_package = issue_labels
-        .into_iter()
+        .iter()
         .any(|label| package_labels.contains(&label.as_str()));
 
     if !is_issue_for_this_package {
         println!("Issue {issue_id} is not for {package_labels:?} packages");
+        let leftovers = issue_labels.iter().filter(|label| {
+            !(label.starts_with("A-") || *label == "documentation" || *label == "meta")
+        });
+        let count = leftovers.count();
+        if count > 0 {
+            println!("Potentially invalidly labeled issue: {issue_id}. Neither A-* (area), documentation nor meta labels found. \
+            inspect/re-tag at https://github.com/yewstack/yew/issues/{issue_id}");
+        }
         return Ok(None);
     }
 

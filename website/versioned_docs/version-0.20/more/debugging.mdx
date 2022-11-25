@@ -1,0 +1,100 @@
+---
+title: 'Debugging'
+---
+
+## Panics
+
+Yew automatically logs panics in the browser console.
+
+## Console Logging
+
+In JavaScript, `console.log()` is used to log to the browser console. Some options for Yew are listed below.
+
+### [`wasm-logger`](https://crates.io/crates/wasm-logger)
+
+`wasm-logger` crate integrates with [`log`](https://crates.io/crates/log) crate to send the log level, source line and filename to the browser console.
+
+```rust ,ignore
+use log::info;
+use wasm_bindgen::JsValue;
+
+fn main() {
+    wasm_logger::init(wasm_logger::Config::default());
+
+    let object = JsValue::from("world");
+    info!("Hello {}", object.as_string().unwrap());
+}
+```
+
+### [`gloo-console`](https://crates.io/crates/gloo-console)
+
+This crate is part of Gloo, a collection of libraries providing ergonomic Rust wrappers for browser APIs.
+The `log!` macro can take a `JsValue` directly which is slightly easier to use than `wasm_logger`.
+
+```rust ,ignore
+use gloo_console::log;
+use wasm_bindgen::JsValue;
+
+fn main() {
+    let object = JsValue::from("world");
+    log!("Hello", object)
+}
+```
+
+### [`tracing-web`](https://crates.io/crates/tracing-web)
+
+`tracing-web` can be used with [`tracing-subscriber`](https://crates.io/crates/tracing-subscriber to output messages to the browser console.
+
+```rust, ignore
+use tracing_subscriber::{
+    fmt::{
+        format::{FmtSpan, Pretty},
+        time::UtcTime,
+    },
+    prelude::*,
+};
+use wasm_bindgen::JsValue;
+
+fn main() {
+    let fmt_layer = tracing_subscriber::fmt::layer()
+        .with_ansi(false)
+        .with_timer(UtcTime::rfc_3339())
+        .with_writer(tracing_web::MakeConsoleWriter)
+        .with_span_events(FmtSpan::ACTIVE);
+    let perf_layer = tracing_web::performance_layer().with_details_from_fields(Pretty::default());
+
+    tracing_subscriber::registry()
+        .with(fmt_layer)
+        .with(perf_layer)
+        .init();
+    let object = JsValue::from("world");
+    tracing::info!("Hello {}", object.as_string().unwrap());
+}
+```
+
+## Debugging component lifecycles
+
+[`tracing`](https://crates.io/crates/tracing) can be used to collect event information related to a component's lifecycle. `tracing` also comes with a feature flag for `log` support, which integrates nicely with `wasm-logger`.
+
+[Compile time filters](https://docs.rs/tracing/latest/tracing/level_filters/index.html#compile-time-filters) can be used to adjust verbosity or disable logging, which should result in a smaller Wasm file.
+
+## Source Maps
+
+There is [some support](https://developer.chrome.com/blog/wasm-debugging-2019/#enter-dwarf) for source maps.
+However, some configuration is required.
+
+## Past Articles
+
+Some past articles on the state of debugging in WebAssembly in Rust can be found below. They may serve as interesting reads.
+
+\[Dec 2019\] [Chrome DevTools update](https://developers.google.com/web/updates/2019/12/webassembly#the_future)
+
+> There is still quite a bit of work to do though. For example, on the tooling side, Emscripten \(Binaryen\) and wasm-pack \(wasm-bindgen\) don’t support updating DWARF information on transformations they perform yet.
+
+\[2020\] [Rust Wasm debugging guide](https://rustwasm.github.io/book/reference/debugging.html#using-a-debugger)
+
+> Unfortunately, the debugging story for WebAssembly is still immature. On most Unix systems, [DWARF](http://dwarfstd.org/) is used to encode the information that a debugger needs to provide source-level inspection of a running program. There is an alternative format that encodes similar information on Windows. Currently, there is no equivalent for WebAssembly.
+
+\[2019\] [Rust Wasm roadmap](https://rustwasm.github.io/rfcs/007-2019-roadmap.html#debugging)
+
+> Debugging is tricky because much of the story is out of this working group's hands, and depends on both the WebAssembly standardization bodies and the folks implementing browser developer tools instead.
