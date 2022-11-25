@@ -1,6 +1,6 @@
 [package]
 name = "yew"
-version = "0.19.3"
+version = "0.20.0"
 edition = "2021"
 authors = [
   "Denis Kolodin <deniskolodin@gmail.com>",

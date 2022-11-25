@@ -8,7 +8,7 @@ description = "Agents for Yew"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-yew = { version = "0.19.3", path = "../yew" }
+yew = { version = "0.20.0", path = "../yew" }
 gloo-worker = "0.1"
 
 [dev-dependencies]
