@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1668010956701,
+  "lastUpdate": 1669372051200,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -26789,6 +26789,120 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-struct-keyed 33_startup-mainthreadcost",
             "value": "229.356",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 34_startup-totalbytes",
+            "value": "370.3720703125",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "muhammadhamza1311@gmail.com",
+            "name": "Muhammad Hamza",
+            "username": "hamza1311"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f0209c786f1f36d54b2076fdcc359751f5707f8f",
+          "message": "Prepare for Yew 0.20 (#2973)\n\n* 0.20 Changelog\r\n\r\n* Improve changelog generator\r\n\r\n* Add blog post\r\n\r\n* Add blog post\r\n\r\n* Apply suggestions from code review\r\n\r\nCo-authored-by: WorldSEnder <WorldSEnder@users.noreply.github.com>\r\nCo-authored-by: Julius Lungys <32368314+voidpumpkin@users.noreply.github.com>\r\n\r\n* update Changelog\r\n\r\n* update Cargo.toml\r\n\r\n* changelog gen compiles\r\n\r\n* website version 0.20\r\n\r\n* add migration guides\r\n\r\n* prettier\r\n\r\n* i18n\r\n\r\nCo-authored-by: WorldSEnder <WorldSEnder@users.noreply.github.com>\r\nCo-authored-by: Julius Lungys <32368314+voidpumpkin@users.noreply.github.com>",
+          "timestamp": "2022-11-25T15:19:07+05:00",
+          "tree_id": "123582c8cb4862c27c9f7f555015d82012971453",
+          "url": "https://github.com/yewstack/yew/commit/f0209c786f1f36d54b2076fdcc359751f5707f8f"
+        },
+        "date": 1669372048334,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-struct-keyed 01_run1k",
+            "value": "153.123",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 02_replace1k",
+            "value": "161.376",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 03_update10th1k_x16",
+            "value": "229.584",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 04_select1k",
+            "value": "37.9525",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 05_swap1k",
+            "value": "64.119",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 06_remove-one-1k",
+            "value": "24.971",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 07_create10k",
+            "value": "1707.7115",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 08_create1k-after1k_x2",
+            "value": "346.8805",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 09_clear1k_x8",
+            "value": "147.7945",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 21_ready-memory",
+            "value": "1.0817146301269531",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 22_run-memory",
+            "value": "1.3651618957519531",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 23_update5-memory",
+            "value": "1.2953033447265625",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 24_run5-memory",
+            "value": "1.389385223388672",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 25_run-clear-memory",
+            "value": "0.9528121948242188",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 31_startup-ci",
+            "value": "1731.512",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 32_startup-bt",
+            "value": "27.415999999999997",
+            "unit": ""
+          },
+          {
+            "name": "yew-struct-keyed 33_startup-mainthreadcost",
+            "value": "206.992",
             "unit": ""
           },
           {
