@@ -40,7 +40,7 @@ jobs:
         uses: baptiste0928/cargo-install@v1
         with:
           crate: cargo-release
-          version: 0.23.1
+          version: =0.23.1
 
       - name: Cargo login
         run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
