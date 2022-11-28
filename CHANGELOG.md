@@ -1,8 +1,12 @@
 # Changelog
 
-## ✨ yew **0.20.0** *(2022-11-xx)*
+## ✨ yew **0.20.0** *(2022-11-25)*
 
 #### Changelog
+
+- #### 🚨 Breaking changes
+  - Remove `yew::start_app::<App>()`. (Use
+    `yew::Renderer::<App>::new().render()` instead).
 
 - #### 🛠 Fixes
 
