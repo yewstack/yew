@@ -2,6 +2,9 @@
 name = "yew-agent"
 version = "0.1.0"
 authors = ["Hamza <muhammadhamza1311@gmail.com>"]
+repository = "https://github.com/yewstack/yew"
+homepage = "https://yew.rs"
+documentation = "https://docs.rs/yew/"
 edition = "2021"
 readme = "../../README.md"
 description = "Agents for Yew"
