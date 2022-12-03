@@ -66,6 +66,7 @@ jobs:
         with:
           toolchain: stable
 
+      # for wasm-bindgen-cli, always use stable rust
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
         with:
@@ -110,11 +111,11 @@ jobs:
 
       - uses: Swatinem/rust-cache@v1
 
+      # for wasm-bindgen-cli, always use stable rust
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          targets: wasm32-unknown-unknown
 
       - name: Install wasm-bindgen-cli
         shell: bash
@@ -189,7 +190,6 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
-          components: clippy
 
       - uses: Swatinem/rust-cache@v1
 

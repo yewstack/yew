@@ -19,7 +19,6 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
-          targets: wasm32-unknown-unknown
           components: rustfmt
 
       - name: Run fmt
