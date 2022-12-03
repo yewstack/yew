@@ -31,25 +31,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: stable
           toolchain: ${{ matrix.toolchain }}
-          override: true
-          profile: minimal
           components: ${{ matrix.runs }}
 
       - uses: Swatinem/rust-cache@v1
 
       - name: Run clippy for ${{ matrix.workspace }}
         if: matrix.runs == 'clippy'
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets --all-features --manifest-path ${{ matrix.workspace }}/Cargo.toml -- -D warnings
+        run: cargo clippy --all-targets --all-features --manifest-path ${{ matrix.workspace }}/Cargo.toml -- -D warnings
 
       - name: Run fmt for ${{ matrix.workspace }}
         if: matrix.runs == 'rustfmt'
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all --manifest-path ${{ matrix.workspace }}/Cargo.toml -- --check
+        run: cargo fmt --all --manifest-path ${{ matrix.workspace }}/Cargo.toml -- --check
