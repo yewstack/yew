@@ -35,7 +35,6 @@ jobs:
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
           toolchain: ${{ matrix.toolchain }}
           components: ${{ matrix.runs }}
 

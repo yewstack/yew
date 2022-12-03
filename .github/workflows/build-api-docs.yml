@@ -25,7 +25,6 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
-          targets: wasm32-unknown-unknown
           components: rust-docs
 
       - name: Run cargo doc
@@ -35,7 +34,6 @@ jobs:
           cargo doc \
             --no-deps \
             --all-features \
-
             -p yew \
             -p yew-macro \
             -p yew-router \
