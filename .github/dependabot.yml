@@ -26,3 +26,9 @@ updates:
     schedule:
       interval: "monthly"
     target-branch: "master"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    target-branch: "master"

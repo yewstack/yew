@@ -16,13 +16,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
-          target: wasm32-unknown-unknown
+          targets: wasm32-unknown-unknown
           components: rust-src
-          override: true
-          profile: minimal
 
       - uses: Swatinem/rust-cache@v1
 

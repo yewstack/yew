@@ -30,13 +30,11 @@ jobs:
           path: current-pr
 
       - name: Setup toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
-          target: wasm32-unknown-unknown
           components: rust-src
-          override: true
-          profile: minimal
+          targets: wasm32-unknown-unknown
 
       - name: Restore Rust cache for master
         uses: Swatinem/rust-cache@v1
