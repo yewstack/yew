@@ -149,6 +149,15 @@ where
     }
 }
 
+impl<T> PartialEq<T> for UseStateHandle<T>
+where
+    T: PartialEq,
+{
+    fn eq(&self, rhs: &T) -> bool {
+        &self.inner.value == rhs
+    }
+}
+
 /// Setter handle for [`use_state`] and [`use_state_eq`] hook
 pub struct UseStateSetter<T> {
     inner: UseReducerDispatcher<UseStateReducer<T>>,
