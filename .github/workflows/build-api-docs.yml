@@ -21,20 +21,24 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions-rs/toolchain@v1
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
-          override: true
-          profile: minimal
           components: rust-docs
 
       - name: Run cargo doc
-        uses: actions-rs/cargo@v1
         env:
           RUSTDOCFLAGS: --cfg documenting --html-before-content ./api-docs/before-content.html --extend-css ./api-docs/styles.css -Z unstable-options --enable-index-page
-        with:
-          command: doc
-          args: -p yew -p yew-macro -p yew-router -p yew-router-macro -p yew-agent --no-deps --all-features
+        run: |
+          cargo doc \
+            --no-deps \
+            --all-features \
+            -p yew \
+            -p yew-macro \
+            -p yew-router \
+            -p yew-router-macro \
+            -p yew-agent
 
       - name: Move files in correct directory
         run: |

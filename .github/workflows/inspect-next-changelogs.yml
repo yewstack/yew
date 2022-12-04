@@ -16,12 +16,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          override: true
-          profile: minimal
 
       - name: Build changelog generator
         run: cargo build --release -p changelog

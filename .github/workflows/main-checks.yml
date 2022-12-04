@@ -22,20 +22,17 @@ jobs:
           - release
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          override: true
-          profile: minimal
           components: clippy
 
       - uses: Swatinem/rust-cache@v1
 
       - name: Run clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets --all-features --profile ${{ matrix.profile }} -- -D warnings
+        run: cargo clippy --all-targets --all-features --profile ${{ matrix.profile }} -- -D warnings
 
       - name: Lint feature soundness
         if: matrix.profile == 'dev'
@@ -64,48 +61,39 @@ jobs:
       - uses: actions/checkout@v2
       - uses: Swatinem/rust-cache@v1
 
-      - uses: actions-rs/toolchain@v1
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          override: true
-          profile: minimal
 
-      # perhaps extract it into its own little action?
-      - uses: actions-rs/toolchain@v1
-        # for wasm-bindgen-cli, always use stable rust
+      # for wasm-bindgen-cli, always use stable rust
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          profile: minimal
 
       - name: Install wasm-bindgen-cli
         shell: bash
         run: ./ci/install-wasm-bindgen-cli.sh
 
-      - uses: actions-rs/toolchain@v1
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
-          target: wasm32-unknown-unknown
-          override: true
-          profile: minimal
+          targets: wasm32-unknown-unknown
 
       - uses: browser-actions/setup-geckodriver@latest
       - uses: nanasess/setup-chromedriver@v1
 
       - name: Run doctest
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --doc --workspace --exclude yew --target wasm32-unknown-unknown
+        run: cargo test --doc --workspace --exclude yew --target wasm32-unknown-unknown
 
       - name: Run website code snippet tests
         run: cargo test -p website-test --target wasm32-unknown-unknown
         working-directory: tools
 
       - name: Run doctest - yew with features
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p yew --doc --all-features --target wasm32-unknown-unknown
+        run: cargo test -p yew --doc --all-features --target wasm32-unknown-unknown
 
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
@@ -123,22 +111,21 @@ jobs:
 
       - uses: Swatinem/rust-cache@v1
 
-      - uses: actions-rs/toolchain@v1
-        # for wasm-bindgen-cli, always use stable rust
+      # for wasm-bindgen-cli, always use stable rust
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          profile: minimal
 
       - name: Install wasm-bindgen-cli
         shell: bash
         run: ./ci/install-wasm-bindgen-cli.sh
 
-      - uses: actions-rs/toolchain@v1
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
-          target: wasm32-unknown-unknown
-          override: true
-          profile: minimal
+          targets: wasm32-unknown-unknown
 
       - uses: browser-actions/setup-geckodriver@latest
       - uses: nanasess/setup-chromedriver@v1
@@ -171,33 +158,26 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions-rs/toolchain@v1
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
-          override: true
-          profile: minimal
 
       - uses: Swatinem/rust-cache@v1
 
       - name: Run native tests
-        uses: actions-rs/cargo@v1
         env:
           # workaround for lack of ternary operator
           # see https://github.com/orgs/community/discussions/25725
           RUSTFLAGS: ${{ matrix.toolchain == 'nightly' && '--cfg nightly_yew' || '' }}
-        with:
-          command: test
-          args: --all-targets --workspace --exclude yew
+        run: cargo test --all-targets --workspace --exclude yew
 
       - name: Run native tests for yew
-        uses: actions-rs/cargo@v1
         env:
           # workaround for lack of ternary operator
           # see https://github.com/orgs/community/discussions/25725
           RUSTFLAGS: ${{ matrix.toolchain == 'nightly' && '--cfg nightly_yew' || '' }}
-        with:
-          command: test
-          args: -p yew --all-features
+        run: cargo test -p yew --all-features
 
   test-lints:
     name: Test lints on nightly
@@ -205,18 +185,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
-          override: true
-          profile: minimal
 
       - uses: Swatinem/rust-cache@v1
 
       - name: Run tests
-        uses: actions-rs/cargo@v1
         env:
           RUSTFLAGS: --cfg nightly_yew --cfg yew_lints
-        with:
-          command: test
-          args: -p yew-macro test_html_lints
+        run: cargo test -p yew-macro test_html_lints

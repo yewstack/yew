@@ -65,12 +65,11 @@ jobs:
           path: "./js-framework-benchmark"
           ref: 678cd09a8e02b9a01bcb9b71dc9248d17a33ff82
 
-      - uses: actions-rs/toolchain@v1
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          target: wasm32-unknown-unknown
-          override: true
-          profile: minimal
+          targets: wasm32-unknown-unknown
 
       - uses: jetli/wasm-pack-action@v0.3.0
         with:
