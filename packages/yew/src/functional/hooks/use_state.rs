@@ -122,6 +122,14 @@ impl<T> UseStateHandle<T> {
             inner: self.inner.dispatcher(),
         }
     }
+
+    /// Returns the current value.
+    pub fn get(&self) -> T
+    where
+        T: Clone,
+    {
+        self.inner.value.clone()
+    }
 }
 
 impl<T> Deref for UseStateHandle<T> {
