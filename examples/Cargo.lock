@@ -2876,7 +2876,7 @@ dependencies = [
 
 [[package]]
 name = "yew"
-version = "0.19.3"
+version = "0.20.0"
 dependencies = [
  "base64ct",
  "bincode",
@@ -2902,7 +2902,7 @@ dependencies = [
 
 [[package]]
 name = "yew-agent"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "gloo-worker 0.1.2",
  "yew",
@@ -2910,7 +2910,7 @@ dependencies = [
 
 [[package]]
 name = "yew-macro"
-version = "0.19.3"
+version = "0.20.0"
 dependencies = [
  "boolinator",
  "once_cell",
@@ -2923,7 +2923,7 @@ dependencies = [
 
 [[package]]
 name = "yew-router"
-version = "0.16.0"
+version = "0.17.0"
 dependencies = [
  "gloo",
  "js-sys",
@@ -2939,7 +2939,7 @@ dependencies = [
 
 [[package]]
 name = "yew-router-macro"
-version = "0.16.0"
+version = "0.17.0"
 dependencies = [
  "proc-macro2",
  "quote",
