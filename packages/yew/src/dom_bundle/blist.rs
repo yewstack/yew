@@ -4,6 +4,7 @@ use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::hash::Hash;
 use std::ops::Deref;
+use std::rc::Rc;
 
 use web_sys::Element;
 
@@ -445,7 +446,7 @@ impl Reconcilable for VList {
         }
 
         let fully_keyed = self.fully_keyed();
-        let lefts = self.children;
+        let lefts = Rc::try_unwrap(self.children).unwrap_or_else(|m| m.as_ref().clone());
         let rights = &mut blist.rev_children;
         test_log!("lefts: {:?}", lefts);
         test_log!("rights: {:?}", rights);
@@ -480,7 +481,7 @@ mod feat_hydration {
         ) -> (NodeRef, Self::Bundle) {
             let node_ref = NodeRef::default();
             let fully_keyed = self.fully_keyed();
-            let vchildren = self.children;
+            let vchildren = Rc::try_unwrap(self.children).unwrap_or_else(|m| m.as_ref().clone());
             let mut children = Vec::with_capacity(vchildren.len());
 
             for (index, child) in vchildren.into_iter().enumerate() {

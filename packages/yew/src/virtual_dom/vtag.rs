@@ -283,16 +283,10 @@ impl VTag {
     }
 
     /// Returns a reference to the children of this [VTag]
-    pub fn children(&self) -> &VList {
+    pub fn children(&self) -> Option<&VList> {
         match &self.inner {
-            VTagInner::Other { children, .. } => children,
-            _ => {
-                // This is mutable because the VList is not Sync
-                static mut EMPTY: VList = VList::new();
-
-                // SAFETY: The EMPTY value is always read-only
-                unsafe { &EMPTY }
-            }
+            VTagInner::Other { children, .. } => Some(children),
+            _ => None,
         }
     }
 
