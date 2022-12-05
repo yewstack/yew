@@ -123,7 +123,9 @@ impl<T> UseStateHandle<T> {
         }
     }
 
-    /// Returns the current value.
+    /// Returns the value at the time [`use_state`] was called.
+    ///
+    /// For more information see the [`use_state`] documentation.
     pub fn get(&self) -> T
     where
         T: Clone,
