@@ -24,7 +24,7 @@ jobs:
           targets: wasm32-unknown-unknown
           components: rust-src
 
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
 
       - uses: jetli/trunk-action@v0.1.0
         with:

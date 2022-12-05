@@ -38,7 +38,7 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           components: ${{ matrix.runs }}
 
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
 
       - name: Run clippy for ${{ matrix.workspace }}
         if: matrix.runs == 'clippy'

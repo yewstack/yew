@@ -80,7 +80,7 @@ jobs:
         with:
           node-version: 16
 
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
         with:
           working-directory: yew
 

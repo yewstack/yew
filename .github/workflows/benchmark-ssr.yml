@@ -38,13 +38,13 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - name: Restore Rust cache for master
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
         with:
           working-directory: yew-master
           key: master
 
       - name: Restore Rust cache for current pull request
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
         with:
           working-directory: current-pr
           key: pr
