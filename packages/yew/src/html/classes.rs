@@ -2,6 +2,7 @@ use std::borrow::Cow;
 use std::iter::FromIterator;
 use std::rc::Rc;
 
+use implicit_clone::ImplicitClone;
 use indexmap::IndexSet;
 
 use super::IntoPropValue;
@@ -14,6 +15,8 @@ use crate::virtual_dom::AttrValue;
 pub struct Classes {
     set: Rc<IndexSet<AttrValue>>,
 }
+
+impl ImplicitClone for Classes {}
 
 /// helper method to efficiently turn a set of classes into a space-separated
 /// string. Abstracts differences between ToString and IntoPropValue. The
