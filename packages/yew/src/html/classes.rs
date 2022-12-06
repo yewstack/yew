@@ -1,17 +1,18 @@
 use std::borrow::Cow;
 use std::iter::FromIterator;
+use std::rc::Rc;
 
 use indexmap::IndexSet;
 
 use super::IntoPropValue;
 use crate::virtual_dom::AttrValue;
 
-/// A set of classes.
+/// A set of classes, cheap to clone.
 ///
 /// The preferred way of creating this is using the [`classes!`][yew::classes!] macro.
 #[derive(Debug, Clone, Default)]
 pub struct Classes {
-    set: IndexSet<AttrValue>,
+    set: Rc<IndexSet<AttrValue>>,
 }
 
 /// helper method to efficiently turn a set of classes into a space-separated
@@ -42,7 +43,7 @@ impl Classes {
     #[inline]
     pub fn new() -> Self {
         Self {
-            set: IndexSet::new(),
+            set: Rc::new(IndexSet::new()),
         }
     }
 
@@ -51,7 +52,7 @@ impl Classes {
     #[inline]
     pub fn with_capacity(n: usize) -> Self {
         Self {
-            set: IndexSet::with_capacity(n),
+            set: Rc::new(IndexSet::with_capacity(n)),
         }
     }
 
@@ -63,7 +64,7 @@ impl Classes {
         if self.is_empty() {
             *self = classes_to_add
         } else {
-            self.set.extend(classes_to_add.set)
+            Rc::make_mut(&mut self.set).extend(classes_to_add.set.iter().cloned())
         }
     }
 
@@ -79,7 +80,7 @@ impl Classes {
     /// you are absolutely certain that the string does not contain any whitespace and it is not
     /// empty. Using `push()`  is preferred.
     pub unsafe fn unchecked_push<T: Into<AttrValue>>(&mut self, class: T) {
-        self.set.insert(class.into());
+        Rc::make_mut(&mut self.set).insert(class.into());
     }
 
     /// Check the set contains a class.
@@ -146,7 +147,10 @@ impl IntoIterator for Classes {
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
-        self.set.into_iter()
+        // NOTE: replace this by Rc::unwrap_or_clone() when it becomes stable
+        Rc::try_unwrap(self.set)
+            .unwrap_or_else(|rc| (*rc).clone())
+            .into_iter()
     }
 }
 
@@ -173,7 +177,7 @@ impl From<Cow<'static, str>> for Classes {
 impl From<&'static str> for Classes {
     fn from(t: &'static str) -> Self {
         let set = t.split_whitespace().map(AttrValue::Static).collect();
-        Self { set }
+        Self { set: Rc::new(set) }
     }
 }
 
@@ -186,7 +190,7 @@ impl From<String> for Classes {
             false => match t.is_empty() {
                 true => Self::new(),
                 false => Self {
-                    set: IndexSet::from_iter([AttrValue::from(t)]),
+                    set: Rc::new(IndexSet::from_iter([AttrValue::from(t)])),
                 },
             },
             true => Self::from(&t),
@@ -201,7 +205,7 @@ impl From<&String> for Classes {
             .map(ToOwned::to_owned)
             .map(AttrValue::from)
             .collect();
-        Self { set }
+        Self { set: Rc::new(set) }
     }
 }
 
@@ -212,7 +216,7 @@ impl From<AttrValue> for Classes {
             .map(ToOwned::to_owned)
             .map(AttrValue::from)
             .collect();
-        Self { set }
+        Self { set: Rc::new(set) }
     }
 }
 
