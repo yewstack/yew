@@ -86,7 +86,7 @@ impl Reconcilable for VPortal {
         self,
         _root: &BSubtree,
         parent_scope: &AnyScope,
-        parent: &Element,
+        _parent: &Element,
         next_sibling: NodeRef,
         portal: &mut Self::Bundle,
     ) -> NodeRef {
@@ -110,8 +110,8 @@ impl Reconcilable for VPortal {
         node.reconcile_node(
             &portal.inner_root,
             parent_scope,
-            parent,
-            next_sibling.clone(),
+            &portal.host,
+            portal.inner_sibling.clone(),
             &mut portal.node,
         );
         next_sibling
@@ -180,6 +180,21 @@ mod layout_tests {
                 </div>
             },
             expected: "<div><i></i><o>PORTAL</o>AFTER</div>",
+        });
+        layouts.push(TestLayout {
+            name: "Portal - update inner content",
+            node: html! {
+                <div>
+                    {VNode::VRef(first_target.clone().into())}
+                    {VNode::VRef(second_target.clone().into())}
+                    {VNode::VPortal(VPortal::new(
+                        html! { <> {"PORTAL"} <b /> </> },
+                        second_target.clone(),
+                    ))}
+                    {"AFTER"}
+                </div>
+            },
+            expected: "<div><i></i><o>PORTAL<b></b></o>AFTER</div>",
         });
         layouts.push(TestLayout {
             name: "Portal - replaced by text",
