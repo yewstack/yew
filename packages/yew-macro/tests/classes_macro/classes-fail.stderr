@@ -21,7 +21,7 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
              <Classes as From<&Option<T>>>
              <Classes as From<&String>>
              <Classes as From<&[T]>>
-           and 4 others
+           and 5 others
    = note: required because of the requirements on the impl of `Into<Classes>` for `{integer}`
 note: required by a bound in `Classes::push`
   --> $WORKSPACE/packages/yew/src/html/classes.rs
@@ -40,7 +40,7 @@ error[E0277]: the trait bound `Classes: From<{float}>` is not satisfied
              <Classes as From<&Option<T>>>
              <Classes as From<&String>>
              <Classes as From<&[T]>>
-           and 4 others
+           and 5 others
    = note: required because of the requirements on the impl of `Into<Classes>` for `{float}`
 note: required by a bound in `Classes::push`
   --> $WORKSPACE/packages/yew/src/html/classes.rs
@@ -59,7 +59,7 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
              <Classes as From<&Option<T>>>
              <Classes as From<&String>>
              <Classes as From<&[T]>>
-           and 4 others
+           and 5 others
    = note: required because of the requirements on the impl of `Into<Classes>` for `{integer}`
    = note: required because of the requirements on the impl of `From<Vec<{integer}>>` for `Classes`
    = note: 1 redundant requirement hidden
@@ -81,7 +81,7 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
              <Classes as From<&Option<T>>>
              <Classes as From<&String>>
              <Classes as From<&[T]>>
-           and 4 others
+           and 5 others
    = note: required because of the requirements on the impl of `Into<Classes>` for `{integer}`
    = note: required because of the requirements on the impl of `From<Option<{integer}>>` for `Classes`
    = note: 1 redundant requirement hidden
@@ -103,7 +103,7 @@ error[E0277]: the trait bound `Classes: From<u32>` is not satisfied
              <Classes as From<&Option<T>>>
              <Classes as From<&String>>
              <Classes as From<&[T]>>
-           and 4 others
+           and 5 others
    = note: required because of the requirements on the impl of `Into<Classes>` for `u32`
    = note: required because of the requirements on the impl of `From<Option<u32>>` for `Classes`
    = note: 1 redundant requirement hidden
@@ -125,7 +125,7 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
              <Classes as From<&Option<T>>>
              <Classes as From<&String>>
              <Classes as From<&[T]>>
-           and 4 others
+           and 5 others
    = note: required because of the requirements on the impl of `Into<Classes>` for `{integer}`
 note: required by a bound in `Classes::push`
   --> $WORKSPACE/packages/yew/src/html/classes.rs
