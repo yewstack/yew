@@ -35,7 +35,7 @@ fn build_attr_value(first: AttrValue, rest: impl Iterator<Item = AttrValue> + Cl
     s.push_str(first.as_str());
     // NOTE: this can be improved once Iterator::intersperse() becomes stable
     for class in rest {
-        s.push_str(" ");
+        s.push(' ');
         s.push_str(class.as_str());
     }
     s.into()
