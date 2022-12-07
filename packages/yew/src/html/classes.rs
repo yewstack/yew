@@ -212,14 +212,31 @@ impl From<&String> for Classes {
     }
 }
 
-impl From<AttrValue> for Classes {
-    fn from(t: AttrValue) -> Self {
+impl From<&AttrValue> for Classes {
+    fn from(t: &AttrValue) -> Self {
         let set = t
             .split_whitespace()
             .map(ToOwned::to_owned)
             .map(AttrValue::from)
             .collect();
         Self { set: Rc::new(set) }
+    }
+}
+
+impl From<AttrValue> for Classes {
+    fn from(t: AttrValue) -> Self {
+        match t.contains(|c: char| c.is_whitespace()) {
+            // If the string only contains a single class, we can just use it
+            // directly (rather than cloning it into a new string). Need to make
+            // sure it's not empty, though.
+            false => match t.is_empty() {
+                true => Self::new(),
+                false => Self {
+                    set: Rc::new(IndexSet::from_iter([t])),
+                },
+            },
+            true => Self::from(&t),
+        }
     }
 }
 
