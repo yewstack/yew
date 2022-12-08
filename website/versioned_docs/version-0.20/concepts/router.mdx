@@ -95,7 +95,7 @@ fn switch(routes: Route) -> Html {
 fn app() -> Html {
     html! {
         <BrowserRouter>
-            <Switch<Route> render={switch} /> // <- must be child of <BrowserRouter />
+            <Switch<Route> render={switch} /> // <- must be child of <BrowserRouter>
         </BrowserRouter>
     }
 }
