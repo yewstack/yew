@@ -44,8 +44,9 @@ current URL and passes it to the `render` callback. The callback then decides wh
 matched, the router navigates to the path with `not_found` attribute. If no route is specified, nothing is rendered, and
 a message is logged to console stating that no route was matched.
 
-Finally, you need to register one of the Router context provider components like `<BrowserRouter />`.
-It provides location information and navigator to its children.
+Most of yew-router's components, in particular `<Link />` and `<Switch />`, must be (grand-)children of one of the Router components
+(e.g. `<BrowserRouter />`). You usually only need a single Router in your app, most often rendered immediately by your most top-level `<App />`
+component. The Router registers a context, which is needed for Links and Switches to function. An example is shown below.
 
 :::caution
 When using `yew-router` in browser environment, `<BrowserRouter />` is highly recommended.
@@ -94,7 +95,7 @@ fn switch(routes: Route) -> Html {
 fn app() -> Html {
     html! {
         <BrowserRouter>
-            <Switch<Route> render={switch} />
+            <Switch<Route> render={switch} /> // <- must be child of <BrowserRouter />
         </BrowserRouter>
     }
 }
