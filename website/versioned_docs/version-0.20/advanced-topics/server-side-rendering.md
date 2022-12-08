@@ -185,8 +185,8 @@ fn main() {
 }
 ```
 
-Example: [simple_ssr](https://github.com/yewstack/yew/tree/master/examples/simple_ssr)
-Example: [ssr_router](https://github.com/yewstack/yew/tree/master/examples/ssr_router)
+Example: [simple_ssr](https://github.com/yewstack/yew/tree/yew-v0.20.0/examples/simple_ssr)
+Example: [ssr_router](https://github.com/yewstack/yew/tree/yew-v0.20.0/examples/ssr_router)
 
 :::caution
 
