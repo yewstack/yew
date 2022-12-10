@@ -134,9 +134,10 @@ mod feat_csr {
         /// Link a downstream `NodeRef`
         pub(crate) fn link(&self, node_ref: Self) {
             // Avoid circular references
-            if self == &node_ref {
-                return;
-            }
+            debug_assert!(
+                self != &node_ref,
+                "no circular references allowed! Report this as a bug in yew"
+            );
 
             let mut this = self.0.borrow_mut();
             this.node = None;
