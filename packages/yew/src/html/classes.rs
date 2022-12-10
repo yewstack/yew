@@ -1,25 +1,28 @@
-use std::borrow::{Borrow, Cow};
+use std::borrow::Cow;
 use std::iter::FromIterator;
 use std::rc::Rc;
 
+use implicit_clone::ImplicitClone;
 use indexmap::IndexSet;
 
 use super::IntoPropValue;
 use crate::virtual_dom::AttrValue;
 
-/// A set of classes.
+/// A set of classes, cheap to clone.
 ///
 /// The preferred way of creating this is using the [`classes!`][yew::classes!] macro.
 #[derive(Debug, Clone, Default)]
 pub struct Classes {
-    set: IndexSet<Cow<'static, str>>,
+    set: Rc<IndexSet<AttrValue>>,
 }
+
+impl ImplicitClone for Classes {}
 
 /// helper method to efficiently turn a set of classes into a space-separated
 /// string. Abstracts differences between ToString and IntoPropValue. The
 /// `rest` iterator is cloned to pre-compute the length of the String; it
 /// should be cheap to clone.
-fn build_string<'a>(first: &'a str, rest: impl Iterator<Item = &'a str> + Clone) -> String {
+fn build_attr_value(first: AttrValue, rest: impl Iterator<Item = AttrValue> + Clone) -> AttrValue {
     // The length of the string is known to be the length of all the
     // components, plus one space for each element in `rest`.
     let mut s = String::with_capacity(
@@ -29,9 +32,13 @@ fn build_string<'a>(first: &'a str, rest: impl Iterator<Item = &'a str> + Clone)
             .sum(),
     );
 
-    s.push_str(first);
-    s.extend(rest.flat_map(|class| [" ", class]));
-    s
+    s.push_str(first.as_str());
+    // NOTE: this can be improved once Iterator::intersperse() becomes stable
+    for class in rest {
+        s.push(' ');
+        s.push_str(class.as_str());
+    }
+    s.into()
 }
 
 impl Classes {
@@ -39,7 +46,7 @@ impl Classes {
     #[inline]
     pub fn new() -> Self {
         Self {
-            set: IndexSet::new(),
+            set: Rc::new(IndexSet::new()),
         }
     }
 
@@ -48,7 +55,7 @@ impl Classes {
     #[inline]
     pub fn with_capacity(n: usize) -> Self {
         Self {
-            set: IndexSet::with_capacity(n),
+            set: Rc::new(IndexSet::with_capacity(n)),
         }
     }
 
@@ -60,7 +67,7 @@ impl Classes {
         if self.is_empty() {
             *self = classes_to_add
         } else {
-            self.set.extend(classes_to_add.set)
+            Rc::make_mut(&mut self.set).extend(classes_to_add.set.iter().cloned())
         }
     }
 
@@ -75,8 +82,8 @@ impl Classes {
     /// This function will not split the string into multiple classes. Please do not use it unless
     /// you are absolutely certain that the string does not contain any whitespace and it is not
     /// empty. Using `push()`  is preferred.
-    pub unsafe fn unchecked_push<T: Into<Cow<'static, str>>>(&mut self, class: T) {
-        self.set.insert(class.into());
+    pub unsafe fn unchecked_push<T: Into<AttrValue>>(&mut self, class: T) {
+        Rc::make_mut(&mut self.set).insert(class.into());
     }
 
     /// Check the set contains a class.
@@ -95,15 +102,12 @@ impl Classes {
 impl IntoPropValue<AttrValue> for Classes {
     #[inline]
     fn into_prop_value(self) -> AttrValue {
-        let mut classes = self.set.iter();
+        let mut classes = self.set.iter().cloned();
 
         match classes.next() {
             None => AttrValue::Static(""),
-            Some(class) if classes.len() == 0 => match *class {
-                Cow::Borrowed(class) => AttrValue::Static(class),
-                Cow::Owned(ref class) => AttrValue::Rc(Rc::from(class.as_str())),
-            },
-            Some(first) => AttrValue::Rc(Rc::from(build_string(first, classes.map(Cow::borrow)))),
+            Some(class) if classes.len() == 0 => class,
+            Some(first) => build_attr_value(first, classes),
         }
     }
 }
@@ -141,22 +145,26 @@ impl<T: Into<Classes>> FromIterator<T> for Classes {
 }
 
 impl IntoIterator for Classes {
-    type IntoIter = indexmap::set::IntoIter<Cow<'static, str>>;
-    type Item = Cow<'static, str>;
+    type IntoIter = indexmap::set::IntoIter<AttrValue>;
+    type Item = AttrValue;
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
-        self.set.into_iter()
+        // NOTE: replace this by Rc::unwrap_or_clone() when it becomes stable
+        Rc::try_unwrap(self.set)
+            .unwrap_or_else(|rc| (*rc).clone())
+            .into_iter()
     }
 }
 
 impl ToString for Classes {
     fn to_string(&self) -> String {
-        let mut iter = self.set.iter().map(Cow::borrow);
+        let mut iter = self.set.iter().cloned();
 
         iter.next()
-            .map(|first| build_string(first, iter))
+            .map(|first| build_attr_value(first, iter))
             .unwrap_or_default()
+            .to_string()
     }
 }
 
@@ -171,8 +179,8 @@ impl From<Cow<'static, str>> for Classes {
 
 impl From<&'static str> for Classes {
     fn from(t: &'static str) -> Self {
-        let set = t.split_whitespace().map(Cow::Borrowed).collect();
-        Self { set }
+        let set = t.split_whitespace().map(AttrValue::Static).collect();
+        Self { set: Rc::new(set) }
     }
 }
 
@@ -185,7 +193,7 @@ impl From<String> for Classes {
             false => match t.is_empty() {
                 true => Self::new(),
                 false => Self {
-                    set: IndexSet::from_iter([Cow::Owned(t)]),
+                    set: Rc::new(IndexSet::from_iter([AttrValue::from(t)])),
                 },
             },
             true => Self::from(&t),
@@ -198,9 +206,37 @@ impl From<&String> for Classes {
         let set = t
             .split_whitespace()
             .map(ToOwned::to_owned)
-            .map(Cow::Owned)
+            .map(AttrValue::from)
             .collect();
-        Self { set }
+        Self { set: Rc::new(set) }
+    }
+}
+
+impl From<&AttrValue> for Classes {
+    fn from(t: &AttrValue) -> Self {
+        let set = t
+            .split_whitespace()
+            .map(ToOwned::to_owned)
+            .map(AttrValue::from)
+            .collect();
+        Self { set: Rc::new(set) }
+    }
+}
+
+impl From<AttrValue> for Classes {
+    fn from(t: AttrValue) -> Self {
+        match t.contains(|c: char| c.is_whitespace()) {
+            // If the string only contains a single class, we can just use it
+            // directly (rather than cloning it into a new string). Need to make
+            // sure it's not empty, though.
+            false => match t.is_empty() {
+                true => Self::new(),
+                false => Self {
+                    set: Rc::new(IndexSet::from_iter([t])),
+                },
+            },
+            true => Self::from(&t),
+        }
     }
 }
 
