@@ -49,6 +49,14 @@ jobs:
         with:
           node-version: 16
 
+      - name: setup js-framework-benchmark
+        shell: bash
+        working-directory: js-framework-benchmark
+        run: |
+          npm ci
+          npm run install-server
+          npm run install-webdriver-ts
+
       - uses: Swatinem/rust-cache@v2
         with:
           working-directory: yew
@@ -89,20 +97,10 @@ jobs:
           npm ci
           npm run build-prod-without-tools-install
 
-      - name: start js-framework-benchmark server
+      - name: run js-framework-benchmark server
         shell: bash
         working-directory: js-framework-benchmark
-        run: |
-          npm ci
-          npm start &
-
-      - name: js-framework-benchmark/webdriver-ts setup
-        shell: bash
-        working-directory: js-framework-benchmark/webdriver-ts
-        run: |
-          npm ci
-          npm install chromedriver --chromedriver-force-download
-          npm run compile
+        run: npm start &
 
       - name: js-framework-benchmark/webdriver-ts npm run bench
         shell: bash
