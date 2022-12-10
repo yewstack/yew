@@ -49,14 +49,6 @@ jobs:
         with:
           node-version: 16
 
-      - name: setup js-framework-benchmark
-        shell: bash
-        working-directory: js-framework-benchmark
-        run: |
-          npm ci
-          npm run install-server
-          npm run install-webdriver-ts
-
       - uses: Swatinem/rust-cache@v2
         with:
           working-directory: yew
@@ -68,6 +60,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-benchmark-
             ${{ runner.os }}
+
+      - name: setup js-framework-benchmark
+        shell: bash
+        working-directory: js-framework-benchmark
+        run: |
+          npm ci
+          npm run install-server
+          npm run install-webdriver-ts
 
       - name: setup benchmark-struct benchmark
         shell: bash
