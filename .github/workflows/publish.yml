@@ -1,4 +1,4 @@
-name: Publish yew ONLY (WITHOUT MACRO)
+name: Publish yew package(s)
 
 permissions:
   contents: write
