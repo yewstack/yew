@@ -70,7 +70,7 @@ jobs:
 
       - name: build benchmark-struct app
         shell: bash
-        working-directoy: js-framework-benchmark/frameworks/keyed/yew-struct/
+        working-directory: js-framework-benchmark/frameworks/keyed/yew-struct/
         run: |
           npm ci
           npm run build-prod-without-tools-install
@@ -84,7 +84,7 @@ jobs:
 
       - name: build benchmark-hooks app
         shell: bash
-        working-directoy: js-framework-benchmark/frameworks/keyed/yew-hooks/
+        working-directory: js-framework-benchmark/frameworks/keyed/yew-hooks/
         run: |
           npm ci
           npm run build-prod-without-tools-install
