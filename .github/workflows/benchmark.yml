@@ -93,7 +93,6 @@ jobs:
         shell: bash
         working-directory: js-framework-benchmark
         run: |
-          cd js-framework-benchmark
           npm ci
           npm start &
 
