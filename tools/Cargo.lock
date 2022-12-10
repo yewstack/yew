@@ -85,7 +85,7 @@ dependencies = [
  "serde_json",
  "tabled",
  "tokio",
- "yew 0.19.3",
+ "yew",
 ]
 
 [[package]]
@@ -405,7 +405,7 @@ name = "function_router"
 version = "0.1.0"
 dependencies = [
  "getrandom",
- "gloo 0.8.0",
+ "gloo",
  "instant",
  "lipsum",
  "log",
@@ -413,7 +413,7 @@ dependencies = [
  "rand",
  "serde",
  "wasm-logger",
- "yew 0.19.3",
+ "yew",
  "yew-router",
 ]
 
@@ -527,22 +527,6 @@ name = "glob"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b919933a397b79c37e33b77bb2aa3dc8eb6e165ad809e58ff75bc7db2e34574"
-
-[[package]]
-name = "gloo"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23947965eee55e3e97a5cd142dd4c10631cc349b48cecca0ed230fd296f568cd"
-dependencies = [
- "gloo-console",
- "gloo-dialogs",
- "gloo-events",
- "gloo-file",
- "gloo-render",
- "gloo-storage",
- "gloo-timers",
- "gloo-utils",
-]
 
 [[package]]
 name = "gloo"
@@ -975,7 +959,7 @@ dependencies = [
  "rand",
  "wasm-bindgen",
  "web-sys",
- "yew 0.19.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew",
 ]
 
 [[package]]
@@ -986,7 +970,7 @@ dependencies = [
  "rand",
  "wasm-bindgen",
  "web-sys",
- "yew 0.19.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew",
 ]
 
 [[package]]
@@ -1383,7 +1367,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "03b55e106e5791fa5a13abd13c85d6127312e8e09098059ca2bc9b03ca4cf488"
 dependencies = [
  "futures",
- "gloo 0.8.0",
+ "gloo",
  "num_cpus",
  "once_cell",
  "pin-project",
@@ -1540,12 +1524,6 @@ dependencies = [
  "lazy_static",
  "windows-sys 0.36.1",
 ]
-
-[[package]]
-name = "scoped-tls-hkt"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2e9d7eaddb227e8fbaaa71136ae0e1e913ca159b86c7da82f3e8f0044ad3a63"
 
 [[package]]
 name = "scopeguard"
@@ -2131,14 +2109,14 @@ dependencies = [
  "boolinator",
  "derive_more",
  "glob",
- "gloo 0.8.0",
+ "gloo",
  "js-sys",
  "tokio",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
  "weblog",
- "yew 0.19.3",
+ "yew",
  "yew-agent",
  "yew-router",
 ]
@@ -2285,13 +2263,13 @@ dependencies = [
 
 [[package]]
 name = "yew"
-version = "0.19.3"
+version = "0.20.0"
 dependencies = [
  "base64ct",
  "bincode",
  "console_error_panic_hook",
  "futures",
- "gloo 0.8.0",
+ "gloo",
  "html-escape",
  "implicit-clone",
  "indexmap",
@@ -2306,39 +2284,20 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "yew-macro 0.19.3",
-]
-
-[[package]]
-name = "yew"
-version = "0.19.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a1ccb53e57d3f7d847338cf5758befa811cabe207df07f543c06f502f9998cd"
-dependencies = [
- "console_error_panic_hook",
- "gloo 0.4.2",
- "gloo-utils",
- "indexmap",
- "js-sys",
- "scoped-tls-hkt",
- "slab",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
- "yew-macro 0.19.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-macro",
 ]
 
 [[package]]
 name = "yew-agent"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "gloo-worker 0.1.2",
- "yew 0.19.3",
+ "yew",
 ]
 
 [[package]]
 name = "yew-macro"
-version = "0.19.3"
+version = "0.20.0"
 dependencies = [
  "boolinator",
  "once_cell",
@@ -2350,24 +2309,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "yew-macro"
-version = "0.19.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5fab79082b556d768d6e21811869c761893f0450e1d550a67892b9bce303b7bb"
-dependencies = [
- "boolinator",
- "lazy_static",
- "proc-macro-error",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "yew-router"
-version = "0.16.0"
+version = "0.17.0"
 dependencies = [
- "gloo 0.8.0",
+ "gloo",
  "js-sys",
  "route-recognizer",
  "serde",
@@ -2375,13 +2320,13 @@ dependencies = [
  "tracing",
  "wasm-bindgen",
  "web-sys",
- "yew 0.19.3",
+ "yew",
  "yew-router-macro",
 ]
 
 [[package]]
 name = "yew-router-macro"
-version = "0.16.0"
+version = "0.17.0"
 dependencies = [
  "proc-macro2",
  "quote",
