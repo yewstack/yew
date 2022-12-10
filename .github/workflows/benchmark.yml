@@ -65,12 +65,12 @@ jobs:
         shell: bash
         run: |
           sed -i "s#../..#`realpath ./yew/`#" yew/tools/benchmark-struct/Cargo.toml
-          rm -rf js-framework-benchmark/frameworks/keyed/yew-struct/*
-          cp -r yew/tools/benchmark-struct/* js-framework-benchmark/frameworks/keyed/yew-struct/
+          rm -rf js-framework-benchmark/frameworks/keyed/yew/*
+          cp -r yew/tools/benchmark-struct/* js-framework-benchmark/frameworks/keyed/yew/
 
       - name: build benchmark-struct app
         shell: bash
-        working-directory: js-framework-benchmark/frameworks/keyed/yew-struct/
+        working-directory: js-framework-benchmark/frameworks/keyed/yew/
         run: |
           npm ci
           npm run build-prod-without-tools-install
