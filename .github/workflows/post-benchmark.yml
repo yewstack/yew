@@ -39,4 +39,4 @@ jobs:
           alert-threshold: "200%"
           alert-comment-cc-users: "@yewstack/yew"
           auto-push: true
-          save-data-file: ${{ steps.test-pr.outputs.stdout == "" }}
+          save-data-file: ${{ steps.test-pr.outputs.stdout == '' }}
