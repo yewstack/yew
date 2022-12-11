@@ -1,4 +1,4 @@
-name: Publish yew ONLY (WITHOUT MACRO)
+name: Publish yew package(s)
 
 permissions:
   contents: write
@@ -14,6 +14,11 @@ on:
           - patch
           - minor
           - major
+      packages:
+        description: "List of packages to publish (space separated)"
+        required: true
+        type: string
+
 jobs:
   publish:
     name: Publish yew
@@ -44,14 +49,27 @@ jobs:
       - name: Cargo login
         run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
 
+      - name: Build command
+        shell: bash
+        env:
+          PACKAGES: ${{ github.event.inputs.packages }}
+        run: |
+          output=""
+          for pkg in ${{ github.event.inputs.packages }}
+          do
+            output+="--package $pkg " 
+          done
+          echo "pkg=$output" >> $GITHUB_ENV
+
       - name: Release yew
-        run: cargo release ${PUBLISH_LEVEL} --execute --no-confirm --package yew
+        run: cargo release ${{ github.event.inputs.level }} --execute --no-confirm ${{ env.pkg }}
 
       - name: Get tag
         id: gettag
         uses: WyriHaximus/github-action-get-previous-tag@v1
 
       - name: Create a version branch
+        if: github.event.inputs.level != 'patch'
         uses: peterjgrainger/action-create-branch@v2.4.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
