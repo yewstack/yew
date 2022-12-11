@@ -1,10 +1,14 @@
 {
-  "name": "js-framework-benchmark-non-keyed-yew-hooks",
+  "name": "js-framework-benchmark-keyed-yew-hooks",
   "version": "1.0.0",
   "description": "Benchmark for Yew Hooks",
   "license": "ISC",
   "js-framework-benchmark": {
-    "frameworkVersion": "latest"
+    "frameworkVersion": "latest",
+    "frameworkHomeURL": "https://yew.rs/",
+    "issues": [
+      1139
+    ]
   },
   "scripts": {
     "build-prod": "echo This is a no-op. && echo Due to heavy dependencies, the generated javascript is already provided. && echo If you really want to rebuild from source use: && echo npm run build-prod-force",
