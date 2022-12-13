@@ -192,12 +192,13 @@ where
     /// ```
     /// # let children = Children::new(Vec::new());
     /// # use yew::{classes, html, Children};
-    /// children
-    ///     .map(|children| html! {
+    /// children.map(|children| {
+    ///     html! {
     ///         <div class={classes!("container")}>
     ///             {children}
     ///         </div>
-    ///     })
+    ///     }
+    /// })
     /// # ;
     /// ```
     pub fn map<OUT: Default>(&self, closure: impl FnOnce(&Self) -> OUT) -> OUT {
