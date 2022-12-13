@@ -157,6 +157,16 @@ impl IntoIterator for Classes {
     }
 }
 
+impl IntoIterator for &Classes {
+    type IntoIter = indexmap::set::IntoIter<AttrValue>;
+    type Item = AttrValue;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        (*self.set).clone().into_iter()
+    }
+}
+
 impl ToString for Classes {
     fn to_string(&self) -> String {
         let mut iter = self.set.iter().cloned();
@@ -347,6 +357,7 @@ mod tests {
         other.push("foo");
         other.push("bar");
         let mut subject = Classes::new();
+        subject.extend(&other);
         subject.extend(other);
         assert!(subject.contains("foo"));
         assert!(subject.contains("bar"));
