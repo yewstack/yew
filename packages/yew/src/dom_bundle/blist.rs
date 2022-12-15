@@ -4,6 +4,7 @@ use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::hash::Hash;
 use std::ops::Deref;
+use std::rc::Rc;
 
 use web_sys::Element;
 
@@ -141,6 +142,13 @@ impl BList {
     /// Get the key of the underlying fragment
     pub fn key(&self) -> Option<&Key> {
         self.key.as_ref()
+    }
+
+    fn unwrap_children(children: Option<Rc<Vec<VNode>>>) -> Vec<VNode> {
+        children
+            .map(Rc::try_unwrap)
+            .unwrap_or_else(|| Ok(Vec::new()))
+            .unwrap_or_else(|e| e.to_vec())
     }
 
     /// Diff and patch unkeyed child lists
@@ -445,7 +453,7 @@ impl Reconcilable for VList {
         }
 
         let fully_keyed = self.fully_keyed();
-        let lefts = Self::into_children(self.children);
+        let lefts = BList::unwrap_children(self.children);
         let rights = &mut blist.rev_children;
         test_log!("lefts: {:?}", lefts);
         test_log!("rights: {:?}", rights);
@@ -480,7 +488,7 @@ mod feat_hydration {
         ) -> (NodeRef, Self::Bundle) {
             let node_ref = NodeRef::default();
             let fully_keyed = self.fully_keyed();
-            let vchildren = Self::into_children(self.children);
+            let vchildren = BList::unwrap_children(self.children);
             let mut children = Vec::with_capacity(vchildren.len());
 
             for (index, child) in vchildren.into_iter().enumerate() {

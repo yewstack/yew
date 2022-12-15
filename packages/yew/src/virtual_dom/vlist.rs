@@ -68,13 +68,6 @@ impl VList {
         }
     }
 
-    pub(crate) fn into_children(children: Option<Rc<Vec<VNode>>>) -> Vec<VNode> {
-        children
-            .map(Rc::try_unwrap)
-            .unwrap_or_else(|| Ok(Vec::new()))
-            .unwrap_or_else(|e| e.to_vec())
-    }
-
     /// Creates a new [VList] instance with children.
     pub fn with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
         let mut vlist = VList {
