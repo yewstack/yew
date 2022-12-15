@@ -36,12 +36,17 @@ impl Default for VList {
 }
 
 impl Deref for VList {
-    type Target = [VNode];
+    type Target = Vec<VNode>;
 
     fn deref(&self) -> &Self::Target {
         match self.children {
             Some(ref m) => m.as_ref(),
-            None => &[],
+            None => {
+                // This is mutable because the VNode is not Sync
+                static mut EMPTY: Vec<VNode> = Vec::new();
+                // SAFETY: The EMPTY value is always read-only
+                unsafe { &EMPTY }
+            }
         }
     }
 }
