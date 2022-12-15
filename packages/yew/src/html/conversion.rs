@@ -157,7 +157,6 @@ where
 }
 
 impl IntoPropValue<VNode> for ChildrenRenderer<VNode> {
-    #[inline]
     fn into_prop_value(self) -> VNode {
         let len = self.len();
         let mut iter = self.into_iter();

@@ -97,7 +97,7 @@ pub fn render_markdown(src: &str) -> Html {
     }
 
     if elems.len() == 1 {
-        VNode::VTag(elems.pop().unwrap())
+        VNode::VTag(elems.pop().unwrap().into())
     } else {
         html! {
             <div>{ for elems.into_iter() }</div>

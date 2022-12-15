@@ -63,6 +63,13 @@ impl VList {
         }
     }
 
+    pub(crate) fn into_children(children: Option<Rc<Vec<VNode>>>) -> Vec<VNode> {
+        children
+            .map(Rc::try_unwrap)
+            .unwrap_or_else(|| Ok(Vec::new()))
+            .unwrap_or_else(|e| e.to_vec())
+    }
+
     /// Creates a new [VList] instance with children.
     pub fn with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
         let mut vlist = VList {
@@ -148,7 +155,7 @@ mod test {
         vlist.add_child(VNode::VTag({
             let mut tag = VTag::new("a");
             tag.key = Some(42u32.into());
-            tag
+            tag.into()
         }));
         assert_eq!(
             vlist.fully_keyed,
