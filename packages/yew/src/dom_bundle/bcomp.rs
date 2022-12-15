@@ -171,8 +171,9 @@ mod tests {
 
     use super::*;
     use crate::dom_bundle::Reconcilable;
+    use crate::html::ChildrenRenderer;
     use crate::virtual_dom::{Key, VChild, VNode};
-    use crate::{html, scheduler, Children, Component, Context, Html, NodeRef, Properties};
+    use crate::{html, scheduler, Component, Context, Html, NodeRef, Properties};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -299,7 +300,7 @@ mod tests {
 
     #[derive(Clone, Properties, PartialEq)]
     pub struct ListProps {
-        pub children: Children,
+        pub children: ChildrenRenderer<VNode>,
     }
     pub struct List;
     impl Component for List {
@@ -357,7 +358,7 @@ mod tests {
             .drain(..)
             .map(|text| html! {<span>{ text }</span>})
             .collect();
-        let children_renderer = Children::new(children.clone());
+        let children_renderer = ChildrenRenderer::new(children.clone());
         let expected_html = "\
         <ul><li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ul>";
 
@@ -404,7 +405,9 @@ mod layout_tests {
 
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
+    use crate::html::ChildrenRenderer;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::virtual_dom::VNode;
     use crate::{html, Children, Component, Context, Html, Properties};
 
     wasm_bindgen_test_configure!(run_in_browser);
@@ -661,7 +664,7 @@ mod layout_tests {
     fn component_with_children() {
         #[derive(Properties, PartialEq)]
         struct Props {
-            children: Children,
+            children: ChildrenRenderer<VNode>,
         }
 
         struct ComponentWithChildren;

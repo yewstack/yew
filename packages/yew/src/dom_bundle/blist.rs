@@ -644,7 +644,7 @@ mod layout_tests_keys {
         }
 
         fn view(&self, ctx: &Context<Self>) -> Html {
-            html! { <>{ for ctx.props().children.iter() }</> }
+            html! { <>{ ctx.props().children.clone() }</> }
         }
     }
 
