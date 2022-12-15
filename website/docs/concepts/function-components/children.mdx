@@ -30,7 +30,7 @@ fn HelloWorld(props: &Props) -> Html {
     html! {
         <div class="very-stylized-container">
     // highlight-next-line
-            { for props.children.iter() } // you can forward children like this
+            { props.children.clone() } // you can forward children like this
         </div>
     }
 }

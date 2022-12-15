@@ -38,7 +38,7 @@ fn Modal(props: &ModalProps) -> Html {
         .expect("Expected to find a #modal_host element");
 
     create_portal(
-        html!{ {for props.children.iter()} },
+        props.children.clone(),
         modal_host.into(),
     )
 }

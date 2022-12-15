@@ -30,7 +30,7 @@ impl Component for List {
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div class="list">
-                { for ctx.props().children.iter() }
+                { ctx.props().children.clone() }
             </div>
         }
     }
