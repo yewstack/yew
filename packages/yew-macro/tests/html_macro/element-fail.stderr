@@ -483,7 +483,7 @@ error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<implici
              <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
              <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
-           and 4 others
+           and 3 others
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_clone::unsync::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:48:22
@@ -499,7 +499,7 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_
              <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
              <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
-           and 4 others
+           and 3 others
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `{integer}`
    --> tests/html_macro/element-fail.rs:51:28
@@ -597,7 +597,7 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
              <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
              <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
-           and 4 others
+           and 3 others
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
    --> tests/html_macro/element-fail.rs:58:29

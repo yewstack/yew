@@ -41,14 +41,16 @@ impl Component for ListItem {
 
 impl ListItem {
     fn view_details(children: &Children) -> Html {
-        if children.is_empty() {
-            html! {}
-        } else {
-            html! {
-                <div class="list-item-details">
-                    { children.clone() }
-                </div>
+        if let Children::VList(ref m) = children {
+            if m.is_empty() {
+                return Html::default();
             }
+        }
+
+        html! {
+            <div class="list-item-details">
+                { children.clone() }
+            </div>
         }
     }
 }

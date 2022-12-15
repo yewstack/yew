@@ -640,13 +640,25 @@ note: required by a bound in `yew::html::component::properties::__macro::PreBuil
     |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
     = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VText>` is not satisfied
+error[E0277]: the trait bound `yew::virtual_dom::VText: IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not satisfied
    --> tests/html_macro/component-fail.rs:117:31
     |
 117 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
-    |                               ^^^^^^^^^^^^^ the trait `From<yew::virtual_dom::VText>` is not implemented for `VChild<Child>`
+    |              --------------   ^^^^^^^^^^^^^ the trait `IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not implemented for `yew::virtual_dom::VText`
+    |              |
+    |              required by a bound introduced by this call
     |
-    = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `yew::virtual_dom::VText`
+    = help: the following implementations were found:
+              <yew::virtual_dom::VText as IntoPropValue<VNode>>
+note: required by a bound in `ChildContainerPropertiesBuilder::children`
+   --> tests/html_macro/component-fail.rs:24:17
+    |
+24  | #[derive(Clone, Properties, PartialEq)]
+    |                 ^^^^^^^^^^ required by this bound in `ChildContainerPropertiesBuilder::children`
+25  | pub struct ChildContainerProperties {
+26  |     pub children: ChildrenWithProps<Child>,
+    |         -------- required by a bound in this
+    = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
    --> tests/html_macro/component-fail.rs:118:29

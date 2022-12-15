@@ -2,7 +2,6 @@
 
 use std::fmt;
 
-use crate::html::Html;
 use crate::virtual_dom::{VChild, VNode};
 use crate::Properties;
 
@@ -60,7 +59,7 @@ use crate::Properties;
 ///     }
 /// }
 /// ```
-pub type Children = ChildrenRenderer<Html>;
+pub type Children = VNode;
 
 /// A type used for accepting children elements in Component::Properties and accessing their props.
 ///

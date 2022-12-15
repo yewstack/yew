@@ -4,8 +4,8 @@ use implicit_clone::unsync::{IArray, IMap};
 pub use implicit_clone::ImplicitClone;
 
 use super::super::callback::Callback;
-use super::{BaseComponent, Children, ChildrenRenderer, Component, NodeRef, Scope};
-use crate::virtual_dom::{AttrValue, VChild, VNode};
+use super::{BaseComponent, ChildrenRenderer, Component, NodeRef, Scope};
+use crate::virtual_dom::{AttrValue, VChild, VList, VNode, VText};
 
 impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
@@ -111,33 +111,82 @@ where
     }
 }
 
-impl<T> IntoPropValue<ChildrenRenderer<VChild<T>>> for Vec<VChild<T>>
+impl<T, R> IntoPropValue<ChildrenRenderer<R>> for Vec<T>
 where
-    T: BaseComponent,
+    T: Into<R>,
+    R: Clone + Into<VNode>,
 {
     #[inline]
-    fn into_prop_value(self) -> ChildrenRenderer<VChild<T>> {
-        ChildrenRenderer::new(self)
+    fn into_prop_value(self) -> ChildrenRenderer<R> {
+        ChildrenRenderer::new(self.into_iter().map(|m| m.into()).collect())
     }
 }
 
-impl<T> IntoPropValue<Option<ChildrenRenderer<VChild<T>>>> for Vec<VChild<T>>
+impl<T, R> IntoPropValue<Option<ChildrenRenderer<R>>> for Vec<T>
 where
-    T: BaseComponent,
+    T: Into<R>,
+    R: Clone + Into<VNode>,
 {
     #[inline]
-    fn into_prop_value(self) -> Option<ChildrenRenderer<VChild<T>>> {
-        Some(ChildrenRenderer::new(self))
+    fn into_prop_value(self) -> Option<ChildrenRenderer<R>> {
+        Some(ChildrenRenderer::new(
+            self.into_iter().map(|m| m.into()).collect(),
+        ))
     }
 }
 
-impl<T> IntoPropValue<Option<ChildrenRenderer<VChild<T>>>> for Option<Vec<VChild<T>>>
+impl<T, R> IntoPropValue<Option<ChildrenRenderer<R>>> for Option<Vec<T>>
+where
+    T: Into<R>,
+    R: Clone + Into<VNode>,
+{
+    #[inline]
+    fn into_prop_value(self) -> Option<ChildrenRenderer<R>> {
+        self.map(IntoPropValue::into_prop_value)
+    }
+}
+
+impl<T> IntoPropValue<VNode> for VChild<T>
 where
     T: BaseComponent,
 {
     #[inline]
-    fn into_prop_value(self) -> Option<ChildrenRenderer<VChild<T>>> {
-        self.map(ChildrenRenderer::new)
+    fn into_prop_value(self) -> VNode {
+        VNode::VComp(self.into())
+    }
+}
+
+impl IntoPropValue<VNode> for ChildrenRenderer<VNode> {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        let len = self.len();
+        let mut iter = self.into_iter();
+
+        // Remove the node directly when it is the only child.
+        if len == 1 {
+            if let Some(m) = iter.next() {
+                return m;
+            }
+        }
+
+        VNode::VList(VList::with_children(iter.collect(), None))
+    }
+}
+
+impl IntoPropValue<VNode> for VText {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        VNode::VText(self)
+    }
+}
+
+impl<T> IntoPropValue<VNode> for T
+where
+    T: ToString,
+{
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        VNode::from(self)
     }
 }
 
@@ -175,7 +224,6 @@ impl_into_prop!(|value: &'static str| -> String { value.to_owned() });
 impl_into_prop!(|value: &'static str| -> AttrValue { AttrValue::Static(value) });
 impl_into_prop!(|value: String| -> AttrValue { AttrValue::Rc(Rc::from(value)) });
 impl_into_prop!(|value: Rc<str>| -> AttrValue { AttrValue::Rc(value) });
-impl_into_prop!(|value: VNode| -> Children { Children::new(vec![value]) });
 
 impl<T: ImplicitClone + 'static> IntoPropValue<IArray<T>> for &'static [T] {
     fn into_prop_value(self) -> IArray<T> {

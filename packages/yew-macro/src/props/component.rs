@@ -131,7 +131,7 @@ impl ComponentProps {
                 });
                 let set_children = children_renderer.map(|children| {
                     quote_spanned! {props_ty.span()=>
-                        #ident.children = #children;
+                        #ident.children = ::yew::html::IntoPropValue::into_prop_value(#children);
                     }
                 });
                 let init_base = quote_spanned! {expr.span().resolved_at(Span::call_site())=>
