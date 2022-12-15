@@ -15,7 +15,7 @@ enum FullyKeyedState {
 #[derive(Clone, Debug)]
 pub struct VList {
     /// The list of child [VNode]s
-    pub(crate) children: Rc<Vec<VNode>>,
+    pub(crate) children: Option<Rc<Vec<VNode>>>,
 
     /// All [VNode]s in the VList have keys
     fully_keyed: FullyKeyedState,
@@ -36,10 +36,13 @@ impl Default for VList {
 }
 
 impl Deref for VList {
-    type Target = Vec<VNode>;
+    type Target = [VNode];
 
     fn deref(&self) -> &Self::Target {
-        &self.children
+        match self.children {
+            Some(ref m) => m.as_ref(),
+            None => &[],
+        }
     }
 }
 
@@ -52,9 +55,9 @@ impl DerefMut for VList {
 
 impl VList {
     /// Creates a new empty [VList] instance.
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
-            children: Rc::default(),
+            children: None,
             key: None,
             fully_keyed: FullyKeyedState::KnownFullyKeyed,
         }
@@ -64,7 +67,7 @@ impl VList {
     pub fn with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
         let mut vlist = VList {
             fully_keyed: FullyKeyedState::Unknown,
-            children: children.into(),
+            children: Some(children.into()),
             key,
         };
         vlist.fully_keyed = if vlist.fully_keyed() {
@@ -76,7 +79,14 @@ impl VList {
     }
 
     fn children_mut(&mut self) -> &mut Vec<VNode> {
-        Rc::make_mut(&mut self.children)
+        loop {
+            match self.children {
+                Some(ref mut m) => return Rc::make_mut(m),
+                None => {
+                    self.children = Some(Rc::default());
+                }
+            }
+        }
     }
 
     /// Add [VNode] child.
@@ -113,7 +123,10 @@ impl VList {
         match self.fully_keyed {
             FullyKeyedState::KnownFullyKeyed => true,
             FullyKeyedState::KnownMissingKeys => false,
-            FullyKeyedState::Unknown => self.children.iter().all(|c| c.has_key()),
+            FullyKeyedState::Unknown => match self.children {
+                Some(ref m) => m.iter().all(|c| c.has_key()),
+                None => true,
+            },
         }
     }
 }
@@ -135,7 +148,7 @@ mod test {
         vlist.add_child(VNode::VTag({
             let mut tag = VTag::new("a");
             tag.key = Some(42u32.into());
-            tag.into()
+            tag
         }));
         assert_eq!(
             vlist.fully_keyed,
@@ -178,12 +191,12 @@ mod feat_ssr {
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
-            match &self.children[..] {
-                [] => {}
-                [child] => {
+            match self.children.as_ref().map(|m| &m[..]) {
+                None | Some([]) => {}
+                Some([child]) => {
                     child.render_into_stream(w, parent_scope, hydratable).await;
                 }
-                _ => {
+                Some(children) => {
                     async fn render_child_iter<'a, I>(
                         mut children: I,
                         w: &mut BufWriter,
@@ -242,8 +255,7 @@ mod feat_ssr {
                         }
                     }
 
-                    let children = self.children.iter();
-                    render_child_iter(children, w, parent_scope, hydratable).await;
+                    render_child_iter(children.iter(), w, parent_scope, hydratable).await;
                 }
             }
         }

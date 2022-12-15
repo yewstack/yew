@@ -466,7 +466,7 @@ impl ToTokens for HtmlElement {
                     // For literal tags this is already done at compile-time.
                     //
                     // check void element
-                    if !#vtag.children().map(|m| m.is_empty()).unwrap_or(true) {
+                    if !#vtag.children().is_empty() {
                         ::std::debug_assert!(
                             !::std::matches!(#vtag.tag().to_ascii_lowercase().as_str(),
                                 "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input"

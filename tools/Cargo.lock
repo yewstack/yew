@@ -2315,7 +2315,6 @@ dependencies = [
  "implicit-clone",
  "indexmap",
  "js-sys",
- "once_cell",
  "prokio",
  "rustversion",
  "serde",

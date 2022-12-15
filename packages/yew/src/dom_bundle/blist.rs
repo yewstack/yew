@@ -438,7 +438,7 @@ impl Reconcilable for VList {
         // (self.children). For the right ones, we will look at the bundle,
         // i.e. the current DOM list element that we want to replace with self.
 
-        if self.children.is_empty() {
+        if self.children.as_ref().map(|m| m.is_empty()).unwrap_or(true) {
             // Without a placeholder the next element becomes first
             // and corrupts the order of rendering
             // We use empty text element to stake out a place
@@ -446,7 +446,11 @@ impl Reconcilable for VList {
         }
 
         let fully_keyed = self.fully_keyed();
-        let lefts = Rc::try_unwrap(self.children).unwrap_or_else(|m| m.as_ref().clone());
+        let lefts = self
+            .children
+            .map(Rc::try_unwrap)
+            .unwrap_or_else(|| Ok(Vec::new()))
+            .unwrap_or_else(|m| m.as_ref().clone());
         let rights = &mut blist.rev_children;
         test_log!("lefts: {:?}", lefts);
         test_log!("rights: {:?}", rights);
@@ -481,7 +485,11 @@ mod feat_hydration {
         ) -> (NodeRef, Self::Bundle) {
             let node_ref = NodeRef::default();
             let fully_keyed = self.fully_keyed();
-            let vchildren = Rc::try_unwrap(self.children).unwrap_or_else(|m| m.as_ref().clone());
+            let vchildren = self
+                .children
+                .map(Rc::try_unwrap)
+                .unwrap_or_else(|| Ok(Vec::new()))
+                .unwrap_or_else(|m| m.as_ref().clone());
             let mut children = Vec::with_capacity(vchildren.len());
 
             for (index, child) in vchildren.into_iter().enumerate() {
