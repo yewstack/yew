@@ -5,7 +5,7 @@ pub use implicit_clone::ImplicitClone;
 
 use super::super::callback::Callback;
 use super::{BaseComponent, ChildrenRenderer, Component, NodeRef, Scope};
-use crate::virtual_dom::{AttrValue, VChild, VList, VNode, VText};
+use crate::virtual_dom::{AttrValue, VChild, VNode, VText};
 
 impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
@@ -157,18 +157,9 @@ where
 }
 
 impl IntoPropValue<VNode> for ChildrenRenderer<VNode> {
+    #[inline]
     fn into_prop_value(self) -> VNode {
-        let len = self.len();
-        let mut iter = self.into_iter();
-
-        // Remove the node directly when it is the only child.
-        if len == 1 {
-            if let Some(m) = iter.next() {
-                return m;
-            }
-        }
-
-        VNode::VList(VList::with_children(iter.collect(), None))
+        self.into()
     }
 }
 

@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use crate::virtual_dom::{VChild, VNode};
+use crate::virtual_dom::{VChild, VList, VNode};
 use crate::Properties;
 
 /// A type used for accepting children elements in Component::Properties.
@@ -207,6 +207,18 @@ impl<T> IntoIterator for ChildrenRenderer<T> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.children.into_iter()
+    }
+}
+
+impl From<ChildrenRenderer<VNode>> for VNode {
+    fn from(mut val: ChildrenRenderer<VNode>) -> Self {
+        if val.children.len() == 1 {
+            if let Some(m) = val.children.pop() {
+                return m;
+            }
+        }
+
+        VNode::VList(VList::with_children(val.children, None))
     }
 }
 
