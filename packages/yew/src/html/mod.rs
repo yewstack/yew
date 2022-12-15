@@ -134,9 +134,10 @@ mod feat_csr {
         /// Link a downstream `NodeRef`
         pub(crate) fn link(&self, node_ref: Self) {
             // Avoid circular references
-            if self == &node_ref {
-                return;
-            }
+            debug_assert!(
+                self != &node_ref,
+                "no circular references allowed! Report this as a bug in yew"
+            );
 
             let mut this = self.0.borrow_mut();
             this.node = None;
@@ -202,31 +203,4 @@ mod feat_hydration {
 /// - [Portals](https://github.com/yewstack/yew/tree/master/examples/portals)
 pub fn create_portal(child: Html, host: Element) -> Html {
     VNode::VPortal(VPortal::new(child, host))
-}
-
-#[cfg(target_arch = "wasm32")]
-#[cfg(test)]
-mod tests {
-    use gloo::utils::document;
-    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-
-    use super::*;
-
-    wasm_bindgen_test_configure!(run_in_browser);
-
-    #[test]
-    fn self_linking_node_ref() {
-        let node: Node = document().create_text_node("test node").into();
-        let node_ref = NodeRef::new(node.clone());
-        let node_ref_2 = NodeRef::new(node.clone());
-
-        // Link to self
-        node_ref.link(node_ref.clone());
-        assert_eq!(node, node_ref.get().unwrap());
-
-        // Create cycle of two node refs
-        node_ref.link(node_ref_2.clone());
-        node_ref_2.link(node_ref);
-        assert_eq!(node, node_ref_2.get().unwrap());
-    }
 }

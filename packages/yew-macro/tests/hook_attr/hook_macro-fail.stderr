@@ -1,7 +1,7 @@
 error: hooks cannot be called at this position.
 
          = help: move hooks to the top-level of your function.
-         = note: see: https://yew.rs/docs/next/concepts/function-components/introduction#hooks
+         = note: see: https://yew.rs/docs/next/concepts/function-components/hooks
 
   --> tests/hook_attr/hook_macro-fail.rs:20:9
    |
@@ -11,7 +11,7 @@ error: hooks cannot be called at this position.
 error: hooks cannot be called at this position.
 
          = help: move hooks to the top-level of your function.
-         = note: see: https://yew.rs/docs/next/concepts/function-components/introduction#hooks
+         = note: see: https://yew.rs/docs/next/concepts/function-components/hooks
 
   --> tests/hook_attr/hook_macro-fail.rs:22:9
    |

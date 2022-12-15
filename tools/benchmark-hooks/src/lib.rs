@@ -228,7 +228,7 @@ fn jumbotron(props: &JumbotronProps) -> Html {
         <div class="jumbotron">
             <div class="row">
                 <div class="col-md-6">
-                    <h1>{ "Yew" }</h1>
+                    <h1>{ "Yew-Hooks" }</h1>
                 </div>
                 <div class="col-md-6">
                     <div class="row">
@@ -287,5 +287,5 @@ fn row(props: &RowProps) -> Html {
 pub fn start() {
     let document = window().unwrap().document().unwrap();
     let mount_el = document.query_selector("#main").unwrap().unwrap();
-    yew::start_app_in_element::<App>(mount_el);
+    yew::Renderer::<App>::with_root(mount_el).render();
 }

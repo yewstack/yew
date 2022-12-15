@@ -49,7 +49,7 @@ impl VisitMut for BodyRewriter {
                             m,
                             "hooks cannot be called at this position.";
                             help = "move hooks to the top-level of your function.";
-                            note = "see: https://yew.rs/docs/next/concepts/function-components/introduction#hooks"
+                            note = "see: https://yew.rs/docs/next/concepts/function-components/hooks"
                         );
                     } else {
                         *i = parse_quote_spanned! { i.span() => ::yew::functional::Hook::run(#i, #ctx_ident) };
@@ -75,7 +75,7 @@ impl VisitMut for BodyRewriter {
                                 ident,
                                 "hooks cannot be called at this position.";
                                 help = "move hooks to the top-level of your function.";
-                                note = "see: https://yew.rs/docs/next/concepts/function-components/introduction#hooks"
+                                note = "see: https://yew.rs/docs/next/concepts/function-components/hooks"
                             );
                         } else {
                             *i = parse_quote_spanned! { i.span() => ::yew::functional::Hook::run(#i, #ctx_ident) };

@@ -156,6 +156,7 @@ impl ToTokens for HtmlComponent {
         tokens.extend(quote_spanned! {ty_span=>
             {
                 #use_close_tag
+                #[allow(clippy::let_unit_value)]
                 let __yew_props = #build_props;
                 ::yew::virtual_dom::VChild::<#ty>::new(__yew_props, #key)
             }
