@@ -129,9 +129,7 @@ where
 {
     #[inline]
     fn into_prop_value(self) -> Option<ChildrenRenderer<R>> {
-        Some(ChildrenRenderer::new(
-            self.into_iter().map(|m| m.into()).collect(),
-        ))
+        Some(IntoPropValue::into_prop_value(self))
     }
 }
 

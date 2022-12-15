@@ -17,10 +17,10 @@ pub struct VList {
     /// The list of child [VNode]s
     pub(crate) children: Option<Rc<Vec<VNode>>>,
 
+    pub key: Option<Key>,
+
     /// All [VNode]s in the VList have keys
     fully_keyed: FullyKeyedState,
-
-    pub key: Option<Key>,
 }
 
 impl PartialEq for VList {
@@ -60,6 +60,7 @@ impl DerefMut for VList {
 
 impl VList {
     /// Creates a new empty [VList] instance.
+    #[inline]
     pub const fn new() -> Self {
         Self {
             children: None,
@@ -83,6 +84,7 @@ impl VList {
         vlist
     }
 
+    #[inline(never)]
     fn children_mut(&mut self) -> &mut Vec<VNode> {
         loop {
             match self.children {
