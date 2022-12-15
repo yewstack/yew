@@ -52,7 +52,7 @@ impl Component for ShadowDOMHost {
         let contents = if let Some(ref inner_host) = self.inner_host {
             create_portal(
                 html! {
-                    {for ctx.props().children.iter()}
+                    {ctx.props().children.clone()}
                 },
                 inner_host.clone(),
             )
