@@ -12,6 +12,9 @@ jobs:
     if: github.event.workflow_run.conclusion == 'success'
 
     steps:
+      # Checkout repo for the github-action-benchmark action
+      - uses: actions/checkout@v2
+
       - name: Download result artifacts
         uses: Legit-Labs/action-download-artifact@v2
         with:
@@ -19,9 +22,6 @@ jobs:
           run_id: ${{ github.event.workflow_run.id }}
           name: results
           path: ./artifacts
-
-      # Checkout repo for the github-action-benchmark action
-      - uses: actions/checkout@v2
 
       - name: Test for PR
         uses: mathiasvr/command-output@v1
