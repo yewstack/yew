@@ -12,10 +12,10 @@ use super::BaseComponent;
 use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
 use crate::dom_bundle::{BSubtree, Bundle};
-#[cfg(feature = "csr")]
-use crate::html::NodeRef;
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
+#[cfg(feature = "csr")]
+use crate::html::{DomPosition, RetargetableDomPosition};
 use crate::html::{Html, RenderError};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{BaseSuspense, Suspension};
@@ -27,16 +27,16 @@ pub(crate) enum ComponentRenderState {
         bundle: Bundle,
         root: BSubtree,
         parent: Element,
-        next_sibling: NodeRef,
-        internal_ref: NodeRef,
+        next_sibling: RetargetableDomPosition,
+        internal_ref: RetargetableDomPosition,
     },
     #[cfg(feature = "hydration")]
     Hydration {
         fragment: Fragment,
         root: BSubtree,
         parent: Element,
-        next_sibling: NodeRef,
-        internal_ref: NodeRef,
+        next_sibling: RetargetableDomPosition,
+        internal_ref: RetargetableDomPosition,
     },
     #[cfg(feature = "ssr")]
     Ssr {
@@ -96,7 +96,7 @@ impl std::fmt::Debug for ComponentRenderState {
 
 #[cfg(feature = "csr")]
 impl ComponentRenderState {
-    pub(crate) fn shift(&mut self, next_parent: Element, next_next_sibling: NodeRef) {
+    pub(crate) fn shift(&mut self, next_parent: Element, next_next_sibling: DomPosition) {
         match self {
             #[cfg(feature = "csr")]
             Self::Render {
@@ -108,7 +108,7 @@ impl ComponentRenderState {
                 bundle.shift(&next_parent, next_next_sibling.clone());
 
                 *parent = next_parent;
-                next_sibling.link(next_next_sibling);
+                next_sibling.retarget(next_next_sibling);
             }
             #[cfg(feature = "hydration")]
             Self::Hydration {
@@ -120,7 +120,7 @@ impl ComponentRenderState {
                 fragment.shift(&next_parent, next_next_sibling.clone());
 
                 *parent = next_parent;
-                next_sibling.link(next_next_sibling);
+                next_sibling.retarget(next_next_sibling);
             }
 
             #[cfg(feature = "ssr")]
@@ -386,13 +386,10 @@ impl ComponentState {
             ComponentRenderState::Render {
                 bundle,
                 ref parent,
-                ref internal_ref,
                 ref root,
                 ..
             } => {
                 bundle.detach(root, parent, parent_to_detach);
-
-                internal_ref.set(None);
             }
             // We need to detach the hydrate fragment if the component is not hydrated.
             #[cfg(feature = "hydration")]
@@ -400,12 +397,9 @@ impl ComponentState {
                 ref root,
                 fragment,
                 ref parent,
-                ref internal_ref,
                 ..
             } => {
                 fragment.detach(root, parent, parent_to_detach);
-
-                internal_ref.set(None);
             }
 
             #[cfg(feature = "ssr")]
@@ -497,17 +491,14 @@ impl ComponentState {
                 ref parent,
                 ref root,
                 ref next_sibling,
-                ref internal_ref,
+                ref mut internal_ref,
                 ..
             } => {
                 let scope = self.inner.any_scope();
 
-                #[cfg(feature = "hydration")]
-                next_sibling.debug_assert_not_trapped();
-
                 let new_node_ref =
-                    bundle.reconcile(root, &scope, parent, next_sibling.clone(), new_root);
-                internal_ref.link(new_node_ref);
+                    bundle.reconcile(root, &scope, parent, next_sibling.as_position(), new_root);
+                internal_ref.retarget(new_node_ref);
 
                 let first_render = !self.has_rendered;
                 self.has_rendered = true;
@@ -526,8 +517,8 @@ impl ComponentState {
             ComponentRenderState::Hydration {
                 ref mut fragment,
                 ref parent,
-                ref internal_ref,
-                ref next_sibling,
+                ref mut internal_ref,
+                ref mut next_sibling,
                 ref root,
             } => {
                 // We schedule a "first" render to run immediately after hydration,
@@ -544,21 +535,25 @@ impl ComponentState {
                 // This first node is not guaranteed to be correct here.
                 // As it may be a comment node that is removed afterwards.
                 // but we link it anyways.
-                let (node, bundle) = Bundle::hydrate(root, &scope, parent, fragment, new_root);
+                let bundle = Bundle::hydrate(root, &scope, parent, fragment, new_root);
 
                 // We trim all text nodes before checking as it's likely these are whitespaces.
-                fragment.trim_start_text_nodes(parent);
+                fragment.trim_start_text_nodes();
 
                 assert!(fragment.is_empty(), "expected end of component, found node");
-
-                internal_ref.link(node);
 
                 self.render_state = ComponentRenderState::Render {
                     root: root.clone(),
                     bundle,
                     parent: parent.clone(),
-                    internal_ref: internal_ref.clone(),
-                    next_sibling: next_sibling.clone(),
+                    internal_ref: std::mem::replace(
+                        internal_ref,
+                        RetargetableDomPosition::new_debug_trapped(),
+                    ),
+                    next_sibling: std::mem::replace(
+                        next_sibling,
+                        RetargetableDomPosition::new_debug_trapped(),
+                    ),
                 };
             }
 
@@ -592,7 +587,7 @@ mod feat_csr {
     pub(crate) struct PropsUpdateRunner {
         pub state: Shared<Option<ComponentState>>,
         pub props: Option<Rc<dyn Any>>,
-        pub next_sibling: Option<NodeRef>,
+        pub next_sibling: Option<DomPosition>,
     }
 
     impl ComponentState {
@@ -601,26 +596,24 @@ mod feat_csr {
             skip(self),
             fields(component.id = self.comp_id)
         )]
-        fn changed(&mut self, props: Option<Rc<dyn Any>>, next_sibling: Option<NodeRef>) -> bool {
-            if let Some(next_sibling) = next_sibling {
+        fn changed(
+            &mut self,
+            props: Option<Rc<dyn Any>>,
+            next_next_sibling: Option<DomPosition>,
+        ) -> bool {
+            if let Some(next_next_sibling) = next_next_sibling {
                 // When components are updated, their siblings were likely also updated
                 // We also need to shift the bundle so next sibling will be synced to child
                 // components.
-                match self.render_state {
+                match &mut self.render_state {
                     #[cfg(feature = "csr")]
-                    ComponentRenderState::Render {
-                        next_sibling: ref current_next_sibling,
-                        ..
-                    } => {
-                        current_next_sibling.link(next_sibling);
+                    ComponentRenderState::Render { next_sibling, .. } => {
+                        next_sibling.retarget(next_next_sibling);
                     }
 
                     #[cfg(feature = "hydration")]
-                    ComponentRenderState::Hydration {
-                        next_sibling: ref current_next_sibling,
-                        ..
-                    } => {
-                        current_next_sibling.link(next_sibling);
+                    ComponentRenderState::Hydration { next_sibling, .. } => {
+                        next_sibling.retarget(next_next_sibling);
                     }
 
                     #[cfg(feature = "ssr")]
@@ -886,8 +879,8 @@ mod tests {
         scope.mount_in_place(
             root,
             parent,
-            NodeRef::default(),
-            NodeRef::default(),
+            DomPosition::at_end(),
+            RetargetableDomPosition::new_debug_trapped(),
             Rc::new(props),
         );
         crate::scheduler::start_now();

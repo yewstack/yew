@@ -1,26 +1,25 @@
 use web_sys::{Element, Node};
 
 /// Insert a concrete [Node] into the DOM
-pub(super) fn insert_node(node: &Node, parent: &Element, next_sibling: Option<&Node>) {
-    match next_sibling {
-        Some(next_sibling) => parent
-            .insert_before(node, Some(next_sibling))
-            .unwrap_or_else(|err| {
-                // Log normally, so we can inspect the nodes in console
-                gloo::console::error!(
-                    "failed to insert node before next sibling",
-                    err,
-                    parent,
-                    next_sibling,
-                    node
-                );
-                // Log via tracing for consistency
-                tracing::error!("failed to insert node before next sibling");
-                // Panic to short-curcuit and fail
-                panic!("failed to insert node before next sibling")
-            }),
-        None => parent.append_child(node).expect("failed to append child"),
-    };
+pub(super) fn insert_node(node: &Node, parent: &Element, position: &DomPosition) {
+    let next_sibling = position.get();
+    let next_sibling = next_sibling.as_ref();
+    gloo::console::debug!("Inserting node:", node, parent, next_sibling);
+    parent
+        .insert_before(node, next_sibling)
+        .unwrap_or_else(|err| {
+            let msg = if next_sibling.is_some() {
+                "failed to insert node before next sibling"
+            } else {
+                "failed to append child"
+            };
+            // Log normally, so we can inspect the nodes in console
+            gloo::console::error!(msg, err, parent, next_sibling, node);
+            // Log via tracing for consistency
+            tracing::error!(msg);
+            // Panic to short-curcuit and fail
+            panic!("{}", msg)
+        });
 }
 
 #[cfg(all(test, target_arch = "wasm32", verbose_tests))]
@@ -86,8 +85,7 @@ mod tests {
     use web_sys::Element;
 
     use crate::dom_bundle::BSubtree;
-    use crate::html::AnyScope;
-    use crate::NodeRef;
+    use crate::html::{AnyScope, DomPosition};
 
     pub fn setup_parent() -> (BSubtree, AnyScope, Element) {
         let scope = AnyScope::test();
@@ -101,7 +99,7 @@ mod tests {
 
     pub const SIBLING_CONTENT: &str = "END";
 
-    pub fn setup_parent_and_sibling() -> (BSubtree, AnyScope, Element, NodeRef) {
+    pub(crate) fn setup_parent_and_sibling() -> (BSubtree, AnyScope, Element, DomPosition) {
         let scope = AnyScope::test();
         let parent = document().create_element("div").unwrap();
         let root = BSubtree::create_root(&parent);
@@ -110,7 +108,7 @@ mod tests {
 
         let end = document().create_text_node(SIBLING_CONTENT);
         parent.append_child(&end).unwrap();
-        let sibling = NodeRef::new(end.into());
+        let sibling = DomPosition::new(end.into());
 
         (root, scope, parent, sibling)
     }
@@ -120,3 +118,5 @@ mod tests {
 // this is needed because clippy doesn't like the import not being used
 #[allow(unused_imports)]
 pub(super) use tests::*;
+
+use crate::html::DomPosition;

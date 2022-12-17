@@ -524,7 +524,7 @@ mod feat_csr {
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, PropsUpdateRunner, RenderRunner,
     };
-    use crate::html::NodeRef;
+    use crate::html::{DomPosition, RetargetableDomPosition};
     use crate::scheduler;
 
     impl AnyScope {
@@ -541,7 +541,7 @@ mod feat_csr {
     fn schedule_props_update(
         state: Shared<Option<ComponentState>>,
         props: Rc<dyn Any>,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
     ) {
         scheduler::push_component_props_update(Box::new(PropsUpdateRunner {
             state,
@@ -561,20 +561,20 @@ mod feat_csr {
             &self,
             root: BSubtree,
             parent: Element,
-            next_sibling: NodeRef,
-            internal_ref: NodeRef,
+            next_sibling: DomPosition,
+            internal_ref: RetargetableDomPosition,
             props: Rc<COMP::Properties>,
         ) {
             let bundle = Bundle::new();
-            internal_ref.link(next_sibling.clone());
-            let stable_next_sibling = NodeRef::default();
-            stable_next_sibling.link(next_sibling);
+            let next_sibling = RetargetableDomPosition::new(next_sibling);
+            internal_ref.retarget(next_sibling.as_position());
+
             let state = ComponentRenderState::Render {
                 bundle,
                 root,
                 internal_ref,
                 parent,
-                next_sibling: stable_next_sibling,
+                next_sibling,
             };
 
             scheduler::push_component_create(
@@ -594,7 +594,7 @@ mod feat_csr {
             scheduler::start();
         }
 
-        pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, next_sibling: NodeRef) {
+        pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, next_sibling: DomPosition) {
             schedule_props_update(self.state.clone(), props, next_sibling)
         }
     }
@@ -604,7 +604,7 @@ mod feat_csr {
         /// Get the render state if it hasn't already been destroyed
         fn render_state(&self) -> Option<Ref<'_, ComponentRenderState>>;
         /// Shift the node associated with this scope to a new place
-        fn shift_node(&self, parent: Element, next_sibling: NodeRef);
+        fn shift_node(&self, parent: Element, next_sibling: DomPosition);
         /// Process an event to destroy a component
         fn destroy(self, parent_to_detach: bool);
         fn destroy_boxed(self: Box<Self>, parent_to_detach: bool);
@@ -640,7 +640,7 @@ mod feat_csr {
             self.destroy(parent_to_detach)
         }
 
-        fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
+        fn shift_node(&self, parent: Element, next_sibling: DomPosition) {
             let mut state_ref = self.state.borrow_mut();
             if let Some(render_state) = state_ref.as_mut() {
                 render_state.render_state.shift(parent, next_sibling)
@@ -659,7 +659,7 @@ mod feat_hydration {
     use super::*;
     use crate::dom_bundle::{BSubtree, Fragment};
     use crate::html::component::lifecycle::{ComponentRenderState, CreateRunner, RenderRunner};
-    use crate::html::NodeRef;
+    use crate::html::{DomPosition, RetargetableDomPosition};
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
 
@@ -680,7 +680,7 @@ mod feat_hydration {
             root: BSubtree,
             parent: Element,
             fragment: &mut Fragment,
-            internal_ref: NodeRef,
+            internal_ref: RetargetableDomPosition,
             props: Rc<COMP::Properties>,
         ) {
             // This is very helpful to see which component is failing during hydration
@@ -695,14 +695,12 @@ mod feat_hydration {
             let collectable = Collectable::for_component::<COMP>();
 
             let mut fragment = Fragment::collect_between(fragment, &collectable, &parent);
-            match fragment.front().cloned() {
-                front @ Some(_) => internal_ref.set(front),
-                None =>
-                {
-                    #[cfg(debug_assertions)]
-                    internal_ref.link(NodeRef::new_debug_trapped())
-                }
-            }
+            let next_sibling = if let Some(n) = fragment.front() {
+                Some(n.clone())
+            } else {
+                fragment.sibling_at_end().cloned()
+            };
+            internal_ref.retarget(DomPosition::create(next_sibling));
 
             let prepared_state = match fragment
                 .back()
@@ -721,7 +719,7 @@ mod feat_hydration {
                 parent,
                 root,
                 internal_ref,
-                next_sibling: NodeRef::new_debug_trapped(),
+                next_sibling: RetargetableDomPosition::new_debug_trapped(),
                 fragment,
             };
 

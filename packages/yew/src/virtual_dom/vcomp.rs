@@ -18,7 +18,7 @@ use crate::html::BaseComponent;
 #[cfg(any(feature = "ssr", feature = "csr"))]
 use crate::html::{AnyScope, Scope};
 #[cfg(feature = "csr")]
-use crate::html::{NodeRef, Scoped};
+use crate::html::{DomPosition, RetargetableDomPosition, Scoped};
 #[cfg(feature = "ssr")]
 use crate::platform::fmt::BufWriter;
 
@@ -61,12 +61,12 @@ pub(crate) trait Mountable {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
-        internal_ref: NodeRef,
-        next_sibling: NodeRef,
+        internal_ref: RetargetableDomPosition,
+        next_sibling: DomPosition,
     ) -> Box<dyn Scoped>;
 
     #[cfg(feature = "csr")]
-    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef);
+    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: DomPosition);
 
     #[cfg(feature = "ssr")]
     fn render_into_stream<'a>(
@@ -82,7 +82,7 @@ pub(crate) trait Mountable {
         root: BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
-        internal_ref: NodeRef,
+        internal_ref: RetargetableDomPosition,
         fragment: &mut Fragment,
     ) -> Box<dyn Scoped>;
 }
@@ -111,8 +111,8 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
-        internal_ref: NodeRef,
-        next_sibling: NodeRef,
+        internal_ref: RetargetableDomPosition,
+        next_sibling: DomPosition,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
         scope.mount_in_place(root.clone(), parent, next_sibling, internal_ref, self.props);
@@ -121,7 +121,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     }
 
     #[cfg(feature = "csr")]
-    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef) {
+    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: DomPosition) {
         let scope: Scope<COMP> = scope.to_any().downcast::<COMP>();
         scope.reuse(self.props, next_sibling);
     }
@@ -149,7 +149,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         root: BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
-        internal_ref: NodeRef,
+        internal_ref: RetargetableDomPosition,
         fragment: &mut Fragment,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));

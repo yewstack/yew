@@ -14,7 +14,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
 use super::{insert_node, BList, BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::AnyScope;
+use crate::html::{AnyScope, DomPosition};
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
 use crate::NodeRef;
@@ -93,12 +93,10 @@ impl ReconcileTarget for BTag {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
-        next_parent
-            .insert_before(&self.reference, next_sibling.get().as_ref())
-            .unwrap();
+    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
+        insert_node(&self.reference, next_parent, &next_sibling);
 
-        self.node_ref.clone()
+        DomPosition::new(self.reference.clone().into())
     }
 }
 
@@ -110,8 +108,8 @@ impl Reconcilable for VTag {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
-    ) -> (NodeRef, Self::Bundle) {
+        next_sibling: DomPosition,
+    ) -> (DomPosition, Self::Bundle) {
         let el = self.create_element(parent);
         let Self {
             listeners,
@@ -120,7 +118,7 @@ impl Reconcilable for VTag {
             key,
             ..
         } = self;
-        insert_node(&el, parent, next_sibling.get().as_ref());
+        insert_node(&el, parent, &next_sibling);
 
         let attributes = attributes.apply(root, &el);
         let listeners = listeners.apply(root, &el);
@@ -136,13 +134,13 @@ impl Reconcilable for VTag {
             }
             VTagInner::Other { children, tag } => {
                 let (_, child_bundle) =
-                    children.attach(root, parent_scope, &el, NodeRef::default());
+                    children.attach(root, parent_scope, &el, DomPosition::at_end());
                 BTagInner::Other { child_bundle, tag }
             }
         };
         node_ref.set(Some(el.clone().into()));
         (
-            node_ref.clone(),
+            DomPosition::new(el.clone().into()),
             BTag {
                 inner,
                 listeners,
@@ -159,9 +157,9 @@ impl Reconcilable for VTag {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         bundle: &mut BNode,
-    ) -> NodeRef {
+    ) -> DomPosition {
         // This kind of branching patching routine reduces branch predictor misses and the need to
         // unpack the enums (including `Option`s) all the time, resulting in a more streamlined
         // patching flow
@@ -198,9 +196,9 @@ impl Reconcilable for VTag {
         root: &BSubtree,
         parent_scope: &AnyScope,
         _parent: &Element,
-        _next_sibling: NodeRef,
+        _next_sibling: DomPosition,
         tag: &mut Self::Bundle,
-    ) -> NodeRef {
+    ) -> DomPosition {
         let el = &tag.reference;
         self.attributes.apply_diff(root, el, &mut tag.attributes);
         self.listeners.apply_diff(root, el, &mut tag.listeners);
@@ -218,7 +216,7 @@ impl Reconcilable for VTag {
                     child_bundle: old, ..
                 },
             ) => {
-                new.reconcile(root, parent_scope, el, NodeRef::default(), old);
+                new.reconcile(root, parent_scope, el, DomPosition::at_end(), old);
             }
             // Can not happen, because we checked for tag equability above
             _ => unsafe { unreachable_unchecked() },
@@ -234,7 +232,7 @@ impl Reconcilable for VTag {
             tag.node_ref.set(Some(el.clone().into()));
         }
 
-        tag.node_ref.clone()
+        DomPosition::new(el.clone().into())
     }
 }
 
@@ -302,9 +300,9 @@ mod feat_hydration {
             self,
             root: &BSubtree,
             parent_scope: &AnyScope,
-            parent: &Element,
+            _parent: &Element,
             fragment: &mut Fragment,
-        ) -> (NodeRef, Self::Bundle) {
+        ) -> Self::Bundle {
             let tag_name = self.tag().to_owned();
 
             let Self {
@@ -316,7 +314,7 @@ mod feat_hydration {
             } = self;
 
             // We trim all text nodes as it's likely these are whitespaces.
-            fragment.trim_start_text_nodes(parent);
+            fragment.trim_start_text_nodes();
 
             let node = fragment
                 .pop_front()
@@ -355,9 +353,9 @@ mod feat_hydration {
                 }
                 VTagInner::Other { children, tag } => {
                     let mut nodes = Fragment::collect_children(&el);
-                    let (_, child_bundle) = children.hydrate(root, parent_scope, &el, &mut nodes);
+                    let child_bundle = children.hydrate(root, parent_scope, &el, &mut nodes);
 
-                    nodes.trim_start_text_nodes(parent);
+                    nodes.trim_start_text_nodes();
 
                     assert!(nodes.is_empty(), "expected EOF, found node.");
 
@@ -367,17 +365,14 @@ mod feat_hydration {
 
             node_ref.set(Some((*el).clone()));
 
-            (
-                node_ref.clone(),
-                BTag {
-                    inner,
-                    listeners,
-                    attributes,
-                    reference: el,
-                    node_ref,
-                    key,
-                },
-            )
+            BTag {
+                inner,
+                listeners,
+                attributes,
+                reference: el,
+                node_ref,
+                key,
+            }
         }
     }
 }
@@ -586,17 +581,17 @@ mod tests {
         let svg_node = html! { <svg>{path_node}</svg> };
 
         let svg_tag = assert_vtag(svg_node);
-        let (_, svg_tag) = svg_tag.attach(&root, &scope, &parent, NodeRef::default());
+        let (_, svg_tag) = svg_tag.attach(&root, &scope, &parent, DomPosition::at_end());
         assert_namespace(&svg_tag, SVG_NAMESPACE);
         let path_tag = assert_btag_ref(svg_tag.children().get(0).unwrap());
         assert_namespace(path_tag, SVG_NAMESPACE);
 
         let g_tag = assert_vtag(g_node.clone());
-        let (_, g_tag) = g_tag.attach(&root, &scope, &parent, NodeRef::default());
+        let (_, g_tag) = g_tag.attach(&root, &scope, &parent, DomPosition::at_end());
         assert_namespace(&g_tag, HTML_NAMESPACE);
 
         let g_tag = assert_vtag(g_node);
-        let (_, g_tag) = g_tag.attach(&root, &scope, &svg_el, NodeRef::default());
+        let (_, g_tag) = g_tag.attach(&root, &scope, &svg_el, DomPosition::at_end());
         assert_namespace(&g_tag, SVG_NAMESPACE);
     }
 
@@ -695,7 +690,7 @@ mod tests {
         let (root, scope, parent) = setup_parent();
 
         let elem = html! { <div></div> };
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomPosition::at_end());
         let vtag = assert_btag_mut(&mut elem);
         // test if the className has not been set
         assert!(!vtag.reference().has_attribute("class"));
@@ -705,7 +700,7 @@ mod tests {
         let (root, scope, parent) = setup_parent();
 
         let elem = gen_html();
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomPosition::at_end());
         let vtag = assert_btag_mut(&mut elem);
         // test if the className has been set
         assert!(vtag.reference().has_attribute("class"));
@@ -729,7 +724,7 @@ mod tests {
 
         // Initial state
         let elem = html! { <input value={expected} /> };
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomPosition::at_end());
         let vtag = assert_btag_ref(&elem);
 
         // User input
@@ -741,7 +736,7 @@ mod tests {
         let elem_vtag = assert_vtag(next_elem);
 
         // Sync happens here
-        elem_vtag.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut elem);
+        elem_vtag.reconcile_node(&root, &scope, &parent, DomPosition::at_end(), &mut elem);
         let vtag = assert_btag_ref(&elem);
 
         // Get new current value of the input element
@@ -760,7 +755,7 @@ mod tests {
 
         // Initial state
         let elem = html! { <input /> };
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomPosition::at_end());
         let vtag = assert_btag_ref(&elem);
 
         // User input
@@ -772,7 +767,7 @@ mod tests {
         let elem_vtag = assert_vtag(next_elem);
 
         // Value should not be refreshed
-        elem_vtag.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut elem);
+        elem_vtag.reconcile_node(&root, &scope, &parent, DomPosition::at_end(), &mut elem);
         let vtag = assert_btag_ref(&elem);
 
         // Get user value of the input element
@@ -799,7 +794,7 @@ mod tests {
             builder
         }/> };
 
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomPosition::at_end());
         let vtag = assert_btag_mut(&mut elem);
         // make sure the new tag name is used internally
         assert_eq!(vtag.tag(), "a");
@@ -857,7 +852,7 @@ mod tests {
         let node_ref = NodeRef::default();
         let elem: VNode = html! { <div ref={node_ref.clone()}></div> };
         assert_vtag_ref(&elem);
-        let (_, elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
+        let (_, elem) = elem.attach(&root, &scope, &parent, DomPosition::at_end());
         assert_eq!(node_ref.get(), parent.first_child());
         elem.detach(&root, &parent, false);
         assert!(node_ref.get().is_none());
@@ -869,14 +864,14 @@ mod tests {
 
         let node_ref_a = NodeRef::default();
         let elem_a = html! { <div id="a" ref={node_ref_a.clone()} /> };
-        let (_, mut elem) = elem_a.attach(&root, &scope, &parent, NodeRef::default());
+        let (_, mut elem) = elem_a.attach(&root, &scope, &parent, DomPosition::at_end());
 
         // save the Node to check later that it has been reused.
         let node_a = node_ref_a.get().unwrap();
 
         let node_ref_b = NodeRef::default();
         let elem_b = html! { <div id="b" ref={node_ref_b.clone()} /> };
-        elem_b.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut elem);
+        elem_b.reconcile_node(&root, &scope, &parent, DomPosition::at_end(), &mut elem);
 
         let node_b = node_ref_b.get().unwrap();
 
@@ -906,8 +901,8 @@ mod tests {
         // The point of this diff is to first render the "after" div and then detach the "before"
         // div, while both should be bound to the same node ref
 
-        let (_, mut elem) = before.attach(&root, &scope, &parent, NodeRef::default());
-        after.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut elem);
+        let (_, mut elem) = before.attach(&root, &scope, &parent, DomPosition::at_end());
+        after.reconcile_node(&root, &scope, &parent, DomPosition::at_end(), &mut elem);
 
         assert_eq!(
             test_ref
@@ -938,7 +933,7 @@ mod tests {
 
         let elem = VNode::VTag(Box::new(vtag));
 
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, NodeRef::default());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomPosition::at_end());
 
         // Create <div tabindex="0"> (removed first attribute "disabled")
         let mut vtag = VTag::new("div");
@@ -949,7 +944,7 @@ mod tests {
 
         // Sync happens here
         // this should remove the the "disabled" attribute
-        elem_vtag.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut elem);
+        elem_vtag.reconcile_node(&root, &scope, &parent, DomPosition::at_end(), &mut elem);
 
         assert_eq!(
             test_ref

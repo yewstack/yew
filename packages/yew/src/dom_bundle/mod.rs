@@ -7,7 +7,7 @@
 
 use web_sys::Element;
 
-use crate::html::{AnyScope, NodeRef};
+use crate::html::{AnyScope, DomPosition};
 use crate::virtual_dom::VNode;
 
 mod bcomp;
@@ -53,7 +53,7 @@ impl Bundle {
     }
 
     /// Shifts the bundle into a different position.
-    pub fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
+    pub fn shift(&self, next_parent: &Element, next_sibling: DomPosition) {
         self.0.shift(next_parent, next_sibling);
     }
 
@@ -63,9 +63,9 @@ impl Bundle {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        next_sibling: DomPosition,
         next_node: VNode,
-    ) -> NodeRef {
+    ) -> DomPosition {
         next_node.reconcile_node(root, parent_scope, parent, next_sibling, &mut self.0)
     }
 
@@ -93,9 +93,9 @@ mod feat_hydration {
             parent: &Element,
             fragment: &mut Fragment,
             node: VNode,
-        ) -> (NodeRef, Self) {
-            let (node_ref, bundle) = node.hydrate(root, parent_scope, parent, fragment);
-            (node_ref, Self(bundle))
+        ) -> Self {
+            let bundle = node.hydrate(root, parent_scope, parent, fragment);
+            Self(bundle)
         }
     }
 }
