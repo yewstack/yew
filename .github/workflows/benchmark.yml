@@ -112,7 +112,7 @@ jobs:
           run: |
             mkdir artifacts/
             jq -s . js-framework-benchmark/webdriver-ts/results/*.json | cargo run --manifest-path yew/tools/Cargo.toml --release -p process-benchmark-results > artifacts/results.json
-            echo ${{ github.event.number }} > artifacts/PR_INFO
+            echo ${{ toJSON(github.event) }} > artifacts/PR_INFO
 
       - name: Upload result artifacts
         uses: actions/upload-artifact@v3
