@@ -133,9 +133,7 @@ mod feat_hydration {
             // node may be a combination of multiple VText vnodes. So we always need to
             // override their values.
             let text_node = document().create_text_node("");
-            parent
-                .insert_before(&text_node, next_sibling.as_ref())
-                .unwrap();
+            insert_node(&text_node, parent, &DomPosition::create(next_sibling));
             BText {
                 text: "".into(),
                 text_node,

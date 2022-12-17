@@ -1,10 +1,11 @@
 use web_sys::{Element, Node};
 
+use crate::html::DomPosition;
+
 /// Insert a concrete [Node] into the DOM
 pub(super) fn insert_node(node: &Node, parent: &Element, position: &DomPosition) {
     let next_sibling = position.get();
     let next_sibling = next_sibling.as_ref();
-    gloo::console::debug!("Inserting node:", node, parent, next_sibling);
     parent
         .insert_before(node, next_sibling)
         .unwrap_or_else(|err| {
@@ -118,5 +119,3 @@ mod tests {
 // this is needed because clippy doesn't like the import not being used
 #[allow(unused_imports)]
 pub(super) use tests::*;
-
-use crate::html::DomPosition;

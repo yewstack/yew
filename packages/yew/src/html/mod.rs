@@ -183,6 +183,7 @@ impl DomPosition {
         };
 
         #[cfg(feature = "csr")]
+        #[cfg(debug_assertions)]
         feat_csr::TRAP.with(|trap| {
             assert!(
                 node.as_ref() != Some(trap),
