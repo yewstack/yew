@@ -23,34 +23,14 @@ pub(super) struct BList {
     key: Option<Key>,
 }
 
-impl VList {
-    /// Splits current VList for BList
-    fn split_for_bundle(self) -> (Option<Key>, bool, Vec<VNode>) {
-        let mut fully_keyed = self.fully_keyed();
-
-        let mut children = match self.children {
-            None => Vec::with_capacity(1),
-            Some(m) => match Rc::try_unwrap(m) {
-                Ok(m) => m,
-                Err(e) => {
-                    let mut children = Vec::with_capacity(e.len());
-                    for i in e.as_ref() {
-                        children.push(i.clone());
-                    }
-                    children
-                }
-            },
-        };
-
-        if children.is_empty() {
-            // Without a placeholder the next element becomes first
-            // and corrupts the order of rendering
-            // We use empty text element to stake out a place
-            children.push(VNode::VText(VText::new("")));
-            fully_keyed = false;
-        }
-
-        (self.key, fully_keyed, children)
+impl BList {
+    // Unwraps a Vec<VNode> from the children of a VList.
+    fn unwrap_children(children: Option<Rc<Vec<VNode>>>) -> Vec<VNode> {
+        children
+            .map(Rc::try_unwrap)
+            .unwrap_or_else(|| Ok(Vec::new()))
+            // Rc::unwrap_or_clone is not stable yet.
+            .unwrap_or_else(|m| m.to_vec())
     }
 }
 
@@ -453,7 +433,7 @@ impl Reconcilable for VList {
     }
 
     fn reconcile(
-        self,
+        mut self,
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
@@ -468,8 +448,16 @@ impl Reconcilable for VList {
         // The left items are known since we want to insert them
         // (self.children). For the right ones, we will look at the bundle,
         // i.e. the current DOM list element that we want to replace with self.
-        let (key, fully_keyed, lefts) = self.split_for_bundle();
 
+        if self.is_empty() {
+            // Without a placeholder the next element becomes first
+            // and corrupts the order of rendering
+            // We use empty text element to stake out a place
+            self.add_child(VText::new("").into());
+        }
+
+        let fully_keyed = self.fully_keyed();
+        let lefts = BList::unwrap_children(self.children);
         let rights = &mut blist.rev_children;
         test_log!("lefts: {:?}", lefts);
         test_log!("rights: {:?}", rights);
@@ -483,7 +471,7 @@ impl Reconcilable for VList {
             BList::apply_unkeyed(root, parent_scope, parent, next_sibling, lefts, rights)
         };
         blist.fully_keyed = fully_keyed;
-        blist.key = key;
+        blist.key = self.key;
         test_log!("result: {:?}", rights);
         first
     }
@@ -503,8 +491,8 @@ mod feat_hydration {
             fragment: &mut Fragment,
         ) -> (NodeRef, Self::Bundle) {
             let node_ref = NodeRef::default();
-
-            let (key, fully_keyed, vchildren) = self.split_for_bundle();
+            let fully_keyed = self.fully_keyed();
+            let vchildren = BList::unwrap_children(self.children);
             let mut children = Vec::with_capacity(vchildren.len());
 
             for (index, child) in vchildren.into_iter().enumerate() {
@@ -524,7 +512,7 @@ mod feat_hydration {
                 BList {
                     rev_children: children,
                     fully_keyed,
-                    key,
+                    key: self.key,
                 },
             )
         }
