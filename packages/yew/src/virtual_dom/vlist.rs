@@ -1,5 +1,6 @@
 //! This module contains fragments implementation.
 use std::ops::{Deref, DerefMut};
+use std::rc::Rc;
 
 use super::{Key, VNode};
 
@@ -14,7 +15,7 @@ enum FullyKeyedState {
 #[derive(Clone, Debug)]
 pub struct VList {
     /// The list of child [VNode]s
-    pub(crate) children: Vec<VNode>,
+    pub(crate) children: Option<Rc<Vec<VNode>>>,
 
     /// All [VNode]s in the VList have keys
     fully_keyed: FullyKeyedState,
@@ -24,7 +25,15 @@ pub struct VList {
 
 impl PartialEq for VList {
     fn eq(&self, other: &Self) -> bool {
-        self.children == other.children && self.key == other.key
+        self.key == other.key
+            && match (self.children.as_ref(), other.children.as_ref()) {
+                // We try to use ptr_eq if both are behind Rc,
+                // Somehow VNode is not Eq?
+                (Some(l), Some(r)) if Rc::ptr_eq(l, r) => true,
+                // We fallback to PartialEq if left and right didn't point to the same memory
+                // address.
+                (l, r) => l == r,
+            }
     }
 }
 
@@ -38,14 +47,22 @@ impl Deref for VList {
     type Target = Vec<VNode>;
 
     fn deref(&self) -> &Self::Target {
-        &self.children
+        match self.children {
+            Some(ref m) => m,
+            None => {
+                // This is mutable because the Vec<VNode> is not Sync
+                static mut EMPTY: Vec<VNode> = Vec::new();
+                // SAFETY: The EMPTY value is always read-only
+                unsafe { &EMPTY }
+            }
+        }
     }
 }
 
 impl DerefMut for VList {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.fully_keyed = FullyKeyedState::Unknown;
-        &mut self.children
+        self.children_mut()
     }
 }
 
@@ -53,7 +70,7 @@ impl VList {
     /// Creates a new empty [VList] instance.
     pub const fn new() -> Self {
         Self {
-            children: Vec::new(),
+            children: None,
             key: None,
             fully_keyed: FullyKeyedState::KnownFullyKeyed,
         }
@@ -63,7 +80,7 @@ impl VList {
     pub fn with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
         let mut vlist = VList {
             fully_keyed: FullyKeyedState::Unknown,
-            children,
+            children: Some(Rc::new(children)),
             key,
         };
         vlist.fully_keyed = if vlist.fully_keyed() {
@@ -74,19 +91,31 @@ impl VList {
         vlist
     }
 
+    #[inline(never)]
+    pub fn children_mut(&mut self) -> &mut Vec<VNode> {
+        loop {
+            match self.children {
+                Some(ref mut m) => return Rc::make_mut(m),
+                None => {
+                    self.children = Some(Rc::new(Vec::new()));
+                }
+            }
+        }
+    }
+
     /// Add [VNode] child.
     pub fn add_child(&mut self, child: VNode) {
         if self.fully_keyed == FullyKeyedState::KnownFullyKeyed && !child.has_key() {
             self.fully_keyed = FullyKeyedState::KnownMissingKeys;
         }
-        self.children.push(child);
+        self.children_mut().push(child);
     }
 
     /// Add multiple [VNode] children.
     pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode>) {
         let it = children.into_iter();
         let bound = it.size_hint();
-        self.children.reserve(bound.1.unwrap_or(bound.0));
+        self.children_mut().reserve(bound.1.unwrap_or(bound.0));
         for ch in it {
             self.add_child(ch);
         }
@@ -108,7 +137,7 @@ impl VList {
         match self.fully_keyed {
             FullyKeyedState::KnownFullyKeyed => true,
             FullyKeyedState::KnownMissingKeys => false,
-            FullyKeyedState::Unknown => self.children.iter().all(|c| c.has_key()),
+            FullyKeyedState::Unknown => self.iter().all(|c| c.has_key()),
         }
     }
 }
@@ -173,7 +202,7 @@ mod feat_ssr {
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
-            match &self.children[..] {
+            match &self[..] {
                 [] => {}
                 [child] => {
                     child.render_into_stream(w, parent_scope, hydratable).await;
@@ -237,7 +266,7 @@ mod feat_ssr {
                         }
                     }
 
-                    let children = self.children.iter();
+                    let children = self.iter();
                     render_child_iter(children, w, parent_scope, hydratable).await;
                 }
             }

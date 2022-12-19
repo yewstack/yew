@@ -4,6 +4,7 @@ use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::hash::Hash;
 use std::ops::Deref;
+use std::rc::Rc;
 
 use web_sys::Element;
 
@@ -20,6 +21,17 @@ pub(super) struct BList {
     /// All [BNode]s in the BList have keys
     fully_keyed: bool,
     key: Option<Key>,
+}
+
+impl BList {
+    // Unwraps a Vec<VNode> from the children of a VList.
+    fn unwrap_children(children: Option<Rc<Vec<VNode>>>) -> Vec<VNode> {
+        children
+            .map(Rc::try_unwrap)
+            .unwrap_or_else(|| Ok(Vec::new()))
+            // Rc::unwrap_or_clone is not stable yet.
+            .unwrap_or_else(|m| m.to_vec())
+    }
 }
 
 impl Deref for BList {
@@ -437,7 +449,7 @@ impl Reconcilable for VList {
         // (self.children). For the right ones, we will look at the bundle,
         // i.e. the current DOM list element that we want to replace with self.
 
-        if self.children.is_empty() {
+        if self.is_empty() {
             // Without a placeholder the next element becomes first
             // and corrupts the order of rendering
             // We use empty text element to stake out a place
@@ -445,7 +457,7 @@ impl Reconcilable for VList {
         }
 
         let fully_keyed = self.fully_keyed();
-        let lefts = self.children;
+        let lefts = BList::unwrap_children(self.children);
         let rights = &mut blist.rev_children;
         test_log!("lefts: {:?}", lefts);
         test_log!("rights: {:?}", rights);
@@ -480,7 +492,7 @@ mod feat_hydration {
         ) -> (NodeRef, Self::Bundle) {
             let node_ref = NodeRef::default();
             let fully_keyed = self.fully_keyed();
-            let vchildren = self.children;
+            let vchildren = BList::unwrap_children(self.children);
             let mut children = Vec::with_capacity(vchildren.len());
 
             for (index, child) in vchildren.into_iter().enumerate() {
