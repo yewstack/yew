@@ -208,7 +208,7 @@ mod feat_ssr {
                 [child] => {
                     child.render_into_stream(w, parent_scope, hydratable).await;
                 }
-                Some(children) => {
+                _ => {
                     async fn render_child_iter<'a, I>(
                         mut children: I,
                         w: &mut BufWriter,

@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use slab::Slab;
 
 use crate::html::Scope;
-use crate::{html, Callback, Children, Component, Context, Html, Properties};
+use crate::{Callback, Children, Component, Context, Html, Properties};
 
 /// Props for [`ContextProvider`]
 #[derive(Debug, Clone, PartialEq, Properties)]
@@ -103,6 +103,6 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        html! { <>{ ctx.props().children.clone() }</> }
+        ctx.props().children.clone()
     }
 }
