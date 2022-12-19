@@ -23,6 +23,17 @@ pub(super) struct BList {
     key: Option<Key>,
 }
 
+impl BList {
+    // Unwraps a Vec<VNode> from the children of a VList.
+    fn unwrap_children(children: Option<Rc<Vec<VNode>>>) -> Vec<VNode> {
+        children
+            .map(Rc::try_unwrap)
+            .unwrap_or_else(|| Ok(Vec::new()))
+            // Rc::unwrap_or_clone is not stable yet.
+            .unwrap_or_else(|m| m.to_vec())
+    }
+}
+
 impl Deref for BList {
     type Target = Vec<BNode>;
 
@@ -142,13 +153,6 @@ impl BList {
     /// Get the key of the underlying fragment
     pub fn key(&self) -> Option<&Key> {
         self.key.as_ref()
-    }
-
-    fn unwrap_children(children: Option<Rc<Vec<VNode>>>) -> Vec<VNode> {
-        children
-            .map(Rc::try_unwrap)
-            .unwrap_or_else(|| Ok(Vec::new()))
-            .unwrap_or_else(|e| e.to_vec())
     }
 
     /// Diff and patch unkeyed child lists

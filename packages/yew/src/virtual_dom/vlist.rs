@@ -25,7 +25,15 @@ pub struct VList {
 
 impl PartialEq for VList {
     fn eq(&self, other: &Self) -> bool {
-        self.children == other.children && self.key == other.key
+        self.key == other.key
+            && match (self.children.as_ref(), other.children.as_ref()) {
+                // We try to use ptr_eq if both are behind Rc,
+                // Somehow VNode is not Eq?
+                (Some(l), Some(r)) if Rc::ptr_eq(l, r) => true,
+                // We fallback to PartialEq if left and right didn't point to the same memory
+                // address.
+                (l, r) => l == r,
+            }
     }
 }
 
@@ -40,9 +48,9 @@ impl Deref for VList {
 
     fn deref(&self) -> &Self::Target {
         match self.children {
-            Some(ref m) => m.as_ref(),
+            Some(ref m) => m,
             None => {
-                // This is mutable because the VNode is not Sync
+                // This is mutable because the Vec<VNode> is not Sync
                 static mut EMPTY: Vec<VNode> = Vec::new();
                 // SAFETY: The EMPTY value is always read-only
                 unsafe { &EMPTY }
@@ -73,7 +81,7 @@ impl VList {
     pub fn with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
         let mut vlist = VList {
             fully_keyed: FullyKeyedState::Unknown,
-            children: Some(children.into()),
+            children: Some(Rc::new(children)),
             key,
         };
         vlist.fully_keyed = if vlist.fully_keyed() {
@@ -90,7 +98,7 @@ impl VList {
             match self.children {
                 Some(ref mut m) => return Rc::make_mut(m),
                 None => {
-                    self.children = Some(Rc::default());
+                    self.children = Some(Rc::new(Vec::new()));
                 }
             }
         }
@@ -130,10 +138,7 @@ impl VList {
         match self.fully_keyed {
             FullyKeyedState::KnownFullyKeyed => true,
             FullyKeyedState::KnownMissingKeys => false,
-            FullyKeyedState::Unknown => match self.children {
-                Some(ref m) => m.iter().all(|c| c.has_key()),
-                None => true,
-            },
+            FullyKeyedState::Unknown => self.iter().all(|c| c.has_key()),
         }
     }
 }
@@ -198,9 +203,9 @@ mod feat_ssr {
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
-            match self.children.as_ref().map(|m| &m[..]) {
-                None | Some([]) => {}
-                Some([child]) => {
+            match &self[..] {
+                [] => {}
+                [child] => {
                     child.render_into_stream(w, parent_scope, hydratable).await;
                 }
                 Some(children) => {
@@ -262,7 +267,8 @@ mod feat_ssr {
                         }
                     }
 
-                    render_child_iter(children.iter(), w, parent_scope, hydratable).await;
+                    let children = self.iter();
+                    render_child_iter(children, w, parent_scope, hydratable).await;
                 }
             }
         }

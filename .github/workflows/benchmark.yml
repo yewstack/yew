@@ -106,13 +106,13 @@ jobs:
         run: npm run tsbench -- --framework keyed/yew keyed/yew-hooks --runner playwright --headless
 
       - name: transform results to be fit for display benchmark-action/github-action-benchmark@v1
-        uses: mathiasvr/command-output@v1
-        id: results
-        with:
-          run: |
-            mkdir artifacts/
-            jq -s . js-framework-benchmark/webdriver-ts/results/*.json | cargo run --manifest-path yew/tools/Cargo.toml --release -p process-benchmark-results > artifacts/results.json
-            echo ${{ github.event.number }} > artifacts/PR_INFO
+        shell: bash
+        run: |
+          mkdir artifacts/
+          jq -s . js-framework-benchmark/webdriver-ts/results/*.json | cargo run --manifest-path yew/tools/Cargo.toml --release -p process-benchmark-results > artifacts/results.json
+          echo "$EVENT_INFO" > artifacts/PR_INFO
+        env:
+          EVENT_INFO: ${{ toJSON(github.event) }}
 
       - name: Upload result artifacts
         uses: actions/upload-artifact@v3

@@ -40,7 +40,7 @@ fn main() {
 
     let out = format!("{}/website_tests.rs", env::var("OUT_DIR").unwrap());
 
-    fs::write(&out, level.to_contents()).unwrap();
+    fs::write(out, level.to_contents()).unwrap();
 }
 
 impl Level {

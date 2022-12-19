@@ -84,8 +84,7 @@ pub fn ProgressDelay(props: &Props) -> Html {
         use_effect_with_deps(
             move |_| {
                 let interval = (duration_ms / RESOLUTION).min(MIN_INTERVAL_MS);
-                let interval =
-                    Interval::new(interval as u32, move || value.dispatch(ValueAction::Tick));
+                let interval = Interval::new(interval, move || value.dispatch(ValueAction::Tick));
 
                 || {
                     let _interval = interval;
