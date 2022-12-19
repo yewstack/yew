@@ -21,6 +21,9 @@ pub struct VList {
     fully_keyed: FullyKeyedState,
 
     pub key: Option<Key>,
+
+    /// A size marker to reduce bundle size
+    _marker: u64,
 }
 
 impl PartialEq for VList {
@@ -73,6 +76,7 @@ impl VList {
             children: None,
             key: None,
             fully_keyed: FullyKeyedState::KnownFullyKeyed,
+            _marker: 0,
         }
     }
 
@@ -82,6 +86,7 @@ impl VList {
             fully_keyed: FullyKeyedState::Unknown,
             children: Some(Rc::new(children)),
             key,
+            _marker: 0,
         };
         vlist.fully_keyed = if vlist.fully_keyed() {
             FullyKeyedState::KnownFullyKeyed
