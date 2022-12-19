@@ -29,10 +29,16 @@ impl VList {
         let mut fully_keyed = self.fully_keyed();
 
         let mut children = match self.children {
-            None => Vec::new(),
+            None => Vec::with_capacity(1),
             Some(m) => match Rc::try_unwrap(m) {
                 Ok(m) => m,
-                Err(e) => e.as_ref().clone(),
+                Err(e) => {
+                    let mut children = Vec::with_capacity(e.len());
+                    for i in e.as_ref() {
+                        children.push(i.clone());
+                    }
+                    children
+                }
             },
         };
 
