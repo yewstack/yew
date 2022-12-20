@@ -163,18 +163,11 @@ impl IntoPropValue<VList> for ChildrenRenderer<VNode> {
 
 impl<T> IntoPropValue<VList> for T
 where
-    T: ToString,
+    T: Into<VText>,
 {
     #[inline]
     fn into_prop_value(self) -> VList {
-        VList::with_children(vec![VNode::from(self)], None)
-    }
-}
-
-impl IntoPropValue<VList> for VText {
-    #[inline]
-    fn into_prop_value(self) -> VList {
-        VList::with_children(vec![self.into()], None)
+        VList::with_children(vec![VNode::from(self.into())], None)
     }
 }
 
@@ -207,18 +200,11 @@ impl IntoPropValue<VNode> for ChildrenRenderer<VNode> {
 
 impl<T> IntoPropValue<VNode> for T
 where
-    T: ToString,
+    T: Into<VText>,
 {
     #[inline]
     fn into_prop_value(self) -> VNode {
-        VNode::from(self)
-    }
-}
-
-impl IntoPropValue<VNode> for VText {
-    #[inline]
-    fn into_prop_value(self) -> VNode {
-        self.into()
+        VNode::from(self.into())
     }
 }
 
