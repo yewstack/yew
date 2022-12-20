@@ -41,10 +41,8 @@ impl Component for ListItem {
 
 impl ListItem {
     fn view_details(children: &Children) -> Html {
-        if let Children::VList(ref m) = children {
-            if m.is_empty() {
-                return Html::default();
-            }
+        if children.is_empty() {
+            return Html::default();
         }
 
         html! {

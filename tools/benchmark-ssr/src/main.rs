@@ -93,7 +93,7 @@ async fn bench_many_providers() -> Duration {
     #[function_component]
     fn Provider(props: &ProviderProps) -> Html {
         let ProviderProps { children } = props.clone();
-        children
+        children.into()
     }
 
     #[function_component]

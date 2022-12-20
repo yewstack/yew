@@ -5,7 +5,7 @@ pub use implicit_clone::ImplicitClone;
 
 use super::super::callback::Callback;
 use super::{BaseComponent, ChildrenRenderer, Component, NodeRef, Scope};
-use crate::virtual_dom::{AttrValue, VChild, VNode, VText};
+use crate::virtual_dom::{AttrValue, VChild, VList, VNode, VText};
 
 impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
@@ -144,6 +144,50 @@ where
     }
 }
 
+impl<T> IntoPropValue<VList> for VChild<T>
+where
+    T: BaseComponent,
+{
+    #[inline]
+    fn into_prop_value(self) -> VList {
+        VList::with_children(vec![VNode::VComp(self.into())], None)
+    }
+}
+
+impl IntoPropValue<VList> for ChildrenRenderer<VNode> {
+    #[inline]
+    fn into_prop_value(self) -> VList {
+        self.into()
+    }
+}
+
+impl<T> IntoPropValue<VList> for T
+where
+    T: ToString,
+{
+    #[inline]
+    fn into_prop_value(self) -> VList {
+        VList::with_children(vec![VNode::from(self)], None)
+    }
+}
+
+impl IntoPropValue<VList> for VText {
+    #[inline]
+    fn into_prop_value(self) -> VList {
+        VList::with_children(vec![self.into()], None)
+    }
+}
+
+impl IntoPropValue<VList> for VNode {
+    #[inline]
+    fn into_prop_value(self) -> VList {
+        match self {
+            VNode::VList(m) => m,
+            _ => VList::with_children(vec![self], None),
+        }
+    }
+}
+
 impl<T> IntoPropValue<VNode> for VChild<T>
 where
     T: BaseComponent,
@@ -161,13 +205,6 @@ impl IntoPropValue<VNode> for ChildrenRenderer<VNode> {
     }
 }
 
-impl IntoPropValue<VNode> for VText {
-    #[inline]
-    fn into_prop_value(self) -> VNode {
-        VNode::VText(self)
-    }
-}
-
 impl<T> IntoPropValue<VNode> for T
 where
     T: ToString,
@@ -175,6 +212,13 @@ where
     #[inline]
     fn into_prop_value(self) -> VNode {
         VNode::from(self)
+    }
+}
+
+impl IntoPropValue<VNode> for VText {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        self.into()
     }
 }
 
@@ -342,13 +386,13 @@ mod test {
             html! {
                 <div>
                     <header>
-                        {header}
+                        {for header}
                     </header>
                     <main>
                         {children}
                     </main>
                     <footer>
-                        {footer}
+                        {for footer}
                     </footer>
                 </div>
             }

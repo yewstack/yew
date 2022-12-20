@@ -59,7 +59,7 @@ use crate::Properties;
 ///     }
 /// }
 /// ```
-pub type Children = VNode;
+pub type Children = VList;
 
 /// A type used for accepting children elements in Component::Properties and accessing their props.
 ///
@@ -219,6 +219,12 @@ impl From<ChildrenRenderer<VNode>> for VNode {
         }
 
         VNode::VList(VList::with_children(val.children, None))
+    }
+}
+
+impl From<ChildrenRenderer<VNode>> for VList {
+    fn from(val: ChildrenRenderer<VNode>) -> Self {
+        VList::with_children(val.children, None)
     }
 }
 

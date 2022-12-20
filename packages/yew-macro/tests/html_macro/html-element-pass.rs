@@ -46,7 +46,8 @@ fn compile_pass() {
         || <::std::string::String as ::std::convert::From<&::std::primitive::str>>::from("test");
     let mut extra_tags_iter = ::std::iter::IntoIterator::into_iter(::std::vec!["a", "b"]);
 
-    let attr_val_none: ::std::option::Option<::yew::virtual_dom::AttrValue> = ::std::option::Option::None;
+    let attr_val_none: ::std::option::Option<::yew::virtual_dom::AttrValue> =
+        ::std::option::Option::None;
 
     ::yew::html! {
         <div>
@@ -109,11 +110,17 @@ fn compile_pass() {
         </div>
     };
 
+    let children = ::yew::html::ChildrenRenderer::new(::std::vec![
+        ::yew::html! { <span>{ "Hello" }</span> },
+        ::yew::html! { <span>{ "World" }</span> },
+    ]);
+    ::yew::html! { <div>{children}</div> };
+
     let children = ::std::vec![
         ::yew::html! { <span>{ "Hello" }</span> },
         ::yew::html! { <span>{ "World" }</span> },
     ];
-    ::yew::html! { <div>{children}</div> };
+    ::yew::html! { <div>{for children}</div> };
 
     // handle misleading angle brackets
     ::yew::html! { <div data-val={<::std::string::String as ::std::default::Default>::default()}></div> };
@@ -123,7 +130,7 @@ fn compile_pass() {
     ::yew::html! {  <div data-type="date" data-as="calender" /> };
 
     let option_vnode = ::std::option::Option::Some(::yew::html! {});
-    ::yew::html! { <div>{option_vnode}</div> };
+    ::yew::html! { <div>{for option_vnode}</div> };
 }
 
 fn main() {}

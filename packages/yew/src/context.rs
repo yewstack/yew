@@ -103,6 +103,6 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        ctx.props().children.clone()
+        ctx.props().children.clone().into()
     }
 }

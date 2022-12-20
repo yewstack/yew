@@ -5,8 +5,7 @@ use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{Token, Type};
 
-use super::html_block::{BlockContent, HtmlBlock};
-use super::{HtmlChildrenTree, HtmlTree, TagTokens};
+use super::{HtmlChildrenTree, TagTokens};
 use crate::props::ComponentProps;
 
 pub struct HtmlComponent {
@@ -126,21 +125,7 @@ impl ToTokens for HtmlComponent {
 
         let ty_span = ty.span().resolved_at(Span::call_site());
         let props_ty = quote_spanned!(ty_span=> <#ty as ::yew::html::BaseComponent>::Properties);
-        let children_renderer = if children.is_empty() {
-            None
-        } else if let [HtmlTree::Block(ref m)] = self.children.0[..] {
-            if let HtmlBlock {
-                content: BlockContent::Node(children),
-                ..
-            } = m.as_ref()
-            {
-                Some(quote! { #children })
-            } else {
-                Some(quote! { ::yew::html::ChildrenRenderer::new(#children) })
-            }
-        } else {
-            Some(quote! { ::yew::html::ChildrenRenderer::new(#children) })
-        };
+        let children_renderer = children.to_children_renderer_tokens();
         let build_props = props.build_properties_tokens(&props_ty, children_renderer);
         let key = props.special().wrap_key_attr();
         let use_close_tag = close

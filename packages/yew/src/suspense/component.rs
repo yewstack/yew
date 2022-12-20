@@ -102,6 +102,7 @@ mod feat_csr_ssr {
 
         fn view(&self, ctx: &Context<Self>) -> Html {
             let BaseSuspenseProps { children, fallback } = (*ctx.props()).clone();
+            let children = children.into();
 
             match fallback {
                 Some(fallback) => {

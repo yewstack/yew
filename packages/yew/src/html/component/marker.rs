@@ -142,5 +142,5 @@ pub fn PhantomComponent<T>(props: &ChildrenProps) -> Html
 where
     T: BaseComponent,
 {
-    props.children.clone()
+    props.children.clone().into()
 }
