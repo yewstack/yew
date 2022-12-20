@@ -83,16 +83,11 @@ impl VList {
             children: Some(Rc::new(children)),
             key,
         };
-        vlist.fully_keyed = if vlist.fully_keyed() {
-            FullyKeyedState::KnownFullyKeyed
-        } else {
-            FullyKeyedState::KnownMissingKeys
-        };
+        vlist.recheck_fully_keyed();
         vlist
     }
 
-    #[inline(never)]
-    pub fn children_mut(&mut self) -> &mut Vec<VNode> {
+    pub(crate) fn children_mut(&mut self) -> &mut Vec<VNode> {
         loop {
             match self.children {
                 Some(ref mut m) => return Rc::make_mut(m),
