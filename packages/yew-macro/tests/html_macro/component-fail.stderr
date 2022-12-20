@@ -648,9 +648,6 @@ error[E0277]: the trait bound `yew::virtual_dom::VText: IntoPropValue<ChildrenRe
     |              |
     |              required by a bound introduced by this call
     |
-    = help: the following implementations were found:
-              <yew::virtual_dom::VText as IntoPropValue<VNode>>
-              <yew::virtual_dom::VText as IntoPropValue<yew::virtual_dom::VList>>
 note: required by a bound in `ChildContainerPropertiesBuilder::children`
    --> tests/html_macro/component-fail.rs:24:17
     |
