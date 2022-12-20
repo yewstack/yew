@@ -24,7 +24,7 @@ pub(super) struct BList {
 }
 
 impl VList {
-    // Splits a VList for creating / reconcling to a BList.
+    // Splits a VList for creating / reconciling to a BList.
     fn split_for_blist(self) -> (Option<Key>, bool, Vec<VNode>) {
         let mut fully_keyed = self.fully_keyed();
 

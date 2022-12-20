@@ -88,6 +88,9 @@ impl VList {
         vlist
     }
 
+    // Returns a mutable reference to children, allocates the children if it hasn't been done.
+    //
+    // This method does not reassign key state. So it should only be used internally.
     fn children_mut(&mut self) -> &mut Vec<VNode> {
         loop {
             match self.children {
