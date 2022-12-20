@@ -128,7 +128,7 @@ use yew::prelude::*;
 
 #[function_component]
 fn MyComponent() -> Html {
-    let input_value_handle = use_state(String::default);
+    let input_value_handle = use_state(|| String::default);
     let input_value = (*input_value_handle).clone();
 
     let on_cautious_change = {
@@ -141,7 +141,7 @@ fn MyComponent() -> Html {
             // Events can bubble so this listener might catch events from child
             // elements which are not of type HtmlInputElement
             //highlight-next-line
-            let input = target.and_then(|t| t.dyn_into::<HtmlInputElement>().ok());
+            let input: Option<HtmlInputElement> = target.and_then(|t| t.dyn_into::<HtmlInputElement>().ok());
 
             if let Some(input) = input {
                 input_value_handle.set(input.value());
@@ -222,7 +222,7 @@ use yew::prelude::*;
 
 #[function_component]
 fn MyComponent() -> Html {
-    let input_value_handle = use_state(String::default);
+    let input_value_handle = use_state(|| String::default);
     let input_value = (*input_value_handle).clone();
 
     let on_cautious_change = {
@@ -285,7 +285,7 @@ fn MyComponent() -> Html {
     //highlight-next-line
     let input_node_ref = use_node_ref();
 
-    let input_value_handle = use_state(String::default);
+    let input_value_handle = use_state(|| String::default);
     let input_value = (*input_value_handle).clone();
 
     let onchange = {
