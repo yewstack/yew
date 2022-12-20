@@ -372,7 +372,7 @@ struct VideosListProps {
 }
 ```
 
-Then we modify the `VideosList` component to pass the "emit" the selected video to the callback.
+Then we modify the `VideosList` component to "emit" the selected video to the callback.
 
 ```rust ,ignore {2-4,6-12,15-16}
 #[function_component(VideosList)]
@@ -397,7 +397,7 @@ Then we modify the `VideosList` component to pass the "emit" the selected video 
 ```
 
 Next, we need to modify the usage of `VideosList` to pass that callback. But before doing that, we should create
-a new component, `VideoDetails`, component that is displayed when a video is clicked.
+a new component, `VideoDetails`, that is displayed when a video is clicked.
 
 ```rust
 use website_test::tutorial::Video;
