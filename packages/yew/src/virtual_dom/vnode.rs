@@ -1,8 +1,8 @@
 //! This module contains the implementation of abstract virtual node.
 
 use std::cmp::PartialEq;
-use std::fmt;
 use std::iter::FromIterator;
+use std::{fmt, mem};
 
 use web_sys::Node;
 
@@ -51,6 +51,20 @@ impl VNode {
     /// Returns true if the [VNode] has a key.
     pub fn has_key(&self) -> bool {
         self.key().is_some()
+    }
+
+    /// Acquires a mutable reference of current VNode as a VList.
+    ///
+    /// Creates a VList with the current node as the first child if current VNode is not a VList.
+    pub fn to_vlist_mut(&mut self) -> &mut VList {
+        loop {
+            match *self {
+                Self::VList(ref mut m) => return m,
+                _ => {
+                    *self = VNode::VList(VList::with_children(vec![mem::take(self)], None));
+                }
+            }
+        }
     }
 
     /// Create a [`VNode`] from a string of HTML

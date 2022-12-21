@@ -300,9 +300,9 @@ impl HtmlChildrenTree {
         Some(quote! { ::yew::html::ChildrenRenderer::new(#self) })
     }
 
-    pub fn to_vlist_tokens(&self) -> TokenStream {
+    pub fn to_vnode_tokens(&self) -> TokenStream {
         if self.0.is_empty() {
-            return quote! { ::yew::virtual_dom::VList::new() };
+            return quote! {::std::default::Default::default() };
         }
 
         if let [HtmlTree::Block(ref m)] = self.0[..] {
@@ -311,12 +311,12 @@ impl HtmlChildrenTree {
                 ..
             } = m.as_ref()
             {
-                return quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VList>::into_prop_value(#children) };
+                return quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) };
             }
         }
 
         quote! {
-            ::yew::html::IntoPropValue::<::yew::virtual_dom::VList>::into_prop_value(
+            ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(
                 ::yew::html::ChildrenRenderer::new(#self)
             )
         }

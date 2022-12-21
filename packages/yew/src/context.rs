@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use slab::Slab;
 
 use crate::html::Scope;
-use crate::{Callback, Children, Component, Context, Html, Properties};
+use crate::{Callback, Component, Context, Html, Properties};
 
 /// Props for [`ContextProvider`]
 #[derive(Debug, Clone, PartialEq, Properties)]
@@ -13,7 +13,7 @@ pub struct ContextProviderProps<T: Clone + PartialEq> {
     /// Context value to be passed down
     pub context: T,
     /// Children
-    pub children: Children,
+    pub children: Html,
 }
 
 /// The context provider component.
@@ -103,6 +103,6 @@ impl<T: Clone + PartialEq + 'static> Component for ContextProvider<T> {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        ctx.props().children.clone().into()
+        ctx.props().children.clone()
     }
 }

@@ -13,7 +13,7 @@ pub use listeners::Registry;
 use wasm_bindgen::JsCast;
 use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
-use super::{insert_node, BList, BNode, BSubtree, Reconcilable, ReconcileTarget};
+use super::{insert_node, BNode, BSubtree, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
@@ -50,8 +50,8 @@ enum BTagInner {
     Other {
         /// A tag of the element.
         tag: Cow<'static, str>,
-        /// List of child nodes
-        child_bundle: BList,
+        /// Child node.
+        child_bundle: BNode,
     },
 }
 

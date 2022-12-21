@@ -181,6 +181,13 @@ impl IntoPropValue<VList> for VNode {
     }
 }
 
+impl IntoPropValue<VNode> for VList {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        VNode::VList(self)
+    }
+}
+
 impl<T> IntoPropValue<VNode> for VChild<T>
 where
     T: BaseComponent,

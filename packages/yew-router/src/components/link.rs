@@ -28,7 +28,7 @@ where
     #[prop_or_default]
     pub anchor_ref: NodeRef,
     #[prop_or_default]
-    pub children: Children,
+    pub children: Html,
 }
 
 /// A wrapper around `<a>` tag to be used with [`Router`](crate::Router)

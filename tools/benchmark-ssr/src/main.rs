@@ -87,13 +87,13 @@ async fn bench_many_providers() -> Duration {
 
     #[derive(Properties, PartialEq, Clone)]
     struct ProviderProps {
-        children: Children,
+        children: Html,
     }
 
     #[function_component]
     fn Provider(props: &ProviderProps) -> Html {
         let ProviderProps { children } = props.clone();
-        children.into()
+        children
     }
 
     #[function_component]
