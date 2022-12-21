@@ -272,10 +272,10 @@ impl BTag {
 
     #[cfg(target_arch = "wasm32")]
     #[cfg(test)]
-    fn children(&self) -> &[BNode] {
+    fn children(&self) -> Option<&BNode> {
         match &self.inner {
-            BTagInner::Other { child_bundle, .. } => child_bundle,
-            _ => &[],
+            BTagInner::Other { child_bundle, .. } => Some(child_bundle),
+            _ => None,
         }
     }
 
@@ -588,7 +588,7 @@ mod tests {
         let svg_tag = assert_vtag(svg_node);
         let (_, svg_tag) = svg_tag.attach(&root, &scope, &parent, NodeRef::default());
         assert_namespace(&svg_tag, SVG_NAMESPACE);
-        let path_tag = assert_btag_ref(svg_tag.children().get(0).unwrap());
+        let path_tag = assert_btag_ref(svg_tag.children().unwrap().unwrap());
         assert_namespace(path_tag, SVG_NAMESPACE);
 
         let g_tag = assert_vtag(g_node.clone());
