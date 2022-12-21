@@ -81,33 +81,39 @@ where
     }
 }
 
-impl<T> IntoPropValue<ChildrenRenderer<VChild<T>>> for VChild<T>
+impl<T, C> IntoPropValue<ChildrenRenderer<C>> for VChild<T>
 where
     T: BaseComponent,
+    C: Clone + Into<VNode>,
+    VChild<T>: Into<C>,
 {
     #[inline]
-    fn into_prop_value(self) -> ChildrenRenderer<VChild<T>> {
-        ChildrenRenderer::new(vec![self])
+    fn into_prop_value(self) -> ChildrenRenderer<C> {
+        ChildrenRenderer::new(vec![self.into()])
     }
 }
 
-impl<T> IntoPropValue<Option<ChildrenRenderer<VChild<T>>>> for VChild<T>
+impl<T, C> IntoPropValue<Option<ChildrenRenderer<C>>> for VChild<T>
 where
     T: BaseComponent,
+    C: Clone + Into<VNode>,
+    VChild<T>: Into<C>,
 {
     #[inline]
-    fn into_prop_value(self) -> Option<ChildrenRenderer<VChild<T>>> {
-        Some(ChildrenRenderer::new(vec![self]))
+    fn into_prop_value(self) -> Option<ChildrenRenderer<C>> {
+        Some(ChildrenRenderer::new(vec![self.into()]))
     }
 }
 
-impl<T> IntoPropValue<Option<ChildrenRenderer<VChild<T>>>> for Option<VChild<T>>
+impl<T, C> IntoPropValue<Option<ChildrenRenderer<C>>> for Option<VChild<T>>
 where
     T: BaseComponent,
+    C: Clone + Into<VNode>,
+    VChild<T>: Into<C>,
 {
     #[inline]
-    fn into_prop_value(self) -> Option<ChildrenRenderer<VChild<T>>> {
-        self.map(|m| ChildrenRenderer::new(vec![m]))
+    fn into_prop_value(self) -> Option<ChildrenRenderer<C>> {
+        self.map(|m| ChildrenRenderer::new(vec![m.into()]))
     }
 }
 
