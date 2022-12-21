@@ -36,17 +36,12 @@ jobs:
           components: rust-src
           targets: wasm32-unknown-unknown
 
-      - name: Restore Rust cache for master
-        uses: Swatinem/rust-cache@v2
+      - name: Configure sccache
+        uses: visvirial/sccache-action@v1
         with:
-          working-directory: yew-master
-          key: master
-
-      - name: Restore Rust cache for current pull request
-        uses: Swatinem/rust-cache@v2
-        with:
-          working-directory: current-pr
-          key: pr
+          cache-key: sccache-ubuntu-latest
+          release-name: latest
+          arch: x86_64-unknown-linux-musl
 
       - name: Setup Trunk
         uses: jetli/trunk-action@v0.1.0
