@@ -749,4 +749,43 @@ mod tests {
             .unwrap()
         })
     }
+
+    #[test]
+    fn reentrant_listener() {
+        #[derive(PartialEq, Properties, Default)]
+        struct Reetrant {
+            secondary_target_ref: NodeRef,
+        }
+        impl Mixin for Reetrant {
+            fn view<C>(ctx: &Context<C>, state: &State) -> Html
+            where
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
+            {
+                let targetref = &ctx.props().wrapped.secondary_target_ref;
+                let onclick = {
+                    let targetref = targetref.clone();
+                    ctx.link().callback(move |_| {
+                        // Note: `click` (and dispatchEvent for that matter) swallows errors thrown
+                        // from listeners and reports them as uncaught to the console. Hence, we
+                        // assert that we got to the second event listener instead, by dispatching a
+                        // second Message::Action
+                        click(&targetref);
+                        Message::Action
+                    })
+                };
+                let onclick2 = ctx.link().callback(move |_| Message::Action);
+                html! {
+                    <div>
+                        <button {onclick} ref={&ctx.props().state_ref}>{state.action}</button>
+                        <a onclick={onclick2} ref={targetref}></a>
+                    </div>
+                }
+            }
+        }
+        let (_, el) = init::<Reetrant>();
+
+        assert_count(&el, 0);
+        click(&el);
+        assert_count(&el, 2);
+    }
 }
