@@ -297,6 +297,14 @@ impl HtmlChildrenTree {
             }
         }
 
+        if let [HtmlTree::Component(ref children)] = self.0[..] {
+            return Some(quote! { #children });
+        }
+
+        if let [HtmlTree::Element(ref children)] = self.0[..] {
+            return Some(quote! { #children });
+        }
+
         Some(quote! { ::yew::html::ChildrenRenderer::new(#self) })
     }
 
@@ -313,6 +321,14 @@ impl HtmlChildrenTree {
             {
                 return quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) };
             }
+        }
+
+        if let [HtmlTree::Component(ref children)] = self.0[..] {
+            return quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) };
+        }
+
+        if let [HtmlTree::Element(ref children)] = self.0[..] {
+            return quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) };
         }
 
         quote! {

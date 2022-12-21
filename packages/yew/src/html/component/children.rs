@@ -218,12 +218,15 @@ impl From<ChildrenRenderer<VNode>> for VNode {
             }
         }
 
-        VNode::VList(VList::with_children(val.children, None))
+        VNode::VList(val.into())
     }
 }
 
 impl From<ChildrenRenderer<VNode>> for VList {
     fn from(val: ChildrenRenderer<VNode>) -> Self {
+        if val.is_empty() {
+            return VList::new();
+        }
         VList::with_children(val.children, None)
     }
 }
