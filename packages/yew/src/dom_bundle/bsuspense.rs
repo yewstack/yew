@@ -7,7 +7,7 @@ use web_sys::Element;
 use super::Fragment;
 use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
-use crate::virtual_dom::{Key, VSuspense};
+use crate::virtual_dom::VSuspense;
 use crate::NodeRef;
 
 #[derive(Debug)]
@@ -26,14 +26,6 @@ pub(super) struct BSuspense {
     /// The supsense is suspended if fallback contains [Some] bundle
     fallback: Option<Fallback>,
     detached_parent: Element,
-    key: Option<Key>,
-}
-
-impl BSuspense {
-    /// Get the key of the underlying suspense
-    pub fn key(&self) -> Option<&Key> {
-        self.key.as_ref()
-    }
 }
 
 impl ReconcileTarget for BSuspense {
@@ -80,19 +72,14 @@ impl Reconcilable for VSuspense {
         parent: &Element,
         next_sibling: NodeRef,
     ) -> (NodeRef, Self::Bundle) {
-        let VSuspense {
-            children,
-            fallback,
-            suspended,
-            key,
-        } = self;
+        let VSuspense { children, fallback } = self;
         let detached_parent = document()
             .create_element("div")
             .expect("failed to create detached element");
 
         // When it's suspended, we render children into an element that is detached from the dom
         // tree while rendering fallback UI into the original place where children resides in.
-        if suspended {
+        if let Some(fallback) = fallback {
             let (_child_ref, children_bundle) =
                 children.attach(root, parent_scope, &detached_parent, NodeRef::default());
             let (fallback_ref, fallback) =
@@ -103,7 +90,6 @@ impl Reconcilable for VSuspense {
                     children_bundle,
                     fallback: Some(Fallback::Bundle(fallback)),
                     detached_parent,
-                    key,
                 },
             )
         } else {
@@ -115,7 +101,6 @@ impl Reconcilable for VSuspense {
                     children_bundle,
                     fallback: None,
                     detached_parent,
-                    key,
                 },
             )
         }
@@ -131,9 +116,7 @@ impl Reconcilable for VSuspense {
     ) -> NodeRef {
         match bundle {
             // We only preserve the child state if they are the same suspense.
-            BNode::Suspense(m) if m.key == self.key => {
-                self.reconcile(root, parent_scope, parent, next_sibling, m)
-            }
+            BNode::Suspense(m) => self.reconcile(root, parent_scope, parent, next_sibling, m),
             _ => self.replace(root, parent_scope, parent, next_sibling, bundle),
         }
     }
@@ -149,8 +132,6 @@ impl Reconcilable for VSuspense {
         let VSuspense {
             children,
             fallback: vfallback,
-            suspended,
-            key: _,
         } = self;
 
         let children_bundle = &mut suspense.children_bundle;
@@ -158,9 +139,9 @@ impl Reconcilable for VSuspense {
 
         // When it's suspended, we render children into an element that is detached from the dom
         // tree while rendering fallback UI into the original place where children resides in.
-        match (suspended, &mut suspense.fallback) {
+        match (vfallback, &mut suspense.fallback) {
             // Both suspended, reconcile children into detached_parent, fallback into the DOM
-            (true, Some(fallback)) => {
+            (Some(vfallback), Some(fallback)) => {
                 children.reconcile_node(
                     root,
                     parent_scope,
@@ -181,12 +162,12 @@ impl Reconcilable for VSuspense {
                 }
             }
             // Not suspended, just reconcile the children into the DOM
-            (false, None) => {
+            (None, None) => {
                 children.reconcile_node(root, parent_scope, parent, next_sibling, children_bundle)
             }
             // Freshly suspended. Shift children into the detached parent, then add fallback to the
             // DOM
-            (true, None) => {
+            (Some(vfallback), None) => {
                 children_bundle.shift(&suspense.detached_parent, NodeRef::default());
 
                 children.reconcile_node(
@@ -204,7 +185,7 @@ impl Reconcilable for VSuspense {
                 fallback_ref
             }
             // Freshly unsuspended. Detach fallback from the DOM, then shift children into it.
-            (false, Some(_)) => {
+            (None, Some(_)) => {
                 match suspense.fallback.take() {
                     Some(Fallback::Bundle(bundle)) => {
                         bundle.detach(root, parent, false);
@@ -274,8 +255,6 @@ mod feat_hydration {
                 BSuspense {
                     children_bundle,
                     detached_parent,
-                    key: self.key,
-
                     // We start hydration with the BSuspense being suspended.
                     // A subsequent render will resume the BSuspense if not needed to be suspended.
                     fallback: Some(Fallback::Fragment(fallback_fragment)),

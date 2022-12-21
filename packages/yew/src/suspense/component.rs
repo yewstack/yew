@@ -107,13 +107,8 @@ mod feat_csr_ssr {
 
             match fallback {
                 Some(fallback) => {
-                    let vsuspense = VSuspense::new(
-                        children,
-                        fallback,
-                        !self.suspensions.is_empty(),
-                        // We don't need to key this as the key will be applied to the component.
-                        None,
-                    );
+                    let vsuspense =
+                        VSuspense::new(children, (!self.suspensions.is_empty()).then(|| fallback));
 
                     VNode::from(vsuspense)
                 }

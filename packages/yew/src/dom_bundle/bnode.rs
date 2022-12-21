@@ -39,7 +39,7 @@ impl BNode {
             Self::Tag(btag) => btag.key(),
             Self::Text(_) => None,
             Self::Portal(bportal) => bportal.key(),
-            Self::Suspense(bsusp) => bsusp.key(),
+            Self::Suspense(_) => None,
             Self::Raw(_) => None,
         }
     }

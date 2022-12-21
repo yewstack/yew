@@ -1,4 +1,4 @@
-use super::{Key, VNode};
+use super::VNode;
 
 /// This struct represents a suspendable DOM fragment.
 #[derive(Clone, Debug, PartialEq)]
@@ -6,20 +6,14 @@ pub struct VSuspense {
     /// Child nodes.
     pub(crate) children: Box<VNode>,
     /// Fallback nodes when suspended.
-    pub(crate) fallback: Box<VNode>,
-    /// Whether the current status is suspended.
-    pub(crate) suspended: bool,
-    /// The Key.
-    pub(crate) key: Option<Key>,
+    pub(crate) fallback: Option<Box<VNode>>,
 }
 
 impl VSuspense {
-    pub fn new(children: VNode, fallback: VNode, suspended: bool, key: Option<Key>) -> Self {
+    pub fn new(children: VNode, fallback: Option<VNode>) -> Self {
         Self {
             children: children.into(),
-            fallback: fallback.into(),
-            suspended,
-            key,
+            fallback: fallback.map(Box::new),
         }
     }
 }
