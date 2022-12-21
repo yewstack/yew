@@ -47,6 +47,7 @@ impl Reconcilable for VPortal {
             host,
             inner_sibling,
             node,
+            ..
         } = self;
         let inner_sibling = {
             let sib_ref = NodeRef::default();
@@ -94,6 +95,7 @@ impl Reconcilable for VPortal {
             host,
             inner_sibling,
             node,
+            ..
         } = self;
 
         let old_host = std::mem::replace(&mut portal.host, host);

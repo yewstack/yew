@@ -12,6 +12,10 @@ pub struct VPortal {
     pub inner_sibling: Option<Node>,
     /// The inserted node
     pub node: Box<VNode>,
+
+    /// This is a size marker for VNode to make sure it will maintain a certain size.
+    /// This reduces bundle size by 2~3 KB.
+    _marker: (u64, u64),
 }
 
 impl VPortal {
@@ -21,6 +25,7 @@ impl VPortal {
             host,
             inner_sibling: None,
             node: Box::new(content),
+            _marker: (0, 0),
         }
     }
 
@@ -32,6 +37,7 @@ impl VPortal {
             host,
             inner_sibling,
             node: Box::new(content),
+            _marker: (0, 0),
         }
     }
 }

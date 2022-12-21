@@ -27,8 +27,6 @@ pub struct VComp {
     pub(crate) type_id: TypeId,
     pub(crate) mountable: Box<dyn Mountable>,
     pub(crate) key: Option<Key>,
-    // for some reason, this reduces the bundle size by ~2-3 KBs
-    _marker: u32,
 }
 
 impl fmt::Debug for VComp {
@@ -47,7 +45,6 @@ impl Clone for VComp {
             type_id: self.type_id,
             mountable: self.mountable.copy(),
             key: self.key.clone(),
-            _marker: 0,
         }
     }
 }
@@ -217,7 +214,6 @@ impl VComp {
             type_id: TypeId::of::<COMP>(),
             mountable: Box::new(PropsWrapper::<COMP>::new(props)),
             key,
-            _marker: 0,
         }
     }
 }
