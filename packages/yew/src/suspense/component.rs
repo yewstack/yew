@@ -1,11 +1,12 @@
 use crate::html::{Html, Properties};
+use crate::Children;
 
 /// Properties for [Suspense].
 #[derive(Properties, PartialEq, Debug, Clone)]
 pub struct SuspenseProps {
     /// The Children of the current Suspense Component.
     #[prop_or_default]
-    pub children: Html,
+    pub children: Children,
 
     /// The Fallback UI of the current Suspense Component.
     #[prop_or_default]
@@ -24,7 +25,7 @@ mod feat_csr_ssr {
 
     #[derive(Properties, PartialEq, Debug, Clone)]
     pub(crate) struct BaseSuspenseProps {
-        pub children: Html,
+        pub children: Children,
         pub fallback: Option<Html>,
     }
 
@@ -102,6 +103,8 @@ mod feat_csr_ssr {
 
         fn view(&self, ctx: &Context<Self>) -> Html {
             let BaseSuspenseProps { children, fallback } = (*ctx.props()).clone();
+            let children = children.into();
+
             match fallback {
                 Some(fallback) => {
                     let vsuspense = VSuspense::new(
