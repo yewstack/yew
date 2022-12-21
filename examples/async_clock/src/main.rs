@@ -59,6 +59,7 @@ impl Component for AsyncComponent {
                 // Update the clock display
                 self.clock = Some(AttrValue::from(current_time.to_rfc2822()));
             }
+
             Msg::ClockInitialized(_) => {
                 // Now that the clock is initialized, we can start the time stream.
                 self.clock = Some(AttrValue::from("Initialized"));
@@ -75,6 +76,7 @@ impl Component for AsyncComponent {
                 let joke_cb = ctx.link().callback(Msg::Joke);
                 emit_jokes(joke_cb);
             }
+
             Msg::Joke(joke) => {
                 // Update the joke
                 self.joke = Some(joke.clone());
@@ -87,6 +89,7 @@ impl Component for AsyncComponent {
                     .send_now(joke)
                     .expect("failed to send joke");
             }
+
             Msg::FunScore(score) => {
                 self.fun_score = Some(score);
             }
