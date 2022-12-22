@@ -55,8 +55,10 @@ where
         let query = query.clone();
 
         Callback::from(move |e: MouseEvent| {
+            if e.meta_key() || e.ctrl_key() {
+               return;
+            }
             e.prevent_default();
-
             match query {
                 None => {
                     navigator.push(&to);
