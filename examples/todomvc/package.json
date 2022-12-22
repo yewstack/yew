@@ -1,0 +1,14 @@
+{
+  "name": "todomvc",
+  "version": "1.0.0",
+  "description": "[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Ftodomvc)](https://examples.yew.rs/todomvc)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "cypress": "^12.2.0"
+  }
+}
