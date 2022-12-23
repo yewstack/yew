@@ -69,21 +69,9 @@ To automatically fix formatting issues, run `cargo +nightly fmt` first.
 
 ## Benchmarks
 
-If you wish to improve the performance of Yew, we ask you to prove the improvements of your changes through benchmarking.
-
-Some components of Yew have dedicated benchmarks which can be run with the following command:
-
-```bash
-cargo make benchmarks
-```
-
-There's also a benchmark for the framework as a whole.
+js-framework-benchmark is used as a benchmark for the framework as a whole.
 Simply clone [bakape/js-framework-benchmark](https://github.com/bakape/js-framework-benchmark)
 and follow the repository's README.
-
-Feel free to add new benchmark tests if the current benchmark coverage is insufficient!
-
-> See #1453 for a discussion on how to make this easier.
 
 ## Writing APIs
 
