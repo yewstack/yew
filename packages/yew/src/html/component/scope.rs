@@ -290,14 +290,14 @@ impl<COMP: BaseComponent> Scope<COMP> {
 
     /// Creates a `Callback` which will send a message to the linked
     /// component's update method when invoked, AND calls `.prevent_default()`
-    /// on the [web_sys::Event] that is passed to the callback. 
+    /// on the [web_sys::Event] that is passed to the callback.
     ///
     /// This is helpful for making more terse callback definitions for `onclick`
     /// events on `<a>` elements, which alter the URL by default.
-    /// 
+    ///
     /// If your app scrolls to the top of the page when a link or button with
     /// a callback is clicked, this will prevent that.
-    /// 
+    ///
     /// ### Short Example
     /// ```rust,ignore
     /// let onclick = ctx.link().callback_event(|e| RBMessage::Refresh);
@@ -311,19 +311,19 @@ impl<COMP: BaseComponent> Scope<COMP> {
     /// # use yew::prelude::*;
     /// # use web_sys::*;
     /// pub struct RefreshButton;
-    /// 
+    ///
     /// pub enum RBMessage {
-    ///     Refresh
+    ///     Refresh,
     /// }
-    /// 
+    ///
     /// impl Component for RefreshButton {
     ///     type Message = RBMessage;
     ///     type Properties = ();
-    /// 
+    ///
     ///     fn create(ctx: &Context<Self>) -> Self {
     ///         Self
     ///     }
-    /// 
+    ///
     ///     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
     ///         match msg {
     ///             RBMessage::Refresh => {
@@ -335,9 +335,9 @@ impl<COMP: BaseComponent> Scope<COMP> {
     ///             }
     ///         }
     ///     }
-    /// 
-    ///     fn view<'a>( &self, ctx: &'a Context<Self> ) -> Html {
-    ///         let onclick = ctx.link().callback_event( |e| RBMessage::Refresh );
+    ///
+    ///     fn view<'a>(&self, ctx: &'a Context<Self>) -> Html {
+    ///         let onclick = ctx.link().callback_event(|e| RBMessage::Refresh);
     ///
     ///         html! {
     ///             <a href="#" {onclick}>{ "Refresh" }</a>
@@ -345,13 +345,13 @@ impl<COMP: BaseComponent> Scope<COMP> {
     ///     }
     /// }
     /// ```
-    pub fn callback_event<EVT, F>( &self, function: F ) -> Callback<EVT> 
+    pub fn callback_event<EVT, F>(&self, function: F) -> Callback<EVT>
     where
-        F: Fn( &EVT ) -> COMP::Message + 'static,
-        EVT: Into<web_sys::Event>
+        F: Fn(&EVT) -> COMP::Message + 'static,
+        EVT: Into<web_sys::Event>,
     {
-        self.callback( move | event: EVT | {
-            let msg = function( &event );
+        self.callback(move |event: EVT| {
+            let msg = function(&event);
             let evt: web_sys::Event = event.into();
             evt.prevent_default();
             msg
