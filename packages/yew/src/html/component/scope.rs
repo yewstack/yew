@@ -289,10 +289,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     }
 }
 
-impl<COMP: BaseComponent> Scope<COMP> 
-where
-    COMP::Message: Clone,
-{
+impl<COMP: BaseComponent> Scope<COMP> {
     /// Creates a `Callback` which will send a message to the linked
     /// component's update method when invoked, AND calls `.prevent_default()`
     /// on the [web_sys::Event] that is passed to the callback. 
@@ -300,9 +297,12 @@ where
     /// This is helpful for making more terse callback definitions for `onclick`
     /// events on `<a>` elements, which alter the URL by default.
     /// 
+    /// If your app scrolls to the top of the page when a link or button with
+    /// a callback is clicked, this will prevent that.
+    /// 
     /// ### Short Example
     /// ```rust,ignore
-    /// let onclick = ctx.link().callback_event( |e| RBMessage::Refresh );
+    /// let onclick = ctx.link().callback_event(|e| RBMessage::Refresh);
     ///
     /// html! {
     ///     <a href="#" {onclick}>{ "Refresh" }</a>
@@ -314,7 +314,6 @@ where
     /// # use web_sys::*;
     /// pub struct RefreshButton;
     /// 
-    /// #[derive(Clone)]
     /// pub enum RBMessage {
     ///     Refresh
     /// }
@@ -338,6 +337,7 @@ where
     ///             }
     ///         }
     ///     }
+    /// 
     ///     fn view<'a>( &self, ctx: &'a Context<Self> ) -> Html {
     ///         let onclick = ctx.link().callback_event( |e| RBMessage::Refresh );
     ///
