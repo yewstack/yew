@@ -1,3 +1,5 @@
-it("go to root", () => {
-  cy.visit("/");
+describe("visit root", () => {
+  it("successfully visit root", () => {
+    cy.visit("/");
+  });
 });
