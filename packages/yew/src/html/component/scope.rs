@@ -287,9 +287,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     pub fn send_message_batch(&self, messages: Vec<COMP::Message>) {
         self.arch_send_message_batch(messages)
     }
-}
 
-impl<COMP: BaseComponent> Scope<COMP> {
     /// Creates a `Callback` which will send a message to the linked
     /// component's update method when invoked, AND calls `.prevent_default()`
     /// on the [web_sys::Event] that is passed to the callback. 
