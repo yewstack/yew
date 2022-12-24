@@ -289,6 +289,78 @@ impl<COMP: BaseComponent> Scope<COMP> {
     }
 }
 
+impl<COMP: BaseComponent> Scope<COMP> 
+where
+    COMP::Message: Clone,
+{
+    /// Creates a `Callback` which will send a message to the linked
+    /// component's update method when invoked, AND calls `.prevent_default()`
+    /// on the [web_sys::Event] that is passed to the callback. 
+    ///
+    /// This is helpful for making more terse callback definitions for `onclick`
+    /// events on `<a>` elements, which alter the URL by default.
+    /// 
+    /// ### Short Example
+    /// ```rust,ignore
+    /// let onclick = ctx.link().callback_event( |e| RBMessage::Refresh );
+    ///
+    /// html! {
+    ///     <a href="#" {onclick}>{ "Refresh" }</a>
+    /// }
+    /// ```
+    /// ### Full Example
+    /// ```rust
+    /// # use yew::prelude::*;
+    /// # use web_sys::*;
+    /// pub struct RefreshButton;
+    /// 
+    /// #[derive(Clone)]
+    /// pub enum RBMessage {
+    ///     Refresh
+    /// }
+    /// 
+    /// impl Component for RefreshButton {
+    ///     type Message = RBMessage;
+    ///     type Properties = ();
+    /// 
+    ///     fn create(ctx: &Context<Self>) -> Self {
+    ///         Self
+    ///     }
+    /// 
+    ///     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+    ///         match msg {
+    ///             RBMessage::Refresh => {
+    ///                 let win = window().unwrap();
+    ///                 let doc = win.document().unwrap();
+    ///                 let loc = doc.location().unwrap();
+    ///                 loc.reload();
+    ///                 false
+    ///             }
+    ///         }
+    ///     }
+    ///     fn view<'a>( &self, ctx: &'a Context<Self> ) -> Html {
+    ///         let onclick = ctx.link().callback_event( |e| RBMessage::Refresh );
+    ///
+    ///         html! {
+    ///             <a href="#" {onclick}>{ "Refresh" }</a>
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    pub fn callback_event<EVT, F>( &self, function: F ) -> Callback<EVT> 
+    where
+        F: Fn( &EVT ) -> COMP::Message + 'static,
+        EVT: Into<web_sys::Event>
+    {
+        self.callback( move | event: EVT | {
+            let msg = function( &event );
+            let evt: web_sys::Event = event.into();
+            evt.prevent_default();
+            msg
+        })
+    }
+}
+
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use std::fmt::Write;
