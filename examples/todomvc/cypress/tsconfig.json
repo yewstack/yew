@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "types": ["cypress"],
+    "isolatedModules": false,
+    "strict": true
+  },
+  "include": ["../node_modules/cypress", "./**/*.ts"],
+  "exclude": []
+}
