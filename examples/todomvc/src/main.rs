@@ -180,6 +180,7 @@ impl App {
             // <li></li>
             <input
                 class="new-todo"
+                id="new-todo"
                 placeholder="What needs to be done?"
                 {onkeypress}
             />
