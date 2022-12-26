@@ -18,6 +18,9 @@ cd examples/todomvc
 
 # build and serve the example
 trunk serve --release
+
+# e2e test with cypress, cypress/videos/*.mp4 will be generated
+npm run cypress:run
 ```
 
 We're also publicly hosting the examples at `https://examples.yew.rs/<EXAMPLE>`.
