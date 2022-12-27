@@ -9,7 +9,7 @@
     "cypress:run": "cypress run --browser chrome"
   },
   "author": "",
-  "license": "ISC",
+  "license": "(MIT OR Apache-2.0)",
   "devDependencies": {
     "cypress": "^12.2.0"
   }
