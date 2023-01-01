@@ -52,7 +52,7 @@
         "@types/react": "^17.0.43",
         "@types/react-helmet": "^6.1.6",
         "@types/react-router-dom": "^5.3.3",
-        "@typescript-eslint/eslint-plugin": "^5.45.0",
+        "@typescript-eslint/eslint-plugin": "^5.47.1",
         "@typescript-eslint/parser": "^5.45.0",
         "dir-compare": "^4.0.0",
         "prettier": "2.8.0",
