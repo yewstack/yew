@@ -303,7 +303,7 @@ struct VideosListProps {
 }
 
 #[function_component(VideosList)]
-fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
+fn VideosList(VideosListProps { videos }: &VideosListProps) -> Html {
     videos.iter().map(|video| html! {
         <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
     }).collect()
@@ -376,8 +376,8 @@ Then we modify the `VideosList` component to "emit" the selected video to the ca
 
 ```rust ,ignore {2-4,6-12,15-16}
 #[function_component(VideosList)]
--fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
-+fn videos_list(VideosListProps { videos, on_click }: &VideosListProps) -> Html {
+-fn VideosList(VideosListProps { videos }: &VideosListProps) -> Html {
++fn VideosList(VideosListProps { videos, on_click }: &VideosListProps) -> Html {
 +    let on_click = on_click.clone();
     videos.iter().map(|video| {
 +        let on_video_select = {
