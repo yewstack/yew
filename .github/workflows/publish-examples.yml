@@ -26,7 +26,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - uses: jetli/trunk-action@v0.1.0
+      - uses: jetli/trunk-action@v0.2.0
         with:
           version: 'latest'
 
