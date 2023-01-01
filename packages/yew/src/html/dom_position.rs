@@ -77,19 +77,17 @@ mod feat_csr {
     use super::*;
 
     impl DomPosition {
-        pub fn new(node: Node) -> Self {
+        pub fn at(node: Node) -> Self {
             Self::create(Some(node))
+        }
+
+        pub fn at_end() -> Self {
+            Self::create(None)
         }
 
         pub fn create(node: Option<Node>) -> Self {
             Self {
                 variant: DomPositionVariant::Node(node),
-            }
-        }
-
-        pub fn at_end() -> Self {
-            Self {
-                variant: DomPositionVariant::Node(None),
             }
         }
 

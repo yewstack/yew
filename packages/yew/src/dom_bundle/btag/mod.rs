@@ -96,7 +96,7 @@ impl ReconcileTarget for BTag {
     fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
         insert_node(&self.reference, next_parent, &next_sibling);
 
-        DomPosition::new(self.reference.clone().into())
+        DomPosition::at(self.reference.clone().into())
     }
 }
 
@@ -140,7 +140,7 @@ impl Reconcilable for VTag {
         };
         node_ref.set(Some(el.clone().into()));
         (
-            DomPosition::new(el.clone().into()),
+            DomPosition::at(el.clone().into()),
             BTag {
                 inner,
                 listeners,
@@ -232,7 +232,7 @@ impl Reconcilable for VTag {
             tag.node_ref.set(Some(el.clone().into()));
         }
 
-        DomPosition::new(el.clone().into())
+        DomPosition::at(el.clone().into())
     }
 }
 

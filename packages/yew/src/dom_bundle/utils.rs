@@ -109,7 +109,7 @@ mod tests {
 
         let end = document().create_text_node(SIBLING_CONTENT);
         parent.append_child(&end).unwrap();
-        let sibling = DomPosition::new(end.into());
+        let sibling = DomPosition::at(end.into());
 
         (root, scope, parent, sibling)
     }

@@ -27,7 +27,7 @@ impl ReconcileTarget for BText {
     fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
         insert_node(&self.text_node, next_parent, &next_sibling);
 
-        DomPosition::new(self.text_node.clone().into())
+        DomPosition::at(self.text_node.clone().into())
     }
 }
 
@@ -44,7 +44,7 @@ impl Reconcilable for VText {
         let Self { text } = self;
         let text_node = document().create_text_node(&text);
         insert_node(&text_node, parent, &next_sibling);
-        let node_ref = DomPosition::new(text_node.clone().into());
+        let node_ref = DomPosition::at(text_node.clone().into());
         (node_ref, BText { text, text_node })
     }
 
@@ -76,7 +76,7 @@ impl Reconcilable for VText {
         if btext.text != ancestor_text {
             btext.text_node.set_node_value(Some(&btext.text));
         }
-        DomPosition::new(btext.text_node.clone().into())
+        DomPosition::at(btext.text_node.clone().into())
     }
 }
 

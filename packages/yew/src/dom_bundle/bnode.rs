@@ -75,7 +75,7 @@ impl ReconcileTarget for BNode {
             Self::Ref(ref node) => {
                 insert_node(node, next_parent, &next_sibling);
 
-                DomPosition::new(node.clone())
+                DomPosition::at(node.clone())
             }
             Self::Portal(ref vportal) => vportal.shift(next_parent, next_sibling),
             Self::Suspense(ref vsuspense) => vsuspense.shift(next_parent, next_sibling),
@@ -113,7 +113,7 @@ impl Reconcilable for VNode {
             }
             VNode::VRef(node) => {
                 super::insert_node(&node, parent, &next_sibling);
-                (DomPosition::new(node.clone()), BNode::Ref(node))
+                (DomPosition::at(node.clone()), BNode::Ref(node))
             }
             VNode::VPortal(vportal) => {
                 let (node_ref, portal) = vportal.attach(root, parent_scope, parent, next_sibling);
@@ -163,21 +163,10 @@ impl Reconcilable for VNode {
             VNode::VList(vlist) => {
                 vlist.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
             }
-            VNode::VRef(node) => {
-                let _existing = match bundle {
-                    BNode::Ref(ref n) if &node == n => n,
-                    _ => {
-                        return VNode::VRef(node).replace(
-                            root,
-                            parent_scope,
-                            parent,
-                            next_sibling,
-                            bundle,
-                        );
-                    }
-                };
-                DomPosition::new(node)
-            }
+            VNode::VRef(node) => match bundle {
+                BNode::Ref(ref n) if &node == n => DomPosition::at(node),
+                _ => VNode::VRef(node).replace(root, parent_scope, parent, next_sibling, bundle),
+            },
             VNode::VPortal(vportal) => {
                 vportal.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
             }

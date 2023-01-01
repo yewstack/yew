@@ -167,7 +167,7 @@ impl Fragment {
 
         self.front()
             .cloned()
-            .map(DomPosition::new)
+            .map(DomPosition::at)
             .unwrap_or(next_sibling)
     }
 

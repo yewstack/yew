@@ -47,7 +47,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     parent_element.append_child(&end_node).unwrap();
 
     // Tests each layout independently
-    let next_sibling = DomPosition::new(end_node.into());
+    let next_sibling = DomPosition::at(end_node.into());
     for layout in layouts.iter() {
         // Apply the layout
         let vnode = layout.node.clone();

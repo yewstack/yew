@@ -384,7 +384,7 @@ impl ReconcileTarget for BList {
         let mut next_sibling = next_sibling;
 
         for node in self.rev_children.iter() {
-            next_sibling = node.shift(next_parent, next_sibling.clone());
+            next_sibling = node.shift(next_parent, next_sibling);
         }
 
         next_sibling

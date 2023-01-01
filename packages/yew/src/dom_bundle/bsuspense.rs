@@ -174,7 +174,7 @@ impl Reconcilable for VSuspense {
                     }
                     #[cfg(feature = "hydration")]
                     Fallback::Fragment(fragment) => match fragment.front().cloned() {
-                        Some(m) => DomPosition::new(m),
+                        Some(m) => DomPosition::at(m),
                         None => next_sibling,
                     },
                 }

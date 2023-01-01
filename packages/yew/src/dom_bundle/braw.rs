@@ -42,7 +42,7 @@ impl BRaw {
     fn position(&self, next_sibling: DomPosition) -> DomPosition {
         self.reference
             .as_ref()
-            .map(|n| DomPosition::new(n.clone()))
+            .map(|n| DomPosition::at(n.clone()))
             .unwrap_or(next_sibling)
     }
 }
@@ -340,7 +340,7 @@ mod tests {
 
         let new_sibling = document().create_text_node(SIBLING_CONTENT);
         new_parent.append_child(&new_sibling).unwrap();
-        let new_sibling_ref = DomPosition::new(new_sibling.into());
+        let new_sibling_ref = DomPosition::at(new_sibling.into());
 
         elem.shift(&new_parent, new_sibling_ref);
 
