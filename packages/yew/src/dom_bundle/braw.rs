@@ -1,11 +1,8 @@
 use wasm_bindgen::JsCast;
 use web_sys::{Element, Node};
 
-use crate::dom_bundle::bnode::BNode;
-use crate::dom_bundle::traits::{Reconcilable, ReconcileTarget};
-use crate::dom_bundle::utils::insert_node;
-use crate::dom_bundle::BSubtree;
-use crate::html::{AnyScope, DomPosition};
+use super::{insert_node, BNode, BSubtree, DomPosition, Reconcilable, ReconcileTarget};
+use crate::html::AnyScope;
 use crate::virtual_dom::VRaw;
 use crate::AttrValue;
 

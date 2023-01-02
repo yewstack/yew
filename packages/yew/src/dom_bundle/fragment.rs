@@ -4,9 +4,7 @@ use std::ops::{Deref, DerefMut};
 use wasm_bindgen::JsCast;
 use web_sys::{Element, Node};
 
-use crate::dom_bundle::utils::insert_node;
-use crate::dom_bundle::BSubtree;
-use crate::html::DomPosition;
+use super::{insert_node, BSubtree, DomPosition};
 use crate::virtual_dom::Collectable;
 
 /// A Hydration Fragment

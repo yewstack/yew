@@ -11,11 +11,9 @@ use super::BaseComponent;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
-use crate::dom_bundle::{BSubtree, Bundle};
+use crate::dom_bundle::{BSubtree, Bundle, DomPosition, RetargetableDomPosition};
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
-#[cfg(feature = "csr")]
-use crate::html::{DomPosition, RetargetableDomPosition};
 use crate::html::{Html, RenderError};
 use crate::scheduler::{self, Runnable, Shared};
 use crate::suspense::{BaseSuspense, Suspension};

@@ -1,7 +1,7 @@
 use web_sys::Element;
 
-use super::{BNode, BSubtree};
-use crate::html::{AnyScope, DomPosition};
+use super::{BNode, BSubtree, DomPosition};
+use crate::html::AnyScope;
 
 /// A Reconcile Target.
 ///

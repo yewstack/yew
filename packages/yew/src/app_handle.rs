@@ -5,8 +5,8 @@ use std::rc::Rc;
 
 use web_sys::Element;
 
-use crate::dom_bundle::BSubtree;
-use crate::html::{BaseComponent, DomPosition, RetargetableDomPosition, Scope, Scoped};
+use crate::dom_bundle::{BSubtree, DomPosition, RetargetableDomPosition};
+use crate::html::{BaseComponent, Scope, Scoped};
 
 /// An instance of an application.
 #[derive(Debug)]

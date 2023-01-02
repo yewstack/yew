@@ -10,15 +10,15 @@ use futures::future::{FutureExt, LocalBoxFuture};
 use web_sys::Element;
 
 use super::Key;
-#[cfg(feature = "csr")]
-use crate::dom_bundle::BSubtree;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
+#[cfg(feature = "csr")]
+use crate::dom_bundle::{BSubtree, DomPosition, RetargetableDomPosition};
 use crate::html::BaseComponent;
+#[cfg(feature = "csr")]
+use crate::html::Scoped;
 #[cfg(any(feature = "ssr", feature = "csr"))]
 use crate::html::{AnyScope, Scope};
-#[cfg(feature = "csr")]
-use crate::html::{DomPosition, RetargetableDomPosition, Scoped};
 #[cfg(feature = "ssr")]
 use crate::platform::fmt::BufWriter;
 

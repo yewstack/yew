@@ -7,9 +7,9 @@ use std::ops::Deref;
 
 use web_sys::Element;
 
-use super::{test_log, BNode, BSubtree};
+use super::{test_log, BNode, BSubtree, DomPosition};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, DomPosition};
+use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VList, VNode, VText};
 
 /// This struct represents a mounted [VList]

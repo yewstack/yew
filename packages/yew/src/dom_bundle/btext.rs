@@ -3,8 +3,8 @@
 use gloo::utils::document;
 use web_sys::{Element, Text as TextNode};
 
-use super::{insert_node, BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, DomPosition};
+use super::{insert_node, BNode, BSubtree, DomPosition, Reconcilable, ReconcileTarget};
+use crate::html::AnyScope;
 use crate::virtual_dom::{AttrValue, VText};
 
 /// The bundle implementation to [VText]

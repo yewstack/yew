@@ -7,7 +7,7 @@
 
 use web_sys::Element;
 
-use crate::html::{AnyScope, DomPosition};
+use crate::html::AnyScope;
 use crate::virtual_dom::VNode;
 
 mod bcomp;
@@ -18,6 +18,7 @@ mod braw;
 mod bsuspense;
 mod btag;
 mod btext;
+mod dom_position;
 mod subtree_root;
 
 mod traits;
@@ -31,6 +32,7 @@ use braw::BRaw;
 use bsuspense::BSuspense;
 use btag::{BTag, Registry};
 use btext::BText;
+pub use dom_position::{DomPosition, RetargetableDomPosition};
 use subtree_root::EventDescriptor;
 pub use subtree_root::{set_event_bubbling, BSubtree};
 use traits::{Reconcilable, ReconcileTarget};

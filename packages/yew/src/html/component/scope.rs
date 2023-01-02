@@ -520,11 +520,10 @@ mod feat_csr {
     use web_sys::Element;
 
     use super::*;
-    use crate::dom_bundle::{BSubtree, Bundle};
+    use crate::dom_bundle::{BSubtree, Bundle, DomPosition, RetargetableDomPosition};
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, PropsUpdateRunner, RenderRunner,
     };
-    use crate::html::{DomPosition, RetargetableDomPosition};
     use crate::scheduler;
 
     impl AnyScope {
@@ -657,9 +656,8 @@ mod feat_hydration {
     use web_sys::{Element, HtmlScriptElement};
 
     use super::*;
-    use crate::dom_bundle::{BSubtree, Fragment};
+    use crate::dom_bundle::{BSubtree, DomPosition, Fragment, RetargetableDomPosition};
     use crate::html::component::lifecycle::{ComponentRenderState, CreateRunner, RenderRunner};
-    use crate::html::{DomPosition, RetargetableDomPosition};
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
 

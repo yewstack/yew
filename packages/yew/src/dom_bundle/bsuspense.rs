@@ -5,8 +5,8 @@ use web_sys::Element;
 
 #[cfg(feature = "hydration")]
 use super::Fragment;
-use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, DomPosition};
+use super::{BNode, BSubtree, DomPosition, Reconcilable, ReconcileTarget};
+use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VSuspense};
 
 #[derive(Debug)]

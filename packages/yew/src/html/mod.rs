@@ -137,11 +137,6 @@ mod feat_csr {
     }
 }
 
-#[cfg(feature = "csr")]
-mod dom_position;
-#[cfg(feature = "csr")]
-pub(crate) use dom_position::{DomPosition, RetargetableDomPosition};
-
 /// Render children into a DOM node that exists outside the hierarchy of the parent
 /// component.
 /// ## Relevant examples

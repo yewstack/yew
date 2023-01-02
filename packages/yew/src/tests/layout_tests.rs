@@ -3,8 +3,8 @@
 //! This tests must be run in browser and thus require the `csr` feature to be enabled
 use gloo::console::log;
 
-use crate::dom_bundle::{BSubtree, Bundle};
-use crate::html::{AnyScope, DomPosition};
+use crate::dom_bundle::{BSubtree, Bundle, DomPosition};
+use crate::html::AnyScope;
 use crate::virtual_dom::VNode;
 use crate::{scheduler, Component, Context, Html};
 

@@ -13,8 +13,8 @@ pub use listeners::Registry;
 use wasm_bindgen::JsCast;
 use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
-use super::{insert_node, BList, BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, DomPosition};
+use super::{insert_node, BList, BNode, BSubtree, DomPosition, Reconcilable, ReconcileTarget};
+use crate::html::AnyScope;
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
 use crate::NodeRef;

@@ -2,9 +2,9 @@
 
 use web_sys::{Element, Node};
 
-use super::{test_log, BNode, BSubtree};
+use super::{test_log, BNode, BSubtree, DomPosition};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, DomPosition};
+use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VPortal};
 
 /// The bundle implementation to [VPortal].

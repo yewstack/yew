@@ -6,8 +6,8 @@ use std::fmt;
 
 use web_sys::Element;
 
-use super::{BNode, BSubtree, Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, DomPosition, RetargetableDomPosition, Scoped};
+use super::{BNode, BSubtree, DomPosition, Reconcilable, ReconcileTarget, RetargetableDomPosition};
+use crate::html::{AnyScope, Scoped};
 use crate::virtual_dom::{Key, VComp};
 
 /// A virtual component. Compare with [VComp].

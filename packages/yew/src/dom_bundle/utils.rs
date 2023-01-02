@@ -1,6 +1,6 @@
 use web_sys::{Element, Node};
 
-use crate::html::DomPosition;
+use super::DomPosition;
 
 /// Insert a concrete [Node] into the DOM
 pub(super) fn insert_node(node: &Node, parent: &Element, position: &DomPosition) {
@@ -85,8 +85,8 @@ mod tests {
     use gloo::utils::document;
     use web_sys::Element;
 
-    use crate::dom_bundle::BSubtree;
-    use crate::html::{AnyScope, DomPosition};
+    use crate::dom_bundle::{BSubtree, DomPosition};
+    use crate::html::AnyScope;
 
     pub fn setup_parent() -> (BSubtree, AnyScope, Element) {
         let scope = AnyScope::test();

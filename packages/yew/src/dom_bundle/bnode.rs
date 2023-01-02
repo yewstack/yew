@@ -5,9 +5,9 @@ use std::fmt;
 use web_sys::{Element, Node};
 
 use super::utils::insert_node;
-use super::{BComp, BList, BPortal, BRaw, BSubtree, BSuspense, BTag, BText};
+use super::{BComp, BList, BPortal, BRaw, BSubtree, BSuspense, BTag, BText, DomPosition};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, DomPosition};
+use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VNode};
 
 /// The bundle implementation to [VNode].
