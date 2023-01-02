@@ -14,6 +14,7 @@ enum DomPositionVariant {
     Chained(RetargetableDomPosition),
 }
 
+/// Encode the position between two children of a dom node.
 #[derive(Clone)]
 pub struct DomPosition {
     variant: DomPositionVariant,
@@ -42,10 +43,12 @@ thread_local! {
 }
 
 impl DomPosition {
+    /// Denotes the position just before the given node in its parent's list of children.
     pub fn at(node: Node) -> Self {
         Self::create(Some(node))
     }
 
+    /// Denotes the position at the end of a list of children. The parent is implicit.
     pub fn at_end() -> Self {
         Self::create(None)
     }
@@ -56,7 +59,7 @@ impl DomPosition {
         }
     }
 
-    // A new "placeholder" node ref that should not be accessed
+    /// A new "placeholder" node ref that should not be accessed
     #[inline]
     pub fn new_debug_trapped() -> Self {
         #[cfg(debug_assertions)]
@@ -69,6 +72,8 @@ impl DomPosition {
         }
     }
 
+    /// Get the [Node] that comes just after the position, or `None` if this denotes the position at
+    /// the end
     pub fn get(&self) -> Option<Node> {
         // we use an iterative approach to traverse a possible long chain for references
         // see for example issue #3043 why a recursive call is impossible for large lists in vdom
@@ -105,21 +110,25 @@ impl DomPosition {
 }
 
 impl RetargetableDomPosition {
-    pub(crate) fn new(initial_position: DomPosition) -> Self {
+    pub fn new(initial_position: DomPosition) -> Self {
         Self {
             target: Rc::new(RefCell::new(initial_position)),
         }
     }
 
-    pub(crate) fn new_debug_trapped() -> Self {
+    pub fn new_debug_trapped() -> Self {
         Self::new(DomPosition::new_debug_trapped())
     }
 
-    pub(crate) fn retarget(&self, next_position: DomPosition) {
+    /// Change the [DomPosition] that is targeted. Getting the node from previously obtained
+    /// positions from [`Self::as_position`] will subsequently reflect the result of
+    /// `next_position.get()`.
+    pub fn retarget(&self, next_position: DomPosition) {
         *self.target.borrow_mut() = next_position;
     }
 
-    pub(crate) fn as_position(&self) -> DomPosition {
+    /// Get a [DomPosition] that gets automatically updated when `self` gets retargeted.
+    pub fn as_position(&self) -> DomPosition {
         DomPosition {
             variant: DomPositionVariant::Chained(self.clone()),
         }
