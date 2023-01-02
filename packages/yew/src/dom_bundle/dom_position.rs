@@ -75,6 +75,7 @@ impl DomPosition {
     /// Get the [Node] that comes just after the position, or `None` if this denotes the position at
     /// the end
     pub fn get(&self) -> Option<Node> {
+        #[allow(clippy::let_and_return)]
         let node = match &self.variant {
             DomPositionVariant::Node(ref n) => n.clone(),
             DomPositionVariant::Chained(ref chain) => chain.get(),
