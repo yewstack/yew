@@ -35,7 +35,40 @@ impl std::fmt::Debug for RetargetableDomPosition {
     }
 }
 
+#[cfg(debug_assertions)]
+thread_local! {
+    // A special marker element that should not be referenced
+    static TRAP: Node = gloo::utils::document().create_element("div").unwrap().into();
+}
+
 impl DomPosition {
+    pub fn at(node: Node) -> Self {
+        Self::create(Some(node))
+    }
+
+    pub fn at_end() -> Self {
+        Self::create(None)
+    }
+
+    pub fn create(node: Option<Node>) -> Self {
+        Self {
+            variant: DomPositionVariant::Node(node),
+        }
+    }
+
+    // A new "placeholder" node ref that should not be accessed
+    #[inline]
+    pub fn new_debug_trapped() -> Self {
+        #[cfg(debug_assertions)]
+        {
+            Self::at(TRAP.with(|trap| trap.clone()))
+        }
+        #[cfg(not(debug_assertions))]
+        {
+            Self::at_end()
+        }
+    }
+
     pub fn get(&self) -> Option<Node> {
         // we use an iterative approach to traverse a possible long chain for references
         // see for example issue #3043 why a recursive call is impossible for large lists in vdom
@@ -60,76 +93,35 @@ impl DomPosition {
             }
         };
 
-        #[cfg(feature = "csr")]
         #[cfg(debug_assertions)]
-        feat_csr::TRAP.with(|trap| {
+        TRAP.with(|trap| {
             assert!(
                 node.as_ref() != Some(trap),
-                "should not use a trapped node ref"
+                "Should not use a trapped node ref. Please report this as an internal bug in yew."
             )
         });
         node
     }
 }
 
-#[cfg(feature = "csr")]
-mod feat_csr {
-    use super::*;
-
-    impl DomPosition {
-        pub fn at(node: Node) -> Self {
-            Self::create(Some(node))
-        }
-
-        pub fn at_end() -> Self {
-            Self::create(None)
-        }
-
-        pub fn create(node: Option<Node>) -> Self {
-            Self {
-                variant: DomPositionVariant::Node(node),
-            }
-        }
-
-        // A new "placeholder" node ref that should not be accessed
-        #[inline]
-        pub fn new_debug_trapped() -> Self {
-            #[cfg(debug_assertions)]
-            {
-                Self::at(TRAP.with(|trap| trap.clone()))
-            }
-            #[cfg(not(debug_assertions))]
-            {
-                Self::at_end()
-            }
+impl RetargetableDomPosition {
+    pub(crate) fn new(initial_position: DomPosition) -> Self {
+        Self {
+            target: Rc::new(RefCell::new(initial_position)),
         }
     }
 
-    #[cfg(debug_assertions)]
-    thread_local! {
-        // A special marker element that should not be referenced
-        pub(super) static TRAP: Node = gloo::utils::document().create_element("div").unwrap().into();
+    pub(crate) fn new_debug_trapped() -> Self {
+        Self::new(DomPosition::new_debug_trapped())
     }
 
-    impl RetargetableDomPosition {
-        pub(crate) fn new(initial_position: DomPosition) -> Self {
-            Self {
-                target: Rc::new(RefCell::new(initial_position)),
-            }
-        }
+    pub(crate) fn retarget(&self, next_position: DomPosition) {
+        *self.target.borrow_mut() = next_position;
+    }
 
-        pub(crate) fn new_debug_trapped() -> Self {
-            Self::new(DomPosition::new_debug_trapped())
-        }
-
-        pub(crate) fn retarget(&self, next_position: DomPosition) {
-            *self.target.borrow_mut() = next_position;
-        }
-
-        pub(crate) fn as_position(&self) -> DomPosition {
-            DomPosition {
-                variant: DomPositionVariant::Chained(self.clone()),
-            }
+    pub(crate) fn as_position(&self) -> DomPosition {
+        DomPosition {
+            variant: DomPositionVariant::Chained(self.clone()),
         }
     }
 }
