@@ -75,27 +75,9 @@ impl DomPosition {
     /// Get the [Node] that comes just after the position, or `None` if this denotes the position at
     /// the end
     pub fn get(&self) -> Option<Node> {
-        // we use an iterative approach to traverse a possible long chain for references
-        // see for example issue #3043 why a recursive call is impossible for large lists in vdom
-
-        // TODO: there could be some data structure that performs better here. E.g. a balanced tree
-        // with parent pointers come to mind, but they are a bit fiddly to implement in rust
         let node = match &self.variant {
             DomPositionVariant::Node(ref n) => n.clone(),
-            DomPositionVariant::Chained(ref chain) => {
-                let mut this = chain.target.clone();
-                loop {
-                    //                          v------- borrow lives for this match expression
-                    let next_this = match &this.borrow().variant {
-                        DomPositionVariant::Node(ref n) => break n.clone(),
-                        // We clone an Rc here temporarily, so that we don't have to consume stack
-                        // space. The alternative would be to keep the
-                        // `Ref<'_, DomPosition>` above in some temporary buffer
-                        DomPositionVariant::Chained(ref chain) => chain.target.clone(),
-                    };
-                    this = next_this;
-                }
-            }
+            DomPositionVariant::Chained(ref chain) => chain.get(),
         };
 
         #[cfg(debug_assertions)]
@@ -124,6 +106,7 @@ impl RetargetableDomPosition {
     /// positions from [`Self::as_position`] will subsequently reflect the result of
     /// `next_position.get()`.
     pub fn retarget(&self, next_position: DomPosition) {
+        // TODO: is not defensive against accidental reference loops
         *self.target.borrow_mut() = next_position;
     }
 
@@ -131,6 +114,26 @@ impl RetargetableDomPosition {
     pub fn as_position(&self) -> DomPosition {
         DomPosition {
             variant: DomPositionVariant::Chained(self.clone()),
+        }
+    }
+
+    fn get(&self) -> Option<Node> {
+        // we use an iterative approach to traverse a possible long chain for references
+        // see for example issue #3043 why a recursive call is impossible for large lists in vdom
+
+        // TODO: there could be some data structure that performs better here. E.g. a balanced tree
+        // with parent pointers come to mind, but they are a bit fiddly to implement in rust
+        let mut this = self.target.clone();
+        loop {
+            //                          v------- borrow lives for this match expression
+            let next_this = match &this.borrow().variant {
+                DomPositionVariant::Node(ref n) => break n.clone(),
+                // We clone an Rc here temporarily, so that we don't have to consume stack
+                // space. The alternative would be to keep the
+                // `Ref<'_, DomPosition>` above in some temporary buffer
+                DomPositionVariant::Chained(ref chain) => chain.target.clone(),
+            };
+            this = next_this;
         }
     }
 }
