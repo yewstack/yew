@@ -158,15 +158,12 @@ impl Fragment {
     }
 
     /// Shift current Fragment into a different position in the dom.
-    pub(crate) fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
+    pub(crate) fn shift(&self, next_parent: &Element, slot: DomPosition) -> DomPosition {
         for node in self.iter() {
-            next_sibling.insert(next_parent, node);
+            slot.insert(next_parent, node);
         }
 
-        self.front()
-            .cloned()
-            .map(DomPosition::at)
-            .unwrap_or(next_sibling)
+        self.front().cloned().map(DomPosition::at).unwrap_or(slot)
     }
 
     /// Return the node that comes after all the nodes in this fragment

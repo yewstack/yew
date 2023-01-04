@@ -40,8 +40,8 @@ impl ReconcileTarget for BComp {
         self.scope.destroy_boxed(parent_to_detach);
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
-        self.scope.shift_node(next_parent.clone(), next_sibling);
+    fn shift(&self, next_parent: &Element, slot: DomPosition) -> DomPosition {
+        self.scope.shift_node(next_parent.clone(), slot);
 
         self.internal_ref.as_position()
     }
@@ -55,7 +55,7 @@ impl Reconcilable for VComp {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
     ) -> (DomPosition, Self::Bundle) {
         let VComp {
             type_id,
@@ -69,8 +69,8 @@ impl Reconcilable for VComp {
             root,
             parent_scope,
             parent.to_owned(),
+            slot,
             internal_ref.clone(),
-            next_sibling,
         );
 
         (
@@ -89,7 +89,7 @@ impl Reconcilable for VComp {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
         bundle: &mut BNode,
     ) -> DomPosition {
         match bundle {
@@ -97,9 +97,9 @@ impl Reconcilable for VComp {
             BNode::Comp(ref mut bcomp)
                 if self.type_id == bcomp.type_id && self.key == bcomp.key =>
             {
-                self.reconcile(root, parent_scope, parent, next_sibling, bcomp)
+                self.reconcile(root, parent_scope, parent, slot, bcomp)
             }
-            _ => self.replace(root, parent_scope, parent, next_sibling, bundle),
+            _ => self.replace(root, parent_scope, parent, slot, bundle),
         }
     }
 
@@ -108,13 +108,13 @@ impl Reconcilable for VComp {
         _root: &BSubtree,
         _parent_scope: &AnyScope,
         _parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
         bcomp: &mut Self::Bundle,
     ) -> DomPosition {
         let VComp { mountable, key, .. } = self;
 
         bcomp.key = key;
-        mountable.reuse(bcomp.scope.borrow(), next_sibling);
+        mountable.reuse(bcomp.scope.borrow(), slot);
         bcomp.internal_ref.as_position()
     }
 }

@@ -26,10 +26,9 @@ impl ReconcileTarget for BPortal {
         self.node.detach(&self.inner_root, &self.host, false);
     }
 
-    fn shift(&self, _next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
-        // portals have nothing in it's original place of DOM, we also do nothing.
-
-        next_sibling
+    fn shift(&self, _next_parent: &Element, slot: DomPosition) -> DomPosition {
+        // portals have nothing in its original place of DOM, we also do nothing.
+        slot
     }
 }
 
@@ -41,18 +40,18 @@ impl Reconcilable for VPortal {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        host_next_sibling: DomPosition,
+        host_slot: DomPosition,
     ) -> (DomPosition, Self::Bundle) {
         let Self {
             host,
             inner_sibling,
             node,
         } = self;
-        let inner_pos = DomPosition::create(inner_sibling.clone());
+        let inner_slot = DomPosition::create(inner_sibling.clone());
         let inner_root = root.create_subroot(parent.clone(), &host);
-        let (_, inner) = node.attach(&inner_root, parent_scope, &host, inner_pos);
+        let (_, inner) = node.attach(&inner_root, parent_scope, &host, inner_slot);
         (
-            host_next_sibling,
+            host_slot,
             BPortal {
                 inner_root,
                 host,
@@ -67,14 +66,12 @@ impl Reconcilable for VPortal {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
         bundle: &mut BNode,
     ) -> DomPosition {
         match bundle {
-            BNode::Portal(portal) => {
-                self.reconcile(root, parent_scope, parent, next_sibling, portal)
-            }
-            _ => self.replace(root, parent_scope, parent, next_sibling, bundle),
+            BNode::Portal(portal) => self.reconcile(root, parent_scope, parent, slot, portal),
+            _ => self.replace(root, parent_scope, parent, slot, bundle),
         }
     }
 
@@ -83,7 +80,7 @@ impl Reconcilable for VPortal {
         _root: &BSubtree,
         parent_scope: &AnyScope,
         _parent: &Element,
-        next_sibling: DomPosition,
+        host_slot: DomPosition,
         portal: &mut Self::Bundle,
     ) -> DomPosition {
         let Self {
@@ -96,21 +93,21 @@ impl Reconcilable for VPortal {
 
         let should_shift = old_host != portal.host || portal.inner_sibling != inner_sibling;
         portal.inner_sibling = inner_sibling;
-        let inner_sibling = DomPosition::create(portal.inner_sibling.clone());
+        let inner_slot = DomPosition::create(portal.inner_sibling.clone());
 
         if should_shift {
             // Remount the inner node somewhere else instead of diffing
             // Move the node, but keep the state
-            portal.node.shift(&portal.host, inner_sibling.clone());
+            portal.node.shift(&portal.host, inner_slot.clone());
         }
         node.reconcile_node(
             &portal.inner_root,
             parent_scope,
             &portal.host,
-            inner_sibling,
+            inner_slot,
             &mut portal.node,
         );
-        next_sibling
+        host_slot
     }
 }
 

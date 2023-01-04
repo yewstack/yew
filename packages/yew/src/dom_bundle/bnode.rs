@@ -65,20 +65,20 @@ impl ReconcileTarget for BNode {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
+    fn shift(&self, next_parent: &Element, slot: DomPosition) -> DomPosition {
         match self {
-            Self::Tag(ref vtag) => vtag.shift(next_parent, next_sibling),
-            Self::Text(ref btext) => btext.shift(next_parent, next_sibling),
-            Self::Comp(ref bsusp) => bsusp.shift(next_parent, next_sibling),
-            Self::List(ref vlist) => vlist.shift(next_parent, next_sibling),
+            Self::Tag(ref vtag) => vtag.shift(next_parent, slot),
+            Self::Text(ref btext) => btext.shift(next_parent, slot),
+            Self::Comp(ref bsusp) => bsusp.shift(next_parent, slot),
+            Self::List(ref vlist) => vlist.shift(next_parent, slot),
             Self::Ref(ref node) => {
-                next_sibling.insert(next_parent, node);
+                slot.insert(next_parent, node);
 
                 DomPosition::at(node.clone())
             }
-            Self::Portal(ref vportal) => vportal.shift(next_parent, next_sibling),
-            Self::Suspense(ref vsuspense) => vsuspense.shift(next_parent, next_sibling),
-            Self::Raw(ref braw) => braw.shift(next_parent, next_sibling),
+            Self::Portal(ref vportal) => vportal.shift(next_parent, slot),
+            Self::Suspense(ref vsuspense) => vsuspense.shift(next_parent, slot),
+            Self::Raw(ref braw) => braw.shift(next_parent, slot),
         }
     }
 }
@@ -91,40 +91,39 @@ impl Reconcilable for VNode {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
     ) -> (DomPosition, Self::Bundle) {
         match self {
             VNode::VTag(vtag) => {
-                let (node_ref, tag) = vtag.attach(root, parent_scope, parent, next_sibling);
+                let (node_ref, tag) = vtag.attach(root, parent_scope, parent, slot);
                 (node_ref, tag.into())
             }
             VNode::VText(vtext) => {
-                let (node_ref, text) = vtext.attach(root, parent_scope, parent, next_sibling);
+                let (node_ref, text) = vtext.attach(root, parent_scope, parent, slot);
                 (node_ref, text.into())
             }
             VNode::VComp(vcomp) => {
-                let (node_ref, comp) = vcomp.attach(root, parent_scope, parent, next_sibling);
+                let (node_ref, comp) = vcomp.attach(root, parent_scope, parent, slot);
                 (node_ref, comp.into())
             }
             VNode::VList(vlist) => {
-                let (node_ref, list) = vlist.attach(root, parent_scope, parent, next_sibling);
+                let (node_ref, list) = vlist.attach(root, parent_scope, parent, slot);
                 (node_ref, list.into())
             }
             VNode::VRef(node) => {
-                next_sibling.insert(parent, &node);
+                slot.insert(parent, &node);
                 (DomPosition::at(node.clone()), BNode::Ref(node))
             }
             VNode::VPortal(vportal) => {
-                let (node_ref, portal) = vportal.attach(root, parent_scope, parent, next_sibling);
+                let (node_ref, portal) = vportal.attach(root, parent_scope, parent, slot);
                 (node_ref, portal.into())
             }
             VNode::VSuspense(vsuspsense) => {
-                let (node_ref, suspsense) =
-                    vsuspsense.attach(root, parent_scope, parent, next_sibling);
+                let (node_ref, suspsense) = vsuspsense.attach(root, parent_scope, parent, slot);
                 (node_ref, suspsense.into())
             }
             VNode::VRaw(vraw) => {
-                let (node_ref, raw) = vraw.attach(root, parent_scope, parent, next_sibling);
+                let (node_ref, raw) = vraw.attach(root, parent_scope, parent, slot);
                 (node_ref, raw.into())
             }
         }
@@ -135,10 +134,10 @@ impl Reconcilable for VNode {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
         bundle: &mut BNode,
     ) -> DomPosition {
-        self.reconcile(root, parent_scope, parent, next_sibling, bundle)
+        self.reconcile(root, parent_scope, parent, slot, bundle)
     }
 
     fn reconcile(
@@ -146,35 +145,25 @@ impl Reconcilable for VNode {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
         bundle: &mut BNode,
     ) -> DomPosition {
         match self {
-            VNode::VTag(vtag) => {
-                vtag.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
-            }
-            VNode::VText(vtext) => {
-                vtext.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
-            }
-            VNode::VComp(vcomp) => {
-                vcomp.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
-            }
-            VNode::VList(vlist) => {
-                vlist.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
-            }
+            VNode::VTag(vtag) => vtag.reconcile_node(root, parent_scope, parent, slot, bundle),
+            VNode::VText(vtext) => vtext.reconcile_node(root, parent_scope, parent, slot, bundle),
+            VNode::VComp(vcomp) => vcomp.reconcile_node(root, parent_scope, parent, slot, bundle),
+            VNode::VList(vlist) => vlist.reconcile_node(root, parent_scope, parent, slot, bundle),
             VNode::VRef(node) => match bundle {
                 BNode::Ref(ref n) if &node == n => DomPosition::at(node),
-                _ => VNode::VRef(node).replace(root, parent_scope, parent, next_sibling, bundle),
+                _ => VNode::VRef(node).replace(root, parent_scope, parent, slot, bundle),
             },
             VNode::VPortal(vportal) => {
-                vportal.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
+                vportal.reconcile_node(root, parent_scope, parent, slot, bundle)
             }
             VNode::VSuspense(vsuspsense) => {
-                vsuspsense.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
+                vsuspsense.reconcile_node(root, parent_scope, parent, slot, bundle)
             }
-            VNode::VRaw(vraw) => {
-                vraw.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
-            }
+            VNode::VRaw(vraw) => vraw.reconcile_node(root, parent_scope, parent, slot, bundle),
         }
     }
 }

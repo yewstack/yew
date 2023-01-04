@@ -540,11 +540,11 @@ mod feat_csr {
     fn schedule_props_update(
         state: Shared<Option<ComponentState>>,
         props: Rc<dyn Any>,
-        next_sibling: DomPosition,
+        next_sibling_slot: DomPosition,
     ) {
         scheduler::push_component_props_update(Box::new(PropsUpdateRunner {
             state,
-            next_sibling: Some(next_sibling),
+            next_sibling_slot: Some(next_sibling_slot),
             props: Some(props),
         }));
         // Not guaranteed to already have the scheduler started
@@ -560,20 +560,20 @@ mod feat_csr {
             &self,
             root: BSubtree,
             parent: Element,
-            next_sibling: DomPosition,
+            slot: DomPosition,
             internal_ref: RetargetableDomPosition,
             props: Rc<COMP::Properties>,
         ) {
             let bundle = Bundle::new();
-            let next_sibling = RetargetableDomPosition::new(next_sibling);
-            internal_ref.retarget(next_sibling.as_position());
+            let sibling_slot = RetargetableDomPosition::new(slot);
+            internal_ref.retarget(sibling_slot.as_position());
 
             let state = ComponentRenderState::Render {
                 bundle,
                 root,
                 internal_ref,
                 parent,
-                next_sibling,
+                sibling_slot,
             };
 
             scheduler::push_component_create(
@@ -593,8 +593,8 @@ mod feat_csr {
             scheduler::start();
         }
 
-        pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, next_sibling: DomPosition) {
-            schedule_props_update(self.state.clone(), props, next_sibling)
+        pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, slot: DomPosition) {
+            schedule_props_update(self.state.clone(), props, slot)
         }
     }
 
@@ -603,7 +603,7 @@ mod feat_csr {
         /// Get the render state if it hasn't already been destroyed
         fn render_state(&self) -> Option<Ref<'_, ComponentRenderState>>;
         /// Shift the node associated with this scope to a new place
-        fn shift_node(&self, parent: Element, next_sibling: DomPosition);
+        fn shift_node(&self, parent: Element, slot: DomPosition);
         /// Process an event to destroy a component
         fn destroy(self, parent_to_detach: bool);
         fn destroy_boxed(self: Box<Self>, parent_to_detach: bool);
@@ -639,10 +639,10 @@ mod feat_csr {
             self.destroy(parent_to_detach)
         }
 
-        fn shift_node(&self, parent: Element, next_sibling: DomPosition) {
+        fn shift_node(&self, parent: Element, slot: DomPosition) {
             let mut state_ref = self.state.borrow_mut();
             if let Some(render_state) = state_ref.as_mut() {
-                render_state.render_state.shift(parent, next_sibling)
+                render_state.render_state.shift(parent, slot)
             }
         }
     }
@@ -717,7 +717,7 @@ mod feat_hydration {
                 parent,
                 root,
                 internal_ref,
-                next_sibling: RetargetableDomPosition::new_debug_trapped(),
+                sibling_slot: RetargetableDomPosition::new_debug_trapped(),
                 fragment,
             };
 

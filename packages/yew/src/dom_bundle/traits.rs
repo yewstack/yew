@@ -16,7 +16,7 @@ pub(super) trait ReconcileTarget {
     /// Move elements from one parent to another parent.
     /// This is for example used by `VSuspense` to preserve component state without detaching
     /// (which destroys component state).
-    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition;
+    fn shift(&self, next_parent: &Element, slot: DomPosition) -> DomPosition;
 }
 
 /// This trait provides features to update a tree by calculating a difference against another tree.
@@ -29,18 +29,18 @@ pub(super) trait Reconcilable {
     /// - `root`: bundle of the subtree root
     /// - `parent_scope`: the parent `Scope` used for passing messages to the parent `Component`.
     /// - `parent`: the parent node in the DOM.
-    /// - `next_sibling`: to find where to put the node.
+    /// - `slot`: to find where to put the node.
     ///
     /// Returns a reference to the newly inserted element.
     /// The [`DomPosition`] points the first element (if there are multiple nodes created),
-    /// or is the passed in next_sibling if there are no element is created.
+    /// or is the passed in `slot` if there are no element is created.
     fn attach(
         self,
 
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
     ) -> (DomPosition, Self::Bundle);
 
     /// Scoped diff apply to other tree.
@@ -52,7 +52,7 @@ pub(super) trait Reconcilable {
     /// Parameters:
     /// - `parent_scope`: the parent `Scope` used for passing messages to the parent `Component`.
     /// - `parent`: the parent node in the DOM.
-    /// - `next_sibling`: the next sibling, used to efficiently find where to put the node.
+    /// - `slot`: the slot in `parent`'s children where to put the node.
     /// - `bundle`: the node that this node will be replacing in the DOM. This method will remove
     ///   the `bundle` from the `parent` if it is of the wrong kind, and otherwise reuse it.
     ///
@@ -63,7 +63,7 @@ pub(super) trait Reconcilable {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
         bundle: &mut BNode,
     ) -> DomPosition;
 
@@ -72,7 +72,7 @@ pub(super) trait Reconcilable {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
         bundle: &mut Self::Bundle,
     ) -> DomPosition;
 
@@ -83,14 +83,14 @@ pub(super) trait Reconcilable {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
         bundle: &mut BNode,
     ) -> DomPosition
     where
         Self: Sized,
         Self::Bundle: Into<BNode>,
     {
-        let (self_ref, self_) = self.attach(root, parent_scope, parent, next_sibling);
+        let (self_ref, self_) = self.attach(root, parent_scope, parent, slot);
         let ancestor = std::mem::replace(bundle, self_.into());
         ancestor.detach(root, parent, false);
         self_ref

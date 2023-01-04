@@ -36,11 +36,11 @@ impl BRaw {
         }
     }
 
-    fn position(&self, next_sibling: DomPosition) -> DomPosition {
+    fn position(&self, next_slot: DomPosition) -> DomPosition {
         self.reference
             .as_ref()
             .map(|n| DomPosition::at(n.clone()))
-            .unwrap_or(next_sibling)
+            .unwrap_or(next_slot)
     }
 }
 
@@ -49,15 +49,15 @@ impl ReconcileTarget for BRaw {
         self.detach_bundle(parent);
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
+    fn shift(&self, next_parent: &Element, slot: DomPosition) -> DomPosition {
         let mut next_node = self.reference.clone();
         for _ in 0..self.children_count {
             if let Some(node) = next_node {
                 next_node = node.next_sibling();
-                next_sibling.insert(next_parent, &node);
+                slot.insert(next_parent, &node);
             }
         }
-        self.position(next_sibling)
+        self.position(slot)
     }
 }
 
@@ -69,16 +69,16 @@ impl Reconcilable for VRaw {
         _root: &BSubtree,
         _parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
     ) -> (DomPosition, Self::Bundle) {
         let elements = BRaw::create_elements(&self.html);
         let count = elements.len();
         let mut iter = elements.into_iter();
         let reference = iter.next();
         if let Some(ref first) = reference {
-            next_sibling.insert(parent, first);
+            slot.insert(parent, first);
             for ref child in iter {
-                next_sibling.insert(parent, child);
+                slot.insert(parent, child);
             }
         }
         let this = BRaw {
@@ -86,7 +86,7 @@ impl Reconcilable for VRaw {
             children_count: count,
             html: self.html,
         };
-        (this.position(next_sibling), this)
+        (this.position(slot), this)
     }
 
     fn reconcile_node(
@@ -94,13 +94,13 @@ impl Reconcilable for VRaw {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
         bundle: &mut BNode,
     ) -> DomPosition {
         match bundle {
-            BNode::Raw(raw) if raw.html == self.html => raw.position(next_sibling),
-            BNode::Raw(raw) => self.reconcile(root, parent_scope, parent, next_sibling, raw),
-            _ => self.replace(root, parent_scope, parent, next_sibling, bundle),
+            BNode::Raw(raw) if raw.html == self.html => raw.position(slot),
+            BNode::Raw(raw) => self.reconcile(root, parent_scope, parent, slot, raw),
+            _ => self.replace(root, parent_scope, parent, slot, bundle),
         }
     }
 
@@ -109,18 +109,18 @@ impl Reconcilable for VRaw {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
         bundle: &mut Self::Bundle,
     ) -> DomPosition {
         if self.html != bundle.html {
             // we don't have a way to diff what's changed in the string so we remove the node and
             // reattach it
             bundle.detach_bundle(parent);
-            let (node_ref, braw) = self.attach(root, parent_scope, parent, next_sibling);
+            let (node_ref, braw) = self.attach(root, parent_scope, parent, slot);
             *bundle = braw;
             node_ref
         } else {
-            bundle.position(next_sibling)
+            bundle.position(slot)
         }
     }
 }

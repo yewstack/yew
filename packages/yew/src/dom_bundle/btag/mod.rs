@@ -93,8 +93,8 @@ impl ReconcileTarget for BTag {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
-        next_sibling.insert(next_parent, &self.reference);
+    fn shift(&self, next_parent: &Element, slot: DomPosition) -> DomPosition {
+        slot.insert(next_parent, &self.reference);
 
         DomPosition::at(self.reference.clone().into())
     }
@@ -108,7 +108,7 @@ impl Reconcilable for VTag {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
     ) -> (DomPosition, Self::Bundle) {
         let el = self.create_element(parent);
         let Self {
@@ -118,7 +118,7 @@ impl Reconcilable for VTag {
             key,
             ..
         } = self;
-        next_sibling.insert(parent, &el);
+        slot.insert(parent, &el);
 
         let attributes = attributes.apply(root, &el);
         let listeners = listeners.apply(root, &el);
@@ -157,7 +157,7 @@ impl Reconcilable for VTag {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
         bundle: &mut BNode,
     ) -> DomPosition {
         // This kind of branching patching routine reduces branch predictor misses and the need to
@@ -177,18 +177,12 @@ impl Reconcilable for VTag {
                     }
                     _ => false,
                 } {
-                    return self.reconcile(
-                        root,
-                        parent_scope,
-                        parent,
-                        next_sibling,
-                        ex.deref_mut(),
-                    );
+                    return self.reconcile(root, parent_scope, parent, slot, ex.deref_mut());
                 }
             }
             _ => {}
         };
-        self.replace(root, parent_scope, parent, next_sibling, bundle)
+        self.replace(root, parent_scope, parent, slot, bundle)
     }
 
     fn reconcile(
@@ -196,7 +190,7 @@ impl Reconcilable for VTag {
         root: &BSubtree,
         parent_scope: &AnyScope,
         _parent: &Element,
-        _next_sibling: DomPosition,
+        _slot: DomPosition,
         tag: &mut Self::Bundle,
     ) -> DomPosition {
         let el = &tag.reference;

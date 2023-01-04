@@ -55,8 +55,8 @@ impl Bundle {
     }
 
     /// Shifts the bundle into a different position.
-    pub fn shift(&self, next_parent: &Element, next_sibling: DomPosition) {
-        self.0.shift(next_parent, next_sibling);
+    pub fn shift(&self, next_parent: &Element, slot: DomPosition) {
+        self.0.shift(next_parent, slot);
     }
 
     /// Applies a virtual dom layout to current bundle.
@@ -65,10 +65,10 @@ impl Bundle {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
         next_node: VNode,
     ) -> DomPosition {
-        next_node.reconcile_node(root, parent_scope, parent, next_sibling, &mut self.0)
+        next_node.reconcile_node(root, parent_scope, parent, slot, &mut self.0)
     }
 
     /// Detaches current bundle.

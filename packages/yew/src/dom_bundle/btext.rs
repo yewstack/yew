@@ -24,8 +24,8 @@ impl ReconcileTarget for BText {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
-        next_sibling.insert(next_parent, &self.text_node);
+    fn shift(&self, next_parent: &Element, slot: DomPosition) -> DomPosition {
+        slot.insert(next_parent, &self.text_node);
 
         DomPosition::at(self.text_node.clone().into())
     }
@@ -39,11 +39,11 @@ impl Reconcilable for VText {
         _root: &BSubtree,
         _parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
     ) -> (DomPosition, Self::Bundle) {
         let Self { text } = self;
         let text_node = document().create_text_node(&text);
-        next_sibling.insert(parent, &text_node);
+        slot.insert(parent, &text_node);
         let node_ref = DomPosition::at(text_node.clone().into());
         (node_ref, BText { text, text_node })
     }
@@ -54,12 +54,12 @@ impl Reconcilable for VText {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: DomPosition,
+        slot: DomPosition,
         bundle: &mut BNode,
     ) -> DomPosition {
         match bundle {
-            BNode::Text(btext) => self.reconcile(root, parent_scope, parent, next_sibling, btext),
-            _ => self.replace(root, parent_scope, parent, next_sibling, bundle),
+            BNode::Text(btext) => self.reconcile(root, parent_scope, parent, slot, btext),
+            _ => self.replace(root, parent_scope, parent, slot, bundle),
         }
     }
 
@@ -68,7 +68,7 @@ impl Reconcilable for VText {
         _root: &BSubtree,
         _parent_scope: &AnyScope,
         _parent: &Element,
-        _next_sibling: DomPosition,
+        _slot: DomPosition,
         btext: &mut Self::Bundle,
     ) -> DomPosition {
         let Self { text } = self;

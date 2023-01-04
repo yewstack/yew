@@ -61,12 +61,12 @@ pub(crate) trait Mountable {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
+        slot: DomPosition,
         internal_ref: RetargetableDomPosition,
-        next_sibling: DomPosition,
     ) -> Box<dyn Scoped>;
 
     #[cfg(feature = "csr")]
-    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: DomPosition);
+    fn reuse(self: Box<Self>, scope: &dyn Scoped, slot: DomPosition);
 
     #[cfg(feature = "ssr")]
     fn render_into_stream<'a>(
@@ -111,19 +111,19 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
+        slot: DomPosition,
         internal_ref: RetargetableDomPosition,
-        next_sibling: DomPosition,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        scope.mount_in_place(root.clone(), parent, next_sibling, internal_ref, self.props);
+        scope.mount_in_place(root.clone(), parent, slot, internal_ref, self.props);
 
         Box::new(scope)
     }
 
     #[cfg(feature = "csr")]
-    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: DomPosition) {
+    fn reuse(self: Box<Self>, scope: &dyn Scoped, slot: DomPosition) {
         let scope: Scope<COMP> = scope.to_any().downcast::<COMP>();
-        scope.reuse(self.props, next_sibling);
+        scope.reuse(self.props, slot);
     }
 
     #[cfg(feature = "ssr")]
