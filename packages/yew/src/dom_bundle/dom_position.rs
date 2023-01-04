@@ -18,7 +18,8 @@ enum DomSlotVariant {
     Chained(DynamicDomSlot),
 }
 
-///
+/// A dynamic dom slot can be retargeted. This change is also seen by the [`DomSlot`] from
+/// [`Self::to_position`] before the retargeting took place.
 #[derive(Clone)]
 pub struct DynamicDomSlot {
     target: Rc<RefCell<DomSlot>>,
@@ -129,6 +130,8 @@ impl DomSlot {
 }
 
 impl DynamicDomSlot {
+    /// Create a dynamic dom slot that initially represents ("targets") the same slot as the
+    /// argument.
     pub fn new(initial_position: DomSlot) -> Self {
         Self {
             target: Rc::new(RefCell::new(initial_position)),
@@ -139,15 +142,15 @@ impl DynamicDomSlot {
         Self::new(DomSlot::new_debug_trapped())
     }
 
-    /// Change the [`DomSlot`] that is targeted. Getting the node from previously obtained
-    /// positions from [`Self::to_position`] will subsequently reflect the result of
-    /// `next_position.get()`.
+    /// Change the [`DomSlot`] that is targeted. Subsequently, this will behave as if `self` was
+    /// created from the passed DomSlot in the first place.
     pub fn retarget(&self, next_position: DomSlot) {
         // TODO: is not defensive against accidental reference loops
         *self.target.borrow_mut() = next_position;
     }
 
-    /// Get a [`DomSlot`] that gets automatically updated when `self` gets retargeted.
+    /// Get a [`DomSlot`] that gets automatically updated when `self` gets retargeted. All such
+    /// slots are equivalent to each other and point to the same position.
     pub fn to_position(&self) -> DomSlot {
         DomSlot {
             variant: DomSlotVariant::Chained(self.clone()),
