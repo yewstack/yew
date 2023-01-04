@@ -25,7 +25,10 @@ pub(crate) enum ComponentRenderState {
         bundle: Bundle,
         root: BSubtree,
         parent: Element,
+        /// The dom position in front of the next sibling
         sibling_slot: DynamicDomSlot,
+        /// The dom position in front of this component. Adjusted whenever this component
+        /// re-renders.
         own_slot: DynamicDomSlot,
     },
     #[cfg(feature = "hydration")]

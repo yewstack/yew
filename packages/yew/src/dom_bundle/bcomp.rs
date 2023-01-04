@@ -16,7 +16,7 @@ pub(super) struct BComp {
     scope: Box<dyn Scoped>,
     /// An internal [`DomSlot`] passed around to track this components position. This
     /// will dynamically adjust when a lifecycle changes the render state of this component.
-    own_position: DomSlot,
+    own_position: DynamicDomSlot,
     key: Option<Key>,
 }
 
@@ -43,7 +43,7 @@ impl ReconcileTarget for BComp {
     fn shift(&self, next_parent: &Element, slot: DomSlot) -> DomSlot {
         self.scope.shift_node(next_parent.clone(), slot);
 
-        self.own_position.clone()
+        self.own_position.to_position()
     }
 }
 
@@ -64,15 +64,20 @@ impl Reconcilable for VComp {
             ..
         } = self;
         let internal_ref = DynamicDomSlot::new_debug_trapped();
-        let own_position = internal_ref.to_position();
 
-        let scope = mountable.mount(root, parent_scope, parent.to_owned(), slot, internal_ref);
+        let scope = mountable.mount(
+            root,
+            parent_scope,
+            parent.to_owned(),
+            slot,
+            internal_ref.clone(),
+        );
 
         (
-            own_position.clone(),
+            internal_ref.to_position(),
             BComp {
                 type_id,
-                own_position,
+                own_position: internal_ref,
                 key,
                 scope,
             },
@@ -110,7 +115,7 @@ impl Reconcilable for VComp {
 
         bcomp.key = key;
         mountable.reuse(bcomp.scope.borrow(), slot);
-        bcomp.own_position.clone()
+        bcomp.own_position.to_position()
     }
 }
 
@@ -134,20 +139,19 @@ mod feat_hydration {
                 ..
             } = self;
             let internal_ref = DynamicDomSlot::new_debug_trapped();
-            let own_position = internal_ref.to_position();
 
             let scoped = mountable.hydrate(
                 root.clone(),
                 parent_scope,
                 parent.clone(),
-                internal_ref,
+                internal_ref.clone(),
                 fragment,
             );
 
             BComp {
                 type_id,
                 scope: scoped,
-                own_position,
+                own_position: internal_ref,
                 key,
             }
         }
