@@ -495,7 +495,7 @@ impl ComponentState {
                 let scope = self.inner.any_scope();
 
                 let new_node_ref =
-                    bundle.reconcile(root, &scope, parent, sibling_slot.as_position(), new_root);
+                    bundle.reconcile(root, &scope, parent, sibling_slot.to_position(), new_root);
                 internal_ref.retarget(new_node_ref);
 
                 let first_render = !self.has_rendered;

@@ -43,7 +43,7 @@ impl ReconcileTarget for BComp {
     fn shift(&self, next_parent: &Element, slot: DomSlot) -> DomSlot {
         self.scope.shift_node(next_parent.clone(), slot);
 
-        self.internal_ref.as_position()
+        self.internal_ref.to_position()
     }
 }
 
@@ -74,7 +74,7 @@ impl Reconcilable for VComp {
         );
 
         (
-            internal_ref.as_position(),
+            internal_ref.to_position(),
             BComp {
                 type_id,
                 internal_ref,
@@ -115,7 +115,7 @@ impl Reconcilable for VComp {
 
         bcomp.key = key;
         mountable.reuse(bcomp.scope.borrow(), slot);
-        bcomp.internal_ref.as_position()
+        bcomp.internal_ref.to_position()
     }
 }
 

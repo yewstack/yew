@@ -136,7 +136,7 @@ impl RetargetableDomSlot {
     }
 
     /// Change the [`DomSlot`] that is targeted. Getting the node from previously obtained
-    /// positions from [`Self::as_position`] will subsequently reflect the result of
+    /// positions from [`Self::to_position`] will subsequently reflect the result of
     /// `next_position.get()`.
     pub fn retarget(&self, next_position: DomSlot) {
         // TODO: is not defensive against accidental reference loops
@@ -144,7 +144,7 @@ impl RetargetableDomSlot {
     }
 
     /// Get a [`DomSlot`] that gets automatically updated when `self` gets retargeted.
-    pub fn as_position(&self) -> DomSlot {
+    pub fn to_position(&self) -> DomSlot {
         DomSlot {
             variant: DomSlotVariant::Chained(self.clone()),
         }
@@ -206,7 +206,7 @@ mod layout_tests {
         let original = DomSlot::at(document().create_element("p").unwrap().into());
         let target = RetargetableDomSlot::new(original.clone());
         assert_eq!(
-            target.as_position().get(),
+            target.to_position().get(),
             original.get(),
             "expected {target:#?} to point to the same position as {original:#?}"
         );
@@ -215,8 +215,8 @@ mod layout_tests {
     #[test]
     fn get_after_retarget() {
         let target = RetargetableDomSlot::new(DomSlot::at_end());
-        let target_pos = target.as_position();
-        // We retarget *after* we called `as_position` here to be strict in the test
+        let target_pos = target.to_position();
+        // We retarget *after* we called `to_position` here to be strict in the test
         let replacement = DomSlot::at(document().create_element("p").unwrap().into());
         target.retarget(replacement.clone());
         assert_eq!(
@@ -229,10 +229,10 @@ mod layout_tests {
     #[test]
     fn get_chain_after_retarget() {
         let middleman = RetargetableDomSlot::new(DomSlot::at_end());
-        let target = RetargetableDomSlot::new(middleman.as_position());
-        let target_pos = target.as_position();
+        let target = RetargetableDomSlot::new(middleman.to_position());
+        let target_pos = target.to_position();
         assert!(
-            target.as_position().get().is_none(),
+            target.to_position().get().is_none(),
             "should not yet point to a node"
         );
         // Now retarget the middle man, but get the node from `target`

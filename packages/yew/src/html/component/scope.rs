@@ -566,7 +566,7 @@ mod feat_csr {
         ) {
             let bundle = Bundle::new();
             let sibling_slot = RetargetableDomSlot::new(slot);
-            internal_ref.retarget(sibling_slot.as_position());
+            internal_ref.retarget(sibling_slot.to_position());
 
             let state = ComponentRenderState::Render {
                 bundle,
