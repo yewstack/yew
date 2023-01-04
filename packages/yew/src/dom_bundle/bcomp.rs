@@ -6,7 +6,7 @@ use std::fmt;
 
 use web_sys::Element;
 
-use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget, RetargetableDomSlot};
+use super::{BNode, BSubtree, DomSlot, DynamicDomSlot, Reconcilable, ReconcileTarget};
 use crate::html::{AnyScope, Scoped};
 use crate::virtual_dom::{Key, VComp};
 
@@ -14,9 +14,9 @@ use crate::virtual_dom::{Key, VComp};
 pub(super) struct BComp {
     type_id: TypeId,
     scope: Box<dyn Scoped>,
-    /// A internal [`DomSlot`] passed around to track this components position. This
-    /// is "stable", i.e. does not change when reconciled.
-    internal_ref: RetargetableDomSlot,
+    /// An internal [`DomSlot`] passed around to track this components position. This
+    /// will dynamically adjust when a lifecycle changes the render state of this component.
+    own_position: DomSlot,
     key: Option<Key>,
 }
 
@@ -43,7 +43,7 @@ impl ReconcileTarget for BComp {
     fn shift(&self, next_parent: &Element, slot: DomSlot) -> DomSlot {
         self.scope.shift_node(next_parent.clone(), slot);
 
-        self.internal_ref.to_position()
+        self.own_position.clone()
     }
 }
 
@@ -63,21 +63,16 @@ impl Reconcilable for VComp {
             key,
             ..
         } = self;
-        let internal_ref = RetargetableDomSlot::new_debug_trapped();
+        let internal_ref = DynamicDomSlot::new_debug_trapped();
+        let own_position = internal_ref.to_position();
 
-        let scope = mountable.mount(
-            root,
-            parent_scope,
-            parent.to_owned(),
-            slot,
-            internal_ref.clone(),
-        );
+        let scope = mountable.mount(root, parent_scope, parent.to_owned(), slot, internal_ref);
 
         (
-            internal_ref.to_position(),
+            own_position.clone(),
             BComp {
                 type_id,
-                internal_ref,
+                own_position,
                 key,
                 scope,
             },
@@ -115,7 +110,7 @@ impl Reconcilable for VComp {
 
         bcomp.key = key;
         mountable.reuse(bcomp.scope.borrow(), slot);
-        bcomp.internal_ref.to_position()
+        bcomp.own_position.clone()
     }
 }
 
@@ -138,20 +133,21 @@ mod feat_hydration {
                 key,
                 ..
             } = self;
-            let internal_ref = RetargetableDomSlot::new_debug_trapped();
+            let internal_ref = DynamicDomSlot::new_debug_trapped();
+            let own_position = internal_ref.to_position();
 
             let scoped = mountable.hydrate(
                 root.clone(),
                 parent_scope,
                 parent.clone(),
-                internal_ref.clone(),
+                internal_ref,
                 fragment,
             );
 
             BComp {
                 type_id,
                 scope: scoped,
-                internal_ref,
+                own_position,
                 key,
             }
         }

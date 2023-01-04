@@ -520,7 +520,7 @@ mod feat_csr {
     use web_sys::Element;
 
     use super::*;
-    use crate::dom_bundle::{BSubtree, Bundle, DomSlot, RetargetableDomSlot};
+    use crate::dom_bundle::{BSubtree, Bundle, DomSlot, DynamicDomSlot};
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, PropsUpdateRunner, RenderRunner,
     };
@@ -561,17 +561,17 @@ mod feat_csr {
             root: BSubtree,
             parent: Element,
             slot: DomSlot,
-            internal_ref: RetargetableDomSlot,
+            internal_ref: DynamicDomSlot,
             props: Rc<COMP::Properties>,
         ) {
             let bundle = Bundle::new();
-            let sibling_slot = RetargetableDomSlot::new(slot);
+            let sibling_slot = DynamicDomSlot::new(slot);
             internal_ref.retarget(sibling_slot.to_position());
 
             let state = ComponentRenderState::Render {
                 bundle,
                 root,
-                internal_ref,
+                own_slot: internal_ref,
                 parent,
                 sibling_slot,
             };
@@ -656,7 +656,7 @@ mod feat_hydration {
     use web_sys::{Element, HtmlScriptElement};
 
     use super::*;
-    use crate::dom_bundle::{BSubtree, DomSlot, Fragment, RetargetableDomSlot};
+    use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot, Fragment};
     use crate::html::component::lifecycle::{ComponentRenderState, CreateRunner, RenderRunner};
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
@@ -678,7 +678,7 @@ mod feat_hydration {
             root: BSubtree,
             parent: Element,
             fragment: &mut Fragment,
-            internal_ref: RetargetableDomSlot,
+            internal_ref: DynamicDomSlot,
             props: Rc<COMP::Properties>,
         ) {
             // This is very helpful to see which component is failing during hydration
@@ -716,8 +716,8 @@ mod feat_hydration {
             let state = ComponentRenderState::Hydration {
                 parent,
                 root,
-                internal_ref,
-                sibling_slot: RetargetableDomSlot::new_debug_trapped(),
+                own_slot: internal_ref,
+                sibling_slot: DynamicDomSlot::new_debug_trapped(),
                 fragment,
             };
 

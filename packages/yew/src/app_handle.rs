@@ -5,7 +5,7 @@ use std::rc::Rc;
 
 use web_sys::Element;
 
-use crate::dom_bundle::{BSubtree, DomSlot, RetargetableDomSlot};
+use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot};
 use crate::html::{BaseComponent, Scope, Scoped};
 
 /// An instance of an application.
@@ -38,7 +38,7 @@ where
             hosting_root,
             host,
             DomSlot::at_end(),
-            RetargetableDomSlot::new_debug_trapped(),
+            DynamicDomSlot::new_debug_trapped(),
             props,
         );
 
@@ -114,7 +114,7 @@ mod feat_hydration {
                 hosting_root,
                 host.clone(),
                 &mut fragment,
-                RetargetableDomSlot::new_debug_trapped(),
+                DynamicDomSlot::new_debug_trapped(),
                 Rc::clone(&props),
             );
             #[cfg(debug_assertions)] // Fix trapped next_sibling at the root

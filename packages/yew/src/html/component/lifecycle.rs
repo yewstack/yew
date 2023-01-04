@@ -11,7 +11,7 @@ use super::BaseComponent;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
-use crate::dom_bundle::{BSubtree, Bundle, DomSlot, RetargetableDomSlot};
+use crate::dom_bundle::{BSubtree, Bundle, DomSlot, DynamicDomSlot};
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
 use crate::html::{Html, RenderError};
@@ -25,16 +25,16 @@ pub(crate) enum ComponentRenderState {
         bundle: Bundle,
         root: BSubtree,
         parent: Element,
-        sibling_slot: RetargetableDomSlot,
-        internal_ref: RetargetableDomSlot,
+        sibling_slot: DynamicDomSlot,
+        own_slot: DynamicDomSlot,
     },
     #[cfg(feature = "hydration")]
     Hydration {
         fragment: Fragment,
         root: BSubtree,
         parent: Element,
-        sibling_slot: RetargetableDomSlot,
-        internal_ref: RetargetableDomSlot,
+        sibling_slot: DynamicDomSlot,
+        own_slot: DynamicDomSlot,
     },
     #[cfg(feature = "ssr")]
     Ssr {
@@ -51,14 +51,14 @@ impl std::fmt::Debug for ComponentRenderState {
                 root,
                 ref parent,
                 ref sibling_slot,
-                ref internal_ref,
+                ref own_slot,
             } => f
                 .debug_struct("ComponentRenderState::Render")
                 .field("bundle", bundle)
                 .field("root", root)
                 .field("parent", parent)
                 .field("sibling_slot", sibling_slot)
-                .field("internal_ref", internal_ref)
+                .field("own_slot", own_slot)
                 .finish(),
 
             #[cfg(feature = "hydration")]
@@ -66,7 +66,7 @@ impl std::fmt::Debug for ComponentRenderState {
                 ref fragment,
                 ref parent,
                 ref sibling_slot,
-                ref internal_ref,
+                ref own_slot,
                 ref root,
             } => f
                 .debug_struct("ComponentRenderState::Hydration")
@@ -74,7 +74,7 @@ impl std::fmt::Debug for ComponentRenderState {
                 .field("root", root)
                 .field("parent", parent)
                 .field("sibling_slot", sibling_slot)
-                .field("internal_ref", internal_ref)
+                .field("own_slot", own_slot)
                 .finish(),
 
             #[cfg(feature = "ssr")]
@@ -489,14 +489,14 @@ impl ComponentState {
                 ref parent,
                 ref root,
                 ref sibling_slot,
-                ref mut internal_ref,
+                ref mut own_slot,
                 ..
             } => {
                 let scope = self.inner.any_scope();
 
                 let new_node_ref =
                     bundle.reconcile(root, &scope, parent, sibling_slot.to_position(), new_root);
-                internal_ref.retarget(new_node_ref);
+                own_slot.retarget(new_node_ref);
 
                 let first_render = !self.has_rendered;
                 self.has_rendered = true;
@@ -515,7 +515,7 @@ impl ComponentState {
             ComponentRenderState::Hydration {
                 ref mut fragment,
                 ref parent,
-                ref mut internal_ref,
+                ref mut own_slot,
                 ref mut sibling_slot,
                 ref root,
             } => {
@@ -544,13 +544,10 @@ impl ComponentState {
                     root: root.clone(),
                     bundle,
                     parent: parent.clone(),
-                    internal_ref: std::mem::replace(
-                        internal_ref,
-                        RetargetableDomSlot::new_debug_trapped(),
-                    ),
+                    own_slot: std::mem::replace(own_slot, DynamicDomSlot::new_debug_trapped()),
                     sibling_slot: std::mem::replace(
                         sibling_slot,
-                        RetargetableDomSlot::new_debug_trapped(),
+                        DynamicDomSlot::new_debug_trapped(),
                     ),
                 };
             }
@@ -878,7 +875,7 @@ mod tests {
             root,
             parent,
             DomSlot::at_end(),
-            RetargetableDomSlot::new_debug_trapped(),
+            DynamicDomSlot::new_debug_trapped(),
             Rc::new(props),
         );
         crate::scheduler::start_now();

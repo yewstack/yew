@@ -13,7 +13,7 @@ use super::Key;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
-use crate::dom_bundle::{BSubtree, DomSlot, RetargetableDomSlot};
+use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot};
 use crate::html::BaseComponent;
 #[cfg(feature = "csr")]
 use crate::html::Scoped;
@@ -62,7 +62,7 @@ pub(crate) trait Mountable {
         parent_scope: &AnyScope,
         parent: Element,
         slot: DomSlot,
-        internal_ref: RetargetableDomSlot,
+        internal_ref: DynamicDomSlot,
     ) -> Box<dyn Scoped>;
 
     #[cfg(feature = "csr")]
@@ -82,7 +82,7 @@ pub(crate) trait Mountable {
         root: BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
-        internal_ref: RetargetableDomSlot,
+        internal_ref: DynamicDomSlot,
         fragment: &mut Fragment,
     ) -> Box<dyn Scoped>;
 }
@@ -112,7 +112,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         parent_scope: &AnyScope,
         parent: Element,
         slot: DomSlot,
-        internal_ref: RetargetableDomSlot,
+        internal_ref: DynamicDomSlot,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
         scope.mount_in_place(root.clone(), parent, slot, internal_ref, self.props);
@@ -149,7 +149,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         root: BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
-        internal_ref: RetargetableDomSlot,
+        internal_ref: DynamicDomSlot,
         fragment: &mut Fragment,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));

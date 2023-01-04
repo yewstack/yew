@@ -3,21 +3,25 @@ use std::rc::Rc;
 
 use web_sys::{Element, Node};
 
+/// A position in the list of children of an implicit parent [`Element`].
+///
+/// This can either be in front of a `DomSlot::at(next_sibling)`, at the end of the list with
+/// `DomSlot::at_end()`, or a dynamic position in the list with [`DynamicDomSlot::to_position`].
 #[derive(Clone)]
-pub struct RetargetableDomSlot {
-    target: Rc<RefCell<DomSlot>>,
+pub struct DomSlot {
+    variant: DomSlotVariant,
 }
 
 #[derive(Clone)]
 enum DomSlotVariant {
     Node(Option<Node>),
-    Chained(RetargetableDomSlot),
+    Chained(DynamicDomSlot),
 }
 
-/// Encode the position between two children of a dom node.
+///
 #[derive(Clone)]
-pub struct DomSlot {
-    variant: DomSlotVariant,
+pub struct DynamicDomSlot {
+    target: Rc<RefCell<DomSlot>>,
 }
 
 impl std::fmt::Debug for DomSlot {
@@ -32,7 +36,7 @@ impl std::fmt::Debug for DomSlot {
     }
 }
 
-impl std::fmt::Debug for RetargetableDomSlot {
+impl std::fmt::Debug for DynamicDomSlot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", *self.target.borrow())
     }
@@ -124,7 +128,7 @@ impl DomSlot {
     }
 }
 
-impl RetargetableDomSlot {
+impl DynamicDomSlot {
     pub fn new(initial_position: DomSlot) -> Self {
         Self {
             target: Rc::new(RefCell::new(initial_position)),
@@ -204,7 +208,7 @@ mod layout_tests {
     #[test]
     fn get_through_retargetable() {
         let original = DomSlot::at(document().create_element("p").unwrap().into());
-        let target = RetargetableDomSlot::new(original.clone());
+        let target = DynamicDomSlot::new(original.clone());
         assert_eq!(
             target.to_position().get(),
             original.get(),
@@ -214,7 +218,7 @@ mod layout_tests {
 
     #[test]
     fn get_after_retarget() {
-        let target = RetargetableDomSlot::new(DomSlot::at_end());
+        let target = DynamicDomSlot::new(DomSlot::at_end());
         let target_pos = target.to_position();
         // We retarget *after* we called `to_position` here to be strict in the test
         let replacement = DomSlot::at(document().create_element("p").unwrap().into());
@@ -228,8 +232,8 @@ mod layout_tests {
 
     #[test]
     fn get_chain_after_retarget() {
-        let middleman = RetargetableDomSlot::new(DomSlot::at_end());
-        let target = RetargetableDomSlot::new(middleman.to_position());
+        let middleman = DynamicDomSlot::new(DomSlot::at_end());
+        let target = DynamicDomSlot::new(middleman.to_position());
         let target_pos = target.to_position();
         assert!(
             target.to_position().get().is_none(),

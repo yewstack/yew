@@ -32,7 +32,7 @@ use braw::BRaw;
 use bsuspense::BSuspense;
 use btag::{BTag, Registry};
 use btext::BText;
-pub use dom_position::{DomSlot, RetargetableDomSlot};
+pub use dom_position::{DomSlot, DynamicDomSlot};
 use subtree_root::EventDescriptor;
 pub use subtree_root::{set_event_bubbling, BSubtree};
 use traits::{Reconcilable, ReconcileTarget};
