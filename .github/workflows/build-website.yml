@@ -48,7 +48,7 @@ jobs:
           npm run build
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: website
           path: website/build/
@@ -61,7 +61,7 @@ jobs:
 
       - if: github.event_name == 'pull_request'
         name: Upload pr info
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: pr-info
           path: "${{ env.PR_INFO_FILE }}"
