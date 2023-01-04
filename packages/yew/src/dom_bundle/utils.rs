@@ -4,23 +4,7 @@ use super::DomPosition;
 
 /// Insert a concrete [Node] into the DOM
 pub(super) fn insert_node(node: &Node, parent: &Element, position: &DomPosition) {
-    let next_sibling = position.get();
-    let next_sibling = next_sibling.as_ref();
-    parent
-        .insert_before(node, next_sibling)
-        .unwrap_or_else(|err| {
-            let msg = if next_sibling.is_some() {
-                "failed to insert node before next sibling"
-            } else {
-                "failed to append child"
-            };
-            // Log normally, so we can inspect the nodes in console
-            gloo::console::error!(msg, err, parent, next_sibling, node);
-            // Log via tracing for consistency
-            tracing::error!(msg);
-            // Panic to short-curcuit and fail
-            panic!("{}", msg)
-        });
+    position.insert(parent, node);
 }
 
 #[cfg(all(test, target_arch = "wasm32", verbose_tests))]

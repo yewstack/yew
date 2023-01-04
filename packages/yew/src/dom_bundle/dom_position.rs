@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use web_sys::Node;
+use web_sys::{Element, Node};
 
 #[derive(Clone)]
 pub struct RetargetableDomPosition {
@@ -89,6 +89,28 @@ impl DomPosition {
             )
         });
         node
+    }
+
+    /// Insert a [Node] at the position denoted by this position. `parent` must be the actual parent
+    /// element of the children that this position implicitly denotes.
+    pub(super) fn insert(&self, parent: &Element, node: &Node) {
+        let next_sibling = self.get();
+        let next_sibling = next_sibling.as_ref();
+        parent
+            .insert_before(node, next_sibling)
+            .unwrap_or_else(|err| {
+                let msg = if next_sibling.is_some() {
+                    "failed to insert node before next sibling"
+                } else {
+                    "failed to append child"
+                };
+                // Log normally, so we can inspect the nodes in console
+                gloo::console::error!(msg, err, parent, next_sibling, node);
+                // Log via tracing for consistency
+                tracing::error!(msg);
+                // Panic to short-curcuit and fail
+                panic!("{}", msg)
+            });
     }
 }
 
