@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1672598916785,
+  "lastUpdate": 1672843228079,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -1206,6 +1206,208 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-vlatest-keyed 33_startup-mainthreadcost",
             "value": "13.619999999999996",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 34_startup-totalbytes",
+            "value": "347.9228515625",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]",
+            "email": "49699333+dependabot[bot]@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "1d35148d3e95f7e5b5bcdd84e41c8148d38900cf",
+          "message": "Bump prettier from 2.8.0 to 2.8.1 in /website (#3070)\n\nBumps [prettier](https://github.com/prettier/prettier) from 2.8.0 to 2.8.1.\r\n- [Release notes](https://github.com/prettier/prettier/releases)\r\n- [Changelog](https://github.com/prettier/prettier/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/prettier/prettier/compare/2.8.0...2.8.1)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: prettier\r\n  dependency-type: direct:development\r\n  update-type: version-update:semver-patch\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2023-01-04T14:25:39Z",
+          "url": "https://github.com/yewstack/yew/commit/1d35148d3e95f7e5b5bcdd84e41c8148d38900cf"
+        },
+        "date": 1672843225787,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-vlatest-keyed 01_run1k",
+            "value": "153.0405",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 02_replace1k",
+            "value": "166.5575",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 03_update10th1k_x16",
+            "value": "410.979",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 04_select1k",
+            "value": "156.811",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 05_swap1k",
+            "value": "103.8285",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 06_remove-one-1k",
+            "value": "157.4885",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 07_create10k",
+            "value": "1988.0585",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 08_create1k-after1k_x2",
+            "value": "357.7515",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 09_clear1k_x8",
+            "value": "129.2625",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 21_ready-memory",
+            "value": "2.1219377517700195",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 22_run-memory",
+            "value": "6.88664436340332",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 23_update5-memory",
+            "value": "7.136319160461426",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 25_run-clear-memory",
+            "value": "5.707278251647949",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 26_run-10k-memory",
+            "value": "47.48378562927246",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 31_startup-ci",
+            "value": "1731.8159999999998",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 32_startup-bt",
+            "value": "0",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 33_startup-mainthreadcost",
+            "value": "10.528",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-vlatest-keyed 34_startup-totalbytes",
+            "value": "352.232421875",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 01_run1k",
+            "value": "151.93",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 02_replace1k",
+            "value": "168.7665",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 03_update10th1k_x16",
+            "value": "302.712",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 04_select1k",
+            "value": "52.203",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 05_swap1k",
+            "value": "78.227",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 06_remove-one-1k",
+            "value": "131.4615",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 07_create10k",
+            "value": "1875.495",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 08_create1k-after1k_x2",
+            "value": "355.645",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 09_clear1k_x8",
+            "value": "130.3225",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 21_ready-memory",
+            "value": "2.12338924407959",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 22_run-memory",
+            "value": "6.748276710510254",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 23_update5-memory",
+            "value": "6.88995361328125",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 25_run-clear-memory",
+            "value": "5.523041725158691",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 26_run-10k-memory",
+            "value": "46.18849849700928",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 31_startup-ci",
+            "value": "1736.756",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 32_startup-bt",
+            "value": "0",
+            "unit": ""
+          },
+          {
+            "name": "yew-vlatest-keyed 33_startup-mainthreadcost",
+            "value": "8.423999999999998",
             "unit": ""
           },
           {
