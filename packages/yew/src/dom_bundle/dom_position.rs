@@ -74,7 +74,7 @@ impl DomSlot {
 
     /// Get the [Node] that comes just after the position, or `None` if this denotes the position at
     /// the end
-    pub fn get(&self) -> Option<Node> {
+    fn get(&self) -> Option<Node> {
         #[allow(clippy::let_and_return)]
         let node = match &self.variant {
             DomSlotVariant::Node(ref n) => n.clone(),
