@@ -58,7 +58,7 @@ mod tests {
     use gloo::utils::document;
     use web_sys::Element;
 
-    use crate::dom_bundle::{BSubtree, DomPosition};
+    use crate::dom_bundle::{BSubtree, DomSlot};
     use crate::html::AnyScope;
 
     pub fn setup_parent() -> (BSubtree, AnyScope, Element) {
@@ -73,7 +73,7 @@ mod tests {
 
     pub const SIBLING_CONTENT: &str = "END";
 
-    pub(crate) fn setup_parent_and_sibling() -> (BSubtree, AnyScope, Element, DomPosition) {
+    pub(crate) fn setup_parent_and_sibling() -> (BSubtree, AnyScope, Element, DomSlot) {
         let scope = AnyScope::test();
         let parent = document().create_element("div").unwrap();
         let root = BSubtree::create_root(&parent);
@@ -82,7 +82,7 @@ mod tests {
 
         let end = document().create_text_node(SIBLING_CONTENT);
         parent.append_child(&end).unwrap();
-        let sibling = DomPosition::at(end.into());
+        let sibling = DomSlot::at(end.into());
 
         (root, scope, parent, sibling)
     }

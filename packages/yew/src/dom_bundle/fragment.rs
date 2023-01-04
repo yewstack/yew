@@ -4,7 +4,7 @@ use std::ops::{Deref, DerefMut};
 use wasm_bindgen::JsCast;
 use web_sys::{Element, Node};
 
-use super::{BSubtree, DomPosition};
+use super::{BSubtree, DomSlot};
 use crate::virtual_dom::Collectable;
 
 /// A Hydration Fragment
@@ -158,12 +158,12 @@ impl Fragment {
     }
 
     /// Shift current Fragment into a different position in the dom.
-    pub(crate) fn shift(&self, next_parent: &Element, slot: DomPosition) -> DomPosition {
+    pub(crate) fn shift(&self, next_parent: &Element, slot: DomSlot) -> DomSlot {
         for node in self.iter() {
             slot.insert(next_parent, node);
         }
 
-        self.front().cloned().map(DomPosition::at).unwrap_or(slot)
+        self.front().cloned().map(DomSlot::at).unwrap_or(slot)
     }
 
     /// Return the node that comes after all the nodes in this fragment

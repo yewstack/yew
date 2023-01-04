@@ -5,7 +5,7 @@ use web_sys::Element;
 
 #[cfg(feature = "hydration")]
 use super::Fragment;
-use super::{BNode, BSubtree, DomPosition, Reconcilable, ReconcileTarget};
+use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VSuspense};
 
@@ -59,7 +59,7 @@ impl ReconcileTarget for BSuspense {
         }
     }
 
-    fn shift(&self, next_parent: &Element, slot: DomPosition) -> DomPosition {
+    fn shift(&self, next_parent: &Element, slot: DomSlot) -> DomSlot {
         match self.fallback.as_ref() {
             Some(Fallback::Bundle(bundle)) => bundle.shift(next_parent, slot),
             #[cfg(feature = "hydration")]
@@ -77,8 +77,8 @@ impl Reconcilable for VSuspense {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
-    ) -> (DomPosition, Self::Bundle) {
+        slot: DomSlot,
+    ) -> (DomSlot, Self::Bundle) {
         let VSuspense {
             children,
             fallback,
@@ -93,7 +93,7 @@ impl Reconcilable for VSuspense {
         // tree while rendering fallback UI into the original place where children resides in.
         if suspended {
             let (_child_ref, children_bundle) =
-                children.attach(root, parent_scope, &detached_parent, DomPosition::at_end());
+                children.attach(root, parent_scope, &detached_parent, DomSlot::at_end());
             let (fallback_ref, fallback) = fallback.attach(root, parent_scope, parent, slot);
             (
                 fallback_ref,
@@ -123,9 +123,9 @@ impl Reconcilable for VSuspense {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
+        slot: DomSlot,
         bundle: &mut BNode,
-    ) -> DomPosition {
+    ) -> DomSlot {
         match bundle {
             // We only preserve the child state if they are the same suspense.
             BNode::Suspense(m) if m.key == self.key => {
@@ -140,9 +140,9 @@ impl Reconcilable for VSuspense {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
+        slot: DomSlot,
         suspense: &mut Self::Bundle,
-    ) -> DomPosition {
+    ) -> DomSlot {
         let VSuspense {
             children,
             fallback: vfallback,
@@ -162,7 +162,7 @@ impl Reconcilable for VSuspense {
                     root,
                     parent_scope,
                     &suspense.detached_parent,
-                    DomPosition::at_end(),
+                    DomSlot::at_end(),
                     children_bundle,
                 );
 
@@ -172,7 +172,7 @@ impl Reconcilable for VSuspense {
                     }
                     #[cfg(feature = "hydration")]
                     Fallback::Fragment(fragment) => match fragment.front().cloned() {
-                        Some(m) => DomPosition::at(m),
+                        Some(m) => DomSlot::at(m),
                         None => slot,
                     },
                 }
@@ -184,13 +184,13 @@ impl Reconcilable for VSuspense {
             // Freshly suspended. Shift children into the detached parent, then add fallback to the
             // DOM
             (true, None) => {
-                children_bundle.shift(&suspense.detached_parent, DomPosition::at_end());
+                children_bundle.shift(&suspense.detached_parent, DomSlot::at_end());
 
                 children.reconcile_node(
                     root,
                     parent_scope,
                     &suspense.detached_parent,
-                    DomPosition::at_end(),
+                    DomSlot::at_end(),
                     children_bundle,
                 );
                 // first render of fallback

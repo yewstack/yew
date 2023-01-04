@@ -1,6 +1,6 @@
 use web_sys::Element;
 
-use super::{BNode, BSubtree, DomPosition};
+use super::{BNode, BSubtree, DomSlot};
 use crate::html::AnyScope;
 
 /// A Reconcile Target.
@@ -16,7 +16,7 @@ pub(super) trait ReconcileTarget {
     /// Move elements from one parent to another parent.
     /// This is for example used by `VSuspense` to preserve component state without detaching
     /// (which destroys component state).
-    fn shift(&self, next_parent: &Element, slot: DomPosition) -> DomPosition;
+    fn shift(&self, next_parent: &Element, slot: DomSlot) -> DomSlot;
 }
 
 /// This trait provides features to update a tree by calculating a difference against another tree.
@@ -32,7 +32,7 @@ pub(super) trait Reconcilable {
     /// - `slot`: to find where to put the node.
     ///
     /// Returns a reference to the newly inserted element.
-    /// The [`DomPosition`] points the first element (if there are multiple nodes created),
+    /// The [`DomSlot`] points the first element (if there are multiple nodes created),
     /// or is the passed in `slot` if there are no element is created.
     fn attach(
         self,
@@ -40,8 +40,8 @@ pub(super) trait Reconcilable {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
-    ) -> (DomPosition, Self::Bundle);
+        slot: DomSlot,
+    ) -> (DomSlot, Self::Bundle);
 
     /// Scoped diff apply to other tree.
     ///
@@ -63,18 +63,18 @@ pub(super) trait Reconcilable {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
+        slot: DomSlot,
         bundle: &mut BNode,
-    ) -> DomPosition;
+    ) -> DomSlot;
 
     fn reconcile(
         self,
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
+        slot: DomSlot,
         bundle: &mut Self::Bundle,
-    ) -> DomPosition;
+    ) -> DomSlot;
 
     /// Replace an existing bundle by attaching self and detaching the existing one
     fn replace(
@@ -83,9 +83,9 @@ pub(super) trait Reconcilable {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
+        slot: DomSlot,
         bundle: &mut BNode,
-    ) -> DomPosition
+    ) -> DomSlot
     where
         Self: Sized,
         Self::Bundle: Into<BNode>,

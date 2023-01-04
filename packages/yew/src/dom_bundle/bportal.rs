@@ -2,7 +2,7 @@
 
 use web_sys::{Element, Node};
 
-use super::{test_log, BNode, BSubtree, DomPosition};
+use super::{test_log, BNode, BSubtree, DomSlot};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VPortal};
@@ -26,7 +26,7 @@ impl ReconcileTarget for BPortal {
         self.node.detach(&self.inner_root, &self.host, false);
     }
 
-    fn shift(&self, _next_parent: &Element, slot: DomPosition) -> DomPosition {
+    fn shift(&self, _next_parent: &Element, slot: DomSlot) -> DomSlot {
         // portals have nothing in its original place of DOM, we also do nothing.
         slot
     }
@@ -40,14 +40,14 @@ impl Reconcilable for VPortal {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        host_slot: DomPosition,
-    ) -> (DomPosition, Self::Bundle) {
+        host_slot: DomSlot,
+    ) -> (DomSlot, Self::Bundle) {
         let Self {
             host,
             inner_sibling,
             node,
         } = self;
-        let inner_slot = DomPosition::create(inner_sibling.clone());
+        let inner_slot = DomSlot::create(inner_sibling.clone());
         let inner_root = root.create_subroot(parent.clone(), &host);
         let (_, inner) = node.attach(&inner_root, parent_scope, &host, inner_slot);
         (
@@ -66,9 +66,9 @@ impl Reconcilable for VPortal {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
+        slot: DomSlot,
         bundle: &mut BNode,
-    ) -> DomPosition {
+    ) -> DomSlot {
         match bundle {
             BNode::Portal(portal) => self.reconcile(root, parent_scope, parent, slot, portal),
             _ => self.replace(root, parent_scope, parent, slot, bundle),
@@ -80,9 +80,9 @@ impl Reconcilable for VPortal {
         _root: &BSubtree,
         parent_scope: &AnyScope,
         _parent: &Element,
-        host_slot: DomPosition,
+        host_slot: DomSlot,
         portal: &mut Self::Bundle,
-    ) -> DomPosition {
+    ) -> DomSlot {
         let Self {
             host,
             inner_sibling,
@@ -93,7 +93,7 @@ impl Reconcilable for VPortal {
 
         let should_shift = old_host != portal.host || portal.inner_sibling != inner_sibling;
         portal.inner_sibling = inner_sibling;
-        let inner_slot = DomPosition::create(portal.inner_sibling.clone());
+        let inner_slot = DomSlot::create(portal.inner_sibling.clone());
 
         if should_shift {
             // Remount the inner node somewhere else instead of diffing
@@ -246,13 +246,13 @@ mod layout_tests {
         );
         let (_, mut bundle) = portal
             .clone()
-            .attach(&root, &scope, &parent, DomPosition::at_end());
+            .attach(&root, &scope, &parent, DomSlot::at_end());
 
         // Focus the input, then reconcile again
         let input_el = input_ref.cast::<HtmlInputElement>().unwrap();
         input_el.focus().unwrap();
 
-        let _ = portal.reconcile_node(&root, &scope, &parent, DomPosition::at_end(), &mut bundle);
+        let _ = portal.reconcile_node(&root, &scope, &parent, DomSlot::at_end(), &mut bundle);
 
         let new_input_el = input_ref.cast::<HtmlInputElement>().unwrap();
         assert_eq!(input_el, new_input_el);

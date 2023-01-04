@@ -1,7 +1,7 @@
 use wasm_bindgen::JsCast;
 use web_sys::{Element, Node};
 
-use super::{BNode, BSubtree, DomPosition, Reconcilable, ReconcileTarget};
+use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::VRaw;
 use crate::AttrValue;
@@ -36,10 +36,10 @@ impl BRaw {
         }
     }
 
-    fn position(&self, next_slot: DomPosition) -> DomPosition {
+    fn position(&self, next_slot: DomSlot) -> DomSlot {
         self.reference
             .as_ref()
-            .map(|n| DomPosition::at(n.clone()))
+            .map(|n| DomSlot::at(n.clone()))
             .unwrap_or(next_slot)
     }
 }
@@ -49,7 +49,7 @@ impl ReconcileTarget for BRaw {
         self.detach_bundle(parent);
     }
 
-    fn shift(&self, next_parent: &Element, slot: DomPosition) -> DomPosition {
+    fn shift(&self, next_parent: &Element, slot: DomSlot) -> DomSlot {
         let mut next_node = self.reference.clone();
         for _ in 0..self.children_count {
             if let Some(node) = next_node {
@@ -69,8 +69,8 @@ impl Reconcilable for VRaw {
         _root: &BSubtree,
         _parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
-    ) -> (DomPosition, Self::Bundle) {
+        slot: DomSlot,
+    ) -> (DomSlot, Self::Bundle) {
         let elements = BRaw::create_elements(&self.html);
         let count = elements.len();
         let mut iter = elements.into_iter();
@@ -94,9 +94,9 @@ impl Reconcilable for VRaw {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
+        slot: DomSlot,
         bundle: &mut BNode,
-    ) -> DomPosition {
+    ) -> DomSlot {
         match bundle {
             BNode::Raw(raw) if raw.html == self.html => raw.position(slot),
             BNode::Raw(raw) => self.reconcile(root, parent_scope, parent, slot, raw),
@@ -109,9 +109,9 @@ impl Reconcilable for VRaw {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
+        slot: DomSlot,
         bundle: &mut Self::Bundle,
-    ) -> DomPosition {
+    ) -> DomSlot {
         if self.html != bundle.html {
             // we don't have a way to diff what's changed in the string so we remove the node and
             // reattach it
@@ -143,7 +143,7 @@ mod tests {
 
         const HTML: &str = "<span>text</span>";
         let elem = VNode::from_html_unchecked(HTML.into());
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomPosition::at_end());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomSlot::at_end());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML)
     }
@@ -154,7 +154,7 @@ mod tests {
 
         const HTML: &str = "";
         let elem = VNode::from_html_unchecked(HTML.into());
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomPosition::at_end());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomSlot::at_end());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML)
     }
@@ -166,7 +166,7 @@ mod tests {
         const HTML: &str =
             r#"<p>one <a href="https://yew.rs">link</a> more paragraph</p><div>here</div>"#;
         let elem = VNode::from_html_unchecked(HTML.into());
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomPosition::at_end());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomSlot::at_end());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML)
     }
@@ -176,7 +176,7 @@ mod tests {
 
         const HTML: &str = r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#;
         let elem = VNode::from_html_unchecked(HTML.into());
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomPosition::at_end());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomSlot::at_end());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML)
     }
@@ -187,7 +187,7 @@ mod tests {
 
         const HTML: &str = r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#;
         let elem = VNode::from_html_unchecked(HTML.into());
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomPosition::at_end());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomSlot::at_end());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML);
         elem.detach(&root, &parent, false);
@@ -200,7 +200,7 @@ mod tests {
 
         const HTML: &str = r#"<p>paragraph</p>"#;
         let elem = VNode::from_html_unchecked(HTML.into());
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomPosition::at_end());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomSlot::at_end());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML);
         elem.detach(&root, &parent, false);
@@ -213,7 +213,7 @@ mod tests {
 
         const HTML: &str = "";
         let elem = VNode::from_html_unchecked(HTML.into());
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomPosition::at_end());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomSlot::at_end());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML);
         elem.detach(&root, &parent, false);
@@ -309,14 +309,14 @@ mod tests {
         const HTML: &str = r#"<p>paragraph</p>"#;
 
         let elem = VNode::from_html_unchecked(HTML.into());
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomPosition::at_end());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomSlot::at_end());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML);
 
         let new_parent = document().create_element("section").unwrap();
         document().body().unwrap().append_child(&parent).unwrap();
 
-        elem.shift(&new_parent, DomPosition::at_end());
+        elem.shift(&new_parent, DomSlot::at_end());
 
         assert_eq!(new_parent.inner_html(), HTML);
         assert_eq!(parent.inner_html(), "");
@@ -337,7 +337,7 @@ mod tests {
 
         let new_sibling = document().create_text_node(SIBLING_CONTENT);
         new_parent.append_child(&new_sibling).unwrap();
-        let new_sibling_ref = DomPosition::at(new_sibling.into());
+        let new_sibling_ref = DomSlot::at(new_sibling.into());
 
         elem.shift(&new_parent, new_sibling_ref);
 
@@ -355,14 +355,14 @@ mod tests {
         const HTML: &str = r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#;
 
         let elem = VNode::from_html_unchecked(HTML.into());
-        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomPosition::at_end());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomSlot::at_end());
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML);
 
         let new_parent = document().create_element("section").unwrap();
         document().body().unwrap().append_child(&parent).unwrap();
 
-        elem.shift(&new_parent, DomPosition::at_end());
+        elem.shift(&new_parent, DomSlot::at_end());
 
         assert_eq!(parent.inner_html(), "");
         assert_eq!(new_parent.inner_html(), HTML);

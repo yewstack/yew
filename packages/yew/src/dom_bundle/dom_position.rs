@@ -4,33 +4,33 @@ use std::rc::Rc;
 use web_sys::{Element, Node};
 
 #[derive(Clone)]
-pub struct RetargetableDomPosition {
-    target: Rc<RefCell<DomPosition>>,
+pub struct RetargetableDomSlot {
+    target: Rc<RefCell<DomSlot>>,
 }
 
 #[derive(Clone)]
-enum DomPositionVariant {
+enum DomSlotVariant {
     Node(Option<Node>),
-    Chained(RetargetableDomPosition),
+    Chained(RetargetableDomSlot),
 }
 
 /// Encode the position between two children of a dom node.
 #[derive(Clone)]
-pub struct DomPosition {
-    variant: DomPositionVariant,
+pub struct DomSlot {
+    variant: DomSlotVariant,
 }
 
-impl std::fmt::Debug for DomPosition {
+impl std::fmt::Debug for DomSlot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "DomPosition {{ next_sibling: {:?} }}",
+            "DomSlot {{ next_sibling: {:?} }}",
             self.get().map(|n| crate::utils::print_node(&n))
         )
     }
 }
 
-impl std::fmt::Debug for RetargetableDomPosition {
+impl std::fmt::Debug for RetargetableDomSlot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", *self.target.borrow())
     }
@@ -42,10 +42,10 @@ thread_local! {
     static TRAP: Node = gloo::utils::document().create_element("div").unwrap().into();
 }
 
-impl DomPosition {
+impl DomSlot {
     /// Denotes the position just before the given node in its parent's list of children.
-    pub fn at(node: Node) -> Self {
-        Self::create(Some(node))
+    pub fn at(next_sibling: Node) -> Self {
+        Self::create(Some(next_sibling))
     }
 
     /// Denotes the position at the end of a list of children. The parent is implicit.
@@ -53,13 +53,13 @@ impl DomPosition {
         Self::create(None)
     }
 
-    pub fn create(node: Option<Node>) -> Self {
+    pub fn create(next_sibling: Option<Node>) -> Self {
         Self {
-            variant: DomPositionVariant::Node(node),
+            variant: DomSlotVariant::Node(next_sibling),
         }
     }
 
-    /// A new "placeholder" node ref that should not be accessed
+    /// A new "placeholder" [DomSlot] that should not be used to insert nodes
     #[inline]
     pub fn new_debug_trapped() -> Self {
         #[cfg(debug_assertions)]
@@ -77,22 +77,22 @@ impl DomPosition {
     pub fn get(&self) -> Option<Node> {
         #[allow(clippy::let_and_return)]
         let node = match &self.variant {
-            DomPositionVariant::Node(ref n) => n.clone(),
-            DomPositionVariant::Chained(ref chain) => chain.get(),
+            DomSlotVariant::Node(ref n) => n.clone(),
+            DomSlotVariant::Chained(ref chain) => chain.get(),
         };
 
         #[cfg(debug_assertions)]
         TRAP.with(|trap| {
             assert!(
                 node.as_ref() != Some(trap),
-                "Should not use a trapped node ref. Please report this as an internal bug in yew."
+                "Should not use a trapped DomSlot. Please report this as an internal bug in yew."
             )
         });
         node
     }
 
-    /// Insert a [Node] at the position denoted by this position. `parent` must be the actual parent
-    /// element of the children that this position implicitly denotes.
+    /// Insert a [Node] at the position denoted by this slot. `parent` must be the actual parent
+    /// element of the children that this slot is implicitly a part of.
     pub(super) fn insert(&self, parent: &Element, node: &Node) {
         let next_sibling = self.get();
         let next_sibling = next_sibling.as_ref();
@@ -114,29 +114,29 @@ impl DomPosition {
     }
 }
 
-impl RetargetableDomPosition {
-    pub fn new(initial_position: DomPosition) -> Self {
+impl RetargetableDomSlot {
+    pub fn new(initial_position: DomSlot) -> Self {
         Self {
             target: Rc::new(RefCell::new(initial_position)),
         }
     }
 
     pub fn new_debug_trapped() -> Self {
-        Self::new(DomPosition::new_debug_trapped())
+        Self::new(DomSlot::new_debug_trapped())
     }
 
-    /// Change the [DomPosition] that is targeted. Getting the node from previously obtained
+    /// Change the [`DomSlot`] that is targeted. Getting the node from previously obtained
     /// positions from [`Self::as_position`] will subsequently reflect the result of
     /// `next_position.get()`.
-    pub fn retarget(&self, next_position: DomPosition) {
+    pub fn retarget(&self, next_position: DomSlot) {
         // TODO: is not defensive against accidental reference loops
         *self.target.borrow_mut() = next_position;
     }
 
-    /// Get a [DomPosition] that gets automatically updated when `self` gets retargeted.
-    pub fn as_position(&self) -> DomPosition {
-        DomPosition {
-            variant: DomPositionVariant::Chained(self.clone()),
+    /// Get a [`DomSlot`] that gets automatically updated when `self` gets retargeted.
+    pub fn as_position(&self) -> DomSlot {
+        DomSlot {
+            variant: DomSlotVariant::Chained(self.clone()),
         }
     }
 
@@ -150,11 +150,11 @@ impl RetargetableDomPosition {
         loop {
             //                          v------- borrow lives for this match expression
             let next_this = match &this.borrow().variant {
-                DomPositionVariant::Node(ref n) => break n.clone(),
+                DomSlotVariant::Node(ref n) => break n.clone(),
                 // We clone an Rc here temporarily, so that we don't have to consume stack
                 // space. The alternative would be to keep the
-                // `Ref<'_, DomPosition>` above in some temporary buffer
-                DomPositionVariant::Chained(ref chain) => chain.target.clone(),
+                // `Ref<'_, DomSlot>` above in some temporary buffer
+                DomSlotVariant::Chained(ref chain) => chain.target.clone(),
             };
             this = next_this;
         }
@@ -174,27 +174,27 @@ mod layout_tests {
     #[test]
     fn new_at_and_get() {
         let node = document().create_element("p").unwrap();
-        let position = DomPosition::at(node.clone().into());
+        let position = DomSlot::at(node.clone().into());
         assert_eq!(
             position.get().unwrap(),
             node.clone().into(),
-            "expected the DomPosition to be at {node:#?}"
+            "expected the DomSlot to be at {node:#?}"
         );
     }
 
     #[test]
     fn new_at_end_and_get() {
-        let position = DomPosition::at_end();
+        let position = DomSlot::at_end();
         assert!(
             position.get().is_none(),
-            "expected the DomPosition to not have a next sibling"
+            "expected the DomSlot to not have a next sibling"
         );
     }
 
     #[test]
     fn get_through_retargetable() {
-        let original = DomPosition::at(document().create_element("p").unwrap().into());
-        let target = RetargetableDomPosition::new(original.clone());
+        let original = DomSlot::at(document().create_element("p").unwrap().into());
+        let target = RetargetableDomSlot::new(original.clone());
         assert_eq!(
             target.as_position().get(),
             original.get(),
@@ -204,10 +204,10 @@ mod layout_tests {
 
     #[test]
     fn get_after_retarget() {
-        let target = RetargetableDomPosition::new(DomPosition::at_end());
+        let target = RetargetableDomSlot::new(DomSlot::at_end());
         let target_pos = target.as_position();
         // We retarget *after* we called `as_position` here to be strict in the test
-        let replacement = DomPosition::at(document().create_element("p").unwrap().into());
+        let replacement = DomSlot::at(document().create_element("p").unwrap().into());
         target.retarget(replacement.clone());
         assert_eq!(
             target_pos.get(),
@@ -218,15 +218,15 @@ mod layout_tests {
 
     #[test]
     fn get_chain_after_retarget() {
-        let middleman = RetargetableDomPosition::new(DomPosition::at_end());
-        let target = RetargetableDomPosition::new(middleman.as_position());
+        let middleman = RetargetableDomSlot::new(DomSlot::at_end());
+        let target = RetargetableDomSlot::new(middleman.as_position());
         let target_pos = target.as_position();
         assert!(
             target.as_position().get().is_none(),
             "should not yet point to a node"
         );
         // Now retarget the middle man, but get the node from `target`
-        let replacement = DomPosition::at(document().create_element("p").unwrap().into());
+        let replacement = DomSlot::at(document().create_element("p").unwrap().into());
         middleman.retarget(replacement.clone());
         assert_eq!(
             target_pos.get(),

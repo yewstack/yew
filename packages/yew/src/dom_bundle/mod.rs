@@ -32,7 +32,7 @@ use braw::BRaw;
 use bsuspense::BSuspense;
 use btag::{BTag, Registry};
 use btext::BText;
-pub use dom_position::{DomPosition, RetargetableDomPosition};
+pub use dom_position::{DomSlot, RetargetableDomSlot};
 use subtree_root::EventDescriptor;
 pub use subtree_root::{set_event_bubbling, BSubtree};
 use traits::{Reconcilable, ReconcileTarget};
@@ -55,7 +55,7 @@ impl Bundle {
     }
 
     /// Shifts the bundle into a different position.
-    pub fn shift(&self, next_parent: &Element, slot: DomPosition) {
+    pub fn shift(&self, next_parent: &Element, slot: DomSlot) {
         self.0.shift(next_parent, slot);
     }
 
@@ -65,9 +65,9 @@ impl Bundle {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
+        slot: DomSlot,
         next_node: VNode,
-    ) -> DomPosition {
+    ) -> DomSlot {
         next_node.reconcile_node(root, parent_scope, parent, slot, &mut self.0)
     }
 

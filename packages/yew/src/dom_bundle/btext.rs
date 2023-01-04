@@ -3,7 +3,7 @@
 use gloo::utils::document;
 use web_sys::{Element, Text as TextNode};
 
-use super::{BNode, BSubtree, DomPosition, Reconcilable, ReconcileTarget};
+use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::{AttrValue, VText};
 
@@ -24,10 +24,10 @@ impl ReconcileTarget for BText {
         }
     }
 
-    fn shift(&self, next_parent: &Element, slot: DomPosition) -> DomPosition {
+    fn shift(&self, next_parent: &Element, slot: DomSlot) -> DomSlot {
         slot.insert(next_parent, &self.text_node);
 
-        DomPosition::at(self.text_node.clone().into())
+        DomSlot::at(self.text_node.clone().into())
     }
 }
 
@@ -39,12 +39,12 @@ impl Reconcilable for VText {
         _root: &BSubtree,
         _parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
-    ) -> (DomPosition, Self::Bundle) {
+        slot: DomSlot,
+    ) -> (DomSlot, Self::Bundle) {
         let Self { text } = self;
         let text_node = document().create_text_node(&text);
         slot.insert(parent, &text_node);
-        let node_ref = DomPosition::at(text_node.clone().into());
+        let node_ref = DomSlot::at(text_node.clone().into());
         (node_ref, BText { text, text_node })
     }
 
@@ -54,9 +54,9 @@ impl Reconcilable for VText {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
+        slot: DomSlot,
         bundle: &mut BNode,
-    ) -> DomPosition {
+    ) -> DomSlot {
         match bundle {
             BNode::Text(btext) => self.reconcile(root, parent_scope, parent, slot, btext),
             _ => self.replace(root, parent_scope, parent, slot, bundle),
@@ -68,15 +68,15 @@ impl Reconcilable for VText {
         _root: &BSubtree,
         _parent_scope: &AnyScope,
         _parent: &Element,
-        _slot: DomPosition,
+        _slot: DomSlot,
         btext: &mut Self::Bundle,
-    ) -> DomPosition {
+    ) -> DomSlot {
         let Self { text } = self;
         let ancestor_text = std::mem::replace(&mut btext.text, text);
         if btext.text != ancestor_text {
             btext.text_node.set_node_value(Some(&btext.text));
         }
-        DomPosition::at(btext.text_node.clone().into())
+        DomSlot::at(btext.text_node.clone().into())
     }
 }
 
@@ -133,7 +133,7 @@ mod feat_hydration {
             // node may be a combination of multiple VText vnodes. So we always need to
             // override their values.
             let text_node = document().create_text_node("");
-            DomPosition::create(next_sibling).insert(parent, &text_node);
+            DomSlot::create(next_sibling).insert(parent, &text_node);
             BText {
                 text: "".into(),
                 text_node,

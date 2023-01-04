@@ -5,7 +5,7 @@ use std::rc::Rc;
 
 use web_sys::Element;
 
-use crate::dom_bundle::{BSubtree, DomPosition, RetargetableDomPosition};
+use crate::dom_bundle::{BSubtree, DomSlot, RetargetableDomSlot};
 use crate::html::{BaseComponent, Scope, Scoped};
 
 /// An instance of an application.
@@ -37,8 +37,8 @@ where
         app.scope.mount_in_place(
             hosting_root,
             host,
-            DomPosition::at_end(),
-            RetargetableDomPosition::new_debug_trapped(),
+            DomSlot::at_end(),
+            RetargetableDomSlot::new_debug_trapped(),
             props,
         );
 
@@ -57,7 +57,7 @@ where
         skip_all,
     )]
     pub fn update(&mut self, new_props: COMP::Properties) {
-        self.scope.reuse(Rc::new(new_props), DomPosition::at_end())
+        self.scope.reuse(Rc::new(new_props), DomSlot::at_end())
     }
 
     /// Schedule the app for destruction
@@ -114,11 +114,11 @@ mod feat_hydration {
                 hosting_root,
                 host.clone(),
                 &mut fragment,
-                RetargetableDomPosition::new_debug_trapped(),
+                RetargetableDomSlot::new_debug_trapped(),
                 Rc::clone(&props),
             );
             #[cfg(debug_assertions)] // Fix trapped next_sibling at the root
-            app.scope.reuse(props, DomPosition::at_end());
+            app.scope.reuse(props, DomSlot::at_end());
 
             // We remove all remaining nodes, this mimics the clear_element behaviour in
             // mount_with_props.

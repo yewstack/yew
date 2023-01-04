@@ -6,7 +6,7 @@ use std::fmt;
 
 use web_sys::Element;
 
-use super::{BNode, BSubtree, DomPosition, Reconcilable, ReconcileTarget, RetargetableDomPosition};
+use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget, RetargetableDomSlot};
 use crate::html::{AnyScope, Scoped};
 use crate::virtual_dom::{Key, VComp};
 
@@ -14,9 +14,9 @@ use crate::virtual_dom::{Key, VComp};
 pub(super) struct BComp {
     type_id: TypeId,
     scope: Box<dyn Scoped>,
-    // A internal DomPosition passed around to track this components position. This
-    // is "stable", i.e. does not change when reconciled.
-    internal_ref: RetargetableDomPosition,
+    /// A internal [`DomSlot`] passed around to track this components position. This
+    /// is "stable", i.e. does not change when reconciled.
+    internal_ref: RetargetableDomSlot,
     key: Option<Key>,
 }
 
@@ -40,7 +40,7 @@ impl ReconcileTarget for BComp {
         self.scope.destroy_boxed(parent_to_detach);
     }
 
-    fn shift(&self, next_parent: &Element, slot: DomPosition) -> DomPosition {
+    fn shift(&self, next_parent: &Element, slot: DomSlot) -> DomSlot {
         self.scope.shift_node(next_parent.clone(), slot);
 
         self.internal_ref.as_position()
@@ -55,15 +55,15 @@ impl Reconcilable for VComp {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
-    ) -> (DomPosition, Self::Bundle) {
+        slot: DomSlot,
+    ) -> (DomSlot, Self::Bundle) {
         let VComp {
             type_id,
             mountable,
             key,
             ..
         } = self;
-        let internal_ref = RetargetableDomPosition::new_debug_trapped();
+        let internal_ref = RetargetableDomSlot::new_debug_trapped();
 
         let scope = mountable.mount(
             root,
@@ -89,9 +89,9 @@ impl Reconcilable for VComp {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
+        slot: DomSlot,
         bundle: &mut BNode,
-    ) -> DomPosition {
+    ) -> DomSlot {
         match bundle {
             // If the existing bundle is the same type, reuse it and update its properties
             BNode::Comp(ref mut bcomp)
@@ -108,9 +108,9 @@ impl Reconcilable for VComp {
         _root: &BSubtree,
         _parent_scope: &AnyScope,
         _parent: &Element,
-        slot: DomPosition,
+        slot: DomSlot,
         bcomp: &mut Self::Bundle,
-    ) -> DomPosition {
+    ) -> DomSlot {
         let VComp { mountable, key, .. } = self;
 
         bcomp.key = key;
@@ -138,7 +138,7 @@ mod feat_hydration {
                 key,
                 ..
             } = self;
-            let internal_ref = RetargetableDomPosition::new_debug_trapped();
+            let internal_ref = RetargetableDomSlot::new_debug_trapped();
 
             let scoped = mountable.hydrate(
                 root.clone(),
@@ -204,12 +204,12 @@ mod tests {
         let (root, scope, parent) = setup_parent();
 
         let comp = html! { <Comp></Comp> };
-        let (_, mut bundle) = comp.attach(&root, &scope, &parent, DomPosition::at_end());
+        let (_, mut bundle) = comp.attach(&root, &scope, &parent, DomSlot::at_end());
         scheduler::start_now();
 
         for _ in 0..10000 {
             let node = html! { <Comp></Comp> };
-            node.reconcile_node(&root, &scope, &parent, DomPosition::at_end(), &mut bundle);
+            node.reconcile_node(&root, &scope, &parent, DomSlot::at_end(), &mut bundle);
             scheduler::start_now();
         }
     }
@@ -340,7 +340,7 @@ mod tests {
         // clear parent
         parent.set_inner_html("");
 
-        node.attach(root, scope, parent, DomPosition::at_end());
+        node.attach(root, scope, parent, DomSlot::at_end());
         scheduler::start_now();
         parent.inner_html()
     }

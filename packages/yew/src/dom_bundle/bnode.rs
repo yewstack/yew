@@ -4,7 +4,7 @@ use std::fmt;
 
 use web_sys::{Element, Node};
 
-use super::{BComp, BList, BPortal, BRaw, BSubtree, BSuspense, BTag, BText, DomPosition};
+use super::{BComp, BList, BPortal, BRaw, BSubtree, BSuspense, BTag, BText, DomSlot};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VNode};
@@ -65,7 +65,7 @@ impl ReconcileTarget for BNode {
         }
     }
 
-    fn shift(&self, next_parent: &Element, slot: DomPosition) -> DomPosition {
+    fn shift(&self, next_parent: &Element, slot: DomSlot) -> DomSlot {
         match self {
             Self::Tag(ref vtag) => vtag.shift(next_parent, slot),
             Self::Text(ref btext) => btext.shift(next_parent, slot),
@@ -74,7 +74,7 @@ impl ReconcileTarget for BNode {
             Self::Ref(ref node) => {
                 slot.insert(next_parent, node);
 
-                DomPosition::at(node.clone())
+                DomSlot::at(node.clone())
             }
             Self::Portal(ref vportal) => vportal.shift(next_parent, slot),
             Self::Suspense(ref vsuspense) => vsuspense.shift(next_parent, slot),
@@ -91,8 +91,8 @@ impl Reconcilable for VNode {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
-    ) -> (DomPosition, Self::Bundle) {
+        slot: DomSlot,
+    ) -> (DomSlot, Self::Bundle) {
         match self {
             VNode::VTag(vtag) => {
                 let (node_ref, tag) = vtag.attach(root, parent_scope, parent, slot);
@@ -112,7 +112,7 @@ impl Reconcilable for VNode {
             }
             VNode::VRef(node) => {
                 slot.insert(parent, &node);
-                (DomPosition::at(node.clone()), BNode::Ref(node))
+                (DomSlot::at(node.clone()), BNode::Ref(node))
             }
             VNode::VPortal(vportal) => {
                 let (node_ref, portal) = vportal.attach(root, parent_scope, parent, slot);
@@ -134,9 +134,9 @@ impl Reconcilable for VNode {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
+        slot: DomSlot,
         bundle: &mut BNode,
-    ) -> DomPosition {
+    ) -> DomSlot {
         self.reconcile(root, parent_scope, parent, slot, bundle)
     }
 
@@ -145,16 +145,16 @@ impl Reconcilable for VNode {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        slot: DomPosition,
+        slot: DomSlot,
         bundle: &mut BNode,
-    ) -> DomPosition {
+    ) -> DomSlot {
         match self {
             VNode::VTag(vtag) => vtag.reconcile_node(root, parent_scope, parent, slot, bundle),
             VNode::VText(vtext) => vtext.reconcile_node(root, parent_scope, parent, slot, bundle),
             VNode::VComp(vcomp) => vcomp.reconcile_node(root, parent_scope, parent, slot, bundle),
             VNode::VList(vlist) => vlist.reconcile_node(root, parent_scope, parent, slot, bundle),
             VNode::VRef(node) => match bundle {
-                BNode::Ref(ref n) if &node == n => DomPosition::at(node),
+                BNode::Ref(ref n) if &node == n => DomSlot::at(node),
                 _ => VNode::VRef(node).replace(root, parent_scope, parent, slot, bundle),
             },
             VNode::VPortal(vportal) => {

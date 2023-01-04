@@ -3,7 +3,7 @@
 //! This tests must be run in browser and thus require the `csr` feature to be enabled
 use gloo::console::log;
 
-use crate::dom_bundle::{BSubtree, Bundle, DomPosition};
+use crate::dom_bundle::{BSubtree, Bundle, DomSlot};
 use crate::html::AnyScope;
 use crate::virtual_dom::VNode;
 use crate::{scheduler, Component, Context, Html};
@@ -47,7 +47,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     parent_element.append_child(&end_node).unwrap();
 
     // Tests each layout independently
-    let slot = DomPosition::at(end_node.into());
+    let slot = DomSlot::at(end_node.into());
     for layout in layouts.iter() {
         // Apply the layout
         let vnode = layout.node.clone();

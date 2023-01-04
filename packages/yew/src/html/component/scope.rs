@@ -520,7 +520,7 @@ mod feat_csr {
     use web_sys::Element;
 
     use super::*;
-    use crate::dom_bundle::{BSubtree, Bundle, DomPosition, RetargetableDomPosition};
+    use crate::dom_bundle::{BSubtree, Bundle, DomSlot, RetargetableDomSlot};
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, PropsUpdateRunner, RenderRunner,
     };
@@ -540,7 +540,7 @@ mod feat_csr {
     fn schedule_props_update(
         state: Shared<Option<ComponentState>>,
         props: Rc<dyn Any>,
-        next_sibling_slot: DomPosition,
+        next_sibling_slot: DomSlot,
     ) {
         scheduler::push_component_props_update(Box::new(PropsUpdateRunner {
             state,
@@ -560,12 +560,12 @@ mod feat_csr {
             &self,
             root: BSubtree,
             parent: Element,
-            slot: DomPosition,
-            internal_ref: RetargetableDomPosition,
+            slot: DomSlot,
+            internal_ref: RetargetableDomSlot,
             props: Rc<COMP::Properties>,
         ) {
             let bundle = Bundle::new();
-            let sibling_slot = RetargetableDomPosition::new(slot);
+            let sibling_slot = RetargetableDomSlot::new(slot);
             internal_ref.retarget(sibling_slot.as_position());
 
             let state = ComponentRenderState::Render {
@@ -593,7 +593,7 @@ mod feat_csr {
             scheduler::start();
         }
 
-        pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, slot: DomPosition) {
+        pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, slot: DomSlot) {
             schedule_props_update(self.state.clone(), props, slot)
         }
     }
@@ -603,7 +603,7 @@ mod feat_csr {
         /// Get the render state if it hasn't already been destroyed
         fn render_state(&self) -> Option<Ref<'_, ComponentRenderState>>;
         /// Shift the node associated with this scope to a new place
-        fn shift_node(&self, parent: Element, slot: DomPosition);
+        fn shift_node(&self, parent: Element, slot: DomSlot);
         /// Process an event to destroy a component
         fn destroy(self, parent_to_detach: bool);
         fn destroy_boxed(self: Box<Self>, parent_to_detach: bool);
@@ -639,7 +639,7 @@ mod feat_csr {
             self.destroy(parent_to_detach)
         }
 
-        fn shift_node(&self, parent: Element, slot: DomPosition) {
+        fn shift_node(&self, parent: Element, slot: DomSlot) {
             let mut state_ref = self.state.borrow_mut();
             if let Some(render_state) = state_ref.as_mut() {
                 render_state.render_state.shift(parent, slot)
@@ -656,7 +656,7 @@ mod feat_hydration {
     use web_sys::{Element, HtmlScriptElement};
 
     use super::*;
-    use crate::dom_bundle::{BSubtree, DomPosition, Fragment, RetargetableDomPosition};
+    use crate::dom_bundle::{BSubtree, DomSlot, Fragment, RetargetableDomSlot};
     use crate::html::component::lifecycle::{ComponentRenderState, CreateRunner, RenderRunner};
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
@@ -678,7 +678,7 @@ mod feat_hydration {
             root: BSubtree,
             parent: Element,
             fragment: &mut Fragment,
-            internal_ref: RetargetableDomPosition,
+            internal_ref: RetargetableDomSlot,
             props: Rc<COMP::Properties>,
         ) {
             // This is very helpful to see which component is failing during hydration
@@ -698,7 +698,7 @@ mod feat_hydration {
             } else {
                 fragment.sibling_at_end().cloned()
             };
-            internal_ref.retarget(DomPosition::create(next_sibling));
+            internal_ref.retarget(DomSlot::create(next_sibling));
 
             let prepared_state = match fragment
                 .back()
@@ -717,7 +717,7 @@ mod feat_hydration {
                 parent,
                 root,
                 internal_ref,
-                sibling_slot: RetargetableDomPosition::new_debug_trapped(),
+                sibling_slot: RetargetableDomSlot::new_debug_trapped(),
                 fragment,
             };
 

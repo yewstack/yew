@@ -11,7 +11,7 @@ use super::BaseComponent;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
-use crate::dom_bundle::{BSubtree, Bundle, DomPosition, RetargetableDomPosition};
+use crate::dom_bundle::{BSubtree, Bundle, DomSlot, RetargetableDomSlot};
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
 use crate::html::{Html, RenderError};
@@ -25,16 +25,16 @@ pub(crate) enum ComponentRenderState {
         bundle: Bundle,
         root: BSubtree,
         parent: Element,
-        sibling_slot: RetargetableDomPosition,
-        internal_ref: RetargetableDomPosition,
+        sibling_slot: RetargetableDomSlot,
+        internal_ref: RetargetableDomSlot,
     },
     #[cfg(feature = "hydration")]
     Hydration {
         fragment: Fragment,
         root: BSubtree,
         parent: Element,
-        sibling_slot: RetargetableDomPosition,
-        internal_ref: RetargetableDomPosition,
+        sibling_slot: RetargetableDomSlot,
+        internal_ref: RetargetableDomSlot,
     },
     #[cfg(feature = "ssr")]
     Ssr {
@@ -94,7 +94,7 @@ impl std::fmt::Debug for ComponentRenderState {
 
 #[cfg(feature = "csr")]
 impl ComponentRenderState {
-    pub(crate) fn shift(&mut self, next_parent: Element, next_slot: DomPosition) {
+    pub(crate) fn shift(&mut self, next_parent: Element, next_slot: DomSlot) {
         match self {
             #[cfg(feature = "csr")]
             Self::Render {
@@ -546,11 +546,11 @@ impl ComponentState {
                     parent: parent.clone(),
                     internal_ref: std::mem::replace(
                         internal_ref,
-                        RetargetableDomPosition::new_debug_trapped(),
+                        RetargetableDomSlot::new_debug_trapped(),
                     ),
                     sibling_slot: std::mem::replace(
                         sibling_slot,
-                        RetargetableDomPosition::new_debug_trapped(),
+                        RetargetableDomSlot::new_debug_trapped(),
                     ),
                 };
             }
@@ -585,7 +585,7 @@ mod feat_csr {
     pub(crate) struct PropsUpdateRunner {
         pub state: Shared<Option<ComponentState>>,
         pub props: Option<Rc<dyn Any>>,
-        pub next_sibling_slot: Option<DomPosition>,
+        pub next_sibling_slot: Option<DomSlot>,
     }
 
     impl ComponentState {
@@ -597,7 +597,7 @@ mod feat_csr {
         fn changed(
             &mut self,
             props: Option<Rc<dyn Any>>,
-            next_sibling_slot: Option<DomPosition>,
+            next_sibling_slot: Option<DomSlot>,
         ) -> bool {
             if let Some(next_sibling_slot) = next_sibling_slot {
                 // When components are updated, their siblings were likely also updated
@@ -877,8 +877,8 @@ mod tests {
         scope.mount_in_place(
             root,
             parent,
-            DomPosition::at_end(),
-            RetargetableDomPosition::new_debug_trapped(),
+            DomSlot::at_end(),
+            RetargetableDomSlot::new_debug_trapped(),
             Rc::new(props),
         );
         crate::scheduler::start_now();
