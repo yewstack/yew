@@ -22,11 +22,13 @@ pub struct DomSlot {
 
 impl std::fmt::Debug for DomSlot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "DomSlot {{ next_sibling: {:?} }}",
-            self.get().map(|n| crate::utils::print_node(&n))
-        )
+        self.with_next_sibling(|n| {
+            write!(
+                f,
+                "DomSlot {{ next_sibling: {:?} }}",
+                n.map(crate::utils::print_node)
+            )
+        })
     }
 }
 
@@ -74,43 +76,51 @@ impl DomSlot {
 
     /// Get the [Node] that comes just after the position, or `None` if this denotes the position at
     /// the end
-    fn get(&self) -> Option<Node> {
-        #[allow(clippy::let_and_return)]
-        let node = match &self.variant {
-            DomSlotVariant::Node(ref n) => n.clone(),
-            DomSlotVariant::Chained(ref chain) => chain.get(),
+    fn with_next_sibling<R>(&self, f: impl FnOnce(Option<&Node>) -> R) -> R {
+        let checkedf = |node: Option<&Node>| {
+            #[cfg(debug_assertions)]
+            TRAP.with(|trap| {
+                assert!(
+                    node != Some(trap),
+                    "Should not use a trapped DomSlot. Please report this as an internal bug in \
+                     yew."
+                )
+            });
+            f(node)
         };
 
-        #[cfg(debug_assertions)]
-        TRAP.with(|trap| {
-            assert!(
-                node.as_ref() != Some(trap),
-                "Should not use a trapped DomSlot. Please report this as an internal bug in yew."
-            )
-        });
-        node
+        match &self.variant {
+            DomSlotVariant::Node(ref n) => checkedf(n.as_ref()),
+            DomSlotVariant::Chained(ref chain) => chain.with_next_sibling(checkedf),
+        }
     }
 
     /// Insert a [Node] at the position denoted by this slot. `parent` must be the actual parent
     /// element of the children that this slot is implicitly a part of.
     pub(super) fn insert(&self, parent: &Element, node: &Node) {
-        let next_sibling = self.get();
-        let next_sibling = next_sibling.as_ref();
-        parent
-            .insert_before(node, next_sibling)
-            .unwrap_or_else(|err| {
-                let msg = if next_sibling.is_some() {
-                    "failed to insert node before next sibling"
-                } else {
-                    "failed to append child"
-                };
-                // Log normally, so we can inspect the nodes in console
-                gloo::console::error!(msg, err, parent, next_sibling, node);
-                // Log via tracing for consistency
-                tracing::error!(msg);
-                // Panic to short-curcuit and fail
-                panic!("{}", msg)
-            });
+        self.with_next_sibling(|next_sibling| {
+            parent
+                .insert_before(node, next_sibling)
+                .unwrap_or_else(|err| {
+                    let msg = if next_sibling.is_some() {
+                        "failed to insert node before next sibling"
+                    } else {
+                        "failed to append child"
+                    };
+                    // Log normally, so we can inspect the nodes in console
+                    gloo::console::error!(msg, err, parent, next_sibling, node);
+                    // Log via tracing for consistency
+                    tracing::error!(msg);
+                    // Panic to short-curcuit and fail
+                    panic!("{}", msg)
+                });
+        });
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    #[cfg(test)]
+    fn get(&self) -> Option<Node> {
+        self.with_next_sibling(|n| n.cloned())
     }
 }
 
@@ -140,7 +150,7 @@ impl RetargetableDomSlot {
         }
     }
 
-    fn get(&self) -> Option<Node> {
+    fn with_next_sibling<R>(&self, f: impl FnOnce(Option<&Node>) -> R) -> R {
         // we use an iterative approach to traverse a possible long chain for references
         // see for example issue #3043 why a recursive call is impossible for large lists in vdom
 
@@ -150,7 +160,7 @@ impl RetargetableDomSlot {
         loop {
             //                          v------- borrow lives for this match expression
             let next_this = match &this.borrow().variant {
-                DomSlotVariant::Node(ref n) => break n.clone(),
+                DomSlotVariant::Node(ref n) => break f(n.as_ref()),
                 // We clone an Rc here temporarily, so that we don't have to consume stack
                 // space. The alternative would be to keep the
                 // `Ref<'_, DomSlot>` above in some temporary buffer
