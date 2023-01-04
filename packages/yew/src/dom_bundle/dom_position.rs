@@ -138,3 +138,78 @@ impl RetargetableDomPosition {
         }
     }
 }
+
+#[cfg(target_arch = "wasm32")]
+#[cfg(test)]
+mod layout_tests {
+    use gloo::utils::document;
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    use super::*;
+
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn new_at_and_get() {
+        let node = document().create_element("p").unwrap();
+        let position = DomPosition::at(node.clone().into());
+        assert_eq!(
+            position.get().unwrap(),
+            node.clone().into(),
+            "expected the DomPosition to be at {node:#?}"
+        );
+    }
+
+    #[test]
+    fn new_at_end_and_get() {
+        let position = DomPosition::at_end();
+        assert!(
+            position.get().is_none(),
+            "expected the DomPosition to not have a next sibling"
+        );
+    }
+
+    #[test]
+    fn get_through_retargetable() {
+        let original = DomPosition::at(document().create_element("p").unwrap().into());
+        let target = RetargetableDomPosition::new(original.clone());
+        assert_eq!(
+            target.as_position().get(),
+            original.get(),
+            "expected {target:#?} to point to the same position as {original:#?}"
+        );
+    }
+
+    #[test]
+    fn get_after_retarget() {
+        let target = RetargetableDomPosition::new(DomPosition::at_end());
+        let target_pos = target.as_position();
+        // We retarget *after* we called `as_position` here to be strict in the test
+        let replacement = DomPosition::at(document().create_element("p").unwrap().into());
+        target.retarget(replacement.clone());
+        assert_eq!(
+            target_pos.get(),
+            replacement.get(),
+            "expected {target:#?} to point to the same position as {replacement:#?}"
+        );
+    }
+
+    #[test]
+    fn get_chain_after_retarget() {
+        let middleman = RetargetableDomPosition::new(DomPosition::at_end());
+        let target = RetargetableDomPosition::new(middleman.as_position());
+        let target_pos = target.as_position();
+        assert!(
+            target.as_position().get().is_none(),
+            "should not yet point to a node"
+        );
+        // Now retarget the middle man, but get the node from `target`
+        let replacement = DomPosition::at(document().create_element("p").unwrap().into());
+        middleman.retarget(replacement.clone());
+        assert_eq!(
+            target_pos.get(),
+            replacement.get(),
+            "expected {target:#?} to point to the same position as {replacement:#?}"
+        );
+    }
+}
