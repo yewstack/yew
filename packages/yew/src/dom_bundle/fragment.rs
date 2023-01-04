@@ -4,7 +4,7 @@ use std::ops::{Deref, DerefMut};
 use wasm_bindgen::JsCast;
 use web_sys::{Element, Node};
 
-use super::{insert_node, BSubtree, DomPosition};
+use super::{BSubtree, DomPosition};
 use crate::virtual_dom::Collectable;
 
 /// A Hydration Fragment
@@ -160,7 +160,7 @@ impl Fragment {
     /// Shift current Fragment into a different position in the dom.
     pub(crate) fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
         for node in self.iter() {
-            insert_node(node, next_parent, &next_sibling);
+            next_sibling.insert(next_parent, node);
         }
 
         self.front()

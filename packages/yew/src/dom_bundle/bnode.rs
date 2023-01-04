@@ -4,7 +4,6 @@ use std::fmt;
 
 use web_sys::{Element, Node};
 
-use super::utils::insert_node;
 use super::{BComp, BList, BPortal, BRaw, BSubtree, BSuspense, BTag, BText, DomPosition};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
@@ -73,7 +72,7 @@ impl ReconcileTarget for BNode {
             Self::Comp(ref bsusp) => bsusp.shift(next_parent, next_sibling),
             Self::List(ref vlist) => vlist.shift(next_parent, next_sibling),
             Self::Ref(ref node) => {
-                insert_node(node, next_parent, &next_sibling);
+                next_sibling.insert(next_parent, node);
 
                 DomPosition::at(node.clone())
             }
@@ -112,7 +111,7 @@ impl Reconcilable for VNode {
                 (node_ref, list.into())
             }
             VNode::VRef(node) => {
-                super::insert_node(&node, parent, &next_sibling);
+                next_sibling.insert(parent, &node);
                 (DomPosition::at(node.clone()), BNode::Ref(node))
             }
             VNode::VPortal(vportal) => {

@@ -13,7 +13,7 @@ pub use listeners::Registry;
 use wasm_bindgen::JsCast;
 use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
-use super::{insert_node, BList, BNode, BSubtree, DomPosition, Reconcilable, ReconcileTarget};
+use super::{BList, BNode, BSubtree, DomPosition, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
@@ -94,7 +94,7 @@ impl ReconcileTarget for BTag {
     }
 
     fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
-        insert_node(&self.reference, next_parent, &next_sibling);
+        next_sibling.insert(next_parent, &self.reference);
 
         DomPosition::at(self.reference.clone().into())
     }
@@ -118,7 +118,7 @@ impl Reconcilable for VTag {
             key,
             ..
         } = self;
-        insert_node(&el, parent, &next_sibling);
+        next_sibling.insert(parent, &el);
 
         let attributes = attributes.apply(root, &el);
         let listeners = listeners.apply(root, &el);

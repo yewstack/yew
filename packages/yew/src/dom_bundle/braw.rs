@@ -1,7 +1,7 @@
 use wasm_bindgen::JsCast;
 use web_sys::{Element, Node};
 
-use super::{insert_node, BNode, BSubtree, DomPosition, Reconcilable, ReconcileTarget};
+use super::{BNode, BSubtree, DomPosition, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::VRaw;
 use crate::AttrValue;
@@ -54,7 +54,7 @@ impl ReconcileTarget for BRaw {
         for _ in 0..self.children_count {
             if let Some(node) = next_node {
                 next_node = node.next_sibling();
-                insert_node(&node, next_parent, &next_sibling);
+                next_sibling.insert(next_parent, &node);
             }
         }
         self.position(next_sibling)
@@ -76,9 +76,9 @@ impl Reconcilable for VRaw {
         let mut iter = elements.into_iter();
         let reference = iter.next();
         if let Some(ref first) = reference {
-            insert_node(first, parent, &next_sibling);
-            for child in iter {
-                insert_node(&child, parent, &next_sibling);
+            next_sibling.insert(parent, first);
+            for ref child in iter {
+                next_sibling.insert(parent, child);
             }
         }
         let this = BRaw {

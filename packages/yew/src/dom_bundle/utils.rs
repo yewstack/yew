@@ -1,12 +1,3 @@
-use web_sys::{Element, Node};
-
-use super::DomPosition;
-
-/// Insert a concrete [Node] into the DOM
-pub(super) fn insert_node(node: &Node, parent: &Element, position: &DomPosition) {
-    position.insert(parent, node);
-}
-
 #[cfg(all(test, target_arch = "wasm32", verbose_tests))]
 macro_rules! test_log {
     ($fmt:literal, $($arg:expr),* $(,)?) => {
@@ -29,9 +20,7 @@ mod feat_hydration {
     use std::borrow::Cow;
 
     use wasm_bindgen::JsCast;
-    use web_sys::Element;
-
-    use super::*;
+    use web_sys::{Element, Node};
 
     pub(in crate::dom_bundle) fn node_type_str(node: &Node) -> Cow<'static, str> {
         match node.node_type() {

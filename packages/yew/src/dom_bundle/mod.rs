@@ -36,7 +36,7 @@ pub use dom_position::{DomPosition, RetargetableDomPosition};
 use subtree_root::EventDescriptor;
 pub use subtree_root::{set_event_bubbling, BSubtree};
 use traits::{Reconcilable, ReconcileTarget};
-use utils::{insert_node, test_log};
+use utils::test_log;
 
 /// A Bundle.
 ///

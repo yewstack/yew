@@ -3,7 +3,7 @@
 use gloo::utils::document;
 use web_sys::{Element, Text as TextNode};
 
-use super::{insert_node, BNode, BSubtree, DomPosition, Reconcilable, ReconcileTarget};
+use super::{BNode, BSubtree, DomPosition, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::{AttrValue, VText};
 
@@ -25,7 +25,7 @@ impl ReconcileTarget for BText {
     }
 
     fn shift(&self, next_parent: &Element, next_sibling: DomPosition) -> DomPosition {
-        insert_node(&self.text_node, next_parent, &next_sibling);
+        next_sibling.insert(next_parent, &self.text_node);
 
         DomPosition::at(self.text_node.clone().into())
     }
@@ -43,7 +43,7 @@ impl Reconcilable for VText {
     ) -> (DomPosition, Self::Bundle) {
         let Self { text } = self;
         let text_node = document().create_text_node(&text);
-        insert_node(&text_node, parent, &next_sibling);
+        next_sibling.insert(parent, &text_node);
         let node_ref = DomPosition::at(text_node.clone().into());
         (node_ref, BText { text, text_node })
     }
@@ -133,7 +133,7 @@ mod feat_hydration {
             // node may be a combination of multiple VText vnodes. So we always need to
             // override their values.
             let text_node = document().create_text_node("");
-            insert_node(&text_node, parent, &DomPosition::create(next_sibling));
+            DomPosition::create(next_sibling).insert(parent, &text_node);
             BText {
                 text: "".into(),
                 text_node,
