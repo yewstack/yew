@@ -50,6 +50,15 @@ impl<IN: Into<OUT>, OUT> From<ChildrenRenderer<IN>> for NodeSeq<IN, OUT> {
     }
 }
 
+impl<IN: Into<OUT> + Clone, OUT> From<&ChildrenRenderer<IN>> for NodeSeq<IN, OUT> {
+    fn from(val: &ChildrenRenderer<IN>) -> Self {
+        Self(
+            val.iter().map(|x| x.into()).collect(),
+            PhantomData::default(),
+        )
+    }
+}
+
 impl<IN, OUT> IntoIterator for NodeSeq<IN, OUT> {
     type IntoIter = std::vec::IntoIter<Self::Item>;
     type Item = OUT;
