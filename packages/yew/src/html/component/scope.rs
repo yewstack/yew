@@ -528,7 +528,7 @@ mod feat_csr {
     use crate::scheduler;
 
     impl AnyScope {
-        #[cfg(test)]
+        #[cfg(all(test, target_arch = "wasm32"))]
         pub(crate) fn test() -> Self {
             Self {
                 type_id: TypeId::of::<()>(),

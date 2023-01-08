@@ -148,9 +148,9 @@ pub trait Component: Sized + 'static {
         true
     }
 
-    /// Called when properties passed to the component change
+    /// Called when properties passed to the component change.
     ///
-    /// Returned bool indicates whether to render this Component after changed.
+    /// The returned bool indicates whether to render this component anew.
     ///
     /// By default, this function will return true and thus make the component re-render.
     #[allow(unused_variables)]

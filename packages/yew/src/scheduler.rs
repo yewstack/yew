@@ -220,6 +220,20 @@ pub(crate) fn start_now() {
     });
 }
 
+mod unstable_exports {
+    /// Immediately try to run any pending tasks.
+    ///
+    /// Note that if the scheduler is already running, this function does nothing and does not
+    /// guarantee any progress.
+    pub fn start_now() {
+        // forward the call to the crate-internal function
+        super::start_now()
+    }
+}
+
+#[doc(hidden)]
+pub use unstable_exports::start_now as __unstable_start_now;
+
 #[cfg(target_arch = "wasm32")]
 mod arch {
     use crate::platform::spawn_local;

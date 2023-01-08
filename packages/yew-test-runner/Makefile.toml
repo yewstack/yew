@@ -1,0 +1,13 @@
+[tasks.wasm-test]
+command = "wasm-pack"
+args = [
+    "test",
+    "--firefox",
+    "--headless",
+    "--",
+    "--all-features",
+]
+
+[tasks.test]
+args = ["test", "--all-targets", "--all-features"]
+dependencies = ["wasm-test"]
