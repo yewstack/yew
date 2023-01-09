@@ -120,7 +120,7 @@ enum Route {
     Misc { path: String },
 }
 
-fn switch(route: &Route) -> Html {
+fn switch(route: Route) -> Html {
     match route {
         Route::Home => html! { <h1>{ "Home" }</h1> },
         Route::Post { id } => html! {<p>{format!("You are looking at Post {}", id)}</p>},
