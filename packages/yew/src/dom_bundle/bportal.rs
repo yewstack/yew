@@ -1,10 +1,10 @@
 //! This module contains the bundle implementation of a portal [BPortal].
 
-use web_sys::Element;
+use web_sys::{Element, Node};
 
-use super::{test_log, BNode, BSubtree};
+use super::{test_log, BNode, BSubtree, DomSlot};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, NodeRef};
+use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VPortal};
 
 /// The bundle implementation to [VPortal].
@@ -15,7 +15,7 @@ pub struct BPortal {
     /// The element under which the content is inserted.
     host: Element,
     /// The next sibling after the inserted content
-    inner_sibling: NodeRef,
+    inner_sibling: Option<Node>,
     /// The inserted node
     node: Box<BNode>,
 }
@@ -26,10 +26,9 @@ impl ReconcileTarget for BPortal {
         self.node.detach(&self.inner_root, &self.host, false);
     }
 
-    fn shift(&self, _next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
-        // portals have nothing in it's original place of DOM, we also do nothing.
-
-        next_sibling
+    fn shift(&self, _next_parent: &Element, slot: DomSlot) -> DomSlot {
+        // portals have nothing in its original place of DOM, we also do nothing.
+        slot
     }
 }
 
@@ -41,22 +40,18 @@ impl Reconcilable for VPortal {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        host_next_sibling: NodeRef,
-    ) -> (NodeRef, Self::Bundle) {
+        host_slot: DomSlot,
+    ) -> (DomSlot, Self::Bundle) {
         let Self {
             host,
             inner_sibling,
             node,
         } = self;
-        let inner_sibling = {
-            let sib_ref = NodeRef::default();
-            sib_ref.set(inner_sibling);
-            sib_ref
-        };
+        let inner_slot = DomSlot::create(inner_sibling.clone());
         let inner_root = root.create_subroot(parent.clone(), &host);
-        let (_, inner) = node.attach(&inner_root, parent_scope, &host, inner_sibling.clone());
+        let (_, inner) = node.attach(&inner_root, parent_scope, &host, inner_slot);
         (
-            host_next_sibling,
+            host_slot,
             BPortal {
                 inner_root,
                 host,
@@ -71,14 +66,12 @@ impl Reconcilable for VPortal {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        slot: DomSlot,
         bundle: &mut BNode,
-    ) -> NodeRef {
+    ) -> DomSlot {
         match bundle {
-            BNode::Portal(portal) => {
-                self.reconcile(root, parent_scope, parent, next_sibling, portal)
-            }
-            _ => self.replace(root, parent_scope, parent, next_sibling, bundle),
+            BNode::Portal(portal) => self.reconcile(root, parent_scope, parent, slot, portal),
+            _ => self.replace(root, parent_scope, parent, slot, bundle),
         }
     }
 
@@ -87,9 +80,9 @@ impl Reconcilable for VPortal {
         _root: &BSubtree,
         parent_scope: &AnyScope,
         _parent: &Element,
-        next_sibling: NodeRef,
+        host_slot: DomSlot,
         portal: &mut Self::Bundle,
-    ) -> NodeRef {
+    ) -> DomSlot {
         let Self {
             host,
             inner_sibling,
@@ -98,23 +91,23 @@ impl Reconcilable for VPortal {
 
         let old_host = std::mem::replace(&mut portal.host, host);
 
-        let should_shift = old_host != portal.host || portal.inner_sibling.get() != inner_sibling;
-        portal.inner_sibling.set(inner_sibling);
+        let should_shift = old_host != portal.host || portal.inner_sibling != inner_sibling;
+        portal.inner_sibling = inner_sibling;
+        let inner_slot = DomSlot::create(portal.inner_sibling.clone());
 
         if should_shift {
             // Remount the inner node somewhere else instead of diffing
             // Move the node, but keep the state
-            let inner_sibling = portal.inner_sibling.clone();
-            portal.node.shift(&portal.host, inner_sibling);
+            portal.node.shift(&portal.host, inner_slot.clone());
         }
         node.reconcile_node(
             &portal.inner_root,
             parent_scope,
             &portal.host,
-            portal.inner_sibling.clone(),
+            inner_slot,
             &mut portal.node,
         );
-        next_sibling
+        host_slot
     }
 }
 
@@ -136,6 +129,7 @@ mod layout_tests {
     use yew::virtual_dom::VPortal;
 
     use super::*;
+    use crate::html::NodeRef;
     use crate::tests::layout_tests::{diff_layouts, TestLayout};
     use crate::virtual_dom::VNode;
     use crate::{create_portal, html};
@@ -252,13 +246,13 @@ mod layout_tests {
         );
         let (_, mut bundle) = portal
             .clone()
-            .attach(&root, &scope, &parent, NodeRef::default());
+            .attach(&root, &scope, &parent, DomSlot::at_end());
 
         // Focus the input, then reconcile again
         let input_el = input_ref.cast::<HtmlInputElement>().unwrap();
         input_el.focus().unwrap();
 
-        let _ = portal.reconcile_node(&root, &scope, &parent, NodeRef::default(), &mut bundle);
+        let _ = portal.reconcile_node(&root, &scope, &parent, DomSlot::at_end(), &mut bundle);
 
         let new_input_el = input_ref.cast::<HtmlInputElement>().unwrap();
         assert_eq!(input_el, new_input_el);

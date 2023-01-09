@@ -520,11 +520,10 @@ mod feat_csr {
     use web_sys::Element;
 
     use super::*;
-    use crate::dom_bundle::{BSubtree, Bundle};
+    use crate::dom_bundle::{BSubtree, Bundle, DomSlot, DynamicDomSlot};
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, PropsUpdateRunner, RenderRunner,
     };
-    use crate::html::NodeRef;
     use crate::scheduler;
 
     impl AnyScope {
@@ -541,11 +540,11 @@ mod feat_csr {
     fn schedule_props_update(
         state: Shared<Option<ComponentState>>,
         props: Rc<dyn Any>,
-        next_sibling: NodeRef,
+        next_sibling_slot: DomSlot,
     ) {
         scheduler::push_component_props_update(Box::new(PropsUpdateRunner {
             state,
-            next_sibling: Some(next_sibling),
+            next_sibling_slot: Some(next_sibling_slot),
             props: Some(props),
         }));
         // Not guaranteed to already have the scheduler started
@@ -561,20 +560,20 @@ mod feat_csr {
             &self,
             root: BSubtree,
             parent: Element,
-            next_sibling: NodeRef,
-            internal_ref: NodeRef,
+            slot: DomSlot,
+            internal_ref: DynamicDomSlot,
             props: Rc<COMP::Properties>,
         ) {
             let bundle = Bundle::new();
-            internal_ref.link(next_sibling.clone());
-            let stable_next_sibling = NodeRef::default();
-            stable_next_sibling.link(next_sibling);
+            let sibling_slot = DynamicDomSlot::new(slot);
+            internal_ref.reassign(sibling_slot.to_position());
+
             let state = ComponentRenderState::Render {
                 bundle,
                 root,
-                internal_ref,
+                own_slot: internal_ref,
                 parent,
-                next_sibling: stable_next_sibling,
+                sibling_slot,
             };
 
             scheduler::push_component_create(
@@ -594,8 +593,8 @@ mod feat_csr {
             scheduler::start();
         }
 
-        pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, next_sibling: NodeRef) {
-            schedule_props_update(self.state.clone(), props, next_sibling)
+        pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, slot: DomSlot) {
+            schedule_props_update(self.state.clone(), props, slot)
         }
     }
 
@@ -604,7 +603,7 @@ mod feat_csr {
         /// Get the render state if it hasn't already been destroyed
         fn render_state(&self) -> Option<Ref<'_, ComponentRenderState>>;
         /// Shift the node associated with this scope to a new place
-        fn shift_node(&self, parent: Element, next_sibling: NodeRef);
+        fn shift_node(&self, parent: Element, slot: DomSlot);
         /// Process an event to destroy a component
         fn destroy(self, parent_to_detach: bool);
         fn destroy_boxed(self: Box<Self>, parent_to_detach: bool);
@@ -640,10 +639,10 @@ mod feat_csr {
             self.destroy(parent_to_detach)
         }
 
-        fn shift_node(&self, parent: Element, next_sibling: NodeRef) {
+        fn shift_node(&self, parent: Element, slot: DomSlot) {
             let mut state_ref = self.state.borrow_mut();
             if let Some(render_state) = state_ref.as_mut() {
-                render_state.render_state.shift(parent, next_sibling)
+                render_state.render_state.shift(parent, slot)
             }
         }
     }
@@ -657,9 +656,8 @@ mod feat_hydration {
     use web_sys::{Element, HtmlScriptElement};
 
     use super::*;
-    use crate::dom_bundle::{BSubtree, Fragment};
+    use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot, Fragment};
     use crate::html::component::lifecycle::{ComponentRenderState, CreateRunner, RenderRunner};
-    use crate::html::NodeRef;
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
 
@@ -680,7 +678,7 @@ mod feat_hydration {
             root: BSubtree,
             parent: Element,
             fragment: &mut Fragment,
-            internal_ref: NodeRef,
+            internal_ref: DynamicDomSlot,
             props: Rc<COMP::Properties>,
         ) {
             // This is very helpful to see which component is failing during hydration
@@ -695,14 +693,12 @@ mod feat_hydration {
             let collectable = Collectable::for_component::<COMP>();
 
             let mut fragment = Fragment::collect_between(fragment, &collectable, &parent);
-            match fragment.front().cloned() {
-                front @ Some(_) => internal_ref.set(front),
-                None =>
-                {
-                    #[cfg(debug_assertions)]
-                    internal_ref.link(NodeRef::new_debug_trapped())
-                }
-            }
+            let next_sibling = if let Some(n) = fragment.front() {
+                Some(n.clone())
+            } else {
+                fragment.sibling_at_end().cloned()
+            };
+            internal_ref.reassign(DomSlot::create(next_sibling));
 
             let prepared_state = match fragment
                 .back()
@@ -720,8 +716,8 @@ mod feat_hydration {
             let state = ComponentRenderState::Hydration {
                 parent,
                 root,
-                internal_ref,
-                next_sibling: NodeRef::new_debug_trapped(),
+                own_slot: internal_ref,
+                sibling_slot: DynamicDomSlot::new_debug_trapped(),
                 fragment,
             };
 
