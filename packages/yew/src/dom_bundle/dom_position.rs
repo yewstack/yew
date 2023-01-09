@@ -8,7 +8,7 @@ use web_sys::{Element, Node};
 /// This can either be in front of a `DomSlot::at(next_sibling)`, at the end of the list with
 /// `DomSlot::at_end()`, or a dynamic position in the list with [`DynamicDomSlot::to_position`].
 #[derive(Clone)]
-pub struct DomSlot {
+pub(crate) struct DomSlot {
     variant: DomSlotVariant,
 }
 
@@ -18,10 +18,10 @@ enum DomSlotVariant {
     Chained(DynamicDomSlot),
 }
 
-/// A dynamic dom slot can be retargeted. This change is also seen by the [`DomSlot`] from
-/// [`Self::to_position`] before the retargeting took place.
+/// A dynamic dom slot can be reassigned. This change is also seen by the [`DomSlot`] from
+/// [`Self::to_position`] before the reassignment took place.
 #[derive(Clone)]
-pub struct DynamicDomSlot {
+pub(crate) struct DynamicDomSlot {
     target: Rc<RefCell<DomSlot>>,
 }
 
@@ -144,12 +144,12 @@ impl DynamicDomSlot {
 
     /// Change the [`DomSlot`] that is targeted. Subsequently, this will behave as if `self` was
     /// created from the passed DomSlot in the first place.
-    pub fn retarget(&self, next_position: DomSlot) {
+    pub fn reassign(&self, next_position: DomSlot) {
         // TODO: is not defensive against accidental reference loops
         *self.target.borrow_mut() = next_position;
     }
 
-    /// Get a [`DomSlot`] that gets automatically updated when `self` gets retargeted. All such
+    /// Get a [`DomSlot`] that gets automatically updated when `self` gets reassigned. All such
     /// slots are equivalent to each other and point to the same position.
     pub fn to_position(&self) -> DomSlot {
         DomSlot {
@@ -209,7 +209,7 @@ mod layout_tests {
     }
 
     #[test]
-    fn get_through_retargetable() {
+    fn get_through_dynamic() {
         let original = DomSlot::at(document().create_element("p").unwrap().into());
         let target = DynamicDomSlot::new(original.clone());
         assert_eq!(
@@ -220,12 +220,12 @@ mod layout_tests {
     }
 
     #[test]
-    fn get_after_retarget() {
+    fn get_after_reassign() {
         let target = DynamicDomSlot::new(DomSlot::at_end());
         let target_pos = target.to_position();
-        // We retarget *after* we called `to_position` here to be strict in the test
+        // We reassign *after* we called `to_position` here to be strict in the test
         let replacement = DomSlot::at(document().create_element("p").unwrap().into());
-        target.retarget(replacement.clone());
+        target.reassign(replacement.clone());
         assert_eq!(
             target_pos.get(),
             replacement.get(),
@@ -234,7 +234,7 @@ mod layout_tests {
     }
 
     #[test]
-    fn get_chain_after_retarget() {
+    fn get_chain_after_reassign() {
         let middleman = DynamicDomSlot::new(DomSlot::at_end());
         let target = DynamicDomSlot::new(middleman.to_position());
         let target_pos = target.to_position();
@@ -242,9 +242,9 @@ mod layout_tests {
             target.to_position().get().is_none(),
             "should not yet point to a node"
         );
-        // Now retarget the middle man, but get the node from `target`
+        // Now reassign the middle man, but get the node from `target`
         let replacement = DomSlot::at(document().create_element("p").unwrap().into());
-        middleman.retarget(replacement.clone());
+        middleman.reassign(replacement.clone());
         assert_eq!(
             target_pos.get(),
             replacement.get(),

@@ -32,7 +32,7 @@ use braw::BRaw;
 use bsuspense::BSuspense;
 use btag::{BTag, Registry};
 use btext::BText;
-pub use dom_position::{DomSlot, DynamicDomSlot};
+pub(crate) use dom_position::{DomSlot, DynamicDomSlot};
 use subtree_root::EventDescriptor;
 pub use subtree_root::{set_event_bubbling, BSubtree};
 use traits::{Reconcilable, ReconcileTarget};
@@ -84,7 +84,7 @@ mod feat_hydration {
     pub(super) use super::utils::node_type_str;
     #[path = "./fragment.rs"]
     mod fragment;
-    pub use fragment::Fragment;
+    pub(crate) use fragment::Fragment;
 
     use super::*;
     impl Bundle {

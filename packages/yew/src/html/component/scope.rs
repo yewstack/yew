@@ -566,7 +566,7 @@ mod feat_csr {
         ) {
             let bundle = Bundle::new();
             let sibling_slot = DynamicDomSlot::new(slot);
-            internal_ref.retarget(sibling_slot.to_position());
+            internal_ref.reassign(sibling_slot.to_position());
 
             let state = ComponentRenderState::Render {
                 bundle,
@@ -698,7 +698,7 @@ mod feat_hydration {
             } else {
                 fragment.sibling_at_end().cloned()
             };
-            internal_ref.retarget(DomSlot::create(next_sibling));
+            internal_ref.reassign(DomSlot::create(next_sibling));
 
             let prepared_state = match fragment
                 .back()

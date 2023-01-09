@@ -109,7 +109,7 @@ impl ComponentRenderState {
                 bundle.shift(&next_parent, next_slot.clone());
 
                 *parent = next_parent;
-                sibling_slot.retarget(next_slot);
+                sibling_slot.reassign(next_slot);
             }
             #[cfg(feature = "hydration")]
             Self::Hydration {
@@ -121,7 +121,7 @@ impl ComponentRenderState {
                 fragment.shift(&next_parent, next_slot.clone());
 
                 *parent = next_parent;
-                sibling_slot.retarget(next_slot);
+                sibling_slot.reassign(next_slot);
             }
 
             #[cfg(feature = "ssr")]
@@ -499,7 +499,7 @@ impl ComponentState {
 
                 let new_node_ref =
                     bundle.reconcile(root, &scope, parent, sibling_slot.to_position(), new_root);
-                own_slot.retarget(new_node_ref);
+                own_slot.reassign(new_node_ref);
 
                 let first_render = !self.has_rendered;
                 self.has_rendered = true;
@@ -606,12 +606,12 @@ mod feat_csr {
                 match &mut self.render_state {
                     #[cfg(feature = "csr")]
                     ComponentRenderState::Render { sibling_slot, .. } => {
-                        sibling_slot.retarget(next_sibling_slot);
+                        sibling_slot.reassign(next_sibling_slot);
                     }
 
                     #[cfg(feature = "hydration")]
                     ComponentRenderState::Hydration { sibling_slot, .. } => {
-                        sibling_slot.retarget(next_sibling_slot);
+                        sibling_slot.reassign(next_sibling_slot);
                     }
 
                     #[cfg(feature = "ssr")]

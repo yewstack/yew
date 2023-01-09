@@ -9,7 +9,7 @@ use crate::virtual_dom::Collectable;
 
 /// A Hydration Fragment
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
-pub struct Fragment(VecDeque<Node>, Option<Node>);
+pub(crate) struct Fragment(VecDeque<Node>, Option<Node>);
 
 impl Deref for Fragment {
     type Target = VecDeque<Node>;
@@ -158,7 +158,7 @@ impl Fragment {
     }
 
     /// Shift current Fragment into a different position in the dom.
-    pub(crate) fn shift(&self, next_parent: &Element, slot: DomSlot) -> DomSlot {
+    pub fn shift(&self, next_parent: &Element, slot: DomSlot) -> DomSlot {
         for node in self.iter() {
             slot.insert(next_parent, node);
         }
