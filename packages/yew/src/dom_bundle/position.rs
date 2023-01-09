@@ -1,3 +1,5 @@
+//! Structs for keeping track where in the DOM a node belongs
+
 use std::cell::RefCell;
 use std::rc::Rc;
 

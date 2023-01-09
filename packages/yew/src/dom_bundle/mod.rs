@@ -18,7 +18,7 @@ mod braw;
 mod bsuspense;
 mod btag;
 mod btext;
-mod dom_position;
+mod position;
 mod subtree_root;
 
 mod traits;
@@ -32,7 +32,7 @@ use braw::BRaw;
 use bsuspense::BSuspense;
 use btag::{BTag, Registry};
 use btext::BText;
-pub(crate) use dom_position::{DomSlot, DynamicDomSlot};
+pub(crate) use position::{DomSlot, DynamicDomSlot};
 use subtree_root::EventDescriptor;
 pub use subtree_root::{set_event_bubbling, BSubtree};
 use traits::{Reconcilable, ReconcileTarget};
