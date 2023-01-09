@@ -25,8 +25,8 @@ impl VPortal {
     }
 
     /// Creates a [VPortal] rendering `content` in the DOM hierarchy under `host`.
-    /// If `next_sibling` is given, the content is inserted before that [Node].
-    /// The parent of `next_sibling`, if given, must be `host`.
+    /// If `inner_sibling` is given, the content is inserted before that [Node].
+    /// The parent of `inner_sibling`, if given, must be `host`.
     pub fn new_before(content: VNode, host: Element, inner_sibling: Option<Node>) -> Self {
         Self {
             host,
