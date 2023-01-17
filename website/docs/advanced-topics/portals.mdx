@@ -51,7 +51,7 @@ if a portal is rendered as the child of an element, then an event listener on th
 will catch events dispatched from inside the portal, even if the portal renders its contents
 in an unrelated location in the actual DOM.
 
-This allows developers to be oblivious of whether a component they consume, is implemented with
+This allows developers to be obvious of whether a component they consume, is implemented with
 or without portals. Events fired on its children will bubble up regardless.
 
 A known issue is that events from portals into **closed** shadow roots will be dispatched twice,
