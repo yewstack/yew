@@ -9,14 +9,12 @@
 - Reentrant event listeners. [[@WorldSEnder](https://github.com/WorldSEnder), [#3037](https://github.com/yewstack/yew/pull/3037)]
 - Assert there are no circular references. [[@WorldSEnder](https://github.com/WorldSEnder), [#3025](https://github.com/yewstack/yew/pull/3025)]
   This fixes a performance regression in yew 0.20 with large lists.
+- Implement an internal DomSlot for positioning instead of NodeRef. [[@WorldSEnder](https://github.com/WorldSEnder), [#3048](https://github.com/yewstack/yew/pull/3048)]
+- Prefer pop_first if it is available. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#3084](https://github.com/yewstack/yew/pull/3084)]
 
 ### ⚡️ Features
 
 - Add method map() on Children to wrap easily. [[@Cecile Tonglet](https://github.com/Cecile Tonglet), [#3039](https://github.com/yewstack/yew/pull/3039)]
-- Add impl IntoIterator on &Classes. [[@Cecile Tonglet](https://github.com/Cecile Tonglet), [#3038](https://github.com/yewstack/yew/pull/3038)]
-- Make Classes cheap to clone. [[@Cecile Tonglet](https://github.com/Cecile Tonglet), [#3021](https://github.com/yewstack/yew/pull/3021)]
-- Implement an internal DomSlot for positioning instead of NodeRef. [[@WorldSEnder](https://github.com/WorldSEnder), [#3048](https://github.com/yewstack/yew/pull/3048)]
-- Prefer pop_first if it is available. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#3084](https://github.com/yewstack/yew/pull/3084)]
 
 ## ✨ yew **0.20.0** *(2022-11-25)*
 
