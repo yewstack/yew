@@ -193,7 +193,7 @@ Refresh the browser page, and you should see the following output displayed:
 ### Using Rust language constructs in the markup
 
 A big advantage of writing markup in Rust is that we get all the coolness of Rust in our markup.
-Now, instead of hardcoding the list of videos in the HTML, let's define them as a `Vec` of Rust objects.
+Now, instead of hardcoding the list of videos in the HTML, let's define them as a `Vec` of `Video` structs.
 We create a simple `struct` (in `main.rs` or any file of our choice) that will hold our data.
 
 ```rust
@@ -238,7 +238,7 @@ let videos = vec![
 ];
 ```
 
-To display them, we need to convert these `Vec`s into `Html`. We can do that by creating an iterator,
+To display them, we need to convert the `Vec` into `Html`. We can do that by creating an iterator,
 mapping it to `html!` and collecting it as `Html`:
 
 ```rust ,ignore

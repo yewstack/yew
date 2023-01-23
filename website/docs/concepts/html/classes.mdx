@@ -15,8 +15,7 @@ for every class even if a single string might contain multiple classes.
 
 `Classes` can also be merged by using `Extend` (i.e.
 `classes1.extend(classes2)`) or `push()` (i.e. `classes1.push(classes2)`).
-Anything that implements `Into<Classes>` can be used to push new classes
-to the set.
+Any type that implements `Into<Classes>` can be pushed onto an existing `Classes`.
 
 The macro `classes!` is a convenient macro that creates one single `Classes`.
 Its input accepts a comma-separated list of expressions. The only requirement

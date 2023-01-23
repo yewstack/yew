@@ -13,7 +13,7 @@ procedurally generated from browser WebIDL which is why some names are so long a
 
 The `web-sys` crate with all of its features enabled can add lots of bloat to a Wasm application.
 To get around this issue most types are feature gated so that you only include the types
-you require for your application. Yew includes several features from `web-sys` and
+you require for your application. Yew enables several features from `web-sys` and
 exposes some types in its public API. You will often need to add `web-sys` as a dependency yourself.
 
 ## Inheritance in `web-sys`
@@ -128,8 +128,8 @@ fn with_jscast(node_ref: NodeRef) {
 
 ## JavaScript example to Rust
 
-This section shows that examples which use JavaScript to interact with the Web APIs
-can be adapted and written using Rust with `web-sys`.
+This section demonstrates examples of how JavaScript code which interact with the
+Web APIs can be rewritten with `web-sys` in Rust.
 
 ### JavaScript example
 

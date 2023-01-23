@@ -38,7 +38,7 @@ for translating between the two. Using this macro is more advanced, and you shou
 for it unless you are trying to use an external JavaScript library. The `js-sys` and `web-sys`
 crates expose `wasm-bindgen` definitions for built-in JavaScript types and browser APIs.
 
-Let's go over a simple example of using the `#[wasm-bindgen]` macro to import some specific flavors
+Let's go over a simple example of using the `#[wasm-bindgen]` macro to import some specific flavours
 of the [`console.log`](https://developer.mozilla.org/en-US/docs/Web/API/Console/log) function.
 
 ```rust ,no_run
@@ -204,8 +204,9 @@ There are three main interfaces in this crate currently:
 
 1. [`JsFuture`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/struct.JsFuture.html) -
    A type that is constructed with a [`Promise`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Promise.html)
-   and can then be used as a `Future<Output=Result<JsValue, JsValue>>`. This Rust future will resolve
-   or reject the value coming out of the `Promise`.
+   and can then be used as a `Future<Output=Result<JsValue, JsValue>>`. This `Future` will resolve to `Ok` if
+   the `Promise` is resolved and `Err` if the `Promise` is rejected, containing the resolved or rejected
+   value from the `Promise` respectively.
 
 2. [`future_to_promise`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.future_to_promise.html) -
    Converts a Rust `Future<Output=Result<JsValue, JsValue>>` into a

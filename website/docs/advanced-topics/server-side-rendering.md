@@ -15,7 +15,7 @@ This approach works fine for most websites, with some caveats:
 
 1. Users will not be able to see anything until the entire WebAssembly
    bundle is downloaded and the initial render has been completed.
-   This can result in a poor user experience on a slow network.
+   This can result in a poor experience for users on a slow network.
 2. Some search engines do not support dynamically rendered web content and
    those who do usually rank dynamic websites lower in the search results.
 
@@ -26,7 +26,7 @@ To solve these problems, we can render our website on the server side.
 Yew provides a `ServerRenderer` to render pages on the
 server side.
 
-To render Yew components on the server-side, you can create a renderer
+To render Yew components on the server side, you can create a renderer
 with `ServerRenderer::<App>::new()` and call `renderer.render().await`
 to render `<App />` into a `String`.
 

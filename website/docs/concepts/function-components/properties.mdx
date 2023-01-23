@@ -18,7 +18,7 @@ A type has to implement the `Properties` trait before it can be used as the prop
 
 ## Reactivity
 
-Yew checks if Props have changed when reconciling the virtual DOM during re-rendering, to know if nested components need to be re-rendered.
+Yew checks if props have changed when reconciling the Virtual DOM during re-rendering, to know if nested components need to be re-rendered.
 This way Yew can be considered a very reactive framework, as changes from the parent will always be propagated downward,
 and the view will never be out of sync with the data coming from props/state.
 
@@ -102,7 +102,7 @@ fn App() -> Html {
 ## Derive macro field attributes
 
 When deriving `Properties` all fields are required by default.
-The following attributes allow you to give your props default values which will be used when a parent has not set them.
+The following attributes allow you to give your props default values which will be used when the parent has not set them.
 
 :::tip
 Attributes aren't visible in Rustdoc generated documentation.
