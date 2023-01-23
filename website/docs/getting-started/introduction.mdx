@@ -13,7 +13,7 @@ To install Rust, follow the [official instructions](https://www.rust-lang.org/to
 :::important
 The minimum supported Rust version (MSRV) for Yew is `1.56.1`. Older versions can cause unexpected
 issues accompanied by incomprehensible error messages. You can check your toolchain version using
-`rustup show` (under "active toolchain") or alternatively `rustc --version`. To update your
+`rustup show` (under "active toolchain") or `rustc --version`. To update your
 toolchain, run `rustup update`.
 :::
 
@@ -29,11 +29,11 @@ rustup target add wasm32-unknown-unknown
 
 ## Install Trunk
 
-Trunk is the recommended tool for managing deployment and packaging, and is used throughout the
+Trunk is the recommended tool for managing deployment and packaging and is used throughout the
 documentation and examples.
 
 ```shell
-# note that this might take a while to install, because it compiles everything from scratch
+# note that this might take a while to install because it compiles everything from scratch
 # Trunk also provides prebuilt binaries for a number of major package managers
 # See https://trunkrs.dev/#install for further details
 cargo install --locked trunk
@@ -49,5 +49,5 @@ There are options other than Trunk that may be used for bundling Yew application
 
 ## Next steps
 
-With your development environment setup, you can now either proceed with the reading the documentation.
-If you like to learn by getting your hands dirty, we recommend you check out our [tutorial](../tutorial)
+With your development environment setup, you can now either proceed with reading the documentation.
+If you like to learn by getting your hands dirty, we recommend you check out our [tutorial](../tutorial).

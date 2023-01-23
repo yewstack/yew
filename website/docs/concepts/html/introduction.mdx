@@ -9,7 +9,7 @@ import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
 The `html!` macro allows you to write HTML and SVG code declaratively. It is similar to JSX
-(an extension to JavaScript which allows you to write HTML-like code inside of JavaScript).
+(an extension to JavaScript that allows you to write HTML-like code inside of JavaScript).
 
 **Important notes**
 
@@ -17,7 +17,7 @@ The `html!` macro allows you to write HTML and SVG code declaratively. It is sim
    [fragments](./fragments.mdx) or [iterators](./../html/lists.mdx))
 2. An empty `html! {}` invocation is valid and will not render anything
 3. Literals must always be quoted and wrapped in braces: `html! { <p>{ "Hello, World" }</p> }`
-4. The `html!` macro will make all tag names lower case. To use upper case characters (which are required for some SVG elements) use [dynamic tag names](concepts/html/elements.mdx#dynamic-tag-names): `html! { <@{"myTag"}></@> }`
+4. The `html!` macro will make all tag names lowercase. To use upper case characters (which are required for some SVG elements) use [dynamic tag names](concepts/html/elements.mdx#dynamic-tag-names): `html! { <@{"myTag"}></@> }`
 
 :::note
 The `html!` macro can reach the default recursion limit of the compiler. If you encounter compilation errors,

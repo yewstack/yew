@@ -14,12 +14,12 @@ When pushing a string to the set, `Classes` ensures that there is one element
 for every class even if a single string might contain multiple classes.
 
 `Classes` can also be merged by using `Extend` (i.e.
-`classes1.extend(classes2)`) or `push()` (i.e. `classes1.push(classes2)`). In
-fact, anything that implements `Into<Classes>` can be used to push new classes
+`classes1.extend(classes2)`) or `push()` (i.e. `classes1.push(classes2)`).
+Anything that implements `Into<Classes>` can be used to push new classes
 to the set.
 
 The macro `classes!` is a convenient macro that creates one single `Classes`.
-Its input accepts a comma separated list of expressions. The only requirement
+Its input accepts a comma-separated list of expressions. The only requirement
 is that every expression implements `Into<Classes>`.
 
 <Tabs>

@@ -5,7 +5,7 @@ description: 'Parent to child communication'
 
 Properties enable child and parent components to communicate with each other.
 Every component has an associated properties type which describes what is passed down from the parent.
-In theory this can be any type that implements the `Properties` trait, but in practice there's no
+In theory, this can be any type that implements the `Properties` trait, but in practice, there is no
 reason for it to be anything but a struct where each field represents a property.
 
 ## Derive macro
@@ -17,7 +17,7 @@ Types for which you derive `Properties` must also implement `PartialEq`.
 ### Field attributes
 
 When deriving `Properties`, all fields are required by default.
-The following attributes allow you to give your props initial values which will be used unless they're set to another value.
+The following attributes allow you to give your props initial values which will be used unless they are set to another value.
 
 :::tip
 Attributes aren't visible in Rustdoc generated documentation.
@@ -75,7 +75,7 @@ fn create_default_link_color() -> LinkColor {
 pub struct LinkProps {
     /// The link must have a target.
     href: AttrValue,
-    /// Also notice that we're using AttrValue instead of String
+    /// Also notice that we are using AttrValue instead of String
     text: AttrValue,
     /// Color of the link. Defaults to `Blue`.
     #[prop_or_else(create_default_link_color)]
@@ -83,7 +83,7 @@ pub struct LinkProps {
     /// The view function will not specify a size if this is None.
     #[prop_or_default]
     size: Option<u32>,
-    /// When the view function doesn't specify active, it defaults to true.
+    /// When the view function does not specify active, it defaults to true.
     #[prop_or(true)]
     active: bool,
 }
@@ -93,7 +93,7 @@ pub struct LinkProps {
 
 The `yew::props!` macro allows you to build properties the same way the `html!` macro does it.
 
-The macro uses the same syntax as a struct expression except that you can't use attributes or a base expression (`Foo { ..base }`).
+The macro uses the same syntax as a struct expression except that you cannot use attributes or a base expression (`Foo { ..base }`).
 The type path can either point to the props directly (`path::to::Props`) or the associated properties of a component (`MyComp::Properties`).
 
 ```rust
