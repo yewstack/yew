@@ -5,8 +5,7 @@ use std::rc::Rc;
 
 use super::{use_reducer, use_reducer_eq, Reducible, UseReducerDispatcher, UseReducerHandle};
 use crate::functional::hook;
-use crate::use_force_update;
-use crate::UseForceUpdateHandle;
+use crate::{use_force_update, UseForceUpdateHandle};
 
 struct UseRefStateReducer<T> {
     value: Rc<RefCell<T>>,
