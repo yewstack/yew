@@ -6,6 +6,7 @@ mod use_memo;
 mod use_prepared_state;
 mod use_reducer;
 mod use_ref;
+mod use_ref_state;
 mod use_state;
 mod use_transitive_state;
 
@@ -17,6 +18,7 @@ pub use use_memo::*;
 pub use use_prepared_state::*;
 pub use use_reducer::*;
 pub use use_ref::*;
+pub use use_ref_state::*;
 pub use use_state::*;
 pub use use_transitive_state::*;
 
