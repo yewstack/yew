@@ -30,7 +30,7 @@ mod feat_hydration {
                     .map(|m| m.tag_name().to_lowercase())
                     .unwrap_or_else(|| "unknown".to_owned());
 
-                format!("{} element node", tag).into()
+                format!("{tag} element node").into()
             }
             Node::ATTRIBUTE_NODE => "attribute node".into(),
             Node::TEXT_NODE => "text node".into(),

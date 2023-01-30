@@ -75,7 +75,7 @@ where
                 let data = data.clone();
                 ctx.next_prepared_state(move |_re_render, buf| -> PreparedStateBase<T, D> {
                     if let Some(buf) = buf {
-                        let buf = format!("data:application/octet-binary;base64,{}", buf);
+                        let buf = format!("data:application/octet-binary;base64,{buf}");
 
                         spawn_local(async move {
                             let buf = decode_base64(&buf)

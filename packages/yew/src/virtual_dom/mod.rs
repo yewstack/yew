@@ -101,7 +101,7 @@ mod feat_ssr_hydration {
         pub fn name(&self) -> Cow<'static, str> {
             match self {
                 #[cfg(debug_assertions)]
-                Self::Component(m) => format!("Component({})", m).into(),
+                Self::Component(m) => format!("Component({m})").into(),
                 #[cfg(not(debug_assertions))]
                 Self::Component(_) => "Component".into(),
                 Self::Suspense => "Suspense".into(),

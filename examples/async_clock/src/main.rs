@@ -99,7 +99,7 @@ impl Component for AsyncComponent {
         let joke = self.joke.as_deref().unwrap_or("Loading...");
         let fun_score = self
             .fun_score
-            .map(|score| format!("Fun score: {}", score))
+            .map(|score| format!("Fun score: {score}"))
             .unwrap_or_else(|| "Computing...".to_string());
 
         html! {

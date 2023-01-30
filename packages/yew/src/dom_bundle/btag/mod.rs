@@ -311,7 +311,7 @@ mod feat_hydration {
 
             let node = fragment
                 .pop_front()
-                .unwrap_or_else(|| panic!("expected element of type {}, found EOF.", tag_name));
+                .unwrap_or_else(|| panic!("expected element of type {tag_name}, found EOF."));
 
             assert_eq!(
                 node.node_type(),

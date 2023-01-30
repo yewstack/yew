@@ -88,9 +88,8 @@ impl Prop {
             syn::Error::new_spanned(
                 &label,
                 format!(
-                    "`{}` doesn't have a value. (hint: set the value to `true` or `false` for \
-                     boolean attributes)",
-                    label
+                    "`{label}` doesn't have a value. (hint: set the value to `true` or `false` \
+                     for boolean attributes)"
                 ),
             )
         })?;
@@ -132,8 +131,7 @@ fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
                 &expr,
                 format!(
                     "the property value must be either a literal or enclosed in braces. Consider \
-                     adding braces around your expression.: {:#?}",
-                    exp
+                     adding braces around your expression.: {exp:#?}"
                 ),
             )),
         }
@@ -244,7 +242,7 @@ impl PropList {
             if let Some(other_prop) = self.get_by_label(key) {
                 return Err(syn::Error::new_spanned(
                     &other_prop.label,
-                    format!("`{}` can only be specified once", key),
+                    format!("`{key}` can only be specified once"),
                 ));
             }
         }
