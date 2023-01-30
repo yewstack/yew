@@ -794,7 +794,7 @@ async fn test_duplicate_suspension() {
     #[function_component]
     fn FetchingProvider(_props: &ChildrenProps) -> HtmlResult {
         use_future(|| async {
-            sleep(Duration::from_secs(10)).await;
+            sleep(Duration::from_millis(10)).await;
         })?;
         Ok(Html::default())
     }
@@ -819,7 +819,7 @@ async fn test_duplicate_suspension() {
     yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .render();
 
-    sleep(Duration::from_millis(50)).await;
+    sleep(Duration::from_millis(100)).await;
     let result = obtain_result();
-    assert_eq!(result.as_str(), "<div>htllo!</div>");
+    assert_eq!(result.as_str(), "<div>hello!</div>");
 }
