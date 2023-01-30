@@ -13,21 +13,23 @@ on:
 
 jobs:
   size-cmp:
-    name: Compare Size between master and current Pull Request
+    name: Collect ${{ matrix.target }} Size
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: ["master", "pr"]
 
     steps:
       - name: Checkout master
         uses: actions/checkout@v3
+        if: ${{ matrix.target == 'master' }}
         with:
-          repository: 'yewstack/yew'
+          repository: "yewstack/yew"
           ref: master
-          path: yew-master
 
       - name: Checkout pull request
         uses: actions/checkout@v3
-        with:
-          path: current-pr
+        if: ${{ matrix.target == 'pr' }}
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -38,42 +40,27 @@ jobs:
 
       - name: Restore Rust cache for master
         uses: Swatinem/rust-cache@v2
-        with:
-          working-directory: yew-master
-          key: master
-
-      - name: Restore Rust cache for current pull request
-        uses: Swatinem/rust-cache@v2
-        with:
-          working-directory: current-pr
-          key: pr
 
       - name: Setup Trunk
         uses: jetli/trunk-action@v0.2.0
         with:
-          version: 'latest'
+          version: "latest"
 
-      - name: Build master examples
+      - name: Build examples
         run: find ./*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
-        working-directory: yew-master/examples
-        env:
-          RUSTUP_TOOLCHAIN: nightly
-
-      - name: Build pull request examples
-        run: find ./*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
-        working-directory: current-pr/examples
+        working-directory: examples
         env:
           RUSTUP_TOOLCHAIN: nightly
           RUSTFLAGS: --cfg nightly_yew
 
       - name: Collect size information
-        run: python3 current-pr/ci/collect_sizes.py
+        run: python3 ci/collect_sizes.py
         env:
           ISSUE_NUMBER: ${{ github.event.number }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: size-cmp-info
+          name: size-cmp-${{ matrix.target }}-info
           path: ".SIZE_CMP_INFO"
           retention-days: 1

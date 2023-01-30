@@ -32,15 +32,10 @@ def find_example_sizes(parent_dir: Path) -> Dict[str, int]:
 
 
 def main() -> None:
-    master_sizes = find_example_sizes(Path("yew-master"))
-    pr_sizes = find_example_sizes(Path("current-pr"))
-
-    example_names = sorted(set([*master_sizes.keys(), *pr_sizes.keys()]))
-
-    joined_sizes = [(i, [master_sizes.get(i), pr_sizes.get(i)]) for i in example_names]
+    sizes = find_example_sizes(Path.cwd())
 
     size_cmp_info = {
-        "sizes": joined_sizes,
+        "sizes": sizes,
         "issue_number": os.environ["ISSUE_NUMBER"],
     }
 
