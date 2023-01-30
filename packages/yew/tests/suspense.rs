@@ -800,7 +800,7 @@ async fn test_duplicate_suspension() {
     }
 
     #[function_component]
-    fn Comp() -> Html {
+    fn Child() -> Html {
         html! {<div>{"hello!"}</div>}
     }
 
@@ -810,7 +810,7 @@ async fn test_duplicate_suspension() {
         html! {
            <Suspense {fallback}>
                <FetchingProvider>
-                   <Home />
+                   <Child />
                </FetchingProvider>
            </Suspense>
         }
