@@ -792,16 +792,16 @@ async fn test_duplicate_suspension() {
     use yew::html::ChildrenProps;
 
     #[function_component]
-    fn FetchingProvider(_props: &ChildrenProps) -> HtmlResult {
+    fn FetchingProvider(props: &ChildrenProps) -> HtmlResult {
         use_future(|| async {
-            sleep(Duration::from_millis(10)).await;
+            sleep(Duration::ZERO).await;
         })?;
-        Ok(Html::default())
+        Ok(html! { <>{props.children.clone()}</> })
     }
 
     #[function_component]
     fn Child() -> Html {
-        html! {<div>{"hello!"}</div>}
+        html! {<div id="result">{"hello!"}</div>}
     }
 
     #[function_component]
@@ -809,9 +809,9 @@ async fn test_duplicate_suspension() {
         let fallback = Html::default();
         html! {
            <Suspense {fallback}>
-               <FetchingProvider>
-                   <Child />
-               </FetchingProvider>
+                <FetchingProvider>
+                    <Child />
+                </FetchingProvider>
            </Suspense>
         }
     }
@@ -819,7 +819,7 @@ async fn test_duplicate_suspension() {
     yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .render();
 
-    sleep(Duration::from_millis(100)).await;
+    sleep(Duration::from_millis(50)).await;
     let result = obtain_result();
-    assert_eq!(result.as_str(), "<div>hello!</div>");
+    assert_eq!(result.as_str(), "hello!");
 }
