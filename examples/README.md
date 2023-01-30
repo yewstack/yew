@@ -61,7 +61,7 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 
 ## Next steps
 
-Have a look at Yew's [starter templates](https://yew.rs/docs/getting-started/starter-templates) when starting a project using Yew – they can significantly simplify things.
+Have a look at Yew's [starter templates](https://yew.rs/docs/getting-started/build-a-sample-app#using-a-starter-template) when starting a project using Yew – they can significantly simplify things.
 
 ## Help out
 
