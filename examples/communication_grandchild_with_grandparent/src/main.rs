@@ -60,7 +60,7 @@ impl Component for GrandParent {
         );
 
         let detail_msg = if let Some(last_clicked) = &self.state.last_clicked {
-            format!("{} was clicked last", last_clicked)
+            format!("{last_clicked} was clicked last")
         } else {
             "No one has been clicked yet".to_string()
         };
@@ -135,7 +135,7 @@ impl Component for Child {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let my_name = ctx.props().name.clone();
-        let name = format!("{}: ", my_name);
+        let name = format!("{my_name}: ");
 
         // Here we emit the callback to the grandparent component, whenever the button is clicked.
         let onclick = self.state.child_clicked.reform(move |_| (my_name.clone()));

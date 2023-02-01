@@ -8,12 +8,13 @@ use std::time::Duration;
 
 use common::obtain_result;
 use wasm_bindgen::JsCast;
-use wasm_bindgen_futures::spawn_local;
 use wasm_bindgen_test::*;
 use web_sys::{HtmlElement, HtmlTextAreaElement};
+use yew::platform::spawn_local;
 use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew::suspense::{use_future, use_future_with_deps, Suspension, SuspensionResult};
+use yew::UseStateHandle;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
@@ -683,4 +684,142 @@ async fn use_suspending_future_with_deps_works() {
 
     let result = obtain_result();
     assert_eq!(result.as_str(), r#"<div>42</div>"#);
+}
+
+#[wasm_bindgen_test]
+async fn test_suspend_forever() {
+    /// A component that its suspension never resumes.
+    /// We test that this can be used with to trigger a suspension and unsuspend upon unmount.
+    #[function_component]
+    fn SuspendForever() -> HtmlResult {
+        let (s, handle) = Suspension::new();
+        use_state(move || handle);
+        Err(s.into())
+    }
+
+    #[function_component]
+    fn App() -> Html {
+        let page = use_state(|| 1);
+
+        {
+            let page_setter = page.setter();
+            use_effect_with_deps(
+                move |_| {
+                    spawn_local(async move {
+                        sleep(Duration::from_secs(1)).await;
+                        page_setter.set(2);
+                    });
+                },
+                (),
+            );
+        }
+
+        let content = if *page == 1 {
+            html! { <SuspendForever /> }
+        } else {
+            html! { <div id="result">{"OK"}</div> }
+        };
+
+        html! {
+            <Suspense fallback={html! {<div>{"Loading..."}</div>}}>
+                {content}
+            </Suspense>
+        }
+    }
+
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .render();
+
+    sleep(Duration::from_millis(1500)).await;
+
+    let result = obtain_result();
+    assert_eq!(result.as_str(), r#"OK"#);
+}
+
+#[wasm_bindgen_test]
+async fn resume_after_unmount() {
+    #[derive(Clone, Properties, PartialEq)]
+    struct ContentProps {
+        state: UseStateHandle<bool>,
+    }
+
+    #[function_component(Content)]
+    fn content(ContentProps { state }: &ContentProps) -> HtmlResult {
+        let state = state.clone();
+        let _sleep_handle = use_future(|| async move {
+            sleep(Duration::from_millis(50)).await;
+            state.set(false);
+            sleep(Duration::from_millis(50)).await;
+        })?;
+
+        Ok(html! {
+            <div>{"Content"}</div>
+        })
+    }
+
+    #[function_component(App)]
+    fn app() -> Html {
+        let fallback = html! {<div>{"wait..."}</div>};
+        let state = use_state(|| true);
+
+        html! {
+            <div id="result">
+            if *state {
+                <Suspense {fallback}>
+                    <Content {state} />
+                </Suspense>
+            } else {
+                <div>{"Content replacement"}</div>
+            }
+            </div>
+        }
+    }
+
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .render();
+
+    sleep(Duration::from_millis(25)).await;
+    let result = obtain_result();
+    assert_eq!(result.as_str(), "<div>wait...</div>");
+
+    sleep(Duration::from_millis(50)).await;
+    let result = obtain_result();
+    assert_eq!(result.as_str(), "<div>Content replacement</div>");
+}
+
+#[wasm_bindgen_test]
+async fn test_duplicate_suspension() {
+    use yew::html::ChildrenProps;
+
+    #[function_component]
+    fn FetchingProvider(props: &ChildrenProps) -> HtmlResult {
+        use_future(|| async {
+            sleep(Duration::ZERO).await;
+        })?;
+        Ok(html! { <>{props.children.clone()}</> })
+    }
+
+    #[function_component]
+    fn Child() -> Html {
+        html! {<div id="result">{"hello!"}</div>}
+    }
+
+    #[function_component]
+    fn App() -> Html {
+        let fallback = Html::default();
+        html! {
+           <Suspense {fallback}>
+                <FetchingProvider>
+                    <Child />
+                </FetchingProvider>
+           </Suspense>
+        }
+    }
+
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .render();
+
+    sleep(Duration::from_millis(50)).await;
+    let result = obtain_result();
+    assert_eq!(result.as_str(), "hello!");
 }

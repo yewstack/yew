@@ -59,9 +59,8 @@ impl Parse for HtmlElement {
                     return Err(syn::Error::new_spanned(
                         open.to_spanned(),
                         format!(
-                            "the tag `<{}>` is a void element and cannot have children (hint: \
-                             rewrite this as `<{0}/>`)",
-                            name
+                            "the tag `<{name}>` is a void element and cannot have children (hint: \
+                             rewrite this as `<{name} />`)",
                         ),
                     ));
                 }
@@ -128,9 +127,9 @@ impl ToTokens for HtmlElement {
             .as_ref()
             .map(|attr| {
                 let value = &attr.value;
-                quote_spanned! {value.span()=> #value}
+                quote! { ::std::option::Option::Some( #value ) }
             })
-            .unwrap_or(quote! { false });
+            .unwrap_or(quote! { ::std::option::Option::None });
 
         // other attributes
 
@@ -324,10 +323,8 @@ impl ToTokens for HtmlElement {
                     emit_warning!(
                         dashedname.span(),
                         format!(
-                            "The tag '{0}' is not matching its normalized form '{1}'. If you want \
-                             to keep this form, change this to a dynamic tag `@{{\"{0}\"}}`.",
-                            dashedname,
-                            name,
+                            "The tag '{dashedname}' is not matching its normalized form '{name}'. If you want \
+                             to keep this form, change this to a dynamic tag `@{{\"{dashedname}\"}}`."
                         )
                     )
                 }

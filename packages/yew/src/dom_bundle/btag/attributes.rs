@@ -67,18 +67,22 @@ impl Apply for InputFields {
     type Element = InputElement;
 
     fn apply(mut self, root: &BSubtree, el: &Self::Element) -> Self {
-        // IMPORTANT! This parameter has to be set every time
+        // IMPORTANT! This parameter has to be set every time it's explicitly given
         // to prevent strange behaviour in the browser when the DOM changes
-        el.set_checked(self.checked);
+        if let Some(checked) = self.checked {
+            el.set_checked(checked);
+        }
 
         self.value = self.value.apply(root, el);
         self
     }
 
     fn apply_diff(self, root: &BSubtree, el: &Self::Element, bundle: &mut Self) {
-        // IMPORTANT! This parameter has to be set every time
+        // IMPORTANT! This parameter has to be set every time it's explicitly given
         // to prevent strange behaviour in the browser when the DOM changes
-        el.set_checked(self.checked);
+        if let Some(checked) = self.checked {
+            el.set_checked(checked);
+        }
 
         self.value.apply_diff(root, el, &mut bundle.value);
     }
@@ -192,7 +196,7 @@ impl Apply for Attributes {
         match &self {
             Self::Static(arr) => {
                 for (k, v, apply_as) in arr.iter() {
-                    Self::set(el, *k, *v, *apply_as);
+                    Self::set(el, k, v, *apply_as);
                 }
             }
             Self::Dynamic { keys, values } => {

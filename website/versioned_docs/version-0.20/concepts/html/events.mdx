@@ -1,0 +1,601 @@
+---
+title: 'Events'
+---
+
+## Introduction
+
+Yew integrates with the [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate and
+uses the events from that crate. The [table below](#event-types) lists all of the `web-sys`
+events that are accepted in the `html!` macro.
+
+You can still add a [`Callback`](../function-components/callbacks.mdx) for an event that is not listed in the table
+below, see [Manual event listener](#manual-event-listener).
+
+## Event Types
+
+:::tip
+All the event types mentioned in the following table are re-exported under `yew::events`.
+Using the types from `yew::events` makes it easier to ensure version compatibility than
+if you were to manually include `web-sys` as a dependency in your crate because you won't
+end up using a version which conflicts with the version that Yew specifies.
+:::
+
+The event listener name is the expected name when adding an event `Callback` in the `html` macro:
+
+```rust
+use yew::prelude::*;
+
+html! {
+    <button onclick={Callback::from(|_| ())}>
+    //      ^^^^^^^ event listener name
+        { "Click me!" }
+    </button>
+};
+```
+
+The event name is the listener without the "on" prefix, therefore, the `onclick` event listener
+listens for `click` events. See the end of this page for a [full list of available event](#available-events) with their types.
+
+## Event bubbling {#event-bubbling}
+
+Events dispatched by Yew follow the virtual DOM hierarchy when bubbling up to listeners. Currently, only the bubbling phase
+is supported for listeners. Note that the virtual DOM hierarchy is most often, but not always, identical to the actual
+DOM hierarchy. The distinction is important when working with [portals](../../advanced-topics/portals.mdx) and other
+more advanced techniques. The intuition for well implemented components should be that events bubble from children
+to parents, so that the hierarchy in your coded `html!` is the one observed by event handlers.
+
+If you are not interested in event bubbling, you can turn it off by calling
+
+```rust
+yew::set_event_bubbling(false);
+```
+
+_before_ starting your app. This speeds up event handling, but some components may break from not receiving events they expect.
+Use this with care!
+
+## Event delegation
+
+It can be surprising that event listeners are _not_ directly registered on the element where they are rendered. Instead, events
+are delegated from the subtree root of the Yew app. Still, events are delivered in their native form, and no synthetic
+form is created. This can lead to mismatches between the event you'd expect in html listeners and those showing up in Yew.
+
+-   [`Event::current_target`] points to the Yew subtree root instead of the element the listener is added on. Use
+    [`NodeRef`](../function-components/node-refs.mdx) if you want access to the underlying `HtmlElement`.
+-   [`Event::event_phase`] is always [`Event::CAPTURING_PHASE`]. Internally, the event will behave as if it was in the bubbling
+    phase, the event propagation is replayed and the event [bubbles _up_](#event-bubbling), i.e. event listeners higher up in
+    the virtual DOM will trigger _after_ event listeners below them. Currently, capturing listeners are not supported by Yew.
+
+    This also means that events registered by Yew will usually fire before other event listeners.
+
+[`event::current_target`]: https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.current_target
+[`event::event_phase`]: https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.event_phase
+[`event::capturing_phase`]: https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#associatedconstant.CAPTURING_PHASE
+
+## Typed event target
+
+:::caution
+In this section **target ([`Event.target`](https://developer.mozilla.org/en-US/docs/Web/API/Event/target))**
+is always referring to the element at which the event was dispatched from.
+
+This will **not** always be the element at which the `Callback` is placed.
+:::
+
+In event `Callback`s you may want to get the target of that event. For example, the
+`change` event gives no information but is used to notify that something has changed.
+
+In Yew getting the target element in the correct type can be done in a few ways and we will go through
+them here. Calling [`web_sys::Event::target`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target)
+on an event returns an optional [`web_sys::EventTarget`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.EventTarget.html)
+type, which might not seem very useful when you want to know the value of your input element.
+
+In all the approaches below we are going to tackle the same problem, so it's clear where the approach
+differs opposed to the problem at hand.
+
+**The Problem:**
+
+We have an `onchange` `Callback` on my `<input>` element and each time it is invoked we want to send
+an [update](components#update) `Msg` to our component.
+
+Our `Msg` enum looks like this:
+
+```rust
+pub enum Msg {
+    InputValue(String),
+}
+```
+
+### Using `JsCast`
+
+The [`wasm-bindgen`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) crate has
+a useful trait; [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
+which allows us to hop and skip our way to the type we want, as long as it implements `JsCast`. We can
+do this cautiously, which involves some runtime checks and failure types like `Option` and `Result`,
+or we can do it dangerously.
+
+Enough talk, more code:
+
+```toml title="Cargo.toml"
+[dependencies]
+# need wasm-bindgen for JsCast
+wasm-bindgen = "0.2"
+```
+
+```rust
+//highlight-next-line
+use wasm_bindgen::JsCast;
+use web_sys::{EventTarget, HtmlInputElement};
+use yew::prelude::*;
+
+#[function_component]
+fn MyComponent() -> Html {
+    let input_value_handle = use_state(String::default);
+    let input_value = (*input_value_handle).clone();
+
+    let on_cautious_change = {
+        let input_value_handle = input_value_handle.clone();
+
+        Callback::from(move |e: Event| {
+            // When events are created the target is undefined, it's only
+            // when dispatched does the target get added.
+            let target: Option<EventTarget> = e.target();
+            // Events can bubble so this listener might catch events from child
+            // elements which are not of type HtmlInputElement
+            //highlight-next-line
+            let input = target.and_then(|t| t.dyn_into::<HtmlInputElement>().ok());
+
+            if let Some(input) = input {
+                input_value_handle.set(input.value());
+            }
+        })
+    };
+
+    let on_dangerous_change = Callback::from(move |e: Event| {
+        let target: EventTarget = e
+            .target()
+            .expect("Event should have a target when dispatched");
+        // You must KNOW target is a HtmlInputElement, otherwise
+        // the call to value would be Undefined Behaviour (UB).
+        // Here we are sure that this is input element so we can convert it to the appropriate type without checking
+        //highlight-next-line
+        input_value_handle.set(target.unchecked_into::<HtmlInputElement>().value());
+    });
+
+    html! {
+        <>
+            <label for="cautious-input">
+                { "My cautious input:" }
+                <input onchange={on_cautious_change}
+                    id="cautious-input"
+                    type="text"
+                    value={input_value.clone()}
+                />
+            </label>
+            <label for="dangerous-input">
+                { "My dangerous input:" }
+                <input onchange={on_dangerous_change}
+                    id="dangerous-input"
+                    type="text"
+                    value={input_value}
+                />
+            </label>
+        </>
+    }
+}
+```
+
+The methods from `JsCast` are [`dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
+and [`unchecked_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.unchecked_into)
+and you can probably see, they allowed
+us to go from `EventTarget` to [`HtmlInputElement`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.HtmlInputElement.html).
+The `dyn_into` method is cautious because at
+runtime it will check whether the type is actually a `HtmlInputElement` and if not return an
+`Err(JsValue)`, the [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
+is a catch-all type and is essentially giving you back the object to try again.
+
+At this point you might be thinking... when is the dangerous version ok to use? In the case above it
+is safe<sup>1</sup> as we've set the `Callback` on to an element with no children so the target can
+only be that same element.
+
+_<sup>1</sup> As safe as anything can be when JS land is involved._
+
+### Using `TargetCast`
+
+**It is highly recommended to read [Using JsCast](#using-jscast) first!**
+
+:::note
+`TargetCast` was designed to feel very similar to `JsCast` - this is to allow new users to get a feel
+for the behaviour of `JsCast` but with the smaller scope of events and their targets.
+
+`TargetCast` vs `JsCast` is purely preference, you will find that `TargetCast` implements something
+similar to what you would using `JsCast`.
+:::
+
+The `TargetCast` trait is built on top of `JsCast` and is specialized towards getting typed event
+targets from events.
+
+`TargetCast` comes with Yew so no need to add a dependency in order to use the trait methods on events
+but it works in a very similar way to `JsCast`.
+
+```rust
+use web_sys::HtmlInputElement;
+use yew::prelude::*;
+
+#[function_component]
+fn MyComponent() -> Html {
+    let input_value_handle = use_state(String::default);
+    let input_value = (*input_value_handle).clone();
+
+    let on_cautious_change = {
+        let input_value_handle = input_value_handle.clone();
+
+        Callback::from(move |e: Event| {
+            let input = e.target_dyn_into::<HtmlInputElement>();
+
+            if let Some(input) = input {
+                input_value_handle.set(input.value());
+            }
+        })
+    };
+
+    let on_dangerous_change = Callback::from(move |e: Event| {
+        // You must KNOW target is a HtmlInputElement, otherwise
+        // the call to value would be Undefined Behaviour (UB).
+        //highlight-next-line
+        input_value_handle.set(e.target_unchecked_into::<HtmlInputElement>().value());
+    });
+
+    html! {
+        <>
+            <label for="cautious-input">
+                { "My cautious input:" }
+                <input onchange={on_cautious_change}
+                    id="cautious-input"
+                    type="text"
+                    value={input_value.clone()}
+                />
+            </label>
+            <label for="dangerous-input">
+                { "My dangerous input:" }
+                <input onchange={on_dangerous_change}
+                    id="dangerous-input"
+                    type="text"
+                    value={input_value}
+                />
+            </label>
+        </>
+    }
+}
+```
+
+If you followed the advice above and read about `JsCast`, or know the trait, you can probably
+see that `TargetCast::target_dyn_into` feels similar to `JsCast::dyn_into` but specifically
+does the cast on the target of the event. `TargetCast::target_unchecked_into` is similar to
+`JsCast::unchecked_into`, and as such all the same warnings above `JsCast` apply to `TargetCast`.
+
+### Using `NodeRef`
+
+[`NodeRef`](../function-components/node-refs.mdx) can be used instead of querying the event given to a `Callback`.
+
+```rust
+use web_sys::HtmlInputElement;
+use yew::prelude::*;
+
+#[function_component]
+fn MyComponent() -> Html {
+    //highlight-next-line
+    let input_node_ref = use_node_ref();
+
+    let input_value_handle = use_state(String::default);
+    let input_value = (*input_value_handle).clone();
+
+    let onchange = {
+        let input_node_ref = input_node_ref.clone();
+
+        Callback::from(move |_| {
+            //highlight-next-line
+            let input = input_node_ref.cast::<HtmlInputElement>();
+
+            if let Some(input) = input {
+                input_value_handle.set(input.value());
+            }
+        })
+    };
+
+    html! {
+        <>
+            <label for="my-input">
+                { "My input:" }
+                //highlight-next-line
+                <input ref={input_node_ref}
+                    {onchange}
+                    id="my-input"
+                    type="text"
+                    value={input_value}
+                />
+            </label>
+        </>
+    }
+}
+```
+
+Using `NodeRef`, you can ignore the event and use the `NodeRef::cast` method to get an
+`Option<HtmlInputElement>` - this is optional as calling `cast` before the `NodeRef` has been
+set, or when the type doesn't match will return `None`.
+
+You might also see by using `NodeRef` we don't have to send the `String` back into state as we always access to `input_node_ref` - so we could do the following:
+
+```rust
+use web_sys::HtmlInputElement;
+use yew::prelude::*;
+
+#[function_component]
+fn MyComponent() -> Html {
+    let input_node_ref = use_node_ref();
+
+    //highlight-start
+    let onchange = {
+        let input_node_ref = input_node_ref.clone();
+
+        Callback::from(move |_| {
+            if let Some(input) = input_node_ref.cast::<HtmlInputElement>() {
+                let value = input.value();
+                // do something with value
+            }
+        })
+    };
+    //highlight-end
+
+    html! {
+        <>
+            <label for="my-input">
+                { "My input:" }
+                <input ref={input_node_ref}
+                    {onchange}
+                    id="my-input"
+                    type="text"
+                />
+            </label>
+        </>
+    }
+}
+```
+
+Which approach you take depends on your component and your preferences, there is no _blessed_ way
+per se.
+
+## Manual event listener
+
+You may want to listen to an event that is not supported by Yew's `html` macro, see the
+[supported events listed here](#event-types).
+
+In order to add an event listener to one of elements manually we need the help of
+[`NodeRef`](../function-components/node-refs.mdx) so that in `use_effect_with_deps` we can add a listener using the
+[`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/index.html) and
+[wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) API.
+
+The examples below are going to show adding listeners for the made-up `custard` event. All events
+either unsupported by yew or custom can be represented as a
+[`web_sys::Event`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html). If you
+need to access a specific method or field on a custom / unsupported event then you can use the
+methods of [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
+in order to convert to the type required.
+
+### Using `Closure` (verbose)
+
+Using the `web-sys` and `wasm-bindgen` API's directly for this can be a bit painful.. so brace
+yourself ([there is a more concise way thanks to `gloo`](#using-gloo-concise)).
+
+```rust
+use wasm_bindgen::{prelude::Closure, JsCast};
+use web_sys::HtmlElement;
+use yew::prelude::*;
+
+#[function_component]
+fn MyComponent() -> Html {
+    let div_node_ref = use_node_ref();
+
+    use_effect_with_deps(
+        {
+            let div_node_ref = div_node_ref.clone();
+
+            move |_| {
+                let mut custard_listener = None;
+
+                if let Some(element) = div_node_ref.cast::<HtmlElement>() {
+                    // Create your Callback as you normally would
+                    let oncustard = Callback::from(move |_: Event| {
+                        // do something about custard..
+                    });
+
+                    // Create a Closure from a Box<dyn Fn> - this has to be 'static
+                    let listener =
+                        Closure::<dyn Fn(Event)>::wrap(
+                            Box::new(move |e: Event| oncustard.emit(e))
+                        );
+
+                    element
+                        .add_event_listener_with_callback(
+                            "custard",
+                            listener.as_ref().unchecked_ref()
+                        )
+                        .unwrap();
+
+                    custard_listener = Some(listener);
+                }
+
+                move || drop(custard_listener)
+            }
+        },
+        div_node_ref.clone()
+    );
+
+    html! {
+        <div ref={div_node_ref} id="my-div"></div>
+    }
+}
+```
+
+For more information on `Closures`, see
+[The `wasm-bindgen` Guide](https://rustwasm.github.io/wasm-bindgen/examples/closures.html).
+
+### Using `gloo` (concise)
+
+The easier way is with `gloo`, more specifically [`gloo_events`](https://docs.rs/gloo-events/0.1.1/gloo_events/index.html)
+which is an abstraction for `web-sys`, `wasm-bindgen`.
+
+`gloo_events` has the `EventListener` type which can be used to create and store the
+event listener.
+
+```toml title="Cargo.toml"
+[dependencies]
+gloo-events = "0.1"
+```
+
+```rust
+use web_sys::HtmlElement;
+use yew::prelude::*;
+
+use gloo::events::EventListener;
+
+#[function_component]
+fn MyComponent() -> Html {
+    let div_node_ref = use_node_ref();
+
+    use_effect_with_deps(
+        {
+            let div_node_ref = div_node_ref.clone();
+
+            move |_| {
+                let mut custard_listener = None;
+
+                if let Some(element) = div_node_ref.cast::<HtmlElement>() {
+                    // Create your Callback as you normally would
+                    let oncustard = Callback::from(move |_: Event| {
+                        // do something about custard..
+                    });
+
+                    // Create a Closure from a Box<dyn Fn> - this has to be 'static
+                    let listener = EventListener::new(
+                        &element,
+                        "custard",
+                        move |e| oncustard.emit(e.clone())
+                    );
+
+                    custard_listener = Some(listener);
+                }
+
+                move || drop(custard_listener)
+            }
+        },
+        div_node_ref.clone()
+    );
+
+    html! {
+        <div ref={div_node_ref} id="my-div"></div>
+    }
+}
+```
+
+For more information on `EventListener`, see the
+[gloo_events docs.rs](https://docs.rs/gloo-events/0.1.1/gloo_events/struct.EventListener.html).
+
+## Full list of available events {#available-events}
+
+| Event listener name         | `web_sys` Event Type                                                                  |
+| --------------------------- | ------------------------------------------------------------------------------------- |
+| `onabort`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onauxclick`                | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
+| `onblur`                    | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html)           |
+| `oncancel`                  | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `oncanplay`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `oncanplaythrough`          | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onchange`                  | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onclick`                   | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
+| `onclose`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `oncontextmenu`             | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
+| `oncuechange`               | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `ondblclick`                | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
+| `ondrag`                    | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html)             |
+| `ondragend`                 | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html)             |
+| `ondragenter`               | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html)             |
+| `ondragexit`                | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html)             |
+| `ondragleave`               | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html)             |
+| `ondragover`                | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html)             |
+| `ondragstart`               | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html)             |
+| `ondrop`                    | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html)             |
+| `ondurationchange`          | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onemptied`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onended`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onerror`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onfocus`                   | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html)           |
+| `onfocusin`                 | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html)           |
+| `onfocusout`                | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html)           |
+| `onformdata`                | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `oninput`                   | [InputEvent](https://docs.rs/web-sys/latest/web_sys/struct.InputEvent.html)           |
+| `oninvalid`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onkeydown`                 | [KeyboardEvent](https://docs.rs/web-sys/latest/web_sys/struct.KeyboardEvent.html)     |
+| `onkeypress`                | [KeyboardEvent](https://docs.rs/web-sys/latest/web_sys/struct.KeyboardEvent.html)     |
+| `onkeyup`                   | [KeyboardEvent](https://docs.rs/web-sys/latest/web_sys/struct.KeyboardEvent.html)     |
+| `onload`                    | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onloadeddata`              | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onloadedmetadata`          | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onloadstart`               | [ProgressEvent](https://docs.rs/web-sys/latest/web_sys/struct.ProgressEvent.html)     |
+| `onmousedown`               | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
+| `onmouseenter`              | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
+| `onmouseleave`              | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
+| `onmousemove`               | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
+| `onmouseout`                | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
+| `onmouseover`               | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
+| `onmouseup`                 | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
+| `onpause`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onplay`                    | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onplaying`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onprogress`                | [ProgressEvent](https://docs.rs/web-sys/latest/web_sys/struct.ProgressEvent.html)     |
+| `onratechange`              | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onreset`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onresize`                  | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onscroll`                  | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onsecuritypolicyviolation` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onseeked`                  | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onseeking`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onselect`                  | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onslotchange`              | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onstalled`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onsubmit`                  | [SubmitEvent](https://docs.rs/web-sys/latest/web_sys/struct.SubmitEvent.html)         |
+| `onsuspend`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `ontimeupdate`              | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `ontoggle`                  | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onvolumechange`            | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onwaiting`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onwheel`                   | [WheelEvent](https://docs.rs/web-sys/latest/web_sys/struct.WheelEvent.html)           |
+| `oncopy`                    | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `oncut`                     | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onpaste`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onanimationcancel`         | [AnimationEvent](https://docs.rs/web-sys/latest/web_sys/struct.AnimationEvent.html)   |
+| `onanimationend`            | [AnimationEvent](https://docs.rs/web-sys/latest/web_sys/struct.AnimationEvent.html)   |
+| `onanimationiteration`      | [AnimationEvent](https://docs.rs/web-sys/latest/web_sys/struct.AnimationEvent.html)   |
+| `onanimationstart`          | [AnimationEvent](https://docs.rs/web-sys/latest/web_sys/struct.AnimationEvent.html)   |
+| `ongotpointercapture`       | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
+| `onloadend`                 | [ProgressEvent](https://docs.rs/web-sys/latest/web_sys/struct.ProgressEvent.html)     |
+| `onlostpointercapture`      | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
+| `onpointercancel`           | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
+| `onpointerdown`             | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
+| `onpointerenter`            | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
+| `onpointerleave`            | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
+| `onpointerlockchange`       | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onpointerlockerror`        | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onpointermove`             | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
+| `onpointerout`              | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
+| `onpointerover`             | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
+| `onpointerup`               | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
+| `onselectionchange`         | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onselectstart`             | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `onshow`                    | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
+| `ontouchcancel`             | [TouchEvent](https://docs.rs/web-sys/latest/web_sys/struct.TouchEvent.html)           |
+| `ontouchend`                | [TouchEvent](https://docs.rs/web-sys/latest/web_sys/struct.TouchEvent.html)           |
+| `ontouchmove`               | [TouchEvent](https://docs.rs/web-sys/latest/web_sys/struct.TouchEvent.html)           |
+| `ontouchstart`              | [TouchEvent](https://docs.rs/web-sys/latest/web_sys/struct.TouchEvent.html)           |
+| `ontransitioncancel`        | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
+| `ontransitionend`           | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
+| `ontransitionrun`           | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
+| `ontransitionstart`         | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |

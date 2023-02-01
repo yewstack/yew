@@ -1,18 +1,18 @@
 [package]
 name = "yew"
-version = "0.19.3"
+version = "0.20.0"
 edition = "2021"
 authors = [
   "Denis Kolodin <deniskolodin@gmail.com>",
   "Justin Starry <justin@yew.rs>",
 ]
 repository = "https://github.com/yewstack/yew"
-homepage = "https://github.com/yewstack/yew"
+homepage = "https://yew.rs"
 documentation = "https://docs.rs/yew/"
 license = "MIT OR Apache-2.0"
 keywords = ["web", "webasm", "javascript"]
 categories = ["gui", "wasm", "web-programming"]
-description = "A framework for making client-side single-page apps"
+description = "A framework for creating reliable and efficient web applications"
 readme = "../../README.md"
 rust-version = "1.60.0"
 
@@ -23,16 +23,24 @@ indexmap = { version = "1", features = ["std"] }
 js-sys = "0.3"
 slab = "0.4"
 wasm-bindgen = "0.2"
-yew-macro = { version = "^0.19.0", path = "../yew-macro" }
+yew-macro = { version = "^0.20.0", path = "../yew-macro" }
 thiserror = "1.0"
-futures = { version = "0.3", default-features = false, features = ["std", "async-await"] }
+futures = { version = "0.3", default-features = false, features = ["std"] }
 html-escape = { version = "0.2.9", optional = true }
 implicit-clone = { version = "0.3", features = ["map"] }
 base64ct = { version = "1.5.0", features = ["std"], optional = true }
 bincode = { version = "1.3.3", optional = true }
 serde = { version = "1", features = ["derive"] }
 tracing = "0.1.36"
-pin-project = "1.0.11"
+prokio = "0.1.0"
+rustversion = "1"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen-futures = "0.4"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# We still need tokio as we have docs linked to it.
+tokio = { version = "1.19", features = ["rt"] }
 
 [dependencies.web-sys]
 version = "^0.3.59"
@@ -48,6 +56,7 @@ features = [
   "FocusEvent",
   "HtmlElement",
   "HtmlInputElement",
+  "HtmlCollection",
   "HtmlTextAreaElement",
   "InputEvent",
   "InputEventInit",
@@ -69,22 +78,13 @@ features = [
   "SubmitEvent"
 ]
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-# we move it here so no promise-based spawn_local can present for
-# non-wasm32 targets.
-wasm-bindgen-futures = "0.4"
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-num_cpus = { version = "1.13", optional = true }
-once_cell = "1"
-tokio = { version = "1.21.1", features = ["rt", "time"], optional = true }
-tokio-stream = { version = "0.1", features = ["time"], optional = true }
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+tokio = { version = "1.19", features = ["full"] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
 gloo = { version = "0.8", features = ["futures"] }
 wasm-bindgen-futures = "0.4"
-rustversion = "1"
 trybuild = "1"
 
 [dev-dependencies.web-sys]
@@ -92,17 +92,14 @@ version = "0.3"
 features = [
   "ShadowRootInit",
   "ShadowRootMode",
+  "HtmlButtonElement"
 ]
 
 [features]
-tokio = ["dep:tokio", "dep:num_cpus", "dep:tokio-stream"]
 ssr = ["dep:html-escape", "dep:base64ct", "dep:bincode"]
 csr = []
 hydration = ["csr", "dep:bincode"]
 default = []
-
-[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-tokio = { version = "1.19", features = ["full"] }
 
 [package.metadata.docs.rs]
 all-features = true

@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 
 use yew::html::ChildrenRenderer;
 
-/// Map IntoIterator<Item=Into<T>> to Iterator<Item=T>
+/// Map `IntoIterator<Item = Into<T>>` to `Iterator<Item = T>`
 pub fn into_node_iter<IT, T, R>(it: IT) -> impl Iterator<Item = R>
 where
     IT: IntoIterator<Item = T>,
@@ -45,6 +45,15 @@ impl<IN: Into<OUT>, OUT> From<ChildrenRenderer<IN>> for NodeSeq<IN, OUT> {
     fn from(val: ChildrenRenderer<IN>) -> Self {
         Self(
             val.into_iter().map(|x| x.into()).collect(),
+            PhantomData::default(),
+        )
+    }
+}
+
+impl<IN: Into<OUT> + Clone, OUT> From<&ChildrenRenderer<IN>> for NodeSeq<IN, OUT> {
+    fn from(val: &ChildrenRenderer<IN>) -> Self {
+        Self(
+            val.iter().map(|x| x.into()).collect(),
             PhantomData::default(),
         )
     }

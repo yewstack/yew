@@ -77,6 +77,8 @@ where
 
 fn compile_pass() {
     ::yew::html! { <Generic<::std::string::String> /> };
+    ::yew::html! { <Generic<(u8, bool)> /> };
+    ::yew::html! { <Generic<(u8, bool)> ></Generic<(u8, bool)>> };
     ::yew::html! { <Generic<::std::string::String> ></Generic<::std::string::String>> };
 
     ::yew::html! { <Generic<::std::vec::Vec<::std::string::String>> /> };

@@ -27,7 +27,7 @@ pub struct Cli {
     pub to: String,
 
     /// Path to changelog file
-    #[clap(short = 'f', long, default_value = "CHANGELOG.md")]
+    #[clap(short = 'f', long, default_value = "../CHANGELOG.md")]
     pub changelog_path: String,
 
     /// Skip writing changelog file
@@ -72,7 +72,7 @@ impl Cli {
 
             let from_ref = match from {
                 Some(some) => some,
-                None => format!("refs/tags/{}-v{}", package, latest_version),
+                None => format!("refs/tags/{package}-v{latest_version}"),
             };
             (from_ref, next_version)
         };

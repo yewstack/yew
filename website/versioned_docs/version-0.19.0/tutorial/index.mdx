@@ -287,7 +287,7 @@ struct Video {
     url: String,
 }
 
-#[derive(Properties, PartialEq)]
+#[derive(Clone, Properties, PartialEq)]
 struct VideosListProps {
     videos: Vec<Video>,
 }
@@ -364,10 +364,11 @@ struct VideosListProps {
 
 Then we modify the `VideosList` component to pass the "emit" the selected video to the callback.
 
-```rust ,ignore {5-11,14-15}
+```rust ,ignore {2-4,6-12,15-16}
 #[function_component(VideosList)]
-fn videos_list(VideosListProps { videos, on_click }: &VideosListProps) -> Html {
-    let on_click = on_click.clone();
+-fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
++fn videos_list(VideosListProps { videos, on_click }: &VideosListProps) -> Html {
++    let on_click = on_click.clone();
     videos.iter().map(|video| {
 +        let on_video_select = {
 +            let on_click = on_click.clone();
@@ -453,7 +454,7 @@ element returned by the `Iterator` with the `{ for ... }` syntax.
 
 Remember the `use_state` used earlier? That is a special function, called a "hook". Hooks are used to "hook" into
 lifecycle of a function component and perform actions. You can learn more about this hook, and others
-[here](concepts/function-components/pre-defined-hooks#use_state)
+[here](concepts/function-components/pre-defined-hooks#use_state).
 
 :::note
 Struct components act differently. See [the documentation](concepts/components/introduction) to learn about those.
@@ -482,7 +483,7 @@ wasm-bindgen-futures = "0.4"
 
 Update the `Video` struct to derive the `Deserialize` trait:
 
-```rust ,ignore {1-2, 5-6}
+```rust ,ignore {1,3-4}
 + use serde::Deserialize;
 
 - #[derive(Clone, PartialEq)]
@@ -497,7 +498,7 @@ struct Video {
 
 Now as the last step, we need to update our `App` component to make the fetch request instead of using hardcoded data
 
-```rust ,ignore {3-23,32-33}
+```rust ,ignore {1,5-25,34-35}
 + use gloo_net::http::Request;
 
 #[function_component(App)]

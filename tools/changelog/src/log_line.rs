@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct LogLine {
     pub message: String,
     pub user: String,

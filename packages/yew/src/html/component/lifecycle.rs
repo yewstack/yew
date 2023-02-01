@@ -11,9 +11,7 @@ use super::BaseComponent;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
-use crate::dom_bundle::{BSubtree, Bundle};
-#[cfg(feature = "csr")]
-use crate::html::NodeRef;
+use crate::dom_bundle::{BSubtree, Bundle, DomSlot, DynamicDomSlot};
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
 use crate::html::{Html, RenderError};
@@ -27,16 +25,19 @@ pub(crate) enum ComponentRenderState {
         bundle: Bundle,
         root: BSubtree,
         parent: Element,
-        next_sibling: NodeRef,
-        internal_ref: NodeRef,
+        /// The dom position in front of the next sibling
+        sibling_slot: DynamicDomSlot,
+        /// The dom position in front of this component. Adjusted whenever this component
+        /// re-renders.
+        own_slot: DynamicDomSlot,
     },
     #[cfg(feature = "hydration")]
     Hydration {
         fragment: Fragment,
         root: BSubtree,
         parent: Element,
-        next_sibling: NodeRef,
-        internal_ref: NodeRef,
+        sibling_slot: DynamicDomSlot,
+        own_slot: DynamicDomSlot,
     },
     #[cfg(feature = "ssr")]
     Ssr {
@@ -52,31 +53,31 @@ impl std::fmt::Debug for ComponentRenderState {
                 ref bundle,
                 root,
                 ref parent,
-                ref next_sibling,
-                ref internal_ref,
+                ref sibling_slot,
+                ref own_slot,
             } => f
                 .debug_struct("ComponentRenderState::Render")
                 .field("bundle", bundle)
                 .field("root", root)
                 .field("parent", parent)
-                .field("next_sibling", next_sibling)
-                .field("internal_ref", internal_ref)
+                .field("sibling_slot", sibling_slot)
+                .field("own_slot", own_slot)
                 .finish(),
 
             #[cfg(feature = "hydration")]
             Self::Hydration {
                 ref fragment,
                 ref parent,
-                ref next_sibling,
-                ref internal_ref,
+                ref sibling_slot,
+                ref own_slot,
                 ref root,
             } => f
                 .debug_struct("ComponentRenderState::Hydration")
                 .field("fragment", fragment)
                 .field("root", root)
                 .field("parent", parent)
-                .field("next_sibling", next_sibling)
-                .field("internal_ref", internal_ref)
+                .field("sibling_slot", sibling_slot)
+                .field("own_slot", own_slot)
                 .finish(),
 
             #[cfg(feature = "ssr")]
@@ -96,31 +97,31 @@ impl std::fmt::Debug for ComponentRenderState {
 
 #[cfg(feature = "csr")]
 impl ComponentRenderState {
-    pub(crate) fn shift(&mut self, next_parent: Element, next_next_sibling: NodeRef) {
+    pub(crate) fn shift(&mut self, next_parent: Element, next_slot: DomSlot) {
         match self {
             #[cfg(feature = "csr")]
             Self::Render {
                 bundle,
                 parent,
-                next_sibling,
+                sibling_slot,
                 ..
             } => {
-                bundle.shift(&next_parent, next_next_sibling.clone());
+                bundle.shift(&next_parent, next_slot.clone());
 
                 *parent = next_parent;
-                next_sibling.link(next_next_sibling);
+                sibling_slot.reassign(next_slot);
             }
             #[cfg(feature = "hydration")]
             Self::Hydration {
                 fragment,
                 parent,
-                next_sibling,
+                sibling_slot,
                 ..
             } => {
-                fragment.shift(&next_parent, next_next_sibling.clone());
+                fragment.shift(&next_parent, next_slot.clone());
 
                 *parent = next_parent;
-                next_sibling.link(next_next_sibling);
+                sibling_slot.reassign(next_slot);
             }
 
             #[cfg(feature = "ssr")]
@@ -206,7 +207,7 @@ where
 
         if self.context.props != props {
             let old_props = std::mem::replace(&mut self.context.props, props);
-            self.component.changed(&self.context, &*old_props)
+            self.component.changed(&self.context, &old_props)
         } else {
             false
         }
@@ -297,6 +298,15 @@ impl ComponentState {
             .downcast_ref::<CompStateInner<COMP>>()
             .map(|m| &m.component)
     }
+
+    fn resume_existing_suspension(&mut self) {
+        if let Some(m) = self.suspension.take() {
+            let comp_scope = self.inner.any_scope();
+
+            let suspense_scope = comp_scope.find_parent_scope::<BaseSuspense>().unwrap();
+            BaseSuspense::resume(&suspense_scope, m);
+        }
+    }
 }
 
 pub(crate) struct CreateRunner<COMP: BaseComponent> {
@@ -370,19 +380,17 @@ impl ComponentState {
     )]
     fn destroy(mut self, parent_to_detach: bool) {
         self.inner.destroy();
+        self.resume_existing_suspension();
 
         match self.render_state {
             #[cfg(feature = "csr")]
             ComponentRenderState::Render {
                 bundle,
                 ref parent,
-                ref internal_ref,
                 ref root,
                 ..
             } => {
                 bundle.detach(root, parent, parent_to_detach);
-
-                internal_ref.set(None);
             }
             // We need to detach the hydrate fragment if the component is not hydrated.
             #[cfg(feature = "hydration")]
@@ -390,12 +398,9 @@ impl ComponentState {
                 ref root,
                 fragment,
                 ref parent,
-                ref internal_ref,
                 ..
             } => {
                 fragment.detach(root, parent, parent_to_detach);
-
-                internal_ref.set(None);
             }
 
             #[cfg(feature = "ssr")]
@@ -450,7 +455,6 @@ impl ComponentState {
             let suspense_scope = comp_scope
                 .find_parent_scope::<BaseSuspense>()
                 .expect("To suspend rendering, a <Suspense /> component is required.");
-            let suspense = suspense_scope.get_component().unwrap();
 
             let comp_id = self.comp_id;
             let shared_state = shared_state.clone();
@@ -467,26 +471,19 @@ impl ComponentState {
             if let Some(ref last_suspension) = self.suspension {
                 if &suspension != last_suspension {
                     // We remove previous suspension from the suspense.
-                    suspense.resume(last_suspension.clone());
+                    BaseSuspense::resume(&suspense_scope, last_suspension.clone());
                 }
             }
             self.suspension = Some(suspension.clone());
 
-            suspense.suspend(suspension);
+            BaseSuspense::suspend(&suspense_scope, suspension);
         }
     }
 
     fn commit_render(&mut self, shared_state: &Shared<Option<ComponentState>>, new_root: Html) {
         // Currently not suspended, we remove any previous suspension and update
         // normally.
-        if let Some(m) = self.suspension.take() {
-            let comp_scope = self.inner.any_scope();
-
-            let suspense_scope = comp_scope.find_parent_scope::<BaseSuspense>().unwrap();
-            let suspense = suspense_scope.get_component().unwrap();
-
-            suspense.resume(m);
-        }
+        self.resume_existing_suspension();
 
         match self.render_state {
             #[cfg(feature = "csr")]
@@ -494,18 +491,15 @@ impl ComponentState {
                 ref mut bundle,
                 ref parent,
                 ref root,
-                ref next_sibling,
-                ref internal_ref,
+                ref sibling_slot,
+                ref mut own_slot,
                 ..
             } => {
                 let scope = self.inner.any_scope();
 
-                #[cfg(feature = "hydration")]
-                next_sibling.debug_assert_not_trapped();
-
                 let new_node_ref =
-                    bundle.reconcile(root, &scope, parent, next_sibling.clone(), new_root);
-                internal_ref.link(new_node_ref);
+                    bundle.reconcile(root, &scope, parent, sibling_slot.to_position(), new_root);
+                own_slot.reassign(new_node_ref);
 
                 let first_render = !self.has_rendered;
                 self.has_rendered = true;
@@ -524,12 +518,12 @@ impl ComponentState {
             ComponentRenderState::Hydration {
                 ref mut fragment,
                 ref parent,
-                ref internal_ref,
-                ref next_sibling,
+                ref mut own_slot,
+                ref mut sibling_slot,
                 ref root,
             } => {
                 // We schedule a "first" render to run immediately after hydration,
-                // to fix NodeRefs (first_node and next_sibling).
+                // to fix NodeRefs (first_node and slot).
                 scheduler::push_component_priority_render(
                     self.comp_id,
                     Box::new(RenderRunner {
@@ -542,21 +536,22 @@ impl ComponentState {
                 // This first node is not guaranteed to be correct here.
                 // As it may be a comment node that is removed afterwards.
                 // but we link it anyways.
-                let (node, bundle) = Bundle::hydrate(root, &scope, parent, fragment, new_root);
+                let bundle = Bundle::hydrate(root, &scope, parent, fragment, new_root);
 
                 // We trim all text nodes before checking as it's likely these are whitespaces.
-                fragment.trim_start_text_nodes(parent);
+                fragment.trim_start_text_nodes();
 
                 assert!(fragment.is_empty(), "expected end of component, found node");
-
-                internal_ref.link(node);
 
                 self.render_state = ComponentRenderState::Render {
                     root: root.clone(),
                     bundle,
                     parent: parent.clone(),
-                    internal_ref: internal_ref.clone(),
-                    next_sibling: next_sibling.clone(),
+                    own_slot: std::mem::replace(own_slot, DynamicDomSlot::new_debug_trapped()),
+                    sibling_slot: std::mem::replace(
+                        sibling_slot,
+                        DynamicDomSlot::new_debug_trapped(),
+                    ),
                 };
             }
 
@@ -590,7 +585,7 @@ mod feat_csr {
     pub(crate) struct PropsUpdateRunner {
         pub state: Shared<Option<ComponentState>>,
         pub props: Option<Rc<dyn Any>>,
-        pub next_sibling: Option<NodeRef>,
+        pub next_sibling_slot: Option<DomSlot>,
     }
 
     impl ComponentState {
@@ -599,26 +594,24 @@ mod feat_csr {
             skip(self),
             fields(component.id = self.comp_id)
         )]
-        fn changed(&mut self, props: Option<Rc<dyn Any>>, next_sibling: Option<NodeRef>) -> bool {
-            if let Some(next_sibling) = next_sibling {
+        fn changed(
+            &mut self,
+            props: Option<Rc<dyn Any>>,
+            next_sibling_slot: Option<DomSlot>,
+        ) -> bool {
+            if let Some(next_sibling_slot) = next_sibling_slot {
                 // When components are updated, their siblings were likely also updated
                 // We also need to shift the bundle so next sibling will be synced to child
                 // components.
-                match self.render_state {
+                match &mut self.render_state {
                     #[cfg(feature = "csr")]
-                    ComponentRenderState::Render {
-                        next_sibling: ref current_next_sibling,
-                        ..
-                    } => {
-                        current_next_sibling.link(next_sibling);
+                    ComponentRenderState::Render { sibling_slot, .. } => {
+                        sibling_slot.reassign(next_sibling_slot);
                     }
 
                     #[cfg(feature = "hydration")]
-                    ComponentRenderState::Hydration {
-                        next_sibling: ref current_next_sibling,
-                        ..
-                    } => {
-                        current_next_sibling.link(next_sibling);
+                    ComponentRenderState::Hydration { sibling_slot, .. } => {
+                        sibling_slot.reassign(next_sibling_slot);
                     }
 
                     #[cfg(feature = "ssr")]
@@ -679,13 +672,13 @@ mod feat_csr {
     impl Runnable for PropsUpdateRunner {
         fn run(self: Box<Self>) {
             let Self {
-                next_sibling,
+                next_sibling_slot,
                 props,
                 state: shared_state,
             } = *self;
 
             if let Some(state) = shared_state.borrow_mut().as_mut() {
-                let schedule_render = state.changed(props, next_sibling);
+                let schedule_render = state.changed(props, next_sibling_slot);
 
                 if schedule_render {
                     scheduler::push_component_render(
@@ -736,7 +729,7 @@ mod feat_csr {
                     scheduler::push_component_props_update(Box::new(PropsUpdateRunner {
                         state: self.state.clone(),
                         props: None,
-                        next_sibling: None,
+                        next_sibling_slot: None,
                     }));
                 }
             }
@@ -884,8 +877,8 @@ mod tests {
         scope.mount_in_place(
             root,
             parent,
-            NodeRef::default(),
-            NodeRef::default(),
+            DomSlot::at_end(),
+            DynamicDomSlot::new_debug_trapped(),
             Rc::new(props),
         );
         crate::scheduler::start_now();

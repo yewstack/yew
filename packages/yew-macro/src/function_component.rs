@@ -102,7 +102,7 @@ impl Parse for FunctionComponent {
 
                     if ty.mutability.is_some() {
                         return Err(syn::Error::new_spanned(
-                            &ty.mutability,
+                            ty.mutability,
                             "reference must not be mutable",
                         ));
                     }
@@ -332,7 +332,7 @@ impl FunctionComponent {
         let component_name = self.component_name();
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
 
-        let component_name_lit = LitStr::new(&format!("{}<_>", component_name), Span::mixed_site());
+        let component_name_lit = LitStr::new(&format!("{component_name}<_>"), Span::mixed_site());
 
         quote! {
             #[automatically_derived]

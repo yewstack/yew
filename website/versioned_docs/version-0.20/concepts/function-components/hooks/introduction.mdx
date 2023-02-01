@@ -1,0 +1,51 @@
+---
+title: 'Hooks'
+slug: /concepts/function-components/hooks
+---
+
+## Hooks
+
+Hooks are functions that let you store state and perform side-effects.
+
+Yew comes with a few pre-defined Hooks. You can also create your own or discover many [community made hooks](/community/awesome#hooks).
+
+## Rules of hooks
+
+1. A hook function name always has to start with `use_`
+2. Hooks can only be used in the following locations:
+    - Top level of a function / hook.
+    - Blocks inside a function / hook, given it's not already branched.
+    - In the condition of a top level `if` expression inside a function / hook.
+    - In the scrutinee of a top level `match` expression inside a function / hook.
+3. Hooks must be called in the same order for every render. Returning early is only allowed when using [Suspense](../../suspense.mdx)
+
+These rules are enforced by either compile time or run-time errors.
+
+### Pre-defined Hooks
+
+Yew comes with the following predefined Hooks:
+
+-   `use_state`
+-   `use_state_eq`
+-   `use_memo`
+-   `use_callback`
+-   `use_mut_ref`
+-   `use_node_ref`
+-   `use_reducer`
+-   `use_reducer_eq`
+-   `use_effect`
+-   `use_effect_with_deps`
+-   `use_context`
+-   `use_force_update`
+
+The documentation for these hooks can be found in the [Yew API docs](https://docs.rs/yew/0.20.0/yew/functional/index.html)
+
+### Custom Hooks
+
+There are cases where you want to define your own Hooks to encapsulate potentially stateful logic from a component into reusable functions.
+See the [Defining custom hooks](concepts/function-components/hooks/custom-hooks.mdx#defining-custom-hooks) section for more information.
+
+## Further reading
+
+-   The React documentation has a section on [React hooks](https://reactjs.org/docs/hooks-intro.html).
+    These are not exactly the same as Yew's hooks, but the underlying concept is similar.

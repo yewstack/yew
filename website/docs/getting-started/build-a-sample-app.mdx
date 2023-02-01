@@ -32,7 +32,7 @@ cd yew-app
 
 ### Run a hello world example
 
-To verify the Rust environment is setup, run the initial project using `cargo run`. You should see
+To verify the Rust environment is set up, run the initial project using `cargo run`. You should see
 a "Hello World!" message.
 
 ```bash
@@ -61,8 +61,8 @@ yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
 
 :::info
 
-You only need feature `csr` if you are building an application.
-It will enable the `Renderer` and all client-side rendering related code.
+You only need the feature `csr` if you are building an application.
+It will enable the `Renderer` and all client-side rendering-related code.
 
 If you are making a library, do not enable this feature as it will pull in
 client-side rendering logic into the server-side rendering bundle.
@@ -74,7 +74,7 @@ in the `dev-dependencies` instead.
 
 #### Update main.rs
 
-We need to generate a template which sets up a root Component called `App` which renders a button
+We need to generate a template that sets up a root Component called `App` which renders a button
 that updates its value when clicked. Replace the contents of `src/main.rs` with the following code.
 
 :::note
@@ -136,6 +136,6 @@ Trunk will rebuild your application if you modify any of its source code files.
 
 ## Congratulations
 
-You have now successfully setup your Yew development environment, and built your first web application.
+You have now successfully set up your Yew development environment, and built your first web application.
 
 Experiment with this application and review the [examples](./examples.mdx) to further your learning.

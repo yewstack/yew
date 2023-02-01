@@ -16,12 +16,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          override: true
-          profile: minimal
 
       - name: Build changelog generator
         run: cargo build --release -p changelog
@@ -29,9 +27,12 @@ jobs:
 
       - name: Read yew changelog in this step
         run: ./target/release/changelog yew minor -t ${{ secrets.GITHUB_TOKEN }}
+        working-directory: tools
 
       - name: Read yew-router changelog in this step
         run: ./target/release/changelog yew-router minor -t ${{ secrets.GITHUB_TOKEN }}
+        working-directory: tools
 
       - name: Read yew-agent changelog in this step
         run: ./target/release/changelog yew-agent minor -t ${{ secrets.GITHUB_TOKEN }}
+        working-directory: tools

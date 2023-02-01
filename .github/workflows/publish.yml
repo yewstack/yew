@@ -1,0 +1,84 @@
+name: Publish yew package(s)
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      level:
+        description: "Version Level major|minor|patch"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      packages:
+        description: "List of packages to publish (space separated)"
+        required: true
+        type: string
+
+jobs:
+  publish:
+    name: Publish yew
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+        with:
+          token: "${{ secrets.YEWTEMPBOT_TOKEN }}"
+          fetch-depth: 0
+
+      - name: Config Git
+        uses: oleksiyrudenko/gha-git-credentials@v2-latest
+        with:
+          token: "${{ secrets.YEWTEMPBOT_TOKEN }}"
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Install cargo binary dependencies
+        uses: baptiste0928/cargo-install@v1
+        with:
+          crate: cargo-release
+          version: =0.23.1
+
+      - name: Cargo login
+        run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
+
+      - name: Build command
+        shell: bash
+        env:
+          PACKAGES: ${{ github.event.inputs.packages }}
+        run: |
+          output=""
+          for pkg in ${{ github.event.inputs.packages }}
+          do
+            output+="--package $pkg " 
+          done
+          echo "pkg=$output" >> $GITHUB_ENV
+
+      - name: Release yew
+        run: cargo release ${{ github.event.inputs.level }} --execute --no-confirm ${{ env.pkg }}
+
+      - name: Get tag
+        id: gettag
+        uses: WyriHaximus/github-action-get-previous-tag@v1
+
+      - name: Create a version branch
+        if: github.event.inputs.level != 'patch'
+        uses: peterjgrainger/action-create-branch@v2.4.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          branch: ${{ steps.gettag.outputs.tag }}
+
+      - name: Create a Release
+        uses: softprops/action-gh-release@v1
+        with:
+          token: ${{ secrets.YEWTEMPBOT_TOKEN }}
+          tag_name: ${{ steps.gettag.outputs.tag }}
+          body: ${{ steps.changelog.outputs.stdout }}

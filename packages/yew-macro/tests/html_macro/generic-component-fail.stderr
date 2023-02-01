@@ -1,17 +1,31 @@
 error: this opening tag has no corresponding closing tag
-  --> $DIR/generic-component-fail.rs:43:13
+  --> tests/html_macro/generic-component-fail.rs:46:13
    |
-43 |     html! { <Generic<String>> };
+46 |     html! { <Generic<String>> };
    |             ^^^^^^^^^^^^^^^^^
 
-error: this closing tag has no corresponding opening tag
-  --> $DIR/generic-component-fail.rs:44:30
+error: mismatched closing tags: expected `Generic<String>`, found `Generic`
+  --> tests/html_macro/generic-component-fail.rs:47:14
    |
-44 |     html! { <Generic<String>></Generic> };
-   |                              ^^^^^^^^^^
+47 |     html! { <Generic<String>></Generic> };
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: this closing tag has no corresponding opening tag
-  --> $DIR/generic-component-fail.rs:45:30
+error: mismatched closing tags: expected `Generic<String>`, found `Generic<Vec<String>>`
+  --> tests/html_macro/generic-component-fail.rs:48:14
    |
-45 |     html! { <Generic<String>></Generic<Vec<String>>> };
-   |                              ^^^^^^^^^^^^^^^^^^^^^^^
+48 |     html! { <Generic<String>></Generic<Vec<String>>> };
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: mismatched closing tags: expected `Generic<String>`, found `Generic<Path>`
+  --> tests/html_macro/generic-component-fail.rs:50:14
+   |
+50 |     html! { <Generic<String>></Generic<Path>> };
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: expected a valid closing tag for component
+       note: found opening tag `<Generic<String>>`
+       help: try `</Generic<String>>`
+  --> tests/html_macro/generic-component-fail.rs:51:30
+   |
+51 |     html! { <Generic<String>></> };
+   |                              ^^^

@@ -13,6 +13,8 @@ pub mod vnode;
 #[doc(hidden)]
 pub mod vportal;
 #[doc(hidden)]
+pub mod vraw;
+#[doc(hidden)]
 pub mod vsuspense;
 #[doc(hidden)]
 pub mod vtag;
@@ -35,6 +37,8 @@ pub use self::vlist::VList;
 pub use self::vnode::VNode;
 #[doc(inline)]
 pub use self::vportal::VPortal;
+#[doc(inline)]
+pub use self::vraw::VRaw;
 #[doc(inline)]
 pub use self::vsuspense::VSuspense;
 #[doc(inline)]
@@ -97,7 +101,7 @@ mod feat_ssr_hydration {
         pub fn name(&self) -> Cow<'static, str> {
             match self {
                 #[cfg(debug_assertions)]
-                Self::Component(m) => format!("Component({})", m).into(),
+                Self::Component(m) => format!("Component({m})").into(),
                 #[cfg(not(debug_assertions))]
                 Self::Component(_) => "Component".into(),
                 Self::Suspense => "Suspense".into(),
@@ -124,7 +128,7 @@ mod feat_ssr {
             #[cfg(debug_assertions)]
             match self {
                 Self::Component(type_name) => {
-                    let _ = w.write_str(*type_name);
+                    let _ = w.write_str(type_name);
                 }
                 Self::Suspense => {}
             }
@@ -140,7 +144,7 @@ mod feat_ssr {
             #[cfg(debug_assertions)]
             match self {
                 Self::Component(type_name) => {
-                    let _ = w.write_str(*type_name);
+                    let _ = w.write_str(type_name);
                 }
                 Self::Suspense => {}
             }

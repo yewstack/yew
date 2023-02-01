@@ -356,7 +356,7 @@ where
         hook_ctx.prepare_run();
 
         #[allow(clippy::let_and_return)]
-        let result = T::run(&mut *hook_ctx, props);
+        let result = T::run(&mut hook_ctx, props);
 
         #[cfg(debug_assertions)]
         hook_ctx.assert_hook_context(result.is_ok());

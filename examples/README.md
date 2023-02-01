@@ -29,6 +29,7 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 
 | Example                                            | CT | Description                                                                                                                        |
 | -------------------------------------------------- | -- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| [async_clock](async_clock)                         | S  | Demonstrates the use of asynchronous tasks in a yew component.                                                                           |
 | [boids](boids)                                     | S  | Yew port of [Boids](https://en.wikipedia.org/wiki/Boids)                                                                           |
 | [contexts](contexts)                               | F  | A technical demonstration of Context API.                          
 | [communication_*](communication_child_to_parent)   | S  | A set of simple examples to demonstrate various communication patterns. |

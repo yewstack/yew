@@ -1,0 +1,47 @@
+name: "Post benchmark results"
+
+on:
+  workflow_run:
+    workflows: ["Benchmark"]
+    types:
+      - completed
+
+jobs:
+  post-benchmark-results:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      # Checkout repo for the github-action-benchmark action
+      - uses: actions/checkout@v2
+
+      - name: Download result artifacts
+        uses: Legit-Labs/action-download-artifact@v2
+        with:
+          workflow: benchmark.yml
+          run_id: ${{ github.event.workflow_run.id }}
+          name: results
+          path: ./artifacts
+
+      - name: Test for PR
+        uses: mathiasvr/command-output@v1
+        id: test-pr
+        with:
+          run: cat artifacts/PR_INFO
+
+      # gh-pages branch is updated and pushed automatically with extracted benchmark data
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: "Yew master branch benchmarks (Lower is better)"
+          tool: "customSmallerIsBetter"
+          output-file-path: artifacts/results.json
+          gh-pages-branch: "gh-pages"
+          # Access token to deploy GitHub Pages branch
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Push and deploy GitHub pages branch automatically
+          alert-threshold: "200%"
+          alert-comment-cc-users: "@yewstack/yew"
+          # Only push when this is a non-pr commit that has been benchmarked, i.e. master
+          auto-push: ${{ fromJSON(steps.test-pr.outputs.stdout).number == '' }}
+          save-data-file: ${{ fromJSON(steps.test-pr.outputs.stdout).number == '' }}

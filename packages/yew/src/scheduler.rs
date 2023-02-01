@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::rc::Rc;
 
-/// Alias for Rc<RefCell<T>>
+/// Alias for `Rc<RefCell<T>>`
 pub type Shared<T> = Rc<RefCell<T>>;
 
 /// A routine which could be run.
@@ -46,10 +46,18 @@ impl TopologicalQueue {
     }
 
     /// Take a single entry, preferring parents over children
+    #[rustversion::before(1.66)]
     fn pop_topmost(&mut self) -> Option<QueueEntry> {
-        // To be replaced with BTreeMap::pop_first once it is stable.
+        // BTreeMap::pop_first is available after 1.66.
         let key = *self.inner.keys().next()?;
         self.inner.remove(&key)
+    }
+
+    /// Take a single entry, preferring parents over children
+    #[rustversion::since(1.66)]
+    #[inline]
+    fn pop_topmost(&mut self) -> Option<QueueEntry> {
+        self.inner.pop_first().map(|(_, v)| v)
     }
 
     /// Drain all entries, such that children are queued before parents
@@ -96,7 +104,7 @@ fn with<R>(f: impl FnOnce(&mut Scheduler) -> R) -> R {
         static SCHEDULER: RefCell<Scheduler> = Default::default();
     }
 
-    SCHEDULER.with(|s| f(&mut *s.borrow_mut()))
+    SCHEDULER.with(|s| f(&mut s.borrow_mut()))
 }
 
 /// Push a generic [Runnable] to be executed

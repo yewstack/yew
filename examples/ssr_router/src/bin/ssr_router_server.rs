@@ -94,7 +94,7 @@ async fn main() {
     let handle_error = |e| async move {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!("error occurred: {}", e),
+            format!("error occurred: {e}"),
         )
     };
 

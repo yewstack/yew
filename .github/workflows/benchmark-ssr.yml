@@ -32,20 +32,19 @@ jobs:
           path: current-pr
 
       - name: Setup toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          target: wasm32-unknown-unknown
-          profile: minimal
+          targets: wasm32-unknown-unknown
 
       - name: Restore Rust cache for master
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
         with:
           working-directory: yew-master
           key: master
 
       - name: Restore Rust cache for current pull request
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
         with:
           working-directory: current-pr
           key: pr
@@ -63,7 +62,7 @@ jobs:
           echo "${{ github.event.number }}" > .PR_NUMBER
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: benchmark-ssr
           path: |

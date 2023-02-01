@@ -26,7 +26,7 @@ impl GitHubIssueLabelsFetcher {
             .or_insert_with(|| match Self::inner_fetch(&issue, token) {
                 Ok(labels) => labels,
                 Err(err) => {
-                    eprintln!("fetch_issue_labels Error: {}", err);
+                    eprintln!("fetch_issue_labels Error: {err}");
                     None
                 }
             })
@@ -34,10 +34,7 @@ impl GitHubIssueLabelsFetcher {
     }
 
     fn inner_fetch(q: &str, token: Option<String>) -> Result<Option<Vec<String>>> {
-        let url = format!(
-            "https://api.github.com/repos/yewstack/yew/issues/{}/labels",
-            q,
-        );
+        let url = format!("https://api.github.com/repos/yewstack/yew/issues/{q}/labels");
         let body: Vec<BodyListItem> = github_fetch(&url, token)?;
         let label_names: Vec<String> = body.into_iter().map(|label| label.name).collect();
         Ok(Some(label_names))

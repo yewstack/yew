@@ -1,0 +1,24 @@
+---
+title: 'Immutable Types'
+description: 'Immutable data structures for Yew'
+---
+
+## What are immutable types?
+
+These are types that you can instantiate but never mutate the values. In order
+to update a value, you must instantiate a new value.
+
+## Why using immutable types?
+
+Properties, like in React, are propagated from ancestors to
+children. This means that the properties must live when each component is
+updated. This is why properties should —ideally— be cheap to clone. In order to
+achieve this we usually wrap things in `Rc`.
+
+Immutable types are a great fit for holding property's values because they can
+be cheaply cloned when passed from component to component.
+
+## Further reading
+
+-   [Immutable example](https://github.com/yewstack/yew/tree/yew-v0.20.0/examples/immutable)
+-   [Crate `implicit-clone`](https://docs.rs/implicit-clone/)

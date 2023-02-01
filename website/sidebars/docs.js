@@ -117,7 +117,6 @@ module.exports = {
                     },
                     items: [
                         'advanced-topics/struct-components/hoc',
-                        'advanced-topics/struct-components/introduction',
                         'advanced-topics/struct-components/lifecycle',
                         'advanced-topics/struct-components/scope',
                         'advanced-topics/struct-components/callbacks',

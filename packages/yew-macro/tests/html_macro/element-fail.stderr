@@ -101,24 +101,24 @@ error: `class` can only be specified once but is given here again
    |                                ^^^^^
 
 error: `ref` can only be specified once
-  --> tests/html_macro/element-fail.rs:33:20
+  --> tests/html_macro/element-fail.rs:33:29
    |
 33 |     html! { <input ref={()} ref={()} /> };
-   |                    ^^^
+   |                             ^^^
 
 error: `ref` can only be specified once
-  --> tests/html_macro/element-fail.rs:63:20
+  --> tests/html_macro/element-fail.rs:63:29
    |
 63 |     html! { <input ref={()} ref={()} /> };
-   |                    ^^^
+   |                             ^^^
 
-error: the tag `<input>` is a void element and cannot have children (hint: rewrite this as `<input/>`)
+error: the tag `<input>` is a void element and cannot have children (hint: rewrite this as `<input />`)
   --> tests/html_macro/element-fail.rs:66:13
    |
 66 |     html! { <input type="text"></input> };
    |             ^^^^^^^^^^^^^^^^^^^
 
-error: the tag `<iNpUt>` is a void element and cannot have children (hint: rewrite this as `<iNpUt/>`)
+error: the tag `<iNpUt>` is a void element and cannot have children (hint: rewrite this as `<iNpUt />`)
   --> tests/html_macro/element-fail.rs:68:13
    |
 68 |     html! { <iNpUt type="text"></iNpUt> };

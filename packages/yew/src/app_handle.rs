@@ -5,11 +5,10 @@ use std::rc::Rc;
 
 use web_sys::Element;
 
-use crate::dom_bundle::BSubtree;
-use crate::html::{BaseComponent, NodeRef, Scope, Scoped};
+use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot};
+use crate::html::{BaseComponent, Scope, Scoped};
 
 /// An instance of an application.
-#[cfg(feature = "csr")]
 #[derive(Debug)]
 pub struct AppHandle<COMP: BaseComponent> {
     /// `Scope` holder
@@ -38,12 +37,27 @@ where
         app.scope.mount_in_place(
             hosting_root,
             host,
-            NodeRef::default(),
-            NodeRef::default(),
+            DomSlot::at_end(),
+            DynamicDomSlot::new_debug_trapped(),
             props,
         );
 
         app
+    }
+
+    /// Update the properties of the app's root component.
+    ///
+    /// This can be an alternative to sending and handling messages. The existing component will be
+    /// reused and have its properties updates. This will presumably trigger a re-render, refer to
+    /// the [`changed`] lifecycle for details.
+    ///
+    /// [`changed`]: crate::Component::changed
+    #[tracing::instrument(
+        level = tracing::Level::DEBUG,
+        skip_all,
+    )]
+    pub fn update(&mut self, new_props: COMP::Properties) {
+        self.scope.reuse(Rc::new(new_props), DomSlot::at_end())
     }
 
     /// Schedule the app for destruction
@@ -100,11 +114,11 @@ mod feat_hydration {
                 hosting_root,
                 host.clone(),
                 &mut fragment,
-                NodeRef::default(),
+                DynamicDomSlot::new_debug_trapped(),
                 Rc::clone(&props),
             );
             #[cfg(debug_assertions)] // Fix trapped next_sibling at the root
-            app.scope.reuse(props, NodeRef::default());
+            app.scope.reuse(props, DomSlot::at_end());
 
             // We remove all remaining nodes, this mimics the clear_element behaviour in
             // mount_with_props.
