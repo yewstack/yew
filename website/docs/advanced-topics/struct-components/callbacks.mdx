@@ -40,7 +40,7 @@ impl Component for Comp {
 }
 ```
 
-The function passed to `callback` must always take a parameter. For example, the `onclick` handler requires a function which takes a parameter of type `MouseEvent`. The handler can then decide what kind of message should be sent to the component. This message is scheduled for the next update loop unconditionally.
+The function passed to `callback` must always take a parameter. For example, the `onclick` handler requires a function that takes a parameter of type `MouseEvent`. The handler can then decide what kind of message should be sent to the component. This message is scheduled for the next update loop unconditionally.
 
 If you need a callback that might not need to cause an update, use `batch_callback`.
 

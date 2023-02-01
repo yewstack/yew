@@ -12,7 +12,7 @@ In JavaScript, `console.log()` is used to log to the browser console. Some optio
 
 ### [`wasm-logger`](https://crates.io/crates/wasm-logger)
 
-`wasm-logger` crate integrates with [`log`](https://crates.io/crates/log) crate to send the log level, source line and filename to the browser console.
+`wasm-logger` crate integrates with [`log`](https://crates.io/crates/log) crate to send the log level, source line, and filename to the browser console.
 
 ```rust ,ignore
 use log::info;
@@ -89,7 +89,7 @@ Some past articles on the state of debugging in WebAssembly in Rust can be found
 
 \[Dec 2019\] [Chrome DevTools update](https://developers.google.com/web/updates/2019/12/webassembly#the_future)
 
-> There is still quite a bit of work to do though. For example, on the tooling side, Emscripten \(Binaryen\) and wasm-pack \(wasm-bindgen\) don’t support updating DWARF information on transformations they perform yet.
+> There is still quite a bit of work to do though. For example, on the tooling side, Emscripten \(Binaryen\) and wasm-pack \(wasm-bindgen\) does not support updating DWARF information on transformations they perform yet.
 
 \[2020\] [Rust Wasm debugging guide](https://rustwasm.github.io/book/reference/debugging.html#using-a-debugger)
 

@@ -12,7 +12,7 @@ to update a value, you must instantiate a new value.
 
 Properties, like in React, are propagated from ancestors to
 children. This means that the properties must live when each component is
-updated. This is why properties should —ideally— be cheap to clone. In order to
+updated. This is why properties should —ideally— be cheap to clone. To
 achieve this we usually wrap things in `Rc`.
 
 Immutable types are a great fit for holding property's values because they can
