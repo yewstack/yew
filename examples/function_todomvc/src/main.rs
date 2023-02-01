@@ -135,7 +135,7 @@ fn app() -> Html {
                         }) }
                     </ul>
                     <button class="clear-completed" onclick={onclear_completed}>
-                        { format!("Clear completed ({})", completed) }
+                        { format!("Clear completed ({completed})") }
                     </button>
                 </footer>
             </section>

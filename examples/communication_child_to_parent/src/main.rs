@@ -40,7 +40,7 @@ impl Component for Parent {
         let msg = format!("My children have been clicked {} times", self.total_clicks);
 
         let last_updated_msg = if let Some(last_updated) = self.last_updated.as_ref() {
-            format!("The last child that was clicked was {}", last_updated)
+            format!("The last child that was clicked was {last_updated}")
         } else {
             "No child has been clicked yet".to_string()
         };

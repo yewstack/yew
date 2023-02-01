@@ -10,7 +10,7 @@ pub fn github_fetch<T: DeserializeOwned>(url: &str, token: Option<String>) -> Re
     thread::sleep(Duration::from_secs(1));
     let mut optional_headers = HeaderMap::new();
     if let Some(token) = token {
-        optional_headers.insert(AUTHORIZATION, format!("Bearer {}", token).parse().unwrap());
+        optional_headers.insert(AUTHORIZATION, format!("Bearer {token}").parse().unwrap());
     }
 
     let request_client = Client::new();
@@ -27,7 +27,7 @@ pub fn github_fetch<T: DeserializeOwned>(url: &str, token: Option<String>) -> Re
                 bail!("GitHub API limit reached.");
             }
         }
-        bail!("GitHub API request error: {}", status);
+        bail!("GitHub API request error: {status}");
     }
     Ok(resp.json()?)
 }

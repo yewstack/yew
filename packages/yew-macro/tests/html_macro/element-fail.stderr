@@ -112,13 +112,13 @@ error: `ref` can only be specified once
 63 |     html! { <input ref={()} ref={()} /> };
    |                             ^^^
 
-error: the tag `<input>` is a void element and cannot have children (hint: rewrite this as `<input/>`)
+error: the tag `<input>` is a void element and cannot have children (hint: rewrite this as `<input />`)
   --> tests/html_macro/element-fail.rs:66:13
    |
 66 |     html! { <input type="text"></input> };
    |             ^^^^^^^^^^^^^^^^^^^
 
-error: the tag `<iNpUt>` is a void element and cannot have children (hint: rewrite this as `<iNpUt/>`)
+error: the tag `<iNpUt>` is a void element and cannot have children (hint: rewrite this as `<iNpUt />`)
   --> tests/html_macro/element-fail.rs:68:13
    |
 68 |     html! { <iNpUt type="text"></iNpUt> };

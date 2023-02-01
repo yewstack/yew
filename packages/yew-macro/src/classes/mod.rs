@@ -52,12 +52,11 @@ impl Parse for ClassExpr {
                 if classes.len() > 1 {
                     let fix = classes
                         .into_iter()
-                        .map(|class| format!("\"{}\"", class))
+                        .map(|class| format!("\"{class}\""))
                         .collect::<Vec<_>>()
                         .join(", ");
                     let msg = format!(
-                        "string literals must not contain more than one class (hint: use `{}`)",
-                        fix
+                        "string literals must not contain more than one class (hint: use `{fix}`)"
                     );
 
                     Err(syn::Error::new(lit_str.span(), msg))

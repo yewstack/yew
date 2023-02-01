@@ -24,7 +24,7 @@ fn Important() -> Html {
 fn use_do_bye() -> SuspensionResult<String> {
     let path = WASM_BINDGEN_SNIPPETS_PATH
         .get()
-        .map(|path| format!("{}/js/unimp.js", path))
+        .map(|path| format!("{path}/js/unimp.js"))
         .unwrap();
     let s = use_future(|| async move {
         let promise = bindings::import(&path);

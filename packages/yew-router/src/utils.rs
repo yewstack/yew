@@ -60,7 +60,7 @@ pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
     let query = query.trim();
 
     if !query.is_empty() {
-        Some(format!("{}?{}", pathname, query))
+        Some(format!("{pathname}?{query}"))
     } else {
         Some(pathname.to_owned())
     }

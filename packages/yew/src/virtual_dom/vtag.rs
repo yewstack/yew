@@ -527,7 +527,7 @@ mod feat_ssr {
                         let _ = w.write_str(">");
                     } else {
                         // We don't write children of void elements nor closing tags.
-                        debug_assert!(children.is_empty(), "{} cannot have any children!", tag);
+                        debug_assert!(children.is_empty(), "{tag} cannot have any children!");
                     }
                 }
             }
