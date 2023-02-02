@@ -46,6 +46,7 @@ jobs:
         with:
           node-version: 16
           cache: "npm"
+          cache-dependency-path: js-framework-benchmark/package-lock.json
 
       - uses: Swatinem/rust-cache@v2
         with:
