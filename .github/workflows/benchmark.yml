@@ -31,11 +31,6 @@ jobs:
           repository: krausest/js-framework-benchmark
           path: "js-framework-benchmark"
 
-      - name: Install xvfb
-        run: |
-          sudo apt-get update
-          sudo apt-get install xvfb
-
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
         with:
