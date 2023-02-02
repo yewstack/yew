@@ -44,7 +44,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
           cache: "npm"
           cache-dependency-path: js-framework-benchmark/package-lock.json
 
@@ -61,6 +61,7 @@ jobs:
 
       - name: setup benchmark-struct benchmark
         run: |
+          ls -lauh js-framework-benchmark/frameworks/keyed/yew/bundled-dist/
           rm js-framework-benchmark/frameworks/keyed/yew/bundled-dist/*.js
           rm js-framework-benchmark/frameworks/keyed/yew/bundled-dist/*.wasm
 
@@ -74,8 +75,13 @@ jobs:
             --out-name js-framework-benchmark-yew \
             --out-dir ../../js-framework-benchmark/frameworks/keyed/yew/bundled-dist
 
+      - name: show built benchmark-struct benchmark files
+        run: |
+          ls -lauh js-framework-benchmark/frameworks/keyed/yew/bundled-dist/
+
       - name: setup yew-hooks benchmark
         run: |
+          ls -lauh js-framework-benchmark/frameworks/keyed/yew-hooks/bundled-dist/
           rm js-framework-benchmark/frameworks/keyed/yew-hooks/bundled-dist/*.js
           rm js-framework-benchmark/frameworks/keyed/yew-hooks/bundled-dist/*.wasm
 
@@ -87,7 +93,11 @@ jobs:
             --target web \
             --no-typescript \
             --out-name js-framework-benchmark-yew-hooks \
-            --out-dir ../../frameworks/keyed/yew-hooks/bundled-dist
+            --out-dir ../../js-framework-benchmark/frameworks/keyed/yew-hooks/bundled-dist
+
+      - name: show built benchmark-hooks benchmark files
+        run: |
+          ls -lauh js-framework-benchmark/frameworks/keyed/yew-hooks/bundled-dist/
 
       - name: run js-framework-benchmark server
         working-directory: js-framework-benchmark
