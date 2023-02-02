@@ -111,7 +111,7 @@ jobs:
 
       - name: js-framework-benchmark/webdriver-ts npm run bench
         working-directory: js-framework-benchmark/webdriver-ts
-        run: npm run tsbench -- --framework keyed/yew keyed/yew-hooks --runner playwright --headless
+        run: npm run tsbench -- --framework keyed/yew keyed/yew-hooks --runner playwright
 
       - name: transform results to be fit for display benchmark-action/github-action-benchmark@v1
         run: |
