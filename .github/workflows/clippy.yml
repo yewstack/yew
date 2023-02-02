@@ -60,12 +60,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        workspace:
-          - tools
-          - examples
-        include:
-          - toolchain: stable
-            runs: clippy
+        - toolchain: stable
 
     steps:
       - uses: actions/checkout@v2
@@ -78,7 +73,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - name: Run clippy for ${{ matrix.workspace }}
+      - name: Run clippy
         run: |
           cargo clippy \
             --all-targets \

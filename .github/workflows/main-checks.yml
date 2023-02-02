@@ -56,7 +56,6 @@ jobs:
             cargo test \
               -p {} \
               --doc \
-              --workspace \
               --all-features \
               --target wasm32-unknown-unknown
 
