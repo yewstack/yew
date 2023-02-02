@@ -22,7 +22,7 @@ jobs:
       - name: Checkout master
         uses: actions/checkout@v3
         with:
-          repository: 'yewstack/yew'
+          repository: "yewstack/yew"
           ref: master
           path: yew-master
 
@@ -51,11 +51,11 @@ jobs:
 
       - name: Run pull request benchmark
         run: cargo run --profile=bench --bin benchmark-ssr -- --output-path ./output.json
-        working-directory: current-pr/tools
+        working-directory: current-pr
 
       - name: Run master benchmark
         run: cargo run --profile=bench --bin benchmark-ssr -- --output-path ./output.json
-        working-directory: yew-master/tools
+        working-directory: yew-master
 
       - name: Write Pull Request ID
         run: |

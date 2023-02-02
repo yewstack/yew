@@ -2,8 +2,6 @@
 members = [
     "packages/*",
     "tools/*",
-]
-exclude = [
     "examples/*",
 ]
 resolver = "2"
