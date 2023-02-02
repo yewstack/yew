@@ -61,9 +61,11 @@ jobs:
 
       - name: setup benchmark-struct benchmark
         run: |
-          ls -lauh js-framework-benchmark/frameworks/keyed/yew/bundled-dist/
-          rm js-framework-benchmark/frameworks/keyed/yew/bundled-dist/*.js
-          rm js-framework-benchmark/frameworks/keyed/yew/bundled-dist/*.wasm
+          ls -lauh
+          rm *.js
+          rm *.wasm
+          echo "STRUCT_BUILD_DIR=$PWD" >> $GITHUB_ENV
+        working-directory: js-framework-benchmark/frameworks/keyed/yew/bundled-dist/
 
       - name: build benchmark-struct app
         working-directory: yew/tools/benchmark-struct
@@ -73,7 +75,6 @@ jobs:
             --target web \
             --no-typescript \
             --out-name js-framework-benchmark-yew \
-            --out-dir ../../js-framework-benchmark/frameworks/keyed/yew/bundled-dist
 
       - name: show built benchmark-struct benchmark files
         run: |
@@ -81,9 +82,11 @@ jobs:
 
       - name: setup yew-hooks benchmark
         run: |
-          ls -lauh js-framework-benchmark/frameworks/keyed/yew-hooks/bundled-dist/
-          rm js-framework-benchmark/frameworks/keyed/yew-hooks/bundled-dist/*.js
-          rm js-framework-benchmark/frameworks/keyed/yew-hooks/bundled-dist/*.wasm
+          ls -lauh
+          rm *.js
+          rm *.wasm
+          echo "HOOKS_BUILD_DIR=$PWD" >> $GITHUB_ENV
+        working-directory: js-framework-benchmark/frameworks/keyed/yew-hooks/bundled-dist/
 
       - name: build benchmark-hooks app
         working-directory: yew/tools/benchmark-hooks
@@ -93,7 +96,7 @@ jobs:
             --target web \
             --no-typescript \
             --out-name js-framework-benchmark-yew-hooks \
-            --out-dir ../../js-framework-benchmark/frameworks/keyed/yew-hooks/bundled-dist
+            --out-dir $HOOKS_BUILD_DIR
 
       - name: show built benchmark-hooks benchmark files
         run: |
