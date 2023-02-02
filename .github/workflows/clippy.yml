@@ -57,6 +57,11 @@ jobs:
   clippy:
     name: Clippy Workspace
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - stable
 
     steps:
       - uses: actions/checkout@v2
