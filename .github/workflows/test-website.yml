@@ -11,7 +11,7 @@ on:
     branches: [master]
 
 jobs:
-  doc_tests:
+  website_tests:
     name: Tests Website Snippets
     runs-on: ubuntu-latest
     steps:

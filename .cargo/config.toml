@@ -1,8 +1,7 @@
 [target.'cfg(target_arch = "wasm32")']
 runner = 'wasm-bindgen-test-runner'
 
+# This section needs to be last.
+# GitHub Actions modifies this section.
 [unstable]
 doctest-xcompile = true
-build-std = ["std", "panic_abort"]
-build-std-features = ["panic_immediate_abort"]
-share-generics = true
