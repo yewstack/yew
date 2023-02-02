@@ -6,6 +6,7 @@ use syn::spanned::Spanned;
 use syn::{Token, Type};
 
 use super::{HtmlChildrenTree, TagTokens};
+use crate::is_ide_completion;
 use crate::props::ComponentProps;
 
 pub struct HtmlComponent {
@@ -25,13 +26,16 @@ impl Parse for HtmlComponent {
         };
 
         if trying_to_close() {
-            return match input.parse::<HtmlComponentClose>() {
-                Ok(close) => Err(syn::Error::new_spanned(
-                    close.to_spanned(),
-                    "this closing tag has no corresponding opening tag",
-                )),
-                Err(err) => Err(err),
-            };
+            let close = input.parse::<HtmlComponentClose>();
+            if !is_ide_completion() {
+                return match close {
+                    Ok(close) => Err(syn::Error::new_spanned(
+                        close.to_spanned(),
+                        "this closing tag has no corresponding opening tag",
+                    )),
+                    Err(err) => Err(err),
+                };
+            }
         }
 
         let open = input.parse::<HtmlComponentOpen>()?;
@@ -48,6 +52,9 @@ impl Parse for HtmlComponent {
         let mut children = HtmlChildrenTree::new();
         let close = loop {
             if input.is_empty() {
+                if is_ide_completion() {
+                    break None;
+                }
                 return Err(syn::Error::new_spanned(
                     open.to_spanned(),
                     "this opening tag has no corresponding closing tag",
@@ -62,7 +69,7 @@ impl Parse for HtmlComponent {
                 }
 
                 let fork = input.fork();
-                break TagTokens::parse_end_content(&fork, |i_fork, tag| {
+                let close = TagTokens::parse_end_content(&fork, |i_fork, tag| {
                     let ty = i_fork.parse().map_err(|e| {
                         syn::Error::new(
                             e.span(),
@@ -76,7 +83,7 @@ impl Parse for HtmlComponent {
                         )
                     })?;
 
-                    if ty != open.ty {
+                    if ty != open.ty && !is_ide_completion() {
                         let open_ty = &open.ty;
                         Err(syn::Error::new_spanned(
                             quote!(#open_ty #ty),
@@ -92,6 +99,7 @@ impl Parse for HtmlComponent {
                         Ok(close)
                     }
                 })?;
+                break Some(close);
             }
             children.parse_child(input)?;
         };
@@ -109,7 +117,7 @@ impl Parse for HtmlComponent {
             ty: open.ty,
             props: open.props,
             children,
-            close: Some(close),
+            close,
         })
     }
 }

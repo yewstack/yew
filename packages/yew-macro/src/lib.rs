@@ -98,6 +98,13 @@ fn join_errors(mut it: impl Iterator<Item = syn::Error>) -> syn::Result<()> {
     })
 }
 
+fn is_ide_completion() -> bool {
+    match std::env::var_os("RUST_IDE_PROC_MACRO_COMPLETION_DUMMY_IDENTIFIER") {
+        None => false,
+        Some(dummy_identifier) => !dummy_identifier.is_empty(),
+    }
+}
+
 #[proc_macro_derive(Properties, attributes(prop_or, prop_or_else, prop_or_default))]
 pub fn derive_props(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DerivePropsInput);
