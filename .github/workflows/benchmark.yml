@@ -75,6 +75,7 @@ jobs:
             --target web \
             --no-typescript \
             --out-name js-framework-benchmark-yew \
+            --out-dir $STRUCT_BUILD_DIR
 
       - name: show built benchmark-struct benchmark files
         run: |
