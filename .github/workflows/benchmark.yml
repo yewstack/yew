@@ -3,12 +3,12 @@ name: Benchmark
 on:
   push:
     paths-ignore:
-      - 'website/**'
+      - "website/**"
     branches:
       - master
   pull_request:
     paths-ignore:
-      - 'website/**'
+      - "website/**"
     types: [labeled, synchronize, opened, reopened]
 
 permissions:
@@ -30,7 +30,6 @@ jobs:
         with:
           repository: krausest/js-framework-benchmark
           path: "./js-framework-benchmark"
-          ref: 3e0fff7973417acd8b00c2fc3e94a01dfa6f3438
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -70,30 +69,36 @@ jobs:
       - name: setup benchmark-struct benchmark
         shell: bash
         run: |
-          sed -i "s#../..#`realpath ./yew/`#" yew/tools/benchmark-struct/Cargo.toml
-          rm -rf js-framework-benchmark/frameworks/keyed/yew/*
-          cp -r yew/tools/benchmark-struct/* js-framework-benchmark/frameworks/keyed/yew/
+          rm js-framework-benchmark/frameworks/keyed/yew/bundled_dist/*.js
+          rm js-framework-benchmark/frameworks/keyed/yew/bundled_dist/*.wasm
 
       - name: build benchmark-struct app
         shell: bash
-        working-directory: js-framework-benchmark/frameworks/keyed/yew/
+        working-directory: yew/tools/benchmark-struct
         run: |
-          npm ci
-          npm run build-prod-without-tools-install
+          wasm-pack build \
+            --release \
+            --target web \
+            --no-typescript \
+            --out-name js-framework-benchmark-yew \
+            --out-dir ../../frameworks/keyed/yew/bundled-dist
 
       - name: setup yew-hooks benchmark
         shell: bash
         run: |
-          sed -i "s#../..#`realpath ./yew/`#" yew/tools/benchmark-hooks/Cargo.toml
-          rm -rf js-framework-benchmark/frameworks/keyed/yew-hooks/*
-          cp -r yew/tools/benchmark-hooks/* js-framework-benchmark/frameworks/keyed/yew-hooks/
+          rm js-framework-benchmark/frameworks/keyed/yew-hooks/bundled_dist/*.js
+          rm js-framework-benchmark/frameworks/keyed/yew-hooks/bundled_dist/*.wasm
 
       - name: build benchmark-hooks app
         shell: bash
-        working-directory: js-framework-benchmark/frameworks/keyed/yew-hooks/
+        working-directory: yew/tools/benchmark-hooks
         run: |
-          npm ci
-          npm run build-prod-without-tools-install
+          wasm-pack build \
+            --release \
+            --target web \
+            --no-typescript \
+            --out-name js-framework-benchmark-yew-hooks \
+            --out-dir ../../frameworks/keyed/yew-hooks/bundled-dist
 
       - name: run js-framework-benchmark server
         shell: bash
