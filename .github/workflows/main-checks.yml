@@ -143,7 +143,7 @@ jobs:
           # workaround for lack of ternary operator
           # see https://github.com/orgs/community/discussions/25725
           RUSTFLAGS: ${{ matrix.toolchain == 'nightly' && '--cfg nightly_yew' || '' }}
-        run: ls packages | grep -v "^yew$" | xargs cargo test --all-targets -p
+        run: ls packages | grep -v "^yew$" | xargs -I {} cargo test --all-targets -p {}
 
       - name: Run native tests for yew
         env:
