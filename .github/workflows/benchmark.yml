@@ -31,6 +31,11 @@ jobs:
           repository: krausest/js-framework-benchmark
           path: "js-framework-benchmark"
 
+      - name: Install xvfb
+        run: |
+          sudo apt-get update
+          sudo apt-get install xvfb
+
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
         with:
@@ -111,7 +116,7 @@ jobs:
 
       - name: js-framework-benchmark/webdriver-ts npm run bench
         working-directory: js-framework-benchmark/webdriver-ts
-        run: npm run tsbench -- --framework keyed/yew keyed/yew-hooks --runner playwright
+        run: xvfb-run npm run tsbench -- --framework keyed/yew keyed/yew-hooks --runner playwright
 
       - name: transform results to be fit for display benchmark-action/github-action-benchmark@v1
         run: |
