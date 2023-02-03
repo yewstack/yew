@@ -13,3 +13,11 @@ more advanced web console features.
 ## Improvements
 
 - Apply the concept to something more fun than just a dry technical demonstration
+
+## Running
+
+Run a debug version of this application:
+
+```bash
+trunk serve --open
+```
