@@ -12,7 +12,7 @@ instead, each boid has its own element demonstrating the performance of Yew's vi
 You should run this example with the `--release` flag:
 
 ```bash
-trunk serve --release
+trunk serve --release --open
 ```
 
 ## Concepts
