@@ -12,3 +12,11 @@ The example illustrates how to use `gloo-worker` to send tasks to a worker threa
 
 - [insou22](https://github.com/insou22) for writing up the demo.
 - [https://github.com/yvt/img2text](https://github.com/yvt/img2text) -- for how to make web workers compile in wasm
+
+## Running
+
+Run a debug version of this application:
+
+```bash
+trunk serve --open
+```
