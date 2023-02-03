@@ -8,3 +8,11 @@ This is an example that demonstrates `<Suspense />` support.
 
 This example shows how `<Suspense />` works in Yew and how you can
 create hooks that utilises suspense.
+
+## Running
+
+Run a debug version of this application:
+
+```bash
+trunk serve --open
+```
