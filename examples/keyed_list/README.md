@@ -6,11 +6,15 @@ This example consists of a list which can be manipulated in various ways.
 
 ## Running
 
-Because this example is a performance demonstration you should use it with the `--release` flag:
+Run a debug version of this application:
 
 ```bash
-trunk serve --release
+trunk serve --open
 ```
+
+### Notes
+
+If you would like to view this example as a performance demonstation, run this example in `release` mode.
 
 ## Concepts
 
