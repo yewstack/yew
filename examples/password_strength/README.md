@@ -6,11 +6,15 @@ A password strength estimator implemented in Yew.
 
 ## Running
 
-You should run this example with the `--release` flag:
+Run a debug version of this application:
 
 ```bash
-trunk serve --release
+trunk serve --open
 ```
+
+### Notes
+
+If this example is a bit slow, you sould try running it with the `release` profile.
 
 ## Concepts
 
