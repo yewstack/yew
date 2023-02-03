@@ -13,3 +13,11 @@ This is an implementation of [TodoMVC](http://todomvc.com/) for Yew using functi
 
 - Use `yew-router` for the hash based routing
 - Clean up the code
+
+## Running
+
+Run a debug version of this application:
+
+```bash
+trunk serve --open
+```
