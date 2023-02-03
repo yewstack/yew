@@ -13,3 +13,11 @@ a render loop, and draw to the canvas with basic shaders using `web-sys`.
 ## Improvements
 
 - Use a much more flashy shader
+
+## Running
+
+Run a debug version of this application:
+
+```bash
+trunk serve --open
+```
