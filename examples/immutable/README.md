@@ -3,3 +3,11 @@
 [![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Fimmutable)](https://examples.yew.rs/immutable)
 
 This is a technical demonstration for how to use immutables types in Yew.
+
+## Running
+
+Run a debug version of this application:
+
+```bash
+trunk serve --open
+```
