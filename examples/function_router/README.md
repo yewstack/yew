@@ -11,13 +11,13 @@ It's mobile friendly too!
 
 ## Running
 
-While not strictly necessary, this example should be built in release mode:
-
 ```bash
-trunk serve --release
+trunk serve --open
 ```
 
-Content generation can take up quite a bit of time in debug builds.
+### Notes
+
+Content generation can take up quite a bit of time in debug builds, it may be better to run this example in release mode if it is slow.
 
 ## Concepts
 
