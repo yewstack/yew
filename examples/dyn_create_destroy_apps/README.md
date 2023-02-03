@@ -7,13 +7,7 @@ An example of how to create and destroy Yew apps on demand.
 Run a debug version of this application:
 
 ```bash
-trunk serve
-```
-
-Run a release version of this application:
-
-```bash
-trunk serve --release
+trunk serve --open
 ```
 
 ## Concepts
