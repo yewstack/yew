@@ -7,13 +7,7 @@ A simple example of a counter which can be increased or decreased with the press
 Run a debug version of this application:
 
 ```bash
-trunk serve
-```
-
-Run a release version of this application:
-
-```bash
-trunk serve --release
+trunk serve --open
 ```
 
 ## Concepts
