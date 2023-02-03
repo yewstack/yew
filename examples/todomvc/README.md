@@ -18,3 +18,11 @@ including: all entries, entered text and chosen filter.
 - Clean up the code
 
 [`refs`]: https://yew.rs/docs/concepts/components/refs/
+
+## Running
+
+Run a debug version of this application:
+
+```bash
+trunk serve --open
+```
