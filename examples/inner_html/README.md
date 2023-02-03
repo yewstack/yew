@@ -8,3 +8,11 @@ This example renders unescaped HTML by manually handling the DOM element.
 
 - Manually creating `Html` without the `html!` macro.
 - Using `web-sys` to manipulate the DOM.
+
+## Running
+
+Run a debug version of this application:
+
+```bash
+trunk serve --open
+```
