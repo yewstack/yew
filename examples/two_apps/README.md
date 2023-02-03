@@ -15,3 +15,11 @@ One of the components could even accept a generic "remote" component using a tra
 
 This example is very similar to [`mount_point`](../mount_point).
 The two should be merged into a single example.
+
+## Running
+
+Run a debug version of this application:
+
+```bash
+trunk serve --open
+```
