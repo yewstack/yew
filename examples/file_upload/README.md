@@ -14,3 +14,11 @@ Demonstrates reading from files in Yew with the help of [`gloo::file`](https://d
 - Show a progress bar if the file is read in chunks
 - Do something interesting with the uploaded file like displaying pictures
 - Improve the presentation of the example with CSS.
+
+## Running
+
+Run a debug version of this application:
+
+```bash
+trunk serve --open
+```
