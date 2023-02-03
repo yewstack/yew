@@ -9,16 +9,6 @@ A blog all about yew.
 The best way to figure out what this example is about is to just open it up.
 It's mobile friendly too!
 
-## Running
-
-```bash
-trunk serve --open
-```
-
-### Notes
-
-Content generation can take up quite a bit of time in debug builds, it may be better to run this example in release mode if it is slow.
-
 ## Concepts
 
 This example involves many different parts, here are just the Yew specific things:
@@ -47,3 +37,13 @@ Take a look at [`Route`](src/main.rs) for the implementation.
 - Detect sub-path from `--public-url` value passed to Trunk. See: thedodd/trunk#51
 
 [`yew-router`]: https://docs.rs/yew-router/latest/yew_router/
+
+## Running
+
+```bash
+trunk serve --open
+```
+
+### Notes
+
+Content generation can take up quite a bit of time in debug builds, it may be better to run this example in release mode if it is slow.

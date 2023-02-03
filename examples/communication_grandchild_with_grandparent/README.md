@@ -5,7 +5,7 @@ The grandchildren themselves also update whenever the grandparent updates the sh
 
 ## Running
 
-Run this application:
+Run a debug version of this application:
 
 ```bash
 trunk serve --open

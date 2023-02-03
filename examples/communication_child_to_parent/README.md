@@ -4,7 +4,7 @@ A simple example of updating a parent from two children using a callback mechani
 
 ## Running
 
-Run this application:
+Run a debug version of this application:
 
 ```bash
 trunk serve --open

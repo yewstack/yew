@@ -4,7 +4,7 @@ A simple example of updating a grandchild component from a grandparent using a s
 
 ## Running
 
-Run this application:
+Run a debug version of this application:
 
 ```bash
 trunk serve --open

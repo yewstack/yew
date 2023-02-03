@@ -4,14 +4,6 @@
 
 This example consists of a list which can be manipulated in various ways.
 
-## Running
-
-Run a debug version of this application:
-
-```bash
-trunk serve --open
-```
-
 ### Notes
 
 If you would like to view this example as a performance demonstation, run this example in `release` mode.
@@ -25,3 +17,11 @@ Demonstrates how using keyed elements improves the performance of comparing chan
 - Improve the name and address generation so that they don't look like gibberish
 - Show the time it took to update the DOM on the page instead of just the console
 - Improve the presentation of the example with CSS
+
+## Running
+
+Run a debug version of this application:
+
+```bash
+trunk serve --open
+```

@@ -11,7 +11,7 @@ as opposed to the traditional method using component links.
 
 ## Running
 
-Run this application:
+Run a debug version of this application:
 
 ```bash
 trunk serve --open

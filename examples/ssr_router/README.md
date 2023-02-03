@@ -10,8 +10,6 @@ of the function router example.
 
 `trunk build index.html`
 
-This builds static artifacts that will be served and places them in `dist`.
-
-2. Run the server
+1. Run the server
 
 `cargo run --features=ssr --bin ssr_router_server -- --dir dist`
