@@ -1,0 +1,29 @@
+$font-stack:    Roboto, sans-serif;
+$primary-color: #008f53;
+
+body {
+    font: 100% $font-stack;
+    color: white;
+    background-color: $primary-color;
+}
+
+#buttons {
+    text-align: right;
+}
+
+#wrapper {
+    overflow: hidden;
+    width: 100%;
+}
+
+#time {
+    text-align: center;
+    font-size: 17vh;
+    padding: 15% 0;
+    float: left;
+}
+
+#messages {
+    float: right;
+}
+  
