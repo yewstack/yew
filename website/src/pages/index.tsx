@@ -56,7 +56,7 @@ const FEATURES = [
     },
 ]
 
-function Feature(props: { feature: typeof FEATURES[number] }) {
+function Feature(props: { feature: (typeof FEATURES)[number] }) {
     return (
         <div className="card-demo">
             <div className="card">
