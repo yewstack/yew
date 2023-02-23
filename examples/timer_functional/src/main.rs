@@ -39,16 +39,16 @@ impl Reducible for TimerState {
                 messages.push(message);
                 Rc::new(TimerState {
                     messages,
-                    handle: None,
+                    handle: self.handle.clone(),
                 })
             }
             TimerAction::SetInterval(t) => Rc::new(TimerState {
-                messages: Vec::new(),
+                messages: self.messages.clone(),
                 handle: Some(Rc::from(t)),
             }),
             TimerAction::Clear => {
                 Rc::new(TimerState {
-                    messages: Vec::new(),
+                    messages: self.messages.clone(),//Vec::new(),
                     handle: None,
                 })
             }
