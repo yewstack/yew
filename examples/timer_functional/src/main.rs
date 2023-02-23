@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::rc::Rc;
 
 use gloo::console::log;
@@ -12,11 +13,19 @@ fn get_current_time() -> String {
 enum TimerAction {
     Add(&'static str),
     Clear,
+    SetInterval(Interval),
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 struct TimerState {
     messages: Vec<&'static str>,
+    handle: Option<Rc<Interval>>,
+}
+
+impl PartialEq for TimerState {
+    fn eq(&self, other: &Self) -> bool {
+        self.messages == other.messages && self.handle.is_some() == other.handle.is_some()
+    }
 }
 
 impl Reducible for TimerState {
@@ -28,11 +37,21 @@ impl Reducible for TimerState {
                 log!("add called");
                 let mut messages = self.messages.clone();
                 messages.push(message);
-                Rc::new(TimerState { messages })
+                Rc::new(TimerState {
+                    messages,
+                    handle: None,
+                })
             }
-            TimerAction::Clear => Rc::new(TimerState {
+            TimerAction::SetInterval(t) => Rc::new(TimerState {
                 messages: Vec::new(),
+                handle: Some(Rc::from(t)),
             }),
+            TimerAction::Clear => {
+                Rc::new(TimerState {
+                    messages: Vec::new(),
+                    handle: None,
+                })
+            }
         }
     }
 }
@@ -59,6 +78,7 @@ fn clock() -> Html {
 fn App() -> Html {
     let state = use_reducer(|| TimerState {
         messages: Vec::new(),
+        handle: None,
     });
 
     let messages: Html = state
@@ -84,12 +104,14 @@ fn App() -> Html {
         let state = state.clone();
 
         Callback::from(move |_: MouseEvent| {
+            let s2 = state.clone();
             let state = state.clone();
             state.dispatch(TimerAction::Add("Interval called"));
-            let _i = Interval::new(3000, move || {
+            let i = Interval::new(3000, move || {
                 state.dispatch(TimerAction::Add("Interval done."));
-            })
-            .forget();
+            });
+
+            s2.dispatch(TimerAction::SetInterval(i));
         })
     };
 
