@@ -1,7 +1,5 @@
-use std::cell::RefCell;
 use std::rc::Rc;
-
-use gloo::console::log;
+//use gloo::console::log;
 use gloo::timers::callback::{Interval, Timeout};
 use yew::prelude::*;
 
@@ -34,7 +32,6 @@ impl Reducible for TimerState {
     fn reduce(self: Rc<Self>, action: TimerAction) -> Rc<Self> {
         match action {
             TimerAction::Add(message) => {
-                log!("add called");
                 let mut messages = self.messages.clone();
                 messages.push(message);
                 Rc::new(TimerState {
@@ -87,14 +84,14 @@ fn App() -> Html {
         .map(|message| html! { <p>{ message }</p> })
         .collect();
 
-    let on_add = {
+    let on_add_timeout = {
         let state = state.clone();
 
         Callback::from(move |_: MouseEvent| {
             let state = state.clone();
-            state.dispatch(TimerAction::Add("Timeout called"));
+            state.dispatch(TimerAction::Add("Timer Started!"));
             Timeout::new(3000, move || {
-                state.dispatch(TimerAction::Add("Timeout done."));
+                state.dispatch(TimerAction::Add("Done!"));
             })
             .forget();
         })
@@ -104,20 +101,20 @@ fn App() -> Html {
         let state = state.clone();
 
         Callback::from(move |_: MouseEvent| {
-            let s2 = state.clone();
-            let state = state.clone();
-            state.dispatch(TimerAction::Add("Interval called"));
+            let interval_state = state.clone();
+            let message_state = state.clone();
+            message_state.dispatch(TimerAction::Add("Interval started!"));
             let i = Interval::new(3000, move || {
-                state.dispatch(TimerAction::Add("Interval done."));
+                message_state.dispatch(TimerAction::Add("Tick.."));
             });
 
-            s2.dispatch(TimerAction::SetInterval(i));
+            interval_state.dispatch(TimerAction::SetInterval(i));
         })
     };
 
     let on_clear = {
         let state = state.clone();
-
+        //state.dispatch(TimerAction::Add("Canceled!"));
         Callback::from(move |_: MouseEvent| {
             state.dispatch(TimerAction::Clear);
         })
@@ -126,15 +123,15 @@ fn App() -> Html {
     html!(
         <>
             <div id="buttons">
-                <button onclick={on_add}>{ "Start Timeout" }</button>
+                <button onclick={on_add_timeout}>{ "Start Timeout" }</button>
                 <button onclick={on_add_interval}>{ "Start Interval" }</button>
-                <button onclick={on_clear}>{ "Clear" }</button>
+                <button onclick={on_clear}>{ "Cancel"}</button>
             </div>
             <div id="wrapper">
                 <Clock />
-            </div>
-            <div id="messages">
-                { messages }
+                <div id="messages">
+                    { messages }
+                </div>
             </div>
         </>
     )
