@@ -60,7 +60,7 @@ impl Component for App {
             Msg::StartTimeout => {
                 let handle = {
                     let link = ctx.link().clone();
-                    Timeout::new(3, move || link.send_message(Msg::Done))
+                    Timeout::new(3000, move || link.send_message(Msg::Done))
                 };
 
                 self.timeout = Some(handle);
@@ -75,7 +75,7 @@ impl Component for App {
             Msg::StartInterval => {
                 let handle = {
                     let link = ctx.link().clone();
-                    Interval::new(1, move || link.send_message(Msg::Tick))
+                    Interval::new(1000, move || link.send_message(Msg::Tick))
                 };
                 self.interval = Some(handle);
 
