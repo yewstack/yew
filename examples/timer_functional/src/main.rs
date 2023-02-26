@@ -44,8 +44,10 @@ impl Reducible for TimerState {
                 handle: Some(Rc::from(t)),
             }),
             TimerAction::Clear => {
+                let mut messages = self.messages.clone();
+                messages.push("Canceled!");
                 Rc::new(TimerState {
-                    messages: self.messages.clone(),//Vec::new(),
+                    messages,
                     handle: None,
                 })
             }
