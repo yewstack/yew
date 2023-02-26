@@ -1,5 +1,4 @@
 use std::rc::Rc;
-//use gloo::console::log;
 use gloo::timers::callback::{Interval, Timeout};
 use yew::prelude::*;
 
@@ -10,6 +9,7 @@ fn get_current_time() -> String {
 
 enum TimerAction {
     Add(&'static str),
+    Cancel,
     Clear,
     SetInterval(Interval),
 }
@@ -43,7 +43,7 @@ impl Reducible for TimerState {
                 messages: self.messages.clone(),
                 handle: Some(Rc::from(t)),
             }),
-            TimerAction::Clear => {
+            TimerAction::Cancel => {
                 let mut messages = self.messages.clone();
                 messages.push("Canceled!");
                 Rc::new(TimerState {
@@ -51,6 +51,10 @@ impl Reducible for TimerState {
                     handle: None,
                 })
             }
+            TimerAction::Clear => Rc::new(TimerState {
+                messages: Vec::new(),
+                handle: self.handle.clone(),
+            }),
         }
     }
 }
@@ -114,9 +118,15 @@ fn App() -> Html {
         })
     };
 
+    let on_cancel = {
+        let state = state.clone();
+        Callback::from(move |_: MouseEvent| {
+            state.dispatch(TimerAction::Cancel);
+        })
+    };
+
     let on_clear = {
         let state = state.clone();
-        //state.dispatch(TimerAction::Add("Canceled!"));
         Callback::from(move |_: MouseEvent| {
             state.dispatch(TimerAction::Clear);
         })
@@ -127,7 +137,8 @@ fn App() -> Html {
             <div id="buttons">
                 <button onclick={on_add_timeout}>{ "Start Timeout" }</button>
                 <button onclick={on_add_interval}>{ "Start Interval" }</button>
-                <button onclick={on_clear}>{ "Cancel"}</button>
+                <button onclick={on_cancel}>{ "Cancel"}</button>
+                <button onclick={on_clear}>{ "Clear"}</button>
             </div>
             <div id="wrapper">
                 <Clock />
