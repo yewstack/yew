@@ -1,5 +1,6 @@
-use gloo::timers::callback::{Interval, Timeout};
 use std::rc::Rc;
+
+use gloo::timers::callback::{Interval, Timeout};
 use yew::prelude::*;
 
 fn get_current_time() -> String {
