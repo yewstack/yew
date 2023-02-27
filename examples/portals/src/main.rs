@@ -87,7 +87,6 @@ impl Component for App {
             .expect("head element to be present");
         let title_element = document_head
             .query_selector("title")
-            .expect("to find a title element")
             .expect("to find a title element");
         title_element.set_text_content(None); // Clear the title element
         let style_html = create_portal(
