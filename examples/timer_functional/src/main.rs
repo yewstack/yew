@@ -77,7 +77,7 @@ impl Reducible for TimerState {
 
 #[function_component(Clock)]
 fn clock() -> Html {
-    let time = use_state(|| get_current_time());
+    let time = use_state(get_current_time);
 
     {
         let time = time.clone();
@@ -138,7 +138,6 @@ fn App() -> Html {
     };
 
     let on_cancel = {
-        let state = state.clone();
         Callback::from(move |_: MouseEvent| {
             state.dispatch(TimerAction::Cancel);
         })
