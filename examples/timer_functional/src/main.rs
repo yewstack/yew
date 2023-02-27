@@ -1,5 +1,5 @@
-use std::rc::Rc;
 use gloo::timers::callback::{Interval, Timeout};
+use std::rc::Rc;
 use yew::prelude::*;
 
 fn get_current_time() -> String {
@@ -10,19 +10,22 @@ fn get_current_time() -> String {
 enum TimerAction {
     Add(&'static str),
     Cancel,
-    Clear,
     SetInterval(Interval),
+    SetTimeout(Timeout),
+    TimeoutDone,
 }
 
 #[derive(Clone, Debug)]
 struct TimerState {
     messages: Vec<&'static str>,
-    handle: Option<Rc<Interval>>,
+    interval_handle: Option<Rc<Interval>>,
+    timeout_handle: Option<Rc<Timeout>>,
 }
 
 impl PartialEq for TimerState {
     fn eq(&self, other: &Self) -> bool {
-        self.messages == other.messages && self.handle.is_some() == other.handle.is_some()
+        self.messages == other.messages
+            && self.interval_handle.is_some() == other.interval_handle.is_some()
     }
 }
 
@@ -36,25 +39,38 @@ impl Reducible for TimerState {
                 messages.push(message);
                 Rc::new(TimerState {
                     messages,
-                    handle: self.handle.clone(),
+                    interval_handle: self.interval_handle.clone(),
+                    timeout_handle: self.timeout_handle.clone(),
                 })
             }
             TimerAction::SetInterval(t) => Rc::new(TimerState {
-                messages: self.messages.clone(),
-                handle: Some(Rc::from(t)),
+                messages: vec!["Interval started!"],
+                interval_handle: Some(Rc::from(t)),
+                timeout_handle: self.timeout_handle.clone(),
             }),
+            TimerAction::SetTimeout(t) => Rc::new(TimerState {
+                messages: vec!["Timer started!!"],
+                interval_handle: self.interval_handle.clone(),
+                timeout_handle: Some(Rc::from(t)),
+            }),
+            TimerAction::TimeoutDone => {
+                let mut messages = self.messages.clone();
+                messages.push("Done!");
+                Rc::new(TimerState {
+                    messages,
+                    interval_handle: self.interval_handle.clone(),
+                    timeout_handle: None,
+                })
+            }
             TimerAction::Cancel => {
                 let mut messages = self.messages.clone();
                 messages.push("Canceled!");
                 Rc::new(TimerState {
                     messages,
-                    handle: None,
+                    interval_handle: None,
+                    timeout_handle: self.timeout_handle.clone(),
                 })
             }
-            TimerAction::Clear => Rc::new(TimerState {
-                messages: Vec::new(),
-                handle: self.handle.clone(),
-            }),
         }
     }
 }
@@ -81,7 +97,8 @@ fn clock() -> Html {
 fn App() -> Html {
     let state = use_reducer(|| TimerState {
         messages: Vec::new(),
-        handle: None,
+        interval_handle: None,
+        timeout_handle: None,
     });
 
     let messages: Html = state
@@ -90,16 +107,19 @@ fn App() -> Html {
         .map(|message| html! { <p>{ message }</p> })
         .collect();
 
+    let has_job = state.interval_handle.is_some() || state.timeout_handle.is_some();
+
     let on_add_timeout = {
         let state = state.clone();
 
         Callback::from(move |_: MouseEvent| {
-            let state = state.clone();
-            state.dispatch(TimerAction::Add("Timer Started!"));
-            Timeout::new(3000, move || {
-                state.dispatch(TimerAction::Add("Done!"));
-            })
-            .forget();
+            let timeout_state = state.clone();
+            let message_state = state.clone();
+            let t = Timeout::new(3000, move || {
+                message_state.dispatch(TimerAction::TimeoutDone);
+            });
+
+            timeout_state.dispatch(TimerAction::SetTimeout(t));
         })
     };
 
@@ -109,8 +129,7 @@ fn App() -> Html {
         Callback::from(move |_: MouseEvent| {
             let interval_state = state.clone();
             let message_state = state.clone();
-            message_state.dispatch(TimerAction::Add("Interval started!"));
-            let i = Interval::new(3000, move || {
+            let i = Interval::new(1000, move || {
                 message_state.dispatch(TimerAction::Add("Tick.."));
             });
 
@@ -125,20 +144,12 @@ fn App() -> Html {
         })
     };
 
-    let on_clear = {
-        let state = state.clone();
-        Callback::from(move |_: MouseEvent| {
-            state.dispatch(TimerAction::Clear);
-        })
-    };
-
     html!(
         <>
             <div id="buttons">
-                <button onclick={on_add_timeout}>{ "Start Timeout" }</button>
-                <button onclick={on_add_interval}>{ "Start Interval" }</button>
-                <button onclick={on_cancel}>{ "Cancel"}</button>
-                <button onclick={on_clear}>{ "Clear"}</button>
+                <button disabled={has_job} onclick={on_add_timeout}>{ "Start Timeout" }</button>
+                <button disabled={has_job} onclick={on_add_interval}>{ "Start Interval" }</button>
+                <button disabled={!has_job} onclick={on_cancel}>{ "Cancel"}</button>
             </div>
             <div id="wrapper">
                 <Clock />
