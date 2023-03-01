@@ -21,7 +21,7 @@ jobs:
           - dev
           - release
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -48,7 +48,7 @@ jobs:
     name: spellcheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Check spelling
         run: |
           sudo apt-get install aspell
@@ -58,7 +58,7 @@ jobs:
     name: Documentation Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v2
 
       - name: Setup toolchain
@@ -107,7 +107,7 @@ jobs:
           - stable
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: Swatinem/rust-cache@v2
 
@@ -154,7 +154,7 @@ jobs:
           - nightly
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
@@ -184,7 +184,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
