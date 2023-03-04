@@ -15,7 +15,7 @@ jobs:
     name: Tests Website Snippets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
