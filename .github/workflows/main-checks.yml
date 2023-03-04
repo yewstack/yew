@@ -3,47 +3,15 @@ name: Main Checks
 on:
   pull_request:
     paths:
-      - '.github/workflows/main-checks.yml'
-      - 'ci/**'
-      - 'packages/**/*'
-      - 'Cargo.toml'
+      - ".github/workflows/main-checks.yml"
+      - "ci/**"
+      - "packages/**/*"
+      - "Cargo.toml"
+      - "Cargo.lock"
   push:
     branches: [master]
 
 jobs:
-  clippy:
-    name: Clippy
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        profile:
-          - dev
-          - release
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-          components: clippy
-
-      - uses: Swatinem/rust-cache@v2
-
-      - name: Run clippy
-        run: cargo clippy --all-targets --all-features --profile ${{ matrix.profile }} -- -D warnings
-
-      - name: Lint feature soundness
-        if: matrix.profile == 'dev'
-        run: bash ../../ci/feature-soundness.sh
-        working-directory: packages/yew
-
-      - name: Lint feature soundness
-        if: matrix.profile == 'release'
-        run: bash ../../ci/feature-soundness-release.sh
-        working-directory: packages/yew
-
   spell_check:
     name: spellcheck
     runs-on: ubuntu-latest
@@ -60,11 +28,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v2
-
-      - name: Setup toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
 
       # for wasm-bindgen-cli, always use stable rust
       - name: Setup toolchain
@@ -83,17 +46,18 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - uses: browser-actions/setup-geckodriver@latest
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: nanasess/setup-chromedriver@v1
 
       - name: Run doctest
-        run: cargo test --doc --workspace --exclude yew --target wasm32-unknown-unknown
-
-      - name: Run website code snippet tests
-        run: cargo test -p website-test --target wasm32-unknown-unknown
-        working-directory: tools
-
-      - name: Run doctest - yew with features
-        run: cargo test -p yew --doc --all-features --target wasm32-unknown-unknown
+        run: |
+          ls packages | xargs -I {} \
+            cargo test \
+              -p {} \
+              --doc \
+              --all-features \
+              --target wasm32-unknown-unknown
 
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
@@ -128,6 +92,9 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - uses: browser-actions/setup-geckodriver@latest
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: nanasess/setup-chromedriver@v1
 
       - name: Run tests - yew
@@ -170,7 +137,7 @@ jobs:
           # workaround for lack of ternary operator
           # see https://github.com/orgs/community/discussions/25725
           RUSTFLAGS: ${{ matrix.toolchain == 'nightly' && '--cfg nightly_yew' || '' }}
-        run: cargo test --all-targets --workspace --exclude yew
+        run: ls packages | grep -v "^yew$" | xargs -I {} cargo test --all-targets -p {}
 
       - name: Run native tests for yew
         env:
