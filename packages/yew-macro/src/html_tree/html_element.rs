@@ -10,7 +10,7 @@ use syn::{Block, Expr, Ident, Lit, LitStr, Token};
 use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
 use crate::props::{ClassesForm, ElementProps, Prop, PropDirective};
 use crate::stringify::{Stringify, Value};
-use crate::{non_capitalized_ascii, Peek, PeekValue};
+use crate::{is_ide_completion, non_capitalized_ascii, Peek, PeekValue};
 
 pub struct HtmlElement {
     pub name: TagName,
@@ -72,6 +72,9 @@ impl Parse for HtmlElement {
         let mut children = HtmlChildrenTree::new();
         loop {
             if input.is_empty() {
+                if is_ide_completion() {
+                    break;
+                }
                 return Err(syn::Error::new_spanned(
                     open.to_spanned(),
                     "this opening tag has no corresponding closing tag",
@@ -86,7 +89,9 @@ impl Parse for HtmlElement {
             children.parse_child(input)?;
         }
 
-        input.parse::<HtmlElementClose>()?;
+        if !input.is_empty() || !is_ide_completion() {
+            input.parse::<HtmlElementClose>()?;
+        }
 
         Ok(Self {
             name: open.name,

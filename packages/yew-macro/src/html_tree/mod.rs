@@ -6,7 +6,7 @@ use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{braced, token, Token};
 
-use crate::PeekValue;
+use crate::{is_ide_completion, PeekValue};
 
 mod html_block;
 mod html_component;
@@ -101,6 +101,7 @@ impl HtmlTree {
                     Some(HtmlType::List)
                 } else if ident_str.chars().next().unwrap().is_ascii_uppercase()
                     || input.peek(Token![::])
+                    || is_ide_completion() && ident_str.chars().any(|c| c.is_ascii_uppercase())
                 {
                     Some(HtmlType::Component)
                 } else {

@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Download Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - if: github.event.workflow_run.event == 'pull_request'
         name: Download Artifact (master)
