@@ -28,7 +28,7 @@ thiserror = "1.0"
 futures = { version = "0.3", default-features = false, features = ["std"] }
 html-escape = { version = "0.2.9", optional = true }
 implicit-clone = { version = "0.3", features = ["map"] }
-base64ct = { version = "1.5.0", features = ["std"], optional = true }
+base64ct = { version = "1.6.0", features = ["std"], optional = true }
 bincode = { version = "1.3.3", optional = true }
 serde = { version = "1", features = ["derive"] }
 tracing = "0.1.36"
