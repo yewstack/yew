@@ -1847,7 +1847,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "js-sys",
- "time 0.3.17",
+ "time 0.3.20",
  "wasm-bindgen",
  "web-sys",
  "yew",
@@ -2539,9 +2539,9 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.3.17"
+version = "0.3.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a561bf4617eebd33bca6434b988f39ed798e527f51a1e797d0ee4f61c0a38376"
+checksum = "cd0cbfecb4d19b5ea75bb31ad904eb5b9fa13f21079c3b92017ebdf4999a5890"
 dependencies = [
  "serde",
  "time-core",
@@ -3341,5 +3341,5 @@ dependencies = [
  "lazy_static",
  "quick-error 2.0.1",
  "regex",
- "time 0.3.17",
+ "time 0.3.20",
 ]
