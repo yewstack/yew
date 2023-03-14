@@ -50,6 +50,13 @@
       ]
     }
   ],
+  "headers": [ {
+    "source": "tutorial/*.json",
+    "headers": [ {
+      "key": "Access-Control-Allow-Origin",
+      "value": "*"
+    } ]
+  } ],
   "emulators": {
     "hosting": {
       "port": 5000
