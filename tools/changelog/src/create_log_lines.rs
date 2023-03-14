@@ -28,7 +28,6 @@ pub fn create_log_lines(
     revwalk.push(to_oid)?;
 
     revwalk
-        .into_iter()
         .filter_map(|oid| create_log_line(&repo, package_labels, oid, token.clone()).transpose())
         .collect()
 }
