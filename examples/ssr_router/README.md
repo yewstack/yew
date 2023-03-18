@@ -10,6 +10,6 @@ of the function router example.
 
 `trunk build index.html`
 
-1. Run the server
+2. Run the server
 
 `cargo run --features=ssr --bin ssr_router_server -- --dir dist`

@@ -45,4 +45,4 @@ trunk serve --open
 
 ### Notes
 
-Content generation can take up quite a bit of time in debug builds, if it is too slow you should try running with the `release` profile.
+Content generation can take up quite a bit of time in debug builds. If it is too slow, you should try running with the `release` profile.

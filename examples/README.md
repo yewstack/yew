@@ -20,7 +20,7 @@ cd examples/todomvc
 trunk serve --open
 ```
 
-Some examples may perform far better using `release` profile, if something is slow try this.
+Some examples may perform better using the `release` profile. If something is slow, you can try running it with the `--release` argument.
 
 We're also publicly hosting the examples at `https://examples.yew.rs/<EXAMPLE>`.
 As an example, check out the TodoMVC example here: <https://examples.yew.rs/todomvc>
