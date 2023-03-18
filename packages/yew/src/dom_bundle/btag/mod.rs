@@ -4,6 +4,7 @@ mod attributes;
 mod listeners;
 
 use std::borrow::Cow;
+use std::cell::RefCell;
 use std::hint::unreachable_unchecked;
 use std::ops::DerefMut;
 
@@ -231,12 +232,6 @@ impl Reconcilable for VTag {
 
 impl VTag {
     fn create_element(&self, parent: &Element) -> Element {
-        use std::cell::RefCell;
-
-        thread_local! {
-            static CACHED_ELEMENTS: RefCell<Vec<(String, Element)>> = Default::default();
-        }
-
         let tag = self.tag();
 
         if tag == "svg"
@@ -258,15 +253,16 @@ impl VTag {
                 .create_element_ns(namespace, tag)
                 .expect("can't create namespaced element for vtag")
         } else {
-            // document()
-            // .create_element(intern(tag))
-            // .expect("can't create element for vtag")
+            thread_local! {
+                static CACHED_ELEMENTS: RefCell<Vec<(String, Element)>> = Default::default();
+            }
+
             CACHED_ELEMENTS.with(|cache| {
                 let mut cache = cache.borrow_mut();
                 let cached =
                     cache
                         .iter()
-                        .find(|(cached_tag, el)| cached_tag == tag)
+                        .find(|(cached_tag, _)| cached_tag == tag)
                         .map(|(_, el)| {
                             el.clone_node()
                                 .expect("couldn't clone cached element")
