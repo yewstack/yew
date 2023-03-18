@@ -3,12 +3,12 @@ name: Benchmark
 on:
   push:
     paths-ignore:
-      - 'website/**'
+      - "website/**"
     branches:
       - master
   pull_request:
     paths-ignore:
-      - 'website/**'
+      - "website/**"
     types: [labeled, synchronize, opened, reopened]
 
 permissions:
@@ -22,15 +22,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
-          path: "./yew"
+          path: "yew"
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: krausest/js-framework-benchmark
-          path: "./js-framework-benchmark"
-          ref: 3e0fff7973417acd8b00c2fc3e94a01dfa6f3438
+          path: "js-framework-benchmark"
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -45,22 +44,15 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
+          cache: "npm"
+          cache-dependency-path: js-framework-benchmark/package-lock.json
 
       - uses: Swatinem/rust-cache@v2
         with:
           working-directory: yew
 
-      - uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-benchmark-${{ hashFiles('js-framework-benchmark/package-lock.json') }}-${{ hashFiles('js-framework-benchmark/webdriver-ts/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-benchmark-
-            ${{ runner.os }}
-
       - name: setup js-framework-benchmark
-        shell: bash
         working-directory: js-framework-benchmark
         run: |
           npm ci
@@ -68,45 +60,60 @@ jobs:
           npm run install-webdriver-ts
 
       - name: setup benchmark-struct benchmark
-        shell: bash
         run: |
-          sed -i "s#../..#`realpath ./yew/`#" yew/tools/benchmark-struct/Cargo.toml
-          rm -rf js-framework-benchmark/frameworks/keyed/yew/*
-          cp -r yew/tools/benchmark-struct/* js-framework-benchmark/frameworks/keyed/yew/
+          ls -lauh
+          rm *.js
+          rm *.wasm
+          echo "STRUCT_BUILD_DIR=$PWD" >> $GITHUB_ENV
+        working-directory: js-framework-benchmark/frameworks/keyed/yew/bundled-dist/
 
       - name: build benchmark-struct app
-        shell: bash
-        working-directory: js-framework-benchmark/frameworks/keyed/yew/
+        working-directory: yew/tools/benchmark-struct
         run: |
-          npm ci
-          npm run build-prod-without-tools-install
+          wasm-pack build \
+            --release \
+            --target web \
+            --no-typescript \
+            --out-name js-framework-benchmark-yew \
+            --out-dir $STRUCT_BUILD_DIR
+
+      - name: show built benchmark-struct benchmark files
+        run: |
+          ls -lauh js-framework-benchmark/frameworks/keyed/yew/bundled-dist/
 
       - name: setup yew-hooks benchmark
-        shell: bash
         run: |
-          sed -i "s#../..#`realpath ./yew/`#" yew/tools/benchmark-hooks/Cargo.toml
-          rm -rf js-framework-benchmark/frameworks/keyed/yew-hooks/*
-          cp -r yew/tools/benchmark-hooks/* js-framework-benchmark/frameworks/keyed/yew-hooks/
+          ls -lauh
+          rm *.js
+          rm *.wasm
+          echo "HOOKS_BUILD_DIR=$PWD" >> $GITHUB_ENV
+        working-directory: js-framework-benchmark/frameworks/keyed/yew-hooks/bundled-dist/
 
       - name: build benchmark-hooks app
-        shell: bash
-        working-directory: js-framework-benchmark/frameworks/keyed/yew-hooks/
+        working-directory: yew/tools/benchmark-hooks
         run: |
-          npm ci
-          npm run build-prod-without-tools-install
+          wasm-pack build \
+            --release \
+            --target web \
+            --no-typescript \
+            --out-name js-framework-benchmark-yew-hooks \
+            --out-dir $HOOKS_BUILD_DIR
+
+      - name: show built benchmark-hooks benchmark files
+        run: |
+          ls -lauh js-framework-benchmark/frameworks/keyed/yew-hooks/bundled-dist/
 
       - name: run js-framework-benchmark server
-        shell: bash
         working-directory: js-framework-benchmark
-        run: npm start &
+        run: |
+          npm start &
+          sleep 5
 
       - name: js-framework-benchmark/webdriver-ts npm run bench
-        shell: bash
         working-directory: js-framework-benchmark/webdriver-ts
-        run: npm run tsbench -- --framework keyed/yew keyed/yew-hooks --runner playwright --headless
+        run: xvfb-run npm run tsbench -- --framework keyed/yew keyed/yew-hooks --runner playwright
 
       - name: transform results to be fit for display benchmark-action/github-action-benchmark@v1
-        shell: bash
         run: |
           mkdir artifacts/
           jq -s . js-framework-benchmark/webdriver-ts/results/*.json | cargo run --manifest-path yew/tools/Cargo.toml --release -p process-benchmark-results > artifacts/results.json
