@@ -8,7 +8,7 @@ use std::rc::{Rc, Weak};
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 use wasm_bindgen::prelude::{wasm_bindgen, Closure};
-use wasm_bindgen::{JsCast, UnwrapThrowExt};
+use wasm_bindgen::{intern, JsCast, UnwrapThrowExt};
 use web_sys::{
     AddEventListenerOptions, Element, Event, EventTarget as HtmlEventTarget, ShadowRoot,
 };
@@ -157,7 +157,7 @@ impl EventListener {
 
         target
             .add_event_listener_with_callback_and_add_event_listener_options(
-                &event_type,
+                intern(&event_type),
                 callback.as_ref().unchecked_ref(),
                 &options,
             )
