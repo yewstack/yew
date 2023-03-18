@@ -10,7 +10,7 @@ use std::ops::DerefMut;
 use gloo::utils::document;
 use listeners::ListenerRegistration;
 pub use listeners::Registry;
-use wasm_bindgen::JsCast;
+use wasm_bindgen::{intern, JsCast};
 use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
 use super::{BList, BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
@@ -253,7 +253,7 @@ impl VTag {
                 .expect("can't create namespaced element for vtag")
         } else {
             document()
-                .create_element(tag)
+                .create_element(intern(tag))
                 .expect("can't create element for vtag")
         }
     }
