@@ -10,7 +10,7 @@ use std::ops::DerefMut;
 use gloo::utils::document;
 use listeners::ListenerRegistration;
 pub use listeners::Registry;
-use wasm_bindgen::{intern, JsCast};
+use wasm_bindgen::JsCast;
 use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
 use super::{BList, BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
@@ -231,6 +231,12 @@ impl Reconcilable for VTag {
 
 impl VTag {
     fn create_element(&self, parent: &Element) -> Element {
+        use std::cell::RefCell;
+
+        thread_local! {
+            static CACHED_ELEMENTS: RefCell<Vec<(String, Element)>> = Default::default();
+        }
+
         let tag = self.tag();
 
         if tag == "svg"
@@ -252,9 +258,34 @@ impl VTag {
                 .create_element_ns(namespace, tag)
                 .expect("can't create namespaced element for vtag")
         } else {
-            document()
-                .create_element(intern(tag))
-                .expect("can't create element for vtag")
+            // document()
+            // .create_element(intern(tag))
+            // .expect("can't create element for vtag")
+            CACHED_ELEMENTS.with(|cache| {
+                let mut cache = cache.borrow_mut();
+                let cached =
+                    cache
+                        .iter()
+                        .find(|(cached_tag, el)| cached_tag == tag)
+                        .map(|(_, el)| {
+                            el.clone_node()
+                                .expect("couldn't clone cached element")
+                                .unchecked_into::<Element>()
+                        });
+                cached.unwrap_or_else(|| {
+                    let to_be_cached = document()
+                        .create_element(tag)
+                        .expect("can't create element for vtag");
+                    cache.push((
+                        tag.to_string(),
+                        to_be_cached
+                            .clone_node()
+                            .expect("couldn't clone node to be cached")
+                            .unchecked_into(),
+                    ));
+                    to_be_cached
+                })
+            })
         }
     }
 }
