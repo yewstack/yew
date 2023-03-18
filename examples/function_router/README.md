@@ -46,4 +46,4 @@ trunk serve --open
 
 ### Notes
 
-Content generation can take up quite a bit of time in debug builds, it may be better to run this example in release mode if it is slow.
+Content generation can take up quite a bit of time in debug builds. It may be better to run this example in release mode if it is slow.
