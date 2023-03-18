@@ -21,7 +21,7 @@ including: all entries, entered text and chosen filter.
 
 ## Running
 
-Run a debug version of this application:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open

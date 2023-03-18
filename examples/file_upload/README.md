@@ -17,7 +17,7 @@ Demonstrates reading from files in Yew with the help of [`gloo::file`](https://d
 
 ## Running
 
-Run a debug version of this application:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open

@@ -37,7 +37,7 @@ Take a look at [`Route`](src/main.rs) for the implementation.
 
 ## Running
 
-Run a debug version of this application:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open

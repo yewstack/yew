@@ -16,7 +16,7 @@ This is an implementation of [TodoMVC](http://todomvc.com/) for Yew using functi
 
 ## Running
 
-Run a debug version of this application:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open

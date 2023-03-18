@@ -8,7 +8,7 @@ Demonstrates the use of the Yew app handle by dynamically creating and destroyin
 
 ## Running
 
-Run a debug version of this application:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open

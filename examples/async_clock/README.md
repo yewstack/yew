@@ -13,7 +13,7 @@ features:
 
 ## Running
 
-Run this application with trunk development server:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open

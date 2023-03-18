@@ -11,7 +11,7 @@ This example renders elements into out-of-tree nodes with the help of portals.
 
 ## Running
 
-Run a debug version of this application:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open

@@ -11,7 +11,7 @@ This example renders unescaped HTML by manually handling the DOM element.
 
 ## Running
 
-Run a debug version of this application:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open

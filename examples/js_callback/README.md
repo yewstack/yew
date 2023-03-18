@@ -43,7 +43,7 @@ The best way to improve this example would be to incorporate this concept into a
 
 ## Running
 
-Run a debug version of this application:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open

@@ -16,7 +16,7 @@ This example shows a nested list and displays which item was last hovered.
 
 ## Running
 
-Run a debug version of this application:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open

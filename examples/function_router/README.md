@@ -40,6 +40,8 @@ Take a look at [`Route`](src/main.rs) for the implementation.
 
 ## Running
 
+Run this application with the trunk development server:
+
 ```bash
 trunk serve --open
 ```

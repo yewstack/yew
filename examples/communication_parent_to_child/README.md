@@ -4,7 +4,7 @@ A simple example of updating a child from a parent using properties
 
 ## Running
 
-Run a debug version of this application:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open

@@ -11,7 +11,7 @@ create hooks that utilises suspense.
 
 ## Running
 
-Run a debug version of this application:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open

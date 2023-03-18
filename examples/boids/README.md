@@ -24,7 +24,7 @@ The example uses [`gloo::timers`](https://docs.rs/gloo-timers/latest/gloo_timers
 
 ## Running
 
-Run a debug version of this application:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open

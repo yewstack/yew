@@ -15,7 +15,7 @@ The example illustrates how to use `gloo-worker` to send tasks to a worker threa
 
 ## Running
 
-Run a debug version of this application:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open

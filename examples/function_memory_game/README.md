@@ -16,7 +16,7 @@ Images are authorized by [@bradlygreen](https://github.com/bradlygreen), see [au
 
 ## Running
 
-Run a debug version of this application:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open

@@ -6,7 +6,7 @@ This is a technical demonstration for how to use immutables types in Yew.
 
 ## Running
 
-Run a debug version of this application:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open

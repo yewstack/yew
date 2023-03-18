@@ -10,7 +10,7 @@ Demonstrates the use of messages to update state.
 
 ## Running
 
-Run a debug version of this application:
+Run this application with the trunk development server:
 
 ```bash
 trunk serve --open
