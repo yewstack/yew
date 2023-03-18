@@ -6,7 +6,7 @@ A password strength estimator implemented in Yew.
 
 ### Notes
 
-If this example is a bit slow, you sould try running it with the `release` profile.
+If this example is a bit slow, you should try running it with the `release` profile.
 
 ## Concepts
 
