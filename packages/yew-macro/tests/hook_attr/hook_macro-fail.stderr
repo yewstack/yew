@@ -1,27 +1,14 @@
-error: hooks cannot be called at this position.
-
-         = help: move hooks to the top-level of your function.
-         = note: see: https://yew.rs/docs/next/concepts/function-components/hooks
-
-  --> tests/hook_attr/hook_macro-fail.rs:20:9
+error[E0277]: `impl Hook<Output = String>` doesn't implement `std::fmt::Display`
+  --> tests/hook_attr/hook_macro-fail.rs:26:15
    |
-20 |         use_some_macro!()
-   |         ^^^^^^^^^^^^^^
-
-error: hooks cannot be called at this position.
-
-         = help: move hooks to the top-level of your function.
-         = note: see: https://yew.rs/docs/next/concepts/function-components/hooks
-
-  --> tests/hook_attr/hook_macro-fail.rs:22:9
+26 |         <div>{content}</div>
+   |               ^^^^^^^ `impl Hook<Output = String>` cannot be formatted with the default formatter
    |
-22 |         use_some_macro!("b")
-   |         ^^^^^^^^^^^^^^
-
-warning: unused macro definition: `use_some_macro`
- --> tests/hook_attr/hook_macro-fail.rs:8:14
-  |
-8 | macro_rules! use_some_macro {
-  |              ^^^^^^^^^^^^^^
-  |
-  = note: `#[warn(unused_macros)]` on by default
+   = help: the trait `std::fmt::Display` is not implemented for `impl Hook<Output = String>`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = note: required because of the requirements on the impl of `ToString` for `impl Hook<Output = String>`
+   = note: required because of the requirements on the impl of `From<impl Hook<Output = String>>` for `VNode`
+   = note: required because of the requirements on the impl of `Into<VNode>` for `impl Hook<Output = String>`
+   = note: 2 redundant requirements hidden
+   = note: required because of the requirements on the impl of `Into<NodeSeq<impl Hook<Output = String>, VNode>>` for `impl Hook<Output = String>`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
