@@ -1,6 +1,8 @@
 [workspace]
-members = [
+default-members = [
     "packages/*",
+]
+members = [
     "tools/*",
     "examples/*",
 ]

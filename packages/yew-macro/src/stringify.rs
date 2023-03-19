@@ -83,6 +83,7 @@ impl Stringify for Lit {
             Lit::Int(v) => v.base10_digits().to_string(),
             Lit::Float(v) => v.base10_digits().to_string(),
             Lit::Bool(_) | Lit::ByteStr(_) | Lit::Byte(_) | Lit::Verbatim(_) => return None,
+            _ => unreachable!("unknown Lit"),
         };
         Some(LitStr::new(&s, self.span()))
     }

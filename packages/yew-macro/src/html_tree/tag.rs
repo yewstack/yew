@@ -109,7 +109,7 @@ impl TagTokens {
                 match punct.as_char() {
                     '/' => {
                         if angle_count == 1 && input.peek(Token![>]) {
-                            div = Some(syn::token::Div {
+                            div = Some(syn::token::Slash {
                                 spans: [punct.span()],
                             });
                             gt = input.parse()?;

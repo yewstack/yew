@@ -90,7 +90,7 @@ impl Parse for PropsExpr {
 
         let content;
         let brace_token = syn::braced!(content in input);
-        let fields = content.parse_terminated(PropValue::parse)?;
+        let fields = content.parse_terminated(PropValue::parse, Token![,])?;
         Ok(Self {
             ty,
             _brace_token: brace_token,

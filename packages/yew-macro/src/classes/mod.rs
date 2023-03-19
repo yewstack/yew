@@ -10,7 +10,9 @@ pub struct Classes(Punctuated<ClassExpr, Token![,]>);
 
 impl Parse for Classes {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        input.parse_terminated(ClassExpr::parse).map(Self)
+        input
+            .parse_terminated(ClassExpr::parse, Token![,])
+            .map(Self)
     }
 }
 
