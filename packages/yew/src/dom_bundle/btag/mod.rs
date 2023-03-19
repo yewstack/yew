@@ -5,6 +5,7 @@ mod listeners;
 
 use std::borrow::Cow;
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::hint::unreachable_unchecked;
 use std::ops::DerefMut;
 
@@ -254,31 +255,27 @@ impl VTag {
                 .expect("can't create namespaced element for vtag")
         } else {
             thread_local! {
-                static CACHED_ELEMENTS: RefCell<Vec<(String, Element)>> = Default::default();
+                static CACHED_ELEMENTS: RefCell<HashMap<String, Element>> = RefCell::new(HashMap::with_capacity(32));
             }
 
             CACHED_ELEMENTS.with(|cache| {
                 let mut cache = cache.borrow_mut();
-                let cached =
-                    cache
-                        .iter()
-                        .find(|(cached_tag, _)| cached_tag == tag)
-                        .map(|(_, el)| {
-                            el.clone_node()
-                                .expect("couldn't clone cached element")
-                                .unchecked_into::<Element>()
-                        });
+                let cached = cache.get(tag).map(|el| {
+                    el.clone_node()
+                        .expect("couldn't clone cached element")
+                        .unchecked_into::<Element>()
+                });
                 cached.unwrap_or_else(|| {
                     let to_be_cached = document()
                         .create_element(tag)
                         .expect("can't create element for vtag");
-                    cache.push((
+                    cache.insert(
                         tag.to_string(),
                         to_be_cached
                             .clone_node()
                             .expect("couldn't clone node to be cached")
                             .unchecked_into(),
-                    ));
+                    );
                     to_be_cached
                 })
             })
