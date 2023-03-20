@@ -18,7 +18,7 @@ jobs:
           exit 1
 
       # need to checkout to get "firebase.json", ".firebaserc"
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Download build artifact
         uses: dawidd6/action-download-artifact@v2

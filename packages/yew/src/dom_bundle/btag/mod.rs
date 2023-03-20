@@ -15,7 +15,7 @@ use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
 use super::{BList, BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
-use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, SVG_NAMESPACE};
+use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, MATHML_NAMESPACE, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
 use crate::NodeRef;
 
@@ -232,12 +232,22 @@ impl Reconcilable for VTag {
 impl VTag {
     fn create_element(&self, parent: &Element) -> Element {
         let tag = self.tag();
+
         if tag == "svg"
             || parent
                 .namespace_uri()
                 .map_or(false, |ns| ns == SVG_NAMESPACE)
         {
             let namespace = Some(SVG_NAMESPACE);
+            document()
+                .create_element_ns(namespace, tag)
+                .expect("can't create namespaced element for vtag")
+        } else if tag == "math"
+            || parent
+                .namespace_uri()
+                .map_or(false, |ns| ns == MATHML_NAMESPACE)
+        {
+            let namespace = Some(MATHML_NAMESPACE);
             document()
                 .create_element_ns(namespace, tag)
                 .expect("can't create namespaced element for vtag")
@@ -586,6 +596,19 @@ mod tests {
         let g_tag = assert_vtag(g_node);
         let (_, g_tag) = g_tag.attach(&root, &scope, &svg_el, DomSlot::at_end());
         assert_namespace(&g_tag, SVG_NAMESPACE);
+    }
+
+    #[test]
+    fn supports_mathml() {
+        let (root, scope, parent) = setup_parent();
+        let mfrac_node = html! { <mfrac> </mfrac> };
+        let math_node = html! { <math>{mfrac_node}</math> };
+
+        let math_tag = assert_vtag(math_node);
+        let (_, math_tag) = math_tag.attach(&root, &scope, &parent, DomSlot::at_end());
+        assert_namespace(&math_tag, MATHML_NAMESPACE);
+        let mfrac_tag = assert_btag_ref(math_tag.children().get(0).unwrap());
+        assert_namespace(mfrac_tag, MATHML_NAMESPACE);
     }
 
     #[test]

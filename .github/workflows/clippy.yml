@@ -1,0 +1,83 @@
+name: Clippy
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/clippy.yml"
+      - "tools/**/*"
+      - "examples/**/*"
+      - "packages/**/*"
+      - "Cargo.toml"
+      - "Cargo.lock"
+  push:
+    branches: [master]
+
+jobs:
+  feature-soundness:
+    name: Feature Soundness
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        profile:
+          - dev
+          - release
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Lint feature soundness
+        if: matrix.profile == 'dev'
+        run: bash ../../ci/feature-soundness.sh
+        working-directory: packages/yew
+
+      - name: Lint feature soundness
+        if: matrix.profile == 'release'
+        run: bash ../../ci/feature-soundness-release.sh
+        working-directory: packages/yew
+
+      - name: Run release clippy
+        if: matrix.profile == 'release'
+        run: |
+          ls packages | xargs -I {} \
+            cargo clippy \
+            -p {} \
+            --all-targets \
+            --all-features \
+            --workspace \
+            -- -D warnings
+
+  clippy:
+    name: Clippy Workspace
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - stable
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Run clippy
+        run: |
+          cargo clippy \
+            --all-targets \
+            --all-features \
+            --workspace \
+            -- -D warnings

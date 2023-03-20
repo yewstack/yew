@@ -15,6 +15,9 @@ use crate::html::{IntoPropValue, NodeRef};
 /// SVG namespace string used for creating svg elements
 pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
 
+/// MathML namespace string used for creating MathML elements
+pub const MATHML_NAMESPACE: &str = "http://www.w3.org/1998/Math/MathML";
+
 /// Default namespace for html elements
 pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
 
