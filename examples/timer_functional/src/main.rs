@@ -69,7 +69,7 @@ impl Reducible for TimerState {
                 Rc::new(TimerState {
                     messages,
                     interval_handle: None,
-                    timeout_handle: self.timeout_handle.clone(),
+                    timeout_handle: None,
                 })
             }
         }
