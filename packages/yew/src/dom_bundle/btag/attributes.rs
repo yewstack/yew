@@ -164,7 +164,7 @@ impl Attributes {
     fn set(el: &Element, key: &str, value: &str, apply_as: ApplyAttributeAs) {
         match apply_as {
             ApplyAttributeAs::Attribute => el
-                .set_attribute(intern(key), intern(value))
+                .set_attribute(intern(key), value)
                 .expect("invalid attribute key"),
             ApplyAttributeAs::Property => {
                 let key = JsValue::from_str(key);
