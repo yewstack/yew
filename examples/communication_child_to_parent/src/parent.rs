@@ -1,5 +1,9 @@
 use super::*;
 
+pub enum Msg {
+    ButtonClick(AttrValue),
+}
+
 /// The `Parent` component holds some state that is updated when its children are clicked
 pub struct Parent {
     /// The total number of clicks received
