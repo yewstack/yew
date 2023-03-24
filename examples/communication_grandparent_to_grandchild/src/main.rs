@@ -1,11 +1,12 @@
 use std::rc::Rc;
+
+use child::Child;
 use grandparent::GrandParent;
 use parent::Parent;
-use child::Child;
 
+mod child;
 mod grandparent;
 mod parent;
-mod child;
 
 use yew::{function_component, html, Component, Context, ContextHandle, ContextProvider, Html};
 
