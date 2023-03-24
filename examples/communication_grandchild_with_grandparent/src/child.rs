@@ -42,23 +42,22 @@ impl Component for Child {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let my_name = ctx.props().name.clone();
-        let name = format!("{my_name}: ");
+        let name = format!("I'm {my_name}.");
 
         // Here we emit the callback to the grandparent component, whenever the button is clicked.
         let onclick = self.state.child_clicked.reform(move |_| (my_name.clone()));
 
-        let msg = format!("We've been clicked: {} times", self.state.total_clicks);
-
         html! {
-            <div class="child">
-                <div class="child-name">
-                    <div>{name}</div>
+            <div class="border-4 border-purple-600 rounded-2xl flex-grow mt-2">
+                <div class="bg-purple-600 rounded-t px-3 pb-1 font-medium">
+                    <span>{ "Child" }</span>
                 </div>
-                <div class="button-panel">
-                    <button class="button" {onclick}>{"Click here"}</button>
+                <div class="px-5 py-3">
+                    <span class="text-xl">{ "We've been clicked " }<span class="font-bold">{ self.state.total_clicks }</span>{ " times." }</span>
                 </div>
-                <div class="status-message">
-                    <div>{msg}</div>
+                <div class="flex px-5 pb-5 justify-between items-center">
+                    <span class="text-xl">{ name }</span>
+                    <button class="bg-purple-600 hover:bg-purple-800 rounded-xl text-lg pt-1 pb-2 px-3 font-medium" {onclick}>{"Click"}</button>
                 </div>
             </div>
         }

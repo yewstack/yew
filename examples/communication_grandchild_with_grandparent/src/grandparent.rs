@@ -36,26 +36,28 @@ impl Component for GrandParent {
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         let app_state = self.state.clone();
-        let msg = format!(
-            "My grandchildren have been clicked {} times",
-            self.state.total_clicks
-        );
 
         let detail_msg = if let Some(last_clicked) = &self.state.last_clicked {
-            format!("{last_clicked} was clicked last")
+            format!("The last child you clicked was {last_clicked}.")
         } else {
-            "No one has been clicked yet".to_string()
+            "Waiting for you to click a granchild...".to_string()
         };
 
         html! {
             <ContextProvider<Rc<AppState>> context={app_state}>
-                <div class="app">
-                    <div class="parent">
-                        <h2>{ "Grandchild-with-Grandparent communication example" }</h2>
-                        <div>{msg}</div>
-                        <div>{detail_msg}</div>
-                        <div class="spacer" />
-                        <Parent />
+                <div class="bg-zinc-900 text-zinc-100 min-h-screen min-w-screen flex flex-col justify-center items-center">
+                    <div>
+                        <h2 class="text-4xl mb-8">{ "Grandchild-with-Grandparent Communication Example" }</h2>
+                        <div class="border-4 border-green-600 rounded-2xl">
+                            <div class="bg-green-600 rounded-t px-3 pb-1 font-medium">
+                                <span>{ "Grandparent" }</span>
+                            </div>
+                            <div class="flex flex-col px-5 pb-5 pt-3">
+                                <span class="text-xl">{ "My grandchildren have been clicked " }<span class="font-bold">{ self.state.total_clicks }</span>{ " times." }</span>
+                                <div class="text-xl my-3">{detail_msg}</div>
+                                <Parent />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </ContextProvider<Rc<AppState>>>

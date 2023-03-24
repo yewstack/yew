@@ -1,10 +1,11 @@
 use std::rc::Rc;
-use grandparent::GrandParent;
+
 use child::Child;
+use grandparent::GrandParent;
 use parent::Parent;
 
-mod grandparent;
 mod child;
+mod grandparent;
 mod parent;
 
 use yew::{
