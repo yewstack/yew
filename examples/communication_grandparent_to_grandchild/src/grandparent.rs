@@ -42,7 +42,7 @@ impl Component for GrandParent {
                                 <span>{ "Grandparent" }</span>
                             </div>
                             <div class="flex flex-col px-5 pb-5 pt-5">
-                                <button class="bg-green-600 hover:bg-green-800 rounded-xl text-lg pt-1 pb-2 px-3 font-medium mb-5 w-32" {onclick}>{"Click"}</button>
+                                <button class="bg-green-600 hover:bg-green-800 rounded-xl text-lg pt-1 pb-2 px-3 font-medium mb-5" {onclick}>{"Click"}</button>
                                 <Parent />
                             </div>
                         </div>
