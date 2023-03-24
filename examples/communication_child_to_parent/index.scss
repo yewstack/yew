@@ -4,7 +4,7 @@ body {
 }
 
 .button {
-  background-color: #e3891b; /* Green */
+  background-color: #e3891b;
   border: 0;
   color: white;
   padding: 14px 14px;
@@ -12,6 +12,11 @@ body {
   font-size: 16pt;
   margin: 2px 2px;
   width: 100px;
+  border-radius: 15px;
+}
+.button:hover {
+    background-color: #e3891bc2;
+    cursor: pointer;
 }
 
 .app {
