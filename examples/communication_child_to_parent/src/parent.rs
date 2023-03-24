@@ -32,28 +32,25 @@ impl Component for Parent {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let msg = format!("My children have been clicked {} times.", self.total_clicks);
-
         let last_updated_msg = if let Some(last_updated) = self.last_updated.as_ref() {
             format!("The last child you clicked was {last_updated}.")
         } else {
             "Waiting for you to click a child...".to_string()
         };
-
+        
         let on_clicked = ctx.link().callback(Msg::ButtonClick);
         html! {
-            <div class="app">
+            <div class="bg-zinc-900 text-zinc-100 min-h-screen min-w-screen flex flex-col justify-center items-center">
                 <div>
-                    <h2>{ "Child-to-Parent Communication Example" }</h2>
-                    <div class="parent">
-                        <div class="tab">
-                            <span class="bg-green">{ "Parent" }</span>
+                    <h2 class="text-4xl mb-8">{ "Child-to-Parent Communication Example" }</h2>
+                    <div class="border-4 border-green-600 rounded-2xl">
+                        <div class="bg-green-600 rounded-t px-3 pb-1 font-medium">
+                            <span>{ "Parent" }</span>
                         </div>
-                        <div class="parent-body-1">
-                            <div>{ msg }</div>
-                            <div>{ last_updated_msg }</div>
-                            <div class="spacer" />
-                            <div class="parent-body-2">
+                        <div class="flex flex-col px-5 pb-5 pt-3">
+                            <span class="text-xl">{ "My children have been clicked " }<span class="font-bold">{ self.total_clicks }</span>{ " times." }</span>
+                            <span class="text-xl my-3">{ last_updated_msg }</span>
+                            <div class="flex mt-3 gap-x-5">
                                 <Child name="Alice" on_clicked={on_clicked.clone()} />
                                 <Child name="Bob" {on_clicked} />
                             </div>
