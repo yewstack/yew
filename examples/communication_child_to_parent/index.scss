@@ -1,6 +1,14 @@
 body {
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     font-size: 16pt;
+    min-height: 100vh;
+    min-width: 100vw;
+    margin: 0;
+}
+
+h2 {
+    margin-top: 20px;
+    margin-bottom: 30px;
 }
 
 .button {
@@ -23,6 +31,13 @@ body {
     display: flex;
     justify-content: center;
     flex-direction: row;
+    min-height: 100vh;
+    min-width: 100vw;
+}
+.app > div {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
 }
 
 .button-panel {
@@ -38,12 +53,18 @@ body {
   display: flex;
   flex-direction: column;
   row-gap: 10px;
+  border: 3px solid #179c3f;
+  border-radius: 15px;
+  padding: 20px;
 }
 
 .child {
     display: flex;
     justify-content: center;
     column-gap: 10px;
+    border: 3px solid #e3891b;
+    border-radius: 15px;
+    padding: 20px;
 }
 
 .child-name {
