@@ -37,7 +37,7 @@ impl Component for Parent {
         } else {
             "Waiting for you to click a child...".to_string()
         };
-        
+
         let on_clicked = ctx.link().callback(Msg::ButtonClick);
         html! {
             <div class="bg-zinc-900 text-zinc-100 min-h-screen min-w-screen flex flex-col justify-center items-center">
