@@ -18,10 +18,14 @@ impl Component for Child {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let msg = format!("My parent has been clicked {} times", ctx.props().clicks);
         html! {
-            <div class="child">
-                <div>{msg}</div>
+            <div class="border-4 border-orange-500 rounded-2xl flex-grow">
+                <div class="bg-orange-500 rounded-t px-3 pb-1 font-medium">
+                    <span>{ "Child" }</span>
+                </div>
+                <div class="px-5 py-3">
+                    <span class="text-xl">{ "My parent has been clicked " }<span class="font-bold">{ ctx.props().clicks }</span>{ " times." }</span>
+                </div>
             </div>
         }
     }
