@@ -32,7 +32,7 @@ impl Component for Child {
                 </div>
                 <div class="flex px-5 py-5 justify-between items-center">
                     <span class="text-xl">{ name }</span>
-                    <button class="bg-orange-500 hover:bg-orange-700 rounded-2xl text-lg pt-1 pb-2 px-3 font-medium" {onclick}>{"Click"}</button>
+                    <button class="bg-orange-500 hover:bg-orange-700 rounded-xl text-lg pt-1 pb-2 px-3 font-medium" {onclick}>{"Click"}</button>
                 </div>
             </div>
         }
