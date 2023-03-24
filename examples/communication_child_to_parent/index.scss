@@ -4,6 +4,8 @@ body {
     min-height: 100vh;
     min-width: 100vw;
     margin: 0;
+	background-color: #131516;
+	color: #f1f0ef;
 }
 
 h2 {
@@ -12,15 +14,15 @@ h2 {
 }
 
 .button {
-  background-color: #e3891b;
-  border: 0;
-  color: white;
-  padding: 14px 14px;
-  text-align: center;
-  font-size: 16pt;
-  margin: 2px 2px;
-  width: 100px;
-  border-radius: 15px;
+	background-color: #e3891b;
+	border: 0;
+	color: white;
+	padding: 14px 14px;
+	text-align: center;
+	font-size: 16pt;
+	margin: 2px 2px;
+	width: 100px;
+	border-radius: 15px;
 }
 .button:hover {
     background-color: #e3891bc2;
@@ -38,7 +40,7 @@ h2 {
     display: flex;
     justify-content: center;
     flex-direction: column;
-}
+} 
 
 .button-panel {
     display: flex;
@@ -50,24 +52,62 @@ h2 {
 }
 
 .parent {
-  display: flex;
-  flex-direction: column;
-  row-gap: 10px;
-  border: 3px solid #179c3f;
-  border-radius: 15px;
-  padding: 20px;
+	border: 3px solid #179c3f;
+	border-radius: 15px;
+	overflow: hidden;
+}
+
+.bg-green {
+	background-color: #179c3f;
+}
+.bg-orange {
+	background-color: #e3891b;
+}
+
+.tab {
+	display: flex;
+	width: 100%;
+	justify-content: center;
+}
+.tab > span {
+	border-bottom-right-radius: 15px;
+	border-bottom-left-radius: 15px;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 3px;
+	padding-bottom: 6px;
+	font-size: 12pt;
+}
+
+.parent-body-1, .parent-body-2 {
+    display: flex;
+	flex-direction: column;
+	row-gap: 10px;
+	padding: 20px;
+	padding-bottom: 10px;
+}
+.parent-body-2 {
+	flex-direction: row;
+	column-gap: 20px;
+	padding: 0;
 }
 
 .child {
-    display: flex;
-    justify-content: center;
-    column-gap: 10px;
     border: 3px solid #e3891b;
     border-radius: 15px;
+    margin-bottom: 10px;
+	flex-grow: 1;
+}
+
+.child-body {
+	display: flex;
+	flex-direction: column;
+    justify-content: center;
+    column-gap: 10px;
     padding: 20px;
 }
 
 .child-name {
-    margin-top: 16px;
-    min-width: 75px;
+    margin: auto;
+	margin-bottom: 30px;
 }

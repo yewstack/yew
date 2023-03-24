@@ -37,12 +37,12 @@ impl Component for Parent {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let msg = format!("My children have been clicked {} times", self.total_clicks);
+        let msg = format!("My children have been clicked {} times.", self.total_clicks);
 
         let last_updated_msg = if let Some(last_updated) = self.last_updated.as_ref() {
-            format!("The last child that was clicked was {last_updated}")
+            format!("The last child you clicked was {last_updated}.")
         } else {
-            "No child has been clicked yet".to_string()
+            "Waiting for you to click a child...".to_string()
         };
 
         let on_clicked = ctx.link().callback(Msg::ButtonClick);
@@ -51,11 +51,18 @@ impl Component for Parent {
                 <div>
                     <h2>{ "Child-to-Parent Communication Example" }</h2>
                     <div class="parent">
-                        <div>{msg}</div>
-                        <div>{last_updated_msg}</div>
-                        <div class="spacer" />
-                        <Child name="Alice" on_clicked={on_clicked.clone()} />
-                        <Child name="Bob" {on_clicked} />
+                        <div class="tab">
+                            <span class="bg-green">{ "Parent" }</span>
+                        </div>
+                        <div class="parent-body-1">
+                            <div>{ msg }</div>
+                            <div>{ last_updated_msg }</div>
+                            <div class="spacer" />
+                            <div class="parent-body-2">
+                                <Child name="Alice" on_clicked={on_clicked.clone()} />
+                                <Child name="Bob" {on_clicked} />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -82,7 +89,7 @@ impl Component for Child {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let name = format!("{}:", ctx.props().name);
+        let name = format!("I'm {}.", ctx.props().name);
         let my_name = ctx.props().name.clone();
 
         // Here we emit the callback to the parent component, whenever the button is clicked.
@@ -90,9 +97,14 @@ impl Component for Child {
 
         html! {
             <div class="child">
-                <div class="child-name">{name}</div>
-                <div class="button-panel">
-                    <button class="button" {onclick}>{"Click here!"}</button>
+                <div class="tab">
+                    <span class="bg-orange">{ "Child" }</span>
+                </div>
+                <div class="child-body">
+                    <div class="child-name">{ name }</div>
+                    <div class="button-panel">
+                        <button class="button" {onclick}>{"Select"}</button>
+                    </div>
                 </div>
             </div>
         }
