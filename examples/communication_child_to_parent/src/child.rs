@@ -26,13 +26,13 @@ impl Component for Child {
         let onclick = ctx.props().on_clicked.reform(move |_| my_name.clone());
 
         html! {
-            <div class="border-4 border-orange-500 rounded-2xl flex-grow">
-                <div class="bg-orange-500 rounded-t px-3 pb-1 font-medium">
+            <div class="child-body">
+                <div class="child-tag">
                     <span>{ "Child" }</span>
                 </div>
-                <div class="flex px-5 py-5 justify-between items-center">
-                    <span class="text-xl">{ name }</span>
-                    <button class="bg-orange-500 hover:bg-orange-700 rounded-xl text-lg pt-1 pb-2 px-3 font-medium" {onclick}>{"Click"}</button>
+                <div class="child-content">
+                    <span>{ name }</span>
+                    <button {onclick}>{"Click"}</button>
                 </div>
             </div>
         }

@@ -44,17 +44,17 @@ impl Component for Parent {
 
         let on_clicked = ctx.link().callback(Msg::ButtonClick);
         html! {
-            <div class="bg-zinc-900 text-zinc-100 min-h-screen min-w-screen flex flex-col justify-center items-center">
+            <div class="parent">
                 <div>
-                    <h2 class="text-4xl mb-8">{ "Child-to-Parent Communication Example" }</h2>
-                    <div class="border-4 border-green-600 rounded-2xl">
-                        <div class="bg-green-600 rounded-t px-3 pb-1 font-medium">
+                    <h2 class="title">{ "Child-to-Parent Communication Example" }</h2>
+                    <div class="parent-body">
+                        <div class="parent-tag">
                             <span>{ "Parent" }</span>
                         </div>
-                        <div class="flex flex-col px-5 pb-5 pt-3">
-                            <span class="text-xl">{ "My children have been clicked " }<span class="font-bold">{ self.total_clicks }</span>{ " times." }</span>
-                            <span class="text-xl my-3">{ last_updated_msg }</span>
-                            <div class="flex mt-3 gap-x-5">
+                        <div class="parent-content">
+                            <span>{ "My children have been clicked " }<span>{ self.total_clicks }</span>{ " times." }</span>
+                            <span>{ last_updated_msg }</span>
+                            <div>
                                 <Child name="Alice" on_clicked={on_clicked.clone()} />
                                 <Child name="Bob" {on_clicked} />
                             </div>
