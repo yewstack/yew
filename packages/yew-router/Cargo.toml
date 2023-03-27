@@ -22,6 +22,7 @@ route-recognizer = "0.3"
 serde = "1"
 serde_urlencoded = "0.7.1"
 tracing = "0.1.36"
+urlencoding = "2"
 
 [dependencies.web-sys]
 version = "0.3"
