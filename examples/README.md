@@ -70,7 +70,7 @@ Have a look at Yew's [starter templates](https://yew.rs/docs/getting-started/bui
 
 ## Help out
 
-If one of the examples catches your interest, look for the "improvements" section in its `README` file.
+If one of the examples catches your interest, look for the "improvements" section in its `README.md` file.
 Most examples list a few ideas for how to improve them.
 Consider starting with those but don't hesitate to improve an example in other ways either.
 
