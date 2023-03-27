@@ -40,7 +40,7 @@ impl Component for GrandParent {
         let detail_msg = if let Some(last_clicked) = &self.state.last_clicked {
             format!("The last child you clicked was {last_clicked}.")
         } else {
-            "Waiting for you to click a granchild...".to_string()
+            "Waiting for you to click a grandchild...".to_string()
         };
 
         html! {
