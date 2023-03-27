@@ -48,16 +48,16 @@ impl Component for Child {
         let onclick = self.state.child_clicked.reform(move |_| (my_name.clone()));
 
         html! {
-            <div class="border-4 border-purple-600 rounded-2xl flex-grow mt-2">
-                <div class="bg-purple-600 rounded-t px-3 pb-1 font-medium">
+            <div class="child-body">
+                <div class="child-tag">
                     <span>{ "Child" }</span>
                 </div>
-                <div class="px-5 py-3">
-                    <span class="text-xl">{ "We've been clicked " }<span class="font-bold">{ self.state.total_clicks }</span>{ " times." }</span>
+                <div>
+                    <span>{ "We've been clicked " }<span>{ self.state.total_clicks }</span>{ " times." }</span>
                 </div>
-                <div class="flex px-5 pb-5 justify-between items-center">
-                    <span class="text-xl">{ name }</span>
-                    <button class="bg-purple-600 hover:bg-purple-800 rounded-xl text-lg pt-1 pb-2 px-3 font-medium" {onclick}>{"Click"}</button>
+                <div class="child-content">
+                    <span>{ name }</span>
+                    <button {onclick}>{"Click"}</button>
                 </div>
             </div>
         }

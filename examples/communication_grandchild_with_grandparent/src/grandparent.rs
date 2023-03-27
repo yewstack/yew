@@ -45,16 +45,16 @@ impl Component for GrandParent {
 
         html! {
             <ContextProvider<Rc<AppState>> context={app_state}>
-                <div class="bg-zinc-900 text-zinc-100 min-h-screen min-w-screen flex flex-col justify-center items-center">
+                <div class="grandparent">
                     <div>
-                        <h2 class="text-4xl mb-8">{ "Grandchild-with-Grandparent Communication Example" }</h2>
-                        <div class="border-4 border-green-600 rounded-2xl">
-                            <div class="bg-green-600 rounded-t px-3 pb-1 font-medium">
+                        <h2 class="title">{ "Grandchild-with-Grandparent Communication Example" }</h2>
+                        <div class="grandparent-body">
+                            <div class="grandparent-tag">
                                 <span>{ "Grandparent" }</span>
                             </div>
-                            <div class="flex flex-col px-5 pb-5 pt-3">
-                                <span class="text-xl">{ "My grandchildren have been clicked " }<span class="font-bold">{ self.state.total_clicks }</span>{ " times." }</span>
-                                <div class="text-xl my-3">{detail_msg}</div>
+                            <div class="grandparent-content">
+                                <span>{ "My grandchildren have been clicked " }<span>{ self.state.total_clicks }</span>{ " times." }</span>
+                                <span>{detail_msg}</span>
                                 <Parent />
                             </div>
                         </div>
