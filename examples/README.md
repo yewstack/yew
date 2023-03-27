@@ -26,7 +26,7 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 ## List of Examples
 
 - `Example`: Link and name of each example.
-- `CT`: Type of most components
+- `CT`: Component type of most components
   - `F` for function components
   - `S` for struct components
   - `SF` for a mix of function and struct components.
@@ -40,11 +40,11 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [communication_grandchild_with_grandparent](communication_grandchild_with_grandparent)    | S  | Communication from grandchildren to grandparent components.                                                                         |
 | [communication_grandparent_to_grandchild](communication_grandparent_to_grandchild)        | S  | Communication from grandparent to grandchild components.                                                                            |
 | [communication_parent_to_child](communication_parent_to_child)                            | S  | Communication from parent to child components.                                                                                      |
-| [contexts](contexts)                                                                      | F  | A technical demonstration of Context API.                                                                                           |
+| [contexts](contexts)                                                                      | F  | A technical demonstration of the Context API.                                                                                           |
 | [counter](counter)                                                                        | S  | Simple counter which can be incremented and decremented.                                                                            |
 | [counter_functional](counter_functional)                                                  | F  | Simple counter which can be incremented and decremented made using function components.                                             |
-| [dyn_create_destroy_apps](dyn_create_destroy_apps)                                        | S  | Uses the function `start_app_in_element` and the `AppHandle` struct to dynamically create and delete Yew apps.                      |
-| [file_upload](file_upload)                                                                | S  | Uses the `gloo::file` to read the content of user uploaded files.                                                                   |
+| [dyn_create_destroy_apps](dyn_create_destroy_apps)                                        | S  | Uses the function `Renderer::with_root_and_props` and the `AppHandle` struct to dynamically create and delete Yew apps.                      |
+| [file_upload](file_upload)                                                                | S  | Uses [`gloo::file`](https://docs.rs/gloo-file/latest/gloo_file/index.html) to read the content of user uploaded files.                                                                   |
 | [function_memory_game](function_memory_game)                                              | F  | Implementation of [Memory Game](https://github.com/bradlygreen/Memory-Game).                                                        |
 | [function_router](function_router)                                                        | F  | Identical to [`router`](router) but using function components.                                                                      |
 | [function_todomvc](function_todomvc)                                                      | F  | Implementation of [TodoMVC](http://todomvc.com/) using function components and hooks.                                               |
@@ -66,7 +66,7 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [timer](timer)                                                                            | S  | Demonstrates the use of the interval and timeout services.                                                                          |
 | [todomvc](todomvc)                                                                        | S  | Implementation of [TodoMVC](http://todomvc.com/).                                                                                   |
 | [two_apps](two_apps)                                                                      | S  | Runs two separate Yew apps which can communicate with each other.                                                                   |
-| [web_worker_fib](web_worker_fib)                                                          | S  | Calculate fibonacci value of a number in a web worker thread using `gloo-worker`.                                                   |
+| [web_worker_fib](web_worker_fib)                                                          | S  | Calculate Fibonacci numbers in a web worker thread using [`gloo-worker`](https://docs.rs/gloo-worker/latest/gloo_worker/).                                                   |
 | [webgl](webgl)                                                                            | S  | Controls a [WebGL canvas](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Getting_started_with_WebGL) from Yew. |
 
 ## Next Steps
