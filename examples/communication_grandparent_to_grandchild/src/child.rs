@@ -38,12 +38,12 @@ impl Component for Child {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
 
-            <div class="border-4 border-purple-600 rounded-2xl flex-grow mt-2">
-                <div class="bg-purple-600 rounded-t px-3 pb-1 font-medium">
+            <div class="child-body">
+                <div class="child-tag">
                     <span>{ "Child" }</span>
                 </div>
-                <div class="px-5 py-3">
-                    <span class="text-xl">{ "My grandparent has been clicked " }<span class="font-bold">{ self.state.total_clicks }</span>{ " times." }</span>
+                <div class="child-content">
+                    <span>{ "My grandparent has been clicked " }<span>{ self.state.total_clicks }</span>{ " times." }</span>
                 </div>
             </div>
         }
