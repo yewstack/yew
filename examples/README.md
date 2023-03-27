@@ -25,7 +25,12 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 
 ## List of examples
 
- - CT - Type of most components , "F" for function components and "S" for struct components, "SF" for a mix of both.
+- `Example`: Link and name of each example.
+- `CT`: Type of most components
+  - `F` for function components
+  - `S` for struct components
+  - `SF` for a mix of function and struct components.
+- `Description`: Short sentance on what the example demonstrates.
 
 | Example                                                                                   | CT | Description                                                                                                                         |
 | ----------------------------------------------------------------------------------------- | -- | ----------------------------------------------------------------------------------------------------------------------------------- |
