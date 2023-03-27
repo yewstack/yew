@@ -25,14 +25,6 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 
 ## List of Examples
 
-- `Example`: Link and name of each example.
-- `CT`: Component type of most components
-  - `F` for function components
-  - `S` for struct components
-  - `SF` for a mix of function and struct components.
-- `Description`: Short sentance on what the example demonstrates.
-
-
 | Example                                                                                   | [CT] | Description                                                                                                                         |
 | ----------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | [async_clock](async_clock)                                                                | [S]  | Demonstrates the use of asynchronous tasks in a yew component.                                                                      |
