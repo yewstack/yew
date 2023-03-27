@@ -1,6 +1,6 @@
 # Yew Examples
 
-## How to run
+## How to Run
 
 The examples are built with [trunk](https://github.com/thedodd/trunk).
 You can install it with the following command:
@@ -23,7 +23,7 @@ trunk serve --release
 We're also publicly hosting the examples at `https://examples.yew.rs/<EXAMPLE>`.
 As an example, check out the TodoMVC example here: <https://examples.yew.rs/todomvc>
 
-## List of examples
+## List of Examples
 
 - `Example`: Link and name of each example.
 - `CT`: Type of most components
@@ -69,11 +69,11 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [web_worker_fib](web_worker_fib)                                                          | S  | Calculate fibonacci value of a number in a web worker thread using `gloo-worker`.                                                   |
 | [webgl](webgl)                                                                            | S  | Controls a [WebGL canvas](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Getting_started_with_WebGL) from Yew. |
 
-## Next steps
+## Next Steps
 
 Have a look at Yew's [starter templates](https://yew.rs/docs/getting-started/build-a-sample-app#using-a-starter-template) when starting a project using Yew – they can significantly simplify things.
 
-## Help out
+## Helping Out
 
 If one of the examples catches your interest, look for the "improvements" section in its `README.md` file.
 Most examples list a few ideas for how to improve them.
