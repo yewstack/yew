@@ -46,29 +46,23 @@ error: expected an expression following this equals sign
 18 |     html! { <key=></> };
    |                 ^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: MethodCall(
-           ExprMethodCall {
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Expr::MethodCall {
+           attrs: [],
+           receiver: Expr::Lit {
                attrs: [],
-               receiver: Lit(
-                   ExprLit {
-                       attrs: [],
-                       lit: Str(
-                           LitStr {
-                               token: "key",
-                           },
-                       ),
-                   },
-               ),
-               dot_token: Dot,
-               method: Ident {
-                   ident: "to_string",
-                   span: #0 bytes(404..413),
+               lit: Lit::Str {
+                   token: "key",
                },
-               turbofish: None,
-               paren_token: Paren,
-               args: [],
            },
-       )
+           dot_token: Dot,
+           method: Ident {
+               ident: "to_string",
+               span: #0 bytes(404..413),
+           },
+           turbofish: None,
+           paren_token: Paren,
+           args: [],
+       }
   --> tests/html_macro/list-fail.rs:20:18
    |
 20 |     html! { <key="key".to_string()></key> };

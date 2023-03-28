@@ -158,7 +158,7 @@ impl FunctionComponent {
         self.attrs
             .iter()
             .filter_map(|m| {
-                m.path
+                m.path()
                     .get_ident()
                     .and_then(|ident| match ident.to_string().as_str() {
                         "doc" | "allow" => Some(m.clone()),
@@ -173,7 +173,7 @@ impl FunctionComponent {
         self.attrs
             .iter()
             .filter_map(|m| {
-                m.path
+                m.path()
                     .get_ident()
                     .and_then(|ident| match ident.to_string().as_str() {
                         "allow" => Some(m.clone()),
