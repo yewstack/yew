@@ -15,7 +15,7 @@ required-features = ["ssr"]
 [dependencies]
 yew = { path = "../../packages/yew" }
 reqwest = { version = "0.11.16", features = ["json"] }
-serde = { version = "1.0.132", features = ["derive"] }
+serde = { version = "1.0.159", features = ["derive"] }
 uuid = { version = "1.0.0", features = ["serde"] }
 futures = "0.3"
 bytes = "1.0"
