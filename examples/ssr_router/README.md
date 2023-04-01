@@ -8,12 +8,8 @@ of the function router example.
 
 1. Build Hydration Bundle
 
-`trunk build examples/ssr_router/index.html`
+`trunk build index.html`
 
 2. Run the server
 
-`cargo run --features=ssr --bin ssr_router_server -- --dir examples/ssr_router/dist`
-
-3. Open Browser
-
-Navigate to http://localhost:8080/ to view results.
+`cargo run --features=ssr --bin ssr_router_server -- --dir dist`

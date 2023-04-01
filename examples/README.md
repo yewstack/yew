@@ -17,8 +17,10 @@ Running an example is as easy as running a single command:
 cd examples/todomvc
 
 # build and serve the example
-trunk serve --release
+trunk serve --open
 ```
+
+Some examples may perform better using the `release` profile. If something is slow, you can try running it with the `--release` argument.
 
 We're also publicly hosting the examples at `https://examples.yew.rs/<EXAMPLE>`.
 As an example, check out the TodoMVC example here: <https://examples.yew.rs/todomvc>

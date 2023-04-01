@@ -14,3 +14,11 @@ which contains the contents of the input box in reverse.
 
 This example is very similar to [`two_apps`](../two_apps).
 The two should be merged into a single example.
+
+## Running
+
+Run this application with the trunk development server:
+
+```bash
+trunk serve --open
+```

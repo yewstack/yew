@@ -17,3 +17,11 @@ trunk serve --release
 
 - Uses [`gloo_timer`](https://docs.rs/gloo-timers/latest/gloo_timers/) to automatically step the simulation.
 - Logs to the console using the [`weblog`](https://crates.io/crates/weblog) crate.
+
+## Running
+
+Run this application with the trunk development server:
+
+```bash
+trunk serve --open
+```

@@ -13,3 +13,11 @@ This is an implementation of [Memory Game](https://github.com/bradlygreen/Memory
 ## Note
 
 Images are authorized by [@bradlygreen](https://github.com/bradlygreen), see [authorization-issue](https://github.com/bradlygreen/Memory-Game/issues/6)
+
+## Running
+
+Run this application with the trunk development server:
+
+```bash
+trunk serve --open
+```

@@ -13,3 +13,11 @@ more advanced web console features.
 ## Improvements
 
 - Apply the concept to something more fun than just a dry technical demonstration
+
+## Running
+
+Run this application with the trunk development server:
+
+```bash
+trunk serve --open
+```
