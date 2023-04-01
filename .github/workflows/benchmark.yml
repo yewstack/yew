@@ -49,8 +49,6 @@ jobs:
           cache-dependency-path: js-framework-benchmark/package-lock.json
 
       - uses: Swatinem/rust-cache@v2
-        with:
-          working-directory: yew
 
       - name: setup js-framework-benchmark
         working-directory: js-framework-benchmark
