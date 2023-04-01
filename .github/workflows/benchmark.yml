@@ -48,6 +48,9 @@ jobs:
           cache: "npm"
           cache-dependency-path: js-framework-benchmark/package-lock.json
 
+      - name: Install ts-node
+        run: npm install -g ts-node
+
       - uses: Swatinem/rust-cache@v2
         with:
           working-directory: yew
@@ -111,7 +114,6 @@ jobs:
 
       - name: js-framework-benchmark/webdriver-ts npm run bench
         working-directory: js-framework-benchmark/webdriver-ts
-        shell: bash
         run: xvfb-run npm run tsbench -- --framework keyed/yew keyed/yew-hooks --runner playwright --headless
 
       - name: transform results to be fit for display benchmark-action/github-action-benchmark@v1
