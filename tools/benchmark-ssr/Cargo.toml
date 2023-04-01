@@ -13,6 +13,6 @@ jemallocator = "0.5.0"
 average = "0.13.1"
 tabled = "0.8.0"
 indicatif = "0.17.0"
-serde = { version = "1.0.138", features = ["derive"] }
+serde = { version = "1.0.159", features = ["derive"] }
 serde_json = "1.0.82"
 clap = { version = "3.2.8", features = ["derive"] }
