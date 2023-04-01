@@ -48,9 +48,6 @@ jobs:
           cache: "npm"
           cache-dependency-path: js-framework-benchmark/package-lock.json
 
-      - name: Install ts-node
-        run: npm install -g ts-node
-
       - uses: Swatinem/rust-cache@v2
         with:
           working-directory: yew
@@ -119,7 +116,7 @@ jobs:
       - name: transform results to be fit for display benchmark-action/github-action-benchmark@v1
         run: |
           mkdir artifacts/
-          jq -s . js-framework-benchmark/webdriver-ts/results/*.json | cargo run --manifest-path yew/tools/Cargo.toml --release -p process-benchmark-results > artifacts/results.json
+          jq -s . js-framework-benchmark/webdriver-ts/results/*.json | cargo run --release -p process-benchmark-results > artifacts/results.json
           echo "$EVENT_INFO" > artifacts/PR_INFO
         env:
           EVENT_INFO: ${{ toJSON(github.event) }}
