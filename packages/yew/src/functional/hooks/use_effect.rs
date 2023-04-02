@@ -220,15 +220,3 @@ where
         last_deps: None,
     }
 }
-
-/// use effect with deps
-#[hook]
-#[deprecated = "use `use_effect_with` instead"]
-pub fn use_effect_with_deps<T, F, D>(f: F, deps: T)
-where
-    T: PartialEq + 'static,
-    F: FnOnce(&T) -> D + 'static,
-    D: TearDown,
-{
-    use_effect_with(deps, f)
-}
