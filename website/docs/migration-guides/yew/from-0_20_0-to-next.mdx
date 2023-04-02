@@ -25,7 +25,7 @@ This will enable more ergonomic use of the hook, consider:
 <Tabs>
   <TabItem value="before" label="Before" default>
 
-```rust
+```rust ,ignore
 impl SomeLargeStruct {
     fn id(&self) -> u32; // Only need to use the id as cache key
 }
@@ -35,13 +35,12 @@ let some_dep: SomeLargeStruct = todo!();
     let id = some_dep.id(); // Have to extract it in advance, some_dep is moved already in the second argument
     use_effect_with_dep(move |_| { todo!(); drop(some_dep); }, id);
 }
-use_effect_with(some_dep.id(), move |_| { todo!(); drop(some_dep); });
 ```
 
   </TabItem>
   <TabItem value="after" label="After">
 
-```rust
+```rust ,ignore
 impl SomeLargeStruct {
     fn id(&self) -> u32; // Only need to use the id as cache key
 }
