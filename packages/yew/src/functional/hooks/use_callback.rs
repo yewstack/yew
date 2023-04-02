@@ -42,12 +42,9 @@ use crate::functional::{hook, use_memo};
 ///     let callback = use_callback((), move |name, _| format!("Hello, {}!", name));
 ///
 ///     // It can also be used for events, this callback depends on `counter`.
-///     let oncallback = use_callback(
-///         counter.clone(),
-///         move |_e, counter| {
-///             let _ = **counter;
-///         },
-///     );
+///     let oncallback = use_callback(counter.clone(), move |_e, counter| {
+///         let _ = **counter;
+///     });
 ///
 ///     html! {
 ///         <div>

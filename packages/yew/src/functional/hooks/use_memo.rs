@@ -59,10 +59,9 @@ where
 /// #[function_component(UseMemo)]
 /// fn memo(props: &Props) -> Html {
 ///     // Will only get recalculated if `props.step` value changes
-///     let message = use_memo(
-///         props.step,
-///         |step| format!("{}. Do Some Expensive Calculation", step),
-///     );
+///     let message = use_memo(props.step, |step| {
+///         format!("{}. Do Some Expensive Calculation", step)
+///     });
 ///
 ///     html! {
 ///         <div>
