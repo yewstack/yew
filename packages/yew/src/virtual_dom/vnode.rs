@@ -12,7 +12,7 @@ use crate::virtual_dom::VRaw;
 use crate::AttrValue;
 
 /// Bind virtual element to a DOM reference.
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum VNode {
     /// A bind between `VTag` and `Element`.
     VTag(Box<VTag>),
@@ -171,21 +171,6 @@ impl fmt::Debug for VNode {
             VNode::VPortal(ref vportal) => vportal.fmt(f),
             VNode::VSuspense(ref vsuspense) => vsuspense.fmt(f),
             VNode::VRaw(ref vraw) => write!(f, "VRaw {{ {} }}", vraw.html),
-        }
-    }
-}
-
-impl PartialEq for VNode {
-    fn eq(&self, other: &VNode) -> bool {
-        match (self, other) {
-            (VNode::VTag(a), VNode::VTag(b)) => a == b,
-            (VNode::VText(a), VNode::VText(b)) => a == b,
-            (VNode::VList(a), VNode::VList(b)) => a == b,
-            (VNode::VRef(a), VNode::VRef(b)) => a == b,
-            // TODO: Need to improve PartialEq for VComp before enabling.
-            (VNode::VComp(_), VNode::VComp(_)) => false,
-            (VNode::VRaw(a), VNode::VRaw(b)) => a.html == b.html,
-            _ => false,
         }
     }
 }
