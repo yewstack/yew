@@ -38,19 +38,16 @@ use crate::functional::{hook, use_memo};
 ///     };
 ///
 ///     // This callback depends on (), so it's created only once, then MyComponent
-///     // will be rendered only once even when you click the button mutiple times.
-///     let callback = use_callback(move |name, _| format!("Hello, {}!", name), ());
+///     // will be rendered only once even when you click the button multiple times.
+///     let callback = use_callback((), move |name, _| format!("Hello, {}!", name));
 ///
 ///     // It can also be used for events, this callback depends on `counter`.
-///     let oncallback = {
-///         let counter = counter.clone();
-///         use_callback(
-///             move |_e, counter| {
-///                 let _ = **counter;
-///             },
-///             counter,
-///         )
-///     };
+///     let oncallback = use_callback(
+///         counter.clone(),
+///         move |_e, counter| {
+///             let _ = **counter;
+///         },
+///     );
 ///
 ///     html! {
 ///         <div>
@@ -66,7 +63,7 @@ use crate::functional::{hook, use_memo};
 /// }
 /// ```
 #[hook]
-pub fn use_callback<IN, OUT, F, D>(f: F, deps: D) -> Callback<IN, OUT>
+pub fn use_callback<IN, OUT, F, D>(deps: D, f: F) -> Callback<IN, OUT>
 where
     IN: 'static,
     OUT: 'static,

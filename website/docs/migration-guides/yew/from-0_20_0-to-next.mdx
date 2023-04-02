@@ -12,10 +12,11 @@ import TabItem from '@theme/TabItem'
 ### Automated refactor
 
 With the help of https://crates.io/crates/ast-grep
-Here is a command that can do the refactoring for you:
+Here is a command that can do the refactoring for you. It will leave duplicate commas, sometimes.
 
 ```bash
 sg --pattern 'use_effect_with_deps($T,$$$DEPS)' --rewrite 'use_effect_with($$$DEPS $T)' -l rs -i
+sg --pattern 'use_callback($T,$$$DEPS)' --rewrite 'use_callback($$$DEPS $T)' -l rs -i
 ```
 
 ### Reasoning
