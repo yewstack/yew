@@ -93,6 +93,7 @@ where
 ///         let div_ref = div_ref.clone();
 ///
 ///         use_effect_with(
+///             div_ref,
 ///             |div_ref| {
 ///                 let div = div_ref
 ///                     .cast::<HtmlElement>()
@@ -116,7 +117,6 @@ where
 ///                     .unwrap();
 ///                 }
 ///             },
-///             div_ref,
 ///         );
 ///     }
 ///
