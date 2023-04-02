@@ -83,7 +83,7 @@ where
 /// use wasm_bindgen::prelude::Closure;
 /// use wasm_bindgen::JsCast;
 /// use web_sys::{Event, HtmlElement};
-/// use yew::{function_component, html, use_effect_with_deps, use_node_ref, Html};
+/// use yew::{function_component, html, use_effect_with, use_node_ref, Html};
 ///
 /// #[function_component(UseNodeRef)]
 /// pub fn node_ref_hook() -> Html {
@@ -92,7 +92,7 @@ where
 ///     {
 ///         let div_ref = div_ref.clone();
 ///
-///         use_effect_with_deps(
+///         use_effect_with(
 ///             |div_ref| {
 ///                 let div = div_ref
 ///                     .cast::<HtmlElement>()
@@ -131,7 +131,7 @@ where
 /// # Tip
 ///
 /// When conditionally rendering elements you can use `NodeRef` in conjunction with
-/// `use_effect_with_deps` to perform actions each time an element is rendered and just before the
+/// `use_effect_with` to perform actions each time an element is rendered and just before the
 /// component where the hook is used in is going to be removed from the DOM.
 #[hook]
 pub fn use_node_ref() -> NodeRef {
