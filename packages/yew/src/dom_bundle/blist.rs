@@ -26,22 +26,14 @@ pub(super) struct BList {
 impl VList {
     // Splits a VList for creating / reconciling to a BList.
     fn split_for_blist(self) -> (Option<Key>, bool, Vec<VNode>) {
-        let mut fully_keyed = self.fully_keyed();
+        let fully_keyed = self.fully_keyed();
 
-        let mut children = self
+        let children = self
             .children
             .map(Rc::try_unwrap)
             .unwrap_or_else(|| Ok(Vec::new()))
             // Rc::unwrap_or_clone is not stable yet.
             .unwrap_or_else(|m| m.to_vec());
-
-        if children.is_empty() {
-            // Without a placeholder the next element becomes first
-            // and corrupts the order of rendering
-            // We use empty text element to stake out a place
-            children.push(VText::new("").into());
-            fully_keyed = false;
-        }
 
         (self.key, fully_keyed, children)
     }
@@ -437,7 +429,15 @@ impl Reconcilable for VList {
         // The left items are known since we want to insert them
         // (self.children). For the right ones, we will look at the bundle,
         // i.e. the current DOM list element that we want to replace with self.
-        let (key, fully_keyed, lefts) = self.split_for_blist();
+        let (key, mut fully_keyed, mut lefts) = self.split_for_blist();
+
+        if lefts.is_empty() {
+            // Without a placeholder the next element becomes first
+            // and corrupts the order of rendering
+            // We use empty text element to stake out a place
+            lefts.push(VText::new("").into());
+            fully_keyed = false;
+        }
 
         let rights = &mut blist.rev_children;
         test_log!("lefts: {:?}", lefts);
