@@ -172,15 +172,7 @@ where
     F: FnOnce() -> D + 'static,
     D: TearDown,
 {
-    struct NeverEq;
-    impl PartialEq for NeverEq {
-        fn eq(&self, _other: &Self) -> bool {
-            false
-        }
-    }
-
-    // Never equals, so this will be called every render
-    use_effect_base(|_| f(), NeverEq, |_, _| true);
+    use_effect_base(|_| f(), (), |_, _| true);
 }
 
 /// This hook is similar to [`use_effect`] but it accepts dependencies.
