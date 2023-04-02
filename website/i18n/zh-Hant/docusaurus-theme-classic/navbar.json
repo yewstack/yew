@@ -30,5 +30,9 @@
   "item.label.Playground": {
     "message": "Playground",
     "description": "Navbar item with label Playground"
+  },
+  "logo.alt": {
+    "message": "Yew Logo",
+    "description": "The alt text of navbar logo"
   }
 }
