@@ -5,23 +5,30 @@ title: 'From 0.19.0 to Next'
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
-## Replace `use_effect_with_deps` has been removed in favour of new `use_effect_with`
+## Dependencies as first hook argument and `use_effect_with`
 
-`use_effect_with` is same as `use_effect_with_deps` except the argument order is swapped.
+-   Replace `use_effect_with_deps` with new `use_effect_with`
+-   `use_effect_with`, `use_callback`, `use_memo` now take dependencies as their first argument
 
 ### Automated refactor
 
 With the help of https://crates.io/crates/ast-grep
-Here is a command that can do the refactoring for you. It will leave duplicate commas, sometimes.
+Here are commands that can do the refactoring for you.
 
 ```bash
-sg --pattern 'use_effect_with_deps($T,$$$DEPS)' --rewrite 'use_effect_with($$$DEPS $T)' -l rs -i
-sg --pattern 'use_callback($T,$$$DEPS)' --rewrite 'use_callback($$$DEPS $T)' -l rs -i
+sg --pattern 'use_effect_with_deps($CALLBACK,$$$DEPENDENCIES)' --rewrite 'use_effect_with($$$DEPENDENCIES, $CALLBACK)' -l rs -i
+sg --pattern 'use_effect_with($CALLBACK,,$$$DEPENDENCIES)' --rewrite 'use_effect_with($CALLBACK,$$$DEPENDENCIES)' -l rs -i
+
+sg --pattern 'use_callback($CALLBACK,$$$DEPENDENCIES)' --rewrite 'use_callback($$$DEPENDENCIES, $CALLBACK)' -l rs -i
+sg --pattern 'use_callback($CALLBACK,,$$$DEPENDENCIES)' --rewrite 'use_callback($CALLBACK,$$$DEPENDENCIES)' -l rs -i
+
+sg --pattern 'use_memo($CALLBACK,$$$DEPENDENCIES)' --rewrite 'use_memo($$$DEPENDENCIES, $CALLBACK)' -l rs -i
+sg --pattern 'use_memo($CALLBACK,,$$$DEPENDENCIES)' --rewrite 'use_memo($CALLBACK,$$$DEPENDENCIES)' -l rs -i
 ```
 
 ### Reasoning
 
-This will enable more ergonomic use of the hook, consider:
+This will enable more ergonomic use of hooks, consider:
 
 <Tabs>
   <TabItem value="before" label="Before" default>

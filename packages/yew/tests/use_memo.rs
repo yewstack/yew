@@ -19,18 +19,15 @@ async fn use_memo_works() {
     fn use_memo_comp() -> Html {
         let state = use_state(|| 0);
 
-        let memoed_val = use_memo(
-            |_| {
-                static CTR: AtomicBool = AtomicBool::new(false);
+        let memoed_val = use_memo(|_| {
+            static CTR: AtomicBool = AtomicBool::new(false);
 
-                if CTR.swap(true, Ordering::Relaxed) {
-                    panic!("multiple times rendered!");
-                }
+            if CTR.swap(true, Ordering::Relaxed) {
+                panic!("multiple times rendered!");
+            }
 
-                "true"
-            },
-            (),
-        );
+            "true"
+        }, ());
 
         use_effect(move || {
             if *state < 5 {

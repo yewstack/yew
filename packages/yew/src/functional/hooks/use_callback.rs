@@ -72,13 +72,10 @@ where
 {
     let deps = Rc::new(deps);
 
-    (*use_memo(
-        move |deps| {
-            let deps = deps.clone();
-            let f = move |value: IN| f(value, deps.as_ref());
-            Callback::from(f)
-        },
-        deps,
-    ))
+    (*use_memo(deps, move |deps| {
+        let deps = deps.clone();
+        let f = move |value: IN| f(value, deps.as_ref());
+        Callback::from(f)
+    }))
     .clone()
 }
