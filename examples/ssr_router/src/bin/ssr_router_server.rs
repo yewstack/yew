@@ -3,14 +3,14 @@ use std::convert::Infallible;
 use std::future::Future;
 use std::path::PathBuf;
 
-use axum::body::{Body, StreamBody};
+use axum::body::StreamBody;
 use axum::error_handling::HandleError;
-use axum::extract::Query;
-use axum::handler::Handler;
-use axum::http::{Request, StatusCode};
+use axum::extract::{Query, State};
+use axum::handler::HandlerWithoutStateExt;
+use axum::http::{StatusCode, Uri};
 use axum::response::IntoResponse;
 use axum::routing::get;
-use axum::{Extension, Router};
+use axum::Router;
 use clap::Parser;
 use function_router::{ServerApp, ServerAppProps};
 use futures::stream::{self, StreamExt};
@@ -32,11 +32,11 @@ struct Opt {
 }
 
 async fn render(
-    Extension((index_html_before, index_html_after)): Extension<(String, String)>,
-    url: Request<Body>,
+    url: Uri,
     Query(queries): Query<HashMap<String, String>>,
+    State((index_html_before, index_html_after)): State<(String, String)>,
 ) -> impl IntoResponse {
-    let url = url.uri().to_string();
+    let url = url.to_string();
 
     let renderer = yew::ServerRenderer::<ServerApp>::with_props(move || ServerAppProps {
         url: url.into(),
@@ -98,22 +98,17 @@ async fn main() {
         )
     };
 
-    let app = Router::new()
-        .route("/api/test", get(|| async move { "Hello World" }))
-        .fallback(HandleError::new(
-            ServeDir::new(opts.dir)
-                .append_index_html_on_directories(false)
-                .fallback(
-                    render
-                        .layer(Extension((
-                            index_html_before.clone(),
-                            index_html_after.clone(),
-                        )))
-                        .into_service()
-                        .map_err(|err| -> std::io::Error { match err {} }),
-                ),
-            handle_error,
-        ));
+    let app = Router::new().fallback_service(HandleError::new(
+        ServeDir::new(opts.dir)
+            .append_index_html_on_directories(false)
+            .fallback(
+                get(render)
+                    .with_state((index_html_before.clone(), index_html_after.clone()))
+                    .into_service()
+                    .map_err(|err| -> std::io::Error { match err {} }),
+            ),
+        handle_error,
+    ));
 
     println!("You can view the website at: http://localhost:8080/");
 
