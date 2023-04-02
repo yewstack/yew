@@ -16,9 +16,11 @@ enum FullyKeyedState {
 pub struct VList {
     /// The list of child [VNode]s
     pub(crate) children: Option<Rc<Vec<VNode>>>,
-    pub key: Option<Key>,
+
     /// All [VNode]s in the VList have keys
     fully_keyed: FullyKeyedState,
+
+    pub key: Option<Key>,
 }
 
 impl PartialEq for VList {
