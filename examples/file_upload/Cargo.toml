@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 js-sys = "0.3"
 yew = { path = "../../packages/yew", features = ["csr"] }
-base64 = "0.13.0"
+base64 = "0.21.0"
 gloo = "0.8"
 
 [dependencies.web-sys]
