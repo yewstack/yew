@@ -246,8 +246,7 @@ fn create_progress(tests: usize, rounds: usize) -> ProgressBar {
         ProgressStyle::default_bar()
             .template(&format!(
                 "{{spinner:.green}} {{prefix}} [{{elapsed_precise}}] [{{bar:40.cyan/blue}}] round \
-                 {{msg}}/{}",
-                rounds
+                 {{msg}}/{rounds}",
             ))
             .expect("failed to parse template")
             // .tick_chars("-\\|/")

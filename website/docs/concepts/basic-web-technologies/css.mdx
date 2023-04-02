@@ -1,14 +1,14 @@
 ---
 title: 'CSS with classes!'
 description: 'A handy macro to handle classes'
-comment: 'Keep this file as short and simple as possible. Its purpose is to ease in the reader into components in Yew instead of providing proper API docs'
+comment: 'Keep this file as short and simple as possible. Its purpose is to ease the reader into components in Yew instead of providing proper API docs'
 ---
 
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
-Yew does not natively provide a css in rust solution, but helps with styling by providing
-programmatic ways to interact with the html `class` attribute.
+Yew does not natively provide a CSS-in-Rust solution but helps with styling by providing
+programmatic ways to interact with the HTML `class` attribute.
 
 ## Classes
 
@@ -88,13 +88,13 @@ We will expand upon this concept in [more CSS](../../more/css).
 ## Inline Styles
 
 Currently Yew does not provide any special help with inline styles specified via the `styles` attribute,
-but you can use it like any other html attribute:
+but you can use it like any other HTML attribute:
 
 ```rust
 use yew::{classes, html};
 
 html! {
-  <div styles="color: red;"></div>
+  <div style="color: red;"></div>
 };
 ```
 

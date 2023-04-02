@@ -1,7 +1,8 @@
 extern crate base64;
 use std::collections::HashMap;
 
-use base64::encode;
+use base64::engine::general_purpose::STANDARD;
+use base64::Engine;
 use gloo::file::callbacks::FileReader;
 use gloo::file::File;
 use web_sys::{DragEvent, Event, FileList, HtmlInputElement};
@@ -118,10 +119,10 @@ impl App {
                 <p class="preview-name">{ format!("{}", file.name) }</p>
                 <div class="preview-media">
                     if file.file_type.contains("image") {
-                        <img src={format!("data:{};base64,{}", file.file_type, encode(&file.data))} />
+                        <img src={format!("data:{};base64,{}", file.file_type, STANDARD.encode(&file.data))} />
                     } else if file.file_type.contains("video") {
                         <video controls={true}>
-                            <source src={format!("data:{};base64,{}", file.file_type, encode(&file.data))} type={file.file_type.clone()}/>
+                            <source src={format!("data:{};base64,{}", file.file_type, STANDARD.encode(&file.data))} type={file.file_type.clone()}/>
                         </video>
                     }
                 </div>

@@ -162,7 +162,7 @@ impl Navigator {
                 if route_s.is_empty() && route_s.is_empty() {
                     Cow::from("/")
                 } else {
-                    Cow::from(format!("{}{}", base, route_s))
+                    Cow::from(format!("{base}{route_s}"))
                 }
             }
             None => route_s.into(),
@@ -178,7 +178,7 @@ impl Navigator {
                     .unwrap_or(path);
 
                 if !path.starts_with('/') {
-                    path = format!("/{}", m).into();
+                    path = format!("/{m}").into();
                 }
 
                 path

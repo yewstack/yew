@@ -4,9 +4,9 @@ use std::fmt;
 
 use web_sys::{Element, Node};
 
-use super::{BComp, BList, BPortal, BRaw, BSubtree, BSuspense, BTag, BText};
+use super::{BComp, BList, BPortal, BRaw, BSubtree, BSuspense, BTag, BText, DomSlot};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, NodeRef};
+use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VNode};
 
 /// The bundle implementation to [VNode].
@@ -65,22 +65,20 @@ impl ReconcileTarget for BNode {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
+    fn shift(&self, next_parent: &Element, slot: DomSlot) -> DomSlot {
         match self {
-            Self::Tag(ref vtag) => vtag.shift(next_parent, next_sibling),
-            Self::Text(ref btext) => btext.shift(next_parent, next_sibling),
-            Self::Comp(ref bsusp) => bsusp.shift(next_parent, next_sibling),
-            Self::List(ref vlist) => vlist.shift(next_parent, next_sibling),
+            Self::Tag(ref vtag) => vtag.shift(next_parent, slot),
+            Self::Text(ref btext) => btext.shift(next_parent, slot),
+            Self::Comp(ref bsusp) => bsusp.shift(next_parent, slot),
+            Self::List(ref vlist) => vlist.shift(next_parent, slot),
             Self::Ref(ref node) => {
-                next_parent
-                    .insert_before(node, next_sibling.get().as_ref())
-                    .unwrap();
+                slot.insert(next_parent, node);
 
-                NodeRef::new(node.clone())
+                DomSlot::at(node.clone())
             }
-            Self::Portal(ref vportal) => vportal.shift(next_parent, next_sibling),
-            Self::Suspense(ref vsuspense) => vsuspense.shift(next_parent, next_sibling),
-            Self::Raw(ref braw) => braw.shift(next_parent, next_sibling),
+            Self::Portal(ref vportal) => vportal.shift(next_parent, slot),
+            Self::Suspense(ref vsuspense) => vsuspense.shift(next_parent, slot),
+            Self::Raw(ref braw) => braw.shift(next_parent, slot),
         }
     }
 }
@@ -93,40 +91,39 @@ impl Reconcilable for VNode {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
-    ) -> (NodeRef, Self::Bundle) {
+        slot: DomSlot,
+    ) -> (DomSlot, Self::Bundle) {
         match self {
             VNode::VTag(vtag) => {
-                let (node_ref, tag) = vtag.attach(root, parent_scope, parent, next_sibling);
+                let (node_ref, tag) = vtag.attach(root, parent_scope, parent, slot);
                 (node_ref, tag.into())
             }
             VNode::VText(vtext) => {
-                let (node_ref, text) = vtext.attach(root, parent_scope, parent, next_sibling);
+                let (node_ref, text) = vtext.attach(root, parent_scope, parent, slot);
                 (node_ref, text.into())
             }
             VNode::VComp(vcomp) => {
-                let (node_ref, comp) = vcomp.attach(root, parent_scope, parent, next_sibling);
+                let (node_ref, comp) = vcomp.attach(root, parent_scope, parent, slot);
                 (node_ref, comp.into())
             }
             VNode::VList(vlist) => {
-                let (node_ref, list) = vlist.attach(root, parent_scope, parent, next_sibling);
+                let (node_ref, list) = vlist.attach(root, parent_scope, parent, slot);
                 (node_ref, list.into())
             }
             VNode::VRef(node) => {
-                super::insert_node(&node, parent, next_sibling.get().as_ref());
-                (NodeRef::new(node.clone()), BNode::Ref(node))
+                slot.insert(parent, &node);
+                (DomSlot::at(node.clone()), BNode::Ref(node))
             }
             VNode::VPortal(vportal) => {
-                let (node_ref, portal) = vportal.attach(root, parent_scope, parent, next_sibling);
+                let (node_ref, portal) = vportal.attach(root, parent_scope, parent, slot);
                 (node_ref, portal.into())
             }
             VNode::VSuspense(vsuspsense) => {
-                let (node_ref, suspsense) =
-                    vsuspsense.attach(root, parent_scope, parent, next_sibling);
+                let (node_ref, suspsense) = vsuspsense.attach(root, parent_scope, parent, slot);
                 (node_ref, suspsense.into())
             }
             VNode::VRaw(vraw) => {
-                let (node_ref, raw) = vraw.attach(root, parent_scope, parent, next_sibling);
+                let (node_ref, raw) = vraw.attach(root, parent_scope, parent, slot);
                 (node_ref, raw.into())
             }
         }
@@ -137,10 +134,10 @@ impl Reconcilable for VNode {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        slot: DomSlot,
         bundle: &mut BNode,
-    ) -> NodeRef {
-        self.reconcile(root, parent_scope, parent, next_sibling, bundle)
+    ) -> DomSlot {
+        self.reconcile(root, parent_scope, parent, slot, bundle)
     }
 
     fn reconcile(
@@ -148,46 +145,25 @@ impl Reconcilable for VNode {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        slot: DomSlot,
         bundle: &mut BNode,
-    ) -> NodeRef {
+    ) -> DomSlot {
         match self {
-            VNode::VTag(vtag) => {
-                vtag.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
-            }
-            VNode::VText(vtext) => {
-                vtext.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
-            }
-            VNode::VComp(vcomp) => {
-                vcomp.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
-            }
-            VNode::VList(vlist) => {
-                vlist.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
-            }
-            VNode::VRef(node) => {
-                let _existing = match bundle {
-                    BNode::Ref(ref n) if &node == n => n,
-                    _ => {
-                        return VNode::VRef(node).replace(
-                            root,
-                            parent_scope,
-                            parent,
-                            next_sibling,
-                            bundle,
-                        );
-                    }
-                };
-                NodeRef::new(node)
-            }
+            VNode::VTag(vtag) => vtag.reconcile_node(root, parent_scope, parent, slot, bundle),
+            VNode::VText(vtext) => vtext.reconcile_node(root, parent_scope, parent, slot, bundle),
+            VNode::VComp(vcomp) => vcomp.reconcile_node(root, parent_scope, parent, slot, bundle),
+            VNode::VList(vlist) => vlist.reconcile_node(root, parent_scope, parent, slot, bundle),
+            VNode::VRef(node) => match bundle {
+                BNode::Ref(ref n) if &node == n => DomSlot::at(node),
+                _ => VNode::VRef(node).replace(root, parent_scope, parent, slot, bundle),
+            },
             VNode::VPortal(vportal) => {
-                vportal.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
+                vportal.reconcile_node(root, parent_scope, parent, slot, bundle)
             }
             VNode::VSuspense(vsuspsense) => {
-                vsuspsense.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
+                vsuspsense.reconcile_node(root, parent_scope, parent, slot, bundle)
             }
-            VNode::VRaw(vraw) => {
-                vraw.reconcile_node(root, parent_scope, parent, next_sibling, bundle)
-            }
+            VNode::VRaw(vraw) => vraw.reconcile_node(root, parent_scope, parent, slot, bundle),
         }
     }
 }
@@ -268,24 +244,12 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
-        ) -> (NodeRef, Self::Bundle) {
+        ) -> Self::Bundle {
             match self {
-                VNode::VTag(vtag) => {
-                    let (node_ref, tag) = vtag.hydrate(root, parent_scope, parent, fragment);
-                    (node_ref, tag.into())
-                }
-                VNode::VText(vtext) => {
-                    let (node_ref, text) = vtext.hydrate(root, parent_scope, parent, fragment);
-                    (node_ref, text.into())
-                }
-                VNode::VComp(vcomp) => {
-                    let (node_ref, comp) = vcomp.hydrate(root, parent_scope, parent, fragment);
-                    (node_ref, comp.into())
-                }
-                VNode::VList(vlist) => {
-                    let (node_ref, list) = vlist.hydrate(root, parent_scope, parent, fragment);
-                    (node_ref, list.into())
-                }
+                VNode::VTag(vtag) => vtag.hydrate(root, parent_scope, parent, fragment).into(),
+                VNode::VText(vtext) => vtext.hydrate(root, parent_scope, parent, fragment).into(),
+                VNode::VComp(vcomp) => vcomp.hydrate(root, parent_scope, parent, fragment).into(),
+                VNode::VList(vlist) => vlist.hydrate(root, parent_scope, parent, fragment).into(),
                 // You cannot hydrate a VRef.
                 VNode::VRef(_) => {
                     panic!(
@@ -300,11 +264,9 @@ mod feat_hydration {
                          use_effect."
                     )
                 }
-                VNode::VSuspense(vsuspense) => {
-                    let (node_ref, suspense) =
-                        vsuspense.hydrate(root, parent_scope, parent, fragment);
-                    (node_ref, suspense.into())
-                }
+                VNode::VSuspense(vsuspense) => vsuspense
+                    .hydrate(root, parent_scope, parent, fragment)
+                    .into(),
                 VNode::VRaw(_) => {
                     panic!("VRaw is not hydratable (raw HTML string cannot be hydrated)")
                 }

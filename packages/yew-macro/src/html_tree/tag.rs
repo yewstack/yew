@@ -7,7 +7,7 @@ use syn::Token;
 /// The implementation is really silly but I couldn't find another way to do it on stable.
 /// This check isn't required to be fully accurate so it's not the end of the world if it breaks.
 fn span_eq_hack(a: &Span, b: &Span) -> bool {
-    format!("{:?}", a) == format!("{:?}", b)
+    format!("{a:?}") == format!("{b:?}")
 }
 
 /// Change all occurrences of span `from` to `to` in the given error.
@@ -109,7 +109,7 @@ impl TagTokens {
                 match punct.as_char() {
                     '/' => {
                         if angle_count == 1 && input.peek(Token![>]) {
-                            div = Some(syn::token::Div {
+                            div = Some(syn::token::Slash {
                                 spans: [punct.span()],
                             });
                             gt = input.parse()?;

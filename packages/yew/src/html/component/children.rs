@@ -2,7 +2,8 @@
 
 use std::fmt;
 
-use crate::virtual_dom::{VChild, VList, VNode};
+use crate::html::Html;
+use crate::virtual_dom::{VChild, VChild, VList, VNode};
 use crate::Properties;
 
 /// A type used for accepting children elements in Component::Properties.
@@ -162,7 +163,7 @@ impl<T: PartialEq> PartialEq for ChildrenRenderer<T> {
 
 impl<T> ChildrenRenderer<T>
 where
-    T: Clone + Into<VNode>,
+    T: Clone,
 {
     /// Create children
     pub fn new(children: Vec<T>) -> Self {
@@ -184,6 +185,28 @@ where
         // clone each child lazily.
         // This way `self.iter().next()` only has to clone a single node.
         self.children.iter().cloned()
+    }
+
+    /// Convert the children elements to another object (if there are any).
+    ///
+    /// ```
+    /// # let children = Children::new(Vec::new());
+    /// # use yew::{classes, html, Children};
+    /// children.map(|children| {
+    ///     html! {
+    ///         <div class={classes!("container")}>
+    ///             {children}
+    ///         </div>
+    ///     }
+    /// })
+    /// # ;
+    /// ```
+    pub fn map<OUT: Default>(&self, closure: impl FnOnce(&Self) -> OUT) -> OUT {
+        if self.is_empty() {
+            Default::default()
+        } else {
+            closure(self)
+        }
     }
 }
 
@@ -237,4 +260,19 @@ pub struct ChildrenProps {
     /// The Children of a Component.
     #[prop_or_default]
     pub children: Children,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn children_renderer_map() {
+        let children = ChildrenRenderer<VNode>::new(vec![]);
+        let res = children.map(|children| Some(children.clone()));
+        assert!(res.is_none());
+        let children = ChildrenRenderer<VNode>::new(vec![Default::default()]);
+        let res = children.map(|children| Some(children.clone()));
+        assert!(res.is_some());
+    }
 }

@@ -1,0 +1,50 @@
+---
+name: "Test Website"
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/test-website.yml"
+      - "packages/**/*"
+      - "website/**/*"
+  push:
+    branches: [master]
+
+jobs:
+  website_tests:
+    name: Tests Website Snippets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      # for wasm-bindgen-cli, always use stable rust
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: ./ci/install-wasm-bindgen-cli.sh
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: browser-actions/setup-geckodriver@latest
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: nanasess/setup-chromedriver@v1
+
+      - name: Run website code snippet tests
+        run: cargo test -p website-test --target wasm32-unknown-unknown

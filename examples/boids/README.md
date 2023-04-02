@@ -7,14 +7,6 @@ A version of [Boids](https://en.wikipedia.org/wiki/Boids) implemented in Yew.
 This example doesn't make use of a [Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API),
 instead, each boid has its own element demonstrating the performance of Yew's virtual DOM.
 
-## Running
-
-You should run this example with the `--release` flag:
-
-```bash
-trunk serve --release
-```
-
 ## Concepts
 
 The example uses [`gloo::timers`](https://docs.rs/gloo-timers/latest/gloo_timers/) implementation of `setInterval` to drive the Yew game loop.
@@ -29,3 +21,11 @@ The example uses [`gloo::timers`](https://docs.rs/gloo-timers/latest/gloo_timers
 - Share settings by encoding them into the URL
 - Resize the boids when "Spacing" is changed.
   The setting should then also be renamed to something like "Size".
+
+## Running
+
+Run this application with the trunk development server:
+
+```bash
+trunk serve --open
+```

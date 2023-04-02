@@ -34,7 +34,7 @@ impl App {
             3 => "Good",
             _ => "Great!",
         };
-        format!("Complexity = {}", estimate_text)
+        format!("Complexity = {estimate_text}")
     }
 }
 

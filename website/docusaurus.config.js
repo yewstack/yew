@@ -11,7 +11,7 @@ module.exports = {
     baseUrl: '/',
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
-    favicon: 'img/logo.png',
+    favicon: 'img/logo.svg',
     organizationName: 'yewstack', // Usually your GitHub org/user name.
     projectName: 'yew', // Usually your repo name.
     themeConfig: {
@@ -24,7 +24,7 @@ module.exports = {
             title: 'Yew',
             logo: {
                 alt: 'Yew Logo',
-                src: 'img/logo.png',
+                src: 'img/logo.svg',
             },
             items: [
                 {

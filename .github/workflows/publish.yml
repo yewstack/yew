@@ -25,13 +25,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           token: "${{ secrets.YEWTEMPBOT_TOKEN }}"
           fetch-depth: 0
 
       - name: Config Git
-        uses: oleksiyrudenko/gha-git-credentials@v2-latest
+        uses: oleksiyrudenko/gha-git-credentials@v2.1.1
         with:
           token: "${{ secrets.YEWTEMPBOT_TOKEN }}"
 
@@ -41,7 +41,7 @@ jobs:
           toolchain: stable
 
       - name: Install cargo binary dependencies
-        uses: baptiste0928/cargo-install@v1
+        uses: baptiste0928/cargo-install@v2
         with:
           crate: cargo-release
           version: =0.23.1

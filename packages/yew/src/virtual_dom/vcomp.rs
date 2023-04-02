@@ -10,15 +10,15 @@ use futures::future::{FutureExt, LocalBoxFuture};
 use web_sys::Element;
 
 use super::Key;
-#[cfg(feature = "csr")]
-use crate::dom_bundle::BSubtree;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
+#[cfg(feature = "csr")]
+use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot};
 use crate::html::BaseComponent;
+#[cfg(feature = "csr")]
+use crate::html::Scoped;
 #[cfg(any(feature = "ssr", feature = "csr"))]
 use crate::html::{AnyScope, Scope};
-#[cfg(feature = "csr")]
-use crate::html::{NodeRef, Scoped};
 #[cfg(feature = "ssr")]
 use crate::platform::fmt::BufWriter;
 
@@ -58,12 +58,12 @@ pub(crate) trait Mountable {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
-        internal_ref: NodeRef,
-        next_sibling: NodeRef,
+        slot: DomSlot,
+        internal_ref: DynamicDomSlot,
     ) -> Box<dyn Scoped>;
 
     #[cfg(feature = "csr")]
-    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef);
+    fn reuse(self: Box<Self>, scope: &dyn Scoped, slot: DomSlot);
 
     #[cfg(feature = "ssr")]
     fn render_into_stream<'a>(
@@ -79,7 +79,7 @@ pub(crate) trait Mountable {
         root: BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
-        internal_ref: NodeRef,
+        internal_ref: DynamicDomSlot,
         fragment: &mut Fragment,
     ) -> Box<dyn Scoped>;
 }
@@ -108,19 +108,19 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
-        internal_ref: NodeRef,
-        next_sibling: NodeRef,
+        slot: DomSlot,
+        internal_ref: DynamicDomSlot,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        scope.mount_in_place(root.clone(), parent, next_sibling, internal_ref, self.props);
+        scope.mount_in_place(root.clone(), parent, slot, internal_ref, self.props);
 
         Box::new(scope)
     }
 
     #[cfg(feature = "csr")]
-    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef) {
+    fn reuse(self: Box<Self>, scope: &dyn Scoped, slot: DomSlot) {
         let scope: Scope<COMP> = scope.to_any().downcast::<COMP>();
-        scope.reuse(self.props, next_sibling);
+        scope.reuse(self.props, slot);
     }
 
     #[cfg(feature = "ssr")]
@@ -146,7 +146,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         root: BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
-        internal_ref: NodeRef,
+        internal_ref: DynamicDomSlot,
         fragment: &mut Fragment,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));

@@ -375,4 +375,46 @@ fn compile_pass() {
     ::yew::html_nested! { 1 };
 }
 
+#[derive(
+    ::std::clone::Clone, ::yew::Properties, ::std::default::Default, ::std::cmp::PartialEq,
+)]
+pub struct HtmlPassedAsPropProperties {
+    pub value: ::yew::Html,
+}
+
+pub struct HtmlPassedAsProp;
+impl ::yew::Component for HtmlPassedAsProp {
+    type Message = ();
+    type Properties = HtmlPassedAsPropProperties;
+
+    fn create(_ctx: &::yew::Context<Self>) -> Self {
+        ::std::unimplemented!()
+    }
+
+    fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
+        ::std::unimplemented!()
+    }
+}
+
+pub struct HtmlPassedAsPropContainer;
+impl ::yew::Component for HtmlPassedAsPropContainer {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &::yew::Context<Self>) -> Self {
+        ::std::unimplemented!()
+    }
+
+    fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
+        ::yew::html! {
+            <>
+            <HtmlPassedAsProp value={::yew::html!()} />
+            <HtmlPassedAsProp value="string literal" />
+            <HtmlPassedAsProp value={::std::format!("string")} />
+            <HtmlPassedAsProp value={::yew::AttrValue::Static("attr value")} />
+            </>
+        }
+    }
+}
+
 fn main() {}

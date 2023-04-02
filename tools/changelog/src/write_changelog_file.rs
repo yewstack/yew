@@ -6,17 +6,17 @@ use anyhow::{Context, Result};
 
 pub fn write_changelog(changelog_path: &str, version_changelog: &[u8]) -> Result<()> {
     let old_changelog = File::open(changelog_path)
-        .context(format!("could not open {} for reading", changelog_path))?;
+        .context(format!("could not open {changelog_path} for reading"))?;
     let old_changelog_reader = BufReader::new(old_changelog);
 
-    let changelog_path_new = &format!("../{}.new", changelog_path);
+    let changelog_path_new = &format!("../{changelog_path}.new");
 
     let mut new_changelog = fs::OpenOptions::new()
         .write(true)
         .create(true)
         .truncate(true)
         .open(changelog_path_new)
-        .context(format!("could not open {} for writing", changelog_path_new))?;
+        .context(format!("could not open {changelog_path_new} for writing"))?;
 
     new_changelog.write_all(version_changelog)?;
 
@@ -26,10 +26,9 @@ pub fn write_changelog(changelog_path: &str, version_changelog: &[u8]) -> Result
 
     drop(new_changelog);
 
-    fs::remove_file(changelog_path).context(format!("Could not delete {}", changelog_path))?;
+    fs::remove_file(changelog_path).context(format!("Could not delete {changelog_path}"))?;
     fs::rename(changelog_path_new, changelog_path).context(format!(
-        "Could not replace {} with {}",
-        changelog_path, changelog_path_new
+        "Could not replace {changelog_path} with {changelog_path_new}"
     ))?;
 
     Ok(())

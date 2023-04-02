@@ -15,4 +15,4 @@ yew = { version = "0.20.0", path = "../yew" }
 gloo-worker = "0.1"
 
 [dev-dependencies]
-serde = "1.0.137"
+serde = "1.0.159"

@@ -13,10 +13,10 @@ struct Level {
 
 fn main() {
     let home = env::var("CARGO_MANIFEST_DIR").unwrap();
-    let pattern = format!("{}/../../website/docs/**/*.md*", home);
-    let base = format!("{}/../../website", home);
+    let pattern = format!("{home}/../../website/docs/**/*.md*");
+    let base = format!("{home}/../../website");
     let base = Path::new(&base).canonicalize().unwrap();
-    let dir_pattern = format!("{}/../../website/docs/**", home);
+    let dir_pattern = format!("{home}/../../website/docs/**");
     for dir in glob(&dir_pattern).unwrap() {
         println!("cargo:rerun-if-changed={}", dir.unwrap().display());
     }
@@ -63,7 +63,7 @@ impl Level {
     fn write_into(&self, dst: &mut String, name: &str, level: usize) -> fmt::Result {
         self.write_space(dst, level);
         let name = name.replace(|c| c == '-' || c == '.', "_");
-        writeln!(dst, "pub mod {} {{", name)?;
+        writeln!(dst, "pub mod {name} {{")?;
 
         self.write_inner(dst, level + 1)?;
 
@@ -92,7 +92,7 @@ impl Level {
 
             writeln!(dst, "#[doc = include_str!(r\"{}\")]", file.display())?;
             self.write_space(dst, level);
-            writeln!(dst, "pub fn {}_md() {{}}", stem)?;
+            writeln!(dst, "pub fn {stem}_md() {{}}")?;
         }
 
         Ok(())

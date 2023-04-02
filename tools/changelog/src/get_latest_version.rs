@@ -5,8 +5,8 @@ use semver::{Error, Version};
 use crate::yew_package::YewPackage;
 
 pub fn get_latest_version(package: &YewPackage) -> Result<Version> {
-    let common_tag_pattern = format!("{}-v", package);
-    let search_pattern = format!("{}*", common_tag_pattern);
+    let common_tag_pattern = format!("{package}-v");
+    let search_pattern = format!("{common_tag_pattern}*");
 
     let mut tags: Vec<Version> = Repository::open_from_env()?
         .tag_names(Some(&search_pattern))?

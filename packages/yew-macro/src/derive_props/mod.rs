@@ -30,7 +30,7 @@ fn should_preserve_attr(attr: &Attribute) -> bool {
     // sometimes.              If not preserved, results in "no-such-field" errors generating
     // the field setter for `build` #[allow(...)]: silences warnings from clippy, such as
     // dead_code etc. #[deny(...)]: enable additional warnings from clippy
-    let path = &attr.path;
+    let path = attr.path();
     path.is_ident("allow") || path.is_ident("deny") || path.is_ident("cfg")
 }
 

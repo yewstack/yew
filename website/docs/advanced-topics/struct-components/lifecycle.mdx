@@ -17,7 +17,7 @@ stages in the lifecycle of a component.
 ### Create
 
 When a component is created, it receives properties from its parent component and is stored within
-the `Context<Self>` that's passed down to the `create` method. The properties can be used to
+the `Context<Self>` that is passed down to the `create` method. The properties can be used to
 initialize the component's state and the "link" can be used to register callbacks or send messages to the component.
 
 ```rust
@@ -137,7 +137,7 @@ impl Component for MyComponent {
 ```
 
 :::tip note
-Note that this lifecycle method does not require an implementation and will do nothing by default.
+Note that this lifecycle method does not require implementation and will do nothing by default.
 :::
 
 ### Update
@@ -147,7 +147,7 @@ Communication with components happens primarily through messages which are handl
 based on what the message was, and determine if it needs to re-render itself. Messages can be sent
 by event listeners, child components, Agents, Services, or Futures.
 
-Here's an example of what an implementation of `update` could look like:
+Here is an example of what an implementation of `update` could look like:
 
 ```rust
 use yew::{Component, Context, html, Html};
@@ -200,8 +200,8 @@ impl Component for MyComponent {
 ### Changed
 
 Components may be re-rendered by their parents. When this happens, they could receive new properties
-and need to re-render. This design facilitates parent to child component communication by just
-changing the values of a property. There is a default implementation which re-renders the component
+and need to re-render. This design facilitates parent-to-child component communication by just
+changing the values of a property. There is a default implementation that re-renders the component
 when props are changed.
 
 ### Destroy
@@ -212,8 +212,8 @@ before it is destroyed. This method is optional and does nothing by default.
 
 ### Infinite loops
 
-Infinite loops are possible with Yew's lifecycle methods, but are only caused when trying to update
-the same component after every render when that update also requests the component to be rendered.
+Infinite loops are possible with Yew's lifecycle methods but are only caused when trying to update
+the same component after every render, when that update also requests the component to be rendered.
 
 A simple example can be seen below:
 
@@ -259,7 +259,7 @@ Let's run through what happens here:
    component needs to re-render.
 7. Jump back to 2.
 
-You can still schedule updates in the `rendered` method and it's often useful to do so, but
+You can still schedule updates in the `rendered` method and it is often useful to do so, but
 consider how your component will terminate this loop when you do.
 
 ## Associated Types
@@ -276,7 +276,7 @@ impl Component for MyComponent {
 ```
 
 The `Message` type is used to send messages to a component after an event has taken place; for
-example you might want to undertake some action when a user clicks a button or scrolls down the
+example, you might want to undertake some action when a user clicks a button or scrolls down the
 page. Because components tend to have to respond to more than one event, the `Message` type will
 normally be an enum, where each variant is an event to be handled.
 
@@ -301,5 +301,5 @@ enum Msg {
 
 ## Lifecycle Context
 
-All component lifecycle methods take a context object. This object provides a reference to component's scope, which
+All component lifecycle methods take a context object. This object provides a reference to the component's scope, which
 allows sending messages to a component and the props passed to the component.

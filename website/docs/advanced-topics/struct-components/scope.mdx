@@ -5,7 +5,7 @@ description: "Component's Scope"
 
 ## Component's `Scope<_>` API
 
-The component "`Scope`" is the mechanism through which components are able to create callbacks and update themselves
+The component "`Scope`" is the mechanism through which components can create callbacks and update themselves
 using messages. We obtain a reference to this by calling `link()` on the context object passed to the component.
 
 ### `send_message`
@@ -19,7 +19,7 @@ Sends multiple messages to the component at the same time.
 This is similar to `send_message` but if any of the messages cause the `update` method to return `true`,
 the component will re-render after all messages in the batch have been processed.
 
-If the given vector is empty, this function doesn't do anything.
+If the given vector is empty, this function does nothing.
 
 ### `callback`
 

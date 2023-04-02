@@ -72,7 +72,7 @@ impl Cli {
 
             let from_ref = match from {
                 Some(some) => some,
-                None => format!("refs/tags/{}-v{}", package, latest_version),
+                None => format!("refs/tags/{package}-v{latest_version}"),
             };
             (from_ref, next_version)
         };

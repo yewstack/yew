@@ -249,13 +249,11 @@ help: escape `type` to use it as an identifier
 85 |     html! { <Child r#type=0 /> };
    |                    ++
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Tuple(
-           ExprTuple {
-               attrs: [],
-               paren_token: Paren,
-               elems: [],
-           },
-       )
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Expr::Tuple {
+           attrs: [],
+           paren_token: Paren,
+           elems: [],
+       }
   --> tests/html_macro/component-fail.rs:86:24
    |
 86 |     html! { <Child ref=() /> };
@@ -321,24 +319,22 @@ error: only one root html element is allowed (hint: you can wrap multiple html e
 102 |     html! { <Child></Child><Child></Child> };
     |                            ^^^^^^^^^^^^^^^
 
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Path(
-           ExprPath {
-               attrs: [],
-               qself: None,
-               path: Path {
-                   leading_colon: None,
-                   segments: [
-                       PathSegment {
-                           ident: Ident {
-                               ident: "num",
-                               span: #0 bytes(3894..3897),
-                           },
-                           arguments: None,
+error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Expr::Path {
+           attrs: [],
+           qself: None,
+           path: Path {
+               leading_colon: None,
+               segments: [
+                   PathSegment {
+                       ident: Ident {
+                           ident: "num",
+                           span: #0 bytes(3894..3897),
                        },
-                   ],
-               },
+                       arguments: PathArguments::None,
+                   },
+               ],
            },
-       )
+       }
    --> tests/html_macro/component-fail.rs:106:24
     |
 106 |     html! { <Child int=num ..props /> };
@@ -379,12 +375,6 @@ error: only an expression may be assigned as a property
     |
 147 |     html! { <HtmlInProps header={macro_rules! declare { }} /> };
     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: only an expression may be assigned as a property. Consider removing this semicolon
-   --> tests/html_macro/component-fail.rs:148:61
-    |
-148 |     html! { <HtmlInProps header={format!("ending with semi");} /> };
-    |                                                             ^
 
 error: mismatched closing tags: expected `A`, found `B`
    --> tests/html_macro/component-fail.rs:177:22

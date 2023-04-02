@@ -33,7 +33,7 @@ pub fn link_href(selector: &str) -> String {
     gloo::utils::document()
         .query_selector(selector)
         .expect("Failed to run query selector")
-        .unwrap_or_else(|| panic!("No such link: {}", selector))
+        .unwrap_or_else(|| panic!("No such link: {selector}"))
         .get_attribute("href")
         .expect("No href attribute")
 }

@@ -1,9 +1,22 @@
 [workspace]
 members = [
     "packages/*",
-]
-exclude = [
     "tools/*",
     "examples/*",
 ]
+default-members = [
+    "packages/*",
+]
 resolver = "2"
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+opt-level = "z"
+
+[profile.bench]
+lto = true
+codegen-units = 1
+panic = "abort"
+opt-level = 3

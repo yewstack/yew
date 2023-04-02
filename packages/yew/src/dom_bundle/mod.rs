@@ -7,7 +7,7 @@
 
 use web_sys::Element;
 
-use crate::html::{AnyScope, NodeRef};
+use crate::html::AnyScope;
 use crate::virtual_dom::VNode;
 
 mod bcomp;
@@ -18,6 +18,7 @@ mod braw;
 mod bsuspense;
 mod btag;
 mod btext;
+mod position;
 mod subtree_root;
 
 mod traits;
@@ -31,10 +32,11 @@ use braw::BRaw;
 use bsuspense::BSuspense;
 use btag::{BTag, Registry};
 use btext::BText;
+pub(crate) use position::{DomSlot, DynamicDomSlot};
 use subtree_root::EventDescriptor;
 pub use subtree_root::{set_event_bubbling, BSubtree};
 use traits::{Reconcilable, ReconcileTarget};
-use utils::{insert_node, test_log};
+use utils::test_log;
 
 /// A Bundle.
 ///
@@ -53,8 +55,8 @@ impl Bundle {
     }
 
     /// Shifts the bundle into a different position.
-    pub fn shift(&self, next_parent: &Element, next_sibling: NodeRef) {
-        self.0.shift(next_parent, next_sibling);
+    pub fn shift(&self, next_parent: &Element, slot: DomSlot) {
+        self.0.shift(next_parent, slot);
     }
 
     /// Applies a virtual dom layout to current bundle.
@@ -63,10 +65,10 @@ impl Bundle {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        slot: DomSlot,
         next_node: VNode,
-    ) -> NodeRef {
-        next_node.reconcile_node(root, parent_scope, parent, next_sibling, &mut self.0)
+    ) -> DomSlot {
+        next_node.reconcile_node(root, parent_scope, parent, slot, &mut self.0)
     }
 
     /// Detaches current bundle.
@@ -82,7 +84,7 @@ mod feat_hydration {
     pub(super) use super::utils::node_type_str;
     #[path = "./fragment.rs"]
     mod fragment;
-    pub use fragment::Fragment;
+    pub(crate) use fragment::Fragment;
 
     use super::*;
     impl Bundle {
@@ -93,9 +95,9 @@ mod feat_hydration {
             parent: &Element,
             fragment: &mut Fragment,
             node: VNode,
-        ) -> (NodeRef, Self) {
-            let (node_ref, bundle) = node.hydrate(root, parent_scope, parent, fragment);
-            (node_ref, Self(bundle))
+        ) -> Self {
+            let bundle = node.hydrate(root, parent_scope, parent, fragment);
+            Self(bundle)
         }
     }
 }
