@@ -1,0 +1,57 @@
+---
+title: 'From 0.19.0 to Next'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+## `use_effect_with`
+
+`use_effect_with_reps` has been removed in favour of new `use_effect_with`
+
+`use_effect_with` is same as `use_effect_with_reps` except the argument order is swapped.
+
+### Automated refactor
+
+With the help of https://crates.io/crates/ast-grep
+Here is a command that can do the refactoring for you:
+
+```bash
+sg --pattern 'use_effect_with_deps($T,$$$DEPS)' --rewrite 'use_effect_with($$$DEPS $T)' -l rs -i
+```
+
+### Reasoning
+
+This will enable more ergonomic use of the hook, consider:
+
+<Tabs>
+  <TabItem value="before" label="Before" default>
+
+```rust
+impl SomeLargeStruct {
+    fn id(&self) -> u32; // Only need to use the id as cache key
+}
+let some_dep: SomeLargeStruct = todo!();
+
+{
+    let id = some_dep.id(); // Have to extract it in advance, some_dep is moved already in the second argument
+    use_effect_with_dep(move |_| { todo!(); drop(some_dep); }, id);
+}
+use_effect_with(some_dep.id(), move |_| { todo!(); drop(some_dep); });
+```
+
+  </TabItem>
+  <TabItem value="after" label="After">
+
+```rust
+impl SomeLargeStruct {
+    fn id(&self) -> u32; // Only need to use the id as cache key
+}
+let some_dep: SomeLargeStruct = todo!();
+
+use_effect_with(some_dep.id(), move |_| { todo!(); drop(some_dep); });
+
+```
+
+  </TabItem>
+</Tabs>
