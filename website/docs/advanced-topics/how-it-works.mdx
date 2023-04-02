@@ -15,25 +15,25 @@ update of `yew-macro`, the generated code will be more efficient and handle any 
 without many (if any) modifications to the `html!` syntax.
 
 Because the `html!` macro allows you to write code in a declarative style, your UI layout code will
-closely match the HTML that is generated to the page. This becomes increasingly useful as your
-application gets more interactive and your codebase gets larger. Rather than manually writing the
+closely match the HTML that is generated for the page. This becomes increasingly useful as your
+application gets more interactive and your codebase gets larger. Rather than manually writing
 all of the code to manipulate the DOM yourself, the macro will handle it for you.
 
-Using the `html!` macro can feel pretty magic, but it has nothing to hide. If you're curious about
-how it works, try expanding the `html!` macro calls in your program. There's a useful command called
-`cargo expand` which allows you to see the expansion of Rust macros. `cargo expand` isn't shipped with
-`cargo` by default so you'll need to install it with `cargo install cargo-expand` if you haven't
+Using the `html!` macro can feel pretty magical, but it has nothing to hide. If you are curious about
+how it works, try expanding the `html!` macro calls in your program. There is a useful command called
+`cargo expand` which allows you to see the expansion of Rust macros. `cargo expand` does not ship with
+`cargo` by default so you will need to install it with `cargo install cargo-expand` if you have not
 already. [Rust-Analyzer](https://rust-analyzer.github.io/) also provides a mechanism for
 [obtaining macro output from within an IDE](https://rust-analyzer.github.io/manual.html#expand-macro-recursively).
 
 Output from the `html!` macro is often pretty terse! This is a feature: machine-generated code can
-sometimes clash with other code in an application. In order to prevent issues, `proc_macro`
+sometimes clash with other code in an application. To prevent issues, `proc_macro`
 "hygiene" is adhered to. Some examples include:
 
 1. Instead of using `yew::<module>` the macro generates `::yew::<module>` to make sure that the
    Yew package is referenced correctly. This is also why `::alloc::vec::Vec::new()` is called instead
    of just `Vec::new()`.
-2. Due to potential trait method name collisions, `<Type as Trait>` is used to make sure that we're
+2. Due to potential trait method name collisions, `<Type as Trait>` is used to make sure that we are
    using members from the correct trait.
 
 ## What is a virtual DOM?
@@ -43,11 +43,11 @@ for your web page. A "virtual" DOM is simply a copy of the DOM that is held in a
 a virtual DOM results in a higher memory overhead, but allows for batching and faster reads by avoiding
 or delaying the use of browser APIs.
 
-Having a copy of the DOM in memory can be really helpful for libraries which promote the use of
+Having a copy of the DOM in memory can be helpful for libraries that promote the use of
 declarative UIs. Rather than needing specific code for describing how the DOM should be modified
 in response to a user event, the library can use a generalized approach with DOM "diffing". When a Yew
 component is updated and wants to change how it is rendered, the Yew library will build a second copy
-of the virtual DOM and directly compare to a virtual DOM which mirrors what is currently on screen.
+of the virtual DOM and directly compare it to a virtual DOM which mirrors what is currently on screen.
 The "diff" (or difference) between the two can be broken down into incremental updates and applied in
 a batch with browser APIs. Once the updates are applied, the old virtual DOM copy is discarded and the
 new copy is saved for future diff checks.

@@ -35,11 +35,22 @@ def format_diff_size(
 
 
 def main() -> None:
-    with open("size-cmp-info/.SIZE_CMP_INFO") as f:
-        content = json.loads(f.read())
+    with open("size-cmp-pr-info/.SIZE_CMP_INFO") as f:
+        pr_content = json.loads(f.read())
 
-    joined_sizes = content["sizes"]
-    issue_number = content["issue_number"]
+    with open("size-cmp-master-info/.SIZE_CMP_INFO") as f:
+        master_content = json.loads(f.read())
+
+    master_sizes: dict[str, int] = master_content["sizes"]
+    pr_sizes: dict[str, int] = pr_content["sizes"]
+
+    example_names = sorted(set([*master_sizes.keys(), *pr_sizes.keys()]))
+    joined_sizes = [(i, [master_sizes.get(i), pr_sizes.get(i)]) for i in example_names]
+
+    assert pr_content["issue_number"] == master_content["issue_number"], \
+        "Issue number differs between master and pr?"
+
+    issue_number = pr_content["issue_number"]
 
     lines: List[str] = []
     significant_lines: List[str] = []

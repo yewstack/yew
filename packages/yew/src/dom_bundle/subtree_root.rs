@@ -1,15 +1,17 @@
 //! Per-subtree state of apps
 
+use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::rc::{Rc, Weak};
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
-use gloo::events::{EventListener, EventListenerOptions, EventListenerPhase};
-use wasm_bindgen::prelude::wasm_bindgen;
-use wasm_bindgen::JsCast;
-use web_sys::{Element, Event, EventTarget as HtmlEventTarget, ShadowRoot};
+use wasm_bindgen::prelude::{wasm_bindgen, Closure};
+use wasm_bindgen::{JsCast, UnwrapThrowExt};
+use web_sys::{
+    AddEventListenerOptions, Element, Event, EventTarget as HtmlEventTarget, ShadowRoot,
+};
 
 use super::{test_log, Registry};
 use crate::virtual_dom::{Listener, ListenerKind};
@@ -113,6 +115,70 @@ impl From<&dyn Listener> for EventDescriptor {
     }
 }
 
+// FIXME: this is a reproduction of gloo's EventListener to work around #2989
+// change back to gloo's implementation once it has been decided how to fix this upstream
+// The important part is that we use `Fn` instead of `FnMut` below!
+type EventClosure = Closure<dyn Fn(&Event)>;
+#[derive(Debug)]
+#[must_use = "event listener will never be called after being dropped"]
+struct EventListener {
+    target: HtmlEventTarget,
+    event_type: Cow<'static, str>,
+    callback: Option<EventClosure>,
+}
+
+impl Drop for EventListener {
+    #[inline]
+    fn drop(&mut self) {
+        if let Some(ref callback) = self.callback {
+            self.target
+                .remove_event_listener_with_callback_and_bool(
+                    &self.event_type,
+                    callback.as_ref().unchecked_ref(),
+                    true, // Always capture
+                )
+                .unwrap_throw();
+        }
+    }
+}
+
+impl EventListener {
+    fn new(
+        target: &HtmlEventTarget,
+        desc: &EventDescriptor,
+        callback: impl 'static + Fn(&Event),
+    ) -> Self {
+        let event_type = desc.kind.type_name();
+
+        let callback = Closure::wrap(Box::new(callback) as Box<dyn Fn(&Event)>);
+        // defaults: { once: false }
+        let mut options = AddEventListenerOptions::new();
+        options.capture(true).passive(desc.passive);
+
+        target
+            .add_event_listener_with_callback_and_add_event_listener_options(
+                &event_type,
+                callback.as_ref().unchecked_ref(),
+                &options,
+            )
+            .unwrap_throw();
+
+        EventListener {
+            target: target.clone(),
+            event_type,
+            callback: Some(callback),
+        }
+    }
+
+    #[cfg(not(test))]
+    fn forget(mut self) {
+        if let Some(callback) = self.callback.take() {
+            // Should always match, but no need to introduce a panic path here
+            callback.forget();
+        }
+    }
+}
+
 /// Ensures event handler registration.
 // Separate struct to DRY, while avoiding partial struct mutability.
 #[derive(Debug)]
@@ -135,15 +201,8 @@ impl HostHandlers {
         }
     }
 
-    fn add_listener(&mut self, desc: &EventDescriptor, callback: impl 'static + FnMut(&Event)) {
-        let cl = {
-            let desc = desc.clone();
-            let options = EventListenerOptions {
-                phase: EventListenerPhase::Capture,
-                passive: desc.passive,
-            };
-            EventListener::new_with_options(&self.host, desc.kind.type_name(), options, callback)
-        };
+    fn add_listener(&mut self, desc: &EventDescriptor, callback: impl 'static + Fn(&Event)) {
+        let cl = EventListener::new(&self.host, desc, callback);
 
         // Never drop the closure as this event handler is static
         #[cfg(not(test))]

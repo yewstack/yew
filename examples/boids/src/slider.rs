@@ -61,7 +61,7 @@ impl Component for Slider {
         let display_value = if percentage {
             format!("{:.p$}%", 100.0 * value, p = precision)
         } else {
-            format!("{:.p$}", value, p = precision)
+            format!("{value:.precision$}")
         };
 
         let id = format!("slider-{}", self.id);

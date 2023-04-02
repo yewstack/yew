@@ -11,18 +11,18 @@ procedurally generated from browser WebIDL which is why some names are so long a
 
 ## Features in `web-sys`
 
-The `web-sys` crate with all of it's features enabled can add lots of bloat to a Wasm application,
-in order to get around this issue most types are feature gated so that you only include the types
-you require for your application. Yew includes a number of features from `web-sys` and
-exposes some types in it's public API, you will often need to add `web-sys` as a dependency yourself.
+The `web-sys` crate with all of its features enabled can add lots of bloat to a Wasm application.
+To get around this issue most types are feature gated so that you only include the types
+you require for your application. Yew enables several features from `web-sys` and
+exposes some types in its public API. You will often need to add `web-sys` as a dependency yourself.
 
 ## Inheritance in `web-sys`
 
 In the [Simulating inheritance section](./wasm-bindgen.mdx#simulating-inheritance) you can read how in
 general Rust provides an approach to simulate inheritance in JavaScript. This is very important in
-`web-sys` as understanding what methods are available on a type means understanding it's inheritance.
+`web-sys` as understanding what methods are available on a type means understanding its inheritance.
 
-This section is going to look at a specific element and list out it's inheritance using Rust by
+This section is going to look at a specific element and list out its inheritance using Rust by
 calling [`Deref::deref`](https://doc.rust-lang.org/std/ops/trait.Deref.html#tymethod.deref) until
 the value is [`JsValue`](./wasm-bindgen.mdx#jsvalue):
 
@@ -46,11 +46,11 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
 
     let event_target: &EventTarget = node.deref();
 
-    // Notice we've moved from web-sys types now into built-in
+    // Notice we have moved from web-sys types now into built-in
     // JavaScript types which are in the js-sys crate.
     let object: &js_sys::Object = event_target.deref();
 
-    // Notice we've moved from js-sys type to the root JsValue from
+    // Notice we have moved from js-sys type to the root JsValue from
     // the wasm-bindgen crate.
     let js_value: &wasm_bindgen::JsValue = object.deref();
 
@@ -79,13 +79,13 @@ _[Inheritance in `web-sys` in The `wasm-bindgen` Guide](https://rustwasm.github.
 
 ## The `Node` in `NodeRef`
 
-Yew uses a [`NodeRef`](concepts/function-components/node-refs.mdx) in order to provide a way for keeping a reference to
+Yew uses a [`NodeRef`](concepts/function-components/node-refs.mdx) to provide a way for keeping a reference to
 a `Node` made by the [`html!`](concepts/html/introduction.mdx) macro. The `Node` part of `NodeRef` is referring to
 [`web_sys::Node`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Node.html). The
 `NodeRef::get` method will return a `Option<Node>` value, however, most of the time in Yew you want
-to cast this value to a specific element so you can use it's specific methods. This casting
+to cast this value to a specific element so you can use its specific methods. This casting
 can be done using [`JsCast`](./wasm-bindgen.mdx#JsCast) on the `Node` value, if present, but Yew
-provides the `NodeRef::cast` method to perform this casting for convenience and so that you don't
+provides the `NodeRef::cast` method to perform this casting for convenience and so that you do not
 necessarily have to include the `wasm-bindgen` dependency for the `JsCast` trait.
 
 The two code blocks below do essentially the same thing, the first is using `NodeRef::cast` and
@@ -128,8 +128,8 @@ fn with_jscast(node_ref: NodeRef) {
 
 ## JavaScript example to Rust
 
-This section is to help show that any examples that use JavaScript to interact with the Web APIs
-can be adapted and written using Rust with `web-sys`.
+This section demonstrates examples of how JavaScript code which interact with the
+Web APIs can be rewritten with `web-sys` in Rust.
 
 ### JavaScript example
 
@@ -191,9 +191,9 @@ Document::new()
 ```
 
 This version is much more verbose, but you will probably notice part of that is because of failure
-types reminding us that some of these function calls have invariants that must be held otherwise will
-cause a panic in Rust. Another part of the verbosity is the calls to `JsCast` in order to cast into
-different types so that you can call it's specific methods.
+types reminding us that some of these function calls have invariants that must be held, or otherwise will
+cause a panic in Rust. Another part of the verbosity is the calls to `JsCast` to cast into
+different types so that you can call its specific methods.
 
 ### Yew example
 
@@ -204,7 +204,7 @@ the approach above:
 ```toml title=Cargo.toml
 [dependencies.web-sys]
 version = "0.3"
-# We need to enable the `DomRect` feature in order to use the
+# We need to enable the `DomRect` feature to use the
 # `get_bounding_client_rect` method.
 features = [
     "console",
@@ -239,7 +239,7 @@ html! {
 ## External libraries
 
 `web-sys` is a raw binding to the Web API so it comes with some pain in Rust because it was not
-designed with Rust or even a strong type system in mind, this is where community crates come in to
+designed with Rust or even a strong type system in mind, this is where community crates
 provide abstractions over `web-sys` to provide more idiomatic Rust APIs.
 
 _[External libraries page](/community/external-libs)_

@@ -14,11 +14,8 @@ pub fn write_log_lines(log_lines: Vec<LogLine>) -> Result<Vec<u8>> {
     {
         writeln!(
             logs_list,
-                "- {message}. [[@{user}](https://github.com/{user}), [#{issue_id}](https://github.com/yewstack/yew/pull/{issue_id})]",
-                message = message,
-                user = user,
-                issue_id = issue_id
-            )?;
+            "- {message}. [[@{user}](https://github.com/{user}), [#{issue_id}](https://github.com/yewstack/yew/pull/{issue_id})]",
+        )?;
     }
     Ok(logs_list)
 }

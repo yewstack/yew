@@ -23,7 +23,7 @@ impl PersonInfo {
             let city = CityName(EN).fake::<String>();
             let street = StreetName(EN).fake::<String>();
 
-            Rc::from(format!("{} {} St., {}, {}", no, street, city, state).as_str())
+            Rc::from(format!("{no} {street} St., {city}, {state}").as_str())
         };
 
         Self {

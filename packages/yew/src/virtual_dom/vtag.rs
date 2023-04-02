@@ -15,6 +15,9 @@ use crate::html::{IntoPropValue, NodeRef};
 /// SVG namespace string used for creating svg elements
 pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
 
+/// MathML namespace string used for creating MathML elements
+pub const MATHML_NAMESPACE: &str = "http://www.w3.org/1998/Math/MathML";
+
 /// Default namespace for html elements
 pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
 
@@ -527,7 +530,7 @@ mod feat_ssr {
                         let _ = w.write_str(">");
                     } else {
                         // We don't write children of void elements nor closing tags.
-                        debug_assert!(children.is_empty(), "{} cannot have any children!", tag);
+                        debug_assert!(children.is_empty(), "{tag} cannot have any children!");
                     }
                 }
             }

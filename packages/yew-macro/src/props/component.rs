@@ -4,33 +4,33 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::token::Dot2;
+use syn::token::DotDot;
 use syn::Expr;
 
 use super::{Prop, Props, SpecialProps, CHILDREN_LABEL};
 
 struct BaseExpr {
-    pub dot2: Dot2,
+    pub dot_dot: DotDot,
     pub expr: Expr,
 }
 
 impl Parse for BaseExpr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let dot2 = input.parse()?;
+        let dot_dot = input.parse()?;
         let expr = input.parse().map_err(|expr_error| {
             let mut error =
-                syn::Error::new_spanned(dot2, "expected base props expression after `..`");
+                syn::Error::new_spanned(dot_dot, "expected base props expression after `..`");
             error.combine(expr_error);
             error
         })?;
-        Ok(Self { dot2, expr })
+        Ok(Self { dot_dot, expr })
     }
 }
 
 impl ToTokens for BaseExpr {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let BaseExpr { dot2, expr } = self;
-        tokens.extend(quote! { #dot2 #expr });
+        let BaseExpr { dot_dot, expr } = self;
+        tokens.extend(quote! { #dot_dot #expr });
     }
 }
 

@@ -201,17 +201,17 @@ impl PropField {
     // Detect Properties 2.0 attributes
     fn attribute(named_field: &Field) -> Result<PropAttr> {
         let attr = named_field.attrs.iter().find(|attr| {
-            attr.path.is_ident("prop_or")
-                || attr.path.is_ident("prop_or_else")
-                || attr.path.is_ident("prop_or_default")
+            attr.path().is_ident("prop_or")
+                || attr.path().is_ident("prop_or_else")
+                || attr.path().is_ident("prop_or_default")
         });
 
         if let Some(attr) = attr {
-            if attr.path.is_ident("prop_or") {
+            if attr.path().is_ident("prop_or") {
                 Ok(PropAttr::PropOr(attr.parse_args()?))
-            } else if attr.path.is_ident("prop_or_else") {
+            } else if attr.path().is_ident("prop_or_else") {
                 Ok(PropAttr::PropOrElse(attr.parse_args()?))
-            } else if attr.path.is_ident("prop_or_default") {
+            } else if attr.path().is_ident("prop_or_default") {
                 Ok(PropAttr::PropOrDefault)
             } else {
                 unreachable!()

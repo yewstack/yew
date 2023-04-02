@@ -32,7 +32,7 @@ impl GitHubUsersFetcher {
             .or_insert_with(|| match Self::inner_fetch(commit, token) {
                 Ok(value) => value,
                 Err(err) => {
-                    eprintln!("fetch_user_by_commit_author Error: {}", err);
+                    eprintln!("fetch_user_by_commit_author Error: {err}");
                     None
                 }
             })

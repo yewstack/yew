@@ -87,6 +87,11 @@ mod feat_csr_ssr {
                         return false;
                     }
 
+                    // If a suspension already exists, ignore it.
+                    if self.suspensions.iter().any(|n| n == &m) {
+                        return false;
+                    }
+
                     self.suspensions.push(m);
 
                     true
@@ -146,7 +151,7 @@ mod feat_csr_ssr {
         let SuspenseProps { children, fallback } = props.clone();
 
         let fallback = html! {
-            <BaseSuspense fallback={None}>
+            <BaseSuspense>
                 {fallback}
             </BaseSuspense>
         };

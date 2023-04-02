@@ -14,17 +14,27 @@ jobs:
 
     steps:
       - name: Download Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - if: github.event.workflow_run.event == 'pull_request'
-        name: Download Artifact
+        name: Download Artifact (master)
         uses: Legit-Labs/action-download-artifact@v2
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
           workflow: size-cmp.yml
           run_id: ${{ github.event.workflow_run.id }}
-          name: size-cmp-info
-          path: "size-cmp-info/"
+          name: size-cmp-master-info
+          path: "size-cmp-master-info/"
+
+      - if: github.event.workflow_run.event == 'pull_request'
+        name: Download Artifact (PR)
+        uses: Legit-Labs/action-download-artifact@v2
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          workflow: size-cmp.yml
+          run_id: ${{ github.event.workflow_run.id }}
+          name: size-cmp-pr-info
+          path: "size-cmp-pr-info/"
 
       - name: Make pull request comment
         run: python3 ci/make_example_size_cmt.py

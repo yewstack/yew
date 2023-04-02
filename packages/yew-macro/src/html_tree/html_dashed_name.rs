@@ -45,7 +45,7 @@ impl fmt::Display for HtmlDashedName {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.name)?;
         for (_, ident) in &self.extended {
-            write!(f, "-{}", ident)?;
+            write!(f, "-{ident}")?;
         }
         Ok(())
     }

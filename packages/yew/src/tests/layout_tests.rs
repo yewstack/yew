@@ -2,9 +2,8 @@
 //!
 //! This tests must be run in browser and thus require the `csr` feature to be enabled
 use gloo::console::log;
-use yew::NodeRef;
 
-use crate::dom_bundle::{BSubtree, Bundle};
+use crate::dom_bundle::{BSubtree, Bundle, DomSlot};
 use crate::html::AnyScope;
 use crate::virtual_dom::VNode;
 use crate::{scheduler, Component, Context, Html};
@@ -48,14 +47,14 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     parent_element.append_child(&end_node).unwrap();
 
     // Tests each layout independently
-    let next_sibling = NodeRef::new(end_node.into());
+    let slot = DomSlot::at(end_node.into());
     for layout in layouts.iter() {
         // Apply the layout
         let vnode = layout.node.clone();
         log!("Independently apply layout '{}'", layout.name);
 
         let mut bundle = Bundle::new();
-        bundle.reconcile(&root, &scope, &parent_element, next_sibling.clone(), vnode);
+        bundle.reconcile(&root, &scope, &parent_element, slot.clone(), vnode);
         scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
@@ -69,7 +68,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
 
         log!("Independently reapply layout '{}'", layout.name);
 
-        bundle.reconcile(&root, &scope, &parent_element, next_sibling.clone(), vnode);
+        bundle.reconcile(&root, &scope, &parent_element, slot.clone(), vnode);
         scheduler::start_now();
         assert_eq!(
             parent_element.inner_html(),
@@ -95,13 +94,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         let next_vnode = layout.node.clone();
 
         log!("Sequentially apply layout '{}'", layout.name);
-        bundle.reconcile(
-            &root,
-            &scope,
-            &parent_element,
-            next_sibling.clone(),
-            next_vnode,
-        );
+        bundle.reconcile(&root, &scope, &parent_element, slot.clone(), next_vnode);
 
         scheduler::start_now();
         assert_eq!(
@@ -117,13 +110,7 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         let next_vnode = layout.node.clone();
 
         log!("Sequentially detach layout '{}'", layout.name);
-        bundle.reconcile(
-            &root,
-            &scope,
-            &parent_element,
-            next_sibling.clone(),
-            next_vnode,
-        );
+        bundle.reconcile(&root, &scope, &parent_element, slot.clone(), next_vnode);
 
         scheduler::start_now();
         assert_eq!(

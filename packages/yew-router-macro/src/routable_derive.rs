@@ -65,7 +65,7 @@ fn parse_variants_attributes(
         let attrs = &variant.attrs;
         let at_attrs = attrs
             .iter()
-            .filter(|attr| attr.path.is_ident(AT_ATTR_IDENT))
+            .filter(|attr| attr.path().is_ident(AT_ATTR_IDENT))
             .collect::<Vec<_>>();
 
         let attr = match at_attrs.len() {
@@ -73,16 +73,13 @@ fn parse_variants_attributes(
             0 => {
                 return Err(syn::Error::new(
                     variant.span(),
-                    format!(
-                        "{} attribute must be present on every variant",
-                        AT_ATTR_IDENT
-                    ),
+                    format!("{AT_ATTR_IDENT} attribute must be present on every variant"),
                 ))
             }
             _ => {
                 return Err(syn::Error::new_spanned(
                     quote! { #(#at_attrs)* },
-                    format!("only one {} attribute must be present", AT_ATTR_IDENT),
+                    format!("only one {AT_ATTR_IDENT} attribute must be present"),
                 ))
             }
         };
@@ -107,7 +104,7 @@ fn parse_variants_attributes(
         ats.push(lit);
 
         for attr in attrs.iter() {
-            if attr.path.is_ident(NOT_FOUND_ATTR_IDENT) {
+            if attr.path().is_ident(NOT_FOUND_ATTR_IDENT) {
                 not_found_attrs.push(attr);
                 not_founds.push(variant.ident.clone())
             }
@@ -117,7 +114,7 @@ fn parse_variants_attributes(
     if not_founds.len() > 1 {
         return Err(syn::Error::new_spanned(
             quote! { #(#not_found_attrs)* },
-            format!("there can only be one {}", NOT_FOUND_ATTR_IDENT),
+            format!("there can only be one {NOT_FOUND_ATTR_IDENT}"),
         ));
     }
 
@@ -174,8 +171,8 @@ impl Routable {
                         // :param -> {param}
                         // *param -> {param}
                         // so we can pass it to `format!("...", param)`
-                        right = right.replace(&format!(":{}", field), &format!("{{{}}}", field));
-                        right = right.replace(&format!("*{}", field), &format!("{{{}}}", field));
+                        right = right.replace(&format!(":{field}"), &format!("{{{field}}}"));
+                        right = right.replace(&format!("*{field}"), &format!("{{{field}}}"));
                     }
 
                     quote! {

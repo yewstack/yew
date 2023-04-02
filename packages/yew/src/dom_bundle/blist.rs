@@ -8,9 +8,9 @@ use std::rc::Rc;
 
 use web_sys::Element;
 
-use super::{test_log, BNode, BSubtree};
+use super::{test_log, BNode, BSubtree, DomSlot};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
-use crate::html::{AnyScope, NodeRef};
+use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VList, VNode, VText};
 
 /// This struct represents a mounted [VList]
@@ -61,7 +61,7 @@ struct NodeWriter<'s> {
     root: &'s BSubtree,
     parent_scope: &'s AnyScope,
     parent: &'s Element,
-    next_sibling: NodeRef,
+    slot: DomSlot,
 }
 
 impl<'s> NodeWriter<'s> {
@@ -69,48 +69,33 @@ impl<'s> NodeWriter<'s> {
     fn add(self, node: VNode) -> (Self, BNode) {
         test_log!("adding: {:?}", node);
         test_log!(
-            "  parent={:?}, next_sibling={:?}",
+            "  parent={:?}, slot={:?}",
             self.parent.outer_html(),
-            self.next_sibling
+            self.slot
         );
-        let (next, bundle) =
-            node.attach(self.root, self.parent_scope, self.parent, self.next_sibling);
-        test_log!("  next_position: {:?}", next);
-        (
-            Self {
-                next_sibling: next,
-                ..self
-            },
-            bundle,
-        )
+        let (next, bundle) = node.attach(self.root, self.parent_scope, self.parent, self.slot);
+        test_log!("  next_slot: {:?}", next);
+        (Self { slot: next, ..self }, bundle)
     }
 
     /// Shift a bundle into place without patching it
     fn shift(&self, bundle: &mut BNode) {
-        bundle.shift(self.parent, self.next_sibling.clone());
+        bundle.shift(self.parent, self.slot.clone());
     }
 
     /// Patch a bundle with a new node
     fn patch(self, node: VNode, bundle: &mut BNode) -> Self {
         test_log!("patching: {:?} -> {:?}", bundle, node);
         test_log!(
-            "  parent={:?}, next_sibling={:?}",
+            "  parent={:?}, slot={:?}",
             self.parent.outer_html(),
-            self.next_sibling
+            self.slot
         );
         // Advance the next sibling reference (from right to left)
-        let next = node.reconcile_node(
-            self.root,
-            self.parent_scope,
-            self.parent,
-            self.next_sibling,
-            bundle,
-        );
+        let next =
+            node.reconcile_node(self.root, self.parent_scope, self.parent, self.slot, bundle);
         test_log!("  next_position: {:?}", next);
-        Self {
-            next_sibling: next,
-            ..self
-        }
+        Self { slot: next, ..self }
     }
 }
 /// Helper struct implementing [Eq] and [Hash] by only looking at a node's key
@@ -173,15 +158,15 @@ impl BList {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        slot: DomSlot,
         lefts: Vec<VNode>,
         rights: &mut Vec<BNode>,
-    ) -> NodeRef {
+    ) -> DomSlot {
         let mut writer = NodeWriter {
             root,
             parent_scope,
             parent,
-            next_sibling,
+            slot,
         };
 
         // Remove extra nodes
@@ -203,7 +188,7 @@ impl BList {
             rights.push(el);
             writer = next_writer;
         }
-        writer.next_sibling
+        writer.slot
     }
 
     /// Diff and patch fully keyed child lists.
@@ -214,10 +199,10 @@ impl BList {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        slot: DomSlot,
         left_vdoms: Vec<VNode>,
         rev_bundles: &mut Vec<BNode>,
-    ) -> NodeRef {
+    ) -> DomSlot {
         macro_rules! key {
             ($v:expr) => {
                 $v.key().expect("unkeyed child in fully keyed list")
@@ -241,14 +226,7 @@ impl BList {
         // Corresponds to adding or removing items from the back of the list
         if matching_len_end == std::cmp::min(left_vdoms.len(), rev_bundles.len()) {
             // No key changes
-            return Self::apply_unkeyed(
-                root,
-                parent_scope,
-                parent,
-                next_sibling,
-                left_vdoms,
-                rev_bundles,
-            );
+            return Self::apply_unkeyed(root, parent_scope, parent, slot, left_vdoms, rev_bundles);
         }
 
         // We partially drain the new vnodes in several steps.
@@ -257,7 +235,7 @@ impl BList {
             root,
             parent_scope,
             parent,
-            next_sibling,
+            slot,
         };
         // Step 1. Diff matching children at the end
         let lefts_to = lefts.len() - matching_len_end;
@@ -394,7 +372,7 @@ impl BList {
             writer = writer.patch(l, r);
         }
 
-        writer.next_sibling
+        writer.slot
     }
 }
 
@@ -405,14 +383,12 @@ impl ReconcileTarget for BList {
         }
     }
 
-    fn shift(&self, next_parent: &Element, next_sibling: NodeRef) -> NodeRef {
-        let mut next_sibling = next_sibling;
-
+    fn shift(&self, next_parent: &Element, mut slot: DomSlot) -> DomSlot {
         for node in self.rev_children.iter() {
-            next_sibling = node.shift(next_parent, next_sibling.clone());
+            slot = node.shift(next_parent, slot);
         }
 
-        next_sibling
+        slot
     }
 }
 
@@ -424,10 +400,10 @@ impl Reconcilable for VList {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
-    ) -> (NodeRef, Self::Bundle) {
+        slot: DomSlot,
+    ) -> (DomSlot, Self::Bundle) {
         let mut self_ = BList::new();
-        let node_ref = self.reconcile(root, parent_scope, parent, next_sibling, &mut self_);
+        let node_ref = self.reconcile(root, parent_scope, parent, slot, &mut self_);
         (node_ref, self_)
     }
 
@@ -436,13 +412,13 @@ impl Reconcilable for VList {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        slot: DomSlot,
         bundle: &mut BNode,
-    ) -> NodeRef {
+    ) -> DomSlot {
         // 'Forcefully' pretend the existing node is a list. Creates a
         // singleton list if it isn't already.
         let blist = bundle.make_list();
-        self.reconcile(root, parent_scope, parent, next_sibling, blist)
+        self.reconcile(root, parent_scope, parent, slot, blist)
     }
 
     fn reconcile(
@@ -450,9 +426,9 @@ impl Reconcilable for VList {
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
-        next_sibling: NodeRef,
+        slot: DomSlot,
         blist: &mut BList,
-    ) -> NodeRef {
+    ) -> DomSlot {
         // Here, we will try to diff the previous list elements with the new
         // ones we want to insert. For that, we will use two lists:
         //  - lefts: new elements to render in the DOM
@@ -471,9 +447,9 @@ impl Reconcilable for VList {
             rights.reserve_exact(additional);
         }
         let first = if fully_keyed && blist.fully_keyed {
-            BList::apply_keyed(root, parent_scope, parent, next_sibling, lefts, rights)
+            BList::apply_keyed(root, parent_scope, parent, slot, lefts, rights)
         } else {
-            BList::apply_unkeyed(root, parent_scope, parent, next_sibling, lefts, rights)
+            BList::apply_unkeyed(root, parent_scope, parent, slot, lefts, rights)
         };
         blist.fully_keyed = fully_keyed;
         blist.key = key;
@@ -494,32 +470,24 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
-        ) -> (NodeRef, Self::Bundle) {
-            let node_ref = NodeRef::default();
+        ) -> Self::Bundle {
             let (key, fully_keyed, vchildren) = self.split_for_blist();
 
             let mut children = Vec::with_capacity(vchildren.len());
 
-            for (index, child) in vchildren.into_iter().enumerate() {
-                let (child_node_ref, child) = child.hydrate(root, parent_scope, parent, fragment);
-
-                if index == 0 {
-                    node_ref.link(child_node_ref);
-                }
+            for child in vchildren.into_iter() {
+                let child = child.hydrate(root, parent_scope, parent, fragment);
 
                 children.push(child);
             }
 
             children.reverse();
 
-            (
-                node_ref,
-                BList {
-                    rev_children: children,
-                    fully_keyed,
-                    key,
-                },
-            )
+            BList {
+                rev_children: children,
+                fully_keyed,
+                key,
+            }
         }
     }
 }

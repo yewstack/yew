@@ -4,7 +4,7 @@ title: 'Custom Hooks'
 
 ## Defining custom Hooks
 
-Component's stateful logic can be extracted into reusable function by creating custom Hooks.
+The stateful logic of a component can be extracted into reusable functions by creating custom Hooks.
 
 Consider that we wish to create an event listener that listens to an event on the `window`
 object.
@@ -34,13 +34,13 @@ pub fn show_storage_changed() -> Html {
 ```
 
 There's one problem with this code: the logic can't be reused by another component.
-If we build another component which keeps track of the an event,
+If we build another component that listens to a different event,
 instead of copying the code, we can move the logic into a custom hook.
 
 We'll start by creating a new function called `use_event`.
 The `use_` prefix denotes that a function is a hook.
-This function will take an event target, an event type and a callback.
-All hooks must be marked by `#[hook]` to function as as hook.
+This function will take an event target, an event type, and a callback.
+All hooks must be marked by `#[hook]` on their function definition.
 
 ```rust
 use web_sys::{Event, EventTarget};
@@ -58,7 +58,7 @@ where
 }
 ```
 
-This is a simple hook which can be created by composing built-in hooks. For this example, we'll use the
+This simple hook can be created by composing built-in hooks. For this example, we'll use the
 `use_effect_with_deps` hook, so an event listener can be recreated when the hook arguments change.
 
 ```rust

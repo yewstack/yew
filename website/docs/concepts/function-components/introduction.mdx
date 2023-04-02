@@ -3,13 +3,13 @@ title: 'Function Components'
 slug: /concepts/function-components
 ---
 
-Lets revisit this previous statement:
+Let's revisit this previous statement:
 
 > Yew centrally operates on the idea of keeping everything that a reusable piece of
 > UI may need in one place - rust files.
 
 We will refine this statement, by introducing the concept that will define the logic and
-presentation behaviour of an application: "components".
+presentation behavior of an application: "components".
 
 ## What are Components?
 
@@ -21,7 +21,7 @@ They:
 -   Can have their own state
 -   Compute pieces of HTML visible to the user (DOM)
 
-## Two flavours of Yew Components
+## Two flavors of Yew Components
 
 You are currently reading about function components - the recommended way to write components
 when starting with Yew and when writing simple presentation logic.
@@ -55,7 +55,7 @@ fn App() -> Html {
 When rendering, Yew will build a virtual tree of these components.
 It will call the view function of each (function) component to compute a virtual version (VDOM) of the DOM
 that you as the library user see as the `Html` type.
-For the previous example this would look like this:
+For the previous example, this would look like this:
 
 ```xhtml
 <App>
@@ -71,6 +71,6 @@ This is what we call **rendering**.
 
 :::note
 
-Behind the scenes `Html` is just an alias for `VNode` - virtual node.
+Behind the scenes, `Html` is just an alias for `VNode` - a virtual node.
 
 :::

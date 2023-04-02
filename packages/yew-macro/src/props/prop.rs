@@ -6,7 +6,7 @@ use quote::{quote, quote_spanned};
 use syn::parse::{Parse, ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
-use syn::{braced, Block, Expr, ExprBlock, ExprPath, ExprRange, Stmt, Token};
+use syn::{braced, Block, Expr, ExprBlock, ExprMacro, ExprPath, ExprRange, Stmt, Token};
 
 use crate::html_tree::HtmlDashedName;
 use crate::stringify::Stringify;
@@ -88,9 +88,8 @@ impl Prop {
             syn::Error::new_spanned(
                 &label,
                 format!(
-                    "`{}` doesn't have a value. (hint: set the value to `true` or `false` for \
-                     boolean attributes)",
-                    label
+                    "`{label}` doesn't have a value. (hint: set the value to `true` or `false` \
+                     for boolean attributes)"
                 ),
             )
         })?;
@@ -115,13 +114,13 @@ fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
         strip_braces(input.parse()?)
     } else {
         let expr = if let Some(ExprRange {
-            from: Some(from), ..
+            start: Some(start), ..
         }) = range_expression_peek(input)
         {
             // If a range expression is seen, treat the left-side expression as the value
             // and leave the right-side expression to be parsed as a base expression
             advance_until_next_dot2(input)?;
-            *from
+            *start
         } else {
             input.parse()?
         };
@@ -132,8 +131,7 @@ fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
                 &expr,
                 format!(
                     "the property value must be either a literal or enclosed in braces. Consider \
-                     adding braces around your expression.: {:#?}",
-                    exp
+                     adding braces around your expression.: {exp:#?}"
                 ),
             )),
         }
@@ -148,7 +146,11 @@ fn strip_braces(block: ExprBlock) -> syn::Result<Expr> {
         } if stmts.len() == 1 => {
             let stmt = stmts.remove(0);
             match stmt {
-                Stmt::Expr(expr) => Ok(expr),
+                Stmt::Expr(expr, None) => Ok(expr),
+                Stmt::Macro(mac) => Ok(Expr::Macro(ExprMacro {
+                    attrs: vec![],
+                    mac: mac.mac,
+                })),
                 // See issue #2267, we want to parse macro invocations as expressions
                 Stmt::Item(syn::Item::Macro(mac))
                     if mac.ident.is_none() && mac.semi_token.is_none() =>
@@ -158,7 +160,7 @@ fn strip_braces(block: ExprBlock) -> syn::Result<Expr> {
                         mac: mac.mac,
                     }))
                 }
-                Stmt::Semi(_expr, semi) => Err(syn::Error::new_spanned(
+                Stmt::Expr(_, Some(semi)) => Err(syn::Error::new_spanned(
                     semi,
                     "only an expression may be assigned as a property. Consider removing this \
                      semicolon",
@@ -244,7 +246,7 @@ impl PropList {
             if let Some(other_prop) = self.get_by_label(key) {
                 return Err(syn::Error::new_spanned(
                     &other_prop.label,
-                    format!("`{}` can only be specified once", key),
+                    format!("`{key}` can only be specified once"),
                 ));
             }
         }

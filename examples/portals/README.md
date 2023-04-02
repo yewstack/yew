@@ -8,3 +8,11 @@ This example renders elements into out-of-tree nodes with the help of portals.
 
 - Manually creating `Html` without the `html!` macro.
 - Using `web-sys` to manipulate the DOM.
+
+## Running
+
+Run this application with the trunk development server:
+
+```bash
+trunk serve --open
+```

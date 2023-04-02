@@ -40,3 +40,11 @@ The best way to improve this example would be to incorporate this concept into a
 
 - Do something more complex in the Javascript code to demonstrate more of `wasm-bindgen`'s capabilities.
 - Improve the presentation of the example with CSS.
+
+## Running
+
+Run this application with the trunk development server:
+
+```bash
+trunk serve --open
+```
