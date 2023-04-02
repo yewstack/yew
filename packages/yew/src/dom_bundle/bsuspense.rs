@@ -7,8 +7,7 @@ use web_sys::Element;
 use super::Fragment;
 use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
-use crate::virtual_dom::{Key, VSuspense};
-use crate::NodeRef;
+use crate::virtual_dom::VSuspense;
 
 #[derive(Debug)]
 enum Fallback {
@@ -138,7 +137,7 @@ impl Reconcilable for VSuspense {
         // When it's suspended, we render children into an element that is detached from the dom
         // tree while rendering fallback UI into the original place where children resides in.
         match (vfallback, &mut suspense.fallback) {
-            // Both suspended, reconcile children into detached_parent, fallback into the DOM
+            // Already suspended, reconcile children into detached_parent, fallback into the DOM
             (Some(vfallback), Some(fallback)) => {
                 children.reconcile_node(
                     root,
@@ -160,12 +159,12 @@ impl Reconcilable for VSuspense {
                 }
             }
             // Not suspended, just reconcile the children into the DOM
-            (false, None) => {
+            (None, None) => {
                 children.reconcile_node(root, parent_scope, parent, slot, children_bundle)
             }
             // Freshly suspended. Shift children into the detached parent, then add fallback to the
             // DOM
-            (true, None) => {
+            (Some(vfallback), None) => {
                 children_bundle.shift(&suspense.detached_parent, DomSlot::at_end());
 
                 children.reconcile_node(

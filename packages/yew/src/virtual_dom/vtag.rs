@@ -526,7 +526,13 @@ mod feat_ssr {
                         let _ = w.write_str(">");
                     } else {
                         // We don't write children of void elements nor closing tags.
-                        debug_assert!(children.is_empty(), "{tag} cannot have any children!");
+                        debug_assert!(
+                            match children {
+                                VNode::VList(m) => m.is_empty(),
+                                _ => false,
+                            },
+                            "{tag} cannot have any children!"
+                        );
                     }
                 }
             }

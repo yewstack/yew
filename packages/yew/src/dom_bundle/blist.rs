@@ -25,14 +25,16 @@ pub(super) struct BList {
 impl VList {
     // Splits a VList for creating / reconciling to a BList.
     fn split_for_blist(self) -> (Option<Key>, bool, Vec<VNode>) {
-        let mut fully_keyed = self.fully_keyed();
+        let fully_keyed = self.fully_keyed();
 
-        let mut children = self
+        let children = self
             .children
             .map(Rc::try_unwrap)
             .unwrap_or_else(|| Ok(Vec::new()))
             // Rc::unwrap_or_clone is not stable yet.
             .unwrap_or_else(|m| m.to_vec());
+
+        (self.key, fully_keyed, children)
     }
 }
 

@@ -2,8 +2,7 @@
 
 use std::fmt;
 
-use crate::html::Html;
-use crate::virtual_dom::{VChild, VChild, VList, VNode};
+use crate::virtual_dom::{VChild, VList, VNode};
 use crate::Properties;
 
 /// A type used for accepting children elements in Component::Properties.
@@ -268,10 +267,10 @@ mod tests {
 
     #[test]
     fn children_renderer_map() {
-        let children = ChildrenRenderer<VNode>::new(vec![]);
+        let children = ChildrenRenderer::<VNode>::new(vec![]);
         let res = children.map(|children| Some(children.clone()));
         assert!(res.is_none());
-        let children = ChildrenRenderer<VNode>::new(vec![Default::default()]);
+        let children = ChildrenRenderer::<VNode>::new(vec![Default::default()]);
         let res = children.map(|children| Some(children.clone()));
         assert!(res.is_some());
     }

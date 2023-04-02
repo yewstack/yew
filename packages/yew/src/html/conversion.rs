@@ -251,14 +251,9 @@ macro_rules! impl_into_prop {
 
 // implemented with literals in mind
 impl_into_prop!(|value: &'static str| -> String { value.to_owned() });
-
 impl_into_prop!(|value: &'static str| -> AttrValue { AttrValue::Static(value) });
 impl_into_prop!(|value: String| -> AttrValue { AttrValue::Rc(Rc::from(value)) });
 impl_into_prop!(|value: Rc<str>| -> AttrValue { AttrValue::Rc(value) });
-impl_into_prop!(|value: VNode| -> Children { Children::new(vec![value]) });
-impl_into_prop!(|value: &'static str| -> VNode { crate::html!(value) });
-impl_into_prop!(|value: String| -> VNode { crate::html!(value) });
-impl_into_prop!(|value: AttrValue| -> VNode { crate::html!(value) });
 
 impl<T: ImplicitClone + 'static> IntoPropValue<IArray<T>> for &'static [T] {
     fn into_prop_value(self) -> IArray<T> {
