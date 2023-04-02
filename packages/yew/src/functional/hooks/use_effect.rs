@@ -18,54 +18,109 @@ impl<F: FnOnce() + 'static> TearDown for F {
     }
 }
 
-struct UseEffectHook<T, F, D: TearDown> {
-    deps_and_runner: Option<(T, F)>,
-    last_destructor: Option<D>,
-    last_deps: Option<T>,
-}
-
-impl<T, F, D: TearDown> Drop for UseEffectHook<T, F, D> {
-    fn drop(&mut self) {
-        if let Some(de) = self.last_destructor.take() {
-            de.tear_down()
-        }
-    }
-}
-
-impl<T, F, D> Effect for RefCell<UseEffectHook<T, F, D>>
+struct UseEffectBase<T, F, D>
 where
-    T: PartialEq + 'static,
     F: FnOnce(&T) -> D + 'static,
+    T: 'static,
+    D: TearDown,
+{
+    runner_with_deps: Option<(T, F)>,
+    destructor: Option<D>,
+    deps: Option<T>,
+    effect_changed_fn: fn(Option<&T>, Option<&T>) -> bool,
+}
+
+impl<T, F, D> Effect for RefCell<UseEffectBase<T, F, D>>
+where
+    F: FnOnce(&T) -> D + 'static,
+    T: 'static,
     D: TearDown,
 {
     fn rendered(&self) {
         let mut this = self.borrow_mut();
 
-        if let Some((deps, f)) = this.deps_and_runner.take() {
-            if Some(&deps) == this.last_deps.as_ref() {
+        if let Some((deps, runner)) = this.runner_with_deps.take() {
+            if !(this.effect_changed_fn)(Some(&deps), this.deps.as_ref()) {
                 return;
             }
 
-            if let Some(de) = this.last_destructor.take() {
+            if let Some(de) = this.destructor.take() {
                 de.tear_down();
             }
 
-            this.last_destructor = Some(f(&deps));
-            this.last_deps = Some(deps);
+            let new_destructor = runner(&deps);
+
+            this.deps = Some(deps);
+            this.destructor = Some(new_destructor);
         }
     }
 }
 
-impl<T, F, D> Hook for UseEffectHook<T, F, D>
+impl<T, F, D> Drop for UseEffectBase<T, F, D>
 where
-    T: PartialEq + 'static,
     F: FnOnce(&T) -> D + 'static,
+    T: 'static,
     D: TearDown,
 {
-    type Output = ();
+    fn drop(&mut self) {
+        if let Some(destructor) = self.destructor.take() {
+            destructor.tear_down()
+        }
+    }
+}
 
-    fn run(self, ctx: &mut HookContext) -> Self::Output {
-        ctx.next_effect(|_| RefCell::new(self));
+fn use_effect_base<T, D>(
+    runner: impl FnOnce(&T) -> D + 'static,
+    deps: T,
+    effect_changed_fn: fn(Option<&T>, Option<&T>) -> bool,
+) -> impl Hook<Output = ()>
+where
+    T: 'static,
+    D: TearDown,
+{
+    struct HookProvider<T, F, D>
+    where
+        F: FnOnce(&T) -> D + 'static,
+        T: 'static,
+        D: TearDown,
+    {
+        runner: F,
+        deps: T,
+        effect_changed_fn: fn(Option<&T>, Option<&T>) -> bool,
+    }
+
+    impl<T, F, D> Hook for HookProvider<T, F, D>
+    where
+        F: FnOnce(&T) -> D + 'static,
+        T: 'static,
+        D: TearDown,
+    {
+        type Output = ();
+
+        fn run(self, ctx: &mut HookContext) -> Self::Output {
+            let Self {
+                runner,
+                deps,
+                effect_changed_fn,
+            } = self;
+
+            let state = ctx.next_effect(|_| -> RefCell<UseEffectBase<T, F, D>> {
+                RefCell::new(UseEffectBase {
+                    runner_with_deps: None,
+                    destructor: None,
+                    deps: None,
+                    effect_changed_fn,
+                })
+            });
+
+            state.borrow_mut().runner_with_deps = Some((deps, runner));
+        }
+    }
+
+    HookProvider {
+        runner,
+        deps,
+        effect_changed_fn,
     }
 }
 
@@ -125,7 +180,7 @@ where
     }
 
     // Never equals, so this will be called every render
-    use_effect_with(NeverEq, |_| f());
+    use_effect_base(|_| f(), NeverEq, |_, _| true);
 }
 
 /// This hook is similar to [`use_effect`] but it accepts dependencies.
@@ -214,9 +269,5 @@ where
     F: FnOnce(&T) -> D + 'static,
     D: TearDown,
 {
-    UseEffectHook {
-        deps_and_runner: Some((deps, f)),
-        last_destructor: None,
-        last_deps: None,
-    }
+    use_effect_base(f, deps, |lhs, rhs| lhs != rhs)
 }
