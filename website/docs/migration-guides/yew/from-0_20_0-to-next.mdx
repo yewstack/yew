@@ -17,13 +17,13 @@ Here are commands that can do the refactoring for you.
 
 ```bash
 sg --pattern 'use_effect_with_deps($CALLBACK,$$$DEPENDENCIES)' --rewrite 'use_effect_with($$$DEPENDENCIES, $CALLBACK)' -l rs -i
-sg --pattern 'use_effect_with($CALLBACK,,$$$DEPENDENCIES)' --rewrite 'use_effect_with($CALLBACK,$$$DEPENDENCIES)' -l rs -i
+sg --pattern 'use_effect_with($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_effect_with($DEPENDENCIES,$$$CALLBACK)' -l rs -i
 
 sg --pattern 'use_callback($CALLBACK,$$$DEPENDENCIES)' --rewrite 'use_callback($$$DEPENDENCIES, $CALLBACK)' -l rs -i
-sg --pattern 'use_callback($CALLBACK,,$$$DEPENDENCIES)' --rewrite 'use_callback($CALLBACK,$$$DEPENDENCIES)' -l rs -i
+sg --pattern 'use_callback($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_callback($DEPENDENCIES,$$$CALLBACK)' -l rs -i
 
 sg --pattern 'use_memo($CALLBACK,$$$DEPENDENCIES)' --rewrite 'use_memo($$$DEPENDENCIES, $CALLBACK)' -l rs -i
-sg --pattern 'use_memo($CALLBACK,,$$$DEPENDENCIES)' --rewrite 'use_memo($CALLBACK,$$$DEPENDENCIES)' -l rs -i
+sg --pattern 'use_memo($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_memo($DEPENDENCIES,$$$CALLBACK)' -l rs -i
 ```
 
 ### Reasoning
