@@ -75,7 +75,7 @@ features = [
   "WheelEvent",
   "Window",
   "HtmlScriptElement",
-  "SubmitEvent"
+  "SubmitEvent",
 ]
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
@@ -89,11 +89,7 @@ trybuild = "1"
 
 [dev-dependencies.web-sys]
 version = "0.3"
-features = [
-  "ShadowRootInit",
-  "ShadowRootMode",
-  "HtmlButtonElement"
-]
+features = ["ShadowRootInit", "ShadowRootMode", "HtmlButtonElement"]
 
 [features]
 ssr = ["dep:html-escape", "dep:base64ct", "dep:bincode"]
