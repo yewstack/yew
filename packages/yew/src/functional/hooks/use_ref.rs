@@ -92,32 +92,26 @@ where
 ///     {
 ///         let div_ref = div_ref.clone();
 ///
-///         use_effect_with(
-///             div_ref,
-///             |div_ref| {
-///                 let div = div_ref
-///                     .cast::<HtmlElement>()
-///                     .expect("div_ref not attached to div element");
+///         use_effect_with(div_ref, |div_ref| {
+///             let div = div_ref
+///                 .cast::<HtmlElement>()
+///                 .expect("div_ref not attached to div element");
 ///
-///                 let listener = Closure::<dyn Fn(Event)>::wrap(Box::new(|_| {
-///                     web_sys::console::log_1(&"Clicked!".into());
-///                 }));
+///             let listener = Closure::<dyn Fn(Event)>::wrap(Box::new(|_| {
+///                 web_sys::console::log_1(&"Clicked!".into());
+///             }));
 ///
-///                 div.add_event_listener_with_callback(
+///             div.add_event_listener_with_callback("click", listener.as_ref().unchecked_ref())
+///                 .unwrap();
+///
+///             move || {
+///                 div.remove_event_listener_with_callback(
 ///                     "click",
 ///                     listener.as_ref().unchecked_ref(),
 ///                 )
 ///                 .unwrap();
-///
-///                 move || {
-///                     div.remove_event_listener_with_callback(
-///                         "click",
-///                         listener.as_ref().unchecked_ref(),
-///                     )
-///                     .unwrap();
-///                 }
-///             },
-///         );
+///             }
+///         });
 ///     }
 ///
 ///     html! {
