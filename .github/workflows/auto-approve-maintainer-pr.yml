@@ -1,6 +1,13 @@
 name: Auto approve
 
-on: pull_request_target
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+      - review_requested
 
 jobs:
   auto-approve:
