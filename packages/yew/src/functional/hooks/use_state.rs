@@ -63,14 +63,14 @@ where
 /// The value held in the handle will reflect the value of at the time the
 /// handle is returned by the `use_reducer`. It is possible that the handle does
 /// not dereference to an up to date value if you are moving it into a
-/// `use_effect_with_deps` hook. You can register the
+/// `use_effect_with` hook. You can register the
 /// state to the dependents so the hook can be updated when the value changes.
 ///
 /// # Tip
 ///
 /// The setter function is guaranteed to be the same across the entire
 /// component lifecycle. You can safely omit the `UseStateHandle` from the
-/// dependents of `use_effect_with_deps` if you only intend to set
+/// dependents of `use_effect_with` if you only intend to set
 /// values from within the hook.
 #[hook]
 pub fn use_state<T, F>(init_fn: F) -> UseStateHandle<T>

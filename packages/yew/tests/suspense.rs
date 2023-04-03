@@ -703,15 +703,12 @@ async fn test_suspend_forever() {
 
         {
             let page_setter = page.setter();
-            use_effect_with_deps(
-                move |_| {
-                    spawn_local(async move {
-                        sleep(Duration::from_secs(1)).await;
-                        page_setter.set(2);
-                    });
-                },
-                (),
-            );
+            use_effect_with((), move |_| {
+                spawn_local(async move {
+                    sleep(Duration::from_secs(1)).await;
+                    page_setter.set(2);
+                });
+            });
         }
 
         let content = if *page == 1 {

@@ -922,13 +922,10 @@ async fn hydration_props_blocked_until_hydrated() {
         let range = use_state(|| 0u32..2);
         {
             let range = range.clone();
-            use_effect_with_deps(
-                move |_| {
-                    range.set(0..3);
-                    || ()
-                },
-                (),
-            );
+            use_effect_with((), move |_| {
+                range.set(0..3);
+                || ()
+            });
         }
 
         html! {
@@ -985,13 +982,10 @@ async fn hydrate_empty() {
         let trigger = use_state(|| false);
         {
             let trigger = trigger.clone();
-            use_effect_with_deps(
-                move |_| {
-                    trigger.set(true);
-                    || {}
-                },
-                (),
-            );
+            use_effect_with((), move |_| {
+                trigger.set(true);
+                || {}
+            });
         }
         if *trigger {
             html! { <div>{"after"}</div> }

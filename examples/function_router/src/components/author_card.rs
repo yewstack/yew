@@ -38,14 +38,11 @@ pub fn AuthorCard(props: &Props) -> Html {
 
     {
         let author_dispatcher = author.dispatcher();
-        use_effect_with_deps(
-            move |seed| {
-                author_dispatcher.dispatch(*seed);
+        use_effect_with(seed, move |seed| {
+            author_dispatcher.dispatch(*seed);
 
-                || {}
-            },
-            seed,
-        );
+            || {}
+        });
     }
 
     let author = &author.inner;
