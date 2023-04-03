@@ -171,10 +171,12 @@ macro_rules! impl_into_prop {
 
 // implemented with literals in mind
 impl_into_prop!(|value: &'static str| -> String { value.to_owned() });
+impl_into_prop!(|value: bool| -> String { value.to_string() });
 
 impl_into_prop!(|value: &'static str| -> AttrValue { AttrValue::Static(value) });
 impl_into_prop!(|value: String| -> AttrValue { AttrValue::Rc(Rc::from(value)) });
 impl_into_prop!(|value: Rc<str>| -> AttrValue { AttrValue::Rc(value) });
+impl_into_prop!(|value: bool| -> AttrValue { value.to_string().into_prop_value() });
 impl_into_prop!(|value: VNode| -> Children { Children::new(vec![value]) });
 impl_into_prop!(|value: &'static str| -> VNode { crate::html!(value) });
 impl_into_prop!(|value: String| -> VNode { crate::html!(value) });
@@ -219,6 +221,14 @@ mod test {
         let _: AttrValue = "foo".into_prop_value();
         let _: Option<AttrValue> = "foo".into_prop_value();
         let _: Option<AttrValue> = Rc::<str>::from("foo").into_prop_value();
+    }
+
+    #[test]
+    fn test_bool() {
+        let _: String = true.into_prop_value();
+        let _: Option<String> = true.into_prop_value();
+        let _: AttrValue = true.into_prop_value();
+        let _: Option<AttrValue> = true.into_prop_value();
     }
 
     #[test]
