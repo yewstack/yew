@@ -1,7 +1,7 @@
 use crate::AttrValue;
 
 /// A raw HTML string to be used in VDOM.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct VRaw {
     pub html: AttrValue,
 }

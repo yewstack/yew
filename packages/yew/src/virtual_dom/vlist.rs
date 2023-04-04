@@ -25,15 +25,7 @@ pub struct VList {
 
 impl PartialEq for VList {
     fn eq(&self, other: &Self) -> bool {
-        self.key == other.key
-            && match (self.children.as_ref(), other.children.as_ref()) {
-                // We try to use ptr_eq if both are behind Rc,
-                // Somehow VNode is not Eq?
-                (Some(l), Some(r)) if Rc::ptr_eq(l, r) => true,
-                // We fallback to PartialEq if left and right didn't point to the same memory
-                // address.
-                (l, r) => l == r,
-            }
+        self.key == other.key && self.children == other.children
     }
 }
 

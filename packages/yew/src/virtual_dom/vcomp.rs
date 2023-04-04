@@ -1,6 +1,6 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 use std::fmt;
 use std::rc::Rc;
 
@@ -55,6 +55,9 @@ impl Clone for VComp {
 pub(crate) trait Mountable {
     fn copy(&self) -> Box<dyn Mountable>;
 
+    fn mountable_eq(&self, rhs: &dyn Mountable) -> bool;
+    fn as_any(&self) -> &dyn Any;
+
     #[cfg(feature = "csr")]
     fn mount(
         self: Box<Self>,
@@ -103,6 +106,17 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
             props: Rc::clone(&self.props),
         };
         Box::new(wrapper)
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn mountable_eq(&self, rhs: &dyn Mountable) -> bool {
+        rhs.as_any()
+            .downcast_ref::<Self>()
+            .map(|rhs| self.props == rhs.props)
+            .unwrap_or(false)
     }
 
     #[cfg(feature = "csr")]
@@ -224,7 +238,9 @@ impl VComp {
 
 impl PartialEq for VComp {
     fn eq(&self, other: &VComp) -> bool {
-        self.type_id == other.type_id
+        self.key == other.key
+            && self.type_id == other.type_id
+            && self.mountable.mountable_eq(other.mountable.as_ref())
     }
 }
 
