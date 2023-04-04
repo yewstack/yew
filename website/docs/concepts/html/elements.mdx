@@ -23,6 +23,7 @@ use gloo::utils::document;
 fn MyComponent() -> Html {
     // memoize as this only needs to be executed once
     let node = use_memo(
+        (),
         |_| {
             // Create a div element from the document
             let div: Element = document().create_element("div").unwrap();
@@ -33,7 +34,6 @@ fn MyComponent() -> Html {
             // Return that Node as a Html value
             Html::VRef(node)
         },
-        (),
     );
 
     // use_memo return Rc so we need to deref and clone

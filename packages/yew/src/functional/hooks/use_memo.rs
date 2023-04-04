@@ -59,10 +59,9 @@ where
 /// #[function_component(UseMemo)]
 /// fn memo(props: &Props) -> Html {
 ///     // Will only get recalculated if `props.step` value changes
-///     let message = use_memo(
-///         |step| format!("{}. Do Some Expensive Calculation", step),
-///         props.step,
-///     );
+///     let message = use_memo(props.step, |step| {
+///         format!("{}. Do Some Expensive Calculation", step)
+///     });
 ///
 ///     html! {
 ///         <div>
@@ -72,7 +71,7 @@ where
 /// }
 /// ```
 #[hook]
-pub fn use_memo<T, F, D>(f: F, deps: D) -> Rc<T>
+pub fn use_memo<T, F, D>(deps: D, f: F) -> Rc<T>
 where
     T: 'static,
     F: FnOnce(&D) -> T,

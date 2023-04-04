@@ -41,7 +41,7 @@ jobs:
           toolchain: stable
 
       - name: Install cargo binary dependencies
-        uses: baptiste0928/cargo-install@v1
+        uses: baptiste0928/cargo-install@v2
         with:
           crate: cargo-release
           version: =0.23.1

@@ -45,9 +45,10 @@ impl Component for App {
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Add(description) => {
+                let description = description.trim();
                 if !description.is_empty() {
                     let entry = Entry {
-                        description: description.trim().to_string(),
+                        description: description.to_string(),
                         completed: false,
                         editing: false,
                     };

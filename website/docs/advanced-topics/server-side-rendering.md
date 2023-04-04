@@ -59,7 +59,7 @@ async fn no_main() {
 The recommended way of working with server-side rendering is
 function components.
 
-All hooks other than `use_effect` (and `use_effect_with_deps`)
+All hooks other than `use_effect` (and `use_effect_with`)
 will function normally until a component successfully renders into `Html`
 for the first time.
 
@@ -69,7 +69,7 @@ Web APIs such as `web_sys` are not available when your component is
 rendering on the server side.
 Your application will panic if you try to use them.
 You should isolate logics that need Web APIs in `use_effect` or
-`use_effect_with_deps` as effects are not executed during server-side rendering.
+`use_effect_with` as effects are not executed during server-side rendering.
 
 :::
 

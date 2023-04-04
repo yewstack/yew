@@ -59,7 +59,7 @@ where
 ```
 
 This simple hook can be created by composing built-in hooks. For this example, we'll use the
-`use_effect_with_deps` hook, so an event listener can be recreated when the hook arguments change.
+`use_effect_with` hook, so an event listener can be recreated when the hook arguments change.
 
 ```rust
 use yew::prelude::*;
@@ -87,7 +87,8 @@ where
         callback: Callback::from(callback),
     };
 
-    use_effect_with_deps(
+    use_effect_with(
+        deps,
         |deps| {
             let EventDependents {
                 target,
@@ -103,7 +104,6 @@ where
                 drop(listener);
             }
         },
-        deps,
     );
 }
 ```
