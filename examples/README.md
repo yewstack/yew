@@ -53,8 +53,8 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [simple_ssr](simple_ssr)                           | F  | Demonstrates server-side rendering                                                                                                 |
 | [suspense](suspense)                               | F  | This is an example that demonstrates `<Suspense />` support                                                                        |
 | [function_memory_game](function_memory_game)       | F  | Implementation of [Memory Game](https://github.com/bradlygreen/Memory-Game)                                                        |
-| [timer](timer)                                     | S  | Demonstrates the use of the interval and timeout services using class components                                                                          |
-| [timer_functional](timer_functional)                                     | F  | Demonstrates the use of the interval and timeout services using function components                                                                          |
+| [timer](timer)                                     | S  | Demonstrates the use of the interval and timeout services using class components                                                   |
+| [timer_functional](timer_functional)               | F  | Demonstrates the use of the interval and timeout services using function components                                                |
 | [todomvc](todomvc)                                 | S  | Implementation of [TodoMVC](http://todomvc.com/)                                                                                   |
 | [two_apps](two_apps)                               | S  | Runs two separate Yew apps which can communicate with each other                                                                   |
 | [web_worker_fib](web_worker_fib)                   | S  | Calculate fibonacci value of a number in a web worker thread using `gloo-worker`                                                   |
