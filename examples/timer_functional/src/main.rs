@@ -102,10 +102,14 @@ fn App() -> Html {
         timeout_handle: None,
     });
 
+    let mut key = 0;
     let messages: Html = state
         .messages
         .iter()
-        .map(|message| html! { <p>{ message }</p> })
+        .map(|message| {
+            key += 1;
+            html! { <p key={ key }>{ message }</p> }
+        })
         .collect();
 
     let has_job = state.interval_handle.is_some() || state.timeout_handle.is_some();
