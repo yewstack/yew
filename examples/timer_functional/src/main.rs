@@ -82,12 +82,9 @@ fn clock() -> Html {
 
     {
         let time = time.clone();
-        use_effect_with_deps(
-            |_| {
-                Interval::new(1000, move || time.set(get_current_time())).forget();
-            },
-            (),
-        );
+        use_effect_with((), |_| {
+            Interval::new(1000, move || time.set(get_current_time())).forget();
+        });
     }
     html!(
         <div id="time">{ time.as_str() }</div>
