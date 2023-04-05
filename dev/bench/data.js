@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1680720988591,
+  "lastUpdate": 1680721305061,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -6660,6 +6660,208 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-v0.20.0-keyed 33_startup-mainthreadcost",
             "value": "299.26",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 34_startup-totalbytes",
+            "value": "304.4326171875",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Julius Lungys",
+            "username": "voidpumpkin",
+            "email": "32368314+voidpumpkin@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "24d79e840a904e0d2c0fc79967608354023a3e82",
+          "message": "Add webkitdirectory to the boolean attributes list (#3214)\n\n* Implement bool IntoPropValue String & AttrValue\r\n\r\n* Revert \"Implement bool IntoPropValue String & AttrValue\"\r\n\r\nThis reverts commit 8468e7a3d9d5d55fc6e1360e49bb2be9f3772376.\r\n\r\n* Add webkitdirectory to the boolean attributes list",
+          "timestamp": "2023-04-05T18:40:12Z",
+          "url": "https://github.com/yewstack/yew/commit/24d79e840a904e0d2c0fc79967608354023a3e82"
+        },
+        "date": 1680721303237,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.19.3-keyed 01_run1k",
+            "value": "212.9745",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 02_replace1k",
+            "value": "252.5375",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 03_update10th1k_x16",
+            "value": "758.11",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 04_select1k",
+            "value": "339.37300000000005",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 05_swap1k",
+            "value": "176.1025",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 06_remove-one-1k",
+            "value": "259.4135",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 07_create10k",
+            "value": "3108.731",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 08_create1k-after1k_x2",
+            "value": "585.15",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 09_clear1k_x8",
+            "value": "226.053",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 21_ready-memory",
+            "value": "2.1689577102661133",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 22_run-memory",
+            "value": "6.580649375915527",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 23_update5-memory",
+            "value": "6.808969497680664",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 25_run-clear-memory",
+            "value": "5.760220527648926",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 26_run-10k-memory",
+            "value": "46.66789150238037",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 31_startup-ci",
+            "value": "1887.595",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 32_startup-bt",
+            "value": "63.639999999999986",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 33_startup-mainthreadcost",
+            "value": "369.85600000000017",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 34_startup-totalbytes",
+            "value": "308.181640625",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 01_run1k",
+            "value": "229.0585",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 02_replace1k",
+            "value": "262.6915",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 03_update10th1k_x16",
+            "value": "584.7235000000001",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 04_select1k",
+            "value": "86.963",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 05_swap1k",
+            "value": "110.652",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 06_remove-one-1k",
+            "value": "211.0885",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 07_create10k",
+            "value": "3206.9120000000003",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 08_create1k-after1k_x2",
+            "value": "573.4795",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 09_clear1k_x8",
+            "value": "207.3835",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 21_ready-memory",
+            "value": "2.12906551361084",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 22_run-memory",
+            "value": "6.653080940246582",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 23_update5-memory",
+            "value": "6.865934371948242",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 25_run-clear-memory",
+            "value": "5.522337913513184",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 26_run-10k-memory",
+            "value": "45.431541442871094",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 31_startup-ci",
+            "value": "1866.93",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 32_startup-bt",
+            "value": "66.57999999999998",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 33_startup-mainthreadcost",
+            "value": "420.1320000000003",
             "unit": ""
           },
           {
