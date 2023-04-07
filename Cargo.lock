@@ -2018,9 +2018,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.55"
+version = "1.0.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d0dd4be24fcdcfeaa12a432d588dc59bbad6cad3510c67e74a2b6b2fc950564"
+checksum = "2b63bdb0cd06f1f4dedf69b254734f9b45af66e4a031e42a7480257d9898b435"
 dependencies = [
  "unicode-ident",
 ]
@@ -2635,6 +2635,15 @@ dependencies = [
  "gloo",
  "js-sys",
  "wasm-bindgen",
+ "yew",
+]
+
+[[package]]
+name = "timer_functional"
+version = "0.1.0"
+dependencies = [
+ "gloo",
+ "js-sys",
  "yew",
 ]
 
