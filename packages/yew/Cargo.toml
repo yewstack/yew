@@ -40,7 +40,7 @@ wasm-bindgen-futures = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # We still need tokio as we have docs linked to it.
-tokio = { version = "1.26", features = ["rt"] }
+tokio = { version = "1.27", features = ["rt"] }
 
 [dependencies.web-sys]
 version = "^0.3.59"
@@ -79,7 +79,7 @@ features = [
 ]
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-tokio = { version = "1.26", features = ["full"] }
+tokio = { version = "1.27", features = ["full"] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
